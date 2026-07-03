@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect } from "react";
+import ReviewsSection from "@/components/product/ReviewsSection";
 import client from "@/api/client";
 import { auth } from "@/api/auth";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -184,6 +185,8 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      <ReviewsSection productId={id} currentUser={user} />
     </div>
   );
 }
