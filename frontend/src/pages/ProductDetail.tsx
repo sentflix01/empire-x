@@ -4,7 +4,7 @@ import ReviewsSection from "@/components/product/ReviewsSection";
 import client from "@/api/client";
 import { auth } from "@/api/auth";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Heart, Share2, ShoppingCart, MapPin, Star, Truck, Shield, MessageCircle } from "lucide-react";
+import { ArrowLeft, Heart, Share2, ShoppingCart, MapPin, Star, Truck, Shield, MessageCircle, Bell, BellOff, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/lib/CartContext";
@@ -22,6 +22,11 @@ export default function ProductDetail() {
   const [wishlisted, setWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [alertActive, setAlertActive] = useState(false);
+  const [alertTarget, setAlertTarget] = useState("");
+  const [alertInput, setAlertInput] = useState("");
+  const [showAlertForm, setShowAlertForm] = useState(false);
+  const [alertSaving, setAlertSaving] = useState(false);
 
   useEffect(() => {
     loadProduct();
@@ -38,6 +43,12 @@ export default function ProductDetail() {
         setUser(me);
         const { data } = await client.get(`/api/wishlists/check/${id}`);
         setWishlisted(data.wishlisted);
+        // Check existing price alert
+        try {
+          const { data: alerts } = await client.get("/api/wishlists/price-alerts");
+          const existing = alerts.find((a: any) => a.product_id === id);
+          if (existing) { setAlertActive(true); setAlertTarget(String(existing.target_price)); }
+        } catch {}
       } catch {}
       // Load seller profile
       if (p?.seller_id) {
@@ -55,8 +66,7 @@ export default function ProductDetail() {
     setLoading(false);
   };
 
-  const handleWishlist = async () => {
-    setWishlistLoading(true);
+  const handleWishlist = async () => {    setWishlistLoading(true);
     try {
       if (wishlisted) {
         await client.delete(`/api/wishlists/${id}`);
@@ -71,6 +81,31 @@ export default function ProductDetail() {
       toast.error(e?.response?.data?.error || "Failed to update wishlist");
     }
     setWishlistLoading(false);
+  };
+
+  const handleSetAlert = async () => {
+    const price = parseFloat(alertInput);
+    if (!alertInput || isNaN(price) || price <= 0) { toast.error("Enter a valid target price"); return; }
+    setAlertSaving(true);
+    try {
+      await client.post("/api/wishlists/price-alerts", { product_id: id, target_price: price });
+      setAlertActive(true);
+      setAlertTarget(String(price));
+      setShowAlertForm(false);
+      setAlertInput("");
+      toast.success(`🔔 Alert set! We'll notify you when price drops to ${price.toLocaleString()} ${product?.currency || "ETB"}`);
+    } catch (e) {
+      toast.error(e?.response?.data?.error || "Failed to set alert");
+    }
+    setAlertSaving(false);
+  };
+
+  const handleRemoveAlert = async () => {
+    try {
+      await client.delete(`/api/wishlists/price-alerts/${id}`);
+      setAlertActive(false); setAlertTarget(""); setShowAlertForm(false);
+      toast.success("Price alert removed");
+    } catch { toast.error("Failed to remove alert"); }
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
@@ -183,6 +218,45 @@ export default function ProductDetail() {
             </Button>
             <ShareButton title={product.title} text={product.description?.slice(0, 100)} url={window.location.href} size="md" />
           </div>
+
+          {/* Price Alert */}
+          {user && user.id !== product.seller_id && (
+            <div className="pt-1">
+              {alertActive ? (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
+                  <Bell className="w-4 h-4 text-amber-600 shrink-0" />
+                  <p className="text-xs text-amber-700 dark:text-amber-400 flex-1">
+                    Alert active — notifying you when price drops to <strong>{parseFloat(alertTarget).toLocaleString()} {product.currency || "ETB"}</strong>
+                  </p>
+                  <button onClick={handleRemoveAlert} className="text-xs text-amber-600 hover:text-red-500 font-medium transition-colors">Remove</button>
+                </div>
+              ) : showAlertForm ? (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary/40 border border-border/50">
+                  <Bell className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <input
+                    type="number"
+                    value={alertInput}
+                    onChange={e => setAlertInput(e.target.value)}
+                    placeholder={`Target price (${product.currency || "ETB"})`}
+                    className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+                    onKeyDown={e => { if (e.key === "Enter") handleSetAlert(); }}
+                    autoFocus
+                  />
+                  <button onClick={handleSetAlert} disabled={alertSaving}
+                    className="text-xs font-semibold text-amber-600 hover:text-amber-700 disabled:opacity-50 transition-colors">
+                    {alertSaving ? "Saving…" : "Set"}
+                  </button>
+                  <button onClick={() => { setShowAlertForm(false); setAlertInput(""); }}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
+                </div>
+              ) : (
+                <button onClick={() => setShowAlertForm(true)}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-amber-600 transition-colors">
+                  <Bell className="w-3.5 h-3.5" /> Set price drop alert
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

@@ -107,6 +107,7 @@ app.use('/api/maps', require('./routes/maps'));
 app.use('/api/telegram', require('./routes/telegram'));
 app.use('/api/cart', require('./routes/cart'));
 app.use('/api/wishlists', require('./routes/wishlists'));
+app.use('/api/price-alerts', require('./routes/wishlists')); // price alert sub-routes live in wishlists
 app.use('/api/variants', require('./routes/variants'));
 
 // ── Global error handler ──────────────────────────────────────────────────────

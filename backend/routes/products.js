@@ -1,6 +1,9 @@
 const router = require('express').Router();
+const pool = require('../db/pool');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
+const { emitNotification } = require('../socket');
+const { sendPushToUser } = require('./push');
 
 // List
 router.get('/', optionalAuth, async (req, res) => {
@@ -49,7 +52,48 @@ router.put('/:id', requireAuth, async (req, res) => {
     if (existing.seller_id !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    res.json(await updateRecord('products', req.params.id, req.body));
+    const updated = await updateRecord('products', req.params.id, req.body);
+
+    // Fire price alerts if price dropped
+    if (req.body.price != null && parseFloat(req.body.price) < parseFloat(existing.price)) {
+      const newPrice = parseFloat(req.body.price);
+      try {
+        const { rows: alerts } = await pool.query(
+          `SELECT * FROM price_alerts
+           WHERE product_id = $1 AND is_triggered = FALSE AND target_price >= $2`,
+          [req.params.id, newPrice]
+        );
+        for (const alert of alerts) {
+          // Mark as triggered
+          await pool.query(
+            'UPDATE price_alerts SET is_triggered = TRUE WHERE id = $1',
+            [alert.id]
+          );
+          // Create in-app notification
+          const { rows: [notif] } = await pool.query(
+            `INSERT INTO notifications (user_id, type, title, body, link, is_read)
+             VALUES ($1, 'order', $2, $3, $4, false) RETURNING *`,
+            [
+              alert.user_id,
+              `🏷️ Price drop! ${existing.title}`,
+              `Price dropped to ${newPrice.toLocaleString()} ${existing.currency || 'ETB'} — your target was ${alert.target_price.toLocaleString()}`,
+              `/products/${req.params.id}`,
+            ]
+          );
+          emitNotification(alert.user_id, notif);
+          sendPushToUser(
+            alert.user_id,
+            `🏷️ Price drop! ${existing.title}`,
+            `Now ${newPrice.toLocaleString()} ${existing.currency || 'ETB'}`,
+            `/products/${req.params.id}`
+          ).catch(() => {});
+        }
+      } catch (alertErr) {
+        console.error('Price alert error:', alertErr.message);
+      }
+    }
+
+    res.json(updated);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update product' });
   }
