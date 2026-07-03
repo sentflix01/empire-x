@@ -1,0 +1,41 @@
+{
+  "name": "empire-x-server",
+  "version": "1.0.0",
+  "description": "Empire X backend API server",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "migrate": "node db/migrate-all.js",
+    "seed": "node db/seed.js",
+    "clean": "node db/cleanup-seed-data.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.540.0",
+    "@aws-sdk/s3-request-presigner": "^3.540.0",
+    "bcryptjs": "2.4.3",
+    "cors": "2.8.5",
+    "dotenv": "16.4.5",
+    "express": "4.18.2",
+    "express-rate-limit": "7.2.0",
+    "express-validator": "7.0.1",
+    "google-auth-library": "9.6.3",
+    "helmet": "7.1.0",
+    "jsonwebtoken": "9.0.2",
+    "multer": "1.4.5-lts.1",
+    "node-fetch": "^3.3.2",
+    "nodemailer": "6.9.9",
+    "pg": "8.11.3",
+    "sharp": "^0.33.2",
+    "socket.io": "^4.8.3",
+    "stripe": "14.21.0",
+    "uuid": "9.0.1",
+    "web-push": "^3.6.6"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "axios": "^1.7.9",
+    "nodemon": "3.1.0"
+  }
+}

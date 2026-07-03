@@ -1,0 +1,75 @@
+{
+    "name": "Order",
+    "type": "object",
+    "properties": {
+      "buyer_id": {
+        "type": "string"
+      },
+      "seller_id": {
+        "type": "string"
+      },
+      "product_id": {
+        "type": "string"
+      },
+      "product_title": {
+        "type": "string"
+      },
+      "product_type": {
+        "type": "string",
+        "enum": [
+          "product",
+          "course",
+          "service",
+          "booking",
+          "menu_item"
+        ],
+        "default": "product"
+      },
+      "quantity": {
+        "type": "number",
+        "default": 1
+      },
+      "unit_price": {
+        "type": "number"
+      },
+      "total_price": {
+        "type": "number"
+      },
+      "currency": {
+        "type": "string",
+        "default": "ETB"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "paid",
+          "processing",
+          "completed",
+          "cancelled"
+        ],
+        "default": "pending"
+      },
+      "notes": {
+        "type": "string"
+      },
+      "buyer_name": {
+        "type": "string"
+      },
+      "buyer_phone": {
+        "type": "string"
+      },
+      "buyer_email": {
+        "type": "string"
+      },
+      "delivery_address": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "buyer_id",
+      "seller_id",
+      "product_title",
+      "total_price"
+    ]
+  }

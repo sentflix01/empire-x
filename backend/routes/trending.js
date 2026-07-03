@@ -1,0 +1,57 @@
+const router = require('express').Router();
+const pool = require('../db/pool');
+const { optionalAuth } = require('../middleware/auth');
+
+// GET /api/trending — aggregated explore/trending data
+router.get('/', optionalAuth, async (req, res) => {
+  try {
+    const [posts, products, showrooms, tasks, users] = await Promise.all([
+      // Trending posts — most liked in last 48 hours
+      pool.query(
+        `SELECT p.*, up.display_name, up.avatar_url
+         FROM posts p
+         LEFT JOIN user_profiles up ON up.user_id = p.author_id
+         WHERE p.created_at > NOW() - INTERVAL '48 hours'
+         ORDER BY p.like_count DESC, p.comment_count DESC
+         LIMIT 10`
+      ),
+      // Top products by views
+      pool.query(
+        `SELECT id, seller_id, title, price, currency, images, category, view_count, average_rating
+         FROM products WHERE status = 'active'
+         ORDER BY view_count DESC LIMIT 8`
+      ),
+      // Featured showrooms
+      pool.query(
+        `SELECT id, owner_id, title, description, category, cover_image, logo_url, view_count
+         FROM showrooms WHERE status = 'published'
+         ORDER BY view_count DESC LIMIT 6`
+      ),
+      // Latest open tasks
+      pool.query(
+        `SELECT id, requester_id, title, task_type, offered_payment, currency, location, deadline
+         FROM tasks WHERE status = 'open'
+         ORDER BY created_at DESC LIMIT 8`
+      ),
+      // New users / suggested people
+      pool.query(
+        `SELECT user_id, display_name, avatar_url, headline, follower_count, is_verified
+         FROM user_profiles
+         ORDER BY follower_count DESC, created_at DESC LIMIT 8`
+      ),
+    ]);
+
+    res.json({
+      trending_posts: posts.rows,
+      top_products: products.rows,
+      featured_showrooms: showrooms.rows,
+      open_tasks: tasks.rows,
+      suggested_users: users.rows,
+    });
+  } catch (err) {
+    console.error('Trending error:', err);
+    res.status(500).json({ error: 'Failed to fetch trending data' });
+  }
+});
+
+module.exports = router;

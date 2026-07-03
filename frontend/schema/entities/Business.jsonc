@@ -1,0 +1,65 @@
+{
+    "name": "Business",
+    "type": "object",
+    "properties": {
+      "owner_id": {
+        "type": "string",
+        "description": "Reference to the user who owns this business"
+      },
+      "business_name": {
+        "type": "string"
+      },
+      "business_category": {
+        "type": "string",
+        "enum": [
+          "shop",
+          "course",
+          "service",
+          "restaurant",
+          "portfolio",
+          "event",
+          "realestate",
+          "health",
+          "other"
+        ]
+      },
+      "business_template": {
+        "type": "string"
+      },
+      "business_description": {
+        "type": "string"
+      },
+      "business_logo_url": {
+        "type": "string"
+      },
+      "business_cover_url": {
+        "type": "string"
+      },
+      "business_sections": {
+        "type": "string",
+        "description": "JSON string of website section blocks"
+      },
+      "business_theme_color": {
+        "type": "string",
+        "default": "#D4AF37"
+      },
+      "business_contact_email": {
+        "type": "string"
+      },
+      "business_contact_phone": {
+        "type": "string"
+      },
+      "business_address": {
+        "type": "string"
+      },
+      "business_hours": {
+        "type": "string",
+        "description": "JSON string of operating hours"
+      }
+    },
+    "required": [
+      "owner_id",
+      "business_name",
+      "business_category"
+    ]
+  }

@@ -1,0 +1,49 @@
+{
+    "name": "Conversation",
+    "type": "object",
+    "properties": {
+      "participant_ids": {
+        "type": "string",
+        "description": "JSON array of user IDs"
+      },
+      "participant_names": {
+        "type": "string",
+        "description": "JSON array of display names"
+      },
+      "last_message": {
+        "type": "string"
+      },
+      "last_message_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "type": {
+        "type": "string",
+        "enum": [
+          "dm",
+          "group",
+          "channel"
+        ],
+        "default": "dm"
+      },
+      "name": {
+        "type": "string",
+        "description": "Display name for groups and channels"
+      },
+      "description": {
+        "type": "string",
+        "description": "Description for groups and channels"
+      },
+      "avatar_url": {
+        "type": "string",
+        "description": "Avatar image URL for groups and channels"
+      },
+      "admin_id": {
+        "type": "string",
+        "description": "Creator of the group or channel"
+      }
+    },
+    "required": [
+      "participant_ids"
+    ]
+  }

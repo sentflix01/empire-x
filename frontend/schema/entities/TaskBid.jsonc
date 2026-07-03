@@ -1,0 +1,39 @@
+{
+    "name": "TaskBid",
+    "type": "object",
+    "properties": {
+      "task_id": {
+        "type": "string",
+        "description": "Reference to the Task being bid on"
+      },
+      "bidder_id": {
+        "type": "string",
+        "description": "The user placing the bid"
+      },
+      "bidder_name": {
+        "type": "string"
+      },
+      "bid_amount": {
+        "type": "number",
+        "description": "The amount the agent is willing to do the task for"
+      },
+      "message": {
+        "type": "string",
+        "description": "Optional pitch message from the bidder"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "accepted",
+          "rejected"
+        ],
+        "default": "pending"
+      }
+    },
+    "required": [
+      "task_id",
+      "bidder_id",
+      "bid_amount"
+    ]
+  }

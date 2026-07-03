@@ -1,0 +1,12 @@
+{
+  "name": "empire-x",
+  "version": "1.0.0",
+  "description": "Empire X — African Superapp. Monorepo root.",
+  "private": true,
+  "scripts": {
+    "dev": "start \"backend\" cmd /k \"cd backend && npm run dev\" && start \"frontend\" cmd /k \"cd frontend && npm run dev\"",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "migrate": "cd backend && npm run migrate",
+    "build": "cd frontend && npm run build"
+  }
+}
