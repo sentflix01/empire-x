@@ -8,7 +8,7 @@ import {
   Plus, Crown, TrendingUp, Briefcase, GraduationCap, CalendarDays,
   Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, MapPin, Tag,
   Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
-  PanelLeftClose, PanelLeftOpen, Menu, X,
+  PanelLeftClose, PanelLeftOpen, Menu, X, Gift,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { toggleLanguage } from "@/lib/i18n";
@@ -221,6 +221,7 @@ export default function AppLayout() {
     { path: "/orders", icon: Package, label: "My Orders" },
     { path: "/cart", icon: ShoppingCart, label: "Cart", badge: cart.count > 0 ? cart.count : null },
     { path: "/wallet", icon: Wallet, label: "Wallet" },
+    { path: "/referral", icon: Gift, label: "Referral" },
     { path: "/coupons", icon: Tag, label: "My Coupons" },
     { path: "/analytics", icon: BarChart3, label: "Analytics" },
   ];

@@ -66,6 +66,7 @@ import CourseDetail from '@/pages/CourseDetail';
 import Wallet from '@/pages/Wallet';
 import NearbyMap from '@/pages/NearbyMap';
 import Admin from '@/pages/Admin';
+import Referral from '@/pages/Referral';
 
 // Public routes — no auth required
 const PUBLIC_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'];
@@ -156,6 +157,7 @@ const AuthenticatedApp = () => {
         <Route path="/courses/:id" element={<CourseDetail />} />
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/nearby" element={<NearbyMap />} />
+        <Route path="/referral" element={<Referral />} />
         <Route path="/admin" element={<Admin />} />
       </Route>
 

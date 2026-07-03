@@ -1,17 +1,20 @@
 // @ts-nocheck
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import client from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Lock, Loader2 } from "lucide-react";
+import { UserPlus, Mail, Lock, Loader2, Gift } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
 
 export default function Register() {
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get("ref") || "";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -45,6 +48,14 @@ export default function Register() {
       const result = await client.post('/api/auth/verify-otp', { email, otpCode });
       if (result?.data?.access_token) {
         localStorage.setItem('access_token', result.data.access_token);
+      }
+      // Auto-apply referral code from URL if present
+      if (refCode) {
+        try {
+          await client.post('/api/referral/apply', { code: refCode });
+        } catch {
+          // Silently ignore — referral errors shouldn't block registration
+        }
       }
       window.location.href = "/onboarding";
     } catch (err) {
@@ -160,6 +171,16 @@ export default function Register() {
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
           {error}
+        </div>
+      )}
+
+      {/* Referral code banner */}
+      {refCode && (
+        <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 flex items-center gap-2">
+          <Gift className="w-4 h-4 text-amber-600 shrink-0" />
+          <p className="text-sm text-amber-700 dark:text-amber-400">
+            Referral code <strong>{refCode}</strong> will be applied — you'll earn 20 bonus points!
+          </p>
         </div>
       )}
 
