@@ -18,6 +18,7 @@ import { useCart } from "@/lib/CartContext";
 import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import { toast } from "sonner";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
+import AiAssistant from "@/components/AiAssistant";
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
 function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string } | null }) {
@@ -669,6 +670,9 @@ export default function AppLayout() {
 
       {/* Push notification permission banner */}
       <PushPermissionBanner />
+
+      {/* AI Assistant floating widget */}
+      <AiAssistant />
     </div>
   );
 }
