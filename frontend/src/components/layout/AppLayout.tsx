@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useCart } from "@/lib/CartContext";
 import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import { toast } from "sonner";
+import PushPermissionBanner from "@/components/PushPermissionBanner";
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
 function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string } | null }) {
@@ -665,6 +666,9 @@ export default function AppLayout() {
           </button>
         </div>
       </nav>
+
+      {/* Push notification permission banner */}
+      <PushPermissionBanner />
     </div>
   );
 }

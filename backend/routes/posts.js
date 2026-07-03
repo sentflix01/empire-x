@@ -4,6 +4,7 @@ const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
 const { syncHashtags } = require('./hashtags');
 const { emitNotification } = require('../socket');
+const { sendPushToUser } = require('./push');
 
 // List posts — supports smart feed with random offset for variety
 router.get('/', optionalAuth, async (req, res) => {
@@ -163,6 +164,7 @@ router.post('/:id/like', requireAuth, async (req, res) => {
         [postRows[0].author_id, `${likerName} liked your post`, req.user.id]
       );
       emitNotification(postRows[0].author_id, notif);
+      sendPushToUser(postRows[0].author_id, `${likerName} liked your post`, '', '/notifications').catch(() => {});
     }
 
     res.json({ liked: true });
@@ -210,6 +212,7 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
         [postRows[0].author_id, `${commenterName} commented on your post`, content.slice(0, 80)]
       );
       emitNotification(postRows[0].author_id, notif);
+      sendPushToUser(postRows[0].author_id, `${commenterName} commented on your post`, content.slice(0, 80), '/notifications').catch(() => {});
     }
 
     res.status(201).json(rows[0]);

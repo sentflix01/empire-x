@@ -3,6 +3,7 @@ const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { createRecord, updateRecord, deleteRecord } = require('../utils/crud');
 const { emitNotification } = require('../socket');
+const { sendPushToUser } = require('./push');
 
 // Get my notifications
 router.get('/', requireAuth, async (req, res) => {
@@ -40,6 +41,8 @@ router.post('/', requireAuth, async (req, res) => {
     });
     // Push real-time notification to the recipient via Socket.IO
     emitNotification(user_id, notif);
+    // Also send a Web Push notification (works when app is closed)
+    sendPushToUser(user_id, title, body || '', link || '/notifications').catch(() => {});
     res.status(201).json(notif);
   } catch (err) {
     res.status(500).json({ error: 'Failed to create notification' });

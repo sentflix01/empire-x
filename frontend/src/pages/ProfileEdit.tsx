@@ -3,7 +3,7 @@ import { auth } from "@/api/auth";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, User, Store, Eye, Radio } from "lucide-react";
+import { ArrowLeft, User, Store, Eye, Radio, Bell, BellOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,62 @@ import { BUSINESS_CATEGORIES, getTemplateById } from "@/lib/businessTemplates";
 import TemplateCard from "@/components/profile/TemplateCard";
 import ImageUpload from "@/components/ui/ImageUpload";
 import TickerBar, { TICKER_TYPES } from "@/components/feed/TickerBar";
+import { toast } from "sonner";
+import {
+  getPushPermission, subscribeToPush, unsubscribeFromPush, isPushGranted,
+} from "@/lib/push";
+
+/** Inline push notifications settings card */
+function PushSettingsCard() {
+  const [perm, setPerm] = useState(() => getPushPermission());
+  const [loading, setLoading] = useState(false);
+
+  const handleToggle = async () => {
+    setLoading(true);
+    if (perm === "granted") {
+      const ok = await unsubscribeFromPush();
+      if (ok) { setPerm("default"); toast.success("Push notifications disabled"); }
+      else toast.error("Failed to disable notifications");
+    } else {
+      const ok = await subscribeToPush();
+      if (ok) { setPerm("granted"); toast.success("Push notifications enabled 🔔"); }
+      else { setPerm(getPushPermission()); toast.error("Permission denied. Enable in browser settings."); }
+    }
+    setLoading(false);
+  };
+
+  if (getPushPermission() === "unsupported") return null;
+
+  return (
+    <div className="bg-card border border-border/50 rounded-2xl p-4 flex items-center gap-3">
+      <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${perm === "granted" ? "bg-amber-50 dark:bg-amber-900/30" : "bg-secondary/50"}`}>
+        {perm === "granted"
+          ? <Bell className="w-4 h-4 text-amber-600" />
+          : <BellOff className="w-4 h-4 text-muted-foreground" />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold">Push Notifications</p>
+        <p className="text-xs text-muted-foreground">
+          {perm === "granted" ? "Enabled — you'll get notified even when the app is closed"
+           : perm === "denied" ? "Blocked in browser settings"
+           : "Get notified about likes, messages and orders"}
+        </p>
+      </div>
+      {perm !== "denied" && (
+        <button
+          onClick={handleToggle}
+          disabled={loading}
+          className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${perm === "granted" ? "bg-amber-500" : "bg-secondary"}`}
+        >
+          <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${perm === "granted" ? "translate-x-5" : "translate-x-0.5"}`} />
+        </button>
+      )}
+      {perm === "denied" && (
+        <span className="text-[10px] text-muted-foreground shrink-0">Blocked</span>
+      )}
+    </div>
+  );
+}
 
 export default function ProfileEdit() {
   const navigate = useNavigate();
@@ -289,6 +345,9 @@ export default function ProfileEdit() {
             <Button onClick={handleSavePersonal} disabled={saving || !personal.display_name} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
               {saving ? "Saving..." : "Save Profile"}
             </Button>
+
+            {/* Push Notifications toggle */}
+            <PushSettingsCard />
           </div>
         )}
 

@@ -5,6 +5,7 @@ const { listRecords, getRecord, createRecord, updateRecord } = require('../utils
 const { collectCommission } = require('./commission');
 const { notifyUser } = require('./telegram');
 const { emitNotification } = require('../socket');
+const { sendPushToUser } = require('./push');
 
 // Only initialise Stripe if the key is configured
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -98,6 +99,8 @@ router.put('/:id', requireAuth, async (req, res) => {
       ]);
       emitNotification(existing.buyer_id, buyerNotif);
       emitNotification(existing.seller_id, sellerNotif);
+      sendPushToUser(existing.buyer_id, '📦 Order completed!', `Your order for ${existing.product_title} is complete.`, '/orders').catch(() => {});
+      sendPushToUser(existing.seller_id, '✅ Sale completed!', `Order for ${existing.product_title} has been completed.`, '/orders').catch(() => {});
     }
     res.json(updated);
   } catch (err) {
