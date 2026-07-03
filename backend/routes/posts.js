@@ -3,6 +3,7 @@ const pool = require('../db/pool');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
 const { syncHashtags } = require('./hashtags');
+const { emitNotification } = require('../socket');
 
 // List posts — supports smart feed with random offset for variety
 router.get('/', optionalAuth, async (req, res) => {
@@ -150,6 +151,20 @@ router.post('/:id/like', requireAuth, async (req, res) => {
     }
     await pool.query('INSERT INTO likes (target_id, target_type, user_id) VALUES ($1, $2, $3)', [id, 'post', req.user.id]);
     await pool.query('UPDATE posts SET like_count = like_count + 1 WHERE id = $1', [id]);
+
+    // Notify post author (not the liker themselves)
+    const { rows: postRows } = await pool.query('SELECT author_id, author_name FROM posts WHERE id = $1', [id]);
+    if (postRows.length && postRows[0].author_id !== req.user.id) {
+      const { rows: likerRows } = await pool.query('SELECT display_name FROM user_profiles WHERE user_id = $1', [req.user.id]);
+      const likerName = likerRows[0]?.display_name || 'Someone';
+      const { rows: [notif] } = await pool.query(
+        `INSERT INTO notifications (user_id, type, title, body, link, is_read)
+         VALUES ($1, 'like', $2, '', '/profile/' || $3, false) RETURNING *`,
+        [postRows[0].author_id, `${likerName} liked your post`, req.user.id]
+      );
+      emitNotification(postRows[0].author_id, notif);
+    }
+
     res.json({ liked: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to toggle like' });
@@ -184,6 +199,19 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
       [req.params.id, req.user.id, profile.display_name || null, profile.avatar_url || null, content]
     );
     await pool.query('UPDATE posts SET comment_count = comment_count + 1 WHERE id = $1', [req.params.id]);
+
+    // Notify post author
+    const { rows: postRows } = await pool.query('SELECT author_id FROM posts WHERE id = $1', [req.params.id]);
+    if (postRows.length && postRows[0].author_id !== req.user.id) {
+      const commenterName = profile.display_name || 'Someone';
+      const { rows: [notif] } = await pool.query(
+        `INSERT INTO notifications (user_id, type, title, body, link, is_read)
+         VALUES ($1, 'comment', $2, $3, '', false) RETURNING *`,
+        [postRows[0].author_id, `${commenterName} commented on your post`, content.slice(0, 80)]
+      );
+      emitNotification(postRows[0].author_id, notif);
+    }
+
     res.status(201).json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Failed to create comment' });

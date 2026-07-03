@@ -15,6 +15,8 @@ import { toggleLanguage } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/lib/CartContext";
+import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
+import { toast } from "sonner";
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
 function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string } | null }) {
@@ -184,12 +186,31 @@ export default function AppLayout() {
       }
       setCheckingProfile(false);
       loadUnreadCount(u);
+
+      // Connect socket and join personal room for live notifications
+      connectSocket();
+      const s = getSocket();
+      s.on("new_notification", (notif) => {
+        setUnreadCount(c => c + 1);
+        toast(notif.title, {
+          description: notif.body || undefined,
+          duration: 5000,
+          action: notif.link
+            ? { label: "View", onClick: () => { window.location.href = notif.link; } }
+            : undefined,
+        });
+      });
     }).catch(() => setCheckingProfile(false));
+
+    return () => {
+      disconnectSocket();
+    };
   }, []);
 
   useEffect(() => {
     if (!user) return;
-    const interval = setInterval(() => loadUnreadCount(user), 30000);
+    // Keep a fallback poll every 5 minutes in case socket drops
+    const interval = setInterval(() => loadUnreadCount(user), 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [user]);
 

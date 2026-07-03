@@ -4,6 +4,7 @@ const { requireAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord } = require('../utils/crud');
 const { collectCommission } = require('./commission');
 const { notifyUser } = require('./telegram');
+const { emitNotification } = require('../socket');
 
 // Only initialise Stripe if the key is configured
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -81,6 +82,22 @@ router.put('/:id', requireAuth, async (req, res) => {
       collectCommission(existing.id, existing.seller_id, existing.total_price).catch(console.error);
       notifyUser(existing.seller_id, `✅ <b>Order Completed</b>\n${existing.product_title}\nAmount: ${existing.total_price} ${existing.currency}`).catch(() => {});
       notifyUser(existing.buyer_id, `📦 <b>Your order is complete!</b>\n${existing.product_title}\nThank you for shopping on Empire X 👑`).catch(() => {});
+
+      // Real-time notification to buyer and seller
+      const [{ rows: [buyerNotif] }, { rows: [sellerNotif] }] = await Promise.all([
+        pool.query(
+          `INSERT INTO notifications (user_id, type, title, body, link, is_read)
+           VALUES ($1, 'order', $2, $3, '/orders', false) RETURNING *`,
+          [existing.buyer_id, '📦 Order completed!', `Your order for ${existing.product_title} is complete.`]
+        ),
+        pool.query(
+          `INSERT INTO notifications (user_id, type, title, body, link, is_read)
+           VALUES ($1, 'order', $2, $3, '/orders', false) RETURNING *`,
+          [existing.seller_id, '✅ Sale completed!', `Order for ${existing.product_title} has been completed.`]
+        ),
+      ]);
+      emitNotification(existing.buyer_id, buyerNotif);
+      emitNotification(existing.seller_id, sellerNotif);
     }
     res.json(updated);
   } catch (err) {

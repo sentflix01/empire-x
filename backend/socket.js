@@ -24,6 +24,9 @@ function initSocket(httpServer, corsOrigin) {
   });
 
   ioInstance.on('connection', (socket) => {
+    // Join personal user room so we can push notifications to this user
+    socket.join(`user:${socket.user.id}`);
+
     socket.on('join_conversation', (conversationId) => {
       if (conversationId) socket.join(`conv:${conversationId}`);
     });
@@ -45,4 +48,10 @@ function emitNewMessage(conversationId, message) {
   }
 }
 
-module.exports = { initSocket, getIO, emitNewMessage };
+function emitNotification(userId, notification) {
+  if (ioInstance) {
+    ioInstance.to(`user:${userId}`).emit('new_notification', notification);
+  }
+}
+
+module.exports = { initSocket, getIO, emitNewMessage, emitNotification };

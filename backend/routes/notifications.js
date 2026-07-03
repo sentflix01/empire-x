@@ -2,6 +2,7 @@ const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { createRecord, updateRecord, deleteRecord } = require('../utils/crud');
+const { emitNotification } = require('../socket');
 
 // Get my notifications
 router.get('/', requireAuth, async (req, res) => {
@@ -37,6 +38,8 @@ router.post('/', requireAuth, async (req, res) => {
       link: link || '',
       is_read: false,
     });
+    // Push real-time notification to the recipient via Socket.IO
+    emitNotification(user_id, notif);
     res.status(201).json(notif);
   } catch (err) {
     res.status(500).json({ error: 'Failed to create notification' });
