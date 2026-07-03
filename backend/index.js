@@ -119,9 +119,11 @@ app.use((err, _req, res, _next) => {
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────
+const { startStoriesCleanup } = require('./db/cleanupStories');
 initSocket(server, process.env.FRONTEND_URL || 'http://localhost:5173');
 server.listen(PORT, () => {
   console.log(`\n👑 Empire X backend running on http://localhost:${PORT}`);
   console.log(`   Health: http://localhost:${PORT}/health`);
   console.log(`   WebSocket: enabled for real-time chat\n`);
+  startStoriesCleanup();
 });
