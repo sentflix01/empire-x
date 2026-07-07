@@ -6,6 +6,7 @@ const { collectCommission } = require('./commission');
 const { notifyUser } = require('./telegram');
 const { emitNotification } = require('../socket');
 const { sendPushToUser } = require('./push');
+const { sendOrderConfirmation } = require('../utils/mailer');
 
 // Only initialise Stripe if the key is configured
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -62,6 +63,14 @@ router.post('/', requireAuth, async (req, res) => {
     }
     const order = await createRecord('orders', { ...req.body, buyer_id: req.user.id });
     res.status(201).json(order);
+
+    // Send confirmation email to buyer (non-blocking)
+    try {
+      const { rows: buyers } = await pool.query('SELECT email FROM users WHERE id = $1', [req.user.id]);
+      if (buyers.length && buyers[0].email) {
+        sendOrderConfirmation(buyers[0].email, order).catch(() => {});
+      }
+    } catch { /* email failure should never break the order */ }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to create order' });
@@ -118,7 +127,7 @@ router.post('/checkout/session', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'product_title, unit_price, and seller_id are required' });
   }
   try {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [{

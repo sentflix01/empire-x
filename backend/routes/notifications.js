@@ -69,6 +69,7 @@ router.put('/:id/read', requireAuth, async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'Notification not found' });
     if (rows[0].user_id !== req.user.id) return res.status(403).json({ error: 'Forbidden' });
     const updated = await updateRecord('notifications', req.params.id, { is_read: true });
+    if (!updated) return res.status(404).json({ error: 'Notification not found' });
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: 'Failed to mark notification as read' });

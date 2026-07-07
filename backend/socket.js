@@ -5,8 +5,11 @@ let ioInstance = null;
 
 function initSocket(httpServer, corsOrigin) {
   const { Server } = require('socket.io');
+  const origins = Array.isArray(corsOrigin)
+    ? corsOrigin
+    : [corsOrigin || 'http://localhost:3000'];
   ioInstance = new Server(httpServer, {
-    cors: { origin: corsOrigin || 'http://localhost:5173', credentials: true },
+    cors: { origin: origins, credentials: true },
   });
 
   ioInstance.use(async (socket, next) => {

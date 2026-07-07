@@ -5,6 +5,41 @@ const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = req
 const { emitNotification } = require('../socket');
 const { sendPushToUser } = require('./push');
 
+const LOW_STOCK_THRESHOLD = 5; // notify when stock drops to or below this
+
+/**
+ * Check if stock just crossed the low-stock threshold and notify the seller.
+ * prevStock  — stock before the update
+ * newStock   — stock after the update
+ * product    — the product row
+ * sellerId   — UUID of the seller
+ */
+async function checkLowStockAlert(prevStock, newStock, product, sellerId) {
+  if (prevStock > LOW_STOCK_THRESHOLD && newStock <= LOW_STOCK_THRESHOLD && newStock >= 0) {
+    try {
+      const { rows: [notif] } = await pool.query(
+        `INSERT INTO notifications (user_id, type, title, body, link, is_read)
+         VALUES ($1, 'order', $2, $3, $4, false) RETURNING *`,
+        [
+          sellerId,
+          `⚠️ Low stock: ${product.title}`,
+          `Only ${newStock} unit${newStock !== 1 ? 's' : ''} left. Restock soon to avoid missed sales.`,
+          `/products/edit?id=${product.id}`,
+        ]
+      );
+      emitNotification(sellerId, notif);
+      sendPushToUser(
+        sellerId,
+        `⚠️ Low stock: ${product.title}`,
+        `Only ${newStock} unit${newStock !== 1 ? 's' : ''} left.`,
+        `/products/edit?id=${product.id}`
+      ).catch(() => {});
+    } catch (alertErr) {
+      console.error('Low-stock alert error:', alertErr.message);
+    }
+  }
+}
+
 // List
 router.get('/', optionalAuth, async (req, res) => {
   try {
@@ -53,6 +88,14 @@ router.put('/:id', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
     const updated = await updateRecord('products', req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Product not found' });
+
+    // Low-stock alert: check if stock just dropped to threshold
+    if (req.body.stock != null) {
+      const prevStock = parseInt(existing.stock ?? 0, 10);
+      const newStock  = parseInt(req.body.stock, 10);
+      await checkLowStockAlert(prevStock, newStock, existing, existing.seller_id);
+    }
 
     // Fire price alerts if price dropped
     if (req.body.price != null && parseFloat(req.body.price) < parseFloat(existing.price)) {

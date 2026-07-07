@@ -15,27 +15,23 @@ router.get('/', optionalAuth, async (req, res) => {
     if (feed === 'true' && !author_id && !post_type) {
       const lim = Math.min(parseInt(limit) || 30, 50);
       const { rows } = await pool.query(
-        `SELECT DISTINCT ON (id)
-                id, author_id, author_name, author_avatar, content, image_url,
-                post_type, like_count, comment_count, share_count,
-                created_at, updated_at, poll_options, poll_ends_at
-         FROM (
-           -- Recent posts (last 3 days)
-           (SELECT *, 1 AS feed_rank FROM posts
-            WHERE created_at > NOW() - INTERVAL '3 days'
-            ORDER BY RANDOM() LIMIT $1)
-           UNION ALL
-           -- Popular posts (high likes)
-           (SELECT *, 2 AS feed_rank FROM posts
-            WHERE like_count > 5
-            ORDER BY like_count DESC LIMIT $2)
-           UNION ALL
-           -- Random mix from all posts
-           (SELECT *, 3 AS feed_rank FROM posts
-            ORDER BY RANDOM() LIMIT $3)
-         ) combined
-         ORDER BY id, feed_rank
-         LIMIT $4`,
+        `WITH ranked AS (
+           SELECT DISTINCT ON (id) *
+           FROM (
+             (SELECT *, 1 AS feed_rank FROM posts
+              WHERE created_at > NOW() - INTERVAL '3 days'
+              ORDER BY RANDOM() LIMIT $1)
+             UNION ALL
+             (SELECT *, 2 AS feed_rank FROM posts
+              WHERE like_count > 5
+              ORDER BY like_count DESC LIMIT $2)
+             UNION ALL
+             (SELECT *, 3 AS feed_rank FROM posts
+              ORDER BY RANDOM() LIMIT $3)
+           ) combined
+           ORDER BY id, feed_rank
+         )
+         SELECT * FROM ranked ORDER BY feed_rank ASC, created_at DESC LIMIT $4`,
         [Math.ceil(lim * 0.5), Math.ceil(lim * 0.3), lim, lim]
       );
       return res.json(rows);

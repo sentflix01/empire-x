@@ -3,6 +3,9 @@ const pool = require('./pool');
 
 const schema = `
 -- ── Migration 7: Ticker opt-in defaults ─────────────────────────────────────
+-- Add ticker_type column if it doesn't exist (was missing from the original schema)
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS ticker_type TEXT DEFAULT 'none';
+
 -- Change ticker_type default from 'auto' to 'none' so new profiles start with ticker off
 ALTER TABLE user_profiles ALTER COLUMN ticker_type SET DEFAULT 'none';
 

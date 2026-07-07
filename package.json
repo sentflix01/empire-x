@@ -4,9 +4,12 @@
   "description": "Empire X — African Superapp. Monorepo root.",
   "private": true,
   "scripts": {
-    "dev": "start \"backend\" cmd /k \"cd backend && npm run dev\" && start \"frontend\" cmd /k \"cd frontend && npm run dev\"",
-    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "dev": "start \"backend\" cmd /k \"cd backend && npm run dev\" && start \"frontend-next\" cmd /k \"cd frontend-next && npm run dev\"",
+    "install:all": "cd backend && npm install && cd ../frontend-next && npm install",
     "migrate": "cd backend && npm run migrate",
-    "build": "cd frontend && npm run build"
+    "build": "cd frontend-next && npm run build",
+    "lint": "cd frontend-next && npm run lint",
+    "typecheck": "cd frontend-next && npx tsc --noEmit",
+    "test": "cd backend && npm test"
   }
 }

@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",
+    "test": "node test/e2e.test.js",
     "migrate": "node db/migrate-all.js",
     "seed": "node db/seed.js",
     "clean": "node db/cleanup-seed-data.js"
@@ -14,7 +15,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.540.0",
     "@aws-sdk/s3-request-presigner": "^3.540.0",
+    "@sentry/node": "^10.63.0",
     "bcryptjs": "2.4.3",
+    "bullmq": "^5.79.2",
     "cors": "2.8.5",
     "dotenv": "16.4.5",
     "express": "4.18.2",
@@ -22,11 +25,14 @@
     "express-validator": "7.0.1",
     "google-auth-library": "9.6.3",
     "helmet": "7.1.0",
+    "ioredis": "^5.11.1",
     "jsonwebtoken": "9.0.2",
     "multer": "1.4.5-lts.1",
     "node-fetch": "^3.3.2",
     "nodemailer": "6.9.9",
     "pg": "8.11.3",
+    "pino": "^10.3.1",
+    "pino-pretty": "^13.1.3",
     "sharp": "^0.33.2",
     "socket.io": "^4.8.3",
     "stripe": "14.21.0",

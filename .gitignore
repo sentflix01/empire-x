@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 frontend/node_modules/
+frontend-next/node_modules/
 backend/node_modules/
 
 # Environment files — NEVER commit these
@@ -8,11 +9,17 @@ backend/node_modules/
 .env.local
 frontend/.env
 frontend/.env.local
+frontend-next/.env
+frontend-next/.env.local
 backend/.env
 
 # Build output
 frontend/dist/
 frontend/build/
+frontend-next/.next/
+frontend-next/out/
+frontend-next/build/
+frontend-next/*.tsbuildinfo
 
 # Uploaded files (store on cloud storage in production)
 backend/uploads/*
@@ -21,6 +28,7 @@ backend/uploads/*
 # Logs
 *.log
 npm-debug.log*
+frontend-next/*.log
 
 # OS files
 .DS_Store

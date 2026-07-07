@@ -107,29 +107,10 @@ router.put('/:id', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
     const updated = await updateRecord('user_profiles', req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Profile not found' });
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update profile' });
-  }
-});
-
-// Upsert profile for current user
-router.put('/me/upsert', requireAuth, async (req, res) => {
-  try {
-    const { rows: existing } = await pool.query(
-      'SELECT id FROM user_profiles WHERE user_id = $1',
-      [req.user.id]
-    );
-    let profile;
-    if (existing.length) {
-      profile = await updateRecord('user_profiles', existing[0].id, { ...req.body, user_id: req.user.id });
-    } else {
-      profile = await createRecord('user_profiles', { ...req.body, user_id: req.user.id });
-    }
-    res.json(profile);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to upsert profile' });
   }
 });
 

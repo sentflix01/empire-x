@@ -15,7 +15,7 @@ router.get('/my-code', requireAuth, async (req, res) => {
     const { rows: referred } = await pool.query(
       'SELECT COUNT(*) FROM users WHERE referred_by = $1', [req.user.id]
     );
-    res.json({ code, referral_link: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/register?ref=${code}`, total_referred: parseInt(referred[0].count) });
+    res.json({ code, referral_link: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register?ref=${code}`, total_referred: parseInt(referred[0].count) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to get referral code' });
   }

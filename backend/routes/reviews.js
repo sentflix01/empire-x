@@ -2,6 +2,36 @@ const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 
+// List reviews (with optional product_id / reviewer_id filter)
+router.get('/', optionalAuth, async (req, res) => {
+  try {
+    const { product_id, reviewer_id, sort = '-created_at', limit = 50 } = req.query;
+    const conditions = [];
+    const params = [];
+    if (product_id) {
+      params.push(product_id);
+      conditions.push(`r.product_id = $${params.length}`);
+    }
+    if (reviewer_id) {
+      params.push(reviewer_id);
+      conditions.push(`r.reviewer_id = $${params.length}`);
+    }
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const orderBy = sort.startsWith('-') ? `r.${sort.slice(1)} DESC` : `r.${sort} ASC`;
+    params.push(Math.min(parseInt(limit) || 50, 200));
+    const { rows } = await pool.query(
+      `SELECT r.*, up.display_name, up.avatar_url
+       FROM reviews r
+       LEFT JOIN user_profiles up ON up.user_id = r.reviewer_id
+       ${where} ORDER BY ${orderBy} LIMIT $${params.length}`,
+      params
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
 // Get reviews for a product
 router.get('/product/:productId', optionalAuth, async (req, res) => {
   try {

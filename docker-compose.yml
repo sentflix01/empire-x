@@ -1,0 +1,97 @@
+version: '3.9'
+
+# Empire X — Local development with Docker Compose
+# Usage:
+#   docker compose up          — start all services
+#   docker compose up backend  — start backend + dependencies only
+#   docker compose down -v     — stop and remove volumes
+
+services:
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: empirex_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: empirex
+      POSTGRES_PASSWORD: empirex_dev
+      POSTGRES_DB: empirex
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U empirex"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: empirex_redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── Backend (Node.js + Express) ───────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: empirex_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://empirex:empirex_dev@postgres:5432/empirex
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: local_dev_secret_change_in_production
+      FRONTEND_URL: http://localhost:3000
+      # Add your own keys in backend/.env (gitignored)
+    env_file:
+      - ./backend/.env
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules  # don't overwrite container node_modules
+      - uploads_data:/app/uploads
+    command: npm run dev
+
+  # ── Frontend (Next.js) ────────────────────────────────────────────────────────
+  frontend:
+    image: node:20-alpine
+    container_name: empirex_frontend
+    working_dir: /app
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend-next:/app
+      - /app/node_modules
+    command: sh -c "npm install --legacy-peer-deps && npm run dev -- --hostname 0.0.0.0"
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads_data:

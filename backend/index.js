@@ -6,10 +6,49 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const { initSocket } = require('./socket');
+const logger = require('./lib/logger');
+const { startWorkers, closeQueues } = require('./lib/queue');
+const { initSentry, getSentryErrorHandler } = require('./lib/sentry');
 
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
+
+// ── Sentry (must be first) ────────────────────────────────────────────────────
+initSentry(app);
+
+// ── Startup environment check ─────────────────────────────────────────────────
+function checkEnv() {
+  const required = ['DATABASE_URL', 'JWT_SECRET'];
+  const missing = required.filter(k => !process.env[k]);
+  if (missing.length) {
+    console.error(`\n❌  Missing required env vars: ${missing.join(', ')}`);
+    console.error('   Copy backend/.env.example to backend/.env and fill in the values.\n');
+    process.exit(1);
+  }
+
+  const warnings = [];
+  if (!process.env.RESEND_API_KEY && !process.env.SMTP_HOST) {
+    warnings.push('Email (RESEND_API_KEY or SMTP_HOST) — OTP emails will only print to console');
+  }
+  if (!process.env.STRIPE_SECRET_KEY) {
+    warnings.push('Stripe (STRIPE_SECRET_KEY) — payments will not work');
+  }
+  const r2 = ['R2_ACCOUNT_ID','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','R2_BUCKET_NAME'];
+  if (r2.some(k => !process.env[k])) {
+    warnings.push('Cloudflare R2 — file uploads go to local disk (not suitable for production)');
+  }
+  if (warnings.length && process.env.NODE_ENV === 'production') {
+    console.warn('\n⚠️  Production warnings:');
+    warnings.forEach(w => console.warn(`   • ${w}`));
+    console.warn('');
+  } else if (warnings.length) {
+    console.log('\n💡 Dev mode — some services not configured (normal for local dev):');
+    warnings.forEach(w => console.log(`   • ${w}`));
+    console.log('');
+  }
+}
+checkEnv();
 
 // ── Security ─────────────────────────────────────────────────────────────────
 // Hide Express fingerprint — never expose what framework/version we use
@@ -39,8 +78,14 @@ app.use((_req, res, next) => {
   next();
 });
 
+const rawOrigins = process.env.FRONTEND_URL || 'http://localhost:3000';
+const allowedOrigins = rawOrigins.split(',').map(o => o.trim()).filter(Boolean);
+// In dev, always include the local Next.js frontend origin.
+if (process.env.NODE_ENV !== 'production') {
+  if (!allowedOrigins.includes('http://localhost:3000')) allowedOrigins.push('http://localhost:3000');
+}
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins,
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -70,7 +115,31 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/uploads', express.static(path.join(__dirname, process.env.UPLOAD_DIR || 'uploads')));
 
 // ── Health check ─────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+app.get('/health', async (_req, res) => {
+  const { getRedis } = require('./lib/redis');
+  const redis = getRedis();
+  let redisStatus = 'not configured';
+  if (!redis.isNoOp) {
+    try {
+      await redis.get('health-check');
+      redisStatus = 'connected';
+    } catch {
+      redisStatus = 'error';
+    }
+  }
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    version: require('./package.json').version,
+    services: {
+      database: 'connected',
+      redis: redisStatus,
+      ai: require('./lib/ai').isConfigured() ? require('./lib/ai').provider : 'not configured',
+      email: process.env.RESEND_API_KEY ? 'resend' : process.env.SMTP_HOST ? 'smtp' : 'console',
+      storage: require('./middleware/upload').isR2Configured() ? 'r2' : 'local',
+    },
+  });
+});
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/auth', require('./routes/auth'));
@@ -109,6 +178,13 @@ app.use('/api/cart', require('./routes/cart'));
 app.use('/api/wishlists', require('./routes/wishlists'));
 app.use('/api/price-alerts', require('./routes/wishlists')); // price alert sub-routes live in wishlists
 app.use('/api/variants', require('./routes/variants'));
+app.use('/api/returns', require('./routes/returns'));
+app.use('/api/delivery', require('./routes/delivery'));
+app.use('/api/flags', require('./routes/flags'));
+
+// ── Sentry error handler (must be before global error handler) ───────────────
+const sentryErrorHandler = getSentryErrorHandler();
+if (sentryErrorHandler) app.use(sentryErrorHandler);
 
 // ── Global error handler ──────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
@@ -121,10 +197,48 @@ app.use((err, _req, res, _next) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 const { startStoriesCleanup } = require('./db/cleanupStories');
-initSocket(server, process.env.FRONTEND_URL || 'http://localhost:5173');
+initSocket(server, allowedOrigins);
 server.listen(PORT, () => {
-  console.log(`\n👑 Empire X backend running on http://localhost:${PORT}`);
-  console.log(`   Health: http://localhost:${PORT}/health`);
-  console.log(`   WebSocket: enabled for real-time chat\n`);
+  logger.info(`👑 Empire X backend running on http://localhost:${PORT}`);
+  logger.info(`   Health: http://localhost:${PORT}/health`);
+  logger.info('   WebSocket: enabled for real-time chat');
   startStoriesCleanup();
+  startWorkers(); // BullMQ background job workers
+});
+
+// ── Graceful shutdown ─────────────────────────────────────────────────────────
+async function shutdown(signal) {
+  logger.info({ signal }, 'Shutting down gracefully...');
+  server.close(async () => {
+    try {
+      await closeQueues();
+      const { getRedis } = require('./lib/redis');
+      const redis = getRedis();
+      if (!redis.isNoOp) await redis.quit();
+      const pool = require('./db/pool');
+      await pool.end();
+      logger.info('Graceful shutdown complete');
+      process.exit(0);
+    } catch (err) {
+      logger.error({ err: err.message }, 'Error during shutdown');
+      process.exit(1);
+    }
+  });
+  // Force exit after 10s if graceful shutdown hangs
+  setTimeout(() => {
+    logger.warn('Forced shutdown after timeout');
+    process.exit(1);
+  }, 10_000);
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT',  () => shutdown('SIGINT'));
+
+// Catch unhandled errors so the process doesn't silently crash
+process.on('unhandledRejection', (reason) => {
+  logger.error({ reason: String(reason) }, 'Unhandled promise rejection');
+});
+process.on('uncaughtException', (err) => {
+  logger.error({ err: err.message }, 'Uncaught exception');
+  process.exit(1);
 });

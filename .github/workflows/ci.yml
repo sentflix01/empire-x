@@ -1,0 +1,110 @@
+name: Empire X CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Backend ──────────────────────────────────────────────────────────────────
+  backend:
+    name: Backend — Lint & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: empirex
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: empirex_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://empirex:testpassword@localhost:5432/empirex_test
+      JWT_SECRET: ci-test-secret-do-not-use-in-production-at-all
+      PORT: 3001
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run migrations
+        run: npm run migrate
+
+      - name: Run tests
+        run: npm test --if-present
+
+  # ── Next.js Frontend ─────────────────────────────────────────────────────────
+  frontend:
+    name: Frontend (Next.js) — Lint, Type-check & Build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend-next
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend-next/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://example-ci-build.railway.app
+          NEXT_PUBLIC_APP_URL: https://example-ci-build.vercel.app
+
+  # ── Security audit ───────────────────────────────────────────────────────────
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Audit backend
+        run: npm audit --audit-level=high --prefix backend || true
+
+      - name: Audit frontend (Next.js)
+        run: npm audit --audit-level=high --prefix frontend-next --legacy-peer-deps || true
