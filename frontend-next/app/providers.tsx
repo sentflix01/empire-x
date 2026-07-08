@@ -9,11 +9,14 @@
 import React, { useState } from 'react';
 import { ThemeProvider } from 'next-themes';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { I18nextProvider } from 'react-i18next';
 import { makeQueryClient } from '@/lib/query-client';
 import { AuthProvider } from '@/lib/AuthContext';
 import { CartProvider } from '@/lib/CartContext';
 import { Toaster } from '@/components/ui/toaster';
 import AiAssistant from '@/components/AiAssistant';
+// Initialize i18n — must be imported here so it runs before any component renders
+import i18n from '@/lib/i18n';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   // useState ensures the QueryClient is created once per component instance
@@ -21,16 +24,18 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => makeQueryClient());
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <AuthProvider>
-        <CartProvider>
-          <QueryClientProvider client={queryClient}>
-            {children}
-            <AiAssistant />
-            <Toaster />
-          </QueryClientProvider>
-        </CartProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <I18nextProvider i18n={i18n}>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <AuthProvider>
+          <CartProvider>
+            <QueryClientProvider client={queryClient}>
+              {children}
+              <AiAssistant />
+              <Toaster />
+            </QueryClientProvider>
+          </CartProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </I18nextProvider>
   );
 }

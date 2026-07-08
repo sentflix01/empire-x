@@ -13,7 +13,8 @@ import {
   PanelLeftClose, PanelLeftOpen, Menu, X, Gift,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { toggleLanguage } from "@/lib/i18n";
+import { useTranslation } from "react-i18next";
+import { toggleLanguage, getCurrentLang } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/lib/CartContext";
@@ -155,6 +156,8 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
 
 export default function AppLayout({ children }: { children?: React.ReactNode }) {
   const { theme, setTheme } = useTheme();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language === 'am' ? 'አማ' : 'EN';
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, authChecked, isLoadingAuth } = useAuth();
@@ -235,25 +238,25 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   };
 
   const mainNavItems = [
-    { path: "/feed", icon: Home, label: "Home" },
-    { path: "/explore", icon: TrendingUp, label: "Explore" },
-    { path: "/marketplace", icon: ShoppingBag, label: "Market" },
-    { path: "/tasks", icon: ClipboardList, label: "Tasks" },
-    { path: "/messages", icon: MessageCircle, label: "Chat" },
-    { path: "/profile", icon: User, label: "Profile" },
+    { path: "/feed", icon: Home, label: t('nav.home') },
+    { path: "/explore", icon: TrendingUp, label: t('nav.explore') },
+    { path: "/marketplace", icon: ShoppingBag, label: t('nav.marketplace') },
+    { path: "/tasks", icon: ClipboardList, label: t('nav.tasks') },
+    { path: "/messages", icon: MessageCircle, label: t('nav.messages') },
+    { path: "/profile", icon: User, label: t('nav.profile') },
   ];
 
   const extraNavItems = [
-    { path: "/showrooms", icon: Crown, label: "Showrooms" },
-    { path: "/events", icon: CalendarDays, label: "Events" },
-    { path: "/jobs", icon: Briefcase, label: "Jobs" },
-    { path: "/courses", icon: GraduationCap, label: "Courses" },
+    { path: "/showrooms", icon: Crown, label: t('nav.showrooms') },
+    { path: "/events", icon: CalendarDays, label: t('nav.events') },
+    { path: "/jobs", icon: Briefcase, label: t('nav.jobs') },
+    { path: "/courses", icon: GraduationCap, label: t('nav.courses') },
   ];
 
   const accountItems = [
-    { path: "/orders", icon: Package, label: "My Orders" },
+    { path: "/orders", icon: Package, label: t('nav.orders') },
     { path: "/cart", icon: ShoppingCart, label: "Cart", badge: cart.count > 0 ? cart.count : null },
-    { path: "/wallet", icon: Wallet, label: "Wallet" },
+    { path: "/wallet", icon: Wallet, label: t('nav.wallet') },
     { path: "/referral", icon: Gift, label: "Referral" },
     { path: "/coupons", icon: Tag, label: "My Coupons" },
     { path: "/analytics", icon: BarChart3, label: "Analytics" },
@@ -339,7 +342,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 name="q"
-                placeholder="Search people, products, tasks..."
+                placeholder={t('common.searchPlaceholder')}
                 className="pl-9 bg-secondary/50 border-0 focus-visible:ring-1 focus-visible:ring-amber-500/30 rounded-full h-9"
               />
             </div>
@@ -385,6 +388,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             {/* Language */}
             <button onClick={toggleLanguage} className="p-2 rounded-full hover:bg-secondary transition-colors text-xs font-bold text-muted-foreground" aria-label="Toggle language" title="Switch English / አማርኛ">
               <Languages className="w-5 h-5" />
+              <span className="sr-only">{currentLang}</span>
             </button>
             {/* Avatar */}
             <Link href="/profile" className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-semibold shrink-0">
@@ -455,7 +459,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <Link href="/showroom/create" onClick={() => setDrawerOpen(false)}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold shadow-sm shadow-blue-600/20 hover:from-blue-700 hover:to-purple-700 transition-all">
             <Plus className="w-4 h-4 shrink-0" />
-            <span>Create Showroom</span>
+            <span>{t('common.createShowroom')}</span>
           </Link>
 
           {/* Showroom Studio */}
@@ -465,13 +469,13 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                 : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
             <Crown className="w-4 h-4 shrink-0 text-amber-500" />
-            <span>Showroom Studio</span>
+            <span>{t('common.showroomStudio')}</span>
           </Link>
 
           <div className="my-2 border-t border-border/50" />
 
           {/* Discover */}
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">Discover</p>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{t('common.discover')}</p>
           {extraNavItems.map(item => {
             const Icon = item.icon;
             return (
@@ -490,7 +494,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <div className="my-2 border-t border-border/50" />
 
           {/* My Account */}
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">My Account</p>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{t('common.myAccount')}</p>
           {accountItems.map(item => {
             const Icon = item.icon;
             return (
@@ -554,15 +558,15 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             {/* Create Showroom */}
             <Link
               href="/showroom/create"
-              title={sidebarCollapsed ? "Create Showroom" : undefined}
+              title={sidebarCollapsed ? t('common.createShowroom') : undefined}
               className={`relative flex items-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-sm shadow-blue-600/20 group
                 ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}`}
             >
               <Plus className="w-4 h-4 shrink-0" />
-              {!sidebarCollapsed && <span>Create Showroom</span>}
+              {!sidebarCollapsed && <span>{t('common.createShowroom')}</span>}
               {sidebarCollapsed && (
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                  Create Showroom
+                  {t('common.createShowroom')}
                 </span>
               )}
             </Link>
@@ -570,16 +574,16 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             {/* Showroom Studio */}
             <Link
               href="/showroom/templates"
-              title={sidebarCollapsed ? "Showroom Studio" : undefined}
+              title={sidebarCollapsed ? t('common.showroomStudio') : undefined}
               className={`relative flex items-center gap-3 rounded-xl transition-all text-sm font-medium group
                 ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}
                 ${isActive('/showroom/templates') ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
             >
               <Crown className="w-4 h-4 shrink-0 text-amber-500" />
-              {!sidebarCollapsed && <span>Showroom Studio</span>}
+              {!sidebarCollapsed && <span>{t('common.showroomStudio')}</span>}
               {sidebarCollapsed && (
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                  Showroom Studio
+                  {t('common.showroomStudio')}
                 </span>
               )}
             </Link>
@@ -592,7 +596,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 onClick={() => setDiscoverOpen(v => !v)}
                 className="w-full flex items-center justify-between px-3 py-1 group"
               >
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">Discover</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{t('common.discover')}</p>
                 <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${discoverOpen ? 'rotate-0' : '-rotate-90'}`} />
               </button>
             )}
@@ -606,7 +610,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 onClick={() => setAccountOpen(v => !v)}
                 className="w-full flex items-center justify-between px-3 py-1 group"
               >
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">My Account</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{t('common.myAccount')}</p>
                 <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${accountOpen ? 'rotate-0' : '-rotate-90'}`} />
               </button>
             )}
@@ -615,7 +619,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             {user?.role === "admin" && (
               <>
                 <div className="my-2 border-t border-border/50" />
-                <NavLink path="/admin" icon={ShieldAlert} label="Admin Panel" />
+                <NavLink path="/admin" icon={ShieldAlert} label={t('common.adminPanel')} />
               </>
             )}
             <div className="h-2" />
@@ -684,7 +688,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all text-muted-foreground hover:text-foreground"
             >
               <Menu className="w-5 h-5" />
-              <span className="text-[10px] font-medium">More</span>
+              <span className="text-[10px] font-medium">{t('common.more')}</span>
             </button>
           </div>
         </nav>

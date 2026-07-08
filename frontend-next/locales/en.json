@@ -85,6 +85,17 @@
     "optional": "Optional",
     "share": "Share",
     "report": "Report",
-    "block": "Block"
+    "block": "Block",
+    "more": "More",
+    "myAccount": "My Account",
+    "discover": "Discover",
+    "createShowroom": "Create Showroom",
+    "showroomStudio": "Showroom Studio",
+    "adminPanel": "Admin Panel",
+    "referral": "Referral",
+    "coupons": "My Coupons",
+    "analytics": "Analytics",
+    "cart": "Cart",
+    "searchPlaceholder": "Search people, products, tasks..."
   }
 }

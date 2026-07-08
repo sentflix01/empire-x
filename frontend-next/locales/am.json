@@ -85,6 +85,17 @@
     "optional": "አማራጭ",
     "share": "አጋራ",
     "report": "ሪፖርት",
-    "block": "አግድ"
+    "block": "አግድ",
+    "more": "ተጨማሪ",
+    "myAccount": "የእኔ መለያ",
+    "discover": "ያስሱ",
+    "createShowroom": "ሾዎሩም ፍጠር",
+    "showroomStudio": "ሾዎሩም ስቱዲዮ",
+    "adminPanel": "አስተዳዳሪ ፓኔል",
+    "referral": "ጥሪ",
+    "coupons": "የእኔ ኩፖኖች",
+    "analytics": "ትንተና",
+    "cart": "ጋሪ",
+    "searchPlaceholder": "ሰዎች፣ ምርቶች፣ ተግባሮችን ፈልግ..."
   }
 }
