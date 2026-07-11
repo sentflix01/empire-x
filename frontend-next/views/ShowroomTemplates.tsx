@@ -1,7 +1,7 @@
-// @ts-nocheck
+'use client'
 import { useRouter } from 'next/navigation';
-// @ts-nocheck
 import React, { useState, useMemo } from "react";
+import { useTranslation } from 'react-i18next';
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Crown, ChevronDown, Check, ArrowLeft, Search, Plus, X } from "lucide-react";
@@ -11,6 +11,7 @@ import {
   BUILDER_TEMPLATES,
 } from "@/lib/builderSections";
 import { getShowroomTemplateSamples } from "@/lib/showroomTemplateSamples";
+import { useTranslation } from 'react-i18next';
 
 // Lucide icon mapping for categories
 import {
@@ -285,6 +286,7 @@ function CategoryAccordion({ cat, isOpen, onToggle, selected, onSelect }: any) {
 }
 
 export default function ShowroomTemplates() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [openCats, setOpenCats] = useState<string[]>([ALL_CATEGORIES[0].cat]);

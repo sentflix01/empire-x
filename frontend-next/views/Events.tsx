@@ -1,6 +1,5 @@
-// @ts-nocheck
+'use client'
 import Link from 'next/link';
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
@@ -11,8 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import moment from "moment";
+import { useTranslation } from 'react-i18next';
 
 export default function Events() {
+  const { t } = useTranslation();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -92,7 +93,7 @@ export default function Events() {
                     onClick={() => handleBook(event)}
                   >
                     <Ticket className="w-3 h-3 mr-1" />
-                    {bookingId === event.id ? "Booking..." : event.ticket_price > 0 ? "Buy Ticket" : "Register Free"}
+                    {bookingId === event.id ? t('common.loading') : event.ticket_price > 0 ? t('events.attend') : t('events.attend')}
                   </Button>
                 </div>
               </div>

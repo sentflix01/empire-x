@@ -1,9 +1,10 @@
-// @ts-nocheck
+'use client'
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { entities } from '@/api/entities';
 import client from '@/api/client';
 import { uploadFile } from '@/lib/uploadFile';
 import { X, Plus, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const STORY_DURATION_MS = 5000; // 5 seconds per story
 
@@ -108,6 +109,7 @@ function HexStory({ group, onClick, isAdd = false, uploading = false }: HexStory
 }
 
 export default function Stories() {
+  const { t } = useTranslation();
   const [stories, setStories] = useState<StoryGroup[]>([]);
   const [viewing, setViewing] = useState<ViewingState | null>(null);
   const [uploading, setUploading] = useState(false);

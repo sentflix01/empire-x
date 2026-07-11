@@ -1,4 +1,4 @@
-// @ts-nocheck
+'use client'
 import React, { useState } from "react";
 import { entities } from "@/api/entities";
 import { createNotification } from "@/lib/notifications";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export default function BidModal({ task, user, onClose, onPlaced }) {
   const [bidAmount, setBidAmount] = useState(task.offered_payment?.toString() || "");

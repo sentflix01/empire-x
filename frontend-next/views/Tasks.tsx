@@ -1,16 +1,15 @@
-// @ts-nocheck
+'use client';
 import Link from 'next/link';
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
-
 import { Plus, MapPin, Clock, Banknote, ClipboardList, Gavel, Users, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import moment from "moment";
 import BidModal from "@/components/tasks/BidModal";
 import TaskBidsDialog from "@/components/tasks/TaskBidsDialog";
+import { useTranslation } from "react-i18next";
 
 const TASK_TYPES = {
   bill_payment: "💰 Bill Payment",
@@ -30,6 +29,7 @@ const STATUS_STYLES = {
 };
 
 export default function Tasks() {
+  const { t } = useTranslation();
   const [tasks, setTasks] = useState([]);
   const [bids, setBids] = useState({});
   const [loading, setLoading] = useState(true);
@@ -65,34 +65,30 @@ export default function Tasks() {
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="font-display text-2xl font-bold">Task Board</h1>
-            <p className="text-sm text-muted-foreground">Post or accept tasks & errands</p>
+            <h1 className="font-display text-2xl font-bold">{t('tasks.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('tasks.subtitle')}</p>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/tasks/calendar">
               <Button size="sm" variant="outline" className="rounded-full">
-                <CalendarDays className="w-4 h-4 mr-1" /> Calendar
+                <CalendarDays className="w-4 h-4 mr-1" /> {t('tasks.calendar')}
               </Button>
             </Link>
             <Link href="/tasks/create">
               <Button size="sm" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
-                <Plus className="w-4 h-4 mr-1" /> Post Task
+                <Plus className="w-4 h-4 mr-1" /> {t('tasks.postTask')}
               </Button>
             </Link>
           </div>
         </div>
 
-        {/* Filter */}
         <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
           {["open", "in_progress", "done", "all"].map(s => (
-            <button
-              key={s}
-              onClick={() => setFilter(s)}
+            <button key={s} onClick={() => setFilter(s)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                 filter === s ? "bg-amber-500 text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
-              }`}
-            >
-              {s === "all" ? "All" : s === "in_progress" ? "In Progress" : s.charAt(0).toUpperCase() + s.slice(1)}
+              }`}>
+              {s === "all" ? t('tasks.all') : s === "in_progress" ? t('tasks.inProgress') : s === "open" ? t('tasks.open') : t('tasks.done')}
             </button>
           ))}
         </div>
@@ -103,8 +99,8 @@ export default function Tasks() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
             <ClipboardList className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-            <h3 className="font-display text-lg font-bold">No tasks yet</h3>
-            <p className="text-sm text-muted-foreground mt-1">Post a task or check back later.</p>
+            <h3 className="font-display text-lg font-bold">{t('tasks.noTasks')}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{t('tasks.noTasksSubtitle')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -134,16 +130,16 @@ export default function Tasks() {
                 </div>
                 {task.status === "open" && task.requester_id !== user?.id && (
                   (bids[task.id] || []).some(b => b.bidder_id === user?.id) ? (
-                    <Badge variant="outline" className="text-amber-600 border-amber-300">✓ Applied</Badge>
+                    <Badge variant="outline" className="text-amber-600 border-amber-300">{t('tasks.applied')}</Badge>
                   ) : (
                     <Button onClick={() => setBidTask(task)} size="sm" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
-                      <Gavel className="w-4 h-4 mr-1" /> Apply / Bid
+                      <Gavel className="w-4 h-4 mr-1" /> {t('tasks.applyBid')}
                     </Button>
                   )
                 )}
                 {task.status === "open" && task.requester_id === user?.id && (
                   <Button onClick={() => setBidsViewTask(task)} size="sm" variant="outline" className="rounded-full border-amber-300 text-amber-600 hover:bg-amber-50">
-                    <Users className="w-4 h-4 mr-1" /> View Bids ({(bids[task.id] || []).length})
+                    <Users className="w-4 h-4 mr-1" /> {t('tasks.viewBids')} ({(bids[task.id] || []).length})
                   </Button>
                 )}
               </div>

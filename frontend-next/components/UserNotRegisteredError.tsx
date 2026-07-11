@@ -1,5 +1,6 @@
-// @ts-nocheck
+'use client'
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const UserNotRegisteredError = () => {
   return (

@@ -1,5 +1,6 @@
-// @ts-nocheck
+'use client'
 import React from "react";
+import { useTranslation } from 'react-i18next';
 
 export default function StatCard({ icon: Icon, label, value, color, trend }) {
   return (

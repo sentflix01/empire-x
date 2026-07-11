@@ -1,4 +1,4 @@
-// @ts-nocheck
+'use client';
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
 import { Wallet as WalletIcon, Plus, ArrowUpRight, ArrowDownLeft, TrendingUp } from "lucide-react";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import moment from "moment";
+import { useTranslation } from "react-i18next";
 
 const TX_ICONS = {
   credit: { icon: ArrowDownLeft, color: "text-green-600 bg-green-50" },
@@ -17,6 +18,7 @@ const TX_ICONS = {
 };
 
 export default function Wallet() {
+  const { t } = useTranslation();
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("overview");
@@ -43,8 +45,8 @@ export default function Wallet() {
       await client.post("/api/wallet/topup", { amount: parseFloat(topupAmount) });
       setTopupAmount("");
       await loadWallet();
-      toast.success("Wallet topped up! ✅");
-    } catch (e) { toast.error(e?.response?.data?.error || "Top-up failed"); }
+      toast.success(t('wallet.topUpSuccess'));
+    } catch (e) { toast.error(e?.response?.data?.error || t('wallet.topUpFailed')); }
     setProcessing(false);
   };
 
@@ -57,8 +59,8 @@ export default function Wallet() {
       });
       setWithdrawAmount(""); setBankName(""); setAccountNum("");
       await loadWallet();
-      toast.success(data.message || "Withdrawal requested");
-    } catch (e) { toast.error(e?.response?.data?.error || "Withdrawal failed"); }
+      toast.success(data.message || t('wallet.withdrawFailed'));
+    } catch (e) { toast.error(e?.response?.data?.error || t('wallet.withdrawFailed')); }
     setProcessing(false);
   };
 
@@ -68,31 +70,25 @@ export default function Wallet() {
     <div className="max-w-lg mx-auto">
         <div className="flex items-center gap-2 mb-6">
           <WalletIcon className="w-6 h-6 text-amber-500"/>
-          <h1 className="font-display text-2xl font-bold">My Wallet</h1>
+          <h1 className="font-display text-2xl font-bold">{t('wallet.title')}</h1>
         </div>
-
-        {/* Balance Card */}
         <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 text-white mb-6">
-          <p className="text-sm text-white/70 mb-1">Available Balance</p>
+          <p className="text-sm text-white/70 mb-1">{t('wallet.availableBalance')}</p>
           <p className="text-4xl font-bold">{wallet?.balance?.toLocaleString() || "0"}</p>
           <p className="text-sm text-white/70 mt-1">{wallet?.currency || "ETB"}</p>
         </div>
-
-        {/* Tabs */}
         <div className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-5">
-          {["overview","topup","withdraw"].map(t=>(
-            <button key={t} onClick={()=>setTab(t)}
-              className={`flex-1 py-2 rounded-lg text-xs font-medium capitalize transition-all ${tab===t?"bg-amber-500 text-white":"text-muted-foreground hover:bg-secondary"}`}>
-              {t === "topup" ? "Top Up" : t === "withdraw" ? "Withdraw" : "History"}
+          {["overview","topup","withdraw"].map(t2=>(
+            <button key={t2} onClick={()=>setTab(t2)}
+              className={`flex-1 py-2 rounded-lg text-xs font-medium capitalize transition-all ${tab===t2?"bg-amber-500 text-white":"text-muted-foreground hover:bg-secondary"}`}>
+              {t2 === "topup" ? t('wallet.topUp') : t2 === "withdraw" ? t('wallet.withdraw') : t('wallet.history')}
             </button>
           ))}
         </div>
-
-        {/* History */}
         {tab === "overview" && (
           <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
             {!wallet?.transactions?.length ? (
-              <div className="text-center py-12 text-muted-foreground text-sm">No transactions yet</div>
+              <div className="text-center py-12 text-muted-foreground text-sm">{t('wallet.noTransactions')}</div>
             ) : wallet.transactions.map(tx => {
               const cfg = TX_ICONS[tx.type] || TX_ICONS.credit;
               const Icon = cfg.icon;
@@ -114,26 +110,23 @@ export default function Wallet() {
           </div>
         )}
 
-        {/* Top Up */}
         {tab === "topup" && (
           <div className="bg-card rounded-2xl border border-border/50 p-5 space-y-4">
-            <p className="text-sm text-muted-foreground">Top up your wallet balance. In production this connects to Stripe or Chapa.</p>
-            <div><Label>Amount (ETB)</Label><Input type="number" value={topupAmount} onChange={e=>setTopupAmount(e.target.value)} placeholder="e.g. 500" className="mt-1"/></div>
+            <p className="text-sm text-muted-foreground">{t('wallet.topUpDesc')}</p>
+            <div><Label>{t('wallet.amount')}</Label><Input type="number" value={topupAmount} onChange={e=>setTopupAmount(e.target.value)} placeholder={t('wallet.amountPlaceholder')} className="mt-1"/></div>
             <Button onClick={handleTopup} disabled={processing||!topupAmount} className="w-full rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
-              {processing?"Processing...":"Top Up Wallet"}
+              {processing ? t('wallet.processing') : t('wallet.topUpBtn')}
             </Button>
           </div>
         )}
-
-        {/* Withdraw */}
         {tab === "withdraw" && (
           <div className="bg-card rounded-2xl border border-border/50 p-5 space-y-4">
-            <p className="text-sm text-muted-foreground">Withdrawal requests are processed within 1-3 business days.</p>
-            <div><Label>Amount (ETB)</Label><Input type="number" value={withdrawAmount} onChange={e=>setWithdrawAmount(e.target.value)} placeholder="e.g. 500" className="mt-1"/></div>
-            <div><Label>Bank Name</Label><Input value={bankName} onChange={e=>setBankName(e.target.value)} placeholder="e.g. CBE" className="mt-1"/></div>
-            <div><Label>Account Number</Label><Input value={accountNum} onChange={e=>setAccountNum(e.target.value)} placeholder="Your bank account number" className="mt-1"/></div>
+            <p className="text-sm text-muted-foreground">{t('wallet.withdrawDesc')}</p>
+            <div><Label>{t('wallet.amount')}</Label><Input type="number" value={withdrawAmount} onChange={e=>setWithdrawAmount(e.target.value)} placeholder={t('wallet.amountPlaceholder')} className="mt-1"/></div>
+            <div><Label>{t('wallet.bankName')}</Label><Input value={bankName} onChange={e=>setBankName(e.target.value)} placeholder={t('wallet.bankPlaceholder')} className="mt-1"/></div>
+            <div><Label>{t('wallet.accountNumber')}</Label><Input value={accountNum} onChange={e=>setAccountNum(e.target.value)} placeholder={t('wallet.accountPlaceholder')} className="mt-1"/></div>
             <Button onClick={handleWithdraw} disabled={processing||!withdrawAmount||!bankName||!accountNum} className="w-full rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
-              {processing?"Submitting...":"Request Withdrawal"}
+              {processing ? t('wallet.submitting') : t('wallet.withdrawBtn')}
             </Button>
           </div>
         )}

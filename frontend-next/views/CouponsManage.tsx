@@ -1,4 +1,4 @@
-// @ts-nocheck
+'use client'
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
 import { auth } from "@/api/auth";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import moment from "moment";
+import { useTranslation } from 'react-i18next';
 
 export default function CouponsManage() {
   const [coupons, setCoupons] = useState([]);
@@ -37,7 +38,7 @@ export default function CouponsManage() {
 
   const handleCreate = async () => {
     if (!form.code || !form.discount_value) {
-      toast.error("Code and discount value are required");
+      toast.error(t('common.required'));
       return;
     }
     setSaving(true);
@@ -166,7 +167,7 @@ export default function CouponsManage() {
 
             <div className="flex gap-2">
               <Button onClick={handleCreate} disabled={saving} className="flex-1 h-10 rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Coupon"}
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.create')}
               </Button>
               <Button variant="outline" onClick={() => setShowForm(false)} className="h-10 rounded-full">
                 Cancel
@@ -202,7 +203,7 @@ export default function CouponsManage() {
                         <button onClick={() => handleCopy(c.code)} className="p-1 rounded hover:bg-secondary transition-colors">
                           {copied === c.code ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
                         </button>
-                        {isInactive && <Badge variant="outline" className="text-xs text-red-500 border-red-200">{isExpired ? "Expired" : isExhausted ? "Used up" : "Inactive"}</Badge>}
+                        {isInactive && <Badge variant="outline" className="text-xs text-red-500 border-red-200">{isExpired ? t('coupons.expired') : isExhausted ? "Used up" : t('common.inactive')}</Badge>}
                       </div>
                       <p className="text-sm font-semibold">
                         {c.discount_type === "percentage" ? `${c.discount_value}% off` : `${c.discount_value} ETB off`}

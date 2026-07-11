@@ -1,6 +1,5 @@
-// @ts-nocheck
+'use client'
 import Link from 'next/link';
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 
@@ -8,6 +7,7 @@ import { Crown, Search, Plus, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
 
 const CAT_LABELS = {
   business: "Business", creative: "Creative", education: "Education", events: "Events",
@@ -15,6 +15,7 @@ const CAT_LABELS = {
 };
 
 export default function Showrooms() {
+  const { t } = useTranslation();
   const [showrooms, setShowrooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -28,7 +29,7 @@ export default function Showrooms() {
 
   const filtered = showrooms.filter(s => {
     const matchSearch = !search || s.title?.toLowerCase().includes(search.toLowerCase());
-    const matchCat = category === "All" || s.category === category;
+    const matchCat = category === t('common.all') || s.category === category;
     return matchSearch && matchCat;
   });
 
@@ -48,13 +49,13 @@ export default function Showrooms() {
 
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search showrooms..." className="pl-9 rounded-full bg-card border-border/50" />
+          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder=t('showrooms.title') + '...' className="pl-9 rounded-full bg-card border-border/50" />
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
           {["All", ...Object.keys(CAT_LABELS)].map(c => (
             <button key={c} onClick={() => setCategory(c)} className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${category === c ? "bg-amber-500 text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"}`}>
-              {c === "All" ? "All" : CAT_LABELS[c]}
+              {c === t('common.all') ? t('common.all') : CAT_LABELS[c]}
             </button>
           ))}
         </div>

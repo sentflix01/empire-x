@@ -1,17 +1,18 @@
-// @ts-nocheck
+'use client';
 import Link from 'next/link';
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
 import client from "@/api/client";
-
 import { Briefcase, MapPin, Plus, Clock, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import moment from "moment";
+import { useTranslation } from "react-i18next";
+import { entities } from "@/api/entities";
+import { useTranslation } from "react-i18next";
 
 const JOB_TYPE_LABELS = {
   full_time: "Full Time", part_time: "Part Time", contract: "Contract",
@@ -19,8 +20,8 @@ const JOB_TYPE_LABELS = {
 };
 
 export default function Jobs() {
+  const { t } = useTranslation();
   const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
   const [applying, setApplying] = useState(null);
@@ -64,7 +65,7 @@ export default function Jobs() {
 
         <div className="relative mb-4">
           <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search jobs..." className="pl-9 rounded-full" />
+          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder=t('jobs.title') + '...' className="pl-9 rounded-full" />
         </div>
 
         {loading ? (
@@ -95,7 +96,7 @@ export default function Jobs() {
                 {user && job.poster_id !== user.id && (
                   <Button size="sm" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600"
                     disabled={applying === job.id} onClick={() => handleApply(job)}>
-                    {applying === job.id ? "Applying..." : "Apply Now"}
+                    {applying === job.id ? t('common.loading') : t('jobs.applyNow')}
                   </Button>
                 )}
               </div>

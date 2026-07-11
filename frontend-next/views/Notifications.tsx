@@ -5,11 +5,11 @@ import React, { useState, useEffect } from "react";
 import client from "@/api/client";
 import { auth } from "@/api/auth";
 import { Bell, Heart, MessageCircle, UserPlus, ShoppingBag, ClipboardList, Check, Trash2, Gift } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { connectSocket, getSocket } from "@/lib/socket";
 import moment from "moment";
+import { useTranslation } from "react-i18next";
 
 const TYPE_ICONS = {
   like:        Heart,
@@ -32,6 +32,7 @@ const TYPE_COLORS = {
 };
 
 export default function Notifications() {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -83,9 +84,9 @@ export default function Notifications() {
     try {
       await client.put("/api/notifications/read-all");
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-      toast.success("All notifications marked as read");
+      toast.success(t('notifications.markedAll'));
     } catch {
-      toast.error("Failed to mark all as read");
+      toast.error(t('notifications.failedMarkAll'));
     }
     setMarkingAll(false);
   };
@@ -96,7 +97,7 @@ export default function Notifications() {
       await client.delete(`/api/notifications/${id}`);
       setNotifications(prev => prev.filter(n => n.id !== id));
     } catch {
-      toast.error("Failed to delete notification");
+      toast.error(t('notifications.failedDelete'));
     }
   };
 
@@ -107,36 +108,25 @@ export default function Notifications() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <h1 className="font-display text-2xl font-bold">Notifications</h1>
+          <h1 className="font-display text-2xl font-bold">{t('notifications.title')}</h1>
           {unreadCount > 0 && (
-            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-xs font-bold">
-              {unreadCount}
-            </span>
+            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-xs font-bold">{unreadCount}</span>
           )}
         </div>
         {unreadCount > 0 && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={markAllRead}
-            disabled={markingAll}
-            className="rounded-full text-xs gap-1.5"
-          >
+          <Button size="sm" variant="outline" onClick={markAllRead} disabled={markingAll} className="rounded-full text-xs gap-1.5">
             <Check className="w-3 h-3" />
-            {markingAll ? "Marking…" : "Mark all read"}
+            {markingAll ? t('notifications.marking') : t('notifications.markAllRead')}
           </Button>
         )}
       </div>
-
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
-        </div>
+        <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-16">
           <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-          <h3 className="font-display text-lg font-bold">All caught up!</h3>
-          <p className="text-sm text-muted-foreground mt-1">No notifications yet.</p>
+          <h3 className="font-display text-lg font-bold">{t('notifications.allCaughtUp')}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{t('notifications.noNotifications')}</p>
         </div>
       ) : (
         <div className="space-y-1">
@@ -168,11 +158,9 @@ export default function Notifications() {
                   <div className="w-2 h-2 rounded-full bg-amber-500 mt-2 shrink-0" />
                 )}
                 {/* Delete button — shows on hover */}
-                <button
-                  onClick={(e) => deleteNotif(e, n.id)}
+                <button onClick={(e) => deleteNotif(e, n.id)}
                   className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Delete"
-                >
+                  title={t('notifications.delete')}>
                   <Trash2 className="w-3 h-3" />
                 </button>
               </div>

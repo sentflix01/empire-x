@@ -1,4 +1,4 @@
-// @ts-nocheck
+'use client'
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
 import { auth } from "@/api/auth";
@@ -6,8 +6,10 @@ import { Copy, Check, Gift, Users, Star, Share2, ExternalLink } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 export default function Referral() {
+  const { t } = useTranslation();
   const [referralData, setReferralData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [codeCopied, setCodeCopied] = useState(false);
@@ -37,7 +39,7 @@ export default function Referral() {
     if (!referralData?.code) return;
     await navigator.clipboard.writeText(referralData.code);
     setCodeCopied(true);
-    toast.success("Referral code copied!");
+    toast.success(t('referral.copied'));
     setTimeout(() => setCodeCopied(false), 2000);
   };
 
@@ -45,7 +47,7 @@ export default function Referral() {
     if (!referralData?.referral_link) return;
     await navigator.clipboard.writeText(referralData.referral_link);
     setLinkCopied(true);
-    toast.success("Referral link copied!");
+    toast.success(t('referral.copied'));
     setTimeout(() => setLinkCopied(false), 2000);
   };
 
@@ -198,7 +200,7 @@ export default function Referral() {
             disabled={applying || !applyCode.trim()}
             className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 shrink-0"
           >
-            {applying ? "Applying…" : "Apply"}
+            {applying ? "Applying…" : t('common.apply')}
           </Button>
         </div>
       </div>

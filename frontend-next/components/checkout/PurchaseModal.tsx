@@ -1,4 +1,4 @@
-// @ts-nocheck
+'use client'
 import React, { useState } from "react";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 export default function PurchaseModal({ item, seller, buyer, onClose, onPurchased }) {
   const [step, setStep] = useState("details"); // details | checkout | success

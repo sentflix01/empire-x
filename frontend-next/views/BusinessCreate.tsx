@@ -1,9 +1,9 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BUSINESS_CATEGORIES, getTemplateById } from "@/lib/businessTemplates";
+import { useTranslation } from 'react-i18next';
 
 /** Fill template sections with the user's real business data */
 function personalizeSections(sections, biz) {
@@ -33,8 +34,10 @@ function personalizeSections(sections, biz) {
 }
 import TemplateCard from "@/components/profile/TemplateCard";
 import ImageUpload from "@/components/ui/ImageUpload";
+import { useTranslation } from 'react-i18next';
 
 export default function BusinessCreate() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();

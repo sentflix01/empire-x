@@ -1,22 +1,22 @@
-// @ts-nocheck
+'use client';
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import client from "@/api/client";
 import { entities } from "@/api/entities";
-
 import { Bookmark, ShoppingBag, Crown, ClipboardList, FileText, Bell, BellOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-
-const TABS = [
-  { key:"all",     label:"All" },
-  { key:"post",    label:"Posts",     icon:FileText   },
-  { key:"product", label:"Products",  icon:ShoppingBag },
-  { key:"showroom",label:"Showrooms", icon:Crown       },
-  { key:"task",    label:"Tasks",     icon:ClipboardList },
-  { key:"alerts",  label:"Alerts",    icon:Bell        },
-];
+import { useTranslation } from "react-i18next";
 
 export default function Bookmarks() {
+  const { t } = useTranslation();
+  const TABS = [
+    { key:"all",     label: t('bookmarks.all') },
+    { key:"post",    label: t('bookmarks.posts'),     icon:FileText   },
+    { key:"product", label: t('bookmarks.products'),  icon:ShoppingBag },
+    { key:"showroom",label: t('bookmarks.showrooms'), icon:Crown       },
+    { key:"task",    label: t('bookmarks.tasks'),     icon:ClipboardList },
+    { key:"alerts",  label: t('bookmarks.alerts'),    icon:Bell        },
+  ];
   const [saves, setSaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("all");
@@ -64,8 +64,8 @@ export default function Bookmarks() {
     try {
       await client.delete(`/api/wishlists/price-alerts/${productId}`);
       setAlerts(prev => prev.filter(a => a.product_id !== productId));
-      toast.success("Price alert removed");
-    } catch { toast.error("Failed to remove alert"); }
+      toast.success(t('bookmarks.removeAlert'));
+    } catch { toast.error(t('bookmarks.removeAlertFailed')); }
   };
 
   const handleUnsave = async (targetId) => {
@@ -79,7 +79,7 @@ export default function Bookmarks() {
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
           <Bookmark className="w-6 h-6 text-amber-500"/>
-          <h1 className="font-display text-2xl font-bold">Bookmarks</h1>
+          <h1 className="font-display text-2xl font-bold">{t('bookmarks.title')}</h1>
         </div>
 
         <div className="flex gap-1 overflow-x-auto pb-2 mb-4">
@@ -98,8 +98,8 @@ export default function Bookmarks() {
           ) : alerts.length === 0 ? (
             <div className="text-center py-16">
               <Bell className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3"/>
-              <p className="font-semibold">No price alerts</p>
-              <p className="text-sm text-muted-foreground mt-1">Visit any product page and tap "Set price drop alert"</p>
+              <p className="font-semibold">{t('bookmarks.noPriceAlerts')}</p>
+              <p className="text-sm text-muted-foreground mt-1">{t('bookmarks.noPriceAlertsSubtitle')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -125,13 +125,13 @@ export default function Bookmarks() {
                       </p>
                       {dropped ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full mt-1">
-                          🎉 Price target reached!
+                          {t('bookmarks.priceDropped')}
                         </span>
                       ) : pct > 0 ? (
-                        <span className="text-[10px] text-muted-foreground mt-0.5 block">{pct}% above target</span>
+                        <span className="text-[10px] text-muted-foreground mt-0.5 block">{t('bookmarks.priceAboveTarget', { pct })}</span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full mt-1">
-                          🏷️ Price already at/below target!
+                          {t('bookmarks.priceAtTarget')}
                         </span>
                       )}
                     </div>
@@ -153,7 +153,7 @@ export default function Bookmarks() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-16">
               <Bookmark className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3"/>
-              <p className="text-muted-foreground">No bookmarks yet</p>
+              <p className="text-muted-foreground">{t('bookmarks.noBookmarks')}</p>
             </div>
           ) : (
             <div className="space-y-3">

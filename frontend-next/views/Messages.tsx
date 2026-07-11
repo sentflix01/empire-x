@@ -1,9 +1,9 @@
-// @ts-nocheck
+'use client'
 import Link from 'next/link';
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import { useTranslation } from 'react-i18next';
 
 import {
   Search, Users, Radio, User as UserIcon, Menu, Settings,
@@ -13,10 +13,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import moment from "moment";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
+import { useTranslation } from 'react-i18next';
 
 const TG_BLUE = "#0088cc";
 
 export default function Messages() {
+  const { t } = useTranslation();
   const [conversations, setConversations] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);

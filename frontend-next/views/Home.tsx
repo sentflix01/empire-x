@@ -15,12 +15,13 @@ import {
   Megaphone, Eye, X,
 } from "lucide-react";
 import BusinessShowroomFeed from "@/components/feed/BusinessShowroomFeed";
+import { useTranslation } from "react-i18next";
 
 const FILTERS = [
-  { key: "all",      label: "For You",   icon: LayoutGrid },
-  { key: "nearby",   label: "Nearby",    icon: MapPin },
-  { key: "following",label: "Following", icon: Users },
-  { key: "trending", label: "Trending",  icon: TrendingUp },
+  { key: "all",       label: "feed.forYou",   icon: LayoutGrid },
+  { key: "nearby",    label: "feed.nearby",   icon: MapPin },
+  { key: "following", label: "feed.following",icon: Users },
+  { key: "trending",  label: "feed.trending", icon: TrendingUp },
 ];
 
 const COMPANY_TICKER =
@@ -28,6 +29,7 @@ const COMPANY_TICKER =
 const COMPANY_TICKER_HIDDEN_KEY = "empire_company_ticker_hidden";
 
 function CompanyAnnouncementTicker() {
+  const { t } = useTranslation();
   const [hidden, setHidden] = useState(false);
   const repeated = Array(5).fill(`${COMPANY_TICKER}   ·   `).join("");
 
@@ -48,14 +50,11 @@ function CompanyAnnouncementTicker() {
   if (hidden) {
     return (
       <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={showTicker}
+        <button type="button" onClick={showTicker}
           className="inline-flex h-8 items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3 text-xs font-bold text-blue-700 shadow-sm shadow-blue-950/5 transition-colors hover:bg-blue-50 dark:border-blue-500/25 dark:bg-slate-900 dark:text-blue-200 dark:hover:bg-slate-800"
-          title="Show Empire X announcements"
-        >
+          title="Show announcements">
           <Eye className="h-3.5 w-3.5" />
-          Show news
+          {t('feed.showNews')}
         </button>
       </div>
     );
@@ -90,6 +89,7 @@ function CompanyAnnouncementTicker() {
 
 export default function Home() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [posts, setPosts]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [filter, setFilter]       = useState("all");
@@ -155,22 +155,16 @@ export default function Home() {
           <div className="max-w-[250px]">
             <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/85 ring-1 ring-white/20">
               <Sparkles className="h-3 w-3" />
-              Showroom Studio
+              {t('common.showroomStudio')}
             </div>
-            <p className="text-sm font-semibold leading-none text-white/88">
-              Create your Business
-            </p>
+            <p className="text-sm font-semibold leading-none text-white/88">{t('feed.createBusiness')}</p>
             <h1 className="mt-1 text-2xl font-extrabold leading-tight tracking-normal sm:text-3xl">
-              Build Your<br />Mini Website.
+              {t('feed.buildMiniWebsite')}
             </h1>
-            <p className="mt-2 text-sm font-medium leading-snug text-white/82">
-              Share&nbsp;&nbsp;your Empire
-            </p>
-            <Link
-              href="/showroom/create"
-              className="mt-4 inline-flex h-10 items-center rounded-xl bg-white px-5 text-sm font-bold text-blue-700 shadow-md shadow-black/10 transition-all duration-200 hover:bg-blue-50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-            >
-              Get Started
+            <p className="mt-2 text-sm font-medium leading-snug text-white/82">{t('feed.shareEmpire')}</p>
+            <Link href="/showroom/create"
+              className="mt-4 inline-flex h-10 items-center rounded-xl bg-white px-5 text-sm font-bold text-blue-700 shadow-md shadow-black/10 transition-all duration-200 hover:bg-blue-50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+              {t('feed.getStarted')}
             </Link>
           </div>
 
@@ -233,27 +227,19 @@ export default function Home() {
         {FILTERS.map(f => {
           const Icon = f.icon;
           return (
-            <button
-              key={f.key}
-              onClick={() => handleFilterChange(f.key)}
+            <button key={f.key} onClick={() => handleFilterChange(f.key)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                filter === f.key
-                  ? "bg-amber-500 text-white"
-                  : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
-              }`}
-            >
+                filter === f.key ? "bg-amber-500 text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
+              }`}>
               <Icon className="w-3.5 h-3.5" />
-              {f.label}
+              {t(f.label)}
             </button>
           );
         })}
         {!isNearbyActive && (
-          <button
-            onClick={loadPosts}
-            disabled={loading}
+          <button onClick={loadPosts} disabled={loading}
             className="ml-auto shrink-0 p-2 rounded-full bg-card border border-border/50 text-muted-foreground hover:bg-secondary transition-all"
-            title="Refresh feed"
-          >
+            title={t('feed.refreshFeed')}>
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
           </button>
         )}
@@ -289,8 +275,8 @@ export default function Home() {
                 </div>
               ) : posts.length === 0 ? (
                 <div className="text-center py-16 text-muted-foreground">
-                  <p className="font-medium">No posts yet</p>
-                  <p className="text-sm mt-1">Be the first to share something!</p>
+                  <p className="font-medium">{t('feed.noPostsYet')}</p>
+                  <p className="text-sm mt-1">{t('feed.beFirst')}</p>
                 </div>
               ) : (
                 <AnimatePresence>

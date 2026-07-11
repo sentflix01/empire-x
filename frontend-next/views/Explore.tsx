@@ -1,16 +1,16 @@
-// @ts-nocheck
+'use client';
 import Link from 'next/link';
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
-
 import { TrendingUp, ShoppingBag, Crown, ClipboardList, Users, Loader2, Banknote, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import PostCard from "@/components/feed/PostCard";
 import { auth } from "@/api/auth";
 import moment from "moment";
+import { useTranslation } from "react-i18next";
 
 export default function Explore() {
+  const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -32,12 +32,10 @@ export default function Explore() {
     <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-6 h-6 text-amber-500" />
-          <h1 className="font-display text-2xl font-bold">Explore</h1>
+          <h1 className="font-display text-2xl font-bold">{t('explore.title')}</h1>
         </div>
-
-        {/* Trending Hashtags */}
         {hashtags.length > 0 && (
-          <Section title="Trending Hashtags" icon={Hash}>
+          <Section title={t('explore.trendingHashtags')} icon={Hash}>
             <div className="flex flex-wrap gap-2 p-1">
               {hashtags.slice(0, 15).map(h => (
                 <Link
@@ -53,9 +51,8 @@ export default function Explore() {
           </Section>
         )}
 
-        {/* Trending Posts */}
         {data?.trending_posts?.length > 0 && (
-          <Section title="Trending Posts" icon={TrendingUp}>
+          <Section title={t('explore.trendingPosts')} icon={TrendingUp}>
             <div className="space-y-3">
               {data.trending_posts.slice(0, 5).map(p => (
                 <PostCard key={p.id} post={p} currentUserId={user?.id} />
@@ -64,9 +61,8 @@ export default function Explore() {
           </Section>
         )}
 
-        {/* Top Products */}
         {data?.top_products?.length > 0 && (
-          <Section title="Top Products" icon={ShoppingBag}>
+          <Section title={t('explore.topProducts')} icon={ShoppingBag}>
             <div className="grid grid-cols-2 gap-3">
               {data.top_products.map(p => {
                 const imgs = (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })();
@@ -86,9 +82,8 @@ export default function Explore() {
           </Section>
         )}
 
-        {/* Featured Showrooms */}
         {data?.featured_showrooms?.length > 0 && (
-          <Section title="Featured Showrooms" icon={Crown}>
+          <Section title={t('explore.featuredShowrooms')} icon={Crown}>
             <div className="grid grid-cols-2 gap-3">
               {data.featured_showrooms.map(s => (
                 <Link key={s.id} href={`/showrooms/${s.id}`} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow">
@@ -97,17 +92,15 @@ export default function Explore() {
                   </div>
                   <div className="p-2">
                     <p className="text-xs font-medium truncate">{s.title}</p>
-                    <p className="text-[10px] text-muted-foreground">{s.view_count} views</p>
+                    <p className="text-[10px] text-muted-foreground">{s.view_count} {t('search.views')}</p>
                   </div>
                 </Link>
               ))}
             </div>
           </Section>
         )}
-
-        {/* Open Tasks */}
         {data?.open_tasks?.length > 0 && (
-          <Section title="Open Tasks" icon={ClipboardList}>
+          <Section title={t('explore.openTasks')} icon={ClipboardList}>
             <div className="space-y-2">
               {data.open_tasks.map(t => (
                 <Link key={t.id} href="/tasks" className="flex items-center justify-between p-3 rounded-xl hover:bg-secondary/50 transition-colors">
@@ -124,9 +117,8 @@ export default function Explore() {
           </Section>
         )}
 
-        {/* Suggested People */}
         {data?.suggested_users?.length > 0 && (
-          <Section title="People to Follow" icon={Users}>
+          <Section title={t('explore.peopleToFollow')} icon={Users}>
             <div className="space-y-1">
               {data.suggested_users.map(u => (
                 <Link key={u.user_id} href={`/profile/${u.user_id}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">

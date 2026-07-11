@@ -1,9 +1,9 @@
-// @ts-nocheck
+'use client'
 import { useRouter } from 'next/navigation';
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTranslation } from 'react-i18next';
 
 const TASK_TYPES = [
   { value: "bill_payment", label: "💰 Bill Payment" },
@@ -23,6 +24,7 @@ const TASK_TYPES = [
 ];
 
 export default function TaskCreate() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [saving, setSaving] = useState(false);

@@ -1,9 +1,10 @@
-// @ts-nocheck
+'use client'
 import React, { useState } from "react";
 import { entities } from "@/api/entities";
 import { Image, Send, X } from "lucide-react";
 import { uploadFile } from "@/lib/uploadFile";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from 'react-i18next';
 
 export default function CreatePostForm({ user, onPostCreated }) {
   const [content, setContent] = useState("");

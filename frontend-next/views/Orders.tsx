@@ -1,4 +1,4 @@
-// @ts-nocheck
+'use client'
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import moment from "moment";
+import { useTranslation } from 'react-i18next';
 import { generateInvoice } from "@/lib/generateInvoice";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -158,7 +159,7 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
               <div className="flex gap-2">
                 <Button size="sm" onClick={addUpdate} disabled={saving}
                   className="h-7 text-xs rounded-full bg-amber-500 hover:bg-amber-600 text-white">
-                  {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : "Save"}
+                  {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : t('orders.save')}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setAdding(false)}
                   className="h-7 text-xs rounded-full">Cancel</Button>
@@ -217,7 +218,7 @@ function ReturnRequestForm({ order, onSubmitted }: { order: any; onSubmitted: ()
       <div className="flex gap-2">
         <Button size="sm" onClick={submit} disabled={saving}
           className="h-7 text-xs rounded-full bg-amber-500 hover:bg-amber-600 text-white">
-          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : "Submit Request"}
+          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : t('orders.submitRequest')}
         </Button>
       </div>
     </div>
@@ -316,6 +317,7 @@ function SellerReturnActions({ orderId, onActioned }: { orderId: string; onActio
 
 /* ── Main Orders Page ────────────────────────────────────────────────────── */
 export default function Orders() {
+  const { t } = useTranslation();
   const [user, setUser]       = useState(null);
   const [orders, setOrders]   = useState([]);
   const [loading, setLoading] = useState(true);
@@ -364,7 +366,7 @@ export default function Orders() {
         {["selling", "buying"].map(t => (
           <button key={t} onClick={() => switchTab(t)}
             className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${tab === t ? "bg-amber-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}>
-            {t === "selling" ? "My Sales" : "My Purchases"}
+            {t === "selling" ? t('orders.mySales') : t('orders.myPurchases')}
           </button>
         ))}
       </div>
@@ -376,7 +378,7 @@ export default function Orders() {
       ) : orders.length === 0 ? (
         <div className="text-center py-16">
           <ShoppingBag className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
-          <p className="text-muted-foreground text-sm">{isSelling ? "No sales yet" : "No purchases yet"}</p>
+          <p className="text-muted-foreground text-sm">{isSelling ? t('orders.noSales') : t('orders.noPurchases')}</p>
         </div>
       ) : (
         <div className="space-y-3">

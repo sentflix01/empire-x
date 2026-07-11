@@ -1,7 +1,8 @@
-// @ts-nocheck
+'use client'
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { User, Store, Sun, Moon } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 /**
  * Unified control bar — Personal | Business | Theme (Dark/Light)

@@ -1,10 +1,8 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import client from "@/api/client";
-
 import {
   Search as SearchIcon, Users, ShoppingBag, Crown, ClipboardList,
   FileText, Loader2, Mic, MicOff, MapPin, SlidersHorizontal,
@@ -17,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/use-debounce";
 import { toast } from "sonner";
 import moment from "moment";
+import { useTranslation } from "react-i18next";
 
 // ── Category tabs ────────────────────────────────────────────────────────────
 const TABS = [
@@ -61,8 +60,20 @@ function DistanceBadge({ km }: { km?: number | null }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function Search() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  const TABS = [
+    { key: "all",       label: t('search.all'),        Icon: SearchIcon },
+    { key: "users",     label: t('search.people'),     Icon: Users },
+    { key: "products",  label: t('search.products'),   Icon: ShoppingBag },
+    { key: "showrooms", label: t('search.showrooms'),  Icon: Crown },
+    { key: "tasks",     label: t('nav.tasks'),         Icon: ClipboardList },
+    { key: "posts",     label: t('search.posts'),      Icon: FileText },
+    { key: "jobs",      label: t('nav.jobs'),          Icon: Briefcase },
+    { key: "events",    label: t('nav.events'),        Icon: CalendarDays },
+  ];
 
   const [query, setQuery]       = useState(searchParams.get("q") || "");
   const [tab, setTab]           = useState("all");
@@ -110,7 +121,7 @@ export default function Search() {
         setUserLat(9.0192);
         setUserLon(38.7525);
         setLocStatus("ok");
-        toast.info("Using Addis Ababa as default location");
+        toast.info(t('search.defaultLocation'));
       },
       { timeout: 8000 }
     );
@@ -140,13 +151,13 @@ export default function Search() {
 
   const handleVoiceSearch = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) { toast.info("Voice search not supported"); return; }
+    if (!SR) { toast.info(t('search.voiceNotSupported')); return; }
     const r = new SR();
     r.lang = "en-US"; r.interimResults = false; r.maxAlternatives = 1;
     setListening(true);
     r.start();
     r.onresult = (e) => { setQuery(e.results[0][0].transcript); setListening(false); };
-    r.onerror  = () => { setListening(false); toast.error("Could not capture audio"); };
+    r.onerror  = () => { setListening(false); toast.error(t('search.audioError')); };
     r.onend    = () => setListening(false);
   };
 
@@ -166,18 +177,11 @@ export default function Search() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
       <div className="max-w-2xl mx-auto">
-        <h1 className="font-display text-2xl font-bold mb-4">Search</h1>
-
-        {/* ── Search bar ── */}
+        <h1 className="font-display text-2xl font-bold mb-4">{t('search.title')}</h1>
         <div className="relative mb-3">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search people, products, showrooms, tasks..."
-            className="pl-9 pr-24 rounded-full h-11"
-            autoFocus
-          />
+          <Input value={query} onChange={e => setQuery(e.target.value)}
+            placeholder={t('search.placeholder')} className="pl-9 pr-24 rounded-full h-11" autoFocus />
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
             <button onClick={handleVoiceSearch}
               className={`p-1.5 rounded-full transition-colors ${listening ? "text-red-500 animate-pulse" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
@@ -195,24 +199,21 @@ export default function Search() {
           </div>
         </div>
 
-        {/* ── Filter panel (Facebook-style) ── */}
         {filtersOpen && (
           <div className="bg-card border border-border/50 rounded-2xl p-4 mb-3 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-amber-500" />
-                <span className="text-sm font-semibold">Filters</span>
+                <span className="text-sm font-semibold">{t('search.filters')}</span>
               </div>
               {hasActiveFilters && (
                 <button onClick={clearFilters} className="text-xs text-red-500 hover:underline flex items-center gap-1">
-                  <X className="w-3 h-3" /> Clear all
+                  <X className="w-3 h-3" /> {t('search.clearAll')}
                 </button>
               )}
             </div>
-
-            {/* Sort */}
             <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1.5">Sort by</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1.5">{t('search.sortBy')}</label>
               <div className="flex flex-wrap gap-1.5">
                 {SORT_OPTIONS.map(opt => (
                   <button key={opt.value} onClick={() => { setSort(opt.value); if (opt.value === "distance" && !locRequested.current) requestLocation(); }}
@@ -222,14 +223,12 @@ export default function Search() {
                 ))}
               </div>
             </div>
-
-            {/* Distance / Radius */}
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1.5">
-                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Distance</span>
+                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {t('search.distance')}</span>
               </label>
-              {locStatus === "loading" && <p className="text-xs text-muted-foreground">Getting your location...</p>}
-              {locStatus === "ok" && userLat && <p className="text-xs text-green-600 mb-1.5">📍 Location detected</p>}
+              {locStatus === "loading" && <p className="text-xs text-muted-foreground">{t('search.detectingLocation')}</p>}
+              {locStatus === "ok" && userLat && <p className="text-xs text-green-600 mb-1.5">{t('search.locationDetected')}</p>}
               <div className="flex flex-wrap gap-1.5">
                 {RADIUS_OPTIONS.map(opt => (
                   <button key={opt.value} onClick={() => { setRadius(opt.value); if (opt.value && !locRequested.current) requestLocation(); }}
@@ -239,12 +238,10 @@ export default function Search() {
                 ))}
               </div>
             </div>
-
-            {/* Price range — show for products/all */}
             {(tab === "all" || tab === "products") && (
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1.5">
-                  <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" /> Price Range (ETB)</span>
+                  <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" /> {t('search.priceRange')}</span>
                 </label>
                 <div className="flex items-center gap-2">
                   <Input type="number" placeholder="Min" value={priceMin} onChange={e => setPriceMin(e.target.value)} className="h-8 text-xs" />
@@ -253,20 +250,18 @@ export default function Search() {
                 </div>
               </div>
             )}
-
-            {/* Date range — show for posts/events/jobs */}
             {(tab === "posts" || tab === "events" || tab === "jobs" || tab === "all") && (
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1.5">
-                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Date Posted</span>
+                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {t('search.datePosted')}</span>
                 </label>
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
-                    <p className="text-[10px] text-muted-foreground mb-1">From</p>
+                    <p className="text-[10px] text-muted-foreground mb-1">{t('search.from')}</p>
                     <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-[10px] text-muted-foreground mb-1">To</p>
+                    <p className="text-[10px] text-muted-foreground mb-1">{t('search.to')}</p>
                     <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs" />
                   </div>
                 </div>
@@ -295,30 +290,27 @@ export default function Search() {
           })}
         </div>
 
-        {/* ── Empty / hint state ── */}
         {query.length < 2 && (
           <div className="text-center py-16">
             <SearchIcon className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
-            <p className="text-muted-foreground text-sm">Type at least 2 characters to search</p>
+            <p className="text-muted-foreground text-sm">{t('search.typeToSearch')}</p>
           </div>
         )}
-
         {query.length > 1 && !loading && totalResults === 0 && (
           <div className="text-center py-16">
             <SearchIcon className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
-            <p className="font-semibold">No results for "{query}"</p>
-            <p className="text-sm text-muted-foreground mt-1">Try different keywords or clear your filters</p>
+            <p className="font-semibold">{t('search.noResults', { query })}</p>
+            <p className="text-sm text-muted-foreground mt-1">{t('search.noResultsSubtitle')}</p>
             {hasActiveFilters && (
-              <button onClick={clearFilters} className="mt-3 text-sm text-amber-600 hover:underline">Clear filters</button>
+              <button onClick={clearFilters} className="mt-3 text-sm text-amber-600 hover:underline">{t('search.clearFilters')}</button>
             )}
           </div>
         )}
 
         {/* ── Results sections ── */}
 
-        {/* People */}
         {results.users?.length > 0 && (tab === "all" || tab === "users") && (
-          <Section title="People" icon={Users} count={results.users.length}>
+          <Section title={t('search.people')} icon={Users} count={results.users.length}>
             {results.users.map(u => (
               <Link key={u.id} href={`/profile/${u.user_id}`}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
@@ -339,9 +331,8 @@ export default function Search() {
           </Section>
         )}
 
-        {/* Products */}
         {results.products?.length > 0 && (tab === "all" || tab === "products") && (
-          <Section title="Products" icon={ShoppingBag} count={results.products.length}>
+          <Section title={t('search.products')} icon={ShoppingBag} count={results.products.length}>
             <div className="grid grid-cols-2 gap-3 p-3">
               {results.products.map(p => {
                 const imgs = (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })();
@@ -363,9 +354,8 @@ export default function Search() {
           </Section>
         )}
 
-        {/* Showrooms */}
         {results.showrooms?.length > 0 && (tab === "all" || tab === "showrooms") && (
-          <Section title="Showrooms" icon={Crown} count={results.showrooms.length}>
+          <Section title={t('search.showrooms')} icon={Crown} count={results.showrooms.length}>
             {results.showrooms.map(s => (
               <Link key={s.id} href={`/showrooms/${s.id}`}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
@@ -384,9 +374,8 @@ export default function Search() {
           </Section>
         )}
 
-        {/* Tasks */}
         {results.tasks?.length > 0 && (tab === "all" || tab === "tasks") && (
-          <Section title="Tasks" icon={ClipboardList} count={results.tasks.length}>
+          <Section title={t('nav.tasks')} icon={ClipboardList} count={results.tasks.length}>
             {results.tasks.map(t => (
               <Link key={t.id} href="/tasks"
                 className="flex items-center justify-between p-3 rounded-xl hover:bg-secondary/50 transition-colors gap-2">
@@ -404,9 +393,8 @@ export default function Search() {
           </Section>
         )}
 
-        {/* Posts */}
         {results.posts?.length > 0 && (tab === "all" || tab === "posts") && (
-          <Section title="Posts" icon={FileText} count={results.posts.length}>
+          <Section title={t('search.posts')} icon={FileText} count={results.posts.length}>
             {results.posts.map(p => (
               <div key={p.id} className="p-3 rounded-xl hover:bg-secondary/50 transition-colors border-b border-border/30 last:border-0">
                 <div className="flex items-center gap-2 mb-1.5">
@@ -423,9 +411,8 @@ export default function Search() {
           </Section>
         )}
 
-        {/* Jobs */}
         {results.jobs?.length > 0 && tab === "jobs" && (
-          <Section title="Jobs" icon={Briefcase} count={results.jobs.length}>
+          <Section title={t('nav.jobs')} icon={Briefcase} count={results.jobs.length}>
             {results.jobs.map(j => (
               <Link key={j.id} href="/jobs"
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
@@ -440,7 +427,7 @@ export default function Search() {
                   <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                     <Badge variant="outline" className="text-[10px] py-0">{j.job_type?.replace("_"," ")}</Badge>
                     {j.location && <p className="text-xs text-muted-foreground flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{j.location}</p>}
-                    {j.is_remote && <Badge variant="outline" className="text-[10px] py-0 text-green-600">Remote</Badge>}
+                    {j.is_remote && <Badge variant="outline" className="text-[10px] py-0 text-green-600">{t('search.remote')}</Badge>}
                   </div>
                   {(j.salary_min || j.salary_max) && (
                     <p className="text-xs text-amber-600 font-medium mt-0.5">
@@ -453,9 +440,8 @@ export default function Search() {
           </Section>
         )}
 
-        {/* Events */}
         {results.events?.length > 0 && tab === "events" && (
-          <Section title="Events" icon={CalendarDays} count={results.events.length}>
+          <Section title={t('nav.events')} icon={CalendarDays} count={results.events.length}>
             {results.events.map(e => (
               <Link key={e.id} href="/events"
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
@@ -469,7 +455,7 @@ export default function Search() {
                   </div>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <p className="text-xs text-muted-foreground">{moment(e.start_at).format("MMM D, YYYY")}</p>
-                    {e.is_online ? <Badge variant="outline" className="text-[10px] py-0 text-blue-600">Online</Badge>
+                    {e.is_online ? <Badge variant="outline" className="text-[10px] py-0 text-blue-600">{t('search.online')}</Badge>
                       : e.location && <p className="text-xs text-muted-foreground flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{e.location}</p>}
                   </div>
                   {e.ticket_price > 0 && <p className="text-xs text-amber-600 font-medium">{e.ticket_price?.toLocaleString()} {e.currency}</p>}

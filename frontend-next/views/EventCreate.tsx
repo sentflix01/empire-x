@@ -1,9 +1,9 @@
-// @ts-nocheck
+'use client'
 import { useRouter } from 'next/navigation';
-// @ts-nocheck
 import React, { useState } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import ImageUpload from "@/components/ui/ImageUpload";
+import { useTranslation } from 'react-i18next';
 
 export default function EventCreate() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({

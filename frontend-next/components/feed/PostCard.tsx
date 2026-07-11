@@ -19,6 +19,7 @@ import BusinessShowroomFeed from './BusinessShowroomFeed';
 import ShareButton from '@/components/ui/ShareButton';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
 import ProfilePeek from '@/components/profile/ProfilePeek';
+import { useTranslation } from 'react-i18next';
 
 /* ── Types ──────────────────────────────────────────── */
 interface Post {
@@ -308,6 +309,7 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, currentUserId, feedMode }: PostCardProps) {
+  const { t } = useTranslation();
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.like_count ?? 0);
   const [showComments, setShowComments] = useState(false);
@@ -456,7 +458,7 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            {viewMode === 'business' ? 'Business showroom' : moment(post.created_at).fromNow()}
+            {viewMode === 'business' ? t('feed.businessShowroom') : moment(post.created_at).fromNow()}
           </p>
         </div>
         {/* Scale / Profile Peek button */}
@@ -490,7 +492,7 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
         ) : (
           <div className="px-4 py-6 text-center">
             <Store className="w-8 h-8 text-muted-foreground/20 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Loading...</p>
+            <p className="text-sm text-muted-foreground">{t('feed.loadingShowroom')}</p>
           </div>
         )}
       </div>
@@ -534,11 +536,9 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
               {currentUser?.full_name?.charAt(0) ?? '?'}
             </div>
-            <input
-              value={commentText}
-              onChange={e => setCommentText(e.target.value)}
+            <input value={commentText} onChange={e => setCommentText(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleAddComment()}
-              placeholder="Write a comment..."
+              placeholder={t('feed.postComment')}
               className="flex-1 text-sm bg-secondary/50 rounded-full px-4 py-2 outline-none focus:ring-1 focus:ring-amber-500/30"
             />
           </div>
@@ -565,19 +565,15 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
                           <p className="text-sm">{c.content}</p>
                         </div>
                         {/* Reply button */}
-                        <button
-                          onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
-                          className="mt-0.5 ml-2 text-[11px] text-muted-foreground hover:text-amber-600 flex items-center gap-0.5 transition-colors"
-                        >
+                        <button onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
+                          className="mt-0.5 ml-2 text-[11px] text-muted-foreground hover:text-amber-600 flex items-center gap-0.5 transition-colors">
                           <Reply className="w-3 h-3" />
-                          Reply
+                          {t('common.reply')}
                         </button>
-                        {/* Inline reply input */}
                         {replyingTo === c.id && (
                           <div className="flex gap-1.5 mt-1.5 ml-2">
-                            <input
-                              autoFocus
-                              placeholder={`Reply to ${c.author_name}...`}
+                            <input autoFocus
+                              placeholder={t('feed.replyTo', { name: c.author_name })}
                               className="flex-1 text-xs bg-secondary/50 rounded-full px-3 py-1.5 outline-none focus:ring-1 focus:ring-amber-500/30"
                               onKeyDown={async e => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -604,15 +600,12 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
                 ))}
               </div>
 
-              {/* Show more / show less comments */}
               {comments.length > 1 && (
-                <button
-                  onClick={() => setShowAllComments(v => !v)}
-                  className="mt-2 text-xs text-amber-600 hover:underline flex items-center gap-1 font-medium"
-                >
+                <button onClick={() => setShowAllComments(v => !v)}
+                  className="mt-2 text-xs text-amber-600 hover:underline flex items-center gap-1 font-medium">
                   {showAllComments
-                    ? <><ChevronUp className="w-3 h-3" /> Hide comments</>
-                    : <><ChevronDown className="w-3 h-3" /> View {comments.length - 1} more comment{comments.length - 1 !== 1 ? 's' : ''}</>
+                    ? <><ChevronUp className="w-3 h-3" /> {t('feed.hideComments')}</>
+                    : <><ChevronDown className="w-3 h-3" /> {t('feed.viewMoreComments', { count: comments.length - 1 })}</>
                   }
                 </button>
               )}

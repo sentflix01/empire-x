@@ -1,10 +1,12 @@
-// @ts-nocheck
+'use client'
 import Link from 'next/link';
 import React, { useState, useRef, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 
 import { Menu, Pencil, Users, Radio } from "lucide-react";
 import CreateGroupModal from "@/components/messaging/CreateGroupModal";
 import CreateChannelModal from "@/components/messaging/CreateChannelModal";
+import { useTranslation } from 'react-i18next';
 
 export default function NewChatMenu({ user, contacts, onCreated }) {
   const [open, setOpen] = useState(false);

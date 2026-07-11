@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from 'next/navigation';
@@ -6,6 +5,7 @@ import Link from 'next/link';
 import ReviewsSection from "@/components/product/ReviewsSection";
 import client from "@/api/client";
 import { auth } from "@/api/auth";
+import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, Heart, Share2, ShoppingCart, MapPin, Star, Truck, Shield, MessageCircle, Bell, BellOff, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/lib/CartContext";
 import ShareButton from "@/components/ui/ShareButton";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 export default function ProductDetail() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
   const { addToCart } = useCart();

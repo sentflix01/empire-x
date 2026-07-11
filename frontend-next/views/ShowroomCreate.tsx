@@ -1,10 +1,10 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { auth } from "@/api/auth";
 import { entities } from "@/api/entities";
+import { useTranslation } from 'react-i18next';
 
 import {
   ArrowLeft, Monitor, Tablet, Smartphone, Moon, Sun,
@@ -20,6 +20,7 @@ import {
 import { getShowroomTemplateSample } from "@/lib/showroomTemplateSamples";
 import BuilderForm from "@/components/showroom/BuilderForm";
 import BuilderPreview from "@/components/showroom/BuilderPreview";
+import { useTranslation } from 'react-i18next';
 
 const FONT_OPTIONS = ["Inter", "Playfair Display", "Space Grotesk"];
 
@@ -156,6 +157,7 @@ function getDefaultSections(templateName: string, category: string, sampleId = "
 }
 
 export default function ShowroomCreate() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const templateParam = searchParams.get("template") || "";

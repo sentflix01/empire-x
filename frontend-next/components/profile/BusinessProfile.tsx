@@ -1,8 +1,9 @@
-// @ts-nocheck
+'use client'
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
+import { useTranslation } from 'react-i18next';
 
 import { Mail, Phone, MapPin, Clock, Star, ShoppingBag, ArrowRight, Check, Plus, Edit2, ExternalLink, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { getCategoryByValue } from "@/lib/businessTemplates";
 import { findOrCreateConversation } from "@/lib/messaging";
 import SectionRenderer from "@/components/showroom/SectionRenderer";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import { useTranslation } from 'react-i18next';
 
 const parseImages = (img) => { try { return JSON.parse(img || "[]"); } catch { return img ? [img] : []; } };
 

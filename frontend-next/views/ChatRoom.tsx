@@ -1,19 +1,21 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
 import { createNotification } from "@/lib/notifications";
+import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, Send, Radio, Users, MoreVertical, Paperclip, Smile } from "lucide-react";
 import moment from "moment";
 import { io } from "socket.io-client";
+import { useTranslation } from 'react-i18next';
 
 const TG_BLUE = "#0088cc";
 const TG_BLUE_LIGHT = "#effdde";
 
 export default function ChatRoom() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
   const [messages, setMessages] = useState([]);

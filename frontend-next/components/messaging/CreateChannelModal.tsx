@@ -1,12 +1,14 @@
-// @ts-nocheck
+'use client'
 import { useRouter } from 'next/navigation';
 import React, { useState } from "react";
 import { entities } from "@/api/entities";
+import { useTranslation } from 'react-i18next';
 
 import { X, Radio } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from 'react-i18next';
 
 const TG_BLUE = "#0088cc";
 

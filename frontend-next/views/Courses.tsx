@@ -1,17 +1,18 @@
-// @ts-nocheck
+'use client'
 import Link from 'next/link';
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 
 import { GraduationCap, Plus, Star, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
 import { Input } from "@/components/ui/input";
 
 const CATEGORIES = ["All","Technology","Business","Design","Language","Health","Other"];
 
 export default function Courses() {
+  const { t } = useTranslation();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -24,7 +25,7 @@ export default function Courses() {
 
   const filtered = courses.filter(c => {
     const matchSearch = !search || c.title?.toLowerCase().includes(search.toLowerCase());
-    const matchCat = category === "All" || c.category === category;
+    const matchCat = category === t('common.all') || c.category === category;
     return matchSearch && matchCat;
   });
 
@@ -44,7 +45,7 @@ export default function Courses() {
 
         <div className="relative mb-4">
           <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
-          <Input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search courses..." className="pl-9 rounded-full"/>
+          <Input value={search} onChange={e=>setSearch(e.target.value)} placeholder=t('courses.title') + '...' className="pl-9 rounded-full"/>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4">

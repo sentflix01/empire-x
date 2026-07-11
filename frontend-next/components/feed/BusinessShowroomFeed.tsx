@@ -1,9 +1,9 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { entities } from '@/api/entities';
+import { useTranslation } from 'react-i18next';
 
 import {
   Store, ShoppingBag, MapPin, MessageSquare, ArrowRight, Clock,
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { findOrCreateConversation } from '@/lib/messaging';
 import { getCategoryByValue } from '@/lib/businessTemplates';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
+import { useTranslation } from 'react-i18next';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface SectionItem {

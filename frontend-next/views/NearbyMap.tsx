@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import Link from 'next/link';
 import React, { useState, useEffect, useRef } from "react";
@@ -6,12 +5,14 @@ import { createPortal } from "react-dom";
 import client from "@/api/client";
 import { entities } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
+import { useTranslation } from 'react-i18next';
 
 import { MapPin, ShoppingBag, ClipboardList, Navigation, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import ProfilePeek from "@/components/profile/ProfilePeek";
+import { useTranslation } from 'react-i18next';
 
 // Leaflet modules — assigned after dynamic import inside loadLeaflet()
 // We CANNOT use require() or static import because Turbopack processes CSS imports at build time
@@ -184,6 +185,7 @@ function MarkerHoverCard({ data, onClose }) {
 }
 
 export default function NearbyMap() {
+  const { t } = useTranslation();
   const { user: currentUser } = useAuth();
   const [leafletReady, setLeafletReady] = useState(false);
   const [location, setLocation]     = useState(null);

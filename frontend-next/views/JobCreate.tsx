@@ -1,8 +1,8 @@
-// @ts-nocheck
+'use client'
 import { useRouter } from 'next/navigation';
-// @ts-nocheck
 import React, { useState } from "react";
 import { entities } from "@/api/entities";
+import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,11 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTranslation } from 'react-i18next';
 
 const JOB_TYPES = ["full_time","part_time","contract","internship","freelance"];
 const CATEGORIES = ["Technology","Design","Marketing","Sales","Finance","Education","Health","Operations","Other"];
 
 export default function JobCreate() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({

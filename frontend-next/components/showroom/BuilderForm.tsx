@@ -1,7 +1,8 @@
-// @ts-nocheck
+'use client'
 import React from "react";
 import { SECTION_TYPES, getSectionType } from "@/lib/builderSections";
 import { Plus, X } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   activeSections: string[];

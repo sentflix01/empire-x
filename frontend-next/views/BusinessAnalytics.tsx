@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
@@ -17,6 +16,7 @@ import {
   LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, Legend
 } from "recharts";
 import moment from "moment";
+import { useTranslation } from 'react-i18next';
 import BusinessSwitcher from "@/components/analytics/BusinessSwitcher";
 import StatCard from "@/components/analytics/StatCard";
 import { downloadCSV, buildAnalyticsReport } from "@/lib/exportReport";
@@ -25,6 +25,7 @@ import { toast } from "@/components/ui/use-toast";
 const CHART_COLORS = ["#D4AF37", "#3B82F6", "#8B5CF6", "#06B6D4", "#F97316", "#EC4899", "#10B981", "#EF4444"];
 
 export default function BusinessAnalytics() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [profile, setProfile] = useState(null);
@@ -157,10 +158,10 @@ export default function BusinessAnalytics() {
   })).filter(s => s.value > 0);
 
   const stats = [
-    { label: "Total Revenue", value: `${totalSales.toLocaleString()} ETB`, icon: DollarSign, color: "text-green-600 bg-green-50" },
-    { label: "Orders", value: filteredOrders.length, icon: ShoppingBag, color: "text-amber-600 bg-amber-50" },
-    { label: "Product Views", value: totalViews, icon: Eye, color: "text-blue-600 bg-blue-50" },
-    { label: "Total Engagement", value: totalEngagement, icon: Activity, color: "text-purple-600 bg-purple-50" },
+    { label: t('business.revenue'), value: `${totalSales.toLocaleString()} ETB`, icon: DollarSign, color: "text-green-600 bg-green-50" },
+    { label: t('nav.orders'), value: filteredOrders.length, icon: ShoppingBag, color: "text-amber-600 bg-amber-50" },
+    { label: t('business.overview'), value: totalViews, icon: Eye, color: "text-blue-600 bg-blue-50" },
+    { label: t('business.overview'), value: totalEngagement, icon: Activity, color: "text-purple-600 bg-purple-50" },
   ];
 
   return (
@@ -258,7 +259,7 @@ export default function BusinessAnalytics() {
                 <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} width={50} />
                 <Tooltip
                   contentStyle={{ borderRadius: "12px", border: "1px solid #e5e5e5", fontSize: "12px" }}
-                  formatter={(value, name) => name === "sales" ? [`${value.toLocaleString()} ETB`, "Revenue"] : [value, "Orders"]}
+                  formatter={(value, name) => name === "sales" ? [`${value.toLocaleString()} ETB`, "Revenue"] : [value, t('nav.orders')]}
                   cursor={{ fill: themeColor + "10" }}
                 />
                 <Bar dataKey="sales" fill={themeColor} radius={[6, 6, 0, 0]} name="sales" />
@@ -448,7 +449,7 @@ export default function BusinessAnalytics() {
                         onClick={() => handleSelectBusiness(b.id)}
                         className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${b.id === selectedBizId ? "bg-amber-100 text-amber-700" : "bg-secondary text-muted-foreground hover:bg-secondary/70"}`}
                       >
-                        {b.id === selectedBizId ? "Viewing" : "View"}
+                        {b.id === selectedBizId ? t('common.view') : t('common.view')}
                       </button>
                       <Link href={`/business/edit?id=${b.id}`}>
                         <Button size="icon" variant="ghost" className="h-8 w-8">

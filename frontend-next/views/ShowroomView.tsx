@@ -1,18 +1,20 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeSVG } from "qrcode.react";
 import SectionRenderer from "@/components/showroom/SectionRenderer";
+import { useTranslation } from 'react-i18next';
 
 export default function ShowroomView() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
   const [showroom, setShowroom] = useState(null);

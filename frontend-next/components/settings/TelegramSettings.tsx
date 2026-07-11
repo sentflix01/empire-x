@@ -1,9 +1,10 @@
-// @ts-nocheck
+'use client'
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
 import { MessageCircle, ExternalLink, Unlink, Bell, BellOff, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 export default function TelegramSettings() {
   const [status, setStatus] = useState(null);

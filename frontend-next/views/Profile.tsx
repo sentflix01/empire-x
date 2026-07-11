@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -6,6 +5,7 @@ import Link from 'next/link';
 import { auth } from "@/api/auth";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
+import { useTranslation } from 'react-i18next';
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit2, LogOut, MapPin, Crown, Store, Settings, Plus, ShoppingBag, ClipboardList, ChevronDown, Pencil, ArrowLeft, Radio, ToggleLeft, ToggleRight } from "lucide-react";
@@ -18,8 +18,10 @@ import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import TickerBar from "@/components/feed/TickerBar";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
+import { useTranslation } from 'react-i18next';
 
 export default function Profile() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();

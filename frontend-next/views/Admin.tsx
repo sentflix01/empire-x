@@ -1,4 +1,4 @@
-// @ts-nocheck
+'use client'
 import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { auth } from "@/api/auth";
@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import moment from "moment";
+import { useTranslation } from 'react-i18next';
 
 const TABS = ["overview", "users", "verification", "posts", "products", "orders", "reports"];
 
@@ -24,6 +25,7 @@ const VERIFY_TYPES = [
 ];
 
 export default function Admin() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [tab, setTab] = useState("overview");
   const [stats, setStats] = useState({});
@@ -172,12 +174,12 @@ export default function Admin() {
             {tab === "overview" && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {[
-                  { label: "Total Users",       value: stats.users,        icon: Users,       color: "text-blue-600 bg-blue-50" },
+                  { label: t('admin.totalUsers'),       value: stats.users,        icon: Users,       color: "text-blue-600 bg-blue-50" },
                   { label: "Verified Users",     value: verifiedCount,      icon: BadgeCheck,  color: "text-green-600 bg-green-50" },
-                  { label: "Posts",              value: stats.posts,        icon: FileText,    color: "text-amber-600 bg-amber-50" },
-                  { label: "Products",           value: stats.products,     icon: ShoppingBag, color: "text-purple-600 bg-purple-50" },
-                  { label: "Orders",             value: stats.orders,       icon: BarChart3,   color: "text-orange-600 bg-orange-50" },
-                  { label: "Pending Reports",    value: reports.length,     icon: ShieldAlert, color: "text-red-600 bg-red-50" },
+                  { label: t('admin.posts'),              value: stats.posts,        icon: FileText,    color: "text-amber-600 bg-amber-50" },
+                  { label: t('admin.products'),           value: stats.products,     icon: ShoppingBag, color: "text-purple-600 bg-purple-50" },
+                  { label: t('admin.orders'),             value: stats.orders,       icon: BarChart3,   color: "text-orange-600 bg-orange-50" },
+                  { label: t('admin.reports'),    value: reports.length,     icon: ShieldAlert, color: "text-red-600 bg-red-50" },
                 ].map((s, i) => {
                   const Icon = s.icon;
                   return (
@@ -450,7 +452,7 @@ export default function Admin() {
               className="w-full h-11 rounded-full text-white font-semibold"
               style={{ backgroundColor: VERIFY_TYPES.find(v => v.value === verifyType)?.color ?? "#3b82f6" }}
             >
-              {saving ? "Granting..." : `Grant ${VERIFY_TYPES.find(v => v.value === verifyType)?.label} Badge`}
+              {saving ? t('common.loading') : `Grant ${VERIFY_TYPES.find(v => v.value === verifyType)?.label} Badge`}
             </Button>
           </div>
         </div>

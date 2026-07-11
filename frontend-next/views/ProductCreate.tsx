@@ -1,10 +1,10 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { auth } from "@/api/auth";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
+import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 const CATEGORIES = ["Electronics", "Fashion", "Food", "Services", "Handmade", "Beauty", "Home", "Other"];
 
 export default function ProductCreate() {
+  const { t } = useTranslation();
   const params = useParams();
   const searchParams = useSearchParams();
   const paramId = Array.isArray(params?.id) ? params.id[0] : params?.id;

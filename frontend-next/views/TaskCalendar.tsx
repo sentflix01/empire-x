@@ -1,9 +1,9 @@
-// @ts-nocheck
+'use client'
 import Link from 'next/link';
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { auth } from "@/api/auth";
 import { entities } from "@/api/entities";
+import { useTranslation } from 'react-i18next';
 
 import { ChevronLeft, ChevronRight, Plus, CalendarDays, Clock, Gavel, MapPin, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ const STATUS_STYLES = {
 };
 
 export default function TaskCalendar() {
+  const { t } = useTranslation();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [tasks, setTasks] = useState([]);
   const [bids, setBids] = useState({});

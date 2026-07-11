@@ -1,9 +1,9 @@
-// @ts-nocheck
+'use client'
 import { useRouter } from 'next/navigation';
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import { useTranslation } from 'react-i18next';
 
 import { User, Store, ArrowRight, ArrowLeft, Check, Crown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
 import { LAYOUT_TEMPLATES, getLayoutTemplateById } from "@/lib/layoutTemplates";
 import TemplateCard from "@/components/profile/TemplateCard";
+import { useTranslation } from 'react-i18next';
 
 export default function Onboarding() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [step, setStep] = useState(0);

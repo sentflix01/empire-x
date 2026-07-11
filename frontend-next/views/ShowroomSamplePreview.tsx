@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import React, { useEffect, useState } from "react";
@@ -7,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Crown, Monitor, PenLine, Sparkles } from "lucide-react";
 import BuilderPreview from "@/components/showroom/BuilderPreview";
 import { getShowroomTemplateSamples } from "@/lib/showroomTemplateSamples";
+import { useTranslation } from 'react-i18next';
 
 const titleCase = (value = "") =>
   value
@@ -16,6 +16,7 @@ const titleCase = (value = "") =>
     .replace(/\b\w/g, c => c.toUpperCase());
 
 export default function ShowroomSamplePreview() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const templateId = searchParams.get("template") || "";
   const category = searchParams.get("category") || "";

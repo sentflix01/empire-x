@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { X, Send, RotateCcw, Wifi, WifiOff } from "lucide-react";
 import client from "@/api/client";
 import { offlineAnswer, isOnline } from "@/lib/aiOffline";
+import { useTranslation } from "react-i18next";
 
 interface Message {
   role: "user" | "assistant";
@@ -16,14 +17,7 @@ interface Message {
 }
 
 const STORAGE_KEY = "empire_ai_history";
-const MAX_STORED = 60; // keep last 60 messages in localStorage
-
-const SUGGESTIONS = [
-  "How do I create a showroom?",
-  "How do I post a task?",
-  "How does the referral program work?",
-  "How do I sell a product?",
-];
+const MAX_STORED = 60;
 
 function AssistantLogo({ size = "sm", animated = false }: { size?: "xs" | "sm" | "md"; animated?: boolean }) {
   const sizeClass = size === "md" ? "w-11 h-11" : size === "sm" ? "w-7 h-7" : "w-6 h-6";
@@ -99,6 +93,13 @@ function fmtTime(ts: number): string {
 }
 
 export default function AiAssistant() {
+  const { t } = useTranslation();
+  const SUGGESTIONS = [
+    t('ai.suggestion1'),
+    t('ai.suggestion2'),
+    t('ai.suggestion3'),
+    t('ai.suggestion4'),
+  ];
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(() => loadHistory());
@@ -174,8 +175,8 @@ export default function AiAssistant() {
     addMessage({
       role: "assistant",
       content: online
-        ? "⚠️ I couldn't reach the AI service right now. Try asking something else — I can answer many questions about Empire X without internet!"
-        : "📶 You appear to be offline. I can still answer common questions about Empire X — try asking how to create a showroom, post a task, use the referral program, and more!",
+        ? t('ai.apiFallback')
+        : t('ai.offlineFallback'),
       offline: true,
       ts: Date.now(),
     });
@@ -193,22 +194,14 @@ export default function AiAssistant() {
   return (
     <>
       {/* Floating button */}
-      <button
-        onClick={() => setOpen(v => !v)}
+      <button onClick={() => setOpen(v => !v)}
         className={`fixed bottom-24 right-5 md:bottom-6 md:right-6 z-[2147483647] rounded-full shadow-2xl shadow-blue-950/25 flex items-center justify-center gap-1.5 transition-all duration-200
-          ${open
-            ? "bg-slate-800 dark:bg-slate-700 rotate-6 scale-95"
+          ${open ? "bg-slate-800 dark:bg-slate-700 rotate-6 scale-95"
             : "bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 hover:scale-110 hover:shadow-blue-600/30 hover:shadow-xl"
           }`}
         style={{ width: 56, height: 56, paddingInline: 0 }}
-        title="Empire X AI"
-        aria-label="Open AI assistant"
-      >
-        {open
-          ? <X className="w-5 h-5 text-white" />
-          : <AssistantFlipCoin />
-        }
-        {/* Unread dot */}
+        title={t('ai.title')} aria-label={t('ai.title')}>
+        {open ? <X className="w-5 h-5 text-white" /> : <AssistantFlipCoin />}
         {!open && messages.length > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-background" />
         )}
@@ -222,19 +215,18 @@ export default function AiAssistant() {
             flex flex-col overflow-hidden"
           style={{ height: "min(500px, calc(100dvh - 10.5rem))" }}
         >
-          {/* Header */}
           <div className="flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-slate-900 via-blue-700 to-violet-700 shrink-0">
             <AssistantLogo size="sm" animated />
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm leading-none">Empire X AI</p>
+              <p className="text-white font-semibold text-sm leading-none">{t('ai.title')}</p>
               <div className="flex items-center gap-1 mt-0.5">
                 {online
-                  ? <><Wifi className="w-2.5 h-2.5 text-white/70" /><p className="text-white/70 text-[10px]">Online</p></>
-                  : <><WifiOff className="w-2.5 h-2.5 text-white/60" /><p className="text-white/60 text-[10px]">Offline mode</p></>
+                  ? <><Wifi className="w-2.5 h-2.5 text-white/70" /><p className="text-white/70 text-[10px]">{t('ai.online')}</p></>
+                  : <><WifiOff className="w-2.5 h-2.5 text-white/60" /><p className="text-white/60 text-[10px]">{t('ai.offlineMode')}</p></>
                 }
               </div>
             </div>
-            <button onClick={reset} title="Clear history" className="p-1 text-white/70 hover:text-white transition-colors">
+            <button onClick={reset} title={t('ai.clearHistory')} className="p-1 text-white/70 hover:text-white transition-colors">
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
             <button onClick={() => setOpen(false)} className="p-1 text-white/70 hover:text-white transition-colors">
@@ -251,7 +243,7 @@ export default function AiAssistant() {
                   <span className="mt-0.5 shrink-0"><AssistantLogo size="sm" animated /></span>
                   <div className="bg-white border border-blue-200/80 rounded-2xl rounded-tl-sm px-3 py-2.5 max-w-[88%] shadow-sm dark:bg-slate-800 dark:border-blue-500/25">
                     <p className="text-sm text-slate-900 leading-relaxed dark:text-slate-100">
-                      👋 Hi! I'm <strong>Empire X AI</strong>. I can help you with the app even when you're offline. What can I do for you?
+                      {t('ai.welcomeMessage')}
                     </p>
                   </div>
                 </div>
@@ -286,7 +278,7 @@ export default function AiAssistant() {
                       <span className="text-[10px] text-muted-foreground/60">{fmtTime(m.ts)}</span>
                       {m.offline && m.role === "assistant" && (
                         <span className="text-[9px] text-muted-foreground/50 flex items-center gap-0.5">
-                          <WifiOff className="w-2 h-2" /> offline
+                          <WifiOff className="w-2 h-2" /> {t('ai.offline')}
                         </span>
                       )}
                     </div>
@@ -314,12 +306,9 @@ export default function AiAssistant() {
 
           {/* Input */}
           <div className="shrink-0 px-3 py-3 border-t border-blue-200/80 bg-white/95 dark:border-blue-500/25 dark:bg-slate-950 flex items-center gap-2">
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
+            <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-              placeholder={online ? "Ask anything…" : "Ask anything (offline mode)…"}
+              placeholder={online ? t('ai.placeholder') : t('ai.placeholderOffline')}
               disabled={loading}
               className="flex-1 bg-blue-50 border border-blue-200 rounded-full px-4 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:ring-1 focus:ring-blue-500/45 disabled:opacity-50 dark:bg-slate-900 dark:border-blue-500/30 dark:text-slate-100 dark:placeholder:text-slate-400"
             />

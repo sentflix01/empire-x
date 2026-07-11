@@ -1,9 +1,10 @@
-// @ts-nocheck
+'use client'
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from "react";
 import { auth } from "@/api/auth";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
+import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, User, Store, Eye, Radio, Bell, BellOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ function PushSettingsCard() {
 }
 
 export default function ProfileEdit() {
+  const { t } = useTranslation();
   const router = useRouter();
   const location = usePathname();
   const isBusinessSetup = pathname.includes("setup-business");
