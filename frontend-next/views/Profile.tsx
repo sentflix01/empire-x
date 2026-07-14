@@ -18,7 +18,6 @@ import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import TickerBar from "@/components/feed/TickerBar";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { useTranslation } from 'react-i18next';
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -64,7 +63,7 @@ export default function Profile() {
       if (bizList.length > 0) setSelectedBizId(bizList[0].id);
     } catch (err) {
       if (err?.message?.includes("Authentication required") || err?.message?.includes("auth")) {
-        auth.redirectToLogin(window.pathname);
+        auth.redirectToLogin(window.location.pathname);
         return;
       }
     }
@@ -119,63 +118,37 @@ export default function Profile() {
         {/* Back button — shown when navigated from another page */}
         <button
           onClick={() => router.back()}
+          aria-label="Go back to previous page"
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-3 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> Back
+          <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
         </button>
         {/* Profile Header Card */}
         <div className="bg-card rounded-2xl border border-border/50 overflow-hidden mb-4">
           {/* Cover */}
           <div className="h-28 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 relative">
             {view === "business" && profile.business_cover_url && (
-              <img src={profile.business_cover_url} alt="" className="w-full h-full object-cover" />
+              <img src={profile.business_cover_url} alt={`${profile.business_name || 'Business'} cover photo`} className="w-full h-full object-cover" />
             )}
           </div>
           <div className="px-5 pb-4">
-            {/* Avatar + Toggle */}
+            {/* Row 1: Avatar (left) + Edit/Logout buttons (right) */}
             <div className="flex items-end justify-between -mt-12">
               <div className="relative">
-                <div className="w-24 h-24 rounded-2xl bg-card p-1 shadow-lg">
+                <div className="w-24 h-24 rounded-2xl bg-card p-0.5 shadow-lg">
                   {view === "personal" ? (
-                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-bold">
+                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
                       {profile.display_name?.charAt(0) || "U"}
                     </div>
                   ) : profile.business_logo_url ? (
-                    <img src={profile.business_logo_url} alt="" className="w-full h-full rounded-xl object-cover" />
+                    <img src={profile.business_logo_url} alt={`${profile.business_name || 'Business'} logo`} className="w-full h-full rounded-xl object-cover" />
                   ) : (
-                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl font-bold">
+                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
                       {profile.business_name?.charAt(0) || "B"}
                     </div>
                   )}
                 </div>
               </div>
-
-              {/* Unified toggle — Personal / Business / Dark-Light */}
-              {hasBusinessView && (
-                <div className="mb-2">
-                  <ProfileToggle
-                    view={view}
-                    onFlip={handleFlip}
-                    flipping={flipping}
-                    theme={theme}
-                    onTheme={setTheme}
-                    showBusiness={hasBusinessView}
-                  />
-                </div>
-              )}
-              {/* Theme-only toggle when user has no business view */}
-              {!hasBusinessView && (
-                <div className="mb-2">
-                  <ProfileToggle
-                    view={view}
-                    onFlip={handleFlip}
-                    flipping={flipping}
-                    theme={theme}
-                    onTheme={setTheme}
-                    showBusiness={false}
-                  />
-                </div>
-              )}
 
               {isOwner && (
                 <div className="mb-2 flex flex-col gap-2 items-end">
@@ -191,7 +164,8 @@ export default function Profile() {
                   <button
                     onClick={handleTickerQuickToggle}
                     disabled={tickerToggling}
-                    title={tickerOn ? 'Ticker on — click to disable' : 'Ticker off — click to enable'}
+                    aria-label={tickerOn ? 'Ticker is on — click to disable' : 'Ticker is off — click to enable'}
+                    aria-pressed={tickerOn}
                     className={`flex items-center gap-1.5 px-3 h-7 rounded-full text-xs font-medium border transition-all ${
                       tickerOn
                         ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
@@ -206,6 +180,20 @@ export default function Profile() {
                   </button>
                 </div>
               )}
+            </div>
+
+            {/* Row 2: ProfileToggle — full-width row below avatar */}
+            <div className="mt-3 flex justify-center w-full overflow-hidden">
+              <div className="max-w-full overflow-x-auto">
+                <ProfileToggle
+                  view={view}
+                  onFlip={handleFlip}
+                  flipping={flipping}
+                  theme={theme}
+                  onTheme={setTheme}
+                  showBusiness={hasBusinessView}
+                />
+              </div>
             </div>
 
             {/* Name + Info */}
@@ -233,8 +221,8 @@ export default function Profile() {
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2"><MapPin className="w-3 h-3" />{profile.location}</p>
                       )}
                       <div className="flex gap-4 mt-3 text-sm">
-                        <button className="hover:underline"><strong>{profile.connection_count || 0}</strong> <span className="text-muted-foreground">connections</span></button>
-                        <button className="hover:underline"><strong>{profile.follower_count || 0}</strong> <span className="text-muted-foreground">followers</span></button>
+                        <span><strong>{profile.connection_count || 0}</strong> <span className="text-muted-foreground">connections</span></span>
+                        <span><strong>{profile.follower_count || 0}</strong> <span className="text-muted-foreground">followers</span></span>
                       </div>
                     </>
                   ) : (

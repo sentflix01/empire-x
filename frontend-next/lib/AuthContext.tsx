@@ -35,14 +35,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAuthChecked(true);
       return;
     }
+    // Fix #3: Hydrate _accessToken in memory BEFORE calling /me so the
+    // axios request interceptor sends the Authorization header correctly.
+    storeToken(token);
     try {
       setIsLoadingAuth(true);
       const res = await client.get('/api/auth/me');
       setUser(res.data);
       setIsAuth(true);
       setAuthError(null);
-      // Keep cookie in sync with localStorage token
-      storeToken(token);
     } catch (error: any) {
       clearToken();
       setUser(null);
@@ -59,6 +60,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => { checkUserAuth(); }, [checkUserAuth]);
 
   const logout = (redirectTo?: string) => {
+    // Revoke refresh token server-side before clearing local state
+    client.post('/api/auth/logout').catch(() => {});
     clearToken();
     setUser(null);
     setIsAuth(false);

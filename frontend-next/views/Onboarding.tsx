@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
 import { LAYOUT_TEMPLATES, getLayoutTemplateById } from "@/lib/layoutTemplates";
 import TemplateCard from "@/components/profile/TemplateCard";
-import { useTranslation } from 'react-i18next';
 
 export default function Onboarding() {
   const { t } = useTranslation();
@@ -34,33 +33,39 @@ export default function Onboarding() {
   }, []);
 
   const handleFinish = async () => {
+    if (!user) return; // Fix: guard against null user
     setSaving(true);
-    const profileData = {
-      user_id: user.id,
-      display_name: personal.display_name,
-      bio: personal.bio,
-      headline: personal.headline,
-      location: personal.location,
-      phone: personal.phone,
-      profile_type: profileType,
-      has_business_profile: profileType === "business",
-      ...(profileType === "business" && {
-        business_name: business.business_name,
-        business_category: business.business_category,
-        business_template: selectedLayout,
-        business_description: business.business_description,
-        business_sections: JSON.stringify(getLayoutTemplateById(selectedLayout)?.sections || []),
-        business_theme_color: getLayoutTemplateById(selectedLayout)?.accent_color || "#D4AF37",
-      })
-    };
-    const existing = await entities.UserProfile.filter({ user_id: user.id });
-    if (existing.length > 0) {
-      await entities.UserProfile.update(existing[0].id, profileData);
-    } else {
-      await entities.UserProfile.create(profileData);
+    try {
+      const profileData = {
+        user_id: user.id,
+        display_name: personal.display_name,
+        bio: personal.bio,
+        headline: personal.headline,
+        location: personal.location,
+        phone: personal.phone,
+        profile_type: profileType,
+        has_business_profile: profileType === "business",
+        ...(profileType === "business" && {
+          business_name: business.business_name,
+          business_category: business.business_category,
+          business_template: selectedLayout,
+          business_description: business.business_description,
+          business_sections: JSON.stringify(getLayoutTemplateById(selectedLayout)?.sections || []),
+          business_theme_color: getLayoutTemplateById(selectedLayout)?.accent_color || "#D4AF37",
+        })
+      };
+      const existing = await entities.UserProfile.filter({ user_id: user.id });
+      if (existing.length > 0) {
+        await entities.UserProfile.update(existing[0].id, profileData);
+      } else {
+        await entities.UserProfile.create(profileData);
+      }
+      router.push("/feed");
+    } catch (err: any) {
+      alert(err?.error || err?.message || "Failed to create profile. Please try again.");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    router.push("/feed");
   };
 
   return (

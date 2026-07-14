@@ -11,8 +11,6 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
-import { entities } from "@/api/entities";
-import { useTranslation } from "react-i18next";
 
 const JOB_TYPE_LABELS = {
   full_time: "Full Time", part_time: "Part Time", contract: "Contract",
@@ -23,6 +21,7 @@ export default function Jobs() {
   const { t } = useTranslation();
   const [jobs, setJobs] = useState([]);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [applying, setApplying] = useState(null);
 
@@ -65,7 +64,7 @@ export default function Jobs() {
 
         <div className="relative mb-4">
           <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder=t('jobs.title') + '...' className="pl-9 rounded-full" />
+          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('jobs.title') + '...'} className="pl-9 rounded-full" />
         </div>
 
         {loading ? (

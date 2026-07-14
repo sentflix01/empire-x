@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * builderSections.ts
  * All 25 section types for the Showroom Web Builder.

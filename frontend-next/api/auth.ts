@@ -24,7 +24,7 @@ export const auth = {
   async loginViaEmailPassword(email: string, password: string): Promise<Record<string, unknown>> {
     const res = await client.post('/api/auth/login', { email, password });
     const { access_token } = res.data as { access_token: string };
-    storeToken(access_token); // stores in both localStorage and cookie
+    storeToken(access_token); // stores in memory, localStorage, and cookie
     return res.data as Record<string, unknown>;
   },
 
@@ -72,6 +72,9 @@ export const auth = {
   },
 
   logout(redirectTo?: string): void {
+    // Always call the backend to revoke the refresh token cookie server-side,
+    // then clear local state regardless of whether the request succeeds.
+    client.post('/api/auth/logout').catch(() => {});
     clearToken();
     if (typeof window !== 'undefined') {
       window.location.href = typeof redirectTo === 'string' ? redirectTo : '/login';

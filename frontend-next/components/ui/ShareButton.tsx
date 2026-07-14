@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from "react";
 import { Share2, Check, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";

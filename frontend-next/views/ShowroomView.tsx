@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeSVG } from "qrcode.react";
 import SectionRenderer from "@/components/showroom/SectionRenderer";
-import { useTranslation } from 'react-i18next';
 
 export default function ShowroomView() {
   const { t } = useTranslation();

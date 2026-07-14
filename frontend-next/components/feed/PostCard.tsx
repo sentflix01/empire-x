@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -126,7 +125,8 @@ function ImagePost({ post }: { post: Post }) {
     <div className="pb-3">
       <div className="relative overflow-hidden" style={{ maxHeight: 360 }}>
         <img
-          src={post.image_url} alt=""
+          src={post.image_url}
+          alt={post.content ? post.content.slice(0, 120) : 'Post image'}
           className="w-full object-cover"
           style={{ maxHeight: 360 }}
           onError={() => setErr(true)}
@@ -420,9 +420,10 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
         <Link
           href={`/profile/${post.author_id}`}
           className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden"
+          aria-label={`View ${post.author_name ?? 'user'}'s profile`}
         >
           {post.author_avatar
-            ? <img src={post.author_avatar} alt="" className="w-full h-full object-cover" />
+            ? <img src={post.author_avatar} alt={`${post.author_name ?? 'User'} avatar`} className="w-full h-full object-cover" />
             : (post.author_name?.charAt(0) ?? '?')}
         </Link>
         <div className="flex-1 min-w-0">
@@ -461,13 +462,13 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
             {viewMode === 'business' ? t('feed.businessShowroom') : moment(post.created_at).fromNow()}
           </p>
         </div>
-        {/* Scale / Profile Peek button */}
+        {/* Profile Peek button */}
         <button
           onClick={() => setPeekOpen(true)}
           className="p-1.5 rounded-full hover:bg-secondary transition-colors shrink-0"
-          title="Quick profile peek"
+          aria-label={`Quick profile peek for ${post.author_name ?? 'user'}`}
         >
-          <Maximize2 className="w-4 h-4 text-muted-foreground" />
+          <Maximize2 className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
         </button>
         <PostCardMenu currentView={viewMode} onSelect={handleViewChange} />
       </div>
@@ -502,16 +503,20 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
         <div className="flex items-center gap-1 px-4 pb-3 pt-1">
           <button
             onClick={handleLike}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all ${liked ? 'text-red-500 bg-red-50' : 'text-muted-foreground hover:bg-secondary'}`}
+            aria-label={`${liked ? 'Unlike' : 'Like'} post by ${post.author_name ?? 'user'}`}
+            aria-pressed={liked}
+            className={`post-action-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all ${liked ? 'text-red-500 bg-red-50' : 'text-muted-foreground hover:bg-secondary'}`}
           >
-            <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} aria-hidden="true" />
             <span className="font-medium">{likeCount}</span>
           </button>
           <button
             onClick={handleShowComments}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-muted-foreground hover:bg-secondary transition-all"
+            aria-label={`${showComments ? 'Hide' : 'View'} comments (${post.comment_count ?? 0})`}
+            aria-expanded={showComments}
+            className="post-action-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-muted-foreground hover:bg-secondary transition-all"
           >
-            <MessageCircle className="w-4 h-4" />
+            <MessageCircle className="w-4 h-4" aria-hidden="true" />
             <span className="font-medium">{post.comment_count ?? 0}</span>
           </button>
           <ShareButton
@@ -532,15 +537,27 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
       {showComments && viewMode === 'personal' && (
         <div className="border-t border-border/50 px-4 py-3">
           {/* Comment input */}
-          <div className="flex gap-2 mb-3">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
+          <div className="flex gap-2 mb-3 items-center">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xs font-semibold shrink-0" aria-hidden="true">
               {currentUser?.full_name?.charAt(0) ?? '?'}
             </div>
-            <input value={commentText} onChange={e => setCommentText(e.target.value)}
+            <input
+              id={`comment-input-${post.id}`}
+              value={commentText}
+              onChange={e => setCommentText(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleAddComment()}
               placeholder={t('feed.postComment')}
-              className="flex-1 text-sm bg-secondary/50 rounded-full px-4 py-2 outline-none focus:ring-1 focus:ring-amber-500/30"
+              aria-label={t('feed.postComment')}
+              className="flex-1 min-w-0 text-sm bg-secondary/50 rounded-full px-4 py-2 outline-none focus:ring-1 focus:ring-amber-500/30"
             />
+            <button
+              onClick={handleAddComment}
+              disabled={!commentText.trim()}
+              aria-label="Post comment"
+              className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-amber-500 text-white disabled:opacity-40 transition-opacity"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
           </div>
 
           {loadingComments ? (
@@ -556,7 +573,7 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
                     <div className="flex gap-2 group">
                       <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">
                         {(c as any).author_avatar
-                          ? <img src={(c as any).author_avatar} alt="" className="w-full h-full object-cover rounded-full" />
+                          ? <img src={(c as any).author_avatar} alt={`${c.author_name ?? 'User'} avatar`} className="w-full h-full object-cover rounded-full" />
                           : c.author_name?.charAt(0) ?? '?'}
                       </div>
                       <div className="flex-1 min-w-0">

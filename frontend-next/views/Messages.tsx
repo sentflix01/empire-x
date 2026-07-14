@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import moment from "moment";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
-import { useTranslation } from 'react-i18next';
 
 const TG_BLUE = "#0088cc";
 
@@ -37,24 +36,29 @@ export default function Messages() {
     return () => clearInterval(interval);
   }, [user]);
 
-  const loadConversations = async (currentUser) => {
+  const loadConversations = async (currentUser?) => {
     const u = currentUser || user;
     if (!u) return;
     setLoading(true);
-    const data = await entities.Conversation.list("-updated_at", 100);
-    const myConvos = data.filter(c => {
-      try {
-        const ids = JSON.parse(c.participant_ids || "[]");
-        return ids.includes(u.id);
-      } catch { return false; }
-    });
-    setConversations(myConvos);
-    setLoading(false);
+    try {
+      const data = await entities.Conversation.list("-updated_at", 100);
+      const myConvos = data.filter(c => {
+        try {
+          const ids = JSON.parse(c.participant_ids || "[]");
+          return ids.includes(u.id);
+        } catch { return false; }
+      });
+      setConversations(myConvos);
+    } catch {
+      // silently keep existing conversations on poll failure
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadContacts = async (u) => {
     try {
-      const allUsers = await entities.UserProfile.list("-created_at", 200);
+      const allUsers = await entities.UserProfile.list("-created_at", 50);
       setContacts(allUsers.filter(c => c.user_id !== u.id));
     } catch {}
   };

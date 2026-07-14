@@ -1,10 +1,9 @@
-// @ts-nocheck
 'use client';
 import React, { useState } from "react";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-import client from "@/api/client";
+import client, { storeToken } from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,8 +51,7 @@ export default function Register() {
     try {
       const result = await client.post('/api/auth/verify-otp', { email, otpCode });
       if (result?.data?.access_token) {
-        localStorage.setItem('access_token', result.data.access_token);
-        document.cookie = `access_token=${result.data.access_token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+        storeToken(result.data.access_token);
       }
       if (refCode) {
         try {

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Providers from './providers';
+import GoogleSignInInit from '@/components/GoogleSignInInit';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
@@ -36,9 +37,15 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#2563EB',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)',  color: '#0f172a' },
+  ],
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover', // enables safe-area-inset on iPhone notch/home bar
 };
 
 export default function RootLayout({
@@ -52,6 +59,7 @@ export default function RootLayout({
       suppressHydrationWarning // needed for next-themes dark mode
     >
       <body className="min-h-screen bg-background text-foreground antialiased" suppressHydrationWarning>
+        <GoogleSignInInit />
         <Providers>{children}</Providers>
       </body>
     </html>

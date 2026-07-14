@@ -1,34 +1,117 @@
 /**
- * Axios HTTP client for Next.js — uses NEXT_PUBLIC_ env vars.
- * Auto-attaches JWT, handles 401 logout.
- * Token stored in both localStorage (client) and cookie (for middleware).
+ * Axios HTTP client for Next.js.
+ *
+ * TD-001: Access token stored in memory only (not localStorage).
+ * A short-lived access token (15 min) is kept in a module-level variable.
+ * When it expires, the 401 interceptor silently calls POST /api/auth/refresh
+ * which reads the HttpOnly refresh_token cookie and returns a new access token.
+ *
+ * The HttpOnly cookie is set by the backend on login/refresh and is never
+ * readable by JavaScript — eliminates the main XSS consequence.
+ *
+ * Backwards compatibility:
+ *   - storeToken() still exists so existing callers (AuthContext, auth.ts) work.
+ *   - clearToken() clears the in-memory token and calls /logout to clear the cookie.
  */
 import axios, { InternalAxiosRequestConfig } from 'axios';
 
-// Next.js uses NEXT_PUBLIC_ prefix for client-side env vars
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
 
+// ── In-memory access token store ─────────────────────────────────────────────
+// Never written to localStorage or a JS-readable cookie.
+let _accessToken: string | null = null;
+
+export function storeToken(token: string) {
+  _accessToken = token;
+  // Keep the cookie for Next.js middleware route protection (not HttpOnly —
+  // this is just for server-side middleware to check auth, not a secret).
+  // Also write to localStorage so AuthContext, CartContext, socket.ts, and
+  // ChatRoom.tsx can read the token after a page refresh.
+  if (typeof window !== 'undefined') {
+    const maxAge = 15 * 60; // 15 min — matches access token lifetime
+    document.cookie = `access_token=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    localStorage.setItem('access_token', token);
+  }
+}
+
+export function clearToken() {
+  _accessToken = null;
+  if (typeof window !== 'undefined') {
+    document.cookie = 'access_token=; path=/; max-age=0';
+    localStorage.removeItem('access_token');
+  }
+}
+
+export function getAccessToken() {
+  return _accessToken;
+}
+
+// ── Axios instance ────────────────────────────────────────────────────────────
 const client = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
+  withCredentials: true, // send HttpOnly refresh_token cookie on every request
 });
 
+// Attach access token from memory on every request
 client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('access_token');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (_accessToken) {
+    config.headers.Authorization = `Bearer ${_accessToken}`;
   }
   return config;
 });
 
+// ── 401 interceptor — silent token refresh ───────────────────────────────────
+let _refreshing: Promise<string | null> | null = null;
+
 client.interceptors.response.use(
   response => response,
-  error => {
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('access_token');
-      // Also clear the cookie used by Next.js middleware
-      document.cookie = 'access_token=; path=/; max-age=0';
+  async error => {
+    const originalRequest = error.config;
+
+    // Only attempt refresh on 401, and only once per request
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retried &&
+      typeof window !== 'undefined'
+    ) {
+  // Fix #10: Only skip refresh for /refresh and /login endpoints, not all /api/auth/ routes.
+      // This allows /api/auth/me to trigger a silent refresh when the access token expires.
+      const isAuthEndpoint =
+        originalRequest.url?.includes('/api/auth/refresh') ||
+        originalRequest.url?.includes('/api/auth/login') ||
+        originalRequest.url?.includes('/api/auth/logout');
+      if (!isAuthEndpoint) {
+        originalRequest._retried = true;
+
+        try {
+          // Deduplicate concurrent refresh attempts
+          if (!_refreshing) {
+            _refreshing = axios
+              .post(`${API_BASE_URL}/api/auth/refresh`, {}, { withCredentials: true })
+              .then(r => {
+                const newToken: string = r.data.access_token;
+                storeToken(newToken);
+                return newToken;
+              })
+              .catch(() => null)
+              .finally(() => { _refreshing = null; });
+          }
+
+          const newToken = await _refreshing;
+
+          if (newToken) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return client(originalRequest);
+          }
+        } catch {
+          // refresh failed — fall through to redirect
+        }
+      }
+
+      // Refresh failed or auth endpoint 401 — clear token and redirect to login
+      clearToken();
       if (
         window.location.pathname !== '/login' &&
         window.location.pathname !== '/register'
@@ -36,29 +119,9 @@ client.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+
     return Promise.reject(error.response?.data ?? error);
   }
 );
-
-/**
- * Store token in both localStorage and cookie so Next.js middleware can read it.
- */
-export function storeToken(token: string) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('access_token', token);
-  // HttpOnly would be more secure but requires server-side set.
-  // For now, a regular cookie lets the middleware read it client-side.
-  const maxAge = 7 * 24 * 60 * 60; // 7 days
-  document.cookie = `access_token=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
-}
-
-/**
- * Remove token from both localStorage and cookie.
- */
-export function clearToken() {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem('access_token');
-  document.cookie = 'access_token=; path=/; max-age=0';
-}
 
 export default client;

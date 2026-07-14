@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Showroom template library — 9 categories × 3-4 named templates each.
  * Each template has: id, name, desc, accent_color, preview_color (gradient), sections[]

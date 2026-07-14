@@ -20,7 +20,6 @@ import {
 import { getShowroomTemplateSample } from "@/lib/showroomTemplateSamples";
 import BuilderForm from "@/components/showroom/BuilderForm";
 import BuilderPreview from "@/components/showroom/BuilderPreview";
-import { useTranslation } from 'react-i18next';
 
 const FONT_OPTIONS = ["Inter", "Playfair Display", "Space Grotesk"];
 
@@ -154,6 +153,99 @@ function getDefaultFormData(templateName: string, category: string, sampleId = "
 function getDefaultSections(templateName: string, category: string, sampleId = ""): string[] {
   if (sampleId) return getShowroomTemplateSample(templateName, category, sampleId).activeSections;
   return CATEGORY_DEFAULT_SECTIONS[category] || ["hero", "services", "testimonials", "contact", "social"];
+}
+
+/* ── Draft Dropdown — Save / Load / Clear / Undo / Redo in a compact popover ── */
+function DraftDropdown({ darkBuilder, onSave, onLoad, onClear, onUndo, onRedo, canUndo, canRedo }: {
+  darkBuilder: boolean;
+  onSave: () => void;
+  onLoad: () => void;
+  onClear: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const btnBase = `w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-colors text-left`;
+  const btnStyle = darkBuilder
+    ? `${btnBase} text-slate-200 hover:bg-slate-600`
+    : `${btnBase} text-foreground hover:bg-secondary/60`;
+  const btnDisabled = `${btnBase} opacity-30 cursor-not-allowed`;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className={`w-full flex items-center justify-between gap-2 px-3 py-[7px] rounded-lg border text-[11px] font-semibold transition-colors
+          ${darkBuilder ? "border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600" : "border-border/60 bg-white text-foreground hover:bg-secondary/50"}`}
+      >
+        <span className="flex items-center gap-1.5">
+          <i className="fa-solid fa-floppy-disk" style={{ color: "#b8860b", fontSize: 12 }} />
+          Actions
+        </span>
+        <i className={`fa-solid fa-chevron-${open ? 'up' : 'down'}`} style={{ fontSize: 9, opacity: 0.6 }} />
+      </button>
+
+      {open && (
+        <div className={`absolute bottom-full left-0 right-0 mb-1.5 rounded-xl border shadow-lg overflow-hidden z-50
+          ${darkBuilder ? "bg-slate-800 border-slate-600" : "bg-white border-border/60"}`}>
+
+          {/* Draft actions */}
+          <div className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider ${darkBuilder ? "text-slate-500" : "text-muted-foreground"}`}>Draft</div>
+          <button onClick={() => { onSave(); setOpen(false); }} className={btnStyle}>
+            <i className="fa-solid fa-floppy-disk" style={{ color: "#b8860b", fontSize: 12 }} />
+            Save Draft <kbd className={`ml-auto text-[9px] px-1 py-0.5 rounded ${darkBuilder ? "bg-slate-700 border-slate-600 text-slate-400" : "bg-secondary border-border text-muted-foreground"}`}>Ctrl+S</kbd>
+          </button>
+          <button onClick={() => { onLoad(); setOpen(false); }} className={btnStyle}>
+            <i className="fa-solid fa-folder-open" style={{ color: "#f39c12", fontSize: 12 }} />
+            Load Draft
+          </button>
+          <button
+            onClick={() => { if (window.confirm('Clear draft and reset to defaults?')) { onClear(); setOpen(false); } }}
+            className={`${btnBase} ${darkBuilder ? "text-red-300 hover:bg-slate-600" : "text-red-500 hover:bg-red-50"}`}
+          >
+            <i className="fa-solid fa-trash-can" style={{ fontSize: 12 }} />
+            Clear Draft
+          </button>
+
+          {/* Divider */}
+          <div className={`mx-2 my-1 border-t ${darkBuilder ? "border-slate-700" : "border-border/50"}`} />
+
+          {/* Undo / Redo */}
+          <div className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider ${darkBuilder ? "text-slate-500" : "text-muted-foreground"}`}>History</div>
+          <button onClick={() => { if (canUndo) { onUndo(); setOpen(false); } }} className={canUndo ? btnStyle : btnDisabled} disabled={!canUndo}>
+            <i className="fa-solid fa-rotate-left" style={{ fontSize: 11 }} />
+            Undo <kbd className={`ml-auto text-[9px] px-1 py-0.5 rounded ${darkBuilder ? "bg-slate-700 border-slate-600 text-slate-400" : "bg-secondary border-border text-muted-foreground"}`}>Ctrl+Z</kbd>
+          </button>
+          <button onClick={() => { if (canRedo) { onRedo(); setOpen(false); } }} className={canRedo ? btnStyle : btnDisabled} disabled={!canRedo}>
+            <i className="fa-solid fa-rotate-right" style={{ fontSize: 11 }} />
+            Redo
+          </button>
+
+          {/* Divider */}
+          <div className={`mx-2 my-1 border-t ${darkBuilder ? "border-slate-700" : "border-border/50"}`} />
+
+          {/* Export */}
+          <div className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider ${darkBuilder ? "text-slate-500" : "text-muted-foreground"}`}>Export</div>
+          <button onClick={() => { setOpen(false); }} className={btnStyle} id="draft-export-trigger">
+            <i className="fa-solid fa-file-export" style={{ color: "#2563eb", fontSize: 12 }} />
+            Export HTML <kbd className={`ml-auto text-[9px] px-1 py-0.5 rounded ${darkBuilder ? "bg-slate-700 border-slate-600 text-slate-400" : "bg-secondary border-border text-muted-foreground"}`}>Ctrl+E</kbd>
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ShowroomCreate() {
@@ -482,59 +574,33 @@ export default function ShowroomCreate() {
         })}
       </div>
 
-      {/* Footer */}
-      <div className={`shrink-0 border-t px-3 py-3 flex flex-col gap-1.5
+      {/* Footer — single "Actions" button replaces all footer rows, giving sections maximum height */}
+      <div className={`shrink-0 border-t px-3 py-2
         ${darkBuilder ? "border-slate-700 bg-slate-900/50" : "border-border/40 bg-white"}`}>
-        <button onClick={handleSaveDraft}
-          className={`w-full flex items-center gap-2 px-3 py-[7px] rounded-lg border text-[11px] font-semibold transition-colors
-            ${darkBuilder ? "border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600" : "border-border/60 bg-white text-foreground hover:bg-secondary/50"}`}>
-          <i className="fa-solid fa-floppy-disk" style={{ color: "#b8860b", fontSize: 12 }} /> Save Draft
-        </button>
-        <button onClick={() => {
-          const draft = localStorage.getItem("empire_builder_draft");
-          if (!draft) { toast.error("No draft found"); return; }
-          try {
-            const p = JSON.parse(draft);
-            if (p.formData) setFormData(prev => ({ ...prev, ...p.formData }));
-            if (p.activeSections) setActiveSections(p.activeSections);
-            toast.success("Draft loaded");
-          } catch { toast.error("Failed to load draft"); }
-        }}
-          className={`w-full flex items-center gap-2 px-3 py-[7px] rounded-lg border text-[11px] font-semibold transition-colors
-            ${darkBuilder ? "border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600" : "border-border/60 bg-white text-foreground hover:bg-secondary/50"}`}>
-          <i className="fa-solid fa-folder-open" style={{ color: "#f39c12", fontSize: 12 }} /> Load Draft
-        </button>
-        <button onClick={() => {
-          localStorage.removeItem("empire_builder_draft");
-          setFormData(getDefaultFormData(templateName, categoryParam, sampleParam));
-          setActiveSections(getDefaultSections(templateName, categoryParam, sampleParam));
-          toast.success("Draft cleared");
-        }}
-          className={`w-full flex items-center gap-2 px-3 py-[7px] rounded-lg border text-[11px] font-semibold transition-colors
-            ${darkBuilder ? "border-slate-600 bg-slate-700 text-red-300 hover:bg-slate-600" : "border-border/60 bg-white text-red-500 hover:bg-red-50"}`}>
-          <i className="fa-solid fa-trash-can" style={{ fontSize: 12 }} /> Clear Draft
-        </button>
-        <div className="flex gap-1.5">
-          <button onClick={undo} disabled={!undoStack.length}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-[7px] rounded-lg border text-[11px] font-semibold transition-colors disabled:opacity-30
-              ${darkBuilder ? "border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600" : "border-border/60 bg-white text-foreground hover:bg-secondary/50"}`}>
-            <i className="fa-solid fa-rotate-left" style={{ fontSize: 11 }} /> Undo
-          </button>
-          <button onClick={redo} disabled={!redoStack.length}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-[7px] rounded-lg border text-[11px] font-semibold transition-colors disabled:opacity-30
-              ${darkBuilder ? "border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600" : "border-border/60 bg-white text-foreground hover:bg-secondary/50"}`}>
-            <i className="fa-solid fa-rotate-right" style={{ fontSize: 11 }} /> Redo
-          </button>
-        </div>
-        <div style={{ fontSize: 9, color: darkBuilder ? "#64748b" : "#9ca3af", lineHeight: 1.6 }} className="flex flex-wrap gap-x-2">
-          {[["Ctrl+S","Save"],["Ctrl+Z","Undo"],["Ctrl+E","Export"]].map(([k,l]) => (
-            <span key={k}>
-              <kbd style={{ background: darkBuilder ? "#334155" : "#f3f4f6",
-                border: `1px solid ${darkBuilder ? "#475569" : "#d1d5db"}`,
-                borderRadius: 3, padding: "1px 5px", fontSize: 9, fontFamily: "monospace" }}>{k}</kbd> {l}
-            </span>
-          ))}
-        </div>
+        <DraftDropdown
+          darkBuilder={darkBuilder}
+          onSave={handleSaveDraft}
+          onUndo={undo}
+          onRedo={redo}
+          canUndo={undoStack.length > 0}
+          canRedo={redoStack.length > 0}
+          onLoad={() => {
+            const draft = localStorage.getItem("empire_builder_draft");
+            if (!draft) { toast.error("No draft found"); return; }
+            try {
+              const p = JSON.parse(draft);
+              if (p.formData) setFormData(prev => ({ ...prev, ...p.formData }));
+              if (p.activeSections) setActiveSections(p.activeSections);
+              toast.success("Draft loaded");
+            } catch { toast.error("Failed to load draft"); }
+          }}
+          onClear={() => {
+            localStorage.removeItem("empire_builder_draft");
+            setFormData(getDefaultFormData(templateName, categoryParam, sampleParam));
+            setActiveSections(getDefaultSections(templateName, categoryParam, sampleParam));
+            toast.success("Draft cleared");
+          }}
+        />
       </div>
     </>
   );

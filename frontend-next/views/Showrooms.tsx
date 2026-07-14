@@ -49,7 +49,7 @@ export default function Showrooms() {
 
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder=t('showrooms.title') + '...' className="pl-9 rounded-full bg-card border-border/50" />
+          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('showrooms.title') + '...'} className="pl-9 rounded-full bg-card border-border/50" />
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">

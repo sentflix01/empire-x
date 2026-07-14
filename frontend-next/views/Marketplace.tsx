@@ -1,16 +1,19 @@
 'use client';
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
-import { Search, Plus, ShoppingBag } from "lucide-react";
+import { Search, Plus, ShoppingBag, CheckCircle2, XCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 export default function Marketplace() {
   const { t } = useTranslation();
+  const searchParams = useSearchParams();
   const CATEGORIES = [
     t('marketplace.categories.all'), t('marketplace.categories.electronics'),
     t('marketplace.categories.fashion'), t('marketplace.categories.food'),
@@ -23,10 +26,24 @@ export default function Marketplace() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [user, setUser] = useState(null);
+  const [paymentBanner, setPaymentBanner] = useState<"success"|"failed"|null>(null);
 
   useEffect(() => {
     auth.me().then(setUser).catch(() => {});
     loadProducts();
+    // Handle Chapa return redirect
+    const payment = searchParams?.get("payment");
+    const tx_ref  = searchParams?.get("tx_ref");
+    if (payment === "success") {
+      setPaymentBanner("success");
+      toast.success("🇪🇹 Payment confirmed! Your order has been placed.");
+      // Clean URL
+      window.history.replaceState({}, '', '/marketplace');
+    } else if (payment === "failed") {
+      setPaymentBanner("failed");
+      toast.error("Payment was not completed. Please try again.");
+      window.history.replaceState({}, '', '/marketplace');
+    }
   }, []);
 
   const loadProducts = async () => {
@@ -44,17 +61,48 @@ export default function Marketplace() {
 
   const parseImages = (img) => {
     if (!img) return [];
-    try { return JSON.parse(img); } catch { return img ? [img] : []; }
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+    const normalise = (url: string) =>
+      url && url.startsWith('/') ? `${API_BASE}${url}` : url;
+    try {
+      const arr = JSON.parse(img);
+      return Array.isArray(arr) ? arr.map(normalise) : [normalise(img)];
+    } catch {
+      return img ? [normalise(img)] : [];
+    }
   };
 
   return (
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
+
+        {/* Chapa payment return banner */}
+        {paymentBanner === "success" && (
+          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800">
+            <CheckCircle2 className="w-5 h-5 shrink-0 text-green-600" />
+            <div>
+              <p className="font-semibold text-sm">Payment Successful!</p>
+              <p className="text-xs text-green-700">Your Chapa payment was confirmed. The seller will contact you shortly.</p>
+            </div>
+            <button onClick={() => setPaymentBanner(null)} className="ml-auto text-green-500 hover:text-green-700">✕</button>
+          </div>
+        )}
+        {paymentBanner === "failed" && (
+          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800">
+            <XCircle className="w-5 h-5 shrink-0 text-red-500" />
+            <div>
+              <p className="font-semibold text-sm">Payment Not Completed</p>
+              <p className="text-xs text-red-700">Your payment was not processed. You can try again or place a COD order.</p>
+            </div>
+            <button onClick={() => setPaymentBanner(null)} className="ml-auto text-red-400 hover:text-red-600">✕</button>
+          </div>
+        )}
+
+        <div className="flex items-start justify-between mb-6 gap-3">
+          <div className="min-w-0">
             <h1 className="font-display text-2xl font-bold">{t('marketplace.title')}</h1>
             <p className="text-sm text-muted-foreground">{t('marketplace.subtitle')}</p>
           </div>
-          <Link href="/products/create">
+          <Link href="/products/create" className="shrink-0">
             <Button size="sm" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
               <Plus className="w-4 h-4 mr-1" /> {t('marketplace.listProduct')}
             </Button>

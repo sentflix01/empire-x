@@ -1,5 +1,8 @@
 /**
  * entities.ts — typed API layer for all backend entities.
+ *
+ * Real-time updates use Socket.IO events (see AppLayout.tsx + socket lib).
+ * The old subscribe() polling pattern has been removed — TD-007.
  */
 import client from './client';
 
@@ -12,7 +15,6 @@ interface EntityApi<T = Record<string, unknown>> {
   create(data: Record<string, unknown>): Promise<T>;
   update(id: string, data: Record<string, unknown>): Promise<T>;
   delete(id: string): Promise<{ success: true }>;
-  subscribe(callback: () => void, intervalMs?: number): () => void;
 }
 
 function buildEntityApi<T = Record<string, unknown>>(path: string): EntityApi<T> {
@@ -41,10 +43,6 @@ function buildEntityApi<T = Record<string, unknown>>(path: string): EntityApi<T>
       await client.delete(`/api/${path}/${id}`);
       return { success: true as const };
     },
-    subscribe(callback: () => void, intervalMs = 30000) {
-      const id = setInterval(callback, intervalMs);
-      return () => clearInterval(id);
-    },
   };
 }
 
@@ -70,10 +68,6 @@ const ConversationApi = {
     return res.data;
   },
   async delete() { return { success: true as const }; },
-  subscribe(callback: () => void, intervalMs = 10000) {
-    const id = setInterval(callback, intervalMs);
-    return () => clearInterval(id);
-  },
 };
 
 const MessageApi = {
@@ -89,17 +83,19 @@ const MessageApi = {
     return [];
   },
   async get(id: string) {
-    const res = await client.get(`/api/messages/messages/${id}`);
-    return res.data;
+    // No GET /messages/:id endpoint on the backend — return null safely
+    console.warn('MessageApi.get() is not supported by the backend');
+    return null;
   },
   async create(data: Record<string, unknown>) {
     const { conversation_id, ...rest } = data;
     const res = await client.post(`/api/messages/conversations/${conversation_id}/messages`, rest);
     return res.data;
   },
-  async update(id: string, data: Record<string, unknown>) {
-    const res = await client.put(`/api/messages/messages/${id}`, data);
-    return res.data;
+  async update(_id: string, _data: Record<string, unknown>) {
+    // No PUT /messages/:id endpoint on the backend — no-op
+    console.warn('MessageApi.update() is not supported by the backend');
+    return null;
   },
   async delete(id: string) {
     await client.delete(`/api/messages/messages/${id}`);

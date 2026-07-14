@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Generate a CSV string from analytics data and trigger a browser download.
  */

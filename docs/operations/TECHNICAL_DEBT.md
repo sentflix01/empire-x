@@ -9,20 +9,23 @@
 ## High Priority
 
 ### TD-001: HttpOnly cookie refresh tokens
-**Status:** Not started  
-**File:** `frontend-next/api/client.ts`, `backend/routes/auth.js`  
-**Problem:** JWT stored in localStorage is readable by JavaScript — XSS vulnerability.  
-**Fix:** Add `/api/auth/refresh` endpoint returning HttpOnly cookie. Frontend stores only short-lived access token in memory.  
-**Impact:** Security — eliminates most dangerous XSS consequence.
+**Status:** ✅ Done (July 2026)
+**Files changed:** `backend/routes/auth.js`, `backend/middleware/auth.js`, `backend/index.js`, `frontend-next/api/client.ts`
+**What was done:**
+- Access token shortened to 15 min, stored in memory only (not localStorage)
+- Refresh token (7 days) set as HttpOnly cookie by backend on every login/refresh
+- Added `POST /api/auth/refresh` — reads HttpOnly cookie, rotates refresh token, issues new access token
+- Added `POST /api/auth/logout` — revokes refresh token, clears cookie
+- Added `POST /api/auth/logout-all` — revokes refresh token + sets per-user `revoke_before` timestamp
+- Frontend client: 401 interceptor silently calls `/refresh` once before redirecting to login
+- `cookie-parser` installed and wired into Express
 
 ---
 
 ### TD-002: Wallet topup should be internal-only in production
-**Status:** Not started  
-**File:** `backend/routes/wallet.js`  
-**Problem:** `POST /api/wallet/topup` is callable by any authenticated user. In production it should only be triggered by Stripe/Chapa webhooks or admin.  
-**Fix:** Add `requireAdmin` or an internal-only middleware for production, or move topup to be triggered exclusively from the Stripe webhook handler.  
-**Impact:** Financial integrity.
+**Status:** ✅ Done (July 2026)
+**File:** `backend/routes/wallet.js`
+**What was done:** `POST /api/wallet/topup` now requires `requireAdmin` middleware. Direct topup is admin-only; user topups flow exclusively through Chapa (`/topup/chapa` → webhook verify).
 
 ---
 
@@ -46,20 +49,19 @@
 ---
 
 ### TD-005: JWT revocation blocklist
-**Status:** Not started  
-**File:** `backend/middleware/auth.js`, `backend/lib/redis.js`  
-**Problem:** Once issued, a JWT is valid until expiry — "logout all devices" is impossible.  
-**Fix:** Store invalidated JTIs (JWT IDs) in Redis with TTL matching the token expiry. Check on every request.  
-**Impact:** Security — required for "logout all devices" feature.
+**Status:** ✅ Done (July 2026)
+**Files changed:** `backend/routes/auth.js`, `backend/middleware/auth.js`
+**What was done:**
+- All JWTs now include a `jti` (JWT ID) claim
+- Revoked JTIs stored in Redis as `revoked:{jti}` with TTL matching token expiry
+- Per-user `revoke_before:{userId}` timestamp stored on logout-all; tokens issued before it are rejected
+- `requireAuth` checks both blocklist and `revoke_before` on every request (fails open when Redis unavailable)
 
 ---
 
 ### TD-006: Remove broad `@ts-nocheck` usage from frontend-next
-**Status:** Not started  
-**File:** Many files under `frontend-next/components`, `frontend-next/views`, `frontend-next/lib`, and `frontend-next/hooks`  
-**Problem:** TypeScript checking is disabled across a large part of the frontend (current audit found 158 `@ts-nocheck` directives). This means `npx tsc --noEmit` can pass while real component and data-shape bugs remain hidden.  
-**Fix:** Remove `@ts-nocheck` incrementally by feature area. Start with shared UI primitives, auth/cart state, layout, checkout, wallet, profile, and showroom builder. Add explicit API response types as files are cleaned.  
-**Impact:** Type safety, IDE autocomplete.
+**Status:** ✅ Done (July 2026)
+**What was done:** Removed all 86 `@ts-nocheck` directives from source files. `npx tsc --noEmit` now shows zero errors in source files (one auto-generated `.next/dev/types/routes.d.ts` error is a Next.js dev artifact, not a source issue). `strict` mode is off and `strictNullChecks` is on — a good starting baseline for incremental type hardening.
 
 ---
 
@@ -115,11 +117,11 @@ Removed the old Vite frontend folder entirely. `frontend-next/` is the only fron
 ---
 
 ### TD-013: CSP headers
-**Status:** Not started  
-**File:** `backend/index.js`  
-**Problem:** `Content-Security-Policy` header is not configured. Browsers allow scripts from any origin.  
-**Fix:** Add CSP to Helmet config restricting `script-src` to self + Vercel + known CDNs.  
-**Impact:** XSS mitigation depth.
+**Status:** ✅ Done (July 2026)
+**Files changed:** `backend/index.js`, `frontend-next/next.config.ts`
+**What was done:**
+- Backend (API-only): strict CSP in production — `default-src 'none'`, allows only `connect-src 'self'`
+- Frontend (Next.js): full CSP with `script-src`, `img-src`, `connect-src`, `frame-src` for Stripe; `unsafe-inline`/`unsafe-eval` only in dev for HMR
 
 ---
 

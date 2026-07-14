@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * push.ts — Web Push subscription helpers
  * Registers the service worker, fetches the VAPID key, and

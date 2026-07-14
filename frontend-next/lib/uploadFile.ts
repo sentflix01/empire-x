@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * uploadFile — uploads a single file to our backend local disk storage.
  *

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ImageUpload — reusable image picker + uploader.
  *

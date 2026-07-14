@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * i18n.ts — Internationalization setup (English + Amharic)
  *

@@ -11,7 +11,6 @@ import {
   BUILDER_TEMPLATES,
 } from "@/lib/builderSections";
 import { getShowroomTemplateSamples } from "@/lib/showroomTemplateSamples";
-import { useTranslation } from 'react-i18next';
 
 // Lucide icon mapping for categories
 import {

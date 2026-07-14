@@ -21,6 +21,7 @@ export default function Wallet() {
   const { t } = useTranslation();
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [tab, setTab] = useState("overview");
   const [topupAmount, setTopupAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
@@ -34,7 +35,10 @@ export default function Wallet() {
     try {
       const { data } = await client.get("/api/wallet/me");
       setWallet(data);
-    } catch {}
+      setLoadError('');
+    } catch (err: any) {
+      setLoadError(err?.error || err?.message || 'Failed to load wallet');
+    }
     setLoading(false);
   };
 
@@ -59,12 +63,20 @@ export default function Wallet() {
       });
       setWithdrawAmount(""); setBankName(""); setAccountNum("");
       await loadWallet();
-      toast.success(data.message || t('wallet.withdrawFailed'));
+      toast.success(data.message || t('wallet.withdrawSuccess'));
     } catch (e) { toast.error(e?.response?.data?.error || t('wallet.withdrawFailed')); }
     setProcessing(false);
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"/></div>;
+
+  if (loadError) return (
+    <div className="max-w-lg mx-auto text-center py-20">
+      <WalletIcon className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+      <p className="text-sm text-destructive font-medium">{loadError}</p>
+      <button onClick={() => { setLoading(true); loadWallet(); }} className="mt-3 text-xs text-amber-600 hover:underline font-medium">Retry</button>
+    </div>
+  );
 
   return (
     <div className="max-w-lg mx-auto">
@@ -114,9 +126,34 @@ export default function Wallet() {
           <div className="bg-card rounded-2xl border border-border/50 p-5 space-y-4">
             <p className="text-sm text-muted-foreground">{t('wallet.topUpDesc')}</p>
             <div><Label>{t('wallet.amount')}</Label><Input type="number" value={topupAmount} onChange={e=>setTopupAmount(e.target.value)} placeholder={t('wallet.amountPlaceholder')} className="mt-1"/></div>
-            <Button onClick={handleTopup} disabled={processing||!topupAmount} className="w-full rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
-              {processing ? t('wallet.processing') : t('wallet.topUpBtn')}
+
+            {/* Chapa — ETB top-up (primary) */}
+            <Button
+              disabled={processing || !topupAmount || parseFloat(topupAmount) <= 0}
+              className="w-full rounded-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
+              onClick={async () => {
+                setProcessing(true);
+                try {
+                  const { data } = await client.post("/api/wallet/topup/chapa", {
+                    amount: parseFloat(topupAmount),
+                  });
+                  if (data?.checkout_url) window.location.href = data.checkout_url;
+                  else toast.error("Chapa unavailable — use manual top-up or add CHAPA_SECRET_KEY");
+                } catch (e) {
+                  toast.error(e?.response?.data?.error || "Chapa top-up unavailable");
+                }
+                setProcessing(false);
+              }}
+            >
+              {processing ? "Processing..." : `🇪🇹 Top Up with Chapa • ${parseFloat(topupAmount || 0).toLocaleString()} ETB`}
             </Button>
+
+            {/* Manual / admin top-up — only visible to admin users */}
+            {(wallet as any)?.user_role === 'admin' && (
+              <Button onClick={handleTopup} variant="outline" disabled={processing||!topupAmount} className="w-full rounded-full border-amber-300 text-amber-700">
+                {processing ? t('wallet.processing') : t('wallet.topUpBtn') + " (Admin Test)"}
+              </Button>
+            )}
           </div>
         )}
         {tab === "withdraw" && (

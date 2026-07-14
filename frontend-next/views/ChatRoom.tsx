@@ -2,14 +2,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import { createNotification } from "@/lib/notifications";
 import { useTranslation } from 'react-i18next';
+import { getSocket } from "@/lib/socket";
 
 import { ArrowLeft, Send, Radio, Users, MoreVertical, Paperclip, Smile } from "lucide-react";
 import moment from "moment";
-import { io } from "socket.io-client";
-import { useTranslation } from 'react-i18next';
 
 const TG_BLUE = "#0088cc";
 const TG_BLUE_LIGHT = "#effdde";
@@ -18,33 +17,40 @@ export default function ChatRoom() {
   const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
+  const { user } = useAuth(); // Fix #5: use shared auth context instead of direct auth.me() call
   const [messages, setMessages] = useState([]);
   const [conversation, setConversation] = useState(null);
-  const [user, setUser] = useState(null);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    auth.me().then(setUser).catch(() => {});
     entities.Conversation.get(id).then(setConversation).catch(() => {});
     loadMessages();
 
-    const token = localStorage.getItem("access_token");
-    const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
-    const socket = io(API, { auth: { token }, transports: ["websocket", "polling"] });
+    // Fix #5: use shared socket singleton instead of creating a new one per mount
+    const socket = getSocket();
+    const freshToken = typeof window !== 'undefined' ? localStorage.getItem("access_token") || "" : "";
+    (socket as any).auth = { token: freshToken };
+    if (!socket.connected) socket.connect();
+
     socket.emit("join_conversation", id);
-    socket.on("new_message", (msg) => {
+    const onNewMessage = (msg: any) => {
       if (msg.conversation_id === id) {
-        setMessages(prev => prev.some(m => m.id === msg.id) ? prev : [...prev, msg]);
+        setMessages((prev: any[]) => prev.some(m => m.id === msg.id) ? prev : [...prev, msg]);
       }
-    });
-    const fallback = setInterval(loadMessages, 30000);
+    };
+    socket.on("new_message", onNewMessage);
+    // Only poll as fallback when socket is disconnected
+    const fallback = setInterval(() => {
+      if (!socket.connected) loadMessages();
+    }, 30000);
     return () => {
       socket.emit("leave_conversation", id);
-      socket.disconnect();
+      socket.off("new_message", onNewMessage); // Fix #5: remove only this listener, not all
       clearInterval(fallback);
+      // Don't disconnect — socket is shared singleton
     };
   }, [id]);
 
@@ -100,10 +106,11 @@ export default function ChatRoom() {
       sender_name: user?.full_name || "You",
       content: msg,
     });
-    await entities.Conversation.update(id, { last_message: msg, last_message_at: new Date().toISOString() });
+    // Fix #14: backend already updates last_message on POST /conversations/:id/messages
+    // No need to call Conversation.update() here — it would fail for non-admin group chats
     try {
       const ids = JSON.parse(conversation?.participant_ids || "[]");
-      const otherIds = ids.filter(pid => pid !== user?.id);
+      const otherIds = ids.filter((pid: string) => pid !== user?.id);
       for (const otherId of otherIds) {
         await createNotification(otherId, "message", `New message from ${user?.full_name || "someone"}`, msg, `/messages/${id}`);
       }
@@ -234,7 +241,7 @@ export default function ChatRoom() {
           <p className="text-sm text-muted-foreground">🔊 You're a subscriber. Only admins can post.</p>
         </div>
       ) : (
-        <div className="bg-card border-t border-border/30 px-3 py-2 flex items-end gap-2 shrink-0 mb-16 md:mb-0">
+        <div className="bg-card border-t border-border/30 px-3 py-2 flex items-end gap-2 shrink-0 md:mb-0">
           <button className="p-2 rounded-full hover:bg-secondary transition-colors shrink-0">
             <Smile className="w-5 h-5 text-muted-foreground" />
           </button>

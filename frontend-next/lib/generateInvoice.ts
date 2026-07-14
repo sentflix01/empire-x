@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * generateInvoice — generates a PDF invoice for a completed order using jsPDF.
  * jspdf is already installed in the project.

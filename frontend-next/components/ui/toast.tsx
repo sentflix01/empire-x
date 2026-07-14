@@ -1,4 +1,3 @@
-// @ts-nocheck
 import * as React from "react";
 import { cva } from "class-variance-authority";
 import { X } from "lucide-react";

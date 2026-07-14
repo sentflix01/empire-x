@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTranslation } from 'react-i18next';
+import { toast } from "sonner";
 
 const TASK_TYPES = [
   { value: "bill_payment", label: "💰 Bill Payment" },
@@ -35,18 +35,23 @@ export default function TaskCreate() {
   const handleSubmit = async () => {
     if (!form.title || !form.task_type || !form.offered_payment) return;
     setSaving(true);
-    await entities.Task.create({
-      requester_id: user?.id || "",
-      title: form.title,
-      description: form.description,
-      task_type: form.task_type,
-      location: form.location,
-      offered_payment: parseFloat(form.offered_payment),
-      deadline: form.deadline || undefined,
-      status: "open",
-    });
-    setSaving(false);
-    router.push("/tasks");
+    try {
+      await entities.Task.create({
+        requester_id: user?.id || "",
+        title: form.title,
+        description: form.description,
+        task_type: form.task_type,
+        location: form.location,
+        offered_payment: parseFloat(form.offered_payment),
+        deadline: form.deadline || undefined,
+        status: "open",
+      });
+      router.push("/tasks");
+    } catch (err: any) {
+      toast.error(err?.error || err?.message || "Failed to post task");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

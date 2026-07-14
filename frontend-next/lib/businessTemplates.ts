@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
     ShoppingBag, GraduationCap, Briefcase, UtensilsCrossed,
     Palette, CalendarDays, Home, HeartPulse, LayoutGrid

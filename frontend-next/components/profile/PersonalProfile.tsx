@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import PostCard from "@/components/feed/PostCard";
 import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
-import { useTranslation } from 'react-i18next';
 
 export default function PersonalProfile({ profile, user, isOwner, businesses }) {
   const [posts, setPosts] = useState([]);

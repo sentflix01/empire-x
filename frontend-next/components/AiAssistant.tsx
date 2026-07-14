@@ -1,6 +1,5 @@
 'use client';
 
-// @ts-nocheck
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -188,9 +187,7 @@ export default function AiAssistant() {
     localStorage.removeItem(STORAGE_KEY);
   };
 
-  const hideOnPreviewPages = pathname === "/showroom/create" || pathname.startsWith("/showroom/samples");
-  if (hideOnPreviewPages) return null;
-
+  // AI Assistant is visible on ALL pages — including the showroom builder
   return (
     <>
       {/* Floating button */}

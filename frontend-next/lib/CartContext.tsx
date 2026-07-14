@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * CartContext — global shopping cart state.
  * Syncs with backend cart API and keeps a local copy in state.
@@ -20,8 +19,6 @@ export function CartProvider({ children }) {
 
   const fetchCart = useCallback(async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) return;
       const { data } = await client.get('/api/cart');
       setCart(data);
     } catch {
@@ -29,12 +26,7 @@ export function CartProvider({ children }) {
     }
   }, []);
 
-  // Initial fetch on mount (handles cases where token is already present)
-  useEffect(() => {
-    fetchCart();
-  }, [fetchCart]);
-
-  // Re-fetch after auth resolves to ensure cart reflects authenticated state
+  // Initial fetch only after auth resolves — avoids spurious 401 on login page
   useEffect(() => {
     if (authChecked && isAuthenticated) {
       fetchCart();

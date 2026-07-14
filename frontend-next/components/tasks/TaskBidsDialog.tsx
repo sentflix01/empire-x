@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Check, MessageSquare, Banknote } from "lucide-react";
 import { findOrCreateConversation } from "@/lib/messaging";
 import { createNotification } from "@/lib/notifications";
-import { useTranslation } from 'react-i18next';
 
 export default function TaskBidsDialog({ task, user, bids, onClose, onAccepted }) {
   const [processing, setProcessing] = useState("");

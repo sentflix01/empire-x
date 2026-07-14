@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ProfilePeek — full-screen profile modal
  * Shared by PostCard and NearbyMap (Home feed Nearby tab).

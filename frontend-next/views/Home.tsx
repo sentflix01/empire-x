@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -14,8 +13,9 @@ import {
   TrendingUp, Users, MapPin, LayoutGrid, RefreshCw, Loader2, Sparkles,
   Megaphone, Eye, X,
 } from "lucide-react";
-import BusinessShowroomFeed from "@/components/feed/BusinessShowroomFeed";
 import { useTranslation } from "react-i18next";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import BusinessShowroomFeed from "@/components/feed/BusinessShowroomFeed";
 
 const FILTERS = [
   { key: "all",       label: "feed.forYou",   icon: LayoutGrid },
@@ -92,6 +92,7 @@ export default function Home() {
   const { t } = useTranslation();
   const [posts, setPosts]         = useState([]);
   const [loading, setLoading]     = useState(true);
+  const [feedError, setFeedError] = useState('');
   const [filter, setFilter]       = useState("all");
   const [feedMode, setFeedMode]   = useState("personal");
   const [feedFlipping, setFeedFlipping] = useState(false);
@@ -102,11 +103,13 @@ export default function Home() {
 
   const loadPosts = async () => {
     setLoading(true);
+    setFeedError('');
     try {
       const res = await client.get("/api/posts", { params: { feed: "true", limit: 30 } });
       setPosts(Array.isArray(res.data) ? res.data : []);
-    } catch {
+    } catch (err: any) {
       setPosts([]);
+      setFeedError(err?.error || err?.message || 'Failed to load posts. Check your connection.');
     }
     setLoading(false);
   };
@@ -133,8 +136,10 @@ export default function Home() {
         : { feed: "true", limit: 30 };
       const res = await client.get("/api/posts", { params });
       setPosts(Array.isArray(res.data) ? res.data : []);
-    } catch {
+      setFeedError('');
+    } catch (err: any) {
       setPosts([]);
+      setFeedError(err?.error || err?.message || 'Failed to load posts.');
     }
     setLoading(false);
   };
@@ -273,6 +278,11 @@ export default function Home() {
                 <div className="flex justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
                 </div>
+              ) : feedError ? (
+                <div className="text-center py-12 rounded-2xl border border-destructive/20 bg-destructive/5">
+                  <p className="text-sm text-destructive font-medium">{feedError}</p>
+                  <button onClick={loadPosts} className="mt-3 text-xs text-amber-600 hover:underline font-medium">Try again</button>
+                </div>
               ) : posts.length === 0 ? (
                 <div className="text-center py-16 text-muted-foreground">
                   <p className="font-medium">{t('feed.noPostsYet')}</p>
@@ -285,9 +295,11 @@ export default function Home() {
                       key={post.id}
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.03, duration: 0.25 }}
+                      transition={{ delay: Math.min(i, 10) * 0.03, duration: 0.25 }}
                     >
-                      <PostCard post={post} currentUser={user} />
+                      <ErrorBoundary>
+                        <PostCard post={post} currentUser={user} />
+                      </ErrorBoundary>
                     </motion.div>
                   ))}
                 </AnimatePresence>

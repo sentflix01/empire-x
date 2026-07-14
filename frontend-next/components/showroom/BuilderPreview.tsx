@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * BuilderPreview — ported from use 1.html LivePreview + getExportHTML
  * Renders all 25 section types with full fidelity.

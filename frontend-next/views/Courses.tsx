@@ -25,7 +25,7 @@ export default function Courses() {
 
   const filtered = courses.filter(c => {
     const matchSearch = !search || c.title?.toLowerCase().includes(search.toLowerCase());
-    const matchCat = category === t('common.all') || c.category === category;
+    const matchCat = category === "All" || c.category === category;
     return matchSearch && matchCat;
   });
 
@@ -45,7 +45,7 @@ export default function Courses() {
 
         <div className="relative mb-4">
           <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
-          <Input value={search} onChange={e=>setSearch(e.target.value)} placeholder=t('courses.title') + '...' className="pl-9 rounded-full"/>
+          <Input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('courses.title') + '...'} className="pl-9 rounded-full"/>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4">

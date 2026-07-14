@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { findOrCreateConversation } from '@/lib/messaging';
 import { getCategoryByValue } from '@/lib/businessTemplates';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
-import { useTranslation } from 'react-i18next';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface SectionItem {
@@ -329,7 +328,7 @@ function CategoryContent({ biz, sections, products, themeColor, profileUserId }:
 
 /* ── Main export ─────────────────────────────────────────────────── */
 interface BusinessShowroomFeedProps {
-  profile: Profile;
+  profile?: Profile;
   currentUser?: User | null;
   businesses?: Business[];
 }
@@ -337,12 +336,20 @@ interface BusinessShowroomFeedProps {
 export default function BusinessShowroomFeed({ profile, currentUser, businesses: propBusinesses }: BusinessShowroomFeedProps) {
   const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
   const [selectedBizId, setSelectedBizId] = useState<string | null>(null);
+  const [feedBusinesses, setFeedBusinesses] = useState<Business[]>([]); // global feed mode
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [messaging, setMessaging] = useState(false);
   const router = useRouter();
 
+  // ── Global feed mode (no profile prop) ────────────────────────────
+  const isFeedMode = !profile;
+
   useEffect(() => {
+    if (isFeedMode) {
+      loadFeedBusinesses();
+      return;
+    }
     if (!profile?.user_id) return;
     if (propBusinesses !== undefined) {
       setAllBusinesses(propBusinesses ?? []);
@@ -353,10 +360,20 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     }
   }, [profile?.user_id, propBusinesses]);
 
+  const loadFeedBusinesses = async () => {
+    setLoading(true);
+    try {
+      // Load up to 20 businesses for the feed
+      const data = await entities.Business.filter({}, '-created_at', 20) as Business[];
+      setFeedBusinesses(data ?? []);
+    } catch { setFeedBusinesses([]); }
+    setLoading(false);
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
-      const businesses: Business[] = (await entities.Business.filter({ owner_id: profile.user_id })) as Business[];
+      const businesses: Business[] = (await entities.Business.filter({ owner_id: profile!.user_id })) as Business[];
       setAllBusinesses(businesses ?? []);
       if (businesses.length > 0) setSelectedBizId(businesses[0].id);
     } catch { /* ignore */ }
@@ -364,26 +381,21 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   };
 
   useEffect(() => {
-    if (!selectedBizId) return;
+    if (isFeedMode || !selectedBizId) return;
     const biz = allBusinesses.find(b => b.id === selectedBizId);
     const filter = biz
       ? { business_id: biz.id, status: 'active' }
-      : { seller_id: profile.user_id, status: 'active' };
+      : { seller_id: profile!.user_id, status: 'active' };
     entities.Product.filter(filter, '-created_at', 4)
       .then((p) => setProducts(p as unknown as Product[]))
       .catch(() => setProducts([]));
   }, [selectedBizId]);
 
-  const handleMessage = async () => {
+  const handleMessage = async (targetUserId: string, targetName: string) => {
     if (!currentUser || messaging) return;
     setMessaging(true);
     try {
-      const biz = allBusinesses.find(b => b.id === selectedBizId);
-      const conv = await findOrCreateConversation(
-        currentUser,
-        profile.user_id,
-        biz?.business_name ?? profile.display_name
-      );
+      const conv = await findOrCreateConversation(currentUser, targetUserId, targetName);
       if (conv) router.push(`/messages/${conv.id}`);
     } catch (e) { console.error(e); }
     setMessaging(false);
@@ -397,12 +409,107 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     );
   }
 
+  // ── Global feed mode — render a scrollable list of business cards ──
+  if (isFeedMode) {
+    if (feedBusinesses.length === 0) {
+      return (
+        <div className="text-center py-10 px-4">
+          <Store className="w-10 h-10 text-muted-foreground/20 mx-auto mb-2" />
+          <p className="text-sm font-medium text-muted-foreground">No businesses yet</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">Be the first to create a business showroom!</p>
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-4">
+        {feedBusinesses.map((biz) => {
+          const color      = (biz.business_theme_color as string) || '#2563EB';
+          const bizName    = (biz.business_name as string)        || 'Business';
+          const category   = (biz.business_category as string)    || 'other';
+          const CatIcon    = CAT_ICONS[category] ?? Store;
+          const sections   = parseSections(biz.business_sections as string | undefined);
+          const heroSection= sections.find(s => s.type === 'hero');
+          const servSection= sections.find(s => s.type === 'services');
+          const logoUrl    = biz.business_logo_url as string | undefined;
+          const coverUrl   = biz.business_cover_url as string | undefined;
+          const ownerId    = biz.owner_id as string || '';
+
+          return (
+            <div key={biz.id} className="rounded-2xl border border-border/50 overflow-hidden bg-card shadow-sm">
+              {/* Cover */}
+              <div className="relative h-24 overflow-hidden">
+                {coverUrl
+                  ? <img src={coverUrl} alt="" className="w-full h-full object-cover" />
+                  : <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${color}, ${color}99)` }}>
+                      <div className="w-full h-full opacity-10" style={{
+                        backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)',
+                        backgroundSize: '12px 12px',
+                      }} />
+                    </div>}
+                <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium text-white bg-black/35 backdrop-blur-sm">
+                  <CatIcon className="w-3 h-3" />
+                  {category}
+                </span>
+              </div>
+
+              {/* Header */}
+              <div className="px-4 pb-3 -mt-6 relative">
+                <div className="flex items-end justify-between">
+                  <div className="w-14 h-14 rounded-xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
+                    style={{ backgroundColor: color }}>
+                    {logoUrl
+                      ? <img src={logoUrl} alt="" className="w-full h-full object-cover" />
+                      : <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
+                          {bizName.charAt(0)}
+                        </div>}
+                  </div>
+                  <div className="flex gap-2 mb-1">
+                    {currentUser && ownerId && ownerId !== currentUser.id && (
+                      <Button size="sm" variant="outline" className="rounded-full h-7 text-xs"
+                        onClick={() => handleMessage(ownerId, bizName)} disabled={messaging}>
+                        <MessageSquare className="w-3 h-3 mr-1" />Message
+                      </Button>
+                    )}
+                    <Link href={`/profile/${ownerId}?view=business`}>
+                      <Button size="sm" className="rounded-full h-7 text-xs text-white"
+                        style={{ backgroundColor: color }}>
+                        Visit <ArrowRight className="w-3 h-3 ml-1" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+                <h3 className="mt-2 font-display text-base font-bold" style={{ color }}>{bizName}</h3>
+                {heroSection?.subtitle && (
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{heroSection.subtitle}</p>
+                )}
+                {biz.business_address && (
+                  <p className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                    <MapPin className="w-3 h-3 shrink-0" />
+                    {biz.business_address as string}
+                  </p>
+                )}
+              </div>
+
+              {/* Services preview */}
+              {servSection?.items && servSection.items.length > 0 && (
+                <div className="px-4 pb-4">
+                  <ServicesList title={servSection.title} items={servSection.items} themeColor={color} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // ── Single profile mode (original behaviour) ───────────────────────
   const business = allBusinesses.find(b => b.id === selectedBizId) ?? null;
-  const biz: Business | Profile = business ?? profile;
-  const bizName = (biz.business_name as string | undefined) ?? profile.display_name ?? 'Business';
+  const biz: Business | Profile = business ?? profile!;
+  const bizName = (biz.business_name as string | undefined) ?? profile!.display_name ?? 'Business';
   const themeColor = (biz.business_theme_color as string | undefined) ?? '#2563EB';
   const sections = parseSections(biz.business_sections as string | undefined);
-  const hasBusiness = allBusinesses.length > 0 || profile.has_business_profile || biz.business_description;
+  const hasBusiness = allBusinesses.length > 0 || profile!.has_business_profile || biz.business_description;
   const category = (biz.business_category as string | undefined) ?? 'other';
   const categoryMeta = getCategoryByValue(category);
   const CatIcon = CAT_ICONS[category] ?? Store;
@@ -453,11 +560,11 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           </div>
           <div className="flex gap-2 mb-1">
             <Button size="sm" variant="outline" className="rounded-full h-8 text-xs"
-              onClick={handleMessage} disabled={messaging}>
+              onClick={() => handleMessage(profile!.user_id, bizName)} disabled={messaging}>
               <MessageSquare className="w-3 h-3 mr-1" />
               {messaging ? '...' : 'Message'}
             </Button>
-            <Link href={`/profile/${profile.user_id}?view=business`}>
+            <Link href={`/profile/${profile!.user_id}?view=business`}>
               <Button size="sm" className="rounded-full h-8 text-xs text-white"
                 style={{ backgroundColor: themeColor }}>
                 Visit <ArrowRight className="w-3 h-3 ml-1" />
@@ -469,8 +576,8 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
         <div className="mt-2 space-y-0.5">
           <div className="flex items-center gap-1.5">
             <h3 className="font-display text-base font-bold" style={{ color: themeColor }}>{bizName}</h3>
-            {profile.is_verified && (
-              <VerifiedBadge type={profile.verification_type} size="sm" />
+            {profile!.is_verified && (
+              <VerifiedBadge type={profile!.verification_type} size="sm" />
             )}
           </div>
           {heroSection?.subtitle && (
@@ -508,7 +615,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           sections={sections}
           products={products}
           themeColor={themeColor}
-          profileUserId={profile.user_id}
+          profileUserId={profile!.user_id}
         />
       </div>
     </div>

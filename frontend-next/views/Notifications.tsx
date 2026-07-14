@@ -1,6 +1,5 @@
-// @ts-nocheck
+'use client';
 import { useRouter } from 'next/navigation';
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
 import { auth } from "@/api/auth";

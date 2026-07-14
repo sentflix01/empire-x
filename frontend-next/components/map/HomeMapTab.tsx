@@ -1,5 +1,4 @@
 'use client';
-// @ts-nocheck
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { entities } from "@/api/entities";

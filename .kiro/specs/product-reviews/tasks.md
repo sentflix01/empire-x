@@ -22,7 +22,7 @@ Implement the product reviews feature by following the exploratory bugfix workfl
 
 ## Tasks
 
-- [ ] 0. Set up frontend test infrastructure
+- [x] 0. Set up frontend test infrastructure
   - Install Vitest, jsdom, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event, and fast-check as dev dependencies:
     `npm install -D vitest @vitest/coverage-v8 jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event fast-check`
   - Add the following to `vite.config.js` (or create `vitest.config.ts`) so Vitest uses jsdom:
@@ -39,7 +39,7 @@ Implement the product reviews feature by following the exploratory bugfix workfl
   - Verify: run `npm test` (single pass) — expect 0 test files found, exit 0
   - _Requirements: prerequisite for all test tasks_
 
-- [ ] 1. Write bug condition exploration test
+- [x] 1. Write bug condition exploration test
   - **Property 1: Bug Condition** - Reviews Section Absent Before Fix
   - **CRITICAL**: Write this test BEFORE creating `ReviewsSection.tsx` or modifying `ProductDetail.tsx`
   - **GOAL**: Surface counterexamples that prove the bug exists — the reviews API is never called and no reviews UI renders
@@ -58,7 +58,7 @@ Implement the product reviews feature by following the exploratory bugfix workfl
   - Mark task complete when test is written, executed, and failure is documented
   - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-- [ ] 2. Write preservation property tests (BEFORE implementing fix)
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
   - **Property 2: Preservation** - Existing ProductDetail Interactions Unchanged
   - **IMPORTANT**: Follow observation-first methodology — run the original `ProductDetail` with the interactions below and record exact behaviour before touching any code
   - Observe on unfixed code:
@@ -82,9 +82,9 @@ Implement the product reviews feature by following the exploratory bugfix workfl
   - Mark task complete when tests are written, executed, and passing on unfixed code
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 3. Implement the reviews feature
+- [x] 3. Implement the reviews feature
 
-  - [ ] 3.1 Create `frontend-next/components/product/ReviewsSection.tsx` (new file)
+  - [x] 3.1 Create `frontend-next/components/product/ReviewsSection.tsx` (new file)
     - Define the `StarRating` sub-component (not exported) with props `{ value: number; onChange?: (n: number) => void; size?: "sm" | "md" }`:
       - Interactive mode (when `onChange` provided): 5 `<button>` elements each with a `Star` icon from `lucide-react`; stars at index ≤ `value` get `fill-amber-400 text-amber-400`, above get `text-muted-foreground`; maintain local `hover` state so hovering a star fills up to that index
       - Display-only mode (when `onChange` omitted): same fill logic, non-interactive `Star` icons
@@ -104,7 +104,7 @@ Implement the product reviews feature by following the exploratory bugfix workfl
     - _Preservation: `ReviewsSection` is a new additive component; it must not import or mutate any state owned by `ProductDetail`_
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-  - [ ] 3.2 Modify `frontend-next/pages/ProductDetail.tsx` (minimal, additive only)
+  - [x] 3.2 Modify `frontend-next/pages/ProductDetail.tsx` (minimal, additive only)
     - Add one import at the top of the file:
       ```tsx
       import ReviewsSection from "@/components/product/ReviewsSection";
@@ -114,7 +114,7 @@ Implement the product reviews feature by following the exploratory bugfix workfl
     - The `user` state variable already exists (`const [user, setUser] = useState(null)`) and is populated via `auth.me()` inside `loadProduct()` — no additional state needed
     - _Requirements: 2.1, 2.5_
 
-  - [ ] 3.3 Verify bug condition exploration test now passes
+  - [x] 3.3 Verify bug condition exploration test now passes
     - **Property 1: Expected Behavior** - Reviews Section Renders With Data
     - **IMPORTANT**: Re-run the SAME test file from task 1 — do NOT write a new test
     - The test from task 1 encodes the expected behavior: API called, review content in DOM, form or prompt present
@@ -123,7 +123,7 @@ Implement the product reviews feature by following the exploratory bugfix workfl
     - If any assertion fails, diagnose whether the issue is in `ReviewsSection.tsx` or the `ProductDetail.tsx` mount point
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-  - [ ] 3.4 Verify preservation tests still pass
+  - [x] 3.4 Verify preservation tests still pass
     - **Property 2: Preservation** - Existing ProductDetail Interactions Unchanged
     - **IMPORTANT**: Re-run the SAME test file from task 2 — do NOT write new tests
     - Run: `npm test -- --run ProductDetail.preservation`

@@ -102,14 +102,14 @@ export default function Explore() {
         {data?.open_tasks?.length > 0 && (
           <Section title={t('explore.openTasks')} icon={ClipboardList}>
             <div className="space-y-2">
-              {data.open_tasks.map(t => (
-                <Link key={t.id} href="/tasks" className="flex items-center justify-between p-3 rounded-xl hover:bg-secondary/50 transition-colors">
+              {data.open_tasks.map(task => (
+                <Link key={task.id} href="/tasks" className="flex items-center justify-between p-3 rounded-xl hover:bg-secondary/50 transition-colors">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{t.title}</p>
-                    <p className="text-xs text-muted-foreground">{t.task_type}{t.location ? ` • ${t.location}` : ""}</p>
+                    <p className="text-sm font-medium truncate">{task.title}</p>
+                    <p className="text-xs text-muted-foreground">{task.task_type}{task.location ? ` • ${task.location}` : ""}</p>
                   </div>
                   <p className="text-sm font-bold text-amber-600 shrink-0 ml-2 flex items-center gap-1">
-                    <Banknote className="w-3 h-3" />{t.offered_payment?.toLocaleString()}
+                    <Banknote className="w-3 h-3" />{task.offered_payment?.toLocaleString()}
                   </p>
                 </Link>
               ))}

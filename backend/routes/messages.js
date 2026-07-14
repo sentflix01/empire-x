@@ -8,12 +8,13 @@ const { emitNewMessage } = require('../socket');
 router.get('/conversations', requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
+    // Fix #9: use proper JSON containment instead of fragile LIKE text search
     const { rows } = await pool.query(
       `SELECT * FROM conversations
-       WHERE participant_ids::text LIKE $1
+       WHERE participant_ids::jsonb @> $1::jsonb
        ORDER BY updated_at DESC
        LIMIT 100`,
-      [`%${userId}%`]
+      [JSON.stringify([userId])]
     );
     res.json(rows);
   } catch (err) {
@@ -43,11 +44,11 @@ router.post('/conversations/find-or-create', requireAuth, async (req, res) => {
   if (!target_user_id) return res.status(400).json({ error: 'target_user_id is required' });
 
   try {
-    // Look for existing DM
     const userId = req.user.id;
+    // Fix #9: use proper JSON containment instead of fragile LIKE text search
     const { rows: all } = await pool.query(
-      `SELECT * FROM conversations WHERE type = 'dm' AND participant_ids::text LIKE $1`,
-      [`%${userId}%`]
+      `SELECT * FROM conversations WHERE type = 'dm' AND participant_ids::jsonb @> $1::jsonb`,
+      [JSON.stringify([userId])]
     );
     const existing = all.find(c => {
       try {

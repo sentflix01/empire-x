@@ -7,8 +7,6 @@ import { useTranslation } from 'react-i18next';
 
 import { Hash, ArrowLeft, Loader2 } from "lucide-react";
 import PostCard from "@/components/feed/PostCard";
-import { auth } from "@/api/auth";
-import { useTranslation } from 'react-i18next';
 
 export default function HashtagFeed() {
   const { t } = useTranslation();

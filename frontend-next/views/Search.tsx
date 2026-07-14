@@ -272,16 +272,16 @@ export default function Search() {
 
         {/* ── Category tabs ── */}
         <div className="flex gap-1 overflow-x-auto pb-2 mb-4 no-scrollbar">
-          {TABS.map(t => {
-            const Icon = t.Icon;
-            const count = t.key === "all" ? totalResults : (results[t.key]?.length || 0);
+          {TABS.map(tabItem => {
+            const Icon = tabItem.Icon;
+            const count = tabItem.key === "all" ? totalResults : (results[tabItem.key]?.length || 0);
             return (
-              <button key={t.key} onClick={() => setTab(t.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all shrink-0 ${tab === t.key ? "bg-amber-500 text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"}`}>
+              <button key={tabItem.key} onClick={() => setTab(tabItem.key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all shrink-0 ${tab === tabItem.key ? "bg-amber-500 text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"}`}>
                 <Icon className="w-3.5 h-3.5" />
-                {t.label}
+                {tabItem.label}
                 {query.length > 1 && count > 0 && (
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${tab === t.key ? "bg-white/20 text-white" : "bg-secondary text-muted-foreground"}`}>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${tab === tabItem.key ? "bg-white/20 text-white" : "bg-secondary text-muted-foreground"}`}>
                     {count}
                   </span>
                 )}

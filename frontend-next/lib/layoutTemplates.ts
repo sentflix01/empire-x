@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Three universal, professional layout templates for the business mini-website.
  * Users pick one during onboarding. Each defines a distinct section structure

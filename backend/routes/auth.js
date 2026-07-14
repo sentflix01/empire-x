@@ -6,13 +6,70 @@ const { OAuth2Client } = require('google-auth-library');
 const pool = require('../db/pool');
 const { sendOtpEmail, sendPasswordResetEmail } = require('../utils/mailer');
 const { requireAuth } = require('../middleware/auth');
+const { getRedis } = require('../lib/redis');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-function signToken(userId) {
-  return jwt.sign({ sub: userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+// Short-lived access token (15 min) — sent in response body, stored in memory
+function signAccessToken(userId) {
+  return jwt.sign({ sub: userId, type: 'access' }, process.env.JWT_SECRET, {
+    expiresIn: '15m',
+    jwtid: uuidv4(),
   });
+}
+
+// Long-lived refresh token (7 days) — sent as HttpOnly cookie only
+function signRefreshToken(userId) {
+  return jwt.sign({ sub: userId, type: 'refresh' }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+    jwtid: uuidv4(),
+  });
+}
+
+// Legacy helper — keeps existing callers working during migration
+// Returns short-lived access token; also sets HttpOnly refresh cookie when res provided
+function signToken(userId, res) {
+  const accessToken = signAccessToken(userId);
+  if (res) {
+    const refreshToken = signRefreshToken(userId);
+    const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days ms
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge,
+      path: '/api/auth',
+    });
+  }
+  return accessToken;
+}
+
+// ── TD-005: JWT revocation blocklist ─────────────────────────────────────────
+// Revoked JTIs are stored in Redis with TTL matching the token expiry.
+// Falls back to allowing the token when Redis is unavailable (fail open for UX).
+
+async function revokeToken(jti, expiresAt) {
+  const redis = getRedis();
+  if (redis.isNoOp) return; // no Redis — skip silently
+  const ttl = Math.max(1, Math.ceil((new Date(expiresAt * 1000) - Date.now()) / 1000));
+  try {
+    await redis.setex(`revoked:${jti}`, ttl, '1');
+  } catch {
+    // non-fatal — log but continue
+    require('../lib/logger').warn({ jti }, 'auth: failed to write revocation to Redis');
+  }
+}
+
+async function isRevoked(jti) {
+  if (!jti) return false;
+  const redis = getRedis();
+  if (redis.isNoOp) return false;
+  try {
+    const val = await redis.get(`revoked:${jti}`);
+    return val === '1';
+  } catch {
+    return false; // fail open
+  }
 }
 
 function generateOtp() {
@@ -87,7 +144,7 @@ router.post('/verify-otp', async (req, res) => {
       [user.id]
     );
 
-    const token = signToken(user.id);
+    const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
     console.error('Verify OTP error:', err);
@@ -152,7 +209,7 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({ error: 'Please verify your email before logging in', code: 'email_not_verified' });
     }
 
-    const token = signToken(user.id);
+    const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
     console.error('Login error:', err);
@@ -197,7 +254,7 @@ router.post('/google', async (req, res) => {
       }
     }
 
-    const token = signToken(user.id);
+    const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
     console.error('Google auth error:', err);
@@ -300,6 +357,91 @@ router.put('/change-password', requireAuth, async (req, res) => {
     console.error('Change password error:', err);
     res.status(500).json({ error: 'Failed to change password' });
   }
+});
+
+// ── POST /api/auth/refresh ───────────────────────────────────────────────────
+// Reads the HttpOnly refresh_token cookie; issues a new short-lived access token
+// and rotates the refresh cookie. No request body needed.
+router.post('/refresh', async (req, res) => {
+  const refreshToken = req.cookies?.refresh_token;
+  if (!refreshToken) {
+    return res.status(401).json({ error: 'No refresh token' });
+  }
+
+  let payload;
+  try {
+    payload = jwt.verify(refreshToken, process.env.JWT_SECRET);
+  } catch {
+    return res.status(401).json({ error: 'Invalid or expired refresh token' });
+  }
+
+  if (payload.type !== 'refresh') {
+    return res.status(401).json({ error: 'Invalid token type' });
+  }
+
+  // Check revocation list
+  if (await isRevoked(payload.jti)) {
+    return res.status(401).json({ error: 'Token has been revoked' });
+  }
+
+  // Confirm user still exists
+  const { rows } = await pool.query('SELECT id FROM users WHERE id = $1', [payload.sub]);
+  if (!rows.length) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Rotate: revoke old refresh token and issue new pair
+  await revokeToken(payload.jti, payload.exp);
+  const accessToken = signToken(payload.sub, res); // sets new refresh cookie
+
+  res.json({ access_token: accessToken });
+});
+
+// ── POST /api/auth/logout ────────────────────────────────────────────────────
+// Revokes the current refresh token and clears the cookie.
+router.post('/logout', async (req, res) => {
+  const refreshToken = req.cookies?.refresh_token;
+  if (refreshToken) {
+    try {
+      const payload = jwt.verify(refreshToken, process.env.JWT_SECRET);
+      if (payload.jti) await revokeToken(payload.jti, payload.exp);
+    } catch {
+      // Token already expired — no need to revoke
+    }
+  }
+  res.clearCookie('refresh_token', { path: '/api/auth' });
+  res.json({ success: true });
+});
+
+// ── POST /api/auth/logout-all ────────────────────────────────────────────────
+// Revokes the current refresh token AND invalidates all active access tokens
+// for the user by storing a "revoke_before" timestamp in Redis.
+// Any access token issued before this timestamp will be rejected.
+router.post('/logout-all', requireAuth, async (req, res) => {
+  const refreshToken = req.cookies?.refresh_token;
+  if (refreshToken) {
+    try {
+      const payload = jwt.verify(refreshToken, process.env.JWT_SECRET);
+      if (payload.jti) await revokeToken(payload.jti, payload.exp);
+    } catch {
+      // ignore
+    }
+  }
+
+  // Store a per-user "revoke_before" epoch so all tokens issued before now
+  // are treated as revoked — this is the "logout all devices" mechanism.
+  const redis = getRedis();
+  if (!redis.isNoOp) {
+    try {
+      const ttl = 7 * 24 * 60 * 60; // 7 days — matches max token lifetime
+      await redis.setex(`revoke_before:${req.user.id}`, ttl, Math.floor(Date.now() / 1000).toString());
+    } catch {
+      // non-fatal
+    }
+  }
+
+  res.clearCookie('refresh_token', { path: '/api/auth' });
+  res.json({ success: true });
 });
 
 module.exports = router;

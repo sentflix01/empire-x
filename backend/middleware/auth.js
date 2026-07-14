@@ -1,8 +1,35 @@
 const jwt = require('jsonwebtoken');
 const pool = require('../db/pool');
+const { getRedis } = require('../lib/redis');
 
 /**
- * Verifies the Bearer JWT and attaches req.user = { id, email, role }
+ * Check whether a JTI has been revoked OR was issued before the user's
+ * per-account revoke_before timestamp (set by logout-all).
+ * Fails open (returns false) when Redis is unavailable.
+ */
+async function isTokenRevoked(jti, userId, iat) {
+  const redis = getRedis();
+  if (redis.isNoOp) return false;
+  try {
+    // Check per-JTI revocation
+    if (jti) {
+      const revoked = await redis.get(`revoked:${jti}`);
+      if (revoked === '1') return true;
+    }
+    // Check per-user revoke_before (logout-all)
+    if (userId) {
+      const revokeBefore = await redis.get(`revoke_before:${userId}`);
+      if (revokeBefore && iat && iat < parseInt(revokeBefore, 10)) return true;
+    }
+    return false;
+  } catch {
+    return false; // fail open
+  }
+}
+
+/**
+ * Verifies the Bearer JWT, checks the revocation list, and attaches
+ * req.user = { id, email, role }
  */
 async function requireAuth(req, res, next) {
   try {
@@ -13,7 +40,12 @@ async function requireAuth(req, res, next) {
     const token = header.slice(7);
     const payload = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Optionally confirm user still exists
+    // TD-005: check revocation blocklist
+    if (await isTokenRevoked(payload.jti, payload.sub, payload.iat)) {
+      return res.status(401).json({ error: 'Token has been revoked' });
+    }
+
+    // Confirm user still exists
     const { rows } = await pool.query(
       'SELECT id, email, role FROM users WHERE id = $1',
       [payload.sub]

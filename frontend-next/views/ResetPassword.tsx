@@ -32,7 +32,7 @@ export default function ResetPassword() {
       await client.post('/api/auth/reset-password', { token: resetToken, password: newPassword });
       window.location.href = "/login";
     } catch (err) {
-      setError(err.message || "Failed to reset password");
+      setError(err.error || err.message || "Failed to reset password");
     } finally {
       setLoading(false);
     }

@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import ProfilePeek from "@/components/profile/ProfilePeek";
-import { useTranslation } from 'react-i18next';
 
 // Leaflet modules — assigned after dynamic import inside loadLeaflet()
 // We CANNOT use require() or static import because Turbopack processes CSS imports at build time

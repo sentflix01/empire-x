@@ -204,4 +204,30 @@ router.post('/follow/:targetUserId', requireAuth, async (req, res) => {
   }
 });
 
+// ── GET /api/profiles/me/follows — list user IDs that the current user follows ──
+router.get('/me/follows', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT followed_id FROM follows WHERE follower_id = $1',
+      [req.user.id]
+    );
+    res.json(rows.map(r => r.followed_id));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch follows' });
+  }
+});
+
+// ── GET /api/profiles/follows — alias for /me/follows ──
+router.get('/follows', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT followed_id FROM follows WHERE follower_id = $1',
+      [req.user.id]
+    );
+    res.json(rows.map(r => r.followed_id));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch follows' });
+  }
+});
+
 module.exports = router;

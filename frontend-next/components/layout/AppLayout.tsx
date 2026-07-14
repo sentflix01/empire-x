@@ -1,7 +1,7 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect, useCallback } from "react";
 import { entities } from "@/api/entities";
+import client from "@/api/client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,13 +10,12 @@ import {
   Plus, Crown, TrendingUp, Briefcase, GraduationCap, CalendarDays,
   Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, MapPin, Tag,
   Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
-  PanelLeftClose, PanelLeftOpen, Menu, X, Gift,
+  PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
 import { toggleLanguage, getCurrentLang } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { useCart } from "@/lib/CartContext";
 import { useAuth } from "@/lib/AuthContext";
 import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
@@ -160,7 +159,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const currentLang = i18n.language === 'am' ? 'አማ' : 'EN';
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, authChecked, isLoadingAuth } = useAuth();
+  const { user, isAuthenticated, authChecked, isLoadingAuth, logout } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(true);
@@ -230,10 +229,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     return () => clearInterval(interval);
   }, [user]);
 
-  const loadUnreadCount = async (u) => {
+  const loadUnreadCount = async (_u?: any) => {
     try {
-      const n = await entities.Notification.filter({ user_id: u.id });
-      setUnreadCount(n.filter(notif => !notif.is_read).length);
+      // Use direct client call — backend uses req.user.id from JWT, not a query param
+      const { data } = await client.get('/api/notifications?limit=60');
+      const notifications = Array.isArray(data) ? data : [];
+      setUnreadCount(notifications.filter((notif: any) => !notif.is_read).length);
     } catch {}
   };
 
@@ -336,14 +337,21 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           {/* Desktop Search — centered */}
           <form
             className="hidden md:flex flex-1 max-w-lg"
-            onSubmit={e => { e.preventDefault(); const q = (e.currentTarget.elements.namedItem('q') as HTMLInputElement)?.value?.trim(); if (q) router.push(`/search?q=${encodeURIComponent(q)}`); }}
+            onSubmit={e => {
+              e.preventDefault();
+              const input = e.currentTarget.querySelector('input[name="q"]') as HTMLInputElement;
+              const q = input?.value?.trim();
+              if (q) { input.value = ''; router.push(`/search?q=${encodeURIComponent(q)}`); }
+            }}
           >
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input
                 name="q"
+                type="search"
+                enterKeyHint="search"
                 placeholder={t('common.searchPlaceholder')}
-                className="pl-9 bg-secondary/50 border-0 focus-visible:ring-1 focus-visible:ring-amber-500/30 rounded-full h-9"
+                className="w-full pl-9 pr-4 bg-secondary/50 border-0 focus:outline-none focus:ring-1 focus:ring-amber-500/30 rounded-full h-9 text-sm"
               />
             </div>
           </form>
@@ -362,8 +370,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </span>
               )}
             </Link>
-            {/* Bookmarks */}
-            <Link href="/bookmarks" className="p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Bookmarks">
+            {/* Bookmarks — hidden on mobile to prevent header overflow */}
+            <Link href="/bookmarks" className="hidden sm:flex p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Bookmarks">
               <Bookmark className="w-5 h-5 text-muted-foreground" />
             </Link>
             {/* Notifications */}
@@ -400,9 +408,23 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         {/* Mobile Search bar */}
         {searchOpen && (
           <div className="md:hidden px-4 pb-3">
-            <form className="relative" onSubmit={e => { e.preventDefault(); const q = (e.currentTarget.elements.namedItem('q') as HTMLInputElement)?.value?.trim(); if (q) { setSearchOpen(false); router.push(`/search?q=${encodeURIComponent(q)}`); } }}>
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input name="q" placeholder="Search..." className="pl-9 bg-secondary/50 border-0 rounded-full h-9" autoFocus />
+            <form
+              className="relative"
+              onSubmit={e => {
+                e.preventDefault();
+                const q = (e.currentTarget.elements.namedItem('q') as HTMLInputElement)?.value?.trim();
+                if (q) { setSearchOpen(false); router.push(`/search?q=${encodeURIComponent(q)}`); }
+              }}
+            >
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input
+                name="q"
+                type="search"
+                enterKeyHint="search"
+                placeholder="Search..."
+                autoFocus
+                className="w-full pl-9 pr-4 bg-secondary/50 border border-border/50 rounded-full h-10 text-sm outline-none focus:ring-1 focus:ring-amber-500/30"
+              />
             </form>
           </div>
         )}
@@ -417,7 +439,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         />
       )}
       {/* Drawer panel */}
-      <div className={`fixed left-0 top-0 bottom-0 z-[80] w-72 bg-white text-slate-950 border-r border-slate-200 shadow-2xl shadow-slate-950/30 flex flex-col md:hidden transition-transform duration-300 dark:bg-slate-950 dark:text-white dark:border-slate-800 ${drawerOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <div
+        className={`fixed left-0 top-0 bottom-0 z-[80] w-72 bg-white text-slate-950 border-r border-slate-200 shadow-2xl shadow-slate-950/30 flex flex-col md:hidden transition-transform duration-300 dark:bg-slate-950 dark:text-white dark:border-slate-800 ${drawerOpen ? "translate-x-0" : "-translate-x-full"}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
+      >
         {/* Drawer header */}
         <div className="flex items-center justify-between px-4 h-14 border-b border-slate-200 shrink-0 dark:border-slate-800">
           <Link href="/" onClick={() => setDrawerOpen(false)} className="flex items-center gap-2">
@@ -430,8 +457,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             />
             <span className="font-display text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Empire X</span>
           </Link>
-          <button onClick={() => setDrawerOpen(false)} className="p-2 rounded-xl hover:bg-secondary transition-colors">
-            <X className="w-5 h-5 text-muted-foreground" />
+          <button onClick={() => setDrawerOpen(false)} className="p-2 rounded-xl hover:bg-secondary transition-colors" aria-label="Close menu">
+            <X className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
           </button>
         </div>
 
@@ -529,7 +556,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <div className="h-4" />
         </div>
 
-        {/* Drawer footer — user info */}
+        {/* Drawer footer — user info + logout */}
         <div className="border-t border-border px-3 py-3 shrink-0">
           <Link href="/profile" onClick={() => setDrawerOpen(false)}
             className="flex items-center gap-3 rounded-xl hover:bg-secondary p-2 transition-colors">
@@ -541,6 +568,13 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
             </div>
           </Link>
+          <button
+            onClick={() => { setDrawerOpen(false); logout(); }}
+            className="mt-1 w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            <span>Log out</span>
+          </button>
         </div>
       </div>
 
@@ -595,12 +629,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <button
                 onClick={() => setDiscoverOpen(v => !v)}
                 className="w-full flex items-center justify-between px-3 py-1 group"
+                aria-expanded={discoverOpen}
+                aria-controls="sidebar-discover-section"
               >
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{t('common.discover')}</p>
                 <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${discoverOpen ? 'rotate-0' : '-rotate-90'}`} />
               </button>
             )}
-            {(sidebarCollapsed || discoverOpen) && extraNavItems.map(item => <NavLink key={item.path} {...item} />)}
+            {(sidebarCollapsed || discoverOpen) && <div id="sidebar-discover-section">{extraNavItems.map(item => <NavLink key={item.path} {...item} />)}</div>}
 
             <div className="my-2 border-t border-border/50" />
 
@@ -609,12 +645,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <button
                 onClick={() => setAccountOpen(v => !v)}
                 className="w-full flex items-center justify-between px-3 py-1 group"
+                aria-expanded={accountOpen}
+                aria-controls="sidebar-account-section"
               >
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{t('common.myAccount')}</p>
                 <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${accountOpen ? 'rotate-0' : '-rotate-90'}`} />
               </button>
             )}
-            {(sidebarCollapsed || accountOpen) && accountItems.map(item => <NavLink key={item.path} {...item} />)}
+            {(sidebarCollapsed || accountOpen) && <div id="sidebar-account-section">{accountItems.map(item => <NavLink key={item.path} {...item} />)}</div>}
 
             {user?.role === "admin" && (
               <>
@@ -648,15 +686,31 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </span>
               )}
             </Link>
+            {/* Logout button */}
+            <button
+              onClick={() => logout()}
+              title={sidebarCollapsed ? "Log out" : undefined}
+              className={`relative mt-1 w-full flex items-center gap-2 rounded-xl hover:bg-destructive/10 hover:text-destructive p-2 transition-colors text-muted-foreground group
+                ${sidebarCollapsed ? "justify-center" : ""}`}
+            >
+              <LogOut className="w-4 h-4 shrink-0" />
+              {!sidebarCollapsed && <span className="text-xs font-medium">Log out</span>}
+              {sidebarCollapsed && (
+                <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                  Log out
+                </span>
+              )}
+            </button>
           </div>
         </nav>
 
         {/* ── Main content ── */}
-        <main className={`flex-1 xl:mr-72 min-w-0 transition-all duration-200
+        <main className={`flex-1 min-w-0 transition-all duration-200
           ${sidebarCollapsed ? "md:ml-14" : "md:ml-52"}
+          xl:mr-72
           ${isImmersiveRoute
             ? 'overflow-hidden'
-            : 'px-4 py-4 pb-20 md:pb-4'}`}>
+            : 'px-4 py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-4'}`}>
           {isLoadingAuth ? (
             <div className="flex justify-center py-20">
               <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
@@ -674,10 +728,11 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
       {/* ── Mobile Bottom Nav ── */}
       {!isShowroomBuilder && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border z-50">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border z-50"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="flex items-center justify-around h-16 px-2">
             {mainNavItems.slice(0, 4).map(({ path, icon: Icon, label }) => (
-              <Link key={path} href={path} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all ${isActive(path) ? "text-amber-600" : "text-muted-foreground"}`}>
+              <Link key={path} href={path} className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px] ${isActive(path) ? "text-amber-600" : "text-muted-foreground"}`}>
                 <Icon className={`w-5 h-5 ${isActive(path) ? "stroke-[2.5]" : ""}`} />
                 <span className="text-[10px] font-medium">{label}</span>
               </Link>
@@ -685,7 +740,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             {/* More button — opens full drawer */}
             <button
               onClick={() => setDrawerOpen(true)}
-              className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all text-muted-foreground hover:text-foreground"
+              className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all text-muted-foreground hover:text-foreground min-w-[56px]"
             >
               <Menu className="w-5 h-5" />
               <span className="text-[10px] font-medium">{t('common.more')}</span>

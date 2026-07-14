@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/lib/CartContext";
 import ShareButton from "@/components/ui/ShareButton";
 import { toast } from "sonner";
-import { useTranslation } from 'react-i18next';
 
 export default function ProductDetail() {
   const { t } = useTranslation();
@@ -221,7 +220,7 @@ export default function ProductDetail() {
               onClick={handleWishlist} disabled={wishlistLoading}>
               <Heart className={`w-4 h-4 ${wishlisted ? "fill-current" : ""}`} />
             </Button>
-            <ShareButton title={product.title} text={product.description?.slice(0, 100)} url={window.location.href} size="md" />
+            <ShareButton title={product.title} text={product.description?.slice(0, 100)} url={typeof window !== 'undefined' ? window.location.href : `${process.env.NEXT_PUBLIC_APP_URL || ''}/products/${id}`} size="md" />
           </div>
 
           {/* Price Alert */}

@@ -4,6 +4,7 @@ const http = require('http');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 const { initSocket } = require('./socket');
 const logger = require('./lib/logger');
@@ -11,6 +12,7 @@ const { startWorkers, closeQueues } = require('./lib/queue');
 const { initSentry, getSentryErrorHandler } = require('./lib/sentry');
 
 const app = express();
+app.set('trust proxy', 1); // TD-015: trust Railway/Render load-balancer so req.ip = real end-user IP
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
 
@@ -68,6 +70,26 @@ app.use(helmet({
   xssFilter: true,
   // Hide referrer on cross-origin requests
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  // TD-013: Content Security Policy
+  // Backend API only serves JSON — no scripts, no frames, no inline styles needed.
+  // Frontend CSP is handled by Next.js headers config separately.
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
+    directives: {
+      defaultSrc:     ["'none'"],
+      scriptSrc:      ["'none'"],
+      styleSrc:       ["'none'"],
+      imgSrc:         ["'none'"],
+      connectSrc:     ["'self'"],
+      fontSrc:        ["'none'"],
+      objectSrc:      ["'none'"],
+      mediaSrc:       ["'none'"],
+      frameSrc:       ["'none'"],
+      frameAncestors: ["'none'"],
+      formAction:     ["'self'"],
+      baseUri:        ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  } : false,
 }));
 
 // Remove any header that could expose internal info
@@ -110,6 +132,8 @@ app.use('/api/auth/register', authLimiter);
 app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Cookie parser — needed for HttpOnly refresh token (TD-001)
+app.use(cookieParser());
 
 // ── Static file serving (uploaded images) ────────────────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, process.env.UPLOAD_DIR || 'uploads')));
@@ -181,6 +205,8 @@ app.use('/api/variants', require('./routes/variants'));
 app.use('/api/returns', require('./routes/returns'));
 app.use('/api/delivery', require('./routes/delivery'));
 app.use('/api/flags', require('./routes/flags'));
+app.use('/api/showrooms/:showroomId/external-sources', require('./routes/externalSources'));
+app.use('/api/proxy', require('./routes/proxy'));
 
 // ── Sentry error handler (must be before global error handler) ───────────────
 const sentryErrorHandler = getSentryErrorHandler();

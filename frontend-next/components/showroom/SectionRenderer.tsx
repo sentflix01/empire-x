@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Shared section renderer for business mini-websites and showrooms.
  */

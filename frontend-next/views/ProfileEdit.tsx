@@ -1,5 +1,5 @@
 'use client'
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import React, { useState, useEffect } from "react";
 import { auth } from "@/api/auth";
 import { entities } from "@/api/entities";
@@ -75,7 +75,7 @@ function PushSettingsCard() {
 export default function ProfileEdit() {
   const { t } = useTranslation();
   const router = useRouter();
-  const location = usePathname();
+  const pathname = usePathname();  // Fix #1: was stored as `location` but referenced as `pathname`
   const isBusinessSetup = pathname.includes("setup-business");
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -124,26 +124,38 @@ export default function ProfileEdit() {
 
   const handleSavePersonal = async () => {
     setSaving(true);
-    if (profile) {
-      await entities.UserProfile.update(profile.id, personal);
-    } else {
-      await entities.UserProfile.create({ ...personal, user_id: user.id, profile_type: "personal" });
+    try {
+      if (profile) {
+        await entities.UserProfile.update(profile.id, personal);
+      } else {
+        await entities.UserProfile.create({ ...personal, user_id: user.id, profile_type: "personal" });
+      }
+      toast.success("Profile saved!");
+      router.push("/profile");
+    } catch (err: any) {
+      toast.error(err?.error || err?.message || "Failed to save profile");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    router.push("/profile");
   };
 
   const handleSaveBusiness = async () => {
     setSaving(true);
-    const sections = JSON.stringify(getTemplateById(business.business_category, business.business_template)?.sections || []);
-    const updateData = { ...business, has_business_profile: true, business_sections: sections };
-    if (profile) {
-      await entities.UserProfile.update(profile.id, updateData);
-    } else {
-      await entities.UserProfile.create({ ...updateData, user_id: user.id, display_name: user.full_name, profile_type: "business" });
+    try {
+      const sections = JSON.stringify(getTemplateById(business.business_category, business.business_template)?.sections || []);
+      const updateData = { ...business, has_business_profile: true, business_sections: sections };
+      if (profile) {
+        await entities.UserProfile.update(profile.id, updateData);
+      } else {
+        await entities.UserProfile.create({ ...updateData, user_id: user.id, display_name: user.full_name, profile_type: "business" });
+      }
+      toast.success("Business profile saved!");
+      router.push("/profile");
+    } catch (err: any) {
+      toast.error(err?.error || err?.message || "Failed to save business profile");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    router.push("/profile");
   };
 
   const selectedCategory = BUSINESS_CATEGORIES.find(c => c.value === business.business_category);
@@ -170,7 +182,7 @@ export default function ProfileEdit() {
 
         {tab === "personal" && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>Profile Photo</Label>
                 <div className="mt-1">
@@ -357,7 +369,7 @@ export default function ProfileEdit() {
 
         {tab === "business" && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>Business Logo</Label>
                 <div className="mt-1">

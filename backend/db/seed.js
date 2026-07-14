@@ -14,7 +14,7 @@ const path = require('path');
 const { faker } = require('@faker-js/faker');
 const bcrypt = require('bcryptjs');
 const pool = require('./pool');
-const { buildBusinessSections, buildShowroomData } = require('./templateData');
+const { buildBusinessSections, buildShowroomData, PRICE_RANGE, VERIFIED_BUSINESSES } = require('./templateData');
 
 const TEST_PASSWORD = 'Test1234!';
 const ADMIN_PASSWORD = 'Admin1234!';
@@ -387,21 +387,53 @@ async function seed() {
     }
     console.log(`  ✅ ${showroomRecords.length} showrooms created.\n`);
 
+    // ── Mark verified businesses — update profile is_verified for known brands ─
+    console.log('✅ Marking verified businesses...');
+    let verifiedCount = 0;
+    for (const biz of bizRecords) {
+      if (VERIFIED_BUSINESSES.includes(biz.name)) {
+        await client.query(
+          `UPDATE user_profiles SET is_verified = TRUE WHERE user_id = $1`,
+          [biz.owner_id]
+        );
+        verifiedCount++;
+      }
+    }
+    console.log(`  ✅ ${verifiedCount} business owners marked as verified.\n`);
+
     // ── 6. Create 300 products linked to businesses & showrooms ──────────────
     console.log('🛍️  Creating 300 products...');
     const products = [];
+    // Rich, category-accurate product names with per-category price ranges from PRICE_RANGE
     const PRODUCT_NAMES_BY_CAT = {
-      restaurant: ['Special Injera Set','Kitfo Premium','Coffee Ceremony Kit','Tej (Ethiopian Honey Wine)','Tibs Plate','Breakfast Buffet Pass'],
-      shop: ['Habesha Kemis','Gabi Blanket','Leather Bag','Traditional Coffee Set','Handwoven Basket','Silver Jewelry'],
-      service: ['Consultation Package','Maintenance Contract','Installation Service','Training Program','Repair Service','Inspection Report'],
-      health: ['Health Checkup Package','Pharmacy Bundle','Wellness Kit','Medical Consultation','Lab Test Package'],
-      other: ['Premium Membership','Business Package','Annual Subscription','VIP Access','Corporate Bundle'],
+      restaurant: {
+        names: ['Injera Combo','Kitfo Special','Coffee Ceremony','Tibs Plate','Beyayenet','Doro Wot','Shiro','Firfir','Family Platter','Tej (Honey Wine)'],
+        priceRange: PRICE_RANGE.restaurant,
+      },
+      shop: {
+        names: ['Habesha Kemis','Leather Bag','Traditional Coffee Set','Handwoven Basket','Silver Jewelry','Gabi Blanket','Netela Shawl','Embroidered Dress','Kuta Scarf','Tilf Shoes'],
+        priceRange: PRICE_RANGE.shop,
+      },
+      service: {
+        names: ['Standard Service Package','Premium Consultation','Maintenance Contract','Installation Service','Annual Support Plan','Emergency Response','Training Program','Inspection Report'],
+        priceRange: PRICE_RANGE.service,
+      },
+      health: {
+        names: ['General Checkup','Specialist Consultation','Lab Test Panel','Dental Cleaning','Eye Exam','Physiotherapy Session','Wellness Package','Pharmacy Bundle'],
+        priceRange: PRICE_RANGE.health,
+      },
+      other: {
+        names: ['Standard Package','Premium Membership','Business Bundle','Annual Subscription','VIP Access','Starter Plan','Professional Plan','Enterprise Plan'],
+        priceRange: PRICE_RANGE.other,
+      },
     };
     for (let i = 0; i < 300; i++) {
       const biz = pick(bizRecords);
       const showroom = showroomRecords.find(s => s.business_id === biz.id) || pick(showroomRecords);
       const cat = biz.cat;
-      const names = PRODUCT_NAMES_BY_CAT[cat] || PRODUCT_NAMES_BY_CAT.other;
+      const catData = PRODUCT_NAMES_BY_CAT[cat] || PRODUCT_NAMES_BY_CAT.other;
+      const pr = catData.priceRange;
+      const price = randFloat(pr.min, pr.max);
       const coords = jitter(9.0200, 38.7520, 3);
       const { rows } = await client.query(
         `INSERT INTO products (
@@ -411,9 +443,9 @@ async function seed() {
          ) VALUES ($1,$2,$3,$4,$5,$6,'ETB',$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
         [
           biz.owner_id, biz.id, showroom?.id || null,
-          pick(names) + ' — ' + biz.name,
+          pick(catData.names) + ' — ' + biz.name,
           `Quality ${cat} offering from ${biz.name}. ${faker.commerce.productDescription()}`,
-          randFloat(50, 5000), rand(0, 100),
+          price, rand(0, 100),
           pick(['shop','restaurant','service','health','other']),
           pick(['active','active','active','sold_out']),
           rand(0, 500), randFloat(2, 5), rand(0, 80),
@@ -443,8 +475,46 @@ async function seed() {
       people:  (i) => `https://picsum.photos/seed/people${i}/800/600`,
     };
 
+    // Detect specialized business type for post template selection
+    function getBizPostCat(biz) {
+      const n = (biz.name || '').toLowerCase();
+      if (n.includes('bank') || n.includes('microfinance') || n.includes('financial')) return 'bank';
+      if (n.includes('telecom') || n.includes('safaricom') || n.includes('telebirr')) return 'telecom';
+      if (n.includes('hotel') || n.includes('sheraton') || n.includes('hilton') || n.includes('hyatt') || n.includes('radisson') || n.includes('golden tulip') || n.includes('ramada')) return 'hotel';
+      if (n.includes('yango') || n.includes(' ride') || n.includes('taxi') || n.includes('transport')) return 'ride';
+      return biz.cat || 'other';
+    }
+
     // Business category → post templates per type
     const BIZ_POSTS = {
+      bank: {
+        text:    (b,u) => `🏦 ${b.name} now offers digital account opening in minutes. No paperwork, no queues. ${htag()} #DigitalBanking`,
+        image:   (b,u) => `📱 ${b.name} mobile app update: new features for faster transfers and bill payments. Download now! ${htag()}`,
+        promo:   (b,u) => `💰 ${b.name} SPECIAL: Open a savings account this month and earn 7% annual interest. ${htag()} #Savings`,
+        location:(b,u) => `📍 ${b.name} new branch now open in ${b.district}, Addis Ababa. Walk-ins welcome Mon–Fri 8AM–4PM. ${htag()}`,
+        event:   (b,u) => `🎓 ${b.name} is hosting a FREE financial literacy workshop this Saturday. Learn to save, invest and grow. ${htag()}`,
+      },
+      telecom: {
+        text:    (b,u) => `📡 ${b.name} 4G network expansion complete — now covering ${pick(ADDIS_DISTRICTS)} with faster speeds. ${htag()}`,
+        image:   (b,u) => `📱 New from ${b.name}: 10GB data bundle for only 199 ETB. Valid 30 days. Dial *777# to activate. ${htag()}`,
+        promo:   (b,u) => `🎉 ${b.name} PROMO: Get 20 bonus minutes free with every recharge above 100 ETB this week! ${htag()}`,
+        location:(b,u) => `📍 ${b.name} service center now open in ${b.district}. SIM replacement, complaints, new subscriptions. ${htag()}`,
+        event:   (b,u) => `🚀 ${b.name} launches 5G pilot in Bole and Kirkos districts! Experience the future of connectivity. ${htag()}`,
+      },
+      hotel: {
+        text:    (b,u) => `✨ ${b.name} — where every stay feels like home. Book directly for best rates guaranteed. ${htag()} #AddisAbaba`,
+        image:   (b,u) => `🛏️ Our newly renovated deluxe rooms at ${b.name} are now available. Comfort redefined. ${htag()}`,
+        promo:   (b,u) => `🌟 WEEKEND SPECIAL at ${b.name}: 2 nights + breakfast + airport transfer from 7,500 ETB per couple! ${htag()}`,
+        location:(b,u) => `📍 ${b.name} — located in the heart of ${b.district}, Addis Ababa. Easy access to AU, embassies & Bole. ${htag()}`,
+        event:   (b,u) => `🎊 Host your next event at ${b.name}! Conference halls, wedding venues, and gala dinner setups available. ${htag()}`,
+      },
+      ride: {
+        text:    (b,u) => `🚗 ${b.name} — safe, fast, affordable rides across Addis Ababa. Download the app now! ${htag()}`,
+        image:   (b,u) => `✅ ${b.name} driver verification: all our drivers are background-checked and licensed. Your safety first. ${htag()}`,
+        promo:   (b,u) => `🎉 FIRST RIDE FREE on ${b.name}! Use code EMPIREX at checkout. Valid for new users this week only. ${htag()}`,
+        location:(b,u) => `📍 ${b.name} now operating in ${b.district} and surrounding areas. Average wait time: 3 minutes! ${htag()}`,
+        event:   (b,u) => `🚀 ${b.name} launches corporate accounts for businesses in Addis — invoice billing, dedicated support. ${htag()}`,
+      },
       restaurant: {
         text:    (b,u) => `🍽️ Today's special at ${b.name}: freshly prepared injera with tibs, misir and ayib. Come taste authentic Ethiopia! ${htag()}`,
         image:   (b,u) => `📸 Behind the scenes at ${b.name} kitchen — our chefs preparing today's menu with love. ${htag()} #EthiopianFood`,
@@ -534,12 +604,16 @@ async function seed() {
       const user = users[u];
       const seq = POST_TYPE_SEQUENCES[u % POST_TYPE_SEQUENCES.length];
       const userBizzes = bizRecords.filter(b => b.owner_id === user.id);
-      const primaryBiz = userBizzes[0];
 
       for (let s = 0; s < 4; s++) {
         const postType = seq[s % seq.length];
         let content, image_url = null, poll_options = null, poll_ends_at = null;
         const imgKey = Object.keys(IMG)[imgCounter % Object.keys(IMG).length];
+
+        // Pick a different business per post slot for variety
+        const activeBiz = userBizzes.length > 0 ? pick(userBizzes) : null;
+        // 82% business posts when user owns businesses, 0% when they don't
+        const bizPostChance = userBizzes.length > 0 ? 0.82 : 0.0;
 
         if (postType === 'poll') {
           const p = POLLS[pollIdx % POLLS.length];
@@ -547,12 +621,12 @@ async function seed() {
           content = p.q;
           poll_options = JSON.stringify(p.opts.map((text, i) => ({ id: String.fromCharCode(97+i), text, vote_count: rand(0,80) })));
           poll_ends_at = new Date(Date.now() + (7 + rand(0,14)) * 86400000).toISOString();
-        } else if (primaryBiz && Math.random() < 0.6) {
-          // Business post
-          const cat = primaryBiz.cat || 'other';
-          const templates = BIZ_POSTS[cat] || BIZ_POSTS.other;
+        } else if (activeBiz && Math.random() < bizPostChance) {
+          // Business post — use specialized template based on business name/type
+          const postCat = getBizPostCat(activeBiz);
+          const templates = BIZ_POSTS[postCat] || BIZ_POSTS.other;
           const tmpl = templates[postType] || templates.text;
-          content = tmpl(primaryBiz, user);
+          content = tmpl(activeBiz, user);
           if (postType === 'image' || postType === 'promo' || postType === 'event') {
             image_url = IMG[imgKey](imgCounter);
             imgCounter++;
@@ -794,20 +868,28 @@ async function seed() {
         ]
       );
     }
+    // ── Story themes: category-contextual image seeds and captions ──────────
+    const STORY_THEMES = {
+      restaurant: { seed: 'food',    captions: ['Fresh off the kitchen today 🍽️ #EthiopianFood', 'Today\'s special is ready — come taste it! ✨', 'Coffee ceremony at ${biz} ☕ Join us'] },
+      shop:       { seed: 'fashion', captions: ['New arrivals just dropped 🛍️ #Habesha', 'Style that speaks for itself 👗', 'Limited stock — order fast!'] },
+      service:    { seed: 'office',  captions: ['Another project completed! 💼 #EmpireX', 'Team energy today ⚡ Big things ahead', 'Excellence delivered 🏆 #AddisAbaba'] },
+      health:     { seed: 'medical', captions: ['Your health is our mission 💊', 'Our team is ready for you today 🏥', 'Book your checkup — prevention is power!'] },
+      other:      { seed: 'city',    captions: ['Addis Ababa 🌆 #ShegerCity', 'Morning energy from the city ☀️', 'Big moves in ${district} today 💪 #EmpireX'] },
+    };
     for (let i = 0; i < 40; i++) {
       const user = pick(users);
+      const userBiz = bizRecords.find(b => b.owner_id === user.id);
+      const theme = STORY_THEMES[userBiz?.cat] || STORY_THEMES.other;
+      const rawCaption = pick(theme.captions)
+        .replace('${biz}', userBiz?.name || 'our place')
+        .replace('${district}', pick(ADDIS_DISTRICTS));
       await client.query(
         `INSERT INTO stories (user_id, media_url, media_type, caption, expires_at)
          VALUES ($1,$2,'image',$3,NOW()+INTERVAL '24 hours')`,
         [
           user.id,
-          `https://picsum.photos/seed/${faker.string.alphanumeric(8)}/400/700`,
-          pick([
-            `Morning in ${pick(ADDIS_DISTRICTS)} 🌄`,
-            `Great day at work! #AddisAbaba`,
-            `Ethiopian coffee time ☕ #EthiopianCoffee`,
-            `Business meeting done! 💼 #EmpireX`,
-          ]),
+          `https://picsum.photos/seed/${theme.seed}${i}/400/700`,
+          rawCaption,
         ]
       );
     }

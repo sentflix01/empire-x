@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 
 import { ChevronDown, Plus, Store, Check } from "lucide-react";
-import { useTranslation } from 'react-i18next';
 
 export default function BusinessSwitcher({ businesses, selectedId, onSelect }) {
   const [open, setOpen] = useState(false);

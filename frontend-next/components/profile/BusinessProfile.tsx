@@ -13,7 +13,6 @@ import { getCategoryByValue } from "@/lib/businessTemplates";
 import { findOrCreateConversation } from "@/lib/messaging";
 import SectionRenderer from "@/components/showroom/SectionRenderer";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
-import { useTranslation } from 'react-i18next';
 
 const parseImages = (img) => { try { return JSON.parse(img || "[]"); } catch { return img ? [img] : []; } };
 
@@ -73,27 +72,27 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
     <div className="space-y-0">
       {/* Mini-Website Container */}
       <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
-        {/* Website Navbar */}
-        <div className="sticky top-14 z-30 bg-background/95 backdrop-blur-md border-b border-border/50 px-5 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        {/* Website Navbar — sticky on desktop, static on mobile to prevent overlay */}
+        <div className="md:sticky top-14 z-30 bg-background/95 backdrop-blur-md border-b border-border/50 px-4 py-2.5 flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 min-w-0">
             {biz.business_logo_url ? (
-              <img src={biz.business_logo_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
+              <img src={biz.business_logo_url} alt={biz.business_name || 'Business logo'} className="w-7 h-7 rounded-lg object-cover shrink-0" />
             ) : (
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: themeColor }}>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ backgroundColor: themeColor }}>
                 {biz.business_name?.charAt(0) || "B"}
               </div>
             )}
-            <span className="font-display font-bold text-sm" style={{ color: themeColor }}>{biz.business_name}</span>
+            <span className="font-display font-bold text-sm truncate" style={{ color: themeColor }}>{biz.business_name}</span>
             {profile.is_verified && <VerifiedBadge type={profile.verification_type} size="sm" />}
           </div>
-          <div className="flex items-center gap-3">
-            {sections.filter(s => s.title).slice(0, 4).map((s, i) => (
-              <a key={i} href={`#section-${i}`} className="hidden sm:block text-xs text-muted-foreground hover:text-foreground transition-colors">{s.title}</a>
+          <div className="flex items-center gap-2 shrink-0">
+            {sections.filter(s => s.title).slice(0, 3).map((s, i) => (
+              <a key={i} href={`#section-${i}`} className="hidden sm:block text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">{s.title}</a>
             ))}
             {isOwner ? (
               <Link href={`/business/edit?id=${business?.id || ""}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button></Link>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Button size="sm" variant="outline" className="rounded-full h-7 text-xs" onClick={handleMessage} disabled={messaging}>
                   <MessageSquare className="w-3 h-3 mr-1" /> {messaging ? "..." : "Message"}
                 </Button>

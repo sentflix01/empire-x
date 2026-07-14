@@ -321,6 +321,7 @@ export default function Orders() {
   const [user, setUser]       = useState(null);
   const [orders, setOrders]   = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [tab, setTab]         = useState("selling");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showReturn, setShowReturn] = useState<Record<string, boolean>>({});
@@ -331,11 +332,14 @@ export default function Orders() {
 
   const loadOrders = async (u, mode) => {
     setLoading(true);
+    setLoadError('');
     try {
       const filter = mode === "selling" ? { seller_id: u.id } : { buyer_id: u.id };
       const data = await entities.Order.filter(filter, "-created_at", 100);
       setOrders(data);
-    } catch {}
+    } catch (err: any) {
+      setLoadError(err?.error || err?.message || 'Failed to load orders');
+    }
     setLoading(false);
   };
 
@@ -374,6 +378,11 @@ export default function Orders() {
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+        </div>
+      ) : loadError ? (
+        <div className="text-center py-12 rounded-2xl border border-destructive/20 bg-destructive/5">
+          <p className="text-sm text-destructive font-medium">{loadError}</p>
+          <button onClick={() => user && loadOrders(user, tab)} className="mt-3 text-xs text-amber-600 hover:underline font-medium">Retry</button>
         </div>
       ) : orders.length === 0 ? (
         <div className="text-center py-16">

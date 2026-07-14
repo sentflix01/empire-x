@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { toast } from "sonner";
 import client from "@/api/client";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from 'react-i18next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

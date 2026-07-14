@@ -33,15 +33,15 @@ export default function ProfileToggle({
   }, []);
 
   return (
-    <div className="inline-flex items-center bg-secondary/60 rounded-full p-1 shadow-inner ring-1 ring-border/40 gap-0.5">
+    <div className="inline-flex items-center bg-secondary/60 rounded-full p-1 shadow-inner ring-1 ring-border/40 gap-0.5 max-w-full overflow-hidden">
 
       {/* ── Personal pill ─────────────────────────────────── */}
       {showBusiness && (
         <button
           onClick={() => !isPersonal && onFlip()}
           aria-pressed={isPersonal}
-          className="relative px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60"
-          style={{ minWidth: 90, justifyContent: "center" }}
+          className="relative px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60"
+          style={{ minWidth: 72, justifyContent: "center" }}
         >
           {/* Sliding background */}
           {isPersonal && (
@@ -69,8 +69,8 @@ export default function ProfileToggle({
         <button
           onClick={() => isPersonal && onFlip()}
           aria-pressed={!isPersonal}
-          className="relative px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
-          style={{ minWidth: 90, justifyContent: "center" }}
+          className="relative px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
+          style={{ minWidth: 72, justifyContent: "center" }}
         >
           {!isPersonal && (
             <motion.span
@@ -103,7 +103,7 @@ export default function ProfileToggle({
             onClick={() => onTheme(isDark ? "light" : "dark")}
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
             className="relative px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
-            style={{ minWidth: 68, justifyContent: "center" }}
+            style={{ minWidth: 56, justifyContent: "center" }}
           >
             {isDark
               ? <Sun className="w-3.5 h-3.5 text-amber-400" />

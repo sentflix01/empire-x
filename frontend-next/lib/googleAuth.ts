@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Google Sign-In helper using the Google Identity Services library.
  * The GSI script is loaded in index.html.
@@ -11,9 +10,9 @@
  *
  *   // Call on button click — resolves with the access_token from our backend
  *   const { access_token } = await signInWithGoogle();
- *   localStorage.setItem('access_token', access_token);
+ *   storeToken(access_token);
  */
-import client from '@/api/client';
+import client, { storeToken } from '@/api/client';
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
@@ -48,7 +47,7 @@ function handleCredentialResponse(response) {
 async function sendIdTokenToBackend(idToken) {
   const res = await client.post('/api/auth/google', { id_token: idToken });
   const { access_token } = res.data;
-  localStorage.setItem('access_token', access_token);
+  storeToken(access_token);
   return res.data;
 }
 

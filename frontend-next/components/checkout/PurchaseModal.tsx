@@ -1,9 +1,10 @@
 'use client'
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { createNotification } from "@/lib/notifications";
-import { X, ShoppingBag, Check, Loader2, Tag } from "lucide-react";
+import { X, ShoppingBag, Check, Loader2, Tag, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,13 +12,37 @@ import { toast } from "sonner";
 import { useTranslation } from 'react-i18next';
 
 export default function PurchaseModal({ item, seller, buyer, onClose, onPurchased }) {
-  const [step, setStep] = useState("details"); // details | checkout | success
+  const [step, setStep] = useState("details"); // details | checkout | success | chapa_pending
   const [quantity, setQuantity] = useState(1);
   const [processing, setProcessing] = useState(false);
+  const [chapaTxRef, setChapaTxRef] = useState<string | null>(null);
   const [orderInfo, setOrderInfo] = useState({ name: "", phone: "", email: "", address: "", notes: "" });
   const [couponCode, setCouponCode] = useState("");
   const [couponData, setCouponData] = useState(null); // { valid, coupon, discount }
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+
+  // Poll for Chapa payment confirmation after redirect back to app
+  useEffect(() => {
+    if (step !== "chapa_pending" || !chapaTxRef) return;
+    let attempts = 0;
+    const interval = setInterval(async () => {
+      attempts++;
+      try {
+        const { data } = await client.get(`/api/orders/chapa/status/${chapaTxRef}`);
+        if (data.status === "paid") {
+          clearInterval(interval);
+          setStep("success");
+          onPurchased?.();
+        } else if (data.status === "payment_failed") {
+          clearInterval(interval);
+          toast.error("Payment failed. Please try again.");
+          setStep("checkout");
+        }
+      } catch {}
+      if (attempts >= 20) clearInterval(interval); // stop after ~60s
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [step, chapaTxRef]);
 
   const parseImages = (img) => { try { return JSON.parse(img || "[]"); } catch { return img ? [img] : []; } };
   const images = parseImages(item.images);
@@ -202,38 +227,98 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground text-center">💳 Pay with Stripe (test) or arrange COD with the seller</p>
+            <p className="text-xs text-muted-foreground text-center">💳 Pay with Chapa (ETB) or Stripe (USD) — or place a COD order</p>
 
             <div className="grid grid-cols-1 gap-2">
+              {/* ── Chapa — primary ETB payment ── */}
               <Button
-                variant="outline"
                 disabled={processing || !orderInfo.name || !orderInfo.phone}
-                className="w-full h-11 rounded-full border-amber-300 text-amber-700"
+                className="w-full h-11 rounded-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
                 onClick={async () => {
                   setProcessing(true);
                   try {
-                    const { data } = await client.post("/api/orders/checkout/session", {
-                      product_id: item.id,
-                      product_title: item.title,
-                      unit_price: unitPrice,
+                    const { data } = await client.post("/api/orders/checkout/chapa", {
+                      product_id:       item.id,
+                      product_title:    item.title,
+                      unit_price:       unitPrice,
                       quantity,
-                      seller_id: seller.user_id,
-                      currency: "usd",
+                      seller_id:        seller.user_id,
+                      buyer_name:       orderInfo.name || buyer?.full_name || "",
+                      buyer_email:      orderInfo.email || buyer?.email || "",
+                      buyer_phone:      orderInfo.phone || "",
+                      delivery_address: orderInfo.address,
+                      notes:            orderInfo.notes,
+                      coupon_discount:  discount,
                     });
-                    if (data?.url) window.location.href = data.url;
-                    else toast.error("Stripe not configured — use Place Order instead");
-                  } catch {
-                    toast.error("Stripe checkout unavailable. Use Place Order (COD) or add STRIPE_SECRET_KEY.");
+                    if (data?.checkout_url) {
+                      setChapaTxRef(data.tx_ref);
+                      // Open Chapa in a new tab so modal stays open for polling
+                      window.open(data.checkout_url, '_blank', 'width=500,height=700,noopener');
+                      setStep("chapa_pending");
+                    } else {
+                      toast.error("Chapa checkout unavailable — use Place Order instead");
+                    }
+                  } catch (e) {
+                    toast.error(e?.response?.data?.error || "Chapa payment unavailable. Use COD or add CHAPA_SECRET_KEY.");
                   }
                   setProcessing(false);
                 }}
               >
-                💳 Pay with Stripe (Test)
+                {processing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Opening Chapa...</> : `🇪🇹 Pay with Chapa • ${totalPrice.toLocaleString()} ETB`}
+              </Button>
+
+              {/* ── Stripe — USD card fallback ── */}
+              <Button
+                variant="outline"
+                disabled={processing || !orderInfo.name || !orderInfo.phone}
+                className="w-full h-11 rounded-full border-slate-300 text-slate-600"
+                onClick={async () => {
+                  setProcessing(true);
+                  try {
+                    const { data } = await client.post("/api/orders/checkout/session", {
+                      product_id:    item.id,
+                      product_title: item.title,
+                      unit_price:    unitPrice,
+                      quantity,
+                      seller_id:     seller.user_id,
+                      currency:      "usd",
+                    });
+                    if (data?.url) window.location.href = data.url;
+                    else toast.error("Stripe not configured — use Place Order instead");
+                  } catch {
+                    toast.error("Stripe unavailable. Use Chapa or Place Order.");
+                  }
+                  setProcessing(false);
+                }}
+              >
+                💳 Pay with Stripe (USD/Test)
               </Button>
               <Button onClick={handleCheckout} disabled={processing || !orderInfo.name || !orderInfo.phone} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
                 {processing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Placing Order...</> : `Place Order (COD) • ${totalPrice.toLocaleString()} ${item.currency || "ETB"}`}
               </Button>
             </div>
+          </div>
+        )}
+
+        {/* Chapa Pending Step */}
+        {step === "chapa_pending" && (
+          <div className="p-8 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto">
+              <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
+            </div>
+            <div>
+              <h3 className="font-display text-xl font-bold">Waiting for Payment</h3>
+              <p className="text-sm text-muted-foreground mt-1">Complete your payment in the Chapa window. This page will update automatically.</p>
+            </div>
+            <div className="p-4 rounded-xl bg-green-50 border border-green-200 text-left space-y-1">
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Amount</span><span className="font-bold text-green-700">{totalPrice.toLocaleString()} ETB</span></div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Product</span><span className="font-medium">{item.title}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Reference</span><span className="font-mono text-xs text-muted-foreground">{chapaTxRef}</span></div>
+            </div>
+            <p className="text-xs text-muted-foreground">Checking payment status every 3 seconds...</p>
+            <Button variant="outline" className="w-full rounded-full" onClick={() => setStep("checkout")}>
+              ← Go back
+            </Button>
           </div>
         )}
 
