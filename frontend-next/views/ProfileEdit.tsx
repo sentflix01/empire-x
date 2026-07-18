@@ -2,7 +2,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import React, { useState, useEffect } from "react";
 import { auth } from "@/api/auth";
-import { entities } from "@/api/entities";
+import { entities, type UserProfile } from "@/api/entities";
 import client from "@/api/client";
 import { useTranslation } from 'react-i18next';
 
@@ -75,14 +75,37 @@ function PushSettingsCard() {
 export default function ProfileEdit() {
   const { t } = useTranslation();
   const router = useRouter();
-  const pathname = usePathname();  // Fix #1: was stored as `location` but referenced as `pathname`
+  const pathname = usePathname();
   const isBusinessSetup = pathname.includes("setup-business");
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState(isBusinessSetup ? "business" : "personal");
-  const [personal, setPersonal] = useState({ display_name: "", bio: "", headline: "", location: "", phone: "", ticker_text: "", ticker_type: "none", avatar_url: "", cover_url: "" });
-  const [business, setBusiness] = useState({
+  type PersonalState = {
+    display_name: string;
+    bio: string;
+    headline: string;
+    location: string;
+    phone: string;
+    ticker_text: string;
+    ticker_type: string;
+    avatar_url: string | string[];
+    cover_url: string | string[];
+  };
+  const [personal, setPersonal] = useState<PersonalState>({ display_name: "", bio: "", headline: "", location: "", phone: "", ticker_text: "", ticker_type: "none", avatar_url: "", cover_url: "" });
+  type BizState = {
+    business_name: string;
+    business_category: string;
+    business_template: string | string[];
+    business_description: string;
+    business_contact_email: string;
+    business_contact_phone: string;
+    business_address: string;
+    business_theme_color: string;
+    business_logo_url: string | string[];
+    business_cover_url: string | string[];
+  };
+  const [business, setBusiness] = useState<BizState>({
     business_name: "", business_category: "", business_template: "",
     business_description: "", business_contact_email: "", business_contact_phone: "",
     business_address: "", business_theme_color: "#D4AF37",
@@ -92,32 +115,38 @@ export default function ProfileEdit() {
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
-    const me = await auth.me();
+    const me = (await auth.me()) as { id?: string; full_name?: string; email?: string };
     setUser(me);
-    const profiles = await entities.UserProfile.filter({ user_id: me.id });
+    const profiles = await entities.UserProfile.filter({ user_id: me.id }) as UserProfile[];
     if (profiles.length > 0) {
-      const p = profiles[0];
+      const p = profiles[0] as UserProfile;
       setProfile(p);
+      const avatar_url = Array.isArray(p.avatar_url) ? p.avatar_url[0] ?? "" : p.avatar_url || "";
+      const cover_url = Array.isArray(p.cover_url) ? p.cover_url[0] ?? "" : p.cover_url || "";
+      const business_template = Array.isArray(p.business_template) ? p.business_template[0] ?? "" : p.business_template || "";
+      const business_logo_url = Array.isArray(p.business_logo_url) ? p.business_logo_url[0] ?? "" : p.business_logo_url || "";
+      const business_cover_url = Array.isArray(p.business_cover_url) ? p.business_cover_url[0] ?? "" : p.business_cover_url || "";
+
       setPersonal({
         display_name: p.display_name || me.full_name || "",
         bio: p.bio || "", headline: p.headline || "",
         location: p.location || "", phone: p.phone || "",
         ticker_text: p.ticker_text || "",
         ticker_type: p.ticker_type || "none",
-        avatar_url: p.avatar_url || "",
-        cover_url: p.cover_url || ""
+        avatar_url,
+        cover_url
       });
       setBusiness({
         business_name: p.business_name || "",
         business_category: p.business_category || "",
-        business_template: p.business_template || "",
+        business_template,
         business_description: p.business_description || "",
-        business_contact_email: p.business_contact_email || me.email || "",
+        business_contact_email: p.business_contact_email || (me.email ?? ""),
         business_contact_phone: p.business_contact_phone || p.phone || "",
         business_address: p.business_address || p.location || "",
         business_theme_color: p.business_theme_color || "#D4AF37",
-        business_logo_url: p.business_logo_url || "",
-        business_cover_url: p.business_cover_url || ""
+        business_logo_url,
+        business_cover_url
       });
     }
   };
@@ -128,7 +157,7 @@ export default function ProfileEdit() {
       if (profile) {
         await entities.UserProfile.update(profile.id, personal);
       } else {
-        await entities.UserProfile.create({ ...personal, user_id: user.id, profile_type: "personal" });
+        await entities.UserProfile.create({ ...personal, user_id: user?.id, profile_type: "personal" });
       }
       toast.success("Profile saved!");
       router.push("/profile");
@@ -147,7 +176,7 @@ export default function ProfileEdit() {
       if (profile) {
         await entities.UserProfile.update(profile.id, updateData);
       } else {
-        await entities.UserProfile.create({ ...updateData, user_id: user.id, display_name: user.full_name, profile_type: "business" });
+        await entities.UserProfile.create({ ...updateData, user_id: user?.id, display_name: user?.full_name, profile_type: "business" });
       }
       toast.success("Business profile saved!");
       router.push("/profile");
@@ -407,7 +436,7 @@ export default function ProfileEdit() {
                 {BUSINESS_CATEGORIES.map(cat => {
                   const Icon = cat.icon;
                   return (
-                    <button key={cat.value} onClick={() => setBusiness({...business, business_category: cat.value, business_template: cat.templates[0].id})} className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${business.business_category === cat.value ? "border-amber-400 bg-amber-50" : "border-border hover:border-amber-300"}`}>
+                    <button key={cat.value} onClick={() => setBusiness({...business, business_category: cat.value, business_template: String(cat.templates[0].id)})} className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${business.business_category === cat.value ? "border-amber-400 bg-amber-50" : "border-border hover:border-amber-300"}`}>
                       <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: cat.color + "20" }}>
                         <Icon className="w-3.5 h-3.5" style={{ color: cat.color }} />
                       </div>
@@ -417,21 +446,21 @@ export default function ProfileEdit() {
                 })}
               </div>
             </div>
-            {selectedCategory && (
-              <div>
-                <Label>Website Template</Label>
-                <div className="space-y-2 mt-2">
-                  {selectedCategory.templates.map(tpl => (
-                    <TemplateCard
-                      key={tpl.id}
-                      template={tpl}
-                      selected={business.business_template === tpl.id}
-                      onSelect={() => setBusiness({...business, business_template: tpl.id})}
-                    />
-                  ))}
-                </div>
+                {selectedCategory && (
+            <div>
+              <Label>Website Template</Label>
+              <div className="space-y-2 mt-2">
+                {selectedCategory.templates.map(tpl => (
+                  <TemplateCard
+                    key={tpl.id}
+                    template={tpl}
+                    selected={business.business_template === String(tpl.id)}
+                    onSelect={() => setBusiness({...business, business_template: String(tpl.id)})}
+                  />
+                ))}
               </div>
-            )}
+            </div>
+          )}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Contact Email</Label>

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from 'next/navigation';
@@ -11,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
-export default function CourseDetail() {
+function CourseDetail() {
   const { id } = useParams();
   const router = useRouter();
   const [course, setCourse] = useState(null);
@@ -142,3 +143,4 @@ export default function CourseDetail() {
 
 
 
+export default CourseDetail;

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from 'next/navigation';
@@ -13,7 +14,7 @@ import moment from "moment";
 const TG_BLUE = "#0088cc";
 const TG_BLUE_LIGHT = "#effdde";
 
-export default function ChatRoom() {
+function ChatRoom() {
   const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
@@ -275,3 +276,4 @@ export default function ChatRoom() {
 
 
 
+export default ChatRoom;

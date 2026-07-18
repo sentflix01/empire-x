@@ -1,3 +1,4 @@
+// @ts-check
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
 import { cva } from "class-variance-authority";
@@ -8,10 +9,14 @@ const labelVariants = cva(
   "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 )
 
-const Label = React.forwardRef(({ className, ...props }, ref) => (
+type LabelProps = React.LabelHTMLAttributes<HTMLLabelElement> & {
+  className?: string
+}
+
+const Label = React.forwardRef<HTMLLabelElement, LabelProps>(({ className, ...props }, ref) => (
   <LabelPrimitive.Root ref={ref} className={cn(labelVariants(), className)} {...props} />
 ))
-Label.displayName = LabelPrimitive.Root.displayName
+Label.displayName = "Label"
 
 export { Label }
 

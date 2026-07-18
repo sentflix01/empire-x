@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * ImageUpload — reusable image picker + uploader.
  *
@@ -14,16 +15,27 @@ import { Upload, X, Loader2, ImageIcon } from 'lucide-react';
 import { uploadFile, uploadFiles } from '@/lib/uploadFile';
 import { cn } from '@/lib/utils';
 
+interface ImageUploadProps {
+  value?: string | string[]
+  onChange: (value: string | string[]) => void
+  multiple?: boolean
+  max?: number
+  accept?: string
+  className?: string
+  placeholder?: string
+  aspectRatio?: string
+}
+
 export default function ImageUpload({
-  value,           // string (single) | string[] (multiple)
-  onChange,        // (url: string) => void  |  (urls: string[]) => void
+  value,
+  onChange,
   multiple = false,
   max = 10,
   accept = 'image/*',
   className,
   placeholder,
-  aspectRatio,     // e.g. "aspect-square", "aspect-video"
-}) {
+  aspectRatio,
+}: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef(null);
@@ -31,9 +43,10 @@ export default function ImageUpload({
   const urls = multiple
     ? (Array.isArray(value) ? value : value ? [value] : [])
     : [];
+  const singleValue = !multiple ? (Array.isArray(value) ? value[0] : value) : undefined;
 
-  const handleChange = async (e) => {
-    const files = Array.from(e.target.files || []);
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []) as File[];
     if (!files.length) return;
     setError('');
 
@@ -83,8 +96,8 @@ export default function ImageUpload({
           aspectRatio || 'aspect-square',
           value && 'border-solid border-border/30'
         )}>
-          {value ? (
-            <img src={value} alt="upload preview" className="w-full h-full object-cover" />
+          {singleValue ? (
+            <img src={singleValue} alt="upload preview" className="w-full h-full object-cover" />
           ) : (
             <div className="flex flex-col items-center gap-2 text-muted-foreground p-4">
               {uploading
@@ -104,7 +117,7 @@ export default function ImageUpload({
           />
         </label>
 
-        {value && (
+        {singleValue && (
           <button
             type="button"
             onClick={() => removeUrl(0)}
@@ -115,7 +128,7 @@ export default function ImageUpload({
           </button>
         )}
 
-        {uploading && value && (
+        {uploading && singleValue && (
           <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-xl">
             <Loader2 className="w-6 h-6 text-white animate-spin" />
           </div>

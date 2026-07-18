@@ -16,11 +16,13 @@ import { toast } from "sonner";
 
 export default function ProductDetail() {
   const { t } = useTranslation();
-  const { id } = useParams();
+  const params = useParams();
+  const idParam = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const id = typeof idParam === 'string' ? idParam : '';
   const router = useRouter();
-  const { addToCart } = useCart();
-  const [product, setProduct] = useState(null);
-  const [seller, setSeller] = useState(null);
+  const { addItem } = useCart();
+  const [product, setProduct] = useState<any>(null);
+  const [seller, setSeller] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [wishlisted, setWishlisted] = useState(false);
@@ -57,8 +59,8 @@ export default function ProductDetail() {
       // Load seller profile
       if (p?.seller_id) {
         try {
-          const { default: entities_m } = await import("@/api/entities");
-          const profiles = await entities_m.entities.UserProfile.filter({ user_id: p.seller_id });
+          const { entities: entitiesApi } = await import("@/api/entities");
+          const profiles = await entitiesApi.UserProfile.filter({ user_id: p.seller_id });
           if (profiles.length) setSeller(profiles[0]);
         } catch {}
       }
@@ -211,7 +213,7 @@ export default function ProductDetail() {
           </div>
 
           <div className="flex gap-2 pt-1">
-            <Button onClick={() => addToCart(product.id)} disabled={!inStock}
+            <Button onClick={() => addItem(product.id)} disabled={!inStock}
               className="flex-1 h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 font-semibold">
               <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
             </Button>
@@ -220,7 +222,7 @@ export default function ProductDetail() {
               onClick={handleWishlist} disabled={wishlistLoading}>
               <Heart className={`w-4 h-4 ${wishlisted ? "fill-current" : ""}`} />
             </Button>
-            <ShareButton title={product.title} text={product.description?.slice(0, 100)} url={typeof window !== 'undefined' ? window.location.href : `${process.env.NEXT_PUBLIC_APP_URL || ''}/products/${id}`} size="md" />
+            <ShareButton title={product.title} text={product.description?.slice(0, 100)} url={typeof window !== 'undefined' ? window.location.href : `${process.env.NEXT_PUBLIC_APP_URL || ''}/products/${id}`} size="md" label="Share" />
           </div>
 
           {/* Price Alert */}

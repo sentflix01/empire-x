@@ -34,21 +34,34 @@ function personalizeSections(sections, biz) {
 import TemplateCard from "@/components/profile/TemplateCard";
 import ImageUpload from "@/components/ui/ImageUpload";
 
-export default function BusinessCreate() {
+function BusinessCreate() {
   const { t } = useTranslation();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
   const paramId = Array.isArray(params?.id) ? params.id[0] : params?.id;
-  const id = searchParams.get("id") || paramId;
+  const idValue = searchParams.get("id") || paramId;
+  const id = typeof idValue === 'string' ? idValue : '';
   const isEdit = !!id;
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
   const [saving, setSaving] = useState(false);
-  const [business, setBusiness] = useState({
+  type BizState = {
+    business_name: string;
+    business_category: string;
+    business_template: string | string[];
+    business_description: string;
+    business_contact_email: string;
+    business_contact_phone: string;
+    business_address: string;
+    business_theme_color: string;
+    business_logo_url: string | string[];
+    business_cover_url: string | string[];
+  };
+  const [business, setBusiness] = useState<BizState>({
     business_name: "", business_category: "", business_template: "",
     business_description: "", business_contact_email: "", business_contact_phone: "",
     business_address: "", business_theme_color: "#D4AF37",
-    business_logo_url: "", business_cover_url: ""
+      business_logo_url: "", business_cover_url: ""
   });
 
   useEffect(() => {
@@ -82,14 +95,14 @@ export default function BusinessCreate() {
     setSaving(true);
     const rawSections = getTemplateById(business.business_category, business.business_template)?.sections || [];
     const sections = JSON.stringify(personalizeSections(rawSections, business));
-    const updateData = { ...business, business_sections: sections, owner_id: user.id };
+    const updateData = { ...business, business_sections: sections, owner_id: user?.id };
     try {
       if (isEdit) {
         await entities.Business.update(id, updateData);
       } else {
         await entities.Business.create(updateData);
         // Update user profile to mark has_business_profile
-        const profiles = await entities.UserProfile.filter({ user_id: user.id });
+        const profiles = await entities.UserProfile.filter({ user_id: user?.id });
         if (profiles.length > 0) {
           await entities.UserProfile.update(profiles[0].id, { has_business_profile: true });
         }
@@ -152,7 +165,7 @@ export default function BusinessCreate() {
               {BUSINESS_CATEGORIES.map(cat => {
                 const Icon = cat.icon;
                 return (
-                  <button key={cat.value} onClick={() => setBusiness({...business, business_category: cat.value, business_template: cat.templates[0].id})} className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${business.business_category === cat.value ? "border-amber-400 bg-amber-50" : "border-border hover:border-amber-300"}`}>
+                  <button key={cat.value} onClick={() => setBusiness({...business, business_category: cat.value, business_template: String(cat.templates[0].id)})} className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${business.business_category === cat.value ? "border-amber-400 bg-amber-50" : "border-border hover:border-amber-300"}`}>
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: cat.color + "20" }}>
                       <Icon className="w-3.5 h-3.5" style={{ color: cat.color }} />
                     </div>
@@ -170,8 +183,8 @@ export default function BusinessCreate() {
                   <TemplateCard
                     key={tpl.id}
                     template={tpl}
-                    selected={business.business_template === tpl.id}
-                    onSelect={() => setBusiness({...business, business_template: tpl.id})}
+                    selected={business.business_template === String(tpl.id)}
+                    onSelect={() => setBusiness({...business, business_template: String(tpl.id)})}
                   />
                 ))}
               </div>
@@ -209,3 +222,4 @@ export default function BusinessCreate() {
 
 
 
+export default BusinessCreate;

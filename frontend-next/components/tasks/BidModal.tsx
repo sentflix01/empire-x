@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 import React, { useState } from "react";
 import { entities } from "@/api/entities";

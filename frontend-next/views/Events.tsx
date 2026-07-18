@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import moment from "moment";
 import { useTranslation } from 'react-i18next';
 
-export default function Events() {
+function Events() {
   const { t } = useTranslation();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -107,3 +107,4 @@ export default function Events() {
 
 
 
+export default Events;

@@ -9,7 +9,7 @@ import { auth } from "@/api/auth";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 
-export default function Explore() {
+function Explore() {
   const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -154,3 +154,4 @@ function Section({ title, icon: Icon, children }) {
 
 
 
+export default Explore;

@@ -50,7 +50,7 @@ export function getAccessToken() {
 // ── Axios instance ────────────────────────────────────────────────────────────
 const client = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 30000, // 30s — matches design requirement 2.7
   withCredentials: true, // send HttpOnly refresh_token cookie on every request
 });
 
@@ -118,6 +118,14 @@ client.interceptors.response.use(
       ) {
         window.location.href = '/login';
       }
+    }
+
+    // Normalise timeout errors into a consistent shape
+    if (error.code === 'ECONNABORTED' || error.code === 'ERR_CANCELED') {
+      return Promise.reject({
+        error: 'Request timed out. Please try again.',
+        isTimeout: true,
+      });
     }
 
     return Promise.reject(error.response?.data ?? error);

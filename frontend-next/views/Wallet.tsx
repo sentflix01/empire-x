@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
@@ -9,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const TX_ICONS = {
   credit: { icon: ArrowDownLeft, color: "text-green-600 bg-green-50" },

@@ -7,7 +7,19 @@ import Link from 'next/link';
 import { Clock, ShoppingBag, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const parseImages = (img) => { try { return JSON.parse(img || "[]"); } catch { return img ? [img] : []; } };
+const parseImages = (img?: string | string[] | null) => { try { return JSON.parse(String(img || "[]")); } catch { return img ? [img].flat() : []; } };
+
+interface SectionRendererProps {
+  section: Record<string, any>;
+  sectionIndex: number;
+  products?: Array<Record<string, any>>;
+  themeColor?: string;
+  profile?: Record<string, any>;
+  isOwner?: boolean;
+  onBuy?: (product: Record<string, any>) => void;
+  hours?: Array<{ day: string; hours: string }>;
+  showProductLinks?: boolean;
+}
 
 export default function SectionRenderer({
   section,
@@ -19,9 +31,9 @@ export default function SectionRenderer({
   onBuy,
   hours = [],
   showProductLinks = true,
-}) {
+}: SectionRendererProps) {
   const s = section;
-  const biz = profile;
+  const biz = (profile ?? {}) as Record<string, any>;
 
   if (s.type === "hero" || s.type === "banner") {
     return (

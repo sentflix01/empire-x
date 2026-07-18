@@ -19,6 +19,9 @@
       "/node_modules/",
       "test/e2e.test.js",
       "test/api.test.js"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/helpers/setupTests.js"
     ]
   },
   "dependencies": {
@@ -55,6 +58,7 @@
     "axios": "^1.7.9",
     "fast-check": "^3.23.2",
     "jest": "29.7.0",
-    "nodemon": "3.1.0"
+    "nodemon": "3.1.0",
+    "supertest": "^7.1.0"
   }
 }

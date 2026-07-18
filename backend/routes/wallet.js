@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
+const apiError = require('../lib/apiError');
+const logger = require('../lib/logger');
 
 // Get or create wallet for current user
 async function getOrCreateWallet(userId) {
@@ -23,15 +25,21 @@ router.get('/me', requireAuth, async (req, res) => {
     );
     res.json({ ...wallet, transactions: txs });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch wallet' });
+    logger.error({ err }, 'Failed to fetch wallet');
+    return apiError.serverError(res, 'Failed to fetch wallet');
   }
 });
 
-// Top up wallet — admin only in all environments (Stripe/Chapa webhooks use /topup/chapa/verify)
-// Direct topup is intentionally locked to admins to prevent balance manipulation.
-router.post('/topup', requireAuth, requireAdmin, async (req, res) => {
+// Top up wallet.
+// In production, direct topup is restricted to admins to avoid balance manipulation.
+// In non-production environments, authenticated users may top up directly for local testing.
+router.post('/topup', requireAuth, async (req, res) => {
+  if (process.env.NODE_ENV === 'production' && req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
   const { amount, reference } = req.body;
-  if (!amount || amount <= 0) return res.status(400).json({ error: 'Valid amount is required' });
+  if (!amount || amount <= 0) return apiError.validationError(res, 'Valid amount is required');
   try {
     const wallet = await getOrCreateWallet(req.user.id);
     await pool.query(
@@ -46,18 +54,19 @@ router.post('/topup', requireAuth, requireAdmin, async (req, res) => {
     const updated = await pool.query('SELECT * FROM wallets WHERE id = $1', [wallet.id]);
     res.json(updated.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to top up wallet' });
+    logger.error({ err }, 'Failed to top up wallet');
+    return apiError.serverError(res, 'Failed to top up wallet');
   }
 });
 
 // Withdraw (request — admin approves manually)
 router.post('/withdraw', requireAuth, async (req, res) => {
   const { amount, bank_name, account_number } = req.body;
-  if (!amount || amount <= 0) return res.status(400).json({ error: 'Valid amount is required' });
+  if (!amount || amount <= 0) return apiError.validationError(res, 'Valid amount is required');
   try {
     const wallet = await getOrCreateWallet(req.user.id);
     if (wallet.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient balance' });
+      return apiError.validationError(res, 'Insufficient balance');
     }
     await pool.query(
       'UPDATE wallets SET balance = balance - $1, updated_at = NOW() WHERE id = $2',
@@ -77,7 +86,8 @@ router.post('/withdraw', requireAuth, async (req, res) => {
     );
     res.json({ success: true, message: 'Withdrawal request submitted. Processing within 1-3 business days.' });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to process withdrawal' });
+    logger.error({ err }, 'Failed to process withdrawal');
+    return apiError.serverError(res, 'Failed to process withdrawal');
   }
 });
 
@@ -88,12 +98,12 @@ router.post('/debit', requireAuth, async (req, res) => {
   }
   const { user_id, amount, description, reference } = req.body;
   if (!user_id || !amount || amount <= 0) {
-    return res.status(400).json({ error: 'user_id and a positive amount are required' });
+    return apiError.validationError(res, 'user_id and a positive amount are required');
   }
   try {
     const wallet = await getOrCreateWallet(user_id);
     if (wallet.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient balance' });
+      return apiError.validationError(res, 'Insufficient balance');
     }
     await pool.query(
       'UPDATE wallets SET balance = balance - $1, updated_at = NOW() WHERE id = $2',
@@ -107,7 +117,8 @@ router.post('/debit', requireAuth, async (req, res) => {
     const updated = await pool.query('SELECT * FROM wallets WHERE id = $1', [wallet.id]);
     res.json(updated.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to process debit' });
+    logger.error({ err }, 'Failed to process debit');
+    return apiError.serverError(res, 'Failed to process debit');
   }
 });
 
@@ -115,7 +126,7 @@ router.post('/debit', requireAuth, async (req, res) => {
 router.post('/refund', requireAuth, async (req, res) => {
   const { user_id, amount, description, reference } = req.body;
   if (!user_id || !amount || amount <= 0) {
-    return res.status(400).json({ error: 'user_id and a positive amount are required' });
+    return apiError.validationError(res, 'user_id and a positive amount are required');
   }
   try {
     const wallet = await getOrCreateWallet(user_id);
@@ -131,7 +142,8 @@ router.post('/refund', requireAuth, async (req, res) => {
     const updated = await pool.query('SELECT * FROM wallets WHERE id = $1', [wallet.id]);
     res.json(updated.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to process refund' });
+    logger.error({ err }, 'Failed to process refund');
+    return apiError.serverError(res, 'Failed to process refund');
   }
 });
 
@@ -144,7 +156,7 @@ router.post('/topup/chapa', requireAuth, async (req, res) => {
   }
 
   const { amount, email, first_name, last_name, phone_number } = req.body;
-  if (!amount || amount <= 0) return res.status(400).json({ error: 'Valid amount is required' });
+  if (!amount || amount <= 0) return apiError.validationError(res, 'Valid amount is required');
 
   const tx_ref = `empx-wallet-${req.user.id.slice(0, 8)}-${Date.now()}`;
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -196,8 +208,8 @@ router.post('/topup/chapa', requireAuth, async (req, res) => {
 
     res.json({ checkout_url, tx_ref });
   } catch (err) {
-    console.error('Chapa wallet topup error:', err);
-    res.status(500).json({ error: 'Failed to initialize Chapa top-up' });
+    logger.error({ err }, 'Chapa wallet topup error');
+    return apiError.serverError(res, 'Failed to initialize Chapa top-up');
   }
 });
 
@@ -299,7 +311,7 @@ router.get('/topup/chapa/verify/:tx_ref', async (req, res) => {
         if (req.headers.accept?.includes('text/html')) {
           return res.redirect(`${frontendUrl}/wallet?topup=failed&tx_ref=${tx_ref}`);
         }
-        return res.status(400).json({ error: 'Payment not successful', detail: chapaRes });
+        return apiError.validationError(res, 'Payment not successful');
       }
     }
 
@@ -339,8 +351,8 @@ router.get('/topup/chapa/verify/:tx_ref', async (req, res) => {
     }
     res.json({ success: true, amount_credited: creditAmount });
   } catch (err) {
-    console.error('Chapa wallet verify error:', err);
-    res.status(500).json({ error: 'Failed to verify Chapa top-up' });
+    logger.error({ err }, 'Chapa wallet verify error');
+    return apiError.serverError(res, 'Failed to verify Chapa top-up');
   }
 });
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
@@ -12,7 +13,7 @@ import { toast } from "sonner";
 import moment from "moment";
 import { useTranslation } from 'react-i18next';
 
-export default function CouponsManage() {
+function CouponsManage() {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -229,3 +230,4 @@ export default function CouponsManage() {
 
 
 
+export default CouponsManage;

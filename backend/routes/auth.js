@@ -7,6 +7,8 @@ const pool = require('../db/pool');
 const { sendOtpEmail, sendPasswordResetEmail } = require('../utils/mailer');
 const { requireAuth } = require('../middleware/auth');
 const { getRedis } = require('../lib/redis');
+const apiError = require('../lib/apiError');
+const logger = require('../lib/logger');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -80,10 +82,10 @@ function generateOtp() {
 router.post('/register', async (req, res) => {
   const { email, password, full_name } = req.body;
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required' });
+    return apiError.validationError(res, 'Email and password are required');
   }
   if (password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    return apiError.validationError(res, 'Password must be at least 6 characters');
   }
 
   try {
@@ -103,7 +105,7 @@ router.post('/register', async (req, res) => {
     );
 
     await sendOtpEmail(email, otp).catch(err => {
-      console.warn('OTP email failed (check SMTP config):', err.message);
+      logger.warn({ err: err.message }, 'OTP email failed (check SMTP config)');
       if (process.env.NODE_ENV !== 'production') {
         console.log(`\n📧 DEV OTP for ${email}: \x1b[33m${otp}\x1b[0m\n`);
       }
@@ -111,8 +113,8 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({ message: 'Registration successful. Check your email for the verification code.', userId: rows[0].id });
   } catch (err) {
-    console.error('Register error:', err);
-    res.status(500).json({ error: 'Registration failed' });
+    logger.error({ err: err.message }, 'Register error');
+    return apiError.serverError(res, 'Registration failed');
   }
 });
 
@@ -120,7 +122,7 @@ router.post('/register', async (req, res) => {
 router.post('/verify-otp', async (req, res) => {
   const { email, otpCode } = req.body;
   if (!email || !otpCode) {
-    return res.status(400).json({ error: 'Email and code are required' });
+    return apiError.validationError(res, 'Email and code are required');
   }
 
   try {
@@ -129,14 +131,14 @@ router.post('/verify-otp', async (req, res) => {
       [email.toLowerCase()]
     );
     if (!rows.length) {
-      return res.status(404).json({ error: 'User not found' });
+      return apiError.notFound(res, 'User not found');
     }
     const user = rows[0];
     if (user.otp_code !== otpCode) {
-      return res.status(400).json({ error: 'Invalid verification code' });
+      return apiError.validationError(res, 'Invalid verification code');
     }
     if (new Date() > new Date(user.otp_expires)) {
-      return res.status(400).json({ error: 'Verification code has expired' });
+      return apiError.validationError(res, 'Verification code has expired');
     }
 
     await pool.query(
@@ -147,19 +149,19 @@ router.post('/verify-otp', async (req, res) => {
     const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
-    console.error('Verify OTP error:', err);
-    res.status(500).json({ error: 'Verification failed' });
+    logger.error({ err: err.message }, 'Verify OTP error');
+    return apiError.serverError(res, 'Verification failed');
   }
 });
 
 // ── POST /api/auth/resend-otp ────────────────────────────────────────────────
 router.post('/resend-otp', async (req, res) => {
   const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email is required' });
+  if (!email) return apiError.validationError(res, 'Email is required');
 
   try {
     const { rows } = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
-    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    if (!rows.length) return apiError.notFound(res, 'User not found');
 
     const otp = generateOtp();
     const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
@@ -170,15 +172,15 @@ router.post('/resend-otp', async (req, res) => {
     );
 
     await sendOtpEmail(email, otp).catch(err => {
-      console.warn('OTP email failed (check SMTP config):', err.message);
+      logger.warn({ err: err.message }, 'OTP email failed (check SMTP config)');
       if (process.env.NODE_ENV !== 'production') {
         console.log(`\n📧 DEV OTP for ${email}: \x1b[33m${otp}\x1b[0m\n`);
       }
     });
     res.json({ message: 'New verification code sent' });
   } catch (err) {
-    console.error('Resend OTP error:', err);
-    res.status(500).json({ error: 'Failed to resend code' });
+    logger.error({ err: err.message }, 'Resend OTP error');
+    return apiError.serverError(res, 'Failed to resend code');
   }
 });
 
@@ -186,7 +188,7 @@ router.post('/resend-otp', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required' });
+    return apiError.validationError(res, 'Email and password are required');
   }
 
   try {
@@ -212,8 +214,8 @@ router.post('/login', async (req, res) => {
     const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ error: 'Login failed' });
+    logger.error({ err: err.message }, 'Login error');
+    return apiError.serverError(res, 'Login failed');
   }
 });
 
@@ -221,7 +223,7 @@ router.post('/login', async (req, res) => {
 // Accepts a Google ID token from the frontend and returns a JWT
 router.post('/google', async (req, res) => {
   const { id_token } = req.body;
-  if (!id_token) return res.status(400).json({ error: 'id_token is required' });
+  if (!id_token) return apiError.validationError(res, 'id_token is required');
 
   try {
     const ticket = await googleClient.verifyIdToken({
@@ -257,8 +259,8 @@ router.post('/google', async (req, res) => {
     const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
-    console.error('Google auth error:', err);
-    res.status(401).json({ error: 'Google authentication failed' });
+    logger.error({ err }, 'Google auth error');
+    return res.status(401).json({ error: 'Google authentication failed' });
   }
 });
 
@@ -269,11 +271,11 @@ router.get('/me', requireAuth, async (req, res) => {
       'SELECT id, email, full_name, role, is_verified, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
-    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    if (!rows.length) return apiError.notFound(res, 'User not found');
     res.json(rows[0]);
   } catch (err) {
-    console.error('Me error:', err);
-    res.status(500).json({ error: 'Failed to fetch user' });
+    logger.error({ err }, 'Me error');
+    return apiError.serverError(res, 'Failed to fetch user');
   }
 });
 
@@ -296,9 +298,9 @@ router.post('/forgot-password', async (req, res) => {
       [token, expires, rows[0].id]
     );
 
-    await sendPasswordResetEmail(email, token).catch(err => console.error('Reset email failed:', err));
+    await sendPasswordResetEmail(email, token).catch(err => logger.error({ err }, 'Reset email failed'));
   } catch (err) {
-    console.error('Forgot password error:', err);
+    logger.error({ err }, 'Forgot password error');
   }
 });
 
@@ -306,10 +308,10 @@ router.post('/forgot-password', async (req, res) => {
 router.post('/reset-password', async (req, res) => {
   const { token, password } = req.body;
   if (!token || !password) {
-    return res.status(400).json({ error: 'Token and new password are required' });
+    return apiError.validationError(res, 'Token and new password are required');
   }
   if (password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    return apiError.validationError(res, 'Password must be at least 6 characters');
   }
 
   try {
@@ -317,9 +319,9 @@ router.post('/reset-password', async (req, res) => {
       'SELECT id, reset_expires FROM users WHERE reset_token = $1',
       [token]
     );
-    if (!rows.length) return res.status(400).json({ error: 'Invalid or expired reset link' });
+    if (!rows.length) return apiError.validationError(res, 'Invalid or expired reset link');
     if (new Date() > new Date(rows[0].reset_expires)) {
-      return res.status(400).json({ error: 'Reset link has expired' });
+      return apiError.validationError(res, 'Reset link has expired');
     }
 
     const hash = await bcrypt.hash(password, 12);
@@ -330,8 +332,8 @@ router.post('/reset-password', async (req, res) => {
 
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
-    console.error('Reset password error:', err);
-    res.status(500).json({ error: 'Failed to reset password' });
+    logger.error({ err }, 'Reset password error');
+    return apiError.serverError(res, 'Failed to reset password');
   }
 });
 
@@ -339,23 +341,23 @@ router.post('/reset-password', async (req, res) => {
 router.put('/change-password', requireAuth, async (req, res) => {
   const { current_password, new_password } = req.body;
   if (!current_password || !new_password) {
-    return res.status(400).json({ error: 'Both current and new password are required' });
+    return apiError.validationError(res, 'Both current and new password are required');
   }
 
   try {
     const { rows } = await pool.query('SELECT password_hash FROM users WHERE id = $1', [req.user.id]);
     if (!rows[0].password_hash) {
-      return res.status(400).json({ error: 'Cannot change password for OAuth accounts' });
+      return apiError.validationError(res, 'Cannot change password for OAuth accounts');
     }
     const match = await bcrypt.compare(current_password, rows[0].password_hash);
-    if (!match) return res.status(400).json({ error: 'Current password is incorrect' });
+    if (!match) return apiError.validationError(res, 'Current password is incorrect');
 
     const hash = await bcrypt.hash(new_password, 12);
     await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, req.user.id]);
     res.json({ message: 'Password changed successfully' });
   } catch (err) {
-    console.error('Change password error:', err);
-    res.status(500).json({ error: 'Failed to change password' });
+    logger.error({ err }, 'Change password error');
+    return apiError.serverError(res, 'Failed to change password');
   }
 });
 

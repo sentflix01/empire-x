@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 
 const CATEGORIES = ["All","Technology","Business","Design","Language","Health","Other"];
 
-export default function Courses() {
+function Courses() {
   const { t } = useTranslation();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -97,3 +97,4 @@ export default function Courses() {
 
 
 
+export default Courses;

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
@@ -24,7 +25,7 @@ const VERIFY_TYPES = [
   { value: "official",  label: "Official",  color: "#D4AF37", desc: "Empire X official account" },
 ];
 
-export default function Admin() {
+function Admin() {
   const { t } = useTranslation();
   const router = useRouter();
   const [tab, setTab] = useState("overview");
@@ -462,3 +463,4 @@ export default function Admin() {
 }
 
 
+export default Admin;

@@ -3,8 +3,16 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode } from 'react';
 import client, { storeToken, clearToken } from '@/api/client';
 
+export interface AuthUser {
+  id?: string;
+  full_name?: string;
+  email?: string;
+  role?: string;
+  [key: string]: unknown;
+}
+
 interface AuthContextValue {
-  user: Record<string, unknown> | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
   isLoadingAuth: boolean;
   isLoadingPublicSettings: boolean;
@@ -20,7 +28,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({} as AuthContextValue);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser]                   = useState<Record<string, unknown> | null>(null);
+  const [user, setUser]                   = useState<AuthUser | null>(null);
   const [isAuthenticated, setIsAuth]      = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [authError, setAuthError]         = useState<{ type: string; message: string } | null>(null);
@@ -41,7 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setIsLoadingAuth(true);
       const res = await client.get('/api/auth/me');
-      setUser(res.data);
+      setUser(res.data as AuthUser);
       setIsAuth(true);
       setAuthError(null);
     } catch (error: any) {

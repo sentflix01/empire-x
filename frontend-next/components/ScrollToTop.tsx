@@ -1,7 +1,7 @@
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
-
-const getHashId = (hash) => {
+const getHashId = (hash: string) => {
   const rawId = hash.slice(1);
 
   try {
@@ -12,11 +12,11 @@ const getHashId = (hash) => {
 };
 
 export default function ScrollToTop() {
-  const { pathname, hash } = usePathname();
-  const navigationType = useNavigationType();
+  const pathname = usePathname();
+  const hash = typeof window !== "undefined" ? window.location.hash : "";
 
   useEffect(() => {
-    if (navigationType === "POP") return;
+    if (typeof window === "undefined") return;
 
     if (hash) {
       const id = getHashId(hash);
@@ -27,7 +27,7 @@ export default function ScrollToTop() {
     }
 
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  }, [pathname, hash, navigationType]);
+  }, [pathname, hash]);
 
   return null;
 }

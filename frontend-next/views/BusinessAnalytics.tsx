@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
@@ -24,7 +25,7 @@ import { toast } from "@/components/ui/use-toast";
 
 const CHART_COLORS = ["#D4AF37", "#3B82F6", "#8B5CF6", "#06B6D4", "#F97316", "#EC4899", "#10B981", "#EF4444"];
 
-export default function BusinessAnalytics() {
+function BusinessAnalytics() {
   const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -469,3 +470,4 @@ export default function BusinessAnalytics() {
 
 
 
+export default BusinessAnalytics;

@@ -7,12 +7,14 @@ import client from "@/api/client";
 
 const SW_PATH = "/sw.js";
 
-/** Convert a URL-safe base64 string to a Uint8Array (for VAPID key). */
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
+/** Convert a URL-safe base64 string to an ArrayBuffer (for VAPID key). */
+function urlBase64ToArrayBuffer(base64String: string): ArrayBuffer {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(base64);
-  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+  const bytes = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i += 1) bytes[i] = raw.charCodeAt(i);
+  return bytes.buffer;
 }
 
 /** Register the service worker (idempotent). */
@@ -58,7 +60,7 @@ export async function subscribeToPush(): Promise<boolean> {
 
     const subscription = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(data.publicKey),
+      applicationServerKey: urlBase64ToArrayBuffer(data.publicKey),
     });
 
     // Send subscription to backend

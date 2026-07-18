@@ -6,18 +6,204 @@
  */
 import client from './client';
 
-type FilterObj = Record<string, unknown>;
+type AnyRecord = Record<string, any>;
+type FilterObj = AnyRecord;
 
-interface EntityApi<T = Record<string, unknown>> {
+export interface BaseEntity {
+  id: string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: unknown;
+}
+
+export interface UserProfile extends BaseEntity {
+  user_id: string;
+  profile_type?: string;
+  display_name?: string;
+  full_name?: string;
+  avatar_url?: string | string[];
+  cover_url?: string | string[];
+  bio?: string;
+  headline?: string;
+  location?: string;
+  phone?: string;
+  ticker_text?: string;
+  ticker_type?: string;
+  is_verified?: boolean;
+  verification_type?: string;
+  business_name?: string;
+  business_category?: string;
+  business_template?: string | string[];
+  business_description?: string;
+  business_contact_email?: string;
+  business_contact_phone?: string;
+  business_address?: string;
+  business_theme_color?: string;
+  business_logo_url?: string | string[];
+  business_cover_url?: string | string[];
+}
+
+export interface Post extends BaseEntity {
+  author_id: string;
+  author_name?: string;
+  author_avatar?: string;
+  content?: string;
+  image_url?: string;
+  poll_options?: string;
+  poll_ends_at?: string;
+  like_count?: number;
+  comment_count?: number;
+  view_count?: number;
+  status?: string;
+}
+
+export interface Product extends BaseEntity {
+  seller_id?: string;
+  name?: string;
+  description?: string;
+  price?: number;
+  currency?: string;
+  status?: string;
+  view_count?: number;
+  category?: string;
+  image_url?: string;
+}
+
+export interface Business extends BaseEntity {
+  owner_id?: string;
+  business_name?: string;
+  business_category?: string;
+  business_template?: string | string[];
+  business_theme_color?: string;
+  business_contact_phone?: string;
+  business_contact_email?: string;
+  business_address?: string;
+  business_description?: string;
+  business_logo_url?: string | string[];
+  business_cover_url?: string | string[];
+  business_sections?: string;
+  status?: string;
+}
+
+export interface Showroom extends BaseEntity {
+  owner_id?: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  image_url?: string;
+}
+
+export interface Order extends BaseEntity {
+  buyer_id?: string;
+  seller_id?: string;
+  status?: string;
+  total?: number;
+  currency?: string;
+  product_id?: string;
+}
+
+export interface Task extends BaseEntity {
+  user_id?: string;
+  agent_id?: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  budget?: number;
+}
+
+export interface TaskBid extends BaseEntity {
+  task_id?: string;
+  bidder_id?: string;
+  amount?: number;
+  status?: string;
+}
+
+export interface Conversation extends BaseEntity {
+  title?: string;
+  participant_ids?: string[];
+  updated_at?: string;
+}
+
+export interface Message extends BaseEntity {
+  conversation_id?: string;
+  sender_id?: string;
+  content?: string;
+  created_at?: string;
+}
+
+export interface Notification extends BaseEntity {
+  user_id?: string;
+  type?: string;
+  read?: boolean;
+  message?: string;
+}
+
+export interface Comment extends BaseEntity {
+  post_id?: string;
+  author_id?: string;
+  content?: string;
+}
+
+export interface Story extends BaseEntity {
+  author_id?: string;
+  media_url?: string;
+  expired_at?: string;
+}
+
+export interface Review extends BaseEntity {
+  target_id?: string;
+  author_id?: string;
+  rating?: number;
+  comment?: string;
+}
+
+export interface Save extends BaseEntity {
+  target_id?: string;
+  target_type?: string;
+  user_id?: string;
+}
+
+export interface Event extends BaseEntity {
+  title?: string;
+  description?: string;
+  start_at?: string;
+  end_at?: string;
+  status?: string;
+}
+
+export interface Job extends BaseEntity {
+  title?: string;
+  company?: string;
+  status?: string;
+}
+
+export interface Course extends BaseEntity {
+  title?: string;
+  description?: string;
+  status?: string;
+}
+
+export interface Follow extends BaseEntity {
+  follower_id?: string;
+  followee_id?: string;
+}
+
+export interface Like extends BaseEntity {
+  target_id?: string;
+  target_type?: string;
+  user_id?: string;
+}
+
+interface EntityApi<T extends AnyRecord = AnyRecord> {
   list(sort?: string, limit?: number): Promise<T[]>;
   filter(filterObj?: FilterObj, sort?: string, limit?: number): Promise<T[]>;
   get(id: string): Promise<T>;
-  create(data: Record<string, unknown>): Promise<T>;
-  update(id: string, data: Record<string, unknown>): Promise<T>;
+  create(data: Partial<T> & AnyRecord): Promise<T>;
+  update(id: string, data: Partial<T> & AnyRecord): Promise<T>;
   delete(id: string): Promise<{ success: true }>;
 }
 
-function buildEntityApi<T = Record<string, unknown>>(path: string): EntityApi<T> {
+function buildEntityApi<T extends AnyRecord = AnyRecord>(path: string): EntityApi<T> {
   return {
     async list(sort = '-created_at', limit = 50) {
       const res = await client.get<T[]>(`/api/${path}`, { params: { sort, limit } });
@@ -31,11 +217,11 @@ function buildEntityApi<T = Record<string, unknown>>(path: string): EntityApi<T>
       const res = await client.get<T>(`/api/${path}/${id}`);
       return res.data;
     },
-    async create(data: Record<string, unknown>) {
+    async create(data: AnyRecord) {
       const res = await client.post<T>(`/api/${path}`, data);
       return res.data;
     },
-    async update(id: string, data: Record<string, unknown>) {
+    async update(id: string, data: AnyRecord) {
       const res = await client.put<T>(`/api/${path}/${id}`, data);
       return res.data;
     },
@@ -59,11 +245,11 @@ const ConversationApi = {
     const res = await client.get(`/api/messages/conversations/${id}`);
     return res.data;
   },
-  async create(data: Record<string, unknown>) {
+  async create(data: AnyRecord) {
     const res = await client.post('/api/messages/conversations', data);
     return res.data;
   },
-  async update(id: string, data: Record<string, unknown>) {
+  async update(id: string, data: AnyRecord) {
     const res = await client.put(`/api/messages/conversations/${id}`, data);
     return res.data;
   },
@@ -87,12 +273,12 @@ const MessageApi = {
     console.warn('MessageApi.get() is not supported by the backend');
     return null;
   },
-  async create(data: Record<string, unknown>) {
+  async create(data: AnyRecord) {
     const { conversation_id, ...rest } = data;
     const res = await client.post(`/api/messages/conversations/${conversation_id}/messages`, rest);
     return res.data;
   },
-  async update(_id: string, _data: Record<string, unknown>) {
+  async update(_id: string, _data: AnyRecord) {
     // No PUT /messages/:id endpoint on the backend — no-op
     console.warn('MessageApi.update() is not supported by the backend');
     return null;
@@ -108,37 +294,37 @@ const MessageApi = {
 };
 
 export const entities = {
-  User:         buildEntityApi('profiles'),
-  UserProfile:  buildEntityApi('profiles'),
-  Post:         buildEntityApi('posts'),
-  Product:      buildEntityApi('products'),
-  Business:     buildEntityApi('businesses'),
-  Showroom:     buildEntityApi('showrooms'),
-  Order:        buildEntityApi('orders'),
-  Task:         buildEntityApi('tasks'),
+  User:         buildEntityApi<UserProfile>('profiles'),
+  UserProfile:  buildEntityApi<UserProfile>('profiles'),
+  Post:         buildEntityApi<Post>('posts'),
+  Product:      buildEntityApi<Product>('products'),
+  Business:     buildEntityApi<Business>('businesses'),
+  Showroom:     buildEntityApi<Showroom>('showrooms'),
+  Order:        buildEntityApi<Order>('orders'),
+  Task:         buildEntityApi<Task>('tasks'),
   TaskBid: {
     async list(sort = '-created_at', limit = 50) {
-      const res = await client.get('/api/tasks/bids', { params: { sort, limit } });
+      const res = await client.get<TaskBid[]>('/api/tasks/bids', { params: { sort, limit } });
       return res.data;
     },
     async filter(filterObj: FilterObj = {}) {
       if (filterObj.task_id) {
-        const res = await client.get(`/api/tasks/${filterObj.task_id}/bids`);
+        const res = await client.get<TaskBid[]>(`/api/tasks/${filterObj.task_id}/bids`);
         return res.data;
       }
       return [];
     },
-    async create(data: Record<string, unknown>) {
+    async create(data: Partial<TaskBid> & AnyRecord) {
       const { task_id, ...rest } = data;
-      const res = await client.post(`/api/tasks/${task_id}/bids`, rest);
+      const res = await client.post<TaskBid>(`/api/tasks/${task_id}/bids`, rest);
       return res.data;
     },
-    async update(id: string, data: Record<string, unknown>) {
-      const res = await client.put(`/api/tasks/bids/${id}`, data);
+    async update(id: string, data: Partial<TaskBid> & AnyRecord) {
+      const res = await client.put<TaskBid>(`/api/tasks/bids/${id}`, data);
       return res.data;
     },
     async get(id: string) {
-      const res = await client.get(`/api/tasks/bids/${id}`);
+      const res = await client.get<TaskBid>(`/api/tasks/bids/${id}`);
       return res.data;
     },
     async delete(id: string) {
@@ -152,17 +338,17 @@ export const entities = {
   },
   Conversation: ConversationApi,
   Message:      MessageApi,
-  Notification: { ...buildEntityApi('notifications') },
-  Follow:       buildEntityApi('profiles/follows'),
+  Notification: { ...buildEntityApi<Notification>('notifications') },
+  Follow:       buildEntityApi<Follow>('profiles/follows'),
   Like: {
     async create(data: { target_id: string }) {
-      const res = await client.post(`/api/posts/${data.target_id}/like`);
+      const res = await client.post<Like>(`/api/posts/${data.target_id}/like`);
       return res.data;
     },
-    async filter() { return []; },
-    async list()   { return []; },
-    async get()    { return null; },
-    async update() { return null; },
+    async filter() { return [] as Like[]; },
+    async list()   { return [] as Like[]; },
+    async get()    { return null as null; },
+    async update() { return null as null; },
     async delete() { return { success: true as const }; },
     subscribe(cb: () => void, ms = 30000) {
       const id = setInterval(cb, ms);
@@ -171,28 +357,28 @@ export const entities = {
   },
   Comment: {
     async filter(filterObj: { post_id?: string } = {}, sort = '-created_at', limit = 50) {
-      if (!filterObj.post_id) return [];
-      const res = await client.get(`/api/posts/${filterObj.post_id}/comments`, { params: { sort, limit } });
+      if (!filterObj.post_id) return [] as Comment[];
+      const res = await client.get<Comment[]>(`/api/posts/${filterObj.post_id}/comments`, { params: { sort, limit } });
       return res.data;
     },
     async create(data: { post_id: string; [key: string]: unknown }) {
       const { post_id, ...rest } = data;
-      const res = await client.post(`/api/posts/${post_id}/comments`, rest);
+      const res = await client.post<Comment>(`/api/posts/${post_id}/comments`, rest);
       return res.data;
     },
-    async list()   { return []; },
-    async get()    { return null; },
-    async update() { return null; },
+    async list()   { return [] as Comment[]; },
+    async get()    { return null as null; },
+    async update() { return null as null; },
     async delete() { return { success: true as const }; },
     subscribe(cb: () => void, ms = 30000) {
       const id = setInterval(cb, ms);
       return () => clearInterval(id);
     },
   },
-  Story:   buildEntityApi('stories'),
-  Review:  buildEntityApi('reviews'),
-  Save:    buildEntityApi('saves'),
-  Event:   buildEntityApi('events'),
-  Job:     buildEntityApi('jobs'),
-  Course:  buildEntityApi('courses'),
+  Story:   buildEntityApi<Story>('stories'),
+  Review:  buildEntityApi<Review>('reviews'),
+  Save:    buildEntityApi<Save>('saves'),
+  Event:   buildEntityApi<Event>('events'),
+  Job:     buildEntityApi<Job>('jobs'),
+  Course:  buildEntityApi<Course>('courses'),
 };

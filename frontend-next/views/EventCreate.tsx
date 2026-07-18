@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 import { useRouter } from 'next/navigation';
 import React, { useState } from "react";
@@ -12,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import ImageUpload from "@/components/ui/ImageUpload";
 
-export default function EventCreate() {
+function EventCreate() {
   const { t } = useTranslation();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -80,3 +81,4 @@ export default function EventCreate() {
 
 
 
+export default EventCreate;

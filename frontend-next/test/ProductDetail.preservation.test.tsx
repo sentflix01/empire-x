@@ -80,7 +80,7 @@ vi.mock('@/api/entities', () => {
 // ─── Mock @/lib/CartContext ───────────────────────────────────────────────────
 const mockAddToCart = vi.fn();
 vi.mock('@/lib/CartContext', () => ({
-  useCart: vi.fn(() => ({ addToCart: mockAddToCart, cart: { items: [] } })),
+  useCart: vi.fn(() => ({ addToCart: mockAddToCart, addItem: mockAddToCart, cart: { items: [] } })),
 }));
 
 // ─── Mock @/lib/AuthContext ───────────────────────────────────────────────────

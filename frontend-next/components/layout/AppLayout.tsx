@@ -160,6 +160,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, authChecked, isLoadingAuth, logout } = useAuth();
+  const tr = (key: string) => String(t(key));
+  const displayName = typeof user?.full_name === 'string' ? user.full_name : 'User';
+  const userEmail = typeof user?.email === 'string' ? user.email : '';
+  const userInitial = displayName.charAt(0) || 'E';
   const [unreadCount, setUnreadCount] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(true);
@@ -239,36 +243,36 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   };
 
   const mainNavItems = [
-    { path: "/feed", icon: Home, label: t('nav.home') },
-    { path: "/explore", icon: TrendingUp, label: t('nav.explore') },
-    { path: "/marketplace", icon: ShoppingBag, label: t('nav.marketplace') },
-    { path: "/tasks", icon: ClipboardList, label: t('nav.tasks') },
-    { path: "/messages", icon: MessageCircle, label: t('nav.messages') },
-    { path: "/profile", icon: User, label: t('nav.profile') },
+    { path: "/feed", icon: Home, label: tr('nav.home') },
+    { path: "/explore", icon: TrendingUp, label: tr('nav.explore') },
+    { path: "/marketplace", icon: ShoppingBag, label: tr('nav.marketplace') },
+    { path: "/tasks", icon: ClipboardList, label: tr('nav.tasks') },
+    { path: "/messages", icon: MessageCircle, label: tr('nav.messages') },
+    { path: "/profile", icon: User, label: tr('nav.profile') },
   ];
 
   const extraNavItems = [
-    { path: "/showrooms", icon: Crown, label: t('nav.showrooms') },
-    { path: "/events", icon: CalendarDays, label: t('nav.events') },
-    { path: "/jobs", icon: Briefcase, label: t('nav.jobs') },
-    { path: "/courses", icon: GraduationCap, label: t('nav.courses') },
+    { path: "/showrooms", icon: Crown, label: tr('nav.showrooms') },
+    { path: "/events", icon: CalendarDays, label: tr('nav.events') },
+    { path: "/jobs", icon: Briefcase, label: tr('nav.jobs') },
+    { path: "/courses", icon: GraduationCap, label: tr('nav.courses') },
   ];
 
   const accountItems = [
-    { path: "/orders", icon: Package, label: t('nav.orders') },
+    { path: "/orders", icon: Package, label: tr('nav.orders') },
     { path: "/cart", icon: ShoppingCart, label: "Cart", badge: cart.count > 0 ? cart.count : null },
-    { path: "/wallet", icon: Wallet, label: t('nav.wallet') },
+    { path: "/wallet", icon: Wallet, label: tr('nav.wallet') },
     { path: "/referral", icon: Gift, label: "Referral" },
     { path: "/coupons", icon: Tag, label: "My Coupons" },
     { path: "/analytics", icon: BarChart3, label: "Analytics" },
   ];
 
-  const isActive = (path) => {
+  const isActive = (path: string) => {
     if (path === "/feed") return pathname === "/feed" || pathname === "/";
     return pathname.startsWith(path);
   };
 
-  const NavLink = ({ path, icon: Icon, label, badge }) => (
+  const NavLink = ({ path, icon: Icon, label, badge }: { path: string; icon: any; label: string; badge?: number | null }) => (
     <Link
       href={path}
       title={sidebarCollapsed ? label : undefined}
@@ -350,7 +354,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 name="q"
                 type="search"
                 enterKeyHint="search"
-                placeholder={t('common.searchPlaceholder')}
+                placeholder={tr('common.searchPlaceholder')}
                 className="w-full pl-9 pr-4 bg-secondary/50 border-0 focus:outline-none focus:ring-1 focus:ring-amber-500/30 rounded-full h-9 text-sm"
               />
             </div>
@@ -486,7 +490,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <Link href="/showroom/create" onClick={() => setDrawerOpen(false)}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold shadow-sm shadow-blue-600/20 hover:from-blue-700 hover:to-purple-700 transition-all">
             <Plus className="w-4 h-4 shrink-0" />
-            <span>{t('common.createShowroom')}</span>
+            <span>{tr('common.createShowroom')}</span>
           </Link>
 
           {/* Showroom Studio */}
@@ -496,13 +500,13 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                 : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
             <Crown className="w-4 h-4 shrink-0 text-amber-500" />
-            <span>{t('common.showroomStudio')}</span>
+            <span>{tr('common.showroomStudio')}</span>
           </Link>
 
           <div className="my-2 border-t border-border/50" />
 
           {/* Discover */}
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{t('common.discover')}</p>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{tr('common.discover')}</p>
           {extraNavItems.map(item => {
             const Icon = item.icon;
             return (
@@ -521,7 +525,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <div className="my-2 border-t border-border/50" />
 
           {/* My Account */}
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{t('common.myAccount')}</p>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{tr('common.myAccount')}</p>
           {accountItems.map(item => {
             const Icon = item.icon;
             return (
@@ -564,8 +568,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               {user?.full_name?.charAt(0) || "E"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">{user?.full_name || "User"}</p>
-              <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
+              <p className="text-sm font-semibold truncate">{displayName}</p>
+              <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
             </div>
           </Link>
           <button
@@ -632,7 +636,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 aria-expanded={discoverOpen}
                 aria-controls="sidebar-discover-section"
               >
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{t('common.discover')}</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.discover')}</p>
                 <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${discoverOpen ? 'rotate-0' : '-rotate-90'}`} />
               </button>
             )}
@@ -648,7 +652,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 aria-expanded={accountOpen}
                 aria-controls="sidebar-account-section"
               >
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{t('common.myAccount')}</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.myAccount')}</p>
                 <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${accountOpen ? 'rotate-0' : '-rotate-90'}`} />
               </button>
             )}
@@ -657,7 +661,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             {user?.role === "admin" && (
               <>
                 <div className="my-2 border-t border-border/50" />
-                <NavLink path="/admin" icon={ShieldAlert} label={t('common.adminPanel')} />
+                <NavLink path="/admin" icon={ShieldAlert} label={tr('common.adminPanel')} />
               </>
             )}
             <div className="h-2" />
@@ -672,7 +676,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 ${sidebarCollapsed ? "justify-center" : ""}`}
             >
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
-                {user?.full_name?.charAt(0) || "E"}
+                {userInitial}
               </div>
               {!sidebarCollapsed && (
                 <div className="flex-1 min-w-0">

@@ -35,15 +35,9 @@ interface Post {
   created_at?: string;
 }
 
-interface Profile {
-  user_id: string;
-  display_name?: string;
-  avatar_url?: string;
-  ticker_text?: string;
-  ticker_type?: string;
-  is_verified?: boolean;
-  verification_type?: VerificationType;
-  [key: string]: unknown;
+import { UserProfile } from '@/api/entities';
+
+interface Profile extends UserProfile {
 }
 
 interface Business {
@@ -305,10 +299,11 @@ function PollPost({ post }: { post: Post }) {
 interface PostCardProps {
   post: Post;
   currentUserId?: string;
+  currentUser?: { full_name?: string | null; [key: string]: unknown } | null;
   feedMode?: string;
 }
 
-export default function PostCard({ post, currentUserId, feedMode }: PostCardProps) {
+export default function PostCard({ post, currentUserId, currentUser, feedMode }: PostCardProps) {
   const { t } = useTranslation();
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.like_count ?? 0);
@@ -320,13 +315,13 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
   const [authorBusinesses, setAuthorBusinesses] = useState<Business[]>([]);
   const [viewMode, setViewMode] = useState('personal');
   const [flipping, setFlipping] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ full_name?: string } | null>(null);
+  const [currentUserData, setCurrentUserData] = useState<{ full_name?: string } | null>(null);
   const [peekOpen, setPeekOpen] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null); // comment id
   const [showAllComments, setShowAllComments] = useState(false);
 
   useEffect(() => { if (feedMode) setViewMode(feedMode); }, [feedMode]);
-  useEffect(() => { if (!currentUser) auth.me().then(setCurrentUser).catch(() => {}); }, []);
+  useEffect(() => { if (!currentUserData && !currentUser) auth.me().then(setCurrentUserData).catch(() => {}); }, [currentUser, currentUserData]);
   useEffect(() => {
     if (!post.author_id) return;
     entities.UserProfile.filter({ user_id: post.author_id })
@@ -361,7 +356,7 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
     const c = await entities.Comment.create({
       post_id: post.id,
       author_id: currentUserId,
-      author_name: currentUser?.full_name ?? 'You',
+      author_name: currentUserData?.full_name ?? currentUser?.full_name ?? 'You',
       content: commentText.trim(),
     });
     setComments(prev => [c, ...prev]);
@@ -403,13 +398,13 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
     return undefined;
   })();
 
-  type BadgeEntry = { Icon: React.ComponentType<{ className?: string }>; label: string; cls: string };
+  type BadgeEntry = { Icon: React.ComponentType<{ className?: string }> ; label: string; cls: string };
   const VBADGE: Partial<Record<Variant, BadgeEntry>> = {
-    promo:    { Icon: Tag,          label: 'Promo',    cls: 'bg-red-100 text-red-600' },
-    event:    { Icon: CalendarDays, label: 'Event',    cls: 'bg-emerald-100 text-emerald-700' },
-    location: { Icon: MapPin,       label: 'Location', cls: 'bg-blue-100 text-blue-700' },
-    poll:     { Icon: BarChart2,    label: 'Poll',     cls: 'bg-purple-100 text-purple-700' },
-    image:    { Icon: Newspaper,    label: 'Photo',    cls: 'bg-slate-100 text-slate-600' },
+    promo:    { Icon: Tag as React.ComponentType<{ className?: string }>,          label: 'Promo',    cls: 'bg-red-100 text-red-600' },
+    event:    { Icon: CalendarDays as React.ComponentType<{ className?: string }>, label: 'Event',    cls: 'bg-emerald-100 text-emerald-700' },
+    location: { Icon: MapPin as React.ComponentType<{ className?: string }>,       label: 'Location', cls: 'bg-blue-100 text-blue-700' },
+    poll:     { Icon: BarChart2 as React.ComponentType<{ className?: string }>,    label: 'Poll',     cls: 'bg-purple-100 text-purple-700' },
+    image:    { Icon: Newspaper as React.ComponentType<{ className?: string }>,    label: 'Photo',    cls: 'bg-slate-100 text-slate-600' },
   };
   const vb = VBADGE[variant] ?? null;
 
@@ -432,18 +427,22 @@ export default function PostCard({ post, currentUserId, feedMode }: PostCardProp
               {post.author_name ?? 'Unknown'}
             </Link>
             {authorProfile?.is_verified && (
-              <VerifiedBadge type={authorProfile.verification_type} size="sm" />
+              <VerifiedBadge type={authorProfile.verification_type as VerificationType} size="sm" />
             )}
             {viewMode === 'personal' && <UserIcon className="w-3 h-3 text-blue-400 shrink-0" />}
             {viewMode === 'business' && <Store className="w-3 h-3 text-amber-500 shrink-0" />}
             {accent && viewMode === 'personal' && (
               <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${accent.badge}`}>{accent.label}</span>
             )}
-            {vb && viewMode === 'personal' && (
-              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5 ${vb.cls}`}>
-                <vb.Icon className="w-2.5 h-2.5" />{vb.label}
-              </span>
-            )}
+            {vb && viewMode === 'personal' && (() => {
+              const Icon = vb.Icon;
+              return (
+                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5 ${vb.cls}`}>
+                  <Icon className="w-2.5 h-2.5" />
+                  {vb.label}
+                </span>
+              );
+            })()}
           </div>
           {viewMode === 'personal' && authorBusinesses.length > 0 && (
             <div className="flex gap-1 flex-wrap mt-0.5">

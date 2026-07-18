@@ -6,8 +6,9 @@ import { entities } from "@/api/entities";
 import { Bookmark, ShoppingBag, Crown, ClipboardList, FileText, Bell, BellOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import ErrorState from "@/components/ui/ErrorState";
 
-export default function Bookmarks() {
+function Bookmarks() {
   const { t } = useTranslation();
   const TABS = [
     { key:"all",     label: t('bookmarks.all') },
@@ -201,3 +202,4 @@ export default function Bookmarks() {
 
 
 
+export default Bookmarks;

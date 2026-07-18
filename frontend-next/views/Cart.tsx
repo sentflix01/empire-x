@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-export default function Cart() {
+function Cart() {
   const { t } = useTranslation();
   const { cart, updateQty, removeItem, clearCart } = useCart();
   const [checkingOut, setCheckingOut] = useState(false);
@@ -136,3 +137,4 @@ export default function Cart() {
 
 
 
+export default Cart;

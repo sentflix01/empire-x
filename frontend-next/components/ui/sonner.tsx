@@ -1,15 +1,19 @@
+// @ts-check
 "use client";
 import { useTheme } from "next-themes"
 import { Toaster as Sonner } from "sonner"
+
+type ThemeName = "system" | "light" | "dark"
 
 const Toaster = ({
   ...props
 }) => {
   const { theme = "system" } = useTheme()
+  const resolvedTheme = (theme ?? "system") as ThemeName
 
   return (
     (<Sonner
-      theme={theme}
+      theme={resolvedTheme}
       className="toaster group"
       toastOptions={{
         classNames: {

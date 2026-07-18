@@ -9,6 +9,8 @@ import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
 import BusinessShowroomFeed from "@/components/feed/BusinessShowroomFeed";
 import ProfilePeek from "@/components/profile/ProfilePeek";
 import { toast } from "sonner";
+import type { MapSearchResult, MapSearchState } from "@/types/map-search";
+import { getMapSearchDisplayState } from "@/types/map-search";
 
 // Leaflet modules — assigned after dynamic import inside useEffect
 // We CANNOT use require() or static import because Turbopack processes CSS imports at build time
@@ -374,16 +376,12 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
   const [nearbyRadius, setNearbyRadius] = useState(10);
   const locationRequested = useRef(false);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchResults, setSearchResults] = useState<{
-    businesses: any[];
-    geo_products: any[];
-    products_matched: any[];
-    total_matches: number;
-    users?: any[];
-    searchType?: "people" | "place";
-  } | null>(null);
+  const [searchState, setSearchState] = useState<MapSearchState>({
+    query: "",
+    results: null,
+    loading: false,
+    searchType: null,
+  });
   const [mapCenter, setMapCenter] = useState<[number, number]>(DEFAULT_CENTER);
   const [locating, setLocating] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -459,26 +457,39 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
   };
 
   const handleProductSearch = useCallback(async (q: string) => {
-    if (!q || q.trim().length < 2) { setSearchResults(null); return; }
+    const trimmed = q.trim();
+    if (!trimmed || trimmed.length < 2) {
+      setSearchState({ query: "", results: null, loading: false, searchType: null });
+      return;
+    }
     if (!userLocation) { toast.error("Enable location first to search nearby."); return; }
-    setSearchLoading(true);
-    setSearchResults(null);
-    const isPeopleSearch = /^@|^(people|person|user|profile|find person)\b/i.test(q.trim());
+
+    setSearchState({ query: trimmed, results: null, loading: true, searchType: null });
+    const isPeopleSearch = /^@|^(people|person|user|profile|find person)\b/i.test(trimmed);
     try {
       if (isPeopleSearch) {
-        const cleanQ = q.replace(/^@/, "").trim();
+        const cleanQ = trimmed.replace(/^@/, "").trim();
         const res = await client.get("/api/search", {
           params: { q: cleanQ, type: "users", lat: userLocation.lat, lon: userLocation.lon, radius_km: nearbyRadius, limit: 30 },
         });
         const users = Array.isArray(res.data?.users) ? res.data.users : [];
-        setSearchResults({ businesses: [], geo_products: [], products_matched: [], total_matches: users.length, users, searchType: "people" });
-        const firstGeo = users.find(u => u.latitude && u.longitude);
+        const nextResults: MapSearchResult = {
+          businesses: [],
+          geo_products: [],
+          products_matched: [],
+          total_matches: users.length,
+          users,
+          searchType: "people",
+        };
+        setSearchState({ query: trimmed, results: nextResults, loading: false, searchType: "people" });
+        const firstGeo = users.find((u: any) => u.latitude && u.longitude);
         if (firstGeo) setMapCenter([parseFloat(firstGeo.latitude), parseFloat(firstGeo.longitude)]);
       } else {
         const res = await client.get("/api/maps/nearby/product-search", {
-          params: { lat: userLocation.lat, lon: userLocation.lon, q: q.trim(), radius_km: nearbyRadius },
+          params: { lat: userLocation.lat, lon: userLocation.lon, q: trimmed, radius_km: nearbyRadius },
         });
-        setSearchResults({ ...res.data, searchType: "place" });
+        const nextResults: MapSearchResult = { ...res.data, searchType: "place" };
+        setSearchState({ query: trimmed, results: nextResults, loading: false, searchType: "place" });
         if (res.data?.businesses?.length > 0) {
           const first = res.data.businesses[0];
           if (first.latitude && first.longitude) setMapCenter([parseFloat(first.latitude), parseFloat(first.longitude)]);
@@ -487,19 +498,24 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
           setMapCenter([parseFloat(first.latitude), parseFloat(first.longitude)]);
         }
       }
-    } catch { toast.error("Search failed. Try again."); }
-    setSearchLoading(false);
+    } catch {
+      toast.error("Search failed. Try again.");
+      setSearchState({ query: trimmed, results: null, loading: false, searchType: null });
+    }
   }, [userLocation, nearbyRadius]);
 
   const clearSearch = () => {
-    setSearchQuery("");
-    setSearchResults(null);
+    setSearchState({ query: "", results: null, loading: false, searchType: null });
     if (searchInputRef.current) searchInputRef.current.value = "";
   };
 
-  const mapBizMarkers = searchResults?.searchType === "place" ? searchResults.businesses : (searchResults ? [] : nearbyBusinesses);
+  const searchQuery = searchState.query;
+  const searchLoading = searchState.loading;
+  const searchResults = searchState.results;
+  const display = getMapSearchDisplayState(searchState);
+  const mapBizMarkers = searchResults?.searchType === "place" ? searchResults.businesses : [];
   const mapProductMarkers = searchResults?.searchType === "place" ? (searchResults.geo_products ?? []) : [];
-  const mapUserMarkers = searchResults?.searchType === "people" ? (searchResults.users ?? []).filter(u => u.latitude && u.longitude) : [];
+  const mapUserMarkers = searchResults?.searchType === "people" ? (searchResults.users ?? []).filter((u: any) => u.latitude && u.longitude) : [];
 
   return (
     <AnimatePresence mode="wait">
@@ -519,7 +535,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
             type="text"
             placeholder="Search product, shop, pharmacy, shoes…"
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={e => setSearchState(prev => ({ ...prev, query: e.target.value }))}
             onKeyDown={e => { if (e.key === "Enter") handleProductSearch(searchQuery); }}
             className="w-full pl-9 pr-20 py-2.5 rounded-full border border-border/60 bg-card text-sm outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-all"
           />
@@ -620,7 +636,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <MapFlyTo center={mapCenter} zoom={searchResults ? 14 : 13} />
+            <MapFlyTo center={mapCenter} zoom={display.shouldShowResults ? 14 : 13} />
 
             {userLocation && user && (
               <>
@@ -656,7 +672,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                 <Marker
                   key={b.id}
                   position={[parseFloat(b.latitude), parseFloat(b.longitude)]}
-                  icon={makeLabeledIcon(b.business_name || b.display_name || "Business", searchResults ? "red" : "blue")}
+                  icon={makeLabeledIcon(b.business_name || b.display_name || "Business", display.shouldShowResults ? "red" : "blue")}
                   eventHandlers={{
                     mouseover: (e) => {
                       const rect = (e.originalEvent.target as HTMLElement)?.closest(".leaflet-marker-icon")?.getBoundingClientRect();
@@ -680,7 +696,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                 <Marker
                   key={`prod-${p.id}`}
                   position={[parseFloat(p.latitude), parseFloat(p.longitude)]}
-                  icon={makeLabeledIcon(p.title ?? "Product", "blue")}
+                  icon={makeLabeledIcon(p.title ?? "Product", display.shouldShowResults ? "blue" : "blue")}
                   eventHandlers={{
                     mouseover: (e) => {
                       const rect = (e.originalEvent.target as HTMLElement)?.closest(".leaflet-marker-icon")?.getBoundingClientRect();
@@ -743,7 +759,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
         </AnimatePresence>
 
         {/* ── Search Results Summary ── */}
-        {searchResults && (
+        {display.shouldShowResults && (
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 rounded-xl px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
@@ -776,7 +792,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
         )}
 
         {/* ── Search Results List ── */}
-        {searchResults && !searchLoading && (
+        {display.shouldShowResults && !searchLoading && (
           <div className="space-y-3">
             {searchResults.searchType === "people" ? (
               (searchResults.users ?? []).length === 0 ? (
@@ -819,26 +835,13 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
           </div>
         )}
 
-        {/* ── Default Nearby Businesses (no search) ── */}
-        {!searchResults && !searchLoading && (
-          <>
-            {nearbyLoading ? (
-              <div className="flex flex-col items-center py-8 gap-3">
-                <div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
-                <p className="text-sm text-muted-foreground">Finding businesses near you…</p>
-              </div>
-            ) : nearbyBusinesses.length === 0 ? (
-              <div className="text-center py-12 bg-card rounded-2xl border border-border/50">
-                <MapPin className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
-                <h3 className="font-display text-lg font-bold">No businesses nearby</h3>
-                <p className="text-sm text-muted-foreground mt-1">Try a different category or increase the radius.</p>
-              </div>
-            ) : (
-              nearbyBusinesses.map(biz => (
-                <NearbyBusinessCard key={biz.id} business={biz} currentUser={user} />
-              ))
-            )}
-          </>
+        {/* ── Default state when no search has been performed ── */}
+        {display.shouldShowEmptyState && (
+          <div className="text-center py-12 bg-card rounded-2xl border border-border/50">
+            <MapPin className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+            <h3 className="font-display text-lg font-bold">Search to see products on the map</h3>
+            <p className="text-sm text-muted-foreground mt-1">Enter a product name or store name and press Go to find nearby matches.</p>
+          </div>
         )}
       </motion.div>
     </AnimatePresence>

@@ -75,7 +75,15 @@ describe('Property 3 — Credential encryption round-trip', () => {
 
   /**
    * AES-256-GCM uses a random IV on every call, so encrypting the same non-empty
-   * plaintext twice MUST produce different iv and ciphertext values.
+   * plaintext twice MUST produce different IV values.
+   *
+   * Note: for very short plaintexts (e.g. 1 byte) the ciphertext byte space is
+   * small (256 possible values) and two independently-keyed encryptions can
+   * coincidentally produce the same ciphertext byte even with different IVs.
+   * The meaningful guarantee is that the IVs differ — which proves a fresh IV
+   * was generated on each call. The combined output (iv + authTag + ciphertext)
+   * will effectively always differ for realistic input lengths, but we assert
+   * only the deterministic, per-call IV uniqueness property here.
    *
    * For empty-string plaintext the ciphertext is always an empty hex string "" —
    * that is expected AES-GCM behaviour (zero bytes in → zero bytes out). The
@@ -91,11 +99,14 @@ describe('Property 3 — Credential encryption round-trip', () => {
         const enc1 = encrypt(plaintext);
         const enc2 = encrypt(plaintext);
 
-        // IVs must differ (random per call)
+        // IVs must differ (random per call) — this is the core random-IV guarantee
         expect(enc1.iv).not.toBe(enc2.iv);
 
-        // Ciphertexts must differ because the IVs differ
-        expect(enc1.ciphertext).not.toBe(enc2.ciphertext);
+        // The combined envelope (iv + ciphertext) must differ because the IVs differ,
+        // even when the ciphertext bytes happen to be identical for tiny inputs.
+        const combined1 = enc1.iv + enc1.ciphertext;
+        const combined2 = enc2.iv + enc2.ciphertext;
+        expect(combined1).not.toBe(combined2);
       }),
       { numRuns: 100 },
     );

@@ -14,6 +14,20 @@
  */
 import client, { storeToken } from '@/api/client';
 
+declare global {
+  interface Window {
+    google?: {
+      accounts?: {
+        id?: {
+          initialize?: (options: any) => void;
+          prompt?: (callback?: (notification: any) => void) => void;
+          renderButton?: (container: Element, options: any) => void;
+        };
+      };
+    };
+  }
+}
+
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 /**

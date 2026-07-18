@@ -10,6 +10,12 @@ const { initSocket } = require('./socket');
 const logger = require('./lib/logger');
 const { startWorkers, closeQueues } = require('./lib/queue');
 const { initSentry, getSentryErrorHandler } = require('./lib/sentry');
+const requestId = require('./middleware/requestId');
+const httpLogger = require('./middleware/httpLogger');
+const apiVersion = require('./middleware/apiVersion');
+const { requireAuth, requireAdmin } = require('./middleware/auth');
+const pool = require('./db/pool');
+const apiError = require('./lib/apiError');
 
 const app = express();
 app.set('trust proxy', 1); // TD-015: trust Railway/Render load-balancer so req.ip = real end-user IP
@@ -19,13 +25,18 @@ const PORT = process.env.PORT || 3001;
 // ── Sentry (must be first) ────────────────────────────────────────────────────
 initSentry(app);
 
+// ── Request ID, HTTP access log, API version header ──────────────────────────
+app.use(requestId);
+app.use(httpLogger);
+app.use(apiVersion);
+
 // ── Startup environment check ─────────────────────────────────────────────────
 function checkEnv() {
   const required = ['DATABASE_URL', 'JWT_SECRET'];
   const missing = required.filter(k => !process.env[k]);
   if (missing.length) {
-    console.error(`\n❌  Missing required env vars: ${missing.join(', ')}`);
-    console.error('   Copy backend/.env.example to backend/.env and fill in the values.\n');
+    logger.error(`\n❌  Missing required env vars: ${missing.join(', ')}`);
+    logger.error('   Copy backend/.env.example to backend/.env and fill in the values.\n');
     process.exit(1);
   }
 
@@ -41,13 +52,13 @@ function checkEnv() {
     warnings.push('Cloudflare R2 — file uploads go to local disk (not suitable for production)');
   }
   if (warnings.length && process.env.NODE_ENV === 'production') {
-    console.warn('\n⚠️  Production warnings:');
-    warnings.forEach(w => console.warn(`   • ${w}`));
-    console.warn('');
+    logger.warn('\n⚠️  Production warnings:');
+    warnings.forEach(w => logger.warn(`   • ${w}`));
+    logger.warn('');
   } else if (warnings.length) {
-    console.log('\n💡 Dev mode — some services not configured (normal for local dev):');
-    warnings.forEach(w => console.log(`   • ${w}`));
-    console.log('');
+    logger.info('\n💡 Dev mode — some services not configured (normal for local dev):');
+    warnings.forEach(w => logger.info(`   • ${w}`));
+    logger.info('');
   }
 }
 checkEnv();
@@ -208,18 +219,32 @@ app.use('/api/flags', require('./routes/flags'));
 app.use('/api/showrooms/:showroomId/external-sources', require('./routes/externalSources'));
 app.use('/api/proxy', require('./routes/proxy'));
 
+// ── Metrics endpoint (admin only) ─────────────────────────────────────────────
+app.get('/metrics', requireAuth, requireAdmin, (_req, res) => {
+  res.json({
+    db: {
+      totalCount: pool.totalCount,
+      idleCount: pool.idleCount,
+      waitingCount: pool.waitingCount,
+    },
+  });
+});
+
 // ── Sentry error handler (must be before global error handler) ───────────────
 const sentryErrorHandler = getSentryErrorHandler();
 if (sentryErrorHandler) app.use(sentryErrorHandler);
 
 // ── Global error handler ──────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
-  console.error('Unhandled error:', err);
+  logger.error({ err: err.message, stack: err.stack }, 'Unhandled error');
   if (err.code === 'LIMIT_FILE_SIZE') {
     return res.status(413).json({ error: 'File too large' });
   }
   res.status(500).json({ error: err.message || 'Internal server error' });
 });
+
+// ── 405 / 404 catch-all (must be last) ────────────────────────────────────────
+app.all('*', (_req, res) => apiError.methodNotAllowed(res));
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 const { startStoriesCleanup } = require('./db/cleanupStories');

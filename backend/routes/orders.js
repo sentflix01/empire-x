@@ -7,6 +7,8 @@ const { notifyUser } = require('./telegram');
 const { emitNotification } = require('../socket');
 const { sendPushToUser } = require('./push');
 const { sendOrderConfirmation } = require('../utils/mailer');
+const apiError = require('../lib/apiError');
+const logger = require('../lib/logger');
 
 // Only initialise Stripe if the key is configured
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -82,7 +84,7 @@ router.get('/', requireAuth, async (req, res) => {
     if (status) filter.status = status;
     res.json(await listRecords('orders', { filter, sort, limit }));
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch orders' });
+    return apiError.serverError(res, 'Failed to fetch orders');
   }
 });
 
@@ -90,13 +92,13 @@ router.get('/', requireAuth, async (req, res) => {
 router.get('/:id', requireAuth, async (req, res) => {
   try {
     const order = await getRecord('orders', req.params.id);
-    if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (!order) return apiError.notFound(res, 'Order not found');
     if (order.buyer_id !== req.user.id && order.seller_id !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
     res.json(order);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch order' });
+    return apiError.serverError(res, 'Failed to fetch order');
   }
 });
 
@@ -105,7 +107,7 @@ router.post('/', requireAuth, async (req, res) => {
   try {
     const { seller_id, product_title, total_price } = req.body;
     if (!seller_id || !product_title || total_price == null) {
-      return res.status(400).json({ error: 'seller_id, product_title, and total_price are required' });
+      return apiError.validationError(res, 'seller_id, product_title, and total_price are required');
     }
     const order = await createRecord('orders', { ...req.body, buyer_id: req.user.id });
     res.status(201).json(order);
@@ -118,8 +120,8 @@ router.post('/', requireAuth, async (req, res) => {
       }
     } catch { /* email failure should never break the order */ }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to create order' });
+    logger.error({ err }, 'Failed to create order');
+    return apiError.serverError(res, 'Failed to create order');
   }
 });
 
@@ -127,7 +129,7 @@ router.post('/', requireAuth, async (req, res) => {
 router.put('/:id', requireAuth, async (req, res) => {
   try {
     const existing = await getRecord('orders', req.params.id);
-    if (!existing) return res.status(404).json({ error: 'Order not found' });
+    if (!existing) return apiError.notFound(res, 'Order not found');
     // Buyer can cancel; seller can update status; admin can do anything
     if (existing.buyer_id !== req.user.id && existing.seller_id !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
@@ -135,7 +137,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     const updated = await updateRecord('orders', req.params.id, req.body);
     // Collect commission when order is completed
     if (req.body.status === 'completed' && existing.status !== 'completed') {
-      collectCommission(existing.id, existing.seller_id, existing.total_price).catch(console.error);
+      collectCommission(existing.id, existing.seller_id, existing.total_price).catch(err => logger.error({ err }, 'Failed to collect commission'));
       notifyUser(existing.seller_id, `✅ <b>Order Completed</b>\n${existing.product_title}\nAmount: ${existing.total_price} ${existing.currency}`).catch(() => {});
       notifyUser(existing.buyer_id, `📦 <b>Your order is complete!</b>\n${existing.product_title}\nThank you for shopping on Empire X 👑`).catch(() => {});
 
@@ -159,7 +161,8 @@ router.put('/:id', requireAuth, async (req, res) => {
     }
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update order' });
+    logger.error({ err }, 'Failed to update order');
+    return apiError.serverError(res, 'Failed to update order');
   }
 });
 
@@ -170,7 +173,7 @@ router.post('/checkout/session', requireAuth, async (req, res) => {
   }
   const { product_id, product_title, unit_price, quantity = 1, seller_id, currency = 'usd' } = req.body;
   if (!product_title || !unit_price || !seller_id) {
-    return res.status(400).json({ error: 'product_title, unit_price, and seller_id are required' });
+    return apiError.validationError(res, 'product_title, unit_price, and seller_id are required');
   }
   try {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -212,8 +215,8 @@ router.post('/checkout/session', requireAuth, async (req, res) => {
 
     res.json({ url: session.url, session_id: session.id });
   } catch (err) {
-    console.error('Stripe session error:', err);
-    res.status(500).json({ error: 'Failed to create payment session' });
+    logger.error({ err }, 'Stripe session error');
+    return apiError.serverError(res, 'Failed to create payment session');
   }
 });
 
@@ -225,7 +228,7 @@ router.post('/webhook', async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    return res.status(400).json({ error: `Webhook error: ${err.message}` });
+    return apiError.validationError(res, `Webhook error: ${err.message}`);
   }
 
   if (event.type === 'checkout.session.completed') {
@@ -236,7 +239,7 @@ router.post('/webhook', async (req, res) => {
         ['paid', session.id]
       );
     } catch (err) {
-      console.error('Webhook DB update failed:', err);
+      logger.error({ err }, 'Webhook DB update failed');
     }
   }
 
@@ -263,11 +266,11 @@ router.post('/chapa/webhook', async (req, res) => {
       );
       if (rows.length) {
         const order = rows[0];
-        collectCommission(order.id, order.seller_id, order.total_price).catch(console.error);
+        collectCommission(order.id, order.seller_id, order.total_price).catch(err => logger.error({ err }, 'Failed to collect commission (Chapa webhook'));
         notifyUser(order.seller_id, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ETB via Chapa ✅`).catch(() => {});
         sendPushToUser(order.seller_id, '💰 Payment received!', `${order.product_title} — ${order.total_price} ETB`, '/orders').catch(() => {});
         sendPushToUser(order.buyer_id, '✅ Payment confirmed!', `Your payment for ${order.product_title} was successful.`, '/orders').catch(() => {});
-        console.log(`[Chapa webhook] Order ${order.id} marked paid via webhook.`);
+        logger.info({ orderId: order.id }, '[Chapa webhook] Order marked paid via webhook');
       }
     } else if (status === 'failed') {
       await pool.query(
@@ -276,7 +279,7 @@ router.post('/chapa/webhook', async (req, res) => {
       );
     }
   } catch (err) {
-    console.error('[Chapa webhook] Error:', err.message);
+    logger.error({ err }, '[Chapa webhook] Error');
   }
 });
 
@@ -287,10 +290,11 @@ router.get('/chapa/status/:tx_ref', requireAuth, async (req, res) => {
       `SELECT id, status, product_title, total_price, chapa_tx_ref FROM orders WHERE chapa_tx_ref = $1 LIMIT 1`,
       [req.params.tx_ref]
     );
-    if (!rows.length) return res.status(404).json({ error: 'Order not found' });
+    if (!rows.length) return apiError.notFound(res, 'Order not found');
     res.json(rows[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to check order status' });
+    logger.error({ err }, 'Failed to check order status');
+    return apiError.serverError(res, 'Failed to check order status');
   }
 });
 router.get('/chapa/sandbox', async (req, res) => {
@@ -368,7 +372,7 @@ router.post('/checkout/chapa', requireAuth, async (req, res) => {
   } = req.body;
 
   if (!product_title || !unit_price || !seller_id) {
-    return res.status(400).json({ error: 'product_title, unit_price, and seller_id are required' });
+    return apiError.validationError(res, 'product_title, unit_price, and seller_id are required');
   }
 
   const totalPrice = Math.max(0, (unit_price * quantity) - coupon_discount);
@@ -427,8 +431,8 @@ router.post('/checkout/chapa', requireAuth, async (req, res) => {
       order_id: order.id,
     });
   } catch (err) {
-    console.error('Chapa init error:', err);
-    res.status(500).json({ error: 'Failed to initialize Chapa payment' });
+    logger.error({ err }, 'Chapa init error');
+    return apiError.serverError(res, 'Failed to initialize Chapa payment');
   }
 });
 
@@ -453,7 +457,7 @@ router.get('/chapa/verify/:tx_ref', async (req, res) => {
       if (req.headers.accept?.includes('text/html')) {
         return res.redirect(`${frontendUrl}/marketplace?payment=failed&tx_ref=${tx_ref}`);
       }
-      return res.status(400).json({ error: 'Payment not successful', detail: chapaRes });
+      return apiError.validationError(res, chapaRes.message || 'Payment not successful');
     }
 
     // Payment confirmed — update order to paid
@@ -467,7 +471,7 @@ router.get('/chapa/verify/:tx_ref', async (req, res) => {
     if (rows.length) {
       const order = rows[0];
       // Collect platform commission
-      collectCommission(order.id, order.seller_id, order.total_price).catch(console.error);
+      collectCommission(order.id, order.seller_id, order.total_price).catch(err => logger.error({ err }, 'Failed to collect commission (Chapa verify)'));
       // Notify seller
       notifyUser(order.seller_id, `💰 <b>Payment Received!</b>\n${order.product_title}\nAmount: ${order.total_price} ETB\nPaid via Chapa ✅`).catch(() => {});
       // Push notification
@@ -483,8 +487,8 @@ router.get('/chapa/verify/:tx_ref', async (req, res) => {
 
     res.json({ success: true, tx_ref, order: rows[0] || null });
   } catch (err) {
-    console.error('Chapa verify error:', err);
-    res.status(500).json({ error: 'Failed to verify Chapa payment' });
+    logger.error({ err }, 'Chapa verify error');
+    return apiError.serverError(res, 'Failed to verify Chapa payment');
   }
 });
 

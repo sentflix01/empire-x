@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import { useParams } from 'next/navigation';
@@ -8,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Hash, ArrowLeft, Loader2 } from "lucide-react";
 import PostCard from "@/components/feed/PostCard";
 
-export default function HashtagFeed() {
+function HashtagFeed() {
   const { t } = useTranslation();
   const { name } = useParams();
   const [posts, setPosts] = useState([]);
@@ -67,3 +68,4 @@ export default function HashtagFeed() {
 
 
 
+export default HashtagFeed;

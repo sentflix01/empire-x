@@ -6,7 +6,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { spawnSync } = require('child_process');
 const path = require('path');
 
-const migrations = ['migrate.js', 'migrate2.js', 'migrate3.js', 'migrate4.js', 'migrate5.js', 'migrate6.js', 'migrate7.js', 'migrate8.js', 'migrate9.js', 'migrate10.js'];
+const migrations = ['migrate.js', 'migrate2.js', 'migrate3.js', 'migrate4.js', 'migrate5.js', 'migrate6.js', 'migrate7.js', 'migrate8.js', 'migrate9.js', 'migrate10.js', 'migrate11.js'];
 
 console.log('\n🗄️  Running all Empire X migrations...\n');
 

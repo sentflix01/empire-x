@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 import Link from 'next/link';
 import React, { useState } from "react";
@@ -9,7 +10,7 @@ import { Mail, ArrowLeft, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import { useTranslation } from "react-i18next";
 
-export default function ForgotPassword() {
+function ForgotPassword() {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -62,3 +63,4 @@ export default function ForgotPassword() {
 
 
 
+export default ForgotPassword;

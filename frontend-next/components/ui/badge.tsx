@@ -1,3 +1,4 @@
+// @ts-check
 import * as React from "react"
 import { cva } from "class-variance-authority";
 
@@ -23,11 +24,18 @@ const badgeVariants = cva(
   }
 )
 
+type BadgeVariant = "default" | "secondary" | "destructive" | "outline"
+
+interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: BadgeVariant
+  className?: string
+}
+
 function Badge({
   className,
-  variant,
+  variant = "default",
   ...props
-}) {
+}: BadgeProps) {
   return (<div className={cn(badgeVariants({ variant }), className)} {...props} />);
 }
 
