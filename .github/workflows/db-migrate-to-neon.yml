@@ -1,0 +1,68 @@
+name: DB migrate -> Neon (manual)
+
+# WARNING: GitHub Actions runners must be able to reach the SOURCE_DATABASE_URL.
+# This workflow is meant for environments where the source DB is network-accessible
+# (e.g., a staging DB, a bastion, or a cloud-hosted DB). It cannot access a 'localhost'
+# Postgres on your laptop unless you expose it to the public runner (not recommended).
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    name: Dump source DB and restore to Neon
+    runs-on: ubuntu-latest
+    env:
+      DUMP_FILE: db_dump.bak
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate inputs
+        run: |
+          if [ -z "${{ secrets.SOURCE_DATABASE_URL }}" ]; then echo "ERROR: set SOURCE_DATABASE_URL secret" && exit 1; fi
+          if [ -z "${{ secrets.NEON_DATABASE_URL }}" ]; then echo "ERROR: set NEON_DATABASE_URL secret" && exit 1; fi
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client
+
+      - name: Show client versions
+        run: |
+          psql --version || true
+          pg_dump --version || true
+          pg_restore --version || true
+
+      - name: Dump source database (pg_dump)
+        env:
+          SOURCE_DATABASE_URL: ${{ secrets.SOURCE_DATABASE_URL }}
+        run: |
+          echo "Dumping source DB to $DUMP_FILE"
+          pg_dump -Fc -v -d "$SOURCE_DATABASE_URL" --schema=public -f "$DUMP_FILE"
+
+      - name: Upload dump artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-dump
+          path: ${{ env.DUMP_FILE }}
+
+      - name: Restore to Neon (pg_restore)
+        env:
+          NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+          DUMP_FILE: ${{ env.DUMP_FILE }}
+        run: |
+          echo "Restoring $DUMP_FILE -> Neon"
+          pg_restore -d "$NEON_DATABASE_URL" -v --no-owner --no-acl "$DUMP_FILE"
+
+      - name: Verify (simple checks)
+        env:
+          NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+        run: |
+          echo "Listing tables on Neon"
+          psql "$NEON_DATABASE_URL" -c "\dt" || true
+          echo "Users count (if users table exists)"
+          psql "$NEON_DATABASE_URL" -c "SELECT COUNT(*) FROM users;" || true
+
+      - name: Finish
+        run: echo "Done. If the source DB was not reachable from this runner, please run the local PowerShell script instead: scripts/export_and_restore_to_neon.ps1" 
