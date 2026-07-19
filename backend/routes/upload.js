@@ -2,7 +2,7 @@ const router = require('express').Router();
 const path = require('path');
 const { requireAuth } = require('../middleware/auth');
 const upload = require('../middleware/upload');
-const { uploadToR2, isR2Configured } = require('../middleware/upload');
+const { uploadFile, isCloudStorageConfigured, activeStorageProvider } = require('../middleware/upload');
 
 /**
  * Get a public URL for a locally stored file.
@@ -13,13 +13,13 @@ function localUrl(filename) {
 }
 
 /**
- * After multer runs, route the file to R2 or return the local URL.
+ * After multer runs, route the file to cloud storage or return the local URL.
  * Returns { url, filename }
  */
 async function resolveUpload(file) {
-  if (isR2Configured()) {
+  if (isCloudStorageConfigured()) {
     // file.buffer is available when multer uses memoryStorage
-    const url = await uploadToR2(file.buffer, file.originalname, file.mimetype);
+    const url = await uploadFile(file.buffer, file.originalname, file.mimetype);
     return { url, filename: path.basename(url) };
   }
   // Local disk — file.filename and file.path are set by diskStorage

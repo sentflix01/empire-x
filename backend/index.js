@@ -48,8 +48,9 @@ function checkEnv() {
     warnings.push('Stripe (STRIPE_SECRET_KEY) — payments will not work');
   }
   const r2 = ['R2_ACCOUNT_ID','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','R2_BUCKET_NAME','R2_PUBLIC_URL'];
-  if (r2.some(k => !process.env[k])) {
-    warnings.push('Cloudflare R2 — file uploads go to local disk (not suitable for production)');
+  const supabaseStorage = ['SUPABASE_URL','SUPABASE_STORAGE_KEY','SUPABASE_BUCKET'];
+  if (r2.some(k => !process.env[k]) && supabaseStorage.some(k => !process.env[k])) {
+    warnings.push('File storage — set Supabase Storage vars (SUPABASE_URL, SUPABASE_STORAGE_KEY, SUPABASE_BUCKET) or Cloudflare R2 vars. Files currently saved to local disk and will be lost on redeploy.');
   }
   if (warnings.length && process.env.NODE_ENV === 'production') {
     logger.warn('\n⚠️  Production warnings:');
@@ -187,7 +188,7 @@ app.get('/health', async (_req, res) => {
       redis: redisStatus,
       ai: require('./lib/ai').isConfigured() ? require('./lib/ai').provider : 'not configured',
       email: process.env.RESEND_API_KEY ? 'resend' : process.env.SMTP_HOST ? 'smtp' : 'console',
-      storage: require('./middleware/upload').isR2Configured() ? 'r2' : 'local',
+      storage: require('./middleware/upload').activeStorageProvider(),
     },
   });
 });
