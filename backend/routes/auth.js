@@ -38,7 +38,7 @@ function signToken(userId, res) {
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge,
       path: '/api/auth',
     });
@@ -411,7 +411,11 @@ router.post('/logout', async (req, res) => {
       // Token already expired — no need to revoke
     }
   }
-  res.clearCookie('refresh_token', { path: '/api/auth' });
+  res.clearCookie('refresh_token', {
+    path: '/api/auth',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  });
   res.json({ success: true });
 });
 
@@ -442,7 +446,11 @@ router.post('/logout-all', requireAuth, async (req, res) => {
     }
   }
 
-  res.clearCookie('refresh_token', { path: '/api/auth' });
+  res.clearCookie('refresh_token', {
+    path: '/api/auth',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  });
   res.json({ success: true });
 });
 

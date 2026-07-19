@@ -47,7 +47,7 @@ function checkEnv() {
   if (!process.env.STRIPE_SECRET_KEY) {
     warnings.push('Stripe (STRIPE_SECRET_KEY) — payments will not work');
   }
-  const r2 = ['R2_ACCOUNT_ID','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','R2_BUCKET_NAME'];
+  const r2 = ['R2_ACCOUNT_ID','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','R2_BUCKET_NAME','R2_PUBLIC_URL'];
   if (r2.some(k => !process.env[k])) {
     warnings.push('Cloudflare R2 — file uploads go to local disk (not suitable for production)');
   }

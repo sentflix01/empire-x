@@ -44,14 +44,17 @@ const nextConfig: NextConfig = {
     const apiHost = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
     const wsHost = apiHost.replace(/^https?:/, 'wss:').replace(/^http:/, 'ws:');
     const isProd = process.env.NODE_ENV === 'production';
+    const googleScriptSrc = `https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com`;
+    const googleUnsafeInline = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? " 'unsafe-inline'" : '';
 
     const csp = [
       `default-src 'self'`,
       // Styles: self + unsafe-inline (required for Tailwind/CSS-in-JS) + Google GSI + Leaflet/FontAwesome CDN
       `style-src 'self' 'unsafe-inline' https://accounts.google.com https://unpkg.com https://cdnjs.cloudflare.com`,
-      // Scripts: self + Google GSI + Stripe.js + Sentry; unsafe-inline only in dev for HMR
+      // Scripts: self + Google GSI + Stripe.js + Sentry.
+      // Google Identity Services injects inline script blocks, so we allow unsafe-inline only when Google login is enabled.
       isProd
-        ? `script-src 'self' https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com`
+        ? `script-src 'self' ${googleScriptSrc}${googleUnsafeInline}`
         : `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com`,
       // Images: self + data URIs + blob + backend + R2 CDN + maps + user content sources
       // In dev we allow all http: to handle any port the backend runs on.

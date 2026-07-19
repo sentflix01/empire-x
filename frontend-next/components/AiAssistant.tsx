@@ -101,25 +101,32 @@ export default function AiAssistant() {
   ];
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>(() => loadHistory());
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [online, setOnline] = useState(() => isOnline());
+  const [online, setOnline] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Track online/offline
+  // Track online/offline and load persisted history after mount
   useEffect(() => {
     const up = () => setOnline(true);
     const down = () => setOnline(false);
     window.addEventListener("online", up);
     window.addEventListener("offline", down);
-    return () => { window.removeEventListener("online", up); window.removeEventListener("offline", down); };
-  }, []);
+    setOnline(navigator.onLine);
+    setMessages(loadHistory());
 
-  // Persist history whenever messages change
+    return () => {
+      window.removeEventListener("online", up);
+      window.removeEventListener("offline", down);
+    };  }, []);
+
+  // Persist history whenever messages change (client-only)
   useEffect(() => {
-    saveHistory(messages);
+    if (typeof window !== "undefined") {
+      saveHistory(messages);
+    }
   }, [messages]);
 
   // Scroll to bottom on new messages or open

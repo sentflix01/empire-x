@@ -21,13 +21,34 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Optional for richer staging simulation:
+Required for production on Vercel:
 
 ```env
+NEXT_PUBLIC_API_BASE_URL=https://your-backend-hostname.example.com
+NEXT_PUBLIC_APP_URL=https://your-frontend-hostname.vercel.app
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+```
+
+Optional production settings:
+
+```env
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=your_vapid_public_key
 NEXT_PUBLIC_SENTRY_DSN=https://xxx@sentry.io/xxx
 ```
+
+> Make sure your Google OAuth client includes the deployed frontend URL in Authorized JavaScript origins.
+
+## Free beta / local development
+
+For a free pilot or local testing, keep the frontend and backend on localhost and do not configure Cloudflare R2.
+
+- Frontend env:
+  - `NEXT_PUBLIC_API_BASE_URL=http://localhost:3001`
+  - `NEXT_PUBLIC_APP_URL=http://localhost:3000`
+  - `NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com`
+- Backend can continue using local disk uploads by leaving R2 env vars unset.
+- This is fine for development and a small closed beta, but not for large public production.
+- Practical free-beta capacity is small: focus on feature validation, a handful of businesses, and light uploads.
 
 ## Quality Gates
 

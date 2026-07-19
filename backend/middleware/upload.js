@@ -69,7 +69,11 @@ async function uploadToR2(buffer, originalName, mimeType) {
     CacheControl: 'public, max-age=31536000',
   }));
 
-  const publicUrl = process.env.R2_PUBLIC_URL;
+  const publicUrlRaw = process.env.R2_PUBLIC_URL;
+  if (!publicUrlRaw) {
+    throw new Error('R2_PUBLIC_URL is required when using Cloudflare R2');
+  }
+  const publicUrl = publicUrlRaw.replace(/\/$/, '');
   return `${publicUrl}/${key}`;
 }
 

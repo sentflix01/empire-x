@@ -54,6 +54,8 @@ Minimum staging requirements:
 | Email | Resend test sender, SMTP, or console OTP flow |
 | AI / Redis / Push / Sentry | Optional for staging unless you are specifically testing those features |
 
+> Free beta expectations: this repo can support a small closed beta on free infrastructure, but it is not designed for a full 1000-user / 150-business production launch on free resources. Expect only a small pilot of around 20–100 active users and a handful of businesses if you keep uploads, email, and database usage light.
+
 Public production requirements are stricter: use R2 for uploads, managed Redis if queues/presence matter, real monitoring, verified email domain, live payment keys only after business/legal review, and security debt from `TECHNICAL_DEBT.md` reviewed.
 
 ### Backend (Railway)
@@ -76,6 +78,8 @@ Public production requirements are stricter: use R2 for uploads, managed Redis i
 | `R2_BUCKET_NAME` | For uploads | `empire-x-uploads` |
 | `R2_PUBLIC_URL` | For uploads | `https://pub-xxx.r2.dev` |
 | `REDIS_URL` | For Phase 2 | `rediss://...upstash.io` |
+
+> Note: this app falls back to local disk uploads when R2 is not configured, which is fine for development and testing but not recommended for production deployment.
 | `AI_PROVIDER` | No | `openai` \| `gemini` \| `anthropic` |
 | `OPENAI_API_KEY` | For AI | `sk-...` |
 | `GEMINI_API_KEY` | For AI | `AIza...` |
