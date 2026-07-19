@@ -65,7 +65,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_status           ON orders(status);
 
 -- ── Messages ────────────────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_messages_conversation   ON messages(conversation_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_conversations_part      ON conversations USING gin(participant_ids);
+CREATE INDEX IF NOT EXISTS idx_conversations_part      ON conversations(participant_ids);
 
 -- ── Notifications ────────────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_notifications_user_unread
