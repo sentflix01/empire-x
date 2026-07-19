@@ -9,6 +9,7 @@ const { sendPushToUser } = require('./push');
 const { sendOrderConfirmation } = require('../utils/mailer');
 const apiError = require('../lib/apiError');
 const logger = require('../lib/logger');
+const { getPrimaryFrontendUrl } = require('../lib/frontendUrl');
 
 // Only initialise Stripe if the key is configured
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -23,7 +24,7 @@ const CHAPA_SANDBOX = CHAPA_SECRET === 'SANDBOX';
 async function chapaPost(path, body) {
   // Sandbox mode — simulate a successful Chapa response locally
   if (CHAPA_SANDBOX) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = getPrimaryFrontendUrl();
     const apiUrl      = process.env.API_URL      || 'http://localhost:3001';
     const tx_ref      = body.tx_ref || `sandbox-${Date.now()}`;
     if (path === '/transaction/initialize') {
@@ -176,7 +177,7 @@ router.post('/checkout/session', requireAuth, async (req, res) => {
     return apiError.validationError(res, 'product_title, unit_price, and seller_id are required');
   }
   try {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = getPrimaryFrontendUrl();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [{
@@ -299,7 +300,7 @@ router.get('/chapa/status/:tx_ref', requireAuth, async (req, res) => {
 });
 router.get('/chapa/sandbox', async (req, res) => {
   const { tx_ref, return_url } = req.query;
-  const safeReturn = return_url ? decodeURIComponent(return_url) : (process.env.FRONTEND_URL || 'http://localhost:3000');
+  const safeReturn = return_url ? decodeURIComponent(return_url) : getPrimaryFrontendUrl();
   const verifyUrl = `${process.env.API_URL || 'http://localhost:3001'}/api/orders/chapa/verify/${tx_ref}`;
 
   res.send(`<!DOCTYPE html>
@@ -377,7 +378,7 @@ router.post('/checkout/chapa', requireAuth, async (req, res) => {
 
   const totalPrice = Math.max(0, (unit_price * quantity) - coupon_discount);
   const tx_ref = `empx-${req.user.id.slice(0, 8)}-${Date.now()}`;
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const frontendUrl = getPrimaryFrontendUrl();
 
   try {
     // Create a pending order first so we have an order ID to reference
@@ -452,7 +453,7 @@ router.get('/chapa/verify/:tx_ref', async (req, res) => {
         `UPDATE orders SET status = 'payment_failed', updated_at = NOW() WHERE chapa_tx_ref = $1`,
         [tx_ref]
       );
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = getPrimaryFrontendUrl();
       // If called by Chapa callback (GET redirect), redirect browser
       if (req.headers.accept?.includes('text/html')) {
         return res.redirect(`${frontendUrl}/marketplace?payment=failed&tx_ref=${tx_ref}`);
@@ -481,7 +482,7 @@ router.get('/chapa/verify/:tx_ref', async (req, res) => {
 
     // If browser redirect from Chapa callback
     if (req.headers.accept?.includes('text/html')) {
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = getPrimaryFrontendUrl();
       return res.redirect(`${frontendUrl}/marketplace?payment=success&tx_ref=${tx_ref}`);
     }
 

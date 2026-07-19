@@ -107,9 +107,11 @@ router.get('/', optionalAuth, async (req, res) => {
       const order = orderClause('up.follower_count DESC', 'up.latitude', 'up.longitude', null);
       const { rows } = await pool.query(
         `SELECT up.id, up.user_id, up.display_name, up.avatar_url, up.headline,
-                up.profile_type, up.is_verified, up.location, up.latitude, up.longitude
+                up.profile_type, up.is_verified, up.location, up.latitude, up.longitude,
+                u.is_seed
                 ${dSel}
          FROM user_profiles up
+         JOIN users u ON u.id = up.user_id
          WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1)
            ${dFlt}
          ORDER BY ${order}

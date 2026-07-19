@@ -11,6 +11,7 @@
  */
 
 const nodemailer = require('nodemailer');
+const { getPrimaryFrontendUrl } = require('../lib/frontendUrl');
 
 /* ── Resend HTTP helper ──────────────────────────────────────────────────── */
 async function sendViaResend(to, subject, html) {
@@ -108,7 +109,7 @@ async function sendOtpEmail(to, otp) {
 
 /* ── Password reset email ────────────────────────────────────────────────── */
 async function sendPasswordResetEmail(to, token) {
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const frontendUrl = getPrimaryFrontendUrl();
   const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
 
   const html = `

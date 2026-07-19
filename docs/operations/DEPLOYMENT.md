@@ -67,8 +67,10 @@ Public production requirements are stricter: use R2 for uploads, managed Redis i
 | `DATABASE_URL` | Yes | Neon PostgreSQL connection string |
 | `JWT_SECRET` | Yes | 64+ char random string |
 | `JWT_EXPIRES_IN` | No | Default `7d` |
-| `FRONTEND_URL` | Yes | `https://empirex.app` (comma-separated for multiple) |
+| `FRONTEND_URL` | Yes | `https://empirex.app` (comma-separated for multiple or wildcard patterns like `https://*.vercel.app`) |
 | `RESEND_API_KEY` | Recommended | Starts with `re_` |
+
+> Tip: `FRONTEND_URL` can contain multiple trusted origins separated by commas. The first valid URL is used for email/reset links and checkout redirects, while wildcard patterns are used for CORS origins.
 | `EMAIL_FROM` | No | `Empire X <noreply@empirex.app>` |
 | `STRIPE_SECRET_KEY` | For payments | `sk_live_...` |
 | `STRIPE_WEBHOOK_SECRET` | For payments | `whsec_...` |
@@ -99,6 +101,24 @@ Public production requirements are stricter: use R2 for uploads, managed Redis i
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | For OAuth | Google Cloud Console |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | For push | Same as backend VAPID_PUBLIC_KEY |
 | `NEXT_PUBLIC_SENTRY_DSN` | Recommended | From Sentry project |
+
+---
+
+## GitHub Actions Secrets
+
+The repository uses GitHub Actions to deploy the backend and frontend. Set these secrets in the repository settings before you push to `main`.
+
+| Secret | Required | Description |
+|---|---|---|
+| `RAILWAY_TOKEN` | Yes | Railway CLI token for backend deployment |
+| `VERCEL_TOKEN` | Yes | Vercel CLI token for frontend deployment |
+| `BACKEND_URL` | Yes | Public backend URL used by the post-deploy health check |
+| `SOURCE_DATABASE_URL` | Optional | Local or staging DB URL for Neon migration workflow |
+| `NEON_DATABASE_URL` | Optional | Neon connection string for migration workflow |
+
+> If your source database is only accessible from your laptop, use `scripts/export_and_restore_to_neon.ps1` instead of the GitHub Actions migration workflow.
+>
+> If you use Vercel preview deployments and Google login, include `https://*.vercel.app` in `FRONTEND_URL` and add your preview URLs as authorized JavaScript origins in your Google Cloud OAuth client.
 
 ---
 

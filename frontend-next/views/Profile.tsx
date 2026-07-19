@@ -16,6 +16,7 @@ import BusinessProfile from "@/components/profile/BusinessProfile";
 import ProfileToggle from "@/components/profile/ProfileToggle";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import TickerBar from "@/components/feed/TickerBar";
+import { DemoBadge } from "@/components/profile/DemoBadge";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 
@@ -115,6 +116,13 @@ export default function Profile() {
 
   return (
     <div className="max-w-2xl mx-auto">
+        {/* Demo account notice banner — non-dismissible, shown for seed/AI-generated profiles */}
+        {profile.is_seed && (
+          <div className="mb-3 flex items-center gap-2 px-4 py-3 bg-yellow-50 border border-yellow-300/70 rounded-2xl text-yellow-800 text-sm font-medium">
+            <DemoBadge />
+            <span>This is an AI-generated demo account</span>
+          </div>
+        )}
         {/* Back button — shown when navigated from another page */}
         <button
           onClick={() => router.back()}
@@ -214,6 +222,7 @@ export default function Profile() {
                         {profile.is_verified && (
                           <VerifiedBadge type={profile.verification_type} size="lg" />
                         )}
+                        {profile.is_seed && <DemoBadge />}
                       </div>
                       {profile.headline && <p className="text-sm text-muted-foreground">{profile.headline}</p>}
                       {profile.bio && <p className="text-sm mt-2">{profile.bio}</p>}

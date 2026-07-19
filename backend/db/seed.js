@@ -262,8 +262,8 @@ async function seed() {
     ];
     for (const acc of devAccounts) {
       const { rows } = await client.query(
-        `INSERT INTO users (email, password_hash, full_name, role, is_verified, provider)
-         VALUES ($1,$2,$3,$4,TRUE,'local') RETURNING id, email, full_name, role`,
+        `INSERT INTO users (email, password_hash, full_name, role, is_verified, is_seed, provider)
+         VALUES ($1,$2,$3,$4,TRUE,FALSE,'local') RETURNING id, email, full_name, role`,
         [acc.email, acc.hash, acc.name, acc.role]
       );
       await client.query(
@@ -287,8 +287,8 @@ async function seed() {
       const email = `${first.toLowerCase()}.${last.toLowerCase()}${i}@empirex.test`;
       const district = pick(ADDIS_DISTRICTS);
       const { rows } = await client.query(
-        `INSERT INTO users (email, password_hash, full_name, role, is_verified, provider)
-         VALUES ($1,$2,$3,$4,TRUE,'local') RETURNING id, email, full_name`,
+        `INSERT INTO users (email, password_hash, full_name, role, is_verified, is_seed, provider)
+         VALUES ($1,$2,$3,$4,TRUE,TRUE,'local') RETURNING id, email, full_name`,
         [email, passwordHash, `${first} ${last}`, 'user']
       );
       users.push({ ...rows[0], first, last, district });

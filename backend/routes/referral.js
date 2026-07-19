@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
+const { getPrimaryFrontendUrl } = require('../lib/frontendUrl');
 
 // Get my referral code (generate if missing)
 router.get('/my-code', requireAuth, async (req, res) => {
@@ -15,7 +16,7 @@ router.get('/my-code', requireAuth, async (req, res) => {
     const { rows: referred } = await pool.query(
       'SELECT COUNT(*) FROM users WHERE referred_by = $1', [req.user.id]
     );
-    res.json({ code, referral_link: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register?ref=${code}`, total_referred: parseInt(referred[0].count) });
+    res.json({ code, referral_link: `${getPrimaryFrontendUrl()}/register?ref=${code}`, total_referred: parseInt(referred[0].count) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to get referral code' });
   }

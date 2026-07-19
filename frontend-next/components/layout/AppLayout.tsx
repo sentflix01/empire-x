@@ -21,6 +21,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import { toast } from "sonner";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
+import { PeopleYouMayKnow } from "@/components/suggestions/PeopleYouMayKnow";
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
 function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string } | null }) {
@@ -37,6 +38,9 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
 
   return (
     <>
+      {/* People You May Know — only shown to authenticated users */}
+      {user !== null && <PeopleYouMayKnow />}
+
       {/* Quick links */}
       <div className="bg-card dark:bg-card rounded-2xl border border-border/50 p-4">
         <div className="flex items-center gap-2 mb-3">

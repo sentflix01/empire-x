@@ -111,14 +111,30 @@ app.use((_req, res, next) => {
   next();
 });
 
-const rawOrigins = process.env.FRONTEND_URL || 'http://localhost:3000';
-const allowedOrigins = rawOrigins.split(',').map(o => o.trim()).filter(Boolean);
+const { parseFrontendUrls } = require('./lib/frontendUrl');
+
+const allowedOrigins = parseFrontendUrls();
 // In dev, always include the local Next.js frontend origin.
 if (process.env.NODE_ENV !== 'production') {
   if (!allowedOrigins.includes('http://localhost:3000')) allowedOrigins.push('http://localhost:3000');
 }
+
+const wildcardOrigins = allowedOrigins
+  .filter(origin => origin.includes('*'))
+  .map(pattern => {
+    const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '.*');
+    return new RegExp(`^${escaped}$`);
+  });
+const exactOrigins = allowedOrigins.filter(origin => !origin.includes('*'));
+
 const corsOptions = {
-  origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins,
+  origin: (origin, callback) => {
+    // Allow non-browser tools or same-origin requests without an Origin header.
+    if (!origin) return callback(null, true);
+    if (exactOrigins.includes(origin)) return callback(null, true);
+    if (wildcardOrigins.some(rx => rx.test(origin))) return callback(null, true);
+    callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -200,6 +216,7 @@ app.use('/api/courses', require('./routes/courses'));
 app.use('/api/wallet', require('./routes/wallet'));
 app.use('/api/push', require('./routes/push'));
 app.use('/api/trending', require('./routes/trending'));
+app.use('/api/suggestions', require('./routes/suggestions'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/referral', require('./routes/referral'));
 // ── Additional feature routes ─────────────────────────────────────────────────

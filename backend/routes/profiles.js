@@ -21,7 +21,10 @@ router.get('/me', requireAuth, async (req, res) => {
 router.get('/by-user/:userId', optionalAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT * FROM user_profiles WHERE user_id = $1',
+      `SELECT up.*, u.is_seed
+       FROM user_profiles up
+       JOIN users u ON u.id = up.user_id
+       WHERE up.user_id = $1`,
       [req.params.userId]
     );
     if (!rows.length) return res.status(404).json({ error: 'Profile not found' });
@@ -34,9 +37,15 @@ router.get('/by-user/:userId', optionalAuth, async (req, res) => {
 // Get profile by id
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
-    const profile = await getRecord('user_profiles', req.params.id);
-    if (!profile) return res.status(404).json({ error: 'Profile not found' });
-    res.json(profile);
+    const { rows } = await pool.query(
+      `SELECT up.*, u.is_seed
+       FROM user_profiles up
+       JOIN users u ON u.id = up.user_id
+       WHERE up.id = $1`,
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Profile not found' });
+    res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch profile' });
   }
@@ -46,11 +55,34 @@ router.get('/:id', optionalAuth, async (req, res) => {
 router.get('/', optionalAuth, async (req, res) => {
   try {
     const { user_id, profile_type, sort = '-created_at', limit = 50 } = req.query;
-    const filter = {};
-    if (user_id) filter.user_id = user_id;
-    if (profile_type) filter.profile_type = profile_type;
-    const profiles = await listRecords('user_profiles', { filter, sort, limit });
-    res.json(profiles);
+    const conditions = [];
+    const values = [];
+
+    if (user_id) {
+      values.push(user_id);
+      conditions.push(`up.user_id = $${values.length}`);
+    }
+    if (profile_type) {
+      values.push(profile_type);
+      conditions.push(`up.profile_type = $${values.length}`);
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const lim = Math.min(parseInt(limit, 10) || 50, 500);
+    const sortDir = sort.startsWith('-') ? 'DESC' : 'ASC';
+    const sortCol = sort.replace(/^-/, '').replace(/[^a-z0-9_]/gi, '') || 'created_at';
+
+    values.push(lim);
+    const { rows } = await pool.query(
+      `SELECT up.*, u.is_seed
+       FROM user_profiles up
+       JOIN users u ON u.id = up.user_id
+       ${whereClause}
+       ORDER BY up.${sortCol} ${sortDir}
+       LIMIT $${values.length}`,
+      values
+    );
+    res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch profiles' });
   }

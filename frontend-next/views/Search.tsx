@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/use-debounce";
 import { toast } from "sonner";
+import { DemoBadge } from "@/components/profile/DemoBadge";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 
@@ -321,6 +322,7 @@ export default function Search() {
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="text-sm font-medium truncate">{u.display_name}</p>
                     {u.is_verified && <span className="text-blue-500 text-xs">✓</span>}
+                    {u.is_seed && <DemoBadge />}
                     <DistanceBadge km={u.distance_km} />
                   </div>
                   {u.headline && <p className="text-xs text-muted-foreground truncate">{u.headline}</p>}

@@ -3,6 +3,7 @@ const pool = require('../db/pool');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const apiError = require('../lib/apiError');
 const logger = require('../lib/logger');
+const { getPrimaryFrontendUrl } = require('../lib/frontendUrl');
 
 // Get or create wallet for current user
 async function getOrCreateWallet(userId) {
@@ -159,7 +160,7 @@ router.post('/topup/chapa', requireAuth, async (req, res) => {
   if (!amount || amount <= 0) return apiError.validationError(res, 'Valid amount is required');
 
   const tx_ref = `empx-wallet-${req.user.id.slice(0, 8)}-${Date.now()}`;
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const frontendUrl = getPrimaryFrontendUrl();
   const apiUrl      = process.env.API_URL      || 'http://localhost:3001';
 
   try {
@@ -216,7 +217,7 @@ router.post('/topup/chapa', requireAuth, async (req, res) => {
 // ── Chapa Wallet Sandbox Page ────────────────────────────────────────────────
 router.get('/topup/chapa/sandbox', (req, res) => {
   const { tx_ref, amount, return_url, verify_url } = req.query;
-  const safeReturn = return_url ? decodeURIComponent(return_url) : (process.env.FRONTEND_URL || 'http://localhost:3000');
+  const safeReturn = return_url ? decodeURIComponent(return_url) : getPrimaryFrontendUrl();
   const safeVerify = verify_url ? decodeURIComponent(verify_url) : '';
 
   res.send(`<!DOCTYPE html>
