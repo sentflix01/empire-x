@@ -144,7 +144,7 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
     if (!ids.includes(req.user.id) && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    const { content, type } = req.body;
+    const { content, type, reply_to_id } = req.body;
     if (!content) return res.status(400).json({ error: 'content is required' });
 
     const { rows: profiles } = await pool.query(
@@ -154,9 +154,9 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
     const senderName = profiles[0]?.display_name || null;
 
     const { rows } = await pool.query(
-      `INSERT INTO messages (conversation_id, sender_id, sender_name, content, type)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [req.params.convId, req.user.id, senderName, content, type || 'text']
+      `INSERT INTO messages (conversation_id, sender_id, sender_name, content, type, reply_to_id)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [req.params.convId, req.user.id, senderName, content, type || 'text', reply_to_id || null]
     );
 
     // Update conversation last message
@@ -356,4 +356,92 @@ router.get('/presence/:userId', requireAuth, async (req, res) => {
   }
 });
 
+// ── Block / Unblock ───────────────────────────────────────────────────────────
+
+// Block a user
+router.post('/block/:targetId', requireAuth, async (req, res) => {
+  try {
+    const blockerId = req.user.id;
+    const blockedId = req.params.targetId;
+    if (blockerId === blockedId) return res.status(400).json({ error: 'Cannot block yourself' });
+    await pool.query(
+      `INSERT INTO blocks (blocker_id, blocked_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      [blockerId, blockedId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to block user' });
+  }
+});
+
+// Unblock a user
+router.delete('/block/:targetId', requireAuth, async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM blocks WHERE blocker_id = $1 AND blocked_id = $2',
+      [req.user.id, req.params.targetId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to unblock user' });
+  }
+});
+
+// Check if a user is blocked
+router.get('/block/:targetId', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT 1 FROM blocks WHERE blocker_id = $1 AND blocked_id = $2',
+      [req.user.id, req.params.targetId]
+    );
+    res.json({ blocked: rows.length > 0 });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to check block status' });
+  }
+});
+
+// ── Block / Unblock user ──────────────────────────────────────────────────────
+
+// Block a user
+router.post('/block/:targetId', requireAuth, async (req, res) => {
+  const { targetId } = req.params;
+  if (targetId === req.user.id) return res.status(400).json({ error: 'Cannot block yourself' });
+  try {
+    await pool.query(
+      'INSERT INTO blocks (blocker_id, blocked_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [req.user.id, targetId]
+    );
+    res.json({ success: true, blocked: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to block user' });
+  }
+});
+
+// Unblock a user
+router.delete('/block/:targetId', requireAuth, async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM blocks WHERE blocker_id = $1 AND blocked_id = $2',
+      [req.user.id, req.params.targetId]
+    );
+    res.json({ success: true, blocked: false });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to unblock user' });
+  }
+});
+
+// Check if a user is blocked
+router.get('/block/:targetId', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT id FROM blocks WHERE blocker_id = $1 AND blocked_id = $2',
+      [req.user.id, req.params.targetId]
+    );
+    res.json({ blocked: rows.length > 0 });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to check block status' });
+  }
+});
+
 module.exports = router;
+

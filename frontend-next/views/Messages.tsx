@@ -3,14 +3,14 @@ import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import client from "@/api/client";
 import { useTranslation } from 'react-i18next';
+import { useRealMode } from "@/lib/RealModeContext";
 
 import {
-  Search, Users, Radio, User as UserIcon, Menu, Settings,
-  Check, CheckCheck, Pin
+  Search, Users, Radio, User as UserIcon, Menu,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import moment from "moment";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
 
@@ -18,12 +18,15 @@ const TG_BLUE = "#0088cc";
 
 export default function Messages() {
   const { t } = useTranslation();
+  const { realMode } = useRealMode();
   const [conversations, setConversations] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all"); // all | groups | channels | contacts
+  // Online presence: map userId → 'online'|'offline'
+  const [presence, setPresence] = useState({});
 
   useEffect(() => {
     auth.me().then(u => { setUser(u); loadConversations(u); loadContacts(u); }).catch(() => setLoading(false));
@@ -48,7 +51,42 @@ export default function Messages() {
           return ids.includes(u.id);
         } catch { return false; }
       });
-      setConversations(myConvos);
+
+      // Filter out empty DM conversations older than 5 minutes
+      const now = Date.now();
+      const cleaned = myConvos.filter(c => {
+        if (c.type === 'dm' && !c.last_message) {
+          const age = now - new Date(c.created_at).getTime();
+          if (age > 5 * 60 * 1000) return false; // discard empty old DMs
+        }
+        return true;
+      });
+
+      setConversations(cleaned);
+
+      // Fetch presence for DM participants
+      const dmPartnerIds = cleaned
+        .filter(c => c.type === 'dm')
+        .map(c => {
+          try {
+            const ids = JSON.parse(c.participant_ids || '[]');
+            return ids.find(id => id !== u.id);
+          } catch { return null; }
+        })
+        .filter(Boolean);
+
+      if (dmPartnerIds.length > 0) {
+        const presenceResults = await Promise.all(
+          dmPartnerIds.map(uid =>
+            client.get(`/api/messages/presence/${uid}`)
+              .then(r => ({ uid, status: r.data.status }))
+              .catch(() => ({ uid, status: 'offline' }))
+          )
+        );
+        const presenceMap = {};
+        presenceResults.forEach(({ uid, status }) => { presenceMap[uid] = status; });
+        setPresence(presenceMap);
+      }
     } catch {
       // silently keep existing conversations on poll failure
     } finally {
@@ -90,6 +128,18 @@ export default function Messages() {
     if (tab === "channels") return c.type === "channel";
     return true;
   }).filter(c => {
+    // Real-mode: exclude DMs with seed users
+    if (realMode && c.type === 'dm') {
+      try {
+        const ids = JSON.parse(c.participant_ids || '[]');
+        const otherIds = ids.filter(id => id !== user?.id);
+        const hasSeed = otherIds.some(oid => {
+          const contact = contacts.find(ct => ct.user_id === oid || ct.id === oid);
+          return contact?.is_seed === true;
+        });
+        if (hasSeed) return false;
+      } catch { /* ignore */ }
+    }
     if (!search) return true;
     return getDisplayName(c).toLowerCase().includes(search.toLowerCase());
   });
@@ -229,17 +279,29 @@ export default function Messages() {
                       href={`/messages/${conv.id}`}
                       className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary/50 transition-colors"
                     >
-                      {/* Avatar */}
-                      {resolvedAvatarUrl ? (
-                        <img src={resolvedAvatarUrl} alt={name} className="w-12 h-12 rounded-full object-cover shrink-0" />
-                      ) : (
-                        <div
-                          className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shrink-0"
-                          style={{ backgroundColor: getAvatarColor(conv) }}
-                        >
-                          {isChannel ? <Radio className="w-5 h-5" /> : isGroup ? <Users className="w-5 h-5" /> : getAvatarLetter(conv)}
-                        </div>
-                      )}
+                      {/* Avatar with optional online dot */}
+                      <div className="relative shrink-0">
+                        {resolvedAvatarUrl ? (
+                          <img src={resolvedAvatarUrl} alt={name} className="w-12 h-12 rounded-full object-cover" />
+                        ) : (
+                          <div
+                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg"
+                            style={{ backgroundColor: getAvatarColor(conv) }}
+                          >
+                            {isChannel ? <Radio className="w-5 h-5" /> : isGroup ? <Users className="w-5 h-5" /> : getAvatarLetter(conv)}
+                          </div>
+                        )}
+                        {/* Online dot for DM conversations */}
+                        {isDm && (() => {
+                          try {
+                            const ids = JSON.parse(conv.participant_ids || '[]');
+                            const otherId = ids.find(i => i !== user?.id);
+                            return otherId && presence[otherId] === 'online';
+                          } catch { return false; }
+                        })() && (
+                          <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-400 border-2 border-background rounded-full" />
+                        )}
+                      </div>
                       {/* Info */}
                       <div className="flex-1 min-w-0 border-b border-border/20 pb-2.5 -mb-2.5">
                         <div className="flex items-center justify-between">
