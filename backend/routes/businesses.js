@@ -1,8 +1,9 @@
 const router = require('express').Router();
+const { cacheMiddleware } = require('../middleware/cache');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
 
-router.get('/', optionalAuth, async (req, res) => {
+router.get('/', optionalAuth, cacheMiddleware('businesses:list', 30), async (req, res) => {
   try {
     const { owner_id, sort = '-created_at', limit = 50 } = req.query;
     const filter = {};
@@ -65,3 +66,4 @@ router.delete('/:id', requireAuth, async (req, res) => {
 });
 
 module.exports = router;
+

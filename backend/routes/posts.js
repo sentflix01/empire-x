@@ -5,9 +5,10 @@ const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = req
 const { syncHashtags } = require('./hashtags');
 const { emitNotification } = require('../socket');
 const { sendPushToUser } = require('./push');
+const { cacheMiddleware } = require('../middleware/cache');
 
 // List posts — supports smart feed with random offset for variety
-router.get('/', optionalAuth, async (req, res) => {
+router.get('/', optionalAuth, cacheMiddleware('posts:list', 20), async (req, res) => {
   try {
     const { sort = '-created_at', limit = 30, author_id, post_type, feed = 'false' } = req.query;
 

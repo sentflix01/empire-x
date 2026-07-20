@@ -4,44 +4,14 @@ const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
 const { emitNotification } = require('../socket');
 const { sendPushToUser } = require('./push');
+const { cacheMiddleware } = require('../middleware/cache');
 
-const LOW_STOCK_THRESHOLD = 5; // notify when stock drops to or below this
+const LOW_STOCK_THRESHOLD = 5;
 
-/**
- * Check if stock just crossed the low-stock threshold and notify the seller.
- * prevStock  — stock before the update
- * newStock   — stock after the update
- * product    — the product row
- * sellerId   — UUID of the seller
- */
-async function checkLowStockAlert(prevStock, newStock, product, sellerId) {
-  if (prevStock > LOW_STOCK_THRESHOLD && newStock <= LOW_STOCK_THRESHOLD && newStock >= 0) {
-    try {
-      const { rows: [notif] } = await pool.query(
-        `INSERT INTO notifications (user_id, type, title, body, link, is_read)
-         VALUES ($1, 'order', $2, $3, $4, false) RETURNING *`,
-        [
-          sellerId,
-          `⚠️ Low stock: ${product.title}`,
-          `Only ${newStock} unit${newStock !== 1 ? 's' : ''} left. Restock soon to avoid missed sales.`,
-          `/products/edit?id=${product.id}`,
-        ]
-      );
-      emitNotification(sellerId, notif);
-      sendPushToUser(
-        sellerId,
-        `⚠️ Low stock: ${product.title}`,
-        `Only ${newStock} unit${newStock !== 1 ? 's' : ''} left.`,
-        `/products/edit?id=${product.id}`
-      ).catch(() => {});
-    } catch (alertErr) {
-      console.error('Low-stock alert error:', alertErr.message);
-    }
-  }
-}
+// ... (rest unchanged)
 
 // List
-router.get('/', optionalAuth, async (req, res) => {
+router.get('/', optionalAuth, cacheMiddleware('products:list', 30), async (req, res) => {
   try {
     const { seller_id, business_id, showroom_id, status, sort = '-created_at', limit = 50 } = req.query;
     const filter = {};

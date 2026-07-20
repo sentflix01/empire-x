@@ -9,9 +9,11 @@
 const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
+const { cacheMiddleware } = require('../middleware/cache');
 
 // ── GET /api/suggestions/people ───────────────────────────────────────────────
-router.get('/people', requireAuth, async (req, res) => {
+// Cache per user for 5 minutes — suggestions don't change that fast
+router.get('/people', requireAuth, cacheMiddleware('suggestions', 300, { varyByUser: true, varyByQuery: false }), async (req, res) => {
   const requesterId = req.user.id;
 
   try {
