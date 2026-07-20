@@ -2,6 +2,8 @@
   "nav": {
     "home": "Home",
     "explore": "Explore",
+    "friends": "Friends",
+    "businesses": "Businesses",
     "marketplace": "Marketplace",
     "tasks": "Tasks",
     "messages": "Messages",

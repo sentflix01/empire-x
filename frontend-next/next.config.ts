@@ -34,6 +34,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "fastly.picsum.photos" },
       { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "randomuser.me" },
     ],
   },
 
@@ -64,8 +65,8 @@ const nextConfig: NextConfig = {
       // In dev we allow all http: to handle any port the backend runs on.
       // In prod we restrict to known HTTPS hosts only.
       isProd
-        ? `img-src 'self' data: blob: ${apiHost} https://*.r2.dev https://*.railway.app https://*.up.railway.app https://raw.githubusercontent.com https://unpkg.com https://maps.gstatic.com https://*.tile.openstreetmap.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://*.supabase.co https://picsum.photos https://fastly.picsum.photos`
-        : `img-src 'self' data: blob: http: https: ${apiHost} https://*.r2.dev https://*.railway.app https://*.up.railway.app https://raw.githubusercontent.com https://unpkg.com https://maps.gstatic.com https://*.tile.openstreetmap.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://*.supabase.co https://picsum.photos https://fastly.picsum.photos`,
+        ? `img-src 'self' data: blob: ${apiHost} https://*.r2.dev https://*.railway.app https://*.up.railway.app https://raw.githubusercontent.com https://unpkg.com https://maps.gstatic.com https://*.tile.openstreetmap.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://*.supabase.co https://picsum.photos https://fastly.picsum.photos https://randomuser.me`
+        : `img-src 'self' data: blob: http: https: ${apiHost} https://*.r2.dev https://*.railway.app https://*.up.railway.app https://raw.githubusercontent.com https://unpkg.com https://maps.gstatic.com https://*.tile.openstreetmap.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://*.supabase.co https://picsum.photos https://fastly.picsum.photos https://randomuser.me`,
       // Fonts: self + Google Fonts (if used)
       `font-src 'self'`,
       // API calls, Sentry, Stripe, WebSocket (socket.io), Google auth — production WS derived from apiHost

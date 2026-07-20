@@ -307,11 +307,13 @@ async function seed() {
 
     // ── 3. Create user profiles ──────────────────────────────────────────────
     console.log('📋 Creating user profiles...');
-    for (const user of users) {
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
       const c = jitter(9.0200, 38.7520, 3);
-      // Use picsum.photos with consistent seed per user for stable avatars
-      const avatarSeed = user.id.replace(/-/g, '').slice(0, 8);
-      const avatarUrl = `https://picsum.photos/seed/${avatarSeed}/200/200`;
+      // randomuser.me provides real face photos — gender alternates for variety
+      const gender = i % 2 === 0 ? 'men' : 'women';
+      const photoIndex = (i % 50) + 1; // 1-50 range per gender
+      const avatarUrl = `https://randomuser.me/api/portraits/${gender}/${photoIndex}.jpg`;
       await client.query(
         `INSERT INTO user_profiles (
            user_id, display_name, bio, headline, location, phone,
