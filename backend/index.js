@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
 const path = require('path');
 const { initSocket } = require('./socket');
 const logger = require('./lib/logger');
@@ -24,6 +25,9 @@ const PORT = process.env.PORT || 3001;
 
 // ── Sentry (must be first) ────────────────────────────────────────────────────
 initSentry(app);
+
+// ── Gzip compression — reduces response size by 60-80% ───────────────────────
+app.use(compression());
 
 // ── Request ID, HTTP access log, API version header ──────────────────────────
 app.use(requestId);
@@ -273,6 +277,19 @@ server.listen(PORT, () => {
   logger.info('   WebSocket: enabled for real-time chat');
   startStoriesCleanup();
   startWorkers(); // BullMQ background job workers
+
+  // ── Keep-alive: warm up DB connection pool every 4 minutes ──────────────
+  // Prevents Railway free-tier cold starts and Neon connection drops.
+  if (process.env.NODE_ENV === 'production') {
+    setInterval(async () => {
+      try {
+        await pool.query('SELECT 1');
+        logger.debug('Keep-alive ping OK');
+      } catch (err) {
+        logger.warn({ err: err.message }, 'Keep-alive ping failed');
+      }
+    }, 4 * 60 * 1000); // every 4 minutes
+  }
 });
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────────

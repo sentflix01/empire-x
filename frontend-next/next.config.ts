@@ -30,6 +30,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.up.railway.app" },
       { protocol: "https", hostname: "unpkg.com" },
       { protocol: "https", hostname: "raw.githubusercontent.com" },
+      { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "picsum.photos" },
     ],
   },
 
@@ -86,6 +88,20 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy",            value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy",         value: "camera=(), microphone=(), geolocation=(self)" },
           { key: "Content-Security-Policy",    value: csp },
+        ],
+      },
+      // Cache static assets aggressively — Next.js content-hashes these filenames
+      {
+        source: "/_next/static/(.*)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      // Cache public assets (images, icons, fonts) for 7 days
+      {
+        source: "/(.*)\\.(ico|png|jpg|jpeg|svg|gif|webp|woff2?|ttf|otf)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" },
         ],
       },
     ];
