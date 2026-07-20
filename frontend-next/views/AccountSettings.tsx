@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  User, Lock, Bell, Shield, Eye, EyeOff, ChevronRight, ArrowLeft,
+  Lock, Bell, Shield, Eye, EyeOff,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import client from '@/api/client';
@@ -153,19 +153,18 @@ function ChangePasswordForm() {
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
-type Tab = 'profile' | 'account' | 'notifications' | 'privacy';
+type Tab = 'account' | 'notifications' | 'privacy';
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: 'profile',       label: 'Profile',       icon: User },
   { id: 'account',       label: 'Account',        icon: Lock },
   { id: 'notifications', label: 'Notifications',  icon: Bell },
   { id: 'privacy',       label: 'Privacy',        icon: Shield },
 ];
 
 // ── Main View ─────────────────────────────────────────────────────────────────
-export default function AccountSettingsView() {
+export default function AccountSettingsView({ defaultTab = 'account' }: { defaultTab?: Tab }) {
   const { user } = useAuth();
-  const [tab, setTab] = useState<Tab>('profile');
+  const [tab, setTab] = useState<Tab>(defaultTab);
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   const displayName = typeof user?.full_name === 'string' ? user.full_name : 'User';
@@ -219,30 +218,6 @@ export default function AccountSettingsView() {
           </button>
         ))}
       </div>
-
-      {/* ── Profile tab ── */}
-      {tab === 'profile' && (
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Manage your public profile information.
-          </p>
-          <Link
-            href="/profile/edit"
-            className="flex items-center justify-between p-4 bg-card rounded-2xl border border-border/50 hover:bg-secondary/50 transition-colors group"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-                <User className="w-4 h-4 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Edit Profile</p>
-                <p className="text-xs text-muted-foreground">Update photo, bio, headline and more</p>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        </div>
-      )}
 
       {/* ── Account tab ── */}
       {tab === 'account' && (

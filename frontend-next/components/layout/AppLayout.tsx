@@ -10,7 +10,7 @@ import {
   Plus, Crown, TrendingUp, Briefcase, GraduationCap, CalendarDays,
   Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, MapPin, Tag,
   Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
-  PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Settings,
+  PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -21,7 +21,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import { toast } from "sonner";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
-import { PeopleYouMayKnow } from "@/components/suggestions/PeopleYouMayKnow";
 import { useRealMode } from "@/lib/RealModeContext";
 // AccountSettings popup replaced by /settings navigation
 
@@ -40,9 +39,6 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
 
   return (
     <>
-      {/* People You May Know — only shown to authenticated users */}
-      {user !== null && <PeopleYouMayKnow />}
-
       {/* Quick links */}
       <div className="bg-card dark:bg-card rounded-2xl border border-border/50 p-4">
         <div className="flex items-center gap-2 mb-3">
@@ -280,6 +276,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     { path: "/referral", icon: Gift, label: "Referral" },
     { path: "/coupons", icon: Tag, label: "My Coupons" },
     { path: "/analytics", icon: BarChart3, label: "Analytics" },
+    { path: "/account", icon: Lock, label: "Account Settings" },
+    { path: "/privacy", icon: Shield, label: "Privacy" },
   ];
 
   const isActive = (path: string) => {
@@ -406,13 +404,13 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <button
               onClick={toggleRealMode}
               title={realMode ? 'Showing real users only — click to show all' : 'Showing all users (demo + real) — click for real only'}
-              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-all ${
+              className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold border transition-all ${
                 realMode
                   ? 'bg-green-500 text-white border-green-500 shadow-sm shadow-green-500/30'
                   : 'bg-secondary text-muted-foreground border-border/50 hover:bg-secondary/80'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${realMode ? 'bg-white' : 'bg-amber-500'}`} />
+              <span className={`w-2 h-2 rounded-full shrink-0 ${realMode ? 'bg-white' : 'bg-amber-500'}`} />
               {realMode ? 'Real' : 'Demo'}
             </button>
             {/* Dark mode */}
@@ -588,22 +586,17 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <div className="h-4" />
         </div>
 
-        {/* Drawer footer — Account Settings + logout */}
+        {/* Drawer footer — avatar + name/email + logout */}
         <div className="border-t border-border px-3 py-3 shrink-0">
-          <Link
-            href="/settings"
-            onClick={() => setDrawerOpen(false)}
-            className="flex items-center gap-3 rounded-xl hover:bg-secondary p-2 transition-colors"
-          >
+          <div className="flex items-center gap-3 px-2 py-1.5 rounded-xl">
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
               {user?.full_name?.charAt(0) || "E"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate">{displayName}</p>
-              <p className="text-xs text-muted-foreground">Account Settings</p>
+              <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
             </div>
-            <Settings className="w-4 h-4 text-muted-foreground shrink-0" />
-          </Link>
+          </div>
           <button
             onClick={() => { setDrawerOpen(false); logout(); }}
             className="mt-1 w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium"
@@ -699,40 +692,40 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <div className="h-2" />
           </div>
 
-          {/* Account Settings — navigates to /settings */}
-          <div className="border-t border-border px-2 py-3 shrink-0 flex items-center gap-1">
-            <Link
-              href="/settings"
-              title={sidebarCollapsed ? "Account Settings" : undefined}
-              className={`relative flex items-center gap-2 rounded-xl hover:bg-secondary p-2 transition-colors flex-1 min-w-0 group
-                ${sidebarCollapsed ? "justify-center" : ""}`}
-            >
-              {/* Avatar */}
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
-                {userInitial}
-              </div>
-              {!sidebarCollapsed && (
-                <>
-                  <span className="text-xs font-semibold truncate flex-1 min-w-0">{displayName}</span>
-                  <Settings className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                </>
-              )}
-              {/* Tooltip in collapsed mode */}
-              {sidebarCollapsed && (
+          {/* Sidebar footer — avatar + name/email + logout */}
+          <div className="border-t border-border px-2 py-3 shrink-0">
+            {sidebarCollapsed ? (
+              /* Collapsed: just avatar with tooltip */
+              <div className="relative flex justify-center group">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm cursor-default">
+                  {userInitial}
+                </div>
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                  Account Settings
+                  {displayName}
                 </span>
-              )}
-            </Link>
-            {/* Logout icon button */}
-            <button
-              onClick={() => logout()}
-              title="Log out"
-              aria-label="Log out"
-              className="p-2 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground shrink-0"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+              </div>
+            ) : (
+              <>
+                {/* Row 1: avatar + name + email */}
+                <div className="flex items-center gap-2 px-2 py-1.5 rounded-xl">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                    {userInitial}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold truncate">{displayName}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{userEmail}</p>
+                  </div>
+                </div>
+                {/* Row 2: logout button */}
+                <button
+                  onClick={() => logout()}
+                  className="mt-1 w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium"
+                >
+                  <LogOut className="w-4 h-4 shrink-0" />
+                  <span>Log out</span>
+                </button>
+              </>
+            )}
           </div>
         </nav>
 
