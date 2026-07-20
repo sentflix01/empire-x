@@ -255,6 +255,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const mainNavItems = [
     { path: "/feed", icon: Home, label: tr('nav.home') },
     { path: "/explore", icon: TrendingUp, label: tr('nav.explore') },
+    { path: "/friends", icon: Users, label: tr('nav.friends') || "Friends" },
     { path: "/marketplace", icon: ShoppingBag, label: tr('nav.marketplace') },
     { path: "/tasks", icon: ClipboardList, label: tr('nav.tasks') },
     { path: "/messages", icon: MessageCircle, label: tr('nav.messages') },

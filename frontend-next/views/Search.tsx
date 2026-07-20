@@ -82,6 +82,7 @@ export default function Search() {
   const [loading, setLoading]   = useState(false);
   const [listening, setListening] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
   // Filters
   const [sort, setSort]           = useState("relevance");
@@ -133,6 +134,15 @@ export default function Search() {
     doSearch();
   }, [debouncedQuery, tab, sort, radius, priceMin, priceMax, dateFrom, dateTo, userLat, userLon]);
 
+  // Reset all section expanded states when query changes
+  useEffect(() => {
+    setExpandedSections({});
+  }, [debouncedQuery]);
+
+  // Reset all section expanded states when tab changes
+  useEffect(() => {
+    setExpandedSections({});
+  }, [tab]);
   const doSearch = async () => {
     setLoading(true);
     try {
@@ -311,7 +321,7 @@ export default function Search() {
         {/* ── Results sections ── */}
 
         {results.users?.length > 0 && (tab === "all" || tab === "users") && (
-          <Section title={t('search.people')} icon={Users} count={results.users.length}>
+          <CollapsibleSection title={t('search.people')} icon={Users} count={results.users.length} sectionKey="users" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
             {results.users.map(u => (
               <Link key={u.id} href={`/profile/${u.user_id}`}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
@@ -330,13 +340,13 @@ export default function Search() {
                 </div>
               </Link>
             ))}
-          </Section>
+          </CollapsibleSection>
         )}
 
         {results.products?.length > 0 && (tab === "all" || tab === "products") && (
-          <Section title={t('search.products')} icon={ShoppingBag} count={results.products.length}>
+          <CollapsibleSection title={t('search.products')} icon={ShoppingBag} count={results.products.length} sectionKey="products" expandedSections={expandedSections} setExpandedSections={setExpandedSections} itemCount={results.products.length}>
             <div className="grid grid-cols-2 gap-3 p-3">
-              {results.products.map(p => {
+              {(expandedSections["products"] ? results.products : results.products.slice(0, 5)).map(p => {
                 const imgs = (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })();
                 return (
                   <Link key={p.id} href={`/products/${p.id}`}
@@ -353,11 +363,11 @@ export default function Search() {
                 );
               })}
             </div>
-          </Section>
+          </CollapsibleSection>
         )}
 
         {results.showrooms?.length > 0 && (tab === "all" || tab === "showrooms") && (
-          <Section title={t('search.showrooms')} icon={Crown} count={results.showrooms.length}>
+          <CollapsibleSection title={t('search.showrooms')} icon={Crown} count={results.showrooms.length} sectionKey="showrooms" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
             {results.showrooms.map(s => (
               <Link key={s.id} href={`/showrooms/${s.id}`}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
@@ -373,11 +383,11 @@ export default function Search() {
                 </div>
               </Link>
             ))}
-          </Section>
+          </CollapsibleSection>
         )}
 
         {results.tasks?.length > 0 && (tab === "all" || tab === "tasks") && (
-          <Section title={t('nav.tasks')} icon={ClipboardList} count={results.tasks.length}>
+          <CollapsibleSection title={t('nav.tasks')} icon={ClipboardList} count={results.tasks.length} sectionKey="tasks" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
             {results.tasks.map(t => (
               <Link key={t.id} href="/tasks"
                 className="flex items-center justify-between p-3 rounded-xl hover:bg-secondary/50 transition-colors gap-2">
@@ -392,11 +402,11 @@ export default function Search() {
                 <p className="text-sm font-bold text-amber-600 shrink-0">{t.offered_payment?.toLocaleString()} {t.currency}</p>
               </Link>
             ))}
-          </Section>
+          </CollapsibleSection>
         )}
 
         {results.posts?.length > 0 && (tab === "all" || tab === "posts") && (
-          <Section title={t('search.posts')} icon={FileText} count={results.posts.length}>
+          <CollapsibleSection title={t('search.posts')} icon={FileText} count={results.posts.length} sectionKey="posts" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
             {results.posts.map(p => (
               <div key={p.id} className="p-3 rounded-xl hover:bg-secondary/50 transition-colors border-b border-border/30 last:border-0">
                 <div className="flex items-center gap-2 mb-1.5">
@@ -410,11 +420,11 @@ export default function Search() {
                 <p className="text-xs text-muted-foreground mt-1">❤️ {p.like_count} · 💬 {p.comment_count}</p>
               </div>
             ))}
-          </Section>
+          </CollapsibleSection>
         )}
 
         {results.jobs?.length > 0 && tab === "jobs" && (
-          <Section title={t('nav.jobs')} icon={Briefcase} count={results.jobs.length}>
+          <CollapsibleSection title={t('nav.jobs')} icon={Briefcase} count={results.jobs.length} sectionKey="jobs" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
             {results.jobs.map(j => (
               <Link key={j.id} href="/jobs"
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
@@ -439,11 +449,11 @@ export default function Search() {
                 </div>
               </Link>
             ))}
-          </Section>
+          </CollapsibleSection>
         )}
 
         {results.events?.length > 0 && tab === "events" && (
-          <Section title={t('nav.events')} icon={CalendarDays} count={results.events.length}>
+          <CollapsibleSection title={t('nav.events')} icon={CalendarDays} count={results.events.length} sectionKey="events" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
             {results.events.map(e => (
               <Link key={e.id} href="/events"
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
@@ -464,7 +474,7 @@ export default function Search() {
                 </div>
               </Link>
             ))}
-          </Section>
+          </CollapsibleSection>
         )}
 
       </div>
@@ -472,7 +482,33 @@ export default function Search() {
 }
 
 // ── Section wrapper ──────────────────────────────────────────────────────────
-function Section({ title, icon: Icon, count, children }: { title: string; icon: any; count: number; children: React.ReactNode }) {
+function CollapsibleSection({
+  title,
+  icon: Icon,
+  count,
+  sectionKey,
+  expandedSections,
+  setExpandedSections,
+  children,
+  itemCount,
+}: {
+  title: string;
+  icon: any;
+  count: number;
+  sectionKey: string;
+  expandedSections: Record<string, boolean>;
+  setExpandedSections: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  children: React.ReactNode;
+  /** Override item count for sections where children don't map 1:1 to items (e.g. grid wrappers) */
+  itemCount?: number;
+}) {
+  const isExpanded = !!expandedSections[sectionKey];
+  const items = React.Children.toArray(children);
+  // When itemCount is provided (e.g. grid sections), use it for show-more logic
+  const effectiveCount = itemCount ?? items.length;
+  const visibleItems = (itemCount == null && !isExpanded) ? items.slice(0, 5) : items;
+  const hiddenCount = effectiveCount - 5;
+
   return (
     <div className="mb-5">
       <div className="flex items-center gap-2 mb-2 px-1">
@@ -481,8 +517,24 @@ function Section({ title, icon: Icon, count, children }: { title: string; icon: 
         <span className="text-xs text-muted-foreground">({count})</span>
       </div>
       <div className="bg-card dark:bg-card rounded-2xl border border-border/50 overflow-hidden divide-y divide-border/30">
-        {children}
+        {visibleItems}
       </div>
+      {!isExpanded && hiddenCount > 0 && (
+        <button
+          onClick={() => setExpandedSections(prev => ({ ...prev, [sectionKey]: true }))}
+          className="mt-1.5 w-full text-xs font-medium text-amber-600 hover:text-amber-700 py-2 rounded-xl hover:bg-amber-50 transition-colors"
+        >
+          Show {hiddenCount} more
+        </button>
+      )}
+      {isExpanded && (
+        <button
+          onClick={() => setExpandedSections(prev => ({ ...prev, [sectionKey]: false }))}
+          className="mt-1.5 w-full text-xs font-medium text-muted-foreground hover:text-foreground py-2 rounded-xl hover:bg-secondary transition-colors"
+        >
+          Show less
+        </button>
+      )}
     </div>
   );
 }
