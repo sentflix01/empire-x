@@ -8,6 +8,7 @@ import client from "@/api/client";
 import {
   Users, ShoppingBag, FileText, ClipboardList, ShieldAlert,
   Trash2, CheckCircle, Crown, BarChart3, BadgeCheck, X, Search,
+  Clock, CheckCircle2, XCircle, Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,172 @@ import { Badge } from "@/components/ui/badge";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import moment from "moment";
 import { useTranslation } from 'react-i18next';
+import { toast } from "sonner";
+
+// ── Pending Verification Requests Queue ──────────────────────────────────────
+function PendingVerificationRequests() {
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [reviewing, setReviewing] = useState<string | null>(null);
+  const [selectedReq, setSelectedReq] = useState<any>(null);
+  const [adminNote, setAdminNote] = useState('');
+  const [imageModal, setImageModal] = useState<string | null>(null);
+
+  useEffect(() => { load(); }, []);
+
+  async function load() {
+    setLoading(true);
+    try {
+      const { data } = await client.get('/api/verification/requests?status=pending');
+      setRequests(data);
+    } catch { /* ignore */ }
+    setLoading(false);
+  }
+
+  async function handleReview(requestId: string, action: 'approve' | 'reject') {
+    setReviewing(requestId);
+    try {
+      await client.put(`/api/verification/requests/${requestId}`, { action, admin_note: adminNote });
+      toast.success(action === 'approve' ? 'Verification approved!' : 'Request rejected');
+      setSelectedReq(null);
+      setAdminNote('');
+      load();
+    } catch {
+      toast.error('Failed to process request');
+    }
+    setReviewing(null);
+  }
+
+  if (loading) return (
+    <div className="bg-card rounded-2xl border border-border/50 p-4 animate-pulse">
+      <div className="h-4 bg-secondary rounded w-1/3 mb-3" />
+      <div className="h-3 bg-secondary rounded w-full mb-2" />
+    </div>
+  );
+
+  if (requests.length === 0) return (
+    <div className="bg-card rounded-2xl border border-border/50 p-4">
+      <div className="flex items-center gap-2 mb-1">
+        <Clock className="w-4 h-4 text-amber-500" />
+        <span className="text-sm font-semibold">Pending Verification Requests</span>
+        <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">0</span>
+      </div>
+      <p className="text-xs text-muted-foreground">No pending requests.</p>
+    </div>
+  );
+
+  return (
+    <>
+      <div className="bg-card rounded-2xl border border-amber-200/60 overflow-hidden">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30">
+          <Clock className="w-4 h-4 text-amber-500" />
+          <span className="text-sm font-semibold">Pending Verification Requests</span>
+          <span className="text-xs bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full">{requests.length}</span>
+        </div>
+        {requests.map(req => (
+          <div key={req.id} className="flex items-start gap-3 p-4 border-b border-border/30 last:border-0">
+            {/* Avatar */}
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden">
+              {req.avatar_url
+                ? <img src={req.avatar_url} alt="" className="w-full h-full object-cover" />
+                : (req.display_name?.charAt(0) ?? req.account_name?.charAt(0) ?? '?')}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">{req.display_name || req.account_name}</p>
+              <p className="text-xs text-muted-foreground">{req.email}</p>
+              <div className="flex gap-1.5 mt-1">
+                <span className="text-[10px] bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded-full capitalize">{req.verification_type}</span>
+                <span className="text-[10px] text-muted-foreground">{moment(req.created_at).fromNow()}</span>
+              </div>
+              {/* Photos preview */}
+              <div className="flex gap-2 mt-2">
+                <button onClick={() => setImageModal(req.selfie_url)} className="relative group">
+                  <img src={req.selfie_url} alt="selfie" className="w-16 h-16 rounded-xl object-cover border border-border/50 hover:border-amber-400 transition-colors" />
+                  <div className="absolute inset-0 rounded-xl bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                    <Eye className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground block mt-0.5">Selfie</span>
+                </button>
+                <button onClick={() => setImageModal(req.id_document_url)} className="relative group">
+                  <img src={req.id_document_url} alt="ID" className="w-16 h-16 rounded-xl object-cover border border-border/50 hover:border-amber-400 transition-colors" />
+                  <div className="absolute inset-0 rounded-xl bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                    <Eye className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground block mt-0.5">ID Doc</span>
+                </button>
+              </div>
+            </div>
+            <button
+              onClick={() => { setSelectedReq(req); setAdminNote(''); }}
+              className="text-xs font-semibold text-amber-600 hover:underline shrink-0"
+            >
+              Review
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Review modal */}
+      {selectedReq && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setSelectedReq(null)}>
+          <div className="bg-card rounded-2xl w-full max-w-md p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-lg">Review Request</h3>
+              <button onClick={() => setSelectedReq(null)} className="p-1.5 rounded-full hover:bg-secondary"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="flex gap-3 mb-4">
+              <div>
+                <img src={selectedReq.selfie_url} alt="selfie" className="w-24 h-24 rounded-xl object-cover border" />
+                <p className="text-xs text-center text-muted-foreground mt-1">Selfie</p>
+              </div>
+              <div>
+                <img src={selectedReq.id_document_url} alt="ID" className="w-24 h-24 rounded-xl object-cover border" />
+                <p className="text-xs text-center text-muted-foreground mt-1">ID Document</p>
+              </div>
+            </div>
+            <div className="mb-1">
+              <p className="text-sm font-semibold">{selectedReq.display_name || selectedReq.account_name}</p>
+              <p className="text-xs text-muted-foreground">{selectedReq.email} · {selectedReq.verification_type}</p>
+            </div>
+            <div className="mb-4">
+              <label className="text-xs font-semibold text-muted-foreground block mb-1">Admin Note (optional)</label>
+              <Input
+                value={adminNote}
+                onChange={e => setAdminNote(e.target.value)}
+                placeholder="Reason for rejection or approval note..."
+                className="h-9 text-sm"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleReview(selectedReq.id, 'approve')}
+                disabled={!!reviewing}
+                className="flex-1 h-10 bg-green-600 hover:bg-green-700 text-white rounded-full"
+              >
+                <CheckCircle2 className="w-4 h-4 mr-1.5" /> Approve
+              </Button>
+              <Button
+                onClick={() => handleReview(selectedReq.id, 'reject')}
+                disabled={!!reviewing}
+                variant="outline"
+                className="flex-1 h-10 text-red-600 border-red-200 hover:bg-red-50 rounded-full"
+              >
+                <XCircle className="w-4 h-4 mr-1.5" /> Reject
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full image modal */}
+      {imageModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setImageModal(null)}>
+          <img src={imageModal} alt="" className="max-w-full max-h-[90vh] rounded-2xl object-contain" />
+        </div>
+      )}
+    </>
+  );
+}
 
 const TABS = ["overview", "users", "verification", "posts", "products", "orders", "reports"];
 
@@ -218,6 +385,10 @@ function Admin() {
             {/* ── Verification Management ── */}
             {tab === "verification" && (
               <div className="space-y-4">
+
+                {/* Pending verification requests queue */}
+                <PendingVerificationRequests />
+
                 {/* Filter + search */}
                 <div className="flex gap-2 flex-wrap">
                   <div className="relative flex-1 min-w-48">

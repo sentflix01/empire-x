@@ -16,6 +16,7 @@ import TemplateCard from "@/components/profile/TemplateCard";
 import ImageUpload from "@/components/ui/ImageUpload";
 import TickerBar, { TICKER_TYPES } from "@/components/feed/TickerBar";
 import { toast } from "sonner";
+import VerificationRequest from "@/components/profile/VerificationRequest";
 import {
   getPushPermission, subscribeToPush, unsubscribeFromPush, isPushGranted,
 } from "@/lib/push";
@@ -393,6 +394,9 @@ export default function ProfileEdit() {
 
             {/* Push Notifications toggle */}
             <PushSettingsCard />
+
+            {/* Verification */}
+            <VerificationRequest />
           </div>
         )}
 
