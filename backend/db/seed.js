@@ -309,13 +309,16 @@ async function seed() {
     console.log('📋 Creating user profiles...');
     for (const user of users) {
       const c = jitter(9.0200, 38.7520, 3);
+      // Use picsum.photos with consistent seed per user for stable avatars
+      const avatarSeed = user.id.replace(/-/g, '').slice(0, 8);
+      const avatarUrl = `https://picsum.photos/seed/${avatarSeed}/200/200`;
       await client.query(
         `INSERT INTO user_profiles (
            user_id, display_name, bio, headline, location, phone,
            profile_type, has_business_profile, is_verified,
            follower_count, following_count, points,
-           latitude, longitude
-         ) VALUES ($1,$2,$3,$4,$5,$6,'personal',TRUE,$7,$8,$9,$10,$11,$12)`,
+           latitude, longitude, avatar_url
+         ) VALUES ($1,$2,$3,$4,$5,$6,'personal',TRUE,$7,$8,$9,$10,$11,$12,$13)`,
         [
           user.id, `${user.first} ${user.last}`,
           `${user.first} is a professional based in ${user.district}, Addis Ababa, Ethiopia.`,
@@ -325,6 +328,7 @@ async function seed() {
           Math.random() > 0.6,
           rand(10, 800), rand(5, 300), rand(50, 2000),
           c.lat, c.lon,
+          avatarUrl,
         ]
       );
     }
@@ -338,6 +342,9 @@ async function seed() {
       const owner = users[i % 50];
       const coords = jitter(biz.lat, biz.lon, 0.2);
       const color = CAT_COLORS[biz.cat] || '#D4AF37';
+      // Generate stable logo and cover images using picsum with business index as seed
+      const logoUrl = `https://picsum.photos/seed/biz${i}logo/200/200`;
+      const coverUrl = `https://picsum.photos/seed/biz${i}cover/800/300`;
       const bizMeta = {
         name: biz.name, cat: biz.cat, desc: biz.desc,
         email: owner.email, phone: `+2511${faker.string.numeric(8)}`,
@@ -349,18 +356,20 @@ async function seed() {
            owner_id, business_name, business_category, business_template,
            business_description, business_theme_color, business_sections, business_hours,
            business_contact_email, business_contact_phone,
-           business_address, latitude, longitude
-         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`,
+           business_address, latitude, longitude,
+           business_logo_url, business_cover_url
+         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
         [
           owner.id, biz.name, CAT_MAP[biz.cat] || 'other', templateId,
           biz.desc, color, sections, hours,
           owner.email, bizMeta.phone,
           bizMeta.address, coords.lat, coords.lon,
+          logoUrl, coverUrl,
         ]
       );
       bizRecords.push({
         id: rows[0].id, owner_id: owner.id, name: biz.name, cat: biz.cat,
-        desc: biz.desc, district: biz.district, color, ...bizMeta,
+        desc: biz.desc, district: biz.district, color, logoUrl, coverUrl, ...bizMeta,
       });
     }
     console.log(`  ✅ ${bizRecords.length} businesses with templates.\n`);
