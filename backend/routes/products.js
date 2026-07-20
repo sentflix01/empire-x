@@ -8,12 +8,40 @@ const { cacheMiddleware } = require('../middleware/cache');
 
 const LOW_STOCK_THRESHOLD = 5;
 
-// ... (rest unchanged)
+async function checkLowStockAlert(prevStock, newStock, product, sellerId) {
+  if (prevStock > LOW_STOCK_THRESHOLD && newStock <= LOW_STOCK_THRESHOLD && newStock >= 0) {
+    try {
+      const { rows: [notif] } = await pool.query(
+        `INSERT INTO notifications (user_id, type, title, body, link, is_read)
+         VALUES ($1, 'order', $2, $3, $4, false) RETURNING *`,
+        [sellerId, `⚠️ Low stock: ${product.title}`, `Only ${newStock} unit${newStock !== 1 ? 's' : ''} left.`, `/products/edit?id=${product.id}`]
+      );
+      emitNotification(sellerId, notif);
+      sendPushToUser(sellerId, `⚠️ Low stock: ${product.title}`, `Only ${newStock} unit${newStock !== 1 ? 's' : ''} left.`, `/products/edit?id=${product.id}`).catch(() => {});
+    } catch (alertErr) { console.error('Low-stock alert error:', alertErr.message); }
+  }
+}
 
 // List
 router.get('/', optionalAuth, cacheMiddleware('products:list', 30), async (req, res) => {
   try {
     const { seller_id, business_id, showroom_id, status, sort = '-created_at', limit = 50 } = req.query;
+
+    // Real-only mode: only products from real (non-seed) users
+    if (req.realOnly) {
+      const lim = Math.min(parseInt(limit) || 50, 200);
+      const conditions = ['u.is_seed = FALSE'];
+      const values = [];
+      if (seller_id) { values.push(seller_id); conditions.push(`p.seller_id = $${values.length}`); }
+      if (status) { values.push(status); conditions.push(`p.status = $${values.length}`); }
+      values.push(lim);
+      const { rows } = await pool.query(
+        `SELECT p.* FROM products p JOIN users u ON u.id = p.seller_id WHERE ${conditions.join(' AND ')} ORDER BY p.created_at DESC LIMIT $${values.length}`,
+        values
+      );
+      return res.json(rows);
+    }
+
     const filter = {};
     if (seller_id) filter.seller_id = seller_id;
     if (business_id) filter.business_id = business_id;

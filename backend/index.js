@@ -29,6 +29,10 @@ initSentry(app);
 // ── Gzip compression — reduces response size by 60-80% ───────────────────────
 app.use(compression());
 
+// ── Real-mode filter header — set req.realOnly when X-Real-Only: 1 ───────────
+const { realModeMiddleware } = require('./middleware/realMode');
+app.use(realModeMiddleware);
+
 // ── Request ID, HTTP access log, API version header ──────────────────────────
 app.use(requestId);
 app.use(httpLogger);

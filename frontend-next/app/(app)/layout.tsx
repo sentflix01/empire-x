@@ -4,7 +4,12 @@
  * Wraps authenticated app routes with the shared AppLayout.
  */
 import AppLayout from '@/components/layout/AppLayout';
+import { RealModeProvider } from '@/lib/RealModeContext';
 
 export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-  return <AppLayout>{children}</AppLayout>;
+  return (
+    <RealModeProvider>
+      <AppLayout>{children}</AppLayout>
+    </RealModeProvider>
+  );
 }

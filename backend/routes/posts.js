@@ -6,11 +6,15 @@ const { syncHashtags } = require('./hashtags');
 const { emitNotification } = require('../socket');
 const { sendPushToUser } = require('./push');
 const { cacheMiddleware } = require('../middleware/cache');
+const { realOnlyUserFilter } = require('../middleware/realMode');
 
 // List posts — supports smart feed with random offset for variety
 router.get('/', optionalAuth, cacheMiddleware('posts:list', 20), async (req, res) => {
   try {
     const { sort = '-created_at', limit = 30, author_id, post_type, feed = 'false' } = req.query;
+    const realFilter = req.realOnly
+      ? `AND p.author_id IN (SELECT id FROM users WHERE is_seed = FALSE)`
+      : '';
 
     // Smart feed mode: mix recent + popular + random for variety
     if (feed === 'true' && !author_id && !post_type) {
@@ -21,13 +25,16 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 20), async (req, res
            FROM (
              (SELECT *, 1 AS feed_rank FROM posts
               WHERE created_at > NOW() - INTERVAL '3 days'
+              ${realFilter}
               ORDER BY RANDOM() LIMIT $1)
              UNION ALL
              (SELECT *, 2 AS feed_rank FROM posts
               WHERE like_count > 5
+              ${realFilter}
               ORDER BY like_count DESC LIMIT $2)
              UNION ALL
              (SELECT *, 3 AS feed_rank FROM posts
+              ${realFilter ? 'WHERE 1=1 ' + realFilter : ''}
               ORDER BY RANDOM() LIMIT $3)
            ) combined
            ORDER BY id, feed_rank
@@ -43,6 +50,7 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 20), async (req, res
     const params = [];
     if (author_id) { params.push(author_id); conditions.push(`author_id = $${params.length}`); }
     if (post_type) { params.push(post_type); conditions.push(`post_type = $${params.length}`); }
+    if (req.realOnly) conditions.push(`author_id IN (SELECT id FROM users WHERE is_seed = FALSE)`);
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const orderBy = sort?.startsWith('-') ? `${sort.slice(1)} DESC` : (sort || 'created_at DESC');
     params.push(Math.min(parseInt(limit) || 30, 100));

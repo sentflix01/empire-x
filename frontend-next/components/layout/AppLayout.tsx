@@ -22,6 +22,7 @@ import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import { toast } from "sonner";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { PeopleYouMayKnow } from "@/components/suggestions/PeopleYouMayKnow";
+import { useRealMode } from "@/lib/RealModeContext";
 // AccountSettings popup replaced by /settings navigation
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
@@ -165,6 +166,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, authChecked, isLoadingAuth, logout } = useAuth();
+  const { realMode, toggleRealMode } = useRealMode();
   const tr = (key: string) => String(t(key));
   const displayName = typeof user?.full_name === 'string' ? user.full_name : 'User';
   const userEmail = typeof user?.email === 'string' ? user.email : '';
@@ -400,6 +402,19 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </span>
               )}
             </Link>
+            {/* Real/Demo mode toggle */}
+            <button
+              onClick={toggleRealMode}
+              title={realMode ? 'Showing real users only — click to show all' : 'Showing all users (demo + real) — click for real only'}
+              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-all ${
+                realMode
+                  ? 'bg-green-500 text-white border-green-500 shadow-sm shadow-green-500/30'
+                  : 'bg-secondary text-muted-foreground border-border/50 hover:bg-secondary/80'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${realMode ? 'bg-white' : 'bg-amber-500'}`} />
+              {realMode ? 'Real' : 'Demo'}
+            </button>
             {/* Dark mode */}
             <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Toggle dark mode">
               {!mounted ? (

@@ -73,12 +73,16 @@ router.get('/', optionalAuth, cacheMiddleware('profiles:list', 30), async (req, 
     const sortDir = sort.startsWith('-') ? 'DESC' : 'ASC';
     const sortCol = sort.replace(/^-/, '').replace(/[^a-z0-9_]/gi, '') || 'created_at';
 
+    // Real-only mode: filter out seed profiles
+    if (req.realOnly) conditions.push('u.is_seed = FALSE');
+    const finalWhere = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
     values.push(lim);
     const { rows } = await pool.query(
       `SELECT up.*, u.is_seed
        FROM user_profiles up
        JOIN users u ON u.id = up.user_id
-       ${whereClause}
+       ${finalWhere}
        ORDER BY up.${sortCol} ${sortDir}
        LIMIT $${values.length}`,
       values
