@@ -138,7 +138,7 @@ router.get('/', optionalAuth, async (req, res) => {
                 ${dSel}
          FROM products p
          WHERE p.status = 'active'
-           AND (p.title ILIKE $1 OR p.description ILIKE $1 OR p.category ILIKE $1 OR p.tags ILIKE $1)
+           AND (p.title ILIKE $1 OR p.description ILIKE $1 OR p.category ILIKE $1)
            ${extraConds.length ? 'AND ' + extraConds.join(' AND ') : ''}
            ${dFlt}
          ORDER BY ${order}
