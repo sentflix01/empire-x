@@ -35,10 +35,14 @@ function getRedis() {
 
   try {
     const IORedis = require('ioredis');
+    // Upstash and other TLS Redis providers use rediss:// — ioredis needs
+    // tls option explicitly set to handle self-signed / managed certs properly.
+    const isTls = redisUrl.startsWith('rediss://');
     redis = new IORedis(redisUrl, {
       maxRetriesPerRequest: 3,
       enableReadyCheck: false,
       lazyConnect: true,
+      ...(isTls ? { tls: { rejectUnauthorized: false } } : {}),
     });
 
     redis.on('connect', () => {
