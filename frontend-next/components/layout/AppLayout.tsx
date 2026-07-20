@@ -10,7 +10,7 @@ import {
   Plus, Crown, TrendingUp, Briefcase, GraduationCap, CalendarDays,
   Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, MapPin, Tag,
   Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
-  PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut,
+  PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Settings,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -22,6 +22,7 @@ import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import { toast } from "sonner";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { PeopleYouMayKnow } from "@/components/suggestions/PeopleYouMayKnow";
+// AccountSettings popup replaced by /settings navigation
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
 function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string } | null }) {
@@ -572,17 +573,21 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <div className="h-4" />
         </div>
 
-        {/* Drawer footer — user info + logout */}
+        {/* Drawer footer — Account Settings + logout */}
         <div className="border-t border-border px-3 py-3 shrink-0">
-          <Link href="/profile" onClick={() => setDrawerOpen(false)}
-            className="flex items-center gap-3 rounded-xl hover:bg-secondary p-2 transition-colors">
+          <Link
+            href="/settings"
+            onClick={() => setDrawerOpen(false)}
+            className="flex items-center gap-3 rounded-xl hover:bg-secondary p-2 transition-colors"
+          >
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
               {user?.full_name?.charAt(0) || "E"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate">{displayName}</p>
-              <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+              <p className="text-xs text-muted-foreground">Account Settings</p>
             </div>
+            <Settings className="w-4 h-4 text-muted-foreground shrink-0" />
           </Link>
           <button
             onClick={() => { setDrawerOpen(false); logout(); }}
@@ -679,43 +684,39 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <div className="h-2" />
           </div>
 
-          {/* User info pinned at bottom */}
-          <div className="border-t border-border px-2 py-3 shrink-0">
+          {/* Account Settings — navigates to /settings */}
+          <div className="border-t border-border px-2 py-3 shrink-0 flex items-center gap-1">
             <Link
-              href="/profile"
-              title={sidebarCollapsed ? (user?.full_name || "Profile") : undefined}
-              className={`relative flex items-center gap-2 rounded-xl hover:bg-secondary p-2 transition-colors group
+              href="/settings"
+              title={sidebarCollapsed ? "Account Settings" : undefined}
+              className={`relative flex items-center gap-2 rounded-xl hover:bg-secondary p-2 transition-colors flex-1 min-w-0 group
                 ${sidebarCollapsed ? "justify-center" : ""}`}
             >
+              {/* Avatar */}
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
                 {userInitial}
               </div>
               {!sidebarCollapsed && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold truncate">{user?.full_name || "User"}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{user?.email || ""}</p>
-                </div>
+                <>
+                  <span className="text-xs font-semibold truncate flex-1 min-w-0">{displayName}</span>
+                  <Settings className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                </>
               )}
+              {/* Tooltip in collapsed mode */}
               {sidebarCollapsed && (
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                  {user?.full_name || "Profile"}
+                  Account Settings
                 </span>
               )}
             </Link>
-            {/* Logout button */}
+            {/* Logout icon button */}
             <button
               onClick={() => logout()}
-              title={sidebarCollapsed ? "Log out" : undefined}
-              className={`relative mt-1 w-full flex items-center gap-2 rounded-xl hover:bg-destructive/10 hover:text-destructive p-2 transition-colors text-muted-foreground group
-                ${sidebarCollapsed ? "justify-center" : ""}`}
+              title="Log out"
+              aria-label="Log out"
+              className="p-2 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground shrink-0"
             >
-              <LogOut className="w-4 h-4 shrink-0" />
-              {!sidebarCollapsed && <span className="text-xs font-medium">Log out</span>}
-              {sidebarCollapsed && (
-                <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                  Log out
-                </span>
-              )}
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </nav>

@@ -337,6 +337,18 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// ── PUT /api/auth/update-name ─────────────────────────────────────────────────
+router.put('/update-name', requireAuth, async (req, res) => {
+  const { full_name } = req.body;
+  if (!full_name?.trim()) return apiError.validationError(res, 'full_name is required');
+  try {
+    await pool.query('UPDATE users SET full_name = $1 WHERE id = $2', [full_name.trim(), req.user.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update name' });
+  }
+});
+
 // ── PUT /api/auth/change-password ────────────────────────────────────────────
 router.put('/change-password', requireAuth, async (req, res) => {
   const { current_password, new_password } = req.body;

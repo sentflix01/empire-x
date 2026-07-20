@@ -77,7 +77,8 @@ export const auth = {
     client.post('/api/auth/logout').catch(() => {});
     clearToken();
     if (typeof window !== 'undefined') {
-      window.location.href = typeof redirectTo === 'string' ? redirectTo : '/login';
+      // Default redirect to landing page (not login) after logout
+      window.location.href = typeof redirectTo === 'string' ? redirectTo : '/';
     }
   },
 

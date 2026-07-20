@@ -173,6 +173,26 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
   }
 });
 
+// Edit message
+router.put('/messages/:id', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM messages WHERE id = $1', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Message not found' });
+    if (rows[0].sender_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    const { content } = req.body;
+    if (!content?.trim()) return res.status(400).json({ error: 'content is required' });
+    const { rows: updated } = await pool.query(
+      'UPDATE messages SET content = $1, edited = TRUE, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [content, req.params.id]
+    );
+    res.json(updated[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to edit message' });
+  }
+});
+
 // Delete message
 router.delete('/messages/:id', requireAuth, async (req, res) => {
   try {
@@ -185,6 +205,154 @@ router.delete('/messages/:id', requireAuth, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete message' });
+  }
+});
+
+// Delete all messages in a conversation (clear history) for the current user
+router.delete('/conversations/:id/history', requireAuth, async (req, res) => {
+  try {
+    const conv = await getRecord('conversations', req.params.id);
+    if (!conv) return res.status(404).json({ error: 'Conversation not found' });
+    const ids = JSON.parse(conv.participant_ids || '[]');
+    if (!ids.includes(req.user.id)) return res.status(403).json({ error: 'Forbidden' });
+    // Delete all messages in this conversation sent by the requester
+    await pool.query('DELETE FROM messages WHERE conversation_id = $1 AND sender_id = $2', [req.params.id, req.user.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear history' });
+  }
+});
+
+// Leave a group/channel conversation
+router.post('/conversations/:id/leave', requireAuth, async (req, res) => {
+  try {
+    const conv = await getRecord('conversations', req.params.id);
+    if (!conv) return res.status(404).json({ error: 'Conversation not found' });
+    const ids = JSON.parse(conv.participant_ids || '[]');
+    const names = JSON.parse(conv.participant_names || '[]');
+    if (!ids.includes(req.user.id)) return res.status(400).json({ error: 'Not a participant' });
+    const idx = ids.indexOf(req.user.id);
+    ids.splice(idx, 1);
+    names.splice(idx, 1);
+    await pool.query(
+      'UPDATE conversations SET participant_ids = $1, participant_names = $2, updated_at = NOW() WHERE id = $3',
+      [JSON.stringify(ids), JSON.stringify(names), req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to leave conversation' });
+  }
+});
+
+// Add member to group/channel (admin only)
+router.post('/conversations/:id/members', requireAuth, async (req, res) => {
+  try {
+    const conv = await getRecord('conversations', req.params.id);
+    if (!conv) return res.status(404).json({ error: 'Conversation not found' });
+    if (conv.admin_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Only group admin can add members' });
+    }
+    const { user_id, display_name } = req.body;
+    const ids = JSON.parse(conv.participant_ids || '[]');
+    const names = JSON.parse(conv.participant_names || '[]');
+    if (ids.includes(user_id)) return res.status(409).json({ error: 'Already a member' });
+    ids.push(user_id);
+    names.push(display_name || 'User');
+    await pool.query(
+      'UPDATE conversations SET participant_ids = $1, participant_names = $2, updated_at = NOW() WHERE id = $3',
+      [JSON.stringify(ids), JSON.stringify(names), req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to add member' });
+  }
+});
+
+// Remove member from group/channel (admin only)
+router.delete('/conversations/:id/members/:userId', requireAuth, async (req, res) => {
+  try {
+    const conv = await getRecord('conversations', req.params.id);
+    if (!conv) return res.status(404).json({ error: 'Conversation not found' });
+    if (conv.admin_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Only group admin can remove members' });
+    }
+    const ids = JSON.parse(conv.participant_ids || '[]');
+    const names = JSON.parse(conv.participant_names || '[]');
+    const idx = ids.indexOf(req.params.userId);
+    if (idx === -1) return res.status(404).json({ error: 'Member not found' });
+    ids.splice(idx, 1);
+    names.splice(idx, 1);
+    await pool.query(
+      'UPDATE conversations SET participant_ids = $1, participant_names = $2, updated_at = NOW() WHERE id = $3',
+      [JSON.stringify(ids), JSON.stringify(names), req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to remove member' });
+  }
+});
+
+// Delete conversation entirely (creator/admin only)
+router.delete('/conversations/:id', requireAuth, async (req, res) => {
+  try {
+    const conv = await getRecord('conversations', req.params.id);
+    if (!conv) return res.status(404).json({ error: 'Conversation not found' });
+    if (conv.admin_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Only group admin can delete this conversation' });
+    }
+    await pool.query('DELETE FROM messages WHERE conversation_id = $1', [req.params.id]);
+    await deleteRecord('conversations', req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete conversation' });
+  }
+});
+
+// Set online presence status
+router.put('/presence', requireAuth, async (req, res) => {
+  try {
+    const { status } = req.body; // 'online' | 'offline' | 'away'
+    const validStatuses = ['online', 'offline', 'away'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'status must be online, offline, or away' });
+    }
+    // Store in Redis if available, else just update users.updated_at as proxy
+    const { getRedis } = require('../lib/redis');
+    const redis = getRedis();
+    if (!redis.isNoOp) {
+      await redis.setex(`presence:${req.user.id}`, 300, status); // 5 min TTL
+    }
+    // Always update the users table for persistent offline detection
+    await pool.query('UPDATE users SET updated_at = NOW() WHERE id = $1', [req.user.id]);
+    res.json({ success: true, status });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update presence' });
+  }
+});
+
+// Get online presence of a user
+router.get('/presence/:userId', requireAuth, async (req, res) => {
+  try {
+    const { getRedis } = require('../lib/redis');
+    const redis = getRedis();
+    let status = 'offline';
+    if (!redis.isNoOp) {
+      const cached = await redis.get(`presence:${req.params.userId}`);
+      if (cached) status = cached;
+    } else {
+      // Fallback: check updated_at within last 10 minutes
+      const { rows } = await pool.query(
+        'SELECT updated_at FROM users WHERE id = $1',
+        [req.params.userId]
+      );
+      if (rows.length && rows[0].updated_at) {
+        const diff = Date.now() - new Date(rows[0].updated_at).getTime();
+        if (diff < 10 * 60 * 1000) status = 'online';
+      }
+    }
+    res.json({ user_id: req.params.userId, status });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get presence' });
   }
 });
 

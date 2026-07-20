@@ -201,6 +201,28 @@ export default function Messages() {
                   const name = getDisplayName(conv);
                   const isChannel = conv.type === "channel";
                   const isGroup = conv.type === "group";
+                  const isDm = conv.type === "dm";
+
+                  // For DM conversations, try to resolve the other participant's avatar
+                  // by matching against loaded contacts
+                  let dmAvatarUrl = "";
+                  if (isDm && !conv.avatar_url) {
+                    try {
+                      const ids = JSON.parse(conv.participant_ids || "[]");
+                      const otherId = ids.find((id: string) => id !== user?.id);
+                      if (otherId) {
+                        const match = contacts.find(c => c.id === otherId || c.user_id === otherId);
+                        if (match) {
+                          dmAvatarUrl = Array.isArray(match.avatar_url)
+                            ? (match.avatar_url[0] ?? "")
+                            : (match.avatar_url ?? "");
+                        }
+                      }
+                    } catch { /* ignore */ }
+                  }
+
+                  const resolvedAvatarUrl = conv.avatar_url || dmAvatarUrl;
+
                   return (
                     <Link
                       key={conv.id}
@@ -208,8 +230,8 @@ export default function Messages() {
                       className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary/50 transition-colors"
                     >
                       {/* Avatar */}
-                      {conv.avatar_url ? (
-                        <img src={conv.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover shrink-0" />
+                      {resolvedAvatarUrl ? (
+                        <img src={resolvedAvatarUrl} alt={name} className="w-12 h-12 rounded-full object-cover shrink-0" />
                       ) : (
                         <div
                           className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shrink-0"
@@ -257,6 +279,11 @@ function ContactItem({ contact, user, existingConv }) {
   const [creating, setCreating] = useState(false);
   const name = contact.display_name || contact.headline || "Unknown";
 
+  // Resolve avatar_url — may be array or string
+  const avatarUrl = Array.isArray(contact.avatar_url)
+    ? (contact.avatar_url[0] ?? "")
+    : (contact.avatar_url ?? "");
+
   const handleStartChat = async () => {
     if (existingConv) return;
     setCreating(true);
@@ -280,7 +307,19 @@ function ContactItem({ contact, user, existingConv }) {
       onClick={(e) => { if (!existingConv) { e.preventDefault(); handleStartChat(); } }}
       className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary/50 transition-colors"
     >
-      <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold shrink-0" style={{ backgroundColor: "#0088cc" }}>
+      {/* Avatar with image fallback */}
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={name}
+          className="w-11 h-11 rounded-full object-cover shrink-0"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement | null)?.removeAttribute('style'); }}
+        />
+      ) : null}
+      <div
+        className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold shrink-0"
+        style={{ backgroundColor: "#0088cc", display: avatarUrl ? 'none' : 'flex' }}
+      >
         {name.charAt(0).toUpperCase()}
       </div>
       <div className="flex-1 min-w-0 border-b border-border/20 pb-2.5 -mb-2.5">

@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setIsAuth(false);
     setAuthChecked(false);
-    const target = typeof redirectTo === 'string' ? redirectTo : '/login';
+    const target = typeof redirectTo === 'string' ? redirectTo : '/';
     if (typeof window !== 'undefined') window.location.href = target;
   };
 

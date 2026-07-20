@@ -33,14 +33,16 @@ router.get('/people', requireAuth, cacheMiddleware('suggestions', 300, { varyByU
           AND f2.follower_id <> (SELECT id FROM requester)
         GROUP BY f2.follower_id
       ),
+      -- Users sharing ≥1 common followed user with the current user
+      -- Also includes all non-seed real users as fallback with score 0
       candidates AS (
         SELECT
           u.id                              AS user_id,
-          up.display_name,
+          COALESCE(up.display_name, u.full_name, u.email) AS display_name,
           up.avatar_url,
           up.headline,
           up.location,
-          up.follower_count,
+          COALESCE(up.follower_count, 0)    AS follower_count,
           u.is_seed,
           u.updated_at                      AS last_active_at,
           COALESCE(m.mutual_count, 0)       AS mutual_count,
@@ -49,7 +51,7 @@ router.get('/people', requireAuth, cacheMiddleware('suggestions', 300, { varyByU
             + CASE WHEN u.updated_at >= NOW() - INTERVAL '30 days' THEN 5 ELSE 0 END
           AS suggestion_score
         FROM users u
-        JOIN user_profiles up ON up.user_id = u.id
+        LEFT JOIN user_profiles up ON up.user_id = u.id
         LEFT JOIN mutual m ON m.candidate_id = u.id
         WHERE u.id <> $1
           AND u.id NOT IN (
@@ -97,15 +99,15 @@ router.get('/people', requireAuth, cacheMiddleware('suggestions', 300, { varyByU
         fallbackSql = `
           SELECT
             u.id           AS user_id,
-            up.display_name,
+            COALESCE(up.display_name, u.full_name, u.email) AS display_name,
             up.avatar_url,
             up.headline,
             up.location,
-            up.follower_count,
+            COALESCE(up.follower_count, 0) AS follower_count,
             u.is_seed,
             0              AS mutual_count
           FROM users u
-          JOIN user_profiles up ON up.user_id = u.id
+          LEFT JOIN user_profiles up ON up.user_id = u.id
           WHERE u.is_seed = FALSE
             AND u.id <> $1
             AND u.id NOT IN (
@@ -123,15 +125,15 @@ router.get('/people', requireAuth, cacheMiddleware('suggestions', 300, { varyByU
         fallbackSql = `
           SELECT
             u.id           AS user_id,
-            up.display_name,
+            COALESCE(up.display_name, u.full_name, u.email) AS display_name,
             up.avatar_url,
             up.headline,
             up.location,
-            up.follower_count,
+            COALESCE(up.follower_count, 0) AS follower_count,
             u.is_seed,
             0              AS mutual_count
           FROM users u
-          JOIN user_profiles up ON up.user_id = u.id
+          LEFT JOIN user_profiles up ON up.user_id = u.id
           WHERE u.is_seed = FALSE
             AND u.id <> $1
             AND u.id NOT IN (
