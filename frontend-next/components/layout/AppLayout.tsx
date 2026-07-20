@@ -225,6 +225,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         });
       });
     });
+
+    // Warm backend cache in background — don't await, don't block
+    client.get('/api/warm').catch(() => {});
+    client.get('/api/trending').catch(() => {});
+    client.get('/api/posts?limit=10').catch(() => {});
+
     return () => {
       disconnectSocket();
     };

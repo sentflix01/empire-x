@@ -7,9 +7,14 @@ export function makeQueryClient() {
     defaultOptions: {
       queries: {
         refetchOnWindowFocus: false,
+        // Don't refetch data that was fetched within the last 30 seconds — avoids
+        // unnecessary network hits when navigating between pages.
+        staleTime: 30 * 1000,
+        // Keep unused query data in the cache for 5 minutes so navigating back
+        // to a page shows instant data while a background refresh runs.
+        gcTime: 5 * 60 * 1000,
+        // Only retry once on failure to avoid hammering a struggling backend.
         retry: 1,
-        // Prevent refetching immediately on mount during SSR hydration
-        staleTime: 60 * 1000,
       },
     },
   });

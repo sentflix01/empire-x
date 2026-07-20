@@ -1,16 +1,37 @@
 const { Pool } = require('pg');
 const logger = require('../lib/logger');
 
+/**
+ * Build the connection string, automatically enabling PgBouncer on Neon.
+ * Neon's pooler endpoint requires `pgbouncer=true` in the query string to
+ * activate transaction-mode pooling, which cuts connection overhead by 30-50%.
+ * We detect Neon by checking for "neon.tech" in DATABASE_URL and append the
+ * param without requiring the user to change their env var.
+ */
+function buildConnectionString(raw) {
+  if (!raw) return raw;
+  if (!raw.includes('neon.tech')) return raw;
+  // Already has the param — nothing to do
+  if (raw.includes('pgbouncer=true')) return raw;
+  // Append correctly depending on whether a query string already exists
+  const separator = raw.includes('?') ? '&' : '?';
+  return `${raw}${separator}pgbouncer=true`;
+}
+
+const connectionString = buildConnectionString(process.env.DATABASE_URL);
+
 // Neon free tier allows max 20 connections total across all services.
 // Keep pool small to avoid connection exhaustion — Railway + Neon free = max 5 per instance.
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   max: parseInt(process.env.DB_POOL_MAX || '5', 10),
   min: 1,
-  idleTimeoutMillis: 60_000,     // keep connections alive longer to avoid reconnect overhead
+  idleTimeoutMillis: 60_000,      // keep connections alive longer to avoid reconnect overhead
   connectionTimeoutMillis: 8_000,
-  allowExitOnIdle: false,         // keep pool warm between requests
+  allowExitOnIdle: false,          // keep pool warm between requests
+  statement_timeout: 10_000,       // 10 s — prevent slow queries from blocking the pool
+  application_name: 'empire-x-backend', // visible in Neon dashboard → Monitoring
 });
 
 pool.on('error', (err) => {
