@@ -6,11 +6,7 @@ import { auth } from "@/api/auth";
 import client from "@/api/client";
 import { useTranslation } from 'react-i18next';
 import { useRealMode } from "@/lib/RealModeContext";
-
-import {
-  Search, Users, Radio, User as UserIcon, Menu,
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Search, Users, Radio, User as UserIcon, MessageCircle } from "lucide-react";
 import moment from "moment";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
 
@@ -22,8 +18,7 @@ export default function Messages() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState("all"); // all | groups | channels | contacts
-  // Online presence: map userId → 'online'|'offline'
+  const [tab, setTab] = useState("all");
   const [presence, setPresence] = useState({});
 
   useEffect(() => {
@@ -32,7 +27,6 @@ export default function Messages() {
 
   useEffect(() => {
     if (!user) return;
-    // Poll for new conversations every 10 seconds
     const interval = setInterval(() => loadConversations(), 10000);
     return () => clearInterval(interval);
   }, [user]);
@@ -44,58 +38,37 @@ export default function Messages() {
     try {
       const data = await entities.Conversation.list("-updated_at", 100);
       const myConvos = data.filter(c => {
-        try {
-          const ids = JSON.parse(c.participant_ids || "[]");
-          return ids.includes(u.id);
-        } catch { return false; }
+        try { return JSON.parse(c.participant_ids || "[]").includes(u.id); } catch { return false; }
       });
-
-      // Filter out empty DM conversations older than 5 minutes
       const now = Date.now();
       const cleaned = myConvos.filter(c => {
         if (c.type === 'dm' && !c.last_message) {
-          const age = now - new Date(c.created_at).getTime();
-          if (age > 5 * 60 * 1000) return false; // discard empty old DMs
+          if (now - new Date(c.created_at).getTime() > 5 * 60 * 1000) return false;
         }
         return true;
       });
-
       setConversations(cleaned);
 
-      // Fetch presence for DM participants
       const dmPartnerIds = cleaned
         .filter(c => c.type === 'dm')
-        .map(c => {
-          try {
-            const ids = JSON.parse(c.participant_ids || '[]');
-            return ids.find(id => id !== u.id);
-          } catch { return null; }
-        })
+        .map(c => { try { return JSON.parse(c.participant_ids || '[]').find(id => id !== u.id); } catch { return null; } })
         .filter(Boolean);
 
       if (dmPartnerIds.length > 0) {
-        const presenceResults = await Promise.all(
-          dmPartnerIds.map(uid =>
-            client.get(`/api/messages/presence/${uid}`)
-              .then(r => ({ uid, status: r.data.status }))
-              .catch(() => ({ uid, status: 'offline' }))
-          )
+        const results = await Promise.all(
+          dmPartnerIds.map(uid => client.get(`/api/messages/presence/${uid}`).then(r => ({ uid, status: r.data.status })).catch(() => ({ uid, status: 'offline' })))
         );
-        const presenceMap = {};
-        presenceResults.forEach(({ uid, status }) => { presenceMap[uid] = status; });
-        setPresence(presenceMap);
+        const map = {};
+        results.forEach(({ uid, status }) => { map[uid] = status; });
+        setPresence(map);
       }
-    } catch {
-      // silently keep existing conversations on poll failure
-    } finally {
-      setLoading(false);
-    }
+    } catch {} finally { setLoading(false); }
   };
 
   const loadContacts = async (u) => {
     try {
-      const allUsers = await entities.UserProfile.list("-created_at", 50);
-      setContacts(allUsers.filter(c => c.user_id !== u.id));
+      const all = await entities.UserProfile.list("-created_at", 50);
+      setContacts(all.filter(c => c.user_id !== u.id));
     } catch {}
   };
 
@@ -110,11 +83,6 @@ export default function Messages() {
     } catch { return "Chat"; }
   };
 
-  const getAvatarLetter = (conv) => {
-    const name = getDisplayName(conv);
-    return name.charAt(0).toUpperCase();
-  };
-
   const getAvatarColor = (conv) => {
     if (conv.type === "channel") return "var(--ex-blue)";
     if (conv.type === "group") return "var(--ex-purple)";
@@ -126,223 +94,225 @@ export default function Messages() {
     if (tab === "channels") return c.type === "channel";
     return true;
   }).filter(c => {
-    // Real-mode: exclude DMs with seed users
     if (realMode && c.type === 'dm') {
       try {
         const ids = JSON.parse(c.participant_ids || '[]');
-        const otherIds = ids.filter(id => id !== user?.id);
-        const hasSeed = otherIds.some(oid => {
+        const hasSeed = ids.filter(id => id !== user?.id).some(oid => {
           const contact = contacts.find(ct => ct.user_id === oid || ct.id === oid);
           return contact?.is_seed === true;
         });
         if (hasSeed) return false;
-      } catch { /* ignore */ }
+      } catch {}
     }
     if (!search) return true;
     return getDisplayName(c).toLowerCase().includes(search.toLowerCase());
   });
 
-  const filteredContacts = contacts.filter(c => {
-    if (!search) return true;
-    return (c.display_name || c.headline || "").toLowerCase().includes(search.toLowerCase());
-  });
+  const filteredContacts = contacts.filter(c =>
+    !search || (c.display_name || c.headline || "").toLowerCase().includes(search.toLowerCase())
+  );
 
   const tabs = [
-    { id: "all", label: "All" },
-    { id: "groups", label: "Groups", icon: Users },
+    { id: "all",      label: "All",      icon: null },
+    { id: "groups",   label: "Groups",   icon: Users },
     { id: "channels", label: "Channels", icon: Radio },
     { id: "contacts", label: "Contacts", icon: UserIcon },
   ];
 
   return (
-      <div className="max-w-xl mx-auto">
-        {/* Telegram-style Header */}
-        <div className="flex items-center justify-between mb-3 px-1">
-          <h1 className="font-display text-2xl font-bold text-primary">Empire Chat</h1>
+    <div className="max-w-xl mx-auto -mt-4 -mx-4 md:mx-auto md:mt-0">
+
+      {/* ── Gradient Header ── */}
+      <div
+        className="px-4 pt-5 pb-4"
+        style={{ background: 'linear-gradient(135deg, var(--ex-blue) 0%, var(--ex-purple) 100%)' }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="font-display text-2xl font-black text-white tracking-tight">Empire Chat</h1>
+            <p className="text-white/70 text-xs mt-0.5">{filteredConvs.length} conversation{filteredConvs.length !== 1 ? 's' : ''}</p>
+          </div>
           <NewChatMenu user={user} contacts={contacts} onCreated={() => loadConversations()} />
         </div>
 
-        {/* Search */}
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
+        {/* Search bar — white pill inside gradient header */}
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60 pointer-events-none" />
+          <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search"
-            className="pl-9 rounded-full bg-secondary border-0 h-10"
+            placeholder="Search conversations…"
+            className="w-full pl-10 pr-4 h-10 rounded-full text-sm outline-none"
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.18)',
+              color: '#fff',
+              caretColor: '#fff',
+            }}
           />
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 mb-3 overflow-x-auto no-scrollbar">
-          {tabs.map(t => {
-            const Icon = t.icon;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  tab === t.id
-                    ? "bg-primary text-white"
-                    : "bg-secondary text-muted-foreground hover:bg-secondary/80"
-                }`}
-              >
-                {Icon && <Icon className="w-3.5 h-3.5" />}
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
+      {/* ── Tab Pills ── */}
+      <div className="flex gap-1.5 px-4 py-3 bg-card border-b border-border/30 overflow-x-auto no-scrollbar">
+        {tabs.map(t => {
+          const Icon = t.icon;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                tab === t.id
+                  ? "text-white shadow-sm"
+                  : "bg-secondary text-muted-foreground hover:bg-secondary/70"
+              }`}
+              style={tab === t.id ? { background: 'linear-gradient(135deg, var(--ex-blue), var(--ex-purple))' } : {}}
+            >
+              {Icon && <Icon className="w-3.5 h-3.5" />}
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
 
-        {/* Content */}
-      {/* Spinner: only show on initial load, not on polls */}
-      {loading && conversations.length === 0 ? (
-          <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-3 border-border/50 border-t-primary rounded-full animate-spin" />
+      {/* ── Content ── */}
+      <div className="bg-card min-h-[60vh]">
+        {loading && conversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="w-10 h-10 rounded-full border-3 border-primary/20 border-t-primary animate-spin" />
+            <p className="text-xs text-muted-foreground">Loading chats…</p>
           </div>
+
         ) : tab === "contacts" ? (
-          /* Contacts List */
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-3 mb-2">
+          <div className="px-2 pt-2">
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-2 pb-2">
               {filteredContacts.length} Contacts
             </p>
-            <div className="space-y-0.5">
-              {filteredContacts.map(contact => (
-                <ContactItem
-                  key={contact.id}
-                  contact={contact}
-                  user={user}
+            {filteredContacts.length === 0 ? (
+              <EmptyState icon={UserIcon} title="No contacts found" />
+            ) : (
+              filteredContacts.map(contact => (
+                <ContactItem key={contact.id} contact={contact} user={user}
                   existingConv={conversations.find(c => {
-                    try {
-                      const ids = JSON.parse(c.participant_ids || "[]");
-                      return c.type === "dm" && ids.length === 2 && ids.includes(contact.id);
-                    } catch { return false; }
+                    try { const ids = JSON.parse(c.participant_ids || "[]"); return c.type === "dm" && ids.length === 2 && ids.includes(contact.id); }
+                    catch { return false; }
                   })}
                 />
-              ))}
-              {filteredContacts.length === 0 && (
-                <div className="text-center py-16">
-                  <UserIcon className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No contacts found</p>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          /* Conversations List */
-          <div>
-            {filteredConvs.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-3">
-                  {tab === "channels" ? <Radio className="w-7 h-7 text-muted-foreground" /> : tab === "groups" ? <Users className="w-7 h-7 text-muted-foreground" /> : <UserIcon className="w-7 h-7 text-muted-foreground" />}
-                </div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  {tab === "channels" ? "No channels yet" : tab === "groups" ? "No groups yet" : "No chats yet"}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {tab === "channels" ? "Create a channel to broadcast messages" : tab === "groups" ? "Create a group to chat with multiple people" : "Tap the menu to start a new chat"}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-0.5">
-                {filteredConvs.map(conv => {
-                  const name = getDisplayName(conv);
-                  const isChannel = conv.type === "channel";
-                  const isGroup = conv.type === "group";
-                  const isDm = conv.type === "dm";
-
-                  // For DM conversations, try to resolve the other participant's avatar
-                  // by matching against loaded contacts
-                  let dmAvatarUrl = "";
-                  if (isDm && !conv.avatar_url) {
-                    try {
-                      const ids = JSON.parse(conv.participant_ids || "[]");
-                      const otherId = ids.find((id: string) => id !== user?.id);
-                      if (otherId) {
-                        const match = contacts.find(c => c.id === otherId || c.user_id === otherId);
-                        if (match) {
-                          dmAvatarUrl = Array.isArray(match.avatar_url)
-                            ? (match.avatar_url[0] ?? "")
-                            : (match.avatar_url ?? "");
-                        }
-                      }
-                    } catch { /* ignore */ }
-                  }
-
-                  const resolvedAvatarUrl = conv.avatar_url || dmAvatarUrl;
-
-                  return (
-                    <Link
-                      key={conv.id}
-                      href={`/messages/${conv.id}`}
-                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary/50 transition-colors"
-                    >
-                      {/* Avatar with optional online dot */}
-                      <div className="relative shrink-0">
-                        {resolvedAvatarUrl ? (
-                          <img src={resolvedAvatarUrl} alt={name} className="w-12 h-12 rounded-full object-cover" />
-                        ) : (
-                          <div
-                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg"
-                            style={{ backgroundColor: getAvatarColor(conv) }}
-                          >
-                            {isChannel ? <Radio className="w-5 h-5" /> : isGroup ? <Users className="w-5 h-5" /> : getAvatarLetter(conv)}
-                          </div>
-                        )}
-                        {/* Online dot for DM conversations */}
-                        {isDm && (() => {
-                          try {
-                            const ids = JSON.parse(conv.participant_ids || '[]');
-                            const otherId = ids.find(i => i !== user?.id);
-                            return otherId && presence[otherId] === 'online';
-                          } catch { return false; }
-                        })() && (
-                          <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-400 border-2 border-background rounded-full" />
-                        )}
-                      </div>
-                      {/* Info */}
-                      <div className="flex-1 min-w-0 border-b border-border/20 pb-2.5 -mb-2.5">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <p className="text-sm font-semibold truncate text-foreground">{name}</p>
-                            {isChannel && <Radio className="w-3 h-3 text-muted-foreground shrink-0" />}
-                            {isGroup && <Users className="w-3 h-3 text-muted-foreground shrink-0" />}
-                          </div>
-                          <p className="text-xs text-muted-foreground shrink-0 ml-2">
-                            {conv.last_message_at ? moment(conv.last_message_at).format("HH:mm") : ""}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {conv.last_message && (
-                            <p className="text-xs text-muted-foreground truncate flex-1">
-                              {isChannel && conv.last_message}
-                              {!isChannel && conv.last_message}
-                            </p>
-                          )}
-                          {!conv.last_message && (
-                            <p className="text-xs text-muted-foreground italic flex-1">No messages yet</p>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+              ))
             )}
+          </div>
+
+        ) : filteredConvs.length === 0 ? (
+          <EmptyState
+            icon={tab === "channels" ? Radio : tab === "groups" ? Users : MessageCircle}
+            title={tab === "channels" ? "No channels yet" : tab === "groups" ? "No groups yet" : "No conversations yet"}
+            subtitle={tab === "channels" ? "Create a channel to broadcast messages" : tab === "groups" ? "Start a group chat" : "Tap the + button to start a chat"}
+          />
+        ) : (
+          <div className="px-2 pt-2 space-y-0.5">
+            {filteredConvs.map(conv => {
+              const name = getDisplayName(conv);
+              const isChannel = conv.type === "channel";
+              const isGroup   = conv.type === "group";
+              const isDm      = conv.type === "dm";
+
+              let dmAvatarUrl = "";
+              if (isDm && !conv.avatar_url) {
+                try {
+                  const ids = JSON.parse(conv.participant_ids || "[]");
+                  const otherId = ids.find((id: string) => id !== user?.id);
+                  if (otherId) {
+                    const match = contacts.find(c => c.id === otherId || c.user_id === otherId);
+                    if (match) dmAvatarUrl = Array.isArray(match.avatar_url) ? (match.avatar_url[0] ?? "") : (match.avatar_url ?? "");
+                  }
+                } catch {}
+              }
+              const resolvedAvatar = conv.avatar_url || dmAvatarUrl;
+
+              let isOnline = false;
+              if (isDm) {
+                try {
+                  const ids = JSON.parse(conv.participant_ids || '[]');
+                  const otherId = ids.find(i => i !== user?.id);
+                  isOnline = otherId && presence[otherId] === 'online';
+                } catch {}
+              }
+
+              return (
+                <Link
+                  key={conv.id}
+                  href={`/messages/${conv.id}`}
+                  className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-secondary/40 active:bg-secondary/60 transition-colors group"
+                >
+                  {/* Avatar */}
+                  <div className="relative shrink-0">
+                    {resolvedAvatar ? (
+                      <img src={resolvedAvatar} alt={name} className="w-12 h-12 rounded-full object-cover ring-2 ring-border/20" />
+                    ) : (
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm"
+                        style={{ background: isChannel ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : isGroup ? 'linear-gradient(135deg,#7c3aed,#6d28d9)' : 'linear-gradient(135deg,var(--ex-blue),var(--ex-purple))' }}
+                      >
+                        {isChannel ? <Radio className="w-5 h-5" /> : isGroup ? <Users className="w-5 h-5" /> : name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    {isOnline && (
+                      <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-400 border-2 border-card rounded-full" />
+                    )}
+                  </div>
+
+                  {/* Text */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold truncate text-foreground">{name}</p>
+                      {conv.last_message_at && (
+                        <p className="text-[11px] text-muted-foreground shrink-0">
+                          {moment(conv.last_message_at).format("HH:mm")}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-0.5">
+                      <p className="text-xs text-muted-foreground truncate flex-1">
+                        {conv.last_message || <span className="italic">No messages yet</span>}
+                      </p>
+                      {(isChannel || isGroup) && (
+                        <span
+                          className="shrink-0 w-4 h-4 rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: isChannel ? 'var(--ex-blue)' : 'var(--ex-purple)', opacity: 0.15 }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
+    </div>
   );
 }
 
+/* ── Empty state ── */
+function EmptyState({ icon: Icon, title, subtitle }: { icon: any; title: string; subtitle?: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+      <div
+        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-sm"
+        style={{ background: 'linear-gradient(135deg, var(--ex-blue) 0%, var(--ex-purple) 100%)' }}
+      >
+        <Icon className="w-7 h-7 text-white" />
+      </div>
+      <p className="text-sm font-semibold text-foreground">{title}</p>
+      {subtitle && <p className="text-xs text-muted-foreground mt-1 max-w-xs">{subtitle}</p>}
+    </div>
+  );
+}
+
+/* ── Contact Item ── */
 function ContactItem({ contact, user, existingConv }) {
   const [creating, setCreating] = useState(false);
   const name = contact.display_name || contact.headline || "Unknown";
-
-  // Resolve avatar_url — may be array or string
-  const avatarUrl = Array.isArray(contact.avatar_url)
-    ? (contact.avatar_url[0] ?? "")
-    : (contact.avatar_url ?? "");
+  const avatarUrl = Array.isArray(contact.avatar_url) ? (contact.avatar_url[0] ?? "") : (contact.avatar_url ?? "");
 
   const handleStartChat = async () => {
     if (existingConv) return;
@@ -351,44 +321,39 @@ function ContactItem({ contact, user, existingConv }) {
       const conv = await entities.Conversation.create({
         participant_ids: JSON.stringify([user.id, contact.id]),
         participant_names: JSON.stringify([user.full_name || "User", name]),
-        type: "dm",
-        last_message: "",
+        type: "dm", last_message: "",
       });
       window.location.href = `/messages/${conv.id}`;
-    } catch (e) {
-      console.error(e);
-    }
+    } catch {}
     setCreating(false);
   };
 
   return (
     <Link
       href={existingConv ? `/messages/${existingConv.id}` : "#"}
-      onClick={(e) => { if (!existingConv) { e.preventDefault(); handleStartChat(); } }}
-      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary/50 transition-colors"
+      onClick={e => { if (!existingConv) { e.preventDefault(); handleStartChat(); } }}
+      className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-secondary/40 transition-colors"
     >
-      {/* Avatar with image fallback */}
       {avatarUrl ? (
-        <img
-          src={avatarUrl}
-          alt={name}
-          className="w-11 h-11 rounded-full object-cover shrink-0"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement | null)?.removeAttribute('style'); }}
-        />
-      ) : null}
-      <div
-        className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold shrink-0 bg-primary"
-        style={{ display: avatarUrl ? 'none' : 'flex' }}
-      >
-        {name.charAt(0).toUpperCase()}
+        <img src={avatarUrl} alt={name} className="w-11 h-11 rounded-full object-cover shrink-0 ring-2 ring-border/20" />
+      ) : (
+        <div
+          className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold shrink-0 shadow-sm"
+          style={{ background: 'linear-gradient(135deg, var(--ex-blue), var(--ex-purple))' }}
+        >
+          {name.charAt(0).toUpperCase()}
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold truncate text-foreground">{name}</p>
+        <p className="text-xs text-muted-foreground truncate">{creating ? "Starting chat…" : contact.email || "Tap to chat"}</p>
       </div>
-      <div className="flex-1 min-w-0 border-b border-border/20 pb-2.5 -mb-2.5">
-        <p className="text-sm font-medium truncate text-foreground">{name}</p>
-        <p className="text-xs text-muted-foreground truncate">{creating ? "Starting chat..." : contact.email || "Tap to chat"}</p>
+      <div
+        className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold shadow-sm"
+        style={{ background: 'linear-gradient(135deg, var(--ex-blue), var(--ex-purple))' }}
+      >
+        →
       </div>
     </Link>
   );
 }
-
-
-
