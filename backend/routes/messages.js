@@ -311,10 +311,14 @@ router.delete('/conversations/:id', requireAuth, async (req, res) => {
   }
 });
 
+// ── In-memory presence fallback when Redis is not configured ─────────────
+// { userId: { status: 'online'|'offline', last_seen: ISO string } }
+const memPresence = {};
+
 // Set online presence status
 router.put('/presence', requireAuth, async (req, res) => {
   try {
-    const { status } = req.body; // 'online' | 'offline' | 'away'
+    const { status } = req.body;
     const validStatuses = ['online', 'offline', 'away'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'status must be online, offline, or away' });
@@ -323,24 +327,21 @@ router.put('/presence', requireAuth, async (req, res) => {
     const redis = getRedis();
     const now = new Date().toISOString();
 
+    // Always update in-memory store as reliable fallback
+    memPresence[req.user.id] = { status, last_seen: now };
+
     if (!redis.isNoOp) {
-      if (status === 'online') {
-        // Store status + last_seen together as JSON
-        await redis.setex(`presence:${req.user.id}`, 300, JSON.stringify({ status: 'online', last_seen: now }));
-      } else {
-        // On offline: persist last_seen, short TTL so it expires
-        await redis.setex(`presence:${req.user.id}`, 604800, JSON.stringify({ status: 'offline', last_seen: now })); // 7 days
-      }
+      const ttl = status === 'online' ? 300 : 604800;
+      await redis.setex(`presence:${req.user.id}`, ttl, JSON.stringify({ status, last_seen: now }));
     }
 
-    // Always update users.last_seen column for persistent storage
+    // Update DB — try last_seen column first, fall back to updated_at only
     await pool.query(
       'UPDATE users SET updated_at = NOW(), last_seen = NOW() WHERE id = $1',
       [req.user.id]
-    ).catch(() => {
-      // last_seen column may not exist yet — fall back to just updated_at
-      return pool.query('UPDATE users SET updated_at = NOW() WHERE id = $1', [req.user.id]);
-    });
+    ).catch(() =>
+      pool.query('UPDATE users SET updated_at = NOW() WHERE id = $1', [req.user.id])
+    );
 
     res.json({ success: true, status });
   } catch (err) {
@@ -356,6 +357,7 @@ router.get('/presence/:userId', requireAuth, async (req, res) => {
     let status = 'offline';
     let last_seen = null;
 
+    // 1. Try Redis first
     if (!redis.isNoOp) {
       const cached = await redis.get(`presence:${req.params.userId}`);
       if (cached) {
@@ -364,32 +366,33 @@ router.get('/presence/:userId', requireAuth, async (req, res) => {
           status = parsed.status || 'offline';
           last_seen = parsed.last_seen || null;
         } catch {
-          // legacy plain string value
           status = cached === 'online' ? 'online' : 'offline';
         }
       }
     }
 
-    // Always try to get last_seen from DB as fallback / supplement
-    const { rows } = await pool.query(
-      `SELECT
-         COALESCE(last_seen, updated_at) AS last_seen_at,
-         updated_at
-       FROM users WHERE id = $1`,
-      [req.params.userId]
-    ).catch(() => ({ rows: [] }));
+    // 2. If no Redis or Redis miss, check in-memory store
+    if (status === 'offline' && memPresence[req.params.userId]) {
+      const mem = memPresence[req.params.userId];
+      last_seen = mem.last_seen;
+      // Consider online if last heartbeat < 6 minutes ago
+      const diff = Date.now() - new Date(mem.last_seen).getTime();
+      status = diff < 6 * 60 * 1000 ? 'online' : 'offline';
+    }
 
-    if (rows.length) {
-      const dbLastSeen = rows[0].last_seen_at || rows[0].updated_at;
-      if (dbLastSeen) {
-        // If Redis has no last_seen but DB does, use DB value
-        if (!last_seen) last_seen = dbLastSeen;
-
-        // If Redis says offline (or no Redis), check DB recency as online fallback
-        if (status === 'offline' && redis.isNoOp) {
-          const diff = Date.now() - new Date(dbLastSeen).getTime();
-          if (diff < 5 * 60 * 1000) status = 'online'; // within 5 min = online
+    // 3. DB fallback for last_seen timestamp only (don't use for online detection)
+    if (!last_seen) {
+      try {
+        // Try last_seen column first (post-migration)
+        const { rows } = await pool.query(
+          'SELECT last_seen FROM users WHERE id = $1',
+          [req.params.userId]
+        );
+        if (rows.length && rows[0].last_seen) {
+          last_seen = rows[0].last_seen;
         }
+      } catch {
+        // last_seen column doesn't exist yet — skip
       }
     }
 
