@@ -393,10 +393,34 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           </div>
 
           <div className="flex items-center gap-1 ml-auto">
-            {/* Mobile search toggle */}
-            <button onClick={() => setSearchOpen(v => !v)} className="md:hidden p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Search">
-              <Search className="w-5 h-5 text-muted-foreground" />
-            </button>
+            {/* Mobile search — full-width overlay when open */}
+            {searchOpen && (
+              <div className="fixed inset-x-0 top-0 z-[200] h-14 bg-background/98 backdrop-blur-xl border-b border-border flex items-center px-3 gap-2">
+                <form className="flex-1"
+                  onSubmit={e => {
+                    e.preventDefault();
+                    const q = (e.currentTarget.elements.namedItem('mq') as HTMLInputElement)?.value?.trim();
+                    if (q) { setSearchOpen(false); router.push(`/search?q=${encodeURIComponent(q)}`); }
+                  }}>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500 pointer-events-none" />
+                    <input name="mq" type="search" autoFocus enterKeyHint="search"
+                      placeholder="Search people, products, tasks..."
+                      onKeyDown={e => { if (e.key === 'Escape') setSearchOpen(false); }}
+                      className="w-full pl-9 pr-4 h-10 bg-secondary/60 border border-amber-400/50 rounded-full text-sm outline-none focus:ring-2 focus:ring-amber-500/40" />
+                  </div>
+                </form>
+                <button onClick={() => setSearchOpen(false)} className="p-2 rounded-full hover:bg-secondary shrink-0">
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </div>
+            )}
+            {/* Mobile search icon (hidden when overlay is open) */}
+            {!searchOpen && (
+              <button onClick={() => setSearchOpen(true)} className="md:hidden p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Search">
+                <Search className="w-5 h-5 text-muted-foreground" />
+              </button>
+            )}
             {/* Cart */}
             <Link href="/cart" className="relative p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Cart">
               <ShoppingCart className="w-5 h-5 text-muted-foreground" />
@@ -449,178 +473,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           </div>
         </div>
 
-        {/* Mobile Search bar */}
-        {searchOpen && (
-          <div className="md:hidden px-4 pb-3">
-            <form
-              className="relative"
-              onSubmit={e => {
-                e.preventDefault();
-                const q = (e.currentTarget.elements.namedItem('q') as HTMLInputElement)?.value?.trim();
-                if (q) { setSearchOpen(false); router.push(`/search?q=${encodeURIComponent(q)}`); }
-              }}
-            >
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <input
-                name="q"
-                type="search"
-                enterKeyHint="search"
-                placeholder="Search..."
-                autoFocus
-                className="w-full pl-9 pr-4 bg-secondary/50 border border-border/50 rounded-full h-10 text-sm outline-none focus:ring-1 focus:ring-amber-500/30"
-              />
-            </form>
-          </div>
-        )}
       </header>
-
-      {/* ── Mobile Drawer ── */}
-      {/* Backdrop */}
-      {drawerOpen && (
-        <div
-          className="fixed inset-0 z-[70] bg-slate-950/65 backdrop-blur-sm md:hidden"
-          onClick={() => setDrawerOpen(false)}
-        />
-      )}
-      {/* Drawer panel */}
-      <div
-        className={`fixed left-0 top-0 bottom-0 z-[80] w-72 bg-white text-slate-950 border-r border-slate-200 shadow-2xl shadow-slate-950/30 flex flex-col md:hidden transition-transform duration-300 dark:bg-slate-950 dark:text-white dark:border-slate-800 ${drawerOpen ? "translate-x-0" : "-translate-x-full"}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Navigation menu"
-      >
-        {/* Drawer header */}
-        <div className="flex items-center justify-between px-4 h-14 border-b border-slate-200 shrink-0 dark:border-slate-800">
-          <Link href="/" onClick={() => setDrawerOpen(false)} className="flex items-center gap-2">
-            <Image
-              src="/brand/empire-x-logo.png"
-              alt="Empire X"
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded-xl object-cover shadow-sm"
-            />
-            <span className="font-display text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Empire X</span>
-          </Link>
-          <button onClick={() => setDrawerOpen(false)} className="p-2 rounded-xl hover:bg-secondary transition-colors" aria-label="Close menu">
-            <X className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
-          </button>
-        </div>
-
-        {/* Drawer nav items */}
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
-          {/* Main nav */}
-          {mainNavItems.map(item => {
-            const Icon = item.icon;
-            return (
-              <Link key={item.path} href={item.path} onClick={() => setDrawerOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${
-                  isActive(item.path)
-                    ? "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                }`}>
-                <Icon className="w-4 h-4 shrink-0" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-
-          <div className="my-2 border-t border-border/50" />
-
-          {/* Create Showroom */}
-          <Link href="/showroom/create" onClick={() => setDrawerOpen(false)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold shadow-sm shadow-blue-600/20 hover:from-blue-700 hover:to-purple-700 transition-all">
-            <Plus className="w-4 h-4 shrink-0" />
-            <span>{tr('common.createShowroom')}</span>
-          </Link>
-
-          {/* Showroom Studio */}
-          <Link href="/showroom/templates" onClick={() => setDrawerOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${
-              isActive('/showroom/templates')
-                ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
-            <Crown className="w-4 h-4 shrink-0 text-amber-500" />
-            <span>{tr('common.showroomStudio')}</span>
-          </Link>
-
-          <div className="my-2 border-t border-border/50" />
-
-          {/* Discover */}
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{tr('common.discover')}</p>
-          {extraNavItems.map(item => {
-            const Icon = item.icon;
-            return (
-              <Link key={item.path} href={item.path} onClick={() => setDrawerOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${
-                  isActive(item.path)
-                    ? "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                }`}>
-                <Icon className="w-4 h-4 shrink-0" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-
-          <div className="my-2 border-t border-border/50" />
-
-          {/* My Account */}
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{tr('common.myAccount')}</p>
-          {accountItems.map(item => {
-            const Icon = item.icon;
-            return (
-              <Link key={item.path} href={item.path} onClick={() => setDrawerOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${
-                  isActive(item.path)
-                    ? "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                }`}>
-                <Icon className="w-4 h-4 shrink-0" />
-                <span className="flex-1">{item.label}</span>
-                {item.badge && (
-                  <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
-                    {item.badge > 9 ? "9+" : item.badge}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-
-          {user?.role === "admin" && (
-            <>
-              <div className="my-2 border-t border-border/50" />
-              <Link href="/admin" onClick={() => setDrawerOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all text-sm font-medium">
-                <ShieldAlert className="w-4 h-4 shrink-0" />
-                <span>Admin Panel</span>
-              </Link>
-            </>
-          )}
-
-          <div className="h-4" />
-        </div>
-
-        {/* Drawer footer — user card + logout */}
-        <div className="border-t border-border px-3 py-3 shrink-0">
-          <Link href="/profile" onClick={() => setDrawerOpen(false)}
-            className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-secondary transition-colors">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
-              {user?.full_name?.charAt(0) || "E"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">{displayName}</p>
-              <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
-            </div>
-          </Link>
-          <button
-            onClick={() => { setDrawerOpen(false); logout(); }}
-            className="mt-1 w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium"
-          >
-            <LogOut className="w-4 h-4 shrink-0" />
-            <span>Log out</span>
-          </button>
-        </div>
-      </div>
 
       {/* ── Body: sidebar + main + right panel ── */}
       <div className="flex flex-1 w-full">
@@ -799,73 +652,101 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         </aside>
       </div>
 
-      {/* ── Mobile Bottom Nav ── */}
+      {/* ── Mobile Bottom Nav + More Sheet ── */}
       {!isShowroomBuilder && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border z-50"
-          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-          {/* Home sub-tabs slide-up tray */}
+        <>
+          {/* More bottom sheet */}
+          {drawerOpen && (
+            <>
+              <div className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm md:hidden" onClick={() => setDrawerOpen(false)} />
+              <div className="fixed bottom-0 left-0 right-0 z-[80] md:hidden bg-background rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
+                <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 bg-border rounded-full" /></div>
+                <Link href="/profile" onClick={() => setDrawerOpen(false)} className="flex items-center gap-3 mx-4 mt-1 mb-3 p-3 rounded-2xl bg-secondary/40 hover:bg-secondary">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold shrink-0">{user?.full_name?.charAt(0) || 'E'}</div>
+                  <div className="flex-1 min-w-0"><p className="text-sm font-bold truncate">{displayName}</p><p className="text-xs text-muted-foreground truncate">{userEmail}</p></div>
+                </Link>
+                <div className="px-4 pb-3 grid grid-cols-4 gap-2">
+                  {([
+                    { path: '/messages', icon: MessageCircle, label: 'Messages' },
+                    { path: '/marketplace', icon: ShoppingBag, label: 'Marketplace' },
+                    { path: '/tasks', icon: ClipboardList, label: 'Tasks' },
+                    { path: '/profile', icon: User, label: 'Profile' },
+                    { path: '/orders', icon: Package, label: 'Orders' },
+                    { path: '/wallet', icon: Wallet, label: 'Wallet' },
+                    { path: '/cart', icon: ShoppingCart, label: 'Cart' },
+                    { path: '/notifications', icon: Bell, label: 'Alerts' },
+                    { path: '/showrooms', icon: Crown, label: 'Showrooms' },
+                    { path: '/events', icon: CalendarDays, label: 'Events' },
+                    { path: '/jobs', icon: Briefcase, label: 'Jobs' },
+                    { path: '/courses', icon: GraduationCap, label: 'Courses' },
+                    { path: '/bookmarks', icon: Bookmark, label: 'Saved' },
+                    { path: '/account', icon: Lock, label: 'Account' },
+                    { path: '/referral', icon: Gift, label: 'Referral' },
+                    ...(user?.role === 'admin' ? [{ path: '/admin', icon: ShieldAlert, label: 'Admin' }] : []),
+                  ] as {path:string;icon:any;label:string}[]).map(({ path, icon: Icon, label }) => (
+                    <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
+                      className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl text-center transition-all ${isActive(path) ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600' : 'hover:bg-secondary text-muted-foreground'}`}>
+                      <Icon className="w-5 h-5" /><span className="text-[10px] font-medium leading-tight">{label}</span>
+                    </Link>
+                  ))}
+                </div>
+                <div className="px-4 pb-2">
+                  <Link href="/showroom/create" onClick={() => setDrawerOpen(false)} className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-bold shadow">
+                    <Plus className="w-4 h-4" /> Create Showroom
+                  </Link>
+                </div>
+                <div className="px-4 pb-8 pt-2 border-t border-border/40 mt-1">
+                  <button onClick={() => { setDrawerOpen(false); logout(); }} className="flex items-center gap-2 text-sm text-destructive font-medium">
+                    <LogOut className="w-4 h-4" /> Log out
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Home sub-tabs */}
           {homeTabsOpen && (
-            <div className="absolute bottom-full left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border px-4 py-3 flex items-center gap-2 overflow-x-auto scrollbar-hide">
-              {[
-                { label: 'For You',   path: '/feed' },
-                { label: 'Explore',   path: '/explore' },
-                { label: 'Friends',   path: '/friends' },
-                { label: 'Nearby',    path: '/nearby' },
-                { label: 'Trending',  path: '/explore?tab=trending' },
-              ].map(tab => (
-                <Link key={tab.path} href={tab.path}
-                  onClick={() => setHomeTabsOpen(false)}
-                  className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap
-                    ${pathname === tab.path || (tab.path === '/feed' && pathname === '/')
-                      ? 'bg-amber-500 text-white shadow-sm'
-                      : 'bg-secondary text-muted-foreground hover:bg-secondary/80'}`}
-                >
+            <div className="fixed bottom-16 left-0 right-0 z-[60] md:hidden bg-background/98 backdrop-blur-xl border-t border-border px-3 py-2.5 flex gap-2 overflow-x-auto scrollbar-hide shadow-lg"
+              style={{ paddingBottom: '0' }}>
+              {[{ label: 'For You', path: '/feed' }, { label: 'Explore', path: '/explore' }, { label: 'Friends', path: '/friends' }, { label: 'Nearby', path: '/nearby' }, { label: 'Trending', path: '/explore?tab=trending' }].map(tab => (
+                <Link key={tab.path} href={tab.path} onClick={() => setHomeTabsOpen(false)}
+                  className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${pathname === tab.path || (tab.path === '/feed' && pathname === '/') ? 'bg-amber-500 text-white' : 'bg-secondary text-muted-foreground'}`}>
                   {tab.label}
                 </Link>
               ))}
             </div>
           )}
-          <div className="flex items-center justify-around h-16 px-2">
-            {/* Home with sub-tab chevron */}
-            <div className="flex flex-col items-center relative">
-              <Link href="/feed"
-                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all min-w-[44px] ${isActive('/feed') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                <Home className={`w-5 h-5 ${isActive('/feed') ? 'stroke-[2.5]' : ''}`} />
-                <span className="text-[10px] font-medium">{tr('nav.home')}</span>
-              </Link>
-              <button
-                onClick={() => setHomeTabsOpen(v => !v)}
-                className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center transition-colors ${homeTabsOpen ? 'bg-amber-500 text-white' : 'bg-secondary text-muted-foreground'}`}
-                aria-label="Home sub-tabs"
-              >
-                <ChevronDown className={`w-2.5 h-2.5 transition-transform ${homeTabsOpen ? 'rotate-180' : ''}`} />
+
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+            <div className="flex items-center h-16 px-1">
+              {/* More — LEFT */}
+              <button onClick={() => { setHomeTabsOpen(false); setDrawerOpen(v => !v); }}
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${drawerOpen ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                <Menu className="w-5 h-5" /><span className="text-[10px] font-medium">More</span>
               </button>
+              <Link href="/explore" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/explore') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                <TrendingUp className={`w-5 h-5 ${isActive('/explore') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Explore</span>
+              </Link>
+              <Link href="/friends" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/friends') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Friends</span>
+              </Link>
+              <Link href="/businesses" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/businesses') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                <Store className={`w-5 h-5 ${isActive('/businesses') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Businesses</span>
+              </Link>
+              {/* Home — RIGHT with chevron */}
+              <div className="flex-1 flex flex-col items-center relative py-1">
+                <Link href="/feed" className={`flex flex-col items-center gap-0.5 rounded-xl transition-all ${isActive('/feed') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                  <Home className={`w-5 h-5 ${isActive('/feed') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Home</span>
+                </Link>
+                <button onClick={() => setHomeTabsOpen(v => !v)}
+                  className={`absolute top-0 right-0 w-4 h-4 rounded-full flex items-center justify-center shadow-sm border transition-colors ${homeTabsOpen ? 'bg-amber-500 text-white border-amber-500' : 'bg-background text-muted-foreground border-border/60'}`}>
+                  <ChevronDown className={`w-2.5 h-2.5 transition-transform ${homeTabsOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
             </div>
-            {/* Explore */}
-            <Link href="/explore" className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px] ${isActive('/explore') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-              <TrendingUp className={`w-5 h-5 ${isActive('/explore') ? 'stroke-[2.5]' : ''}`} />
-              <span className="text-[10px] font-medium">{tr('nav.explore')}</span>
-            </Link>
-            {/* Friends */}
-            <Link href="/friends" className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px] ${isActive('/friends') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-              <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} />
-              <span className="text-[10px] font-medium">{tr('nav.friends')}</span>
-            </Link>
-            {/* Businesses */}
-            <Link href="/businesses" className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px] ${isActive('/businesses') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-              <Store className={`w-5 h-5 ${isActive('/businesses') ? 'stroke-[2.5]' : ''}`} />
-              <span className="text-[10px] font-medium">{tr('nav.businesses')}</span>
-            </Link>
-            {/* More */}
-            <button
-              onClick={() => { setHomeTabsOpen(false); setDrawerOpen(true); }}
-              className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all text-muted-foreground hover:text-foreground min-w-[56px]"
-            >
-              <Menu className="w-5 h-5" />
-              <span className="text-[10px] font-medium">{t('common.more')}</span>
-            </button>
-          </div>
-        </nav>
+          </nav>
+        </>
       )}
 
       {/* Push notification permission banner */}

@@ -298,7 +298,7 @@ export default function ChatRoom() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-[calc(100dvh-3.5rem)] overflow-hidden md:h-[calc(100vh-3.5rem)]">
+    <div className="flex flex-col h-[calc(100dvh-3.5rem)] md:h-[calc(100vh-3.5rem)] overflow-hidden">
 
       {/* Header */}
       <div className="px-4 py-2.5 flex items-center gap-3 shrink-0 shadow-sm z-10" style={{ backgroundColor: TG_BLUE }}>
@@ -472,8 +472,9 @@ export default function ChatRoom() {
           </p>
         </div>
       ) : (
-        <div className="bg-card border-t border-border/30 shrink-0 pb-safe">
-          <div style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="bg-card border-t border-border/30 shrink-0">
+          {/* On mobile: pad bottom so input clears the bottom nav bar */}
+          <div className="md:pb-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {/* Reply preview */}
           {replyingTo && !editingMsg && (
             <div className="flex items-start gap-2 px-4 py-2 border-b border-border/20 bg-secondary/30">

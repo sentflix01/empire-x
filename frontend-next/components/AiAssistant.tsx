@@ -133,7 +133,8 @@ export default function AiAssistant() {
     if (rect) {
       dragOffset.current = { x: clientX - rect.left, y: clientY - rect.top };
     }
-    e.preventDefault();
+    // Prevent scroll while dragging
+    if ('touches' in e) e.preventDefault();
   };
 
   useEffect(() => {
@@ -143,14 +144,16 @@ export default function AiAssistant() {
       const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
       const newX = Math.max(0, Math.min(window.innerWidth - 60, clientX - dragOffset.current.x));
       const newY = Math.max(0, Math.min(window.innerHeight - 60, clientY - dragOffset.current.y));
-      const newPos = { x: newX, y: newY };
-      setPos(newPos);
+      setPos({ x: newX, y: newY });
     };
     const onUp = () => {
       if (dragging.current) {
         dragging.current = false;
-        // Save position
-        try { localStorage.setItem(STORAGE_POS_KEY, JSON.stringify(pos)); } catch {}
+        // Save current position from state via a ref-based approach
+        try {
+          const btn = btnRef.current?.getBoundingClientRect();
+          if (btn) localStorage.setItem(STORAGE_POS_KEY, JSON.stringify({ x: btn.left, y: btn.top }));
+        } catch {}
       }
     };
     window.addEventListener('mousemove', onMove);
