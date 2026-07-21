@@ -16,12 +16,19 @@ import { entities, type UserProfile } from '@/api/entities';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, User, Store, Eye, Radio, Bell, BellOff,
-  Plus, X, Globe, Linkedin, Twitter, Instagram, Youtube,
-  Facebook, MapPin, Phone, Mail, Link as LinkIcon,
+  Plus, X, Globe, MapPin, Phone, Mail, Link as LinkIcon,
   GraduationCap, Briefcase, Award, Star, Languages as LangIcon,
   Shield, FileText, Building2, Users, Calendar, Hash,
   ChevronDown, ChevronUp, Camera, Edit3, CheckCircle,
+  ExternalLink, AtSign, Share2, Rss, Link2,
 } from 'lucide-react';
+
+// Social platform icon stubs (lucide-react v1 doesn't include brand icons)
+const LinkedinIcon   = Link2;
+const TwitterIcon    = AtSign;
+const InstagramIcon  = Share2;
+const FacebookIcon   = Rss;
+const YoutubeIcon    = ExternalLink;
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

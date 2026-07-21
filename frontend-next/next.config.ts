@@ -15,7 +15,6 @@ const nextConfig: NextConfig = {
 
   // Turbopack config — fix workspace root detection warning
   turbopack: {
-    root: __dirname,
     // Tell Turbopack to treat leaflet CSS as client-only
     resolveExtensions: [".tsx", ".ts", ".jsx", ".js", ".mjs", ".json", ".css"],
   },

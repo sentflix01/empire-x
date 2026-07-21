@@ -11,6 +11,7 @@ import {
   Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, MapPin, Tag,
   Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
   PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield,
+  ArrowLeft,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -643,55 +644,69 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       {/* ── Mobile Bottom Nav + More Sheet ── */}
       {!isShowroomBuilder && (
         <>
-          {/* More bottom sheet — sidebar-style list */}
+          {/* ── Mobile Side Drawer — full height, slides from left ── */}
           {drawerOpen && (
             <>
-              <div className="fixed inset-0 z-[70] bg-black/50 md:hidden" onClick={() => setDrawerOpen(false)} />
-              <div className="fixed bottom-0 left-0 right-0 z-[80] md:hidden bg-background rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col">
-                {/* Handle */}
-                <div className="flex justify-center pt-3 pb-0 shrink-0">
-                  <div className="w-10 h-1 bg-border rounded-full" />
+              {/* Backdrop — click to close */}
+              <div
+                className="fixed inset-0 z-[70] bg-black/50 md:hidden"
+                onClick={() => setDrawerOpen(false)}
+              />
+              {/* Panel — full height, same width as screen minus a handle strip */}
+              <div className="fixed inset-y-0 left-0 z-[80] md:hidden bg-card w-[84vw] max-w-sm flex flex-col shadow-2xl">
+
+                {/* ── Cover photo — fills top, no padding ── */}
+                <div className="relative h-36 shrink-0 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700">
+                  {userProfile?.cover_url && (
+                    <img src={userProfile.cover_url} alt="" className="w-full h-full object-cover absolute inset-0" />
+                  )}
+                  {/* Back / close button — top-left */}
+                  <button
+                    onClick={() => setDrawerOpen(false)}
+                    className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center backdrop-blur-sm transition-colors"
+                    aria-label="Close menu"
+                  >
+                    <ArrowLeft className="w-4 h-4 text-white" />
+                  </button>
                 </div>
 
-                {/* Profile card with cover photo */}
-                <Link href="/profile" onClick={() => setDrawerOpen(false)} className="shrink-0 mx-4 mt-3 mb-2 rounded-2xl overflow-hidden border border-border hover:opacity-90 transition-opacity">
-                  {/* Cover */}
-                  <div className="h-20 relative bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600">
-                    {userProfile?.cover_url && (
-                      <img src={userProfile.cover_url} alt="" className="w-full h-full object-cover absolute inset-0" />
-                    )}
-                  </div>
-                  {/* Avatar + name row */}
-                  <div className="bg-card px-4 pb-3 flex items-end gap-3 -mt-7">
-                    <div className="w-14 h-14 rounded-xl ring-2 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xl font-bold shadow-md shrink-0">
+                {/* ── Avatar overlapping cover ── */}
+                <div className="px-4 -mt-10 pb-3 flex items-end justify-between shrink-0">
+                  <Link href="/profile" onClick={() => setDrawerOpen(false)}>
+                    <div className="w-16 h-16 rounded-2xl ring-4 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                       {userProfile?.avatar_url
                         ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
                         : userInitial}
                     </div>
-                    <div className="flex-1 min-w-0 pt-1">
-                      <p className="text-sm font-bold text-foreground truncate">{displayName}</p>
-                      <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
-                    </div>
-                  </div>
-                </Link>
-
-                {/* Account Settings — pinned below email */}
-                <div className="px-4 mb-2 shrink-0">
-                  <Link href="/account" onClick={() => setDrawerOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium w-full ${isActive('/account') ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
-                    <Lock className="w-4 h-4 shrink-0" /><span>Account Settings</span>
+                  </Link>
+                  <Link href="/profile/edit" onClick={() => setDrawerOpen(false)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-secondary transition-colors">
+                    <User className="w-3 h-3" /> Edit Profile
                   </Link>
                 </div>
 
-                {/* Scrollable nav list */}
-                <div className="flex-1 overflow-y-auto px-3 pb-2 space-y-0.5">
+                {/* Name + email + account settings */}
+                <div className="px-4 pb-2 shrink-0">
+                  <p className="text-sm font-bold text-foreground truncate">{displayName}</p>
+                  <p className="text-xs text-muted-foreground truncate mb-2">{userEmail}</p>
+                  <Link href="/account" onClick={() => setDrawerOpen(false)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all text-xs font-semibold ${isActive('/account') ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
+                    <Lock className="w-3.5 h-3.5 shrink-0" /> Account Settings
+                  </Link>
+                </div>
+
+                <div className="mx-4 border-t border-border" />
+
+                {/* ── Scrollable nav list ── */}
+                <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
                   {mainNavItems.map(({ path, icon: Icon, label }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
                     </Link>
                   ))}
-                  <div className="my-1.5 border-t border-border" />
+
+                  <div className="my-2 border-t border-border" />
                   <Link href="/showroom/create" onClick={() => setDrawerOpen(false)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold shadow-sm">
                     <Plus className="w-4 h-4 shrink-0" /><span>{tr('common.createShowroom')}</span>
@@ -700,16 +715,18 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/showroom/templates') ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
                     <Crown className="w-4 h-4 shrink-0 text-amber-500" /><span>{tr('common.showroomStudio')}</span>
                   </Link>
-                  <div className="my-1.5 border-t border-border" />
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{tr('common.discover')}</p>
+
+                  <div className="my-2 border-t border-border" />
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 pt-1 pb-0.5">{tr('common.discover')}</p>
                   {extraNavItems.map(({ path, icon: Icon, label }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
                     </Link>
                   ))}
-                  <div className="my-1.5 border-t border-border" />
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{tr('common.myAccount')}</p>
+
+                  <div className="my-2 border-t border-border" />
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 pt-1 pb-0.5">{tr('common.myAccount')}</p>
                   {accountItems.filter(i => i.path !== '/account').map(({ path, icon: Icon, label, badge }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
@@ -718,22 +735,20 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                       {badge && <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span>}
                     </Link>
                   ))}
-                  {user?.role === 'admin' && (
-                    <>
-                      <div className="my-1.5 border-t border-border" />
-                      <Link href="/admin" onClick={() => setDrawerOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground text-sm font-medium">
-                        <ShieldAlert className="w-4 h-4 shrink-0" /><span>{tr('common.adminPanel')}</span>
-                      </Link>
-                    </>
-                  )}
-                  <div className="h-2" />
+                  <div className="h-4" />
                 </div>
 
-                {/* Footer */}
-                <div className="border-t border-border px-3 py-3 shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+                {/* ── Footer: admin panel (if admin) + logout side by side ── */}
+                <div className="border-t border-border px-3 py-3 shrink-0 flex items-center gap-2"
+                  style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+                  {user?.role === 'admin' && (
+                    <Link href="/admin" onClick={() => setDrawerOpen(false)}
+                      className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors text-sm font-medium">
+                      <ShieldAlert className="w-4 h-4 shrink-0" /><span>Admin</span>
+                    </Link>
+                  )}
                   <button onClick={() => { setDrawerOpen(false); logout(); }}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors text-sm font-medium w-full">
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium ${user?.role === 'admin' ? '' : 'flex-1'}`}>
                     <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
                   </button>
                 </div>
