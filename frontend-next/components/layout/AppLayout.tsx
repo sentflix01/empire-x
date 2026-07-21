@@ -478,7 +478,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             </button>
             {/* Avatar */}
             <Link href="/profile" className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
-              {user?.full_name?.charAt(0) || "E"}
+              {userProfile?.avatar_url
+                ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                : (user?.full_name?.charAt(0) || "E")}
             </Link>
           </div>
         </div>
@@ -489,18 +491,61 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       <div className="flex flex-1 w-full">
 
         {/* ── Left Sidebar (desktop only) ── */}
-        <nav className={`hidden md:flex fixed left-0 top-14 bottom-0 bg-background border-r border-border flex-col z-40 transition-all duration-200
-          ${sidebarCollapsed ? "w-14" : "w-52"}`}>
-          <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3 space-y-0.5 scrollbar-thin">
+        <nav className={`hidden md:flex fixed left-0 top-14 bottom-0 bg-card border-r border-border flex-col z-40 transition-all duration-200
+          ${sidebarCollapsed ? "w-14" : "w-56"}`}>
+
+          {/* ── Profile header — matches mobile drawer ── */}
+          {!sidebarCollapsed && (
+            <div className="shrink-0">
+              {/* Cover + avatar */}
+              <div className="relative h-20 bg-empire-gradient">
+                {userProfile?.cover_url && (
+                  <img src={userProfile.cover_url} alt="" className="w-full h-full object-cover absolute inset-0" />
+                )}
+                <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent" />
+                {/* Avatar overlapping cover */}
+                <Link href="/profile"
+                  className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shrink-0">
+                  {userProfile?.avatar_url
+                    ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                    : userInitial}
+                </Link>
+              </div>
+              {/* Name + email row */}
+              <div className="pt-7 pb-2 px-4 border-b border-border/40">
+                <p className="text-xs font-bold truncate text-foreground leading-tight">{displayName}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{userEmail}</p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Collapsed avatar ── */}
+          {sidebarCollapsed && (
+            <div className="shrink-0 flex justify-center pt-3 pb-2 border-b border-border/40">
+              <Link href="/profile" className="relative group">
+                <div className="w-9 h-9 rounded-xl ring-2 ring-border overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm">
+                  {userProfile?.avatar_url
+                    ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                    : userInitial}
+                </div>
+                <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                  {displayName}
+                </span>
+              </Link>
+            </div>
+          )}
+
+          {/* ── Nav links ── */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-0.5 scrollbar-thin">
             {mainNavItems.map(item => <NavLink key={item.path} {...item} />)}
 
-            <div className="my-2 border-t border-border/50" />
+            <div className="my-2 border-t border-border/40" />
 
             {/* Create Showroom */}
             <Link
               href="/showroom/create"
               title={sidebarCollapsed ? t('common.createShowroom') : undefined}
-              className={`relative flex items-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-sm shadow-blue-600/20 group
+              className={`relative flex items-center gap-3 rounded-xl bg-empire-gradient text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm group
                 ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}`}
             >
               <Plus className="w-4 h-4 shrink-0" />
@@ -529,97 +574,62 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               )}
             </Link>
 
-            <div className="my-2 border-t border-border/50" />
+            <div className="my-2 border-t border-border/40" />
 
-            {/* Discover — collapsible group (hidden when sidebar is icon-only) */}
+            {/* Discover */}
             {!sidebarCollapsed && (
               <button
                 onClick={() => setDiscoverOpen(v => !v)}
                 className="w-full flex items-center justify-between px-3 py-1 group"
                 aria-expanded={discoverOpen}
-                aria-controls="sidebar-discover-section"
               >
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.discover')}</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.discover')}</p>
                 <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${discoverOpen ? 'rotate-0' : '-rotate-90'}`} />
               </button>
             )}
-            {(sidebarCollapsed || discoverOpen) && <div id="sidebar-discover-section">{extraNavItems.map(item => <NavLink key={item.path} {...item} />)}</div>}
+            {(sidebarCollapsed || discoverOpen) && extraNavItems.map(item => <NavLink key={item.path} {...item} />)}
 
-            <div className="my-2 border-t border-border/50" />
+            <div className="my-2 border-t border-border/40" />
 
-            {/* My Account — collapsible group */}
+            {/* My Account */}
             {!sidebarCollapsed && (
               <button
                 onClick={() => setAccountOpen(v => !v)}
                 className="w-full flex items-center justify-between px-3 py-1 group"
                 aria-expanded={accountOpen}
-                aria-controls="sidebar-account-section"
               >
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.myAccount')}</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.myAccount')}</p>
                 <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${accountOpen ? 'rotate-0' : '-rotate-90'}`} />
               </button>
             )}
-            {(sidebarCollapsed || accountOpen) && <div id="sidebar-account-section">{accountItems.map(item => <NavLink key={item.path} {...item} />)}</div>}
+            {(sidebarCollapsed || accountOpen) && accountItems.map(item => <NavLink key={item.path} {...item} />)}
 
             {user?.role === "admin" && (
               <>
-                <div className="my-2 border-t border-border/50" />
+                <div className="my-2 border-t border-border/40" />
                 <NavLink path="/admin" icon={ShieldAlert} label={tr('common.adminPanel')} />
               </>
             )}
-            <div className="h-2" />
+            <div className="h-4" />
           </div>
 
-          {/* Sidebar footer — profile card + logout */}
-          <div className="border-t border-border px-2 py-3 shrink-0">
-            {sidebarCollapsed ? (
-              <div className="relative flex justify-center group">
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm cursor-default">
-                  {userProfile?.avatar_url
-                    ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
-                    : userInitial}
-                </div>
-                <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                  {displayName}
-                </span>
-              </div>
-            ) : (
-              <>
-                {/* Profile card with mini cover */}
-                <div className="rounded-xl overflow-hidden border border-border mb-1.5">
-                  {/* Mini cover */}
-                  <div className="h-10 bg-empire-gradient relative">
-                    {userProfile?.cover_url && (
-                      <img src={userProfile.cover_url} alt="" className="w-full h-full object-cover absolute inset-0" />
-                    )}
-                  </div>
-                  <div className="bg-card px-2 pb-2 flex items-end gap-2 -mt-4">
-                    <div className="w-9 h-9 rounded-lg ring-2 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
-                      {userProfile?.avatar_url
-                        ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
-                        : userInitial}
-                    </div>
-                    <div className="flex-1 min-w-0 pt-1">
-                      <p className="text-xs font-semibold truncate text-foreground">{displayName}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">{userEmail}</p>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => logout()}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium"
-                >
-                  <LogOut className="w-4 h-4 shrink-0" />
-                  <span>Log out</span>
-                </button>
-              </>
-            )}
+          {/* ── Sidebar footer — logout ── */}
+          <div className="border-t border-border px-2 py-2 shrink-0">
+            <button
+              onClick={() => logout()}
+              title={sidebarCollapsed ? "Log out" : undefined}
+              className={`w-full flex items-center gap-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium
+                ${sidebarCollapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"}`}
+            >
+              <LogOut className="w-4 h-4 shrink-0" />
+              {!sidebarCollapsed && <span>Log out</span>}
+            </button>
           </div>
         </nav>
 
         {/* ── Main content ── */}
         <main className={`flex-1 min-w-0 transition-all duration-200
-          ${sidebarCollapsed ? "md:ml-14" : "md:ml-52"}
+          ${sidebarCollapsed ? "md:ml-14" : "md:ml-56"}
           xl:mr-72
           ${isImmersiveRoute
             ? 'overflow-hidden'
