@@ -9,6 +9,8 @@
     "start": "node index.js",
     "test": "node test/e2e.test.js",
     "test:unit": "jest --testPathPattern=test/.*\\.test\\.js --testPathIgnorePatterns=test/e2e.test.js --testPathIgnorePatterns=test/api.test.js --runInBand",
+    "test:keploy:record": "keploy record -c 'node index.js'",
+    "test:keploy:test": "keploy test -c 'node index.js'",
     "migrate": "node db/migrate-all.js",
     "seed": "node db/seed.js",
     "clean": "node db/cleanup-seed-data.js"

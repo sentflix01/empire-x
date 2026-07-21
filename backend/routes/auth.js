@@ -99,8 +99,8 @@ router.post('/register', async (req, res) => {
     const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 min
 
     const { rows } = await pool.query(
-      `INSERT INTO users (email, password_hash, full_name, is_seed, otp_code, otp_expires)
-       VALUES ($1, $2, $3, FALSE, $4, $5) RETURNING id, email`,
+      `INSERT INTO users (email, password_hash, full_name, otp_code, otp_expires)
+       VALUES ($1, $2, $3, $4, $5) RETURNING id, email`,
       [email.toLowerCase(), hash, full_name || null, otp, otpExpires]
     );
 
@@ -268,7 +268,7 @@ router.post('/google', async (req, res) => {
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT id, email, full_name, role, is_verified, is_seed, created_at FROM users WHERE id = $1',
+      'SELECT id, email, full_name, role, is_verified, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
     if (!rows.length) return apiError.notFound(res, 'User not found');
@@ -334,18 +334,6 @@ router.post('/reset-password', async (req, res) => {
   } catch (err) {
     logger.error({ err }, 'Reset password error');
     return apiError.serverError(res, 'Failed to reset password');
-  }
-});
-
-// ── PUT /api/auth/update-name ─────────────────────────────────────────────────
-router.put('/update-name', requireAuth, async (req, res) => {
-  const { full_name } = req.body;
-  if (!full_name?.trim()) return apiError.validationError(res, 'full_name is required');
-  try {
-    await pool.query('UPDATE users SET full_name = $1 WHERE id = $2', [full_name.trim(), req.user.id]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update name' });
   }
 });
 

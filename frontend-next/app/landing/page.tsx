@@ -58,7 +58,23 @@ const previewRows = [
 export default function LandingPage() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
-      <section className="relative min-h-[88svh] overflow-hidden bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_47%,#7c3aed_100%)]">
+      {/* ── Top navigation bar ── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/8">
+        <div className="flex items-center gap-2">
+          <Image src="/brand/empire-x-logo.png" alt="Empire X" width={32} height={32} className="h-8 w-8 rounded-xl object-cover" />
+          <span className="font-black text-white text-lg tracking-tight">Empire X</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link href="/register" className="hidden sm:inline-flex h-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-xl hover:bg-white/20 transition-all">
+            Create Account
+          </Link>
+          <Link href="/login" className="inline-flex h-9 items-center justify-center rounded-xl bg-white px-4 text-sm font-bold text-blue-700 shadow-lg hover:bg-blue-50 transition-all">
+            Sign In
+          </Link>
+        </div>
+      </nav>
+
+      <section className="relative min-h-[88svh] overflow-hidden bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_47%,#7c3aed_100%)] pt-16">
         <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:48px_48px]" />
         <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-slate-950 to-transparent" />
 
@@ -136,16 +152,16 @@ export default function LandingPage() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              href="/register"
+              href="/choose-account"
               className="inline-flex h-12 items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700 shadow-xl shadow-slate-950/25 transition-all duration-200 hover:bg-blue-50"
             >
               Create Your Account
             </Link>
             <Link
-              href="/feed"
+              href="/login"
               className="inline-flex h-12 items-center justify-center rounded-2xl border border-white/24 bg-white/10 px-7 text-sm font-bold text-white backdrop-blur-xl transition-all duration-200 hover:bg-white/16"
             >
-              Explore the App
+              Sign In →
             </Link>
           </div>
         </div>

@@ -75,8 +75,16 @@ export default function ChatRoom() {
     const socket = getSocket();
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') || '' : '';
     socket.auth = { token };
-    if (!socket.connected) socket.connect();
-    socket.emit('join_conversation', id);
+    // Connect first, THEN join the room
+    if (!socket.connected) {
+      socket.connect();
+      // Wait for connection before joining
+      socket.once('connect', () => {
+        socket.emit('join_conversation', id);
+      });
+    } else {
+      socket.emit('join_conversation', id);
+    }
 
     const onNew = (msg) => {
       if (msg.conversation_id === id) {
@@ -290,7 +298,7 @@ export default function ChatRoom() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
+    <div className="flex flex-col h-[calc(100dvh-3.5rem)] overflow-hidden md:h-[calc(100vh-3.5rem)]">
 
       {/* Header */}
       <div className="px-4 py-2.5 flex items-center gap-3 shrink-0 shadow-sm z-10" style={{ backgroundColor: TG_BLUE }}>
@@ -464,8 +472,8 @@ export default function ChatRoom() {
           </p>
         </div>
       ) : (
-        <div className="bg-card border-t border-border/30 shrink-0">
-
+        <div className="bg-card border-t border-border/30 shrink-0 pb-safe">
+          <div style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {/* Reply preview */}
           {replyingTo && !editingMsg && (
             <div className="flex items-start gap-2 px-4 py-2 border-b border-border/20 bg-secondary/30">

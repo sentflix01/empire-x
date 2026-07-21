@@ -108,6 +108,73 @@ export default function AiAssistant() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Draggable position state
+  const STORAGE_POS_KEY = "empire_ai_pos";
+  const defaultPos = { x: -1, y: -1 }; // -1 means "use CSS default"
+  const [pos, setPos] = useState(defaultPos);
+  const dragging = useRef(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  // Load saved position
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_POS_KEY);
+      if (saved) setPos(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    if (open) return; // don't drag when chat is open
+    dragging.current = true;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const rect = btnRef.current?.getBoundingClientRect();
+    if (rect) {
+      dragOffset.current = { x: clientX - rect.left, y: clientY - rect.top };
+    }
+    e.preventDefault();
+  };
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      if (!dragging.current) return;
+      const clientX = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
+      const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
+      const newX = Math.max(0, Math.min(window.innerWidth - 60, clientX - dragOffset.current.x));
+      const newY = Math.max(0, Math.min(window.innerHeight - 60, clientY - dragOffset.current.y));
+      const newPos = { x: newX, y: newY };
+      setPos(newPos);
+    };
+    const onUp = () => {
+      if (dragging.current) {
+        dragging.current = false;
+        // Save position
+        try { localStorage.setItem(STORAGE_POS_KEY, JSON.stringify(pos)); } catch {}
+      }
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchend', onUp);
+    };
+  }, [pos]);
+
+  // Compute button style based on drag position
+  const btnStyle: React.CSSProperties = pos.x >= 0 && pos.y >= 0
+    ? { position: 'fixed', left: pos.x, top: pos.y, bottom: 'auto', right: 'auto', width: 56, height: 56, paddingInline: 0 }
+    : { width: 56, height: 56, paddingInline: 0 };
+
+  // Chat panel position — above the button
+  const panelStyle: React.CSSProperties = pos.x >= 0 && pos.y >= 0
+    ? { position: 'fixed', left: Math.min(pos.x, window.innerWidth - 400), top: Math.max(8, pos.y - 520), bottom: 'auto', right: 'auto' }
+    : {};
+
   // Track online/offline and load persisted history after mount
   useEffect(() => {
     const up = () => setOnline(true);
@@ -197,14 +264,19 @@ export default function AiAssistant() {
   // AI Assistant is visible on ALL pages — including the showroom builder
   return (
     <>
-      {/* Floating button */}
-      <button onClick={() => setOpen(v => !v)}
-        className={`fixed bottom-24 right-5 md:bottom-6 md:right-6 z-[2147483647] rounded-full shadow-2xl shadow-blue-950/25 flex items-center justify-center gap-1.5 transition-all duration-200
+      {/* Floating button — draggable */}
+      <button
+        ref={btnRef}
+        onClick={() => !dragging.current && setOpen(v => !v)}
+        onMouseDown={handleDragStart}
+        onTouchStart={handleDragStart}
+        className={`fixed bottom-24 right-5 md:bottom-6 md:right-6 z-[2147483647] rounded-full shadow-2xl shadow-blue-950/25 flex items-center justify-center gap-1.5 transition-all duration-200 cursor-grab active:cursor-grabbing
           ${open ? "bg-slate-800 dark:bg-slate-700 rotate-6 scale-95"
             : "bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 hover:scale-110 hover:shadow-blue-600/30 hover:shadow-xl"
           }`}
-        style={{ width: 56, height: 56, paddingInline: 0 }}
-        title={t('ai.title')} aria-label={t('ai.title')}>
+        style={btnStyle}
+        title={t('ai.title') + ' (drag to move)'}
+        aria-label={t('ai.title')}>
         {open ? <X className="w-5 h-5 text-white" /> : <AssistantFlipCoin />}
         {!open && messages.length > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-background" />
@@ -217,7 +289,7 @@ export default function AiAssistant() {
           className="fixed bottom-40 right-4 md:bottom-20 md:right-6 z-[2147483647]
             w-[calc(100vw-2rem)] max-w-sm bg-blue-50 dark:bg-slate-900 border border-blue-300/80 dark:border-blue-500/35 rounded-2xl shadow-2xl shadow-slate-950/30
             flex flex-col overflow-hidden"
-          style={{ height: "min(500px, calc(100dvh - 10.5rem))" }}
+          style={{ ...(panelStyle.left !== undefined ? panelStyle : {}), height: "min(500px, calc(100dvh - 10.5rem))" }}
         >
           <div className="flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-slate-900 via-blue-700 to-violet-700 shrink-0">
             <AssistantLogo size="sm" animated />

@@ -1,0 +1,29 @@
+# Keploy configuration for Empire X backend
+# Documentation: https://keploy.io/docs
+
+path: "./keploy"
+appId: "empire-x-backend"
+command: "node index.js"
+
+# Keploy will capture and replay API traffic
+# Run to record tests: keploy record -c "node index.js"
+# Run to replay tests: keploy test -c "node index.js"
+
+containerName: ""
+networkName: ""
+
+export:
+  # Export recorded test cases
+  path: "./keploy/test-sets"
+
+# Noise fields — ignore these fields when comparing responses
+# (timestamps, IDs change on every request)
+noiseFields:
+  - "created_at"
+  - "updated_at"
+  - "id"
+  - "timestamp"
+  - "access_token"
+  - "jwtid"
+  - "iat"
+  - "exp"

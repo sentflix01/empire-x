@@ -198,7 +198,8 @@ export default function Messages() {
         </div>
 
         {/* Content */}
-        {loading ? (
+      {/* Spinner: only show on initial load, not on polls */}
+      {loading && conversations.length === 0 ? (
           <div className="flex justify-center py-12">
             <div className="w-8 h-8 border-3 border-border/50 border-t-[#0088cc] rounded-full animate-spin" />
           </div>
