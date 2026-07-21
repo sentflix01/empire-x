@@ -18,7 +18,7 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
   if (!open) return null;
 
   const filtered = contacts.filter(c =>
-    (c.full_name || c.email || "").toLowerCase().includes(search.toLowerCase())
+    (c.display_name || c.full_name || c.email || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const toggleSelect = (contact) => {
@@ -34,7 +34,7 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
     setCreating(true);
     try {
       const participantIds = [user.id, ...selected.map(c => c.id)];
-      const participantNames = [user.full_name || "User", ...selected.map(c => c.full_name || "User")];
+      const participantNames = [user.full_name || user.display_name || "User", ...selected.map(c => c.display_name || c.full_name || "User")];
       const conv = await entities.Conversation.create({
         participant_ids: JSON.stringify(participantIds),
         participant_names: JSON.stringify(participantNames),
@@ -87,9 +87,9 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
             {selected.map(c => (
               <div key={c.id} className="flex items-center gap-1.5 bg-secondary rounded-full pl-1 pr-2 py-1">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold bg-primary">
-                  {(c.full_name || "U").charAt(0)}
+                  {(c.display_name || c.full_name || "U").charAt(0)}
                 </div>
-                <span className="text-xs font-medium">{c.full_name || c.email}</span>
+                <span className="text-xs font-medium">{c.display_name || c.full_name || c.email}</span>
                 <button onClick={() => toggleSelect(c)} className="ml-0.5">
                   <X className="w-3 h-3 text-muted-foreground" />
                 </button>
@@ -133,7 +133,7 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{contact.full_name || "Unknown"}</p>
+                    <p className="text-sm font-medium truncate">{contact.display_name || contact.full_name || "Unknown"}</p>
                     <p className="text-xs text-muted-foreground truncate">{contact.email}</p>
                   </div>
                 </button>

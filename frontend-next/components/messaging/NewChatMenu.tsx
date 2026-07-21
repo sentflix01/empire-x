@@ -1,8 +1,6 @@
 'use client'
-import Link from 'next/link';
 import React, { useState, useRef, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
-
 import { Menu, Pencil, Users, Radio } from "lucide-react";
 import CreateGroupModal from "@/components/messaging/CreateGroupModal";
 import CreateChannelModal from "@/components/messaging/CreateChannelModal";
@@ -31,22 +29,20 @@ export default function NewChatMenu({ user, contacts, onCreated }) {
 
         {open && (
           <div className="absolute top-full right-0 mt-1 bg-card rounded-2xl shadow-lg border border-border/30 z-50 w-52 overflow-hidden">
-            <Link
-              href="/messages"
+            <button
               onClick={() => { setOpen(false); setGroupOpen(true); }}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/50 transition-colors text-sm"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/50 transition-colors text-sm w-full text-left"
             >
               <Users className="w-4 h-4 text-primary" />
               New Group
-            </Link>
-            <Link
-              href="/messages"
+            </button>
+            <button
               onClick={() => { setOpen(false); setChannelOpen(true); }}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/50 transition-colors text-sm border-t border-border/20"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/50 transition-colors text-sm border-t border-border/20 w-full text-left"
             >
               <Radio className="w-4 h-4 text-primary" />
               New Channel
-            </Link>
+            </button>
           </div>
         )}
       </div>

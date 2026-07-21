@@ -46,6 +46,7 @@ export default function ChatRoom() {
   const bottomRef  = useRef(null);
   const inputRef   = useRef(null);
   const deleteTimer = useRef(null);
+  const textRef    = useRef(""); // mirrors text state for reliable mobile access
 
   // ── Load conversation + messages ──────────────────────────────────────────
   const loadMessages = useCallback(async () => {
@@ -95,8 +96,9 @@ export default function ChatRoom() {
         setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, ...msg } : m));
       }
     };
-    const onDeleted = ({ message_id }) => {
-      setMessages(prev => prev.filter(m => m.id !== message_id));
+    const onDeleted = (payload) => {
+      const deletedId = payload.id || payload.message_id;
+      setMessages(prev => prev.filter(m => m.id !== deletedId));
     };
 
     socket.on('new_message', onNew);
@@ -158,10 +160,11 @@ export default function ChatRoom() {
   // ── Actions ───────────────────────────────────────────────────────────────
   const handleSend = async () => {
     if (editingMsg) { await handleSaveEdit(); return; }
-    const content = text.trim();
+    const content = (textRef.current || text).trim();
     if (!content) return;
     setSending(true);
     setText('');
+    textRef.current = '';
     const replyId = replyingTo?.id || null;
     setReplyingTo(null);
     try {
@@ -170,7 +173,7 @@ export default function ChatRoom() {
         type: 'text',
         ...(replyId ? { reply_to_id: replyId } : {}),
       });
-    } catch { toast.error('Failed to send'); setText(content); }
+    } catch { toast.error('Failed to send'); setText(content); textRef.current = content; }
     setSending(false);
   };
 
@@ -501,7 +504,14 @@ export default function ChatRoom() {
               <textarea
                 ref={inputRef}
                 value={editingMsg ? editText : text}
-                onChange={e => editingMsg ? setEditText(e.target.value) : setText(e.target.value)}
+                onChange={e => {
+                  if (editingMsg) {
+                    setEditText(e.target.value);
+                  } else {
+                    setText(e.target.value);
+                    textRef.current = e.target.value;
+                  }
+                }}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
                   if (e.key === 'Escape') {
@@ -517,8 +527,9 @@ export default function ChatRoom() {
             </div>
             <button
               onClick={handleSend}
-              disabled={!(editingMsg ? editText.trim() : text.trim()) || sending}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white disabled:opacity-30 shrink-0 transition-transform active:scale-90 outline-none focus:outline-none"
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0 transition-transform active:scale-90 outline-none focus:outline-none ${
+                (!(editingMsg ? editText.trim() : text.trim()) || sending) ? 'opacity-40' : 'opacity-100'
+              }`}
               style={{ backgroundColor: 'hsl(var(--primary))' }}
             >
               {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}

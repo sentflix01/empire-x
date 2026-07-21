@@ -2,7 +2,7 @@ const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
-const { emitNewMessage } = require('../socket');
+const { emitNewMessage, emitMessageEdited, emitMessageDeleted } = require('../socket');
 
 // List conversations for current user
 router.get('/conversations', requireAuth, async (req, res) => {
@@ -187,6 +187,7 @@ router.put('/messages/:id', requireAuth, async (req, res) => {
       'UPDATE messages SET content = $1, edited = TRUE, updated_at = NOW() WHERE id = $2 RETURNING *',
       [content, req.params.id]
     );
+    emitMessageEdited(updated[0].conversation_id, updated[0]);
     res.json(updated[0]);
   } catch (err) {
     res.status(500).json({ error: 'Failed to edit message' });
@@ -201,7 +202,9 @@ router.delete('/messages/:id', requireAuth, async (req, res) => {
     if (rows[0].sender_id !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
+    const deletedMsg = rows[0];
     await deleteRecord('messages', req.params.id);
+    emitMessageDeleted(deletedMsg.conversation_id, req.params.id);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete message' });
