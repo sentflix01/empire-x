@@ -1,16 +1,37 @@
 'use client'
 import Link from 'next/link';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
 import client from "@/api/client";
 import { useTranslation } from 'react-i18next';
 import { useRealMode } from "@/lib/RealModeContext";
-import { Search, Users, Radio, User as UserIcon, MessageCircle } from "lucide-react";
+import { Search, Users, Radio, User as UserIcon, MessageCircle, GripVertical } from "lucide-react";
 import moment from "moment";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
 import { formatLastSeen } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
+
+// ── Default tab order: Contacts first ──────────────────────────────────────
+const DEFAULT_TAB_ORDER = ["contacts", "all", "groups", "channels"];
+const STORAGE_KEY = "empire_chat_tab_order";
+
+function loadTabOrder(): string[] {
+  if (typeof window === "undefined") return DEFAULT_TAB_ORDER;
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed: string[] = JSON.parse(saved);
+      // Validate — make sure all default tabs are present
+      if (DEFAULT_TAB_ORDER.every(id => parsed.includes(id))) return parsed;
+    }
+  } catch {}
+  return DEFAULT_TAB_ORDER;
+}
+
+function saveTabOrder(order: string[]) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(order)); } catch {}
+}
 
 export default function Messages() {
   const { t } = useTranslation();
@@ -20,8 +41,45 @@ export default function Messages() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState("all");
-  const [presence, setPresence] = useState({});
+  const [tab, setTab] = useState("contacts"); // default = contacts
+  const [presence, setPresence] = useState<Record<string, PresenceData>>({});
+
+  // ── Tab order state — persisted in localStorage ──────────────────────────
+  const [tabOrder, setTabOrder] = useState<string[]>(DEFAULT_TAB_ORDER);
+  const dragSrc = useRef<string | null>(null);
+
+  // Load saved tab order on mount
+  useEffect(() => {
+    setTabOrder(loadTabOrder());
+  }, []);
+
+  // All available tab definitions
+  const ALL_TABS = [
+    { id: "contacts", label: "Contacts", icon: UserIcon },
+    { id: "all",      label: "All",      icon: null },
+    { id: "groups",   label: "Groups",   icon: Users },
+    { id: "channels", label: "Channels", icon: Radio },
+  ];
+
+  // Ordered tabs based on tabOrder state
+  const tabs = tabOrder
+    .map(id => ALL_TABS.find(t => t.id === id))
+    .filter(Boolean) as typeof ALL_TABS;
+
+  // ── Drag-to-reorder handlers ──────────────────────────────────────────────
+  const onDragStart = (id: string) => { dragSrc.current = id; };
+  const onDragOver  = (e: React.DragEvent) => { e.preventDefault(); };
+  const onDrop      = (targetId: string) => {
+    if (!dragSrc.current || dragSrc.current === targetId) return;
+    const newOrder = [...tabOrder];
+    const fromIdx = newOrder.indexOf(dragSrc.current);
+    const toIdx   = newOrder.indexOf(targetId);
+    newOrder.splice(fromIdx, 1);
+    newOrder.splice(toIdx, 0, dragSrc.current);
+    setTabOrder(newOrder);
+    saveTabOrder(newOrder);
+    dragSrc.current = null;
+  };
 
   useEffect(() => {
     auth.me().then(u => { setUser(u); loadConversations(u); loadContacts(u); }).catch(() => setLoading(false));
@@ -118,12 +176,7 @@ export default function Messages() {
     !search || (c.display_name || c.headline || "").toLowerCase().includes(search.toLowerCase())
   );
 
-  const tabs = [
-    { id: "all",      label: "All",      icon: null },
-    { id: "groups",   label: "Groups",   icon: Users },
-    { id: "channels", label: "Channels", icon: Radio },
-    { id: "contacts", label: "Contacts", icon: UserIcon },
-  ];
+  // (tabs and tabOrder defined above)
 
   return (
     <div className="max-w-xl mx-auto -mt-4 -mx-4 md:mx-auto md:mt-0">
@@ -158,21 +211,26 @@ export default function Messages() {
         </div>
       </div>
 
-      {/* ── Tab Pills ── */}
+      {/* ── Tab Pills — draggable to reorder ── */}
       <div className="flex gap-1.5 px-4 py-3 bg-card border-b border-border/30 overflow-x-auto no-scrollbar">
         {tabs.map(t => {
           const Icon = t.icon;
           return (
             <button
               key={t.id}
+              draggable
+              onDragStart={() => onDragStart(t.id)}
+              onDragOver={onDragOver}
+              onDrop={() => onDrop(t.id)}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-grab active:cursor-grabbing select-none ${
                 tab === t.id
                   ? "text-white shadow-sm"
                   : "bg-secondary text-muted-foreground hover:bg-secondary/70"
               }`}
               style={tab === t.id ? { background: 'linear-gradient(135deg, var(--ex-blue), var(--ex-purple))' } : {}}
             >
+              <GripVertical className="w-3 h-3 opacity-40 shrink-0" />
               {Icon && <Icon className="w-3.5 h-3.5" />}
               {t.label}
             </button>
