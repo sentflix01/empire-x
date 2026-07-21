@@ -102,12 +102,12 @@ router.put('/:id', requireAuth, async (req, res) => {
     // If refunded — credit buyer wallet
     if (newStatus === 'refunded' && refund_amount > 0) {
       await pool.query(
-        `UPDATE wallets SET balance = balance + $1 WHERE user_id = $2`,
+        `UPDATE wallets SET balance = balance + $1, updated_at = NOW() WHERE user_id = $2`,
         [parseFloat(refund_amount), rr.buyer_id]
       );
       await pool.query(
-        `INSERT INTO wallet_transactions (wallet_id, type, amount, description, reference_id, reference_type)
-         SELECT id, 'credit', $1, $2, $3, 'return'
+        `INSERT INTO wallet_transactions (wallet_id, type, amount, description, reference)
+         SELECT id, 'refund', $1, $2, $3
          FROM wallets WHERE user_id = $4`,
         [parseFloat(refund_amount), 'Refund: return request approved', req.params.id, rr.buyer_id]
       );

@@ -439,11 +439,11 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </span>
               )}
             </Link>
-            {/* Real/Demo mode toggle */}
+            {/* Real/Demo mode toggle — visible on all sizes */}
             <button
               onClick={toggleRealMode}
               title={realMode ? 'Real users only — click to show all' : 'Showing all (demo+real) — click for real only'}
-              className={`hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border transition-all ${
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border transition-all ${
                 realMode
                   ? 'bg-green-500 text-white border-green-500 shadow-sm shadow-green-500/30'
                   : 'bg-secondary text-muted-foreground border-border/50 hover:bg-secondary/80'
@@ -482,40 +482,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         <nav className={`hidden md:flex fixed left-0 top-14 bottom-0 bg-background border-r border-border flex-col z-40 transition-all duration-200
           ${sidebarCollapsed ? "w-14" : "w-52"}`}>
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3 space-y-0.5 scrollbar-thin">
-            {/* Home with slide-up sub-tabs inline */}
-            <div>
-              <div className="flex items-center gap-1">
-                <NavLink path="/feed" icon={Home} label={tr('nav.home')} />
-                {!sidebarCollapsed && (
-                  <button
-                    onClick={() => setHomeTabsOpen(v => !v)}
-                    className={`p-1.5 rounded-lg transition-colors shrink-0 ${homeTabsOpen ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30' : 'text-muted-foreground hover:bg-secondary'}`}
-                    title="Home sub-tabs"
-                  >
-                    <ChevronDown className={`w-3 h-3 transition-transform ${homeTabsOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                )}
-              </div>
-              {homeTabsOpen && !sidebarCollapsed && (
-                <div className="ml-3 pl-3 border-l-2 border-amber-200 dark:border-amber-800 mt-1 space-y-0.5">
-                  {[
-                    { label: 'For You',  path: '/feed' },
-                    { label: 'Explore',  path: '/explore' },
-                    { label: 'Friends',  path: '/friends' },
-                    { label: 'Nearby',   path: '/nearby' },
-                    { label: 'Trending', path: '/explore?tab=trending' },
-                  ].map(tab => (
-                    <Link key={tab.path} href={tab.path}
-                      className={`flex items-center px-2 py-1.5 rounded-lg text-xs font-medium transition-all
-                        ${pathname === tab.path ? 'text-amber-600 bg-amber-50 dark:bg-amber-900/20' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`}
-                    >
-                      {tab.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-            {mainNavItems.slice(1).map(item => <NavLink key={item.path} {...item} />)}
+            {mainNavItems.map(item => <NavLink key={item.path} {...item} />)}
 
             <div className="my-2 border-t border-border/50" />
 
@@ -655,73 +622,86 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       {/* ── Mobile Bottom Nav + More Sheet ── */}
       {!isShowroomBuilder && (
         <>
-          {/* More bottom sheet */}
+          {/* More bottom sheet — list style matching desktop sidebar */}
           {drawerOpen && (
             <>
               <div className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm md:hidden" onClick={() => setDrawerOpen(false)} />
-              <div className="fixed bottom-0 left-0 right-0 z-[80] md:hidden bg-background rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
-                <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 bg-border rounded-full" /></div>
-                <Link href="/profile" onClick={() => setDrawerOpen(false)} className="flex items-center gap-3 mx-4 mt-1 mb-3 p-3 rounded-2xl bg-secondary/40 hover:bg-secondary">
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold shrink-0">{user?.full_name?.charAt(0) || 'E'}</div>
-                  <div className="flex-1 min-w-0"><p className="text-sm font-bold truncate">{displayName}</p><p className="text-xs text-muted-foreground truncate">{userEmail}</p></div>
+              <div className="fixed bottom-0 left-0 right-0 z-[80] md:hidden bg-background rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col">
+                {/* Handle */}
+                <div className="flex justify-center pt-3 pb-1 shrink-0"><div className="w-10 h-1 bg-border rounded-full" /></div>
+                {/* Header — user card */}
+                <Link href="/profile" onClick={() => setDrawerOpen(false)}
+                  className="flex items-center gap-3 mx-4 mt-1 mb-2 p-3 rounded-2xl bg-secondary/40 hover:bg-secondary transition-colors shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold shrink-0">{user?.full_name?.charAt(0) || 'E'}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold truncate">{displayName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+                  </div>
                 </Link>
-                <div className="px-4 pb-3 grid grid-cols-4 gap-2">
-                  {([
-                    { path: '/messages', icon: MessageCircle, label: 'Messages' },
-                    { path: '/marketplace', icon: ShoppingBag, label: 'Marketplace' },
-                    { path: '/tasks', icon: ClipboardList, label: 'Tasks' },
-                    { path: '/profile', icon: User, label: 'Profile' },
-                    { path: '/orders', icon: Package, label: 'Orders' },
-                    { path: '/wallet', icon: Wallet, label: 'Wallet' },
-                    { path: '/cart', icon: ShoppingCart, label: 'Cart' },
-                    { path: '/notifications', icon: Bell, label: 'Alerts' },
-                    { path: '/showrooms', icon: Crown, label: 'Showrooms' },
-                    { path: '/events', icon: CalendarDays, label: 'Events' },
-                    { path: '/jobs', icon: Briefcase, label: 'Jobs' },
-                    { path: '/courses', icon: GraduationCap, label: 'Courses' },
-                    { path: '/bookmarks', icon: Bookmark, label: 'Saved' },
-                    { path: '/account', icon: Lock, label: 'Account' },
-                    { path: '/referral', icon: Gift, label: 'Referral' },
-                    ...(user?.role === 'admin' ? [{ path: '/admin', icon: ShieldAlert, label: 'Admin' }] : []),
-                  ] as {path:string;icon:any;label:string}[]).map(({ path, icon: Icon, label }) => (
+                {/* Scrollable nav list */}
+                <div className="flex-1 overflow-y-auto px-3 pb-2 space-y-0.5">
+                  {/* Main nav */}
+                  {mainNavItems.map(({ path, icon: Icon, label }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl text-center transition-all ${isActive(path) ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600' : 'hover:bg-secondary text-muted-foreground'}`}>
-                      <Icon className="w-5 h-5" /><span className="text-[10px] font-medium leading-tight">{label}</span>
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
+                      <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
                     </Link>
                   ))}
-                </div>
-                <div className="px-4 pb-2">
-                  <Link href="/showroom/create" onClick={() => setDrawerOpen(false)} className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-bold shadow">
-                    <Plus className="w-4 h-4" /> Create Showroom
+                  <div className="my-1.5 border-t border-border/50" />
+                  <Link href="/showroom/create" onClick={() => setDrawerOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold shadow-sm">
+                    <Plus className="w-4 h-4 shrink-0" /><span>{tr('common.createShowroom')}</span>
                   </Link>
+                  <Link href="/showroom/templates" onClick={() => setDrawerOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/showroom/templates') ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
+                    <Crown className="w-4 h-4 shrink-0 text-amber-500" /><span>{tr('common.showroomStudio')}</span>
+                  </Link>
+                  <div className="my-1.5 border-t border-border/50" />
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{tr('common.discover')}</p>
+                  {extraNavItems.map(({ path, icon: Icon, label }) => (
+                    <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
+                      <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
+                    </Link>
+                  ))}
+                  <div className="my-1.5 border-t border-border/50" />
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{tr('common.myAccount')}</p>
+                  {accountItems.map(({ path, icon: Icon, label, badge }) => (
+                    <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span className="flex-1">{label}</span>
+                      {badge && <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span>}
+                    </Link>
+                  ))}
+                  {user?.role === 'admin' && (
+                    <>
+                      <div className="my-1.5 border-t border-border/50" />
+                      <Link href="/admin" onClick={() => setDrawerOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all text-sm font-medium">
+                        <ShieldAlert className="w-4 h-4 shrink-0" /><span>{tr('common.adminPanel')}</span>
+                      </Link>
+                    </>
+                  )}
+                  <div className="h-2" />
                 </div>
-                <div className="px-4 pb-8 pt-2 border-t border-border/40 mt-1">
-                  <button onClick={() => { setDrawerOpen(false); logout(); }} className="flex items-center gap-2 text-sm text-destructive font-medium">
-                    <LogOut className="w-4 h-4" /> Log out
+                {/* Footer — logout */}
+                <div className="border-t border-border/40 px-3 py-3 shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+                  <button onClick={() => { setDrawerOpen(false); logout(); }} className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors text-sm font-medium w-full">
+                    <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
                   </button>
                 </div>
               </div>
             </>
           )}
 
-          {/* Home sub-tabs */}
-          {homeTabsOpen && (
-            <div className="fixed bottom-16 left-0 right-0 z-[60] md:hidden bg-background/98 backdrop-blur-xl border-t border-border px-3 py-2.5 flex gap-2 overflow-x-auto scrollbar-hide shadow-lg"
-              style={{ paddingBottom: '0' }}>
-              {[{ label: 'For You', path: '/feed' }, { label: 'Explore', path: '/explore' }, { label: 'Friends', path: '/friends' }, { label: 'Nearby', path: '/nearby' }, { label: 'Trending', path: '/explore?tab=trending' }].map(tab => (
-                <Link key={tab.path} href={tab.path} onClick={() => setHomeTabsOpen(false)}
-                  className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${pathname === tab.path || (tab.path === '/feed' && pathname === '/') ? 'bg-amber-500 text-white' : 'bg-secondary text-muted-foreground'}`}>
-                  {tab.label}
-                </Link>
-              ))}
-            </div>
-          )}
+          {/* Home sub-tabs tray — REMOVED as per user request */}
 
           <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="flex items-center h-16 px-1">
               {/* More — LEFT */}
-              <button onClick={() => { setHomeTabsOpen(false); setDrawerOpen(v => !v); }}
+              <button onClick={() => { setDrawerOpen(v => !v); }}
                 className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${drawerOpen ? 'text-amber-600' : 'text-muted-foreground'}`}>
                 <Menu className="w-5 h-5" /><span className="text-[10px] font-medium">More</span>
               </button>
@@ -734,16 +714,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <Link href="/businesses" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/businesses') ? 'text-amber-600' : 'text-muted-foreground'}`}>
                 <Store className={`w-5 h-5 ${isActive('/businesses') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Businesses</span>
               </Link>
-              {/* Home — RIGHT with chevron */}
-              <div className="flex-1 flex flex-col items-center relative py-1">
-                <Link href="/feed" className={`flex flex-col items-center gap-0.5 rounded-xl transition-all ${isActive('/feed') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                  <Home className={`w-5 h-5 ${isActive('/feed') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Home</span>
-                </Link>
-                <button onClick={() => setHomeTabsOpen(v => !v)}
-                  className={`absolute top-0 right-0 w-4 h-4 rounded-full flex items-center justify-center shadow-sm border transition-colors ${homeTabsOpen ? 'bg-amber-500 text-white border-amber-500' : 'bg-background text-muted-foreground border-border/60'}`}>
-                  <ChevronDown className={`w-2.5 h-2.5 transition-transform ${homeTabsOpen ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
+              {/* Home — RIGHT, plain link, no chevron */}
+              <Link href="/feed" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/feed') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                <Home className={`w-5 h-5 ${isActive('/feed') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Home</span>
+              </Link>
             </div>
           </nav>
         </>

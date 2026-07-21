@@ -60,11 +60,11 @@ const nextConfig: NextConfig = {
       isProd
         ? `script-src 'self' ${googleScriptSrc}${googleUnsafeInline}`
         : `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com`,
-      // Images: self + data URIs + blob + backend + ALL possible Railway/storage hosts
-      // We use wildcard patterns to catch any subdomain or storage provider used in production.
-      isProd
-        ? `img-src 'self' data: blob: ${apiHost} https: http://localhost:3001 https://*.railway.app https://*.up.railway.app https://*.r2.dev https://pub-*.r2.dev https://*.supabase.co https://raw.githubusercontent.com https://unpkg.com https://maps.gstatic.com https://*.tile.openstreetmap.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://storage.googleapis.com`
-        : `img-src 'self' data: blob: http: https:`,
+      // Images: allow all HTTPS sources + self + data + blob.
+      // We cannot predict all storage domains (Railway, Supabase, R2, CDN, user avatars)
+      // at build time, so we use 'https:' wildcard which allows any HTTPS image source.
+      // This is safe for a pure-API backend (no cross-site form actions, no scripts).
+      `img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3000`,
       // Fonts: self + Google Fonts (if used)
       `font-src 'self'`,
       // API calls, Sentry, Stripe, WebSocket (socket.io), Google auth
