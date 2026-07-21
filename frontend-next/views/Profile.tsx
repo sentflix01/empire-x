@@ -145,13 +145,14 @@ export default function Profile() {
               <div className="relative">
                 <div className="w-24 h-24 rounded-2xl bg-card p-0.5 shadow-lg">
                   {view === "personal" ? (
-                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
+                    <div className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center text-white text-3xl font-bold"
+                      style={{ background: profile.avatar_url ? 'transparent' : 'linear-gradient(135deg,#60a5fa,#2563eb)' }}>
                       {profile.avatar_url
-                        ? <img src={profile.avatar_url} alt={`${profile.display_name || 'User'} avatar`} className="w-full h-full object-cover" />
+                        ? <img src={profile.avatar_url as string} alt={profile.display_name || 'User'} className="w-full h-full object-cover" />
                         : (profile.display_name?.charAt(0) || "U")}
                     </div>
                   ) : profile.business_logo_url ? (
-                    <img src={profile.business_logo_url} alt={`${profile.business_name || 'Business'} logo`} className="w-full h-full rounded-xl object-cover" />
+                    <img src={profile.business_logo_url as string} alt={profile.business_name || 'Business'} className="w-full h-full rounded-xl object-cover" />
                   ) : (
                     <div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
                       {profile.business_name?.charAt(0) || "B"}

@@ -173,6 +173,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [accountOpen, setAccountOpen] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [homeTabsOpen, setHomeTabsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { cart } = useCart();
   const isShowroomBuilder = pathname === "/showroom/create";
@@ -190,9 +191,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Close drawer on route change
+  // Close drawer and home tabs on route change
   useEffect(() => {
     setDrawerOpen(false);
+    setHomeTabsOpen(false);
   }, [pathname]);
 
   // Redirect to /login when auth has resolved and user is not authenticated
@@ -351,29 +353,46 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             )}
           </Link>
 
-          {/* Desktop Search — centered */}
-          <form
-            className="hidden md:flex flex-1 max-w-lg"
-            onSubmit={e => {
-              e.preventDefault();
-              const input = e.currentTarget.querySelector('input[name="q"]') as HTMLInputElement;
-              const q = input?.value?.trim();
-              if (q) { input.value = ''; router.push(`/search?q=${encodeURIComponent(q)}`); }
-            }}
-          >
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <input
-                name="q"
-                type="search"
-                enterKeyHint="search"
-                placeholder={tr('common.searchPlaceholder')}
-                className="w-full pl-9 pr-4 bg-secondary/50 border-0 focus:outline-none focus:ring-1 focus:ring-amber-500/30 rounded-full h-9 text-sm"
-              />
-            </div>
-          </form>
+          {/* Desktop Search — expands overlay on focus */}
+          <div className="hidden md:flex flex-1 max-w-sm relative">
+            {searchOpen ? (
+              /* Expanded overlay mode — covers right icons */
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 z-50" style={{ width: 'calc(100% + 280px)' }}>
+                <form
+                  onSubmit={e => {
+                    e.preventDefault();
+                    const q = (e.currentTarget.elements.namedItem('q') as HTMLInputElement)?.value?.trim();
+                    if (q) { setSearchOpen(false); router.push(`/search?q=${encodeURIComponent(q)}`); }
+                  }}
+                  className="relative"
+                >
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500 pointer-events-none" />
+                  <input
+                    name="q"
+                    type="search"
+                    autoFocus
+                    enterKeyHint="search"
+                    placeholder={tr('common.searchPlaceholder')}
+                    className="w-full pl-9 pr-10 bg-background border border-amber-400/60 shadow-lg rounded-full h-9 text-sm outline-none focus:ring-2 focus:ring-amber-500/40"
+                    onKeyDown={e => { if (e.key === 'Escape') setSearchOpen(false); }}
+                  />
+                  <button type="button" onClick={() => setSearchOpen(false)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="w-4 h-4" />
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="flex items-center gap-2 w-full pl-9 pr-4 bg-secondary/50 rounded-full h-9 text-sm text-muted-foreground hover:bg-secondary transition-colors relative"
+              >
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
+                {tr('common.searchPlaceholder')}
+              </button>
+            )}
+          </div>
 
-          <div className="flex items-center gap-1.5 ml-auto">
+          <div className="flex items-center gap-1 ml-auto">
             {/* Mobile search toggle */}
             <button onClick={() => setSearchOpen(v => !v)} className="md:hidden p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Search">
               <Search className="w-5 h-5 text-muted-foreground" />
@@ -387,10 +406,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </span>
               )}
             </Link>
-            {/* Bookmarks — hidden on mobile to prevent header overflow */}
-            <Link href="/bookmarks" className="hidden sm:flex p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Bookmarks">
-              <Bookmark className="w-5 h-5 text-muted-foreground" />
-            </Link>
             {/* Notifications */}
             <Link href="/notifications" className="relative p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Notifications">
               <Bell className="w-5 h-5 text-muted-foreground" />
@@ -403,8 +418,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             {/* Real/Demo mode toggle */}
             <button
               onClick={toggleRealMode}
-              title={realMode ? 'Showing real users only — click to show all' : 'Showing all users (demo + real) — click for real only'}
-              className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold border transition-all ${
+              title={realMode ? 'Real users only — click to show all' : 'Showing all (demo+real) — click for real only'}
+              className={`hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border transition-all ${
                 realMode
                   ? 'bg-green-500 text-white border-green-500 shadow-sm shadow-green-500/30'
                   : 'bg-secondary text-muted-foreground border-border/50 hover:bg-secondary/80'
@@ -424,12 +439,11 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               )}
             </button>
             {/* Language */}
-            <button onClick={toggleLanguage} className="p-2 rounded-full hover:bg-secondary transition-colors text-xs font-bold text-muted-foreground" aria-label="Toggle language" title="Switch English / አማርኛ">
-              <Languages className="w-5 h-5" />
-              <span className="sr-only">{currentLang}</span>
+            <button onClick={toggleLanguage} className="p-2 rounded-full hover:bg-secondary transition-colors flex items-center justify-center" aria-label="Toggle language" title="Switch English / አማርኛ">
+              <Languages className="w-5 h-5 text-muted-foreground" />
             </button>
             {/* Avatar */}
-            <Link href="/profile" className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-semibold shrink-0">
+            <Link href="/profile" className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
               {user?.full_name?.charAt(0) || "E"}
             </Link>
           </div>
@@ -586,17 +600,18 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <div className="h-4" />
         </div>
 
-        {/* Drawer footer — avatar + name/email + logout */}
+        {/* Drawer footer — user card + logout */}
         <div className="border-t border-border px-3 py-3 shrink-0">
-          <div className="flex items-center gap-3 px-2 py-1.5 rounded-xl">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+          <Link href="/profile" onClick={() => setDrawerOpen(false)}
+            className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-secondary transition-colors">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
               {user?.full_name?.charAt(0) || "E"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate">{displayName}</p>
               <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={() => { setDrawerOpen(false); logout(); }}
             className="mt-1 w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium"
@@ -614,7 +629,40 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         <nav className={`hidden md:flex fixed left-0 top-14 bottom-0 bg-background border-r border-border flex-col z-40 transition-all duration-200
           ${sidebarCollapsed ? "w-14" : "w-52"}`}>
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3 space-y-0.5 scrollbar-thin">
-            {mainNavItems.map(item => <NavLink key={item.path} {...item} />)}
+            {/* Home with slide-up sub-tabs inline */}
+            <div>
+              <div className="flex items-center gap-1">
+                <NavLink path="/feed" icon={Home} label={tr('nav.home')} />
+                {!sidebarCollapsed && (
+                  <button
+                    onClick={() => setHomeTabsOpen(v => !v)}
+                    className={`p-1.5 rounded-lg transition-colors shrink-0 ${homeTabsOpen ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30' : 'text-muted-foreground hover:bg-secondary'}`}
+                    title="Home sub-tabs"
+                  >
+                    <ChevronDown className={`w-3 h-3 transition-transform ${homeTabsOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                )}
+              </div>
+              {homeTabsOpen && !sidebarCollapsed && (
+                <div className="ml-3 pl-3 border-l-2 border-amber-200 dark:border-amber-800 mt-1 space-y-0.5">
+                  {[
+                    { label: 'For You',  path: '/feed' },
+                    { label: 'Explore',  path: '/explore' },
+                    { label: 'Friends',  path: '/friends' },
+                    { label: 'Nearby',   path: '/nearby' },
+                    { label: 'Trending', path: '/explore?tab=trending' },
+                  ].map(tab => (
+                    <Link key={tab.path} href={tab.path}
+                      className={`flex items-center px-2 py-1.5 rounded-lg text-xs font-medium transition-all
+                        ${pathname === tab.path ? 'text-amber-600 bg-amber-50 dark:bg-amber-900/20' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`}
+                    >
+                      {tab.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            {mainNavItems.slice(1).map(item => <NavLink key={item.path} {...item} />)}
 
             <div className="my-2 border-t border-border/50" />
 
@@ -755,16 +803,62 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       {!isShowroomBuilder && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border z-50"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          {/* Home sub-tabs slide-up tray */}
+          {homeTabsOpen && (
+            <div className="absolute bottom-full left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border px-4 py-3 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+              {[
+                { label: 'For You',   path: '/feed' },
+                { label: 'Explore',   path: '/explore' },
+                { label: 'Friends',   path: '/friends' },
+                { label: 'Nearby',    path: '/nearby' },
+                { label: 'Trending',  path: '/explore?tab=trending' },
+              ].map(tab => (
+                <Link key={tab.path} href={tab.path}
+                  onClick={() => setHomeTabsOpen(false)}
+                  className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap
+                    ${pathname === tab.path || (tab.path === '/feed' && pathname === '/')
+                      ? 'bg-amber-500 text-white shadow-sm'
+                      : 'bg-secondary text-muted-foreground hover:bg-secondary/80'}`}
+                >
+                  {tab.label}
+                </Link>
+              ))}
+            </div>
+          )}
           <div className="flex items-center justify-around h-16 px-2">
-            {mainNavItems.slice(0, 4).map(({ path, icon: Icon, label }) => (
-              <Link key={path} href={path} className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px] ${isActive(path) ? "text-amber-600" : "text-muted-foreground"}`}>
-                <Icon className={`w-5 h-5 ${isActive(path) ? "stroke-[2.5]" : ""}`} />
-                <span className="text-[10px] font-medium">{label}</span>
+            {/* Home with sub-tab chevron */}
+            <div className="flex flex-col items-center relative">
+              <Link href="/feed"
+                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all min-w-[44px] ${isActive('/feed') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                <Home className={`w-5 h-5 ${isActive('/feed') ? 'stroke-[2.5]' : ''}`} />
+                <span className="text-[10px] font-medium">{tr('nav.home')}</span>
               </Link>
-            ))}
-            {/* More button — opens full drawer */}
+              <button
+                onClick={() => setHomeTabsOpen(v => !v)}
+                className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center transition-colors ${homeTabsOpen ? 'bg-amber-500 text-white' : 'bg-secondary text-muted-foreground'}`}
+                aria-label="Home sub-tabs"
+              >
+                <ChevronDown className={`w-2.5 h-2.5 transition-transform ${homeTabsOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+            {/* Explore */}
+            <Link href="/explore" className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px] ${isActive('/explore') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+              <TrendingUp className={`w-5 h-5 ${isActive('/explore') ? 'stroke-[2.5]' : ''}`} />
+              <span className="text-[10px] font-medium">{tr('nav.explore')}</span>
+            </Link>
+            {/* Friends */}
+            <Link href="/friends" className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px] ${isActive('/friends') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+              <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} />
+              <span className="text-[10px] font-medium">{tr('nav.friends')}</span>
+            </Link>
+            {/* Businesses */}
+            <Link href="/businesses" className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px] ${isActive('/businesses') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+              <Store className={`w-5 h-5 ${isActive('/businesses') ? 'stroke-[2.5]' : ''}`} />
+              <span className="text-[10px] font-medium">{tr('nav.businesses')}</span>
+            </Link>
+            {/* More */}
             <button
-              onClick={() => setDrawerOpen(true)}
+              onClick={() => { setHomeTabsOpen(false); setDrawerOpen(true); }}
               className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all text-muted-foreground hover:text-foreground min-w-[56px]"
             >
               <Menu className="w-5 h-5" />
