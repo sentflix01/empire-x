@@ -279,6 +279,11 @@ if (sentryErrorHandler) app.use(sentryErrorHandler);
 
 // ── Global error handler ──────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
+  // Guard against double response — if headers already sent, nothing we can do
+  if (res.headersSent) {
+    logger.warn({ err: err.message }, 'Error after headers sent — ignoring');
+    return;
+  }
   logger.error({ err: err.message, stack: err.stack }, 'Unhandled error');
   if (err.code === 'LIMIT_FILE_SIZE') {
     return res.status(413).json({ error: 'File too large' });
@@ -363,6 +368,11 @@ process.on('unhandledRejection', (reason) => {
   logger.error({ reason: String(reason) }, 'Unhandled promise rejection');
 });
 process.on('uncaughtException', (err) => {
+  // ERR_HTTP_HEADERS_SENT means a response was sent twice — log but don't kill the process
+  if (err.code === 'ERR_HTTP_HEADERS_SENT' || err.message?.includes('Cannot set headers after they are sent')) {
+    logger.warn({ err: err.message }, 'Double response detected — request already responded to');
+    return;
+  }
   logger.error({ err: err.message }, 'Uncaught exception');
   process.exit(1);
 });

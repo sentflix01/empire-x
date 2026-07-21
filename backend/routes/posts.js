@@ -12,8 +12,9 @@ const { realOnlyUserFilter } = require('../middleware/realMode');
 router.get('/', optionalAuth, cacheMiddleware('posts:list', 60), async (req, res) => {
   try {
     const { sort = '-created_at', limit = 30, author_id, post_type, feed = 'false' } = req.query;
+    // Use column name without alias — these subqueries reference the table directly
     const realFilter = req.realOnly
-      ? `AND p.author_id IN (SELECT id FROM users WHERE is_seed = FALSE)`
+      ? `AND author_id IN (SELECT id FROM users WHERE is_seed = FALSE)`
       : '';
 
     // Smart feed mode: mix recent + popular + random for variety
