@@ -44,6 +44,9 @@
     --destructive-foreground: 0 0% 98%;
     --radius:              0.875rem;
 
+    /* ── Chat room background ── */
+    --chat-bg:             210 25% 92%;      /* light blue-gray, WhatsApp-style */
+
     /* ── Named brand tokens (use these in inline styles / JS) ── */
     --ex-blue:   #2563eb;
     --ex-purple: #7c3aed;
@@ -95,6 +98,10 @@
     --destructive:         0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
+    /* ── Chat room background ── */
+    --chat-bg:             222 30% 14%;      /* dark blue-gray for dark mode */
+
+    /* ── Named brand tokens ── */
     --ex-blue:   #3b82f6;
     --ex-purple: #8b5cf6;
     --ex-gold:   #f59e0b;

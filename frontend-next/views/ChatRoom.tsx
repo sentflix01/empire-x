@@ -343,7 +343,7 @@ export default function ChatRoom() {
       {/* Messages area */}
       <div
         className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5"
-        style={{ backgroundColor: 'hsl(var(--secondary))' }}
+        style={{ backgroundColor: 'hsl(var(--chat-bg))' }}
         onClick={() => { setHeaderMenuOpen(false); setHoveredMsg(null); }}
       >
         {loading && (
