@@ -9,6 +9,8 @@ import { useRealMode } from "@/lib/RealModeContext";
 import { Search, Users, Radio, User as UserIcon, MessageCircle } from "lucide-react";
 import moment from "moment";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
+import { formatLastSeen } from "@/lib/presence";
+import type { PresenceData } from "@/lib/presence";
 
 export default function Messages() {
   const { t } = useTranslation();
@@ -56,10 +58,14 @@ export default function Messages() {
 
       if (dmPartnerIds.length > 0) {
         const results = await Promise.all(
-          dmPartnerIds.map(uid => client.get(`/api/messages/presence/${uid}`).then(r => ({ uid, status: r.data.status })).catch(() => ({ uid, status: 'offline' })))
+          dmPartnerIds.map(uid =>
+            client.get(`/api/messages/presence/${uid}`)
+              .then(r => ({ uid, data: { status: r.data.status, last_seen: r.data.last_seen || null } as PresenceData }))
+              .catch(() => ({ uid, data: { status: 'offline', last_seen: null } as PresenceData }))
+          )
         );
-        const map = {};
-        results.forEach(({ uid, status }) => { map[uid] = status; });
+        const map: Record<string, PresenceData> = {};
+        results.forEach(({ uid, data }) => { map[uid] = data; });
         setPresence(map);
       }
     } catch {} finally { setLoading(false); }
@@ -229,11 +235,15 @@ export default function Messages() {
               const resolvedAvatar = conv.avatar_url || dmAvatarUrl;
 
               let isOnline = false;
+              let presenceData: PresenceData | null = null;
               if (isDm) {
                 try {
                   const ids = JSON.parse(conv.participant_ids || '[]');
-                  const otherId = ids.find(i => i !== user?.id);
-                  isOnline = otherId && presence[otherId] === 'online';
+                  const otherId = ids.find((i: string) => i !== user?.id);
+                  if (otherId && presence[otherId]) {
+                    presenceData = presence[otherId];
+                    isOnline = presenceData.status === 'online';
+                  }
                 } catch {}
               }
 
@@ -271,8 +281,16 @@ export default function Messages() {
                       )}
                     </div>
                     <div className="flex items-center justify-between gap-2 mt-0.5">
-                      <p className="text-xs text-muted-foreground truncate flex-1">
-                        {conv.last_message || <span className="italic">No messages yet</span>}
+                      <p className="text-xs truncate flex-1">
+                        {isDm && presenceData ? (
+                          <span className={isOnline ? 'text-green-500 font-medium' : 'text-muted-foreground'}>
+                            {formatLastSeen(presenceData)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            {conv.last_message || <span className="italic">No messages yet</span>}
+                          </span>
+                        )}
                       </p>
                       {(isChannel || isGroup) && (
                         <span

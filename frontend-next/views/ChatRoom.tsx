@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import moment from "moment";
 import { toast } from "sonner";
+import { formatLastSeen } from "@/lib/presence";
+import type { PresenceData } from "@/lib/presence";
 
 
 
@@ -41,7 +43,7 @@ export default function ChatRoom() {
   // Block status & online status
   const [isBlocked, setIsBlocked]     = useState(false);
   const [otherUserId, setOtherUserId] = useState(null);
-  const [isOnline, setIsOnline]       = useState(false);
+  const [presence, setPresence]       = useState<PresenceData | null>(null);
 
   const bottomRef  = useRef(null);
   const inputRef   = useRef(null);
@@ -126,7 +128,7 @@ export default function ChatRoom() {
     }
   }, [conversation, user]);
 
-  // Check block status + online status when other user resolves
+  // Check block status + presence when other user resolves
   useEffect(() => {
     if (!otherUserId) return;
     client.get(`/api/messages/block/${otherUserId}`)
@@ -134,11 +136,11 @@ export default function ChatRoom() {
       .catch(() => {});
     const fetchPresence = () => {
       client.get(`/api/messages/presence/${otherUserId}`)
-        .then(r => setIsOnline(r.data.status === 'online'))
+        .then(r => setPresence({ status: r.data.status, last_seen: r.data.last_seen || null }))
         .catch(() => {});
     };
     fetchPresence();
-    const interval = setInterval(fetchPresence, 60_000);
+    const interval = setInterval(fetchPresence, 30_000); // poll every 30s
     return () => clearInterval(interval);
   }, [otherUserId]);
 
@@ -268,10 +270,11 @@ export default function ChatRoom() {
         return `${count} ${conversation.type === 'channel' ? 'subscriber' : 'member'}${count !== 1 ? 's' : ''}`;
       } catch { return ''; }
     }
-    if (isOnline) return 'online';
-    return 'last seen recently';
+    // DM — show online or last seen
+    return formatLastSeen(presence);
   };
 
+  const isOnline  = presence?.status === 'online';
   const isAdmin   = conversation?.admin_id === user?.id;
   const isChannel = conversation?.type === 'channel';
   const isGroup   = conversation?.type === 'group';
@@ -320,7 +323,9 @@ export default function ChatRoom() {
 
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-white truncate">{getDisplayName()}</p>
-          <p className="text-xs text-white/70">{getSubtitle()}</p>
+          <p className={`text-xs truncate ${isOnline && isDm ? 'text-green-300 font-medium' : 'text-white/70'}`}>
+            {getSubtitle()}
+          </p>
         </div>
 
         {/* "..." menu */}

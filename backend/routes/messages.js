@@ -319,41 +319,81 @@ router.put('/presence', requireAuth, async (req, res) => {
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'status must be online, offline, or away' });
     }
-    // Store in Redis if available, else just update users.updated_at as proxy
     const { getRedis } = require('../lib/redis');
     const redis = getRedis();
+    const now = new Date().toISOString();
+
     if (!redis.isNoOp) {
-      await redis.setex(`presence:${req.user.id}`, 300, status); // 5 min TTL
+      if (status === 'online') {
+        // Store status + last_seen together as JSON
+        await redis.setex(`presence:${req.user.id}`, 300, JSON.stringify({ status: 'online', last_seen: now }));
+      } else {
+        // On offline: persist last_seen, short TTL so it expires
+        await redis.setex(`presence:${req.user.id}`, 604800, JSON.stringify({ status: 'offline', last_seen: now })); // 7 days
+      }
     }
-    // Always update the users table for persistent offline detection
-    await pool.query('UPDATE users SET updated_at = NOW() WHERE id = $1', [req.user.id]);
+
+    // Always update users.last_seen column for persistent storage
+    await pool.query(
+      'UPDATE users SET updated_at = NOW(), last_seen = NOW() WHERE id = $1',
+      [req.user.id]
+    ).catch(() => {
+      // last_seen column may not exist yet — fall back to just updated_at
+      return pool.query('UPDATE users SET updated_at = NOW() WHERE id = $1', [req.user.id]);
+    });
+
     res.json({ success: true, status });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update presence' });
   }
 });
 
-// Get online presence of a user
+// Get online presence of a user — returns { status, last_seen }
 router.get('/presence/:userId', requireAuth, async (req, res) => {
   try {
     const { getRedis } = require('../lib/redis');
     const redis = getRedis();
     let status = 'offline';
+    let last_seen = null;
+
     if (!redis.isNoOp) {
       const cached = await redis.get(`presence:${req.params.userId}`);
-      if (cached) status = cached;
-    } else {
-      // Fallback: check updated_at within last 10 minutes
-      const { rows } = await pool.query(
-        'SELECT updated_at FROM users WHERE id = $1',
-        [req.params.userId]
-      );
-      if (rows.length && rows[0].updated_at) {
-        const diff = Date.now() - new Date(rows[0].updated_at).getTime();
-        if (diff < 10 * 60 * 1000) status = 'online';
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          status = parsed.status || 'offline';
+          last_seen = parsed.last_seen || null;
+        } catch {
+          // legacy plain string value
+          status = cached === 'online' ? 'online' : 'offline';
+        }
       }
     }
-    res.json({ user_id: req.params.userId, status });
+
+    // Always try to get last_seen from DB as fallback / supplement
+    const { rows } = await pool.query(
+      `SELECT
+         COALESCE(last_seen, updated_at) AS last_seen_at,
+         updated_at
+       FROM users WHERE id = $1`,
+      [req.params.userId]
+    ).catch(() => ({ rows: [] }));
+
+    if (rows.length) {
+      const dbLastSeen = rows[0].last_seen_at || rows[0].updated_at;
+      if (dbLastSeen) {
+        // If Redis has no last_seen but DB does, use DB value
+        if (!last_seen) last_seen = dbLastSeen;
+
+        // If Redis says offline (or no Redis), check DB recency as online fallback
+        if (status === 'offline' && redis.isNoOp) {
+          const diff = Date.now() - new Date(dbLastSeen).getTime();
+          if (diff < 5 * 60 * 1000) status = 'online'; // within 5 min = online
+        }
+      }
+    }
+
+    res.json({ user_id: req.params.userId, status, last_seen });
   } catch (err) {
     res.status(500).json({ error: 'Failed to get presence' });
   }
