@@ -15,8 +15,8 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 const TX_ICONS = {
   credit: { icon: ArrowDownLeft, color: "text-green-600 bg-green-50" },
   debit: { icon: ArrowUpRight, color: "text-red-600 bg-red-50" },
-  withdrawal: { icon: ArrowUpRight, color: "text-blue-600 bg-blue-50" },
-  refund: { icon: ArrowDownLeft, color: "text-purple-600 bg-purple-50" },
+  withdrawal: { icon: ArrowUpRight, color: "text-primary bg-primary/10" },
+  refund: { icon: ArrowDownLeft, color: "text-accent bg-accent/10" },
 };
 
 export default function Wallet() {
@@ -132,7 +132,7 @@ export default function Wallet() {
             {/* Chapa — ETB top-up (primary) */}
             <Button
               disabled={processing || !topupAmount || parseFloat(topupAmount) <= 0}
-              className="w-full rounded-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
+              className="w-full rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white font-semibold"
               onClick={async () => {
                 setProcessing(true);
                 try {

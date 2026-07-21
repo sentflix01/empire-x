@@ -23,7 +23,7 @@ const TASK_TYPES = {
 
 const STATUS_STYLES = {
   open: "bg-green-50 text-green-700 border-green-200",
-  in_progress: "bg-blue-50 text-blue-700 border-blue-200",
+  in_progress: "bg-primary/10 text-primary border-primary/20",
   done: "bg-secondary/50 text-muted-foreground border-border/50",
   cancelled: "bg-red-50 text-red-600 border-red-200",
 };

@@ -28,14 +28,14 @@ import { useRealMode } from "@/lib/RealModeContext";
 /* ── Right Panel — shortcuts, trending, suggestions ── */
 function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string } | null }) {
   const quickLinks = [
-    { path: "/showrooms",  icon: Store,     label: "Showrooms",    color: "#2563EB" },
-    { path: "/events",     icon: CalendarDays, label: "Events",    color: "#10B981" },
-    { path: "/jobs",       icon: Briefcase, label: "Jobs",          color: "#3B82F6" },
-    { path: "/courses",    icon: GraduationCap, label: "Courses",  color: "#8B5CF6" },
-    { path: "/marketplace",icon: ShoppingBag, label: "Marketplace",color: "#EC4899" },
-    { path: "/tasks",      icon: Zap,       label: "Tasks",         color: "#06B6D4" },
-    { path: "/bookmarks",  icon: Bookmark,  label: "Bookmarks",     color: "#6B7280" },
-    { path: "/wallet",     icon: Wallet,    label: "Wallet",        color: "#F97316" },
+    { path: "/showrooms",  icon: Store,        label: "Showrooms",   color: "#2563EB" },
+    { path: "/events",     icon: CalendarDays, label: "Events",      color: "#2563EB" },
+    { path: "/jobs",       icon: Briefcase,    label: "Jobs",        color: "#2563EB" },
+    { path: "/courses",    icon: GraduationCap,label: "Courses",     color: "#7c3aed" },
+    { path: "/marketplace",icon: ShoppingBag,  label: "Marketplace", color: "#7c3aed" },
+    { path: "/tasks",      icon: Zap,          label: "Tasks",       color: "#2563EB" },
+    { path: "/bookmarks",  icon: Bookmark,     label: "Bookmarks",   color: "#6B7280" },
+    { path: "/wallet",     icon: Wallet,       label: "Wallet",      color: "#f59e0b" },
   ];
 
   return (
@@ -66,16 +66,16 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
       </div>
 
       {/* Sponsored / Promo */}
-      <div className="rounded-2xl border border-blue-200/70 bg-white p-4 shadow-sm dark:border-blue-500/25 dark:bg-slate-950">
+      <div className="rounded-2xl border border-primary/20 bg-card p-4 shadow-sm">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold text-blue-700 uppercase tracking-wide dark:text-blue-300">Sponsored</span>
+          <span className="text-xs font-bold text-primary uppercase tracking-wide">Sponsored</span>
           <span className="text-[10px] text-muted-foreground">Ad</span>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 p-3 mb-3 shadow-md shadow-blue-600/20">
+        <div className="rounded-xl bg-empire-gradient p-3 mb-3 shadow-md shadow-primary/20">
           <p className="text-white font-bold text-sm">Empire X Pro</p>
           <p className="text-white/85 text-xs mt-1 leading-relaxed">Boost your business visibility to 10,000+ users.</p>
         </div>
-        <Link href="/analytics" className="block text-center py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm shadow-blue-600/20 transition-colors">
+        <Link href="/analytics" className="block text-center py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold shadow-sm shadow-primary/20 transition-colors">
           Promote Now
         </Link>
       </div>
@@ -306,22 +306,20 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       className={`flex items-center gap-3 rounded-xl transition-all text-sm font-medium group relative
         ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}
         ${isActive(path)
-          ? "bg-primary/10 text-primary dark:bg-primary/20"
+          ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
           : "text-muted-foreground hover:bg-secondary hover:text-foreground"
         }`}
     >
       <Icon className="w-4 h-4 shrink-0" />
       {!sidebarCollapsed && <span className="truncate">{label}</span>}
       {!sidebarCollapsed && badge ? (
-        <span className="ml-auto w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
+        <span className="ml-auto w-5 h-5 bg-[#f59e0b] text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
           {badge > 9 ? "9+" : badge}
         </span>
       ) : null}
-      {/* Badge dot in collapsed mode */}
       {sidebarCollapsed && badge ? (
-        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full" />
+        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#f59e0b] rounded-full" />
       ) : null}
-      {/* Tooltip in collapsed mode */}
       {sidebarCollapsed && (
         <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
           {label}
@@ -590,7 +588,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 {/* Profile card with mini cover */}
                 <div className="rounded-xl overflow-hidden border border-border mb-1.5">
                   {/* Mini cover */}
-                  <div className="h-10 bg-gradient-to-br from-blue-500 to-purple-600 relative">
+                  <div className="h-10 bg-empire-gradient relative">
                     {userProfile?.cover_url && (
                       <img src={userProfile.cover_url} alt="" className="w-full h-full object-cover absolute inset-0" />
                     )}
@@ -642,7 +640,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       </div>
 
       {/* ── Mobile Bottom Nav + More Sheet ── */}
-      {!isShowroomBuilder && (
+      {!isShowroomBuilder && !isImmersiveRoute && (
         <>
           {/* ── Mobile Side Drawer — full height, slides from left ── */}
           {drawerOpen && (
@@ -656,7 +654,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <div className="fixed inset-y-0 left-0 z-[80] md:hidden bg-white dark:bg-card w-[84vw] max-w-sm flex flex-col shadow-2xl">
 
                 {/* ── Cover photo + avatar inside it — full width, no side padding ── */}
-                <div className="relative h-40 shrink-0 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700">
+                <div className="relative h-40 shrink-0 bg-empire-gradient">
                   {userProfile?.cover_url && (
                     <img src={userProfile.cover_url} alt="" className="w-full h-full object-cover absolute inset-0" />
                   )}

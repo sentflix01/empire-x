@@ -19,15 +19,12 @@ export default function NewChatMenu({ user, contacts, onCreated }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const TG_BLUE = "#0088cc";
-
   return (
     <>
       <div className="relative" ref={ref}>
         <button
           onClick={() => setOpen(o => !o)}
-          className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-secondary transition-colors"
-          style={{ color: TG_BLUE }}
+          className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-secondary transition-colors text-primary"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -39,15 +36,15 @@ export default function NewChatMenu({ user, contacts, onCreated }) {
               onClick={() => { setOpen(false); setGroupOpen(true); }}
               className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/50 transition-colors text-sm"
             >
-              <Users className="w-4 h-4" style={{ color: TG_BLUE }} />
+              <Users className="w-4 h-4 text-primary" />
               New Group
             </Link>
             <Link
               href="/messages"
               onClick={() => { setOpen(false); setChannelOpen(true); }}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/50 transition-colors text-sm border-t border-gray-50"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/50 transition-colors text-sm border-t border-border/20"
             >
-              <Radio className="w-4 h-4" style={{ color: TG_BLUE }} />
+              <Radio className="w-4 h-4 text-primary" />
               New Channel
             </Link>
           </div>

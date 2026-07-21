@@ -51,10 +51,22 @@ function emitNewMessage(conversationId, message) {
   }
 }
 
+function emitMessageEdited(conversationId, message) {
+  if (ioInstance) {
+    ioInstance.to(`conv:${conversationId}`).emit('message_edited', message);
+  }
+}
+
+function emitMessageDeleted(conversationId, messageId) {
+  if (ioInstance) {
+    ioInstance.to(`conv:${conversationId}`).emit('message_deleted', { id: messageId });
+  }
+}
+
 function emitNotification(userId, notification) {
   if (ioInstance) {
     ioInstance.to(`user:${userId}`).emit('new_notification', notification);
   }
 }
 
-module.exports = { initSocket, getIO, emitNewMessage, emitNotification };
+module.exports = { initSocket, getIO, emitNewMessage, emitMessageEdited, emitMessageDeleted, emitNotification };

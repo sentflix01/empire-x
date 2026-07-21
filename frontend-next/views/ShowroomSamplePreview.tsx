@@ -68,14 +68,14 @@ export default function ShowroomSamplePreview() {
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap">
               <Link
                 href={createUrl("starter")}
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-bold text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700"
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-xs font-bold text-white shadow-sm shadow-primary/20 hover:bg-primary/90"
               >
                 <PenLine className="h-4 w-4" />
                 Customize Starter
               </Link>
               <Link
                 href={createUrl("premium")}
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 text-xs font-bold text-white shadow-sm shadow-blue-600/20 hover:from-blue-700 hover:to-purple-700"
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-empire-gradient px-4 text-xs font-bold text-white shadow-sm shadow-primary/20 hover:opacity-90"
               >
                 <Sparkles className="h-4 w-4" />
                 Customize Premium
@@ -102,8 +102,8 @@ export default function ShowroomSamplePreview() {
                   href={createUrl(sample.id)}
                   className={`inline-flex h-10 w-full items-center justify-center rounded-xl px-4 text-xs font-bold text-white sm:h-9 sm:w-auto ${
                     sample.id === "premium"
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                      : "bg-blue-600 hover:bg-blue-700"
+                      ? "bg-empire-gradient hover:opacity-90"
+                      : "bg-primary hover:bg-primary/90"
                   }`}
                 >
                   Customize this sample

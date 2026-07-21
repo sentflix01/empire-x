@@ -13,8 +13,7 @@ import {
 import moment from "moment";
 import { toast } from "sonner";
 
-const TG_BLUE = "#0088cc";
-const TG_BLUE_LIGHT = "#effdde";
+
 
 export default function ChatRoom() {
   const { id } = useParams();
@@ -298,10 +297,10 @@ export default function ChatRoom() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-[calc(100dvh-3.5rem)] md:h-[calc(100vh-3.5rem)] overflow-hidden">
+    <div className="flex flex-col h-[calc(100dvh-3.5rem)] overflow-hidden">
 
       {/* Header */}
-      <div className="px-4 py-2.5 flex items-center gap-3 shrink-0 shadow-sm z-10" style={{ backgroundColor: TG_BLUE }}>
+      <div className="px-4 py-2.5 flex items-center gap-3 shrink-0 shadow-sm z-10 bg-primary">
         <button onClick={handleBack} className="p-1 rounded-full hover:bg-white/10 transition-colors">
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
@@ -312,7 +311,7 @@ export default function ChatRoom() {
             {isChannel ? <Radio className="w-5 h-5" /> : isGroup ? <Users className="w-5 h-5" /> : avatarLetter}
           </div>
           {isDm && isOnline && (
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-[#0088cc] rounded-full" />
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-primary rounded-full" />
           )}
         </div>
 
@@ -344,7 +343,7 @@ export default function ChatRoom() {
       {/* Messages area */}
       <div
         className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5"
-        style={{ backgroundColor: '#cfd7dc' }}
+        style={{ backgroundColor: 'hsl(var(--secondary))' }}
         onClick={() => { setHeaderMenuOpen(false); setHoveredMsg(null); }}
       >
         {loading && (
@@ -422,13 +421,12 @@ export default function ChatRoom() {
                   <div
                     className={`relative max-w-[80%] px-3 py-1.5 text-sm shadow-sm ${
                       isMe
-                        ? 'rounded-2xl rounded-br-md'
+                        ? 'rounded-2xl rounded-br-md bg-blue-100 dark:bg-blue-900/40'
                         : 'rounded-2xl rounded-bl-md bg-card'
                     }`}
-                    style={isMe ? { backgroundColor: TG_BLUE_LIGHT } : {}}
                   >
                     {showSender && (
-                      <p className="text-xs font-semibold mb-0.5" style={{ color: TG_BLUE }}>
+                      <p className="text-xs font-semibold mb-0.5 text-primary">
                         {msg.sender_name}
                       </p>
                     )}
@@ -452,7 +450,7 @@ export default function ChatRoom() {
                         {moment(msg.created_at).format('HH:mm')}
                       </span>
                       {isMe && (
-                        <CheckCheck className="w-3.5 h-3.5" style={{ color: TG_BLUE, opacity: 0.7 }} />
+                        <CheckCheck className="w-3.5 h-3.5 text-primary opacity-70" />
                       )}
                     </div>
                   </div>
@@ -466,20 +464,18 @@ export default function ChatRoom() {
 
       {/* Input area */}
       {!canSend ? (
-        <div className="bg-card border-t border-border/30 px-4 py-4 flex items-center justify-center shrink-0">
+        <div className="bg-card border-t border-border/30 px-4 py-4 flex items-center justify-center shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <p className="text-sm text-muted-foreground">
             {isBlocked ? '🚫 You have blocked this user.' : '🔊 Only admins can post in this channel.'}
           </p>
         </div>
       ) : (
-        <div className="bg-card border-t border-border/30 shrink-0">
-          {/* On mobile: pad bottom so input clears the bottom nav bar */}
-          <div className="md:pb-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="bg-card border-t border-border/30 shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {/* Reply preview */}
           {replyingTo && !editingMsg && (
             <div className="flex items-start gap-2 px-4 py-2 border-b border-border/20 bg-secondary/30">
               <div className="border-l-2 border-blue-500 pl-2 flex-1 min-w-0">
-                <p className="text-xs font-semibold" style={{ color: TG_BLUE }}>Reply to {replyingTo.sender_name || 'message'}</p>
+                <p className="text-xs font-semibold text-primary">Reply to {replyingTo.sender_name || 'message'}</p>
                 <p className="text-xs text-muted-foreground truncate">{replyingTo.content}</p>
               </div>
               <button onClick={() => setReplyingTo(null)} className="p-1 hover:bg-secondary rounded">
@@ -522,14 +518,12 @@ export default function ChatRoom() {
             <button
               onClick={handleSend}
               disabled={!(editingMsg ? editText.trim() : text.trim()) || sending}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white disabled:opacity-30 shrink-0 transition-transform active:scale-90"
-              style={{ backgroundColor: TG_BLUE }}
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white disabled:opacity-30 shrink-0 transition-transform active:scale-90 bg-primary hover:bg-primary/90"
             >
               {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
             </button>
           </div>
         </div>
-      </div>
       )}
     </div>
   );

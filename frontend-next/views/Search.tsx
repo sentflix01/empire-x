@@ -53,7 +53,7 @@ function DistanceBadge({ km }: { km?: number | null }) {
   if (km == null) return null;
   const label = km < 1 ? `${Math.round(km * 1000)} m` : `${km} km`;
   return (
-    <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-cyan-700 bg-cyan-50 border border-cyan-200/60 px-1.5 py-0.5 rounded-full shrink-0">
+    <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-primary/80 bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-full shrink-0">
       <Navigation className="w-2.5 h-2.5" /> {label}
     </span>
   );
@@ -428,8 +428,8 @@ export default function Search() {
             {results.jobs.map(j => (
               <Link key={j.id} href="/jobs"
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                  <Briefcase className="w-5 h-5 text-blue-500" />
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Briefcase className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -457,8 +457,8 @@ export default function Search() {
             {results.events.map(e => (
               <Link key={e.id} href="/events"
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 overflow-hidden">
-                  {e.cover_image ? <img src={e.cover_image} alt="" className="w-full h-full object-cover rounded-xl" /> : <CalendarDays className="w-5 h-5 text-emerald-500" />}
+                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0 overflow-hidden">
+                  {e.cover_image ? <img src={e.cover_image} alt="" className="w-full h-full object-cover rounded-xl" /> : <CalendarDays className="w-5 h-5 text-accent" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">

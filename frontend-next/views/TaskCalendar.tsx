@@ -26,7 +26,7 @@ const TASK_TYPES = {
 
 const STATUS_STYLES = {
   open: "bg-green-50 text-green-700 border-green-200",
-  in_progress: "bg-blue-50 text-blue-700 border-blue-200",
+  in_progress: "bg-primary/10 text-primary border-primary/20",
   done: "bg-secondary/50 text-muted-foreground border-border/50",
   cancelled: "bg-red-50 text-red-600 border-red-200",
 };
@@ -181,7 +181,7 @@ export default function TaskCalendar() {
                             key={i}
                             className={`text-[9px] leading-tight px-1 py-0.5 rounded truncate ${
                               item.task.status === "open" ? "bg-green-100 text-green-700" :
-                              item.task.status === "in_progress" ? "bg-blue-100 text-blue-700" :
+                              item.task.status === "in_progress" ? "bg-primary/10 text-primary" :
                               item.task.status === "done" ? "bg-secondary text-muted-foreground" :
                               "bg-red-100 text-red-600"
                             }`}
@@ -234,7 +234,7 @@ export default function TaskCalendar() {
                           <Banknote className="w-3 h-3" />{item.task.offered_payment?.toLocaleString()} {item.task.currency || "ETB"}
                         </span>
                         {item.pendingBids > 0 && (
-                          <span className="flex items-center gap-1 text-blue-600 font-semibold">
+                          <span className="flex items-center gap-1 text-primary font-semibold">
                             <Gavel className="w-3 h-3" />{item.pendingBids} pending {item.pendingBids === 1 ? "bid" : "bids"}
                           </span>
                         )}

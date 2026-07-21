@@ -14,8 +14,6 @@ import { Input } from "@/components/ui/input";
 import moment from "moment";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
 
-const TG_BLUE = "#0088cc";
-
 export default function Messages() {
   const { t } = useTranslation();
   const { realMode } = useRealMode();
@@ -118,9 +116,9 @@ export default function Messages() {
   };
 
   const getAvatarColor = (conv) => {
-    if (conv.type === "channel") return "#0088cc";
-    if (conv.type === "group") return "#4CAF50";
-    return TG_BLUE;
+    if (conv.type === "channel") return "var(--ex-blue)";
+    if (conv.type === "group") return "var(--ex-purple)";
+    return "var(--ex-blue)";
   };
 
   const filteredConvs = conversations.filter(c => {
@@ -160,7 +158,7 @@ export default function Messages() {
       <div className="max-w-xl mx-auto">
         {/* Telegram-style Header */}
         <div className="flex items-center justify-between mb-3 px-1">
-          <h1 className="font-display text-2xl font-bold" style={{ color: TG_BLUE }}>Empire Chat</h1>
+          <h1 className="font-display text-2xl font-bold text-primary">Empire Chat</h1>
           <NewChatMenu user={user} contacts={contacts} onCreated={() => loadConversations()} />
         </div>
 
@@ -185,10 +183,9 @@ export default function Messages() {
                 onClick={() => setTab(t.id)}
                 className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   tab === t.id
-                    ? "text-white"
-                    : "bg-secondary text-muted-foreground hover:bg-secondary"
+                    ? "bg-primary text-white"
+                    : "bg-secondary text-muted-foreground hover:bg-secondary/80"
                 }`}
-                style={tab === t.id ? { backgroundColor: TG_BLUE } : {}}
               >
                 {Icon && <Icon className="w-3.5 h-3.5" />}
                 {t.label}
@@ -201,7 +198,7 @@ export default function Messages() {
       {/* Spinner: only show on initial load, not on polls */}
       {loading && conversations.length === 0 ? (
           <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-3 border-border/50 border-t-[#0088cc] rounded-full animate-spin" />
+            <div className="w-8 h-8 border-3 border-border/50 border-t-primary rounded-full animate-spin" />
           </div>
         ) : tab === "contacts" ? (
           /* Contacts List */
@@ -380,8 +377,8 @@ function ContactItem({ contact, user, existingConv }) {
         />
       ) : null}
       <div
-        className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold shrink-0"
-        style={{ backgroundColor: "#0088cc", display: avatarUrl ? 'none' : 'flex' }}
+        className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold shrink-0 bg-primary"
+        style={{ display: avatarUrl ? 'none' : 'flex' }}
       >
         {name.charAt(0).toUpperCase()}
       </div>

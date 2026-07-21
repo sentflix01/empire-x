@@ -8,8 +8,6 @@ import { X, Users, Check, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const TG_BLUE = "#0088cc";
-
 export default function CreateGroupModal({ open, onClose, user, contacts, onCreated }) {
   const [name, setName] = useState("");
   const [search, setSearch] = useState("");
@@ -58,7 +56,7 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
       <div className="bg-card rounded-2xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
-          <h2 className="font-semibold text-lg" style={{ color: TG_BLUE }}>New Group</h2>
+          <h2 className="font-semibold text-lg text-primary">New Group</h2>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-secondary">
             <X className="w-5 h-5 text-muted-foreground" />
           </button>
@@ -67,14 +65,14 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
         {/* Group Name */}
         <div className="px-4 py-3 border-b border-border/30">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "#4CAF50" }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-accent">
               <Users className="w-6 h-6 text-white" />
             </div>
             <Input
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Group name"
-              className="flex-1 border-0 border-b border-border/50 rounded-none focus-visible:ring-0 focus-visible:border-[#0088cc] h-10"
+              className="flex-1 border-0 border-b border-border/50 rounded-none focus-visible:ring-0 focus-visible:border-primary h-10"
               autoFocus
             />
           </div>
@@ -88,7 +86,7 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
           <div className="px-4 py-2 flex flex-wrap gap-2 border-b border-border/30 max-h-24 overflow-y-auto">
             {selected.map(c => (
               <div key={c.id} className="flex items-center gap-1.5 bg-secondary rounded-full pl-1 pr-2 py-1">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ backgroundColor: TG_BLUE }}>
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold bg-primary">
                   {(c.full_name || "U").charAt(0)}
                 </div>
                 <span className="text-xs font-medium">{c.full_name || c.email}</span>
@@ -125,11 +123,11 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
                   className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-secondary/50 transition-colors text-left"
                 >
                   <div className="relative shrink-0">
-                    <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: TG_BLUE }}>
+                    <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold bg-primary">
                       {(contact.full_name || contact.email || "U").charAt(0)}
                     </div>
                     {isSelected && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center text-white border-2 border-white" style={{ backgroundColor: TG_BLUE }}>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center text-white border-2 border-white bg-primary">
                         <Check className="w-3 h-3" />
                       </div>
                     )}
@@ -150,7 +148,6 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
             onClick={handleCreate}
             disabled={!name.trim() || selected.length === 0 || creating}
             className="w-full rounded-full text-white font-medium h-10 disabled:opacity-40"
-            style={{ backgroundColor: TG_BLUE }}
           >
             {creating ? "Creating..." : `Create Group${selected.length > 0 ? ` (${selected.length})` : ""}`}
           </Button>

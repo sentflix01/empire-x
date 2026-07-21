@@ -1,119 +1,131 @@
 @import "tailwindcss";
 
+/*
+ * ── Empire X Brand Palette ──────────────────────────────────────────────────
+ *
+ *   Blue   #2563eb  — primary action, active states, links, buttons
+ *   Purple #7c3aed  — accent, gradients, secondary brand
+ *   Gold   #f59e0b  — highlights, notifications, badges, selected nav
+ *
+ *  All UI chrome (backgrounds, borders, text) adapts to light / dark.
+ *  User-generated content (profile photos, cover images) is not affected.
+ */
+
 @layer base {
   :root {
-    /* ── Light mode ── */
+    /* ── Surfaces ── */
     --background:          0 0% 97%;
     --foreground:          222 47% 11%;
     --card:                0 0% 100%;
     --card-foreground:     222 47% 11%;
     --popover:             0 0% 100%;
     --popover-foreground:  222 47% 11%;
-    --primary:             221 83% 53%;
+
+    /* ── Brand blue — primary actions & active states ── */
+    --primary:             221 83% 53%;      /* #2563eb */
     --primary-foreground:  0 0% 100%;
+
+    /* ── Neutral surfaces ── */
     --secondary:           220 14% 95%;
     --secondary-foreground:220 20% 20%;
     --muted:               220 14% 95%;
     --muted-foreground:    220 10% 46%;
-    --accent:              262 83% 58%;
+
+    /* ── Brand purple — accent / gradient end ── */
+    --accent:              262 83% 58%;      /* #7c3aed */
     --accent-foreground:   0 0% 100%;
-    --destructive:         0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+
+    /* ── Borders & inputs ── */
     --border:              220 13% 89%;
     --input:               220 13% 89%;
     --ring:                221 83% 53%;
+
+    --destructive:         0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
     --radius:              0.875rem;
-    --brand-primary:       #2563eb;
-    --brand-secondary:     #7c3aed;
-    --brand-amber:         #f59e0b;
-    --brand-success:       #10b981;
-    --brand-warning:       #f59e0b;
-    --brand-error:         #ef4444;
-    --brand-gradient:      linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+
+    /* ── Named brand tokens (use these in inline styles / JS) ── */
+    --ex-blue:   #2563eb;
+    --ex-purple: #7c3aed;
+    --ex-gold:   #f59e0b;
+
+    /* Tailwind CSS custom property bridge */
+    --color-background:       hsl(var(--background));
+    --color-foreground:       hsl(var(--foreground));
+    --color-card:             hsl(var(--card));
+    --color-border:           hsl(var(--border));
+    --color-primary:          hsl(var(--primary));
+    --color-secondary:        hsl(var(--secondary));
+    --color-muted:            hsl(var(--muted));
+    --color-muted-foreground: hsl(var(--muted-foreground));
+    --color-accent:           hsl(var(--accent));
+    --color-destructive:      hsl(var(--destructive));
+    --color-ring:             hsl(var(--ring));
+
     --font-display: Georgia, 'Times New Roman', serif;
     --font-body:    Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
-
-    --color-background:    hsl(var(--background));
-    --color-foreground:    hsl(var(--foreground));
-    --color-card:          hsl(var(--card));
-    --color-border:        hsl(var(--border));
-    --color-primary:       hsl(var(--primary));
-    --color-secondary:     hsl(var(--secondary));
-    --color-muted:         hsl(var(--muted));
-    --color-muted-foreground: hsl(var(--muted-foreground));
-    --color-accent:        hsl(var(--accent));
-    --color-destructive:   hsl(var(--destructive));
-    --color-ring:          hsl(var(--ring));
   }
 
   .dark {
-    /* ── Dark mode ── */
+    /* ── Surfaces ── */
     --background:          222 47% 9%;
     --foreground:          210 20% 95%;
     --card:                222 39% 13%;
     --card-foreground:     210 20% 95%;
     --popover:             222 39% 13%;
     --popover-foreground:  210 20% 95%;
-    --primary:             217 91% 60%;
+
+    /* ── Brand blue (slightly lighter for dark bg readability) ── */
+    --primary:             217 91% 60%;      /* #3b82f6 */
     --primary-foreground:  0 0% 100%;
+
+    /* ── Neutral surfaces ── */
     --secondary:           224 20% 16%;
     --secondary-foreground:210 20% 88%;
     --muted:               224 20% 16%;
     --muted-foreground:    220 10% 58%;
-    --accent:              263 90% 66%;
+
+    /* ── Brand purple ── */
+    --accent:              263 90% 66%;      /* #8b5cf6 */
     --accent-foreground:   0 0% 100%;
-    --destructive:         0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
+
     --border:              224 20% 20%;
     --input:               224 20% 20%;
     --ring:                217 91% 60%;
-    --brand-primary:       #3b82f6;
-    --brand-secondary:     #8b5cf6;
-    --brand-amber:         #f59e0b;
-    --brand-success:       #34d399;
-    --brand-warning:       #f59e0b;
-    --brand-error:         #f87171;
-    --brand-gradient:      linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    --destructive:         0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --ex-blue:   #3b82f6;
+    --ex-purple: #8b5cf6;
+    --ex-gold:   #f59e0b;
   }
 }
 
 @layer base {
-  * {
-    border-color: hsl(var(--border));
-    outline-color: hsl(var(--ring) / 0.5);
-  }
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-family: var(--font-body);
-  }
+  * { border-color: hsl(var(--border)); outline-color: hsl(var(--ring) / 0.5); }
+  body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); font-family: var(--font-body); }
 }
 
-/* Font utilities */
 .font-display { font-family: var(--font-display); }
 .font-body    { font-family: var(--font-body); }
 
-/* Dark mode overrides for hard-coded colours in components */
+/* ── Dark mode overrides for hard-coded Tailwind color classes ── */
 .dark .bg-white  { background-color: hsl(var(--card)) !important; color: hsl(var(--card-foreground)); }
 .dark .text-gray-900, .dark .text-gray-800, .dark .text-black { color: hsl(var(--foreground)) !important; }
 .dark .text-gray-600, .dark .text-gray-500 { color: hsl(var(--muted-foreground)) !important; }
-.dark .bg-gray-50, .dark .bg-gray-100 { background-color: hsl(var(--secondary)) !important; }
-.dark .bg-gray-900 { background-color: hsl(var(--card)) !important; }
-.dark .border-gray-200 { border-color: hsl(var(--border)) !important; }
-
-/* Slate overrides for dark mode */
-.dark .bg-slate-50  { background-color: hsl(var(--secondary)) !important; }
-.dark .bg-slate-100 { background-color: hsl(var(--secondary)) !important; }
+.dark .bg-gray-50, .dark .bg-gray-100, .dark .bg-slate-50, .dark .bg-slate-100 { background-color: hsl(var(--secondary)) !important; }
+.dark .bg-gray-900, .dark .bg-slate-900 { background-color: hsl(var(--card)) !important; }
+.dark .border-gray-200, .dark .border-slate-200 { border-color: hsl(var(--border)) !important; }
 .dark .text-slate-600, .dark .text-slate-500 { color: hsl(var(--muted-foreground)) !important; }
 .dark .text-slate-900, .dark .text-slate-800 { color: hsl(var(--foreground)) !important; }
-.dark .border-slate-200 { border-color: hsl(var(--border)) !important; }
 
 @layer utilities {
-  .bg-brand-gradient { background-image: var(--brand-gradient); }
-  .text-brand-primary { color: var(--brand-primary); }
-  .text-brand-secondary { color: var(--brand-secondary); }
-  .text-brand-success { color: var(--brand-success); }
-  .border-brand-primary { border-color: var(--brand-primary); }
+  /* Empire X brand gradient — blue → purple */
+  .bg-empire-gradient { background-image: linear-gradient(135deg, var(--ex-blue) 0%, var(--ex-purple) 100%); }
+  .text-empire-blue   { color: var(--ex-blue); }
+  .text-empire-purple { color: var(--ex-purple); }
+  .text-empire-gold   { color: var(--ex-gold); }
+  .border-empire-blue { border-color: var(--ex-blue); }
 }
 
 /* Scrollbar utilities */
