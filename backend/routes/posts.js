@@ -9,7 +9,7 @@ const { cacheMiddleware } = require('../middleware/cache');
 const { realOnlyUserFilter } = require('../middleware/realMode');
 
 // List posts — supports smart feed with random offset for variety
-router.get('/', optionalAuth, cacheMiddleware('posts:list', 20), async (req, res) => {
+router.get('/', optionalAuth, cacheMiddleware('posts:list', 60), async (req, res) => {
   try {
     const { sort = '-created_at', limit = 30, author_id, post_type, feed = 'false' } = req.query;
     const realFilter = req.realOnly

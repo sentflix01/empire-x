@@ -53,7 +53,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 });
 
 // List profiles (with optional filter)
-router.get('/', optionalAuth, cacheMiddleware('profiles:list', 30), async (req, res) => {
+router.get('/', optionalAuth, cacheMiddleware('profiles:list', 60), async (req, res) => {
   try {
     const { user_id, profile_type, sort = '-created_at', limit = 50 } = req.query;
     const conditions = [];

@@ -29,6 +29,21 @@ initSentry(app);
 // ── Gzip compression — reduces response size by 60-80% ───────────────────────
 app.use(compression());
 
+// ── ETag support for conditional requests ────────────────────────────────────
+// Enables 304 Not Modified responses when content hasn't changed
+app.set('etag', 'strong');
+
+// ── Response time header for monitoring ──────────────────────────────────────
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    res.setHeader('X-Response-Time', `${Date.now() - start}ms`);
+  });
+  // Vary header for CDN caching correctness
+  res.set('Vary', 'Accept-Encoding');
+  next();
+});
+
 // ── Real-mode filter header — set req.realOnly when X-Real-Only: 1 ───────────
 const { realModeMiddleware } = require('./middleware/realMode');
 app.use(realModeMiddleware);
@@ -287,6 +302,23 @@ server.listen(PORT, () => {
   // ── Keep-alive: warm up DB connection pool every 4 minutes ──────────────
   // Prevents Railway free-tier cold starts and Neon connection drops.
   if (process.env.NODE_ENV === 'production') {
+    // Initial cache warm on startup
+    setTimeout(async () => {
+      try {
+        await require('./lib/redis').cached('trending:global', 300, async () => {
+          const [posts, products, showrooms, tasks, users] = await Promise.all([
+            pool.query(`SELECT p.id, p.author_id, p.author_name, p.content, p.image_url, p.post_type, p.like_count, p.comment_count, p.created_at FROM posts p WHERE p.created_at > NOW() - INTERVAL '48 hours' ORDER BY p.like_count DESC LIMIT 10`),
+            pool.query(`SELECT id, seller_id, title, price, currency, images, category, view_count FROM products WHERE status = 'active' ORDER BY view_count DESC LIMIT 8`),
+            pool.query(`SELECT id, owner_id, title, category, cover_image, logo_url, view_count FROM showrooms WHERE status = 'published' ORDER BY view_count DESC LIMIT 6`),
+            pool.query(`SELECT id, requester_id, title, task_type, offered_payment, currency, location FROM tasks WHERE status = 'open' ORDER BY created_at DESC LIMIT 8`),
+            pool.query(`SELECT user_id, display_name, avatar_url, headline, follower_count FROM user_profiles ORDER BY follower_count DESC LIMIT 8`),
+          ]);
+          return { trending_posts: posts.rows, top_products: products.rows, featured_showrooms: showrooms.rows, open_tasks: tasks.rows, suggested_users: users.rows };
+        });
+        logger.info('Startup cache warm complete');
+      } catch (e) { logger.warn('Startup cache warm failed'); }
+    }, 3000); // 3s after startup
+
     setInterval(async () => {
       try {
         await pool.query('SELECT 1');

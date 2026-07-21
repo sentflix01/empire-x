@@ -23,7 +23,7 @@ async function checkLowStockAlert(prevStock, newStock, product, sellerId) {
 }
 
 // List
-router.get('/', optionalAuth, cacheMiddleware('products:list', 30), async (req, res) => {
+router.get('/', optionalAuth, cacheMiddleware('products:list', 90), async (req, res) => {
   try {
     const { seller_id, business_id, showroom_id, status, sort = '-created_at', limit = 50 } = req.query;
 

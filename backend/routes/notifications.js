@@ -9,9 +9,9 @@ const { sendPushToUser } = require('./push');
 router.get('/', requireAuth, async (req, res) => {
   try {
     // Default limit reduced to 20 for faster initial load; callers may pass a higher value up to 200.
-    // Relies on index: CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications(user_id, created_at DESC);
     const { is_read, limit = 20 } = req.query;
-    let query = 'SELECT * FROM notifications WHERE user_id = $1';
+    let query = `SELECT id, user_id, type, title, body, link, is_read, created_at
+                 FROM notifications WHERE user_id = $1`;
     const values = [req.user.id];
     if (is_read !== undefined) {
       query += ` AND is_read = $2`;
