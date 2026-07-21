@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { entities } from "@/api/entities";
 import { Image, Send, X } from "lucide-react";
 import { uploadFile } from "@/lib/uploadFile";
-import { Button } from "@/components/ui/button";
 import { useTranslation } from 'react-i18next';
 
 export default function CreatePostForm({ user, onPostCreated }) {
@@ -11,6 +10,7 @@ export default function CreatePostForm({ user, onPostCreated }) {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [posting, setPosting] = useState(false);
+  const { t } = useTranslation();
 
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
@@ -51,50 +51,56 @@ export default function CreatePostForm({ user, onPostCreated }) {
   };
 
   return (
-    <div className="bg-card rounded-2xl border border-border/50 p-4">
-      <div className="flex gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
-          {user?.full_name?.charAt(0) || "E"}
+    <div className="bg-card rounded-2xl border border-border/50 px-4 py-3">
+      {/* Image preview (shown above input when selected) */}
+      {imagePreview && (
+        <div className="relative mb-2">
+          <img src={imagePreview} alt="" className="rounded-xl max-h-40 object-cover w-full" />
+          <button
+            type="button"
+            onClick={handleRemoveImage}
+            className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+            aria-label="Remove image"
+          >
+            <X className="w-3 h-3" />
+          </button>
         </div>
-        <div className="flex-1">
-          <textarea
+      )}
+
+      {/* Single row: avatar + input with icons inside */}
+      <div className="flex items-center gap-2">
+        {/* User avatar */}
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-xs shrink-0 overflow-hidden">
+          {user?.avatar_url
+            ? <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+            : (user?.full_name?.charAt(0) || "E")}
+        </div>
+
+        {/* Input with icons inside on the right */}
+        <div className="flex-1 flex items-center bg-secondary/50 rounded-full px-3 py-1.5 gap-2 border border-border/30 focus-within:border-amber-400/50 transition-colors">
+          <input
             value={content}
             onChange={e => setContent(e.target.value)}
-            placeholder="What's happening in your empire?"
-            className="w-full resize-none text-sm outline-none min-h-[60px] placeholder:text-muted-foreground/60"
-            rows={2}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSubmit()}
+            placeholder={t ? t('feed.whatsHappening') : "What's happening?"}
+            className="flex-1 min-w-0 text-sm bg-transparent outline-none placeholder:text-muted-foreground/60"
           />
-          {imagePreview && (
-            <div className="relative mt-2">
-              <img src={imagePreview} alt="" className="rounded-xl max-h-48 object-cover" />
-              <button
-                type="button"
-                onClick={handleRemoveImage}
-                className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/70 transition-colors"
-                aria-label="Remove image"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          )}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
-            <label className="p-2 rounded-full hover:bg-secondary transition-colors cursor-pointer text-muted-foreground hover:text-amber-600">
-              <Image className="w-5 h-5" />
-              <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
-            </label>
-            <Button
-              onClick={handleSubmit}
-              disabled={!content.trim() || posting}
-              size="sm"
-              className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 px-5"
-            >
-              {posting ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-            </Button>
-          </div>
+          {/* Photo icon */}
+          <label className="shrink-0 cursor-pointer text-muted-foreground hover:text-amber-500 transition-colors">
+            <Image className="w-4 h-4" />
+            <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+          </label>
+          {/* Send icon */}
+          <button
+            onClick={handleSubmit}
+            disabled={!content.trim() || posting}
+            aria-label="Post"
+            className="shrink-0 text-amber-500 disabled:opacity-30 hover:text-amber-600 transition-colors"
+          >
+            {posting
+              ? <div className="w-4 h-4 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+              : <Send className="w-4 h-4" />}
+          </button>
         </div>
       </div>
     </div>

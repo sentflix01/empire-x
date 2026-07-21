@@ -417,8 +417,8 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
           className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden"
           aria-label={`View ${post.author_name ?? 'user'}'s profile`}
         >
-          {post.author_avatar
-            ? <img src={post.author_avatar} alt={`${post.author_name ?? 'User'} avatar`} className="w-full h-full object-cover" />
+          {(post.author_avatar || authorProfile?.avatar_url)
+            ? <img src={post.author_avatar || authorProfile?.avatar_url} alt={`${post.author_name ?? 'User'} avatar`} className="w-full h-full object-cover" />
             : (post.author_name?.charAt(0) ?? '?')}
         </Link>
         <div className="flex-1 min-w-0">
