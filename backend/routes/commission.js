@@ -17,18 +17,22 @@ async function collectCommission(orderId, sellerId, totalPrice) {
        ON CONFLICT DO NOTHING`,
       [orderId, sellerId, totalPrice, COMMISSION_RATE, amount]
     );
-    // Deduct from seller wallet
-    const wallet = await pool.query('SELECT id FROM wallets WHERE user_id = $1', [sellerId]);
+    // Deduct from seller wallet, only if they have enough balance
+    const wallet = await pool.query('SELECT id, balance FROM wallets WHERE user_id = $1', [sellerId]);
     if (wallet.rows.length) {
-      await pool.query(
-        'UPDATE wallets SET balance = balance - $1 WHERE id = $2',
-        [amount, wallet.rows[0].id]
-      );
-      await pool.query(
-        `INSERT INTO wallet_transactions (wallet_id, type, amount, description)
-         VALUES ($1, 'debit', $2, $3)`,
-        [wallet.rows[0].id, amount, `Platform commission (${(COMMISSION_RATE * 100).toFixed(0)}%) for order`]
-      );
+      const currentBalance = parseFloat(wallet.rows[0].balance || 0);
+      const deductAmount = Math.min(amount, currentBalance); // never go negative
+      if (deductAmount > 0) {
+        await pool.query(
+          'UPDATE wallets SET balance = balance - $1 WHERE id = $2',
+          [deductAmount, wallet.rows[0].id]
+        );
+        await pool.query(
+          `INSERT INTO wallet_transactions (wallet_id, type, amount, description)
+           VALUES ($1, 'debit', $2, $3)`,
+          [wallet.rows[0].id, deductAmount, `Platform commission (${(COMMISSION_RATE * 100).toFixed(0)}%) for order`]
+        );
+      }
     }
   } catch (err) {
     console.error('Commission collection failed:', err.message);

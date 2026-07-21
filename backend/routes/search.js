@@ -60,18 +60,23 @@ router.get('/', optionalAuth, async (req, res) => {
 
   const term = `%${q.trim()}%`;
   const lim = Math.min(parseInt(limit) || 20, 50);
-  const userLat = lat ? parseFloat(lat) : null;
-  const userLon = lon ? parseFloat(lon) : null;
+  const userLat = (lat != null && !isNaN(parseFloat(lat))) ? parseFloat(lat) : null;
+  const userLon = (lon != null && !isNaN(parseFloat(lon))) ? parseFloat(lon) : null;
+  // Validate coordinate ranges to prevent injecting extreme/malformed values
+  const validLat = userLat !== null && userLat >= -90  && userLat <= 90;
+  const validLon = userLon !== null && userLon >= -180 && userLon <= 180;
+  const safeUserLat = validLat ? userLat : null;
+  const safeUserLon = validLon ? userLon : null;
   const radiusKm = radius_km ? parseFloat(radius_km) : null;
 
   // Build a Postgres expression for distance filtering/sorting when coords provided
-  // Uses the Haversine formula inline
+  // Uses the Haversine formula inline. Only applied when coordinates are validated.
   const distExpr = (latCol, lonCol) =>
-    userLat != null && userLon != null
+    safeUserLat != null && safeUserLon != null
       ? `6371 * 2 * ASIN(SQRT(
-           POWER(SIN(((${latCol} - ${userLat}) * PI() / 180) / 2), 2) +
-           COS(${userLat} * PI() / 180) * COS(${latCol} * PI() / 180) *
-           POWER(SIN(((${lonCol} - ${userLon}) * PI() / 180) / 2), 2)
+           POWER(SIN(((${latCol} - ${safeUserLat}) * PI() / 180) / 2), 2) +
+           COS(${safeUserLat} * PI() / 180) * COS(${latCol} * PI() / 180) *
+           POWER(SIN(((${lonCol} - ${safeUserLon}) * PI() / 180) / 2), 2)
          ))`
       : null;
 
@@ -87,7 +92,7 @@ router.get('/', optionalAuth, async (req, res) => {
   };
 
   const orderClause = (defaultOrder, latCol, lonCol, priceCol) => {
-    if (sort === 'distance' && userLat != null) {
+    if (sort === 'distance' && safeUserLat != null) {
       const expr = distExpr(latCol, lonCol);
       if (expr) return `${latCol} IS NULL, ${expr} ASC`;
     }
@@ -96,6 +101,9 @@ router.get('/', optionalAuth, async (req, res) => {
     if (sort === 'price_desc' && priceCol) return `${priceCol} DESC NULLS LAST`;
     return defaultOrder;
   };
+
+  // Attach distance_km to JS-side results when DB distance expr wasn't available
+  const attachClientDistances = (rows) => attachDistances(rows, safeUserLat, safeUserLon);
 
   try {
     const results = {};

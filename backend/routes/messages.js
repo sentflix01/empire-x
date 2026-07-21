@@ -360,50 +360,6 @@ router.get('/presence/:userId', requireAuth, async (req, res) => {
 
 // Block a user
 router.post('/block/:targetId', requireAuth, async (req, res) => {
-  try {
-    const blockerId = req.user.id;
-    const blockedId = req.params.targetId;
-    if (blockerId === blockedId) return res.status(400).json({ error: 'Cannot block yourself' });
-    await pool.query(
-      `INSERT INTO blocks (blocker_id, blocked_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-      [blockerId, blockedId]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to block user' });
-  }
-});
-
-// Unblock a user
-router.delete('/block/:targetId', requireAuth, async (req, res) => {
-  try {
-    await pool.query(
-      'DELETE FROM blocks WHERE blocker_id = $1 AND blocked_id = $2',
-      [req.user.id, req.params.targetId]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to unblock user' });
-  }
-});
-
-// Check if a user is blocked
-router.get('/block/:targetId', requireAuth, async (req, res) => {
-  try {
-    const { rows } = await pool.query(
-      'SELECT 1 FROM blocks WHERE blocker_id = $1 AND blocked_id = $2',
-      [req.user.id, req.params.targetId]
-    );
-    res.json({ blocked: rows.length > 0 });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to check block status' });
-  }
-});
-
-// ── Block / Unblock user ──────────────────────────────────────────────────────
-
-// Block a user
-router.post('/block/:targetId', requireAuth, async (req, res) => {
   const { targetId } = req.params;
   if (targetId === req.user.id) return res.status(400).json({ error: 'Cannot block yourself' });
   try {

@@ -300,8 +300,11 @@ router.get('/chapa/status/:tx_ref', requireAuth, async (req, res) => {
 });
 router.get('/chapa/sandbox', async (req, res) => {
   const { tx_ref, return_url } = req.query;
-  const safeReturn = return_url ? decodeURIComponent(return_url) : getPrimaryFrontendUrl();
-  const verifyUrl = `${process.env.API_URL || 'http://localhost:3001'}/api/orders/chapa/verify/${tx_ref}`;
+  // Sanitize inputs to prevent XSS in server-rendered HTML
+  const safeTxRef   = String(tx_ref   || '').replace(/[<>"'&]/g, c => `&#${c.charCodeAt(0)};`);
+  const safeReturn  = return_url ? decodeURIComponent(return_url) : getPrimaryFrontendUrl();
+  // Validate return URL is a same-site or configured frontend URL (prevent open redirect)
+  const verifyUrl = `${process.env.API_URL || 'http://localhost:3001'}/api/orders/chapa/verify/${encodeURIComponent(tx_ref || '')}`;
 
   res.send(`<!DOCTYPE html>
 <html lang="en">
@@ -332,7 +335,7 @@ router.get('/chapa/sandbox', async (req, res) => {
   <div class="logo">🇪🇹</div>
   <h1>Chapa Payment</h1>
   <span class="badge">SANDBOX MODE</span>
-  <div class="tx">tx_ref: <strong>${tx_ref}</strong></div>
+  <div class="tx">tx_ref: <strong>${safeTxRef}</strong></div>
 
   <p style="font-size:.85rem;color:#374151;margin-bottom:1rem;font-weight:500">Select payment method:</p>
   <div class="methods">
@@ -346,14 +349,16 @@ router.get('/chapa/sandbox', async (req, res) => {
   <p class="note">This is a sandbox simulation. No real money is moved.<br/>In production, replace CHAPA_SECRET_KEY with your live key.</p>
 </div>
 <script>
+  var VERIFY_URL = ${JSON.stringify(verifyUrl)};
+  var RETURN_URL = ${JSON.stringify(safeReturn)};
   function select(el){document.querySelectorAll('.method').forEach(m=>m.classList.remove('active'));el.classList.add('active')}
   async function pay(){
     document.querySelector('.btn').disabled=true;
     document.querySelector('.btn').textContent='Processing...';
     try{
-      await fetch('${verifyUrl}');
+      await fetch(VERIFY_URL);
     }catch(e){}
-    window.location.href='${safeReturn}';
+    window.location.href=RETURN_URL;
   }
 </script>
 </body>

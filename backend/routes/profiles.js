@@ -35,6 +35,33 @@ router.get('/by-user/:userId', optionalAuth, async (req, res) => {
   }
 });
 
+// ── GET /api/profiles/me/follows — list user IDs that the current user follows ──
+// Must be defined BEFORE /:id to avoid Express matching 'me' as a profile id
+router.get('/me/follows', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT followed_id FROM follows WHERE follower_id = $1',
+      [req.user.id]
+    );
+    res.json(rows.map(r => r.followed_id));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch follows' });
+  }
+});
+
+// ── GET /api/profiles/follows — alias for /me/follows ──
+router.get('/follows', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT followed_id FROM follows WHERE follower_id = $1',
+      [req.user.id]
+    );
+    res.json(rows.map(r => r.followed_id));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch follows' });
+  }
+});
+
 // Get profile by id
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
@@ -68,21 +95,20 @@ router.get('/', optionalAuth, cacheMiddleware('profiles:list', 60), async (req, 
       conditions.push(`up.profile_type = $${values.length}`);
     }
 
+    // Real-only mode: filter out seed profiles
+    if (req.realOnly) conditions.push('u.is_seed = FALSE');
+
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const lim = Math.min(parseInt(limit, 10) || 50, 500);
     const sortDir = sort.startsWith('-') ? 'DESC' : 'ASC';
     const sortCol = sort.replace(/^-/, '').replace(/[^a-z0-9_]/gi, '') || 'created_at';
-
-    // Real-only mode: filter out seed profiles
-    if (req.realOnly) conditions.push('u.is_seed = FALSE');
-    const finalWhere = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     values.push(lim);
     const { rows } = await pool.query(
       `SELECT up.*, u.is_seed
        FROM user_profiles up
        JOIN users u ON u.id = up.user_id
-       ${finalWhere}
+       ${whereClause}
        ORDER BY up.${sortCol} ${sortDir}
        LIMIT $${values.length}`,
       values
@@ -238,32 +264,6 @@ router.post('/follow/:targetUserId', requireAuth, async (req, res) => {
     res.json({ following: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to toggle follow' });
-  }
-});
-
-// ── GET /api/profiles/me/follows — list user IDs that the current user follows ──
-router.get('/me/follows', requireAuth, async (req, res) => {
-  try {
-    const { rows } = await pool.query(
-      'SELECT followed_id FROM follows WHERE follower_id = $1',
-      [req.user.id]
-    );
-    res.json(rows.map(r => r.followed_id));
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch follows' });
-  }
-});
-
-// ── GET /api/profiles/follows — alias for /me/follows ──
-router.get('/follows', requireAuth, async (req, res) => {
-  try {
-    const { rows } = await pool.query(
-      'SELECT followed_id FROM follows WHERE follower_id = $1',
-      [req.user.id]
-    );
-    res.json(rows.map(r => r.followed_id));
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch follows' });
   }
 });
 

@@ -11,14 +11,44 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useTranslation } from 'react-i18next';
 
-export default function PurchaseModal({ item, seller, buyer, onClose, onPurchased }) {
+interface CouponData {
+  valid: boolean;
+  discount: number;
+  coupon: { code: string };
+}
+
+interface PurchaseModalProps {
+  item: {
+    id?: string;
+    title: string;
+    description?: string;
+    price?: number;
+    currency?: string;
+    images?: string;
+    product_type?: string;
+  };
+  seller: {
+    user_id: string;
+    business_name?: string;
+    display_name?: string;
+  };
+  buyer?: {
+    id?: string;
+    full_name?: string;
+    email?: string;
+  };
+  onClose: () => void;
+  onPurchased?: () => void;
+}
+
+export default function PurchaseModal({ item, seller, buyer, onClose, onPurchased }: PurchaseModalProps) {
   const [step, setStep] = useState("details"); // details | checkout | success | chapa_pending
   const [quantity, setQuantity] = useState(1);
   const [processing, setProcessing] = useState(false);
   const [chapaTxRef, setChapaTxRef] = useState<string | null>(null);
   const [orderInfo, setOrderInfo] = useState({ name: "", phone: "", email: "", address: "", notes: "" });
   const [couponCode, setCouponCode] = useState("");
-  const [couponData, setCouponData] = useState(null); // { valid, coupon, discount }
+  const [couponData, setCouponData] = useState<CouponData | null>(null); // { valid, coupon, discount }
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   // Poll for Chapa payment confirmation after redirect back to app
@@ -44,7 +74,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
     return () => clearInterval(interval);
   }, [step, chapaTxRef]);
 
-  const parseImages = (img) => { try { return JSON.parse(img || "[]"); } catch { return img ? [img] : []; } };
+  const parseImages = (img: string | null | undefined): string[] => { try { return JSON.parse(img || "[]"); } catch { return img ? [img] : []; } };
   const images = parseImages(item.images);
   const unitPrice = item.price || 0;
   const subtotal = unitPrice * quantity;

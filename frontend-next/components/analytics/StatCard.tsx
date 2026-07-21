@@ -1,8 +1,17 @@
 'use client'
 import React from "react";
 import { useTranslation } from 'react-i18next';
+import { LucideProps } from "lucide-react";
 
-export default function StatCard({ icon: Icon, label, value, color, trend }) {
+interface StatCardProps {
+  icon: React.ComponentType<LucideProps>;
+  label: string;
+  value: string | number;
+  color: string;
+  trend?: number;
+}
+
+export default function StatCard({ icon: Icon, label, value, color, trend }: StatCardProps) {
   return (
     <div className="bg-card rounded-2xl border border-border/50 p-4">
       <div className="flex items-start justify-between">

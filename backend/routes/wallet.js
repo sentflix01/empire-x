@@ -123,8 +123,11 @@ router.post('/debit', requireAuth, async (req, res) => {
   }
 });
 
-// Refund wallet (called when a return request is approved)
+// Refund wallet (called when a return request is approved — admin only)
 router.post('/refund', requireAuth, async (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
   const { user_id, amount, description, reference } = req.body;
   if (!user_id || !amount || amount <= 0) {
     return apiError.validationError(res, 'user_id and a positive amount are required');
@@ -217,6 +220,9 @@ router.post('/topup/chapa', requireAuth, async (req, res) => {
 // ── Chapa Wallet Sandbox Page ────────────────────────────────────────────────
 router.get('/topup/chapa/sandbox', (req, res) => {
   const { tx_ref, amount, return_url, verify_url } = req.query;
+  // Sanitize tx_ref for HTML display to prevent XSS
+  const safeTxRef  = String(tx_ref  || '').replace(/[<>"'&]/g, c => `&#${c.charCodeAt(0)};`);
+  const safeAmount = String(amount  || '0').replace(/[^0-9.]/g, '');
   const safeReturn = return_url ? decodeURIComponent(return_url) : getPrimaryFrontendUrl();
   const safeVerify = verify_url ? decodeURIComponent(verify_url) : '';
 
@@ -249,8 +255,8 @@ router.get('/topup/chapa/sandbox', (req, res) => {
   <div class="logo">🇪🇹</div>
   <h1>Wallet Top-up</h1>
   <span class="badge">SANDBOX MODE</span>
-  <div class="amount">${amount ? Number(amount).toLocaleString() : '0'} ETB</div>
-  <div class="tx">ref: ${tx_ref}</div>
+  <div class="amount">${safeAmount ? Number(safeAmount).toLocaleString() : '0'} ETB</div>
+  <div class="tx">ref: ${safeTxRef}</div>
   <p style="font-size:.85rem;color:#374151;margin-bottom:1rem;font-weight:500">Select payment method:</p>
   <div class="methods">
     <div class="method active" onclick="sel(this)">📱 TeleBirr</div>
@@ -262,12 +268,14 @@ router.get('/topup/chapa/sandbox', (req, res) => {
   <p class="note">Sandbox simulation — no real money moved.</p>
 </div>
 <script>
+  var VERIFY_URL = ${JSON.stringify(safeVerify)};
+  var RETURN_URL = ${JSON.stringify(safeReturn)};
   function sel(el){document.querySelectorAll('.method').forEach(m=>m.classList.remove('active'));el.classList.add('active')}
   async function pay(){
-    const btn=document.querySelector('.btn');
+    var btn=document.querySelector('.btn');
     btn.disabled=true;btn.textContent='Processing...';
-    try{ if('${safeVerify}') await fetch('${safeVerify}'); }catch(e){}
-    window.location.href='${safeReturn}';
+    try{ if(VERIFY_URL) await fetch(VERIFY_URL); }catch(e){}
+    window.location.href=RETURN_URL;
   }
 </script>
 </body>

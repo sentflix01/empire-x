@@ -5,13 +5,26 @@ import { useTranslation } from 'react-i18next';
 
 import { ChevronDown, Plus, Store, Check } from "lucide-react";
 
-export default function BusinessSwitcher({ businesses, selectedId, onSelect }) {
+interface Business {
+  id: string;
+  business_name?: string;
+  business_category?: string;
+  business_theme_color?: string;
+}
+
+interface BusinessSwitcherProps {
+  businesses: Business[];
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+}
+
+export default function BusinessSwitcher({ businesses, selectedId, onSelect }: BusinessSwitcherProps) {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
   const selected = businesses.find(b => b.id === selectedId);
 
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);

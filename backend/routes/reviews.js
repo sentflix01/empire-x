@@ -17,7 +17,10 @@ router.get('/', optionalAuth, async (req, res) => {
       conditions.push(`r.reviewer_id = $${params.length}`);
     }
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-    const orderBy = sort.startsWith('-') ? `r.${sort.slice(1)} DESC` : `r.${sort} ASC`;
+    // Sanitize sort column to prevent SQL injection
+    const sortDesc = sort.startsWith('-');
+    const sortRaw = sort.replace(/^-/, '').replace(/[^a-z0-9_]/gi, '') || 'created_at';
+    const orderBy = sortDesc ? `r.${sortRaw} DESC` : `r.${sortRaw} ASC`;
     params.push(Math.min(parseInt(limit) || 50, 200));
     const { rows } = await pool.query(
       `SELECT r.*, up.display_name, up.avatar_url

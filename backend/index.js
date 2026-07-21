@@ -286,8 +286,8 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: err.message || 'Internal server error' });
 });
 
-// ── 405 / 404 catch-all (must be last) ────────────────────────────────────────
-app.all('*', (_req, res) => apiError.methodNotAllowed(res));
+// ── 404 catch-all (must be last) ──────────────────────────────────────────────
+app.all('*', (_req, res) => apiError.notFound(res, 'Route not found'));
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 const { startStoriesCleanup } = require('./db/cleanupStories');

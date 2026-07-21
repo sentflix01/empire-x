@@ -528,6 +528,7 @@ export default function ChatRoom() {
             </button>
           </div>
         </div>
+      </div>
       )}
     </div>
   );
