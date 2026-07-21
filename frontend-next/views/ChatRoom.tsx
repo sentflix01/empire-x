@@ -300,7 +300,7 @@ export default function ChatRoom() {
     <div className="flex flex-col h-[calc(100dvh-3.5rem)] overflow-hidden">
 
       {/* Header */}
-      <div className="px-4 py-2.5 flex items-center gap-3 shrink-0 shadow-sm z-10 bg-primary">
+      <div className="px-4 py-2.5 flex items-center gap-3 shrink-0 shadow-sm z-10" style={{ backgroundColor: 'hsl(var(--primary))' }}>
         <button onClick={handleBack} className="p-1 rounded-full hover:bg-white/10 transition-colors">
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
@@ -518,7 +518,8 @@ export default function ChatRoom() {
             <button
               onClick={handleSend}
               disabled={!(editingMsg ? editText.trim() : text.trim()) || sending}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white disabled:opacity-30 shrink-0 transition-transform active:scale-90 bg-primary hover:bg-primary/90"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white disabled:opacity-30 shrink-0 transition-transform active:scale-90 outline-none focus:outline-none"
+              style={{ backgroundColor: 'hsl(var(--primary))' }}
             >
               {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
             </button>
