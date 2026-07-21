@@ -175,6 +175,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [homeTabsOpen, setHomeTabsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [userProfile, setUserProfile] = useState<{ avatar_url?: string; cover_url?: string } | null>(null);
   const { cart } = useCart();
   const isShowroomBuilder = pathname === "/showroom/create";
   const isImmersiveRoute = isShowroomBuilder || pathname.startsWith("/messages/");
@@ -231,6 +232,16 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     client.get('/api/trending/warm').catch(() => {});
     client.get('/api/trending').catch(() => {});
     client.get('/api/posts?limit=10').catch(() => {});
+    // Load user profile for avatar/cover in drawer
+    client.get(`/api/profiles?user_id=${user.id}&limit=1`).then(r => {
+      const profiles = Array.isArray(r.data) ? r.data : [];
+      if (profiles[0]) {
+        const p = profiles[0];
+        const av = Array.isArray(p.avatar_url) ? p.avatar_url[0] : p.avatar_url;
+        const cv = Array.isArray(p.cover_url) ? p.cover_url[0] : p.cover_url;
+        setUserProfile({ avatar_url: av || '', cover_url: cv || '' });
+      }
+    }).catch(() => {});
 
     return () => {
       disconnectSocket();
@@ -294,7 +305,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       className={`flex items-center gap-3 rounded-xl transition-all text-sm font-medium group relative
         ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}
         ${isActive(path)
-          ? "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+          ? "bg-primary/10 text-primary dark:bg-primary/20"
           : "text-muted-foreground hover:bg-secondary hover:text-foreground"
         }`}
     >
@@ -366,14 +377,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   }}
                   className="relative"
                 >
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500 pointer-events-none" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
                   <input
                     name="q"
                     type="search"
                     autoFocus
                     enterKeyHint="search"
                     placeholder={tr('common.searchPlaceholder')}
-                    className="w-full pl-9 pr-10 bg-background border border-amber-400/60 shadow-lg rounded-full h-9 text-sm outline-none focus:ring-2 focus:ring-amber-500/40"
+                    className="w-full pl-9 pr-10 bg-background border border-border rounded-full h-9 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 shadow-md transition-all"
                     onKeyDown={e => { if (e.key === 'Escape') setSearchOpen(false); }}
                   />
                   <button type="button" onClick={() => setSearchOpen(false)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
@@ -384,7 +395,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             ) : (
               <button
                 onClick={() => setSearchOpen(true)}
-                className="flex items-center gap-2 w-full pl-9 pr-4 bg-secondary/50 rounded-full h-9 text-sm text-muted-foreground hover:bg-secondary transition-colors relative"
+                className="flex items-center gap-2 w-full pl-9 pr-4 bg-secondary border border-border rounded-full h-9 text-sm text-muted-foreground hover:bg-secondary/80 hover:border-border/80 transition-all relative"
               >
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
                 {tr('common.searchPlaceholder')}
@@ -395,7 +406,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <div className="flex items-center gap-1 ml-auto">
             {/* Mobile search — full-width overlay when open */}
             {searchOpen && (
-              <div className="fixed inset-x-0 top-0 z-[200] h-14 bg-background/98 backdrop-blur-xl border-b border-border flex items-center px-3 gap-2">
+              <div className="fixed inset-x-0 top-0 z-[200] h-14 bg-background border-b border-border flex items-center px-3 gap-2 shadow-lg">
                 <form className="flex-1"
                   onSubmit={e => {
                     e.preventDefault();
@@ -403,15 +414,15 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     if (q) { setSearchOpen(false); router.push(`/search?q=${encodeURIComponent(q)}`); }
                   }}>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500 pointer-events-none" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
                     <input name="mq" type="search" autoFocus enterKeyHint="search"
                       placeholder="Search people, products, tasks..."
                       onKeyDown={e => { if (e.key === 'Escape') setSearchOpen(false); }}
-                      className="w-full pl-9 pr-4 h-10 bg-secondary/60 border border-amber-400/50 rounded-full text-sm outline-none focus:ring-2 focus:ring-amber-500/40" />
+                      className="w-full pl-9 pr-4 h-10 bg-secondary border border-border rounded-full text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all" />
                   </div>
                 </form>
-                <button onClick={() => setSearchOpen(false)} className="p-2 rounded-full hover:bg-secondary shrink-0">
-                  <X className="w-5 h-5 text-muted-foreground" />
+                <button onClick={() => setSearchOpen(false)} className="p-2 rounded-full hover:bg-secondary transition-colors shrink-0 text-foreground">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             )}
@@ -560,13 +571,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <div className="h-2" />
           </div>
 
-          {/* Sidebar footer — avatar + name/email + logout */}
+          {/* Sidebar footer — profile card + logout */}
           <div className="border-t border-border px-2 py-3 shrink-0">
             {sidebarCollapsed ? (
-              /* Collapsed: just avatar with tooltip */
               <div className="relative flex justify-center group">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm cursor-default">
-                  {userInitial}
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm cursor-default">
+                  {userProfile?.avatar_url
+                    ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                    : userInitial}
                 </div>
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
                   {displayName}
@@ -574,20 +586,29 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               </div>
             ) : (
               <>
-                {/* Row 1: avatar + name + email */}
-                <div className="flex items-center gap-2 px-2 py-1.5 rounded-xl">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
-                    {userInitial}
+                {/* Profile card with mini cover */}
+                <div className="rounded-xl overflow-hidden border border-border mb-1.5">
+                  {/* Mini cover */}
+                  <div className="h-10 bg-gradient-to-br from-blue-500 to-purple-600 relative">
+                    {userProfile?.cover_url && (
+                      <img src={userProfile.cover_url} alt="" className="w-full h-full object-cover absolute inset-0" />
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold truncate">{displayName}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">{userEmail}</p>
+                  <div className="bg-card px-2 pb-2 flex items-end gap-2 -mt-4">
+                    <div className="w-9 h-9 rounded-lg ring-2 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                      {userProfile?.avatar_url
+                        ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                        : userInitial}
+                    </div>
+                    <div className="flex-1 min-w-0 pt-1">
+                      <p className="text-xs font-semibold truncate text-foreground">{displayName}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{userEmail}</p>
+                    </div>
                   </div>
                 </div>
-                {/* Row 2: logout button */}
                 <button
                   onClick={() => logout()}
-                  className="mt-1 w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium"
                 >
                   <LogOut className="w-4 h-4 shrink-0" />
                   <span>Log out</span>
@@ -622,53 +643,76 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       {/* ── Mobile Bottom Nav + More Sheet ── */}
       {!isShowroomBuilder && (
         <>
-          {/* More bottom sheet — list style matching desktop sidebar */}
+          {/* More bottom sheet — sidebar-style list */}
           {drawerOpen && (
             <>
-              <div className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm md:hidden" onClick={() => setDrawerOpen(false)} />
-              <div className="fixed bottom-0 left-0 right-0 z-[80] md:hidden bg-background rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col">
+              <div className="fixed inset-0 z-[70] bg-black/50 md:hidden" onClick={() => setDrawerOpen(false)} />
+              <div className="fixed bottom-0 left-0 right-0 z-[80] md:hidden bg-background rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col">
                 {/* Handle */}
-                <div className="flex justify-center pt-3 pb-1 shrink-0"><div className="w-10 h-1 bg-border rounded-full" /></div>
-                {/* Header — user card */}
-                <Link href="/profile" onClick={() => setDrawerOpen(false)}
-                  className="flex items-center gap-3 mx-4 mt-1 mb-2 p-3 rounded-2xl bg-secondary/40 hover:bg-secondary transition-colors shrink-0">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold shrink-0">{user?.full_name?.charAt(0) || 'E'}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate">{displayName}</p>
-                    <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+                <div className="flex justify-center pt-3 pb-0 shrink-0">
+                  <div className="w-10 h-1 bg-border rounded-full" />
+                </div>
+
+                {/* Profile card with cover photo */}
+                <Link href="/profile" onClick={() => setDrawerOpen(false)} className="shrink-0 mx-4 mt-3 mb-2 rounded-2xl overflow-hidden border border-border hover:opacity-90 transition-opacity">
+                  {/* Cover */}
+                  <div className="h-20 relative bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600">
+                    {userProfile?.cover_url && (
+                      <img src={userProfile.cover_url} alt="" className="w-full h-full object-cover absolute inset-0" />
+                    )}
+                  </div>
+                  {/* Avatar + name row */}
+                  <div className="bg-card px-4 pb-3 flex items-end gap-3 -mt-7">
+                    <div className="w-14 h-14 rounded-xl ring-2 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xl font-bold shadow-md shrink-0">
+                      {userProfile?.avatar_url
+                        ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                        : userInitial}
+                    </div>
+                    <div className="flex-1 min-w-0 pt-1">
+                      <p className="text-sm font-bold text-foreground truncate">{displayName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+                    </div>
                   </div>
                 </Link>
+
+                {/* Account Settings — pinned below email */}
+                <div className="px-4 mb-2 shrink-0">
+                  <Link href="/account" onClick={() => setDrawerOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium w-full ${isActive('/account') ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
+                    <Lock className="w-4 h-4 shrink-0" /><span>Account Settings</span>
+                  </Link>
+                </div>
+
                 {/* Scrollable nav list */}
                 <div className="flex-1 overflow-y-auto px-3 pb-2 space-y-0.5">
-                  {/* Main nav */}
                   {mainNavItems.map(({ path, icon: Icon, label }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
                     </Link>
                   ))}
-                  <div className="my-1.5 border-t border-border/50" />
+                  <div className="my-1.5 border-t border-border" />
                   <Link href="/showroom/create" onClick={() => setDrawerOpen(false)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold shadow-sm">
                     <Plus className="w-4 h-4 shrink-0" /><span>{tr('common.createShowroom')}</span>
                   </Link>
                   <Link href="/showroom/templates" onClick={() => setDrawerOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/showroom/templates') ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/showroom/templates') ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
                     <Crown className="w-4 h-4 shrink-0 text-amber-500" /><span>{tr('common.showroomStudio')}</span>
                   </Link>
-                  <div className="my-1.5 border-t border-border/50" />
+                  <div className="my-1.5 border-t border-border" />
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{tr('common.discover')}</p>
                   {extraNavItems.map(({ path, icon: Icon, label }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
                     </Link>
                   ))}
-                  <div className="my-1.5 border-t border-border/50" />
+                  <div className="my-1.5 border-t border-border" />
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">{tr('common.myAccount')}</p>
-                  {accountItems.map(({ path, icon: Icon, label, badge }) => (
+                  {accountItems.filter(i => i.path !== '/account').map(({ path, icon: Icon, label, badge }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" />
                       <span className="flex-1">{label}</span>
                       {badge && <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span>}
@@ -676,18 +720,20 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   ))}
                   {user?.role === 'admin' && (
                     <>
-                      <div className="my-1.5 border-t border-border/50" />
+                      <div className="my-1.5 border-t border-border" />
                       <Link href="/admin" onClick={() => setDrawerOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all text-sm font-medium">
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground text-sm font-medium">
                         <ShieldAlert className="w-4 h-4 shrink-0" /><span>{tr('common.adminPanel')}</span>
                       </Link>
                     </>
                   )}
                   <div className="h-2" />
                 </div>
-                {/* Footer — logout */}
-                <div className="border-t border-border/40 px-3 py-3 shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-                  <button onClick={() => { setDrawerOpen(false); logout(); }} className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors text-sm font-medium w-full">
+
+                {/* Footer */}
+                <div className="border-t border-border px-3 py-3 shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+                  <button onClick={() => { setDrawerOpen(false); logout(); }}
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors text-sm font-medium w-full">
                     <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
                   </button>
                 </div>
