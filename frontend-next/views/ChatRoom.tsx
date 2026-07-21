@@ -144,11 +144,7 @@ export default function ChatRoom() {
     return () => clearInterval(interval);
   }, [otherUserId]);
 
-  // Set own presence online
-  useEffect(() => {
-    client.put('/api/messages/presence', { status: 'online' }).catch(() => {});
-    return () => { client.put('/api/messages/presence', { status: 'offline' }).catch(() => {}); };
-  }, []);
+  // Presence is handled globally in AppLayout — no need to set it here
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

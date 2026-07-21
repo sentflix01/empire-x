@@ -256,6 +256,37 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     return () => clearInterval(interval);
   }, [user]);
 
+  // ── Global presence heartbeat ─────────────────────────────────────────────
+  // Set online immediately when user is available, then refresh every 4 min
+  // so the Redis TTL (5 min) never expires while the user is active.
+  // Set offline on page unload / component unmount.
+  useEffect(() => {
+    if (!user) return;
+
+    const setOnline  = () => client.put('/api/messages/presence', { status: 'online'  }).catch(() => {});
+    const setOffline = () => client.put('/api/messages/presence', { status: 'offline' }).catch(() => {});
+
+    setOnline();
+
+    // Heartbeat every 4 min — keeps Redis TTL alive
+    const heartbeat = setInterval(setOnline, 4 * 60 * 1000);
+
+    // Also refresh presence when the tab becomes visible again after being hidden
+    const onVisible = () => { if (document.visibilityState === 'visible') setOnline(); };
+    document.addEventListener('visibilitychange', onVisible);
+
+    // Set offline on tab/window close
+    const onUnload = () => setOffline();
+    window.addEventListener('beforeunload', onUnload);
+
+    return () => {
+      clearInterval(heartbeat);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('beforeunload', onUnload);
+      setOffline();
+    };
+  }, [user]);
+
   const loadUnreadCount = async (_u?: any) => {
     try {
       // Use direct client call — backend uses req.user.id from JWT, not a query param
