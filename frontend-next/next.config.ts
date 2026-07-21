@@ -25,9 +25,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "http",  hostname: "localhost" },
       { protocol: "https", hostname: "*.railway.app" },
+      { protocol: "https", hostname: "*.up.railway.app" },
       { protocol: "https", hostname: "*.r2.dev" },
       { protocol: "https", hostname: "pub-*.r2.dev" },
-      { protocol: "https", hostname: "*.up.railway.app" },
+      { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "storage.googleapis.com" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "avatars.githubusercontent.com" },
       { protocol: "https", hostname: "unpkg.com" },
       { protocol: "https", hostname: "raw.githubusercontent.com" },
     ],
@@ -56,16 +60,15 @@ const nextConfig: NextConfig = {
       isProd
         ? `script-src 'self' ${googleScriptSrc}${googleUnsafeInline}`
         : `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com`,
-      // Images: self + data URIs + blob + backend + R2 CDN + maps + user content sources
-      // In dev we allow all http: to handle any port the backend runs on.
-      // In prod we restrict to known HTTPS hosts only.
+      // Images: self + data URIs + blob + backend + ALL possible Railway/storage hosts
+      // We use wildcard patterns to catch any subdomain or storage provider used in production.
       isProd
-        ? `img-src 'self' data: blob: ${apiHost} https://*.r2.dev https://*.railway.app https://*.up.railway.app https://raw.githubusercontent.com https://unpkg.com https://maps.gstatic.com https://*.tile.openstreetmap.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com`
-        : `img-src 'self' data: blob: http: https: ${apiHost} https://*.r2.dev https://*.railway.app https://*.up.railway.app https://raw.githubusercontent.com https://unpkg.com https://maps.gstatic.com https://*.tile.openstreetmap.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com`,
+        ? `img-src 'self' data: blob: ${apiHost} https: http://localhost:3001 https://*.railway.app https://*.up.railway.app https://*.r2.dev https://pub-*.r2.dev https://*.supabase.co https://raw.githubusercontent.com https://unpkg.com https://maps.gstatic.com https://*.tile.openstreetmap.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://storage.googleapis.com`
+        : `img-src 'self' data: blob: http: https:`,
       // Fonts: self + Google Fonts (if used)
       `font-src 'self'`,
-      // API calls, Sentry, Stripe, WebSocket (socket.io), Google auth — production WS derived from apiHost
-      `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 wss://*.railway.app wss://*.up.railway.app https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com`,
+      // API calls, Sentry, Stripe, WebSocket (socket.io), Google auth
+      `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.railway.app wss://*.railway.app wss://*.up.railway.app https://*.up.railway.app https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com`,
       // Stripe Checkout/Elements renders in iframes
       `frame-src https://js.stripe.com https://hooks.stripe.com`,
       // No plugins, no base-uri override
