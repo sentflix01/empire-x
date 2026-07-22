@@ -3,6 +3,24 @@ const pool = require('./db/pool');
 
 let ioInstance = null;
 
+// ── In-memory user cache for socket auth ─────────────────────────────────────
+// Avoids a DB query per WebSocket connection.
+// TTL: 5 minutes — after that the user is re-fetched from DB.
+const socketUserCache = new Map(); // userId → { user, expiresAt }
+const SOCKET_CACHE_TTL = 5 * 60 * 1000;
+
+async function getSocketUser(userId) {
+  const cached = socketUserCache.get(userId);
+  if (cached && Date.now() < cached.expiresAt) return cached.user;
+  const { rows } = await pool.query(
+    'SELECT id, email, full_name, role FROM users WHERE id = $1',
+    [userId]
+  );
+  if (!rows.length) return null;
+  socketUserCache.set(userId, { user: rows[0], expiresAt: Date.now() + SOCKET_CACHE_TTL });
+  return rows[0];
+}
+
 function initSocket(httpServer, corsOrigin) {
   const { Server } = require('socket.io');
   const origins = Array.isArray(corsOrigin)
@@ -17,9 +35,10 @@ function initSocket(httpServer, corsOrigin) {
       const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
       if (!token) return next(new Error('Authentication required'));
       const payload = jwt.verify(token, process.env.JWT_SECRET);
-      const { rows } = await pool.query('SELECT id, email, full_name, role FROM users WHERE id = $1', [payload.sub]);
-      if (!rows.length) return next(new Error('User not found'));
-      socket.user = rows[0];
+      // Use cache to avoid DB hit per connection
+      const user = await getSocketUser(payload.sub);
+      if (!user) return next(new Error('User not found'));
+      socket.user = user;
       next();
     } catch (err) {
       next(new Error('Invalid token'));

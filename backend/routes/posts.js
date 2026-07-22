@@ -5,7 +5,7 @@ const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = req
 const { syncHashtags } = require('./hashtags');
 const { emitNotification } = require('../socket');
 const { sendPushToUser } = require('./push');
-const { cacheMiddleware } = require('../middleware/cache');
+const { cacheMiddleware, invalidateCache } = require('../middleware/cache');
 const { realOnlyUserFilter } = require('../middleware/realMode');
 
 // List posts — supports smart feed with random offset for variety
@@ -104,8 +104,9 @@ router.post('/', requireAuth, async (req, res) => {
       ) : null,
       poll_ends_at: poll_ends_at || null,
     });
-    // Sync hashtags in background
+    // Sync hashtags in background + invalidate feed cache
     syncHashtags(post.id, content).catch(() => {});
+    invalidateCache('posts:list').catch(() => {});
     res.status(201).json(post);
   } catch (err) {
     console.error(err);
@@ -137,6 +138,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
     await deleteRecord('posts', req.params.id);
+    invalidateCache('posts:list').catch(() => {});
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete post' });
@@ -147,33 +149,49 @@ router.delete('/:id', requireAuth, async (req, res) => {
 router.post('/:id/like', requireAuth, async (req, res) => {
   const { id } = req.params;
   try {
-    const existing = await pool.query(
-      'SELECT id FROM likes WHERE target_id = $1 AND user_id = $2',
+    // Check + write like in one query using INSERT ON CONFLICT
+    const { rows: likeResult } = await pool.query(
+      `WITH del AS (
+         DELETE FROM likes WHERE target_id = $1 AND user_id = $2 RETURNING id
+       ), ins AS (
+         INSERT INTO likes (target_id, target_type, user_id)
+         SELECT $1, 'post', $2
+         WHERE NOT EXISTS (SELECT 1 FROM del)
+         RETURNING id
+       )
+       SELECT CASE WHEN EXISTS (SELECT 1 FROM ins) THEN true ELSE false END AS liked`,
       [id, req.user.id]
     );
-    if (existing.rows.length) {
-      await pool.query('DELETE FROM likes WHERE target_id = $1 AND user_id = $2', [id, req.user.id]);
-      await pool.query('UPDATE posts SET like_count = GREATEST(0, like_count - 1) WHERE id = $1', [id]);
-      return res.json({ liked: false });
-    }
-    await pool.query('INSERT INTO likes (target_id, target_type, user_id) VALUES ($1, $2, $3)', [id, 'post', req.user.id]);
-    await pool.query('UPDATE posts SET like_count = like_count + 1 WHERE id = $1', [id]);
+    const liked = likeResult[0]?.liked ?? false;
 
-    // Notify post author (not the liker themselves)
-    const { rows: postRows } = await pool.query('SELECT author_id, author_name FROM posts WHERE id = $1', [id]);
-    if (postRows.length && postRows[0].author_id !== req.user.id) {
-      const { rows: likerRows } = await pool.query('SELECT display_name FROM user_profiles WHERE user_id = $1', [req.user.id]);
-      const likerName = likerRows[0]?.display_name || 'Someone';
-      const { rows: [notif] } = await pool.query(
-        `INSERT INTO notifications (user_id, type, title, body, link, is_read)
-         VALUES ($1, 'like', $2, '', '/profile/' || $3, false) RETURNING *`,
-        [postRows[0].author_id, `${likerName} liked your post`, req.user.id]
-      );
-      emitNotification(postRows[0].author_id, notif);
-      sendPushToUser(postRows[0].author_id, `${likerName} liked your post`, '', '/notifications').catch(() => {});
+    // Update like_count and fetch author in parallel
+    const [, postResult] = await Promise.all([
+      pool.query(
+        `UPDATE posts SET like_count = GREATEST(0, like_count + $1) WHERE id = $2`,
+        [liked ? 1 : -1, id]
+      ),
+      liked
+        ? pool.query('SELECT author_id, author_name FROM posts WHERE id = $1', [id])
+        : Promise.resolve({ rows: [] }),
+    ]);
+
+    // Notify author asynchronously — don't block the response
+    if (liked && postResult.rows.length && postResult.rows[0].author_id !== req.user.id) {
+      const authorId = postResult.rows[0].author_id;
+      pool.query('SELECT display_name FROM user_profiles WHERE user_id = $1', [req.user.id])
+        .then(async ({ rows: likerRows }) => {
+          const likerName = likerRows[0]?.display_name || 'Someone';
+          const { rows: [notif] } = await pool.query(
+            `INSERT INTO notifications (user_id, type, title, body, link, is_read)
+             VALUES ($1, 'like', $2, '', '/profile/' || $3, false) RETURNING *`,
+            [authorId, `${likerName} liked your post`, req.user.id]
+          );
+          emitNotification(authorId, notif);
+          sendPushToUser(authorId, `${likerName} liked your post`, '', '/notifications').catch(() => {});
+        }).catch(() => {});
     }
 
-    res.json({ liked: true });
+    res.json({ liked });
   } catch (err) {
     res.status(500).json({ error: 'Failed to toggle like' });
   }
@@ -196,32 +214,38 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
   const { content } = req.body;
   if (!content) return res.status(400).json({ error: 'Content is required' });
   try {
-    const { rows: profiles } = await pool.query(
-      'SELECT display_name, avatar_url FROM user_profiles WHERE user_id = $1',
-      [req.user.id]
-    );
-    const profile = profiles[0] || {};
-    const { rows } = await pool.query(
-      `INSERT INTO comments (post_id, author_id, author_name, author_avatar, content)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [req.params.id, req.user.id, profile.display_name || null, profile.avatar_url || null, content]
-    );
-    await pool.query('UPDATE posts SET comment_count = comment_count + 1 WHERE id = $1', [req.params.id]);
+    // Fetch commenter profile + post author in parallel
+    const [profileResult, postResult] = await Promise.all([
+      pool.query('SELECT display_name, avatar_url FROM user_profiles WHERE user_id = $1', [req.user.id]),
+      pool.query('SELECT author_id FROM posts WHERE id = $1', [req.params.id]),
+    ]);
+    const profile = profileResult.rows[0] || {};
 
-    // Notify post author
-    const { rows: postRows } = await pool.query('SELECT author_id FROM posts WHERE id = $1', [req.params.id]);
-    if (postRows.length && postRows[0].author_id !== req.user.id) {
+    // Insert comment + update count in parallel
+    const [commentResult] = await Promise.all([
+      pool.query(
+        `INSERT INTO comments (post_id, author_id, author_name, author_avatar, content)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [req.params.id, req.user.id, profile.display_name || null, profile.avatar_url || null, content]
+      ),
+      pool.query('UPDATE posts SET comment_count = comment_count + 1 WHERE id = $1', [req.params.id]),
+    ]);
+
+    // Notify post author asynchronously — don't block the response
+    if (postResult.rows.length && postResult.rows[0].author_id !== req.user.id) {
+      const authorId = postResult.rows[0].author_id;
       const commenterName = profile.display_name || 'Someone';
-      const { rows: [notif] } = await pool.query(
+      pool.query(
         `INSERT INTO notifications (user_id, type, title, body, link, is_read)
          VALUES ($1, 'comment', $2, $3, '', false) RETURNING *`,
-        [postRows[0].author_id, `${commenterName} commented on your post`, content.slice(0, 80)]
-      );
-      emitNotification(postRows[0].author_id, notif);
-      sendPushToUser(postRows[0].author_id, `${commenterName} commented on your post`, content.slice(0, 80), '/notifications').catch(() => {});
+        [authorId, `${commenterName} commented on your post`, content.slice(0, 80)]
+      ).then(({ rows: [notif] }) => {
+        emitNotification(authorId, notif);
+        sendPushToUser(authorId, `${commenterName} commented on your post`, content.slice(0, 80), '/notifications').catch(() => {});
+      }).catch(() => {});
     }
 
-    res.status(201).json(rows[0]);
+    res.status(201).json(commentResult.rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Failed to create comment' });
   }

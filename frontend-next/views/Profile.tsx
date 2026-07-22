@@ -40,7 +40,7 @@ export default function Profile() {
 
   useEffect(() => {
     loadProfile();
-  }, [id, viewParam]);
+  }, [id]); // ← removed viewParam — switching views no longer triggers full reload
 
   const loadProfile = async () => {
     setLoading(true);
@@ -48,18 +48,23 @@ export default function Profile() {
       const me = await auth.me();
       setUser(me);
       const targetUserId = id || me.id;
-      const profiles = await entities.UserProfile.filter({ user_id: targetUserId });
+
+      // ── Parallel fetches — 2 RTTs instead of 3 ──────────────────────────
+      const [profiles, bizList] = await Promise.all([
+        entities.UserProfile.filter({ user_id: targetUserId }),
+        entities.Business.filter({ owner_id: targetUserId }, "-created_at", 50).catch(() => []),
+      ]);
+
       if (profiles.length > 0) {
         setProfile(profiles[0]);
         setTickerOn((profiles[0].ticker_type || 'none') !== 'none');
+        // Only set view on initial load, not on every re-render
         if (viewParam === "business" || viewParam === "personal") {
           setView(viewParam);
         } else {
           setView(profiles[0].profile_type === "business" ? "business" : "personal");
         }
       }
-      // Load businesses from Business entity
-      const bizList = await entities.Business.filter({ owner_id: targetUserId }, "-created_at", 50).catch(() => []);
       setBusinesses(bizList);
       if (bizList.length > 0) setSelectedBizId(bizList[0].id);
     } catch (err) {

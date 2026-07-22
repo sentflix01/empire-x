@@ -1,17 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Pre-existing TypeScript errors across UI components — ignoreBuildErrors allows
-  // the production build to succeed while these are addressed as a follow-up.
+  // TypeScript errors are now surfaced in CI — do not ignore them
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 
   // Allow importing Leaflet and other browser-only packages
   transpilePackages: ["leaflet", "react-leaflet"],
 
-  // React-Leaflet mutates DOM nodes during mount; strict dev remounting can double-initialize maps.
-  reactStrictMode: false,
+  // Re-enabled — Leaflet is now loaded with dynamic() + ssr:false so strict
+  // double-mount no longer double-initialises maps.
+  reactStrictMode: true,
 
   // Turbopack config — fix workspace root detection warning
   turbopack: {

@@ -21,11 +21,12 @@ function buildConnectionString(raw) {
 const connectionString = buildConnectionString(process.env.DATABASE_URL);
 
 // Neon free tier allows max 20 connections total across all services.
-// Keep pool small to avoid connection exhaustion — Railway + Neon free = max 5 per instance.
+// Bumped from 5 → 10 — gives breathing room under concurrent load while
+// staying within Neon free tier limits.
 const pool = new Pool({
   connectionString,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: parseInt(process.env.DB_POOL_MAX || '5', 10),
+  max: parseInt(process.env.DB_POOL_MAX || '10', 10),
   min: 1,
   idleTimeoutMillis: 60_000,      // keep connections alive longer to avoid reconnect overhead
   connectionTimeoutMillis: 8_000,

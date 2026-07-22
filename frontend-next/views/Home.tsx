@@ -129,14 +129,22 @@ export default function Home() {
 
   const handleFilterChange = async (key) => {
     setFilter(key);
-    if (key === "nearby") return; // map tab handles its own data
+    if (key === "nearby") return;
+
+    // Trending — sort locally from already-fetched posts (no API call needed)
+    if (key === "trending" && posts.length > 0) {
+      setPosts(prev => [...prev].sort((a, b) => (b.like_count || 0) - (a.like_count || 0)));
+      return;
+    }
+
+    // Following / For You — fetch from server
     setLoading(true);
     try {
-      const params = key === "trending"
-        ? { sort: "-like_count", limit: 30 }
-        : { feed: "true", limit: 30 };
+      const params = { feed: "true", limit: 30 };
       const res = await client.get("/api/posts", { params });
-      setPosts(Array.isArray(res.data) ? res.data : []);
+      const data = Array.isArray(res.data) ? res.data : [];
+      // Apply trending sort client-side if needed
+      setPosts(key === "trending" ? [...data].sort((a, b) => (b.like_count || 0) - (a.like_count || 0)) : data);
       setFeedError('');
     } catch (err: any) {
       setPosts([]);
@@ -294,9 +302,9 @@ export default function Home() {
                   {posts.map((post, i) => (
                     <motion.div
                       key={post.id}
-                      initial={{ opacity: 0, y: 16 }}
+                      initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: Math.min(i, 10) * 0.03, duration: 0.25 }}
+                      transition={{ delay: Math.min(i, 4) * 0.04, duration: 0.2 }}
                     >
                       <ErrorBoundary>
                         <PostCard post={post} currentUser={user} />

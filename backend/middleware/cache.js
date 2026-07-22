@@ -65,18 +65,28 @@ function cacheMiddleware(prefix, ttlSecs = 30, opts = {}) {
 }
 
 /**
- * Invalidate all cache keys matching a prefix pattern.
- * Call this after write operations to keep cache fresh.
+ * Invalidate all cache keys for a given prefix.
+ * Deletes both the bare key and the most common param variants
+ * used by posts:list, products:list, etc.
  *
- * @param {string} prefix  e.g. 'posts:list' or 'products'
+ * @param {string} prefix  e.g. 'posts:list'
  */
 async function invalidateCache(prefix) {
   const redis = getRedis();
   if (redis.isNoOp) return;
   try {
-    // Upstash free tier doesn't support SCAN — use DEL on known keys
-    // For simple invalidation, we delete the base key and common variants
-    await redis.del(`cache:${prefix}`);
+    // Delete bare key + common feed param variants
+    const keys = [
+      `cache:${prefix}`,
+      `cache:${prefix}:feed=true&limit=30`,
+      `cache:${prefix}:feed=true&limit=50`,
+      `cache:${prefix}:sort=-created_at&limit=30`,
+      `cache:${prefix}:sort=-created_at&limit=50`,
+      `cache:${prefix}:sort=-like_count&limit=30`,
+      `cache:${prefix}:limit=30`,
+      `cache:${prefix}:limit=50`,
+    ];
+    await Promise.all(keys.map(k => redis.del(k).catch(() => {})));
   } catch (err) {
     logger.warn({ err: err.message }, 'Cache invalidation error');
   }
