@@ -90,10 +90,17 @@ function getEmailQueue() {
 async function queueEmail(type, data) {
   const q = getEmailQueue();
   if (q) {
-    await q.add(type, { type, ...data });
-    logger.debug({ type }, 'Email queued');
+    try {
+      await q.add(type, { type, ...data });
+      logger.debug({ type }, 'Email queued');
+    } catch (err) {
+      // Redis rate-limited or unavailable — fall back to synchronous send
+      logger.warn({ err: err.message, type }, 'Queue unavailable — sending email synchronously');
+      await syncHandlers.emails({ data: { type, ...data } }).catch(syncErr =>
+        logger.error({ err: syncErr.message }, 'Sync email failed')
+      );
+    }
   } else {
-    // Synchronous fallback
     logger.debug({ type }, 'Sending email synchronously (no Redis)');
     await syncHandlers.emails({ data: { type, ...data } }).catch(err =>
       logger.error({ err: err.message }, 'Sync email failed')
