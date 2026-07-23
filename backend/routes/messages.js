@@ -4,6 +4,7 @@ const { requireAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
 const { emitNewMessage, emitMessageEdited, emitMessageDeleted } = require('../socket');
 const logger = require('../lib/logger');
+const { getRedis } = require('../lib/redis');
 
 // List conversations for current user
 router.get('/conversations', requireAuth, async (req, res) => {
@@ -335,7 +336,6 @@ router.put('/presence', requireAuth, async (req, res) => {
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'status must be online, offline, or away' });
     }
-    const { getRedis } = require('../lib/redis');
     const redis = getRedis();
     const now = new Date().toISOString();
 
@@ -343,20 +343,28 @@ router.put('/presence', requireAuth, async (req, res) => {
     memPresence[req.user.id] = { status, last_seen: now };
 
     if (!redis.isNoOp) {
-      const ttl = status === 'online' ? 300 : 604800;
-      await redis.setex(`presence:${req.user.id}`, ttl, JSON.stringify({ status, last_seen: now }));
+      try {
+        const ttl = status === 'online' ? 300 : 604800;
+        await redis.setex(`presence:${req.user.id}`, ttl, JSON.stringify({ status, last_seen: now }));
+      } catch (redisErr) {
+        logger.warn({ err: redisErr.message }, 'Redis presence write failed — using in-memory only');
+      }
     }
 
-    // Update DB — try last_seen column first, fall back to updated_at only
-    await pool.query(
-      'UPDATE users SET updated_at = NOW(), last_seen = NOW() WHERE id = $1',
-      [req.user.id]
-    ).catch(() =>
-      pool.query('UPDATE users SET updated_at = NOW() WHERE id = $1', [req.user.id])
-    );
+    // Update DB — try last_seen column first, fall back gracefully
+    try {
+      await pool.query('UPDATE users SET updated_at = NOW(), last_seen = NOW() WHERE id = $1', [req.user.id]);
+    } catch {
+      try {
+        await pool.query('UPDATE users SET updated_at = NOW() WHERE id = $1', [req.user.id]);
+      } catch (dbErr) {
+        logger.warn({ err: dbErr.message }, 'DB presence update failed');
+      }
+    }
 
     res.json({ success: true, status });
   } catch (err) {
+    logger.error({ err: err.message }, 'Failed to update presence');
     res.status(500).json({ error: 'Failed to update presence' });
   }
 });
@@ -364,7 +372,6 @@ router.put('/presence', requireAuth, async (req, res) => {
 // Get online presence of a user — returns { status, last_seen }
 router.get('/presence/:userId', requireAuth, async (req, res) => {
   try {
-    const { getRedis } = require('../lib/redis');
     const redis = getRedis();
     let status = 'offline';
     let last_seen = null;

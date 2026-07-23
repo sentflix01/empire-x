@@ -507,7 +507,7 @@ export default function ProfileEdit() {
           {/* Social links */}
           <Section icon={Globe} title="Social Links" defaultOpen={false}>
             {[
-              { field: 'social_linkedin',  icon: Linkedin,  ph: 'LinkedIn profile URL' },
+              { field: 'social_linkedin',  icon: LinkedinIcon,  ph: 'LinkedIn profile URL' },
               { field: 'social_twitter',   icon: Twitter,   ph: 'X / Twitter profile URL' },
               { field: 'social_instagram', icon: Instagram, ph: 'Instagram profile URL' },
               { field: 'social_facebook',  icon: Facebook,  ph: 'Facebook profile URL' },
@@ -740,7 +740,7 @@ export default function ProfileEdit() {
           {/* Social links */}
           <Section icon={Globe} title="Social & Online Presence" defaultOpen={false}>
             {[
-              { field: 'business_social_linkedin', icon: Linkedin, ph: 'LinkedIn company page URL' },
+              { field: 'business_social_linkedin', icon: LinkedinIcon, ph: 'LinkedIn company page URL' },
               { field: 'business_social_twitter',  icon: Twitter,  ph: 'X / Twitter handle URL' },
               { field: 'business_social_facebook', icon: Facebook, ph: 'Facebook page URL' },
             ].map(({ field, icon: Icon, ph }) => (
