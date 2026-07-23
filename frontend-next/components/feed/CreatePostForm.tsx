@@ -1,5 +1,6 @@
 'use client'
 import React, { useState } from "react";
+import NextImage from 'next/image';
 import { entities } from "@/api/entities";
 import { Image, Send, X } from "lucide-react";
 import { uploadFile } from "@/lib/uploadFile";
@@ -55,7 +56,7 @@ export default function CreatePostForm({ user, onPostCreated }) {
       {/* Image preview (shown above input when selected) */}
       {imagePreview && (
         <div className="relative mb-2">
-          <img src={imagePreview} alt="" className="rounded-xl max-h-40 object-cover w-full" />
+          <NextImage src={imagePreview} alt="Preview" width={600} height={160} className="rounded-xl max-h-40 object-cover w-full" unoptimized />
           <button
             type="button"
             onClick={handleRemoveImage}
@@ -72,7 +73,7 @@ export default function CreatePostForm({ user, onPostCreated }) {
         {/* User avatar */}
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-xs shrink-0 overflow-hidden">
           {user?.avatar_url
-            ? <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+            ? <NextImage src={user.avatar_url} alt="" width={32} height={32} className="w-full h-full object-cover" unoptimized />
             : (user?.full_name?.charAt(0) || "E")}
         </div>
 

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import NextImage from 'next/image';
 import { useRouter } from 'next/navigation';
 import { entities } from '@/api/entities';
 import { useTranslation } from 'react-i18next';
@@ -183,9 +184,9 @@ function ProductsGrid({ products, themeColor, profileUserId }: { products: Produ
           return (
             <Link href={`/products/${p.id}`} key={p.id}
               className="rounded-lg border border-border/40 overflow-hidden hover:shadow-sm transition-all">
-              <div className="aspect-square bg-secondary/20">
+              <div className="aspect-square bg-secondary/20 relative overflow-hidden">
                 {imgs[0]
-                  ? <img src={imgs[0]} alt={p.title} className="w-full h-full object-cover" />
+                  ? <NextImage src={imgs[0]} alt={p.title} fill className="object-cover" unoptimized />
                   : <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
                       <ShoppingBag className="w-5 h-5" />
                     </div>}
@@ -215,9 +216,9 @@ function PropertyGrid({ products, themeColor }: { products: Product[]; themeColo
           return (
             <Link href={`/products/${p.id}`} key={p.id}
               className="rounded-lg border border-border/40 overflow-hidden hover:shadow-sm transition-all">
-              <div className="aspect-video bg-secondary/20">
+              <div className="aspect-video bg-secondary/20 relative overflow-hidden">
                 {imgs[0]
-                  ? <img src={imgs[0]} alt={p.title} className="w-full h-full object-cover" />
+                  ? <NextImage src={imgs[0]} alt={p.title} fill className="object-cover" unoptimized />
                   : <div className="w-full h-full flex items-center justify-center">
                       <HomeIcon className="w-5 h-5 text-muted-foreground/20" />
                     </div>}
@@ -439,7 +440,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               {/* Cover */}
               <div className="relative h-24 overflow-hidden">
                 {coverUrl
-                  ? <img src={coverUrl} alt="" className="w-full h-full object-cover" />
+                  ? <NextImage src={coverUrl} alt="" fill className="object-cover" unoptimized />
                   : <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${color}, ${color}99)` }}>
                       <div className="w-full h-full opacity-10" style={{
                         backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)',
@@ -458,7 +459,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                   <div className="w-14 h-14 rounded-xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
                     style={{ backgroundColor: color }}>
                     {logoUrl
-                      ? <img src={logoUrl} alt="" className="w-full h-full object-cover" />
+                      ? <NextImage src={logoUrl} alt="" width={40} height={40} className="w-full h-full object-cover" unoptimized />
                       : <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
                           {bizName.charAt(0)}
                         </div>}
@@ -532,7 +533,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
       {/* Cover */}
       <div className="relative h-28 overflow-hidden">
         {coverUrl
-          ? <img src={coverUrl} alt="" className="w-full h-full object-cover" />
+          ? <NextImage src={coverUrl} alt="" fill className="object-cover" unoptimized />
           : <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}99)` }}>
               <div className="w-full h-full opacity-10" style={{
                 backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)',
@@ -553,7 +554,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           <div className="w-16 h-16 rounded-2xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
             style={{ backgroundColor: themeColor }}>
             {logoUrl
-              ? <img src={logoUrl} alt="" className="w-full h-full object-cover" />
+              ? <NextImage src={logoUrl} alt="" width={48} height={48} className="w-full h-full object-cover" unoptimized />
               : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">
                   {bizName.charAt(0)}
                 </div>}

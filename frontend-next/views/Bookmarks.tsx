@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
+import NextImage from 'next/image';
 import client from "@/api/client";
 import { entities } from "@/api/entities";
 import { Bookmark, ShoppingBag, Crown, ClipboardList, FileText, Bell, BellOff, Trash2 } from "lucide-react";
@@ -113,9 +114,9 @@ function Bookmarks() {
                 return (
                   <div key={a.product_id} className={`bg-card rounded-2xl border p-4 flex items-center gap-3 ${dropped ? "border-green-300 dark:border-green-700" : "border-border/50"}`}>
                     {/* Thumbnail */}
-                    <div className="w-14 h-14 rounded-xl bg-secondary/30 shrink-0 overflow-hidden">
+                    <div className="w-14 h-14 rounded-xl bg-secondary/30 shrink-0 overflow-hidden relative">
                       {imgs[0]
-                        ? <img src={imgs[0]} alt={a.title} className="w-full h-full object-cover"/>
+                        ? <NextImage src={imgs[0]} alt={a.title} fill className="object-cover" unoptimized />
                         : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-6 h-6 text-muted-foreground/20"/></div>}
                     </div>
                     <div className="flex-1 min-w-0">

@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import NextImage from 'next/image';
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
 import { TrendingUp, ShoppingBag, Crown, ClipboardList, Users, Loader2, Banknote, Hash } from "lucide-react";
@@ -69,7 +70,7 @@ function Explore() {
                 return (
                   <Link key={p.id} href={`/products/${p.id}`} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow group">
                     <div className="aspect-square bg-secondary/30 overflow-hidden">
-                      {imgs[0] ? <img src={imgs[0]} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /> : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-8 h-8 text-muted-foreground/20" /></div>}
+                      {imgs[0] ? <NextImage src={imgs[0]} alt={p.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized /> : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-8 h-8 text-muted-foreground/20" /></div>}
                     </div>
                     <div className="p-2">
                       <p className="text-xs font-medium truncate">{p.title}</p>
