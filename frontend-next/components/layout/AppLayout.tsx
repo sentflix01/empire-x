@@ -268,8 +268,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
     setOnline();
 
-    // Heartbeat every 4 min — keeps Redis TTL alive
-    const heartbeat = setInterval(setOnline, 4 * 60 * 1000);
+    // Heartbeat every 10 min — keeps Redis TTL alive (TTL is 5 min for online key)
+    // Reduced from 4 min to lower Redis request volume on free tier
+    const heartbeat = setInterval(setOnline, 10 * 60 * 1000);
 
     // Also refresh presence when the tab becomes visible again after being hidden
     const onVisible = () => { if (document.visibilityState === 'visible') setOnline(); };

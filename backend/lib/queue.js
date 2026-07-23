@@ -63,7 +63,9 @@ function createWorker(name, processor) {
     const { Worker } = require('bullmq');
     const worker = new Worker(name, processor, {
       connection: { url: REDIS_URL },
-      concurrency: 5,
+      concurrency: 1,                    // reduced from 5 — less Redis polling
+      stalledInterval: 60_000,           // check stalled jobs every 60s instead of default 30s
+      maxStalledCount: 1,
     });
     worker.on('completed', (job) => logger.debug({ jobId: job.id, queue: name }, 'Job completed'));
     worker.on('failed', (job, err) => logger.error({ jobId: job?.id, queue: name, err: err.message }, 'Job failed'));
@@ -100,9 +102,21 @@ async function queueEmail(type, data) {
 }
 
 // ── Start workers (call once on server startup) ───────────────────────────────
-function startWorkers() {
+async function startWorkers() {
   if (!REDIS_URL) {
     logger.debug('Queue workers not started — no REDIS_URL');
+    return;
+  }
+
+  // Test Redis connectivity before starting workers
+  // If Redis is rate-limited or unavailable, skip workers entirely
+  try {
+    const { Queue } = require('bullmq');
+    const testQueue = new Queue('health-check', { connection: { url: REDIS_URL } });
+    await testQueue.getJobCounts();
+    await testQueue.close();
+  } catch (err) {
+    logger.warn({ err: err.message }, 'Redis not healthy — BullMQ workers not started, using sync fallback');
     return;
   }
 

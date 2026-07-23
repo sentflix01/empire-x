@@ -328,6 +328,7 @@ router.delete('/conversations/:id', requireAuth, async (req, res) => {
 // { userId: { status: 'online'|'offline', last_seen: ISO string } }
 const memPresence = {};
 
+// ── Presence: ONLY use in-memory — Redis is too expensive for frequent presence updates ──
 // Set online presence status
 router.put('/presence', requireAuth, async (req, res) => {
   try {
@@ -336,30 +337,19 @@ router.put('/presence', requireAuth, async (req, res) => {
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'status must be online, offline, or away' });
     }
-    const redis = getRedis();
     const now = new Date().toISOString();
 
-    // Always update in-memory store as reliable fallback
+    // In-memory store — zero Redis cost, works across single-instance deployments
     memPresence[req.user.id] = { status, last_seen: now };
 
-    if (!redis.isNoOp) {
-      try {
-        const ttl = status === 'online' ? 300 : 604800;
-        await redis.setex(`presence:${req.user.id}`, ttl, JSON.stringify({ status, last_seen: now }));
-      } catch (redisErr) {
-        logger.warn({ err: redisErr.message }, 'Redis presence write failed — using in-memory only');
-      }
-    }
-
-    // Update DB — try last_seen column first, fall back gracefully
-    try {
-      await pool.query('UPDATE users SET updated_at = NOW(), last_seen = NOW() WHERE id = $1', [req.user.id]);
-    } catch {
-      try {
-        await pool.query('UPDATE users SET updated_at = NOW() WHERE id = $1', [req.user.id]);
-      } catch (dbErr) {
-        logger.warn({ err: dbErr.message }, 'DB presence update failed');
-      }
+    // Update DB last_seen — only on online (not every offline heartbeat)
+    if (status === 'online') {
+      pool.query(
+        'UPDATE users SET updated_at = NOW(), last_seen = NOW() WHERE id = $1',
+        [req.user.id]
+      ).catch(() =>
+        pool.query('UPDATE users SET updated_at = NOW() WHERE id = $1', [req.user.id]).catch(() => {})
+      );
     }
 
     res.json({ success: true, status });
