@@ -54,19 +54,23 @@ export default function ChatRoom() {
 
   // ── Load conversation + messages ──────────────────────────────────────────
   const loadMessages = useCallback(async () => {
+    const convId = id || conversation?.id;
+    if (!convId) return;
     try {
-      const { data } = await client.get(`/api/messages/conversations/${id}/messages?limit=200`);
+      const { data } = await client.get(`/api/messages/conversations/${convId}/messages?limit=200`);
       setMessages(data);
     } catch { /* ignore */ }
   }, [id]);
 
   useEffect(() => {
     let cancelled = false;
+    const convId = id;
 
     async function init() {
+      if (!convId) return;
       try {
         const [convRes] = await Promise.all([
-          client.get(`/api/messages/conversations/${id}`),
+          client.get(`/api/messages/conversations/${convId}`),
           loadMessages(),
         ]);
         if (!cancelled) setConversation(convRes.data);
@@ -76,33 +80,29 @@ export default function ChatRoom() {
     }
     init();
 
+    if (!convId) { setLoading(false); return; }
+
     const socket = getSocket();
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') || '' : '';
     socket.auth = { token };
-    // Connect first, THEN join the room
     if (!socket.connected) {
       socket.connect();
-      // Wait for connection before joining
-      socket.once('connect', () => {
-        socket.emit('join_conversation', id);
-      });
+      socket.once('connect', () => { socket.emit('join_conversation', convId); });
     } else {
-      socket.emit('join_conversation', id);
+      socket.emit('join_conversation', convId);
     }
 
     const onNew = (msg) => {
-      if (msg.conversation_id === id) {
+      if (msg.conversation_id === convId) {
         setMessages(prev => {
-          // Skip if already present (real or temp with same id)
           if (prev.some(m => m.id === msg.id)) return prev;
-          // Remove any temp message with same content + sender (optimistic message)
           const withoutTemp = prev.filter(m => !(m._temp && m.sender_id === msg.sender_id && m.content === msg.content));
           return [...withoutTemp, msg];
         });
       }
     };
     const onEdited = (msg) => {
-      if (msg.conversation_id === id) {
+      if (msg.conversation_id === convId) {
         setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, ...msg } : m));
       }
     };
@@ -117,7 +117,7 @@ export default function ChatRoom() {
 
     return () => {
       cancelled = true;
-      socket.emit('leave_conversation', id);
+      socket.emit('leave_conversation', convId);
       socket.off('new_message', onNew);
       socket.off('message_edited', onEdited);
       socket.off('message_deleted', onDeleted);
@@ -167,13 +167,20 @@ export default function ChatRoom() {
   const handleSend = async () => {
     if (editingMsg) { await handleSaveEdit(); return; }
     const content = (textRef.current || text).trim();
-    if (!content || !id) return;
+    if (!content) return;
+
+    // Use conversation id from state as final fallback if params not yet hydrated
+    const convId = id || conversation?.id;
+    if (!convId) {
+      toast.error('Chat not ready — please try again');
+      return;
+    }
 
     // Optimistic update — add message to UI immediately
     const tempId = `temp-${Date.now()}`;
     const tempMsg = {
       id: tempId,
-      conversation_id: id,
+      conversation_id: convId,
       sender_id: user?.id,
       sender_name: user?.full_name || 'You',
       content,
@@ -191,7 +198,7 @@ export default function ChatRoom() {
     setSending(true);
 
     try {
-      const { data: sent } = await client.post(`/api/messages/conversations/${id}/messages`, {
+      const { data: sent } = await client.post(`/api/messages/conversations/${convId}/messages`, {
         content,
         type: 'text',
         ...(replyId ? { reply_to_id: replyId } : {}),
