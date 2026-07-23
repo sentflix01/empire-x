@@ -28,9 +28,10 @@ router.get('/conversations/:id', requireAuth, async (req, res) => {
   try {
     const conv = await getRecord('conversations', req.params.id);
     if (!conv) return res.status(404).json({ error: 'Conversation not found' });
-    // Verify participant
-    const ids = JSON.parse(conv.participant_ids || '[]');
-    if (!ids.includes(req.user.id) && req.user.role !== 'admin') {
+    let ids = [];
+    try { ids = JSON.parse(conv.participant_ids || '[]'); } catch {}
+    const isParticipant = ids.some(id => String(id) === String(req.user.id));
+    if (!isParticipant && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
     res.json(conv);
@@ -121,8 +122,10 @@ router.get('/conversations/:convId/messages', requireAuth, async (req, res) => {
   try {
     const conv = await getRecord('conversations', req.params.convId);
     if (!conv) return res.status(404).json({ error: 'Conversation not found' });
-    const ids = JSON.parse(conv.participant_ids || '[]');
-    if (!ids.includes(req.user.id) && req.user.role !== 'admin') {
+    let ids = [];
+    try { ids = JSON.parse(conv.participant_ids || '[]'); } catch {}
+    const isParticipant = ids.some(id => String(id) === String(req.user.id));
+    if (!isParticipant && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
     const limit = Math.min(parseInt(req.query.limit || '100', 10), 500);
@@ -141,10 +144,18 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
   try {
     const conv = await getRecord('conversations', req.params.convId);
     if (!conv) return res.status(404).json({ error: 'Conversation not found' });
-    const ids = JSON.parse(conv.participant_ids || '[]');
-    if (!ids.includes(req.user.id) && req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Forbidden' });
+
+    // Robust participant check — compare as strings to handle type mismatches
+    let ids = [];
+    try { ids = JSON.parse(conv.participant_ids || '[]'); } catch { ids = []; }
+    const userId = String(req.user.id);
+    const isParticipant = ids.some(id => String(id) === userId);
+
+    if (!isParticipant && req.user.role !== 'admin') {
+      logger.warn({ userId, convId: req.params.convId, ids }, 'User not in conversation');
+      return res.status(403).json({ error: 'Forbidden — not a participant' });
     }
+
     const { content, type, reply_to_id } = req.body;
     if (!content) return res.status(400).json({ error: 'content is required' });
 
@@ -169,7 +180,7 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
     emitNewMessage(req.params.convId, rows[0]);
     res.status(201).json(rows[0]);
   } catch (err) {
-    logger.error({ err: err.message }, 'Failed to send message');
+    logger.error({ err: err.message, stack: err.stack }, 'Failed to send message');
     res.status(500).json({ error: 'Failed to send message' });
   }
 });

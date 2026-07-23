@@ -210,7 +210,9 @@ export default function ChatRoom() {
       setMessages(prev => prev.filter(m => m.id !== tempId));
       setText(content);
       textRef.current = content;
-      toast.error(err?.error || err?.message || 'Failed to send message');
+      const errMsg = err?.response?.data?.error || err?.error || err?.message || 'Failed to send';
+      toast.error(errMsg);
+      console.error('Send failed:', errMsg, err);
     }
     setSending(false);
   };
