@@ -7,6 +7,7 @@ const { emitNotification } = require('../socket');
 const { sendPushToUser } = require('./push');
 const { cacheMiddleware, invalidateCache } = require('../middleware/cache');
 const { realOnlyUserFilter } = require('../middleware/realMode');
+const logger = require('../lib/logger');
 
 // List posts — supports smart feed with random offset for variety
 router.get('/', optionalAuth, cacheMiddleware('posts:list', 60), async (req, res) => {
@@ -61,7 +62,7 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60), async (req, res
     );
     res.json(rows);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err.message }, 'Failed to fetch posts');
     res.status(500).json({ error: 'Failed to fetch posts' });
   }
 });
@@ -109,7 +110,7 @@ router.post('/', requireAuth, async (req, res) => {
     invalidateCache('posts:list').catch(() => {});
     res.status(201).json(post);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err.message }, 'Failed to create post');
     res.status(500).json({ error: 'Failed to create post' });
   }
 });

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import client from "@/api/client";
 import {
@@ -326,7 +327,7 @@ export default function Search() {
               <Link key={u.id} href={`/profile/${u.user_id}`}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold shrink-0 overflow-hidden">
-                  {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : u.display_name?.charAt(0)}
+                  {u.avatar_url ? <Image src={u.avatar_url} alt={u.display_name || ''} width={40} height={40} className="w-full h-full object-cover" unoptimized /> : u.display_name?.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -352,7 +353,7 @@ export default function Search() {
                   <Link key={p.id} href={`/products/${p.id}`}
                     className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow">
                     <div className="aspect-square bg-secondary/30">
-                      {imgs[0] && <img src={imgs[0]} alt={p.title} className="w-full h-full object-cover" />}
+                      {imgs[0] && <Image src={imgs[0]} alt={p.title || ''} width={200} height={200} className="w-full h-full object-cover" unoptimized />}
                     </div>
                     <div className="p-2 space-y-1">
                       <p className="text-xs font-medium truncate">{p.title}</p>
@@ -372,7 +373,7 @@ export default function Search() {
               <Link key={s.id} href={`/showrooms/${s.id}`}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
                 <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 overflow-hidden">
-                  {s.logo_url ? <img src={s.logo_url} alt="" className="w-full h-full object-cover rounded-xl" /> : <Crown className="w-5 h-5 text-amber-500" />}
+                  {s.logo_url ? <Image src={s.logo_url} alt={s.title || ''} width={40} height={40} className="w-full h-full object-cover rounded-xl" unoptimized /> : <Crown className="w-5 h-5 text-amber-500" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -411,7 +412,7 @@ export default function Search() {
               <div key={p.id} className="p-3 rounded-xl hover:bg-secondary/50 transition-colors border-b border-border/30 last:border-0">
                 <div className="flex items-center gap-2 mb-1.5">
                   <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-                    {p.author_avatar ? <img src={p.author_avatar} alt="" className="w-full h-full object-cover rounded-full" /> : p.author_name?.charAt(0)}
+                    {p.author_avatar ? <Image src={p.author_avatar} alt={p.author_name || ''} width={24} height={24} className="w-full h-full object-cover rounded-full" unoptimized /> : p.author_name?.charAt(0)}
                   </div>
                   <p className="text-xs font-medium">{p.author_name}</p>
                   <p className="text-[10px] text-muted-foreground ml-auto">{moment(p.created_at).fromNow()}</p>
@@ -458,7 +459,7 @@ export default function Search() {
               <Link key={e.id} href="/events"
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
                 <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0 overflow-hidden">
-                  {e.cover_image ? <img src={e.cover_image} alt="" className="w-full h-full object-cover rounded-xl" /> : <CalendarDays className="w-5 h-5 text-accent" />}
+                  {e.cover_image ? <Image src={e.cover_image} alt={e.title || ''} width={40} height={40} className="w-full h-full object-cover rounded-xl" unoptimized /> : <CalendarDays className="w-5 h-5 text-accent" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">

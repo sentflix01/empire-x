@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link';
+import Image from 'next/image';
 import React, { useState, useEffect, useRef } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
@@ -11,6 +12,7 @@ import moment from "moment";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
 import { formatLastSeen } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
+import { getSocket, connectSocket } from "@/lib/socket";
 
 // ── Default tab order: Contacts first ──────────────────────────────────────
 const DEFAULT_TAB_ORDER = ["contacts", "all", "groups", "channels"];
@@ -87,8 +89,13 @@ export default function Messages() {
 
   useEffect(() => {
     if (!user) return;
-    const interval = setInterval(() => loadConversations(), 10000);
-    return () => clearInterval(interval);
+    // Replace 10s polling with socket event — update conversations when
+    // a new message arrives so last_message and timestamp update live
+    connectSocket();
+    const socket = getSocket();
+    const onNewMessage = () => { loadConversations(); };
+    socket.on('new_message', onNewMessage);
+    return () => { socket.off('new_message', onNewMessage); };
   }, [user]);
 
   const loadConversations = async (currentUser?) => {
@@ -314,7 +321,7 @@ export default function Messages() {
                   {/* Avatar */}
                   <div className="relative shrink-0">
                     {resolvedAvatar ? (
-                      <img src={resolvedAvatar} alt={name} className="w-12 h-12 rounded-full object-cover ring-2 ring-border/20" />
+                      <Image src={resolvedAvatar} alt={name} width={48} height={48} className="w-12 h-12 rounded-full object-cover ring-2 ring-border/20" unoptimized />
                     ) : (
                       <div
                         className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm"
@@ -411,7 +418,7 @@ function ContactItem({ contact, user, existingConv }) {
       className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-secondary/40 transition-colors"
     >
       {avatarUrl ? (
-        <img src={avatarUrl} alt={name} className="w-11 h-11 rounded-full object-cover shrink-0 ring-2 ring-border/20" />
+        <Image src={avatarUrl} alt={name} width={44} height={44} className="w-11 h-11 rounded-full object-cover shrink-0 ring-2 ring-border/20" unoptimized />
       ) : (
         <div
           className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold shrink-0 shadow-sm"
