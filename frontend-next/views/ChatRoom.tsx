@@ -18,7 +18,9 @@ import type { PresenceData } from "@/lib/presence";
 
 
 export default function ChatRoom() {
-  const { id } = useParams();
+  const params = useParams();
+  // Ensure id is always a plain string — Next.js can return string[] for catch-all routes
+  const id = Array.isArray(params?.id) ? params.id[0] : (params?.id as string);
   const router = useRouter();
   const { user } = useAuth();
 
@@ -90,7 +92,13 @@ export default function ChatRoom() {
 
     const onNew = (msg) => {
       if (msg.conversation_id === id) {
-        setMessages(prev => prev.some(m => m.id === msg.id) ? prev : [...prev, msg]);
+        setMessages(prev => {
+          // Skip if already present (real or temp with same id)
+          if (prev.some(m => m.id === msg.id)) return prev;
+          // Remove any temp message with same content + sender (optimistic message)
+          const withoutTemp = prev.filter(m => !(m._temp && m.sender_id === msg.sender_id && m.content === msg.content));
+          return [...withoutTemp, msg];
+        });
       }
     };
     const onEdited = (msg) => {
@@ -159,19 +167,44 @@ export default function ChatRoom() {
   const handleSend = async () => {
     if (editingMsg) { await handleSaveEdit(); return; }
     const content = (textRef.current || text).trim();
-    if (!content) return;
-    setSending(true);
+    if (!content || !id) return;
+
+    // Optimistic update — add message to UI immediately
+    const tempId = `temp-${Date.now()}`;
+    const tempMsg = {
+      id: tempId,
+      conversation_id: id,
+      sender_id: user?.id,
+      sender_name: user?.full_name || 'You',
+      content,
+      type: 'text',
+      created_at: new Date().toISOString(),
+      edited: false,
+      reply_to_id: replyingTo?.id || null,
+      _temp: true,
+    };
+    setMessages(prev => [...prev, tempMsg]);
     setText('');
     textRef.current = '';
     const replyId = replyingTo?.id || null;
     setReplyingTo(null);
+    setSending(true);
+
     try {
-      await client.post(`/api/messages/conversations/${id}/messages`, {
+      const { data: sent } = await client.post(`/api/messages/conversations/${id}/messages`, {
         content,
         type: 'text',
         ...(replyId ? { reply_to_id: replyId } : {}),
       });
-    } catch { toast.error('Failed to send'); setText(content); textRef.current = content; }
+      // Replace temp message with real one from server
+      setMessages(prev => prev.map(m => m.id === tempId ? sent : m));
+    } catch (err: any) {
+      // Remove optimistic message on failure
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+      setText(content);
+      textRef.current = content;
+      toast.error(err?.error || err?.message || 'Failed to send message');
+    }
     setSending(false);
   };
 
