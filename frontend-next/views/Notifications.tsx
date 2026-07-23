@@ -60,7 +60,8 @@ export default function Notifications() {
     const u = currentUser || user;
     if (!u) return;
     try {
-      const { data } = await client.get("/api/notifications?limit=60");
+      // Fetch unread first, limit 30 for fast initial load
+      const { data } = await client.get("/api/notifications?limit=30&sort=unread_first");
       setNotifications(Array.isArray(data) ? data : []);
     } catch {}
     setLoading(false);

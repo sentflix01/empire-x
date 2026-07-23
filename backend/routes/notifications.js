@@ -8,8 +8,7 @@ const { sendPushToUser } = require('./push');
 // Get my notifications
 router.get('/', requireAuth, async (req, res) => {
   try {
-    // Default limit reduced to 20 for faster initial load; callers may pass a higher value up to 200.
-    const { is_read, limit = 20 } = req.query;
+    const { is_read, limit = 20, sort } = req.query;
     let query = `SELECT id, user_id, type, title, body, link, is_read, created_at
                  FROM notifications WHERE user_id = $1`;
     const values = [req.user.id];
@@ -17,7 +16,13 @@ router.get('/', requireAuth, async (req, res) => {
       query += ` AND is_read = $2`;
       values.push(is_read === 'true' || is_read === true);
     }
-    query += ` ORDER BY created_at DESC LIMIT $${values.length + 1}`;
+    // unread_first: show unread before read, then newest first within each group
+    if (sort === 'unread_first') {
+      query += ` ORDER BY is_read ASC, created_at DESC`;
+    } else {
+      query += ` ORDER BY created_at DESC`;
+    }
+    query += ` LIMIT $${values.length + 1}`;
     values.push(Math.min(parseInt(limit, 10) || 20, 200));
     const { rows } = await pool.query(query, values);
     res.json(rows);

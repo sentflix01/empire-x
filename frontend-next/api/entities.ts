@@ -233,11 +233,11 @@ function buildEntityApi<T extends AnyRecord = AnyRecord>(path: string): EntityAp
 }
 
 const ConversationApi = {
-  async list(sort = '-updated_at', limit = 100) {
+  async list(sort = '-updated_at', limit = 30) {
     const res = await client.get('/api/messages/conversations', { params: { sort, limit } });
     return res.data;
   },
-  async filter(filterObj: FilterObj = {}, sort = '-updated_at', limit = 100) {
+  async filter(filterObj: FilterObj = {}, sort = '-updated_at', limit = 30) {
     const res = await client.get('/api/messages/conversations', { params: { ...filterObj, sort, limit } });
     return res.data;
   },
@@ -279,17 +279,12 @@ const MessageApi = {
     return res.data;
   },
   async update(_id: string, _data: AnyRecord) {
-    // No PUT /messages/:id endpoint on the backend — no-op
     console.warn('MessageApi.update() is not supported by the backend');
     return null;
   },
   async delete(id: string) {
     await client.delete(`/api/messages/messages/${id}`);
     return { success: true as const };
-  },
-  subscribe(callback: () => void, intervalMs = 5000) {
-    const id = setInterval(callback, intervalMs);
-    return () => clearInterval(id);
   },
 };
 
@@ -331,10 +326,6 @@ export const entities = {
       await client.delete(`/api/tasks/bids/${id}`);
       return { success: true as const };
     },
-    subscribe(callback: () => void, ms = 30000) {
-      const id = setInterval(callback, ms);
-      return () => clearInterval(id);
-    },
   },
   Conversation: ConversationApi,
   Message:      MessageApi,
@@ -350,10 +341,6 @@ export const entities = {
     async get()    { return null as null; },
     async update() { return null as null; },
     async delete() { return { success: true as const }; },
-    subscribe(cb: () => void, ms = 30000) {
-      const id = setInterval(cb, ms);
-      return () => clearInterval(id);
-    },
   },
   Comment: {
     async filter(filterObj: { post_id?: string } = {}, sort = '-created_at', limit = 50) {
@@ -370,10 +357,6 @@ export const entities = {
     async get()    { return null as null; },
     async update() { return null as null; },
     async delete() { return { success: true as const }; },
-    subscribe(cb: () => void, ms = 30000) {
-      const id = setInterval(cb, ms);
-      return () => clearInterval(id);
-    },
   },
   Story:   buildEntityApi<Story>('stories'),
   Review:  buildEntityApi<Review>('reviews'),

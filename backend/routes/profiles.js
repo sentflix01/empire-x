@@ -80,39 +80,42 @@ router.get('/:id', optionalAuth, async (req, res) => {
 });
 
 // List profiles (with optional filter)
-router.get('/', optionalAuth, cacheMiddleware('profiles:list', 60), async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
+  const { getRedis } = require('../lib/redis');
+  const redis = getRedis();
+  const { user_id, profile_type, sort = '-created_at', limit = 50 } = req.query;
+
+  // Build a cache key that includes realOnly so seed/non-seed responses don't collide
+  const cacheKey = `cache:profiles:list:${new URLSearchParams({ ...req.query, realOnly: req.realOnly ? '1' : '0' }).toString()}`;
+  if (!redis.isNoOp) {
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        res.set('X-Cache', 'HIT');
+        return res.json(JSON.parse(cached));
+      }
+    } catch {}
+  }
+
   try {
-    const { user_id, profile_type, sort = '-created_at', limit = 50 } = req.query;
     const conditions = [];
     const values = [];
-
-    if (user_id) {
-      values.push(user_id);
-      conditions.push(`up.user_id = $${values.length}`);
-    }
-    if (profile_type) {
-      values.push(profile_type);
-      conditions.push(`up.profile_type = $${values.length}`);
-    }
-
-    // Real-only mode: filter out seed profiles
+    if (user_id) { values.push(user_id); conditions.push(`up.user_id = $${values.length}`); }
+    if (profile_type) { values.push(profile_type); conditions.push(`up.profile_type = $${values.length}`); }
     if (req.realOnly) conditions.push('u.is_seed = FALSE');
-
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const lim = Math.min(parseInt(limit, 10) || 50, 500);
     const sortDir = sort.startsWith('-') ? 'DESC' : 'ASC';
     const sortCol = sort.replace(/^-/, '').replace(/[^a-z0-9_]/gi, '') || 'created_at';
-
     values.push(lim);
     const { rows } = await pool.query(
-      `SELECT up.*, u.is_seed
-       FROM user_profiles up
-       JOIN users u ON u.id = up.user_id
-       ${whereClause}
-       ORDER BY up.${sortCol} ${sortDir}
-       LIMIT $${values.length}`,
+      `SELECT up.*, u.is_seed FROM user_profiles up JOIN users u ON u.id = up.user_id
+       ${whereClause} ORDER BY up.${sortCol} ${sortDir} LIMIT $${values.length}`,
       values
     );
+    // Cache for 60s
+    if (!redis.isNoOp) redis.setex(cacheKey, 60, JSON.stringify(rows)).catch(() => {});
+    res.set('X-Cache', 'MISS');
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch profiles' });
@@ -225,45 +228,50 @@ router.patch('/me/ticker', requireAuth, async (req, res) => {
   }
 });
 
-// Follow / unfollow a user
+  // Follow / unfollow — use transaction to prevent race conditions + parallel count updates
 router.post('/follow/:targetUserId', requireAuth, async (req, res) => {
   const { targetUserId } = req.params;
   if (targetUserId === req.user.id) {
     return res.status(400).json({ error: 'Cannot follow yourself' });
   }
+  const client = await pool.connect();
   try {
-    const existing = await pool.query(
+    await client.query('BEGIN');
+
+    // Check existing follow
+    const { rows: existing } = await client.query(
       'SELECT id FROM follows WHERE follower_id = $1 AND followed_id = $2',
       [req.user.id, targetUserId]
     );
-    if (existing.rows.length) {
-      await pool.query('DELETE FROM follows WHERE follower_id = $1 AND followed_id = $2', [req.user.id, targetUserId]);
-      // Decrement counts
-      await pool.query(
-        'UPDATE user_profiles SET following_count = GREATEST(0, following_count - 1) WHERE user_id = $1',
-        [req.user.id]
+
+    if (existing.length) {
+      // Unfollow
+      await client.query(
+        'DELETE FROM follows WHERE follower_id = $1 AND followed_id = $2',
+        [req.user.id, targetUserId]
       );
-      await pool.query(
-        'UPDATE user_profiles SET follower_count = GREATEST(0, follower_count - 1) WHERE user_id = $1',
-        [targetUserId]
-      );
+      // Parallel count decrements in same transaction
+      await Promise.all([
+        client.query('UPDATE user_profiles SET following_count = GREATEST(0, following_count - 1) WHERE user_id = $1', [req.user.id]),
+        client.query('UPDATE user_profiles SET follower_count = GREATEST(0, follower_count - 1) WHERE user_id = $1', [targetUserId]),
+      ]);
+      await client.query('COMMIT');
       return res.json({ following: false });
     }
-    await pool.query(
-      'INSERT INTO follows (follower_id, followed_id) VALUES ($1, $2)',
-      [req.user.id, targetUserId]
-    );
-    await pool.query(
-      'UPDATE user_profiles SET following_count = following_count + 1 WHERE user_id = $1',
-      [req.user.id]
-    );
-    await pool.query(
-      'UPDATE user_profiles SET follower_count = follower_count + 1 WHERE user_id = $1',
-      [targetUserId]
-    );
+
+    // Follow
+    await client.query('INSERT INTO follows (follower_id, followed_id) VALUES ($1, $2)', [req.user.id, targetUserId]);
+    await Promise.all([
+      client.query('UPDATE user_profiles SET following_count = following_count + 1 WHERE user_id = $1', [req.user.id]),
+      client.query('UPDATE user_profiles SET follower_count = follower_count + 1 WHERE user_id = $1', [targetUserId]),
+    ]);
+    await client.query('COMMIT');
     res.json({ following: true });
   } catch (err) {
+    await client.query('ROLLBACK');
     res.status(500).json({ error: 'Failed to toggle follow' });
+  } finally {
+    client.release();
   }
 });
 
