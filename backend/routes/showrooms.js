@@ -46,16 +46,19 @@ router.post('/', requireAuth, async (req, res) => {
     if (!title || !category) {
       return res.status(400).json({ error: 'title and category are required' });
     }
-    // Auto-generate slug if not provided
-    let slug = req.body.slug;
-    if (!slug) {
-      slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
-    }
-    const showroom = await createRecord('showrooms', { ...req.body, slug, owner_id: req.user.id });
+    // Generate unique slug — always append timestamp to avoid collisions
+    const base = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const slug = req.body.slug || `${base}-${Date.now()}`;
+
+    // Check for slug collision and append random suffix if needed
+    const { rows: existing } = await pool.query('SELECT id FROM showrooms WHERE slug = $1', [slug]);
+    const finalSlug = existing.length ? `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}` : slug;
+
+    const showroom = await createRecord('showrooms', { ...req.body, slug: finalSlug, owner_id: req.user.id });
     res.status(201).json(showroom);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to create showroom' });
+    res.status(500).json({ error: 'Failed to create showroom: ' + err.message });
   }
 });
 

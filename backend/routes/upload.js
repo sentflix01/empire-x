@@ -30,6 +30,11 @@ async function resolveUpload(file) {
 router.post('/', requireAuth, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   try {
+    if (!isCloudStorageConfigured()) {
+      return res.status(503).json({
+        error: 'File uploads are not configured on this server. Please set SUPABASE_URL/SUPABASE_STORAGE_KEY/SUPABASE_BUCKET or Cloudflare R2 environment variables in Railway.'
+      });
+    }
     const result = await resolveUpload(req.file);
     res.json(result);
   } catch (err) {
