@@ -1,6 +1,6 @@
 // @ts-nocheck
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
@@ -93,30 +93,66 @@ export default function Home() {
   const { t } = useTranslation();
   const [posts, setPosts]         = useState([]);
   const [loading, setLoading]     = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore]     = useState(true);
   const [feedError, setFeedError] = useState('');
   const [filter, setFilter]       = useState("all");
   const [feedMode, setFeedMode]   = useState("personal");
   const [feedFlipping, setFeedFlipping] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const offsetRef   = useRef(0);
+  const PAGE_SIZE   = 15;
 
   useEffect(() => {
-    loadPosts();
+    loadPosts(true);
   }, []);
 
-  const loadPosts = async () => {
-    setLoading(true);
+  // Intersection Observer — fires when sentinel enters viewport
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) loadMore(); },
+      { rootMargin: '300px' }
+    );
+    obs.observe(sentinelRef.current);
+    return () => obs.disconnect();
+  }, [hasMore, loadingMore, loading]);
+
+  const loadPosts = async (reset = false) => {
+    if (reset) { setLoading(true); offsetRef.current = 0; setHasMore(true); }
     setFeedError('');
     try {
-      const res = await client.get("/api/posts", { params: { feed: "true", limit: 30 } });
-      setPosts(Array.isArray(res.data) ? res.data : []);
+      const res = await client.get("/api/posts", { params: { feed: "true", limit: PAGE_SIZE, offset: reset ? 0 : offsetRef.current } });
+      const data = Array.isArray(res.data) ? res.data : [];
+      setPosts(reset ? data : prev => [...prev, ...data]);
+      offsetRef.current = (reset ? 0 : offsetRef.current) + data.length;
+      if (data.length < PAGE_SIZE) setHasMore(false);
     } catch (err: any) {
-      setPosts([]);
+      if (reset) setPosts([]);
       setFeedError(err?.error || err?.message || 'Failed to load posts. Check your connection.');
     }
-    setLoading(false);
+    if (reset) setLoading(false);
   };
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const res = await client.get("/api/posts", { params: { feed: "true", limit: PAGE_SIZE, offset: offsetRef.current } });
+      const data = Array.isArray(res.data) ? res.data : [];
+      setPosts(prev => {
+        const existingIds = new Set(prev.map(p => p.id));
+        return [...prev, ...data.filter(p => !existingIds.has(p.id))];
+      });
+      offsetRef.current += data.length;
+      if (data.length < PAGE_SIZE) setHasMore(false);
+    } catch {}
+    setLoadingMore(false);
+  }, [loadingMore, hasMore]);
 
   const handlePostCreated = (post) => {
     setPosts(prev => [post, ...prev]);
+    offsetRef.current += 1;
   };
 
   const handleFeedFlip = () => {
@@ -251,7 +287,7 @@ export default function Home() {
           );
         })}
         {!isNearbyActive && (
-          <button onClick={loadPosts} disabled={loading}
+          <button onClick={() => loadPosts(true)} disabled={loading}
             className="ml-auto shrink-0 p-2 rounded-full bg-card border border-border/50 text-muted-foreground hover:bg-secondary transition-all"
             title={t('feed.refreshFeed')}>
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -311,6 +347,17 @@ export default function Home() {
                       </ErrorBoundary>
                     </motion.div>
                   ))}
+
+                  {/* Infinite scroll sentinel */}
+                  <div ref={sentinelRef} className="h-4" />
+                  {loadingMore && (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+                    </div>
+                  )}
+                  {!hasMore && posts.length > 0 && (
+                    <p className="text-center text-xs text-muted-foreground py-4">You've seen all posts</p>
+                  )}
                 </AnimatePresence>
               )}
             </>

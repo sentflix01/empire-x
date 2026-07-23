@@ -12,7 +12,8 @@ const logger = require('../lib/logger');
 // List posts — supports smart feed with random offset for variety
 router.get('/', optionalAuth, cacheMiddleware('posts:list', 60), async (req, res) => {
   try {
-    const { sort = '-created_at', limit = 30, author_id, post_type, feed = 'false' } = req.query;
+    const { sort = '-created_at', limit = 30, author_id, post_type, feed = 'false', offset = '0' } = req.query;
+    const offsetVal = Math.max(0, parseInt(offset) || 0);
     // Use column name without alias — these subqueries reference the table directly
     const realFilter = req.realOnly
       ? `AND author_id IN (SELECT id FROM users WHERE is_seed = FALSE)`
@@ -41,8 +42,8 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60), async (req, res
            ) combined
            ORDER BY id, feed_rank
          )
-         SELECT * FROM ranked ORDER BY feed_rank ASC, created_at DESC LIMIT $4`,
-        [Math.ceil(lim * 0.5), Math.ceil(lim * 0.3), lim, lim]
+         SELECT * FROM ranked ORDER BY feed_rank ASC, created_at DESC LIMIT $4 OFFSET $5`,
+        [Math.ceil(lim * 0.5), Math.ceil(lim * 0.3), lim, lim, offsetVal]
       );
       return res.json(rows);
     }
@@ -56,8 +57,9 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60), async (req, res
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const orderBy = sort?.startsWith('-') ? `${sort.slice(1)} DESC` : (sort || 'created_at DESC');
     params.push(Math.min(parseInt(limit) || 30, 100));
+    params.push(offsetVal);
     const { rows } = await pool.query(
-      `SELECT * FROM posts ${where} ORDER BY ${orderBy} LIMIT $${params.length}`,
+      `SELECT * FROM posts ${where} ORDER BY ${orderBy} LIMIT $${params.length - 1} OFFSET $${params.length}`,
       params
     );
     res.json(rows);

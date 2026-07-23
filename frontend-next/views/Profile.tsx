@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { auth } from "@/api/auth";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
@@ -141,7 +142,7 @@ export default function Profile() {
           {/* Cover */}
           <div className="h-28 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 relative">
             {view === "business" && profile.business_cover_url && (
-              <img src={profile.business_cover_url} alt={`${profile.business_name || 'Business'} cover photo`} className="w-full h-full object-cover" />
+              <Image src={profile.business_cover_url as string} alt={`${profile.business_name || 'Business'} cover`} fill className="object-cover" unoptimized />
             )}
           </div>
           <div className="px-5 pb-4">
@@ -153,11 +154,11 @@ export default function Profile() {
                     <div className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center text-white text-3xl font-bold"
                       style={{ background: profile.avatar_url ? 'transparent' : 'linear-gradient(135deg,#60a5fa,#2563eb)' }}>
                       {profile.avatar_url
-                        ? <img src={profile.avatar_url as string} alt={profile.display_name || 'User'} className="w-full h-full object-cover" />
+                        ? <Image src={profile.avatar_url as string} alt={profile.display_name || 'User'} width={96} height={96} className="w-full h-full object-cover rounded-xl" unoptimized />
                         : (profile.display_name?.charAt(0) || "U")}
                     </div>
                   ) : profile.business_logo_url ? (
-                    <img src={profile.business_logo_url as string} alt={profile.business_name || 'Business'} className="w-full h-full rounded-xl object-cover" />
+                    <Image src={profile.business_logo_url as string} alt={profile.business_name || 'Business'} width={96} height={96} className="w-full h-full rounded-xl object-cover" unoptimized />
                   ) : (
                     <div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
                       {profile.business_name?.charAt(0) || "B"}

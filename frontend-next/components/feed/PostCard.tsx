@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { entities } from '@/api/entities';
 import client from '@/api/client';
 import { auth } from '@/api/auth';
@@ -118,12 +119,14 @@ function ImagePost({ post }: { post: Post }) {
   return (
     <div className="pb-3">
       <div className="relative overflow-hidden" style={{ maxHeight: 360 }}>
-        <img
+        <Image
           src={post.image_url}
           alt={post.content ? post.content.slice(0, 120) : 'Post image'}
+          width={600} height={360}
           className="w-full object-cover"
           style={{ maxHeight: 360 }}
           onError={() => setErr(true)}
+          unoptimized
         />
         {post.content && (
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 py-4">
@@ -143,7 +146,7 @@ function PromoPost({ post, themeColor, primaryBiz }: { post: Post; themeColor: s
     <div>
       {post.image_url && !err && (
         <div className="relative overflow-hidden" style={{ maxHeight: 220 }}>
-          <img src={post.image_url} alt="" className="w-full object-cover" style={{ maxHeight: 220 }} onError={() => setErr(true)} />
+          <Image src={post.image_url} alt="Promo" width={600} height={220} className="w-full object-cover" style={{ maxHeight: 220 }} onError={() => setErr(true)} unoptimized />
           <div className="absolute inset-0 bg-black/25" />
           <div className="absolute top-3 left-3">
             <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-500 text-white shadow">
@@ -168,7 +171,7 @@ function EventPost({ post }: { post: Post }) {
     <div>
       {post.image_url && !err && (
         <div className="relative overflow-hidden mx-4 mb-3 rounded-xl" style={{ maxHeight: 200 }}>
-          <img src={post.image_url} alt="" className="w-full object-cover rounded-xl" style={{ maxHeight: 200 }} onError={() => setErr(true)} />
+          <Image src={post.image_url} alt="Event" width={600} height={200} className="w-full object-cover rounded-xl" style={{ maxHeight: 200 }} onError={() => setErr(true)} unoptimized />
           <div className="absolute top-3 right-3">
             <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
               <CalendarDays className="w-3 h-3" /> Event
@@ -418,7 +421,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
           aria-label={`View ${post.author_name ?? 'user'}'s profile`}
         >
           {(post.author_avatar || authorProfile?.avatar_url)
-            ? <img src={post.author_avatar || authorProfile?.avatar_url} alt={`${post.author_name ?? 'User'} avatar`} className="w-full h-full object-cover" />
+            ? <Image src={(post.author_avatar || authorProfile?.avatar_url) as string} alt={`${post.author_name ?? 'User'} avatar`} width={40} height={40} className="w-full h-full object-cover" unoptimized />
             : (post.author_name?.charAt(0) ?? '?')}
         </Link>
         <div className="flex-1 min-w-0">
