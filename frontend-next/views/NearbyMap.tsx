@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import client from "@/api/client";
@@ -133,7 +134,7 @@ function MarkerHoverCard({ data, onClose }) {
           <div className="w-9 h-9 rounded-xl shrink-0 overflow-hidden flex items-center justify-center text-white font-bold text-sm"
             style={{ background:`linear-gradient(135deg, ${accentColor}cc, ${accentColor})` }}>
             {profile?.avatar_url
-              ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+              ? <Image src={profile.avatar_url} alt="" width={40} height={40} className="w-full h-full object-cover" unoptimized />
               : (data.name?.charAt(0) ?? "?")}
           </div>
           <div className="min-w-0 flex-1">
@@ -535,9 +536,9 @@ export default function NearbyMap() {
                   className="bg-card rounded-xl border border-border/50 overflow-hidden hover:shadow-sm transition-shadow cursor-pointer"
                 >
                   <Link href={`/products/${p.id}`} onClick={e => e.stopPropagation()}>
-                    <div className="aspect-square bg-secondary/20 overflow-hidden">
+                    <div className="aspect-square bg-secondary/20 overflow-hidden relative">
                       {imgs[0]
-                        ? <img src={imgs[0]} alt={p.title} className="w-full h-full object-cover" />
+                        ? <Image src={imgs[0]} alt={p.title} fill className="object-cover" unoptimized />
                         : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-8 h-8 text-muted-foreground/20" /></div>
                       }
                     </div>

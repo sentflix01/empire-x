@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { entities } from '@/api/entities';
 import client from '@/api/client';
 import { uploadFile } from '@/lib/uploadFile';
@@ -78,9 +79,9 @@ function HexStory({ group, onClick, isAdd = false, uploading = false }: HexStory
                     : <Plus className="w-6 h-6 text-amber-500" />}
                 </div>
               ) : thumbUrl ? (
-                <img src={thumbUrl} alt={name} className="w-full h-full object-cover" />
+                <Image src={thumbUrl} alt={name} fill className="object-cover" unoptimized />
               ) : group?.avatar_url ? (
-                <img src={group.avatar_url} alt={name} className="w-full h-full object-cover" />
+                <Image src={group.avatar_url} alt={name} fill className="object-cover" unoptimized />
               ) : (
                 <div
                   className="w-full h-full flex items-center justify-center text-white font-bold text-lg"

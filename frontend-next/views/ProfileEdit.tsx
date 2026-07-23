@@ -11,6 +11,7 @@
  */
 import { useRouter, usePathname } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { auth } from '@/api/auth';
 import { entities, type UserProfile } from '@/api/entities';
 import { useTranslation } from 'react-i18next';
@@ -411,7 +412,7 @@ export default function ProfileEdit() {
               {/* Cover photo */}
               <div className="h-32 bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 relative">
                 {p.cover_url && typeof p.cover_url === 'string' && p.cover_url && (
-                  <img src={p.cover_url} alt="Cover" className="w-full h-full object-cover absolute inset-0" />
+                  <Image src={p.cover_url} alt="Cover" fill className="object-cover" unoptimized />
                 )}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <ImageUpload value={p.cover_url} onChange={url => sp('cover_url', url)}
@@ -428,7 +429,7 @@ export default function ProfileEdit() {
                 <div className="relative">
                   <div className="w-20 h-20 rounded-2xl ring-4 ring-card overflow-hidden bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                     {p.avatar_url && typeof p.avatar_url === 'string' && p.avatar_url
-                      ? <img src={p.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                      ? <Image src={p.avatar_url} alt="Avatar" width={80} height={80} className="w-full h-full object-cover" unoptimized />
                       : (p.display_name?.charAt(0) || 'U')}
                   </div>
                   <div className="absolute inset-0 rounded-2xl overflow-hidden">
@@ -571,7 +572,7 @@ export default function ProfileEdit() {
             <div className="relative">
               <div className="h-32 bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 relative">
                 {b.business_cover_url && typeof b.business_cover_url === 'string' && b.business_cover_url && (
-                  <img src={b.business_cover_url} alt="Cover" className="w-full h-full object-cover absolute inset-0" />
+                  <Image src={b.business_cover_url} alt="Cover" fill className="object-cover" unoptimized />
                 )}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <ImageUpload value={b.business_cover_url} onChange={url => sb('business_cover_url', url)}
@@ -587,7 +588,7 @@ export default function ProfileEdit() {
                 <div className="relative w-20 h-20">
                   <div className="w-20 h-20 rounded-2xl ring-4 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                     {b.business_logo_url && typeof b.business_logo_url === 'string' && b.business_logo_url
-                      ? <img src={b.business_logo_url} alt="Logo" className="w-full h-full object-cover" />
+                      ? <Image src={b.business_logo_url} alt="Logo" width={80} height={80} className="w-full h-full object-cover" unoptimized />
                       : (b.business_name?.charAt(0) || 'B')}
                   </div>
                   <div className="absolute inset-0 rounded-2xl overflow-hidden">

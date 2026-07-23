@@ -3,6 +3,7 @@ const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
 const { emitNewMessage, emitMessageEdited, emitMessageDeleted } = require('../socket');
+const logger = require('../lib/logger');
 
 // List conversations for current user
 router.get('/conversations', requireAuth, async (req, res) => {
@@ -73,7 +74,7 @@ router.post('/conversations/find-or-create', requireAuth, async (req, res) => {
     });
     res.status(201).json(conv);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err.message }, 'Failed to find or create conversation');
     res.status(500).json({ error: 'Failed to find or create conversation' });
   }
 });
@@ -168,7 +169,7 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
     emitNewMessage(req.params.convId, rows[0]);
     res.status(201).json(rows[0]);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err.message }, 'Failed to send message');
     res.status(500).json({ error: 'Failed to send message' });
   }
 });
