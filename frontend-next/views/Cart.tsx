@@ -2,6 +2,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import React, { useState } from "react";
 import { useCart } from "@/lib/CartContext";
 import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, ShoppingBag, Loader2 } from "lucide-react";
@@ -61,9 +62,9 @@ function Cart() {
               return (
                 <div key={item.id} className="bg-card rounded-2xl border border-border/50 p-4 flex gap-4">
                   {/* Thumbnail */}
-                  <Link href={`/products/${item.product_id}`} className="w-20 h-20 rounded-xl overflow-hidden bg-secondary/30 shrink-0">
+                  <Link href={`/products/${item.product_id}`} className="w-20 h-20 rounded-xl overflow-hidden bg-secondary/30 shrink-0 relative">
                     {imgs[0] ? (
-                      <img src={imgs[0]} alt={item.title} className="w-full h-full object-cover" />
+                      <Image src={imgs[0]} alt={item.title} fill className="object-cover" unoptimized />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-6 h-6 text-muted-foreground/30" /></div>
                     )}

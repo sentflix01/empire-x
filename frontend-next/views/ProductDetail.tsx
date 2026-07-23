@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import ReviewsSection from "@/components/product/ReviewsSection";
 import client from "@/api/client";
 import { auth } from "@/api/auth";
@@ -136,7 +137,7 @@ export default function ProductDetail() {
         {/* Image Gallery */}
         <div className="aspect-square bg-secondary/30 relative overflow-hidden">
           {images.length > 0 ? (
-            <img src={images[selectedImage]} alt={product.title} className="w-full h-full object-cover" />
+            <Image src={images[selectedImage]} alt={product.title} fill className="object-cover" unoptimized />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 text-6xl">🛍️</div>
           )}
@@ -151,8 +152,8 @@ export default function ProductDetail() {
         {images.length > 1 && (
           <div className="flex gap-2 p-3 overflow-x-auto">
             {images.map((img, i) => (
-              <button key={i} onClick={() => setSelectedImage(i)} className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all ${i === selectedImage ? "border-amber-500" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                <img src={img} alt="" className="w-full h-full object-cover" />
+              <button key={i} onClick={() => setSelectedImage(i)} className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all relative ${i === selectedImage ? "border-amber-500" : "border-transparent opacity-60 hover:opacity-100"}`}>
+                <Image src={img} alt="" fill className="object-cover" unoptimized />
               </button>
             ))}
           </div>

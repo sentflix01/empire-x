@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link';
+import Image from 'next/image';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
@@ -63,7 +64,7 @@ function Events() {
             {events.map(event => (
               <div key={event.id} className="bg-card rounded-2xl border border-border/50 overflow-hidden">
                 {event.cover_image && (
-                  <img src={event.cover_image} alt={event.title} className="w-full h-40 object-cover" />
+                  <Image src={event.cover_image} alt={event.title} width={600} height={160} className="w-full h-40 object-cover" unoptimized />
                 )}
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">

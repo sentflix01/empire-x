@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { entities } from "@/api/entities";
@@ -153,7 +154,7 @@ export default function Marketplace() {
                   <div className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-md transition-all">
                     <div className="aspect-square bg-secondary/30 relative overflow-hidden">
                       {images[0] ? (
-                        <img src={images[0]} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <Image src={images[0]} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
                           <ShoppingBag className="w-10 h-10" />

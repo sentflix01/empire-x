@@ -510,7 +510,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             {/* Avatar */}
             <Link href="/profile" className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
               {userProfile?.avatar_url
-                ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                ? <Image src={userProfile.avatar_url} alt={displayName} width={32} height={32} className="w-full h-full object-cover" unoptimized />
                 : (user?.full_name?.charAt(0) || "E")}
             </Link>
           </div>
@@ -531,14 +531,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               {/* Cover + avatar */}
               <div className="relative h-20 bg-empire-gradient">
                 {userProfile?.cover_url && (
-                  <img src={userProfile.cover_url} alt="" className="w-full h-full object-cover absolute inset-0" />
+                  <Image src={userProfile.cover_url} alt="" fill className="object-cover" unoptimized />
                 )}
                 <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent" />
                 {/* Avatar overlapping cover */}
                 <Link href="/profile"
                   className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shrink-0">
                   {userProfile?.avatar_url
-                    ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                    ? <Image src={userProfile.avatar_url} alt={displayName} width={40} height={40} className="w-full h-full object-cover" unoptimized />
                     : userInitial}
                 </Link>
               </div>
@@ -556,7 +556,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <Link href="/profile" className="relative group">
                 <div className="w-9 h-9 rounded-xl ring-2 ring-border overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm">
                   {userProfile?.avatar_url
-                    ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                    ? <Image src={userProfile.avatar_url} alt={displayName} width={36} height={36} className="w-full h-full object-cover" unoptimized />
                     : userInitial}
                 </div>
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
@@ -697,7 +697,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 {/* ── Cover photo + avatar inside it — full width, no side padding ── */}
                 <div className="relative h-40 shrink-0 bg-empire-gradient">
                   {userProfile?.cover_url && (
-                    <img src={userProfile.cover_url} alt="" className="w-full h-full object-cover absolute inset-0" />
+                    <Image src={userProfile.cover_url} alt="" fill className="object-cover" unoptimized />
                   )}
                   {/* Dark gradient at bottom so avatar stands out */}
                   <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
@@ -715,7 +715,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   <Link href="/profile" onClick={() => setDrawerOpen(false)}
                     className="absolute bottom-3 left-4 w-16 h-16 rounded-2xl ring-3 ring-white/70 overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-bold shadow-xl">
                     {userProfile?.avatar_url
-                      ? <img src={userProfile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                      ? <Image src={userProfile.avatar_url} alt={displayName} width={64} height={64} className="w-full h-full object-cover" unoptimized />
                       : userInitial}
                   </Link>
 

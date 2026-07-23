@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link';
+import Image from 'next/image';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 
@@ -70,7 +71,7 @@ function Courses() {
               <Link key={course.id} href={`/courses/${course.id}`} className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-md transition-all group">
                 <div className="h-36 bg-gradient-to-br from-amber-100 to-orange-100 relative overflow-hidden">
                   {course.cover_image
-                    ? <img src={course.cover_image} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
+                    ? <Image src={course.cover_image} alt={course.title} fill className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />
                     : <div className="w-full h-full flex items-center justify-center"><GraduationCap className="w-12 h-12 text-amber-400"/></div>
                   }
                   {course.price > 0
