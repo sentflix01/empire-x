@@ -95,7 +95,16 @@ export default function Messages() {
     const socket = getSocket();
     const onNewMessage = () => { loadConversations(); };
     socket.on('new_message', onNewMessage);
-    return () => { socket.off('new_message', onNewMessage); };
+
+    // Refresh presence every 60s so online dots stay accurate
+    const presenceInterval = setInterval(() => {
+      loadConversations();
+    }, 60_000);
+
+    return () => {
+      socket.off('new_message', onNewMessage);
+      clearInterval(presenceInterval);
+    };
   }, [user]);
 
   const loadConversations = async (currentUser?) => {
