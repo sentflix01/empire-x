@@ -181,8 +181,8 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
     emitNewMessage(req.params.convId, rows[0]);
     res.status(201).json(rows[0]);
   } catch (err) {
-    logger.error({ err: err.message, stack: err.stack }, 'Failed to send message');
-    res.status(500).json({ error: 'Failed to send message' });
+    logger.error({ err: err.message, stack: err.stack, code: err.code, detail: err.detail }, 'Failed to send message');
+    res.status(500).json({ error: 'Failed to send message', detail: err.message, code: err.code });
   }
 });
 
