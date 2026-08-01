@@ -4,5 +4,5 @@ import React from 'react';
 
 // Shows the Account tab of settings
 export default function AccountPage() {
-  return <AccountSettingsView defaultTab="account" />;
+  return <AccountSettingsView />;
 }
