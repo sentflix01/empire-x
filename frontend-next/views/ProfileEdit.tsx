@@ -44,7 +44,7 @@ import { getPushPermission, subscribeToPush, unsubscribeFromPush } from '@/lib/p
 
 // ── Section wrapper ────────────────────────────────────────────────────────
 function Section({ icon: Icon, title, children, defaultOpen = true }: {
-  icon: React.ElementType; title: string; children: React.ReactNode; defaultOpen?: boolean;
+  icon: React.ComponentType<any>; title: string; children: React.ReactNode; defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (

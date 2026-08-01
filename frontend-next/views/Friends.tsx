@@ -35,7 +35,7 @@ interface FriendItem {
 // ── Collapsible section component ─────────────────────────────────────────────
 interface FriendsSectionProps {
   title: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<any>;
   items: FriendItem[];
   loading: boolean;
   error: string | null;

@@ -129,7 +129,7 @@ function BusinessCard({
 // ── Collapsible business section ──────────────────────────────────────────────
 interface BusinessSectionProps {
   title: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<any>;
   items: Business[];
   ownerMap: Map<string, OwnerProfile>;
   loading: boolean;

@@ -8,7 +8,7 @@ interface AuthLayoutProps {
   subtitle?: string
   footer?: React.ReactNode
   children: React.ReactNode
-  icon?: React.ElementType<{ className?: string }>
+  icon?: React.ComponentType<{ className?: string }>
 }
 
 export default function AuthLayout({ title, subtitle, footer, children, icon: Icon }: AuthLayoutProps) {

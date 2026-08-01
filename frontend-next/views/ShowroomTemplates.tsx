@@ -19,7 +19,7 @@ import {
   GraduationCap, Briefcase, Sprout, Hotel, Sparkles as SpaIcon,
 } from "lucide-react";
 
-const ICON_MAP: Record<string, React.ElementType> = {
+const ICON_MAP: Record<string, React.ComponentType<any>> = {
   Store, Heart, UtensilsCrossed,
   HardHat: HardHat,
   Truck, GraduationCap, Briefcase, Sprout, Hotel,
