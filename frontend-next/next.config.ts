@@ -48,7 +48,6 @@ const nextConfig: NextConfig = {
     const wsHost = apiHost.replace(/^https?:/, 'wss:').replace(/^http:/, 'ws:');
     const isProd = process.env.NODE_ENV === 'production';
     const googleScriptSrc = `https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com`;
-    const googleUnsafeInline = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? " 'unsafe-inline'" : '';
 
     const csp = [
       `default-src 'self'`,
@@ -57,7 +56,7 @@ const nextConfig: NextConfig = {
       // Scripts: self + Google GSI + Stripe.js + Sentry.
       // Google Identity Services injects inline script blocks, so we allow unsafe-inline only when Google login is enabled.
       isProd
-        ? `script-src 'self' ${googleScriptSrc}${googleUnsafeInline}`
+        ? `script-src 'self' 'unsafe-inline' ${googleScriptSrc}`
         : `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com`,
       // Images: allow all HTTPS sources + self + data + blob.
       // We cannot predict all storage domains (Railway, Supabase, R2, CDN, user avatars)
