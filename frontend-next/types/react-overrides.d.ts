@@ -14,8 +14,10 @@
 import 'react';
 
 declare module 'react' {
-  // Re-add implicit children support to forwardRef components
+  // React 19: FunctionComponent returns ReactNode (not ReactElement | null).
+  // This ensures ForwardRefExoticComponent (lucide-react, Radix, shadcn) is
+  // assignable to ComponentType/ElementType props across the codebase.
   interface FunctionComponent<P = object> {
-    (props: P & { children?: React.ReactNode }, context?: any): React.ReactElement<any, any> | null;
+    (props: P & { children?: React.ReactNode }, context?: any): React.ReactNode;
   }
 }

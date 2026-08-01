@@ -21,8 +21,10 @@ declare module 'react' {
     children?: ReactNode | undefined;
   }
 
-  // Allow children on all function components
+  // React 19: FunctionComponent returns ReactNode (not ReactElement | null).
+  // Overriding to ReactNode ensures ForwardRefExoticComponent (lucide icons,
+  // Radix UI, shadcn) is assignable to ComponentType / ElementType.
   interface FunctionComponent<P = object> {
-    (props: P & { children?: ReactNode | undefined }, context?: any): ReactElement<any, any> | null;
+    (props: P & { children?: ReactNode | undefined }, context?: any): ReactNode;
   }
 }
