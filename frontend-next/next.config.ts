@@ -46,7 +46,7 @@ const nextConfig: NextConfig = {
     // Adjust NEXT_PUBLIC_API_BASE_URL as needed for your deployment.
     const apiHost = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
     const wsHost = apiHost.replace(/^https?:/, 'wss:').replace(/^http:/, 'ws:');
-    const googleScriptSrc = `https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com`;
+    const googleScriptSrc = `https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com https://vercel.live`;
 
     const csp = [
       `default-src 'self'`,
@@ -73,6 +73,9 @@ const nextConfig: NextConfig = {
       `base-uri 'self'`,
       `form-action 'self'`,
       `frame-ancestors 'none'`,
+      // Allow Vercel live feedback manifest and worker scripts
+      `manifest-src 'self' https://vercel.live https://vercel.com`,
+      `worker-src 'self' blob:`,
       `upgrade-insecure-requests`,
     ].filter(Boolean).join('; ');
 
