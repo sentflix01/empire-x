@@ -65,4 +65,4 @@ jobs:
           psql "$NEON_DATABASE_URL" -c "SELECT COUNT(*) FROM users;" || true
 
       - name: Finish
-        run: echo "Done. If the source DB was not reachable from this runner, please run the local PowerShell script instead: scripts/export_and_restore_to_neon.ps1" 
+        run: echo "Done. If the source DB was not reachable from this runner, please run the local PowerShell script instead: scripts/export_and_restore_to_neon.ps1"
