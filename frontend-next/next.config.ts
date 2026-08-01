@@ -49,7 +49,7 @@ const nextConfig: NextConfig = {
     const googleScriptSrc = `https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com https://vercel.live`;
 
     const csp = [
-      `default-src 'self'`,
+      `default-src 'self' https://vercel.com https://vercel.live`,
       // Styles: self + unsafe-inline (required for Tailwind/CSS-in-JS) + Google GSI + Leaflet/FontAwesome CDN
       `style-src 'self' 'unsafe-inline' https://accounts.google.com https://unpkg.com https://cdnjs.cloudflare.com`,
       // Scripts: Next.js requires 'unsafe-inline' for its inline bootstrap scripts (__NEXT_DATA__ etc.)
