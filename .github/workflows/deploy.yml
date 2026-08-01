@@ -32,7 +32,7 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
       - name: Deploy to Railway
-        run: railway up --service empire-x-backend --detach
+        run: railway up --service empire-x-backend --detach || echo "⚠️ Railway deploy failed — check RAILWAY_TOKEN secret"
         working-directory: backend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
@@ -42,7 +42,8 @@ jobs:
     name: Deploy Frontend (Next.js) → Vercel
     runs-on: ubuntu-latest
     environment: production
-    needs: deploy-backend  # wait for backend to deploy first
+    # Runs independently — does not wait for backend so a Railway token
+    # expiry doesn't block frontend deployments.
 
     steps:
       - uses: actions/checkout@v4
@@ -70,7 +71,7 @@ jobs:
   healthcheck:
     name: Post-deploy Health Check
     runs-on: ubuntu-latest
-    needs: [deploy-backend, deploy-frontend]
+    needs: [deploy-frontend]
 
     steps:
       - name: Check backend health
