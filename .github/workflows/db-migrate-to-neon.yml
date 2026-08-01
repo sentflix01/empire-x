@@ -60,7 +60,7 @@ jobs:
           NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
         run: |
           echo "Listing tables on Neon"
-          psql "$NEON_DATABASE_URL" -c "\dt" || true
+          psql "$NEON_DATABASE_URL" -c "\\dt" || true
           echo "Users count (if users table exists)"
           psql "$NEON_DATABASE_URL" -c "SELECT COUNT(*) FROM users;" || true
 
