@@ -19,6 +19,12 @@ import {
   Zap,
 } from 'lucide-react';
 
+// Force dynamic rendering so Next.js serves this page from the server on
+// every request. This ensures the Content-Security-Policy header set in
+// next.config.ts (including 'unsafe-inline') is applied and not bypassed
+// by Vercel's CDN static cache.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Empire X - Africa's Superapp",
   description:
