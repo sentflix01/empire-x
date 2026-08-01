@@ -508,10 +508,10 @@ export default function ProfileEdit() {
           <Section icon={Globe} title="Social Links" defaultOpen={false}>
             {[
               { field: 'social_linkedin',  icon: LinkedinIcon,  ph: 'LinkedIn profile URL' },
-              { field: 'social_twitter',   icon: Twitter,   ph: 'X / Twitter profile URL' },
-              { field: 'social_instagram', icon: Instagram, ph: 'Instagram profile URL' },
-              { field: 'social_facebook',  icon: Facebook,  ph: 'Facebook profile URL' },
-              { field: 'social_youtube',   icon: Youtube,   ph: 'YouTube channel URL' },
+              { field: 'social_twitter',   icon: TwitterIcon,   ph: 'X / Twitter profile URL' },
+              { field: 'social_instagram', icon: InstagramIcon, ph: 'Instagram profile URL' },
+              { field: 'social_facebook',  icon: FacebookIcon,  ph: 'Facebook profile URL' },
+              { field: 'social_youtube',   icon: YoutubeIcon,   ph: 'YouTube channel URL' },
             ].map(({ field, icon: Icon, ph }) => (
               <div key={field} className="relative">
                 <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -741,8 +741,8 @@ export default function ProfileEdit() {
           <Section icon={Globe} title="Social & Online Presence" defaultOpen={false}>
             {[
               { field: 'business_social_linkedin', icon: LinkedinIcon, ph: 'LinkedIn company page URL' },
-              { field: 'business_social_twitter',  icon: Twitter,  ph: 'X / Twitter handle URL' },
-              { field: 'business_social_facebook', icon: Facebook, ph: 'Facebook page URL' },
+              { field: 'business_social_twitter',  icon: TwitterIcon,  ph: 'X / Twitter handle URL' },
+              { field: 'business_social_facebook', icon: FacebookIcon, ph: 'Facebook page URL' },
             ].map(({ field, icon: Icon, ph }) => (
               <div key={field} className="relative">
                 <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
