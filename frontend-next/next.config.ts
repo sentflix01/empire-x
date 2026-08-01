@@ -46,18 +46,17 @@ const nextConfig: NextConfig = {
     // Adjust NEXT_PUBLIC_API_BASE_URL as needed for your deployment.
     const apiHost = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
     const wsHost = apiHost.replace(/^https?:/, 'wss:').replace(/^http:/, 'ws:');
-    const isProd = process.env.NODE_ENV === 'production';
     const googleScriptSrc = `https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com`;
 
     const csp = [
       `default-src 'self'`,
       // Styles: self + unsafe-inline (required for Tailwind/CSS-in-JS) + Google GSI + Leaflet/FontAwesome CDN
       `style-src 'self' 'unsafe-inline' https://accounts.google.com https://unpkg.com https://cdnjs.cloudflare.com`,
-      // Scripts: self + Google GSI + Stripe.js + Sentry.
-      // Google Identity Services injects inline script blocks, so we allow unsafe-inline only when Google login is enabled.
-      isProd
-        ? `script-src 'self' 'unsafe-inline' ${googleScriptSrc}`
-        : `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com`,
+      // Scripts: Next.js requires 'unsafe-inline' for its inline bootstrap scripts (__NEXT_DATA__ etc.)
+      // and 'unsafe-eval' in dev for HMR. Both dev and prod include 'unsafe-inline'.
+      process.env.NODE_ENV !== 'production'
+        ? `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${googleScriptSrc}`
+        : `script-src 'self' 'unsafe-inline' ${googleScriptSrc}`,
       // Images: allow all HTTPS sources + self + data + blob.
       // We cannot predict all storage domains (Railway, Supabase, R2, CDN, user avatars)
       // at build time, so we use 'https:' wildcard which allows any HTTPS image source.
@@ -74,7 +73,7 @@ const nextConfig: NextConfig = {
       `base-uri 'self'`,
       `form-action 'self'`,
       `frame-ancestors 'none'`,
-      isProd ? `upgrade-insecure-requests` : '',
+      `upgrade-insecure-requests`,
     ].filter(Boolean).join('; ');
 
     return [
