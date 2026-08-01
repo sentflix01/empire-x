@@ -77,8 +77,12 @@ jobs:
     steps:
       - name: Check backend health
         run: |
+          if [ -z "$BACKEND_URL" ]; then
+            echo "⚠️ BACKEND_URL secret not set — skipping health check"
+            exit 0
+          fi
           for i in 1 2 3 4 5; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.BACKEND_URL }}/health)
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/health" 2>/dev/null || echo "000")
             if [ "$STATUS" = "200" ]; then
               echo "✅ Backend healthy"
               exit 0
@@ -88,3 +92,5 @@ jobs:
           done
           echo "⚠️ Backend health check failed — Railway token may be invalid or backend not deployed"
           exit 0
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
