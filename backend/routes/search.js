@@ -157,18 +157,15 @@ router.get('/', optionalAuth, async (req, res) => {
     }
 
     // ── Showrooms ────────────────────────────────────────────────────────────
+    // Note: showrooms table does not have latitude/longitude columns — no geo-filtering here
     if (type === 'all' || type === 'showrooms') {
-      const dSel = distSelect('s.latitude', 's.longitude');
-      const dFlt = distFilter('s.latitude', 's.longitude');
-      const order = orderClause('s.view_count DESC', 's.latitude', 's.longitude', null);
+      const order = sort === 'recent' ? 's.created_at DESC' : 's.view_count DESC';
       const { rows } = await pool.query(
         `SELECT s.id, s.owner_id, s.title, s.description, s.category,
-                s.cover_image, s.logo_url, s.view_count, s.latitude, s.longitude
-                ${dSel}
+                s.cover_image, s.logo_url, s.view_count, NULL AS distance_km
          FROM showrooms s
          WHERE s.status = 'published'
            AND (s.title ILIKE $1 OR s.description ILIKE $1)
-           ${dFlt}
          ORDER BY ${order}
          LIMIT $2`,
         [term, lim]

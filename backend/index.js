@@ -34,11 +34,8 @@ app.use(compression());
 app.set('etag', 'strong');
 
 // ── Response time header for monitoring ──────────────────────────────────────
-app.use((req, res, next) => {
-  const start = Date.now();
-  res.on('finish', () => {
-    res.setHeader('X-Response-Time', `${Date.now() - start}ms`);
-  });
+app.use(require('./middleware/responseTime'));
+app.use((_req, res, next) => {
   // Vary header for CDN caching correctness
   res.set('Vary', 'Accept-Encoding');
   next();

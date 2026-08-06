@@ -13,17 +13,55 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-const maxSizeMB = parseInt(process.env.MAX_FILE_SIZE_MB || '10', 10);
+const configuredMaxSizeMB = Number.parseInt(process.env.MAX_FILE_SIZE_MB || '10', 10);
+const maxSizeMB = Number.isFinite(configuredMaxSizeMB) && configuredMaxSizeMB > 0
+  ? configuredMaxSizeMB
+  : 10;
+
+// Keep the extension and declared MIME type in agreement.  Checking only the
+// filename allowed a text or executable payload renamed to `photo.jpg` through
+// the upload endpoint, which then produced broken image previews (and was not a
+// meaningful server-side allowlist).
+const allowedMimeTypesByExtension = new Map([
+  ['.jpg',  new Set(['image/jpeg', 'image/jpg', 'image/pjpeg'])],
+  ['.jpeg', new Set(['image/jpeg', 'image/jpg', 'image/pjpeg'])],
+  ['.jfif', new Set(['image/jpeg', 'image/jpg', 'image/pjpeg'])],
+  ['.png',  new Set(['image/png'])],
+  ['.gif',  new Set(['image/gif'])],
+  ['.webp', new Set(['image/webp'])],
+  ['.avif', new Set(['image/avif'])],
+  ['.heic', new Set(['image/heic', 'image/heif'])],
+  ['.heif', new Set(['image/heif', 'image/heic'])],
+  ['.svg',  new Set(['image/svg+xml'])],
+  ['.pdf',  new Set(['application/pdf'])],
+  // Stories already accepts these formats in its picker and renders them in a
+  // <video> element.  Accepting them here keeps the common upload endpoint in
+  // sync with that UI and the API documentation.
+  ['.mp4',  new Set(['video/mp4'])],
+  ['.webm', new Set(['video/webm'])],
+  ['.mov',  new Set(['video/quicktime'])],
+]);
+
+function unsupportedFileTypeError() {
+  const error = new Error(
+    'File type not allowed. Accepted: JPEG, PNG, GIF, WebP, AVIF, HEIC, SVG, PDF, MP4, WebM, MOV'
+  );
+  error.code = 'UNSUPPORTED_FILE_TYPE';
+  error.statusCode = 415;
+  return error;
+}
 
 // Allowed file types
 const fileFilter = (_req, file, cb) => {
-  const allowed = /jpeg|jpg|png|gif|webp|svg|pdf/;
-  const ext = path.extname(file.originalname).toLowerCase().slice(1);
-  if (allowed.test(ext)) {
-    cb(null, true);
-  } else {
-    cb(new Error('File type not allowed. Accepted: jpeg, jpg, png, gif, webp, svg, pdf'));
+  const extension = path.extname(file.originalname).toLowerCase();
+  const mimeType = (file.mimetype || '').toLowerCase();
+  const allowedMimeTypes = allowedMimeTypesByExtension.get(extension);
+
+  if (!allowedMimeTypes || !allowedMimeTypes.has(mimeType)) {
+    return cb(unsupportedFileTypeError());
   }
+
+  cb(null, true);
 };
 
 // ── Supabase Storage (free tier, S3-compatible) ───────────────────────────
@@ -82,7 +120,8 @@ function isR2Configured() {
     process.env.R2_ACCOUNT_ID &&
     process.env.R2_ACCESS_KEY_ID &&
     process.env.R2_SECRET_ACCESS_KEY &&
-    process.env.R2_BUCKET_NAME
+    process.env.R2_BUCKET_NAME &&
+    process.env.R2_PUBLIC_URL
   );
 }
 
@@ -166,3 +205,5 @@ module.exports.isR2Configured       = isR2Configured;
 module.exports.isSupabaseConfigured = isSupabaseConfigured;
 module.exports.isCloudStorageConfigured = isCloudStorageConfigured;
 module.exports.activeStorageProvider    = activeStorageProvider;
+module.exports.fileFilter               = fileFilter;
+module.exports.allowedMimeTypesByExtension = allowedMimeTypesByExtension;

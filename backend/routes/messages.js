@@ -381,12 +381,18 @@ router.get('/presence/:userId', requireAuth, async (req, res) => {
     }
 
     // 2. If no Redis or Redis miss, check in-memory store
-    if (status === 'offline' && memPresence[req.params.userId]) {
+    if (memPresence[req.params.userId]) {
       const mem = memPresence[req.params.userId];
       last_seen = mem.last_seen;
-      // Consider online if last heartbeat < 6 minutes ago
       const diff = Date.now() - new Date(mem.last_seen).getTime();
-      status = diff < 6 * 60 * 1000 ? 'online' : 'offline';
+      // Within the 15-min heartbeat window: use the stored status as-is
+      // (preserves 'away', 'offline', etc — never upgrades to 'online')
+      // Outside the window: force 'offline' (heartbeat stopped = session ended)
+      if (diff < 15 * 60 * 1000) {
+        status = mem.status; // honour exactly what was stored
+      } else {
+        status = 'offline';
+      }
     }
 
     // 3. DB fallback for last_seen timestamp only (don't use for online detection)
