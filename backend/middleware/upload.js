@@ -67,9 +67,24 @@ const fileFilter = (_req, file, cb) => {
 // ── Supabase Storage (free tier) ─────────────────────────────────────────────
 // Uses Supabase Storage REST API directly — no S3 compat layer needed.
 // Docs: https://supabase.com/docs/guides/storage/uploads/standard-uploads
+
+/**
+ * Railway can inject env vars in malformed ways when multiple Supabase-related
+ * vars exist (e.g. NEXT_PUBLIC_SUPABASE_URL bleeds into SUPABASE_URL).
+ * This helper extracts just the https://xxx.supabase.co origin from whatever
+ * raw string the env var contains.
+ */
+function getSupabaseProjectUrl() {
+  // Prefer the unambiguous backend-only name if set
+  const raw = process.env.STORAGE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+  // Extract the first https://... URL from the raw value
+  const match = raw.match(/https:\/\/[a-z0-9]+\.supabase\.co/);
+  return match ? match[0] : raw.replace(/\/$/, '');
+}
+
 function isSupabaseConfigured() {
   return !!(
-    process.env.SUPABASE_URL &&
+    getSupabaseProjectUrl() &&
     process.env.SUPABASE_STORAGE_KEY &&
     process.env.SUPABASE_BUCKET
   );
@@ -80,8 +95,12 @@ async function uploadToSupabase(buffer, originalName, mimeType) {
   const ext = path.extname(originalName).toLowerCase();
   const key = `uploads/${unique}${ext}`;
   const bucket = process.env.SUPABASE_BUCKET;
-  const projectUrl = process.env.SUPABASE_URL.replace(/\/$/, '');
+  const projectUrl = getSupabaseProjectUrl();
   const serviceKey = process.env.SUPABASE_STORAGE_KEY;
+
+  if (!projectUrl || !projectUrl.startsWith('https://')) {
+    throw new Error(`Invalid SUPABASE_URL: "${projectUrl}". Must be https://xxx.supabase.co`);
+  }
 
   const uploadUrl = `${projectUrl}/storage/v1/object/${bucket}/${key}`;
 
