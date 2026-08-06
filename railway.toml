@@ -1,0 +1,12 @@
+# Railway deploys this repository from its root. The actual Node application is
+# isolated in /backend, so commands must explicitly target that package.
+[build]
+builder = "railpack"
+buildCommand = "npm --prefix backend ci"
+
+[deploy]
+startCommand = "npm --prefix backend start"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
