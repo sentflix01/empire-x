@@ -39,6 +39,7 @@ export interface PresenceData {
   user_id?: string;
   status: 'online' | 'offline' | 'away';
   last_seen: string | null; // ISO 8601 timestamp
+  hidden?: boolean;
 }
 
 /**
@@ -86,6 +87,7 @@ function safeParseDate(ts: string | null | undefined): Date | null {
  */
 export function getPresenceCategory(data: PresenceData | null): PresenceCategory {
   if (!data) return 'unknown';
+  if (data.hidden) return 'long_ago';
   if (data.status === 'online') return 'online';
   if (data.status === 'away')   return 'away';
 
@@ -127,6 +129,7 @@ export function getPresenceCategory(data: PresenceData | null): PresenceCategory
  */
 export function formatLastSeen(data: PresenceData | null): string {
   if (!data) return '';
+  if (data.hidden) return 'last seen a long time ago';
   if (data.status === 'online') return 'online';
   if (data.status === 'away')   return 'away';
 
@@ -219,6 +222,7 @@ export function presenceDotColor(category: PresenceCategory): string {
  */
 export function isUserOnline(data: PresenceData | null): boolean {
   if (!data) return false;
+  if (data.hidden) return false;
   if (data.status === 'online') return true;
   const d = safeParseDate(data.last_seen);
   if (!d) return false;

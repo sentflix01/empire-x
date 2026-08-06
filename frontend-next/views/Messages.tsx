@@ -45,6 +45,7 @@ export default function Messages() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("contacts"); // default = contacts
   const [presence, setPresence] = useState<Record<string, PresenceData>>({});
+  const [typingConversations, setTypingConversations] = useState<Record<string, boolean>>({});
 
   // ── Tab order state — persisted in localStorage ──────────────────────────
   const [tabOrder, setTabOrder] = useState<string[]>(DEFAULT_TAB_ORDER);
@@ -103,6 +104,11 @@ export default function Messages() {
     };
     socket.on('new_message', onNewMessage);
     socket.on('presence_updated', onPresenceUpdated);
+    const onTypingUpdated = (update: { conversation_id?: string; user_id?: string; is_typing?: boolean }) => {
+      if (!update.conversation_id || String(update.user_id) === String(user.id)) return;
+      setTypingConversations(current => ({ ...current, [update.conversation_id!]: Boolean(update.is_typing) }));
+    };
+    socket.on('typing_updated', onTypingUpdated);
 
     // Refresh presence every 60s so online dots stay accurate
     const presenceInterval = setInterval(() => {
@@ -112,6 +118,7 @@ export default function Messages() {
     return () => {
       socket.off('new_message', onNewMessage);
       socket.off('presence_updated', onPresenceUpdated);
+      socket.off('typing_updated', onTypingUpdated);
       clearInterval(presenceInterval);
     };
   }, [user]);
@@ -161,7 +168,14 @@ export default function Messages() {
   const loadContacts = async (u) => {
     try {
       const all = await entities.UserProfile.list("-created_at", 50);
-      setContacts(all.filter(c => c.user_id !== u.id));
+      const visibleContacts = all.filter(c => String(c.user_id) !== String(u.id));
+      setContacts(visibleContacts);
+      const results = await Promise.all(visibleContacts.map(contact =>
+        client.get(`/api/messages/presence/${contact.user_id || contact.id}`)
+          .then(r => ({ id: contact.user_id || contact.id, data: r.data as PresenceData }))
+          .catch(() => ({ id: contact.user_id || contact.id, data: { status: 'offline', last_seen: null } as PresenceData }))
+      ));
+      setPresence(current => ({ ...current, ...Object.fromEntries(results.map(({ id, data }) => [id, data])) }));
     } catch {}
   };
 
@@ -284,7 +298,7 @@ export default function Messages() {
               <EmptyState icon={UserIcon} title="No contacts found" />
             ) : (
               filteredContacts.map(contact => (
-                <ContactItem key={contact.id} contact={contact} user={user}
+                <ContactItem key={contact.id} contact={contact} user={user} presence={presence[contact.user_id || contact.id]}
                   existingConv={conversations.find(c => {
                     try {
                       const ids = JSON.parse(c.participant_ids || "[]");
@@ -387,7 +401,9 @@ export default function Messages() {
                     </div>
                     <div className="flex items-center justify-between gap-2 mt-0.5">
                       <p className="text-xs truncate flex-1">
-                        {isDm && presenceData ? (
+                        {isDm && typingConversations[conv.id] ? (
+                          <span className="text-blue-500 font-medium">typing…</span>
+                        ) : isDm && presenceData ? (
                           <span className={isOnline ? 'text-green-500 font-medium' : 'text-muted-foreground'}>
                             {formatLastSeen(presenceData)}
                           </span>
@@ -432,10 +448,11 @@ function EmptyState({ icon: Icon, title, subtitle }: { icon: any; title: string;
 }
 
 /* ── Contact Item ── */
-function ContactItem({ contact, user, existingConv }) {
+function ContactItem({ contact, user, existingConv, presence }: { contact: any; user: any; existingConv: any; presence?: PresenceData }) {
   const [creating, setCreating] = useState(false);
   const name = contact.display_name || contact.headline || "Unknown";
   const avatarUrl = Array.isArray(contact.avatar_url) ? (contact.avatar_url[0] ?? "") : (contact.avatar_url ?? "");
+  const online = isUserOnline(presence || null);
 
   const handleStartChat = async () => {
     if (existingConv) return;
@@ -455,8 +472,9 @@ function ContactItem({ contact, user, existingConv }) {
       onClick={e => { if (!existingConv) { e.preventDefault(); handleStartChat(); } }}
       className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-secondary/40 transition-colors"
     >
-      {avatarUrl ? (
-        <div
+      <div className="relative shrink-0">
+        {avatarUrl ? (
+          <div
           className="relative w-11 h-11 rounded-full flex items-center justify-center text-white font-bold shrink-0 shadow-sm overflow-hidden"
           style={{ background: 'linear-gradient(135deg, var(--ex-blue), var(--ex-purple))' }}
         >
@@ -470,18 +488,22 @@ function ContactItem({ contact, user, existingConv }) {
             onError={event => { event.currentTarget.style.display = 'none'; }}
             unoptimized
           />
-        </div>
-      ) : (
-        <div
+          </div>
+        ) : (
+          <div
           className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold shrink-0 shadow-sm"
           style={{ background: 'linear-gradient(135deg, var(--ex-blue), var(--ex-purple))' }}
         >
           {name.charAt(0).toUpperCase()}
-        </div>
-      )}
+          </div>
+        )}
+        {online && <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-400 border-2 border-card" />}
+      </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold truncate text-foreground">{name}</p>
-        <p className="text-xs text-muted-foreground truncate">{creating ? "Starting chat…" : contact.email || "Tap to chat"}</p>
+        <p className={`text-xs truncate ${online ? 'text-green-500 font-medium' : 'text-muted-foreground'}`}>
+          {creating ? 'Starting chat…' : (presence ? formatLastSeen(presence) : 'last seen a while ago')}
+        </p>
       </div>
       <div
         className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold shadow-sm"

@@ -46,11 +46,19 @@ export default function ChatRoom() {
   const [isBlocked, setIsBlocked]     = useState(false);
   const [otherUserId, setOtherUserId] = useState(null);
   const [presence, setPresence]       = useState<PresenceData | null>(null);
+  const [otherTyping, setOtherTyping] = useState(false);
 
   const bottomRef  = useRef(null);
   const inputRef   = useRef(null);
   const deleteTimer = useRef(null);
   const textRef    = useRef(""); // mirrors text state for reliable mobile access
+  const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const setTyping = useCallback((isTyping: boolean) => {
+    const convId = id || conversation?.id;
+    if (!convId) return;
+    getSocket().emit('typing', { conversationId: convId, isTyping });
+  }, [id, conversation?.id]);
 
   // ── Load conversation + messages ──────────────────────────────────────────
   const loadMessages = useCallback(async () => {
@@ -120,6 +128,12 @@ export default function ChatRoom() {
       }
     };
     socket.on('presence_updated', onPresenceUpdated);
+    const onTypingUpdated = (update) => {
+      if (update?.conversation_id === convId && String(update.user_id) !== String(user?.id)) {
+        setOtherTyping(Boolean(update.is_typing));
+      }
+    };
+    socket.on('typing_updated', onTypingUpdated);
 
     return () => {
       cancelled = true;
@@ -128,8 +142,10 @@ export default function ChatRoom() {
       socket.off('message_edited', onEdited);
       socket.off('message_deleted', onDeleted);
       socket.off('presence_updated', onPresenceUpdated);
+      socket.off('typing_updated', onTypingUpdated);
+      setTyping(false);
     };
-  }, [id, loadMessages, otherUserId]);
+  }, [id, loadMessages, otherUserId, setTyping, user?.id]);
 
   // Resolve other user ID for DM features
   useEffect(() => {
@@ -203,6 +219,7 @@ export default function ChatRoom() {
     const replyId = replyingTo?.id || null;
     setReplyingTo(null);
     setSending(true);
+    setTyping(false);
 
     try {
       const { data: sent } = await client.post(`/api/messages/conversations/${convId}/messages`, {
@@ -316,7 +333,7 @@ export default function ChatRoom() {
       } catch { return ''; }
     }
     // DM — show online or last seen
-    return formatLastSeen(presence);
+    return otherTyping ? 'typing…' : formatLastSeen(presence);
   };
 
   const isOnline  = isUserOnline(presence);
@@ -560,6 +577,9 @@ export default function ChatRoom() {
                   } else {
                     setText(e.target.value);
                     textRef.current = e.target.value;
+                    setTyping(e.target.value.trim().length > 0);
+                    if (typingTimer.current) clearTimeout(typingTimer.current);
+                    typingTimer.current = setTimeout(() => setTyping(false), 1500);
                   }
                 }}
                 onKeyDown={e => {

@@ -398,6 +398,26 @@ router.put('/presence', requireAuth, async (req, res) => {
 // Get online presence of a user — returns { status, last_seen }
 router.get('/presence/:userId', requireAuth, async (req, res) => {
   try {
+    // A blocked user must not learn whether the blocker is active or recently
+    // active. The UI renders this privacy-safe response as "a long time ago".
+    if (String(req.user.id) !== String(req.params.userId)) {
+      const { rows: blocked } = await pool.query(
+        'SELECT 1 FROM blocks WHERE blocker_id = $1 AND blocked_id = $2 LIMIT 1',
+        [req.params.userId, req.user.id]
+      );
+      if (blocked.length) {
+        return res.json({ user_id: req.params.userId, status: 'offline', last_seen: null, hidden: true });
+      }
+      try {
+        const { rows: profiles } = await pool.query(
+          'SELECT presence_visibility FROM user_profiles WHERE user_id = $1',
+          [req.params.userId]
+        );
+        if (profiles[0]?.presence_visibility === 'nobody') {
+          return res.json({ user_id: req.params.userId, status: 'offline', last_seen: null, hidden: true });
+        }
+      } catch { /* Backward-compatible until the privacy migration is applied. */ }
+    }
     const redis = getRedis();
     let status = 'offline';
     let last_seen = null;
@@ -447,9 +467,26 @@ router.get('/presence/:userId', requireAuth, async (req, res) => {
       }
     }
 
-    res.json({ user_id: req.params.userId, status, last_seen });
+    res.json({ user_id: req.params.userId, status, last_seen, hidden: false });
   } catch (err) {
     res.status(500).json({ error: 'Failed to get presence' });
+  }
+});
+
+router.put('/presence/settings', requireAuth, async (req, res) => {
+  const { visibility } = req.body;
+  if (!['everyone', 'nobody'].includes(visibility)) {
+    return res.status(400).json({ error: 'visibility must be everyone or nobody' });
+  }
+  try {
+    await pool.query(
+      'UPDATE user_profiles SET presence_visibility = $1, updated_at = NOW() WHERE user_id = $2',
+      [visibility, req.user.id]
+    );
+    res.json({ visibility });
+  } catch (err) {
+    logger.error({ err: err.message }, 'Failed to update presence privacy');
+    res.status(500).json({ error: 'Failed to update presence privacy' });
   }
 });
 

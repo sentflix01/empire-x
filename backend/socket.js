@@ -49,11 +49,35 @@ function initSocket(httpServer, corsOrigin) {
     // Join personal user room so we can push notifications to this user
     socket.join(`user:${socket.user.id}`);
 
-    socket.on('join_conversation', (conversationId) => {
-      if (conversationId) socket.join(`conv:${conversationId}`);
+    socket.on('join_conversation', async (conversationId) => {
+      if (!conversationId) return;
+      try {
+        const conversation = await getAuthorizedConversation(socket.user.id, conversationId);
+        if (conversation) socket.join(`conv:${conversationId}`);
+      } catch { /* Never join an unverified room. */ }
     });
     socket.on('leave_conversation', (conversationId) => {
       if (conversationId) socket.leave(`conv:${conversationId}`);
+    });
+    socket.on('typing', async ({ conversationId, isTyping } = {}) => {
+      if (!conversationId || typeof isTyping !== 'boolean') return;
+      try {
+        const conversation = await getAuthorizedConversation(socket.user.id, conversationId);
+        if (!conversation) return;
+        const ids = JSON.parse(conversation.participant_ids || '[]').map(String);
+        if (conversation.type === 'dm' && ids.length === 2) {
+          const { rows } = await pool.query(
+            `SELECT 1 FROM blocks WHERE (blocker_id = $1 AND blocked_id = $2) OR (blocker_id = $2 AND blocked_id = $1) LIMIT 1`,
+            ids
+          );
+          if (rows.length) return;
+        }
+        socket.to(`conv:${conversationId}`).emit('typing_updated', {
+          conversation_id: conversationId,
+          user_id: socket.user.id,
+          is_typing: isTyping,
+        });
+      } catch { /* Ignore transient socket/database errors. */ }
     });
   });
 
@@ -79,6 +103,20 @@ function emitMessageEdited(conversationId, message) {
 function emitMessageDeleted(conversationId, messageId) {
   if (ioInstance) {
     ioInstance.to(`conv:${conversationId}`).emit('message_deleted', { id: messageId });
+  }
+}
+
+async function getAuthorizedConversation(userId, conversationId) {
+  const { rows } = await pool.query(
+    'SELECT participant_ids, type FROM conversations WHERE id = $1',
+    [conversationId]
+  );
+  if (!rows.length) return null;
+  try {
+    const ids = JSON.parse(rows[0].participant_ids || '[]').map(String);
+    return ids.includes(String(userId)) ? rows[0] : null;
+  } catch {
+    return null;
   }
 }
 
