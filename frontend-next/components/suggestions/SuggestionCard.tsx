@@ -14,17 +14,18 @@ interface SuggestionCardProps {
  * SuggestionCard — renders a single friend suggestion with follow / dismiss actions.
  *
  * - Displays avatar (fallback to initials) + display name + DemoBadge (when is_seed)
- * - Shows headline, location, and mutual connection count when available
+ * - Shows business name, location, and mutual connection count when available
  * - Optimistically shows "Following" state after the follow button is clicked
  */
 export function SuggestionCard({ suggestion, onFollow, onDismiss }: SuggestionCardProps) {
   const [following, setFollowing] = useState(false);
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   const {
     user_id,
     display_name,
     avatar_url,
-    headline,
+    business_name,
     location,
     mutual_count,
     is_seed,
@@ -51,11 +52,12 @@ export function SuggestionCard({ suggestion, onFollow, onDismiss }: SuggestionCa
     <div className="bg-card rounded-2xl border border-border/50 p-3 flex items-start gap-3">
       {/* Avatar */}
       <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
-        {avatar_url ? (
+        {avatar_url && !avatarFailed ? (
           <img
             src={avatar_url}
             alt={display_name ?? 'User avatar'}
             className="w-full h-full object-cover"
+            onError={() => setAvatarFailed(true)}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-sm font-bold">
@@ -74,10 +76,10 @@ export function SuggestionCard({ suggestion, onFollow, onDismiss }: SuggestionCa
           {is_seed && <DemoBadge />}
         </div>
 
-        {/* Headline */}
-        {headline && (
+        {/* Business identity — career headlines are intentionally not shown here. */}
+        {business_name && (
           <p className="text-xs text-muted-foreground mt-0.5 leading-tight line-clamp-1">
-            {headline}
+            {business_name}
           </p>
         )}
 

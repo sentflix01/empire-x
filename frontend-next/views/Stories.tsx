@@ -54,6 +54,9 @@ function HexStory({ group, onClick, isAdd = false, uploading = false }: HexStory
   const name = isAdd ? 'Add Story' : (group?.display_name ?? 'User');
   const thumbUrl = !isAdd ? group?.stories?.[0]?.media_url : undefined;
   const expiry = !isAdd ? expiryLabel(group?.stories?.[0]?.expires_at) : null;
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
+
+  useEffect(() => { setThumbnailFailed(false); }, [thumbUrl]);
 
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-1.5 shrink-0 group">
@@ -71,17 +74,17 @@ function HexStory({ group, onClick, isAdd = false, uploading = false }: HexStory
             className="clip-hexagon bg-card flex items-center justify-center"
             style={{ width: 64, height: 70 }}
           >
-            <div className="clip-hexagon overflow-hidden" style={{ width: 60, height: 66 }}>
+            <div className="relative clip-hexagon overflow-hidden" style={{ width: 60, height: 66 }}>
               {isAdd ? (
                 <div className="w-full h-full bg-amber-50 flex items-center justify-center">
                   {uploading
                     ? <div className="w-5 h-5 border-2 border-amber-400/40 border-t-amber-500 rounded-full animate-spin" />
                     : <Plus className="w-6 h-6 text-amber-500" />}
                 </div>
-              ) : thumbUrl ? (
-                <Image src={thumbUrl} alt={name} fill className="object-cover" unoptimized />
-              ) : group?.avatar_url ? (
-                <Image src={group.avatar_url} alt={name} fill className="object-cover" unoptimized />
+              ) : thumbUrl && !thumbnailFailed ? (
+                <Image src={thumbUrl} alt={name} fill className="object-cover" onError={() => setThumbnailFailed(true)} unoptimized />
+              ) : group?.avatar_url && !thumbnailFailed ? (
+                <Image src={group.avatar_url} alt={name} fill className="object-cover" onError={() => setThumbnailFailed(true)} unoptimized />
               ) : (
                 <div
                   className="w-full h-full flex items-center justify-center text-white font-bold text-lg"
@@ -115,6 +118,7 @@ export default function Stories() {
   const [viewing, setViewing] = useState<ViewingState | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0); // 0-100
+  const [mediaFailed, setMediaFailed] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -217,6 +221,8 @@ export default function Stories() {
   const active = viewing ? viewing.userStories[viewing.index] : null;
   const storyExpiry = active?.expires_at ? expiryLabel(active.expires_at) : null;
 
+  useEffect(() => { setMediaFailed(false); }, [active?.id]);
+
   return (
     <>
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-0.5">
@@ -282,13 +288,18 @@ export default function Stories() {
                 className="w-full h-full object-cover rounded-2xl"
                 onEnded={nextStory}
               />
-            ) : (
+            ) : !mediaFailed ? (
               <img
                 key={active.id}
                 src={active.media_url}
                 alt=""
                 className="w-full h-full object-cover rounded-2xl"
+                onError={() => setMediaFailed(true)}
               />
+            ) : (
+              <div className="w-full h-full rounded-2xl bg-gradient-to-br from-primary to-indigo-700 flex items-center justify-center text-white text-5xl font-bold">
+                {viewing.group.display_name?.charAt(0)?.toUpperCase() ?? '?'}
+              </div>
             )}
 
             {active.caption && (

@@ -60,18 +60,11 @@ interface Comment {
 
 type Variant = 'image' | 'promo' | 'event' | 'location' | 'poll' | 'text';
 
-/* ── Category accent colours ─────────────────────────── */
-const CAT_ACCENT: Record<string, { bg: string; border: string; badge: string; label: string }> = {
-  restaurant: { bg: 'bg-orange-50',  border: 'border-orange-200/70',  badge: 'bg-orange-100 text-orange-700',   label: 'Food' },
-  shop:       { bg: 'bg-blue-50',    border: 'border-blue-200/70',    badge: 'bg-blue-100 text-blue-700',       label: 'Shop' },
-  service:    { bg: 'bg-cyan-50',    border: 'border-cyan-200/70',    badge: 'bg-cyan-100 text-cyan-700',       label: 'Service' },
-  health:     { bg: 'bg-green-50',   border: 'border-green-200/70',   badge: 'bg-green-100 text-green-700',     label: 'Health' },
-  portfolio:  { bg: 'bg-pink-50',    border: 'border-pink-200/70',    badge: 'bg-pink-100 text-pink-700',       label: 'Creative' },
-  event:      { bg: 'bg-emerald-50', border: 'border-emerald-200/70', badge: 'bg-emerald-100 text-emerald-700', label: 'Events' },
-  realestate: { bg: 'bg-sky-50',     border: 'border-sky-200/70',     badge: 'bg-sky-100 text-sky-700',         label: 'Property' },
-  course:     { bg: 'bg-purple-50',  border: 'border-purple-200/70',  badge: 'bg-purple-100 text-purple-700',   label: 'Education' },
-  other:      { bg: 'bg-amber-50',   border: 'border-amber-200/70',   badge: 'bg-amber-100 text-amber-700',     label: 'Business' },
-};
+function SafeAvatar({ src, alt, fallback, className = '' }: { src?: string | null; alt: string; fallback: React.ReactNode; className?: string }) {
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) return <>{fallback}</>;
+  return <img src={src} alt={alt} className={className} onError={() => setFailed(true)} />;
+}
 
 /* ── Detect post visual variant ─────────────────────── */
 function detectVariant(post: Post): Variant {
@@ -373,8 +366,6 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
   };
 
   const primaryBiz = authorBusinesses[0] ?? null;
-  const bizCat = primaryBiz?.business_category ?? null;
-  const accent = bizCat ? (CAT_ACCENT[bizCat] ?? CAT_ACCENT.other) : null;
   const themeColor = (primaryBiz?.business_theme_color as string | undefined) ?? '#2563EB';
   const variant = detectVariant(post);
   const isPromo = variant === 'promo';
@@ -412,17 +403,20 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
   const vb = VBADGE[variant] ?? null;
 
   return (
-    <div className={`bg-card rounded-2xl border overflow-hidden hover:shadow-sm transition-shadow ${accent && viewMode === 'personal' ? accent.border : 'border-border/50'}`}>
+    <div className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-sm transition-shadow">
       {/* Header */}
-      <div className={`flex items-center gap-3 px-4 pt-4 pb-3 ${accent && viewMode === 'personal' ? accent.bg : ''}`}>
+      <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <Link
           href={`/profile/${post.author_id}`}
-          className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden"
+          className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden ${viewMode === 'business' ? 'bg-gradient-to-br from-amber-400 to-amber-600' : 'bg-primary'}`}
           aria-label={`View ${post.author_name ?? 'user'}'s profile`}
         >
-          {(post.author_avatar || authorProfile?.avatar_url)
-            ? <Image src={(post.author_avatar || authorProfile?.avatar_url) as string} alt={`${post.author_name ?? 'User'} avatar`} width={40} height={40} className="w-full h-full object-cover" unoptimized />
-            : (post.author_name?.charAt(0) ?? '?')}
+          <SafeAvatar
+            src={(post.author_avatar || authorProfile?.avatar_url) as string | undefined}
+            alt={`${post.author_name ?? 'User'} avatar`}
+            className="w-full h-full object-cover"
+            fallback={post.author_name?.charAt(0) ?? '?'}
+          />
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -434,9 +428,6 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
             )}
             {viewMode === 'personal' && <UserIcon className="w-3 h-3 text-blue-400 shrink-0" />}
             {viewMode === 'business' && <Store className="w-3 h-3 text-amber-500 shrink-0" />}
-            {accent && viewMode === 'personal' && (
-              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${accent.badge}`}>{accent.label}</span>
-            )}
             {vb && viewMode === 'personal' && (() => {
               const Icon = vb.Icon;
               return (
@@ -453,9 +444,9 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
                 <Link
                   key={b.id}
                   href={`/profile/${post.author_id}?view=business`}
-                  className="text-[10px] text-amber-700 font-medium hover:underline flex items-center gap-0.5 bg-amber-50 px-1.5 py-0.5 rounded-full"
+                  className="text-[10px] text-muted-foreground font-medium hover:text-primary hover:underline flex items-center gap-0.5"
                 >
-                  <Store className="w-2.5 h-2.5" />{b.business_name}
+                  <Store className="w-2.5 h-2.5 text-primary" />{b.business_name}
                 </Link>
               ))}
             </div>
@@ -574,9 +565,12 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
                   <div key={c.id} className="space-y-1.5">
                     <div className="flex gap-2 group">
                       <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">
-                        {(c as any).author_avatar
-                          ? <img src={(c as any).author_avatar} alt={`${c.author_name ?? 'User'} avatar`} className="w-full h-full object-cover rounded-full" />
-                          : c.author_name?.charAt(0) ?? '?'}
+                        <SafeAvatar
+                          src={(c as any).author_avatar}
+                          alt={`${c.author_name ?? 'User'} avatar`}
+                          className="w-full h-full object-cover rounded-full"
+                          fallback={c.author_name?.charAt(0) ?? '?'}
+                        />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="bg-secondary/50 rounded-xl px-3 py-2">

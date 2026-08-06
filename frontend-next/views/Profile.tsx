@@ -139,10 +139,15 @@ export default function Profile() {
         </button>
         {/* Profile Header Card */}
         <div className="bg-card rounded-2xl border border-border/50 overflow-hidden mb-4">
-          {/* Cover */}
-          <div className="h-28 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 relative">
+          {/* Cover — personal: primary/accent (blue→purple) · business: gold scheme */}
+          <div className={`h-28 relative ${view === "business" ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" : "bg-empire-gradient"}`}>
             {view === "business" && profile.business_cover_url && (
-              <Image src={profile.business_cover_url as string} alt={`${profile.business_name || 'Business'} cover`} fill className="object-cover" unoptimized />
+              <Image src={profile.business_cover_url as string} alt={`${profile.business_name || 'Business'} cover`} fill className="object-cover" unoptimized
+                style={{ objectPosition: profile.business_cover_position || 'center' }} />
+            )}
+            {view === "personal" && profile.cover_url && (
+              <Image src={profile.cover_url as string} alt={`${profile.display_name || 'User'} cover`} fill className="object-cover" unoptimized
+                style={{ objectPosition: profile.cover_position || 'center' }} />
             )}
           </div>
           <div className="px-5 pb-4">

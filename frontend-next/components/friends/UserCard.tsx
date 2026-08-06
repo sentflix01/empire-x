@@ -7,7 +7,7 @@ export interface UserCardProps {
   userId: string;
   displayName: string;
   avatarUrl: string | null;
-  headline: string | null;
+  businessName?: string | null;
   mutualCount?: number;
   isFollowing: boolean;
   isSeed?: boolean;
@@ -18,7 +18,7 @@ export interface UserCardProps {
  * UserCard — renders a single user with follow/unfollow toggle.
  *
  * - Displays avatar (fallback to initials) + display name + DemoBadge (when isSeed)
- * - Shows headline and mutual connection count when available
+ * - Shows the user's business name and mutual connection count when available
  * - Optimistically flips follow state immediately on click
  * - No dismiss button (unlike SuggestionCard)
  */
@@ -26,13 +26,14 @@ export function UserCard({
   userId,
   displayName,
   avatarUrl,
-  headline,
+  businessName,
   mutualCount,
   isFollowing,
   isSeed,
   onToggleFollow,
 }: UserCardProps) {
   const [localFollowing, setLocalFollowing] = useState(isFollowing);
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   const initials = displayName
     ? displayName
@@ -52,11 +53,12 @@ export function UserCard({
     <div className="bg-card rounded-2xl border border-border/50 p-3 flex items-start gap-3">
       {/* Avatar */}
       <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
-        {avatarUrl ? (
+        {avatarUrl && !avatarFailed ? (
           <img
             src={avatarUrl}
             alt={displayName ?? 'User avatar'}
             className="w-full h-full object-cover"
+            onError={() => setAvatarFailed(true)}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-sm font-bold">
@@ -75,10 +77,10 @@ export function UserCard({
           {isSeed && <DemoBadge />}
         </div>
 
-        {/* Headline */}
-        {headline && (
+        {/* Business identity — career headlines are intentionally not shown here. */}
+        {businessName && (
           <p className="text-xs text-muted-foreground mt-0.5 leading-tight line-clamp-1">
-            {headline}
+            {businessName}
           </p>
         )}
 

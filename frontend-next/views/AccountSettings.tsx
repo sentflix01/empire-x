@@ -6,13 +6,14 @@
  */
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Lock, Eye, EyeOff, Edit2, Camera, ChevronRight, Bell, Shield } from 'lucide-react';
+import { Lock, Eye, EyeOff, Edit2, Camera, ChevronRight, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import client from '@/api/client';
 import { useAuth } from '@/lib/AuthContext';
 import { entities, type UserProfile } from '@/api/entities';
 import { getPushPermission, subscribeToPush, unsubscribeFromPush } from '@/lib/push';
 import { BellOff } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 function ChangePasswordForm() {
   const [current, setCurrent] = useState('');
@@ -98,6 +99,7 @@ export default function AccountSettingsView() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [pushPerm, setPushPerm] = useState(() => getPushPermission());
   const [pushLoading, setPushLoading] = useState(false);
+  const [presenceVisibility, setPresenceVisibility] = useState<'everyone' | 'nobody'>('everyone');
 
   const displayName = typeof user?.full_name === 'string' ? user.full_name : 'User';
   const userEmail   = typeof user?.email    === 'string' ? user.email    : '';
@@ -110,6 +112,18 @@ export default function AccountSettingsView() {
       if (profiles.length > 0) setProfile(profiles[0] as UserProfile);
     }).catch(() => {});
   }, [user?.id]);
+
+  const updatePresenceVisibility = async (visibility: 'everyone' | 'nobody') => {
+    const previous = presenceVisibility;
+    setPresenceVisibility(visibility);
+    try {
+      await client.put('/api/messages/presence/settings', { visibility });
+      toast.success(visibility === 'everyone' ? 'Online status is visible' : 'Online status is hidden');
+    } catch {
+      setPresenceVisibility(previous);
+      toast.error('Could not update last-seen privacy');
+    }
+  };
 
   const handlePushToggle = async () => {
     setPushLoading(true);
@@ -201,30 +215,35 @@ export default function AccountSettingsView() {
               </p>
             </div>
             {pushPerm !== 'denied' && (
-              <button onClick={handlePushToggle} disabled={pushLoading} aria-label="Toggle push"
-                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${pushPerm === 'granted' ? 'bg-amber-500' : 'bg-secondary'}`}>
-                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${pushPerm === 'granted' ? 'translate-x-5' : 'translate-x-0.5'}`} />
-              </button>
+              <Switch
+                checked={pushPerm === 'granted'}
+                onCheckedChange={() => { void handlePushToggle(); }}
+                disabled={pushLoading}
+                aria-label="Toggle push"
+                className="shrink-0 duration-200 data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-secondary"
+              />
             )}
             {pushPerm === 'denied' && <span className="text-[10px] text-muted-foreground shrink-0">Blocked</span>}
           </div>
         </div>
       )}
 
-      {/* ── Quick links ── */}
       <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1 mb-2">More</p>
-        <div className="bg-card rounded-2xl border border-border/50 divide-y divide-border/40">
-          <Link href="/profile/edit" className="flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/40 transition-colors">
-            <Edit2 className="w-4 h-4 text-muted-foreground shrink-0" />
-            <span className="flex-1 text-sm font-medium">Edit Profile</span>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </Link>
-          <Link href="/referral" className="flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/40 transition-colors">
-            <Shield className="w-4 h-4 text-muted-foreground shrink-0" />
-            <span className="flex-1 text-sm font-medium">Referral Program</span>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </Link>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1 mb-2">Privacy</p>
+        <div className="bg-card rounded-2xl border border-border/50 px-4 py-3.5 flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold">Last Seen &amp; Online</p>
+            <p className="text-xs text-muted-foreground">Choose who can see when you were recently active</p>
+          </div>
+          <select
+            value={presenceVisibility}
+            onChange={event => void updatePresenceVisibility(event.target.value as 'everyone' | 'nobody')}
+            className="h-9 rounded-lg border border-border bg-background px-2 text-xs font-medium"
+            aria-label="Last seen visibility"
+          >
+            <option value="everyone">Everyone</option>
+            <option value="nobody">Nobody</option>
+          </select>
         </div>
       </div>
 

@@ -10,6 +10,29 @@ import { auth } from "@/api/auth";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 
+function ProductThumbnail({ src, title }: { src?: string; title: string }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <div className="relative aspect-[4/3] bg-secondary/30 overflow-hidden">
+      {src && !failed ? (
+        <NextImage
+          src={src}
+          alt={title}
+          fill
+          sizes="(max-width: 640px) 50vw, 240px"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          onError={() => setFailed(true)}
+          unoptimized
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <ShoppingBag className="w-8 h-8 text-muted-foreground/30" />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Explore() {
   const { t } = useTranslation();
   const [data, setData] = useState(null);
@@ -69,9 +92,7 @@ function Explore() {
                 const imgs = (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })();
                 return (
                   <Link key={p.id} href={`/products/${p.id}`} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow group">
-                    <div className="aspect-square bg-secondary/30 overflow-hidden">
-                      {imgs[0] ? <NextImage src={imgs[0]} alt={p.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized /> : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-8 h-8 text-muted-foreground/20" /></div>}
-                    </div>
+                    <ProductThumbnail src={imgs[0]} title={p.title} />
                     <div className="p-2">
                       <p className="text-xs font-medium truncate">{p.title}</p>
                       <p className="text-xs text-amber-600 font-bold">{p.price?.toLocaleString()} {p.currency}</p>

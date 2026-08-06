@@ -11,7 +11,7 @@ export interface Suggestion {
   user_id: string;
   display_name: string;
   avatar_url: string | null;
-  headline: string | null;
+  business_name: string | null;
   location: string | null;
   follower_count: number;
   mutual_count: number;

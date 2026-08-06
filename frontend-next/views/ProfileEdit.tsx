@@ -16,7 +16,7 @@ import { auth } from '@/api/auth';
 import { entities, type UserProfile } from '@/api/entities';
 import { useTranslation } from 'react-i18next';
 import {
-  ArrowLeft, User, Store, Eye, Radio, Bell, BellOff,
+  ArrowLeft, User, Store, Eye, Radio,
   Plus, X, Globe, MapPin, Phone, Mail, Link as LinkIcon,
   GraduationCap, Briefcase, Award, Star, Languages as LangIcon,
   Shield, FileText, Building2, Users, Calendar, Hash,
@@ -37,10 +37,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { BUSINESS_CATEGORIES, getTemplateById } from '@/lib/businessTemplates';
 import TemplateCard from '@/components/profile/TemplateCard';
 import ImageUpload from '@/components/ui/ImageUpload';
+import CoverPositionEditor, { CoverPositionTrigger } from '@/components/ui/CoverPositionEditor';
 import TickerBar, { TICKER_TYPES } from '@/components/feed/TickerBar';
 import { toast } from 'sonner';
 import VerificationRequest from '@/components/profile/VerificationRequest';
-import { getPushPermission, subscribeToPush, unsubscribeFromPush } from '@/lib/push';
 
 // ── Section wrapper ────────────────────────────────────────────────────────
 function Section({ icon: Icon, title, children, defaultOpen = true }: {
@@ -169,48 +169,6 @@ function CertListEditor({ values, onChange, type }: {
   );
 }
 
-// ── Push toggle card ──────────────────────────────────────────────────────
-function PushSettingsCard() {
-  const [perm, setPerm] = useState(() => getPushPermission());
-  const [loading, setLoading] = useState(false);
-  const handleToggle = async () => {
-    setLoading(true);
-    if (perm === 'granted') {
-      const ok = await unsubscribeFromPush();
-      if (ok) { setPerm('default'); toast.success('Push notifications disabled'); }
-      else toast.error('Failed to disable');
-    } else {
-      const ok = await subscribeToPush();
-      if (ok) { setPerm('granted'); toast.success('Push notifications enabled 🔔'); }
-      else { setPerm(getPushPermission()); toast.error('Permission denied — check browser settings'); }
-    }
-    setLoading(false);
-  };
-  if (getPushPermission() === 'unsupported') return null;
-  return (
-    <div className="bg-card border border-border/50 rounded-2xl p-4 flex items-center gap-3">
-      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${perm === 'granted' ? 'bg-amber-50 dark:bg-amber-900/30' : 'bg-secondary/50'}`}>
-        {perm === 'granted' ? <Bell className="w-4 h-4 text-amber-600" /> : <BellOff className="w-4 h-4 text-muted-foreground" />}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold">Push Notifications</p>
-        <p className="text-xs text-muted-foreground">
-          {perm === 'granted' ? "Enabled — notified even when app is closed"
-            : perm === 'denied' ? 'Blocked in browser settings'
-            : 'Get notified about likes, messages and orders'}
-        </p>
-      </div>
-      {perm !== 'denied' && (
-        <button onClick={handleToggle} disabled={loading} aria-label="Toggle push"
-          className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${perm === 'granted' ? 'bg-amber-500' : 'bg-secondary'}`}>
-          <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${perm === 'granted' ? 'translate-x-5' : 'translate-x-0.5'}`} />
-        </button>
-      )}
-      {perm === 'denied' && <span className="text-[10px] text-muted-foreground shrink-0">Blocked</span>}
-    </div>
-  );
-}
-
 // ── Main component ─────────────────────────────────────────────────────────
 export default function ProfileEdit() {
   const { t } = useTranslation();
@@ -228,6 +186,7 @@ export default function ProfileEdit() {
     website: '', ticker_text: '', ticker_type: 'none',
     avatar_url: '' as string | string[],
     cover_url: '' as string | string[],
+    cover_position: '',
     // LinkedIn-style extras stored as JSON in profile.extra_json
     skills: [] as string[],
     languages: [] as string[],
@@ -244,6 +203,7 @@ export default function ProfileEdit() {
     business_address: '', business_theme_color: '#2563EB',
     business_logo_url: '' as string | string[],
     business_cover_url: '' as string | string[],
+    business_cover_position: '',
     // Professional extras
     business_website: '', business_founded_year: '', business_team_size: '',
     business_registration_number: '', business_type: '',
@@ -284,6 +244,7 @@ export default function ProfileEdit() {
           website: p.website || extra.website || '',
           ticker_text: p.ticker_text || '', ticker_type: p.ticker_type || 'none',
           avatar_url, cover_url,
+          cover_position: p.cover_position || '',
           skills:     parseJSON(p.skills,     extra.skills     || []),
           languages:  parseJSON(p.languages,  extra.languages  || []),
           experience: parseJSON(p.experience, extra.experience || []),
@@ -303,6 +264,7 @@ export default function ProfileEdit() {
           business_address: p.business_address || p.location || '',
           business_theme_color: p.business_theme_color || '#2563EB',
           business_logo_url: biz_logo_url, business_cover_url: biz_cover_url,
+          business_cover_position: p.business_cover_position || '',
           business_website:             p.business_website            || bizExtra.website || '',
           business_founded_year:        p.business_founded_year       || bizExtra.founded_year || '',
           business_team_size:           p.business_team_size          || bizExtra.team_size || '',
@@ -325,6 +287,7 @@ export default function ProfileEdit() {
     try {
       const payload = {
         ...personal,
+        cover_position: personal.cover_position || null,
         skills:     JSON.stringify(personal.skills),
         languages:  JSON.stringify(personal.languages),
         experience: JSON.stringify(personal.experience),
@@ -348,6 +311,7 @@ export default function ProfileEdit() {
       const sections = JSON.stringify(getTemplateById(business.business_category, business.business_template)?.sections || []);
       const payload = {
         ...business,
+        business_cover_position: business.business_cover_position || null,
         has_business_profile: true,
         business_sections: sections,
         certifications: JSON.stringify(business.certifications),
@@ -371,7 +335,8 @@ export default function ProfileEdit() {
   const sp = (field: keyof typeof personal, val: any) => setPersonal(prev => ({ ...prev, [field]: val }));
   const b = business;
   const sb = (field: keyof typeof business, val: any) => setBusiness(prev => ({ ...prev, [field]: val }));
-  const selectedCategory = BUSINESS_CATEGORIES.find(c => c.value === b.business_category);
+  const [editingPersonalCover, setEditingPersonalCover] = useState(false);
+  const [editingBusinessCover, setEditingBusinessCover] = useState(false);
 
   return (
     <div className="max-w-2xl mx-auto pb-20">
@@ -409,20 +374,38 @@ export default function ProfileEdit() {
           {/* Photos — cover + avatar overlay */}
           <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
             <div className="relative">
-              {/* Cover photo */}
+              {/* Cover photo — personal controls use primary/accent colors only */}
               <div className="h-32 bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 relative">
-                {p.cover_url && typeof p.cover_url === 'string' && p.cover_url && (
-                  <Image src={p.cover_url} alt="Cover" fill className="object-cover" unoptimized />
+                {editingPersonalCover && typeof p.cover_url === 'string' && p.cover_url ? (
+                  <CoverPositionEditor
+                    src={p.cover_url}
+                    position={p.cover_position}
+                    theme="primary"
+                    className="absolute inset-0"
+                    onConfirm={pos => { sp('cover_position', pos); setEditingPersonalCover(false); }}
+                    onCancel={() => setEditingPersonalCover(false)}
+                  />
+                ) : (
+                  <>
+                    {p.cover_url && typeof p.cover_url === 'string' && p.cover_url && (
+                      <Image src={p.cover_url} alt="Cover" fill className="object-cover" unoptimized
+                        style={{ objectPosition: p.cover_position || 'center' }} />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <ImageUpload value={p.cover_url} onChange={url => { sp('cover_url', url); sp('cover_position', ''); }}
+                        placeholder="" aspectRatio="aspect-video"
+                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
+                      <div className="bg-black/40 backdrop-blur-sm rounded-xl px-3 py-1.5 flex items-center gap-1.5 pointer-events-none">
+                        <Camera className="w-3.5 h-3.5 text-white" />
+                        <span className="text-white text-xs font-medium">Edit cover</span>
+                      </div>
+                    </div>
+                    {typeof p.cover_url === 'string' && p.cover_url && (
+                      <CoverPositionTrigger theme="primary" className="absolute bottom-2 right-2"
+                        onClick={() => setEditingPersonalCover(true)} />
+                    )}
+                  </>
                 )}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <ImageUpload value={p.cover_url} onChange={url => sp('cover_url', url)}
-                    placeholder="" aspectRatio="aspect-video"
-                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
-                  <div className="bg-black/40 backdrop-blur-sm rounded-xl px-3 py-1.5 flex items-center gap-1.5 pointer-events-none">
-                    <Camera className="w-3.5 h-3.5 text-white" />
-                    <span className="text-white text-xs font-medium">Edit cover</span>
-                  </div>
-                </div>
               </div>
               {/* Avatar overlapping cover */}
               <div className="px-4 -mt-10 pb-3 flex items-end justify-between">
@@ -553,7 +536,6 @@ export default function ProfileEdit() {
             )}
           </Section>
 
-          <PushSettingsCard />
           <VerificationRequest />
 
           <Button onClick={handleSavePersonal} disabled={saving || !p.display_name}
@@ -570,19 +552,38 @@ export default function ProfileEdit() {
           {/* Business photos */}
           <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
             <div className="relative">
-              <div className="h-32 bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 relative">
-                {b.business_cover_url && typeof b.business_cover_url === 'string' && b.business_cover_url && (
-                  <Image src={b.business_cover_url} alt="Cover" fill className="object-cover" unoptimized />
+              {/* Business cover — controls use the gold/amber scheme only */}
+              <div className="h-32 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 relative">
+                {editingBusinessCover && typeof b.business_cover_url === 'string' && b.business_cover_url ? (
+                  <CoverPositionEditor
+                    src={b.business_cover_url}
+                    position={b.business_cover_position}
+                    theme="gold"
+                    className="absolute inset-0"
+                    onConfirm={pos => { sb('business_cover_position', pos); setEditingBusinessCover(false); }}
+                    onCancel={() => setEditingBusinessCover(false)}
+                  />
+                ) : (
+                  <>
+                    {b.business_cover_url && typeof b.business_cover_url === 'string' && b.business_cover_url && (
+                      <Image src={b.business_cover_url} alt="Cover" fill className="object-cover" unoptimized
+                        style={{ objectPosition: b.business_cover_position || 'center' }} />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <ImageUpload value={b.business_cover_url} onChange={url => { sb('business_cover_url', url); sb('business_cover_position', ''); }}
+                        placeholder="" aspectRatio="aspect-video"
+                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
+                      <div className="bg-black/40 backdrop-blur-sm rounded-xl px-3 py-1.5 flex items-center gap-1.5 pointer-events-none">
+                        <Camera className="w-3.5 h-3.5 text-white" />
+                        <span className="text-white text-xs font-medium">Edit cover</span>
+                      </div>
+                    </div>
+                    {typeof b.business_cover_url === 'string' && b.business_cover_url && (
+                      <CoverPositionTrigger theme="gold" className="absolute bottom-2 right-2"
+                        onClick={() => setEditingBusinessCover(true)} />
+                    )}
+                  </>
                 )}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <ImageUpload value={b.business_cover_url} onChange={url => sb('business_cover_url', url)}
-                    placeholder="" aspectRatio="aspect-video"
-                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
-                  <div className="bg-black/40 backdrop-blur-sm rounded-xl px-3 py-1.5 flex items-center gap-1.5 pointer-events-none">
-                    <Camera className="w-3.5 h-3.5 text-white" />
-                    <span className="text-white text-xs font-medium">Edit cover</span>
-                  </div>
-                </div>
               </div>
               <div className="px-4 -mt-10 pb-3">
                 <div className="relative w-20 h-20">

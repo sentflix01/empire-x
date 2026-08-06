@@ -27,7 +27,7 @@ interface FriendItem {
   user_id: string;
   display_name: string;
   avatar_url: string | null;
-  headline: string | null;
+  business_name?: string | null;
   mutual_count?: number;
   is_seed?: boolean;
 }
@@ -99,7 +99,7 @@ function FriendsSection({
                 userId={item.user_id}
                 displayName={item.display_name}
                 avatarUrl={item.avatar_url}
-                headline={item.headline}
+                businessName={item.business_name}
                 mutualCount={item.mutual_count}
                 isFollowing={followsSet.has(item.user_id)}
                 isSeed={item.is_seed}
@@ -197,7 +197,7 @@ export default function Friends() {
             user_id: s.user_id,
             display_name: s.display_name,
             avatar_url: s.avatar_url,
-            headline: s.headline,
+            business_name: s.business_name,
             mutual_count: s.mutual_count,
             is_seed: s.is_seed,
           }))
@@ -214,7 +214,7 @@ export default function Friends() {
             user_id: m.user_id,
             display_name: m.display_name,
             avatar_url: m.avatar_url,
-            headline: m.headline,
+            business_name: (m as any).business_name,
             mutual_count: m.mutual_count,
           }))
         );
@@ -227,7 +227,7 @@ export default function Friends() {
           // Batch fetch profiles for followed users via the profiles list endpoint
           const profilePromises = followedIds.map((uid) =>
             client
-              .get<{ user_id: string; display_name: string; avatar_url: string | null; headline: string | null; is_seed?: boolean }>(`/api/profiles/by-user/${uid}`)
+              .get<{ user_id: string; display_name: string; avatar_url: string | null; business_name?: string | null; is_seed?: boolean }>(`/api/profiles/by-user/${uid}`)
               .then((r) => r.data)
               .catch(() => null)
           );
@@ -239,7 +239,7 @@ export default function Friends() {
                 user_id: p.user_id,
                 display_name: p.display_name,
                 avatar_url: p.avatar_url,
-                headline: p.headline,
+                business_name: p.business_name,
                 is_seed: p.is_seed,
               }));
             setMyFriends(validProfiles);
