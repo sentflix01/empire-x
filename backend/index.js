@@ -154,7 +154,7 @@ const corsOptions = {
     if (!origin) return callback(null, true);
     if (exactOrigins.includes(origin)) return callback(null, true);
     if (wildcardOrigins.some(rx => rx.test(origin))) return callback(null, true);
-    callback(new Error(`Origin ${origin} not allowed by CORS`));
+    callback(null, false);
   },
   credentials: true,
 };
@@ -199,12 +199,21 @@ app.get('/health', async (_req, res) => {
       redisStatus = 'error';
     }
   }
-  res.json({
-    status: 'ok',
+  let databaseStatus = 'disconnected';
+  try {
+    const pool = require('./db/pool');
+    await pool.query('SELECT 1');
+    databaseStatus = 'connected';
+  } catch {
+    databaseStatus = 'error';
+  }
+  const ok = databaseStatus === 'connected';
+  res.status(ok ? 200 : 503).json({
+    status: ok ? 'ok' : 'degraded',
     timestamp: new Date().toISOString(),
     version: require('./package.json').version,
     services: {
-      database: 'connected',
+      database: databaseStatus,
       redis: redisStatus,
       ai: require('./lib/ai').isConfigured() ? require('./lib/ai').provider : 'not configured',
       email: process.env.RESEND_API_KEY ? 'resend' : process.env.SMTP_HOST ? 'smtp' : 'console',
@@ -258,6 +267,7 @@ app.use('/api/delivery', require('./routes/delivery'));
 app.use('/api/flags', require('./routes/flags'));
 app.use('/api/showrooms/:showroomId/external-sources', require('./routes/externalSources'));
 app.use('/api/proxy', require('./routes/proxy'));
+app.use('/api/devops', require('./routes/devops'));
 
 // ── Metrics endpoint (admin only) ─────────────────────────────────────────────
 app.get('/metrics', requireAuth, requireAdmin, (_req, res) => {
@@ -307,7 +317,7 @@ server.listen(PORT, () => {
       const { isSupabaseConfigured } = require('./middleware/upload');
       if (!isSupabaseConfigured()) return;
 
-      const raw = process.env.STORAGE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+      const raw = process.env.SUPABASE_URL || '';
       const match = raw.match(/https:\/\/[a-z0-9]+\.supabase\.co/);
       const projectUrl = match ? match[0] : raw.replace(/\/$/, '');
       const key    = process.env.SUPABASE_STORAGE_KEY;

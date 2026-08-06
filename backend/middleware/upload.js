@@ -69,15 +69,15 @@ const fileFilter = (_req, file, cb) => {
 // Docs: https://supabase.com/docs/guides/storage/uploads/standard-uploads
 
 /**
- * Railway can inject env vars in malformed ways when multiple Supabase-related
- * vars exist (e.g. NEXT_PUBLIC_SUPABASE_URL bleeds into SUPABASE_URL).
- * This helper extracts just the https://xxx.supabase.co origin from whatever
- * raw string the env var contains.
+ * Extracts the clean Supabase project origin (https://xxx.supabase.co) from
+ * SUPABASE_URL, which on Railway may contain a malformed value like:
+ *   "NEXT_PUBLIC_SUPABASE_URL=https://tpgzlokgnjxcerexxoda.supabase.co"
+ * The regex safely pulls out just the URL regardless of prefix garbage.
+ * NOTE: We deliberately do NOT read STORAGE_SUPABASE_URL here — that variable
+ * caused confusion when it was set to the wrong project. Use SUPABASE_URL only.
  */
 function getSupabaseProjectUrl() {
-  // Prefer the unambiguous backend-only name if set
-  const raw = process.env.STORAGE_SUPABASE_URL || process.env.SUPABASE_URL || '';
-  // Extract the first https://... URL from the raw value
+  const raw = process.env.SUPABASE_URL || '';
   const match = raw.match(/https:\/\/[a-z0-9]+\.supabase\.co/);
   return match ? match[0] : raw.replace(/\/$/, '');
 }
