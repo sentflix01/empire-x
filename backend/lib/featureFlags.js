@@ -25,6 +25,7 @@ const DEFAULT_FLAGS = {
   personalized_feed:       { enabled: false, rollout: 0,   description: 'Ranked feed algorithm instead of chronological' },
   video_posts:             { enabled: false, rollout: 0,   description: 'Allow video uploads in posts' },
   chapa_payments:          { enabled: false, rollout: 0,   description: 'Chapa local payment integration' },
+  stripe_payments:         { enabled: true,  rollout: 100, description: 'Stripe hosted checkout (cards, wallets, local methods via automatic payment methods)' },
   promoted_posts:          { enabled: false, rollout: 0,   description: 'Promoted posts / ads system' },
   community_groups:        { enabled: false, rollout: 0,   description: 'Community groups feature' },
   ai_description_gen:      { enabled: true,  rollout: 100, description: 'AI product description generator' },

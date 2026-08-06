@@ -80,9 +80,29 @@ async function run() {
   // ── 1. HEALTH & CORS ───────────────────────────────────────────────────────
   section('1. Health & CORS');
 
-  const health = await request('GET', '/health');
-  assert('GET /health returns 200', health.status === 200);
-  assert('Database connected', health.body?.services?.database === 'connected');
+  let health;
+  try {
+    health = await request('GET', '/health');
+  } catch (err) {
+    console.error('\n  Backend not reachable at', BASE);
+    console.error('  Start it with: cd backend && npm run dev\n');
+    await pool.end().catch(() => {});
+    process.exit(1);
+  }
+
+  assert('GET /health returns 200 when DB is up', health.status === 200,
+    health.status === 503 ? 'database unavailable (503)' : `status ${health.status}`);
+  assert('Database connected', health.body?.services?.database === 'connected',
+    `got: ${health.body?.services?.database}`);
+
+  if (health.body?.services?.database !== 'connected') {
+    console.log('\n  ⚠️  Skipping API e2e — Postgres is not reachable.');
+    console.log('  Use local Postgres: docker compose up postgres -d');
+    console.log('  Then set DATABASE_URL=postgresql://empirex:empirex_dev@localhost:5432/empirex');
+    console.log('  Run migrations: npm run migrate — and restart the backend.\n');
+    await pool.end().catch(() => {});
+    process.exit(1);
+  }
 
   const corsNext = await request('GET', '/health', { origin: 'http://localhost:3000' });
   assert('CORS: Next.js origin (3000) accepted',
@@ -461,6 +481,6 @@ async function run() {
 }
 
 run().catch(err => {
-  console.error('\n❌ Uncaught test error:', err);
-  pool.end().then(() => process.exit(1));
+  console.error('\n❌ Uncaught test error:', err?.message || err);
+  pool.end().then(() => process.exit(1)).catch(() => process.exit(1));
 });

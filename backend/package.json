@@ -8,7 +8,7 @@
     "dev": "nodemon index.js",
     "start": "node index.js",
     "test": "node test/e2e.test.js",
-    "test:unit": "jest --testPathPattern=test/.*\\.test\\.js --testPathIgnorePatterns=test/e2e.test.js --testPathIgnorePatterns=test/api.test.js --runInBand",
+    "test:unit": "jest --testPathPattern=test/.*\\.test\\.js --runInBand",
     "test:keploy:record": "keploy record -c 'node index.js'",
     "test:keploy:test": "keploy test -c 'node index.js'",
     "migrate": "node db/migrate-all.js",
@@ -20,7 +20,10 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "test/e2e.test.js",
-      "test/api.test.js"
+      "test/api.test.js",
+      "test/presence.test.js",
+      "test/realtime_chat.test.js",
+      "test/profile_picture.test.js"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/test/helpers/setupTests.js"

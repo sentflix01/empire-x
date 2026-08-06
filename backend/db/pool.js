@@ -20,12 +20,16 @@ function buildConnectionString(raw) {
 
 const connectionString = buildConnectionString(process.env.DATABASE_URL);
 
+const needsSsl =
+  process.env.NODE_ENV === 'production' ||
+  (connectionString && /neon\.tech|sslmode=require|ssl=true/i.test(connectionString));
+
 // Neon free tier allows max 20 connections total across all services.
 // Bumped from 5 → 10 — gives breathing room under concurrent load while
 // staying within Neon free tier limits.
 const pool = new Pool({
   connectionString,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: needsSsl ? { rejectUnauthorized: false } : false,
   max: parseInt(process.env.DB_POOL_MAX || '10', 10),
   min: 1,
   idleTimeoutMillis: 60_000,      // keep connections alive longer to avoid reconnect overhead
