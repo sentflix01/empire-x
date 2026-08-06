@@ -335,6 +335,7 @@ export default function ProfileEdit() {
   const sp = (field: keyof typeof personal, val: any) => setPersonal(prev => ({ ...prev, [field]: val }));
   const b = business;
   const sb = (field: keyof typeof business, val: any) => setBusiness(prev => ({ ...prev, [field]: val }));
+  const selectedCategory = BUSINESS_CATEGORIES.find(c => c.value === b.business_category);
   const [editingPersonalCover, setEditingPersonalCover] = useState(false);
   const [editingBusinessCover, setEditingBusinessCover] = useState(false);
 
@@ -774,4 +775,3 @@ export default function ProfileEdit() {
     </div>
   );
 }
-  const selectedCategory = BUSINESS_CATEGORIES.find(c => c.value === b.business_category);
