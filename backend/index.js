@@ -301,6 +301,40 @@ server.listen(PORT, () => {
   startStoriesCleanup();
   startWorkers(); // BullMQ background job workers
 
+  // ── Auto-create Supabase Storage bucket if configured ──────────────────────
+  setTimeout(async () => {
+    try {
+      const { isSupabaseConfigured } = require('./middleware/upload');
+      if (!isSupabaseConfigured()) return;
+
+      const raw = process.env.STORAGE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+      const match = raw.match(/https:\/\/[a-z0-9]+\.supabase\.co/);
+      const projectUrl = match ? match[0] : raw.replace(/\/$/, '');
+      const key    = process.env.SUPABASE_STORAGE_KEY;
+      const bucket = process.env.SUPABASE_BUCKET;
+      const H = { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
+
+      const check = await fetch(`${projectUrl}/storage/v1/bucket/${bucket}`, { headers: H });
+      if (check.ok) {
+        logger.info(`☁️  Supabase Storage bucket "${bucket}" ready`);
+        return;
+      }
+      // Bucket missing — create it as public
+      const create = await fetch(`${projectUrl}/storage/v1/bucket`, {
+        method: 'POST', headers: H,
+        body: JSON.stringify({ id: bucket, name: bucket, public: true }),
+      });
+      if (create.ok || create.status === 409) {
+        logger.info(`☁️  Supabase Storage bucket "${bucket}" created (public)`);
+      } else {
+        const err = await create.text();
+        logger.warn(`⚠️  Could not create Supabase bucket: ${create.status} ${err}`);
+      }
+    } catch (e) {
+      logger.warn(`⚠️  Supabase bucket init skipped: ${e.message}`);
+    }
+  }, 2000); // 2s after startup so network is ready
+
   // ── Keep-alive: warm up DB connection pool every 4 minutes ──────────────
   // Prevents Railway free-tier cold starts and Neon connection drops.
   if (process.env.NODE_ENV === 'production') {
