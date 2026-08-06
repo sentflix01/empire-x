@@ -774,3 +774,4 @@ export default function ProfileEdit() {
     </div>
   );
 }
+  const selectedCategory = BUSINESS_CATEGORIES.find(c => c.value === b.business_category);
