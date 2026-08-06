@@ -64,10 +64,9 @@ const fileFilter = (_req, file, cb) => {
   cb(null, true);
 };
 
-// ── Supabase Storage (free tier, S3-compatible) ───────────────────────────
-// Setup: supabase.com → new project → Storage → create public bucket
-// Keys: Project Settings → API → service_role key (for SUPABASE_STORAGE_KEY)
-//       and Project URL (for SUPABASE_URL)
+// ── Supabase Storage (free tier) ─────────────────────────────────────────────
+// Uses Supabase Storage REST API directly — no S3 compat layer needed.
+// Docs: https://supabase.com/docs/guides/storage/uploads/standard-uploads
 function isSupabaseConfigured() {
   return !!(
     process.env.SUPABASE_URL &&
@@ -76,41 +75,34 @@ function isSupabaseConfigured() {
   );
 }
 
-let supabaseS3Client = null;
-function getSupabaseS3Client() {
-  if (supabaseS3Client) return supabaseS3Client;
-  const { S3Client } = require('@aws-sdk/client-s3');
-  // Supabase exposes an S3-compatible endpoint at /storage/v1/s3
-  const projectUrl = process.env.SUPABASE_URL.replace(/\/$/, '');
-  supabaseS3Client = new S3Client({
-    region: 'auto',
-    endpoint: `${projectUrl}/storage/v1/s3`,
-    credentials: {
-      accessKeyId: process.env.SUPABASE_STORAGE_KEY,
-      secretAccessKey: process.env.SUPABASE_STORAGE_KEY,
-    },
-    forcePathStyle: true,
-  });
-  return supabaseS3Client;
-}
-
 async function uploadToSupabase(buffer, originalName, mimeType) {
-  const { PutObjectCommand } = require('@aws-sdk/client-s3');
   const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
   const ext = path.extname(originalName).toLowerCase();
   const key = `uploads/${unique}${ext}`;
   const bucket = process.env.SUPABASE_BUCKET;
-
-  await getSupabaseS3Client().send(new PutObjectCommand({
-    Bucket: bucket,
-    Key: key,
-    Body: buffer,
-    ContentType: mimeType,
-    CacheControl: 'public, max-age=31536000',
-  }));
-
-  // Public URL format: <project-url>/storage/v1/object/public/<bucket>/<key>
   const projectUrl = process.env.SUPABASE_URL.replace(/\/$/, '');
+  const serviceKey = process.env.SUPABASE_STORAGE_KEY;
+
+  const uploadUrl = `${projectUrl}/storage/v1/object/${bucket}/${key}`;
+
+  const response = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': mimeType,
+      'Cache-Control': 'public, max-age=31536000',
+      'x-upsert': 'true',
+    },
+    body: buffer,
+    duplex: 'half',         // required in Node ≥ 18 when body is a Buffer
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Supabase upload failed [${response.status}]: ${errText}`);
+  }
+
+  // Public URL: <project>/storage/v1/object/public/<bucket>/<key>
   return `${projectUrl}/storage/v1/object/public/${bucket}/${key}`;
 }
 
