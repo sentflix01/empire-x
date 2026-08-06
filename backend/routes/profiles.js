@@ -4,6 +4,20 @@ const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord } = require('../utils/crud');
 const { cacheMiddleware } = require('../middleware/cache');
 
+// ── Cover position fields — whitelisted "x% y%" strings (CSS object-position) ──
+// NULL or '' clears back to default centered positioning.
+const COVER_POS_RE = /^\d{1,3}(\.\d+)?% \d{1,3}(\.\d+)?%$/;
+const COVER_POSITION_FIELDS = ['cover_position', 'business_cover_position'];
+function sanitizeCoverPositions(body) {
+  for (const k of COVER_POSITION_FIELDS) {
+    if (!(k in body)) continue;
+    const v = body[k];
+    if (v === null || v === '') continue; // allow clearing
+    if (typeof v !== 'string' || !COVER_POS_RE.test(v)) delete body[k];
+  }
+  return body;
+}
+
 // Get my profile
 router.get('/me', requireAuth, async (req, res) => {
   try {
@@ -151,11 +165,12 @@ router.put('/me/upsert', requireAuth, async (req, res) => {
       'SELECT id FROM user_profiles WHERE user_id = $1',
       [req.user.id]
     );
+    const body = sanitizeCoverPositions(req.body);
     let profile;
     if (existing.length) {
-      profile = await updateRecord('user_profiles', existing[0].id, { ...req.body, user_id: req.user.id });
+      profile = await updateRecord('user_profiles', existing[0].id, { ...body, user_id: req.user.id });
     } else {
-      profile = await createRecord('user_profiles', { ...req.body, user_id: req.user.id });
+      profile = await createRecord('user_profiles', { ...body, user_id: req.user.id });
     }
     res.json(profile);
   } catch (err) {
@@ -172,7 +187,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     if (existing.user_id !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    const updated = await updateRecord('user_profiles', req.params.id, req.body);
+    const updated = await updateRecord('user_profiles', req.params.id, sanitizeCoverPositions(req.body));
     if (!updated) return res.status(404).json({ error: 'Profile not found' });
     res.json(updated);
   } catch (err) {

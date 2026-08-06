@@ -10,11 +10,28 @@ const { sendOrderConfirmation } = require('../utils/mailer');
 const apiError = require('../lib/apiError');
 const logger = require('../lib/logger');
 const { getPrimaryFrontendUrl } = require('../lib/frontendUrl');
+const { isEnabled } = require('../lib/featureFlags');
 
 // Only initialise Stripe if the key is configured
 const stripe = process.env.STRIPE_SECRET_KEY
   ? require('stripe')(process.env.STRIPE_SECRET_KEY)
   : null;
+
+// ── Stripe currency configuration ────────────────────────────────────────────
+// STRIPE_CURRENCY selects the charge currency (default usd). ETB is not
+// supported by every Stripe account, so if Stripe rejects an ETB session we
+// fall back to USD using STRIPE_ETB_TO_USD_RATE (default 0.008).
+const STRIPE_CURRENCY = (process.env.STRIPE_CURRENCY || 'usd').toLowerCase();
+const STRIPE_ETB_TO_USD_RATE = (() => {
+  const r = parseFloat(process.env.STRIPE_ETB_TO_USD_RATE || '0.008');
+  return Number.isFinite(r) && r > 0 ? r : 0.008;
+})();
+
+/** Convert a platform (ETB) amount into integer cents in the charge currency. */
+function toChargeCents(amountEtb, currency) {
+  const value = currency === 'usd' ? amountEtb * STRIPE_ETB_TO_USD_RATE : amountEtb;
+  return Math.round(value * 100);
+}
 
 // ── Chapa helpers (native ETB payment gateway for Ethiopia) ──────────────────
 const CHAPA_SECRET = process.env.CHAPA_SECRET_KEY || null;
@@ -168,60 +185,446 @@ router.put('/:id', requireAuth, async (req, res) => {
 });
 
 // ── Stripe Checkout ──────────────────────────────────────────────────────────
+// Accepts BOTH:
+//   • single-product shape: { product_id, quantity }
+//   • multi-item shape:     { items: [{ product_id, quantity }] }
+// All totals are computed server-side from the products table (client prices
+// are never trusted). Multi-seller carts get one order row per seller but a
+// SINGLE combined hosted Checkout Session (one redirect URL for the buyer).
+// Coupons are validated server-side.
 router.post('/checkout/session', requireAuth, async (req, res) => {
   if (!stripe) {
-    return res.status(503).json({ error: 'Payment processing is not configured yet. Contact the admin.' });
-  }
-  const { product_id, product_title, unit_price, quantity = 1, seller_id, currency = 'usd' } = req.body;
-  if (!product_title || !unit_price || !seller_id) {
-    return apiError.validationError(res, 'product_title, unit_price, and seller_id are required');
+    return res.status(503).json({ error: 'Stripe payments are not configured yet. Add STRIPE_SECRET_KEY to the server environment.' });
   }
   try {
+    if (!(await isEnabled('stripe_payments'))) {
+      return res.status(503).json({ error: 'Stripe payments are temporarily disabled. Please use Chapa or place a COD order.' });
+    }
+  } catch { /* flag lookup failure — fall through and let Stripe decide */ }
+
+  const createdOrderIds = [];
+  try {
     const frontendUrl = getPrimaryFrontendUrl();
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [{
-        price_data: {
-          currency: currency.toLowerCase() === 'etb' ? 'usd' : currency.toLowerCase(),
-          product_data: { name: product_title },
-          unit_amount: Math.round(unit_price * 100),
-        },
-        quantity,
-      }],
+
+    // ── Resolve requested items (multi-item or legacy single-product shape) ──
+    const rawItems = Array.isArray(req.body.items) && req.body.items.length
+      ? req.body.items
+      : [{ product_id: req.body.product_id, quantity: req.body.quantity }];
+    const requested = rawItems
+      .map(i => ({ product_id: i?.product_id, quantity: Math.max(1, parseInt(i?.quantity, 10) || 1) }))
+      .filter(i => i.product_id);
+    if (!requested.length) {
+      return apiError.validationError(res, 'product_id (or items: [{ product_id, quantity }]) is required');
+    }
+
+    // ── Load products — prices ALWAYS come from the DB ───────────────────────
+    const { rows: products } = await pool.query(
+      'SELECT * FROM products WHERE id = ANY($1::uuid[])',
+      [requested.map(i => i.product_id)]
+    );
+    const productById = new Map(products.map(p => [p.id, p]));
+    for (const item of requested) {
+      if (!productById.has(item.product_id)) {
+        return apiError.notFound(res, 'One or more products were not found');
+      }
+    }
+
+    // ── Group by seller: one order + one session per seller ─────────────────
+    const groups = new Map(); // seller_id → { items: [], subtotal }
+    for (const item of requested) {
+      const product = productById.get(item.product_id);
+      if (product.status === 'draft') {
+        return apiError.validationError(res, `"${product.title}" is not available for purchase`);
+      }
+      if (product.stock !== null && product.stock < item.quantity) {
+        return apiError.validationError(res, `Only ${product.stock} of "${product.title}" in stock`);
+      }
+      const g = groups.get(product.seller_id) || { seller_id: product.seller_id, items: [], subtotal: 0 };
+      g.items.push({ product, quantity: item.quantity });
+      g.subtotal += parseFloat(product.price) * item.quantity;
+      groups.set(product.seller_id, g);
+    }
+
+    // ── Coupon — validated server-side, applied to the coupon owner's group ──
+    let couponInfo = null; // { id, seller_id, code, discount }
+    if (req.body.coupon_code) {
+      const code = String(req.body.coupon_code).toUpperCase();
+      const { rows: coupons } = await pool.query(
+        `SELECT * FROM coupons
+         WHERE code = $1 AND seller_id = ANY($2::uuid[]) AND is_active = TRUE
+           AND (expires_at IS NULL OR expires_at > NOW())
+           AND (usage_limit IS NULL OR usage_count < usage_limit)`,
+        [code, [...groups.keys()]]
+      );
+      if (!coupons.length) return apiError.notFound(res, 'Invalid or expired coupon code');
+      const coupon = coupons[0];
+      const group = groups.get(coupon.seller_id);
+      if (coupon.min_order && group.subtotal < parseFloat(coupon.min_order)) {
+        return apiError.validationError(res, `This coupon requires a minimum order of ${coupon.min_order}`);
+      }
+      const discount = coupon.discount_type === 'percentage'
+        ? group.subtotal * (parseFloat(coupon.discount_value) / 100)
+        : parseFloat(coupon.discount_value);
+      couponInfo = { id: coupon.id, seller_id: coupon.seller_id, code, discount: Math.min(discount, group.subtotal) };
+    }
+
+    // ── Create one pending order per seller, then ONE combined session ──────
+    let chargeCurrency = STRIPE_CURRENCY === 'etb' ? 'etb' : 'usd';
+    let fellBackToUsd = false;
+    let grandSubtotal = 0, grandDiscount = 0, grandTotal = 0;
+
+    for (const group of groups.values()) {
+      const subtotal = Math.round(group.subtotal * 100) / 100;
+      const discount = couponInfo && couponInfo.seller_id === group.seller_id
+        ? Math.round(couponInfo.discount * 100) / 100
+        : 0;
+      const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
+      if (total <= 0) {
+        return apiError.validationError(res, 'Order total must be greater than zero');
+      }
+
+      const businessId = group.items.find(i => i.product.business_id)?.product.business_id || null;
+      const productTitles = group.items.map(i => `${i.quantity}× ${i.product.title}`).join(', ');
+
+      // Pending order first — the webhook matches it via stripe_session_id
+      const order = await createRecord('orders', {
+        buyer_id:         req.user.id,
+        seller_id:        group.seller_id,
+        business_id:      businessId,
+        product_id:       group.items[0].product.id,
+        product_title:    productTitles,
+        quantity:         group.items.reduce((s, i) => s + i.quantity, 0),
+        unit_price:       parseFloat(group.items[0].product.price),
+        total_price:      total,
+        currency:         'ETB',
+        status:           'pending',
+        payment_provider: 'stripe',
+        amount_subtotal:  subtotal,
+        amount_discount:  discount,
+        buyer_name:       req.body.buyer_name || '',
+        buyer_email:      req.body.buyer_email || req.user.email || '',
+        buyer_phone:      req.body.buyer_phone || '',
+        delivery_address: req.body.delivery_address || '',
+        notes:            req.body.notes || '',
+      });
+      createdOrderIds.push(order.id);
+
+      group.subtotal = subtotal;
+      group.discount = discount;
+      group.total    = total;
+      grandSubtotal += subtotal;
+      grandDiscount += discount;
+      grandTotal    += total;
+    }
+    grandSubtotal = Math.round(grandSubtotal * 100) / 100;
+    grandDiscount = Math.round(grandDiscount * 100) / 100;
+    grandTotal    = Math.max(0, Math.round(grandTotal * 100) / 100);
+
+    // ── ONE Checkout Session containing every seller's line items ──────────
+    // The platform-collects model splits commission per seller at webhook
+    // time, so a single charge across sellers is safe. Integer-cent math:
+    // per-line rounding drift is absorbed by a tiny adjustment line so the
+    // charged total ALWAYS equals the server-computed grand total (no
+    // off-by-cent ETB→USD drift).
+    const buildCombinedLineItems = (currency) => {
+      const items = [];
+      for (const group of groups.values()) {
+        for (const i of group.items) {
+          items.push({
+            price_data: {
+              currency,
+              product_data: { name: i.product.title },
+              unit_amount: toChargeCents(parseFloat(i.product.price), currency),
+            },
+            quantity: i.quantity,
+          });
+        }
+      }
+      if (grandDiscount > 0) {
+        // Single negative line item keeps the charge total correct server-side
+        items.push({
+          price_data: {
+            currency,
+            product_data: { name: `Coupon discount (${couponInfo.code})` },
+            unit_amount: -toChargeCents(grandDiscount, currency),
+          },
+          quantity: 1,
+        });
+      }
+      const expectedCents = toChargeCents(grandTotal, currency);
+      const sumCents = items.reduce((s, it) => s + it.price_data.unit_amount * it.quantity, 0);
+      const drift = expectedCents - sumCents;
+      if (drift !== 0) {
+        items.push({
+          price_data: {
+            currency,
+            product_data: { name: 'Rounding adjustment' },
+            unit_amount: drift,
+          },
+          quantity: 1,
+        });
+      }
+      return items;
+    };
+
+    const sessionParams = {
+      // payment_method_types intentionally OMITTED — with automatic payment
+      // methods Stripe offers every method enabled on the account (cards,
+      // wallets, and all local payment methods).
       mode: 'payment',
-      success_url: `${frontendUrl}/marketplace?payment=success`,
-      cancel_url: `${frontendUrl}/marketplace?payment=cancelled`,
+      line_items: buildCombinedLineItems(chargeCurrency),
+      success_url: `${frontendUrl}/marketplace?payment=success&provider=stripe`,
+      cancel_url:  `${frontendUrl}/marketplace?payment=cancelled&provider=stripe`,
       metadata: {
+        purpose: 'order',
         buyer_id: req.user.id,
-        seller_id,
-        product_id: product_id || '',
-        product_title,
-        quantity: String(quantity),
+        order_ids: createdOrderIds.join(','),
+        seller_ids: [...groups.keys()].join(','),
+        coupon_id: couponInfo ? couponInfo.id : '',
+      },
+    };
+
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create(sessionParams);
+    } catch (err) {
+      // ETB is rejected by accounts that don't support it — retry in USD
+      if (chargeCurrency === 'etb') {
+        fellBackToUsd = true;
+        chargeCurrency = 'usd';
+        sessionParams.line_items = buildCombinedLineItems('usd');
+        session = await stripe.checkout.sessions.create(sessionParams);
+      } else {
+        throw err;
+      }
+    }
+
+    await pool.query(
+      'UPDATE orders SET stripe_session_id = $1 WHERE id = ANY($2::uuid[])',
+      [session.id, createdOrderIds]
+    );
+
+    res.json({
+      url: session.url,
+      session_id: session.id,
+      order_ids: createdOrderIds,
+      display: {
+        currency: 'ETB',
+        subtotal: grandSubtotal,
+        discount: grandDiscount,
+        total: grandTotal,
+        charge_currency: chargeCurrency.toUpperCase(),
+        charge_total: toChargeCents(grandTotal, chargeCurrency) / 100,
+        // Converted amounts for UI display (integer-cent math — no drift)
+        converted: chargeCurrency === 'usd'
+          ? { currency: 'USD', rate: STRIPE_ETB_TO_USD_RATE, total: toChargeCents(grandTotal, 'usd') / 100 }
+          : null,
+        fell_back_to_usd: fellBackToUsd,
       },
     });
-
-    // Create a pending order
-    await createRecord('orders', {
-      buyer_id: req.user.id,
-      seller_id,
-      product_id: product_id || null,
-      product_title,
-      quantity,
-      unit_price,
-      total_price: unit_price * quantity,
-      currency: currency || 'ETB',
-      status: 'pending',
-      stripe_session_id: session.id,
-    });
-
-    res.json({ url: session.url, session_id: session.id });
   } catch (err) {
+    // Roll back ONLY orders that never received a live Stripe session.
+    // Orders already tied to a live session stay 'pending' — the session's
+    // own events (expired / payment_failed / completed) resolve them, so we
+    // never delete an order the buyer might still pay for.
+    if (createdOrderIds.length) {
+      pool.query(
+        `UPDATE orders SET status = 'payment_failed', updated_at = NOW()
+         WHERE id = ANY($1::uuid[]) AND stripe_session_id IS NULL AND status = 'pending'`,
+        [createdOrderIds]
+      ).catch(() => {});
+    }
     logger.error({ err }, 'Stripe session error');
     return apiError.serverError(res, 'Failed to create payment session');
   }
 });
 
-// Stripe Webhook
+// ── Stripe Webhook — verified, idempotent event handling ─────────────────────
+async function markStripeOrdersPaid(session) {
+  const { rows } = await pool.query(
+    `UPDATE orders SET status = 'paid', stripe_payment_intent_id = $1, updated_at = NOW()
+     WHERE stripe_session_id = $2 AND status = 'pending'
+     RETURNING *`,
+    [session.payment_intent || null, session.id]
+  );
+  // Coupon redemptions are counted atomically at payment confirmation time
+  const couponId = session.metadata?.coupon_id;
+  if (couponId) {
+    await pool.query(
+      'UPDATE coupons SET usage_count = usage_count + 1 WHERE id = $1',
+      [couponId]
+    );
+  }
+  for (const order of rows) {
+    collectCommission(order.id, order.seller_id, order.total_price)
+      .catch(err => logger.error({ err }, 'Failed to collect commission (Stripe webhook)'));
+    notifyUser(order.seller_id, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ETB via Stripe ✅`).catch(() => {});
+    sendPushToUser(order.seller_id, '💰 Payment received!', `${order.product_title} — ${order.total_price} ETB via Stripe`, '/orders').catch(() => {});
+    sendPushToUser(order.buyer_id, '✅ Payment confirmed!', `Your payment for ${order.product_title} was successful.`, '/orders').catch(() => {});
+    logger.info({ orderId: order.id }, '[Stripe webhook] Order marked paid');
+  }
+  return rows;
+}
+
+async function completeStripeWalletTopup(session) {
+  // Transactional claim-and-credit: the pending_topup row is flipped to
+  // 'credit' atomically (so retries can never double-credit) and the wallet
+  // balance update commits together with it.
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: pending } = await client.query(
+      `UPDATE wallet_transactions SET type = 'credit', description = 'Stripe wallet top-up (confirmed)'
+       WHERE reference = $1 AND type = 'pending_topup'
+       RETURNING id, wallet_id, amount`,
+      [session.id]
+    );
+    if (!pending.length) {
+      await client.query('COMMIT');
+      return; // already credited or unknown session
+    }
+    const credit = parseFloat(session.metadata?.amount_etb || pending[0].amount);
+    await client.query(
+      'UPDATE wallets SET balance = balance + $1, updated_at = NOW() WHERE id = $2',
+      [credit, pending[0].wallet_id]
+    );
+    await client.query('COMMIT');
+    logger.info({ walletId: pending[0].wallet_id, credit }, '[Stripe webhook] Wallet top-up credited');
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err; // webhook returns 500 → Stripe retries the event
+  } finally {
+    client.release();
+  }
+}
+
+async function handleStripeEvent(event) {
+  switch (event.type) {
+    case 'checkout.session.completed':
+    case 'checkout.session.async_payment_succeeded': {
+      const session = event.data.object || {};
+      // Never move money until Stripe confirms the payment settled —
+      // 'completed' also fires for deferred methods before funds arrive.
+      if (event.type === 'checkout.session.completed' && session.payment_status !== 'paid') return;
+      if (session.metadata?.purpose === 'wallet_topup') {
+        return completeStripeWalletTopup(session);
+      }
+      await markStripeOrdersPaid(session);
+      return;
+    }
+
+    case 'checkout.session.expired': {
+      const session = event.data.object || {};
+      if (session.metadata?.purpose === 'wallet_topup') {
+        await pool.query(
+          `UPDATE wallet_transactions SET type = 'failed_topup', description = 'Stripe top-up expired'
+           WHERE reference = $1 AND type = 'pending_topup'`,
+          [session.id]
+        );
+        return;
+      }
+      await pool.query(
+        `UPDATE orders SET status = 'payment_failed', updated_at = NOW()
+         WHERE stripe_session_id = $1 AND status = 'pending'`,
+        [session.id]
+      );
+      return;
+    }
+
+    case 'payment_intent.payment_failed': {
+      const pi = event.data.object || {};
+      if (!pi.id) return;
+      await pool.query(
+        `UPDATE orders SET status = 'payment_failed', updated_at = NOW()
+         WHERE stripe_payment_intent_id = $1 AND status = 'pending'`,
+        [pi.id]
+      );
+      return;
+    }
+
+    case 'charge.refunded': {
+      const charge = event.data.object || {};
+      if (!charge.payment_intent) return;
+      // Partial-refund aware: amounts are in Stripe minor units
+      const chargeAmount = Number(charge.amount) || 0;
+      const refundedAmount = Number(charge.amount_refunded ?? charge.amount) || 0;
+      const isFullRefund = refundedAmount >= chargeAmount;
+      const refundRatio = chargeAmount > 0 ? Math.min(1, refundedAmount / chargeAmount) : 1;
+
+      // ── Wallet top-up refund: Stripe has already returned the money to the
+      //    payer's card, so we only REVERSE the platform-side credit,
+      //    proportionally to what was actually refunded.
+      if (charge.metadata?.purpose === 'wallet_topup') {
+        const walletId = charge.metadata.wallet_id;
+        const topupEtb = parseFloat(charge.metadata.amount_etb || '0');
+        const reversal = Math.round(topupEtb * refundRatio * 100) / 100;
+        if (walletId && reversal > 0) {
+          await pool.query(
+            'UPDATE wallets SET balance = GREATEST(balance - $1, 0), updated_at = NOW() WHERE id = $2',
+            [reversal, walletId]
+          );
+          await pool.query(
+            `INSERT INTO wallet_transactions (wallet_id, type, amount, description, reference)
+             VALUES ($1, 'debit', $2, $3, $4)`,
+            [walletId, reversal, `Stripe top-up refund reversal (${isFullRefund ? 'full' : 'partial'})`, charge.id || charge.payment_intent]
+          );
+          logger.info({ walletId, reversal }, '[Stripe webhook] Wallet top-up reversal applied');
+        }
+        return;
+      }
+
+      // ── Product orders: Stripe refunds the buyer's payment method directly.
+      //    DO NOT credit the buyer wallet (that would double-refund). Instead
+      //    mark the order refunded and reverse the platform commission.
+      const { rows } = await pool.query(
+        `SELECT * FROM orders
+         WHERE stripe_payment_intent_id = $1 AND status IN ('paid','processing','completed')`,
+        [charge.payment_intent]
+      );
+      for (const order of rows) {
+        if (isFullRefund) {
+          await pool.query(
+            `UPDATE orders SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
+            [order.id]
+          );
+        }
+        // Reverse commission proportional to the refunded amount and give it
+        // back to the seller (collection deducted their wallet).
+        const { rows: commRows } = await pool.query(
+          `SELECT id, amount FROM commissions WHERE order_id = $1 AND status <> 'refunded'`,
+          [order.id]
+        );
+        for (const c of commRows) {
+          const reversed = Math.round(parseFloat(c.amount) * refundRatio * 100) / 100;
+          if (reversed <= 0) continue;
+          if (isFullRefund) {
+            await pool.query(`UPDATE commissions SET status = 'refunded' WHERE id = $1`, [c.id]);
+          } else {
+            await pool.query(`UPDATE commissions SET amount = GREATEST(amount - $1, 0) WHERE id = $2`, [reversed, c.id]);
+          }
+          await pool.query(
+            'UPDATE wallets SET balance = balance + $1, updated_at = NOW() WHERE user_id = $2',
+            [reversed, order.seller_id]
+          );
+          await pool.query(
+            `INSERT INTO wallet_transactions (wallet_id, type, amount, description, reference)
+             SELECT id, 'credit', $1, $2, $3 FROM wallets WHERE user_id = $4`,
+            [reversed, `Commission reversal (${isFullRefund ? 'full' : 'partial'} Stripe refund)`, order.id, order.seller_id]
+          );
+        }
+        const refundedEtb = Math.round(parseFloat(order.total_price) * refundRatio * 100) / 100;
+        notifyUser(order.buyer_id, `💸 <b>Refund processed</b>\n${order.product_title}\nAmount: ${refundedEtb} ETB (returned to your payment method)`).catch(() => {});
+        notifyUser(order.seller_id, `↩️ <b>Order refunded</b>\n${order.product_title}\nAmount: ${refundedEtb} ETB`).catch(() => {});
+        logger.info({ orderId: order.id, isFullRefund, refundedEtb }, '[Stripe webhook] Order refund processed');
+      }
+      return;
+    }
+
+    default:
+      return; // ignore all other event types
+  }
+}
+
 router.post('/webhook', async (req, res) => {
   if (!stripe) return res.status(503).json({ error: 'Stripe not configured' });
   const sig = req.headers['stripe-signature'];
@@ -232,19 +635,26 @@ router.post('/webhook', async (req, res) => {
     return apiError.validationError(res, `Webhook error: ${err.message}`);
   }
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    try {
-      await pool.query(
-        'UPDATE orders SET status = $1, updated_at = NOW() WHERE stripe_session_id = $2',
-        ['paid', session.id]
-      );
-    } catch (err) {
-      logger.error({ err }, 'Webhook DB update failed');
+  try {
+    // Idempotency: skip events we have already processed successfully
+    const seen = await pool.query('SELECT id FROM webhook_events WHERE id = $1', [event.id]);
+    if (seen.rows.length) {
+      logger.info({ eventId: event.id, type: event.type }, '[Stripe webhook] Duplicate event ignored');
+      return res.json({ received: true, duplicate: true });
     }
+    // Process FIRST, then record the event. If processing throws, we answer
+    // non-2xx WITHOUT a dedupe row so Stripe retries the event instead of
+    // losing it forever.
+    await handleStripeEvent(event);
+    await pool.query(
+      'INSERT INTO webhook_events (id, type) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
+      [event.id, event.type]
+    );
+    return res.json({ received: true });
+  } catch (err) {
+    logger.error({ err: err.message, eventId: event.id, type: event.type }, '[Stripe webhook] Processing failed — Stripe will retry');
+    return res.status(500).json({ error: 'Webhook processing failed' });
   }
-
-  res.json({ received: true });
 });
 
 // ── Chapa Webhook — server-to-server payment notification ────────────────────
@@ -499,3 +909,4 @@ router.get('/chapa/verify/:tx_ref', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.handleStripeEvent = handleStripeEvent;

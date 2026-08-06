@@ -62,27 +62,17 @@ router.post('/request', requireAuth, async (req, res) => {
 // Returns the current user's verification request status
 router.get('/status', requireAuth, async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      `SELECT vr.id, vr.status, vr.verification_type, vr.admin_note,
-              vr.created_at, vr.reviewed_at,
-              up.is_verified, up.verification_type AS granted_type, up.verified_at
-       FROM verification_requests vr
-       RIGHT JOIN user_profiles up ON up.user_id = $1
-       WHERE vr.user_id = $1 OR vr.user_id IS NULL
-       ORDER BY vr.created_at DESC LIMIT 1`,
-      [req.user.id]
-    );
-
-    // Simpler direct query
-    const [reqRow] = await pool.query(
+    const { rows: reqRows } = await pool.query(
       'SELECT id, status, verification_type, admin_note, created_at, reviewed_at FROM verification_requests WHERE user_id = $1',
       [req.user.id]
-    ).then(r => [r.rows[0]]);
+    );
+    const reqRow = reqRows[0];
 
-    const [profileRow] = await pool.query(
+    const { rows: profileRows } = await pool.query(
       'SELECT is_verified, verification_type, verified_at FROM user_profiles WHERE user_id = $1',
       [req.user.id]
-    ).then(r => [r.rows[0]]);
+    );
+    const profileRow = profileRows[0];
 
     res.json({
       is_verified: profileRow?.is_verified || false,
@@ -91,6 +81,7 @@ router.get('/status', requireAuth, async (req, res) => {
       request: reqRow || null,
     });
   } catch (err) {
+    logger.error({ err: err.message }, 'Failed to fetch verification status');
     res.status(500).json({ error: 'Failed to fetch verification status' });
   }
 });

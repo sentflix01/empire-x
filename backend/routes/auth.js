@@ -113,7 +113,8 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({ message: 'Registration successful. Check your email for the verification code.', userId: rows[0].id });
   } catch (err) {
-    logger.error({ err: err.message }, 'Register error');
+    const errMsg = err?.message || err?.errors?.[0]?.message || String(err);
+    logger.error({ err: errMsg }, 'Register error');
     return apiError.serverError(res, 'Registration failed');
   }
 });

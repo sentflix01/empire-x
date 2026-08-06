@@ -4,6 +4,7 @@ const { requireAuth, requireAdmin } = require('../middleware/auth');
 const apiError = require('../lib/apiError');
 const logger = require('../lib/logger');
 const { getPrimaryFrontendUrl } = require('../lib/frontendUrl');
+const { isEnabled } = require('../lib/featureFlags');
 
 // Get or create wallet for current user
 async function getOrCreateWallet(userId) {
@@ -214,6 +215,93 @@ router.post('/topup/chapa', requireAuth, async (req, res) => {
   } catch (err) {
     logger.error({ err }, 'Chapa wallet topup error');
     return apiError.serverError(res, 'Failed to initialize Chapa top-up');
+  }
+});
+
+// ── Stripe Wallet Top-up — Initialize ───────────────────────────────────────
+// Creates a Stripe hosted Checkout Session. On completion the platform Stripe
+// webhook (/api/orders/webhook) converts the pending_topup row into a credit.
+router.post('/topup/stripe', requireAuth, async (req, res) => {
+  const stripe = process.env.STRIPE_SECRET_KEY
+    ? require('stripe')(process.env.STRIPE_SECRET_KEY)
+    : null;
+  if (!stripe) {
+    return res.status(503).json({ error: 'Stripe payments are not configured yet. Add STRIPE_SECRET_KEY to the server environment.' });
+  }
+  try {
+    if (!(await isEnabled('stripe_payments'))) {
+      return res.status(503).json({ error: 'Stripe payments are temporarily disabled. Please use the Chapa top-up.' });
+    }
+  } catch { /* flag lookup failure — fall through */ }
+
+  const { amount } = req.body;
+  if (!amount || parseFloat(amount) <= 0) return apiError.validationError(res, 'Valid amount is required');
+  const amountEtb = Math.round(parseFloat(amount) * 100) / 100;
+
+  const rate = (() => {
+    const r = parseFloat(process.env.STRIPE_ETB_TO_USD_RATE || '0.008');
+    return Number.isFinite(r) && r > 0 ? r : 0.008;
+  })();
+  let currency = (process.env.STRIPE_CURRENCY || 'usd').toLowerCase();
+  const toCents = (cur) => Math.round((cur === 'usd' ? amountEtb * rate : amountEtb) * 100);
+
+  const frontendUrl = getPrimaryFrontendUrl();
+  try {
+    const wallet = await getOrCreateWallet(req.user.id);
+
+    const buildParams = (cur) => ({
+      // payment_method_types omitted — automatic payment methods apply
+      mode: 'payment',
+      line_items: [{
+        price_data: {
+          currency: cur,
+          product_data: { name: 'Empire X Wallet Top-up' },
+          unit_amount: toCents(cur),
+        },
+        quantity: 1,
+      }],
+      success_url: `${frontendUrl}/wallet?topup=success&provider=stripe`,
+      cancel_url:  `${frontendUrl}/wallet?topup=cancelled`,
+      metadata: {
+        purpose: 'wallet_topup',
+        user_id: req.user.id,
+        wallet_id: wallet.id,
+        amount_etb: String(amountEtb),
+      },
+    });
+
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create(buildParams(currency));
+    } catch (err) {
+      // ETB rejected by the Stripe account — fall back to USD at the configured rate
+      if (currency === 'etb') {
+        currency = 'usd';
+        session = await stripe.checkout.sessions.create(buildParams('usd'));
+      } else {
+        throw err;
+      }
+    }
+
+    // Pending top-up row — the webhook converts it into a credit on success
+    await pool.query(
+      `INSERT INTO wallet_transactions (wallet_id, type, amount, description, reference)
+       VALUES ($1, 'pending_topup', $2, 'Stripe wallet top-up (pending)', $3)`,
+      [wallet.id, amountEtb, session.id]
+    );
+
+    res.json({
+      checkout_url: session.url,
+      session_id: session.id,
+      // Converted amount for UI display — derived from the same integer-cent
+      // value that will actually be charged (no rounding drift)
+      display: currency === 'usd'
+        ? { currency: 'USD', amount: toCents('usd') / 100, rate }
+        : { currency: 'ETB', amount: amountEtb },
+    });
+  } catch (err) {
+    logger.error({ err }, 'Stripe wallet topup error');
+    return apiError.serverError(res, 'Failed to initialize Stripe top-up');
   }
 });
 
