@@ -69,17 +69,22 @@ const fileFilter = (_req, file, cb) => {
 // Docs: https://supabase.com/docs/guides/storage/uploads/standard-uploads
 
 /**
- * Extracts the clean Supabase project origin (https://xxx.supabase.co) from
- * SUPABASE_URL, which on Railway may contain a malformed value like:
- *   "NEXT_PUBLIC_SUPABASE_URL=https://tpgzlokgnjxcerexxoda.supabase.co"
- * The regex safely pulls out just the URL regardless of prefix garbage.
- * NOTE: We deliberately do NOT read STORAGE_SUPABASE_URL here — that variable
- * caused confusion when it was set to the wrong project. Use SUPABASE_URL only.
+ * Extracts the clean Supabase project URL from any of several env var names.
+ * Handles malformed Railway values like "NEXT_PUBLIC_SUPABASE_URL=https://..."
+ * Priority: SUPABASE_API_URL > NEXT_PUBLIC_SUPABASE_URL > SUPABASE_URL
  */
 function getSupabaseProjectUrl() {
-  const raw = process.env.SUPABASE_URL || '';
-  const match = raw.match(/https:\/\/[a-z0-9]+\.supabase\.co/);
-  return match ? match[0] : raw.replace(/\/$/, '');
+  const candidates = [
+    process.env.SUPABASE_API_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_URL,
+  ];
+  for (const raw of candidates) {
+    if (!raw) continue;
+    const match = raw.match(/https:\/\/[a-z0-9]+\.supabase\.co/);
+    if (match) return match[0];
+  }
+  return '';
 }
 
 function isSupabaseConfigured() {
