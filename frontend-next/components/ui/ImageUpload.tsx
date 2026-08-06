@@ -38,6 +38,7 @@ export default function ImageUpload({
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [failedUrls, setFailedUrls] = useState<string[]>([]);
   const inputRef = useRef(null);
 
   const urls = multiple
@@ -79,6 +80,8 @@ export default function ImageUpload({
   };
 
   const removeUrl = (idx) => {
+    const removed = multiple ? urls[idx] : singleValue;
+    if (removed) setFailedUrls(current => current.filter(url => url !== removed));
     if (multiple) {
       onChange(urls.filter((_, i) => i !== idx));
     } else {
@@ -96,15 +99,22 @@ export default function ImageUpload({
           aspectRatio || 'aspect-square',
           value && 'border-solid border-border/30'
         )}>
-          {singleValue ? (
-            <img src={singleValue} alt="upload preview" className="w-full h-full object-cover" />
+          {singleValue && !failedUrls.includes(singleValue) ? (
+            <img
+              src={singleValue}
+              alt="upload preview"
+              className="w-full h-full object-cover"
+              onError={() => setFailedUrls(current => current.includes(singleValue) ? current : [...current, singleValue])}
+            />
           ) : (
             <div className="flex flex-col items-center gap-2 text-muted-foreground p-4">
               {uploading
                 ? <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
                 : <Upload className="w-6 h-6" />
               }
-              <span className="text-xs text-center">{placeholder || 'Click to upload'}</span>
+              <span className="text-xs text-center">
+                {singleValue ? 'Image unavailable. Click to replace it.' : (placeholder || 'Click to upload')}
+              </span>
             </div>
           )}
           <input
@@ -145,7 +155,18 @@ export default function ImageUpload({
       <div className="flex gap-2 flex-wrap">
         {urls.map((url, i) => (
           <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border/50 shrink-0">
-            <img src={url} alt="" className="w-full h-full object-cover" />
+            {failedUrls.includes(url) ? (
+              <div className="w-full h-full flex items-center justify-center bg-secondary p-1 text-center text-[10px] text-muted-foreground">
+                Image unavailable
+              </div>
+            ) : (
+              <img
+                src={url}
+                alt=""
+                className="w-full h-full object-cover"
+                onError={() => setFailedUrls(current => current.includes(url) ? current : [...current, url])}
+              />
+            )}
             <button
               type="button"
               onClick={() => removeUrl(i)}

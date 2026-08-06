@@ -14,9 +14,8 @@ import client from '@/api/client';
 export async function uploadFile(file) {
   const formData = new FormData();
   formData.append('file', file);
-  const res = await client.post('/api/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  // Let the browser provide the multipart boundary required by multer.
+  const res = await client.post('/api/upload', formData);
   return res.data.url;
 }
 
@@ -27,9 +26,7 @@ export async function uploadFile(file) {
 export async function uploadFiles(files) {
   const formData = new FormData();
   files.forEach(f => formData.append('files', f));
-  const res = await client.post('/api/upload/multiple', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const res = await client.post('/api/upload/multiple', formData);
   return res.data.files.map(f => f.url);
 }
 

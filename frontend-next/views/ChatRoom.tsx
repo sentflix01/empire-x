@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import moment from "moment";
 import { toast } from "sonner";
-import { formatLastSeen } from "@/lib/presence";
+import { formatLastSeen, isUserOnline } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
 
 
@@ -114,6 +114,12 @@ export default function ChatRoom() {
     socket.on('new_message', onNew);
     socket.on('message_edited', onEdited);
     socket.on('message_deleted', onDeleted);
+    const onPresenceUpdated = (update) => {
+      if (update?.user_id && String(update.user_id) === String(otherUserId)) {
+        setPresence({ status: update.status, last_seen: update.last_seen || null });
+      }
+    };
+    socket.on('presence_updated', onPresenceUpdated);
 
     return () => {
       cancelled = true;
@@ -121,8 +127,9 @@ export default function ChatRoom() {
       socket.off('new_message', onNew);
       socket.off('message_edited', onEdited);
       socket.off('message_deleted', onDeleted);
+      socket.off('presence_updated', onPresenceUpdated);
     };
-  }, [id, loadMessages]);
+  }, [id, loadMessages, otherUserId]);
 
   // Resolve other user ID for DM features
   useEffect(() => {
@@ -130,7 +137,7 @@ export default function ChatRoom() {
     if (conversation.type === 'dm') {
       try {
         const ids = JSON.parse(conversation.participant_ids || '[]');
-        const other = ids.find(uid => uid !== user.id);
+        const other = ids.find(uid => String(uid) !== String(user.id));
         setOtherUserId(other || null);
       } catch { /* ignore */ }
     }
@@ -312,7 +319,7 @@ export default function ChatRoom() {
     return formatLastSeen(presence);
   };
 
-  const isOnline  = presence?.status === 'online';
+  const isOnline  = isUserOnline(presence);
   const isAdmin   = conversation?.admin_id === user?.id;
   const isChannel = conversation?.type === 'channel';
   const isGroup   = conversation?.type === 'group';

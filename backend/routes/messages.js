@@ -2,9 +2,22 @@ const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
-const { emitNewMessage, emitMessageEdited, emitMessageDeleted } = require('../socket');
+const { emitNewMessage, emitMessageEdited, emitMessageDeleted, emitPresenceUpdated } = require('../socket');
 const logger = require('../lib/logger');
 const { getRedis } = require('../lib/redis');
+
+function parseParticipantIds(value) {
+  try {
+    const ids = Array.isArray(value) ? value : JSON.parse(value || '[]');
+    return Array.isArray(ids) ? ids.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+function isConversationParticipant(conversation, userId) {
+  return parseParticipantIds(conversation.participant_ids).includes(String(userId));
+}
 
 // List conversations for current user
 router.get('/conversations', requireAuth, async (req, res) => {
@@ -29,10 +42,7 @@ router.get('/conversations/:id', requireAuth, async (req, res) => {
   try {
     const conv = await getRecord('conversations', req.params.id);
     if (!conv) return res.status(404).json({ error: 'Conversation not found' });
-    let ids = [];
-    try { ids = JSON.parse(conv.participant_ids || '[]'); } catch {}
-    const isParticipant = ids.some(id => String(id) === String(req.user.id));
-    if (!isParticipant && req.user.role !== 'admin') {
+    if (!isConversationParticipant(conv, req.user.id) && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
     res.json(conv);
@@ -43,34 +53,38 @@ router.get('/conversations/:id', requireAuth, async (req, res) => {
 
 // Find or create DM conversation
 router.post('/conversations/find-or-create', requireAuth, async (req, res) => {
-  const { target_user_id, target_name } = req.body;
+  const { target_user_id } = req.body;
   if (!target_user_id) return res.status(400).json({ error: 'target_user_id is required' });
 
   try {
     const userId = req.user.id;
+    if (String(target_user_id) === String(userId)) {
+      return res.status(400).json({ error: 'Cannot create a direct message with yourself' });
+    }
     // Fix #9: use proper JSON containment instead of fragile LIKE text search
     const { rows: all } = await pool.query(
       `SELECT * FROM conversations WHERE type = 'dm' AND participant_ids::jsonb @> $1::jsonb`,
       [JSON.stringify([userId])]
     );
     const existing = all.find(c => {
-      try {
-        const ids = JSON.parse(c.participant_ids || '[]');
-        return ids.length === 2 && ids.includes(userId) && ids.includes(target_user_id);
-      } catch { return false; }
+      const ids = parseParticipantIds(c.participant_ids);
+      return ids.length === 2 && ids.includes(String(userId)) && ids.includes(String(target_user_id));
     });
     if (existing) return res.json(existing);
 
     // Fetch current user name
-    const { rows: myProfiles } = await pool.query(
-      'SELECT display_name FROM user_profiles WHERE user_id = $1',
-      [userId]
+    const { rows: profiles } = await pool.query(
+      'SELECT user_id, display_name FROM user_profiles WHERE user_id = ANY($1::uuid[])',
+      [[userId, target_user_id]]
     );
+    const myProfiles = profiles.filter(profile => String(profile.user_id) === String(userId));
+    const targetProfile = profiles.find(profile => String(profile.user_id) === String(target_user_id));
+    if (!targetProfile) return res.status(404).json({ error: 'User not found' });
     const myName = myProfiles[0]?.display_name || 'User';
 
     const conv = await createRecord('conversations', {
-      participant_ids: JSON.stringify([userId, target_user_id]),
-      participant_names: JSON.stringify([myName, target_name || 'User']),
+      participant_ids: JSON.stringify([String(userId), String(target_user_id)]),
+      participant_names: JSON.stringify([myName, targetProfile.display_name || 'User']),
       type: 'dm',
       last_message: '',
     });
@@ -123,10 +137,7 @@ router.get('/conversations/:convId/messages', requireAuth, async (req, res) => {
   try {
     const conv = await getRecord('conversations', req.params.convId);
     if (!conv) return res.status(404).json({ error: 'Conversation not found' });
-    let ids = [];
-    try { ids = JSON.parse(conv.participant_ids || '[]'); } catch {}
-    const isParticipant = ids.some(id => String(id) === String(req.user.id));
-    if (!isParticipant && req.user.role !== 'admin') {
+    if (!isConversationParticipant(conv, req.user.id) && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
     const limit = Math.min(parseInt(req.query.limit || '100', 10), 500);
@@ -147,10 +158,9 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
     if (!conv) return res.status(404).json({ error: 'Conversation not found' });
 
     // Robust participant check — compare as strings to handle type mismatches
-    let ids = [];
-    try { ids = JSON.parse(conv.participant_ids || '[]'); } catch { ids = []; }
+    const ids = parseParticipantIds(conv.participant_ids);
     const userId = String(req.user.id);
-    const isParticipant = ids.some(id => String(id) === userId);
+    const isParticipant = ids.includes(userId);
 
     if (!isParticipant && req.user.role !== 'admin') {
       logger.warn({ userId, convId: req.params.convId, ids }, 'User not in conversation');
@@ -158,7 +168,23 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
     }
 
     const { content, type, reply_to_id } = req.body;
-    if (!content) return res.status(400).json({ error: 'content is required' });
+    const cleanContent = typeof content === 'string' ? content.trim() : '';
+    if (!cleanContent) return res.status(400).json({ error: 'content is required' });
+    if (cleanContent.length > 4000) return res.status(400).json({ error: 'Message must be 4,000 characters or fewer' });
+
+    // A blocked relationship must be enforced by the API, not only hidden by
+    // the client UI. This also prevents a blocked person from sending via REST.
+    if (conv.type === 'dm') {
+      const otherUserId = ids.find(participantId => participantId !== userId);
+      const { rows: blocks } = await pool.query(
+        `SELECT id FROM blocks
+         WHERE (blocker_id = $1 AND blocked_id = $2)
+            OR (blocker_id = $2 AND blocked_id = $1)
+         LIMIT 1`,
+        [req.user.id, otherUserId]
+      );
+      if (blocks.length) return res.status(403).json({ error: 'You cannot send messages in this conversation' });
+    }
 
     const { rows: profiles } = await pool.query(
       'SELECT display_name FROM user_profiles WHERE user_id = $1',
@@ -169,13 +195,13 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
     const { rows } = await pool.query(
       `INSERT INTO messages (conversation_id, sender_id, sender_name, content, type, reply_to_id)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [req.params.convId, req.user.id, senderName, content, type || 'text', reply_to_id || null]
+      [req.params.convId, req.user.id, senderName, cleanContent, type || 'text', reply_to_id || null]
     );
 
     // Update conversation last message
     await pool.query(
       'UPDATE conversations SET last_message = $1, last_message_at = NOW(), updated_at = NOW() WHERE id = $2',
-      [content.slice(0, 200), req.params.convId]
+      [cleanContent.slice(0, 200), req.params.convId]
     );
 
     emitNewMessage(req.params.convId, rows[0]);
@@ -328,7 +354,7 @@ router.delete('/conversations/:id', requireAuth, async (req, res) => {
 // { userId: { status: 'online'|'offline', last_seen: ISO string } }
 const memPresence = {};
 
-// ── Presence: ONLY use in-memory — Redis is too expensive for frequent presence updates ──
+// ── Presence: Redis when available, with an in-memory development fallback ──
 // Set online presence status
 router.put('/presence', requireAuth, async (req, res) => {
   try {
@@ -340,7 +366,16 @@ router.put('/presence', requireAuth, async (req, res) => {
     const now = new Date().toISOString();
 
     // In-memory store — zero Redis cost, works across single-instance deployments
-    memPresence[req.user.id] = { status, last_seen: now };
+    const presence = { status, last_seen: now };
+    memPresence[req.user.id] = presence;
+
+    // Persist the short-lived live status when Redis is available so a second
+    // server instance returns the same answer. In-memory storage remains the
+    // development fallback.
+    const redis = getRedis();
+    if (!redis.isNoOp) {
+      await redis.set(`presence:${req.user.id}`, JSON.stringify(presence), 'EX', 15 * 60);
+    }
 
     // Update DB last_seen — only on online (not every offline heartbeat)
     if (status === 'online') {
@@ -352,7 +387,8 @@ router.put('/presence', requireAuth, async (req, res) => {
       );
     }
 
-    res.json({ success: true, status });
+    emitPresenceUpdated(req.user.id, presence);
+    res.json({ success: true, ...presence });
   } catch (err) {
     logger.error({ err: err.message }, 'Failed to update presence');
     res.status(500).json({ error: 'Failed to update presence' });

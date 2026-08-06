@@ -82,10 +82,19 @@ function emitMessageDeleted(conversationId, messageId) {
   }
 }
 
+// Presence is intentionally broadcast as a small public payload. Clients filter
+// it to the people shown in their chat list, which avoids waiting for a polling
+// interval before an online/away/offline change is reflected in the UI.
+function emitPresenceUpdated(userId, presence) {
+  if (ioInstance) {
+    ioInstance.emit('presence_updated', { user_id: userId, ...presence });
+  }
+}
+
 function emitNotification(userId, notification) {
   if (ioInstance) {
     ioInstance.to(`user:${userId}`).emit('new_notification', notification);
   }
 }
 
-module.exports = { initSocket, getIO, emitNewMessage, emitMessageEdited, emitMessageDeleted, emitNotification };
+module.exports = { initSocket, getIO, emitNewMessage, emitMessageEdited, emitMessageDeleted, emitPresenceUpdated, emitNotification };

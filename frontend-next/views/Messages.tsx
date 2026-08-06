@@ -10,7 +10,7 @@ import { useRealMode } from "@/lib/RealModeContext";
 import { Search, Users, Radio, User as UserIcon, MessageCircle, GripVertical } from "lucide-react";
 import moment from "moment";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
-import { formatLastSeen } from "@/lib/presence";
+import { formatLastSeen, isUserOnline } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
 import { getSocket, connectSocket } from "@/lib/socket";
 
@@ -94,7 +94,15 @@ export default function Messages() {
     connectSocket();
     const socket = getSocket();
     const onNewMessage = () => { loadConversations(); };
+    const onPresenceUpdated = (update: PresenceData) => {
+      if (!update?.user_id) return;
+      setPresence(current => ({
+        ...current,
+        [update.user_id as string]: { status: update.status, last_seen: update.last_seen || null },
+      }));
+    };
     socket.on('new_message', onNewMessage);
+    socket.on('presence_updated', onPresenceUpdated);
 
     // Refresh presence every 60s so online dots stay accurate
     const presenceInterval = setInterval(() => {
@@ -103,6 +111,7 @@ export default function Messages() {
 
     return () => {
       socket.off('new_message', onNewMessage);
+      socket.off('presence_updated', onPresenceUpdated);
       clearInterval(presenceInterval);
     };
   }, [user]);
@@ -127,7 +136,11 @@ export default function Messages() {
 
       const dmPartnerIds = cleaned
         .filter(c => c.type === 'dm')
-        .map(c => { try { return JSON.parse(c.participant_ids || '[]').find(id => id !== u.id); } catch { return null; } })
+        .map(c => {
+          try {
+            return JSON.parse(c.participant_ids || '[]').find(id => String(id) !== String(u.id));
+          } catch { return null; }
+        })
         .filter(Boolean);
 
       if (dmPartnerIds.length > 0) {
@@ -273,7 +286,11 @@ export default function Messages() {
               filteredContacts.map(contact => (
                 <ContactItem key={contact.id} contact={contact} user={user}
                   existingConv={conversations.find(c => {
-                    try { const ids = JSON.parse(c.participant_ids || "[]"); return c.type === "dm" && ids.length === 2 && ids.includes(contact.id); }
+                    try {
+                      const ids = JSON.parse(c.participant_ids || "[]");
+                      const contactUserId = contact.user_id || contact.id;
+                      return c.type === "dm" && ids.length === 2 && ids.some(id => String(id) === String(contactUserId));
+                    }
                     catch { return false; }
                   })}
                 />
@@ -299,7 +316,7 @@ export default function Messages() {
               if (isDm && !conv.avatar_url) {
                 try {
                   const ids = JSON.parse(conv.participant_ids || "[]");
-                  const otherId = ids.find((id: string) => id !== user?.id);
+                  const otherId = ids.find((id: string) => String(id) !== String(user?.id));
                   if (otherId) {
                     const match = contacts.find(c => c.id === otherId || c.user_id === otherId);
                     if (match) dmAvatarUrl = Array.isArray(match.avatar_url) ? (match.avatar_url[0] ?? "") : (match.avatar_url ?? "");
@@ -313,10 +330,10 @@ export default function Messages() {
               if (isDm) {
                 try {
                   const ids = JSON.parse(conv.participant_ids || '[]');
-                  const otherId = ids.find((i: string) => i !== user?.id);
+                  const otherId = ids.find((i: string) => String(i) !== String(user?.id));
                   if (otherId && presence[otherId]) {
                     presenceData = presence[otherId];
-                    isOnline = presenceData.status === 'online';
+                    isOnline = isUserOnline(presenceData);
                   }
                 } catch {}
               }
@@ -330,7 +347,21 @@ export default function Messages() {
                   {/* Avatar */}
                   <div className="relative shrink-0">
                     {resolvedAvatar ? (
-                      <Image src={resolvedAvatar} alt={name} width={48} height={48} className="w-12 h-12 rounded-full object-cover ring-2 ring-border/20" unoptimized />
+                      <div
+                        className="relative w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm overflow-hidden"
+                        style={{ background: 'linear-gradient(135deg,var(--ex-blue),var(--ex-purple))' }}
+                      >
+                        {name.charAt(0).toUpperCase()}
+                        <Image
+                          src={resolvedAvatar}
+                          alt={name}
+                          width={48}
+                          height={48}
+                          className="absolute inset-0 w-12 h-12 rounded-full object-cover ring-2 ring-border/20"
+                          onError={event => { event.currentTarget.style.display = 'none'; }}
+                          unoptimized
+                        />
+                      </div>
                     ) : (
                       <div
                         className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm"
@@ -410,10 +441,8 @@ function ContactItem({ contact, user, existingConv }) {
     if (existingConv) return;
     setCreating(true);
     try {
-      const conv = await entities.Conversation.create({
-        participant_ids: JSON.stringify([user.id, contact.id]),
-        participant_names: JSON.stringify([user.full_name || "User", name]),
-        type: "dm", last_message: "",
+      const { data: conv } = await client.post('/api/messages/conversations/find-or-create', {
+        target_user_id: contact.user_id || contact.id,
       });
       window.location.href = `/messages/${conv.id}`;
     } catch {}
@@ -427,7 +456,21 @@ function ContactItem({ contact, user, existingConv }) {
       className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-secondary/40 transition-colors"
     >
       {avatarUrl ? (
-        <Image src={avatarUrl} alt={name} width={44} height={44} className="w-11 h-11 rounded-full object-cover shrink-0 ring-2 ring-border/20" unoptimized />
+        <div
+          className="relative w-11 h-11 rounded-full flex items-center justify-center text-white font-bold shrink-0 shadow-sm overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, var(--ex-blue), var(--ex-purple))' }}
+        >
+          {name.charAt(0).toUpperCase()}
+          <Image
+            src={avatarUrl}
+            alt={name}
+            width={44}
+            height={44}
+            className="absolute inset-0 w-11 h-11 rounded-full object-cover ring-2 ring-border/20"
+            onError={event => { event.currentTarget.style.display = 'none'; }}
+            unoptimized
+          />
+        </div>
       ) : (
         <div
           className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold shrink-0 shadow-sm"
