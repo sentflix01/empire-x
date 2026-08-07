@@ -532,4 +532,5 @@ function Orders() {
   );
 }
 
-export default DeliveryTimeline;
+export { DeliveryTimeline };
+export default Orders;

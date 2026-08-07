@@ -268,8 +268,15 @@ router.post('/google', async (req, res) => {
 // ── GET /api/auth/me ─────────────────────────────────────────────────────────
 router.get('/me', requireAuth, async (req, res) => {
   try {
+    // BUG-6 follow-up: fall back to the profile display_name when
+    // users.full_name is NULL/empty so the nav never shows "User".
     const { rows } = await pool.query(
-      'SELECT id, email, full_name, role, is_verified, created_at FROM users WHERE id = $1',
+      `SELECT u.id, u.email,
+              COALESCE(NULLIF(TRIM(u.full_name), ''), up.display_name) AS full_name,
+              u.role, u.is_verified, u.created_at
+       FROM users u
+       LEFT JOIN user_profiles up ON up.user_id = u.id
+       WHERE u.id = $1`,
       [req.user.id]
     );
     if (!rows.length) return apiError.notFound(res, 'User not found');

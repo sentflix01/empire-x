@@ -180,8 +180,8 @@ export default function ProductDetail() {
               {inStock ? (product.stock ? `${product.stock} in stock` : "In stock") : "Out of stock"}
             </span>
             {product.view_count > 0 && <span>{product.view_count} views</span>}
-            {product.average_rating > 0 && (
-              <span className="flex items-center gap-0.5"><Star className="w-3 h-3 text-amber-500 fill-amber-500" /> {product.average_rating?.toFixed(1)}</span>
+            {Number(product.average_rating) > 0 && (
+              <span className="flex items-center gap-0.5"><Star className="w-3 h-3 text-amber-500 fill-amber-500" /> {Number(product.average_rating).toFixed(1)}</span>
             )}
           </div>
 

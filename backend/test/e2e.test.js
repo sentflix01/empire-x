@@ -310,11 +310,25 @@ async function run() {
   const walletAfterTopup = await request('GET', '/api/wallet/me', { token: TOKEN });
   assert('Balance increased after topup', parseFloat(walletAfterTopup.body?.balance) >= 500);
 
-  // Bug 1.13: POST /api/wallet/refund must exist
-  const refund = await request('POST', '/api/wallet/refund',
+  // Bug 1.13: POST /api/wallet/refund must exist — it is admin-gated, so a
+  // regular user must get 403 and an admin must get 200.
+  const refundForbidden = await request('POST', '/api/wallet/refund',
     { token: TOKEN, body: { user_id: USER_ID, amount: 50, description: 'E2E refund' } });
-  assert('POST /api/wallet/refund returns 200 (bug 1.13)', refund.status === 200,
-    `got ${refund.status}: ${JSON.stringify(refund.body)}`);
+  assert('POST /api/wallet/refund as regular user returns 403', refundForbidden.status === 403,
+    `got ${refundForbidden.status}: ${JSON.stringify(refundForbidden.body)}`);
+
+  // Promote the e2e user to admin directly in the DB (requireAuth re-reads
+  // the role from users on every request), then verify the admin path.
+  await pool.query("UPDATE users SET role = 'admin' WHERE id = $1", [USER_ID]);
+  try {
+    const refund = await request('POST', '/api/wallet/refund',
+      { token: TOKEN, body: { user_id: USER_ID, amount: 50, description: 'E2E refund' } });
+    assert('POST /api/wallet/refund as admin returns 200 (bug 1.13)', refund.status === 200,
+      `got ${refund.status}: ${JSON.stringify(refund.body)}`);
+  } finally {
+    // Restore regular role so later sections test non-admin behavior
+    await pool.query("UPDATE users SET role = 'user' WHERE id = $1", [USER_ID]);
+  }
 
   // ── 9. CRUD ALLOWLIST ──────────────────────────────────────────────────────
   section('9. crud.js ALLOWED_TABLES validation (bug 1.7)');

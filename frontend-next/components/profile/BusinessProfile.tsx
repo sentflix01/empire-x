@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
 import { getCategoryByValue } from "@/lib/businessTemplates";
 import { findOrCreateConversation } from "@/lib/messaging";
-import SectionRenderer from "@/components/showroom/SectionRenderer";
+import SectionRenderer, { resolveCtaTarget } from "@/components/showroom/SectionRenderer";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import SafeImage from "@/components/ui/SafeImage";
 
@@ -58,6 +58,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
   };
 
   const sections = (() => { try { return JSON.parse(biz.business_sections || "[]"); } catch { return []; } })();
+  const ctaTarget = resolveCtaTarget(sections);
   const category = getCategoryByValue(biz.business_category);
   const themeColor = biz.business_theme_color || "#2563EB";
   const hours = (() => { try { return JSON.parse(biz.business_hours || "[]"); } catch { return []; } })();
@@ -122,6 +123,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
                 isOwner={isOwner}
                 onBuy={handleBuy}
                 hours={hours}
+                ctaTarget={ctaTarget}
               />
             );
           })}

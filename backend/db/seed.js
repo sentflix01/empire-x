@@ -676,7 +676,9 @@ async function seed() {
           p.content, p.image_url,
           p.poll_options ? 'text' : (p.image_url ? 'image' : 'text'),
           p.poll_options, p.poll_ends_at,
-          rand(0, 400), rand(0, 40),
+          // like_count is cosmetic; comment_count starts at 0 and is
+          // recomputed below from the actual comments we insert (BUG-3 fix)
+          rand(0, 400), 0,
           p.created_at,
         ]
       );
@@ -780,6 +782,12 @@ async function seed() {
         [post.id, user.id, `${user.first} ${user.last}`, faker.lorem.sentences(1)]
       );
     }
+    // Keep posts.comment_count consistent with the comments table (BUG-3 fix)
+    await client.query(`
+      UPDATE posts p SET comment_count = c.cnt
+      FROM (SELECT post_id, COUNT(*)::int AS cnt FROM comments GROUP BY post_id) c
+      WHERE p.id = c.post_id
+    `);
     const NOTIF_TYPES = ['like','comment','follow','message','order','task_update'];
     for (let i = 0; i < 200; i++) {
       const user = pick(users);

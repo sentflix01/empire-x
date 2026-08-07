@@ -30,7 +30,7 @@ router.get('/', optionalAuth, async (req, res) => {
            LIMIT 10`
         ),
         pool.query(
-          `SELECT id, seller_id, title, price, currency, images, category, view_count, average_rating
+          `SELECT id, seller_id, title, price, currency, images, category, view_count, average_rating::float8 AS average_rating
            FROM products
            WHERE status = 'active' ${realProdWhere}
            ORDER BY view_count DESC LIMIT 8`
@@ -87,7 +87,7 @@ router.get('/warm', async (_req, res) => {
            ORDER BY p.like_count DESC, p.comment_count DESC LIMIT 10`
         ),
         pool.query(
-          `SELECT id, seller_id, title, price, currency, images, category, view_count, average_rating
+          `SELECT id, seller_id, title, price, currency, images, category, view_count, average_rating::float8 AS average_rating
            FROM products WHERE status = 'active' ORDER BY view_count DESC LIMIT 8`
         ),
         pool.query(

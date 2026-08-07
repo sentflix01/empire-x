@@ -9,6 +9,21 @@ import { Button } from "@/components/ui/button";
 
 const parseImages = (img?: string | string[] | null) => { try { return JSON.parse(String(img || "[]")); } catch { return img ? [img].flat() : []; } };
 
+/**
+ * Resolve the anchor the hero CTA should scroll to, based on the sections
+ * that actually exist in the template. Prefers a products section, falls
+ * back to a menu/services section, and returns null when there is no
+ * sensible target (the CTA is then hidden instead of being a dead link).
+ */
+export function resolveCtaTarget(sections: Array<Record<string, any>>): string | null {
+  const list = Array.isArray(sections) ? sections : [];
+  if (list.some(s => s?.type === "products" || s?.type === "featured_products")) {
+    return "#section-products";
+  }
+  const menuIdx = list.findIndex(s => s?.type === "menu" || s?.type === "services");
+  return menuIdx >= 0 ? `#section-${menuIdx}` : null;
+}
+
 interface SectionRendererProps {
   section: Record<string, any>;
   sectionIndex: number;
@@ -19,6 +34,8 @@ interface SectionRendererProps {
   onBuy?: (product: Record<string, any>) => void;
   hours?: Array<{ day: string; hours: string }>;
   showProductLinks?: boolean;
+  /** Anchor for the hero CTA; null hides the CTA (no valid target). */
+  ctaTarget?: string | null;
 }
 
 export default function SectionRenderer({
@@ -31,6 +48,7 @@ export default function SectionRenderer({
   onBuy,
   hours = [],
   showProductLinks = true,
+  ctaTarget = null,
 }: SectionRendererProps) {
   const s = section;
   const biz = (profile ?? {}) as Record<string, any>;
@@ -43,8 +61,8 @@ export default function SectionRenderer({
           {(s.subtitle || biz.description || biz.business_description) && (
             <p className="text-sm text-muted-foreground mb-4">{s.subtitle || biz.description || biz.business_description}</p>
           )}
-          {s.cta && (
-            <a href="#section-products">
+          {s.cta && ctaTarget && (
+            <a href={ctaTarget}>
               <Button className="rounded-full text-white px-6" style={{ backgroundColor: themeColor }}>{s.cta}</Button>
             </a>
           )}
@@ -55,7 +73,8 @@ export default function SectionRenderer({
 
   if (s.type === "products" || s.type === "featured_products") {
     return (
-      <div id={`section-${sectionIndex}`} className="px-5 py-10">
+      // id="section-products" is the anchor targeted by the hero CTA button
+      <div id={"section-products"} className="px-5 py-10">
         <h2 className="font-display text-lg font-bold mb-4">{s.title}</h2>
         {products.length === 0 ? (
           <div className="text-center py-8">

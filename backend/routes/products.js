@@ -8,6 +8,17 @@ const { cacheMiddleware } = require('../middleware/cache');
 
 const LOW_STOCK_THRESHOLD = 5;
 
+// Postgres NUMERIC columns (average_rating) are serialized as strings by pg.
+// Coerce rating fields to JS numbers so frontends can safely call .toFixed() etc.
+function normalizeProduct(p) {
+  if (!p) return p;
+  const out = { ...p };
+  if (out.average_rating != null) out.average_rating = Number(out.average_rating) || 0;
+  if (out.review_count != null) out.review_count = Number(out.review_count) || 0;
+  if (out.rating_count != null) out.rating_count = Number(out.rating_count) || 0;
+  return out;
+}
+
 async function checkLowStockAlert(prevStock, newStock, product, sellerId) {
   if (prevStock > LOW_STOCK_THRESHOLD && newStock <= LOW_STOCK_THRESHOLD && newStock >= 0) {
     try {
@@ -39,7 +50,7 @@ router.get('/', optionalAuth, cacheMiddleware('products:list', 90), async (req, 
         `SELECT p.* FROM products p JOIN users u ON u.id = p.seller_id WHERE ${conditions.join(' AND ')} ORDER BY p.created_at DESC LIMIT $${values.length}`,
         values
       );
-      return res.json(rows);
+      return res.json(rows.map(normalizeProduct));
     }
 
     const filter = {};
@@ -47,7 +58,7 @@ router.get('/', optionalAuth, cacheMiddleware('products:list', 90), async (req, 
     if (business_id) filter.business_id = business_id;
     if (showroom_id) filter.showroom_id = showroom_id;
     if (status) filter.status = status;
-    res.json(await listRecords('products', { filter, sort, limit }));
+    res.json((await listRecords('products', { filter, sort, limit })).map(normalizeProduct));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch products' });
   }
@@ -58,7 +69,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const product = await getRecord('products', req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
-    res.json(product);
+    res.json(normalizeProduct(product));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch product' });
   }
@@ -70,7 +81,7 @@ router.post('/', requireAuth, async (req, res) => {
     const { title, price } = req.body;
     if (!title || price == null) return res.status(400).json({ error: 'title and price are required' });
     const product = await createRecord('products', { ...req.body, seller_id: req.user.id });
-    res.status(201).json(product);
+    res.status(201).json(normalizeProduct(product));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to create product' });
@@ -134,7 +145,7 @@ router.put('/:id', requireAuth, async (req, res) => {
       }
     }
 
-    res.json(updated);
+    res.json(normalizeProduct(updated));
   } catch (err) {
     res.status(500).json({ error: 'Failed to update product' });
   }

@@ -18,6 +18,15 @@ function sanitizeCoverPositions(body) {
   return body;
 }
 
+// ── BUG-6 fix: mirror the profile display_name into users.full_name ──────────
+// Registration has no name field, so users.full_name stays NULL until the user
+// completes onboarding — which only wrote user_profiles. The nav/avatar reads
+// users.full_name, so sync it here whenever a profile name is saved.
+async function syncUserName(userId, displayName) {
+  if (typeof displayName !== 'string' || !displayName.trim()) return;
+  await pool.query('UPDATE users SET full_name = $1 WHERE id = $2', [displayName.trim(), userId]);
+}
+
 // Get my profile
 router.get('/me', requireAuth, async (req, res) => {
   try {
@@ -151,6 +160,7 @@ router.post('/', requireAuth, async (req, res) => {
       ...req.body,
       user_id: req.user.id,
     });
+    await syncUserName(req.user.id, req.body.display_name);
     res.status(201).json(profile);
   } catch (err) {
     console.error(err);
@@ -172,6 +182,7 @@ router.put('/me/upsert', requireAuth, async (req, res) => {
     } else {
       profile = await createRecord('user_profiles', { ...body, user_id: req.user.id });
     }
+    await syncUserName(req.user.id, body.display_name);
     res.json(profile);
   } catch (err) {
     console.error(err);
@@ -189,6 +200,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     }
     const updated = await updateRecord('user_profiles', req.params.id, sanitizeCoverPositions(req.body));
     if (!updated) return res.status(404).json({ error: 'Profile not found' });
+    await syncUserName(existing.user_id, req.body.display_name);
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update profile' });

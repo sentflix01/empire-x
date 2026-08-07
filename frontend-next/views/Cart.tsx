@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import React, { useState } from "react";
 import { useCart } from "@/lib/CartContext";
+import client from "@/api/client";
 import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, ShoppingBag, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -18,10 +19,62 @@ function Cart() {
 
   const { items = [], total = 0 } = cart;
 
-  const handleCheckout = () => {
-    if (!items.length) return;
-    toast.info("Checkout: opening each product page to complete orders.");
-    router.push(`/products/${items[0].product_id}`);
+  const handleCheckout = async () => {
+    if (!items.length || checkingOut) return;
+    setCheckingOut(true);
+    try {
+      // 1) Try the hosted payment checkout (Stripe supports multi-item carts).
+      //    Prices are re-computed server-side; this only redirects the buyer.
+      try {
+        const { data } = await client.post('/api/orders/checkout/session', {
+          items: items.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
+        });
+        if (data?.url) {
+          await clearCart();
+          toast.success('Redirecting to secure checkout…');
+          window.location.href = data.url;
+          return;
+        }
+      } catch {
+        // Stripe not configured / disabled — fall through to COD below
+      }
+
+      // 2) Graceful degradation: place Cash-on-Delivery orders directly.
+      //    One order per seller (matches the backend's per-seller order model).
+      const groups = new Map();
+      for (const item of items) {
+        const g = groups.get(item.seller_id) || { seller_id: item.seller_id, items: [], total: 0 };
+        g.items.push(item);
+        g.total += parseFloat(item.price) * item.quantity;
+        groups.set(item.seller_id, g);
+      }
+      let placed = 0;
+      for (const g of groups.values()) {
+        const first = g.items[0];
+        await client.post('/api/orders', {
+          seller_id: g.seller_id,
+          product_id: first.product_id,
+          product_title: g.items.map(i => `${i.quantity}× ${i.title}`).join(', '),
+          quantity: g.items.reduce((s, i) => s + i.quantity, 0),
+          unit_price: parseFloat(first.price),
+          total_price: Math.round(g.total * 100) / 100,
+          currency: first.currency || 'ETB',
+          status: 'pending',
+        });
+        placed++;
+      }
+      await clearCart();
+      toast.success(
+        placed > 1
+          ? `${placed} orders placed (one per seller). Online payments aren't set up yet — pay on delivery.`
+          : 'Order placed! Online payments aren\'t set up yet — pay on delivery.'
+      );
+      router.push('/orders');
+    } catch (err) {
+      toast.error(err?.error || err?.message || 'Checkout failed. Please try again.');
+    } finally {
+      setCheckingOut(false);
+    }
   };
 
   return (
@@ -122,7 +175,7 @@ function Cart() {
                   <span className="text-amber-600">{total.toLocaleString()} ETB</span>
                 </div>
               </div>
-              <Button onClick={handleCheckout}
+              <Button onClick={handleCheckout} disabled={checkingOut}
                 className="w-full mt-4 h-12 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 font-semibold">
                 {checkingOut ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 {t('cart.checkout', { total: total.toLocaleString() })} <ArrowRight className="w-4 h-4 ml-2" />

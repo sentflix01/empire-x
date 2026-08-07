@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
   // double-mount no longer double-initialises maps.
   reactStrictMode: true,
 
+  // BUG-5: the dev-tools launcher defaulted to the bottom-left corner and
+  // overlapped the sidebar footer, stealing clicks from the Log out button.
+  // Pin it to the bottom-right where no UI controls live.
+  devIndicators: {
+    position: "bottom-right",
+  },
+
   // Turbopack config — fix workspace root detection warning
   turbopack: {
     // Tell Turbopack to treat leaflet CSS as client-only
