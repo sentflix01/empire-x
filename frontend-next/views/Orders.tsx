@@ -37,6 +37,7 @@ const RETURN_REASONS = [
 
 /* ── Delivery Timeline ──────────────────────────────────────────────────── */
 function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: boolean }) {
+  const { t } = useTranslation();
   const [updates, setUpdates]     = useState<any[]>([]);
   const [loading, setLoading]     = useState(true);
   const [adding, setAdding]       = useState(false);
@@ -175,6 +176,7 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
 
 /* ── Return Request Form ─────────────────────────────────────────────────── */
 function ReturnRequestForm({ order, onSubmitted }: { order: any; onSubmitted: () => void }) {
+  const { t } = useTranslation();
   const [reason, setReason]   = useState(RETURN_REASONS[0]);
   const [details, setDetails] = useState("");
   const [saving, setSaving]   = useState(false);
@@ -344,9 +346,9 @@ function Orders() {
     setLoading(false);
   };
 
-  const switchTab = (t) => {
-    setTab(t);
-    if (user) loadOrders(user, t);
+  const switchTab = (mode) => {
+    setTab(mode);
+    if (user) loadOrders(user, mode);
   };
 
   const updateStatus = async (orderId, status) => {
@@ -368,10 +370,11 @@ function Orders() {
       </div>
 
       <div className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-5">
-        {["selling", "buying"].map(t => (
-          <button key={t} onClick={() => switchTab(t)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${tab === t ? "bg-amber-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}>
-            {t === "selling" ? t('orders.mySales') : t('orders.myPurchases')}
+        {/* Loop var is `mode` — `t` would shadow the translation function */}
+        {["selling", "buying"].map(mode => (
+          <button key={mode} onClick={() => switchTab(mode)}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${tab === mode ? "bg-amber-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}>
+            {mode === "selling" ? t('orders.mySales') : t('orders.myPurchases')}
           </button>
         ))}
       </div>
