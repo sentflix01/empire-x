@@ -374,11 +374,18 @@ router.put('/presence', requireAuth, async (req, res) => {
     // development fallback.
     const redis = getRedis();
     if (!redis.isNoOp) {
-      await redis.set(`presence:${req.user.id}`, JSON.stringify(presence), 'EX', 15 * 60);
+      // Presence must still work when an optional Redis service is down. The
+      // in-memory store and database timestamp below are the safe fallback.
+      try {
+        await redis.set(`presence:${req.user.id}`, JSON.stringify(presence), 'EX', 15 * 60);
+      } catch (err) {
+        logger.warn({ err: err.message }, 'Presence Redis write failed; using fallback');
+      }
     }
 
-    // Update DB last_seen — only on online (not every offline heartbeat)
-    if (status === 'online') {
+    // Persist both chat entry and chat exit. This makes "last seen" mean the
+    // exact time a person left Messages, even if Redis later expires/restarts.
+    if (status === 'online' || status === 'offline') {
       pool.query(
         'UPDATE users SET updated_at = NOW(), last_seen = NOW() WHERE id = $1',
         [req.user.id]
@@ -424,15 +431,19 @@ router.get('/presence/:userId', requireAuth, async (req, res) => {
 
     // 1. Try Redis first
     if (!redis.isNoOp) {
-      const cached = await redis.get(`presence:${req.params.userId}`);
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          status = parsed.status || 'offline';
-          last_seen = parsed.last_seen || null;
-        } catch {
-          status = cached === 'online' ? 'online' : 'offline';
+      try {
+        const cached = await redis.get(`presence:${req.params.userId}`);
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            status = parsed.status || 'offline';
+            last_seen = parsed.last_seen || null;
+          } catch {
+            status = cached === 'online' ? 'online' : 'offline';
+          }
         }
+      } catch (err) {
+        logger.warn({ err: err.message }, 'Presence Redis read failed; using fallback');
       }
     }
 

@@ -13,6 +13,7 @@ import { getCategoryByValue } from "@/lib/businessTemplates";
 import { findOrCreateConversation } from "@/lib/messaging";
 import SectionRenderer from "@/components/showroom/SectionRenderer";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import SafeImage from "@/components/ui/SafeImage";
 
 const parseImages = (img) => { try { return JSON.parse(img || "[]"); } catch { return img ? [img] : []; } };
 
@@ -76,7 +77,8 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
         <div className="md:sticky top-14 z-30 bg-background/95 backdrop-blur-md border-b border-border/50 px-4 py-2.5 flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 min-w-0">
             {biz.business_logo_url ? (
-              <img src={biz.business_logo_url} alt={biz.business_name || 'Business logo'} className="w-7 h-7 rounded-lg object-cover shrink-0" />
+              <SafeImage src={biz.business_logo_url} alt={biz.business_name || 'Business logo'} className="w-7 h-7 rounded-lg object-cover shrink-0"
+                fallback={<div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ backgroundColor: themeColor }}>{biz.business_name?.charAt(0) || "B"}</div>} />
             ) : (
               <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ backgroundColor: themeColor }}>
                 {biz.business_name?.charAt(0) || "B"}

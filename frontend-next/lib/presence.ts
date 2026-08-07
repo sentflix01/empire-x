@@ -217,14 +217,12 @@ export function presenceDotColor(category: PresenceCategory): string {
 // ─── Convenience re-export ────────────────────────────────────────────────────
 
 /**
- * isOnline — true if status is 'online' OR last_seen was < 5 minutes ago
- * (covers the gap where heartbeat marks online but status hasn't been updated yet)
+ * A user is online only while the server reports an active chat presence.
+ * A recent last_seen must remain offline so the UI can show the time the user
+ * left the chat screen rather than a misleading green online indicator.
  */
 export function isUserOnline(data: PresenceData | null): boolean {
   if (!data) return false;
   if (data.hidden) return false;
-  if (data.status === 'online') return true;
-  const d = safeParseDate(data.last_seen);
-  if (!d) return false;
-  return differenceInSeconds(new Date(), d) < 300;
+  return data.status === 'online';
 }

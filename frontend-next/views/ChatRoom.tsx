@@ -14,6 +14,8 @@ import moment from "moment";
 import { toast } from "sonner";
 import { formatLastSeen, isUserOnline } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
+import { useChatPresence } from "@/lib/useChatPresence";
+import SafeImage from "@/components/ui/SafeImage";
 
 
 
@@ -47,12 +49,16 @@ export default function ChatRoom() {
   const [otherUserId, setOtherUserId] = useState(null);
   const [presence, setPresence]       = useState<PresenceData | null>(null);
   const [otherTyping, setOtherTyping] = useState(false);
+  const [otherProfile, setOtherProfile] = useState<any>(null);
 
   const bottomRef  = useRef(null);
   const inputRef   = useRef(null);
   const deleteTimer = useRef(null);
   const textRef    = useRef(""); // mirrors text state for reliable mobile access
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const remoteTypingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useChatPresence(Boolean(user));
 
   const setTyping = useCallback((isTyping: boolean) => {
     const convId = id || conversation?.id;
@@ -130,7 +136,14 @@ export default function ChatRoom() {
     socket.on('presence_updated', onPresenceUpdated);
     const onTypingUpdated = (update) => {
       if (update?.conversation_id === convId && String(update.user_id) !== String(user?.id)) {
-        setOtherTyping(Boolean(update.is_typing));
+        const isTyping = Boolean(update.is_typing);
+        setOtherTyping(isTyping);
+        if (remoteTypingTimer.current) clearTimeout(remoteTypingTimer.current);
+        if (isTyping) {
+          // Clear a stale indicator if a phone loses connectivity before it can
+          // send its final typing=false event.
+          remoteTypingTimer.current = setTimeout(() => setOtherTyping(false), 3000);
+        }
       }
     };
     socket.on('typing_updated', onTypingUpdated);
@@ -144,6 +157,7 @@ export default function ChatRoom() {
       socket.off('presence_updated', onPresenceUpdated);
       socket.off('typing_updated', onTypingUpdated);
       setTyping(false);
+      if (remoteTypingTimer.current) clearTimeout(remoteTypingTimer.current);
     };
   }, [id, loadMessages, otherUserId, setTyping, user?.id]);
 
@@ -175,7 +189,20 @@ export default function ChatRoom() {
     return () => clearInterval(interval);
   }, [otherUserId]);
 
-  // Presence is handled globally in AppLayout — no need to set it here
+  // Load the partner avatar independently of the conversation record. Older
+  // conversations do not contain profile media, which used to leave only an
+  // initial in the chat header.
+  useEffect(() => {
+    if (!otherUserId) { setOtherProfile(null); return; }
+    let cancelled = false;
+    client.get(`/api/profiles?user_id=${otherUserId}&limit=1`)
+      .then(({ data }) => {
+        const profile = Array.isArray(data) ? data[0] : data?.data?.[0];
+        if (!cancelled) setOtherProfile(profile || null);
+      })
+      .catch(() => { if (!cancelled) setOtherProfile(null); });
+    return () => { cancelled = true; };
+  }, [otherUserId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -362,6 +389,9 @@ export default function ChatRoom() {
   };
 
   const avatarLetter = getDisplayName().charAt(0).toUpperCase();
+  const otherAvatarUrl = Array.isArray(otherProfile?.avatar_url)
+    ? otherProfile.avatar_url[0]
+    : otherProfile?.avatar_url;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -375,8 +405,10 @@ export default function ChatRoom() {
 
         {/* Avatar */}
         <div className="relative shrink-0">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-            {isChannel ? <Radio className="w-5 h-5" /> : isGroup ? <Users className="w-5 h-5" /> : avatarLetter}
+          <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-white font-semibold" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+            {isChannel ? <Radio className="w-5 h-5" /> : isGroup ? <Users className="w-5 h-5" /> : (
+              <SafeImage src={otherAvatarUrl} alt={getDisplayName()} className="h-full w-full object-cover" fallback={avatarLetter} />
+            )}
           </div>
           {isDm && isOnline && (
             <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-primary rounded-full" />

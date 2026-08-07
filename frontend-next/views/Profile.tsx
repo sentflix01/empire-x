@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { auth } from "@/api/auth";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
+import SafeImage from "@/components/ui/SafeImage";
 import { useTranslation } from 'react-i18next';
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -141,12 +141,12 @@ export default function Profile() {
         <div className="bg-card rounded-2xl border border-border/50 overflow-hidden mb-4">
           {/* Cover — personal: primary/accent (blue→purple) · business: gold scheme */}
           <div className={`h-28 relative ${view === "business" ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" : "bg-empire-gradient"}`}>
-            {view === "business" && profile.business_cover_url && (
-              <Image src={profile.business_cover_url as string} alt={`${profile.business_name || 'Business'} cover`} fill className="object-cover" unoptimized
+            {view === "business" && (
+              <SafeImage src={profile.business_cover_url} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: profile.business_cover_position || 'center' }} />
             )}
-            {view === "personal" && profile.cover_url && (
-              <Image src={profile.cover_url as string} alt={`${profile.display_name || 'User'} cover`} fill className="object-cover" unoptimized
+            {view === "personal" && (
+              <SafeImage src={profile.cover_url} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: profile.cover_position || 'center' }} />
             )}
           </div>
@@ -157,13 +157,13 @@ export default function Profile() {
                 <div className="w-24 h-24 rounded-2xl bg-card p-0.5 shadow-lg">
                   {view === "personal" ? (
                     <div className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center text-white text-3xl font-bold"
-                      style={{ background: profile.avatar_url ? 'transparent' : 'linear-gradient(135deg,#60a5fa,#2563eb)' }}>
-                      {profile.avatar_url
-                        ? <Image src={profile.avatar_url as string} alt={profile.display_name || 'User'} width={96} height={96} className="w-full h-full object-cover rounded-xl" unoptimized />
-                        : (profile.display_name?.charAt(0) || "U")}
+                      style={{ background: 'linear-gradient(135deg,#60a5fa,#2563eb)' }}>
+                      <SafeImage src={profile.avatar_url} alt={profile.display_name || 'User'} className="w-full h-full object-cover rounded-xl"
+                        fallback={profile.display_name?.charAt(0) || "U"} />
                     </div>
                   ) : profile.business_logo_url ? (
-                    <Image src={profile.business_logo_url as string} alt={profile.business_name || 'Business'} width={96} height={96} className="w-full h-full rounded-xl object-cover" unoptimized />
+                    <SafeImage src={profile.business_logo_url} alt={profile.business_name || 'Business'} className="w-full h-full rounded-xl object-cover"
+                      fallback={<div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl font-bold">{profile.business_name?.charAt(0) || "B"}</div>} />
                   ) : (
                     <div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
                       {profile.business_name?.charAt(0) || "B"}

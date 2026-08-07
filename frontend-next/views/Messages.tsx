@@ -1,18 +1,20 @@
 'use client'
 import Link from 'next/link';
 import Image from 'next/image';
-import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
 import client from "@/api/client";
 import { useTranslation } from 'react-i18next';
 import { useRealMode } from "@/lib/RealModeContext";
-import { Search, Users, Radio, User as UserIcon, MessageCircle, GripVertical } from "lucide-react";
+import { Search, Users, Radio, User as UserIcon, MessageCircle, GripVertical, ArrowDownAZ, Clock3 } from "lucide-react";
 import moment from "moment";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
 import { formatLastSeen, isUserOnline } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
 import { getSocket, connectSocket } from "@/lib/socket";
+import { useChatPresence } from "@/lib/useChatPresence";
 
 // ── Default tab order: Contacts first ──────────────────────────────────────
 const DEFAULT_TAB_ORDER = ["contacts", "all", "groups", "channels"];
@@ -36,6 +38,7 @@ function saveTabOrder(order: string[]) {
 }
 
 export default function Messages() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { realMode } = useRealMode();
   const [conversations, setConversations] = useState([]);
@@ -46,6 +49,9 @@ export default function Messages() {
   const [tab, setTab] = useState("contacts"); // default = contacts
   const [presence, setPresence] = useState<Record<string, PresenceData>>({});
   const [typingConversations, setTypingConversations] = useState<Record<string, boolean>>({});
+  const [contactSort, setContactSort] = useState<'recent' | 'name'>('recent');
+
+  useChatPresence(Boolean(user));
 
   // ── Tab order state — persisted in localStorage ──────────────────────────
   const [tabOrder, setTabOrder] = useState<string[]>(DEFAULT_TAB_ORDER);
@@ -219,6 +225,20 @@ export default function Messages() {
     !search || (c.display_name || c.headline || "").toLowerCase().includes(search.toLowerCase())
   );
 
+  const sortedContacts = useMemo(() => [...filteredContacts].sort((a, b) => {
+    const aName = a.display_name || a.headline || '';
+    const bName = b.display_name || b.headline || '';
+    if (contactSort === 'name') return aName.localeCompare(bName, undefined, { sensitivity: 'base' });
+
+    const aPresence = presence[a.user_id || a.id];
+    const bPresence = presence[b.user_id || b.id];
+    const onlineDelta = Number(isUserOnline(bPresence || null)) - Number(isUserOnline(aPresence || null));
+    if (onlineDelta) return onlineDelta;
+    const aLastSeen = aPresence?.last_seen ? new Date(aPresence.last_seen).getTime() : 0;
+    const bLastSeen = bPresence?.last_seen ? new Date(bPresence.last_seen).getTime() : 0;
+    return bLastSeen - aLastSeen || aName.localeCompare(bName, undefined, { sensitivity: 'base' });
+  }), [filteredContacts, contactSort, presence]);
+
   // (tabs and tabOrder defined above)
 
   return (
@@ -291,13 +311,25 @@ export default function Messages() {
 
         ) : tab === "contacts" ? (
           <div className="px-2 pt-2">
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-2 pb-2">
-              {filteredContacts.length} Contacts
-            </p>
-            {filteredContacts.length === 0 ? (
+            <div className="flex items-center justify-between gap-2 px-2 pb-2">
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                {sortedContacts.length} Contacts
+              </p>
+              <div className="flex items-center rounded-lg bg-secondary p-0.5" aria-label="Sort contacts">
+                <button onClick={() => setContactSort('recent')} aria-pressed={contactSort === 'recent'} title="Sort by recently online"
+                  className={`p-1.5 rounded-md transition-colors ${contactSort === 'recent' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                  <Clock3 className="w-3.5 h-3.5" />
+                </button>
+                <button onClick={() => setContactSort('name')} aria-pressed={contactSort === 'name'} title="Sort by name"
+                  className={`p-1.5 rounded-md transition-colors ${contactSort === 'name' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                  <ArrowDownAZ className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+            {sortedContacts.length === 0 ? (
               <EmptyState icon={UserIcon} title="No contacts found" />
             ) : (
-              filteredContacts.map(contact => (
+              sortedContacts.map(contact => (
                 <ContactItem key={contact.id} contact={contact} user={user} presence={presence[contact.user_id || contact.id]}
                   existingConv={conversations.find(c => {
                     try {
@@ -356,6 +388,8 @@ export default function Messages() {
                 <Link
                   key={conv.id}
                   href={`/messages/${conv.id}`}
+                  prefetch
+                  onPointerEnter={() => router.prefetch(`/messages/${conv.id}`)}
                   className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-secondary/40 active:bg-secondary/60 transition-colors group"
                 >
                   {/* Avatar */}
@@ -450,6 +484,7 @@ function EmptyState({ icon: Icon, title, subtitle }: { icon: any; title: string;
 /* ── Contact Item ── */
 function ContactItem({ contact, user, existingConv, presence }: { contact: any; user: any; existingConv: any; presence?: PresenceData }) {
   const [creating, setCreating] = useState(false);
+  const router = useRouter();
   const name = contact.display_name || contact.headline || "Unknown";
   const avatarUrl = Array.isArray(contact.avatar_url) ? (contact.avatar_url[0] ?? "") : (contact.avatar_url ?? "");
   const online = isUserOnline(presence || null);
@@ -461,7 +496,7 @@ function ContactItem({ contact, user, existingConv, presence }: { contact: any; 
       const { data: conv } = await client.post('/api/messages/conversations/find-or-create', {
         target_user_id: contact.user_id || contact.id,
       });
-      window.location.href = `/messages/${conv.id}`;
+      router.push(`/messages/${conv.id}`);
     } catch {}
     setCreating(false);
   };
@@ -469,6 +504,8 @@ function ContactItem({ contact, user, existingConv, presence }: { contact: any; 
   return (
     <Link
       href={existingConv ? `/messages/${existingConv.id}` : "#"}
+      prefetch={Boolean(existingConv)}
+      onPointerEnter={() => { if (existingConv) router.prefetch(`/messages/${existingConv.id}`); }}
       onClick={e => { if (!existingConv) { e.preventDefault(); handleStartChat(); } }}
       className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-secondary/40 transition-colors"
     >

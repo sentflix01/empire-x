@@ -88,9 +88,7 @@ function formatLastSeen(data) {
 /** Mirror of isUserOnline() */
 function isUserOnline(data) {
   if (!data) return false;
-  if (data.status === 'online') return true;
-  if (!data.last_seen) return false;
-  return diffSeconds(new Date(data.last_seen)) < 300; // 5-min buffer
+  return data.status === 'online';
 }
 
 /** Mirror of getPresenceCategory() */
@@ -220,12 +218,12 @@ async function main() {
   assertEq(getPresenceCategory({ status: 'offline', last_seen: null }),          'unknown',    'no last_seen → unknown');
 
   // ── Part 3: isUserOnline() ────────────────────────────────────────────────
-  console.log('\n── Part 3: isUserOnline() — 5-min buffer ──\n');
+  console.log('\n── Part 3: isUserOnline() — active chat only ──\n');
 
   assert( isUserOnline({ status: 'online',  last_seen: null }),         'status=online → true');
   assert(!isUserOnline({ status: 'offline', last_seen: null }),         'offline, no ts → false');
-  assert( isUserOnline({ status: 'offline', last_seen: secsAgo(60) }), 'offline, 1 min ago → true (in 5-min buffer)');
-  assert( isUserOnline({ status: 'offline', last_seen: secsAgo(299) }),'offline, 4m59s ago → true');
+  assert(!isUserOnline({ status: 'offline', last_seen: secsAgo(60) }), 'offline, 1 min ago → false');
+  assert(!isUserOnline({ status: 'offline', last_seen: secsAgo(299) }),'offline, 4m59s ago → false');
   assert(!isUserOnline({ status: 'offline', last_seen: secsAgo(301) }),'offline, 5m1s ago → false');
   assert(!isUserOnline({ status: 'offline', last_seen: minsAgo(10) }), 'offline, 10 min ago → false');
   assert(!isUserOnline(null),                                            'null → false');
