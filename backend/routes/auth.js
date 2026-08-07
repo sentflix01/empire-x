@@ -270,12 +270,21 @@ router.get('/me', requireAuth, async (req, res) => {
   try {
     // BUG-6 follow-up: fall back to the profile display_name when
     // users.full_name is NULL/empty so the nav never shows "User".
+    // LATERAL + LIMIT 1 keeps this row-safe: user_profiles has no unique
+    // constraint on user_id, so a plain LEFT JOIN could fan out to multiple
+    // rows when duplicate profiles exist. Latest profile wins.
     const { rows } = await pool.query(
       `SELECT u.id, u.email,
               COALESCE(NULLIF(TRIM(u.full_name), ''), up.display_name) AS full_name,
               u.role, u.is_verified, u.created_at
        FROM users u
-       LEFT JOIN user_profiles up ON up.user_id = u.id
+       LEFT JOIN LATERAL (
+         SELECT display_name FROM user_profiles
+         WHERE user_id = u.id
+           AND display_name IS NOT NULL AND TRIM(display_name) <> ''
+         ORDER BY updated_at DESC NULLS LAST, created_at DESC
+         LIMIT 1
+       ) up ON TRUE
        WHERE u.id = $1`,
       [req.user.id]
     );

@@ -128,7 +128,19 @@ client.interceptors.response.use(
       });
     }
 
-    return Promise.reject(error.response?.data ?? error);
+    // Reject with the response body, but keep the HTTP status attached so
+    // callers can branch on it (e.g. checkout treating 503 "payments not
+    // configured" differently from 4xx validation failures).
+    const payload = error.response?.data ?? error;
+    if (error.response?.status) {
+      return Promise.reject(
+        Object.assign(
+          payload && typeof payload === 'object' ? payload : { error: payload },
+          { status: error.response.status },
+        ),
+      );
+    }
+    return Promise.reject(payload);
   }
 );
 

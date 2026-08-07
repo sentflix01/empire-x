@@ -322,7 +322,12 @@
     "total": "Total",
     "checkout": "Checkout — {{total}} ETB",
     "payNote": "💳 Pay on delivery · negotiate with each seller via chat",
-    "each": "each"
+    "each": "each",
+    "checkoutRedirect": "Redirecting to secure checkout…",
+    "orderPlaced": "Order placed! Online payments aren't set up yet — pay on delivery.",
+    "ordersPlaced": "{{count}} orders placed. Online payments aren't set up yet — pay on delivery.",
+    "checkoutFailed": "Checkout failed. Please try again.",
+    "partialCheckout": "{{placed}} order(s) placed; remaining items failed: {{reason}}"
   },
   "wallet": {
     "title": "My Wallet",

@@ -321,10 +321,19 @@ async function run() {
   // the role from users on every request), then verify the admin path.
   await pool.query("UPDATE users SET role = 'admin' WHERE id = $1", [USER_ID]);
   try {
+    const balanceBeforeRefund = parseFloat(walletAfterTopup.body?.balance);
     const refund = await request('POST', '/api/wallet/refund',
       { token: TOKEN, body: { user_id: USER_ID, amount: 50, description: 'E2E refund' } });
     assert('POST /api/wallet/refund as admin returns 200 (bug 1.13)', refund.status === 200,
       `got ${refund.status}: ${JSON.stringify(refund.body)}`);
+    // Pin the refund side effect: refund CREDITS the wallet (+50)
+    assert('Refund credits wallet: balance === previous + 50',
+      Math.abs(parseFloat(refund.body?.balance) - (balanceBeforeRefund + 50)) < 0.001,
+      `before=${balanceBeforeRefund} after=${refund.body?.balance}`);
+    const walletAfterRefund = await request('GET', '/api/wallet/me', { token: TOKEN });
+    assert('GET /api/wallet/me confirms balance + 50 after refund',
+      Math.abs(parseFloat(walletAfterRefund.body?.balance) - (balanceBeforeRefund + 50)) < 0.001,
+      `got ${walletAfterRefund.body?.balance}`);
   } finally {
     // Restore regular role so later sections test non-admin behavior
     await pool.query("UPDATE users SET role = 'user' WHERE id = $1", [USER_ID]);

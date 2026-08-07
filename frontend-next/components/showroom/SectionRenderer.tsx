@@ -11,17 +11,26 @@ const parseImages = (img?: string | string[] | null) => { try { return JSON.pars
 
 /**
  * Resolve the anchor the hero CTA should scroll to, based on the sections
- * that actually exist in the template. Prefers a products section, falls
- * back to a menu/services section, and returns null when there is no
- * sensible target (the CTA is then hidden instead of being a dead link).
+ * that actually exist in the template. Prefers the FIRST products-type
+ * section, falls back to a menu/services section, and returns null when
+ * there is no sensible target (the CTA is then hidden, not a dead link).
+ *
+ * Targets are always the index-based ids emitted by SectionRenderer
+ * (`section-{index}`), so they resolve even when multiple products-type
+ * sections exist (only the first gets the semantic `section-products` alias).
  */
 export function resolveCtaTarget(sections: Array<Record<string, any>>): string | null {
   const list = Array.isArray(sections) ? sections : [];
-  if (list.some(s => s?.type === "products" || s?.type === "featured_products")) {
-    return "#section-products";
-  }
+  const productsIdx = list.findIndex(s => s?.type === "products" || s?.type === "featured_products");
+  if (productsIdx >= 0) return `#section-${productsIdx}`;
   const menuIdx = list.findIndex(s => s?.type === "menu" || s?.type === "services");
   return menuIdx >= 0 ? `#section-${menuIdx}` : null;
+}
+
+/** Index of the first products/featured_products section, or -1. */
+export function firstProductsIndex(sections: Array<Record<string, any>>): number {
+  const list = Array.isArray(sections) ? sections : [];
+  return list.findIndex(s => s?.type === "products" || s?.type === "featured_products");
 }
 
 interface SectionRendererProps {
@@ -36,6 +45,11 @@ interface SectionRendererProps {
   showProductLinks?: boolean;
   /** Anchor for the hero CTA; null hides the CTA (no valid target). */
   ctaTarget?: string | null;
+  /**
+   * True for the FIRST products/featured_products section only — renders the
+   * semantic `section-products` anchor exactly once (no duplicate DOM ids).
+   */
+  isPrimaryProducts?: boolean;
 }
 
 export default function SectionRenderer({
@@ -49,6 +63,7 @@ export default function SectionRenderer({
   hours = [],
   showProductLinks = true,
   ctaTarget = null,
+  isPrimaryProducts = false,
 }: SectionRendererProps) {
   const s = section;
   const biz = (profile ?? {}) as Record<string, any>;
@@ -73,8 +88,11 @@ export default function SectionRenderer({
 
   if (s.type === "products" || s.type === "featured_products") {
     return (
-      // id="section-products" is the anchor targeted by the hero CTA button
-      <div id={"section-products"} className="px-5 py-10">
+      // Index-based id is the PRIMARY anchor for nav links; the semantic
+      // `section-products` id is added ONLY for the first products-type
+      // section (via isPrimaryProducts) so the DOM never has duplicate ids.
+      <div id={`section-${sectionIndex}`} className="px-5 py-10">
+        {isPrimaryProducts && <span id="section-products" className="sr-only" aria-hidden="true" />}
         <h2 className="font-display text-lg font-bold mb-4">{s.title}</h2>
         {products.length === 0 ? (
           <div className="text-center py-8">

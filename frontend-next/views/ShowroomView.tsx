@@ -11,7 +11,7 @@ import { ArrowLeft, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeSVG } from "qrcode.react";
-import SectionRenderer, { resolveCtaTarget } from "@/components/showroom/SectionRenderer";
+import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
 
 export default function ShowroomView() {
   const { t } = useTranslation();
@@ -47,6 +47,7 @@ export default function ShowroomView() {
 
   const sections = (() => { try { return JSON.parse(showroom.sections); } catch { return []; } })();
   const ctaTarget = resolveCtaTarget(sections);
+  const productsIdx = firstProductsIndex(sections);
   const isOwner = user?.id === showroom.owner_id;
   const themeColor = showroom.theme_color || "#D4AF37";
   const profile = {
@@ -92,6 +93,7 @@ export default function ShowroomView() {
               isOwner={isOwner}
               showProductLinks
               ctaTarget={ctaTarget}
+              isPrimaryProducts={i === productsIdx}
             />
           ))}
           {!sections.some(s => s.type === "contact") && (

@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
 import { getCategoryByValue } from "@/lib/businessTemplates";
 import { findOrCreateConversation } from "@/lib/messaging";
-import SectionRenderer, { resolveCtaTarget } from "@/components/showroom/SectionRenderer";
+import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import SafeImage from "@/components/ui/SafeImage";
 
@@ -59,6 +59,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
 
   const sections = (() => { try { return JSON.parse(biz.business_sections || "[]"); } catch { return []; } })();
   const ctaTarget = resolveCtaTarget(sections);
+  const productsIdx = firstProductsIndex(sections);
   const category = getCategoryByValue(biz.business_category);
   const themeColor = biz.business_theme_color || "#2563EB";
   const hours = (() => { try { return JSON.parse(biz.business_hours || "[]"); } catch { return []; } })();
@@ -89,8 +90,8 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
             {profile.is_verified && <VerifiedBadge type={profile.verification_type} size="sm" />}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {sections.filter(s => s.title).slice(0, 3).map((s, i) => (
-              <a key={i} href={`#section-${i}`} className="hidden sm:block text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">{s.title}</a>
+            {sections.filter(s => s.title).slice(0, 3).map(s => (
+              <a key={s.title} href={`#section-${sections.indexOf(s)}`} className="hidden sm:block text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">{s.title}</a>
             ))}
             {isOwner ? (
               <Link href={`/business/edit?id=${business?.id || ""}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button></Link>
@@ -124,6 +125,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
                 onBuy={handleBuy}
                 hours={hours}
                 ctaTarget={ctaTarget}
+                isPrimaryProducts={idx === productsIdx}
               />
             );
           })}

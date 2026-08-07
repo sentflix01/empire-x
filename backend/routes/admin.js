@@ -169,6 +169,16 @@ router.delete('/posts/:id', async (req, res) => {
 });
 
 // ── Products ──────────────────────────────────────────────────────────────────
+// Postgres NUMERIC/bigint columns come back as strings from pg — coerce the
+// rating fields to numbers, mirroring normalizeProduct in routes/products.js.
+function normalizeProduct(p) {
+  const out = { ...p };
+  if (out.average_rating != null) out.average_rating = Number(out.average_rating) || 0;
+  if (out.review_count != null) out.review_count = Number(out.review_count) || 0;
+  if (out.rating_count != null) out.rating_count = Number(out.rating_count) || 0;
+  return out;
+}
+
 router.get('/products', async (req, res) => {
   try {
     const { limit = 50, offset = 0 } = req.query;
@@ -176,7 +186,7 @@ router.get('/products', async (req, res) => {
       'SELECT * FROM products ORDER BY created_at DESC LIMIT $1 OFFSET $2',
       [parseInt(limit), parseInt(offset)]
     );
-    res.json(rows);
+    res.json(rows.map(normalizeProduct));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch products' });
   }

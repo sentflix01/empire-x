@@ -30,48 +30,71 @@ function Cart() {
           items: items.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
         });
         if (data?.url) {
-          await clearCart();
-          toast.success('Redirecting to secure checkout…');
+          try { await clearCart(); } catch { /* cart cleanup must not block redirect */ }
+          toast.success(t('cart.checkoutRedirect'));
           window.location.href = data.url;
           return;
         }
-      } catch {
-        // Stripe not configured / disabled — fall through to COD below
+      } catch (err) {
+        // Fall through to COD ONLY when payments are genuinely unavailable:
+        // 503 = Stripe not configured/disabled, no status = network error.
+        // Any other status is a real validation failure from the backend
+        // (stock, draft product, missing product) — surface it and abort so
+        // the COD path can never bypass those checks.
+        if (err?.status && err.status !== 503) {
+          toast.error(err?.error || t('cart.checkoutFailed'));
+          return;
+        }
       }
 
-      // 2) Graceful degradation: place Cash-on-Delivery orders directly.
-      //    One order per seller (matches the backend's per-seller order model).
-      const groups = new Map();
-      for (const item of items) {
-        const g = groups.get(item.seller_id) || { seller_id: item.seller_id, items: [], total: 0 };
-        g.items.push(item);
-        g.total += parseFloat(item.price) * item.quantity;
-        groups.set(item.seller_id, g);
-      }
+      // 2) Graceful degradation: place Cash-on-Delivery orders directly —
+      //    one order per product so persisted quantity/unit_price/total
+      //    always describe the exact item that was ordered.
+      const placedItemIds = [];
       let placed = 0;
-      for (const g of groups.values()) {
-        const first = g.items[0];
-        await client.post('/api/orders', {
-          seller_id: g.seller_id,
-          product_id: first.product_id,
-          product_title: g.items.map(i => `${i.quantity}× ${i.title}`).join(', '),
-          quantity: g.items.reduce((s, i) => s + i.quantity, 0),
-          unit_price: parseFloat(first.price),
-          total_price: Math.round(g.total * 100) / 100,
-          currency: first.currency || 'ETB',
-          status: 'pending',
-        });
-        placed++;
+      try {
+        for (const item of items) {
+          await client.post('/api/orders', {
+            seller_id: item.seller_id,
+            product_id: item.product_id,
+            product_title: item.title,
+            quantity: item.quantity,
+            unit_price: parseFloat(item.price),
+            total_price: Math.round(parseFloat(item.price) * item.quantity * 100) / 100,
+            currency: item.currency || 'ETB',
+            status: 'pending',
+          });
+          placedItemIds.push(item.id);
+          placed++;
+        }
+      } catch (err) {
+        // Partial failure: drop the already-ordered items from the cart so a
+        // retry only re-posts the remainder instead of duplicating orders.
+        if (placed > 0) {
+          for (const id of placedItemIds) {
+            try { await removeItem(id); } catch { /* keep removing the rest */ }
+          }
+          toast.error(t('cart.partialCheckout', { placed, reason: err?.error || err?.message || t('cart.checkoutFailed') }));
+          router.push('/orders');
+        } else {
+          toast.error(err?.error || err?.message || t('cart.checkoutFailed'));
+        }
+        return;
       }
-      await clearCart();
-      toast.success(
-        placed > 1
-          ? `${placed} orders placed (one per seller). Online payments aren't set up yet — pay on delivery.`
-          : 'Order placed! Online payments aren\'t set up yet — pay on delivery.'
-      );
+
+      // 3) Clear the cart — guarded so placed orders are never stranded: if
+      //    the bulk clear fails, remove the ordered items individually.
+      try {
+        await clearCart();
+      } catch {
+        for (const id of placedItemIds) {
+          try { await removeItem(id); } catch { /* best effort */ }
+        }
+      }
+      toast.success(placed > 1 ? t('cart.ordersPlaced', { count: placed }) : t('cart.orderPlaced'));
       router.push('/orders');
-    } catch (err) {
-      toast.error(err?.error || err?.message || 'Checkout failed. Please try again.');
+    } catch {
+      toast.error(t('cart.checkoutFailed'));
     } finally {
       setCheckingOut(false);
     }
