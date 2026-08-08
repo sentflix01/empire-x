@@ -32,8 +32,31 @@ export default function Login() {
     }
   };
 
-  const handleGoogle = () => {
-    auth.loginWithProvider("google", "/");
+  const handleGoogle = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const g = (window as any).__googleSignIn;
+      if (!g) {
+        throw new Error("Google Sign-In is not ready. Please wait a moment and try again, or use email/password below.");
+      }
+      await g();
+      window.location.href = "/feed";
+    } catch (err: any) {
+      // Show a helpful message instead of silently failing
+      const msg = err?.message || "";
+      if (msg.includes("not available") || msg.includes("not ready")) {
+        setError(msg);
+      } else if (msg.includes("popup") || msg.includes("closed")) {
+        setError("Sign-in popup was closed. Please try again.");
+      } else if (msg.includes("network") || msg.includes("Network")) {
+        setError("Network error during Google sign-in. Please check your connection.");
+      } else {
+        setError("Google sign-in failed. Please try again or use email/password below.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,9 +73,12 @@ export default function Login() {
         </>
       }
     >
-      <Button variant="outline" className="w-full h-12 text-sm font-medium mb-6" onClick={handleGoogle}>
-        <GoogleIcon className="w-5 h-5 mr-2" />
-        {t('auth.continueWithGoogle')}
+      <Button variant="outline" className="w-full h-12 text-sm font-medium mb-6" onClick={handleGoogle} disabled={loading}>
+        {loading ? (
+          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in with Google...</>
+        ) : (
+          <><GoogleIcon className="w-5 h-5 mr-2" />{t('auth.continueWithGoogle')}</>
+        )}
       </Button>
 
       <div className="relative mb-6">
