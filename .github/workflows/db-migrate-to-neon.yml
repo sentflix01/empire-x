@@ -33,9 +33,6 @@ jobs:
       - name: Validate secrets
         run: |
           MISSING=""
-          if [ -z "${{ secrets.SOURCE_DATABASE_URL }}" ]; then
-            MISSING="$MISSING SOURCE_DATABASE_URL"
-          fi
           if [ -z "${{ secrets.NEON_DATABASE_URL }}" ]; then
             MISSING="$MISSING NEON_DATABASE_URL"
           fi
@@ -43,6 +40,10 @@ jobs:
             echo "ERROR: The following secrets are not set:$MISSING"
             echo "Go to: GitHub -> Settings -> Secrets and variables -> Actions -> New repository secret"
             exit 1
+          fi
+          # SOURCE_DATABASE_URL is optional — falls back to NEON_DATABASE_URL if not set
+          if [ -z "${{ secrets.SOURCE_DATABASE_URL }}" ]; then
+            echo "ℹ️  SOURCE_DATABASE_URL not set — will use NEON_DATABASE_URL as source (backup mode)"
           fi
           echo "All required secrets are present."
 
@@ -61,8 +62,14 @@ jobs:
         env:
           PGPASSWORD: ""
         run: |
+          # Use SOURCE_DATABASE_URL if set, otherwise fall back to NEON_DATABASE_URL
+          SOURCE="${{ secrets.SOURCE_DATABASE_URL }}"
+          if [ -z "$SOURCE" ]; then
+            SOURCE="${{ secrets.NEON_DATABASE_URL }}"
+            echo "ℹ️  Using NEON_DATABASE_URL as source (backup/self-copy mode)"
+          fi
           echo "Dumping source DB to $DUMP_FILE ..."
-          pg_dump -Fc -v -d "${{ secrets.SOURCE_DATABASE_URL }}" --schema=public -f "$DUMP_FILE"
+          pg_dump -Fc -v -d "$SOURCE" --schema=public -f "$DUMP_FILE"
           echo "Dump complete. Size: $(du -sh $DUMP_FILE | cut -f1)"
 
       - name: Upload dump artifact
