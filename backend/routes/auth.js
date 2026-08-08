@@ -105,12 +105,15 @@ router.post('/register', async (req, res) => {
           'UPDATE users SET otp_code = $1, otp_expires = $2 WHERE id = $3',
           [otp, otpExpires, existing.rows[0].id]
         );
-        await sendOtpEmail(normalizedEmail, otp).catch(err => {
-          logger.warn({ err: err.message }, 'OTP email resend failed (check SMTP config)');
-          if (process.env.NODE_ENV !== 'production') {
-            console.log(`\n📧 DEV OTP for ${normalizedEmail}: \x1b[33m${otp}\x1b[0m\n`);
-          }
-        });
+        try {
+          await sendOtpEmail(normalizedEmail, otp);
+        } catch (err) {
+          logger.error({ err: err.message }, 'OTP email resend failed');
+          return res.status(503).json({
+            error: 'We could not send a verification email. Please try again shortly.',
+            code: 'OTP_DELIVERY_FAILED',
+          });
+        }
         return res.status(200).json({
           message: 'Your account is awaiting verification. A new verification code has been sent.',
           userId: existing.rows[0].id,
@@ -130,12 +133,15 @@ router.post('/register', async (req, res) => {
       [normalizedEmail, hash, full_name || null, otp, otpExpires]
     );
 
-    await sendOtpEmail(normalizedEmail, otp).catch(err => {
-      logger.warn({ err: err.message }, 'OTP email failed (check SMTP config)');
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`\n📧 DEV OTP for ${email}: \x1b[33m${otp}\x1b[0m\n`);
-      }
-    });
+    try {
+      await sendOtpEmail(normalizedEmail, otp);
+    } catch (err) {
+      logger.error({ err: err.message }, 'OTP email delivery failed');
+      return res.status(503).json({
+        error: 'We could not send a verification email. Please try again shortly.',
+        code: 'OTP_DELIVERY_FAILED',
+      });
+    }
 
     res.status(201).json({ message: 'Registration successful. Check your email for the verification code.', userId: rows[0].id });
   } catch (err) {
@@ -198,12 +204,15 @@ router.post('/resend-otp', async (req, res) => {
       [otp, otpExpires, rows[0].id]
     );
 
-    await sendOtpEmail(email, otp).catch(err => {
-      logger.warn({ err: err.message }, 'OTP email failed (check SMTP config)');
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`\n📧 DEV OTP for ${email}: \x1b[33m${otp}\x1b[0m\n`);
-      }
-    });
+    try {
+      await sendOtpEmail(email, otp);
+    } catch (err) {
+      logger.error({ err: err.message }, 'OTP email resend failed');
+      return res.status(503).json({
+        error: 'We could not send a verification email. Please try again shortly.',
+        code: 'OTP_DELIVERY_FAILED',
+      });
+    }
     res.json({ message: 'New verification code sent' });
   } catch (err) {
     logger.error({ err: err.message }, 'Resend OTP error');

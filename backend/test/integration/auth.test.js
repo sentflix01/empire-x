@@ -39,6 +39,7 @@ jest.mock('google-auth-library', () => ({
 }));
 
 const authRouter = require('../../routes/auth');
+const { sendOtpEmail } = require('../../utils/mailer');
 
 // Build a minimal Express app with only the auth router
 function buildApp() {
@@ -94,6 +95,17 @@ describe('POST /api/auth/register', () => {
     const res = await request(app).post('/api/auth/register').send({ email: 'new@b.com', password: 'password123' });
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('message');
+  });
+
+  it('returns a retryable error instead of pretending an OTP was sent when delivery fails', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ id: 'new-user-id', email: 'new@b.com' }] });
+    sendOtpEmail.mockRejectedValueOnce(new Error('SMTP unavailable'));
+    const app = buildApp();
+    const res = await request(app).post('/api/auth/register').send({ email: 'new@b.com', password: 'password123' });
+    expect(res.status).toBe(503);
+    expect(res.body).toHaveProperty('code', 'OTP_DELIVERY_FAILED');
   });
 });
 
