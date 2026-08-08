@@ -1,6 +1,6 @@
 // @ts-nocheck
 'use client';
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
@@ -11,9 +11,9 @@ import { Label } from "@/components/ui/label";
 import { UserPlus, Mail, Lock, Loader2, Gift } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
-import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "react-i18next";
+import { renderGoogleSignInButton } from "@/lib/googleAuth";
 
 export default function Register() {
   const searchParams = useSearchParams();
@@ -26,8 +26,50 @@ export default function Register() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleButtonReady, setGoogleButtonReady] = useState(false);
+  const [googleUnavailable, setGoogleUnavailable] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const googleButtonRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let disposed = false;
+    let retryTimer: number | undefined;
+    let timeoutTimer: number | undefined;
+
+    const renderGoogleButton = () => {
+      if (disposed || !googleButtonRef.current || googleButtonReady) return false;
+      const rendered = renderGoogleSignInButton(googleButtonRef.current, {
+        width: Math.min(384, Math.max(280, googleButtonRef.current.clientWidth || 384)),
+        onSuccess: (result) => {
+          if (result?.access_token) storeToken(result.access_token);
+          window.location.href = '/';
+        },
+        onError: () => {
+          setGoogleLoading(false);
+          setError('Google Sign-In could not be completed. Please try again or register with email and password.');
+        },
+      });
+      if (rendered) {
+        setGoogleButtonReady(true);
+        setGoogleUnavailable(false);
+      }
+      return rendered;
+    };
+
+    if (renderGoogleButton()) return;
+    retryTimer = window.setInterval(renderGoogleButton, 100);
+    timeoutTimer = window.setTimeout(() => {
+      window.clearInterval(retryTimer);
+      if (!disposed && !googleButtonReady) setGoogleUnavailable(true);
+    }, 5000);
+
+    return () => {
+      disposed = true;
+      if (retryTimer !== undefined) window.clearInterval(retryTimer);
+      if (timeoutTimer !== undefined) window.clearTimeout(timeoutTimer);
+    };
+  }, [googleButtonReady]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -80,29 +122,6 @@ export default function Register() {
     }
   };
 
-  const handleGoogle = async () => {
-    setError("");
-    const signInWithGoogle = window.__googleSignIn;
-
-    // iPhone browsers can delay or block the third-party Google script. The
-    // previous optional call still invoked `.then` on `undefined`, leaving a
-    // user with a silent failure and no usable registration path.
-    if (!signInWithGoogle) {
-      setError('Google Sign-In is unavailable on this device right now. Please create your account with email and password instead.');
-      return;
-    }
-
-    setGoogleLoading(true);
-    try {
-      await signInWithGoogle();
-      window.location.href = '/';
-    } catch {
-      setError('Google Sign-In could not be completed. Please try again or register with email and password.');
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
-
   if (showOtp) {
     return (
       <AuthLayout icon={Mail} title={t('auth.verifyEmail')} subtitle={`${t('auth.otpSent')} ${email}`}>
@@ -140,10 +159,15 @@ export default function Register() {
         </>
       }
     >
-      <Button variant="outline" className="w-full h-12 text-sm font-medium mb-6" onClick={handleGoogle} disabled={googleLoading}>
-        <GoogleIcon className="w-5 h-5 mr-2" />
-        {googleLoading ? 'Connecting to Google…' : t('auth.continueWithGoogle')}
-      </Button>
+      <div ref={googleButtonRef} className="mb-6 flex min-h-11 w-full justify-center" aria-label={t('auth.continueWithGoogle')} />
+      {!googleButtonReady && !googleUnavailable && (
+        <p className="mb-6 -mt-4 text-center text-xs text-muted-foreground">Loading Google Sign-In…</p>
+      )}
+      {googleUnavailable && (
+        <p className="mb-6 -mt-4 text-center text-xs text-muted-foreground">
+          Google Sign-In is unavailable on this browser. You can still create an account with email and password below.
+        </p>
+      )}
       <div className="relative mb-6">
         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
         <div className="relative flex justify-center text-xs uppercase">

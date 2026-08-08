@@ -66,6 +66,49 @@ async function sendIdTokenToBackend(idToken) {
 }
 
 /**
+ * Render Google's own sign-in control. Unlike a synthetic One Tap prompt,
+ * this is initiated by an explicit user gesture and is supported by mobile
+ * Safari as well as desktop browsers.
+ */
+export function renderGoogleSignInButton(
+  element: HTMLElement,
+  options: {
+    onSuccess: (result: { access_token?: string }) => void;
+    onError: (error: Error) => void;
+    width?: number;
+  },
+) {
+  if (!GOOGLE_CLIENT_ID || !window.google?.accounts?.id || !element) return false;
+
+  window.google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: async (response: { credential?: string }) => {
+      if (!response.credential) {
+        options.onError(new Error('Google did not return a sign-in credential.'));
+        return;
+      }
+      try {
+        const result = await sendIdTokenToBackend(response.credential);
+        options.onSuccess(result);
+      } catch (error) {
+        options.onError(error instanceof Error ? error : new Error('Google Sign-In failed.'));
+      }
+    },
+  });
+
+  element.replaceChildren();
+  window.google.accounts.id.renderButton(element, {
+    type: 'standard',
+    theme: 'outline',
+    size: 'large',
+    text: 'signup_with',
+    shape: 'rectangular',
+    width: options.width || 384,
+  });
+  return true;
+}
+
+/**
  * Trigger the Google One Tap / sign-in popup.
  * Returns a promise that resolves with { access_token } on success.
  */

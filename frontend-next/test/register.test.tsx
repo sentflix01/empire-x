@@ -25,9 +25,13 @@ vi.mock('react-i18next', () => ({
 vi.mock('next/link', () => ({ default: ({ children, href }: any) => <a href={href}>{children}</a> }));
 vi.mock('next/navigation', () => ({ useSearchParams: () => ({ get: () => null }) }));
 vi.mock('@/components/ui/use-toast', () => ({ toast: vi.fn() }));
+vi.mock('@/lib/googleAuth', () => ({
+  renderGoogleSignInButton: vi.fn(() => true),
+}));
 
 import Register from '@/views/Register';
 import client from '@/api/client';
+import { renderGoogleSignInButton } from '@/lib/googleAuth';
 
 describe('Register form', () => {
   beforeEach(() => {
@@ -59,14 +63,11 @@ describe('Register form', () => {
     });
   });
 
-  it('shows an email-registration fallback when Google Sign-In is unavailable', async () => {
-    delete (window as Window & { __googleSignIn?: () => Promise<void> }).__googleSignIn;
+  it('renders Google’s official button for mobile-safe sign-in', async () => {
     render(<Register />);
 
-    fireEvent.click(screen.getByRole('button', { name: /continue with google/i }));
-
     await waitFor(() => {
-      expect(screen.getByText(/google sign-in is unavailable on this device/i)).toBeTruthy();
+      expect(renderGoogleSignInButton).toHaveBeenCalled();
     });
   });
 
