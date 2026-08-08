@@ -34,8 +34,6 @@ export default function Register() {
 
   useEffect(() => {
     let disposed = false;
-    let retryTimer: number | undefined;
-    let timeoutTimer: number | undefined;
 
     const renderGoogleButton = () => {
       if (disposed || !googleButtonRef.current || googleButtonReady) return false;
@@ -58,16 +56,16 @@ export default function Register() {
     };
 
     if (renderGoogleButton()) return;
-    retryTimer = window.setInterval(renderGoogleButton, 100);
-    timeoutTimer = window.setTimeout(() => {
+    const retryTimer = window.setInterval(renderGoogleButton, 100);
+    const timeoutTimer = window.setTimeout(() => {
       window.clearInterval(retryTimer);
       if (!disposed && !googleButtonReady) setGoogleUnavailable(true);
     }, 5000);
 
     return () => {
       disposed = true;
-      if (retryTimer !== undefined) window.clearInterval(retryTimer);
-      if (timeoutTimer !== undefined) window.clearTimeout(timeoutTimer);
+      window.clearInterval(retryTimer);
+      window.clearTimeout(timeoutTimer);
     };
   }, [googleButtonReady]);
 
