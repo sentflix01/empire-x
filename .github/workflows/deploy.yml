@@ -120,7 +120,26 @@ jobs:
         working-directory: frontend-next
 
       - name: Deploy to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        # Archive avoids thousands of individual upload requests from the
+        # prebuilt Next.js output. Retry only the upload, since `vercel build`
+        # already succeeded and failures here are commonly transient.
+        run: |
+          for attempt in 1 2 3; do
+            echo "Deploying to Vercel (attempt $attempt of 3)..."
+            if vercel deploy --prebuilt --archive=tgz --prod --yes --token=${{ secrets.VERCEL_TOKEN }}; then
+              echo "✅ Vercel deployment completed."
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              delay=$((attempt * 20))
+              echo "⚠️ Upload failed. Retrying in ${delay}s..."
+              sleep "$delay"
+            fi
+          done
+
+          echo "❌ Vercel deployment failed after 3 upload attempts."
+          exit 1
         working-directory: frontend-next
 
   # ── Post-deploy health check ─────────────────────────────────────────────────
