@@ -59,8 +59,6 @@ jobs:
           pg_restore --version || true
 
       - name: Dump source database (pg_dump)
-        env:
-          PGPASSWORD: ""
         run: |
           # Use SOURCE_DATABASE_URL if set, otherwise fall back to NEON_DATABASE_URL
           SOURCE="${{ secrets.SOURCE_DATABASE_URL }}"
@@ -69,7 +67,7 @@ jobs:
             echo "ℹ️  Using NEON_DATABASE_URL as source (backup/self-copy mode)"
           fi
           echo "Dumping source DB to $DUMP_FILE ..."
-          pg_dump -Fc -v -d "$SOURCE" --schema=public -f "$DUMP_FILE"
+          PGSSLMODE=require pg_dump -Fc -v -d "$SOURCE" --schema=public -f "$DUMP_FILE"
           echo "Dump complete. Size: $(du -sh $DUMP_FILE | cut -f1)"
 
       - name: Upload dump artifact
@@ -83,7 +81,7 @@ jobs:
         if: github.event.inputs.dry_run != 'true'
         run: |
           echo "Restoring $DUMP_FILE -> Neon ..."
-          pg_restore -d "${{ secrets.NEON_DATABASE_URL }}" -v --no-owner --no-acl "$DUMP_FILE" || true
+          PGSSLMODE=require pg_restore -d "${{ secrets.NEON_DATABASE_URL }}" -v --no-owner --no-acl "$DUMP_FILE" || true
           echo "Restore complete."
 
       - name: Skip restore (dry run)
@@ -94,9 +92,9 @@ jobs:
         if: github.event.inputs.dry_run != 'true'
         run: |
           echo "Verifying tables on Neon..."
-          psql "${{ secrets.NEON_DATABASE_URL }}" -c "\dt" || true
+          PGSSLMODE=require psql "${{ secrets.NEON_DATABASE_URL }}" -c "\dt" || true
           echo "Users count:"
-          psql "${{ secrets.NEON_DATABASE_URL }}" -c "SELECT COUNT(*) FROM users;" || true
+          PGSSLMODE=require psql "${{ secrets.NEON_DATABASE_URL }}" -c "SELECT COUNT(*) FROM users;" || true
 
       - name: Finish
         run: |
