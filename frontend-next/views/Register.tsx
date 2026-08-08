@@ -25,6 +25,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
 
@@ -79,8 +80,27 @@ export default function Register() {
     }
   };
 
-  const handleGoogle = () => {
-    window.__googleSignIn?.().then(() => { window.location.href = '/'; });
+  const handleGoogle = async () => {
+    setError("");
+    const signInWithGoogle = window.__googleSignIn;
+
+    // iPhone browsers can delay or block the third-party Google script. The
+    // previous optional call still invoked `.then` on `undefined`, leaving a
+    // user with a silent failure and no usable registration path.
+    if (!signInWithGoogle) {
+      setError('Google Sign-In is unavailable on this device right now. Please create your account with email and password instead.');
+      return;
+    }
+
+    setGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+      window.location.href = '/';
+    } catch {
+      setError('Google Sign-In could not be completed. Please try again or register with email and password.');
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   if (showOtp) {
@@ -120,9 +140,9 @@ export default function Register() {
         </>
       }
     >
-      <Button variant="outline" className="w-full h-12 text-sm font-medium mb-6" onClick={handleGoogle}>
+      <Button variant="outline" className="w-full h-12 text-sm font-medium mb-6" onClick={handleGoogle} disabled={googleLoading}>
         <GoogleIcon className="w-5 h-5 mr-2" />
-        {t('auth.continueWithGoogle')}
+        {googleLoading ? 'Connecting to Google…' : t('auth.continueWithGoogle')}
       </Button>
       <div className="relative mb-6">
         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>

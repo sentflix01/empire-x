@@ -59,6 +59,17 @@ describe('Register form', () => {
     });
   });
 
+  it('shows an email-registration fallback when Google Sign-In is unavailable', async () => {
+    delete (window as Window & { __googleSignIn?: () => Promise<void> }).__googleSignIn;
+    render(<Register />);
+
+    fireEvent.click(screen.getByRole('button', { name: /continue with google/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/google sign-in is unavailable on this device/i)).toBeTruthy();
+    });
+  });
+
   it('submits registration and shows OTP step on success', async () => {
     const { unmount } = render(<Register />);
 
