@@ -89,8 +89,34 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
+    const normalizedEmail = email.trim().toLowerCase();
+    const existing = await pool.query(
+      'SELECT id, is_verified FROM users WHERE email = $1',
+      [normalizedEmail]
+    );
     if (existing.rows.length) {
+      // A user may have closed the browser before entering the code, or their
+      // first delivery may have been delayed.  Let them safely resume signup
+      // rather than leaving the account permanently stuck as "already exists".
+      if (!existing.rows[0].is_verified) {
+        const otp = generateOtp();
+        const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
+        await pool.query(
+          'UPDATE users SET otp_code = $1, otp_expires = $2 WHERE id = $3',
+          [otp, otpExpires, existing.rows[0].id]
+        );
+        await sendOtpEmail(normalizedEmail, otp).catch(err => {
+          logger.warn({ err: err.message }, 'OTP email resend failed (check SMTP config)');
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`\n📧 DEV OTP for ${normalizedEmail}: \x1b[33m${otp}\x1b[0m\n`);
+          }
+        });
+        return res.status(200).json({
+          message: 'Your account is awaiting verification. A new verification code has been sent.',
+          userId: existing.rows[0].id,
+          pendingVerification: true,
+        });
+      }
       return res.status(409).json({ error: 'An account with this email already exists' });
     }
 
@@ -101,10 +127,10 @@ router.post('/register', async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO users (email, password_hash, full_name, otp_code, otp_expires)
        VALUES ($1, $2, $3, $4, $5) RETURNING id, email`,
-      [email.toLowerCase(), hash, full_name || null, otp, otpExpires]
+      [normalizedEmail, hash, full_name || null, otp, otpExpires]
     );
 
-    await sendOtpEmail(email, otp).catch(err => {
+    await sendOtpEmail(normalizedEmail, otp).catch(err => {
       logger.warn({ err: err.message }, 'OTP email failed (check SMTP config)');
       if (process.env.NODE_ENV !== 'production') {
         console.log(`\n📧 DEV OTP for ${email}: \x1b[33m${otp}\x1b[0m\n`);

@@ -1,11 +1,12 @@
 'use client'
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import Image from 'next/image';
 import { entities } from '@/api/entities';
 import client from '@/api/client';
 import { uploadFile } from '@/lib/uploadFile';
 import { X, Plus, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import SafeImage from '@/components/ui/SafeImage';
+import { resolveMediaUrl } from '@/lib/media';
 
 const STORY_DURATION_MS = 5000; // 5 seconds per story
 
@@ -82,16 +83,12 @@ function HexStory({ group, onClick, isAdd = false, uploading = false }: HexStory
                     : <Plus className="w-6 h-6 text-amber-500" />}
                 </div>
               ) : thumbUrl && !thumbnailFailed ? (
-                <Image src={thumbUrl} alt={name} fill className="object-cover" onError={() => setThumbnailFailed(true)} unoptimized />
+                <SafeImage src={thumbUrl} alt={name} className="absolute inset-0 h-full w-full object-cover" onError={() => setThumbnailFailed(true)}
+                  fallback={<SafeImage src={group?.avatar_url} alt={name} className="absolute inset-0 h-full w-full object-cover" fallback={<StoryInitial name={name} />} />} />
               ) : group?.avatar_url && !thumbnailFailed ? (
-                <Image src={group.avatar_url} alt={name} fill className="object-cover" onError={() => setThumbnailFailed(true)} unoptimized />
+                <SafeImage src={group.avatar_url} alt={name} className="absolute inset-0 h-full w-full object-cover" onError={() => setThumbnailFailed(true)} fallback={<StoryInitial name={name} />} />
               ) : (
-                <div
-                  className="w-full h-full flex items-center justify-center text-white font-bold text-lg"
-                  style={{ background: 'linear-gradient(135deg,#f97316,#ec4899)' }}
-                >
-                  {name.charAt(0).toUpperCase()}
-                </div>
+                <StoryInitial name={name} />
               )}
             </div>
           </div>
@@ -110,6 +107,10 @@ function HexStory({ group, onClick, isAdd = false, uploading = false }: HexStory
       </span>
     </button>
   );
+}
+
+function StoryInitial({ name }: { name: string }) {
+  return <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg" style={{ background: 'linear-gradient(135deg,#f97316,#ec4899)' }}>{name.charAt(0).toUpperCase()}</div>;
 }
 
 export default function Stories() {
@@ -283,13 +284,13 @@ export default function Stories() {
             {active.media_type === 'video' ? (
               <video
                 key={active.id}
-                src={active.media_url}
+                src={resolveMediaUrl(active.media_url) || undefined}
                 autoPlay
                 className="w-full h-full object-cover rounded-2xl"
                 onEnded={nextStory}
               />
             ) : !mediaFailed ? (
-              <img
+              <SafeImage
                 key={active.id}
                 src={active.media_url}
                 alt=""

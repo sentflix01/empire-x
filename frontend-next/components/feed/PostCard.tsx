@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { entities } from '@/api/entities';
 import client from '@/api/client';
 import { auth } from '@/api/auth';
@@ -20,6 +19,7 @@ import ShareButton from '@/components/ui/ShareButton';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
 import ProfilePeek from '@/components/profile/ProfilePeek';
 import { useTranslation } from 'react-i18next';
+import SafeImage from '@/components/ui/SafeImage';
 
 /* ── Types ──────────────────────────────────────────── */
 interface Post {
@@ -61,9 +61,7 @@ interface Comment {
 type Variant = 'image' | 'promo' | 'event' | 'location' | 'poll' | 'text';
 
 function SafeAvatar({ src, alt, fallback, className = '' }: { src?: string | null; alt: string; fallback: React.ReactNode; className?: string }) {
-  const [failed, setFailed] = useState(false);
-  if (!src || failed) return <>{fallback}</>;
-  return <img src={src} alt={alt} className={className} onError={() => setFailed(true)} />;
+  return <SafeImage src={src} alt={alt} className={className} fallback={fallback} />;
 }
 
 /* ── Detect post visual variant ─────────────────────── */
@@ -111,15 +109,14 @@ function ImagePost({ post }: { post: Post }) {
   }
   return (
     <div className="pb-3">
-      <div className="relative overflow-hidden" style={{ maxHeight: 360 }}>
-        <Image
+      <div className="relative flex justify-center overflow-hidden bg-secondary/20">
+        <SafeImage
           src={post.image_url}
           alt={post.content ? post.content.slice(0, 120) : 'Post image'}
-          width={600} height={360}
-          className="w-full object-cover"
-          style={{ maxHeight: 360 }}
+          className="block h-auto w-full max-h-[min(72svh,36rem)] object-contain"
+          loading="lazy"
+          decoding="async"
           onError={() => setErr(true)}
-          unoptimized
         />
         {post.content && (
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 py-4">
@@ -138,8 +135,8 @@ function PromoPost({ post, themeColor, primaryBiz }: { post: Post; themeColor: s
   return (
     <div>
       {post.image_url && !err && (
-        <div className="relative overflow-hidden" style={{ maxHeight: 220 }}>
-          <Image src={post.image_url} alt="Promo" width={600} height={220} className="w-full object-cover" style={{ maxHeight: 220 }} onError={() => setErr(true)} unoptimized />
+        <div className="relative overflow-hidden bg-secondary/20" style={{ maxHeight: 220 }}>
+          <SafeImage src={post.image_url} alt="Promo" className="block h-auto w-full max-h-[220px] object-cover" loading="lazy" decoding="async" onError={() => setErr(true)} />
           <div className="absolute inset-0 bg-black/25" />
           <div className="absolute top-3 left-3">
             <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-500 text-white shadow">
@@ -163,8 +160,8 @@ function EventPost({ post }: { post: Post }) {
   return (
     <div>
       {post.image_url && !err && (
-        <div className="relative overflow-hidden mx-4 mb-3 rounded-xl" style={{ maxHeight: 200 }}>
-          <Image src={post.image_url} alt="Event" width={600} height={200} className="w-full object-cover rounded-xl" style={{ maxHeight: 200 }} onError={() => setErr(true)} unoptimized />
+        <div className="relative overflow-hidden mx-4 mb-3 rounded-xl bg-secondary/20" style={{ maxHeight: 200 }}>
+          <SafeImage src={post.image_url} alt="Event" className="block h-auto w-full max-h-[200px] rounded-xl object-cover" loading="lazy" decoding="async" onError={() => setErr(true)} />
           <div className="absolute top-3 right-3">
             <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
               <CalendarDays className="w-3 h-3" /> Event

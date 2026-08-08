@@ -64,12 +64,26 @@ describe('POST /api/auth/register', () => {
     expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
   });
 
-  it('returns 409 when email already exists', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'existing-id' }] }); // SELECT check
+  it('returns 409 when a verified email already exists', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'existing-id', is_verified: true }] }); // SELECT check
     const app = buildApp();
     const res = await request(app).post('/api/auth/register').send({ email: 'exists@b.com', password: 'password123' });
     expect(res.status).toBe(409);
     expect(res.body).toHaveProperty('error');
+  });
+
+  it('resends an OTP and resumes signup when the existing account is unverified', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ id: 'pending-id', is_verified: false }] }) // SELECT check
+      .mockResolvedValueOnce({ rows: [] }); // UPDATE OTP
+    const app = buildApp();
+    const res = await request(app).post('/api/auth/register').send({ email: ' Pending@b.com ', password: 'password123' });
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ userId: 'pending-id', pendingVerification: true });
+    expect(mockPool.query).toHaveBeenCalledWith(
+      'SELECT id, is_verified FROM users WHERE email = $1',
+      ['pending@b.com']
+    );
   });
 
   it('returns 201 on successful registration', async () => {
