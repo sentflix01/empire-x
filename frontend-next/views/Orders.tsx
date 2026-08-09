@@ -18,6 +18,7 @@ import moment from "moment";
 import { useTranslation } from 'react-i18next';
 import { generateInvoice } from "@/lib/generateInvoice";
 import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 const STATUS_CONFIG = {
@@ -64,7 +65,7 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
       setUpdates(prev => [...prev, data]);
       setNote(""); setLocation(""); setAdding(false);
     } catch {
-      alert("Failed to add update");
+      toast.error("Failed to add delivery update");
     }
     setSaving(false);
   };
@@ -290,7 +291,7 @@ function SellerReturnActions({ orderId, onActioned }: { orderId: string; onActio
         refund_amount: status === "approved" ? parseFloat(refundAmount) || rr.total_price : undefined,
       });
       onActioned();
-    } catch { alert("Failed to update return"); }
+    } catch { toast.error("Failed to update return status"); }
     setSaving(false);
   };
 
