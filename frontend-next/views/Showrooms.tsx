@@ -2,13 +2,26 @@
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
-
 import { Crown, Search, Plus, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '@/components/ErrorBoundary';
+
+function ShowroomSkeleton() {
+  return (
+    <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+      <Skeleton className="h-28 w-full" />
+      <div className="p-4 space-y-2">
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-1/3" />
+      </div>
+    </div>
+  );
+}
 
 const CAT_LABELS = {
   business: "Business", creative: "Creative", education: "Education", events: "Events",
@@ -62,7 +75,9 @@ function Showrooms() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => <ShowroomSkeleton key={i} />)}
+          </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
             <Crown className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />

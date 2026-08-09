@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Input } from "@/components/ui/input";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const CATEGORIES = ["All","Technology","Business","Design","Language","Health","Other"];
 

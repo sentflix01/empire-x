@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Edit2, LogOut, MapPin, Crown, Store, Settings, Plus, ShoppingBag, ClipboardList, ChevronDown, Pencil, ArrowLeft, Radio, ToggleLeft, ToggleRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import PersonalProfile from "@/components/profile/PersonalProfile";
 import BusinessProfile from "@/components/profile/BusinessProfile";
 import ProfileToggle from "@/components/profile/ProfileToggle";
@@ -107,8 +108,22 @@ function Profile() {
   const hasBusinessView = businesses.length > 0 || profile?.has_business_profile;
 
   if (loading) return (
-    <div className="flex justify-center py-20">
-      <div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+    <div className="max-w-2xl mx-auto space-y-3">
+      {/* Cover skeleton */}
+      <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+        <Skeleton className="h-28 w-full" />
+        <div className="px-5 pb-4">
+          <div className="flex items-end justify-between -mt-12 mb-4">
+            <Skeleton className="w-24 h-24 rounded-2xl" />
+            <div className="flex gap-2 mb-2">
+              <Skeleton className="h-8 w-16 rounded-full" />
+            </div>
+          </div>
+          <Skeleton className="h-5 w-40 mb-2" />
+          <Skeleton className="h-4 w-60 mb-2" />
+          <Skeleton className="h-3 w-48" />
+        </div>
+      </div>
     </div>
   );
 

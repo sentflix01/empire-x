@@ -11,9 +11,22 @@ import { Search, Plus, ShoppingBag, CheckCircle2, XCircle, Loader2 } from "lucid
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
+
+function ProductSkeleton() {
+  return (
+    <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+      <Skeleton className="aspect-square w-full" />
+      <div className="p-3 space-y-2">
+        <Skeleton className="h-3.5 w-3/4" />
+        <Skeleton className="h-3 w-1/3" />
+      </div>
+    </div>
+  );
+}
 
 function Marketplace() {
   const { t } = useTranslation();
@@ -183,8 +196,8 @@ function Marketplace() {
 
         {/* Products Grid */}
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => <ProductSkeleton key={i} />)}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">

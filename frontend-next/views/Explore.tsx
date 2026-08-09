@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import client from "@/api/client";
 import { TrendingUp, ShoppingBag, Crown, ClipboardList, Users, Loader2, Banknote, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import PostCard from "@/components/feed/PostCard";
 import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
@@ -49,8 +50,24 @@ function Explore() {
   }, []);
 
   if (loading) return (
-    <div className="flex justify-center py-20">
-      <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+    <div className="max-w-2xl mx-auto space-y-6 pt-2">
+      {/* Skeleton for trending section */}
+      {[1, 2].map(i => (
+        <div key={i} className="bg-card rounded-2xl border border-border/50 p-4 space-y-3">
+          <Skeleton className="h-5 w-40" />
+          <div className="grid grid-cols-2 gap-3">
+            {[1,2,3,4].map(j => (
+              <div key={j} className="rounded-xl border border-border/40 overflow-hidden">
+                <Skeleton className="aspect-[4/3] w-full" />
+                <div className="p-2 space-y-1.5">
+                  <Skeleton className="h-3 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 
