@@ -1,263 +1,236 @@
 # Empire X — Future Features
 
-> Updated: July 2026 — based on full codebase audit.
-> ✅ = Built & confirmed in code | ⚠️ = Partially built (DB exists, UI missing) | ❌ = Not yet built
+> Updated: August 2026 — reflects full codebase state after major engineering sprint.
+> ✅ = Built & confirmed in code | ⚠️ = Partially built | ❌ = Not yet built
 
 ---
 
-## ✅ FULLY BUILT (Confirmed in Codebase)
+## ✅ FULLY BUILT (Confirmed in Codebase — August 2026)
 
 ### Auth & Profiles
-- ✅ Email + OTP registration
+- ✅ Email + OTP registration (`auth.js`)
 - ✅ Login (email/password + Google OAuth)
-- ✅ Password reset
+- ✅ Password reset via email
 - ✅ Personal + business profiles
-- ✅ Onboarding flow
-- ✅ Verified badges (admin-granted)
+- ✅ Onboarding flow with template picker
+- ✅ Verified badges (admin-granted, 4 types)
 - ✅ Dark / Light mode (`next-themes`)
 - ✅ Amharic + English i18n (`react-i18next`)
+- ✅ User ban/unban (migrate28, auth middleware enforces)
+- ✅ Admin can grant/revoke verification badges
 
 ### Social Feed
 - ✅ Posts (image, text, promo, event, location, poll types)
-- ✅ Likes + comments + comment replies
-- ✅ Follow / unfollow
+- ✅ Likes + comments with threaded replies (migrate27 adds parent_id)
+- ✅ Comment delete (cascades to replies)
+- ✅ Reply count displayed, updates optimistically
+- ✅ Follow / unfollow users
 - ✅ Hashtags (parse, trending, feed page)
 - ✅ Polls (create, vote, live results)
 - ✅ Stories (24hr, auto-cleanup)
 - ✅ Ticker bar (7 types per profile)
 - ✅ Personal / Business feed toggle
-- ✅ Feed filters (For You / Trending / Following / Nearby)
-- ✅ Explore / Trending page
-- ✅ Profile Peek modal (personal + business tabs, full feed)
-- ✅ Post card menu (personal/business view switcher)
-- ✅ ShareButton on posts
+- ✅ Feed filters: For You / Trending / **Following (now correctly filtered)** / Nearby
+- ✅ Infinite scroll on feed (IntersectionObserver, dedup, 15 per page)
+- ✅ Explore / Trending page (real data from `/api/trending`, skeleton loading)
+- ✅ Profile Peek modal
+- ✅ Post card with ShareButton
 
-### Nearby Map (Fully Built — Major Feature)
+### Nearby Map
 - ✅ Feed Nearby tab with embedded Leaflet map
 - ✅ GPS location + Addis Ababa fallback
-- ✅ Standalone `/nearby` page (tasks + products map)
+- ✅ Standalone `/nearby` page
 - ✅ Radius selector (2 / 5 / 10 / 20 / 50 km)
-- ✅ Category filter chips (Nearby tab)
-- ✅ Product/shop search within radius
-- ✅ 3-step search logic: keyword → find products → find businesses → filter by radius
-- ✅ People search (`@name` prefix → user pins)
-- ✅ White callout bubble label above each pin (pin colour = type)
-- ✅ Hover card on marker (mini feed + avatar + distance preview)
-- ✅ Mouse-out → returns to name label
-- ✅ Double-click any pin → ProfilePeek modal
-- ✅ Gold pin = you (double-click opens your own profile)
-- ✅ Red pins = product search results
-- ✅ Blue pins = browse businesses
-- ✅ Green pins = people search
-- ✅ Map auto-flies to first search result
-- ✅ ProfilePeek z-index above Leaflet layers
-- ✅ ProfilePeek drops from top of viewport (not behind map)
+- ✅ Product/shop search, people search, category filters
+- ✅ Labeled pins, hover cards, double-click ProfilePeek
 
 ### Marketplace & Commerce
 - ✅ Product listings (create, edit, delete)
-- ✅ Product detail page
-- ✅ Product variants (size, colour — `variants.js` + `migrate5`)
-- ✅ Product reviews & ratings
-- ✅ Shopping cart
-- ✅ Orders (placement + seller management)
-- ✅ Stripe payment
-- ✅ Discount codes / coupons
+- ✅ Infinite scroll on marketplace (24 per page, IntersectionObserver)
+- ✅ Product detail page (star rating with review count)
+- ✅ Product variants (`variants.js`)
+- ✅ Product reviews & ratings (full CRUD)
+- ✅ Shopping cart with optimistic updates + rollback
+- ✅ Orders (placement, management, delivery tracking timeline)
+- ✅ Return requests (form, seller approve/deny, wallet refund)
+- ✅ Product image shown in order cards
+- ✅ **Full Stripe payment integration:**
+  - Hosted Checkout Session (single + multi-seller cart)
+  - Webhook: idempotent, handles paid/expired/failed/refunded
+  - **Stock decremented on Stripe + Chapa payment confirmation**
+  - Buyer confirmation email on Stripe webhook
+  - `/orders/success` page with real order summary
+  - `/orders/cancel` page with Return to Cart
+  - `/api/orders/session/:sessionId` endpoint
+  - `payment_intent_data.metadata` propagates `wallet_id` for refunds
+- ✅ **Chapa payment** (ETB, TeleBirr/CBE Birr/M-Pesa, sandbox mode)
+- ✅ Discount codes / coupons (create, activate/pause, validate server-side)
 - ✅ Wishlists + price alerts
 - ✅ Bookmarks / saves
-- ✅ Platform commission (auto on order completion)
-- ✅ Wallet (balance, topup, withdraw)
+- ✅ Platform commission (auto on completion)
+- ✅ Wallet: balance, Stripe top-up, Chapa top-up, withdraw
+- ✅ Wallet return banners (success/cancelled/failed)
+- ✅ Invoice download (PDF via jspdf)
+- ✅ Seller name resolved in order cards (was showing UUID)
 
 ### Business & Showrooms
-- ✅ Business mini-website builder
-- ✅ 27 showroom templates (9 categories)
+- ✅ Business mini-website builder (27 templates, 9 categories)
 - ✅ Showroom Studio template gallery
-- ✅ Business analytics dashboard
-- ✅ QR code (`qrcode.react` installed + wired)
-- ✅ Section editor drag-and-drop (`@hello-pangea/dnd`)
+- ✅ Business analytics dashboard (recharts)
+- ✅ QR code for showrooms
+- ✅ Section editor drag-and-drop
+- ✅ Showroom cover images displayed on listing page
 
 ### Messaging & Notifications
 - ✅ DM / Group / Channel messaging
-- ✅ Real-time chat (Socket.io WebSocket — full bi-directional)
-- ✅ In-app notifications
-- ✅ Push notifications (Web Push + service worker)
-- ✅ Telegram bot (order/message notifications)
-- ✅ Live notification toast via socket
+- ✅ Real-time chat (Socket.IO)
+- ✅ Send, edit, delete messages (two-tap confirm)
+- ✅ Reply with quote block
+- ✅ **Forward message** (new modal with conversation picker + search)
+- ✅ Read receipts: single `✓` (sending) → double `✓✓` (delivered)
+- ✅ Unread badge per conversation in Messages list
+- ✅ Messages nav badge (desktop sidebar + mobile bottom bar)
+- ✅ Message notifications: recipient gets in-app notification + push on every message
+- ✅ Messages tab in mobile bottom nav (replaced Businesses)
+- ✅ Group/Channel creation modals (brand colors fixed)
+- ✅ In-app notifications + push notifications
+- ✅ Telegram bot notifications
+- ✅ Socket singleton cleared on logout (prevents stale token)
+
+### Admin Panel
+- ✅ Overview: users, posts, products, orders, reports
+- ✅ **Revenue dashboard**: total, last-30-day, paid/pending order counts, new users today, banned count
+- ✅ **`GET /api/admin/stats/revenue`**: daily chart, top sellers, top products (last 30 days)
+- ✅ User management: search, role change, delete
+- ✅ **Ban/Unban users** with optional reason (inline modal, no native dialogs)
+- ✅ Ban enforced in auth middleware (banned users get 403 immediately)
+- ✅ Two-tap confirmation for delete and revoke (no native confirm())
+- ✅ Verification management: grant, revoke
+- ✅ Flagged content review
+- ✅ Order management
 
 ### Discovery & Search
-- ✅ Search across 7 types (users, products, showrooms, tasks, posts, jobs, events)
-- ✅ Search filters (sort by distance/price/date, price range, date range)
-- ✅ Distance-aware results with km/m badges
-- ✅ Hashtag feed page
+- ✅ Search across 7 types (people, products, showrooms, tasks, posts, jobs, events)
+- ✅ **Jobs + Events now appear in the "All" tab** (was previously filtered out)
+- ✅ Search filters (sort, distance, price, date)
+- ✅ Distance badges
 
 ### Platform
-- ✅ Events (create, browse, ticket booking)
-- ✅ Job Board (post, browse)
-- ✅ Courses / Digital products
-- ✅ Task marketplace (post, bid, calendar)
+- ✅ Events, Job Board, Courses, Tasks (all with CRUD)
 - ✅ Referral / invite system
-- ✅ Report / Block users (`moderation.js`)
-- ✅ Admin panel (user, order, content management)
-- ✅ AI assistant + product description generator (`ai.js`)
+- ✅ Report / Block users
+- ✅ AI assistant (OpenAI/Gemini/Anthropic switchable)
 - ✅ PWA (installable, service worker, manifest)
+- ✅ All 45 views wrapped with ErrorBoundary
+- ✅ Skeleton loading states on Marketplace, Showrooms, Profile, Explore, Jobs, Events
+- ✅ TypeScript 0 errors
+- ✅ Rate limiters fully bypassed in dev (`skip: () => isDev`)
+- ✅ 16 views use `useAuth()` hook (no duplicate `/api/auth/me` calls)
+- ✅ Zero native alert()/confirm()/prompt() calls anywhere
+
+### Backend Quality
+- ✅ 28 migrations (including parent_id for comments, is_banned, chat/notification indexes)
+- ✅ GIN index on `conversations(participant_ids)` for JSONB containment queries
+- ✅ Composite indexes on messages, notifications
+- ✅ ALLOWED_TABLES allowlist in crud.js
+- ✅ Following filter on posts API (`following=true` queries follows table)
+- ✅ Coupon toggle (activate/pause without deleting)
+- ✅ 252 backend tests passing (17 suites)
 
 ---
 
-## ⚠️ PARTIALLY BUILT (DB / Backend done, Frontend missing)
+## ⚠️ PARTIALLY BUILT
 
-| Feature | What's Done | What's Missing |
+| Feature | Done | Missing |
 |---|---|---|
-| Return & Refund | `return_requests` table in migrate5 | Frontend form in Orders page, seller approve/deny |
-| Delivery Tracking | `delivery_updates` table in migrate5 | Timeline UI in Orders page |
-| Offline Mode | Service worker + PWA installed | No cache strategy, no draft storage |
+| Offline Mode | Service worker + PWA installed | Cache strategy, IndexedDB draft storage |
+| Map clustering | MarkerClusterGroup is stub pass-through | Real `react-leaflet-cluster` implementation |
 
 ---
 
 ## ❌ NOT YET BUILT
 
-### 🔴 Priority 1 — Build These First
+### 🔴 Priority 1
 
-| # | Feature | Why | Effort |
+| # | Feature | Notes | Effort |
 |---|---|---|---|
-| 1 | **Chapa Payment** (Telebirr, CBE Birr) | Whole local market can't use Stripe | Medium |
-| 2 | **Invoice Generator** | `jspdf` already installed — literally 1 day | Very Low |
-| 3 | **Personalized Feed Algorithm** | Ranked feed = 3x retention | Medium |
-| 4 | **Promoted Posts / Ads** | First real revenue stream | Medium |
-| 5 | **Video Posts** | 3x engagement vs images | Medium |
-| 6 | **Two-Factor Auth (2FA)** | Wallet = real money, needs protection | Low |
-| 7 | **Business Hours + Appointments** | Salons, clinics, consultants need this | Medium |
-| 8 | **Community Groups** | #1 retention feature in social apps | High |
-| 9 | **WhatsApp Order Notifications** | Sellers live in WhatsApp | Low |
-| 10 | **Inventory Low Stock Alerts** | Prevents missed sales from stockouts | Low |
+| 1 | **Personalized Feed Algorithm** | Score: recency × 0.3 + likes × 0.4 + follows × 0.3 | Medium |
+| 2 | **Promoted Posts / Ads System** | `is_promoted`, `promotion_budget` fields + admin campaign panel | Medium |
+| 3 | **Video Posts** | Upload in CreatePostForm, HTML5 `<video>` in PostCard, store on R2 | Medium |
+| 4 | **Two-Factor Auth (2FA)** | `otplib` TOTP, `totp_secret` in users, Settings toggle | Low |
+| 5 | **Business Hours + Appointment Booking** | `availability_slots` + `appointments` tables, calendar UI | Medium |
+| 6 | **Community Groups** | `groups` + `group_members`, group feed, admin roles, join/leave | High |
+| 7 | **WhatsApp Order Notifications** | Twilio WhatsApp API, fire on order creation | Low |
+| 8 | **Inventory Low Stock Alerts** | Already partly done (backend fires on Stripe webhook), UI missing | Low |
+| 9 | **Admin Revenue Chart UI** | Backend endpoint exists (`/api/admin/stats/revenue`), recharts ready | Low |
+| 10 | **Smart Task Matching** | Auto-notify best agents by type + location proximity | Low |
 
-### 🟡 Priority 2 — Important
+### 🟡 Priority 2
 
-| # | Feature | Why | Effort |
-|---|---|---|---|
-| 11 | Live Streaming | Highest engagement + virtual gift revenue | Very High |
-| 12 | Premium Business Subscription | Recurring revenue model | High |
-| 13 | Reactions (emoji beyond Like) | Richer expression, engagement data | Low |
-| 14 | Bulk / Wholesale Pricing | Opens B2B commerce | Low |
-| 15 | Login Activity + Device Management | Security for wallet accounts | Low |
-| 16 | User Badges / Achievements | Gamification, retention | Medium |
-| 17 | Content Moderation AI | Scale safety with OpenAI Vision | Medium |
-| 18 | Seller Revenue Forecasting | Analytics + recharts already installed | Low |
-| 19 | Smart Task Matching | Auto-notify best agents | Low |
-
-### 🟢 Priority 3 — Growth & Scale
-
-| # | Feature | Notes |
+| # | Feature | Effort |
 |---|---|---|
-| 20 | Virtual Gifting | Coin economy on posts/live. TikTok-style revenue. |
-| 21 | Product Recommendations | Collaborative filtering. "You might like…" |
-| 22 | Multi-Currency Display | For diaspora. ETB stored in DB, display converts. |
-| 23 | Business Verification (Document Upload) | Admin reviews trade license. Trust. |
-| 24 | Oromo & Tigrinya Languages | Add `or.json` + `ti.json` locale files. |
-| 25 | Low-Data Mode | Image lazy-load toggle. Critical outside Addis. |
-| 26 | Swipe Feed (Reels-style) | CSS scroll-snap + touch. 4x engagement. |
-| 27 | In-App Camera | `getUserMedia()`. Instant post = 3x more posts. |
-| 28 | Biometric Login (WebAuthn) | Fingerprint/Face ID for mobile. |
-| 29 | Fraud Detection | Anomaly rules on orders. Auto-suspend. |
-| 30 | End-to-End Encrypted Messages | Web Crypto API. Privacy in DMs. |
-| 31 | Zapier / Webhook Integration | "On new order → Google Sheet". Platform play. |
-| 32 | A/B Testing Framework | Hash-based user variant assignment. |
-| 33 | Restaurant Menu Ordering | Huge local market. `menu_item` order type already exists. |
-| 34 | Loyalty / Points System | Points for activity unlock badges + discounts. |
-| 35 | Subscription/Membership Plans | Business offers recurring subscriber discounts. |
-| 36 | Screen Reader (ARIA) | axe DevTools audit. Required for government contracts. |
+| 11 | Live Streaming (Agora/LiveKit) | Very High |
+| 12 | Premium Business Subscription (Stripe) | High |
+| 13 | Reactions (emoji beyond Like) | Low |
+| 14 | Bulk / Wholesale Pricing | Low |
+| 15 | Login Activity + Device Management | Low |
+| 16 | User Badges / Achievements | Medium |
+| 17 | Content Moderation AI (OpenAI Vision) | Medium |
+| 18 | Seller Revenue Forecasting (linear regression) | Low |
+
+### 🟢 Priority 3 — Growth
+
+| # | Feature |
+|---|---|
+| 19 | Virtual Gifting (coin economy) |
+| 20 | Product Recommendations |
+| 21 | Multi-Currency Display (ETB/USD/EUR) |
+| 22 | Business Verification (document upload) |
+| 23 | Oromo & Tigrinya Languages |
+| 24 | Low-Data Mode |
+| 25 | Swipe Feed (Reels-style) |
+| 26 | In-App Camera |
+| 27 | Biometric Login (WebAuthn) |
+| 28 | Fraud Detection |
+| 29 | End-to-End Encrypted Messages |
+| 30 | Zapier / Webhook Integration |
+| 31 | Restaurant Menu Ordering |
+| 32 | Loyalty / Points System |
+| 33 | Subscription/Membership Plans |
+| 34 | Screen Reader (ARIA) Audit |
+| 35 | Showroom Analytics (views, clicks, conversions) |
+| 36 | Map Pin Clustering |
+| 37 | Task Auto-Expiry |
+| 38 | Showroom "Share Story" to Feed |
+| 39 | Earnings Leaderboard |
+| 40 | Negotiation on Tasks (counter-bid) |
 
 ---
 
-## 🏗️ Infrastructure (Required Before / During Scale)
+## 🏗️ Infrastructure
 
-| Item | Priority | Notes |
+| Item | Priority | Status |
 |---|---|---|
-| **Cloudflare R2 File Storage** | 🔴 Before production | `@aws-sdk/client-s3` already installed — just change endpoint |
-| **HttpOnly Cookie Auth** | 🔴 Before real money | Replace localStorage JWT. Add `/api/auth/refresh`. |
-| Redis Caching | 🟡 At 5K+ users | Cache trending + feed. `ioredis`. |
-| BullMQ Background Jobs | 🟡 Before heavy traffic | Async email, push, commission |
-| CDN (Cloudflare) | 🟡 Before production | Free. 5x faster loads outside Addis. |
-| Database Read Replicas | 🟢 At 10K+ concurrent | Separate SELECT load |
-| Horizontal Scaling | 🟢 At 50K+ users | Docker + Nginx upstream |
+| **Cloudflare R2 File Storage** | 🔴 Before production | `@aws-sdk/client-s3` installed, env vars needed |
+| **HttpOnly Cookie Auth** | 🔴 Before real money | Replace localStorage JWT |
+| Redis Caching | 🟡 At 5K+ users | `ioredis` installed, Redis URL needed |
+| BullMQ Background Jobs | 🟡 Before heavy traffic | `bullmq` installed |
+| CDN (Cloudflare) | 🟡 Before production | Free tier |
+| Database Read Replicas | 🟢 At 10K+ concurrent | Neon supports this |
+| Horizontal Scaling | 🟢 At 50K+ users | Railway auto-scaling |
 
 ---
 
-## New Recommendations (Not in Previous Roadmap)
-
-These are additions based on what Empire X now has and where the gaps are:
-
-### NR1 — AI-Powered Business Name & Slogan Generator
-**What:** When creating a business, AI suggests a name + tagline based on category and description.
-**Why:** Many small businesses in Ethiopia don't have formal brand identities. Easy win.
-**How:** OpenAI prompt with category context. `ai.js` already exists.
-**Effort:** Very Low
-
-### NR2 — Showroom Analytics (Views, Clicks, Conversions)
-**What:** Business owners see how many people viewed their showroom, clicked products, and converted.
-**Why:** Sellers invest time in showrooms but have no idea if they're working.
-**How:** Track `showroom_views` + `product_click` events. Add chart to BusinessAnalytics.
-**Effort:** Low
-
-### NR3 — Map Pin Clustering
-**What:** When many pins are close together on the map, group them into a single cluster badge (e.g. "8").
-**Why:** 50+ pins on a small map is unreadable. Clustering is standard map UX.
-**How:** `react-leaflet-cluster` npm package. Drop-in wrapper around `MapContainer`.
-**Effort:** Very Low | **Impact:** High (UX on busy maps)
-
-### NR4 — "Open Now" Filter on Nearby Map
-**What:** Filter businesses by those currently open, based on their business hours setting.
-**Why:** Users want to find a pharmacy or salon that's open right now, not all 50 in the area.
-**How:** Compare current time to `business_hours` JSON when Business Hours feature is built.
-**Effort:** Low (depends on NR1.7 Business Hours)
-
-### NR5 — Task Auto-Expiry
-**What:** Tasks that don't get a bid within X days automatically close.
-**Why:** Dead tasks clutter the board and reduce quality signal.
-**How:** Cron job (or BullMQ delayed job). Set `status = 'expired'` after configurable days.
-**Effort:** Very Low
-
-### NR6 — Showroom "Share Story" (Post Showroom Section to Feed)
-**What:** Business owners can share a section of their showroom as a post to the social feed in one click.
-**Why:** Drives discovery. Showrooms become social content.
-**How:** Pre-fill `CreatePostForm` with showroom section image/text.
-**Effort:** Low
-
-### NR7 — Product Bundle Deals
-**What:** Sellers create bundles (e.g. "Buy shirt + trousers = 20% off").
-**Why:** Increases average order value. Common in fashion + electronics.
-**How:** `product_bundles` table. Bundle price + component products. Apply discount in cart.
-**Effort:** Medium
-
-### NR8 — Earnings Leaderboard
-**What:** Public leaderboard of top-earning sellers, task completers, most active users this month.
-**Why:** Competition drives activity. Leaderboards are proven engagement tools in African apps.
-**How:** Monthly aggregation job. Leaderboard page. Crown icon for top 3.
-**Effort:** Low
-
-### NR9 — Negotiation on Tasks (Counter-Bid)
-**What:** Task requester can counter-offer a different price to a bidder. Bidder accepts or declines.
-**Why:** Real-world haggling is expected in Ethiopian commerce. Rigid prices reduce task completion.
-**How:** Add `counter_offer` field to `task_bids`. Notification flow for counter + accept/decline.
-**Effort:** Low | **Impact:** Medium
-
-### NR10 — Collaborative Showrooms (Co-Owner)
-**What:** Multiple sellers can contribute products to one showroom (like a marketplace stall).
-**Why:** Small vendors who can't afford their own showroom can join a shared one.
-**How:** `showroom_collaborators` table. Permissions per collaborator. Revenue split tracking.
-**Effort:** Medium | **Impact:** High (for small sellers)
-
----
-
-## Summary
+## Summary (August 2026)
 
 | Category | Count |
 |---|---|
-| ✅ Fully built | **62 features** |
-| ⚠️ Partially built (DB done, UI missing) | **3 features** |
-| ❌ Priority 1 to build | **10 features** |
-| ❌ Priority 2 to build | **9 features** |
-| ❌ Priority 3 growth features | **17 features** |
-| 🆕 New recommendations | **10 features** |
-| 🏗️ Infrastructure items | **7 items** |
-| **Total feature surface** | **~118 features** |
+| ✅ Fully built | **75+ features** |
+| ⚠️ Partially built | **2** |
+| ❌ Priority 1 to build | **10** |
+| ❌ Priority 2 to build | **8** |
+| ❌ Priority 3 growth | **22** |
+| 🏗️ Infrastructure | **7** |
+| **Total feature surface** | **~124+** |
 
-*Last updated: July 2026*
+*Last updated: August 9, 2026*

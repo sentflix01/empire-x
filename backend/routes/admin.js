@@ -300,4 +300,53 @@ router.put('/users/:id/verify', async (req, res) => {
   }
 });
 
+// ── Revenue chart — last 30 days daily breakdown ─────────────────────────────
+router.get('/stats/revenue', async (_req, res) => {
+  try {
+    const { rows: daily } = await pool.query(`
+      SELECT
+        DATE(created_at) AS date,
+        COUNT(*)::int      AS order_count,
+        COALESCE(SUM(total_price), 0)::float AS revenue
+      FROM orders
+      WHERE status IN ('paid','processing','completed')
+        AND created_at > NOW() - INTERVAL '30 days'
+      GROUP BY DATE(created_at)
+      ORDER BY date ASC
+    `);
+
+    const { rows: topSellers } = await pool.query(`
+      SELECT
+        u.id, u.full_name, u.email,
+        COUNT(o.id)::int              AS order_count,
+        COALESCE(SUM(o.total_price), 0)::float AS revenue
+      FROM orders o
+      JOIN users u ON u.id = o.seller_id
+      WHERE o.status IN ('paid','processing','completed')
+        AND o.created_at > NOW() - INTERVAL '30 days'
+      GROUP BY u.id, u.full_name, u.email
+      ORDER BY revenue DESC
+      LIMIT 10
+    `);
+
+    const { rows: topProducts } = await pool.query(`
+      SELECT
+        p.id, p.title, p.price, p.currency,
+        COUNT(o.id)::int AS order_count,
+        COALESCE(SUM(o.total_price), 0)::float AS revenue
+      FROM orders o
+      JOIN products p ON p.id = o.product_id
+      WHERE o.status IN ('paid','processing','completed')
+        AND o.created_at > NOW() - INTERVAL '30 days'
+      GROUP BY p.id, p.title, p.price, p.currency
+      ORDER BY revenue DESC
+      LIMIT 10
+    `);
+
+    res.json({ daily, top_sellers: topSellers, top_products: topProducts });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch revenue chart' });
+  }
+});
+
 module.exports = router;

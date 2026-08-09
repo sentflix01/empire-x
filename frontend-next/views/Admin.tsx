@@ -9,7 +9,7 @@ import client from "@/api/client";
 import {
   Users, ShoppingBag, FileText, ClipboardList, ShieldAlert,
   Trash2, CheckCircle, Crown, BarChart3, BadgeCheck, X, Search,
-  Clock, CheckCircle2, XCircle, Eye,
+  Clock, CheckCircle2, XCircle, Eye, TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,9 @@ import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import moment from "moment";
 import { useTranslation } from 'react-i18next';
 import { toast } from "sonner";
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from "recharts";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 // ── Pending Verification Requests Queue ──────────────────────────────────────
@@ -206,6 +209,8 @@ function Admin() {
   const [orders, setOrders] = useState([]);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [revenueChart, setRevenueChart] = useState([]);
+  const [topSellers, setTopSellers] = useState([]);
   const [search, setSearch] = useState("");
   const [vSearch, setVSearch] = useState("");
   const [vFilter, setVFilter] = useState("all");
@@ -229,7 +234,7 @@ function Admin() {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [s, u, v, po, pr, o, r] = await Promise.all([
+      const [s, u, v, po, pr, o, r, rc] = await Promise.all([
         client.get("/api/admin/stats").then(r => r.data),
         client.get("/api/admin/users").then(r => r.data),
         client.get("/api/admin/verifications").then(r => r.data),
@@ -237,10 +242,13 @@ function Admin() {
         client.get("/api/admin/products").then(r => r.data),
         client.get("/api/admin/orders").then(r => r.data),
         client.get("/api/admin/reports").then(r => r.data),
+        client.get("/api/admin/stats/revenue").then(r => r.data).catch(() => ({ daily: [], top_sellers: [], top_products: [] })),
       ]);
       setStats(s); setUsers(u); setVerifications(v);
       setPosts(po); setProducts(pr); setOrders(o); setReports(r);
-    } catch (e) { console.error(e); }
+      setRevenueChart(rc.daily || []);
+      setTopSellers(rc.top_sellers || []);
+    } catch (e) { /* silenced */ }
     setLoading(false);
   };
 
@@ -442,6 +450,57 @@ function Admin() {
                     })}
                   </div>
                 </div>
+
+                {/* Revenue chart — last 30 days */}
+                {revenueChart.length > 0 && (
+                  <div className="col-span-2 md:col-span-3 bg-card rounded-2xl border border-border/50 p-5">
+                    <p className="text-sm font-semibold mb-4 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-amber-500" /> Revenue — Last 30 Days (ETB)
+                    </p>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <AreaChart data={revenueChart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={d => d?.slice(5)} />
+                        <YAxis tick={{ fontSize: 10 }} width={48} tickFormatter={v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v} />
+                        <Tooltip
+                          formatter={(value, name) => [
+                            name === 'revenue' ? `${Number(value).toLocaleString()} ETB` : value,
+                            name === 'revenue' ? 'Revenue' : 'Orders'
+                          ]}
+                          labelFormatter={l => `Date: ${l}`}
+                        />
+                        <Area type="monotone" dataKey="revenue" stroke="#f59e0b" fill="url(#revenueGrad)" strokeWidth={2} dot={false} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Top sellers */}
+                {topSellers.length > 0 && (
+                  <div className="col-span-2 md:col-span-3 bg-card rounded-2xl border border-border/50 p-5">
+                    <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <ShoppingBag className="w-4 h-4 text-purple-500" /> Top Sellers — Last 30 Days
+                    </p>
+                    <div className="space-y-2">
+                      {topSellers.slice(0, 5).map((s, i) => (
+                        <div key={s.id} className="flex items-center gap-3">
+                          <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold flex items-center justify-center shrink-0">{i+1}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate">{s.full_name || s.email}</p>
+                            <p className="text-[10px] text-muted-foreground">{s.order_count} orders</p>
+                          </div>
+                          <p className="text-xs font-bold text-amber-600">{Number(s.revenue).toLocaleString()} ETB</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

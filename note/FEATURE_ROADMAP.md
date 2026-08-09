@@ -1,350 +1,178 @@
 # Empire X — Feature Roadmap
 
-> Last updated: July 2026
-> Based on actual codebase audit of `/frontend-next/pages`, `/backend/routes`, `package.json`, and `socket.js`.
+> Last updated: August 9, 2026
+> Based on full codebase state after major engineering sprint (July–August 2026).
 
 ---
 
-## ✅ EVERYTHING BUILT (Confirmed in Codebase)
+## ✅ COMPLETED (Confirmed in codebase as of August 2026)
 
-### Core Auth & Profiles
-| Feature | Evidence |
+### Payment & Commerce — DONE
+| Feature | Status |
 |---|---|
-| User registration (email + OTP) | `backend/routes/auth.js` |
-| Login (email/password + Google OAuth) | `backend/routes/auth.js` |
-| Password reset via email | `backend/routes/auth.js` |
-| User profiles (personal + business) | `backend/routes/profiles.js`, `Profile.tsx` |
-| Onboarding flow | `Onboarding.tsx` |
-| Verified badges | `VerifiedBadge` component, `admin.js` |
-| Dark / Light mode toggle | `next-themes` installed, `AppLayout.tsx` |
-| Amharic + English (i18n) | `react-i18next` installed, `locales/` folder |
+| Stripe hosted Checkout Session | ✅ Full (single + multi-seller, server-side pricing) |
+| Stripe webhook (paid/expired/failed/refunded) | ✅ Idempotent, commission + email + push |
+| Stripe `/orders/success` + `/orders/cancel` pages | ✅ New (August 2026) |
+| Stock decrement on payment confirmation | ✅ New (August 2026) |
+| Chapa ETB payment (TeleBirr/CBE/M-Pesa) | ✅ Full sandbox + production |
+| Wallet Stripe + Chapa top-up | ✅ With return param banners |
+| Coupon activate/pause toggle | ✅ New (August 2026) |
+| Invoice PDF download | ✅ (`jspdf` wired) |
 
-### Social Feed
-| Feature | Evidence |
+### Messaging — DONE
+| Feature | Status |
 |---|---|
-| Social feed (posts, likes, comments) | `backend/routes/posts.js`, `Home.tsx`, `PostCard.tsx` |
-| Comment section with reply + show/hide | `PostCard.tsx` |
-| Follow / unfollow users | `profiles.js` |
-| Hashtags (parse, trending, feed) | `backend/routes/hashtags.js`, `HashtagFeed.tsx` |
-| Polls on posts (create, vote, results) | `backend/routes/polls.js`, `PostCard.tsx` |
-| Stories (24hr posts with auto-cleanup) | `backend/routes/stories.js`, `Stories.tsx` |
-| Ticker Bar (7 types, per-profile) | `PostCard.tsx`, `TickerBar.tsx` |
-| Personal/Business feed toggle | `ProfileToggle.tsx`, `Home.tsx` |
-| Feed filter (For You / Trending / Following / Nearby) | `Home.tsx` |
-| Trending / Explore page | `Explore.tsx`, `backend/routes/trending.js` |
-| Reactions post type variants (promo, event, location, poll, image) | `PostCard.tsx` `detectVariant()` |
+| Send, edit, delete, reply | ✅ |
+| Forward message | ✅ New (August 2026) |
+| Unread badge per conversation | ✅ New (August 2026) |
+| Messages nav badge (sidebar + mobile) | ✅ New (August 2026) |
+| Message notifications (in-app + push) | ✅ New (August 2026) |
+| Read receipts (single/double check) | ✅ New (August 2026) |
 
-### Nearby Map (Major Feature — Fully Built)
-| Feature | Evidence |
+### Admin — DONE
+| Feature | Status |
 |---|---|
-| GPS location + Addis Ababa fallback | `Home.tsx`, `NearbyMap.tsx` |
-| Nearby businesses map (feed Nearby tab) | `Home.tsx` — embedded map in feed |
-| Nearby tasks + products map (`/nearby` page) | `NearbyMap.tsx` |
-| Radius selector (2/5/10/20/50 km) | `Home.tsx` |
-| Product/shop search within radius | `backend/routes/maps.js` `/nearby/product-search` |
-| 3-step search: product → business → radius filter | `maps.js` product-search endpoint |
-| Category filter chips on Nearby tab | `Home.tsx` |
-| People search (@ prefix → user pins on map) | `Home.tsx` |
-| Labeled DivIcon pins (name callout bubble above pin) | `Home.tsx`, `NearbyMap.tsx` `makeLabeledIcon()` |
-| Hover card on marker (mini feed preview) | `MarkerHoverCard` component |
-| Double-click marker → ProfilePeek modal | `Home.tsx`, `NearbyMap.tsx` |
-| ProfilePeek modal (personal + business tabs) | `ProfilePeek.tsx` |
-| Gold pin = your location (double-click → your profile) | `Home.tsx` |
-| Green pins = people search results | `Home.tsx` |
-| Red pins = product search results | `Home.tsx` |
-| Blue pins = browse mode businesses | `Home.tsx` |
+| Ban/unban users (inline modal, auth enforcement) | ✅ New (August 2026) |
+| Revenue dashboard (total, 30-day, paid/pending) | ✅ New (August 2026) |
+| Revenue chart API (daily, top sellers, top products) | ✅ New (August 2026) |
+| Zero native dialogs (alert/confirm/prompt removed) | ✅ New (August 2026) |
 
-### Marketplace & Commerce
-| Feature | Evidence |
+### Comment System — DONE
+| Feature | Status |
 |---|---|
-| Product listings (create, edit, delete) | `ProductCreate.tsx`, `backend/routes/products.js` |
-| Product detail page | `ProductDetail.tsx` |
-| Product variants (size, color, etc.) | `backend/routes/variants.js`, `migrate5.js` |
-| Product reviews & ratings | `backend/routes/reviews.js`, `ProductDetail.tsx` |
-| Shopping cart | `Cart.tsx`, `backend/routes/cart.js` |
-| Order placement + management | `Orders.tsx`, `backend/routes/orders.js` |
-| Stripe payment | `orders.js`, `@stripe` installed |
-| Discount codes / coupons | `CouponsManage.tsx`, `backend/routes/coupons.js` |
-| Price alerts / wishlists | `backend/routes/wishlists.js` |
-| Bookmarks / saves | `Bookmarks.tsx`, `backend/routes/saves.js` |
-| Platform commission (auto on order) | `backend/routes/commission.js` |
-| Wallet (balance, topup, withdraw) | `Wallet.tsx`, `backend/routes/wallet.js` |
-| Return requests (DB exists) | `migrate5.js` — table exists, UI pending |
-| Delivery tracking updates (DB exists) | `migrate5.js` — table exists, UI pending |
-| Price alerts (DB exists) | `wishlists.js` — implemented |
+| Threaded replies (parent_id — migrate27) | ✅ New (August 2026) |
+| Reply count display + optimistic update | ✅ New (August 2026) |
+| Comment/reply delete with cascade | ✅ New (August 2026) |
+| Backend notifies parent comment author on reply | ✅ New (August 2026) |
 
-### Business & Showrooms
-| Feature | Evidence |
+### UX & Quality — DONE
+| Feature | Status |
 |---|---|
-| Business profiles with mini-website | `BusinessCreate.tsx`, `BusinessProfile.tsx` |
-| Showrooms (custom pages, 27 templates) | `ShowroomCreate.tsx`, `ShowroomView.tsx`, `ShowroomTemplates.tsx` |
-| Showroom Studio (template gallery) | `ShowroomTemplates.tsx`, `TemplateCard.tsx` |
-| Business analytics dashboard | `BusinessAnalytics.tsx` |
-| QR Code for showrooms | `qrcode.react` installed |
-| Section editor with drag-and-drop | `@hello-pangea/dnd` installed |
+| Skeleton loading on 6 major pages | ✅ New (August 2026) |
+| ErrorBoundary on all 45 views | ✅ |
+| TypeScript 0 errors | ✅ |
+| Following tab correctly queries follows table | ✅ New (August 2026) |
+| Jobs + Events appear in Search "All" tab | ✅ New (August 2026) |
+| Showroom cards show real cover images | ✅ New (August 2026) |
+| Explore featured showrooms show real images | ✅ New (August 2026) |
+| Marketplace infinite scroll | ✅ New (August 2026) |
+| Product image in order cards | ✅ New (August 2026) |
+| Seller name in orders (not UUID) | ✅ New (August 2026) |
 
-### Messaging & Notifications
-| Feature | Evidence |
+---
+
+## 🔴 NEXT 30 DAYS — Priority 1
+
+These are the highest-impact items to build next, ordered by value:
+
+### 1. Admin Revenue Chart UI (1–2 days)
+**Backend already done.** `/api/admin/stats/revenue` returns daily chart, top sellers, top products.
+Just needs a recharts `<AreaChart>` component in Admin.tsx overview tab.
+**Impact:** Admin can see business health in real-time.
+
+### 2. Personalized Feed Algorithm (3–4 days)
+Currently feed is random/chronological. Scoring:
+- Recency: `(NOW() - created_at)` inverse weight
+- Engagement: `like_count * 0.4 + comment_count * 0.3`
+- Social graph: posts from followed users get +0.5 boost
+Background job recalculates scores every 5 minutes via BullMQ.
+**Impact:** 3x session time (proven by research).
+
+### 3. Video Posts (5–7 days)
+Add video upload support to `CreatePostForm`. `<video>` player in PostCard.
+Store on Cloudflare R2. Thumbnail generation via ffmpeg (backend).
+**Impact:** Highest engagement format. TikTok/Instagram-style content.
+
+### 4. Two-Factor Auth (2–3 days)
+TOTP with `otplib`. `totp_secret` in users table. Settings page toggle.
+QR code setup flow. Verify on login if enabled.
+**Impact:** Real money in wallets needs account protection.
+
+### 5. Smart Task Matching (1 day)
+When a task is posted, notify top 5 agents by:
+- `task_type` match
+- Location proximity (within `task.radius_km`)
+- Rating (average from completed tasks)
+Fire push + in-app notification to matched agents.
+**Impact:** Increases task completion rate, key metric.
+
+---
+
+## 🟡 NEXT 90 DAYS — Priority 2
+
+### 6. Business Hours + Appointment Booking (5–7 days)
+`availability_slots` table: `business_id`, `day_of_week`, `open_time`, `close_time`.
+`appointments` table: `slot_id`, `user_id`, `status`, `notes`.
+Calendar picker in business profile. Seller confirms/cancels.
+**Needed by:** Salons, clinics, consultants, tutors.
+
+### 7. Promoted Posts / Ads (5–7 days)
+`is_promoted`, `promotion_budget`, `promotion_expires_at` on posts.
+Admin campaign panel: approve/set budget.
+Feed injection: 1 promoted post per 10 organic.
+**Revenue:** First ad revenue stream for the platform.
+
+### 8. Community Groups (2–3 weeks)
+`groups` table: `name`, `description`, `cover_image`, `privacy` (public/private).
+`group_members`: `group_id`, `user_id`, `role` (admin/member).
+Group feed (filtered posts), join/leave, group chat room.
+**Impact:** #1 retention feature. Users return daily for their groups.
+
+### 9. Premium Business Subscription (1 week)
+`subscription_tier` on businesses: `free` | `pro` | `enterprise`.
+Stripe Subscription (recurring billing).
+Pro features: unlimited products, custom domain, analytics, verified badge.
+**Revenue:** Recurring monthly revenue model.
+
+### 10. WhatsApp Order Notifications (1–2 days)
+Twilio WhatsApp Business API.
+Fire on: new order, payment confirmed, status update, return request.
+Sellers get WhatsApp pings without opening the app.
+**Impact:** High — Ethiopian businesses live in WhatsApp.
+
+---
+
+## 🟢 NEXT 6 MONTHS — Priority 3 Growth
+
+| Month | Feature |
 |---|---|
-| DM / Group / Channel messaging | `Messages.tsx`, `ChatRoom.tsx`, `backend/routes/messages.js` |
-| Real-time chat (Socket.io WebSocket) | `backend/socket.js`, `socket.io` + `socket.io-client` installed |
-| In-app notifications | `Notifications.tsx`, `backend/routes/notifications.js` |
-| Push notifications (Web Push / PWA) | `backend/routes/push.js`, `web-push` installed, `public/sw.js` |
-| Telegram bot (order/message notifications) | `backend/routes/telegram.js` |
-
-### Discovery & Search
-| Feature | Evidence |
-|---|---|
-| Search (users, products, showrooms, tasks, posts, jobs, events) | `Search.tsx`, `backend/routes/search.js` |
-| Search filters (sort, distance, price, date range) | `search.js` full filter support |
-| Distance-aware results (GPS km/m badges) | `search.js` Haversine + `distance_km` |
-| Hashtag feed | `HashtagFeed.tsx` |
-
-### Platform Features
-| Feature | Evidence |
-|---|---|
-| Events (create, browse, ticket booking) | `Events.tsx`, `EventCreate.tsx`, `backend/routes/events.js` |
-| Job Board (post, browse, apply) | `Jobs.tsx`, `JobCreate.tsx`, `backend/routes/jobs.js` |
-| Courses / Digital products | `Courses.tsx`, `CourseDetail.tsx`, `backend/routes/courses.js` |
-| Tasks marketplace (post, bid, calendar) | `Tasks.tsx`, `TaskCreate.tsx`, `TaskCalendar.tsx`, `backend/routes/tasks.js` |
-| Task bidding | `tasks.js` |
-| Referral / invite system | `Referral.tsx`, `backend/routes/referral.js` |
-| Report / Block users | `backend/routes/moderation.js` |
-| Admin panel | `Admin.tsx`, `backend/routes/admin.js` |
-| AI assistant / product description | `backend/routes/ai.js`, `AiAssistant.tsx` |
-| PWA (installable on phone) | `public/manifest.json`, `public/sw.js` |
+| Month 3 | Live Streaming (Agora/LiveKit MVP) |
+| Month 3 | Reactions (emoji beyond Like) |
+| Month 3 | Seller Revenue Forecasting (linear regression on orders) |
+| Month 4 | Oromo & Tigrinya languages |
+| Month 4 | Low-Data Mode (image lazy-load toggle) |
+| Month 4 | Biometric Login (WebAuthn) |
+| Month 5 | Virtual Gifting (coin economy) |
+| Month 5 | Product Recommendations ("You might also like") |
+| Month 6 | Restaurant Menu Ordering |
+| Month 6 | Loyalty / Points System |
 
 ---
 
-## 🔴 NOT YET BUILT — Priority 1 (Build Next)
+## 🏗️ Infrastructure — Required Before Production Launch
 
-### P1.1 — Chapa / Local Payment Integration
-**Status:** ❌ Not built — Stripe only
-**Why urgent:** Most Ethiopian users can't use Stripe. Missing the whole local market.
-**How:** Chapa REST API (`https://chapa.co`). New `/api/orders/chapa/session`. Button in checkout.
-**Effort:** Medium | **Revenue impact:** Very High
-
----
-
-### P1.2 — Promoted Posts / Ads System
-**Status:** ❌ Not built
-**Why urgent:** First real revenue stream beyond commission.
-**How:** `is_promoted`, `promotion_budget`, `promotion_expires_at` fields on posts/products. Admin campaign panel.
-**Effort:** Medium | **Revenue impact:** Very High
-
----
-
-### P1.3 — Return & Refund UI
-**Status:** ⚠️ DB table exists (`return_requests` in migrate5), frontend missing
-**Why urgent:** Trust builder. Buyers won't spend real money without a return option.
-**How:** Add return request form in `Orders.tsx`. Seller approve/deny flow. Approved → wallet refund.
-**Effort:** Low (DB done) | **Impact:** High
-
----
-
-### P1.4 — Delivery Tracking UI
-**Status:** ⚠️ DB table exists (`delivery_updates` in migrate5), frontend missing
-**Why urgent:** Reduces "where is my order?" messages to sellers.
-**How:** Timeline component in `Orders.tsx`. Seller adds checkpoints. Buyer sees live progress.
-**Effort:** Low (DB done) | **Impact:** Medium
-
----
-
-### P1.5 — Business Hours & Appointment Booking
-**Status:** ❌ Not built
-**Why urgent:** Salons, clinics, consultants need this. Currently have no way to take bookings.
-**How:** `availability_slots` + `appointments` tables. Calendar UI in business profile.
-**Effort:** Medium | **Impact:** High
-
----
-
-### P1.6 — Community Groups
-**Status:** ❌ Not built
-**Why urgent:** #1 retention driver in social platforms. Users come back daily for group feeds.
-**How:** `groups` + `group_members` tables. Group feed, admin roles, join/leave.
-**Effort:** High | **Impact:** Very High
-
----
-
-### P1.7 — Personalized Feed Algorithm
-**Status:** ❌ Not built — feed is chronological only
-**Why urgent:** Ranked feed keeps users engaged 3x longer.
-**How:** Score posts: (recency × 0.3) + (likes × 0.4) + (follows × 0.3). Background recalculation every few minutes.
-**Effort:** Medium | **Impact:** Very High
-
----
-
-### P1.8 — Two-Factor Authentication (2FA)
-**Status:** ❌ Not built
-**Why urgent:** Wallet balances are real money. Accounts need protection.
-**How:** `otplib` for TOTP. `totp_secret` in users table. Settings page toggle.
-**Effort:** Low | **Impact:** High (security)
-
----
-
-### P1.9 — Invoice Generator (PDF)
-**Status:** ❌ Not built — `jspdf` IS installed, just not wired up
-**Why urgent:** Ethiopian businesses need formal invoices for tax. `jspdf` is already in the project.
-**How:** Invoice template using existing `jspdf`. Generate on "Download Invoice" button in Orders.
-**Effort:** Very Low (package already installed) | **Impact:** Medium
-
----
-
-### P1.10 — Video Posts (Short-form)
-**Status:** ❌ Not built — only image posts
-**Why urgent:** Video has 3x more engagement than image/text. Core differentiator.
-**How:** Video upload in `CreatePostForm`. HTML5 `<video>` player in `PostCard`. Store on R2.
-**Effort:** Medium | **Impact:** Very High
-
----
-
-## 🟡 NOT YET BUILT — Priority 2 (Important)
-
-### P2.1 — Live Streaming
-**Status:** ❌ Not built
-**How:** Agora.io or LiveKit SDK. Stream metadata in DB. Virtual gifts integration.
-**Effort:** Very High | **Impact:** Very High
-
-### P2.2 — Premium Business Subscription
-**Status:** ❌ Not built
-**How:** `subscription_tier` field on businesses. Stripe subscription. Feature gating.
-**Effort:** High | **Impact:** Very High (recurring revenue)
-
-### P2.3 — Smart Task Matching (Auto-suggest agents)
-**Status:** ❌ Not built
-**How:** Match `task_type` + location. Auto-notify top 5 matched agents.
-**Effort:** Low | **Impact:** Medium
-
-### P2.4 — WhatsApp Order Notifications
-**Status:** ❌ Not built
-**How:** Twilio WhatsApp API. Fire on order creation.
-**Effort:** Low | **Impact:** High
-
-### P2.5 — Inventory Low Stock Alerts
-**Status:** ❌ Not built
-**How:** Check stock on every order. Push + in-app notification when below threshold.
-**Effort:** Low | **Impact:** Medium
-
-### P2.6 — User Badges / Achievements
-**Status:** ❌ Not built
-**How:** Threshold checks on events. Award badge, notify. Display on profile.
-**Effort:** Medium | **Impact:** Medium
-
-### P2.7 — Reactions (Beyond Just Likes)
-**Status:** ❌ Not built — likes only
-**How:** Add `reaction_type` to likes table. Emoji picker in PostCard.
-**Effort:** Low | **Impact:** Medium
-
-### P2.8 — Bulk/Wholesale Pricing
-**Status:** ❌ Not built
-**How:** `price_tiers` JSON on products. Apply correct tier in checkout.
-**Effort:** Low | **Impact:** Medium
-
-### P2.9 — Login Activity & Device Management
-**Status:** ❌ Not built
-**How:** `sessions` table. Store device + IP. Security settings page.
-**Effort:** Low | **Impact:** Medium (security)
-
-### P2.10 — Content Moderation AI
-**Status:** ❌ Not built
-**How:** OpenAI Vision API or Google Vision Safe Search on uploads.
-**Effort:** Medium | **Impact:** High (safety at scale)
-
-### P2.11 — Seller Revenue Forecasting
-**Status:** ❌ Not built — `jspdf` + recharts already installed
-**How:** Linear regression on last 30 days order data. Forecast line on analytics chart.
-**Effort:** Low | **Impact:** Medium
-
-### P2.12 — Offline Mode
-**Status:** ⚠️ PWA installed but no offline caching strategy
-**How:** Extend service worker to cache feed. IndexedDB for draft posts.
-**Effort:** High | **Impact:** High (intermittent connectivity in Ethiopia)
-
----
-
-## 🟢 NOT YET BUILT — Priority 3 (Growth)
-
-| # | Feature | Notes |
+| Item | Priority | Action |
 |---|---|---|
-| 3.1 | Virtual Gifting | Flowers/crowns on posts/live. Coin economy. High revenue potential. |
-| 3.2 | Product Recommendations ("You Might Like") | Collaborative filtering. Increases purchase rate. |
-| 3.3 | Multi-Currency Display (USD/EUR/ETB) | For diaspora. Display only — store ETB in DB. |
-| 3.4 | Business Verification (Document Upload) | Admin reviews trade license. Verified Business badge. |
-| 3.5 | Zapier / Webhook Integration | Power user automation. Empire X as a platform. |
-| 3.6 | Oromo & Tigrinya Language | `locales/or.json`, `locales/ti.json`. Huge reach expansion. |
-| 3.7 | Screen Reader (ARIA Accessibility) | Audit with axe DevTools. Add ARIA labels. |
-| 3.8 | Low-Data Mode | Lazy-load images toggle. Critical for outside Addis. |
-| 3.9 | Swipe Feed (Reels-style) | CSS scroll-snap + touch. 4x engagement. |
-| 3.10 | In-App Camera | `getUserMedia()`. Instant post without leaving app. |
-| 3.11 | Biometric Login (WebAuthn) | Fingerprint / Face ID. Mobile UX. |
-| 3.12 | Fraud Detection | Anomaly rules on orders. Auto-suspend flagged accounts. |
-| 3.13 | End-to-End Encrypted Messages | Web Crypto API. Privacy for sensitive DMs. |
-| 3.14 | A/B Testing Framework | User variant assignment. Data-driven UI decisions. |
-| 3.15 | User Engagement Heatmap (Admin) | Page view + time-on-page tracking in admin. |
-| 3.16 | Restaurant Menu Ordering | Food ordering flow. Huge Ethiopian market. |
-| 3.17 | Loyalty / Points System | Points for activity. Unlock badges + discounts. |
-| 3.18 | Subscription/Membership Plans | Businesses offer monthly subscriber discounts. |
+| **Cloudflare R2** | 🔴 | Set R2 env vars. `@aws-sdk/client-s3` already installed. 1 day. |
+| **HttpOnly Cookie Auth** | 🔴 | Replace localStorage JWT. Add `/api/auth/refresh`. 2 days. |
+| Redis (Upstash free tier) | 🟡 | Set `REDIS_URL`. Feed/trending caching live in 1 hour. |
+| Stripe Webhook Secret | 🔴 | Register `/api/orders/webhook` in Stripe Dashboard. |
+| Sentry DSN | 🟡 | Set `SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN` for error tracking. |
+| VAPID keys for Web Push | 🟡 | Generate + set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`. |
 
 ---
 
-## 🏗️ Infrastructure (When Scaling)
+## Stats (August 2026)
 
-| # | Item | Status | Priority |
-|---|---|---|---|
-| Redis Caching | Cache trending/feed/products | ❌ Not built | When 10K+ users |
-| BullMQ Background Jobs | Async email/push/commission | ❌ Not built | Before heavy traffic |
-| Cloudflare R2 File Storage | Replace local `/uploads` disk | ❌ Not built | **Before production** |
-| CDN (Cloudflare) | Serve static assets from edge | ❌ Not built | Before production |
-| HttpOnly Cookie Auth | Replace JWT in localStorage | ❌ Not built | Before real money flows |
-| Database Read Replicas | Separate SELECT from INSERT load | ❌ Not built | At 10K+ concurrent |
-| Horizontal Scaling / Load Balancer | Docker + Nginx upstream | ❌ Not built | At 50K+ users |
-
----
-
-## Recommended Build Order (Next 6 Months)
-
-```
-Month 1 — Revenue & Trust
-  1. Chapa Payment (local market)
-  2. Invoice Generator (jspdf already installed — 1 day)
-  3. Return & Refund UI (DB already done)
-  4. Delivery Tracking UI (DB already done)
-  5. Cloudflare R2 (required before production)
-
-Month 2 — Engagement
-  6. Video Posts
-  7. Personalized Feed Algorithm
-  8. Promoted Posts / Ads
-  9. Reactions (emoji beyond like)
-
-Month 3 — Security & Growth
-  10. 2FA
-  11. Business Hours + Appointment Booking
-  12. WhatsApp Order Notifications
-  13. Community Groups (start design)
-
-Month 4 — Scale
-  14. Community Groups (ship)
-  15. Live Streaming (MVP)
-  16. Premium Business Subscription
-  17. Redis Caching + BullMQ
-
-Month 5-6 — Reach
-  18. Oromo & Tigrinya languages
-  19. Low-Data Mode
-  20. Biometric Login
-  21. Virtual Gifting
-```
-
----
-
-## Stats
-
-| Category | Count |
+| Metric | Count |
 |---|---|
-| Features confirmed built | **60+** |
-| Priority 1 not built | **10** |
-| Priority 2 not built | **12** |
-| Priority 3 not built | **18** |
-| Infrastructure items pending | **7** |
-| **Total feature surface** | **107+** |
+| Confirmed built features | **75+** |
+| Backend test suites | 17 |
+| Backend tests passing | 252 |
+| Frontend tests passing | 68 |
+| TypeScript errors | 0 |
+| Native dialogs remaining | 0 |
+| DB migrations | 28 |
+| Views with ErrorBoundary | 45/45 |
+
+*Last updated: August 9, 2026*
