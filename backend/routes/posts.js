@@ -54,6 +54,13 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60), async (req, res
     if (author_id) { params.push(author_id); conditions.push(`author_id = $${params.length}`); }
     if (post_type) { params.push(post_type); conditions.push(`post_type = $${params.length}`); }
     if (req.realOnly) conditions.push(`author_id IN (SELECT id FROM users WHERE is_seed = FALSE)`);
+
+    // Following filter: only posts from people the current user follows
+    if (req.query.following === 'true' && req.user?.id) {
+      params.push(req.user.id);
+      conditions.push(`author_id IN (SELECT followed_id FROM follows WHERE follower_id = $${params.length})`);
+    }
+
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const orderBy = sort?.startsWith('-') ? `${sort.slice(1)} DESC` : (sort || 'created_at DESC');
     params.push(Math.min(parseInt(limit) || 30, 100));

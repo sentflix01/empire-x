@@ -167,20 +167,28 @@ export default function Home() {
     setFilter(key);
     if (key === "nearby") return;
 
-    // Trending — sort locally from already-fetched posts (no API call needed)
+    // Trending — sort locally from already-fetched posts (no extra API call)
     if (key === "trending" && posts.length > 0) {
       setPosts(prev => [...prev].sort((a, b) => (b.like_count || 0) - (a.like_count || 0)));
       return;
     }
 
-    // Following / For You — fetch from server
     setLoading(true);
+    offsetRef.current = 0;
+    setHasMore(true);
     try {
-      const params = { feed: "true", limit: 30 };
+      // Following: fetch posts from people the user follows
+      const params: Record<string, any> = { limit: 30 };
+      if (key === "following") {
+        params.following = "true";
+      } else {
+        params.feed = "true";
+      }
       const res = await client.get("/api/posts", { params });
       const data = Array.isArray(res.data) ? res.data : [];
-      // Apply trending sort client-side if needed
       setPosts(key === "trending" ? [...data].sort((a, b) => (b.like_count || 0) - (a.like_count || 0)) : data);
+      offsetRef.current = data.length;
+      if (data.length < 30) setHasMore(false);
       setFeedError('');
     } catch (err: any) {
       setPosts([]);

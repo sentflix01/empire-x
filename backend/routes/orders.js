@@ -461,6 +461,13 @@ async function markStripeOrdersPaid(session) {
     notifyUser(order.seller_id, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ETB via Stripe ✅`).catch(() => {});
     sendPushToUser(order.seller_id, '💰 Payment received!', `${order.product_title} — ${order.total_price} ETB via Stripe`, '/orders').catch(() => {});
     sendPushToUser(order.buyer_id, '✅ Payment confirmed!', `Your payment for ${order.product_title} was successful.`, '/orders').catch(() => {});
+    // Send confirmation email to buyer now that payment is confirmed
+    try {
+      const { rows: buyers } = await pool.query('SELECT email FROM users WHERE id = $1', [order.buyer_id]);
+      if (buyers.length && buyers[0].email) {
+        sendOrderConfirmation(buyers[0].email, { ...order, status: 'paid' }).catch(() => {});
+      }
+    } catch { /* email failure must never break webhook processing */ }
     logger.info({ orderId: order.id }, '[Stripe webhook] Order marked paid');
   }
   return rows;
