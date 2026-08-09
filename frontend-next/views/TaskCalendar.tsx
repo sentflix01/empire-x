@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import { entities } from "@/api/entities";
 import { useTranslation } from 'react-i18next';
 

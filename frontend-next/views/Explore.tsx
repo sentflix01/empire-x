@@ -7,6 +7,7 @@ import { TrendingUp, ShoppingBag, Crown, ClipboardList, Users, Loader2, Banknote
 import { Badge } from "@/components/ui/badge";
 import PostCard from "@/components/feed/PostCard";
 import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';

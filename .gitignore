@@ -36,3 +36,7 @@ Thumbs.db
 
 # Editor
 .vscode/settings.json
+
+# Kiro / Codex temporary working directories
+.codex-tmp*/
+.kiro/tmp*/

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, QrCode, Crown } from "lucide-react";

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 import { useTranslation } from 'react-i18next';
 import { useRealMode } from "@/lib/RealModeContext";

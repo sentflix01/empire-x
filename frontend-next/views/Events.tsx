@@ -4,6 +4,7 @@ import Image from 'next/image';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 
 import { CalendarDays, MapPin, Ticket, Plus, Globe, Clock } from "lucide-react";

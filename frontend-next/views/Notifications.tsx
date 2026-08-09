@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
 import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import { Bell, Heart, MessageCircle, UserPlus, ShoppingBag, ClipboardList, Check, Trash2, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";

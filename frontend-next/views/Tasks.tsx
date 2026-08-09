@@ -3,6 +3,7 @@ import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import { Plus, MapPin, Clock, Banknote, ClipboardList, Gavel, Users, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 
 import {

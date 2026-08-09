@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import { entities } from "@/api/entities";
 import { useTranslation } from 'react-i18next';
 

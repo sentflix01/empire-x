@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft } from "lucide-react";
@@ -30,8 +31,9 @@ function TaskCreate() {
   const [user, setUser] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ title: "", description: "", task_type: "", location: "", offered_payment: "", deadline: "" });
-
-  useEffect(() => { auth.me().then(setUser).catch(() => {}); }, []);
+  // user state now sourced from useAuth() hook
+  const { user: _authUser } = useAuth();
+  useEffect(() => { if (_authUser) setUser(_authUser); }, [_authUser]);
 
   const handleSubmit = async () => {
     if (!form.title || !form.task_type || !form.offered_payment) return;

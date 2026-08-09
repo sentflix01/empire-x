@@ -3,6 +3,7 @@ import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 import { Briefcase, MapPin, Plus, Clock, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
