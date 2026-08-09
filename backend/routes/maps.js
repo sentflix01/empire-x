@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const pool = require('../db/pool');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 
@@ -51,7 +52,7 @@ router.get('/nearby/tasks', optionalAuth, async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err?.message || err }, 'Error');
     res.status(500).json({ error: 'Failed to fetch nearby tasks' });
   }
 });
@@ -114,7 +115,7 @@ router.get('/nearby/businesses', optionalAuth, async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err?.message || err }, 'Error');
     res.status(500).json({ error: 'Failed to fetch nearby businesses' });
   }
 });
@@ -225,7 +226,7 @@ router.get('/nearby/product-search', optionalAuth, async (req, res) => {
       total_matches: matchedProducts.length,
     });
   } catch (err) {
-    console.error('product-search error:', err);
+    logger.error({ err: err?.message || err }, 'product-search error:');
     res.status(500).json({ error: 'Failed to search nearby products' });
   }
 });

@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const pool = require('../db/pool');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 
@@ -166,7 +167,7 @@ router.post('/verifications/:userId', async (req, res) => {
     await pool.query('UPDATE users SET is_verified = TRUE WHERE id = $1', [req.params.userId]);
     res.json({ success: true, ...rows[0] });
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err?.message || err }, 'Error');
     res.status(500).json({ error: 'Failed to grant verification' });
   }
 });

@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { emitNotification } = require('../socket');
@@ -78,7 +79,7 @@ router.post('/:orderId', requireAuth, async (req, res) => {
 
     res.status(201).json(update);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err?.message || err }, 'Error');
     res.status(500).json({ error: 'Failed to add delivery update' });
   }
 });

@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const pool = require('../db/pool');
 const { optionalAuth } = require('../middleware/auth');
 
@@ -264,7 +265,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
     res.json(results);
   } catch (err) {
-    console.error('Search error:', err);
+    logger.error({ err: err?.message || err }, 'Search error:');
     res.status(500).json({ error: 'Search failed' });
   }
 });

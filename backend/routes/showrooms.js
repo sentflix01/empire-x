@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const { cacheMiddleware } = require('../middleware/cache');
 const pool = require('../db/pool');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
@@ -57,7 +58,7 @@ router.post('/', requireAuth, async (req, res) => {
     const showroom = await createRecord('showrooms', { ...req.body, slug: finalSlug, owner_id: req.user.id });
     res.status(201).json(showroom);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err?.message || err }, 'Error');
     res.status(500).json({ error: 'Failed to create showroom: ' + err.message });
   }
 });

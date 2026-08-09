@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const pool = require('../db/pool');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
@@ -29,7 +30,7 @@ async function checkLowStockAlert(prevStock, newStock, product, sellerId) {
       );
       emitNotification(sellerId, notif);
       sendPushToUser(sellerId, `⚠️ Low stock: ${product.title}`, `Only ${newStock} unit${newStock !== 1 ? 's' : ''} left.`, `/products/edit?id=${product.id}`).catch(() => {});
-    } catch (alertErr) { console.error('Low-stock alert error:', alertErr.message); }
+    } catch (alertErr) { logger.error({ err: alertErr.message }, 'Low-stock alert error'); }
   }
 }
 
@@ -83,7 +84,7 @@ router.post('/', requireAuth, async (req, res) => {
     const product = await createRecord('products', { ...req.body, seller_id: req.user.id });
     res.status(201).json(normalizeProduct(product));
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err?.message || err }, 'Error');
     res.status(500).json({ error: 'Failed to create product' });
   }
 });
@@ -141,7 +142,7 @@ router.put('/:id', requireAuth, async (req, res) => {
           ).catch(() => {});
         }
       } catch (alertErr) {
-        console.error('Price alert error:', alertErr.message);
+        logger.error({ err: alertErr.message }, 'Price alert error');
       }
     }
 

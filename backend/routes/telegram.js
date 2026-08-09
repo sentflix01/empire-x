@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 
@@ -17,7 +18,7 @@ async function sendTelegram(chatId, text) {
       body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
     });
   } catch (err) {
-    console.error('Telegram send failed:', err.message);
+    logger.error({ err: err.message }, 'Telegram send failed');
   }
 }
 
@@ -103,7 +104,7 @@ router.post('/webhook', async (req, res) => {
           `• New orders\n• New messages\n• Task bids\n• Task updates\n\nType /stop to disable notifications.`
         );
       } catch (err) {
-        console.error('Telegram webhook error:', err);
+        logger.error({ err: err?.message || err }, 'Telegram webhook error:');
       }
     }
   } else if (text === '/stop') {

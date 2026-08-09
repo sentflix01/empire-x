@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
 const pool = require('../db/pool');
@@ -36,7 +37,7 @@ router.post('/', requireAuth, async (req, res) => {
     const task = await createRecord('tasks', { ...req.body, requester_id: req.user.id });
     res.status(201).json(task);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err?.message || err }, 'Error');
     res.status(500).json({ error: 'Failed to create task' });
   }
 });
@@ -122,7 +123,7 @@ router.post('/:taskId/bids', requireAuth, async (req, res) => {
     );
     res.status(201).json(rows[0]);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err?.message || err }, 'Error');
     res.status(500).json({ error: 'Failed to create bid' });
   }
 });

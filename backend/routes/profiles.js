@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const pool = require('../db/pool');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord } = require('../utils/crud');
@@ -163,7 +164,7 @@ router.post('/', requireAuth, async (req, res) => {
     await syncUserName(req.user.id, req.body.display_name);
     res.status(201).json(profile);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err?.message || err }, 'Error');
     res.status(500).json({ error: 'Failed to create profile' });
   }
 });
@@ -185,7 +186,7 @@ router.put('/me/upsert', requireAuth, async (req, res) => {
     await syncUserName(req.user.id, body.display_name);
     res.json(profile);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err?.message || err }, 'Error');
     res.status(500).json({ error: 'Failed to upsert profile' });
   }
 });
@@ -250,7 +251,7 @@ router.patch('/me/ticker', requireAuth, async (req, res) => {
     );
     res.json(rows[0]);
   } catch (err) {
-    console.error('Ticker update error:', err);
+    logger.error({ err: err?.message || err }, 'Ticker update error:');
     res.status(500).json({ error: 'Failed to update ticker' });
   }
 });

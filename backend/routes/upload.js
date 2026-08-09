@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const path = require('path');
 const { requireAuth } = require('../middleware/auth');
 const upload = require('../middleware/upload');
@@ -43,7 +44,7 @@ router.post('/', requireAuth, upload.single('file'), async (req, res) => {
     const result = await resolveUpload(req, req.file);
     res.json(result);
   } catch (err) {
-    console.error('Upload error:', err);
+    logger.error({ err: err?.message || err }, 'Upload error:');
     res.status(500).json({ error: 'Upload failed: ' + err.message });
   }
 });
@@ -55,7 +56,7 @@ router.post('/multiple', requireAuth, upload.array('files', 10), async (req, res
     const files = await Promise.all(req.files.map(file => resolveUpload(req, file)));
     res.json({ files });
   } catch (err) {
-    console.error('Multi-upload error:', err);
+    logger.error({ err: err?.message || err }, 'Multi-upload error:');
     res.status(500).json({ error: 'Upload failed: ' + err.message });
   }
 });

@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const pool = require('../db/pool');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 
@@ -35,7 +36,7 @@ async function collectCommission(orderId, sellerId, totalPrice) {
       }
     }
   } catch (err) {
-    console.error('Commission collection failed:', err.message);
+    logger.error({ err: err.message }, 'Commission collection failed');
   }
 }
 

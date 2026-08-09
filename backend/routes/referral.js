@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { getPrimaryFrontendUrl } = require('../lib/frontendUrl');
@@ -55,7 +56,7 @@ router.post('/apply', requireAuth, async (req, res) => {
 
     res.json({ success: true, message: 'Referral applied. Both you and your referrer earned points!' });
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err?.message || err }, 'Error');
     res.status(500).json({ error: 'Failed to apply referral' });
   }
 });

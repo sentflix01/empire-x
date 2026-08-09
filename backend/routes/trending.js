@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const pool = require('../db/pool');
 const { optionalAuth } = require('../middleware/auth');
 const { cached } = require('../lib/redis');
@@ -67,7 +68,7 @@ router.get('/', optionalAuth, async (req, res) => {
     res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
     res.json(data);
   } catch (err) {
-    console.error('Trending error:', err);
+    logger.error({ err: err?.message || err }, 'Trending error:');
     res.status(500).json({ error: 'Failed to fetch trending data' });
   }
 });
@@ -113,7 +114,7 @@ router.get('/warm', async (_req, res) => {
     });
     res.json({ warmed: true, timestamp: new Date().toISOString() });
   } catch (err) {
-    console.error('Warm error:', err);
+    logger.error({ err: err?.message || err }, 'Warm error:');
     res.status(500).json({ error: 'Failed to warm cache' });
   }
 });

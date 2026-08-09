@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const logger = require('../lib/logger');
 const { cacheMiddleware } = require('../middleware/cache');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
@@ -33,7 +34,7 @@ router.post('/', requireAuth, async (req, res) => {
     const biz = await createRecord('businesses', { ...req.body, owner_id: req.user.id });
     res.status(201).json(biz);
   } catch (err) {
-    console.error(err);
+    logger.error({ err: err?.message || err }, 'Error');
     res.status(500).json({ error: 'Failed to create business' });
   }
 });
