@@ -5,10 +5,12 @@ const { createRecord, updateRecord, deleteRecord } = require('../utils/crud');
 const { emitNotification } = require('../socket');
 const { sendPushToUser } = require('./push');
 
-// Get my notifications
+// Get my notifications — with grouping for like/follow/comment types
 router.get('/', requireAuth, async (req, res) => {
   try {
     const { is_read, limit = 20, sort } = req.query;
+
+    // Fetch raw notifications
     let query = `SELECT id, user_id, type, title, body, link, is_read, created_at
                  FROM notifications WHERE user_id = $1`;
     const values = [req.user.id];
@@ -16,7 +18,6 @@ router.get('/', requireAuth, async (req, res) => {
       query += ` AND is_read = $2`;
       values.push(is_read === 'true' || is_read === true);
     }
-    // unread_first: show unread before read, then newest first within each group
     if (sort === 'unread_first') {
       query += ` ORDER BY is_read ASC, created_at DESC`;
     } else {
@@ -25,7 +26,45 @@ router.get('/', requireAuth, async (req, res) => {
     query += ` LIMIT $${values.length + 1}`;
     values.push(Math.min(parseInt(limit, 10) || 20, 200));
     const { rows } = await pool.query(query, values);
-    res.json(rows);
+
+    // Group consecutive like/follow/comment notifications from the same link
+    // e.g. 5 "liked your post" notifications → 1 grouped notification
+    const grouped = [];
+    const seen = new Map(); // key: `${type}:${link}` → index in grouped array
+
+    for (const notif of rows) {
+      const groupTypes = ['like', 'comment', 'follow'];
+      if (groupTypes.includes(notif.type) && notif.link) {
+        const key = `${notif.type}:${notif.link}`;
+        if (seen.has(key)) {
+          // Add to existing group
+          const idx = seen.get(key);
+          grouped[idx].group_count = (grouped[idx].group_count || 1) + 1;
+          // Keep unread status if any in the group is unread
+          if (!notif.is_read) grouped[idx].is_read = false;
+        } else {
+          // New group
+          seen.set(key, grouped.length);
+          grouped.push({ ...notif, group_count: 1 });
+        }
+      } else {
+        grouped.push(notif);
+      }
+    }
+
+    // Update titles for grouped notifications
+    const result = grouped.map(n => {
+      if ((n.group_count || 1) > 1) {
+        const action = n.type === 'like' ? 'liked' : n.type === 'comment' ? 'commented on' : 'followed';
+        return {
+          ...n,
+          title: `${n.group_count} people ${action} your post`,
+        };
+      }
+      return n;
+    });
+
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch notifications' });
   }
