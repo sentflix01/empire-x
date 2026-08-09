@@ -175,6 +175,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const userEmail = typeof user?.email === 'string' ? user.email : '';
   const userInitial = displayName.charAt(0) || 'E';
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(true);
   const [accountOpen, setAccountOpen] = useState(true);
@@ -223,8 +224,15 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       loadUnreadCount(user);
       connectSocket();
       const s = getSocket();
-      s.on("new_notification", (notif) => {
-        setUnreadCount(c => c + 1);
+      s.on("new_notification", (notif: any) => {
+        if (notif.type === 'message') {
+          // Don't badge if already on the messages page
+          if (!window.location.pathname.startsWith('/messages')) {
+            setUnreadMessages(c => c + 1);
+          }
+        } else {
+          setUnreadCount(c => c + 1);
+        }
         toast(notif.title, {
           description: notif.body || undefined,
           duration: 5000,
@@ -264,12 +272,18 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   const loadUnreadCount = async (_u?: any) => {
     try {
-      // Use direct client call — backend uses req.user.id from JWT, not a query param
       const { data } = await client.get('/api/notifications?limit=60');
       const notifications = Array.isArray(data) ? data : [];
-      setUnreadCount(notifications.filter((notif: any) => !notif.is_read).length);
+      const unread = notifications.filter((notif: any) => !notif.is_read);
+      setUnreadCount(unread.filter((n: any) => n.type !== 'message').length);
+      setUnreadMessages(unread.filter((n: any) => n.type === 'message').length);
     } catch {}
   };
+
+  // Clear message badge when user navigates to /messages
+  useEffect(() => {
+    if (pathname.startsWith('/messages')) setUnreadMessages(0);
+  }, [pathname]);
 
   const mainNavItems = [
     { path: "/feed", icon: Home, label: tr('nav.home') },
@@ -278,7 +292,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     { path: "/businesses", icon: Store, label: tr('nav.businesses') },
     { path: "/marketplace", icon: ShoppingBag, label: tr('nav.marketplace') },
     { path: "/tasks", icon: ClipboardList, label: tr('nav.tasks') },
-    { path: "/messages", icon: MessageCircle, label: tr('nav.messages') },
+    { path: "/messages", icon: MessageCircle, label: tr('nav.messages'), badge: unreadMessages > 0 ? unreadMessages : null },
     { path: "/profile", icon: User, label: tr('nav.profile') },
   ];
 
@@ -769,13 +783,22 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <Link href="/explore" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/explore') ? 'text-amber-600' : 'text-muted-foreground'}`}>
                 <TrendingUp className={`w-5 h-5 ${isActive('/explore') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Explore</span>
               </Link>
+              {/* Messages with unread badge */}
+              <Link href="/messages" className={`relative flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/messages') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                <span className="relative">
+                  <MessageCircle className={`w-5 h-5 ${isActive('/messages') ? 'stroke-[2.5]' : ''}`} />
+                  {unreadMessages > 0 && (
+                    <span className="absolute -top-1 -right-1.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                      {unreadMessages > 9 ? '9+' : unreadMessages}
+                    </span>
+                  )}
+                </span>
+                <span className="text-[10px] font-medium">Messages</span>
+              </Link>
               <Link href="/friends" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/friends') ? 'text-amber-600' : 'text-muted-foreground'}`}>
                 <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Friends</span>
               </Link>
-              <Link href="/businesses" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/businesses') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                <Store className={`w-5 h-5 ${isActive('/businesses') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Businesses</span>
-              </Link>
-              {/* Home — RIGHT, plain link, no chevron */}
+              {/* Home — RIGHT */}
               <Link href="/feed" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/feed') ? 'text-amber-600' : 'text-muted-foreground'}`}>
                 <Home className={`w-5 h-5 ${isActive('/feed') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Home</span>
               </Link>

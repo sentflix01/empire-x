@@ -8,7 +8,7 @@ import client from "@/api/client";
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
-  CornerUpLeft, Check, CheckCheck, ShieldOff, History, ImagePlus,
+  CornerUpLeft, Check, CheckCheck, ShieldOff, History, ImagePlus, Forward,
 } from "lucide-react";
 import moment from "moment";
 import { toast } from "sonner";
@@ -43,6 +43,9 @@ function ChatRoom() {
   // Per-message hover actions
   const [hoveredMsg, setHoveredMsg]   = useState(null);
   const [deletingMsg, setDeletingMsg] = useState(null); // waiting for confirm
+  const [forwardMsg, setForwardMsg]   = useState(null); // message to forward
+  const [forwardSearch, setForwardSearch] = useState('');
+  const [conversations, setConversations] = useState([]);
 
   // Header menu
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
@@ -331,6 +334,29 @@ function ChatRoom() {
     }
   };
 
+  const handleForward = async (targetConvId: string) => {
+    if (!forwardMsg) return;
+    try {
+      await client.post(`/api/messages/${forwardMsg.id}/forward`, {
+        target_conversation_id: targetConvId,
+      });
+      toast.success('Message forwarded');
+    } catch {
+      toast.error('Failed to forward message');
+    }
+    setForwardMsg(null);
+    setForwardSearch('');
+  };
+
+  // Load conversations for forward picker (lazy)
+  useEffect(() => {
+    if (forwardMsg && conversations.length === 0) {
+      client.get('/api/messages/conversations').then(r => {
+        setConversations(Array.isArray(r.data) ? r.data : []);
+      }).catch(() => {});
+    }
+  }, [forwardMsg]);
+
   const handleClearHistory = async () => {
     setHeaderMenuOpen(false);
     try {
@@ -425,6 +451,7 @@ function ChatRoom() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
+    <>
     <div className="flex flex-col h-[calc(100dvh-3.5rem)] overflow-hidden">
 
       {/* Header */}
@@ -522,29 +549,37 @@ function ChatRoom() {
                       {/* Reply */}
                       <button
                         onClick={(e) => { e.stopPropagation(); setReplyingTo(msg); setEditingMsg(null); setText(''); }}
-                        className="w-7 h-7 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors"
+                        className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
                         title="Reply"
                       >
-                        <CornerUpLeft className="w-3.5 h-3.5 text-white" />
+                        <CornerUpLeft className="w-3.5 h-3.5 text-foreground" />
+                      </button>
+                      {/* Forward */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setForwardMsg(msg); setHoveredMsg(null); }}
+                        className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
+                        title="Forward"
+                      >
+                        <Forward className="w-3.5 h-3.5 text-foreground" />
                       </button>
                       {/* Edit (own only) */}
                       {isMe && (
                         <button
                           onClick={(e) => { e.stopPropagation(); startEdit(msg); }}
-                          className="w-7 h-7 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors"
+                          className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
                           title="Edit"
                         >
-                          <Pencil className="w-3.5 h-3.5 text-white" />
+                          <Pencil className="w-3.5 h-3.5 text-foreground" />
                         </button>
                       )}
                       {/* Delete (own only) */}
                       {isMe && (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleDelete(msg); }}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${isConfirming ? 'bg-red-500 hover:bg-red-600' : 'bg-black/20 hover:bg-black/40'}`}
-                          title={isConfirming ? 'Tap again to confirm' : 'Delete'}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors border ${isConfirming ? 'bg-red-500 hover:bg-red-600 border-red-500 text-white' : 'bg-secondary/80 hover:bg-secondary border-border/50 text-foreground'}`}
+                          title={isConfirming ? 'Tap again to confirm delete' : 'Delete'}
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-white" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>
@@ -586,7 +621,9 @@ function ChatRoom() {
                         {moment(msg.created_at).format('HH:mm')}
                       </span>
                       {isMe && (
-                        <CheckCheck className="w-3.5 h-3.5 text-primary opacity-70" />
+                        msg._temp
+                          ? <Check className="w-3.5 h-3.5 text-muted-foreground/50" />          /* sending */
+                          : <CheckCheck className="w-3.5 h-3.5 text-primary opacity-80" />       /* delivered */
                       )}
                     </div>
                   </div>
@@ -678,6 +715,77 @@ function ChatRoom() {
         </div>
       )}
     </div>
+
+    {/* ── Forward Message Modal ─────────────────────────────────────────── */}
+    {forwardMsg && (
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-4">        <div className="bg-card rounded-2xl w-full max-w-sm shadow-xl border border-border/50 overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
+            <div className="flex items-center gap-2">
+              <Forward className="w-4 h-4 text-primary" />
+              <p className="font-semibold text-sm">Forward message</p>
+            </div>
+            <button onClick={() => { setForwardMsg(null); setForwardSearch(''); }}
+              className="p-1.5 rounded-full hover:bg-secondary transition-colors">
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
+          {/* Preview of message being forwarded */}
+          <div className="mx-4 mt-3 bg-secondary/50 rounded-xl px-3 py-2">
+            <p className="text-xs text-muted-foreground mb-0.5">Forwarding</p>
+            <p className="text-sm line-clamp-2">{forwardMsg.content}</p>
+          </div>
+          {/* Search */}
+          <div className="px-4 pt-3">
+            <input
+              value={forwardSearch}
+              onChange={e => setForwardSearch(e.target.value)}
+              placeholder="Search conversations…"
+              className="w-full text-sm bg-secondary/50 rounded-full px-4 py-2 outline-none focus:ring-1 focus:ring-primary/30"
+            />
+          </div>
+          {/* Conversation list */}
+          <div className="px-2 py-2 max-h-64 overflow-y-auto space-y-0.5">
+            {conversations
+              .filter(c => c.id !== (id || conversation?.id))
+              .filter(c => {
+                if (!forwardSearch) return true;
+                const name = c.name || c.participant_names || '';
+                return name.toLowerCase().includes(forwardSearch.toLowerCase());
+              })
+              .map(c => {
+                const dispName = c.type === 'group' || c.type === 'channel'
+                  ? (c.name || c.type)
+                  : (() => {
+                      try {
+                        const names = JSON.parse(c.participant_names || '[]');
+                        const ids = JSON.parse(c.participant_ids || '[]');
+                        const idx = ids.indexOf(user?.id);
+                        return names[idx === 0 ? 1 : 0] || names[0] || 'Chat';
+                      } catch { return 'Chat'; }
+                    })();
+                return (
+                  <button key={c.id} onClick={() => handleForward(c.id)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-secondary transition-colors text-left">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0"
+                      style={{ background: c.type === 'channel' ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : c.type === 'group' ? 'linear-gradient(135deg,#7c3aed,#6d28d9)' : 'linear-gradient(135deg,var(--ex-blue),var(--ex-purple))' }}>
+                      {dispName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{dispName}</p>
+                      {c.last_message && <p className="text-xs text-muted-foreground truncate">{c.last_message}</p>}
+                    </div>
+                  </button>
+                );
+              })}
+            {conversations.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">No other conversations</p>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 

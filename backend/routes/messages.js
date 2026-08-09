@@ -2,7 +2,8 @@ const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { listRecords, getRecord, createRecord, updateRecord, deleteRecord } = require('../utils/crud');
-const { emitNewMessage, emitMessageEdited, emitMessageDeleted, emitPresenceUpdated } = require('../socket');
+const { emitNewMessage, emitMessageEdited, emitMessageDeleted, emitPresenceUpdated, emitNotification } = require('../socket');
+const { sendPushToUser } = require('./push');
 const logger = require('../lib/logger');
 const { getRedis } = require('../lib/redis');
 
@@ -206,6 +207,35 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
     );
 
     emitNewMessage(req.params.convId, rows[0]);
+
+    // Notify all participants except the sender — this powers the Messages nav
+    // badge, conversation-list unread indicator, and Notifications page.
+    const recipients = ids.filter(pid => pid !== userId);
+    const previewText = messageType === 'image' ? '📷 Photo'
+      : messageType === 'file' ? '📎 File'
+      : cleanContent.slice(0, 80);
+    const convName = conv.name || senderName || 'New message';
+
+    // Fire-and-forget — don't block the response
+    (async () => {
+      for (const recipientId of recipients) {
+        try {
+          const { rows: [notif] } = await pool.query(
+            `INSERT INTO notifications (user_id, type, title, body, link, is_read)
+             VALUES ($1, 'message', $2, $3, $4, false) RETURNING *`,
+            [
+              recipientId,
+              `${senderName || 'Someone'}: ${previewText}`,
+              conv.type === 'dm' ? previewText : `${senderName || 'Someone'}: ${previewText}`,
+              `/messages/${req.params.convId}`,
+            ]
+          );
+          emitNotification(recipientId, notif);
+          sendPushToUser(recipientId, notif.title, notif.body, notif.link).catch(() => {});
+        } catch { /* never block message delivery over a notification failure */ }
+      }
+    })();
+
     res.status(201).json(rows[0]);
   } catch (err) {
     logger.error({ err: err.message, stack: err.stack, code: err.code, detail: err.detail }, 'Failed to send message');
@@ -542,6 +572,66 @@ router.get('/block/:targetId', requireAuth, async (req, res) => {
     res.json({ blocked: rows.length > 0 });
   } catch (err) {
     res.status(500).json({ error: 'Failed to check block status' });
+  }
+});
+
+
+// Forward message to another conversation
+router.post('/messages/:id/forward', requireAuth, async (req, res) => {
+  try {
+    const { rows: src } = await pool.query('SELECT * FROM messages WHERE id = $1', [req.params.id]);
+    if (!src.length) return res.status(404).json({ error: 'Message not found' });
+
+    const { target_conversation_id } = req.body;
+    if (!target_conversation_id) return res.status(400).json({ error: 'target_conversation_id is required' });
+
+    const conv = await getRecord('conversations', target_conversation_id);
+    if (!conv) return res.status(404).json({ error: 'Target conversation not found' });
+
+    const ids = parseParticipantIds(conv.participant_ids);
+    if (!ids.includes(String(req.user.id)) && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const { rows: profiles } = await pool.query(
+      'SELECT display_name FROM user_profiles WHERE user_id = $1', [req.user.id]
+    );
+    const senderName = profiles[0]?.display_name || null;
+    const forwardedContent = src[0].content;
+    const messageType = src[0].type || 'text';
+
+    const { rows } = await pool.query(
+      `INSERT INTO messages (conversation_id, sender_id, sender_name, content, type)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [target_conversation_id, req.user.id, senderName, forwardedContent, messageType]
+    );
+
+    await pool.query(
+      'UPDATE conversations SET last_message = $1, last_message_at = NOW(), updated_at = NOW() WHERE id = $2',
+      [messageType === 'image' ? '📷 Photo' : forwardedContent.slice(0, 200), target_conversation_id]
+    );
+
+    emitNewMessage(target_conversation_id, rows[0]);
+
+    // Notify recipients
+    const userId = String(req.user.id);
+    const recipients = ids.filter(pid => pid !== userId);
+    const previewText = messageType === 'image' ? '📷 Photo' : forwardedContent.slice(0, 80);
+    for (const recipientId of recipients) {
+      pool.query(
+        `INSERT INTO notifications (user_id, type, title, body, link, is_read)
+         VALUES ($1, 'message', $2, $3, $4, false) RETURNING *`,
+        [recipientId, `${senderName || 'Someone'} forwarded a message`, previewText, `/messages/${target_conversation_id}`]
+      ).then(({ rows: [notif] }) => {
+        emitNotification(recipientId, notif);
+        sendPushToUser(recipientId, notif.title, notif.body, notif.link).catch(() => {});
+      }).catch(() => {});
+    }
+
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    logger.error({ err: err.message }, 'Failed to forward message');
+    res.status(500).json({ error: 'Failed to forward message' });
   }
 });
 

@@ -77,7 +77,7 @@ export default function CreateChannelModal({ open, onClose, user, onCreated }) {
             />
           </div>
 
-          <div className="bg-blue-50 rounded-xl p-3 text-xs text-muted-foreground">
+          <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-3 text-xs text-muted-foreground">
             <p className="flex items-center gap-2 mb-1">
               <Radio className="w-4 h-4 text-primary" />
               <span className="font-medium text-primary">Broadcast Channel</span>

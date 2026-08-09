@@ -47,7 +47,9 @@ function Messages() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState("contacts"); // default = contacts
+  const [tab, setTab] = useState("contacts");
+  // unread count per conversation id — populated from notifications
+  const [unreadByConv, setUnreadByConv] = useState<Record<string, number>>({});
   const [presence, setPresence] = useState<Record<string, PresenceData>>({});
   const [typingConversations, setTypingConversations] = useState<Record<string, boolean>>({});
   const [contactSort, setContactSort] = useState<'recent' | 'name'>('recent');
@@ -101,7 +103,16 @@ function Messages() {
     // a new message arrives so last_message and timestamp update live
     connectSocket();
     const socket = getSocket();
-    const onNewMessage = () => { loadConversations(); };
+    const onNewMessage = (msg: any) => {
+      loadConversations();
+      // Increment unread badge for this conversation if it's not the one we're viewing
+      if (msg?.conversation_id) {
+        setUnreadByConv(prev => ({
+          ...prev,
+          [msg.conversation_id]: (prev[msg.conversation_id] || 0) + 1,
+        }));
+      }
+    };
     const onPresenceUpdated = (update: PresenceData) => {
       if (!update?.user_id) return;
       setPresence(current => ({
@@ -147,6 +158,20 @@ function Messages() {
         return true;
       });
       setConversations(cleaned);
+
+      // Build per-conversation unread counts from unread message notifications
+      client.get('/api/notifications?limit=100').then(r => {
+        const notifs = Array.isArray(r.data) ? r.data : [];
+        const counts: Record<string, number> = {};
+        notifs.forEach((n: any) => {
+          if (n.type === 'message' && !n.is_read && n.link) {
+            // link = /messages/<convId>
+            const convId = n.link.split('/messages/')[1];
+            if (convId) counts[convId] = (counts[convId] || 0) + 1;
+          }
+        });
+        setUnreadByConv(counts);
+      }).catch(() => {});
 
       const dmPartnerIds = cleaned
         .filter(c => c.type === 'dm')
@@ -391,6 +416,7 @@ function Messages() {
                   href={`/messages/${conv.id}`}
                   prefetch
                   onPointerEnter={() => router.prefetch(`/messages/${conv.id}`)}
+                  onClick={() => setUnreadByConv(prev => { const n = {...prev}; delete n[conv.id]; return n; })}
                   className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-secondary/40 active:bg-secondary/60 transition-colors group"
                 >
                   {/* Avatar */}
@@ -427,12 +453,19 @@ function Messages() {
                   {/* Text */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold truncate text-foreground">{name}</p>
-                      {conv.last_message_at && (
-                        <p className="text-[11px] text-muted-foreground shrink-0">
-                          {moment(conv.last_message_at).format("HH:mm")}
-                        </p>
-                      )}
+                      <p className={`text-sm truncate text-foreground ${unreadByConv[conv.id] ? 'font-bold' : 'font-semibold'}`}>{name}</p>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {conv.last_message_at && (
+                          <p className={`text-[11px] ${unreadByConv[conv.id] ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                            {moment(conv.last_message_at).format("HH:mm")}
+                          </p>
+                        )}
+                        {unreadByConv[conv.id] > 0 && (
+                          <span className="min-w-[18px] h-[18px] bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                            {unreadByConv[conv.id] > 9 ? '9+' : unreadByConv[conv.id]}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center justify-between gap-2 mt-0.5">
                       <p className="text-xs truncate flex-1">

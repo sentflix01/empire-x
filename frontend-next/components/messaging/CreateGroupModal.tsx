@@ -65,7 +65,7 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
         {/* Group Name */}
         <div className="px-4 py-3 border-b border-border/30">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-accent">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-primary">
               <Users className="w-6 h-6 text-white" />
             </div>
             <Input
