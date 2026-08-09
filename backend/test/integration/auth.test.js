@@ -133,6 +133,32 @@ describe('POST /api/auth/login', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('access_token');
   });
+
+  it('sends a fresh OTP when an unverified user tries to log in', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({
+        rows: [{ id: 'pending-id', email: 'pending@b.com', password_hash: '$2b$hashed', is_verified: false, role: 'user' }],
+      })
+      .mockResolvedValueOnce({ rows: [] });
+    const app = buildApp();
+    const res = await request(app).post('/api/auth/login').send({ email: 'pending@b.com', password: 'password123' });
+    expect(res.status).toBe(403);
+    expect(res.body).toMatchObject({ code: 'email_not_verified', pendingVerification: true });
+    expect(sendOtpEmail).toHaveBeenCalledWith('pending@b.com', expect.stringMatching(/^\d{6}$/));
+  });
+
+  it('does not send an unverified user to code entry when delivery fails', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({
+        rows: [{ id: 'pending-id', email: 'pending@b.com', password_hash: '$2b$hashed', is_verified: false, role: 'user' }],
+      })
+      .mockResolvedValueOnce({ rows: [] });
+    sendOtpEmail.mockRejectedValueOnce(new Error('SMTP unavailable'));
+    const app = buildApp();
+    const res = await request(app).post('/api/auth/login').send({ email: 'pending@b.com', password: 'password123' });
+    expect(res.status).toBe(503);
+    expect(res.body).toHaveProperty('code', 'OTP_DELIVERY_FAILED');
+  });
 });
 
 describe('POST /api/auth/verify-otp', () => {

@@ -11,13 +11,14 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const JOB_TYPE_LABELS = {
   full_time: "Full Time", part_time: "Part Time", contract: "Contract",
   internship: "Internship", freelance: "Freelance"
 };
 
-export default function Jobs() {
+function Jobs() {
   const { t } = useTranslation();
   const [jobs, setJobs] = useState([]);
   const [user, setUser] = useState(null);
@@ -106,6 +107,6 @@ export default function Jobs() {
   );
 }
 
-
-
-
+export default function JobsPage() {
+  return <ErrorBoundary><Jobs /></ErrorBoundary>;
+}

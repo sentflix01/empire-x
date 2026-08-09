@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function CourseDetail() {
   const { id } = useParams();
@@ -140,7 +141,6 @@ function CourseDetail() {
   );
 }
 
-
-
-
-export default CourseDetail;
+export default function CourseDetailPage() {
+  return <ErrorBoundary><CourseDetail /></ErrorBoundary>;
+}

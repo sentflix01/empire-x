@@ -20,6 +20,7 @@ import {
 import { getShowroomTemplateSample } from "@/lib/showroomTemplateSamples";
 import BuilderForm from "@/components/showroom/BuilderForm";
 import BuilderPreview from "@/components/showroom/BuilderPreview";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const FONT_OPTIONS = ["Inter", "Playfair Display", "Space Grotesk"];
 
@@ -248,13 +249,27 @@ function DraftDropdown({ darkBuilder, onSave, onLoad, onClear, onUndo, onRedo, c
   );
 }
 
-export default function ShowroomCreate() {
+export interface ShowroomCreateProps {
+  /** Wizard overrides — take precedence over URL search params */
+  templateParamOverride?: string;
+  categoryParamOverride?: string;
+  sampleParamOverride?: string;
+  /** Back navigation handler (wizard step 2). Falls back to /showroom/templates. */
+  onBack?: () => void;
+}
+
+function ShowroomCreate({
+  templateParamOverride,
+  categoryParamOverride,
+  sampleParamOverride,
+  onBack,
+}: ShowroomCreateProps = {}) {
   const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const templateParam = searchParams.get("template") || "";
-  const categoryParam = searchParams.get("category") || "";
-  const sampleParam = searchParams.get("sample") || "";
+  const templateParam = templateParamOverride ?? (searchParams.get("template") || "");
+  const categoryParam = categoryParamOverride ?? (searchParams.get("category") || "");
+  const sampleParam = sampleParamOverride ?? (searchParams.get("sample") || "");
   const templateName = templateParam.replace(/-/g, " ");
 
   const [user, setUser] = useState<any>(null);
@@ -606,7 +621,7 @@ export default function ShowroomCreate() {
   );
 
   return (
-    <div className={`flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden ${darkBuilder ? "bg-slate-900" : "bg-amber-50/30"}`}>
+    <div className={`flex flex-col h-full min-h-0 overflow-hidden ${darkBuilder ? "bg-slate-900" : "bg-amber-50/30"}`}>
 
       {/* ── Top toolbar ── */}
       <div className={`shrink-0 flex items-center gap-2 px-3 h-12 border-b ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-white border-border/50"} overflow-x-auto`}>
@@ -618,8 +633,8 @@ export default function ShowroomCreate() {
         </button>
 
         {/* Back */}
-        <button onClick={() => router.push("/showroom/templates")} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0">
-          <ArrowLeft className="w-4 h-4" /><span className="hidden sm:inline">Templates</span>
+        <button onClick={() => (onBack ? onBack() : router.push("/showroom/templates"))} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0">
+          <ArrowLeft className="w-4 h-4" /><span className="hidden sm:inline">{onBack ? t("showroomWizard.back") : "Templates"}</span>
         </button>
         <div className="w-px h-5 bg-border/50 shrink-0" />
 
@@ -886,4 +901,6 @@ export default function ShowroomCreate() {
   );
 }
 
-
+export default function ShowroomCreatePage(props: ShowroomCreateProps) {
+  return <ErrorBoundary><ShowroomCreate {...props} /></ErrorBoundary>;
+}

@@ -150,6 +150,33 @@ export default function Wallet() {
               {processing ? "Processing..." : `🇪🇹 Top Up with Chapa • ${parseFloat(topupAmount || 0).toLocaleString()} ETB`}
             </Button>
 
+            {/* Stripe — cards, wallets & local payment methods */}
+            <Button
+              disabled={processing || !topupAmount || parseFloat(topupAmount) <= 0}
+              className="w-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-semibold"
+              onClick={async () => {
+                setProcessing(true);
+                try {
+                  const { data } = await client.post("/api/wallet/topup/stripe", {
+                    amount: parseFloat(topupAmount),
+                  });
+                  if (data?.checkout_url) {
+                    if (data.display?.currency === "USD") {
+                      toast.info(`You'll be charged ${data.display.amount.toLocaleString()} USD ≈ ${parseFloat(topupAmount).toLocaleString()} ETB`);
+                    }
+                    window.location.href = data.checkout_url;
+                    return; // keep spinner up while redirecting
+                  }
+                  toast.error("Stripe unavailable — use the Chapa top-up instead");
+                } catch (e) {
+                  toast.error(e?.response?.data?.error || "Stripe top-up unavailable");
+                }
+                setProcessing(false);
+              }}
+            >
+              {processing ? "Processing..." : `💳 Top Up with Card & Wallets • ${parseFloat(topupAmount || 0).toLocaleString()} ETB`}
+            </Button>
+
             {/* Manual / admin top-up — only visible to admin users */}
             {(wallet as any)?.user_role === 'admin' && (
               <Button onClick={handleTopup} variant="outline" disabled={processing||!topupAmount} className="w-full rounded-full border-amber-300 text-amber-700">

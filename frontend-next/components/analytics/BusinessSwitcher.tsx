@@ -1,7 +1,6 @@
 'use client'
 import Link from 'next/link';
 import React, { useState, useRef, useEffect } from "react";
-import { useTranslation } from 'react-i18next';
 
 import { ChevronDown, Plus, Store, Check } from "lucide-react";
 

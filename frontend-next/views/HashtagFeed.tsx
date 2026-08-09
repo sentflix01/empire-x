@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Hash, ArrowLeft, Loader2 } from "lucide-react";
 import PostCard from "@/components/feed/PostCard";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function HashtagFeed() {
   const { t } = useTranslation();
@@ -65,7 +66,6 @@ function HashtagFeed() {
   );
 }
 
-
-
-
-export default HashtagFeed;
+export default function HashtagFeedPage() {
+  return <ErrorBoundary><HashtagFeed /></ErrorBoundary>;
+}

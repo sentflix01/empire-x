@@ -10,8 +10,9 @@ import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { useTranslation } from "react-i18next";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
-export default function Login() {
+function Login() {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,6 +27,10 @@ export default function Login() {
       await auth.loginViaEmailPassword(email.trim().toLowerCase(), password);
       window.location.href = "/feed";
     } catch (err) {
+      if (err?.code === 'email_not_verified') {
+        window.location.href = `/register?verify=${encodeURIComponent(email.trim().toLowerCase())}`;
+        return;
+      }
       setError(err.error || err.message || t('auth.invalidCredentials'));
     } finally {
       setLoading(false);
@@ -133,3 +138,6 @@ export default function Login() {
   );
 }
 
+export default function LoginPage() {
+  return <ErrorBoundary><Login /></ErrorBoundary>;
+}

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { DemoBadge } from "@/components/profile/DemoBadge";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // ── Category tabs ────────────────────────────────────────────────────────────
 const TABS = [
@@ -61,7 +62,7 @@ function DistanceBadge({ km }: { km?: number | null }) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function Search() {
+function Search() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -540,4 +541,6 @@ function CollapsibleSection({
   );
 }
 
-
+export default function SearchPage() {
+  return <ErrorBoundary><Search /></ErrorBoundary>;
+}

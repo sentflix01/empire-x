@@ -14,6 +14,7 @@ import { entities, type UserProfile } from '@/api/entities';
 import { getPushPermission, subscribeToPush, unsubscribeFromPush } from '@/lib/push';
 import { BellOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function ChangePasswordForm() {
   const [current, setCurrent] = useState('');
@@ -94,7 +95,7 @@ function ChangePasswordForm() {
   );
 }
 
-export default function AccountSettingsView() {
+function AccountSettingsView() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [pushPerm, setPushPerm] = useState(() => getPushPermission());
@@ -249,4 +250,8 @@ export default function AccountSettingsView() {
 
     </div>
   );
+}
+
+export default function AccountSettingsViewPage() {
+  return <ErrorBoundary><AccountSettingsView /></ErrorBoundary>;
 }

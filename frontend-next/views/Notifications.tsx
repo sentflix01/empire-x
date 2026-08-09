@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { connectSocket, getSocket } from "@/lib/socket";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const TYPE_ICONS = {
   like:        Heart,
@@ -30,7 +31,7 @@ const TYPE_COLORS = {
   referral:    "text-amber-500 bg-amber-50 dark:bg-amber-900/20",
 };
 
-export default function Notifications() {
+function NotificationsView() {
   const { t } = useTranslation();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +64,9 @@ export default function Notifications() {
       // Fetch unread first, limit 30 for fast initial load
       const { data } = await client.get("/api/notifications?limit=30&sort=unread_first");
       setNotifications(Array.isArray(data) ? data : []);
-    } catch {}
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || "Failed to load notifications");
+    }
     setLoading(false);
   };
 
@@ -74,7 +77,9 @@ export default function Notifications() {
         setNotifications(prev =>
           prev.map(n => n.id === notif.id ? { ...n, is_read: true } : n)
         );
-      } catch {}
+      } catch (err: any) {
+        toast.error(err?.response?.data?.error || "Failed to mark as read");
+      }
     }
     if (notif.link) router.push(notif.link);
   };
@@ -173,3 +178,7 @@ export default function Notifications() {
 }
 
 
+
+export default function Notifications() {
+  return <ErrorBoundary><NotificationsView /></ErrorBoundary>;
+}

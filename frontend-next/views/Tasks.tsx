@@ -10,6 +10,7 @@ import moment from "moment";
 import BidModal from "@/components/tasks/BidModal";
 import TaskBidsDialog from "@/components/tasks/TaskBidsDialog";
 import { useTranslation } from "react-i18next";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const TASK_TYPES = {
   bill_payment: "💰 Bill Payment",
@@ -28,7 +29,7 @@ const STATUS_STYLES = {
   cancelled: "bg-red-50 text-red-600 border-red-200",
 };
 
-export default function Tasks() {
+function Tasks() {
   const { t } = useTranslation();
   const [tasks, setTasks] = useState([]);
   const [bids, setBids] = useState({});
@@ -163,5 +164,6 @@ export default function Tasks() {
   );
 }
 
-
-
+export default function TasksPage() {
+  return <ErrorBoundary><Tasks /></ErrorBoundary>;
+}

@@ -20,8 +20,9 @@ import TickerBar from "@/components/feed/TickerBar";
 import { DemoBadge } from "@/components/profile/DemoBadge";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
-export default function Profile() {
+function Profile() {
   const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
@@ -354,5 +355,6 @@ export default function Profile() {
   );
 }
 
-
-
+export default function ProfilePage() {
+  return <ErrorBoundary><Profile /></ErrorBoundary>;
+}

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import ImageUpload from "@/components/ui/ImageUpload";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function EventCreate() {
   const { t } = useTranslation();
@@ -78,7 +79,6 @@ function EventCreate() {
   );
 }
 
-
-
-
-export default EventCreate;
+export default function EventCreatePage() {
+  return <ErrorBoundary><EventCreate /></ErrorBoundary>;
+}

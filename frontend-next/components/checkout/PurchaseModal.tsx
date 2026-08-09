@@ -257,7 +257,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground text-center">💳 Pay with Chapa (ETB) or Stripe (USD) — or place a COD order</p>
+            <p className="text-xs text-muted-foreground text-center">💳 Pay with Chapa (ETB) or Stripe (cards, wallets & local methods) — or place a COD order</p>
 
             <div className="grid grid-cols-1 gap-2">
               {/* ── Chapa — primary ETB payment ── */}
@@ -297,31 +297,43 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
                 {processing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Opening Chapa...</> : `🇪🇹 Pay with Chapa • ${totalPrice.toLocaleString()} ETB`}
               </Button>
 
-              {/* ── Stripe — USD card fallback ── */}
+              {/* ── Stripe — hosted checkout with all payment methods ── */}
               <Button
-                variant="outline"
                 disabled={processing || !orderInfo.name || !orderInfo.phone}
-                className="w-full h-11 rounded-full border-slate-300 text-slate-600"
+                className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-semibold shadow-sm"
                 onClick={async () => {
                   setProcessing(true);
                   try {
+                    // Prices are recomputed server-side from the DB — we only
+                    // send identifiers, quantity and the coupon code.
                     const { data } = await client.post("/api/orders/checkout/session", {
-                      product_id:    item.id,
-                      product_title: item.title,
-                      unit_price:    unitPrice,
+                      product_id:       item.id,
                       quantity,
-                      seller_id:     seller.user_id,
-                      currency:      "usd",
+                      coupon_code:      couponData?.valid ? couponCode.trim() : undefined,
+                      buyer_name:       orderInfo.name || buyer?.full_name || "",
+                      buyer_email:      orderInfo.email || buyer?.email || "",
+                      buyer_phone:      orderInfo.phone || "",
+                      delivery_address: orderInfo.address,
+                      notes:            orderInfo.notes,
                     });
-                    if (data?.url) window.location.href = data.url;
-                    else toast.error("Stripe not configured — use Place Order instead");
-                  } catch {
-                    toast.error("Stripe unavailable. Use Chapa or Place Order.");
+                    if (data?.url) {
+                      const conv = data.display?.converted;
+                      if (conv) {
+                        toast.info(`You'll be charged ${conv.total.toLocaleString()} ${conv.currency} ≈ ${data.display.total.toLocaleString()} ETB`);
+                      }
+                      window.location.href = data.url; // Stripe handles success/cancel redirects
+                      return; // keep spinner up while redirecting
+                    }
+                    toast.error("Stripe checkout unavailable — use Chapa or Place Order instead");
+                  } catch (e: any) {
+                    toast.error(e?.response?.data?.error || "Stripe unavailable. Use Chapa or Place Order.");
                   }
                   setProcessing(false);
                 }}
               >
-                💳 Pay with Stripe (USD/Test)
+                {processing
+                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Opening secure checkout...</>
+                  : `💳 Pay with Card & Wallets • ${totalPrice.toLocaleString()} ${item.currency || "ETB"}`}
               </Button>
               <Button onClick={handleCheckout} disabled={processing || !orderInfo.name || !orderInfo.phone} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
                 {processing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Placing Order...</> : `Place Order (COD) • ${totalPrice.toLocaleString()} ${item.currency || "ETB"}`}

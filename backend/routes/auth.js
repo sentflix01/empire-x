@@ -244,7 +244,26 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
     if (!user.is_verified) {
-      return res.status(403).json({ error: 'Please verify your email before logging in', code: 'email_not_verified' });
+      const otp = generateOtp();
+      const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
+      await pool.query(
+        'UPDATE users SET otp_code = $1, otp_expires = $2 WHERE id = $3',
+        [otp, otpExpires, user.id]
+      );
+      try {
+        await sendOtpEmail(user.email, otp);
+      } catch (err) {
+        logger.error({ err: err.message, userId: user.id }, 'OTP email delivery failed during login');
+        return res.status(503).json({
+          error: 'We could not send a verification email. Please try again shortly.',
+          code: 'OTP_DELIVERY_FAILED',
+        });
+      }
+      return res.status(403).json({
+        error: 'Please verify your email before logging in. A new verification code has been sent.',
+        code: 'email_not_verified',
+        pendingVerification: true,
+      });
     }
 
     const token = signToken(user.id, res);

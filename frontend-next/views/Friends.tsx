@@ -7,6 +7,7 @@ import { friendsApi, MutualFriend } from '@/api/friends';
 import { Suggestion, suggestionsApi } from '@/api/suggestions';
 import { useCollapse } from '@/hooks/useCollapse';
 import { UserCard } from '@/components/friends/UserCard';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // ── Skeleton card placeholder ─────────────────────────────────────────────────
 function SkeletonCard() {
@@ -132,7 +133,7 @@ function FriendsSection({
 }
 
 // ── Main Friends view ─────────────────────────────────────────────────────────
-export default function Friends() {
+function Friends() {
   // Follow state — single source of truth for all sections
   const [followsSet, setFollowsSet] = useState<Set<string>>(new Set());
   const [loadingFollows, setLoadingFollows] = useState(true);
@@ -339,4 +340,8 @@ export default function Friends() {
       />
     </div>
   );
+}
+
+export default function FriendsPage() {
+  return <ErrorBoundary><Friends /></ErrorBoundary>;
 }

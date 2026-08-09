@@ -62,8 +62,16 @@ async function sendEmail(to, subject, html) {
   }
 
   // 2. SMTP
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  const smtpSettings = [process.env.SMTP_HOST, process.env.SMTP_USER, process.env.SMTP_PASS];
+  if (smtpSettings.every(Boolean)) {
     return sendViaSMTP(to, subject, html);
+  }
+
+  // A partially configured SMTP transport is never usable.  Do not fall back
+  // to the development console here: that would make the API claim an OTP was
+  // sent even though the user cannot receive it.
+  if (smtpSettings.some(Boolean)) {
+    throw new Error('SMTP email is partially configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS.');
   }
 
   // 3. No provider configured — dev console fallback

@@ -33,6 +33,7 @@ function personalizeSections(sections, biz) {
 }
 import TemplateCard from "@/components/profile/TemplateCard";
 import ImageUpload from "@/components/ui/ImageUpload";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function BusinessCreate() {
   const { t } = useTranslation();
@@ -220,6 +221,6 @@ function BusinessCreate() {
   );
 }
 
-
-
-export default BusinessCreate;
+export default function BusinessCreatePage() {
+  return <ErrorBoundary><BusinessCreate /></ErrorBoundary>;
+}

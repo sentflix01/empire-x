@@ -14,8 +14,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
 import { LAYOUT_TEMPLATES, getLayoutTemplateById } from "@/lib/layoutTemplates";
 import TemplateCard from "@/components/profile/TemplateCard";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
-export default function Onboarding() {
+function Onboarding() {
   const { t } = useTranslation();
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -262,4 +263,6 @@ function LayoutIcon(props) {
   );
 }
 
-
+export default function OnboardingPage() {
+  return <ErrorBoundary><Onboarding /></ErrorBoundary>;
+}

@@ -106,6 +106,7 @@ vi.mock('lucide-react', () => ({
   Bell: () => <svg data-testid="icon-bell" />,
   BellOff: () => <svg data-testid="icon-bell-off" />,
   Check: () => <svg data-testid="icon-check" />,
+  Zap: () => <svg data-testid="icon-zap" />,
 }));
 
 // ─── Import modules after mocking ────────────────────────────────────────────

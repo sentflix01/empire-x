@@ -275,7 +275,10 @@
     "tickerPreview": "ቅድመ-ዕይታ",
     "tickerOffConfirm": "ቲከር ꁩ꒻። ፕሮሞሽን፣ ዕውቂያ መረጃ፣ ማስታወቂያ ለማክለል አንቃ።",
     "tickerAutoHint": "ባዶ ተወው ከንግድ ዕውቂያ መረጃ ራስ-ሰር ለማዘጋጀት።",
-    "tickerHint": "ይህ መልዕክት በፌዱ ባደረግካቸው ፖስቶች ሁሉ ስር ይሸበሸባል።"
+    "tickerHint": "ይህ መልዕክት በፌዱ ባደረግካቸው ፖስቶች ሁሉ ስር ይሸበሸባል።",
+    "openInStudio": "በሾዎሩም ስቱዲዮ ይክፈቱ",
+    "openInStudioDesc": "ለዚህ ንግድ የድህረ ገጽ ሻብሎን በስቱዲዮው ውስጥ ይምረጡና ያብጁ።",
+    "selectCategoryHint": "ስቱዲዮውን ለመክፈት ከላይ የንግድ ምድብ ይምረጡ።"
   },
   "orders": {
     "title": "ትዕዛዞች",
@@ -704,5 +707,37 @@
     "promoteNow": "አሁን አስተዋውቅ",
     "seeAllTrending": "ሁሉም ተወዳጅ ይመልከቱ →",
     "verifiedBadge": "የተረጋገጠ"
+  },
+  "showroomWizard": {
+    "title": "ሾዎሩም ስቱዲዮ",
+    "subtitle": "የንግድዎን ሚኒ-ድህረ ገጽ በሶስት ቀላል ደረጃዎች ይገንቡ።",
+    "counts": "{{templates}} ሻብሎኖች · {{categories}} ምድቦች",
+    "stepCategory": "ምድብ",
+    "stepTemplate": "ሻብሎን",
+    "stepCustomize": "ማብጃ",
+    "step1Title": "የንግድዎን ምድብ ይምረጡ",
+    "step1Desc": "ንግድዎን በተሻለ የሚገልጽ ምድብ ይምረጡ። በማንኛውም ጊዜ መቀየር ይችላሉ።",
+    "step2Title": "መነሻ ሻብሎን ይምረጡ",
+    "step2Desc": "በቀጥታ ናሙና ያለው ዝግጁ ሻብሎን ይምረጡ ወይም ከባዶ ይጀምሩ።",
+    "templatesIn": "{{count}} ሻብሎኖች",
+    "templatesIn_one": "{{count}} ሻብሎን",
+    "templatesIn_other": "{{count}} ሻብሎኖች",
+    "searchPlaceholder": "ሻብሎኖችን ይፈልጉ...",
+    "noResults": "ከ\"{{search}}\" ጋር የሚዛመድ ሻብሎን የለም",
+    "startFromScratch": "ከባዶ ይጀምሩ",
+    "startFromScratchDesc": "ባዶ ገጽ ከፍተው ሾዎሩምዎን ክፍል በክፍል ይገንቡ",
+    "changeCategory": "ቀይር",
+    "back": "ተመለስ",
+    "livePreview": "ቀጥታ ቅድመ-እይታ",
+    "previewHint": "የStarter እና Premium አወቃቀሮችን ያወዳድሩ፣ ከዚያ ለንግድዎ የሚስማማውን ያብጁ።",
+    "sectionsIncluded": "{{count}} ክፍሎች ተካተዋል",
+    "sectionsIncluded_one": "{{count}} ክፍል ተካትቷል",
+    "sectionsIncluded_other": "{{count}} ክፍሎች ተካተዋል",
+    "customizeStarter": "ስታርተር ያብጁ",
+    "customizePremium": "ፕሪሚየም ያብጁ",
+    "samplesReady": "{{count}} ናሙናዎች ዝግጁ",
+    "samplesReady_one": "{{count}} ናሙና ዝግጁ",
+    "samplesReady_other": "{{count}} ናሙናዎች ዝግጁ",
+    "selected": "ተመርጧል"
   }
 }

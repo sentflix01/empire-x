@@ -275,7 +275,10 @@
     "tickerPreview": "Preview",
     "tickerOffConfirm": "Ticker is off. Toggle it on to add scrolling info — promotions, contact details, announcements, and more.",
     "tickerAutoHint": "Leave blank to auto-generate from your business contact info.",
-    "tickerHint": "This message scrolls under every post you make on the feed."
+    "tickerHint": "This message scrolls under every post you make on the feed.",
+    "openInStudio": "Open in Showroom Studio",
+    "openInStudioDesc": "Pick a website template for this business and customize it in the Studio.",
+    "selectCategoryHint": "Select a business category above to deep-link into the Studio."
   },
   "orders": {
     "title": "Orders",
@@ -704,5 +707,34 @@
     "promoteNow": "Promote Now",
     "seeAllTrending": "See all trending →",
     "verifiedBadge": "Verified"
+  },
+  "showroomWizard": {
+    "title": "Showroom Studio",
+    "subtitle": "Build your business mini-website in three simple steps.",
+    "counts": "{{templates}} templates · {{categories}} categories",
+    "stepCategory": "Category",
+    "stepTemplate": "Template",
+    "stepCustomize": "Customize",
+    "step1Title": "Choose your business category",
+    "step1Desc": "Pick the category that best describes your business. You can change it any time.",
+    "step2Title": "Pick a starting template",
+    "step2Desc": "Choose a ready-made template with live samples, or start from a blank canvas.",
+    "templatesIn": "{{count}} templates",
+    "templatesIn_other": "{{count}} templates",
+    "searchPlaceholder": "Search templates...",
+    "noResults": "No templates match \"{{search}}\"",
+    "startFromScratch": "Start from scratch",
+    "startFromScratchDesc": "Open a blank canvas and build your showroom section by section",
+    "changeCategory": "Change",
+    "back": "Back",
+    "livePreview": "Live preview",
+    "previewHint": "Compare the Starter and Premium structures, then customize the one that fits your business.",
+    "sectionsIncluded": "{{count}} sections included",
+    "sectionsIncluded_other": "{{count}} sections included",
+    "customizeStarter": "Customize Starter",
+    "customizePremium": "Customize Premium",
+    "samplesReady": "{{count}} samples ready",
+    "samplesReady_other": "{{count}} samples ready",
+    "selected": "Selected"
   }
 }

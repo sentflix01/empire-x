@@ -15,6 +15,7 @@ import { formatLastSeen, isUserOnline } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
 import { getSocket, connectSocket } from "@/lib/socket";
 import { useChatPresence } from "@/lib/useChatPresence";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // ── Default tab order: Contacts first ──────────────────────────────────────
 const DEFAULT_TAB_ORDER = ["contacts", "all", "groups", "channels"];
@@ -37,7 +38,7 @@ function saveTabOrder(order: string[]) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(order)); } catch {}
 }
 
-export default function Messages() {
+function Messages() {
   const router = useRouter();
   const { t } = useTranslation();
   const { realMode } = useRealMode();
@@ -437,10 +438,6 @@ export default function Messages() {
                       <p className="text-xs truncate flex-1">
                         {isDm && typingConversations[conv.id] ? (
                           <span className="text-blue-500 font-medium">typing…</span>
-                        ) : isDm && presenceData ? (
-                          <span className={isOnline ? 'text-green-500 font-medium' : 'text-muted-foreground'}>
-                            {formatLastSeen(presenceData)}
-                          </span>
                         ) : (
                           <span className="text-muted-foreground">
                             {conv.last_message || <span className="italic">No messages yet</span>}
@@ -550,4 +547,8 @@ function ContactItem({ contact, user, existingConv, presence }: { contact: any; 
       </div>
     </Link>
   );
+}
+
+export default function MessagesPage() {
+  return <ErrorBoundary><Messages /></ErrorBoundary>;
 }

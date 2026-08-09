@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import moment from "moment";
 import { useTranslation } from 'react-i18next';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function CouponsManage() {
   const [coupons, setCoupons] = useState([]);
@@ -228,6 +229,6 @@ function CouponsManage() {
   );
 }
 
-
-
-export default CouponsManage;
+export default function CouponsManagePage() {
+  return <ErrorBoundary><CouponsManage /></ErrorBoundary>;
+}

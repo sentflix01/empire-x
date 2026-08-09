@@ -8,13 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const CAT_LABELS = {
   business: "Business", creative: "Creative", education: "Education", events: "Events",
   nonprofit: "Nonprofit", personal: "Personal", media: "Media", startup: "Startup", community: "Community",
 };
 
-export default function Showrooms() {
+function Showrooms() {
   const { t } = useTranslation();
   const [showrooms, setShowrooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -93,5 +94,6 @@ export default function Showrooms() {
   );
 }
 
-
-
+export default function ShowroomsPage() {
+  return <ErrorBoundary><Showrooms /></ErrorBoundary>;
+}

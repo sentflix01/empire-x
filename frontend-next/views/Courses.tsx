@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Input } from "@/components/ui/input";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const CATEGORIES = ["All","Technology","Business","Design","Language","Health","Other"];
 
@@ -95,7 +96,6 @@ function Courses() {
   );
 }
 
-
-
-
-export default Courses;
+export default function CoursesPage() {
+  return <ErrorBoundary><Courses /></ErrorBoundary>;
+}

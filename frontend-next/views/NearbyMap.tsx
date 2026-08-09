@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import ProfilePeek from "@/components/profile/ProfilePeek";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Leaflet modules — assigned after dynamic import inside loadLeaflet()
 // We CANNOT use require() or static import because Turbopack processes CSS imports at build time
@@ -184,7 +185,7 @@ function MarkerHoverCard({ data, onClose }) {
   );
 }
 
-export default function NearbyMap() {
+function NearbyMap() {
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
   const [leafletReady, setLeafletReady] = useState(false);
@@ -570,8 +571,6 @@ function EmptyState({ icon: Icon, message }) {
   );
 }
 
-
-
-
-
-
+export default function NearbyMapPage() {
+  return <ErrorBoundary><NearbyMap /></ErrorBoundary>;
+}

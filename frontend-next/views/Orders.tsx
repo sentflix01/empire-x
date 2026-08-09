@@ -15,6 +15,7 @@ import moment from "moment";
 import { useTranslation } from 'react-i18next';
 import { generateInvoice } from "@/lib/generateInvoice";
 import { AnimatePresence, motion } from "framer-motion";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const STATUS_CONFIG = {
   pending:    { label: "Pending",    icon: Clock,        color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
@@ -536,4 +537,7 @@ function Orders() {
 }
 
 export { DeliveryTimeline };
-export default Orders;
+
+export default function OrdersPage() {
+  return <ErrorBoundary><Orders /></ErrorBoundary>;
+}

@@ -287,7 +287,7 @@ export default function LandingPage() {
             <Link href="/register" className="inline-flex h-12 items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700">
               Create Your Account
             </Link>
-            <Link href="/showroom/templates" className="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 px-7 text-sm font-extrabold text-white shadow-lg shadow-blue-950/30 ring-1 ring-white/15 hover:from-blue-500 hover:to-purple-500">
+            <Link href="/showroom/create" className="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 px-7 text-sm font-extrabold text-white shadow-lg shadow-amber-950/30 ring-1 ring-white/15 hover:from-amber-400 hover:to-amber-500">
               View Showroom Templates
             </Link>
           </div>

@@ -4,6 +4,7 @@ import { Store, Star, Eye, Users, Building2, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import client from '@/api/client';
 import { useCollapse } from '@/hooks/useCollapse';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Business {
@@ -217,7 +218,7 @@ function BusinessSection({
 }
 
 // ── Main Businesses view ──────────────────────────────────────────────────────
-export default function Businesses() {
+function Businesses() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -381,4 +382,8 @@ export default function Businesses() {
       />
     </div>
   );
+}
+
+export default function BusinessesPage() {
+  return <ErrorBoundary><Businesses /></ErrorBoundary>;
 }

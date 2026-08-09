@@ -21,7 +21,7 @@ import {
   GraduationCap, Briefcase, Award, Star, Languages as LangIcon,
   Shield, FileText, Building2, Users, Calendar, Hash,
   ChevronDown, ChevronUp, Camera, Edit3, CheckCircle,
-  ExternalLink, AtSign, Share2, Rss, Link2,
+  ExternalLink, AtSign, Share2, Rss, Link2, Crown,
 } from 'lucide-react';
 
 // Social platform icon stubs (lucide-react v1 doesn't include brand icons)
@@ -35,12 +35,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { BUSINESS_CATEGORIES, getTemplateById } from '@/lib/businessTemplates';
-import TemplateCard from '@/components/profile/TemplateCard';
+import { getBuilderCategoryQuery } from '@/lib/showroomCategoryMapping';
 import ImageUpload from '@/components/ui/ImageUpload';
 import CoverPositionEditor, { CoverPositionTrigger } from '@/components/ui/CoverPositionEditor';
 import TickerBar, { TICKER_TYPES } from '@/components/feed/TickerBar';
 import { toast } from 'sonner';
 import VerificationRequest from '@/components/profile/VerificationRequest';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // ── Section wrapper ────────────────────────────────────────────────────────
 function Section({ icon: Icon, title, children, defaultOpen = true }: {
@@ -170,7 +171,7 @@ function CertListEditor({ values, onChange, type }: {
 }
 
 // ── Main component ─────────────────────────────────────────────────────────
-export default function ProfileEdit() {
+function ProfileEdit() {
   const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
@@ -659,7 +660,7 @@ export default function ProfileEdit() {
             </div>
           </Section>
 
-          {/* Category & Template */}
+          {/* Category & Showroom Studio — category chips + Studio deep link */}
           <Section icon={Hash} title="Category & Template">
             <Label>Business Category *</Label>
             <div className="grid grid-cols-2 gap-2 mt-2 max-h-52 overflow-y-auto pr-1">
@@ -676,18 +677,31 @@ export default function ProfileEdit() {
                 );
               })}
             </div>
-            {selectedCategory && (
-              <div className="mt-3">
-                <Label>Website Template</Label>
-                <div className="space-y-2 mt-2">
-                  {selectedCategory.templates.map(tpl => (
-                    <TemplateCard key={tpl.id} template={tpl}
-                      selected={b.business_template === String(tpl.id)}
-                      onSelect={() => sb('business_template', String(tpl.id))} />
-                  ))}
+
+            {/* Showroom Studio CTA (gold — business domain) */}
+            <div className="mt-3 rounded-xl border border-amber-300/60 bg-gradient-to-br from-amber-50 to-amber-100/50 p-3 dark:border-amber-700/40 dark:from-amber-900/20 dark:to-amber-900/10">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+                    <Crown className="w-3.5 h-3.5 text-amber-500" />
+                    {t('profile.openInStudio')}
+                  </p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-amber-700/80 dark:text-amber-300/70">
+                    {b.business_category ? t('profile.openInStudioDesc') : t('profile.selectCategoryHint')}
+                  </p>
                 </div>
+                <Button type="button"
+                  disabled={!b.business_category}
+                  onClick={() => {
+                    const q = getBuilderCategoryQuery(b.business_category);
+                    router.push(q ? `/showroom/create?category=${q}` : '/showroom/create');
+                  }}
+                  className="h-9 shrink-0 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-4 text-xs font-bold text-white shadow-md shadow-amber-500/25 hover:from-amber-600 hover:to-amber-700 disabled:opacity-50">
+                  <Crown className="w-3.5 h-3.5 mr-1.5" />
+                  {t('profile.openInStudio')}
+                </Button>
               </div>
-            )}
+            </div>
           </Section>
 
           {/* Contact */}
@@ -774,4 +788,8 @@ export default function ProfileEdit() {
       )}
     </div>
   );
+}
+
+export default function ProfileEditPage() {
+  return <ErrorBoundary><ProfileEdit /></ErrorBoundary>;
 }

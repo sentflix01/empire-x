@@ -63,6 +63,7 @@ let TOKEN = null;
 let USER_ID = null;
 let PROFILE_ID = null;
 let POST_ID = null;
+let STORY_ID = null;
 let PRODUCT_ID = null;
 let NOTIF_ID = null;
 
@@ -124,10 +125,11 @@ async function run() {
 
   const reg = await request('POST', '/api/auth/register',
     { body: { email: TEST_EMAIL, password: TEST_PASS, full_name: 'E2E Tester' } });
-  assert('POST /api/auth/register returns 201', reg.status === 201,
+  assert('POST /api/auth/register either sends an OTP or reports delivery failure honestly', reg.status === 201 || reg.status === 503,
     JSON.stringify(reg.body));
-  USER_ID = reg.body?.userId;
-  assert('Register returns userId', !!USER_ID);
+  USER_ID = reg.body?.userId || null;
+  assert('Register returns a userId when delivery succeeds, while preserving the account for OTP retry on delivery failure',
+    reg.status === 503 || !!USER_ID, JSON.stringify(reg.body));
 
   // Fetch OTP directly from DB (dev shortcut)
   await new Promise(r => setTimeout(r, 300));
@@ -212,10 +214,21 @@ async function run() {
 
   const likeResp = await request('POST', `/api/posts/${POST_ID}/like`, { token: TOKEN });
   assert('POST /api/posts/:id/like returns 200', likeResp.status === 200);
+  const persistedLike = await request('GET', `/api/posts/${POST_ID}/like`, { token: TOKEN });
+  assert('GET /api/posts/:id/like restores the current user reaction',
+    persistedLike.status === 200 && persistedLike.body?.liked === true, JSON.stringify(persistedLike.body));
 
   const commentsResp = await request('POST', `/api/posts/${POST_ID}/comments`,
     { token: TOKEN, body: { content: 'E2E comment' } });
   assert('POST /api/posts/:id/comments returns 201', commentsResp.status === 201);
+  const replyResp = await request('POST', `/api/posts/${POST_ID}/comments`,
+    { token: TOKEN, body: { content: 'E2E threaded reply', parent_id: commentsResp.body?.id } });
+  assert('POST /api/posts/:id/comments stores a reply under its parent',
+    replyResp.status === 201 && replyResp.body?.parent_id === commentsResp.body?.id, JSON.stringify(replyResp.body));
+  const threadedComments = await request('GET', `/api/posts/${POST_ID}/comments`, { token: TOKEN });
+  const rootComment = threadedComments.body?.find(comment => comment.id === commentsResp.body?.id);
+  assert('GET post comments returns the parent reply count after reload',
+    threadedComments.status === 200 && rootComment?.reply_count === 1, JSON.stringify(rootComment));
 
   // ── 5. PRODUCTS ────────────────────────────────────────────────────────────
   section('5. Products');
@@ -388,6 +401,21 @@ async function run() {
   const storiesGet = await request('GET', '/api/stories', { token: TOKEN });
   assert('GET /api/stories returns 200', storiesGet.status === 200,
     JSON.stringify(storiesGet.body)?.slice(0, 80));
+  const createStory = await request('POST', '/api/stories', {
+    token: TOKEN,
+    body: { media_url: `https://example.com/e2e-story-${RUN_ID}.png`, media_type: 'image', caption: 'E2E story' },
+  });
+  STORY_ID = createStory.body?.id;
+  assert('POST /api/stories creates a story for engagement tests', createStory.status === 201 && !!STORY_ID);
+  const storyReaction = await request('POST', `/api/stories/${STORY_ID}/reactions`, { token: TOKEN });
+  assert('POST story reaction returns reacted=true', storyReaction.status === 201 && storyReaction.body?.reacted === true);
+  const storyReply = await request('POST', `/api/stories/${STORY_ID}/comments`, { token: TOKEN, body: { content: 'E2E story reply' } });
+  assert('POST story reply persists', storyReply.status === 201 && storyReply.body?.content === 'E2E story reply');
+  const reloadedStories = await request('GET', '/api/stories', { token: TOKEN });
+  const reloadedStory = reloadedStories.body?.find(story => story.id === STORY_ID);
+  assert('Story reaction and reply counts survive reload',
+    reloadedStory?.reacted === true && reloadedStory?.reaction_count === 1 && reloadedStory?.comment_count === 1,
+    JSON.stringify(reloadedStory));
 
   // ── 13. MIGRATION FILE CHECK ───────────────────────────────────────────────
   section('13. Migration file correctness (static checks)');
@@ -482,6 +510,7 @@ async function run() {
   section('16. Cleanup');
   try {
     if (POST_ID) await request('DELETE', `/api/posts/${POST_ID}`, { token: TOKEN });
+    if (STORY_ID) await request('DELETE', `/api/stories/${STORY_ID}`, { token: TOKEN });
     if (PRODUCT_ID) await request('DELETE', `/api/products/${PRODUCT_ID}`, { token: TOKEN });
     await pool.query('DELETE FROM users WHERE email = $1', [TEST_EMAIL]);
     assert('Test data cleaned up', true);

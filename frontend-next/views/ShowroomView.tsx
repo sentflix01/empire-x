@@ -4,35 +4,42 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { entities } from "@/api/entities";
+import client from "@/api/client";
 import { auth } from "@/api/auth";
 import { useTranslation } from 'react-i18next';
 
-import { ArrowLeft, QrCode } from "lucide-react";
+import { ArrowLeft, QrCode, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeSVG } from "qrcode.react";
 import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
-export default function ShowroomView() {
+function ShowroomView() {
   const { t } = useTranslation();
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id;
+  const slugParam = params.slug;
   const router = useRouter();
   const [showroom, setShowroom] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showQr, setShowQr] = useState(false);
   const [user, setUser] = useState(null);
-  const showroomUrl = typeof window !== 'undefined' ? `${window.location.origin}/showrooms/${id}` : '';
+  const [authResolved, setAuthResolved] = useState(false);
 
   useEffect(() => {
-    auth.me().then(setUser).catch(() => {});
+    auth.me().then(setUser).catch(() => {}).finally(() => setAuthResolved(true));
     loadShowroom();
-  }, [id]);
+  }, [id, slugParam]);
 
   const loadShowroom = async () => {
     setLoading(true);
     try {
-      const s = await entities.Showroom.get(id);
+      // Slug route (/showroom/[slug]) uses the public slug endpoint; id route uses the entity API
+      const s = slugParam
+        ? (await client.get(`/api/showrooms/slug/${slugParam}`)).data
+        : await entities.Showroom.get(id);
       setShowroom(s);
       const prods = await entities.Product.filter({ seller_id: s.owner_id, status: "active" }, "-created_at", 24);
       setProducts(prods);
@@ -43,12 +50,29 @@ export default function ShowroomView() {
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
-  if (!showroom) return <div className="text-center py-20"><p>Showroom not found</p></div>;
+  if (!showroom) return <UnavailableNotice title="Showroom not found" message="This mini-website doesn't exist or has been removed." />;
+
 
   const sections = (() => { try { return JSON.parse(showroom.sections); } catch { return []; } })();
   const ctaTarget = resolveCtaTarget(sections);
   const productsIdx = firstProductsIndex(sections);
+
   const isOwner = user?.id === showroom.owner_id;
+
+  // Public access rule: only published showrooms are viewable; drafts/archived stay owner-only.
+  // Wait for auth to resolve so owners previewing their own draft don't flash the notice.
+  if (showroom.status !== "published" && !(authResolved && isOwner)) {
+    if (!authResolved) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
+    return <UnavailableNotice title="Showroom unavailable" message="This mini-website is not publicly available." />;
+  }
+
+  // Canonical share URL — slug-based when available (stable, human-readable)
+  const showroomUrl = typeof window !== 'undefined'
+    ? showroom.slug
+      ? `${window.location.origin}/showroom/${showroom.slug}`
+      : `${window.location.origin}/showrooms/${showroom.id}`
+    : '';
+  const sections = (() => { try { return JSON.parse(showroom.sections); } catch { return []; } })();
   const themeColor = showroom.theme_color || "#D4AF37";
   const profile = {
     ...showroom,
@@ -63,14 +87,19 @@ export default function ShowroomView() {
           <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
-          {isOwner && (
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">{showroom.status}</Badge>
-              <Button size="sm" variant="outline" className="rounded-full h-8" onClick={() => setShowQr(v => !v)}>
-                <QrCode className="w-3 h-3 mr-1" /> QR Code
-              </Button>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {showroom.status !== "published" && isOwner && (
+              <Badge variant="outline" className="text-amber-600 border-amber-400/50">Draft preview</Badge>
+            )}
+            {isOwner && (
+              <>
+                <Badge variant="outline">{showroom.status}</Badge>
+                <Button size="sm" variant="outline" className="rounded-full h-8" onClick={() => setShowQr(v => !v)}>
+                  <QrCode className="w-3 h-3 mr-1" /> QR Code
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         {showQr && (
@@ -107,6 +136,20 @@ export default function ShowroomView() {
   );
 }
 
+/** 404-like notice for missing / unpublished showrooms viewed anonymously */
+function UnavailableNotice({ title, message }: { title: string; message: string }) {
+  return (
+    <div className="max-w-2xl mx-auto text-center py-20">
+      <Crown className="w-12 h-12 text-amber-400/40 mx-auto mb-3" />
+      <h2 className="font-display text-xl font-bold">{title}</h2>
+      <p className="text-sm text-muted-foreground mt-1">{message}</p>
+      <Link href="/" className="inline-block mt-4">
+        <Button variant="outline" className="rounded-full">Go Home</Button>
+      </Link>
+    </div>
+  );
+}
 
-
-
+export default function ShowroomViewPage() {
+  return <ErrorBoundary><ShowroomView /></ErrorBoundary>;
+}

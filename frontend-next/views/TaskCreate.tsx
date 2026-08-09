@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const TASK_TYPES = [
   { value: "bill_payment", label: "💰 Bill Payment" },
@@ -23,7 +24,7 @@ const TASK_TYPES = [
   { value: "other", label: "📋 Other" },
 ];
 
-export default function TaskCreate() {
+function TaskCreate() {
   const { t } = useTranslation();
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -100,5 +101,6 @@ export default function TaskCreate() {
   );
 }
 
-
-
+export default function TaskCreatePage() {
+  return <ErrorBoundary><TaskCreate /></ErrorBoundary>;
+}

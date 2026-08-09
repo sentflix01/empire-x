@@ -23,7 +23,7 @@ vi.mock('react-i18next', () => ({
 }));
 
 vi.mock('next/link', () => ({ default: ({ children, href }: any) => <a href={href}>{children}</a> }));
-vi.mock('next/navigation', () => ({ useSearchParams: () => ({ get: () => null }) }));
+vi.mock('next/navigation', () => ({ useSearchParams: vi.fn(() => ({ get: () => null })) }));
 vi.mock('@/components/ui/use-toast', () => ({ toast: vi.fn() }));
 vi.mock('@/lib/googleAuth', () => ({
   renderGoogleSignInButton: vi.fn(() => true),
@@ -32,6 +32,7 @@ vi.mock('@/lib/googleAuth', () => ({
 import Register from '@/views/Register';
 import client from '@/api/client';
 import { renderGoogleSignInButton } from '@/lib/googleAuth';
+import { useSearchParams } from 'next/navigation';
 
 describe('Register form', () => {
   beforeEach(() => {
@@ -92,5 +93,14 @@ describe('Register form', () => {
     });
 
     unmount(); // clean up before async effects fire
+  });
+
+  it('opens code entry for an unverified account redirected from login', () => {
+    vi.mocked(useSearchParams).mockReturnValue({
+      get: (key: string) => key === 'verify' ? 'pending@example.com' : null,
+    } as unknown as import('next/navigation').ReadonlyURLSearchParams);
+    render(<Register />);
+    expect(screen.getByText(/auth\.verifyEmail/i)).toBeTruthy();
+    expect(screen.getByText(/pending@example\.com/i)).toBeTruthy();
   });
 });

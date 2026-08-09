@@ -33,6 +33,9 @@ export function connectSocket(): void {
 export function disconnectSocket(): void {
   if (socket?.connected) {
     socket.disconnect();
-    socket = null;
   }
+  // Always clear the singleton so the next connectSocket() call
+  // creates a fresh instance with the current auth token.
+  // This prevents stale tokens surviving logout → re-login.
+  socket = null;
 }

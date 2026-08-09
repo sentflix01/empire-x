@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useTranslation } from 'react-i18next';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
-export default function Referral() {
+function Referral() {
   const { t } = useTranslation();
   const [referralData, setReferralData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +32,9 @@ export default function Referral() {
       ]);
       if (refRes.status === "fulfilled") setReferralData(refRes.value.data);
       if (profileRes.status === "fulfilled") setPoints(profileRes.value.data?.points ?? null);
-    } catch {}
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || "Failed to load referral data");
+    }
     setLoading(false);
   };
 
@@ -60,7 +63,10 @@ export default function Referral() {
           text: "Join me on Empire X — Ethiopia's super-app for social, commerce, and services. Use my referral link to get 20 bonus points!",
           url: referralData.referral_link,
         });
-      } catch {}
+      } catch (err: any) {
+        // User cancelled share — not an error worth toasting
+        if (err?.name !== 'AbortError') copyLink();
+      }
     } else {
       copyLink();
     }
@@ -208,3 +214,6 @@ export default function Referral() {
   );
 }
 
+export default function ReferralPage() {
+  return <ErrorBoundary><Referral /></ErrorBoundary>;
+}

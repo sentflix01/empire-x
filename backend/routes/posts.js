@@ -149,6 +149,19 @@ router.delete('/:id', requireAuth, async (req, res) => {
 });
 
 // Like / unlike post
+router.get('/:id/like', optionalAuth, async (req, res) => {
+  if (!req.user?.id) return res.json({ liked: false });
+  try {
+    const { rows } = await pool.query(
+      "SELECT EXISTS(SELECT 1 FROM likes WHERE target_id = $1 AND target_type = 'post' AND user_id = $2) AS liked",
+      [req.params.id, req.user.id]
+    );
+    res.json({ liked: rows[0]?.liked ?? false });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch like status' });
+  }
+});
+
 router.post('/:id/like', requireAuth, async (req, res) => {
   const { id } = req.params;
   try {
@@ -168,15 +181,16 @@ router.post('/:id/like', requireAuth, async (req, res) => {
     const liked = likeResult[0]?.liked ?? false;
 
     // Update like_count and fetch author in parallel
-    const [, postResult] = await Promise.all([
+    const [countResult, postResult] = await Promise.all([
       pool.query(
-        `UPDATE posts SET like_count = GREATEST(0, like_count + $1) WHERE id = $2`,
+        `UPDATE posts SET like_count = GREATEST(0, like_count + $1) WHERE id = $2 RETURNING like_count`,
         [liked ? 1 : -1, id]
       ),
       liked
         ? pool.query('SELECT author_id, author_name FROM posts WHERE id = $1', [id])
         : Promise.resolve({ rows: [] }),
     ]);
+    invalidateCache('posts:list').catch(() => {});
 
     // Notify author asynchronously — don't block the response
     if (liked && postResult.rows.length && postResult.rows[0].author_id !== req.user.id) {
@@ -194,7 +208,7 @@ router.post('/:id/like', requireAuth, async (req, res) => {
         }).catch(() => {});
     }
 
-    res.json({ liked });
+    res.json({ liked, like_count: countResult.rows[0]?.like_count ?? 0 });
   } catch (err) {
     res.status(500).json({ error: 'Failed to toggle like' });
   }
@@ -203,8 +217,19 @@ router.post('/:id/like', requireAuth, async (req, res) => {
 // Comments on a post
 router.get('/:id/comments', optionalAuth, async (req, res) => {
   try {
+    // Fetch root comments + replies together.
+    // Root comments sorted oldest-first so thread order is natural.
+    // Each root comment carries its reply_count for the "View X replies" button.
     const { rows } = await pool.query(
-      'SELECT * FROM comments WHERE post_id = $1 ORDER BY created_at ASC',
+      `SELECT c.*,
+              (SELECT COUNT(*)::int FROM comments r WHERE r.parent_id = c.id) AS reply_count
+       FROM comments c
+       WHERE c.post_id = $1
+       ORDER BY
+         -- Root comments first, oldest first; replies immediately after their parent
+         COALESCE(c.parent_id, c.id) ASC,
+         c.parent_id IS NOT NULL ASC,
+         c.created_at ASC`,
       [req.params.id]
     );
     res.json(rows);
@@ -214,43 +239,102 @@ router.get('/:id/comments', optionalAuth, async (req, res) => {
 });
 
 router.post('/:id/comments', requireAuth, async (req, res) => {
-  const { content } = req.body;
-  if (!content) return res.status(400).json({ error: 'Content is required' });
+  const { content, parent_id } = req.body;
+  if (!content?.trim()) return res.status(400).json({ error: 'Content is required' });
   try {
-    // Fetch commenter profile + post author in parallel
+    let parentId = null;
+    if (parent_id) {
+      const { rows: parents } = await pool.query(
+        'SELECT id, parent_id FROM comments WHERE id = $1 AND post_id = $2',
+        [parent_id, req.params.id]
+      );
+      if (!parents.length) return res.status(400).json({ error: 'Reply target was not found on this post' });
+      // Keep replies flat (single level): replying to a reply threads under the root
+      parentId = parents[0].parent_id || parents[0].id;
+    }
+
     const [profileResult, postResult] = await Promise.all([
       pool.query('SELECT display_name, avatar_url FROM user_profiles WHERE user_id = $1', [req.user.id]),
       pool.query('SELECT author_id FROM posts WHERE id = $1', [req.params.id]),
     ]);
     const profile = profileResult.rows[0] || {};
 
-    // Insert comment + update count in parallel
     const [commentResult] = await Promise.all([
       pool.query(
-        `INSERT INTO comments (post_id, author_id, author_name, author_avatar, content)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [req.params.id, req.user.id, profile.display_name || null, profile.avatar_url || null, content]
+        `INSERT INTO comments (post_id, author_id, author_name, author_avatar, content, parent_id)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING *, 0::int AS reply_count`,
+        [req.params.id, req.user.id, profile.display_name || null, profile.avatar_url || null, content.trim(), parentId]
       ),
       pool.query('UPDATE posts SET comment_count = comment_count + 1 WHERE id = $1', [req.params.id]),
     ]);
+    invalidateCache('posts:list').catch(() => {});
 
-    // Notify post author asynchronously — don't block the response
+    // Notify post author (and parent comment author if reply) asynchronously
+    const newComment = commentResult.rows[0];
+    const commenterName = profile.display_name || 'Someone';
     if (postResult.rows.length && postResult.rows[0].author_id !== req.user.id) {
       const authorId = postResult.rows[0].author_id;
-      const commenterName = profile.display_name || 'Someone';
       pool.query(
         `INSERT INTO notifications (user_id, type, title, body, link, is_read)
          VALUES ($1, 'comment', $2, $3, '', false) RETURNING *`,
-        [authorId, `${commenterName} commented on your post`, content.slice(0, 80)]
+        [authorId, `${commenterName} ${parentId ? 'replied to a comment on' : 'commented on'} your post`, content.trim().slice(0, 80)]
       ).then(({ rows: [notif] }) => {
         emitNotification(authorId, notif);
-        sendPushToUser(authorId, `${commenterName} commented on your post`, content.slice(0, 80), '/notifications').catch(() => {});
+        sendPushToUser(authorId, notif.title, notif.body, '/notifications').catch(() => {});
       }).catch(() => {});
     }
+    // Also notify the parent comment author if different from post author and current user
+    if (parentId) {
+      pool.query('SELECT author_id FROM comments WHERE id = $1', [parentId])
+        .then(async ({ rows }) => {
+          const parentAuthorId = rows[0]?.author_id;
+          if (parentAuthorId && parentAuthorId !== req.user.id && parentAuthorId !== postResult.rows[0]?.author_id) {
+            const { rows: [notif] } = await pool.query(
+              `INSERT INTO notifications (user_id, type, title, body, link, is_read)
+               VALUES ($1, 'comment', $2, $3, '', false) RETURNING *`,
+              [parentAuthorId, `${commenterName} replied to your comment`, content.trim().slice(0, 80)]
+            );
+            emitNotification(parentAuthorId, notif);
+            sendPushToUser(parentAuthorId, notif.title, notif.body, '/notifications').catch(() => {});
+          }
+        }).catch(() => {});
+    }
 
-    res.status(201).json(commentResult.rows[0]);
+    res.status(201).json(newComment);
   } catch (err) {
+    logger.error({ err: err.message }, 'Failed to create comment');
     res.status(500).json({ error: 'Failed to create comment' });
+  }
+});
+
+// Delete comment (author or admin only)
+router.delete('/:postId/comments/:commentId', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT author_id, parent_id FROM comments WHERE id = $1 AND post_id = $2',
+      [req.params.commentId, req.params.postId]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Comment not found' });
+    if (rows[0].author_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    // Count how many comments will be deleted (comment + its replies)
+    const { rows: countRows } = await pool.query(
+      `SELECT COUNT(*)::int AS n FROM comments
+       WHERE id = $1 OR parent_id = $1`,
+      [req.params.commentId]
+    );
+    await pool.query('DELETE FROM comments WHERE id = $1 OR parent_id = $1', [req.params.commentId]);
+    // Decrement post comment_count by actual deleted count
+    await pool.query(
+      'UPDATE posts SET comment_count = GREATEST(0, comment_count - $1) WHERE id = $2',
+      [countRows[0].n, req.params.postId]
+    );
+    invalidateCache('posts:list').catch(() => {});
+    res.json({ success: true, deleted: countRows[0].n });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete comment' });
   }
 });
 

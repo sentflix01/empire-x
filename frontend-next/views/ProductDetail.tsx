@@ -8,14 +8,16 @@ import client from "@/api/client";
 import { auth } from "@/api/auth";
 import { useTranslation } from 'react-i18next';
 
-import { ArrowLeft, Heart, Share2, ShoppingCart, MapPin, Star, Truck, Shield, MessageCircle, Bell, BellOff, Check } from "lucide-react";
+import { ArrowLeft, Heart, Share2, ShoppingCart, MapPin, Star, Truck, Shield, MessageCircle, Bell, BellOff, Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/lib/CartContext";
 import ShareButton from "@/components/ui/ShareButton";
+import PurchaseModal from "@/components/checkout/PurchaseModal";
 import { toast } from "sonner";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
-export default function ProductDetail() {
+function ProductDetail() {
   const { t } = useTranslation();
   const params = useParams();
   const idParam = Array.isArray(params?.id) ? params.id[0] : params?.id;
@@ -34,6 +36,7 @@ export default function ProductDetail() {
   const [alertInput, setAlertInput] = useState("");
   const [showAlertForm, setShowAlertForm] = useState(false);
   const [alertSaving, setAlertSaving] = useState(false);
+  const [purchaseItem, setPurchaseItem] = useState<any>(null);
 
   useEffect(() => {
     loadProduct();
@@ -55,21 +58,21 @@ export default function ProductDetail() {
           const { data: alerts } = await client.get("/api/wishlists/price-alerts");
           const existing = alerts.find((a: any) => a.product_id === id);
           if (existing) { setAlertActive(true); setAlertTarget(String(existing.target_price)); }
-        } catch {}
-      } catch {}
+        } catch (err) { /* silenced */ }
+      } catch (err) { /* silenced */ }
       // Load seller profile
       if (p?.seller_id) {
         try {
           const { entities: entitiesApi } = await import("@/api/entities");
           const profiles = await entitiesApi.UserProfile.filter({ user_id: p.seller_id });
           if (profiles.length) setSeller(profiles[0]);
-        } catch {}
+        } catch (err) { /* silenced */ }
       }
       // Increment view count
       if (p?.id) {
         import("@/api/entities").then(m => m.entities.Product.update(p.id, { view_count: (p.view_count || 0) + 1 })).catch(() => {});
       }
-    } catch {}
+    } catch (err) { /* silenced */ }
     setLoading(false);
   };
 
@@ -214,8 +217,14 @@ export default function ProductDetail() {
           </div>
 
           <div className="flex gap-2 pt-1">
-            <Button onClick={() => addItem(product.id)} disabled={!inStock}
-              className="flex-1 h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 font-semibold">
+            {user && user.id !== product.seller_id && (
+              <Button onClick={() => setPurchaseItem(product)} disabled={!inStock}
+                className="flex-1 h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 font-semibold">
+                <Zap className="w-4 h-4 mr-2" /> Buy Now
+              </Button>
+            )}
+            <Button onClick={() => addItem(product.id)} disabled={!inStock} variant="outline"
+              className="flex-1 h-11 rounded-full border-amber-300 text-amber-700 hover:bg-amber-50 font-semibold">
               <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
             </Button>
             <Button variant="outline" size="icon"
@@ -268,9 +277,24 @@ export default function ProductDetail() {
       </div>
 
       <ReviewsSection productId={id} currentUser={user} />
+
+      {/* Purchase modal — same pattern as BusinessProfile */}
+      {purchaseItem && (
+        <PurchaseModal
+          item={purchaseItem}
+          seller={{
+            user_id: product.seller_id,
+            display_name: seller?.display_name,
+            business_name: seller?.business_name,
+          }}
+          buyer={user}
+          onClose={() => setPurchaseItem(null)}
+        />
+      )}
     </div>
   );
 }
 
-
-
+export default function ProductDetailPage() {
+  return <ErrorBoundary><ProductDetail /></ErrorBoundary>;
+}

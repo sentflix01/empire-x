@@ -10,11 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const JOB_TYPES = ["full_time","part_time","contract","internship","freelance"];
 const CATEGORIES = ["Technology","Design","Marketing","Sales","Finance","Education","Health","Operations","Other"];
 
-export default function JobCreate() {
+function JobCreate() {
   const { t } = useTranslation();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -88,6 +89,6 @@ export default function JobCreate() {
   );
 }
 
-
-
-
+export default function JobCreatePage() {
+  return <ErrorBoundary><JobCreate /></ErrorBoundary>;
+}

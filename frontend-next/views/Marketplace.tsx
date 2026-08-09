@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
-export default function Marketplace() {
+function Marketplace() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const CATEGORIES = [
@@ -27,18 +28,22 @@ export default function Marketplace() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [user, setUser] = useState(null);
-  const [paymentBanner, setPaymentBanner] = useState<"success"|"failed"|null>(null);
+  const [paymentBanner, setPaymentBanner] = useState<"success"|"failed"|"cancelled"|null>(null);
 
   useEffect(() => {
     auth.me().then(setUser).catch(() => {});
     loadProducts();
-    // Handle Chapa return redirect
+    // Handle payment provider return redirect (Chapa / Stripe)
     const payment = searchParams?.get("payment");
     const tx_ref  = searchParams?.get("tx_ref");
     if (payment === "success") {
       setPaymentBanner("success");
-      toast.success("🇪🇹 Payment confirmed! Your order has been placed.");
+      toast.success("💳 Payment confirmed! Your order has been placed.");
       // Clean URL
+      window.history.replaceState({}, '', '/marketplace');
+    } else if (payment === "cancelled") {
+      setPaymentBanner("cancelled");
+      toast.info("Checkout cancelled — you were not charged.");
       window.history.replaceState({}, '', '/marketplace');
     } else if (payment === "failed") {
       setPaymentBanner("failed");
@@ -76,15 +81,25 @@ export default function Marketplace() {
   return (
       <div className="max-w-4xl mx-auto">
 
-        {/* Chapa payment return banner */}
+        {/* Payment return banner (Chapa / Stripe — provider-neutral) */}
         {paymentBanner === "success" && (
           <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800">
             <CheckCircle2 className="w-5 h-5 shrink-0 text-green-600" />
             <div>
               <p className="font-semibold text-sm">Payment Successful!</p>
-              <p className="text-xs text-green-700">Your Chapa payment was confirmed. The seller will contact you shortly.</p>
+              <p className="text-xs text-green-700">Your payment was confirmed. The seller will contact you shortly.</p>
             </div>
             <button onClick={() => setPaymentBanner(null)} className="ml-auto text-green-500 hover:text-green-700">✕</button>
+          </div>
+        )}
+        {paymentBanner === "cancelled" && (
+          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800">
+            <XCircle className="w-5 h-5 shrink-0 text-amber-500" />
+            <div>
+              <p className="font-semibold text-sm">Checkout Cancelled</p>
+              <p className="text-xs text-amber-700">You left before completing payment — you were not charged. Try again whenever you're ready.</p>
+            </div>
+            <button onClick={() => setPaymentBanner(null)} className="ml-auto text-amber-500 hover:text-amber-700">✕</button>
           </div>
         )}
         {paymentBanner === "failed" && (
@@ -182,5 +197,6 @@ export default function Marketplace() {
   );
 }
 
-
-
+export default function MarketplacePage() {
+  return <ErrorBoundary><Marketplace /></ErrorBoundary>;
+}

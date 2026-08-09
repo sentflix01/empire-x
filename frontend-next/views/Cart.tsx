@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -10,6 +10,7 @@ import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, ShoppingBag, Loader2 } f
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function Cart() {
   const { t } = useTranslation();
@@ -23,6 +24,7 @@ function Cart() {
     if (!items.length || checkingOut) return;
     setCheckingOut(true);
     try {
+
       // 1) Try the hosted payment checkout (Stripe supports multi-item carts).
       //    Prices are re-computed server-side; this only redirects the buyer.
       try {
@@ -98,6 +100,7 @@ function Cart() {
     } finally {
       setCheckingOut(false);
     }
+
   };
 
   return (
@@ -211,7 +214,6 @@ function Cart() {
   );
 }
 
-
-
-
-export default Cart;
+export default function CartPage() {
+  return <ErrorBoundary><Cart /></ErrorBoundary>;
+}

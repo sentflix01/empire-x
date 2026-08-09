@@ -22,9 +22,18 @@ const PUBLIC_PATHS = new Set([
   '/',
 ]);
 
+// Builder pages live under /showroom/* but remain auth-gated
+// (only the public /showroom/[slug] viewer is anonymous)
+const SHOWROOM_BUILDER_PAGES = new Set([
+  '/showroom/create',
+  '/showroom/templates',
+  '/showroom/samples',
+]);
+
 function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.has(pathname)) return true;
   if (pathname.startsWith('/showrooms/')) return true;
+  if (pathname.startsWith('/showroom/') && !SHOWROOM_BUILDER_PAGES.has(pathname)) return true;
   if (pathname.startsWith('/products/')) return true;
   if (pathname.startsWith('/p/')) return true;
   return false;

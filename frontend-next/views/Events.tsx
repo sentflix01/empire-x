@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import moment from "moment";
 import { useTranslation } from 'react-i18next';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function Events() {
   const { t } = useTranslation();
@@ -105,7 +106,6 @@ function Events() {
   );
 }
 
-
-
-
-export default Events;
+export default function EventsPage() {
+  return <ErrorBoundary><Events /></ErrorBoundary>;
+}

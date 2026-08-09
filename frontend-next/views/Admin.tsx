@@ -17,6 +17,7 @@ import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import moment from "moment";
 import { useTranslation } from 'react-i18next';
 import { toast } from "sonner";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // ── Pending Verification Requests Queue ──────────────────────────────────────
 function PendingVerificationRequests() {
@@ -633,5 +634,6 @@ function Admin() {
   );
 }
 
-
-export default Admin;
+export default function AdminPage() {
+  return <ErrorBoundary><Admin /></ErrorBoundary>;
+}

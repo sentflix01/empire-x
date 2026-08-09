@@ -8,7 +8,7 @@ import client from "@/api/client";
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
-  CornerUpLeft, Check, CheckCheck, ShieldOff, History,
+  CornerUpLeft, Check, CheckCheck, ShieldOff, History, ImagePlus,
 } from "lucide-react";
 import moment from "moment";
 import { toast } from "sonner";
@@ -16,10 +16,12 @@ import { formatLastSeen, isUserOnline } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
 import { useChatPresence } from "@/lib/useChatPresence";
 import SafeImage from "@/components/ui/SafeImage";
+import { uploadFile } from '@/lib/uploadFile';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 
 
-export default function ChatRoom() {
+function ChatRoom() {
   const params = useParams();
   // Ensure id is always a plain string — Next.js can return string[] for catch-all routes
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id as string);
@@ -30,6 +32,7 @@ export default function ChatRoom() {
   const [conversation, setConversation] = useState(null);
   const [text, setText]               = useState("");
   const [sending, setSending]         = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [loading, setLoading]         = useState(true);
 
   // Edit / reply mode
@@ -55,6 +58,7 @@ export default function ChatRoom() {
   const inputRef   = useRef(null);
   const deleteTimer = useRef(null);
   const textRef    = useRef(""); // mirrors text state for reliable mobile access
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remoteTypingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -266,6 +270,32 @@ export default function ChatRoom() {
       console.error('Send failed:', errMsg, err);
     }
     setSending(false);
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Choose an image smaller than 10 MB');
+      event.target.value = '';
+      return;
+    }
+    const convId = id || conversation?.id;
+    if (!convId) return;
+    setUploadingImage(true);
+    try {
+      const url = await uploadFile(file);
+      const { data: sent } = await client.post(`/api/messages/conversations/${convId}/messages`, {
+        content: url,
+        type: 'image',
+      });
+      setMessages(prev => prev.some(message => message.id === sent.id) ? prev : [...prev, sent]);
+    } catch (error) {
+      toast.error('Could not send the picture. Please try again.');
+    } finally {
+      setUploadingImage(false);
+      event.target.value = '';
+    }
   };
 
   const startEdit = (msg) => {
@@ -523,7 +553,7 @@ export default function ChatRoom() {
                   <div
                     className={`relative max-w-[80%] px-3 py-1.5 text-sm shadow-sm ${
                       isMe
-                        ? 'rounded-2xl rounded-br-md bg-blue-100 dark:bg-blue-900/40'
+                        ? 'rounded-2xl rounded-br-md bg-primary/15 dark:bg-primary/25'
                         : 'rounded-2xl rounded-bl-md bg-card'
                     }`}
                   >
@@ -542,7 +572,11 @@ export default function ChatRoom() {
                       </div>
                     )}
 
-                    <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
+                    {msg.type === 'image' ? (
+                      <SafeImage src={msg.content} alt="Shared image" className="max-h-72 max-w-full rounded-xl object-cover" />
+                    ) : (
+                      <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
+                    )}
 
                     <div className="flex items-center justify-end gap-1 mt-0.5 -mb-0.5">
                       {msg.edited && (
@@ -576,7 +610,7 @@ export default function ChatRoom() {
           {/* Reply preview */}
           {replyingTo && !editingMsg && (
             <div className="flex items-start gap-2 px-4 py-2 border-b border-border/20 bg-secondary/30">
-              <div className="border-l-2 border-blue-500 pl-2 flex-1 min-w-0">
+              <div className="border-l-2 border-primary pl-2 flex-1 min-w-0">
                 <p className="text-xs font-semibold text-primary">Reply to {replyingTo.sender_name || 'message'}</p>
                 <p className="text-xs text-muted-foreground truncate">{replyingTo.content}</p>
               </div>
@@ -598,8 +632,12 @@ export default function ChatRoom() {
           )}
 
           {/* Text input row */}
-          <div className="px-3 py-2 flex items-end gap-2">
-            <div className="flex-1 bg-secondary rounded-2xl px-4 py-2 flex items-center">
+          <div className="px-3 py-2 flex items-end gap-2 sm:px-4" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
+            <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+            <button type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage || sending} className="h-11 w-11 shrink-0 rounded-full text-primary hover:bg-primary/10 disabled:opacity-40" aria-label="Send picture">
+              {uploadingImage ? <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" /> : <ImagePlus className="mx-auto h-5 w-5" />}
+            </button>
+            <div className="flex-1 bg-secondary rounded-2xl px-4 py-2 flex items-center min-h-11 border border-transparent focus-within:border-primary/30 focus-within:ring-2 focus-within:ring-primary/10">
               <textarea
                 ref={inputRef}
                 value={editingMsg ? editText : text}
@@ -623,13 +661,13 @@ export default function ChatRoom() {
                 }}
                 placeholder={editingMsg ? 'Edit message...' : 'Message'}
                 rows={1}
-                className="flex-1 bg-transparent text-sm outline-none resize-none max-h-24 self-center"
+                className="flex-1 bg-transparent text-sm outline-none resize-none max-h-24 self-center leading-5"
                 style={{ minHeight: '20px' }}
               />
             </div>
             <button
               onClick={handleSend}
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0 transition-transform active:scale-90 outline-none focus:outline-none ${
+              className={`w-11 h-11 rounded-full flex items-center justify-center text-white shrink-0 transition-transform active:scale-90 outline-none focus:outline-none ${
                 (!(editingMsg ? editText.trim() : text.trim()) || sending) ? 'opacity-40' : 'opacity-100'
               }`}
               style={{ backgroundColor: 'hsl(var(--primary))' }}
@@ -641,4 +679,8 @@ export default function ChatRoom() {
       )}
     </div>
   );
+}
+
+export default function ChatRoomPage() {
+  return <ErrorBoundary><ChatRoom /></ErrorBoundary>;
 }

@@ -22,6 +22,7 @@ import BusinessSwitcher from "@/components/analytics/BusinessSwitcher";
 import StatCard from "@/components/analytics/StatCard";
 import { downloadCSV, buildAnalyticsReport } from "@/lib/exportReport";
 import { toast } from "@/components/ui/use-toast";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const CHART_COLORS = ["#D4AF37", "#3B82F6", "#8B5CF6", "#06B6D4", "#F97316", "#EC4899", "#10B981", "#EF4444"];
 
@@ -468,6 +469,6 @@ function BusinessAnalytics() {
   );
 }
 
-
-
-export default BusinessAnalytics;
+export default function BusinessAnalyticsPage() {
+  return <ErrorBoundary><BusinessAnalytics /></ErrorBoundary>;
+}

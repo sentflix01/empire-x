@@ -3,10 +3,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { entities } from '@/api/entities';
 import client from '@/api/client';
 import { uploadFile } from '@/lib/uploadFile';
-import { X, Plus, Clock } from 'lucide-react';
+import { X, Plus, Clock, Heart, MessageCircle, Send } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import SafeImage from '@/components/ui/SafeImage';
 import { resolveMediaUrl } from '@/lib/media';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const STORY_DURATION_MS = 5000; // 5 seconds per story
 
@@ -19,6 +20,9 @@ interface Story {
   display_name?: string;
   avatar_url?: string;
   expires_at?: string;
+  reaction_count?: number;
+  comment_count?: number;
+  reacted?: boolean;
 }
 
 interface StoryGroup {
@@ -113,13 +117,17 @@ function StoryInitial({ name }: { name: string }) {
   return <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg" style={{ background: 'linear-gradient(135deg,#f97316,#ec4899)' }}>{name.charAt(0).toUpperCase()}</div>;
 }
 
-export default function Stories() {
+function Stories() {
   const { t } = useTranslation();
   const [stories, setStories] = useState<StoryGroup[]>([]);
   const [viewing, setViewing] = useState<ViewingState | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0); // 0-100
   const [mediaFailed, setMediaFailed] = useState(false);
+  const [storyCommentsOpen, setStoryCommentsOpen] = useState(false);
+  const [storyComments, setStoryComments] = useState<Array<{ id: string; author_name?: string; content: string }>>([]);
+  const [storyReply, setStoryReply] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -155,14 +163,14 @@ export default function Stories() {
 
   // Restart timer whenever story index changes
   useEffect(() => {
-    if (viewing) {
+    if (viewing && !storyCommentsOpen) {
       startTimer();
     } else {
       if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
       setProgress(0);
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [viewing?.index, viewing !== null]);
+  }, [viewing?.index, viewing !== null, storyCommentsOpen]);
 
   const loadStories = async () => {
     const data = (await entities.Story.list('-created_at', 200).catch(() => [])) as unknown as Story[];
@@ -198,6 +206,9 @@ export default function Stories() {
   };
 
   const openStory = (group: StoryGroup) => {
+    setStoryCommentsOpen(false);
+    setStoryComments([]);
+    setStoryReply('');
     setViewing({ userStories: group.stories, index: 0, group });
     client.post(`/api/stories/${group.stories[0].id}/view`).catch(() => {});
   };
@@ -222,7 +233,61 @@ export default function Stories() {
   const active = viewing ? viewing.userStories[viewing.index] : null;
   const storyExpiry = active?.expires_at ? expiryLabel(active.expires_at) : null;
 
-  useEffect(() => { setMediaFailed(false); }, [active?.id]);
+  useEffect(() => {
+    setMediaFailed(false);
+    setStoryCommentsOpen(false);
+    setStoryComments([]);
+    setStoryReply('');
+  }, [active?.id]);
+
+  const toggleReaction = async () => {
+    if (!active) return;
+    const wasReacted = Boolean(active.reacted);
+    setViewing(prev => prev ? {
+      ...prev,
+      userStories: prev.userStories.map(story => story.id === active.id
+        ? { ...story, reacted: !wasReacted, reaction_count: Math.max(0, (story.reaction_count ?? 0) + (wasReacted ? -1 : 1)) }
+        : story),
+    } : prev);
+    try {
+      await client.post(`/api/stories/${active.id}/reactions`, { emoji: '❤️' });
+    } catch {
+      setViewing(prev => prev ? {
+        ...prev,
+        userStories: prev.userStories.map(story => story.id === active.id
+          ? { ...story, reacted: wasReacted, reaction_count: Math.max(0, (story.reaction_count ?? 0) + (wasReacted ? 1 : -1)) }
+          : story),
+      } : prev);
+    }
+  };
+
+  const openStoryComments = async () => {
+    if (!active) return;
+    const nextOpen = !storyCommentsOpen;
+    setStoryCommentsOpen(nextOpen);
+    if (nextOpen) {
+      const { data } = await client.get(`/api/stories/${active.id}/comments`).catch(() => ({ data: [] }));
+      setStoryComments(data);
+    }
+  };
+
+  const sendStoryReply = async () => {
+    if (!active || !storyReply.trim() || sendingReply) return;
+    setSendingReply(true);
+    try {
+      const { data } = await client.post(`/api/stories/${active.id}/comments`, { content: storyReply.trim() });
+      setStoryComments(prev => [...prev, data]);
+      setStoryReply('');
+      setViewing(prev => prev ? {
+        ...prev,
+        userStories: prev.userStories.map(story => story.id === active.id
+          ? { ...story, comment_count: (story.comment_count ?? 0) + 1 }
+          : story),
+      } : prev);
+    } finally {
+      setSendingReply(false);
+    }
+  };
 
   return (
     <>
@@ -303,11 +368,37 @@ export default function Stories() {
               </div>
             )}
 
-            {active.caption && (
-              <div className="absolute bottom-8 left-4 right-4 bg-black/40 rounded-xl p-3">
+            {active.caption && !storyCommentsOpen && (
+              <div className="absolute bottom-20 left-4 right-4 bg-black/40 rounded-xl p-3">
                 <p className="text-white text-sm">{active.caption}</p>
               </div>
             )}
+
+            <div className="absolute bottom-4 left-4 right-4 z-20" onClick={e => e.stopPropagation()}>
+              {storyCommentsOpen && (
+                <div className="mb-2 max-h-44 overflow-y-auto rounded-2xl bg-black/65 p-3 backdrop-blur-sm">
+                  {storyComments.length === 0 ? (
+                    <p className="text-xs text-white/70">No replies yet. Start the conversation.</p>
+                  ) : storyComments.map(comment => (
+                    <div key={comment.id} className="py-1.5 text-sm text-white">
+                      <span className="font-semibold">{comment.author_name || 'User'} </span>{comment.content}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={toggleReaction} className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors ${active.reacted ? 'bg-rose-500 text-white' : 'bg-black/45 text-white hover:bg-black/65'}`}>
+                  <Heart className={`h-4 w-4 ${active.reacted ? 'fill-current' : ''}`} />{active.reaction_count ?? 0}
+                </button>
+                <button type="button" onClick={openStoryComments} className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors ${storyCommentsOpen ? 'bg-primary text-white' : 'bg-black/45 text-white hover:bg-black/65'}`}>
+                  <MessageCircle className="h-4 w-4" />{active.comment_count ?? 0}
+                </button>
+                <div className="flex h-10 flex-1 items-center rounded-full bg-white px-3 shadow-lg">
+                  <input value={storyReply} onFocus={() => setStoryCommentsOpen(true)} onChange={e => setStoryReply(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') sendStoryReply(); }} placeholder="Reply to story" className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none" />
+                  <button type="button" onClick={sendStoryReply} disabled={!storyReply.trim() || sendingReply} className="ml-2 rounded-full bg-primary p-1.5 text-white disabled:opacity-40" aria-label="Send story reply"><Send className="h-3.5 w-3.5" /></button>
+                </div>
+              </div>
+            </div>
 
             {/* Tap zones */}
             <button onClick={prevStory} className="absolute left-0 top-0 bottom-0 w-1/3" />
@@ -319,3 +410,6 @@ export default function Stories() {
   );
 }
 
+export default function StoriesPage() {
+  return <ErrorBoundary><Stories /></ErrorBoundary>;
+}

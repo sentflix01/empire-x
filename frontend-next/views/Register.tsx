@@ -14,13 +14,15 @@ import AuthLayout from "@/components/AuthLayout";
 import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "react-i18next";
 import { renderGoogleSignInButton } from "@/lib/googleAuth";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
-export default function Register() {
+function Register() {
   const searchParams = useSearchParams();
   const refCode = searchParams.get("ref") || "";
+  const verificationEmail = searchParams.get("verify")?.trim().toLowerCase() || "";
   const { t } = useTranslation();
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(verificationEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -28,7 +30,7 @@ export default function Register() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleButtonReady, setGoogleButtonReady] = useState(false);
   const [googleUnavailable, setGoogleUnavailable] = useState(false);
-  const [showOtp, setShowOtp] = useState(false);
+  const [showOtp, setShowOtp] = useState(Boolean(verificationEmail));
   const [otpCode, setOtpCode] = useState("");
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
 
@@ -78,7 +80,9 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      await client.post('/api/auth/register', { email, password });
+      const normalizedEmail = email.trim().toLowerCase();
+      await client.post('/api/auth/register', { email: normalizedEmail, password });
+      setEmail(normalizedEmail);
       setShowOtp(true);
     } catch (err) {
       setError(err.error || err.message || t('auth.registrationFailed'));
@@ -214,3 +218,6 @@ export default function Register() {
   );
 }
 
+export default function RegisterPage() {
+  return <ErrorBoundary><Register /></ErrorBoundary>;
+}

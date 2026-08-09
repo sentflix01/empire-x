@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Lock, Loader2, AlertTriangle } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import { useTranslation } from "react-i18next";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
-export default function ResetPassword() {
+function ResetPassword() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const resetToken = searchParams.get("token");
@@ -76,6 +77,6 @@ export default function ResetPassword() {
   );
 }
 
-
-
-
+export default function ResetPasswordPage() {
+  return <ErrorBoundary><ResetPassword /></ErrorBoundary>;
+}

@@ -61,8 +61,11 @@ function checkEnv() {
   }
 
   const warnings = [];
-  if (!process.env.RESEND_API_KEY && !process.env.SMTP_HOST) {
+  const smtpSettings = [process.env.SMTP_HOST, process.env.SMTP_USER, process.env.SMTP_PASS];
+  if (!process.env.RESEND_API_KEY && !smtpSettings.some(Boolean)) {
     warnings.push('Email (RESEND_API_KEY or SMTP_HOST) — OTP emails will only print to console');
+  } else if (!process.env.RESEND_API_KEY && !smtpSettings.every(Boolean)) {
+    warnings.push('Email SMTP is incomplete — set SMTP_HOST, SMTP_USER, and SMTP_PASS before OTP emails can be delivered');
   }
   if (!process.env.STRIPE_SECRET_KEY) {
     warnings.push('Stripe (STRIPE_SECRET_KEY) — payments will not work');
@@ -83,6 +86,14 @@ function checkEnv() {
   }
 }
 checkEnv();
+
+function emailServiceStatus() {
+  if (process.env.RESEND_API_KEY) return 'resend';
+  const smtpSettings = [process.env.SMTP_HOST, process.env.SMTP_USER, process.env.SMTP_PASS];
+  if (smtpSettings.every(Boolean)) return 'smtp';
+  if (smtpSettings.some(Boolean)) return 'misconfigured';
+  return 'console';
+}
 
 // ── Security ─────────────────────────────────────────────────────────────────
 // Hide Express fingerprint — never expose what framework/version we use
@@ -160,14 +171,18 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Rate limiting — relax auth limits in development so testing doesn't get blocked
+// Rate limiting — disabled entirely in development, enforced in production only
 const isDev = process.env.NODE_ENV !== 'production';
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: isDev ? 50000 : 500 });
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  skip: () => isDev,  // completely skip in development
+});
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isDev ? 10000 : 20,          // effectively unlimited in dev
+  max: 20,
   message: { error: 'Too many requests, try again later' },
-  skip: (req) => process.env.NODE_ENV !== 'production',  // re-read at request time
+  skip: () => isDev,  // completely skip in development
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -216,7 +231,7 @@ app.get('/health', async (_req, res) => {
       database: databaseStatus,
       redis: redisStatus,
       ai: require('./lib/ai').isConfigured() ? require('./lib/ai').provider : 'not configured',
-      email: process.env.RESEND_API_KEY ? 'resend' : process.env.SMTP_HOST ? 'smtp' : 'console',
+      email: emailServiceStatus(),
       storage: require('./middleware/upload').activeStorageProvider(),
     },
   });

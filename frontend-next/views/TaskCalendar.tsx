@@ -13,6 +13,7 @@ import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addDays, addMonths, isSameMonth, isSameDay, format
 } from "date-fns";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const TASK_TYPES = {
   bill_payment: "💰 Bill Payment",
@@ -31,7 +32,7 @@ const STATUS_STYLES = {
   cancelled: "bg-red-50 text-red-600 border-red-200",
 };
 
-export default function TaskCalendar() {
+function TaskCalendar() {
   const { t } = useTranslation();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [tasks, setTasks] = useState([]);
@@ -283,5 +284,6 @@ export default function TaskCalendar() {
   );
 }
 
-
-
+export default function TaskCalendarPage() {
+  return <ErrorBoundary><TaskCalendar /></ErrorBoundary>;
+}

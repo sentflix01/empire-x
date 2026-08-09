@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import { useTranslation } from "react-i18next";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function ForgotPassword() {
   const { t } = useTranslation();
@@ -61,6 +62,6 @@ function ForgotPassword() {
   );
 }
 
-
-
-export default ForgotPassword;
+export default function ForgotPasswordPage() {
+  return <ErrorBoundary><ForgotPassword /></ErrorBoundary>;
+}

@@ -1,12 +1,11 @@
 'use client';
 import { Suspense } from 'react';
-import ShowroomCreate from '@/views/ShowroomCreate';
+import ShowroomWizard from '@/views/ShowroomWizard';
 
-export default function Page() {
+export default function ShowroomCreatePage() {
   return (
     <Suspense fallback={null}>
-      <ShowroomCreate />
+      <ShowroomWizard />
     </Suspense>
   );
 }
-

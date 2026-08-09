@@ -54,8 +54,12 @@ interface Business {
 
 interface Comment {
   id: string;
+  author_id?: string;
   author_name?: string;
+  author_avatar?: string;
   content?: string;
+  parent_id?: string | null;
+  reply_count?: number;
 }
 
 type Variant = 'image' | 'promo' | 'event' | 'location' | 'poll' | 'text';
@@ -300,6 +304,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
   const { t } = useTranslation();
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.like_count ?? 0);
+  const [commentCount, setCommentCount] = useState(post.comment_count ?? 0);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
@@ -312,9 +317,15 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
   const [peekOpen, setPeekOpen] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null); // comment id
   const [showAllComments, setShowAllComments] = useState(false);
+  const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
 
   useEffect(() => { if (feedMode) setViewMode(feedMode); }, [feedMode]);
   useEffect(() => { if (!currentUserData && !currentUser) auth.me().then(setCurrentUserData).catch(() => {}); }, [currentUser, currentUserData]);
+  useEffect(() => {
+    client.get(`/api/posts/${post.id}/like`)
+      .then(({ data }) => setLiked(Boolean(data.liked)))
+      .catch(() => setLiked(false));
+  }, [post.id]);
   useEffect(() => {
     if (!post.author_id) return;
     entities.UserProfile.filter({ user_id: post.author_id })
@@ -329,32 +340,92 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
     const nl = !liked;
     setLiked(nl);
     setLikeCount(c => nl ? c + 1 : Math.max(0, c - 1));
-    try { await entities.Like.create({ target_id: post.id }); }
+    try {
+      const result = await entities.Like.create({ target_id: post.id });
+      const r = result as unknown as { like_count?: number };
+      if (typeof r.like_count === 'number') {
+        setLikeCount(r.like_count);
+      }
+    }
     catch { setLiked(!nl); setLikeCount(c => nl ? Math.max(0, c - 1) : c + 1); }
   };
 
   const handleShowComments = async () => {
     if (!showComments) {
       setLoadingComments(true);
-      const c = await entities.Comment.filter({ post_id: post.id }, '-created_at', 20);
-      setComments(c);
+      try {
+        // Fetch oldest-first so root comments appear in chronological order
+        const rows = await entities.Comment.filter({ post_id: post.id }, 'created_at', 100);
+        setComments(rows);
+      } catch {
+        setComments([]);
+      }
       setLoadingComments(false);
-      setShowAllComments(false); // reset to show 1 on fresh open
+      setShowAllComments(false);
+      setExpandedReplies({});
     }
     setShowComments(v => !v);
   };
 
   const handleAddComment = async () => {
     if (!commentText.trim()) return;
-    const c = await entities.Comment.create({
-      post_id: post.id,
-      author_id: currentUserId,
-      author_name: currentUserData?.full_name ?? currentUser?.full_name ?? 'You',
-      content: commentText.trim(),
-    });
-    setComments(prev => [c, ...prev]);
-    setCommentText('');
+    try {
+      const c = await entities.Comment.create({
+        post_id: post.id,
+        content: commentText.trim(),
+      });
+      setComments(prev => [...prev, c]);
+      setCommentCount(count => count + 1);
+      setCommentText('');
+      setShowAllComments(true); // show all so the new comment is visible
+    } catch (err: any) {
+      // toast imported at top via sonner — show inline error
+      setCommentText(commentText); // keep text so user can retry
+    }
   };
+
+  const handleAddReply = async (parent: Comment, value: string) => {
+    const content = value.trim();
+    if (!content) return;
+    try {
+      const reply = await entities.Comment.create({
+        post_id: post.id,
+        parent_id: parent.id,
+        content,
+      }) as Comment;
+      setComments(prev => [...prev, reply]);
+      setCommentCount(count => count + 1);
+      // Increment reply_count on the parent comment immediately
+      setComments(prev => prev.map(c =>
+        c.id === parent.id ? { ...c, reply_count: (c.reply_count ?? 0) + 1 } : c
+      ));
+      setExpandedReplies(prev => ({ ...prev, [parent.id]: true }));
+      setReplyingTo(null);
+    } catch { /* ignore */ }
+  };
+
+  const handleDeleteComment = async (commentId: string, parentId?: string | null) => {
+    try {
+      await client.delete(`/api/posts/${post.id}/comments/${commentId}`);
+      // Remove the comment and all its replies from local state
+      const toRemove = new Set([commentId]);
+      comments.forEach(c => { if (c.parent_id === commentId) toRemove.add(c.id); });
+      setComments(prev => prev.filter(c => !toRemove.has(c.id)));
+      setCommentCount(count => Math.max(0, count - toRemove.size));
+      // Update parent reply_count if this was a reply
+      if (parentId) {
+        setComments(prev => prev.map(c =>
+          c.id === parentId ? { ...c, reply_count: Math.max(0, (c.reply_count ?? 1) - 1) } : c
+        ));
+      }
+    } catch { /* ignore */ }
+  };
+
+  const rootComments = comments.filter(comment => !comment.parent_id);
+  const repliesByParent = comments.reduce<Record<string, Comment[]>>((groups, comment) => {
+    if (comment.parent_id) (groups[comment.parent_id] ??= []).push(comment);
+    return groups;
+  }, {});
 
   const handleViewChange = (v: string) => {
     if (v === viewMode) return;
@@ -502,12 +573,12 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
           </button>
           <button
             onClick={handleShowComments}
-            aria-label={`${showComments ? 'Hide' : 'View'} comments (${post.comment_count ?? 0})`}
+            aria-label={`${showComments ? 'Hide' : 'View'} comments (${commentCount})`}
             aria-expanded={showComments}
             className="post-action-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-muted-foreground hover:bg-secondary transition-all"
           >
             <MessageCircle className="w-4 h-4" aria-hidden="true" />
-            <span className="font-medium">{post.comment_count ?? 0}</span>
+            <span className="font-medium">{commentCount}</span>
           </button>
           <ShareButton
             title={`${post.author_name ?? 'Empire X'} on Empire X`}
@@ -556,12 +627,12 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
             </div>
           ) : (
             <>
-              {/* Show 1 comment by default, rest on demand */}
+              {/* Show 3 root comments by default, rest on demand */}
               <div className="space-y-2">
-                {(showAllComments ? comments : comments.slice(0, 1)).map(c => (
+                {(showAllComments ? rootComments : rootComments.slice(0, 3)).map(c => (
                   <div key={c.id} className="space-y-1.5">
                     <div className="flex gap-2 group">
-                      <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden">
                         <SafeAvatar
                           src={(c as any).author_avatar}
                           alt={`${c.author_name ?? 'User'} avatar`}
@@ -571,15 +642,22 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="bg-secondary/50 rounded-xl px-3 py-2">
-                          <p className="text-xs font-semibold">{c.author_name}</p>
+                          <p className="text-xs font-semibold">{c.author_name ?? 'Unknown'}</p>
                           <p className="text-sm">{c.content}</p>
                         </div>
-                        {/* Reply button */}
-                        <button onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
-                          className="mt-0.5 ml-2 text-[11px] text-muted-foreground hover:text-amber-600 flex items-center gap-0.5 transition-colors">
-                          <Reply className="w-3 h-3" />
-                          {t('common.reply')}
-                        </button>
+                        <div className="flex items-center gap-3 mt-0.5 ml-2">
+                          <button onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
+                            className="text-[11px] text-muted-foreground hover:text-amber-600 flex items-center gap-0.5 transition-colors">
+                            <Reply className="w-3 h-3" />
+                            {t('common.reply')}
+                          </button>
+                          {((c as any).author_id === currentUserId || (currentUser as any)?.role === 'admin') && (
+                            <button onClick={() => handleDeleteComment(c.id, null)}
+                              className="text-[11px] text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all flex items-center gap-0.5">
+                              <X className="w-3 h-3" /> Delete
+                            </button>
+                          )}
+                        </div>
                         {replyingTo === c.id && (
                           <div className="flex gap-1.5 mt-1.5 ml-2">
                             <input autoFocus
@@ -589,33 +667,72 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                   const val = (e.target as HTMLInputElement).value.trim();
                                   if (!val) return;
-                                  const newC = await entities.Comment.create({
-                                    post_id: post.id,
-                                    author_id: currentUserId,
-                                    author_name: currentUser?.full_name ?? 'You',
-                                    content: `@${c.author_name} ${val}`,
-                                  });
-                                  setComments(prev => [newC, ...prev]);
-                                  setReplyingTo(null);
+                                  await handleAddReply(c, val);
                                   (e.target as HTMLInputElement).value = '';
                                 }
                                 if (e.key === 'Escape') setReplyingTo(null);
                               }}
                             />
+                            <button
+                              onClick={async e => {
+                                const input = (e.currentTarget.previousSibling as HTMLInputElement);
+                                const val = input?.value?.trim();
+                                if (!val) return;
+                                await handleAddReply(c, val);
+                                if (input) input.value = '';
+                              }}
+                              className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-amber-500 text-white text-xs"
+                            >↑</button>
                           </div>
                         )}
                       </div>
                     </div>
+                    {((c.reply_count ?? 0) > 0 || (repliesByParent[c.id]?.length ?? 0) > 0) && (
+                      <div className="ml-9 pt-0.5">
+                        <button
+                          onClick={() => setExpandedReplies(prev => ({ ...prev, [c.id]: !prev[c.id] }))}
+                          className="text-[11px] font-medium text-amber-600 hover:text-amber-700 flex items-center gap-0.5"
+                        >
+                          {expandedReplies[c.id]
+                            ? <><ChevronUp className="w-3 h-3" /> Hide replies</>
+                            : <><ChevronDown className="w-3 h-3" /> View {repliesByParent[c.id]?.length || c.reply_count} repl{(repliesByParent[c.id]?.length || c.reply_count) === 1 ? 'y' : 'ies'}</>
+                          }
+                        </button>
+                        {expandedReplies[c.id] && (
+                          <div className="mt-2 space-y-2 border-l-2 border-amber-200 pl-3">
+                            {(repliesByParent[c.id] ?? []).map(reply => (
+                              <div key={reply.id} className="flex gap-2 group">
+                                <div className="w-6 h-6 rounded-full bg-secondary shrink-0 overflow-hidden text-[10px] font-semibold flex items-center justify-center">
+                                  <SafeAvatar src={(reply as any).author_avatar} alt={`${reply.author_name ?? 'User'} avatar`} className="w-full h-full object-cover" fallback={reply.author_name?.charAt(0) ?? '?'} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="rounded-xl bg-amber-50/70 dark:bg-amber-950/20 px-3 py-2">
+                                    <p className="text-xs font-semibold">{reply.author_name ?? 'Unknown'}</p>
+                                    <p className="text-sm">{reply.content}</p>
+                                  </div>
+                                  {((reply as any).author_id === currentUserId || (currentUser as any)?.role === 'admin') && (
+                                    <button onClick={() => handleDeleteComment(reply.id, c.id)}
+                                      className="mt-0.5 ml-2 text-[11px] text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all flex items-center gap-0.5">
+                                      <X className="w-3 h-3" /> Delete
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
 
-              {comments.length > 1 && (
+              {rootComments.length > 3 && (
                 <button onClick={() => setShowAllComments(v => !v)}
                   className="mt-2 text-xs text-amber-600 hover:underline flex items-center gap-1 font-medium">
                   {showAllComments
                     ? <><ChevronUp className="w-3 h-3" /> {t('feed.hideComments')}</>
-                    : <><ChevronDown className="w-3 h-3" /> {t('feed.viewMoreComments', { count: comments.length - 1 })}</>
+                    : <><ChevronDown className="w-3 h-3" /> {t('feed.viewMoreComments', { count: rootComments.length - 3 })}</>
                   }
                 </button>
               )}
@@ -639,4 +756,3 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
     </div>
   );
 }
-

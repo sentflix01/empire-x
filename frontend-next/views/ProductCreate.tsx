@@ -15,10 +15,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { toast } from "sonner";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const CATEGORIES = ["Electronics", "Fashion", "Food", "Services", "Handmade", "Beauty", "Home", "Other"];
 
-export default function ProductCreate() {
+function ProductCreate() {
   const { t } = useTranslation();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -173,6 +174,6 @@ export default function ProductCreate() {
   );
 }
 
-
-
-
+export default function ProductCreatePage() {
+  return <ErrorBoundary><ProductCreate /></ErrorBoundary>;
+}

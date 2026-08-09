@@ -171,6 +171,7 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
     const cleanContent = typeof content === 'string' ? content.trim() : '';
     if (!cleanContent) return res.status(400).json({ error: 'content is required' });
     if (cleanContent.length > 4000) return res.status(400).json({ error: 'Message must be 4,000 characters or fewer' });
+    const messageType = ['text', 'image', 'file'].includes(type) ? type : 'text';
 
     // A blocked relationship must be enforced by the API, not only hidden by
     // the client UI. This also prevents a blocked person from sending via REST.
@@ -195,13 +196,13 @@ router.post('/conversations/:convId/messages', requireAuth, async (req, res) => 
     const { rows } = await pool.query(
       `INSERT INTO messages (conversation_id, sender_id, sender_name, content, type, reply_to_id)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [req.params.convId, req.user.id, senderName, cleanContent, type || 'text', reply_to_id || null]
+      [req.params.convId, req.user.id, senderName, cleanContent, messageType, reply_to_id || null]
     );
 
     // Update conversation last message
     await pool.query(
       'UPDATE conversations SET last_message = $1, last_message_at = NOW(), updated_at = NOW() WHERE id = $2',
-      [cleanContent.slice(0, 200), req.params.convId]
+      [messageType === 'image' ? '📷 Photo' : messageType === 'file' ? '📎 File' : cleanContent.slice(0, 200), req.params.convId]
     );
 
     emitNewMessage(req.params.convId, rows[0]);

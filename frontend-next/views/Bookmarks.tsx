@@ -8,6 +8,7 @@ import { Bookmark, ShoppingBag, Crown, ClipboardList, FileText, Bell, BellOff, T
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import ErrorState from "@/components/ui/ErrorState";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function Bookmarks() {
   const { t } = useTranslation();
@@ -49,7 +50,9 @@ function Bookmarks() {
         } catch { return { ...s, item: null }; }
       }));
       setEnriched(items.filter(i => i.item));
-    } catch {}
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || "Failed to load bookmarks");
+    }
     setLoading(false);
   };
 
@@ -58,7 +61,9 @@ function Bookmarks() {
     try {
       const { data } = await client.get("/api/wishlists/price-alerts");
       setAlerts(Array.isArray(data) ? data : []);
-    } catch {}
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || "Failed to load price alerts");
+    }
     setAlertsLoading(false);
   };
 
@@ -203,4 +208,6 @@ function Bookmarks() {
 
 
 
-export default Bookmarks;
+export default function BookmarksPage() {
+  return <ErrorBoundary><Bookmarks /></ErrorBoundary>;
+}

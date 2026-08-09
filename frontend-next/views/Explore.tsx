@@ -9,6 +9,7 @@ import PostCard from "@/components/feed/PostCard";
 import { auth } from "@/api/auth";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function ProductThumbnail({ src, title }: { src?: string; title: string }) {
   const [failed, setFailed] = useState(false);
@@ -173,7 +174,6 @@ function Section({ title, icon: Icon, children }) {
   );
 }
 
-
-
-
-export default Explore;
+export default function ExplorePage() {
+  return <ErrorBoundary><Explore /></ErrorBoundary>;
+}
