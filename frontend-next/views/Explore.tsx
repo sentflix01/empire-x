@@ -110,8 +110,19 @@ function Explore() {
             <div className="grid grid-cols-2 gap-3">
               {data.featured_showrooms.map(s => (
                 <Link key={s.id} href={`/showrooms/${s.id}`} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow">
-                  <div className="h-24 bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center">
-                    <Crown className="w-8 h-8 text-amber-400" />
+                  <div className="h-24 relative bg-gradient-to-br from-amber-100 to-amber-50 overflow-hidden">
+                    {(s.cover_image || s.logo_url) ? (
+                      <img
+                        src={s.cover_image || s.logo_url}
+                        alt={s.title}
+                        className="w-full h-full object-cover"
+                        onError={e => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Crown className="w-8 h-8 text-amber-400" />
+                      </div>
+                    )}
                   </div>
                   <div className="p-2">
                     <p className="text-xs font-medium truncate">{s.title}</p>

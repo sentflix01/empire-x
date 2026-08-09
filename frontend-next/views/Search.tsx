@@ -425,7 +425,7 @@ function Search() {
           </CollapsibleSection>
         )}
 
-        {results.jobs?.length > 0 && tab === "jobs" && (
+        {results.jobs?.length > 0 && (tab === "all" || tab === "jobs") && (
           <CollapsibleSection title={t('nav.jobs')} icon={Briefcase} count={results.jobs.length} sectionKey="jobs" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
             {results.jobs.map(j => (
               <Link key={j.id} href="/jobs"
@@ -454,7 +454,7 @@ function Search() {
           </CollapsibleSection>
         )}
 
-        {results.events?.length > 0 && tab === "events" && (
+        {results.events?.length > 0 && (tab === "all" || tab === "events") && (
           <CollapsibleSection title={t('nav.events')} icon={CalendarDays} count={results.events.length} sectionKey="events" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
             {results.events.map(e => (
               <Link key={e.id} href="/events"

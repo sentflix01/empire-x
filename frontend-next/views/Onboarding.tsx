@@ -10,6 +10,7 @@ import { User, Store, ArrowRight, ArrowLeft, Check, Crown, Sparkles } from "luci
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
 import { LAYOUT_TEMPLATES, getLayoutTemplateById } from "@/lib/layoutTemplates";
@@ -64,7 +65,7 @@ function Onboarding() {
       }
       router.push("/feed");
     } catch (err: any) {
-      alert(err?.error || err?.message || "Failed to create profile. Please try again.");
+      toast.error(err?.error || err?.message || "Failed to create profile. Please try again.");
     } finally {
       setSaving(false);
     }
