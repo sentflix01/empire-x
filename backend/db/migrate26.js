@@ -19,8 +19,9 @@ CREATE INDEX IF NOT EXISTS idx_messages_conv_created
 
 -- ── Conversations ─────────────────────────────────────────────────────────────
 -- JSONB containment: participant_ids::jsonb @> $1::jsonb (used in list & find-or-create)
+-- Note: use CAST() form for GIN index on text column storing JSON
 CREATE INDEX IF NOT EXISTS idx_conversations_participant_ids
-  ON conversations USING gin(participant_ids::jsonb);
+  ON conversations USING gin(CAST(participant_ids AS jsonb));
 
 -- updated_at sort: conversation list ordered by most-recent message
 CREATE INDEX IF NOT EXISTS idx_conversations_updated_at

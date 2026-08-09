@@ -329,6 +329,8 @@ function Orders() {
   const [tab, setTab]         = useState("selling");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showReturn, setShowReturn] = useState<Record<string, boolean>>({});
+  // Map of user_id → display_name for orders counterparty
+  const [nameMap, setNameMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     auth.me().then(u => { setUser(u); loadOrders(u, "selling"); }).catch(() => {});
@@ -341,6 +343,23 @@ function Orders() {
       const filter = mode === "selling" ? { seller_id: u.id } : { buyer_id: u.id };
       const data = await entities.Order.filter(filter, "-created_at", 100);
       setOrders(data);
+      // Resolve counterparty names (seller names for buying tab, buyer names already in order)
+      if (data.length > 0) {
+        const ids = [...new Set(data.map(o => mode === "selling" ? o.buyer_id : o.seller_id).filter(Boolean))];
+        if (ids.length) {
+          try {
+            const res = await Promise.all(ids.map(uid =>
+              client.get(`/api/profiles?user_id=${uid}&limit=1`).then(r => ({
+                id: uid,
+                name: Array.isArray(r.data) && r.data[0] ? (r.data[0].display_name || r.data[0].business_name || '') : ''
+              })).catch(() => ({ id: uid, name: '' }))
+            ));
+            const map: Record<string, string> = {};
+            res.forEach(r => { if (r.name) map[r.id] = r.name; });
+            setNameMap(map);
+          } catch { /* silenced */ }
+        }
+      }
     } catch (err: any) {
       setLoadError(err?.error || err?.message || 'Failed to load orders');
     }
@@ -360,7 +379,7 @@ function Orders() {
   const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
   const toggleReturn = (id) => setShowReturn(prev => ({ ...prev, [id]: !prev[id] }));
 
-  const NEXT_STATUS = { pending: "processing", processing: "completed" };
+  const NEXT_STATUS = { pending: "processing", paid: "processing", processing: "completed" };
   const isSelling = tab === "selling";
 
   return (
@@ -412,8 +431,8 @@ function Orders() {
                       <p className="font-semibold text-sm truncate">{order.product_title}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {isSelling
-                          ? `Buyer: ${order.buyer_name || "Unknown"}`
-                          : `Seller: ${order.seller_id?.slice(0, 8)}…`}
+                          ? `Buyer: ${order.buyer_name || nameMap[order.buyer_id] || "Unknown"}`
+                          : `Seller: ${nameMap[order.seller_id] || order.seller_name || order.seller_id?.slice(0, 8) + '…'}`}
                       </p>
                       <p className="text-xs text-muted-foreground">{moment(order.created_at).fromNow()}</p>
                     </div>

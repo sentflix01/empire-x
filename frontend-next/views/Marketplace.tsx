@@ -1,11 +1,12 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
-import { Search, Plus, ShoppingBag, CheckCircle2, XCircle } from "lucide-react";
+import client from "@/api/client";
+import { Search, Plus, ShoppingBag, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,21 +26,23 @@ function Marketplace() {
   ];
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [user, setUser] = useState(null);
   const [paymentBanner, setPaymentBanner] = useState<"success"|"failed"|"cancelled"|null>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const offsetRef = useRef(0);
+  const PAGE_SIZE = 24;
 
   useEffect(() => {
     auth.me().then(setUser).catch(() => {});
-    loadProducts();
-    // Handle payment provider return redirect (Chapa / Stripe)
+    loadProducts(true);
     const payment = searchParams?.get("payment");
-    const tx_ref  = searchParams?.get("tx_ref");
     if (payment === "success") {
       setPaymentBanner("success");
       toast.success("💳 Payment confirmed! Your order has been placed.");
-      // Clean URL
       window.history.replaceState({}, '', '/marketplace');
     } else if (payment === "cancelled") {
       setPaymentBanner("cancelled");
@@ -52,12 +55,40 @@ function Marketplace() {
     }
   }, []);
 
-  const loadProducts = async () => {
-    setLoading(true);
-    const data = await entities.Product.filter({ status: "active" }, "-created_at", 50);
-    setProducts(data);
-    setLoading(false);
+  // Infinite scroll sentinel
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const obs = new IntersectionObserver(
+      entries => { if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) loadMore(); },
+      { rootMargin: '400px' }
+    );
+    obs.observe(sentinelRef.current);
+    return () => obs.disconnect();
+  }, [hasMore, loadingMore, loading]);
+
+  const loadProducts = async (reset = false) => {
+    if (reset) { setLoading(true); offsetRef.current = 0; setHasMore(true); }
+    try {
+      const { data } = await client.get('/api/products', {
+        params: { status: 'active', sort: '-created_at', limit: PAGE_SIZE, offset: reset ? 0 : offsetRef.current }
+      });
+      const rows = Array.isArray(data) ? data : [];
+      setProducts(reset ? rows : prev => {
+        const seen = new Set(prev.map(p => p.id));
+        return [...prev, ...rows.filter(p => !seen.has(p.id))];
+      });
+      offsetRef.current = (reset ? 0 : offsetRef.current) + rows.length;
+      if (rows.length < PAGE_SIZE) setHasMore(false);
+    } catch { if (reset) setProducts([]); }
+    if (reset) setLoading(false);
   };
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    await loadProducts(false);
+    setLoadingMore(false);
+  }, [loadingMore, hasMore]);
 
   const filtered = products.filter(p => {
     const matchSearch = !search || p.title?.toLowerCase().includes(search.toLowerCase());
@@ -161,6 +192,7 @@ function Marketplace() {
             <p className="text-sm text-muted-foreground mt-1">{t('marketplace.beFirst')}</p>
           </div>
         ) : (
+          <>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {filtered.map(product => {
               const images = parseImages(product.images);
@@ -192,6 +224,21 @@ function Marketplace() {
               );
             })}
           </div>
+          {/* Infinite scroll sentinel — only when not filtering locally */}
+          {!search && category === t('marketplace.categories.all') && (
+            <>
+              <div ref={sentinelRef} className="h-4" />
+              {loadingMore && (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+                </div>
+              )}
+              {!hasMore && products.length > 0 && (
+                <p className="text-center text-xs text-muted-foreground py-4">All products loaded</p>
+              )}
+            </>
+          )}
+          </>
         )}
       </div>
   );

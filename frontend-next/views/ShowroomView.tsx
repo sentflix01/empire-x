@@ -72,7 +72,6 @@ function ShowroomView() {
       ? `${window.location.origin}/showroom/${showroom.slug}`
       : `${window.location.origin}/showrooms/${showroom.id}`
     : '';
-  const sections = (() => { try { return JSON.parse(showroom.sections); } catch { return []; } })();
   const themeColor = showroom.theme_color || "#D4AF37";
   const profile = {
     ...showroom,
