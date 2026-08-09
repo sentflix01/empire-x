@@ -209,10 +209,15 @@ function Admin() {
   const [search, setSearch] = useState("");
   const [vSearch, setVSearch] = useState("");
   const [vFilter, setVFilter] = useState("all");
-  const [verifyModal, setVerifyModal] = useState(null); // user to verify
+  const [verifyModal, setVerifyModal] = useState(null);
   const [verifyType, setVerifyType] = useState("personal");
   const [verifyNote, setVerifyNote] = useState("");
   const [saving, setSaving] = useState(false);
+  // Inline confirmation states (replaces native confirm/prompt dialogs)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string|null>(null);
+  const [confirmRevokeId, setConfirmRevokeId] = useState<string|null>(null);
+  const [banReasonInput, setBanReasonInput] = useState("");
+  const [banTargetId, setBanTargetId] = useState<string|null>(null);
 
   useEffect(() => {
     auth.me().then(u => {
@@ -263,33 +268,52 @@ function Admin() {
   };
 
   const revokeVerification = async (userId) => {
-    if (!confirm("Revoke verification badge from this user?")) return;
-    await client.delete(`/api/admin/verifications/${userId}`);
-    await loadVerifications();
+    if (confirmRevokeId !== userId) { setConfirmRevokeId(userId); return; }
+    setConfirmRevokeId(null);
+    try {
+      await client.delete(`/api/admin/verifications/${userId}`);
+      toast.success('Verification revoked');
+      await loadVerifications();
+    } catch { toast.error('Failed to revoke verification'); }
   };
 
   const deleteUser = async (id) => {
-    if (!confirm("Delete this user permanently?")) return;
-    await client.delete(`/api/admin/users/${id}`);
-    setUsers(prev => prev.filter(u => u.id !== id));
+    if (confirmDeleteId !== id) { setConfirmDeleteId(id); return; }
+    setConfirmDeleteId(null);
+    try {
+      await client.delete(`/api/admin/users/${id}`);
+      setUsers(prev => prev.filter(u => u.id !== id));
+      toast.success('User deleted');
+    } catch { toast.error('Failed to delete user'); }
   };
 
-  const banUser = async (id, isBanned) => {
+  const banUser = async (id: string, isBanned: boolean) => {
     try {
       if (isBanned) {
         await client.post(`/api/admin/users/${id}/unban`);
         setUsers(prev => prev.map(u => u.id === id ? { ...u, is_banned: false } : u));
         toast.success('User unbanned');
       } else {
-        const reason = prompt('Reason for ban (optional):');
-        if (reason === null) return; // user cancelled
-        await client.post(`/api/admin/users/${id}/ban`, { reason });
-        setUsers(prev => prev.map(u => u.id === id ? { ...u, is_banned: true } : u));
-        toast.success('User banned');
+        // Show inline reason input — set target, actual API call happens in confirmBan
+        setBanTargetId(id);
+        setBanReasonInput('');
       }
-    } catch (e) {
+    } catch (e: any) {
       toast.error(e?.response?.data?.error || 'Failed to update ban status');
     }
+  };
+
+  const confirmBan = async () => {
+    if (!banTargetId) return;
+    try {
+      await client.post(`/api/admin/users/${banTargetId}/ban`, { reason: banReasonInput || null });
+      setUsers(prev => prev.map(u => u.id === banTargetId ? { ...u, is_banned: true } : u));
+      toast.success('User banned');
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Failed to ban user');
+    }
+    setBanTargetId(null);
+    setBanReasonInput('');
   };
 
   const deletePost = async (id) => {
@@ -527,8 +551,12 @@ function Admin() {
                         >
                           {u.is_banned ? 'Unban' : 'Ban'}
                         </Button>
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => deleteUser(u.id)}>
-                          <Trash2 className="w-3 h-3" />
+                        <Button size="sm" variant="ghost"
+                          className={`h-7 text-xs rounded-full px-2 ${confirmDeleteId === u.id ? 'text-white bg-red-600 hover:bg-red-700' : 'text-destructive hover:bg-red-50'}`}
+                          onClick={() => deleteUser(u.id)}
+                          title={confirmDeleteId === u.id ? 'Tap again to confirm delete' : 'Delete user'}
+                        >
+                          {confirmDeleteId === u.id ? 'Confirm?' : <Trash2 className="w-3 h-3" />}
                         </Button>
                       </div>
                     </div>
@@ -673,6 +701,43 @@ function Admin() {
             >
               {saving ? t('common.loading') : `Grant ${VERIFY_TYPES.find(v => v.value === verifyType)?.label} Badge`}
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Ban Reason Modal ── */}
+      {banTargetId && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card rounded-2xl w-full max-w-sm p-6 shadow-xl border border-border/50">
+            <h3 className="font-semibold text-base mb-1">Ban User</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              The user will be immediately locked out. You can unban at any time.
+            </p>
+            <label className="text-xs font-medium text-muted-foreground block mb-1">
+              Reason (optional — shown to admins only)
+            </label>
+            <input
+              value={banReasonInput}
+              onChange={e => setBanReasonInput(e.target.value)}
+              placeholder="e.g. Spam, abuse, TOS violation..."
+              className="w-full h-10 px-3 text-sm bg-secondary/50 border border-border/50 rounded-xl outline-none focus:ring-1 focus:ring-red-500/30 mb-4"
+              onKeyDown={e => { if (e.key === 'Enter') confirmBan(); if (e.key === 'Escape') { setBanTargetId(null); setBanReasonInput(''); } }}
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={confirmBan}
+                className="flex-1 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors"
+              >
+                Confirm Ban
+              </button>
+              <button
+                onClick={() => { setBanTargetId(null); setBanReasonInput(''); }}
+                className="flex-1 h-10 rounded-full border border-border/50 text-sm font-medium hover:bg-secondary transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

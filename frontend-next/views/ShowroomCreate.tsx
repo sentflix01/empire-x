@@ -214,7 +214,7 @@ function DraftDropdown({ darkBuilder, onSave, onLoad, onClear, onUndo, onRedo, c
             Load Draft
           </button>
           <button
-            onClick={() => { if (window.confirm('Clear draft and reset to defaults?')) { onClear(); setOpen(false); } }}
+            onClick={() => { onClear(); setOpen(false); }}
             className={`${btnBase} ${darkBuilder ? "text-red-300 hover:bg-slate-600" : "text-red-500 hover:bg-red-50"}`}
           >
             <i className="fa-solid fa-trash-can" style={{ fontSize: 12 }} />
