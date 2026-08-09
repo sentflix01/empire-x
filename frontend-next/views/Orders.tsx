@@ -1,6 +1,8 @@
 // @ts-nocheck
 'use client'
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
@@ -428,14 +430,36 @@ function Orders() {
                 {/* Order header — always visible */}
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate">{order.product_title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {isSelling
-                          ? `Buyer: ${order.buyer_name || nameMap[order.buyer_id] || "Unknown"}`
-                          : `Seller: ${nameMap[order.seller_id] || order.seller_name || order.seller_id?.slice(0, 8) + '…'}`}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{moment(order.created_at).fromNow()}</p>
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      {/* Product thumbnail */}
+                      {order.product_id && (
+                        <Link href={`/products/${order.product_id}`} className="shrink-0">
+                          <div className="w-14 h-14 rounded-xl bg-secondary/30 overflow-hidden relative">
+                            {order.product_images ? (
+                              <Image
+                                src={(() => { try { const imgs = JSON.parse(order.product_images); return Array.isArray(imgs) ? imgs[0] : imgs; } catch { return order.product_images; } })()}
+                                alt={order.product_title}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <ShoppingBag className="w-5 h-5 text-muted-foreground/30" />
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">{order.product_title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {isSelling
+                            ? `Buyer: ${order.buyer_name || nameMap[order.buyer_id] || "Unknown"}`
+                            : `Seller: ${nameMap[order.seller_id] || order.seller_name || order.seller_id?.slice(0, 8) + '…'}`}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{moment(order.created_at).fromNow()}</p>
+                      </div>
                     </div>
                     <div className="text-right ml-2 shrink-0">
                       <p className="font-bold text-amber-600">{order.total_price?.toLocaleString()} {order.currency}</p>

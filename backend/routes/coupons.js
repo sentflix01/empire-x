@@ -80,6 +80,24 @@ router.post('/use', requireAuth, async (req, res) => {
   }
 });
 
+// Toggle coupon active status
+router.patch('/:id/toggle', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT seller_id, is_active FROM coupons WHERE id = $1', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Coupon not found' });
+    if (rows[0].seller_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    const { rows: updated } = await pool.query(
+      'UPDATE coupons SET is_active = NOT is_active, updated_at = NOW() WHERE id = $1 RETURNING *',
+      [req.params.id]
+    );
+    res.json(updated[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to toggle coupon' });
+  }
+});
+
 // Delete coupon
 router.delete('/:id', requireAuth, async (req, res) => {
   try {

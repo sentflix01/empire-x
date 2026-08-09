@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
 import { auth } from "@/api/auth";
-import { Tag, Plus, Trash2, Copy, Check, Loader2 } from "lucide-react";
+import { Tag, Plus, Trash2, Copy, Check, Loader2, ToggleLeft, ToggleRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function CouponsManage() {
+  const { t } = useTranslation();
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -69,6 +70,14 @@ function CouponsManage() {
       setCoupons(prev => prev.filter(c => c.id !== id));
       toast.success("Coupon deleted");
     } catch { toast.error("Failed to delete coupon"); }
+  };
+
+  const handleToggle = async (id) => {
+    try {
+      const { data } = await client.patch(`/api/coupons/${id}/toggle`);
+      setCoupons(prev => prev.map(c => c.id === id ? data : c));
+      toast.success(data.is_active ? "Coupon activated" : "Coupon paused");
+    } catch { toast.error("Failed to update coupon"); }
   };
 
   const handleCopy = (code) => {
@@ -218,6 +227,14 @@ function CouponsManage() {
                     </div>
                     <button onClick={() => handleDelete(c.id)} className="p-2 rounded-full hover:bg-red-50 hover:text-red-500 text-muted-foreground transition-colors ml-2">
                       <Trash2 className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleToggle(c.id)}
+                      className={`p-2 rounded-full transition-colors ml-1 ${c.is_active ? 'text-green-600 hover:bg-green-50' : 'text-muted-foreground hover:bg-secondary'}`}
+                      title={c.is_active ? 'Pause coupon' : 'Activate coupon'}>
+                      {c.is_active
+                        ? <ToggleRight className="w-5 h-5" />
+                        : <ToggleLeft className="w-5 h-5" />
+                      }
                     </button>
                   </div>
                 </div>

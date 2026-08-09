@@ -476,6 +476,15 @@ async function markStripeOrdersPaid(session) {
     );
   }
   for (const order of rows) {
+    // Decrement product stock atomically — only reduce by the ordered quantity,
+    // never go below zero. Uses product_id stored on the order.
+    if (order.product_id) {
+      pool.query(
+        `UPDATE products SET stock = GREATEST(0, stock - $1)
+         WHERE id = $2 AND stock IS NOT NULL`,
+        [order.quantity || 1, order.product_id]
+      ).catch(err => logger.error({ err }, 'Failed to decrement stock (Stripe webhook)'));
+    }
     collectCommission(order.id, order.seller_id, order.total_price)
       .catch(err => logger.error({ err }, 'Failed to collect commission (Stripe webhook)'));
     notifyUser(order.seller_id, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ETB via Stripe ✅`).catch(() => {});
@@ -913,6 +922,14 @@ router.get('/chapa/verify/:tx_ref', async (req, res) => {
 
     if (rows.length) {
       const order = rows[0];
+      // Decrement stock on confirmed Chapa payment
+      if (order.product_id) {
+        pool.query(
+          `UPDATE products SET stock = GREATEST(0, stock - $1)
+           WHERE id = $2 AND stock IS NOT NULL`,
+          [order.quantity || 1, order.product_id]
+        ).catch(() => {});
+      }
       // Collect platform commission
       collectCommission(order.id, order.seller_id, order.total_price).catch(err => logger.error({ err }, 'Failed to collect commission (Chapa verify)'));
       // Notify seller
