@@ -30,8 +30,29 @@ export default function Wallet() {
   const [bankName, setBankName] = useState("");
   const [accountNum, setAccountNum] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [returnBanner, setReturnBanner] = useState<"success"|"cancelled"|"failed"|null>(null);
 
-  useEffect(() => { loadWallet(); }, []);
+  useEffect(() => {
+    loadWallet();
+    // Handle Stripe / Chapa return redirects
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const topup = params.get('topup');
+      if (topup === 'success') {
+        setReturnBanner('success');
+        toast.success('💳 Top-up confirmed! Your balance has been updated.');
+        window.history.replaceState({}, '', '/wallet');
+      } else if (topup === 'cancelled') {
+        setReturnBanner('cancelled');
+        toast.info('Top-up cancelled — you were not charged.');
+        window.history.replaceState({}, '', '/wallet');
+      } else if (topup === 'failed') {
+        setReturnBanner('failed');
+        toast.error('Top-up was not completed. Please try again.');
+        window.history.replaceState({}, '', '/wallet');
+      }
+    }
+  }, []);
 
   const loadWallet = async () => {
     try {
@@ -82,6 +103,37 @@ export default function Wallet() {
 
   return (
     <div className="max-w-lg mx-auto">
+        {/* Payment return banner */}
+        {returnBanner === 'success' && (
+          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800">
+            <svg className="w-5 h-5 shrink-0 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            <div>
+              <p className="font-semibold text-sm">Top-up Successful!</p>
+              <p className="text-xs text-green-700">Your wallet balance has been updated.</p>
+            </div>
+            <button onClick={() => setReturnBanner(null)} className="ml-auto text-green-500 hover:text-green-700">✕</button>
+          </div>
+        )}
+        {returnBanner === 'cancelled' && (
+          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800">
+            <svg className="w-5 h-5 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            <div>
+              <p className="font-semibold text-sm">Top-up Cancelled</p>
+              <p className="text-xs text-amber-700">You were not charged. Try again whenever you're ready.</p>
+            </div>
+            <button onClick={() => setReturnBanner(null)} className="ml-auto text-amber-500 hover:text-amber-700">✕</button>
+          </div>
+        )}
+        {returnBanner === 'failed' && (
+          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800">
+            <svg className="w-5 h-5 shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            <div>
+              <p className="font-semibold text-sm">Top-up Failed</p>
+              <p className="text-xs text-red-700">Payment was not completed. Please try again.</p>
+            </div>
+            <button onClick={() => setReturnBanner(null)} className="ml-auto text-red-400 hover:text-red-600">✕</button>
+          </div>
+        )}
         <div className="flex items-center gap-2 mb-6">
           <WalletIcon className="w-6 h-6 text-amber-500"/>
           <h1 className="font-display text-2xl font-bold">{t('wallet.title')}</h1>

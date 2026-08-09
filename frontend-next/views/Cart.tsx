@@ -30,6 +30,12 @@ function Cart() {
       try {
         const { data } = await client.post('/api/orders/checkout/session', {
           items: items.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
+          // Pass buyer info so order records are populated correctly
+          buyer_name:       '',
+          buyer_email:      '',
+          buyer_phone:      '',
+          delivery_address: '',
+          notes:            '',
         });
         if (data?.url) {
           try { await clearCart(); } catch { /* cart cleanup must not block redirect */ }

@@ -106,6 +106,26 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
+// Get orders by Stripe session ID — used by the order success page
+router.get('/session/:sessionId', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, product_title, total_price, currency, quantity, status, buyer_id, seller_id
+       FROM orders WHERE stripe_session_id = $1`,
+      [req.params.sessionId]
+    );
+    // Only return if the current user is the buyer or seller
+    const userOrders = rows.filter(o =>
+      o.buyer_id === req.user.id || o.seller_id === req.user.id || req.user.role === 'admin'
+    );
+    if (!userOrders.length) return res.json([]);
+    res.json(userOrders);
+  } catch (err) {
+    logger.error({ err }, 'Failed to fetch orders by session');
+    return apiError.serverError(res, 'Failed to fetch orders');
+  }
+});
+
 // Get single
 router.get('/:id', requireAuth, async (req, res) => {
   try {
@@ -373,8 +393,8 @@ router.post('/checkout/session', requireAuth, async (req, res) => {
       // wallets, and all local payment methods).
       mode: 'payment',
       line_items: buildCombinedLineItems(chargeCurrency),
-      success_url: `${frontendUrl}/marketplace?payment=success&provider=stripe`,
-      cancel_url:  `${frontendUrl}/marketplace?payment=cancelled&provider=stripe`,
+      success_url: `${frontendUrl}/orders/success?session_id={CHECKOUT_SESSION_ID}&provider=stripe`,
+      cancel_url:  `${frontendUrl}/orders/cancel?provider=stripe`,
       metadata: {
         purpose: 'order',
         buyer_id: req.user.id,
@@ -559,9 +579,9 @@ async function handleStripeEvent(event) {
       const refundRatio = chargeAmount > 0 ? Math.min(1, refundedAmount / chargeAmount) : 1;
 
       // ── Wallet top-up refund: Stripe has already returned the money to the
-      //    payer's card, so we only REVERSE the platform-side credit,
-      //    proportionally to what was actually refunded.
-      if (charge.metadata?.purpose === 'wallet_topup') {
+      //    payer's card, so we only REVERSE the platform-side credit.
+      //    wallet_id comes from payment_intent metadata (set at session creation).
+      if (charge.metadata?.purpose === 'wallet_topup' || charge.metadata?.wallet_id) {
         const walletId = charge.metadata.wallet_id;
         const topupEtb = parseFloat(charge.metadata.amount_etb || '0');
         const reversal = Math.round(topupEtb * refundRatio * 100) / 100;

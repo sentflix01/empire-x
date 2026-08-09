@@ -263,10 +263,19 @@ router.post('/topup/stripe', requireAuth, async (req, res) => {
       success_url: `${frontendUrl}/wallet?topup=success&provider=stripe`,
       cancel_url:  `${frontendUrl}/wallet?topup=cancelled`,
       metadata: {
-        purpose: 'wallet_topup',
-        user_id: req.user.id,
-        wallet_id: wallet.id,
+        purpose:    'wallet_topup',
+        user_id:    req.user.id,
+        wallet_id:  wallet.id,   // needed by charge.refunded handler
         amount_etb: String(amountEtb),
+      },
+      // Propagate wallet_id to payment_intent metadata so charge.refunded
+      // can look it up even when the charge object doesn't carry session metadata
+      payment_intent_data: {
+        metadata: {
+          purpose:    'wallet_topup',
+          wallet_id:  wallet.id,
+          amount_etb: String(amountEtb),
+        },
       },
     });
 
