@@ -362,12 +362,12 @@ function Admin() {
             {tab === "overview" && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {[
-                  { label: t('admin.totalUsers'),       value: stats.users,        icon: Users,       color: "text-blue-600 bg-blue-50" },
-                  { label: "Verified Users",     value: verifiedCount,      icon: BadgeCheck,  color: "text-green-600 bg-green-50" },
-                  { label: t('admin.posts'),              value: stats.posts,        icon: FileText,    color: "text-amber-600 bg-amber-50" },
-                  { label: t('admin.products'),           value: stats.products,     icon: ShoppingBag, color: "text-purple-600 bg-purple-50" },
-                  { label: t('admin.orders'),             value: stats.orders,       icon: BarChart3,   color: "text-orange-600 bg-orange-50" },
-                  { label: t('admin.reports'),    value: reports.length,     icon: ShieldAlert, color: "text-red-600 bg-red-50" },
+                  { label: t('admin.totalUsers'),    value: stats.users,          icon: Users,       color: "text-blue-600 bg-blue-50" },
+                  { label: "New Today",              value: stats.new_users_today, icon: BadgeCheck,  color: "text-green-600 bg-green-50" },
+                  { label: t('admin.posts'),         value: stats.posts,           icon: FileText,    color: "text-amber-600 bg-amber-50" },
+                  { label: t('admin.products'),      value: stats.products,        icon: ShoppingBag, color: "text-purple-600 bg-purple-50" },
+                  { label: "Orders (Paid)",          value: stats.orders_paid,     icon: BarChart3,   color: "text-green-600 bg-green-50" },
+                  { label: "Orders (Pending)",       value: stats.orders_pending,  icon: BarChart3,   color: "text-orange-600 bg-orange-50" },
                 ].map((s, i) => {
                   const Icon = s.icon;
                   return (
@@ -380,6 +380,25 @@ function Admin() {
                     </div>
                   );
                 })}
+
+                {/* Revenue cards */}
+                <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-5 text-white">
+                  <p className="text-xs text-white/70 font-medium mb-1">Total Revenue (ETB)</p>
+                  <p className="text-3xl font-bold">{(stats.revenue_total ?? 0).toLocaleString()}</p>
+                  <p className="text-xs text-white/70 mt-1">All paid orders</p>
+                </div>
+                <div className="bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-5 text-white">
+                  <p className="text-xs text-white/70 font-medium mb-1">Revenue — Last 30 Days</p>
+                  <p className="text-3xl font-bold">{(stats.revenue_last_30d ?? 0).toLocaleString()}</p>
+                  <p className="text-xs text-white/70 mt-1">ETB</p>
+                </div>
+                <div className="bg-card rounded-2xl border border-border/50 p-5">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 text-red-600 bg-red-50">
+                    <ShieldAlert className="w-5 h-5" />
+                  </div>
+                  <p className="text-2xl font-bold">{(stats.banned_users ?? 0).toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Banned Users</p>
+                </div>
 
                 {/* Verification breakdown */}
                 <div className="col-span-2 md:col-span-3 bg-card rounded-2xl border border-border/50 p-5">

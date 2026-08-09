@@ -8,19 +8,28 @@ router.use(requireAuth, requireAdmin);
 // ── Dashboard stats ───────────────────────────────────────────────────────────
 router.get('/stats', async (_req, res) => {
   try {
-    const [users, posts, products, orders, tasks] = await Promise.all([
-      pool.query('SELECT COUNT(*) FROM users'),
+    const [users, posts, products, orders, tasks, revenue, newUsersToday, bannedUsers] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM users WHERE is_banned = FALSE OR is_banned IS NULL'),
       pool.query('SELECT COUNT(*) FROM posts'),
-      pool.query('SELECT COUNT(*) FROM products'),
-      pool.query('SELECT COUNT(*) FROM orders'),
-      pool.query('SELECT COUNT(*) FROM tasks'),
+      pool.query("SELECT COUNT(*) FROM products WHERE status = 'active'"),
+      pool.query('SELECT COUNT(*), COUNT(*) FILTER (WHERE status = \'paid\') as paid_count, COUNT(*) FILTER (WHERE status = \'pending\') as pending_count FROM orders'),
+      pool.query("SELECT COUNT(*) FROM tasks WHERE status = 'open'"),
+      pool.query("SELECT COALESCE(SUM(total_price), 0) as total, COALESCE(SUM(total_price) FILTER (WHERE created_at > NOW() - INTERVAL '30 days'), 0) as last_30d FROM orders WHERE status IN ('paid','processing','completed')"),
+      pool.query("SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '24 hours'"),
+      pool.query('SELECT COUNT(*) FROM users WHERE is_banned = TRUE'),
     ]);
     res.json({
       users: parseInt(users.rows[0].count),
       posts: parseInt(posts.rows[0].count),
       products: parseInt(products.rows[0].count),
       orders: parseInt(orders.rows[0].count),
+      orders_paid: parseInt(orders.rows[0].paid_count),
+      orders_pending: parseInt(orders.rows[0].pending_count),
       tasks: parseInt(tasks.rows[0].count),
+      revenue_total: parseFloat(revenue.rows[0].total),
+      revenue_last_30d: parseFloat(revenue.rows[0].last_30d),
+      new_users_today: parseInt(newUsersToday.rows[0].count),
+      banned_users: parseInt(bannedUsers.rows[0].count),
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch stats' });
