@@ -73,6 +73,40 @@ router.delete('/users/:id', async (req, res) => {
   }
 });
 
+// Ban user
+router.post('/users/:id/ban', async (req, res) => {
+  if (req.params.id === req.user.id) {
+    return res.status(400).json({ error: 'Cannot ban your own account' });
+  }
+  const { reason } = req.body;
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users SET is_banned = TRUE, ban_reason = $1, banned_at = NOW()
+       WHERE id = $2 RETURNING id, email, full_name, is_banned`,
+      [reason || null, req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    res.json({ success: true, user: rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to ban user' });
+  }
+});
+
+// Unban user
+router.post('/users/:id/unban', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users SET is_banned = FALSE, ban_reason = NULL, banned_at = NULL
+       WHERE id = $1 RETURNING id, email, full_name, is_banned`,
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    res.json({ success: true, user: rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to unban user' });
+  }
+});
+
 // ── Verification management ───────────────────────────────────────────────────
 
 // Get all users with verification status (for admin panel)

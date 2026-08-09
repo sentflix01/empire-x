@@ -45,13 +45,16 @@ async function requireAuth(req, res, next) {
       return res.status(401).json({ error: 'Token has been revoked' });
     }
 
-    // Confirm user still exists
+    // Confirm user still exists and is not banned
     const { rows } = await pool.query(
-      'SELECT id, email, role FROM users WHERE id = $1',
+      'SELECT id, email, role, is_banned FROM users WHERE id = $1',
       [payload.sub]
     );
     if (!rows.length) {
       return res.status(401).json({ error: 'User not found' });
+    }
+    if (rows[0].is_banned) {
+      return res.status(403).json({ error: 'Your account has been suspended. Contact support.' });
     }
     req.user = rows[0];
     next();

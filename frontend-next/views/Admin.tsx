@@ -274,6 +274,24 @@ function Admin() {
     setUsers(prev => prev.filter(u => u.id !== id));
   };
 
+  const banUser = async (id, isBanned) => {
+    try {
+      if (isBanned) {
+        await client.post(`/api/admin/users/${id}/unban`);
+        setUsers(prev => prev.map(u => u.id === id ? { ...u, is_banned: false } : u));
+        toast.success('User unbanned');
+      } else {
+        const reason = prompt('Reason for ban (optional):');
+        if (reason === null) return; // user cancelled
+        await client.post(`/api/admin/users/${id}/ban`, { reason });
+        setUsers(prev => prev.map(u => u.id === id ? { ...u, is_banned: true } : u));
+        toast.success('User banned');
+      }
+    } catch (e) {
+      toast.error(e?.response?.data?.error || 'Failed to update ban status');
+    }
+  };
+
   const deletePost = async (id) => {
     await client.delete(`/api/admin/posts/${id}`);
     setPosts(prev => prev.filter(p => p.id !== id));
@@ -482,6 +500,14 @@ function Admin() {
                         ) : (
                           <Button size="sm" variant="outline" className="h-7 text-xs rounded-full" onClick={() => setRole(u.id, "user")}>Remove Admin</Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className={`h-7 text-xs rounded-full px-2 ${u.is_banned ? 'text-green-600 hover:bg-green-50' : 'text-amber-600 hover:bg-amber-50'}`}
+                          onClick={() => banUser(u.id, u.is_banned)}
+                        >
+                          {u.is_banned ? 'Unban' : 'Ban'}
+                        </Button>
                         <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => deleteUser(u.id)}>
                           <Trash2 className="w-3 h-3" />
                         </Button>
