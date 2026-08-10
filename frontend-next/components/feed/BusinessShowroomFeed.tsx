@@ -5,16 +5,71 @@ import NextImage from 'next/image';
 import { useRouter } from 'next/navigation';
 import { entities } from '@/api/entities';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import client from '@/api/client';
 
 import {
   Store, ShoppingBag, MapPin, MessageSquare, ArrowRight, Clock,
   UtensilsCrossed, Briefcase, HeartPulse, Palette, CalendarDays,
-  Home as HomeIcon, GraduationCap, LucideProps,
+  Home as HomeIcon, GraduationCap, LucideProps, Bookmark,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { findOrCreateConversation } from '@/lib/messaging';
 import { getCategoryByValue } from '@/lib/businessTemplates';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
+
+/* ── Bookmark button component ───────────────────────────────────── */
+function BookmarkButton({ businessId, businessName, themeColor }: {
+  businessId: string;
+  businessName: string;
+  themeColor: string;
+}) {
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    client.get(`/api/saves/check/${businessId}`)
+      .then(r => setSaved(Boolean(r.data?.saved)))
+      .catch(() => {});
+  }, [businessId]);
+
+  const handleToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (loading) return;
+    setLoading(true);
+    const prev = saved;
+    setSaved(!prev); // optimistic
+    try {
+      const { data } = await client.post('/api/saves/toggle', {
+        target_id: businessId,
+        target_type: 'business',
+      });
+      setSaved(Boolean(data?.saved));
+      toast.success(data?.saved ? `${businessName} saved to bookmarks` : 'Removed from bookmarks');
+    } catch {
+      setSaved(prev); // revert
+      toast.error('Could not update bookmark');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <button
+      onClick={handleToggle}
+      disabled={loading}
+      aria-label={saved ? 'Remove bookmark' : 'Save to bookmarks'}
+      className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 border border-border/40 bg-card/80 backdrop-blur-sm shadow-sm"
+      style={saved ? { backgroundColor: themeColor + '20', borderColor: themeColor + '60' } : {}}
+    >
+      <Bookmark
+        className="w-4 h-4 transition-colors"
+        style={{ color: saved ? themeColor : undefined }}
+        fill={saved ? themeColor : 'none'}
+      />
+    </button>
+  );
+}
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface SectionItem {
@@ -456,13 +511,16 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               {/* Header */}
               <div className="px-4 pb-3 -mt-6 relative">
                 <div className="flex items-end justify-between">
-                  <div className="w-14 h-14 rounded-xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
-                    style={{ backgroundColor: color }}>
-                    {logoUrl
-                      ? <NextImage src={logoUrl} alt="" width={40} height={40} className="w-full h-full object-cover" unoptimized />
-                      : <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
-                          {bizName.charAt(0)}
-                        </div>}
+                  <div className="flex items-end gap-2">
+                    <div className="w-14 h-14 rounded-xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
+                      style={{ backgroundColor: color }}>
+                      {logoUrl
+                        ? <NextImage src={logoUrl} alt="" width={40} height={40} className="w-full h-full object-cover" unoptimized />
+                        : <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
+                            {bizName.charAt(0)}
+                          </div>}
+                    </div>
+                    <BookmarkButton businessId={biz.id} businessName={bizName} themeColor={color} />
                   </div>
                   <div className="flex gap-2 mb-1">
                     {currentUser && ownerId && ownerId !== currentUser.id && (
@@ -551,13 +609,18 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
       {/* Header */}
       <div className="px-4 pb-3 -mt-8 relative">
         <div className="flex items-end justify-between">
-          <div className="w-16 h-16 rounded-2xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
-            style={{ backgroundColor: themeColor }}>
-            {logoUrl
-              ? <NextImage src={logoUrl} alt="" width={48} height={48} className="w-full h-full object-cover" unoptimized />
-              : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">
-                  {bizName.charAt(0)}
-                </div>}
+          <div className="flex items-end gap-2">
+            <div className="w-16 h-16 rounded-2xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
+              style={{ backgroundColor: themeColor }}>
+              {logoUrl
+                ? <NextImage src={logoUrl} alt="" width={48} height={48} className="w-full h-full object-cover" unoptimized />
+                : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">
+                    {bizName.charAt(0)}
+                  </div>}
+            </div>
+            {business?.id && (
+              <BookmarkButton businessId={business.id} businessName={bizName} themeColor={themeColor} />
+            )}
           </div>
           <div className="flex gap-2 mb-1">
             <Button size="sm" variant="outline" className="rounded-full h-8 text-xs"
