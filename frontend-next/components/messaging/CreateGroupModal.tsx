@@ -52,8 +52,12 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-card dark:bg-card rounded-2xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col shadow-2xl border border-border/50" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="rounded-2xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col shadow-2xl border border-border/50 overflow-hidden"
+        style={{ backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}
+        onClick={e => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
           <h2 className="font-semibold text-lg text-primary">New Group</h2>
@@ -123,8 +127,8 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
                   className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-secondary/50 transition-colors text-left"
                 >
                   <div className="relative shrink-0">
-                    <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold bg-primary">
-                      {(contact.full_name || contact.email || "U").charAt(0)}
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold shrink-0" style={{ background: 'linear-gradient(135deg, var(--ex-blue), var(--ex-purple))' }}>
+                      {(contact.display_name || contact.full_name || "U").charAt(0).toUpperCase()}
                     </div>
                     {isSelected && (
                       <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center text-white border-2 border-white bg-primary">

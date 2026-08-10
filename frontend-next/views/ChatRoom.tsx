@@ -511,8 +511,11 @@ function ChatRoom() {
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
 
-        {/* Avatar */}
-        <div className="relative shrink-0">
+        {/* Avatar — clickable → profile (DM only) */}
+        <div
+          className={`relative shrink-0 ${isDm && otherUserId ? 'cursor-pointer' : ''}`}
+          onClick={() => { if (isDm && otherUserId) router.push(`/profile/${otherUserId}`); }}
+        >
           <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-white font-semibold" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
             {isChannel ? <Radio className="w-5 h-5" /> : isGroup ? <Users className="w-5 h-5" /> : (
               <SafeImage src={otherAvatarUrl} alt={getDisplayName()} className="h-full w-full object-cover" fallback={avatarLetter} />
@@ -523,7 +526,10 @@ function ChatRoom() {
           )}
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div
+          className={`flex-1 min-w-0 ${isDm && otherUserId ? 'cursor-pointer' : ''}`}
+          onClick={() => { if (isDm && otherUserId) router.push(`/profile/${otherUserId}`); }}
+        >
           <p className="text-sm font-semibold text-white truncate">{getDisplayName()}</p>
           <p className={`text-xs truncate ${isOnline && isDm ? 'text-green-300 font-medium' : 'text-white/70'}`}>
             {getSubtitle()}

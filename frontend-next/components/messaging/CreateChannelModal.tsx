@@ -40,8 +40,12 @@ export default function CreateChannelModal({ open, onClose, user, onCreated }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-card dark:bg-card rounded-2xl w-full max-w-md mx-4 shadow-2xl border border-border/50" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="rounded-2xl w-full max-w-md mx-4 shadow-2xl border border-border/50 overflow-hidden"
+        style={{ backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}
+        onClick={e => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
           <h2 className="font-semibold text-lg text-primary">New Channel</h2>
@@ -77,7 +81,7 @@ export default function CreateChannelModal({ open, onClose, user, onCreated }) {
             />
           </div>
 
-          <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-3 text-xs text-muted-foreground">
+        <div className="bg-secondary/40 rounded-xl p-3 text-xs text-muted-foreground border border-border/30">
             <p className="flex items-center gap-2 mb-1">
               <Radio className="w-4 h-4 text-primary" />
               <span className="font-medium text-primary">Broadcast Channel</span>
