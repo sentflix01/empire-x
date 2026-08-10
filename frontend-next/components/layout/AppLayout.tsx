@@ -384,8 +384,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* ── Header ── */}
-      <header className="sticky top-0 z-50 bg-background border-b border-border shrink-0">
+      {/* ── Header — fixed so it never scrolls away on any device/browser ── */}
+      <header className="fixed top-0 inset-x-0 z-50 bg-background border-b border-border shrink-0 h-14">
         <div className="w-full px-4 h-14 flex items-center gap-3">
           {/* Sidebar toggle button — desktop only */}
           <button
@@ -500,8 +500,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
       </header>
 
-      {/* ── Body: sidebar + main + right panel ── */}
-      <div className="flex flex-1 w-full">
+      {/* ── Body: sidebar + main + right panel (pt-14 offsets the fixed header) ── */}
+      <div className="flex flex-1 w-full pt-14">
 
         {/* ── Left Sidebar (desktop only) ── */}
         <nav className={`hidden md:flex fixed left-0 top-14 bottom-0 bg-card border-r border-border flex-col z-40 transition-all duration-200
