@@ -352,14 +352,29 @@ function Search() {
                 const imgs = (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })();
                 return (
                   <Link key={p.id} href={`/products/${p.id}`}
-                    className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow">
-                    <div className="aspect-square bg-secondary/30">
-                      {imgs[0] && <Image src={imgs[0]} alt={p.title || ''} width={200} height={200} className="w-full h-full object-cover" unoptimized />}
+                    className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow group">
+                    <div className="aspect-square bg-secondary/30 relative overflow-hidden">
+                      {imgs[0]
+                        ? <Image src={imgs[0]} alt={p.title || ''} width={200} height={200} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" unoptimized />
+                        : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-8 h-8 text-muted-foreground/20" /></div>
+                      }
+                      {p.status === 'sold_out' && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                          <span className="text-[10px] font-bold text-white bg-black/60 px-2 py-0.5 rounded-full">Sold Out</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="p-2 space-y-1">
+                    <div className="p-2 space-y-0.5">
                       <p className="text-xs font-medium truncate">{p.title}</p>
                       <p className="text-xs text-amber-600 font-bold">{p.price?.toLocaleString()} {p.currency}</p>
-                      <DistanceBadge km={p.distance_km} />
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {Number(p.average_rating) > 0 && (
+                          <span className="text-[10px] text-amber-500 flex items-center gap-0.5">
+                            ★ {Number(p.average_rating).toFixed(1)}
+                          </span>
+                        )}
+                        <DistanceBadge km={p.distance_km} />
+                      </div>
                     </div>
                   </Link>
                 );

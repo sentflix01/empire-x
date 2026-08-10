@@ -52,8 +52,8 @@ export default function CreateGroupModal({ open, onClose, user, contacts, onCrea
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-card rounded-2xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-card dark:bg-card rounded-2xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col shadow-2xl border border-border/50" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
           <h2 className="font-semibold text-lg text-primary">New Group</h2>

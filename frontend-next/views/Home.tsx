@@ -99,9 +99,48 @@ export default function Home() {
   const [filter, setFilter]       = useState("all");
   const [feedMode, setFeedMode]   = useState("personal");
   const [feedFlipping, setFeedFlipping] = useState(false);
+  const [highlightPostId, setHighlightPostId] = useState<string|null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const highlightRef = useRef<HTMLDivElement>(null);
   const offsetRef   = useRef(0);
   const PAGE_SIZE   = 15;
+
+  // Handle ?post=<id> from notification deep-link
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get('post');
+    if (postId) {
+      setHighlightPostId(postId);
+      // Clean URL without reloading
+      window.history.replaceState({}, '', '/feed');
+    }
+  }, []);
+
+  // Once posts are loaded and highlight is set, scroll to the post
+  useEffect(() => {
+    if (!highlightPostId || loading) return;
+    // Check if post is in current list
+    const found = posts.find(p => p.id === highlightPostId);
+    if (found) {
+      setTimeout(() => {
+        const el = document.getElementById(`post-${highlightPostId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Clear highlight after 3 seconds
+          setTimeout(() => setHighlightPostId(null), 3000);
+        }
+      }, 300);
+    } else {
+      // Post not in feed — fetch it directly and prepend
+      client.get(`/api/posts/${highlightPostId}`)
+        .then(r => {
+          if (r.data?.id) {
+            setPosts(prev => [r.data, ...prev.filter(p => p.id !== r.data.id)]);
+          }
+        }).catch(() => {});
+    }
+  }, [highlightPostId, loading, posts.length]);
 
   useEffect(() => {
     loadPosts(true);
@@ -346,9 +385,13 @@ export default function Home() {
                   {posts.map((post, i) => (
                     <motion.div
                       key={post.id}
+                      id={`post-${post.id}`}
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: Math.min(i, 4) * 0.04, duration: 0.2 }}
+                      className={post.id === highlightPostId
+                        ? 'ring-2 ring-amber-500 rounded-2xl transition-all duration-500'
+                        : ''}
                     >
                       <ErrorBoundary>
                         <PostCard post={post} currentUser={user} />

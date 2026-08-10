@@ -363,8 +363,14 @@ function Stories() {
                 onError={() => setMediaFailed(true)}
               />
             ) : (
-              <div className="w-full h-full rounded-2xl bg-gradient-to-br from-primary to-indigo-700 flex items-center justify-center text-white text-5xl font-bold">
-                {viewing.group.display_name?.charAt(0)?.toUpperCase() ?? '?'}
+              <div className="w-full h-full rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-indigo-700 flex flex-col items-center justify-center gap-4">
+                {/* Large branded avatar for text-only stories */}
+                <div className="w-24 h-24 rounded-full bg-white/20 border-4 border-white/40 flex items-center justify-center shadow-2xl">
+                  <span className="text-white text-4xl font-bold">
+                    {viewing.group.display_name?.charAt(0)?.toUpperCase() ?? '?'}
+                  </span>
+                </div>
+                <span className="text-white/80 text-sm font-medium">{viewing.group.display_name}</span>
               </div>
             )}
 

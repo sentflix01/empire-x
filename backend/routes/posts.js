@@ -207,11 +207,11 @@ router.post('/:id/like', requireAuth, async (req, res) => {
           const likerName = likerRows[0]?.display_name || 'Someone';
           const { rows: [notif] } = await pool.query(
             `INSERT INTO notifications (user_id, type, title, body, link, is_read)
-             VALUES ($1, 'like', $2, '', '/profile/' || $3, false) RETURNING *`,
-            [authorId, `${likerName} liked your post`, req.user.id]
+             VALUES ($1, 'like', $2, '', '/feed?post=' || $3, false) RETURNING *`,
+            [authorId, `${likerName} liked your post`, id]
           );
           emitNotification(authorId, notif);
-          sendPushToUser(authorId, `${likerName} liked your post`, '', '/notifications').catch(() => {});
+          sendPushToUser(authorId, `${likerName} liked your post`, '', `/feed?post=${id}`).catch(() => {});
         }).catch(() => {});
     }
 
@@ -284,11 +284,11 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
       const authorId = postResult.rows[0].author_id;
       pool.query(
         `INSERT INTO notifications (user_id, type, title, body, link, is_read)
-         VALUES ($1, 'comment', $2, $3, '', false) RETURNING *`,
-        [authorId, `${commenterName} ${parentId ? 'replied to a comment on' : 'commented on'} your post`, content.trim().slice(0, 80)]
+         VALUES ($1, 'comment', $2, $3, '/feed?post=' || $4, false) RETURNING *`,
+        [authorId, `${commenterName} ${parentId ? 'replied to a comment on' : 'commented on'} your post`, content.trim().slice(0, 80), req.params.id]
       ).then(({ rows: [notif] }) => {
         emitNotification(authorId, notif);
-        sendPushToUser(authorId, notif.title, notif.body, '/notifications').catch(() => {});
+        sendPushToUser(authorId, notif.title, notif.body, `/feed?post=${req.params.id}`).catch(() => {});
       }).catch(() => {});
     }
     // Also notify the parent comment author if different from post author and current user
@@ -299,11 +299,11 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
           if (parentAuthorId && parentAuthorId !== req.user.id && parentAuthorId !== postResult.rows[0]?.author_id) {
             const { rows: [notif] } = await pool.query(
               `INSERT INTO notifications (user_id, type, title, body, link, is_read)
-               VALUES ($1, 'comment', $2, $3, '', false) RETURNING *`,
-              [parentAuthorId, `${commenterName} replied to your comment`, content.trim().slice(0, 80)]
+               VALUES ($1, 'comment', $2, $3, '/feed?post=' || $4, false) RETURNING *`,
+              [parentAuthorId, `${commenterName} replied to your comment`, content.trim().slice(0, 80), req.params.id]
             );
             emitNotification(parentAuthorId, notif);
-            sendPushToUser(parentAuthorId, notif.title, notif.body, '/notifications').catch(() => {});
+            sendPushToUser(parentAuthorId, notif.title, notif.body, `/feed?post=${req.params.id}`).catch(() => {});
           }
         }).catch(() => {});
     }

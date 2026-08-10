@@ -82,7 +82,23 @@ function NotificationsView() {
         toast.error(err?.response?.data?.error || "Failed to mark as read");
       }
     }
-    if (notif.link) router.push(notif.link);
+    // Navigate to the action location
+    if (notif.link) {
+      router.push(notif.link);
+    } else {
+      // Fallback navigation by notification type
+      const typeRoutes: Record<string, string> = {
+        like: '/feed',
+        comment: '/feed',
+        follow: '/profile',
+        order: '/orders',
+        message: '/messages',
+        task_update: '/tasks',
+        referral: '/referral',
+      };
+      const route = typeRoutes[notif.type] || '/notifications';
+      router.push(route);
+    }
   };
 
   const markAllRead = async () => {
@@ -153,7 +169,15 @@ function NotificationsView() {
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0 pr-6">
-                  <p className="text-sm font-medium leading-snug">{n.title}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-sm font-medium leading-snug">{n.title}</p>
+                    {/* Group count badge — e.g. "5 people liked your post" */}
+                    {(n as any).group_count > 1 && (
+                      <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                        ×{(n as any).group_count}
+                      </span>
+                    )}
+                  </div>
                   {n.body && (
                     <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>
                   )}
