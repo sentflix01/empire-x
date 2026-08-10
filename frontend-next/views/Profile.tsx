@@ -60,7 +60,9 @@ function Profile() {
 
       if (profiles.length > 0) {
         setProfile(profiles[0]);
-        setTickerOn((profiles[0].ticker_type || 'none') !== 'none');
+        // Default ticker ON if not explicitly set to 'none'
+        const tickerType = profiles[0].ticker_type;
+        setTickerOn(tickerType !== 'none'); // on by default unless user turned it off
         // Only set view on initial load, not on every re-render
         if (viewParam === "business" || viewParam === "personal") {
           setView(viewParam);
@@ -165,29 +167,7 @@ function Profile() {
               <SafeImage src={profile.cover_url} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: profile.cover_position || 'center' }} />
             )}
-            {/* Floating Personal / Business toggle — top right of cover */}
-            {hasBusinessView && isOwner && (
-              <div className="absolute top-3 right-3 z-10">
-                <div className="flex items-center bg-black/40 backdrop-blur-md rounded-full p-1 gap-0.5 shadow-lg border border-white/20">
-                  <button
-                    onClick={() => view !== 'personal' && handleFlip()}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
-                      view === 'personal' ? 'bg-white text-blue-700 shadow-sm' : 'text-white/80 hover:text-white'
-                    }`}
-                  >
-                    <User className="w-3 h-3" /> Personal
-                  </button>
-                  <button
-                    onClick={() => view !== 'business' && handleFlip()}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
-                      view === 'business' ? 'bg-white text-amber-700 shadow-sm' : 'text-white/80 hover:text-white'
-                    }`}
-                  >
-                    <Store className="w-3 h-3" /> Business
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* Floating Personal / Business toggle — REMOVED (moved to sidebar) */}
           </div>
           <div className="px-5 pb-4">
             {/* Row 1: Avatar (left) + Edit/Logout buttons (right) */}
@@ -212,49 +192,15 @@ function Profile() {
               </div>
 
               {isOwner && (
-                <div className="mb-2 flex flex-col gap-2 items-end">
-                  <div className="flex gap-2">
-                    <Link href="/profile/edit">
-                      <Button variant="outline" size="sm" className="rounded-full h-8"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button>
-                    </Link>
-                    <Button variant="ghost" size="sm" className="rounded-full h-8 text-muted-foreground" onClick={() => auth.logout("/")}>
-                      <LogOut className="w-3 h-3" />
-                    </Button>
-                  </div>
-                  {/* Ticker quick-toggle */}
-                  <button
-                    onClick={handleTickerQuickToggle}
-                    disabled={tickerToggling}
-                    aria-label={tickerOn ? 'Ticker is on — click to disable' : 'Ticker is off — click to enable'}
-                    aria-pressed={tickerOn}
-                    className={`flex items-center gap-1.5 px-3 h-7 rounded-full text-xs font-medium border transition-all ${
-                      tickerOn
-                        ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
-                        : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
-                    }`}
-                  >
-                    {tickerOn
-                      ? <ToggleRight className="w-3.5 h-3.5 text-amber-500" />
-                      : <ToggleLeft className="w-3.5 h-3.5 text-slate-400" />
-                    }
-                    Ticker {tickerOn ? 'On' : 'Off'}
-                  </button>
+                <div className="mb-2 flex gap-2 items-end">
+                  <Link href="/profile/edit">
+                    <Button variant="outline" size="sm" className="rounded-full h-8"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button>
+                  </Link>
+                  <Button variant="ghost" size="sm" className="rounded-full h-8 text-muted-foreground" onClick={() => auth.logout("/")}>
+                    <LogOut className="w-3 h-3" />
+                  </Button>
                 </div>
               )}
-            </div>
-
-            {/* Row 2: ProfileToggle — full-width row below avatar */}
-            <div className="mt-3 flex justify-center w-full overflow-hidden">
-              <div className="max-w-full overflow-x-auto">
-                <ProfileToggle
-                  view={view}
-                  onFlip={handleFlip}
-                  flipping={flipping}
-                  theme={theme}
-                  onTheme={setTheme}
-                  showBusiness={hasBusinessView}
-                />
-              </div>
             </div>
 
             {/* Name + Info */}
@@ -351,25 +297,6 @@ function Profile() {
             <TickerBar text={profile.ticker_text} type={profile.ticker_type} />
           </div>
         )}
-        {/* Owner prompt when ticker is off — subtle nudge to turn it on */}
-        {isOwner && !tickerOn && (
-          <div className="mb-4 flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-200/60 rounded-2xl">
-            <div className="flex items-center gap-2.5">
-              <Radio className="w-4 h-4 text-slate-400 shrink-0" />
-              <p className="text-xs text-slate-500">
-                Ticker is off. Turn it on to show promotions, contact info, or announcements under your posts.
-              </p>
-            </div>
-            <button
-              onClick={handleTickerQuickToggle}
-              disabled={tickerToggling}
-              className="shrink-0 ml-3 text-xs font-medium text-amber-600 hover:underline whitespace-nowrap"
-            >
-              Turn on →
-            </button>
-          </div>
-        )}
-
         {/* Profile Content */}
         <div style={{ perspective: "1200px" }}>
           <AnimatePresence mode="wait">

@@ -178,6 +178,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadTasks, setUnreadTasks] = useState(0);
   const [unreadFollows, setUnreadFollows] = useState(0);
+  const [profileView, setProfileView] = useState<'personal' | 'business'>('personal');
   const [searchOpen, setSearchOpen] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(true);
   const [accountOpen, setAccountOpen] = useState(true);
@@ -565,6 +566,47 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-0.5 scrollbar-thin">
             {mainNavItems.map(item => <NavLink key={item.path} {...item} />)}
 
+            {/* Personal / Business profile toggle — shown below Profile nav item */}
+            {!sidebarCollapsed && (
+              <div className="flex items-center gap-1 px-3 py-1.5">
+                <button
+                  onClick={() => { setProfileView('personal'); router.push('/profile?view=personal'); }}
+                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                  style={{
+                    backgroundColor: profileView === 'personal' ? 'hsl(var(--primary))' : 'hsl(var(--secondary))',
+                    color: profileView === 'personal' ? '#fff' : 'hsl(var(--muted-foreground))',
+                  }}
+                >
+                  <User className="w-3 h-3" /> Personal
+                </button>
+                <button
+                  onClick={() => { setProfileView('business'); router.push('/profile?view=business'); }}
+                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                  style={{
+                    backgroundColor: profileView === 'business' ? '#d97706' : 'hsl(var(--secondary))',
+                    color: profileView === 'business' ? '#fff' : 'hsl(var(--muted-foreground))',
+                  }}
+                >
+                  <Store className="w-3 h-3" /> Business
+                </button>
+              </div>
+            )}
+            {sidebarCollapsed && (
+              <button
+                onClick={() => { setProfileView(v => v === 'personal' ? 'business' : 'personal'); router.push(`/profile?view=${profileView === 'personal' ? 'business' : 'personal'}`); }}
+                title={`Switch to ${profileView === 'personal' ? 'Business' : 'Personal'} profile`}
+                className="flex justify-center w-full py-1.5 mx-1 rounded-lg transition-colors relative group"
+                style={{ backgroundColor: 'hsl(var(--secondary))' }}
+              >
+                {profileView === 'personal'
+                  ? <User className="w-4 h-4" style={{ color: 'hsl(var(--primary))' }} />
+                  : <Store className="w-4 h-4" style={{ color: '#d97706' }} />}
+                <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                  {profileView === 'personal' ? 'Switch to Business' : 'Switch to Personal'}
+                </span>
+              </button>
+            )}
+
             <div className="my-2 border-t border-border/40" />
 
             {/* Showroom Studio — single gold entry into the unified wizard */}
@@ -717,12 +759,37 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
                 {/* ── Scrollable nav list — solid white ── */}
                 <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5 bg-white dark:bg-card">
-                  {mainNavItems.map(({ path, icon: Icon, label }) => (
+                  {/* Mobile drawer nav links */}
+                {mainNavItems.map(({ path, icon: Icon, label }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
                     </Link>
                   ))}
+
+                  {/* Personal / Business toggle in drawer */}
+                  <div className="flex items-center gap-2 px-3 py-2">
+                    <button
+                      onClick={() => { setProfileView('personal'); router.push('/profile?view=personal'); setDrawerOpen(false); }}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all"
+                      style={{
+                        backgroundColor: profileView === 'personal' ? 'hsl(var(--primary))' : 'hsl(var(--secondary))',
+                        color: profileView === 'personal' ? '#fff' : 'hsl(var(--muted-foreground))',
+                      }}
+                    >
+                      <User className="w-3.5 h-3.5" /> Personal
+                    </button>
+                    <button
+                      onClick={() => { setProfileView('business'); router.push('/profile?view=business'); setDrawerOpen(false); }}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all"
+                      style={{
+                        backgroundColor: profileView === 'business' ? '#d97706' : 'hsl(var(--secondary))',
+                        color: profileView === 'business' ? '#fff' : 'hsl(var(--muted-foreground))',
+                      }}
+                    >
+                      <Store className="w-3.5 h-3.5" /> Business
+                    </button>
+                  </div>
 
                   <div className="my-2 border-t border-gray-100 dark:border-border" />
                   <Link href="/showroom/create" onClick={() => setDrawerOpen(false)}
