@@ -8,7 +8,7 @@ import client, { storeToken } from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Lock, Loader2, Gift } from "lucide-react";
+import { UserPlus, Mail, Lock, Loader2, Gift, CheckSquare, Square, Shield, FileText } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
 import { toast } from "@/components/ui/use-toast";
@@ -25,6 +25,7 @@ function Register() {
   const [email, setEmail] = useState(verificationEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -76,6 +77,10 @@ function Register() {
     setError("");
     if (password !== confirmPassword) {
       setError("Passwords do not match");
+      return;
+    }
+    if (!agreed) {
+      setError("You must agree to the Terms of Service and Privacy Policy to create an account.");
       return;
     }
     setLoading(true);
@@ -210,9 +215,49 @@ function Register() {
               value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="pl-10 h-12" required />
           </div>
         </div>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !agreed}>
           {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('auth.creatingAccount')}</> : t('auth.register')}
         </Button>
+
+        {/* ── Agreement checkbox ── */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setAgreed(v => !v)}
+            className={`w-full flex items-start gap-3 p-3 rounded-xl border transition-all text-left ${
+              agreed
+                ? 'border-primary/50 bg-primary/5'
+                : 'border-border/60 bg-secondary/30 hover:border-primary/30'
+            }`}
+          >
+            <div className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors ${agreed ? 'bg-primary' : 'border-2 border-muted-foreground/40'}`}>
+              {agreed && <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              I agree to Empire X's{' '}
+              <Link
+                href="/service-agreement?tab=terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="text-primary font-semibold hover:underline"
+              >
+                Terms of Service
+              </Link>
+              {' '}and{' '}
+              <Link
+                href="/service-agreement?tab=privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="text-primary font-semibold hover:underline"
+              >
+                Privacy Policy
+              </Link>
+              . I confirm I am at least 18 years old.
+            </p>
+          </button>
+        </div>
       </form>
     </AuthLayout>
   );
