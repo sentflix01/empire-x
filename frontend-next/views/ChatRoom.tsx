@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
   CornerUpLeft, Check, CheckCheck, ShieldOff, History, ImagePlus, Forward,
+  Copy, UserCircle, Settings,
 } from "lucide-react";
 import moment from "moment";
 import { toast } from "sonner";
@@ -40,12 +41,15 @@ function ChatRoom() {
   const [replyingTo, setReplyingTo]   = useState(null); // message object
   const [editText, setEditText]       = useState("");
 
-  // Per-message hover actions
-  const [hoveredMsg, setHoveredMsg]   = useState(null);
-  const [deletingMsg, setDeletingMsg] = useState(null); // waiting for confirm
-  const [forwardMsg, setForwardMsg]   = useState(null); // message to forward
+  // Long-press context menu
+  const [selectedMsg, setSelectedMsg]   = useState(null);  // message tapped/long-pressed
+  const [deletingMsg, setDeletingMsg]   = useState(null);  // waiting for confirm-delete
+  const [forwardMsg, setForwardMsg]     = useState(null);  // message to forward
   const [forwardSearch, setForwardSearch] = useState('');
   const [conversations, setConversations] = useState([]);
+
+  // Legacy hover state (desktop) — still used to determine visual selection
+  const [hoveredMsg, setHoveredMsg]     = useState(null);
 
   // Header menu
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
@@ -60,6 +64,7 @@ function ChatRoom() {
   const bottomRef  = useRef(null);
   const inputRef   = useRef(null);
   const deleteTimer = useRef(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textRef    = useRef(""); // mirrors text state for reliable mobile access
   const imageInputRef = useRef<HTMLInputElement>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -306,6 +311,7 @@ function ChatRoom() {
     setEditText(msg.content);
     setReplyingTo(null);
     setHoveredMsg(null);
+    setSelectedMsg(null);
     inputRef.current?.focus();
   };
 
@@ -391,6 +397,51 @@ function ChatRoom() {
       }
     }
     router.push('/messages');
+  };
+
+  // ── Long-press / context menu helpers ────────────────────────────────────
+  const startLongPress = (msg) => {
+    longPressTimer.current = setTimeout(() => {
+      // Haptic feedback on supported devices
+      if (navigator?.vibrate) navigator.vibrate(40);
+      setSelectedMsg(msg);
+    }, 280);
+  };
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+  const dismissContextMenu = () => {
+    setSelectedMsg(null);
+    setDeletingMsg(null);
+  };
+  const handleCopy = (msg) => {
+    navigator.clipboard?.writeText(msg.content || '')
+      .then(() => toast.success('Copied to clipboard'))
+      .catch(() => toast.error('Could not copy'));
+    dismissContextMenu();
+  };
+  const handleContextReply = (msg) => {
+    setReplyingTo(msg);
+    setEditingMsg(null);
+    setText('');
+    dismissContextMenu();
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
+  const handleContextEdit = (msg) => {
+    startEdit(msg);
+    dismissContextMenu();
+  };
+  const handleContextDelete = (msg) => {
+    dismissContextMenu();
+    // Two-tap confirm via deletingMsg
+    handleDelete(msg);
+  };
+  const handleContextForward = (msg) => {
+    setForwardMsg(msg);
+    dismissContextMenu();
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -485,7 +536,25 @@ function ChatRoom() {
             <MoreVertical className="w-5 h-5 text-white" />
           </button>
           {headerMenuOpen && (
-            <div className="absolute top-full right-0 mt-1 w-48 bg-card rounded-2xl shadow-lg border border-border/30 z-50 overflow-hidden">
+            <div className="absolute top-full right-0 mt-1 w-52 bg-card rounded-2xl shadow-lg border border-border/30 z-50 overflow-hidden">
+              {/* DM: View Profile */}
+              {isDm && otherUserId && (
+                <button
+                  onClick={() => { setHeaderMenuOpen(false); router.push(`/profile/${otherUserId}`); }}
+                  className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary/50 transition-colors text-left"
+                >
+                  <UserCircle className="w-4 h-4 text-muted-foreground" /> View Profile
+                </button>
+              )}
+              {/* Group/Channel: Members (admin) */}
+              {(isGroup || isChannel) && (
+                <button
+                  onClick={() => { setHeaderMenuOpen(false); router.push(`/messages/${id}/members`); }}
+                  className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary/50 transition-colors text-left"
+                >
+                  <Users className="w-4 h-4 text-muted-foreground" /> Members
+                </button>
+              )}
               <button onClick={handleClearHistory} className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary/50 transition-colors text-left">
                 <History className="w-4 h-4 text-muted-foreground" /> Clear History
               </button>
@@ -503,7 +572,7 @@ function ChatRoom() {
       <div
         className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5"
         style={{ backgroundColor: 'hsl(var(--chat-bg))' }}
-        onClick={() => { setHeaderMenuOpen(false); setHoveredMsg(null); }}
+        onClick={() => { setHeaderMenuOpen(false); setHoveredMsg(null); dismissContextMenu(); }}
       >
         {loading && (
           <div className="flex justify-center py-8">
@@ -541,43 +610,45 @@ function ChatRoom() {
                   key={msg.id}
                   className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-0.5 relative group`}
                   onMouseEnter={() => setHoveredMsg(msg.id)}
-                  onMouseLeave={() => { setHoveredMsg(null); }}
+                  onMouseLeave={() => setHoveredMsg(null)}
+                  /* Long-press for mobile */
+                  onTouchStart={(e) => { e.stopPropagation(); startLongPress(msg); }}
+                  onTouchEnd={cancelLongPress}
+                  onTouchMove={cancelLongPress}
+                  /* Desktop: single click opens context menu */
+                  onClick={(e) => { e.stopPropagation(); setSelectedMsg(msg); }}
                 >
-                  {/* Action buttons — appear on hover */}
-                  {isHovered && (
-                    <div className={`absolute top-0 flex items-center gap-1 z-10 ${isMe ? 'right-full mr-2' : 'left-full ml-2'}`}>
-                      {/* Reply */}
+                  {/* Desktop hover quick-actions (hidden on touch screens) */}
+                  {isHovered && !selectedMsg && (
+                    <div className={`hidden sm:flex absolute top-0 items-center gap-1 z-10 ${isMe ? 'right-full mr-2' : 'left-full ml-2'}`}>
                       <button
-                        onClick={(e) => { e.stopPropagation(); setReplyingTo(msg); setEditingMsg(null); setText(''); }}
+                        onClick={(e) => { e.stopPropagation(); handleContextReply(msg); }}
                         className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
                         title="Reply"
                       >
                         <CornerUpLeft className="w-3.5 h-3.5 text-foreground" />
                       </button>
-                      {/* Forward */}
                       <button
-                        onClick={(e) => { e.stopPropagation(); setForwardMsg(msg); setHoveredMsg(null); }}
+                        onClick={(e) => { e.stopPropagation(); handleContextForward(msg); }}
                         className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
                         title="Forward"
                       >
                         <Forward className="w-3.5 h-3.5 text-foreground" />
                       </button>
-                      {/* Edit (own only) */}
                       {isMe && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); startEdit(msg); }}
+                          onClick={(e) => { e.stopPropagation(); handleContextEdit(msg); }}
                           className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
                           title="Edit"
                         >
                           <Pencil className="w-3.5 h-3.5 text-foreground" />
                         </button>
                       )}
-                      {/* Delete (own only) */}
                       {isMe && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleDelete(msg); }}
+                          onClick={(e) => { e.stopPropagation(); handleContextDelete(msg); }}
                           className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors border ${isConfirming ? 'bg-red-500 hover:bg-red-600 border-red-500 text-white' : 'bg-secondary/80 hover:bg-secondary border-border/50 text-foreground'}`}
-                          title={isConfirming ? 'Tap again to confirm delete' : 'Delete'}
+                          title={isConfirming ? 'Click again to confirm delete' : 'Delete'}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -586,11 +657,11 @@ function ChatRoom() {
                   )}
 
                   <div
-                    className={`relative max-w-[80%] px-3 py-1.5 text-sm shadow-sm ${
+                    className={`relative max-w-[80%] px-3 py-1.5 text-sm shadow-sm select-none ${
                       isMe
                         ? 'rounded-2xl rounded-br-md bg-primary/15 dark:bg-primary/25'
                         : 'rounded-2xl rounded-bl-md bg-card'
-                    }`}
+                    } ${selectedMsg?.id === msg.id ? 'ring-2 ring-primary/50 scale-[0.98]' : ''} transition-transform`}
                   >
                     {showSender && (
                       <p className="text-xs font-semibold mb-0.5 text-primary">
@@ -622,8 +693,8 @@ function ChatRoom() {
                       </span>
                       {isMe && (
                         msg._temp
-                          ? <Check className="w-3.5 h-3.5 text-muted-foreground/50" />          /* sending */
-                          : <CheckCheck className="w-3.5 h-3.5 text-primary opacity-80" />       /* delivered */
+                          ? <Check className="w-3.5 h-3.5 text-muted-foreground/50" />
+                          : <CheckCheck className="w-3.5 h-3.5 text-primary opacity-80" />
                       )}
                     </div>
                   </div>
@@ -715,6 +786,122 @@ function ChatRoom() {
         </div>
       )}
     </div>
+
+    {/* ── Message Context Menu Bottom Sheet ───────────────────────────── */}
+    {selectedMsg && (
+      <>
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-[2px]"
+          onClick={dismissContextMenu}
+        />
+        {/* Sheet */}
+        <div className="fixed bottom-0 left-0 right-0 z-[61] animate-in slide-in-from-bottom-4 duration-200">
+          <div className="bg-card rounded-t-3xl shadow-2xl border-t border-border/30 max-w-lg mx-auto overflow-hidden">
+            {/* Message preview */}
+            <div className="px-5 pt-4 pb-3 border-b border-border/20">
+              <div className={`inline-flex max-w-full items-start gap-2 rounded-2xl px-3 py-2 ${
+                selectedMsg.sender_id === user?.id
+                  ? 'bg-primary/15 dark:bg-primary/25 ml-auto'
+                  : 'bg-secondary'
+              }`}>
+                {selectedMsg.type === 'image' ? (
+                  <span className="text-xs text-muted-foreground italic">📷 Image</span>
+                ) : (
+                  <p className="text-sm line-clamp-2 text-foreground">{selectedMsg.content}</p>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1 text-right">
+                {moment(selectedMsg.created_at).format('HH:mm')} · {selectedMsg.sender_name || 'You'}
+              </p>
+            </div>
+
+            {/* Actions grid */}
+            <div className="grid grid-cols-4 gap-0 border-b border-border/10">
+              {/* Reply */}
+              <button
+                onClick={() => handleContextReply(selectedMsg)}
+                className="flex flex-col items-center gap-1.5 py-4 hover:bg-secondary/50 active:bg-secondary transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <CornerUpLeft className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <span className="text-[11px] font-medium text-foreground">Reply</span>
+              </button>
+              {/* Forward */}
+              <button
+                onClick={() => handleContextForward(selectedMsg)}
+                className="flex flex-col items-center gap-1.5 py-4 hover:bg-secondary/50 active:bg-secondary transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                  <Forward className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <span className="text-[11px] font-medium text-foreground">Forward</span>
+              </button>
+              {/* Copy */}
+              {selectedMsg.type !== 'image' && (
+                <button
+                  onClick={() => handleCopy(selectedMsg)}
+                  className="flex flex-col items-center gap-1.5 py-4 hover:bg-secondary/50 active:bg-secondary transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <Copy className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <span className="text-[11px] font-medium text-foreground">Copy</span>
+                </button>
+              )}
+              {/* Edit (own text messages only) */}
+              {selectedMsg.sender_id === user?.id && selectedMsg.type !== 'image' && (
+                <button
+                  onClick={() => handleContextEdit(selectedMsg)}
+                  className="flex flex-col items-center gap-1.5 py-4 hover:bg-secondary/50 active:bg-secondary transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                    <Pencil className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <span className="text-[11px] font-medium text-foreground">Edit</span>
+                </button>
+              )}
+            </div>
+
+            {/* Delete row — separate, destructive */}
+            {selectedMsg.sender_id === user?.id && (
+              <button
+                onClick={() => {
+                  const isConfirming = deletingMsg?.id === selectedMsg.id;
+                  handleContextDelete(selectedMsg);
+                  if (!isConfirming) {
+                    // Don't dismiss yet — user needs to tap again to confirm
+                    return;
+                  }
+                  dismissContextMenu();
+                }}
+                className="flex items-center gap-3 w-full px-5 py-4 hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 transition-colors"
+              >
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  deletingMsg?.id === selectedMsg.id
+                    ? 'bg-red-500'
+                    : 'bg-red-100 dark:bg-red-900/30'
+                }`}>
+                  <Trash2 className={`w-5 h-5 ${deletingMsg?.id === selectedMsg.id ? 'text-white' : 'text-red-600 dark:text-red-400'}`} />
+                </div>
+                <div className="text-left">
+                  <p className={`text-sm font-semibold ${deletingMsg?.id === selectedMsg.id ? 'text-red-600' : 'text-foreground'}`}>
+                    {deletingMsg?.id === selectedMsg.id ? 'Tap again to confirm delete' : 'Delete Message'}
+                  </p>
+                  {deletingMsg?.id === selectedMsg.id && (
+                    <p className="text-xs text-muted-foreground">This action cannot be undone</p>
+                  )}
+                </div>
+              </button>
+            )}
+
+            {/* Safe area spacer */}
+            <div style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} className="pb-2" />
+          </div>
+        </div>
+      </>
+    )}
 
     {/* ── Forward Message Modal ─────────────────────────────────────────── */}
     {forwardMsg && (
