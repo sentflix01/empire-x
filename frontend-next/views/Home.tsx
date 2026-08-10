@@ -17,6 +17,7 @@ import {
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BusinessShowroomFeed from "@/components/feed/BusinessShowroomFeed";
+import { useProfileView } from "@/lib/ProfileViewContext";
 
 const FILTERS = [
   { key: "all",       label: "feed.forYou",   icon: LayoutGrid },
@@ -91,13 +92,14 @@ function CompanyAnnouncementTicker() {
 export default function Home() {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { accentTokens, isPersonal, activeView } = useProfileView();
+  const feedMode = activeView; // driven by shared context — no local state needed
   const [posts, setPosts]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore]     = useState(true);
   const [feedError, setFeedError] = useState('');
   const [filter, setFilter]       = useState("all");
-  const [feedMode, setFeedMode]   = useState("personal");
   const [feedFlipping, setFeedFlipping] = useState(false);
   const [highlightPostId, setHighlightPostId] = useState<string|null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -194,14 +196,6 @@ export default function Home() {
     offsetRef.current += 1;
   };
 
-  const handleFeedFlip = () => {
-    setFeedFlipping(true);
-    setTimeout(() => {
-      setFeedMode(v => v === "personal" ? "business" : "personal");
-      setFeedFlipping(false);
-    }, 200);
-  };
-
   const handleFilterChange = async (key) => {
     setFilter(key);
     if (key === "nearby") return;
@@ -240,11 +234,6 @@ export default function Home() {
 
   return (
     <div className="max-w-xl mx-auto space-y-4">
-      {/* Feed Mode Toggle */}
-      <div className="flex items-center justify-center pt-2 md:justify-end">
-        <ProfileToggle view={feedMode} onFlip={handleFeedFlip} flipping={feedFlipping} />
-      </div>
-
       {/* Mini Website Banner — business domain: gold/amber scheme */}
       <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-700 text-white shadow-lg shadow-amber-600/25 min-h-[132px]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.22),transparent_28%),radial-gradient(circle_at_15%_90%,rgba(16,185,129,0.22),transparent_26%)]" />
@@ -326,7 +315,7 @@ export default function Home() {
           return (
             <button key={f.key} onClick={() => handleFilterChange(f.key)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                filter === f.key ? "bg-amber-500 text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
+                filter === f.key ? accentTokens.activeTabClass : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
               }`}>
               <Icon className="w-3.5 h-3.5" />
               {t(f.label)}
@@ -368,12 +357,12 @@ export default function Home() {
             <>
               {loading ? (
                 <div className="flex justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+                  <Loader2 className="w-8 h-8 animate-spin" style={{ color: accentTokens.primary }} />
                 </div>
               ) : feedError ? (
                 <div className="text-center py-12 rounded-2xl border border-destructive/20 bg-destructive/5">
                   <p className="text-sm text-destructive font-medium">{feedError}</p>
-                  <button onClick={loadPosts} className="mt-3 text-xs text-amber-600 hover:underline font-medium">Try again</button>
+                  <button onClick={loadPosts} className="mt-3 text-xs hover:underline font-medium" style={{ color: accentTokens.primary }}>Try again</button>
                 </div>
               ) : posts.length === 0 ? (
                 <div className="text-center py-16 text-muted-foreground">

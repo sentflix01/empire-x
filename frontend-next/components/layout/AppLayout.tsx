@@ -577,48 +577,51 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
           {/* ── Nav links ── */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-0.5 scrollbar-thin">
-            {mainNavItems.map(item => <NavLink key={item.path} {...item} />)}
-
-            {/* Personal / Business profile toggle — shown below Profile nav item */}
-            {!sidebarCollapsed && (
-              <div className="flex items-center gap-1 px-3 py-1.5">
-                <button
-                  onClick={() => { setActiveView('personal'); router.push('/profile?view=personal'); }}
-                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                  style={{
-                    backgroundColor: isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
-                    color: isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
-                  }}
-                >
-                  <User className="w-3 h-3" /> Personal
-                </button>
-                <button
-                  onClick={() => { setActiveView('business'); router.push('/profile?view=business'); }}
-                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                  style={{
-                    backgroundColor: !isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
-                    color: !isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
-                  }}
-                >
-                  <Store className="w-3 h-3" /> Business
-                </button>
-              </div>
-            )}
-            {sidebarCollapsed && (
-              <button
-                onClick={() => { setActiveView(activeView === 'personal' ? 'business' : 'personal'); router.push(`/profile?view=${activeView === 'personal' ? 'business' : 'personal'}`); }}
-                title={`Switch to ${activeView === 'personal' ? 'Business' : 'Personal'} profile`}
-                className="flex justify-center w-full py-1.5 mx-1 rounded-lg transition-colors relative group"
-                style={{ backgroundColor: 'hsl(var(--secondary))' }}
-              >
-                {isPersonal
-                  ? <User className="w-4 h-4" style={{ color: accentTokens.primary }} />
-                  : <Store className="w-4 h-4" style={{ color: accentTokens.primary }} />}
-                <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                  {activeView === 'personal' ? 'Switch to Business' : 'Switch to Personal'}
-                </span>
-              </button>
-            )}
+            {mainNavItems.map((item, idx) => (
+              <React.Fragment key={item.path}>
+                <NavLink {...item} />
+                {/* Personal / Business toggle — sits right below Home nav item */}
+                {item.path === "/feed" && !sidebarCollapsed && (
+                  <div className="flex items-center gap-1 px-3 py-1">
+                    <button
+                      onClick={() => { setActiveView('personal'); }}
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                      style={{
+                        backgroundColor: isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
+                        color: isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
+                      }}
+                    >
+                      <User className="w-3 h-3" /> Personal
+                    </button>
+                    <button
+                      onClick={() => { setActiveView('business'); }}
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                      style={{
+                        backgroundColor: !isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
+                        color: !isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
+                      }}
+                    >
+                      <Store className="w-3 h-3" /> Business
+                    </button>
+                  </div>
+                )}
+                {item.path === "/feed" && sidebarCollapsed && (
+                  <button
+                    onClick={() => setActiveView(activeView === 'personal' ? 'business' : 'personal')}
+                    title={`Switch to ${activeView === 'personal' ? 'Business' : 'Personal'}`}
+                    className="flex justify-center w-full py-1.5 mx-1 rounded-lg transition-colors relative group"
+                    style={{ backgroundColor: 'hsl(var(--secondary))' }}
+                  >
+                    {isPersonal
+                      ? <User className="w-4 h-4" style={{ color: accentTokens.primary }} />
+                      : <Store className="w-4 h-4" style={{ color: accentTokens.primary }} />}
+                    <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                      {activeView === 'personal' ? 'Switch to Business' : 'Switch to Personal'}
+                    </span>
+                  </button>
+                )}
+              </React.Fragment>
+            ))}
 
             <div className="my-2 border-t border-border/40" />
 
@@ -774,41 +777,44 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5 bg-white dark:bg-card">
                   {/* Mobile drawer nav links — with red badges */}
                   {mainNavItems.map(({ path, icon: Icon, label, badge }) => (
-                    <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
-                      <Icon className="w-4 h-4 shrink-0" />
-                      <span className="flex-1">{label}</span>
-                      {badge ? (
-                        <span className="min-w-[20px] h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shrink-0">
-                          {badge > 9 ? '9+' : badge}
-                        </span>
-                      ) : null}
-                    </Link>
+                    <React.Fragment key={path}>
+                      <Link href={path} onClick={() => setDrawerOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span className="flex-1">{label}</span>
+                        {badge ? (
+                          <span className="min-w-[20px] h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shrink-0">
+                            {badge > 9 ? '9+' : badge}
+                          </span>
+                        ) : null}
+                      </Link>
+                      {/* Personal / Business toggle — right below Home nav item */}
+                      {path === "/feed" && (
+                        <div className="flex items-center gap-2 px-3 py-1">
+                          <button
+                            onClick={() => { setActiveView('personal'); setDrawerOpen(false); }}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all"
+                            style={{
+                              backgroundColor: isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
+                              color: isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
+                            }}
+                          >
+                            <User className="w-3 h-3" /> Personal
+                          </button>
+                          <button
+                            onClick={() => { setActiveView('business'); setDrawerOpen(false); }}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all"
+                            style={{
+                              backgroundColor: !isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
+                              color: !isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
+                            }}
+                          >
+                            <Store className="w-3 h-3" /> Business
+                          </button>
+                        </div>
+                      )}
+                    </React.Fragment>
                   ))}
-
-                  {/* Personal / Business toggle — right below Profile nav item */}
-                  <div className="flex items-center gap-2 px-3 py-1.5 -mt-1">
-                    <button
-                      onClick={() => { setActiveView('personal'); router.push('/profile?view=personal'); setDrawerOpen(false); }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all"
-                      style={{
-                        backgroundColor: isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
-                        color: isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
-                      }}
-                    >
-                      <User className="w-3 h-3" /> Personal
-                    </button>
-                    <button
-                      onClick={() => { setActiveView('business'); router.push('/profile?view=business'); setDrawerOpen(false); }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all"
-                      style={{
-                        backgroundColor: !isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
-                        color: !isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
-                      }}
-                    >
-                      <Store className="w-3 h-3" /> Business
-                    </button>
-                  </div>
 
                   <div className="my-2 border-t border-gray-100 dark:border-border" />
                   <Link href="/showroom/create" onClick={() => setDrawerOpen(false)}
