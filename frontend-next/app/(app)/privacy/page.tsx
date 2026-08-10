@@ -1,7 +1,6 @@
 'use client';
-import AccountSettingsView from '@/views/AccountSettings';
+import PrivacyAndSecurityPage from '@/views/PrivacyAndSecurity';
 
-// Shows the Privacy tab of settings
-export default function PrivacyPage() {
-  return <AccountSettingsView />;
+export default function Page() {
+  return <PrivacyAndSecurityPage />;
 }

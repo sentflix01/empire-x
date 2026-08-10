@@ -100,7 +100,6 @@ function AccountSettingsView() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [pushPerm, setPushPerm] = useState(() => getPushPermission());
   const [pushLoading, setPushLoading] = useState(false);
-  const [presenceVisibility, setPresenceVisibility] = useState<'everyone' | 'nobody'>('everyone');
 
   const displayName = typeof user?.full_name === 'string' ? user.full_name : 'User';
   const userEmail   = typeof user?.email    === 'string' ? user.email    : '';
@@ -228,25 +227,6 @@ function AccountSettingsView() {
           </div>
         </div>
       )}
-
-      <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1 mb-2">Privacy</p>
-        <div className="bg-card rounded-2xl border border-border/50 px-4 py-3.5 flex items-center gap-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold">Last Seen &amp; Online</p>
-            <p className="text-xs text-muted-foreground">Choose who can see when you were recently active</p>
-          </div>
-          <select
-            value={presenceVisibility}
-            onChange={event => void updatePresenceVisibility(event.target.value as 'everyone' | 'nobody')}
-            className="h-9 rounded-lg border border-border bg-background px-2 text-xs font-medium"
-            aria-label="Last seen visibility"
-          >
-            <option value="everyone">Everyone</option>
-            <option value="nobody">Nobody</option>
-          </select>
-        </div>
-      </div>
 
     </div>
   );

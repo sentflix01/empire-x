@@ -11,7 +11,7 @@ import {
   Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, MapPin, Tag,
   Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
   PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield,
-  ArrowLeft, KanbanSquare, Settings,
+  ArrowLeft, KanbanSquare, Settings, FileText,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -342,7 +342,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     { path: "/coupons", icon: Tag, label: "My Coupons" },
     { path: "/analytics", icon: BarChart3, label: "Analytics" },
     { path: "/account", icon: Lock, label: "Account Settings" },
-    { path: "/privacy", icon: Shield, label: "Privacy" },
+    { path: "/privacy", icon: Shield, label: "Privacy & Security" },
+    { path: "/service-agreement", icon: FileText, label: "Service Agreement" },
   ];
 
   const isActive = (path: string) => {
@@ -907,22 +908,23 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
             {/* Account Settings */}
             <Link href="/account" onClick={() => setSettingsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground"
-              style={{ backgroundColor: 'transparent' }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary))')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground hover:bg-secondary">
               <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
               <span className="font-medium">Account Settings</span>
             </Link>
 
             {/* Privacy */}
             <Link href="/privacy" onClick={() => setSettingsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground"
-              style={{ backgroundColor: 'transparent' }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary))')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground hover:bg-secondary">
               <Shield className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="font-medium">Privacy</span>
+              <span className="font-medium">Privacy &amp; Security</span>
+            </Link>
+
+            {/* Service Agreement */}
+            <Link href="/service-agreement" onClick={() => setSettingsOpen(false)}
+              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground hover:bg-secondary">
+              <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="font-medium">Service Agreement</span>
             </Link>
 
             {/* Theme */}
