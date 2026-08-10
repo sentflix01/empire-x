@@ -401,49 +401,34 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             )}
           </Link>
 
-          {/* Desktop Search — expands overlay on focus */}
-          <div className="hidden md:flex flex-1 max-w-sm relative">
-            {searchOpen ? (
-              /* Expanded overlay mode — covers right icons */
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 z-50" style={{ width: 'calc(100% + 280px)' }}>
-                <form
-                  onSubmit={e => {
-                    e.preventDefault();
-                    const q = (e.currentTarget.elements.namedItem('q') as HTMLInputElement)?.value?.trim();
-                    if (q) { setSearchOpen(false); router.push(`/search?q=${encodeURIComponent(q)}`); }
-                  }}
-                  className="relative"
-                >
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
-                  <input
-                    name="q"
-                    type="search"
-                    autoFocus
-                    enterKeyHint="search"
-                    placeholder={tr('common.searchPlaceholder')}
-                    className="w-full pl-9 pr-10 bg-background border border-border rounded-full h-9 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 shadow-md transition-all"
-                    onKeyDown={e => { if (e.key === 'Escape') setSearchOpen(false); }}
-                  />
-                  <button type="button" onClick={() => setSearchOpen(false)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                    <X className="w-4 h-4" />
-                  </button>
-                </form>
-              </div>
-            ) : (
-              <button
-                onClick={() => setSearchOpen(true)}
-                className="flex items-center gap-2 w-full pl-9 pr-4 bg-secondary border border-border rounded-full h-9 text-sm text-muted-foreground hover:bg-secondary/80 hover:border-border/80 transition-all relative"
-              >
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
-                {tr('common.searchPlaceholder')}
-              </button>
-            )}
+          {/* Desktop Search — inline expand, pushes icons right. NO overlay popup */}
+          <div className={`hidden md:flex items-center transition-all duration-200 ${searchOpen ? 'flex-1 max-w-lg' : 'flex-1 max-w-sm'}`}>
+            <form
+              className="relative w-full"
+              onSubmit={e => {
+                e.preventDefault();
+                const q = (e.currentTarget.elements.namedItem('q') as HTMLInputElement)?.value?.trim();
+                if (q) { setSearchOpen(false); router.push(`/search?q=${encodeURIComponent(q)}`); }
+              }}
+            >
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input
+                name="q"
+                type="search"
+                placeholder={tr('common.searchPlaceholder')}
+                onFocus={() => setSearchOpen(true)}
+                onBlur={() => setSearchOpen(false)}
+                onKeyDown={e => { if (e.key === 'Escape') { setSearchOpen(false); (e.target as HTMLInputElement).blur(); } }}
+                className="w-full pl-9 pr-4 bg-secondary border border-border rounded-full h-9 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 focus:bg-background transition-all"
+              />
+            </form>
           </div>
 
           <div className="flex items-center gap-1 ml-auto">
-            {/* Mobile search — full-width overlay when open */}
+            {/* Mobile search — solid full-width overlay covering entire top bar */}
             {searchOpen && (
-              <div className="fixed inset-x-0 top-0 z-[200] h-14 bg-background border-b border-border flex items-center px-3 gap-2 shadow-lg">
+              <div className="md:hidden fixed inset-x-0 top-0 z-[200] h-14 flex items-center px-3 gap-2 shadow-xl"
+                style={{ backgroundColor: 'hsl(var(--background))' }}>
                 <form className="flex-1"
                   onSubmit={e => {
                     e.preventDefault();
@@ -455,15 +440,18 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     <input name="mq" type="search" autoFocus enterKeyHint="search"
                       placeholder="Search people, products, tasks..."
                       onKeyDown={e => { if (e.key === 'Escape') setSearchOpen(false); }}
-                      className="w-full pl-9 pr-4 h-10 bg-secondary border border-border rounded-full text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all" />
+                      className="w-full pl-9 pr-4 h-10 rounded-full text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 border border-primary/30 transition-all"
+                      style={{ backgroundColor: 'hsl(var(--secondary))' }} />
                   </div>
                 </form>
-                <button onClick={() => setSearchOpen(false)} className="p-2 rounded-full hover:bg-secondary transition-colors shrink-0 text-foreground">
+                <button onClick={() => setSearchOpen(false)}
+                  className="p-2 rounded-full transition-colors shrink-0 text-foreground"
+                  style={{ backgroundColor: 'hsl(var(--secondary))' }}>
                   <X className="w-5 h-5" />
                 </button>
               </div>
             )}
-            {/* Mobile search icon (hidden when overlay is open) */}
+            {/* Mobile search icon */}
             {!searchOpen && (
               <button onClick={() => setSearchOpen(true)} className="md:hidden p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Search">
                 <Search className="w-5 h-5 text-muted-foreground" />
