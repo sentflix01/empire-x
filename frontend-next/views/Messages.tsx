@@ -184,6 +184,20 @@ function Messages() {
 
   // ── Filter ────────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
+    // "All" tab now shows contacts (people), not conversations
+    if (tab === 'all') {
+      let list = contacts;
+      if (realMode) list = list.filter((c: any) => !c.is_seed);
+      if (search) {
+        const q = search.toLowerCase();
+        list = list.filter((c: any) =>
+          (c.display_name || '').toLowerCase().includes(q) ||
+          (c.headline || '').toLowerCase().includes(q)
+        );
+      }
+      return list; // contacts list, rendered differently below
+    }
+
     let list = conversations;
     if (tab === 'dm')       list = list.filter(c => c.type === 'dm');
     if (tab === 'groups')   list = list.filter(c => c.type === 'group');
@@ -205,7 +219,7 @@ function Messages() {
       list = list.filter(c => getDisplayName(c).toLowerCase().includes(q));
     }
     return list;
-  }, [conversations, tab, realMode, search, user, contacts]);
+  }, [conversations, contacts, tab, realMode, search, user]);
 
   const TABS: { id: Tab; label: string; icon?: any }[] = [
     { id: 'all',      label: 'All' },
@@ -296,10 +310,51 @@ function Messages() {
           </div>
         ) : filtered.length === 0 ? (
           <EmptyState
-            icon={tab === 'channels' ? Radio : tab === 'groups' ? Users : MessageCircle}
-            title={search ? `No results for "${search}"` : tab === 'channels' ? 'No channels yet' : tab === 'groups' ? 'No groups yet' : tab === 'dm' ? 'No DMs yet' : 'No conversations yet'}
-            subtitle={!search ? 'Tap the pencil icon to start a new chat' : undefined}
+            icon={tab === 'channels' ? Radio : tab === 'groups' ? Users : tab === 'all' ? UserIcon : MessageCircle}
+            title={search ? `No results for "${search}"` : tab === 'channels' ? 'No channels yet' : tab === 'groups' ? 'No groups yet' : tab === 'dm' ? 'No DMs yet' : 'No contacts found'}
+            subtitle={!search ? (tab === 'all' ? 'People you follow will appear here' : 'Tap the pencil icon to start a new chat') : undefined}
           />
+        ) : tab === 'all' ? (
+          /* ── All tab: contacts list ── */
+          <div>
+            <p className="px-4 py-2 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+              People · {filtered.length}
+            </p>
+            {(filtered as any[]).map((contact: any) => {
+              const avatarUrl = Array.isArray(contact.avatar_url) ? contact.avatar_url[0] : contact.avatar_url;
+              const name = contact.display_name || 'User';
+              return (
+                <button
+                  key={contact.user_id || contact.id}
+                  onClick={async () => {
+                    try {
+                      const { findOrCreateConversation } = await import('@/lib/messaging');
+                      const conv = await findOrCreateConversation(user, contact.user_id, name);
+                      if (conv) router.push(`/messages/${conv.id}`);
+                    } catch {}
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors active:scale-[0.99]"
+                  style={{ borderBottom: '1px solid hsl(var(--border)/0.4)' }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary)/0.5)')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg shrink-0"
+                    style={{ background: 'linear-gradient(135deg,#3b82f6,#7c3aed)' }}>
+                    {avatarUrl
+                      ? <Image src={avatarUrl} alt={name} width={52} height={52} className="w-full h-full object-cover" unoptimized />
+                      : name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate" style={{ color: 'hsl(var(--foreground))' }}>{name}</p>
+                    {contact.headline && (
+                      <p className="text-xs truncate" style={{ color: 'hsl(var(--muted-foreground))' }}>{contact.headline}</p>
+                    )}
+                  </div>
+                  <MessageCircle className="w-4 h-4 shrink-0" style={{ color: 'hsl(var(--muted-foreground))' }} />
+                </button>
+              );
+            })}
+          </div>
         ) : (
           filtered.map(conv => {
             const name        = getDisplayName(conv);

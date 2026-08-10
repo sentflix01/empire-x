@@ -384,7 +384,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* ── Header ── */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+      <header className="sticky top-0 z-50 bg-background border-b border-border shrink-0">
         <div className="w-full px-4 h-14 flex items-center gap-3">
           {/* Sidebar toggle button — desktop only */}
           <button
@@ -485,33 +485,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </span>
               )}
             </Link>
-            {/* Real/Demo mode toggle — visible on all sizes */}
-            <button
-              onClick={toggleRealMode}
-              title={realMode ? 'Real users only — click to show all' : 'Showing all (demo+real) — click for real only'}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border transition-all ${
-                realMode
-                  ? 'bg-green-500 text-white border-green-500 shadow-sm shadow-green-500/30'
-                  : 'bg-secondary text-muted-foreground border-border/50 hover:bg-secondary/80'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full shrink-0 ${realMode ? 'bg-white' : 'bg-amber-500'}`} />
-              {realMode ? 'Real' : 'Demo'}
-            </button>
-            {/* Dark mode */}
-            <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Toggle dark mode">
-              {!mounted ? (
-                <span className="block w-5 h-5 rounded-full bg-muted-foreground/20" aria-hidden />
-              ) : theme === "dark" ? (
-                <Sun className="w-5 h-5 text-amber-400" />
-              ) : (
-                <Moon className="w-5 h-5 text-muted-foreground" />
-              )}
-            </button>
-            {/* Language */}
-            <button onClick={toggleLanguage} className="p-2 rounded-full hover:bg-secondary transition-colors flex items-center justify-center" aria-label="Toggle language" title="Switch English / አማርኛ">
-              <Languages className="w-5 h-5 text-muted-foreground" />
-            </button>
+            {/* Real/Demo mode toggle — MOVED TO SETTINGS */}
+            {/* Dark mode — MOVED TO SETTINGS */}
+            {/* Language — MOVED TO SETTINGS */}
             {/* Avatar */}
             <Link href="/profile" className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
               {userProfile?.avatar_url
@@ -855,13 +831,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                       <KanbanSquare className="w-4 h-4 shrink-0" /><span>Dev Ops</span>
                     </Link>
                   )}
+                  {/* Settings — opens popup (logout is inside settings) */}
                   <button onClick={() => { setDrawerOpen(false); setSettingsOpen(true); }}
                     className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-secondary transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium">
                     <Settings className="w-4 h-4 shrink-0" /><span>Settings</span>
-                  </button>
-                  <button onClick={() => { setDrawerOpen(false); logout(); }}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium ${user?.role === 'admin' ? '' : 'flex-1'}`}>
-                    <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
                   </button>
                 </div>
               </div>
@@ -922,8 +895,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           {/* Invisible backdrop to close on outside click */}
           <div className="fixed inset-0 z-[90]" onClick={() => setSettingsOpen(false)} />
           {/* Popup — anchors above the Settings button in the sidebar footer */}
-          <div className="fixed z-[100] bottom-14 left-2 w-64 bg-card border border-border/60 rounded-xl shadow-2xl overflow-hidden"
-            style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+          <div
+            className="fixed z-[100] bottom-14 left-2 w-64 rounded-xl shadow-2xl overflow-hidden border border-border"
+            style={{ backgroundColor: 'hsl(var(--card))', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}
+          >
 
             {/* Section divider label */}
             <div className="px-4 pt-3 pb-1">
@@ -932,21 +907,27 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
             {/* Account Settings */}
             <Link href="/account" onClick={() => setSettingsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary/70 transition-colors">
+              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground"
+              style={{ backgroundColor: 'transparent' }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary))')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
               <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
               <span className="font-medium">Account Settings</span>
             </Link>
 
             {/* Privacy */}
             <Link href="/privacy" onClick={() => setSettingsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary/70 transition-colors">
+              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground"
+              style={{ backgroundColor: 'transparent' }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary))')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
               <Shield className="w-4 h-4 text-muted-foreground shrink-0" />
               <span className="font-medium">Privacy</span>
             </Link>
 
             {/* Theme */}
             <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary/70 transition-colors text-left">
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground text-left hover:bg-secondary">
               {theme === 'dark'
                 ? <Sun className="w-4 h-4 text-amber-400 shrink-0" />
                 : <Moon className="w-4 h-4 text-muted-foreground shrink-0" />}
@@ -956,7 +937,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
             {/* Language */}
             <button onClick={() => { toggleLanguage(); }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary/70 transition-colors text-left">
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground text-left hover:bg-secondary">
               <Languages className="w-4 h-4 text-muted-foreground shrink-0" />
               <span className="font-medium flex-1">Language</span>
               <span className="text-xs font-bold text-muted-foreground">{i18n.language === 'am' ? 'አማ' : 'EN'}</span>
@@ -964,7 +945,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
             {/* Real / Demo toggle */}
             <button onClick={toggleRealMode}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary/70 transition-colors text-left">
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground text-left hover:bg-secondary">
               <span className={`w-4 h-4 rounded-full shrink-0 border-2 ${realMode ? 'bg-green-500 border-green-500' : 'bg-amber-500 border-amber-500'}`} />
               <span className="font-medium flex-1">{realMode ? 'Real Users' : 'Demo Mode'}</span>
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${realMode ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
@@ -973,7 +954,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             </button>
 
             {/* Divider */}
-            <div className="border-t border-border/40 my-1" />
+            <div className="border-t border-border my-1" />
 
             {/* Log out */}
             <button onClick={() => { setSettingsOpen(false); logout(); }}
