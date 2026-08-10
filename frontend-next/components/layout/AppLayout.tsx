@@ -295,11 +295,23 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     } catch {}
   };
 
-  // Clear message badge when user navigates to /messages
+  // Clear badge + mark notifications read when user navigates to relevant section
   useEffect(() => {
-    if (pathname.startsWith('/messages')) setUnreadMessages(0);
-    if (pathname.startsWith('/tasks')) setUnreadTasks(0);
-    if (pathname.startsWith('/friends')) setUnreadFollows(0);
+    if (pathname.startsWith('/messages')) {
+      setUnreadMessages(0);
+      client.post('/api/notifications/mark-read', { type: 'message' }).catch(() => {});
+    }
+    if (pathname.startsWith('/tasks')) {
+      setUnreadTasks(0);
+      client.post('/api/notifications/mark-read', { type: 'task' }).catch(() => {});
+    }
+    if (pathname.startsWith('/friends')) {
+      setUnreadFollows(0);
+      client.post('/api/notifications/mark-read', { type: 'follow' }).catch(() => {});
+    }
+    if (pathname.startsWith('/notifications')) {
+      setUnreadCount(0);
+    }
   }, [pathname]);
 
   const mainNavItems = [
@@ -759,35 +771,41 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
                 {/* ── Scrollable nav list — solid white ── */}
                 <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5 bg-white dark:bg-card">
-                  {/* Mobile drawer nav links */}
-                {mainNavItems.map(({ path, icon: Icon, label }) => (
+                  {/* Mobile drawer nav links — with red badges */}
+                  {mainNavItems.map(({ path, icon: Icon, label, badge }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
-                      <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span className="flex-1">{label}</span>
+                      {badge ? (
+                        <span className="min-w-[20px] h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shrink-0">
+                          {badge > 9 ? '9+' : badge}
+                        </span>
+                      ) : null}
                     </Link>
                   ))}
 
-                  {/* Personal / Business toggle in drawer */}
-                  <div className="flex items-center gap-2 px-3 py-2">
+                  {/* Personal / Business toggle — right below Profile nav item */}
+                  <div className="flex items-center gap-2 px-3 py-1.5 -mt-1">
                     <button
                       onClick={() => { setProfileView('personal'); router.push('/profile?view=personal'); setDrawerOpen(false); }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all"
                       style={{
                         backgroundColor: profileView === 'personal' ? 'hsl(var(--primary))' : 'hsl(var(--secondary))',
                         color: profileView === 'personal' ? '#fff' : 'hsl(var(--muted-foreground))',
                       }}
                     >
-                      <User className="w-3.5 h-3.5" /> Personal
+                      <User className="w-3 h-3" /> Personal
                     </button>
                     <button
                       onClick={() => { setProfileView('business'); router.push('/profile?view=business'); setDrawerOpen(false); }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all"
                       style={{
                         backgroundColor: profileView === 'business' ? '#d97706' : 'hsl(var(--secondary))',
                         color: profileView === 'business' ? '#fff' : 'hsl(var(--muted-foreground))',
                       }}
                     >
-                      <Store className="w-3.5 h-3.5" /> Business
+                      <Store className="w-3 h-3" /> Business
                     </button>
                   </div>
 

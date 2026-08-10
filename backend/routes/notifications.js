@@ -108,6 +108,31 @@ router.put('/read-all', requireAuth, async (req, res) => {
   }
 });
 
+// Mark notifications as read by type (or group of types)
+// POST /api/notifications/mark-read  body: { type: 'message' | 'task' | 'follow' | ... }
+router.post('/mark-read', requireAuth, async (req, res) => {
+  try {
+    const { type } = req.body;
+    // Map frontend section names to notification type groups
+    const typeMap = {
+      message:  ['message'],
+      task:     ['task', 'task_assigned', 'task_completed'],
+      follow:   ['follow', 'friend_request', 'connection'],
+    };
+    const types = typeMap[type] || [type];
+    if (!types.length) return res.status(400).json({ error: 'Invalid type' });
+
+    await pool.query(
+      `UPDATE notifications SET is_read = TRUE, updated_at = NOW()
+       WHERE user_id = $1 AND type = ANY($2::text[]) AND is_read = FALSE`,
+      [req.user.id, types]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to mark notifications as read' });
+  }
+});
+
 // Mark as read
 router.put('/:id/read', requireAuth, async (req, res) => {
   try {
