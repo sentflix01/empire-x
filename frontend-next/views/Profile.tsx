@@ -21,6 +21,7 @@ import { DemoBadge } from "@/components/profile/DemoBadge";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useProfileView } from '@/lib/ProfileViewContext';
 
 function Profile() {
   const { t } = useTranslation();
@@ -32,7 +33,7 @@ function Profile() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState("personal"); // "personal" | "business"
+  const { activeView: view, setActiveView, accentTokens } = useProfileView();
   const [flipping, setFlipping] = useState(false);
   const [businesses, setBusinesses] = useState([]);
   const [selectedBizId, setSelectedBizId] = useState(null);
@@ -64,9 +65,9 @@ function Profile() {
         setTickerOn(tickerType !== 'none'); // on by default unless user turned it off
         // Only set view on initial load, not on every re-render
         if (viewParam === "business" || viewParam === "personal") {
-          setView(viewParam);
+          setActiveView(viewParam);
         } else {
-          setView(profiles[0].profile_type === "business" ? "business" : "personal");
+          setActiveView(profiles[0].profile_type === "business" ? "business" : "personal");
         }
       }
       setBusinesses(bizList);
@@ -84,7 +85,7 @@ function Profile() {
     if (businesses.length === 0 && !profile?.has_business_profile) return;
     setFlipping(true);
     setTimeout(() => {
-      setView(v => v === "personal" ? "business" : "personal");
+      setActiveView(view === "personal" ? "business" : "personal");
       setFlipping(false);
     }, 200);
   };
@@ -157,7 +158,7 @@ function Profile() {
         {/* Profile Header Card */}
         <div className="bg-card rounded-2xl border border-border/50 overflow-hidden mb-4">
           {/* Cover — personal: primary/accent (blue→purple) · business: gold scheme */}
-          <div className={`h-28 relative ${view === "business" ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" : "bg-empire-gradient"}`}>
+          <div className={`h-28 relative transition-all duration-300 ${view === "business" ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" : "bg-empire-gradient"}`}>
             {view === "business" && (
               <SafeImage src={profile.business_cover_url} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: profile.business_cover_position || 'center' }} />

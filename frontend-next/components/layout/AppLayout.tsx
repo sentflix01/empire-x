@@ -23,6 +23,7 @@ import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import { toast } from "sonner";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { useRealMode } from "@/lib/RealModeContext";
+import { useProfileView } from "@/lib/ProfileViewContext";
 import { BUILDER_CATEGORY_META, BUILDER_TEMPLATES } from "@/lib/builderSections";
 // AccountSettings popup replaced by /settings navigation
 
@@ -170,6 +171,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const router = useRouter();
   const { user, isAuthenticated, authChecked, isLoadingAuth, logout } = useAuth();
   const { realMode, toggleRealMode } = useRealMode();
+  const { activeView, setActiveView, accentTokens, isPersonal } = useProfileView();
   const tr = (key: string) => String(t(key));
   const displayName = typeof user?.full_name === 'string' ? user.full_name : 'User';
   const userEmail = typeof user?.email === 'string' ? user.email : '';
@@ -178,7 +180,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadTasks, setUnreadTasks] = useState(0);
   const [unreadFollows, setUnreadFollows] = useState(0);
-  const [profileView, setProfileView] = useState<'personal' | 'business'>('personal');
   const [searchOpen, setSearchOpen] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(true);
   const [accountOpen, setAccountOpen] = useState(true);
@@ -355,7 +356,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       className={`flex items-center gap-3 rounded-xl transition-all text-sm font-medium group relative
         ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}
         ${isActive(path)
-          ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
+          ? accentTokens.activeNavClass
           : "text-muted-foreground hover:bg-secondary hover:text-foreground"
         }`}
     >
@@ -582,21 +583,21 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             {!sidebarCollapsed && (
               <div className="flex items-center gap-1 px-3 py-1.5">
                 <button
-                  onClick={() => { setProfileView('personal'); router.push('/profile?view=personal'); }}
+                  onClick={() => { setActiveView('personal'); router.push('/profile?view=personal'); }}
                   className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
                   style={{
-                    backgroundColor: profileView === 'personal' ? 'hsl(var(--primary))' : 'hsl(var(--secondary))',
-                    color: profileView === 'personal' ? '#fff' : 'hsl(var(--muted-foreground))',
+                    backgroundColor: isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
+                    color: isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
                   }}
                 >
                   <User className="w-3 h-3" /> Personal
                 </button>
                 <button
-                  onClick={() => { setProfileView('business'); router.push('/profile?view=business'); }}
+                  onClick={() => { setActiveView('business'); router.push('/profile?view=business'); }}
                   className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
                   style={{
-                    backgroundColor: profileView === 'business' ? '#d97706' : 'hsl(var(--secondary))',
-                    color: profileView === 'business' ? '#fff' : 'hsl(var(--muted-foreground))',
+                    backgroundColor: !isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
+                    color: !isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
                   }}
                 >
                   <Store className="w-3 h-3" /> Business
@@ -605,16 +606,16 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             )}
             {sidebarCollapsed && (
               <button
-                onClick={() => { setProfileView(v => v === 'personal' ? 'business' : 'personal'); router.push(`/profile?view=${profileView === 'personal' ? 'business' : 'personal'}`); }}
-                title={`Switch to ${profileView === 'personal' ? 'Business' : 'Personal'} profile`}
+                onClick={() => { setActiveView(activeView === 'personal' ? 'business' : 'personal'); router.push(`/profile?view=${activeView === 'personal' ? 'business' : 'personal'}`); }}
+                title={`Switch to ${activeView === 'personal' ? 'Business' : 'Personal'} profile`}
                 className="flex justify-center w-full py-1.5 mx-1 rounded-lg transition-colors relative group"
                 style={{ backgroundColor: 'hsl(var(--secondary))' }}
               >
-                {profileView === 'personal'
-                  ? <User className="w-4 h-4" style={{ color: 'hsl(var(--primary))' }} />
-                  : <Store className="w-4 h-4" style={{ color: '#d97706' }} />}
+                {isPersonal
+                  ? <User className="w-4 h-4" style={{ color: accentTokens.primary }} />
+                  : <Store className="w-4 h-4" style={{ color: accentTokens.primary }} />}
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                  {profileView === 'personal' ? 'Switch to Business' : 'Switch to Personal'}
+                  {activeView === 'personal' ? 'Switch to Business' : 'Switch to Personal'}
                 </span>
               </button>
             )}
@@ -788,21 +789,21 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   {/* Personal / Business toggle — right below Profile nav item */}
                   <div className="flex items-center gap-2 px-3 py-1.5 -mt-1">
                     <button
-                      onClick={() => { setProfileView('personal'); router.push('/profile?view=personal'); setDrawerOpen(false); }}
+                      onClick={() => { setActiveView('personal'); router.push('/profile?view=personal'); setDrawerOpen(false); }}
                       className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all"
                       style={{
-                        backgroundColor: profileView === 'personal' ? 'hsl(var(--primary))' : 'hsl(var(--secondary))',
-                        color: profileView === 'personal' ? '#fff' : 'hsl(var(--muted-foreground))',
+                        backgroundColor: isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
+                        color: isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
                       }}
                     >
                       <User className="w-3 h-3" /> Personal
                     </button>
                     <button
-                      onClick={() => { setProfileView('business'); router.push('/profile?view=business'); setDrawerOpen(false); }}
+                      onClick={() => { setActiveView('business'); router.push('/profile?view=business'); setDrawerOpen(false); }}
                       className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all"
                       style={{
-                        backgroundColor: profileView === 'business' ? '#d97706' : 'hsl(var(--secondary))',
-                        color: profileView === 'business' ? '#fff' : 'hsl(var(--muted-foreground))',
+                        backgroundColor: !isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
+                        color: !isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
                       }}
                     >
                       <Store className="w-3 h-3" /> Business

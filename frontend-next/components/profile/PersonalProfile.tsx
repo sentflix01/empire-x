@@ -5,12 +5,14 @@ import { entities } from "@/api/entities";
 import { useTranslation } from 'react-i18next';
 
 import { Briefcase, GraduationCap, Plus, Store, Crown, ShoppingBag, ClipboardList, Users, Pencil } from "lucide-react";
+import { useProfileView } from '@/lib/ProfileViewContext';
 import { Button } from "@/components/ui/button";
 import PostCard from "@/components/feed/PostCard";
 import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 
 export default function PersonalProfile({ profile, user, isOwner, businesses }) {
+  const { accentTokens } = useProfileView();
   const [posts, setPosts] = useState([]);
   const [tab, setTab] = useState("posts");
   const [loading, setLoading] = useState(true);
@@ -56,7 +58,7 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
       {/* Tabs */}
       <div className="flex gap-1 bg-card rounded-xl border border-border/50 p-1">
         {["posts", "about", "activity"].map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${tab === t ? "bg-amber-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}>
+          <button key={t} onClick={() => setTab(t)} className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${tab === t ? accentTokens.activeTabClass : "text-muted-foreground hover:bg-secondary"}`}>
             {t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}

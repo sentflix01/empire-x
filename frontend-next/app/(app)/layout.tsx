@@ -5,11 +5,14 @@
  */
 import AppLayout from '@/components/layout/AppLayout';
 import { RealModeProvider } from '@/lib/RealModeContext';
+import { ProfileViewProvider } from '@/lib/ProfileViewContext';
 
 export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   return (
     <RealModeProvider>
-      <AppLayout>{children}</AppLayout>
+      <ProfileViewProvider>
+        <AppLayout>{children}</AppLayout>
+      </ProfileViewProvider>
     </RealModeProvider>
   );
 }
