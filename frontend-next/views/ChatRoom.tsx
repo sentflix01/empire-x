@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
   CornerUpLeft, Check, CheckCheck, ShieldOff, History, ImagePlus, Forward,
-  Copy, UserCircle, Settings,
+  Copy, UserCircle, Settings, Pin, Bookmark, Languages, RotateCcw,
 } from "lucide-react";
 import moment from "moment";
 import { toast } from "sonner";
@@ -47,6 +47,8 @@ function ChatRoom() {
   const [forwardMsg, setForwardMsg]     = useState(null);  // message to forward
   const [forwardSearch, setForwardSearch] = useState('');
   const [conversations, setConversations] = useState([]);
+  const [pinnedMsgs, setPinnedMsgs]     = useState<Set<string>>(new Set()); // pinned message ids
+  const [savedMsgs, setSavedMsgs]       = useState<Set<string>>(new Set()); // saved message ids
 
   // Legacy hover state (desktop) — still used to determine visual selection
   const [hoveredMsg, setHoveredMsg]     = useState(null);
@@ -443,6 +445,45 @@ function ChatRoom() {
     setForwardMsg(msg);
     dismissContextMenu();
   };
+  const handleReaction = async (msg, emoji: string) => {
+    dismissContextMenu();
+    try {
+      await client.post(`/api/messages/${msg.id}/react`, { emoji });
+      toast.success(`Reacted with ${emoji}`);
+    } catch { toast.error('Failed to add reaction'); }
+  };
+  const handlePin = (msg) => {
+    setPinnedMsgs(prev => {
+      const next = new Set(prev);
+      if (next.has(msg.id)) { next.delete(msg.id); toast.success('Unpinned'); }
+      else { next.add(msg.id); toast.success('Pinned message'); }
+      return next;
+    });
+    dismissContextMenu();
+  };
+  const handleSave = (msg) => {
+    setSavedMsgs(prev => {
+      const next = new Set(prev);
+      if (next.has(msg.id)) { next.delete(msg.id); toast.success('Removed from saved'); }
+      else { next.add(msg.id); toast.success('Added to saved messages'); }
+      return next;
+    });
+    dismissContextMenu();
+  };
+  const handleTranslate = async (msg) => {
+    dismissContextMenu();
+    try {
+      const { data } = await client.post('/api/messages/translate', { text: msg.content });
+      toast(data.translated || 'Translation unavailable', { duration: 6000 });
+    } catch { toast.error('Translation not available'); }
+  };
+  const handleCopyLink = (msg) => {
+    const url = `${window.location.origin}/messages/${id}?msg=${msg.id}`;
+    navigator.clipboard?.writeText(url)
+      .then(() => toast.success('Link copied'))
+      .catch(() => toast.error('Could not copy link'));
+    dismissContextMenu();
+  };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const getDisplayName = () => {
@@ -621,8 +662,9 @@ function ChatRoom() {
                   onTouchStart={(e) => { e.stopPropagation(); startLongPress(msg); }}
                   onTouchEnd={cancelLongPress}
                   onTouchMove={cancelLongPress}
-                  /* Desktop: single click opens context menu */
-                  onClick={(e) => { e.stopPropagation(); setSelectedMsg(msg); }}
+                  /* Desktop: right-click context menu */
+                  onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedMsg(msg); }}
+                  /* Desktop: click outside closes menu (handled by messages area onClick) */
                 >
                   {/* Desktop hover quick-actions (hidden on touch screens) */}
                   {isHovered && !selectedMsg && (
@@ -793,117 +835,118 @@ function ChatRoom() {
       )}
     </div>
 
-    {/* ── Message Context Menu Bottom Sheet ───────────────────────────── */}
+    {/* ── Message Context Menu — Telegram style ───────────────────────── */}
     {selectedMsg && (
       <>
         {/* Backdrop */}
-        <div
-          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-[2px]"
-          onClick={dismissContextMenu}
-        />
-        {/* Sheet */}
+        <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-[3px]" onClick={dismissContextMenu} />
+
+        {/* Sheet — slides up from bottom */}
         <div className="fixed bottom-0 left-0 right-0 z-[61] animate-in slide-in-from-bottom-4 duration-200">
-          <div className="bg-card rounded-t-3xl shadow-2xl border-t border-border/30 max-w-lg mx-auto overflow-hidden">
-            {/* Message preview */}
-            <div className="px-5 pt-4 pb-3 border-b border-border/20">
-              <div className={`inline-flex max-w-full items-start gap-2 rounded-2xl px-3 py-2 ${
-                selectedMsg.sender_id === user?.id
-                  ? 'bg-primary/15 dark:bg-primary/25 ml-auto'
-                  : 'bg-secondary'
-              }`}>
-                {selectedMsg.type === 'image' ? (
-                  <span className="text-xs text-muted-foreground italic">📷 Image</span>
-                ) : (
-                  <p className="text-sm line-clamp-2 text-foreground">{selectedMsg.content}</p>
-                )}
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-1 text-right">
-                {moment(selectedMsg.created_at).format('HH:mm')} · {selectedMsg.sender_name || 'You'}
-              </p>
+          <div
+            className="max-w-lg mx-auto rounded-t-3xl shadow-2xl overflow-hidden"
+            style={{ backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }}
+          >
+            {/* ── Message preview strip ── */}
+            <div
+              className="px-4 pt-4 pb-3 mx-4 mt-4 mb-1 rounded-2xl text-sm line-clamp-2"
+              style={{
+                backgroundColor: selectedMsg.sender_id === user?.id
+                  ? 'hsl(var(--primary)/0.15)'
+                  : 'hsl(var(--secondary))',
+                color: 'hsl(var(--foreground))',
+              }}
+            >
+              {selectedMsg.type === 'image'
+                ? '📷 Photo'
+                : selectedMsg.content}
             </div>
 
-            {/* Actions grid */}
-            <div className="grid grid-cols-4 gap-0 border-b border-border/10">
+            {/* ── Emoji reaction row ── */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border/20">
+              {['❤️','👏','👍','👎','🔥','🤩','😂'].map(emoji => (
+                <button
+                  key={emoji}
+                  onClick={() => handleReaction(selectedMsg, emoji)}
+                  className="text-2xl active:scale-125 transition-transform hover:scale-110 select-none"
+                  style={{ lineHeight: 1 }}
+                >
+                  {emoji}
+                </button>
+              ))}
+              {/* More reactions */}
+              <button
+                onClick={() => toast('More reactions coming soon')}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-lg transition-colors"
+                style={{ backgroundColor: 'hsl(var(--secondary))' }}
+              >
+                ＋
+              </button>
+            </div>
+
+            {/* ── Action list ── */}
+            <div className="py-1">
               {/* Reply */}
-              <button
-                onClick={() => handleContextReply(selectedMsg)}
-                className="flex flex-col items-center gap-1.5 py-4 hover:bg-secondary/50 active:bg-secondary transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                  <CornerUpLeft className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="text-[11px] font-medium text-foreground">Reply</span>
-              </button>
-              {/* Forward */}
-              <button
-                onClick={() => handleContextForward(selectedMsg)}
-                className="flex flex-col items-center gap-1.5 py-4 hover:bg-secondary/50 active:bg-secondary transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                  <Forward className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                </div>
-                <span className="text-[11px] font-medium text-foreground">Forward</span>
-              </button>
+              <CtxItem icon={<CornerUpLeft className="w-5 h-5" />} label="Reply"
+                onClick={() => handleContextReply(selectedMsg)} />
+
               {/* Copy */}
               {selectedMsg.type !== 'image' && (
-                <button
-                  onClick={() => handleCopy(selectedMsg)}
-                  className="flex flex-col items-center gap-1.5 py-4 hover:bg-secondary/50 active:bg-secondary transition-colors"
-                >
-                  <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                    <Copy className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  </div>
-                  <span className="text-[11px] font-medium text-foreground">Copy</span>
-                </button>
+                <CtxItem icon={<Copy className="w-5 h-5" />} label="Copy"
+                  onClick={() => handleCopy(selectedMsg)} />
               )}
-              {/* Edit (own text messages only) */}
+
+              {/* Copy Link */}
+              <CtxItem icon={<UserCircle className="w-5 h-5" />} label="Copy Link"
+                onClick={() => handleCopyLink(selectedMsg)} />
+
+              {/* Forward */}
+              <CtxItem icon={<Forward className="w-5 h-5" />} label="Forward"
+                onClick={() => handleContextForward(selectedMsg)} />
+
+              {/* Save */}
+              <CtxItem
+                icon={<Bookmark className="w-5 h-5" />}
+                label={savedMsgs.has(selectedMsg.id) ? 'Remove from saved' : 'Add to saved messages'}
+                onClick={() => handleSave(selectedMsg)}
+              />
+
+              {/* Pin */}
+              <CtxItem
+                icon={<Pin className="w-5 h-5" />}
+                label={pinnedMsgs.has(selectedMsg.id) ? 'Unpin' : 'Pin'}
+                onClick={() => handlePin(selectedMsg)}
+              />
+
+              {/* Translate */}
+              {selectedMsg.type !== 'image' && (
+                <CtxItem icon={<Languages className="w-5 h-5" />} label="Translate"
+                  onClick={() => handleTranslate(selectedMsg)} />
+              )}
+
+              {/* Edit — own text only */}
               {selectedMsg.sender_id === user?.id && selectedMsg.type !== 'image' && (
-                <button
-                  onClick={() => handleContextEdit(selectedMsg)}
-                  className="flex flex-col items-center gap-1.5 py-4 hover:bg-secondary/50 active:bg-secondary transition-colors"
-                >
-                  <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                    <Pencil className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <span className="text-[11px] font-medium text-foreground">Edit</span>
-                </button>
+                <CtxItem icon={<Pencil className="w-5 h-5" />} label="Edit"
+                  onClick={() => handleContextEdit(selectedMsg)} />
+              )}
+
+              {/* Delete — own messages, destructive */}
+              {selectedMsg.sender_id === user?.id && (
+                <CtxItem
+                  icon={<Trash2 className="w-5 h-5" />}
+                  label={deletingMsg?.id === selectedMsg.id ? 'Tap again to confirm delete' : 'Delete'}
+                  onClick={() => {
+                    const confirming = deletingMsg?.id === selectedMsg.id;
+                    handleContextDelete(selectedMsg);
+                    if (confirming) dismissContextMenu();
+                  }}
+                  destructive
+                />
               )}
             </div>
 
-            {/* Delete row — separate, destructive */}
-            {selectedMsg.sender_id === user?.id && (
-              <button
-                onClick={() => {
-                  const isConfirming = deletingMsg?.id === selectedMsg.id;
-                  handleContextDelete(selectedMsg);
-                  if (!isConfirming) {
-                    // Don't dismiss yet — user needs to tap again to confirm
-                    return;
-                  }
-                  dismissContextMenu();
-                }}
-                className="flex items-center gap-3 w-full px-5 py-4 hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 transition-colors"
-              >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  deletingMsg?.id === selectedMsg.id
-                    ? 'bg-red-500'
-                    : 'bg-red-100 dark:bg-red-900/30'
-                }`}>
-                  <Trash2 className={`w-5 h-5 ${deletingMsg?.id === selectedMsg.id ? 'text-white' : 'text-red-600 dark:text-red-400'}`} />
-                </div>
-                <div className="text-left">
-                  <p className={`text-sm font-semibold ${deletingMsg?.id === selectedMsg.id ? 'text-red-600' : 'text-foreground'}`}>
-                    {deletingMsg?.id === selectedMsg.id ? 'Tap again to confirm delete' : 'Delete Message'}
-                  </p>
-                  {deletingMsg?.id === selectedMsg.id && (
-                    <p className="text-xs text-muted-foreground">This action cannot be undone</p>
-                  )}
-                </div>
-              </button>
-            )}
-
-            {/* Safe area spacer */}
-            <div style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} className="pb-2" />
+            {/* Safe area */}
+            <div className="pb-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} />
           </div>
         </div>
       </>
@@ -979,6 +1022,27 @@ function ChatRoom() {
       </div>
     )}
     </>
+  );
+}
+
+/* ── Context menu row item ──────────────────────────────────────────────── */
+function CtxItem({ icon, label, onClick, destructive = false }: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  destructive?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-4 w-full px-5 py-3.5 text-sm font-medium transition-colors active:scale-[0.98] text-left"
+      style={{ color: destructive ? '#ef4444' : 'hsl(var(--foreground))' }}
+      onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary)/0.6)')}
+      onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+    >
+      <span style={{ color: destructive ? '#ef4444' : 'hsl(var(--muted-foreground))' }}>{icon}</span>
+      {label}
+    </button>
   );
 }
 
