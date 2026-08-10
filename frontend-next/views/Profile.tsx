@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import PersonalProfile from "@/components/profile/PersonalProfile";
 import BusinessProfile from "@/components/profile/BusinessProfile";
-import ProfileToggle from "@/components/profile/ProfileToggle";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import TickerBar from "@/components/feed/TickerBar";
 import { DemoBadge } from "@/components/profile/DemoBadge";
@@ -167,7 +166,32 @@ function Profile() {
               <SafeImage src={profile.cover_url} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: profile.cover_position || 'center' }} />
             )}
-            {/* Floating Personal / Business toggle — REMOVED (moved to sidebar) */}
+            {/* Personal / Business toggle — top-right of cover, visible to all when business exists */}
+            {hasBusinessView && (
+              <div className="absolute top-3 right-3 z-10 flex items-center rounded-full p-0.5 gap-0.5 shadow-lg"
+                style={{ backgroundColor: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                <button
+                  onClick={() => view !== 'personal' && handleFlip()}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
+                  style={{
+                    backgroundColor: view === 'personal' ? '#fff' : 'transparent',
+                    color: view === 'personal' ? '#1d4ed8' : 'rgba(255,255,255,0.8)',
+                  }}
+                >
+                  <User className="w-3 h-3" /> Personal
+                </button>
+                <button
+                  onClick={() => view !== 'business' && handleFlip()}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
+                  style={{
+                    backgroundColor: view === 'business' ? '#fff' : 'transparent',
+                    color: view === 'business' ? '#b45309' : 'rgba(255,255,255,0.8)',
+                  }}
+                >
+                  <Store className="w-3 h-3" /> Business
+                </button>
+              </div>
+            )}
           </div>
           <div className="px-5 pb-4">
             {/* Row 1: Avatar (left) + Edit/Logout buttons (right) */}
