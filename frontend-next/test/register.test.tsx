@@ -82,6 +82,10 @@ describe('Register form', () => {
     fireEvent.change(passwordInputs[0], { target: { value: 'password123' } });
     fireEvent.change(passwordInputs[1], { target: { value: 'password123' } });
 
+    // Check the Terms of Service checkbox before submitting
+    const tosCheckbox = screen.getByRole('button', { name: /I agree to Empire X/i });
+    fireEvent.click(tosCheckbox);
+
     const form = emailInput.closest('form') as HTMLFormElement;
     fireEvent.submit(form);
 

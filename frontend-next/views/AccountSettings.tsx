@@ -100,6 +100,7 @@ function AccountSettingsView() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [pushPerm, setPushPerm] = useState(() => getPushPermission());
   const [pushLoading, setPushLoading] = useState(false);
+  const [presenceVisibility, setPresenceVisibility] = useState<'everyone' | 'nobody'>('everyone');
 
   const displayName = typeof user?.full_name === 'string' ? user.full_name : 'User';
   const userEmail   = typeof user?.email    === 'string' ? user.email    : '';

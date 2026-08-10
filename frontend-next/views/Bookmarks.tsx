@@ -3,12 +3,13 @@ import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import NextImage from 'next/image';
 import client from "@/api/client";
-import { entities } from "@/api/entities";
-import { Bookmark, ShoppingBag, Crown, ClipboardList, FileText, Bell, BellOff, Trash2 } from "lucide-react";
+import { Bookmark, ShoppingBag, Crown, ClipboardList, FileText, Bell, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import ErrorState from "@/components/ui/ErrorState";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import BookmarkButton from "@/components/ui/BookmarkButton";
+import { useAppStore } from "@/store";
 
 function Bookmarks() {
   const { t } = useTranslation();
@@ -20,41 +21,26 @@ function Bookmarks() {
     { key:"task",    label: t('bookmarks.tasks'),     icon:ClipboardList },
     { key:"alerts",  label: t('bookmarks.alerts'),    icon:Bell        },
   ];
-  const [saves, setSaves] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const savedIds = useAppStore(s => s.savedIds);
+  const hydrate  = useAppStore(s => s.hydrate);
+  const storeError = useAppStore(s => s.error);
+  const isHydrating = useAppStore(s => s.isHydrating);
+
   const [tab, setTab] = useState("all");
-  const [enriched, setEnriched] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [alertsLoading, setAlertsLoading] = useState(false);
 
+  // Hydrate only when the store has no bookmarks yet
   useEffect(() => {
-    loadBookmarks();
+    if (Object.keys(savedIds).length === 0) {
+      hydrate();
+    }
   }, []);
 
   useEffect(() => {
     if (tab === "alerts") loadAlerts();
   }, [tab]);
-
-  const loadBookmarks = async () => {
-    try {
-      const r = await client.get("/api/saves");
-      setSaves(r.data);
-      const items = await Promise.all(r.data.map(async s => {
-        try {
-          let item;
-          if (s.target_type === "post") item = await entities.Post.get(s.target_id);
-          else if (s.target_type === "product") item = await entities.Product.get(s.target_id);
-          else if (s.target_type === "showroom") item = await entities.Showroom.get(s.target_id);
-          else if (s.target_type === "task") item = await entities.Task.get(s.target_id);
-          return { ...s, item };
-        } catch { return { ...s, item: null }; }
-      }));
-      setEnriched(items.filter(i => i.item));
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error || "Failed to load bookmarks");
-    }
-    setLoading(false);
-  };
 
   const loadAlerts = async () => {
     setAlertsLoading(true);
@@ -75,12 +61,10 @@ function Bookmarks() {
     } catch { toast.error(t('bookmarks.removeAlertFailed')); }
   };
 
-  const handleUnsave = async (targetId) => {
-    await client.post("/api/saves/toggle", { target_id: targetId });
-    setEnriched(prev => prev.filter(s => s.target_id !== targetId));
-  };
-
-  const filtered = tab === "all" ? enriched : enriched.filter(s => s.target_type === tab);
+  // Pure in-memory filtering from the store
+  const filtered = Object.values(savedIds).filter(
+    item => tab === 'all' || item.target_type === tab
+  );
 
   return (
       <div className="max-w-2xl mx-auto">
@@ -155,8 +139,10 @@ function Bookmarks() {
 
         {/* Bookmarks tabs */}
         {tab !== "alerts" && (
-          loading ? (
+          isHydrating ? (
             <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"/></div>
+          ) : storeError && filtered.length === 0 ? (
+            <ErrorState message={storeError} onRetry={() => hydrate()} />
           ) : filtered.length === 0 ? (
             <div className="text-center py-16">
               <Bookmark className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3"/>
@@ -164,37 +150,42 @@ function Bookmarks() {
             </div>
           ) : (
             <div className="space-y-3">
-              {filtered.map(s => {
-                const { item, target_type, target_id } = s;
+              {filtered.map(savedItem => {
+                const { target_id, target_type, title, thumbnailUrl } = savedItem;
                 return (
                   <div key={target_id} className="bg-card rounded-2xl border border-border/50 p-4 flex items-start gap-3">
+                    {thumbnailUrl && (
+                      <div className="w-12 h-12 rounded-xl bg-secondary/30 shrink-0 overflow-hidden relative">
+                        <NextImage src={thumbnailUrl} alt={title || target_type} fill className="object-cover" unoptimized />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       {target_type === "post" && (
-                        <p className="text-sm line-clamp-2">{item.content}</p>
+                        <p className="text-sm line-clamp-2">{title || t('bookmarks.untitled')}</p>
                       )}
                       {target_type === "product" && (
-                        <Link href={`/products/${item.id}`} className="hover:underline">
-                          <p className="text-sm font-medium">{item.title}</p>
-                          <p className="text-xs text-amber-600">{item.price?.toLocaleString()} {item.currency}</p>
+                        <Link href={`/products/${target_id}`} className="hover:underline">
+                          <p className="text-sm font-medium">{title || t('bookmarks.untitled')}</p>
                         </Link>
                       )}
                       {target_type === "showroom" && (
-                        <Link href={`/showrooms/${item.id}`} className="hover:underline">
-                          <p className="text-sm font-medium">{item.title}</p>
-                          <p className="text-xs text-muted-foreground">{item.category}</p>
+                        <Link href={`/showrooms/${target_id}`} className="hover:underline">
+                          <p className="text-sm font-medium">{title || t('bookmarks.untitled')}</p>
                         </Link>
                       )}
                       {target_type === "task" && (
                         <Link href="/tasks" className="hover:underline">
-                          <p className="text-sm font-medium">{item.title}</p>
-                          <p className="text-xs text-amber-600">{item.offered_payment?.toLocaleString()} {item.currency}</p>
+                          <p className="text-sm font-medium">{title || t('bookmarks.untitled')}</p>
                         </Link>
                       )}
                       <p className="text-[10px] text-muted-foreground mt-1 capitalize">{target_type}</p>
                     </div>
-                    <button onClick={()=>handleUnsave(target_id)} className="text-muted-foreground hover:text-amber-500 transition-colors shrink-0">
-                      <Bookmark className="w-4 h-4 fill-amber-500 text-amber-500"/>
-                    </button>
+                    <BookmarkButton
+                      targetId={target_id}
+                      targetType={target_type}
+                      itemData={{ title, thumbnailUrl }}
+                      className="shrink-0"
+                    />
                   </div>
                 );
               })}

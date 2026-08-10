@@ -16,6 +16,7 @@ import TickerBar from './TickerBar';
 import PostCardMenu from './PostCardMenu';
 import BusinessShowroomFeed from './BusinessShowroomFeed';
 import ShareButton from '@/components/ui/ShareButton';
+import BookmarkButton from '@/components/ui/BookmarkButton';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
 import ProfilePeek from '@/components/profile/ProfilePeek';
 import { useTranslation } from 'react-i18next';
@@ -508,14 +509,18 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
           </div>
           {viewMode === 'personal' && authorBusinesses.length > 0 && (
             <div className="flex gap-1 flex-wrap mt-0.5">
-              {authorBusinesses.slice(0, 2).map(b => (
-                <Link
-                  key={b.id}
-                  href={`/profile/${post.author_id}?view=business`}
-                  className="text-[10px] text-muted-foreground font-medium hover:text-primary hover:underline flex items-center gap-0.5"
-                >
-                  <Store className="w-2.5 h-2.5 text-primary" />{b.business_name}
-                </Link>
+              {authorBusinesses.slice(0, 2).map((b, idx) => (
+                <React.Fragment key={b.id}>
+                  {idx > 0 && (
+                    <span className="text-muted-foreground text-[10px] select-none" aria-hidden="true">|</span>
+                  )}
+                  <Link
+                    href={`/profile/${post.author_id}?view=business`}
+                    className="text-[10px] text-muted-foreground font-medium hover:text-primary hover:underline flex items-center gap-0.5"
+                  >
+                    <Store className="w-2.5 h-2.5 text-primary" />{b.business_name}
+                  </Link>
+                </React.Fragment>
               ))}
             </div>
           )}
@@ -585,6 +590,15 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
             text={(post.content ?? '').slice(0, 100)}
             url={`${typeof window !== 'undefined' ? window.location.origin : 'https://empirex.app'}/profile/${post.author_id}`}
             label=""
+          />
+          <BookmarkButton
+            targetId={post.id}
+            targetType="post"
+            itemData={{
+              title: post.content?.slice(0, 100),
+              thumbnailUrl: post.image_url ?? undefined,
+            }}
+            className="p-1.5"
           />
         </div>
       )}
