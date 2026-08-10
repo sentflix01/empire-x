@@ -11,12 +11,13 @@ import client from '@/api/client';
 import {
   Store, ShoppingBag, MapPin, MessageSquare, ArrowRight, Clock,
   UtensilsCrossed, Briefcase, HeartPulse, Palette, CalendarDays,
-  Home as HomeIcon, GraduationCap, LucideProps, Bookmark,
+  Home as HomeIcon, GraduationCap, LucideProps, Bookmark, ShoppingCart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { findOrCreateConversation } from '@/lib/messaging';
 import { getCategoryByValue } from '@/lib/businessTemplates';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
+import PurchaseModal from '@/components/checkout/PurchaseModal';
 
 /* ── Bookmark button component ───────────────────────────────────── */
 function BookmarkButton({ businessId, businessName, themeColor }: {
@@ -152,7 +153,12 @@ const CAT_ICONS: Record<string, CatIconType> = {
 };
 
 /* ── Sub-components ──────────────────────────────────────────────── */
-function ServicesList({ title, items, themeColor }: { title?: string; items?: SectionItem[]; themeColor: string }) {
+function ServicesList({ title, items, themeColor, onBuy }: {
+  title?: string;
+  items?: SectionItem[];
+  themeColor: string;
+  onBuy?: (item: SectionItem) => void;
+}) {
   if (!items?.length) return null;
   return (
     <div>
@@ -167,7 +173,19 @@ function ServicesList({ title, items, themeColor }: { title?: string; items?: Se
               )}
             </div>
             {item.price && (
-              <span className="text-xs font-bold shrink-0" style={{ color: themeColor }}>{item.price}</span>
+              <button
+                onClick={() => onBuy?.(item)}
+                className={`text-xs font-bold shrink-0 rounded-full px-2 py-0.5 transition-all ${
+                  onBuy
+                    ? 'hover:opacity-80 active:scale-95 cursor-pointer underline-offset-2 hover:underline'
+                    : 'cursor-default'
+                }`}
+                style={{ color: themeColor }}
+                aria-label={`Buy ${item.name ?? item.title} — ${item.price}`}
+                type="button"
+              >
+                {item.price}
+              </button>
             )}
           </div>
         ))}
@@ -223,7 +241,12 @@ function SectionChips({ sections, themeColor }: { sections: Section[]; themeColo
   );
 }
 
-function ProductsGrid({ products, themeColor, profileUserId }: { products: Product[]; themeColor: string; profileUserId: string }) {
+function ProductsGrid({ products, themeColor, profileUserId, onBuy }: {
+  products: Product[];
+  themeColor: string;
+  profileUserId: string;
+  onBuy?: (product: Product) => void;
+}) {
   if (!products.length) return null;
   return (
     <div>
@@ -237,22 +260,35 @@ function ProductsGrid({ products, themeColor, profileUserId }: { products: Produ
         {products.slice(0, 4).map(p => {
           const imgs = parseImages(p.images);
           return (
-            <Link href={`/products/${p.id}`} key={p.id}
-              className="rounded-lg border border-border/40 overflow-hidden hover:shadow-sm transition-all">
-              <div className="aspect-square bg-secondary/20 relative overflow-hidden">
-                {imgs[0]
-                  ? <NextImage src={imgs[0]} alt={p.title} fill className="object-cover" unoptimized />
-                  : <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
-                      <ShoppingBag className="w-5 h-5" />
-                    </div>}
-              </div>
-              <div className="p-2">
-                <p className="text-xs font-medium truncate">{p.title}</p>
-                <p className="text-xs font-bold mt-0.5" style={{ color: themeColor }}>
-                  {p.price?.toLocaleString()} {p.currency ?? 'ETB'}
-                </p>
-              </div>
-            </Link>
+            <div key={p.id} className="rounded-lg border border-border/40 overflow-hidden hover:shadow-sm transition-all relative group">
+              <Link href={`/products/${p.id}`}>
+                <div className="aspect-square bg-secondary/20 relative overflow-hidden">
+                  {imgs[0]
+                    ? <NextImage src={imgs[0]} alt={p.title ?? ''} fill className="object-cover" unoptimized />
+                    : <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
+                        <ShoppingBag className="w-5 h-5" />
+                      </div>}
+                </div>
+                <div className="p-2">
+                  <p className="text-xs font-medium truncate">{p.title}</p>
+                  <p className="text-xs font-bold mt-0.5" style={{ color: themeColor }}>
+                    {p.price?.toLocaleString()} {p.currency ?? 'ETB'}
+                  </p>
+                </div>
+              </Link>
+              {/* Quick-buy button — appears on hover */}
+              {onBuy && p.price && (
+                <button
+                  onClick={() => onBuy(p)}
+                  className="absolute bottom-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity active:scale-95"
+                  style={{ backgroundColor: themeColor }}
+                  aria-label={`Buy ${p.title}`}
+                  type="button"
+                >
+                  <ShoppingCart className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           );
         })}
       </div>
@@ -299,9 +335,11 @@ interface CategoryContentProps {
   products: Product[];
   themeColor: string;
   profileUserId: string;
+  onBuyService?: (item: SectionItem) => void;
+  onBuyProduct?: (product: Product) => void;
 }
 
-function CategoryContent({ biz, sections, products, themeColor, profileUserId }: CategoryContentProps) {
+function CategoryContent({ biz, sections, products, themeColor, profileUserId, onBuyService, onBuyProduct }: CategoryContentProps) {
   const cat = (biz.business_category as string | undefined) ?? 'other';
   const get = (type: string) => sections.find(s => s.type === type);
   const servicesSection = get('services') ?? get('menu');
@@ -313,7 +351,7 @@ function CategoryContent({ biz, sections, products, themeColor, profileUserId }:
       return (
         <div className="space-y-2.5">
           {(servicesSection?.items?.length ?? 0) > 0 && (
-            <ServicesList title={servicesSection!.title ?? 'Menu Highlights'} items={servicesSection!.items} themeColor={themeColor} />
+            <ServicesList title={servicesSection!.title ?? 'Menu Highlights'} items={servicesSection!.items} themeColor={themeColor} onBuy={onBuyService} />
           )}
           <HoursPreview hours={hours} />
         </div>
@@ -322,7 +360,7 @@ function CategoryContent({ biz, sections, products, themeColor, profileUserId }:
       return (
         <div className="space-y-2.5">
           {products.length > 0
-            ? <ProductsGrid products={products} themeColor={themeColor} profileUserId={profileUserId} />
+            ? <ProductsGrid products={products} themeColor={themeColor} profileUserId={profileUserId} onBuy={onBuyProduct} />
             : <FeatureChips items={featuresSection?.items} themeColor={themeColor} />}
         </div>
       );
@@ -330,7 +368,7 @@ function CategoryContent({ biz, sections, products, themeColor, profileUserId }:
       return (
         <div className="space-y-2.5">
           {(servicesSection?.items?.length ?? 0) > 0
-            ? <ServicesList title={servicesSection!.title ?? 'Services'} items={servicesSection!.items} themeColor={themeColor} />
+            ? <ServicesList title={servicesSection!.title ?? 'Services'} items={servicesSection!.items} themeColor={themeColor} onBuy={onBuyService} />
             : <FeatureChips items={featuresSection?.items} themeColor={themeColor} />}
         </div>
       );
@@ -338,7 +376,7 @@ function CategoryContent({ biz, sections, products, themeColor, profileUserId }:
       return (
         <div className="space-y-2.5">
           {(servicesSection?.items?.length ?? 0) > 0 && (
-            <ServicesList title={servicesSection!.title ?? 'Services'} items={servicesSection!.items} themeColor={themeColor} />
+            <ServicesList title={servicesSection!.title ?? 'Services'} items={servicesSection!.items} themeColor={themeColor} onBuy={onBuyService} />
           )}
           <HoursPreview hours={hours} />
         </div>
@@ -348,7 +386,7 @@ function CategoryContent({ biz, sections, products, themeColor, profileUserId }:
       return (
         <div className="space-y-2.5">
           {(coursesSec?.items?.length ?? 0) > 0
-            ? <ServicesList title="Programs" items={coursesSec!.items} themeColor={themeColor} />
+            ? <ServicesList title="Programs" items={coursesSec!.items} themeColor={themeColor} onBuy={onBuyService} />
             : <FeatureChips items={featuresSection?.items} themeColor={themeColor} />}
         </div>
       );
@@ -357,7 +395,7 @@ function CategoryContent({ biz, sections, products, themeColor, profileUserId }:
       return (
         <div className="space-y-2.5">
           {(servicesSection?.items?.length ?? 0) > 0 && (
-            <ServicesList title={servicesSection!.title ?? 'Packages'} items={servicesSection!.items} themeColor={themeColor} />
+            <ServicesList title={servicesSection!.title ?? 'Packages'} items={servicesSection!.items} themeColor={themeColor} onBuy={onBuyService} />
           )}
         </div>
       );
@@ -373,7 +411,7 @@ function CategoryContent({ biz, sections, products, themeColor, profileUserId }:
       return (
         <div className="space-y-2.5">
           {(servicesSection?.items?.length ?? 0) > 0
-            ? <ServicesList title={servicesSection!.title} items={servicesSection!.items} themeColor={themeColor} />
+            ? <ServicesList title={servicesSection!.title} items={servicesSection!.items} themeColor={themeColor} onBuy={onBuyService} />
             : <SectionChips sections={sections} themeColor={themeColor} />}
         </div>
       );
@@ -397,6 +435,12 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   const [loading, setLoading] = useState(true);
   const [messaging, setMessaging] = useState(false);
   const router = useRouter();
+
+  // ── Purchase modal state ───────────────────────────────────────────
+  const [purchaseModal, setPurchaseModal] = useState<{
+    item: { id?: string; title: string; description?: string; price?: number; currency?: string; images?: string };
+    seller: { user_id: string; business_name?: string; display_name?: string };
+  } | null>(null);
 
   // ── Global feed mode (no profile prop) ────────────────────────────
   const isFeedMode = !profile;
@@ -477,6 +521,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
       );
     }
     return (
+    <>
       <div className="space-y-4">
         {feedBusinesses.map((biz) => {
           const color      = (biz.business_theme_color as string) || '#2563EB';
@@ -552,13 +597,46 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               {/* Services preview */}
               {servSection?.items && servSection.items.length > 0 && (
                 <div className="px-4 pb-4">
-                  <ServicesList title={servSection.title} items={servSection.items} themeColor={color} />
+                  <ServicesList
+                    title={servSection.title}
+                    items={servSection.items}
+                    themeColor={color}
+                    onBuy={(svcItem) => {
+                      // Parse price string like "ETB 500" or "From 30,000 ETB" → number
+                      const priceStr = svcItem.price ?? '';
+                      const priceNum = parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 0;
+                      setPurchaseModal({
+                        item: {
+                          title: svcItem.name ?? svcItem.title ?? 'Service',
+                          description: svcItem.description ?? svcItem.desc,
+                          price: priceNum,
+                          currency: 'ETB',
+                        },
+                        seller: {
+                          user_id: ownerId,
+                          business_name: bizName,
+                        },
+                      });
+                    }}
+                  />
                 </div>
               )}
             </div>
           );
         })}
       </div>
+
+      {/* Purchase modal — shared across all feed-mode business cards */}
+      {purchaseModal && (
+        <PurchaseModal
+          item={purchaseModal.item}
+          seller={purchaseModal.seller}
+          buyer={currentUser ? { id: currentUser.id as string } : undefined}
+          onClose={() => setPurchaseModal(null)}
+          onPurchased={() => setPurchaseModal(null)}
+        />
+      )}
+    </>
     );
   }
 
@@ -680,9 +758,53 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           products={products}
           themeColor={themeColor}
           profileUserId={profile!.user_id}
+          onBuyService={(svcItem) => {
+            const priceStr = svcItem.price ?? '';
+            const priceNum = parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 0;
+            setPurchaseModal({
+              item: {
+                title: svcItem.name ?? svcItem.title ?? 'Service',
+                description: svcItem.description ?? svcItem.desc,
+                price: priceNum,
+                currency: 'ETB',
+              },
+              seller: {
+                user_id: profile!.user_id,
+                business_name: bizName,
+                display_name: profile!.display_name,
+              },
+            });
+          }}
+          onBuyProduct={(product) => {
+            setPurchaseModal({
+              item: {
+                id: product.id,
+                title: product.title ?? 'Product',
+                price: product.price,
+                currency: product.currency ?? 'ETB',
+                images: product.images,
+              },
+              seller: {
+                user_id: profile!.user_id,
+                business_name: bizName,
+                display_name: profile!.display_name,
+              },
+            });
+          }}
         />
       </div>
     </div>
+
+    {/* Purchase modal */}
+    {purchaseModal && (
+      <PurchaseModal
+        item={purchaseModal.item}
+        seller={purchaseModal.seller}
+        buyer={currentUser ? { id: currentUser.id as string } : undefined}
+        onClose={() => setPurchaseModal(null)}
+        onPurchased={() => setPurchaseModal(null)}
+      />
+    )}
   );
 }
 

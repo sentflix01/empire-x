@@ -341,9 +341,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     { path: "/referral", icon: Gift, label: "Referral" },
     { path: "/coupons", icon: Tag, label: "My Coupons" },
     { path: "/analytics", icon: BarChart3, label: "Analytics" },
-    { path: "/account", icon: Lock, label: "Account Settings" },
-    { path: "/privacy", icon: Shield, label: "Privacy & Security" },
-    { path: "/service-agreement", icon: FileText, label: "Service Agreement" },
   ];
 
   const isActive = (path: string) => {
@@ -384,8 +381,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* ── Header ── */}
-      <header className="sticky top-0 z-50 bg-background border-b border-border shrink-0">
+      {/* ── Header — fixed so it never scrolls away on any device/browser ── */}
+      <header className="fixed top-0 inset-x-0 z-50 bg-background border-b border-border shrink-0 h-14">
         <div className="w-full px-4 h-14 flex items-center gap-3">
           {/* Sidebar toggle button — desktop only */}
           <button
@@ -500,8 +497,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
       </header>
 
-      {/* ── Body: sidebar + main + right panel ── */}
-      <div className="flex flex-1 w-full">
+      {/* ── Body: sidebar + main + right panel (pt-14 offsets the fixed header) ── */}
+      <div className="flex flex-1 w-full pt-14">
 
         {/* ── Left Sidebar (desktop only) ── */}
         <nav className={`hidden md:flex fixed left-0 top-14 bottom-0 bg-card border-r border-border flex-col z-40 transition-all duration-200
@@ -917,27 +914,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <div className="px-4 pt-3 pb-1">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Settings</p>
             </div>
-
-            {/* Account Settings */}
-            <Link href="/account" onClick={() => setSettingsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground hover:bg-secondary">
-              <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="font-medium">Account Settings</span>
-            </Link>
-
-            {/* Privacy */}
-            <Link href="/privacy" onClick={() => setSettingsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground hover:bg-secondary">
-              <Shield className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="font-medium">Privacy &amp; Security</span>
-            </Link>
-
-            {/* Service Agreement */}
-            <Link href="/service-agreement" onClick={() => setSettingsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground hover:bg-secondary">
-              <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="font-medium">Service Agreement</span>
-            </Link>
 
             {/* Theme */}
             <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
