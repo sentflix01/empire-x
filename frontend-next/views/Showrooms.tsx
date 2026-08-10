@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import BookmarkButton from '@/components/ui/BookmarkButton';
 
 function ShowroomSkeleton() {
   return (
@@ -87,37 +88,51 @@ function Showrooms() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {filtered.map(s => (
-              <Link key={s.id} href={`/showrooms/${s.id}`} className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-md transition-all group">
-                <div className="h-28 relative overflow-hidden bg-gradient-to-r from-amber-100 to-amber-50">
-                  {s.cover_image ? (
-                    <img
-                      src={s.cover_image}
-                      alt={s.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={e => { e.currentTarget.style.display = 'none'; }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Crown className="w-8 h-8 text-amber-400 group-hover:scale-110 transition-transform" />
+              <div key={s.id} className="relative group">
+                <Link href={`/showrooms/${s.id}`} className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-md transition-all block group">
+                  <div className="h-28 relative overflow-hidden bg-gradient-to-r from-amber-100 to-amber-50">
+                    {s.cover_image ? (
+                      <img
+                        src={s.cover_image}
+                        alt={s.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={e => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Crown className="w-8 h-8 text-amber-400 group-hover:scale-110 transition-transform" />
+                      </div>
+                    )}
+                    {/* Category badge overlay */}
+                    <div className="absolute top-2 left-2">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white backdrop-blur-sm">
+                        {CAT_LABELS[s.category] || s.category || 'Showroom'}
+                      </span>
                     </div>
-                  )}
-                  {/* Category badge overlay */}
-                  <div className="absolute top-2 right-2">
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white backdrop-blur-sm">
-                      {CAT_LABELS[s.category] || s.category || 'Showroom'}
-                    </span>
+                    {/* Bookmark button — positioned top-right, stops link navigation */}
+                    <div className="absolute top-2 right-2">
+                      <BookmarkButton
+                        targetId={s.id}
+                        targetType="showroom"
+                        itemData={{
+                          title: s.title,
+                          thumbnailUrl: s.cover_image || undefined,
+                        }}
+                        className="p-1.5 bg-black/30 hover:bg-black/50 rounded-lg backdrop-blur-sm"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="p-4">
-                  <div className="flex items-start justify-between">
-                    <h3 className="font-semibold text-sm">{s.title}</h3>
+                  <div className="p-4">
+                    <div className="flex items-start justify-between">
+                      <h3 className="font-semibold text-sm">{s.title}</h3>
+                    </div>
+                    {s.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{s.description}</p>}
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                      <Eye className="w-3 h-3" /> {s.view_count || 0} views
+                    </div>
                   </div>
-                  {s.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{s.description}</p>}
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                    <Eye className="w-3 h-3" /> {s.view_count || 0} views
-                  </div>
-                </div>
-              </Link>
+                </Link>
+              </div>
             ))}
           </div>
         )}

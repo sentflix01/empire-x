@@ -4,8 +4,9 @@ import { createAuthSlice, AuthSlice } from './authSlice';
 import { createNotificationsSlice, NotificationsSlice } from './notificationsSlice';
 import { createCartSlice, CartSlice } from './cartSlice';
 import { createFeedSlice, FeedSlice } from './feedSlice';
+import { createBookmarksSlice, BookmarksSlice } from './bookmarksSlice';
 
-export type AppStore = AuthSlice & NotificationsSlice & CartSlice & FeedSlice;
+export type AppStore = AuthSlice & NotificationsSlice & CartSlice & FeedSlice & BookmarksSlice;
 
 export const useAppStore = create<AppStore>()(
   persist(
@@ -14,6 +15,7 @@ export const useAppStore = create<AppStore>()(
       ...createNotificationsSlice(...a),
       ...createCartSlice(...a),
       ...createFeedSlice(...a),
+      ...createBookmarksSlice(...a),
     }),
     {
       name: 'empire-x-auth',
@@ -22,6 +24,7 @@ export const useAppStore = create<AppStore>()(
         typeof window !== 'undefined' ? sessionStorage : ({} as Storage)
       ),
       // Only persist the auth slice — cart/feed/notifications are session-transient
+      // savedIds (bookmarks) intentionally excluded — fresh-loaded each session
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
@@ -30,4 +33,4 @@ export const useAppStore = create<AppStore>()(
   )
 );
 
-export type { AuthSlice, NotificationsSlice, CartSlice, FeedSlice };
+export type { AuthSlice, NotificationsSlice, CartSlice, FeedSlice, BookmarksSlice };

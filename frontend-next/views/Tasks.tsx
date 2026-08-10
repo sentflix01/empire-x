@@ -13,6 +13,7 @@ import TaskBidsDialog from "@/components/tasks/TaskBidsDialog";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Skeleton } from '@/components/ui/skeleton';
+import BookmarkButton from '@/components/ui/BookmarkButton';
 
 const TASK_TYPES = {
   bill_payment: "💰 Bill Payment",
@@ -117,7 +118,14 @@ function Tasks() {
                       <p className="text-xs text-muted-foreground">{TASK_TYPES[task.task_type]?.split(" ").slice(1).join(" ")}</p>
                     </div>
                   </div>
-                  <Badge variant="outline" className={STATUS_STYLES[task.status]}>{task.status}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={STATUS_STYLES[task.status]}>{task.status}</Badge>
+                    <BookmarkButton
+                      targetId={task.id}
+                      targetType="task"
+                      itemData={{ title: task.title }}
+                    />
+                  </div>
                 </div>
                 {task.description && <p className="text-sm text-muted-foreground mb-3">{task.description}</p>}
                 <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-3">
