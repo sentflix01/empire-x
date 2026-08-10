@@ -796,8 +796,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   </Link>
 
                   <div className="my-2 border-t border-gray-100 dark:border-border" />
-                  <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider px-3 pt-1 pb-0.5">{tr('common.discover')}</p>
-                  {extraNavItems.map(({ path, icon: Icon, label }) => (
+                  <button
+                    onClick={() => setDiscoverOpen(v => !v)}
+                    className="w-full flex items-center justify-between px-3 pt-1 pb-0.5 group"
+                  >
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.discover')}</p>
+                    <ChevronDown className={`w-3 h-3 text-gray-400 dark:text-muted-foreground transition-transform duration-200 ${discoverOpen ? 'rotate-0' : '-rotate-90'}`} />
+                  </button>
+                  {discoverOpen && extraNavItems.map(({ path, icon: Icon, label }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
@@ -805,8 +811,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   ))}
 
                   <div className="my-2 border-t border-gray-100 dark:border-border" />
-                  <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider px-3 pt-1 pb-0.5">{tr('common.myAccount')}</p>
-                  {accountItems.filter(i => i.path !== '/account').map(({ path, icon: Icon, label, badge }) => (
+                  <button
+                    onClick={() => setAccountOpen(v => !v)}
+                    className="w-full flex items-center justify-between px-3 pt-1 pb-0.5 group"
+                  >
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.myAccount')}</p>
+                    <ChevronDown className={`w-3 h-3 text-gray-400 dark:text-muted-foreground transition-transform duration-200 ${accountOpen ? 'rotate-0' : '-rotate-90'}`} />
+                  </button>
+                  {accountOpen && accountItems.filter(i => i.path !== '/account').map(({ path, icon: Icon, label, badge }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" />
