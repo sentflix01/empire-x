@@ -42,13 +42,19 @@ function ChatRoom() {
   const [editText, setEditText]       = useState("");
 
   // Long-press context menu
-  const [selectedMsg, setSelectedMsg]   = useState(null);  // message tapped/long-pressed
-  const [deletingMsg, setDeletingMsg]   = useState(null);  // waiting for confirm-delete
-  const [forwardMsg, setForwardMsg]     = useState(null);  // message to forward
+  const [selectedMsg, setSelectedMsg]   = useState(null);
+  const [deletingMsg, setDeletingMsg]   = useState(null);
+  const [forwardMsg, setForwardMsg]     = useState(null);
   const [forwardSearch, setForwardSearch] = useState('');
   const [conversations, setConversations] = useState([]);
-  const [pinnedMsgs, setPinnedMsgs]     = useState<Set<string>>(new Set()); // pinned message ids
-  const [savedMsgs, setSavedMsgs]       = useState<Set<string>>(new Set()); // saved message ids
+  const [pinnedMsgs, setPinnedMsgs]     = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('pinnedMsgs') || '[]')); } catch { return new Set(); }
+  });
+  const [savedMsgs, setSavedMsgs]       = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('savedMsgs') || '[]')); } catch { return new Set(); }
+  });
+  const [reactions, setReactions]       = useState<Record<string, string[]>>({}); // msgId → emoji[]
+  const [translatedMsgs, setTranslatedMsgs] = useState<Record<string, string>>({}); // msgId → translated text
 
   // Legacy hover state (desktop) — still used to determine visual selection
   const [hoveredMsg, setHoveredMsg]     = useState(null);
