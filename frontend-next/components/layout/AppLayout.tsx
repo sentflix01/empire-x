@@ -176,6 +176,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const userInitial = displayName.charAt(0) || 'E';
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [unreadTasks, setUnreadTasks] = useState(0);
+  const [unreadFollows, setUnreadFollows] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(true);
   const [accountOpen, setAccountOpen] = useState(true);
@@ -230,6 +232,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           if (!window.location.pathname.startsWith('/messages')) {
             setUnreadMessages(c => c + 1);
           }
+        } else if (notif.type === 'task' || notif.type === 'task_assigned' || notif.type === 'task_completed') {
+          if (!window.location.pathname.startsWith('/tasks')) {
+            setUnreadTasks(c => c + 1);
+          }
+        } else if (notif.type === 'follow' || notif.type === 'friend_request' || notif.type === 'connection') {
+          if (!window.location.pathname.startsWith('/friends')) {
+            setUnreadFollows(c => c + 1);
+          }
         } else {
           setUnreadCount(c => c + 1);
         }
@@ -272,26 +282,32 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   const loadUnreadCount = async (_u?: any) => {
     try {
-      const { data } = await client.get('/api/notifications?limit=60');
+      const { data } = await client.get('/api/notifications?limit=100');
       const notifications = Array.isArray(data) ? data : [];
       const unread = notifications.filter((notif: any) => !notif.is_read);
-      setUnreadCount(unread.filter((n: any) => n.type !== 'message').length);
       setUnreadMessages(unread.filter((n: any) => n.type === 'message').length);
+      setUnreadTasks(unread.filter((n: any) => ['task', 'task_assigned', 'task_completed'].includes(n.type)).length);
+      setUnreadFollows(unread.filter((n: any) => ['follow', 'friend_request', 'connection'].includes(n.type)).length);
+      setUnreadCount(unread.filter((n: any) =>
+        !['message', 'task', 'task_assigned', 'task_completed', 'follow', 'friend_request', 'connection'].includes(n.type)
+      ).length);
     } catch {}
   };
 
   // Clear message badge when user navigates to /messages
   useEffect(() => {
     if (pathname.startsWith('/messages')) setUnreadMessages(0);
+    if (pathname.startsWith('/tasks')) setUnreadTasks(0);
+    if (pathname.startsWith('/friends')) setUnreadFollows(0);
   }, [pathname]);
 
   const mainNavItems = [
     { path: "/feed", icon: Home, label: tr('nav.home') },
     { path: "/explore", icon: TrendingUp, label: tr('nav.explore') },
-    { path: "/friends", icon: Users, label: tr('nav.friends') },
+    { path: "/friends", icon: Users, label: tr('nav.friends'), badge: unreadFollows > 0 ? unreadFollows : null },
     { path: "/businesses", icon: Store, label: tr('nav.businesses') },
     { path: "/marketplace", icon: ShoppingBag, label: tr('nav.marketplace') },
-    { path: "/tasks", icon: ClipboardList, label: tr('nav.tasks') },
+    { path: "/tasks", icon: ClipboardList, label: tr('nav.tasks'), badge: unreadTasks > 0 ? unreadTasks : null },
     { path: "/messages", icon: MessageCircle, label: tr('nav.messages'), badge: unreadMessages > 0 ? unreadMessages : null },
     { path: "/profile", icon: User, label: tr('nav.profile') },
   ];
@@ -333,12 +349,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       <Icon className="w-4 h-4 shrink-0" />
       {!sidebarCollapsed && <span className="truncate">{label}</span>}
       {!sidebarCollapsed && badge ? (
-        <span className="ml-auto w-5 h-5 bg-[#f59e0b] text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
+        <span className="ml-auto min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 px-1">
           {badge > 9 ? "9+" : badge}
         </span>
       ) : null}
       {sidebarCollapsed && badge ? (
-        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#f59e0b] rounded-full" />
+        <span className="absolute top-1 right-1 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+          {badge > 9 ? "9+" : badge}
+        </span>
       ) : null}
       {sidebarCollapsed && (
         <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
@@ -795,8 +813,16 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </span>
                 <span className="text-[10px] font-medium">Messages</span>
               </Link>
-              <Link href="/friends" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/friends') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Friends</span>
+              <Link href="/friends" className={`relative flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/friends') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                <span className="relative">
+                  <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} />
+                  {unreadFollows > 0 && (
+                    <span className="absolute -top-1 -right-1.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                      {unreadFollows > 9 ? '9+' : unreadFollows}
+                    </span>
+                  )}
+                </span>
+                <span className="text-[10px] font-medium">Friends</span>
               </Link>
               {/* Home — RIGHT */}
               <Link href="/feed" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/feed') ? 'text-amber-600' : 'text-muted-foreground'}`}>

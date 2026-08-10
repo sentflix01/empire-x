@@ -9,7 +9,7 @@ import SafeImage from "@/components/ui/SafeImage";
 import { useTranslation } from 'react-i18next';
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit2, LogOut, MapPin, Crown, Store, Settings, Plus, ShoppingBag, ClipboardList, ChevronDown, Pencil, ArrowLeft, Radio, ToggleLeft, ToggleRight } from "lucide-react";
+import { Edit2, LogOut, MapPin, Crown, Store, Settings, Plus, ShoppingBag, ClipboardList, ChevronDown, Pencil, ArrowLeft, Radio, ToggleLeft, ToggleRight, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -164,6 +164,29 @@ function Profile() {
             {view === "personal" && (
               <SafeImage src={profile.cover_url} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: profile.cover_position || 'center' }} />
+            )}
+            {/* Floating Personal / Business toggle — top right of cover */}
+            {hasBusinessView && isOwner && (
+              <div className="absolute top-3 right-3 z-10">
+                <div className="flex items-center bg-black/40 backdrop-blur-md rounded-full p-1 gap-0.5 shadow-lg border border-white/20">
+                  <button
+                    onClick={() => view !== 'personal' && handleFlip()}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                      view === 'personal' ? 'bg-white text-blue-700 shadow-sm' : 'text-white/80 hover:text-white'
+                    }`}
+                  >
+                    <User className="w-3 h-3" /> Personal
+                  </button>
+                  <button
+                    onClick={() => view !== 'business' && handleFlip()}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                      view === 'business' ? 'bg-white text-amber-700 shadow-sm' : 'text-white/80 hover:text-white'
+                    }`}
+                  >
+                    <Store className="w-3 h-3" /> Business
+                  </button>
+                </div>
+              </div>
             )}
           </div>
           <div className="px-5 pb-4">
