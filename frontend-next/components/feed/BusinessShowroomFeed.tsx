@@ -793,18 +793,18 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           }}
         />
       </div>
-    </div>
 
-    {/* Purchase modal */}
-    {purchaseModal && (
-      <PurchaseModal
-        item={purchaseModal.item}
-        seller={purchaseModal.seller}
-        buyer={currentUser ? { id: currentUser.id as string } : undefined}
-        onClose={() => setPurchaseModal(null)}
-        onPurchased={() => setPurchaseModal(null)}
-      />
-    )}
+      {/* Purchase modal */}
+      {purchaseModal && (
+        <PurchaseModal
+          item={purchaseModal.item}
+          seller={purchaseModal.seller}
+          buyer={currentUser ? { id: currentUser.id as string } : undefined}
+          onClose={() => setPurchaseModal(null)}
+          onPurchased={() => setPurchaseModal(null)}
+        />
+      )}
+    </div>
   );
 }
 
