@@ -165,7 +165,7 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
               />
               <div className="flex gap-2">
                 <Button size="sm" onClick={addUpdate} disabled={saving}
-                  className="h-7 text-xs rounded-full bg-amber-500 hover:bg-amber-600 text-white">
+                  className="h-7 text-xs rounded-full bg-blue-600 hover:bg-blue-700 text-white">
                   {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : t('orders.save')}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setAdding(false)}
@@ -225,7 +225,7 @@ function ReturnRequestForm({ order, onSubmitted }: { order: any; onSubmitted: ()
       )}
       <div className="flex gap-2">
         <Button size="sm" onClick={submit} disabled={saving}
-          className="h-7 text-xs rounded-full bg-amber-500 hover:bg-amber-600 text-white">
+          className="h-7 text-xs rounded-full bg-blue-600 hover:bg-blue-700 text-white">
           {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : t('orders.submitRequest')}
         </Button>
       </div>
@@ -397,7 +397,7 @@ function Orders() {
         {/* Loop var is `mode` — `t` would shadow the translation function */}
         {["selling", "buying"].map(mode => (
           <button key={mode} onClick={() => switchTab(mode)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${tab === mode ? "bg-amber-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}>
+            className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${tab === mode ? "bg-blue-600 text-white" : "text-muted-foreground hover:bg-secondary"}`}>
             {mode === "selling" ? t('orders.mySales') : t('orders.myPurchases')}
           </button>
         ))}

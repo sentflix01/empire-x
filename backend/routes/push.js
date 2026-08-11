@@ -6,7 +6,7 @@ try { webpush = require('web-push'); } catch { webpush = null; }
 
 if (webpush && process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
-    `mailto:${process.env.SMTP_USER || 'admin@empirex.app'}`,
+    `mailto:${process.env.SMTP_USER || 'admin@halehame.app'}`,
     process.env.VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY
   );

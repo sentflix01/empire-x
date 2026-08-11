@@ -1,5 +1,5 @@
 /**
- * Empire X — Profile Picture & Cover Upload E2E Tests
+ * Halehame — Profile Picture & Cover Upload E2E Tests
  *
  * Tests the full pipeline:
  *   1. POST /api/upload            — file upload to storage
@@ -21,7 +21,7 @@ function ok(label, value) {
 
 async function run() {
   console.log('\n╔══════════════════════════════════════════════════════╗');
-  console.log('║   Empire X — Profile Picture & Cover Upload Tests   ║');
+  console.log('║   Halehame — Profile Picture & Cover Upload Tests   ║');
   console.log('╚══════════════════════════════════════════════════════╝\n');
 
   const fetch = (await import('node-fetch')).default;
@@ -32,7 +32,7 @@ async function run() {
   const loginRes = await fetch(`${BASE}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'admin@empirex.app', password: 'Admin1234!' }),
+    body: JSON.stringify({ email: 'admin@halehame.app', password: 'Admin1234!' }),
   });
   const loginBody = await loginRes.json();
   const token = loginBody.access_token;
@@ -148,7 +148,7 @@ async function run() {
   const login2 = await fetch(`${BASE}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'test@empirex.app', password: 'Test1234!' }),
+    body: JSON.stringify({ email: 'test@halehame.app', password: 'Test1234!' }),
   });
   const body2 = await login2.json();
   const token2 = body2.access_token;

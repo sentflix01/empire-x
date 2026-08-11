@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Users, Store, ArrowLeft } from 'lucide-react';
 
-export const metadata = { title: 'Choose Account Type — Empire X' };
+export const metadata = { title: 'Choose Account Type — Halehame' };
 
 export default function ChooseAccountPage() {
   return (
@@ -17,7 +17,7 @@ export default function ChooseAccountPage() {
         <div className="flex flex-col items-center text-center mb-8">
           <Image
             src="/brand/empire-x-logo.png"
-            alt="Empire X"
+            alt="Halehame"
             width={64}
             height={64}
             className="h-16 w-16 rounded-2xl object-cover shadow-xl mb-4 ring-1 ring-white/20"

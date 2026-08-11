@@ -1,5 +1,5 @@
 /**
- * e2e.test.js — Empire X End-to-End API Test Suite
+ * e2e.test.js — Halehame End-to-End API Test Suite
  * Tests frontend-next ↔ backend connectivity and all key endpoints.
  * Run: node test/e2e.test.js
  */
@@ -57,7 +57,7 @@ function section(name) {
 
 // ── Unique test email ─────────────────────────────────────────────────────────
 const RUN_ID = Date.now();
-const TEST_EMAIL = `e2e_${RUN_ID}@empirex.test`;
+const TEST_EMAIL = `e2e_${RUN_ID}@halehame.test`;
 const TEST_PASS  = 'TestPass123!';
 let TOKEN = null;
 let USER_ID = null;
@@ -99,7 +99,7 @@ async function run() {
   if (health.body?.services?.database !== 'connected') {
     console.log('\n  ⚠️  Skipping API e2e — Postgres is not reachable.');
     console.log('  Use local Postgres: docker compose up postgres -d');
-    console.log('  Then set DATABASE_URL=postgresql://empirex:empirex_dev@localhost:5432/empirex');
+    console.log('  Then set DATABASE_URL=postgresql://halehame:halehame_dev@localhost:5432/halehame');
     console.log('  Run migrations: npm run migrate — and restart the backend.\n');
     await pool.end().catch(() => {});
     process.exit(1);

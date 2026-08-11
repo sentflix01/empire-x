@@ -31,11 +31,11 @@ function request(method, path, body, token) {
 }
 
 (async () => {
-  console.log('\n=== Empire X Profile API Test ===\n');
+  console.log('\n=== Halehame Profile API Test ===\n');
 
   // 1. Login
-  console.log('1. Logging in as test@empirex.app...');
-  const login = await request('POST', '/auth/login', { email: 'test@empirex.app', password: 'Test1234!' });
+  console.log('1. Logging in as test@halehame.app...');
+  const login = await request('POST', '/auth/login', { email: 'test@halehame.app', password: 'Test1234!' });
   if (login.status !== 200) {
     console.error('   ❌ Login failed:', login.status, JSON.stringify(login.body));
     process.exit(1);
@@ -58,11 +58,11 @@ function request(method, path, body, token) {
   console.log('\n3. Testing PUT /profiles/:id with full payload...');
   const payload = {
     display_name: 'Test User E2E',
-    headline: 'QA Engineer · Empire X',
+    headline: 'QA Engineer · Halehame',
     bio: 'This profile was edited during E2E testing.',
     location: 'Addis Ababa, Ethiopia',
     phone: '+251 911 123 456',
-    website: 'https://empirex.app',
+    website: 'https://halehame.app',
     skills: JSON.stringify(['JavaScript', 'React', 'Testing']),
     languages: JSON.stringify(['English', 'Amharic']),
     experience: JSON.stringify([]),
@@ -88,7 +88,7 @@ function request(method, path, body, token) {
   console.log('\n4. Testing business profile save...');
   const bizPayload = {
     has_business_profile: true,
-    business_name: 'Empire X Test Business',
+    business_name: 'Halehame Test Business',
     business_category: 'tech',
     business_description: 'A test business created during E2E testing.',
     business_type: 'Sole Proprietorship',
@@ -123,10 +123,10 @@ function request(method, path, body, token) {
     const v = verify.body;
     const checks = [
       ['display_name', 'Test User E2E', v.display_name],
-      ['headline', 'QA Engineer · Empire X', v.headline],
-      ['website', 'https://empirex.app', v.website],
+      ['headline', 'QA Engineer · Halehame', v.headline],
+      ['website', 'https://halehame.app', v.website],
       ['social_linkedin', 'https://linkedin.com/in/testuser', v.social_linkedin],
-      ['business_name', 'Empire X Test Business', v.business_name],
+      ['business_name', 'Halehame Test Business', v.business_name],
       ['has_business_profile', true, v.has_business_profile],
     ];
     let allPass = true;

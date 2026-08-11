@@ -251,7 +251,7 @@ function ShowroomView() {
             <SectionRenderer section={{ type: "contact", title: "Get in Touch" }} sectionIndex={sections.length} themeColor={themeColor} profile={profile} />
           )}
           <div className="px-5 py-6 bg-secondary text-center">
-            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {showroom.title}. Powered by Empire X 👑</p>
+            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {showroom.title}. Powered by Halehame 👑</p>
           </div>
         </div>
 

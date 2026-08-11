@@ -59,8 +59,8 @@ function Referral() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Join Empire X",
-          text: "Join me on Empire X — Ethiopia's super-app for social, commerce, and services. Use my referral link to get 20 bonus points!",
+          title: "Join Halehame",
+          text: "Join me on Halehame — Ethiopia's super-app for social, commerce, and services. Use my referral link to get 20 bonus points!",
           url: referralData.referral_link,
         });
       } catch (err: any) {

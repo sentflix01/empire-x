@@ -1,6 +1,6 @@
 /**
  * aiOffline.ts
- * Rule-based offline AI engine for the Empire X assistant.
+ * Rule-based offline AI engine for the Halehame assistant.
  * Returns an answer string if the question matches a known pattern,
  * or null if the question should be forwarded to the OpenAI API.
  */
@@ -14,15 +14,15 @@ const RULES: Rule[] = [
   // ── Greetings ──────────────────────────────────────────────────────────────
   {
     patterns: [/^(hi|hello|hey|selam|salam|good morning|good afternoon|good evening)\b/i],
-    answer: "👋 Hello! I'm the Empire X AI assistant. I can help you navigate the app, write descriptions, find products, post tasks, and more. What would you like to do today?",
+    answer: "👋 Hello! I'm the Halehame AI assistant. I can help you navigate the app, write descriptions, find products, post tasks, and more. What would you like to do today?",
   },
   {
     patterns: [/how are you|are you okay|what('s| is) up/i],
-    answer: "I'm doing great, thanks for asking! 😊 Ready to help you get the most out of Empire X. What can I do for you?",
+    answer: "I'm doing great, thanks for asking! 😊 Ready to help you get the most out of Halehame. What can I do for you?",
   },
   {
     patterns: [/who are you|what are you|what can you do|your name/i],
-    answer: "I'm **Empire X AI** — your built-in smart assistant. I can help with:\n• Navigating the app\n• Writing product/business descriptions\n• Answering how-to questions\n• Tips for growing your business on Empire X\n\nAsk me anything!",
+    answer: "I'm **Halehame AI** — your built-in smart assistant. I can help with:\n• Navigating the app\n• Writing product/business descriptions\n• Answering how-to questions\n• Tips for growing your business on Halehame\n\nAsk me anything!",
   },
 
   // ── Showroom ───────────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ const RULES: Rule[] = [
   },
   {
     patterns: [/what is.*showroom|showroom mean|showroom feature/i],
-    answer: "A Showroom is your personal business mini-website inside Empire X. It's like having a professional webpage — with your products, services, gallery, testimonials, contact info, and social links — all in one place. Share it with customers via a direct link. 🌟",
+    answer: "A Showroom is your personal business mini-website inside Halehame. It's like having a professional webpage — with your products, services, gallery, testimonials, contact info, and social links — all in one place. Share it with customers via a direct link. 🌟",
   },
 
   // ── Marketplace / Products ─────────────────────────────────────────────────
@@ -66,13 +66,13 @@ const RULES: Rule[] = [
   // ── Referral ───────────────────────────────────────────────────────────────
   {
     patterns: [/referral|refer.*friend|invite.*friend|referral.*code|how.*referral/i],
-    answer: "🎁 The Empire X Referral Program:\n• Go to **My Account → Referral** in the sidebar\n• Copy your unique referral code or link\n• Share it with friends\n• When they sign up using your code → you earn **50 points**, they earn **20 welcome points**\n\nPoints can be used for discounts and rewards!",
+    answer: "🎁 The Halehame Referral Program:\n• Go to **My Account → Referral** in the sidebar\n• Copy your unique referral code or link\n• Share it with friends\n• When they sign up using your code → you earn **50 points**, they earn **20 welcome points**\n\nPoints can be used for discounts and rewards!",
   },
 
   // ── Wallet ─────────────────────────────────────────────────────────────────
   {
     patterns: [/wallet|top.?up|withdraw|balance|how.*pay/i],
-    answer: "💳 Your Empire X Wallet:\n• Go to **My Account → Wallet**\n• **Top Up**: Add funds (connected to Chapa/Stripe in production)\n• **Withdraw**: Request a payout to your bank account\n• **History**: See all transactions\n\nYour wallet balance is used for marketplace purchases and task payments.",
+    answer: "💳 Your Halehame Wallet:\n• Go to **My Account → Wallet**\n• **Top Up**: Add funds (connected to Chapa/Stripe in production)\n• **Withdraw**: Request a payout to your bank account\n• **History**: See all transactions\n\nYour wallet balance is used for marketplace purchases and task payments.",
   },
 
   // ── Messages / Chat ────────────────────────────────────────────────────────

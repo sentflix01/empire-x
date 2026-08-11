@@ -18,7 +18,7 @@ export const useAppStore = create<AppStore>()(
       ...createBookmarksSlice(...a),
     }),
     {
-      name: 'empire-x-auth',
+      name: 'halehame-auth',
       // SSR safe: only use sessionStorage in the browser
       storage: createJSONStorage(() =>
         typeof window !== 'undefined' ? sessionStorage : ({} as Storage)

@@ -145,7 +145,7 @@ function yearsAgo(n) { const d = new Date(); d.setFullYear(d.getFullYear()-n); r
 // ─── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
   console.log('\n╔══════════════════════════════════════════════╗');
-  console.log('║     Empire X — Presence System Tests        ║');
+  console.log('║     Halehame — Presence System Tests        ║');
   console.log('╚══════════════════════════════════════════════╝\n');
 
   // ── Part 1: Frontend formatLastSeen() logic ──────────────────────────────
@@ -235,7 +235,7 @@ async function main() {
   const loginRes = await api('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'admin@empirex.app', password: 'Admin1234!' }),
+    body: JSON.stringify({ email: 'admin@halehame.app', password: 'Admin1234!' }),
   });
   assert(loginRes.ok, 'Login', `status ${loginRes.status}`);
   const token = loginRes.data.access_token;

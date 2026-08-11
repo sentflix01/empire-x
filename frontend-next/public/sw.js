@@ -1,6 +1,6 @@
-// Empire X Service Worker — PWA offline support + push notifications
+// Halehame Service Worker — PWA offline support + push notifications
 
-const CACHE_NAME = 'empire-x-v2';
+const CACHE_NAME = 'halehame-v2';
 const STATIC_ASSETS = ['/', '/index.html'];
 
 // Install — cache static assets
@@ -42,7 +42,7 @@ self.addEventListener('push', event => {
   if (!event.data) return;
   const data = event.data.json();
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Empire X', {
+    self.registration.showNotification(data.title || 'Halehame', {
       body: data.body || '',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',

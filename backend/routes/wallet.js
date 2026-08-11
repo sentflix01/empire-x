@@ -183,7 +183,7 @@ router.post('/topup/chapa', requireAuth, async (req, res) => {
         body: JSON.stringify({
           amount:        String(amount),
           currency:      'ETB',
-          email:         email || req.user.email || 'user@empirex.app',
+          email:         email || req.user.email || 'user@halehame.app',
           first_name:    first_name || 'Empire',
           last_name:     last_name  || 'User',
           phone_number:  phone_number || '',
@@ -191,8 +191,8 @@ router.post('/topup/chapa', requireAuth, async (req, res) => {
           callback_url:  `${apiUrl}/api/wallet/topup/chapa/verify/${tx_ref}`,
           return_url:    `${frontendUrl}/wallet?topup=success&tx_ref=${tx_ref}`,
           customization: {
-            title:       'Empire X Wallet Top-up',
-            description: `Add ${Number(amount).toLocaleString()} ETB to your Empire X wallet`,
+            title:       'Halehame Wallet Top-up',
+            description: `Add ${Number(amount).toLocaleString()} ETB to your Halehame wallet`,
           },
         }),
       }).then(r => r.json());
@@ -255,7 +255,7 @@ router.post('/topup/stripe', requireAuth, async (req, res) => {
       line_items: [{
         price_data: {
           currency: cur,
-          product_data: { name: 'Empire X Wallet Top-up' },
+          product_data: { name: 'Halehame Wallet Top-up' },
           unit_amount: toCents(cur),
         },
         quantity: 1,
@@ -328,7 +328,7 @@ router.get('/topup/chapa/sandbox', (req, res) => {
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chapa Wallet Top-up — Empire X Sandbox</title>
+  <title>Chapa Wallet Top-up — Halehame Sandbox</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0fdf4;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}

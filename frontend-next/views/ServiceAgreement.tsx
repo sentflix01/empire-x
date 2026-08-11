@@ -35,7 +35,7 @@ function TermsContent() {
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
       <Accordion title="1. Acceptance of Terms">
-        <p>By registering an account or accessing Empire X, you agree to these Terms of Service. If you do not agree, do not use the platform. These Terms form a binding agreement between you and Empire X.</p>
+        <p>By registering an account or accessing Halehame, you agree to these Terms of Service. If you do not agree, do not use the platform. These Terms form a binding agreement between you and Halehame.</p>
       </Accordion>
       <Accordion title="2. Eligibility">
         <p>You must be <strong>at least 18 years old</strong> to create an account. Business accounts must be operated by a person with legal authority to bind that business. Accounts are personal and non-transferable.</p>
@@ -54,16 +54,16 @@ function TermsContent() {
         </ul>
       </Accordion>
       <Accordion title="4. Content Ownership & License">
-        <p>You retain ownership of content you post. You grant Empire X a worldwide, royalty-free, sublicensable license to display and distribute your content within the platform. We may remove content that violates these Terms without notice.</p>
+        <p>You retain ownership of content you post. You grant Halehame a worldwide, royalty-free, sublicensable license to display and distribute your content within the platform. We may remove content that violates these Terms without notice.</p>
       </Accordion>
       <Accordion title="5. Commerce & Payments">
-        <p>Sellers are responsible for the accuracy of product listings, pricing, and delivery. Empire X is a platform — we are not a party to buyer-seller transactions. Payment processing is handled by Stripe (international) and Chapa (Ethiopia).</p>
+        <p>Sellers are responsible for the accuracy of product listings, pricing, and delivery. Halehame is a platform — we are not a party to buyer-seller transactions. Payment processing is handled by Stripe (international) and Chapa (Ethiopia).</p>
       </Accordion>
       <Accordion title="6. Intellectual Property">
-        <p>The Empire X name, logo, brand identity, and codebase are proprietary. Users may not reproduce or redistribute without written permission. DMCA/copyright takedown: <a href="mailto:legal@empirex.app" className="text-blue-600 hover:underline">legal@empirex.app</a></p>
+        <p>The Halehame name, logo, brand identity, and codebase are proprietary. Users may not reproduce or redistribute without written permission. DMCA/copyright takedown: <a href="mailto:legal@halehame.app" className="text-blue-600 hover:underline">legal@halehame.app</a></p>
       </Accordion>
       <Accordion title="7. Limitation of Liability">
-        <p>Empire X is not liable for user-generated content or losses from platform outages. Our maximum liability to any user shall not exceed fees paid to us in the 12 months preceding the claim.</p>
+        <p>Halehame is not liable for user-generated content or losses from platform outages. Our maximum liability to any user shall not exceed fees paid to us in the 12 months preceding the claim.</p>
       </Accordion>
       <Accordion title="8. Governing Law">
         <p>These Terms are governed by the laws of the <strong>Federal Democratic Republic of Ethiopia</strong>. Disputes shall be submitted to the courts of Addis Ababa, Ethiopia.</p>
@@ -107,7 +107,7 @@ function PrivacyContent() {
         </ul>
       </Accordion>
       <Accordion title="5. Your Rights">
-        <p>You have the right to: access your data, correct inaccurate data, delete your account, export your data, object to marketing, and withdraw consent. Contact: <a href="mailto:privacy@empirex.app" className="text-blue-600 hover:underline">privacy@empirex.app</a>. We respond within 30 days.</p>
+        <p>You have the right to: access your data, correct inaccurate data, delete your account, export your data, object to marketing, and withdraw consent. Contact: <a href="mailto:privacy@halehame.app" className="text-blue-600 hover:underline">privacy@halehame.app</a>. We respond within 30 days.</p>
       </Accordion>
       <Accordion title="6. Security Measures">
         <ul className="list-disc list-inside space-y-1">
@@ -119,10 +119,10 @@ function PrivacyContent() {
         </ul>
       </Accordion>
       <Accordion title="7. Children's Privacy">
-        <p>Empire X is not intended for users under 18. We do not knowingly collect data from minors. Contact us immediately if you believe a minor has registered.</p>
+        <p>Halehame is not intended for users under 18. We do not knowingly collect data from minors. Contact us immediately if you believe a minor has registered.</p>
       </Accordion>
       <Accordion title="8. Contact & DPO">
-        <p>Email: <a href="mailto:privacy@empirex.app" className="text-blue-600 hover:underline">privacy@empirex.app</a><br />Address: Addis Ababa, Ethiopia</p>
+        <p>Email: <a href="mailto:privacy@halehame.app" className="text-blue-600 hover:underline">privacy@halehame.app</a><br />Address: Addis Ababa, Ethiopia</p>
       </Accordion>
     </div>
   );
@@ -154,7 +154,7 @@ function CookieContent() {
         <p className="mt-2">We use <strong>no third-party tracking or advertising cookies.</strong></p>
       </Accordion>
       <Accordion title="Managing Cookies">
-        <p>You can clear cookies in your browser settings. Note: clearing the access_token cookie will log you out of Empire X.</p>
+        <p>You can clear cookies in your browser settings. Note: clearing the access_token cookie will log you out of Halehame.</p>
       </Accordion>
     </div>
   );
@@ -164,28 +164,28 @@ function SellerContent() {
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
       <Accordion title="1. Seller Eligibility">
-        <p>Any registered Empire X user (18+) may create a business profile and list products or services. Business accounts must accurately represent a real business entity.</p>
+        <p>Any registered Halehame user (18+) may create a business profile and list products or services. Business accounts must accurately represent a real business entity.</p>
       </Accordion>
       <Accordion title="2. Product Listings">
         <p>Sellers must: provide accurate descriptions and images, price products in ETB or supported currencies, maintain accurate stock levels, and remove discontinued products promptly. Prohibited: counterfeit goods, illegal items, adult content, weapons, or any item banned under Ethiopian law.</p>
       </Accordion>
       <Accordion title="3. Commission & Fees">
-        <p>Empire X charges a platform commission on completed orders (rate configurable by admin, displayed in your analytics). The commission is deducted automatically from your wallet balance after each confirmed order.</p>
+        <p>Halehame charges a platform commission on completed orders (rate configurable by admin, displayed in your analytics). The commission is deducted automatically from your wallet balance after each confirmed order.</p>
       </Accordion>
       <Accordion title="4. Payments & Payouts">
-        <p>Payments are processed via Stripe (international cards) and Chapa (Ethiopian banks/mobile money). Funds are credited to your Empire X wallet. Payouts to your bank account are subject to NBE compliance requirements and KYC verification.</p>
+        <p>Payments are processed via Stripe (international cards) and Chapa (Ethiopian banks/mobile money). Funds are credited to your Halehame wallet. Payouts to your bank account are subject to NBE compliance requirements and KYC verification.</p>
       </Accordion>
       <Accordion title="5. Orders & Fulfillment">
         <p>Sellers are responsible for: confirming orders within 24 hours, shipping within the stated delivery time, providing tracking information, and responding to buyer messages within 48 hours. Failure to fulfill orders may result in account suspension.</p>
       </Accordion>
       <Accordion title="6. Returns & Disputes">
-        <p>Buyers may request returns within the platform's return window. Sellers must respond to return requests within 48 hours. Unresolved disputes are mediated by Empire X admin, whose decision is final.</p>
+        <p>Buyers may request returns within the platform's return window. Sellers must respond to return requests within 48 hours. Unresolved disputes are mediated by Halehame admin, whose decision is final.</p>
       </Accordion>
       <Accordion title="7. Suspension & Termination">
         <p>We may suspend or terminate seller accounts for: fraudulent activity, repeated policy violations, sustained negative reviews, or legal violations. Pending payouts will be held during investigation.</p>
       </Accordion>
       <Accordion title="8. Contact">
-        <p>Seller support: <a href="mailto:sellers@empirex.app" className="text-blue-600 hover:underline">sellers@empirex.app</a></p>
+        <p>Seller support: <a href="mailto:sellers@halehame.app" className="text-blue-600 hover:underline">sellers@halehame.app</a></p>
       </Accordion>
     </div>
   );
@@ -215,7 +215,7 @@ function ServiceAgreementView() {
           </div>
           <div>
             <h1 className="font-bold text-lg leading-tight">Service Agreement</h1>
-            <p className="text-white/70 text-xs">Empire X · Addis Ababa, Ethiopia · Last updated August 2026</p>
+            <p className="text-white/70 text-xs">Halehame · Addis Ababa, Ethiopia · Last updated August 2026</p>
           </div>
         </div>
       </div>
@@ -249,7 +249,7 @@ function ServiceAgreementView() {
       {CONTENT[activeTab]}
 
       <p className="text-center text-[10px] text-muted-foreground">
-        Questions? <a href="mailto:legal@empirex.app" className="text-blue-600 hover:underline">legal@empirex.app</a>
+        Questions? <a href="mailto:legal@halehame.app" className="text-blue-600 hover:underline">legal@halehame.app</a>
       </p>
     </div>
   );

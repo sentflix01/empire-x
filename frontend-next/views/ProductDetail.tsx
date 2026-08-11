@@ -211,7 +211,7 @@ function ProductDetail() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold">{seller.display_name}</p>
-                <p className="text-xs text-muted-foreground">{seller.headline || "Seller on Empire X"}</p>
+                <p className="text-xs text-muted-foreground">{seller.headline || "Seller on Halehame"}</p>
               </div>
               <MessageCircle className="w-4 h-4 text-muted-foreground" />
             </Link>
@@ -225,12 +225,12 @@ function ProductDetail() {
           <div className="flex gap-2 pt-1">
             {user && user.id !== product.seller_id && (
               <Button onClick={() => setPurchaseItem(product)} disabled={!inStock}
-                className="flex-1 h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 font-semibold">
+                className="flex-1 h-11 rounded-full bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 font-semibold">
                 <Zap className="w-4 h-4 mr-2" /> Buy Now
               </Button>
             )}
             <Button onClick={() => addItem(product.id)} disabled={!inStock} variant="outline"
-              className="flex-1 h-11 rounded-full border-amber-300 text-amber-700 hover:bg-amber-50 font-semibold">
+              className="flex-1 h-11 rounded-full border-blue-300 text-blue-700 hover:bg-blue-50 font-semibold">
               <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
             </Button>
             <Button variant="outline" size="icon"

@@ -177,7 +177,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     if (req.body.status === 'completed' && existing.status !== 'completed') {
       collectCommission(existing.id, existing.seller_id, existing.total_price).catch(err => logger.error({ err }, 'Failed to collect commission'));
       notifyUser(existing.seller_id, `✅ <b>Order Completed</b>\n${existing.product_title}\nAmount: ${existing.total_price} ${existing.currency}`).catch(() => {});
-      notifyUser(existing.buyer_id, `📦 <b>Your order is complete!</b>\n${existing.product_title}\nThank you for shopping on Empire X 👑`).catch(() => {});
+      notifyUser(existing.buyer_id, `📦 <b>Your order is complete!</b>\n${existing.product_title}\nThank you for shopping on Halehame 👑`).catch(() => {});
 
       // Real-time notification to buyer and seller
       const [{ rows: [buyerNotif] }, { rows: [sellerNotif] }] = await Promise.all([

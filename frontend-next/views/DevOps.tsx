@@ -2,7 +2,7 @@
 /**
  * DevOps.tsx — Developer Ops / Todo Board (admin-managed, developer-readable)
  *
- * Kanban board tracking bugs, features, and tasks across the Empire X project.
+ * Kanban board tracking bugs, features, and tasks across the Halehame project.
  * Admins get full CRUD; other authenticated users see a read-only board.
  * NOTE: English strings are hardcoded on purpose — this is an internal ops page.
  *       i18n via locales/*.json is a follow-up.
@@ -482,7 +482,7 @@ function DevOps() {
             </span>
           </div>
           <p className="text-xs text-muted-foreground font-mono tracking-wide">
-            empire-x · {items.length} tracked items · {openBugs} open bugs
+            halehame · {items.length} tracked items · {openBugs} open bugs
           </p>
         </div>
         <div className="flex-1" />

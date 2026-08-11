@@ -1,6 +1,6 @@
-# Empire X Frontend
+# Halehame Frontend
 
-Active web frontend for Empire X. Built with Next.js 16 App Router, TypeScript, TailwindCSS, shadcn/ui components, TanStack Query, and Socket.IO client.
+Active web frontend for Halehame. Built with Next.js 16 App Router, TypeScript, TailwindCSS, shadcn/ui components, TanStack Query, and Socket.IO client.
 
 ## Getting Started
 

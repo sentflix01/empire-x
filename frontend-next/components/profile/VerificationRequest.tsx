@@ -353,7 +353,7 @@ export default function VerificationRequest() {
             </label>
             <p className="text-xs text-muted-foreground mb-2">
               Upload a photo of your national ID, passport, or driver's license.
-              The ID will only be visible to Empire X admins and will not be shared.
+              The ID will only be visible to Halehame admins and will not be shared.
             </p>
 
             {idDocUrl ? (
@@ -394,7 +394,7 @@ export default function VerificationRequest() {
           </div>
 
           <p className="text-[10px] text-muted-foreground">
-            🔒 Your documents are stored securely and only visible to Empire X admins.
+            🔒 Your documents are stored securely and only visible to Halehame admins.
             We do not share your personal data with third parties.
           </p>
         </div>
