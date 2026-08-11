@@ -9,13 +9,124 @@ import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from 'react-i18next';
 
-import { ArrowLeft, QrCode, Crown } from "lucide-react";
+import { ArrowLeft, QrCode, Crown, X, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { QRCodeSVG } from "qrcode.react";
 import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { toast } from "sonner";
+
+/* ── Lightweight inquiry / "Get Quote" modal ─────────────────────────────── */
+function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, onClose }: {
+  serviceName: string;
+  serviceDesc?: string;
+  businessName: string;
+  ownerId: string;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState(`Hi, I'm interested in your ${serviceName} service. Please send me a quote.`);
+  const [sending, setSending] = useState(false);
+
+  const handleSend = async () => {
+    if (!name.trim() || !phone.trim()) {
+      toast.error('Please enter your name and phone number');
+      return;
+    }
+    setSending(true);
+    try {
+      // Send inquiry as a direct message to the business owner
+      await client.post('/api/messages/inquiry', {
+        receiver_id: ownerId,
+        subject: `Quote Request: ${serviceName}`,
+        body: `Name: ${name}\nPhone: ${phone}${email ? `\nEmail: ${email}` : ''}\n\n${message}`,
+      });
+      toast.success('Inquiry sent! The business will contact you shortly.');
+      onClose();
+    } catch {
+      // Fallback: create a notification for the owner
+      try {
+        await client.post('/api/notifications', {
+          user_id: ownerId,
+          type: 'inquiry',
+          title: `Quote Request: ${serviceName}`,
+          body: `${name} (${phone}) is requesting a quote for ${serviceName}.`,
+        });
+        toast.success('Inquiry sent! The business will contact you shortly.');
+        onClose();
+      } catch {
+        toast.error('Could not send inquiry. Please contact the business directly.');
+      }
+    }
+    setSending(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60" onClick={onClose}>
+      <div
+        className="rounded-t-3xl sm:rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"
+        style={{ backgroundColor: 'hsl(var(--card))' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/50" style={{ backgroundColor: 'hsl(var(--card))' }}>
+          <div>
+            <h2 className="font-display text-base font-bold">Request a Quote</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{serviceName} · {businessName}</p>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-secondary transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <div className="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
+          {serviceDesc && (
+            <p className="text-xs text-muted-foreground bg-secondary/40 rounded-xl px-3 py-2">{serviceDesc}</p>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Your Name *</Label>
+              <Input value={name} onChange={e => setName(e.target.value)} placeholder="Full name" className="mt-1 h-10" />
+            </div>
+            <div>
+              <Label className="text-xs">Phone *</Label>
+              <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+251..." className="mt-1 h-10" />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Email (optional)</Label>
+            <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@email.com" className="mt-1 h-10" />
+          </div>
+          <div>
+            <Label className="text-xs">Message</Label>
+            <textarea
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              rows={3}
+              className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <Button
+            onClick={handleSend}
+            disabled={sending || !name.trim() || !phone.trim()}
+            className="w-full h-11 rounded-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-semibold"
+          >
+            {sending
+              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</>
+              : <><Send className="w-4 h-4 mr-2" />Send Inquiry</>}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ShowroomView() {
   const { t } = useTranslation();
@@ -30,6 +141,7 @@ function ShowroomView() {
   const [user, setUser] = useState(null);
   const [authResolved, setAuthResolved] = useState(false);
   const [purchaseItem, setPurchaseItem] = useState(null);
+  const [quoteItem, setQuoteItem] = useState<{ name: string; desc?: string } | null>(null);
 
   useEffect(() => {
     auth.me().then(setUser).catch(() => {}).finally(() => setAuthResolved(true));
@@ -83,6 +195,12 @@ function ShowroomView() {
     setPurchaseItem(item);
   };
 
+  // Handler for "Get Quote" service items
+  const handleGetQuote = (serviceName: string, serviceDesc?: string) => {
+    if (!user) { router.push('/login'); return; }
+    setQuoteItem({ name: serviceName, desc: serviceDesc });
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-4">
@@ -124,6 +242,7 @@ function ShowroomView() {
               isOwner={isOwner}
               showProductLinks
               onBuy={isOwner ? undefined : handleBuy}
+              onGetQuote={isOwner ? undefined : handleGetQuote}
               ctaTarget={ctaTarget}
               isPrimaryProducts={i === productsIdx}
             />
@@ -144,6 +263,17 @@ function ShowroomView() {
             buyer={user ? { id: user.id, full_name: user.full_name, email: user.email } : undefined}
             onClose={() => setPurchaseItem(null)}
             onPurchased={() => setPurchaseItem(null)}
+          />
+        )}
+
+        {/* Get Quote modal — opens when user clicks a "Get Quote" service */}
+        {quoteItem && (
+          <GetQuoteModal
+            serviceName={quoteItem.name}
+            serviceDesc={quoteItem.desc}
+            businessName={showroom.title}
+            ownerId={showroom.owner_id}
+            onClose={() => setQuoteItem(null)}
           />
         )}
       </div>

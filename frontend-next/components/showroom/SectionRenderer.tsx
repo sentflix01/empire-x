@@ -44,6 +44,7 @@ interface SectionRendererProps {
   profile?: Record<string, any>;
   isOwner?: boolean;
   onBuy?: (product: Record<string, any>) => void;
+  onGetQuote?: (serviceName: string, serviceDesc?: string) => void;
   hours?: Array<{ day: string; hours: string }>;
   showProductLinks?: boolean;
   /** Anchor for the hero CTA; null hides the CTA (no valid target). */
@@ -63,6 +64,7 @@ export default function SectionRenderer({
   profile = {},
   isOwner = false,
   onBuy,
+  onGetQuote,
   hours = [],
   showProductLinks = true,
   ctaTarget = null,
@@ -182,7 +184,14 @@ export default function SectionRenderer({
                 {item.price && (
                   <div className="mt-2 flex items-center justify-between gap-2">
                     {isGetQuote ? (
-                      <span className="text-sm font-bold" style={{ color: themeColor }}>Get Quote</span>
+                      <button
+                        type="button"
+                        onClick={() => onGetQuote?.(item.name || item.title || 'Service', item.desc || item.description)}
+                        className="text-sm font-bold transition-opacity hover:opacity-80 active:scale-95"
+                        style={{ color: themeColor }}
+                      >
+                        Get Quote
+                      </button>
                     ) : (
                       <button
                         type="button"
