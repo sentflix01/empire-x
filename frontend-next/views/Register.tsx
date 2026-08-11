@@ -41,7 +41,7 @@ function Register() {
     const renderGoogleButton = () => {
       if (disposed || !googleButtonRef.current || googleButtonReady) return false;
       const rendered = renderGoogleSignInButton(googleButtonRef.current, {
-        width: Math.min(384, Math.max(280, googleButtonRef.current.clientWidth || 384)),
+        width: Math.min(384, Math.max(280, (googleButtonRef.current?.clientWidth || window.innerWidth - 64) || 384)),
         onSuccess: (result) => {
           if (result?.access_token) storeToken(result.access_token);
           window.location.href = '/';
@@ -135,13 +135,14 @@ function Register() {
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>
         )}
-        <div className="flex justify-center mb-6">
-          <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoFocus autoComplete="one-time-code">
+        <div className="flex flex-col items-center gap-2 mb-6">
+          <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoComplete="one-time-code">
             <InputOTPGroup>
               <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
               <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
             </InputOTPGroup>
           </InputOTP>
+          <p className="text-xs text-muted-foreground md:hidden">Tap to enter code</p>
         </div>
         <Button className="w-full h-12 font-medium" onClick={handleVerify} disabled={loading || otpCode.length < 6}>
           {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('auth.verifying')}</> : t('auth.verify')}
@@ -195,7 +196,7 @@ function Register() {
           <Label htmlFor="email">{t('auth.email')}</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="email" type="email" autoComplete="email" autoFocus placeholder="you@example.com"
+            <Input id="email" type="email" autoComplete="email" placeholder="you@example.com"
               value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 h-12" required />
           </div>
         </div>
@@ -215,11 +216,7 @@ function Register() {
               value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="pl-10 h-12" required />
           </div>
         </div>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !agreed}>
-          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('auth.creatingAccount')}</> : t('auth.register')}
-        </Button>
-
-        {/* ── Agreement checkbox ── */}
+        {/* ── Agreement checkbox ── comes BEFORE submit so iOS keyboard "Go" triggers submit */}
         <div>
           <button
             type="button"
@@ -258,6 +255,10 @@ function Register() {
             </p>
           </button>
         </div>
+
+        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !agreed}>
+          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('auth.creatingAccount')}</> : t('auth.register')}
+        </Button>
       </form>
     </AuthLayout>
   );

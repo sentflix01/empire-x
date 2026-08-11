@@ -71,8 +71,8 @@ function HexStory({ group, onClick, isAdd = false, uploading = false }: HexStory
           style={{
             width: 70, height: 76,
             background: isAdd
-              ? 'linear-gradient(135deg,#fbbf24,#f97316)'
-              : 'linear-gradient(135deg,#f97316,#ec4899,#8b5cf6,#fbbf24)',
+              ? 'linear-gradient(135deg,#f59e0b,#f97316)'
+              : 'linear-gradient(135deg, #2563eb, #7c3aed)',
           }}
         >
           <div

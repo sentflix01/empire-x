@@ -71,14 +71,14 @@ export default function CreatePostForm({ user, onPostCreated }) {
       {/* Single row: avatar + input with icons inside */}
       <div className="flex items-center gap-2">
         {/* User avatar */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-xs shrink-0 overflow-hidden">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs shrink-0 overflow-hidden">
           {user?.avatar_url
             ? <NextImage src={user.avatar_url} alt="" width={32} height={32} className="w-full h-full object-cover" unoptimized />
             : (user?.full_name?.charAt(0) || "E")}
         </div>
 
         {/* Input with icons inside on the right */}
-        <div className="flex-1 flex items-center bg-secondary/50 rounded-full px-3 py-1.5 gap-2 border border-border/30 focus-within:border-amber-400/50 transition-colors">
+        <div className="flex-1 flex items-center bg-secondary/50 rounded-full px-3 py-1.5 gap-2 border border-border/30 focus-within:border-primary/30 transition-colors">
           <input
             value={content}
             onChange={e => setContent(e.target.value)}

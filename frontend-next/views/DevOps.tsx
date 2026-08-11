@@ -13,7 +13,7 @@ import { auth } from '@/api/auth';
 import moment from 'moment';
 import { toast } from 'sonner';
 import {
-  Activity, AlertTriangle, Ban, Bug, CheckCircle2, ChevronDown, CircleDot,
+  Activity, AlertTriangle, Ban, Bug, CheckCircle2, ChevronDown, ChevronUp, CircleDot,
   ClipboardList, Clock, Eye, KanbanSquare, ListChecks, Loader2, Pencil,
   Plus, Rocket, Search, Sparkles, Tag, Trash2, User, X,
 } from 'lucide-react';
@@ -99,6 +99,203 @@ interface FormState {
   status: Status; tags: string; assigned_to: string;
 }
 const EMPTY_FORM: FormState = { kind: 'bug', title: '', description: '', severity: '', status: 'open', tags: '', assigned_to: '' };
+
+// ── Project Summary Table ─────────────────────────────────────────────────────
+type TabKey = 'completed' | 'inprogress' | 'roadmap';
+
+const SUMMARY_TABS: { key: TabKey; label: string }[] = [
+  { key: 'completed',  label: '✅ Completed'   },
+  { key: 'inprogress', label: '🔄 In Progress'  },
+  { key: 'roadmap',    label: '🗺️ Roadmap'      },
+];
+
+const COMPLETED_DATA = [
+  { category: 'Authentication', feature: 'Email + OTP Registration', description: 'User registers with email, receives OTP via email, verifies to activate account' },
+  { category: 'Authentication', feature: 'Google Sign-In (OAuth)', description: 'One-tap Google login/register via Google Identity Services' },
+  { category: 'Authentication', feature: 'JWT Auth + Refresh', description: 'Access tokens stored securely, auto-refresh on expiry' },
+  { category: 'Authentication', feature: 'Terms of Service Gate', description: 'Users must accept ToS + Privacy Policy before registering' },
+  { category: 'Profile', feature: 'Personal Profile', description: 'Full name, avatar, cover photo, bio, location, headline' },
+  { category: 'Profile', feature: 'Business Profile', description: 'Business name, category, logo, cover, description, theme color, sections' },
+  { category: 'Profile', feature: 'Profile Edit (Personal + Business tabs)', description: 'Inline editing of all profile fields with live preview' },
+  { category: 'Profile', feature: 'Verification Badges', description: 'Blue verified, gold business, purple creator, official badges' },
+  { category: 'Feed', feature: 'Post Creation', description: 'Text, image, poll, event, product-promo, and location post types' },
+  { category: 'Feed', feature: 'Like / Comment / Reply', description: 'Nested comments with replies, like count, real-time updates' },
+  { category: 'Feed', feature: 'Story (Hexagonal)', description: '24-hour hex stories with media upload and viewer' },
+  { category: 'Feed', feature: 'Business Showroom Feed', description: 'Business view in feed showing services, products, hours' },
+  { category: 'Feed', feature: 'Post Bookmarking', description: 'Bookmark any post; amber active icon; real-time Bookmarks page sync' },
+  { category: 'Feed', feature: 'Business Name Separator', description: 'Pipe | separator between business names in post headers' },
+  { category: 'Bookmarks', feature: 'Global Bookmarks Store', description: 'Zustand slice — savedIds, hydrate, toggleSave with optimistic UI' },
+  { category: 'Bookmarks', feature: 'Bookmarks Page', description: 'Real-time, filter by type (posts/products/showrooms/tasks), no page reload' },
+  { category: 'Marketplace', feature: 'Product Listings', description: 'Create, edit, delete products with images, price, category, condition' },
+  { category: 'Marketplace', feature: 'Product Detail', description: 'Full product page with images, seller info, price alert, add to cart' },
+  { category: 'Marketplace', feature: 'Shopping Cart', description: 'Add/remove items, quantity, checkout flow' },
+  { category: 'Marketplace', feature: 'Price Alerts', description: 'Set target price, get notified when price drops' },
+  { category: 'Payments', feature: 'Chapa Integration', description: 'ETB payments via Chapa for orders and wallet top-up' },
+  { category: 'Payments', feature: 'Stripe Integration', description: 'Card and wallet payments via Stripe Checkout' },
+  { category: 'Payments', feature: 'Cash on Delivery (COD)', description: 'Place orders without upfront payment' },
+  { category: 'Payments', feature: 'Wallet System', description: 'ETB wallet with top-up, withdrawal, transaction history' },
+  { category: 'Showrooms', feature: 'Showroom Builder', description: 'Full no-code mini-website builder with sections, themes, templates' },
+  { category: 'Showrooms', feature: 'Showroom Wizard', description: 'Step-by-step guided creation with category-aware templates' },
+  { category: 'Showrooms', feature: 'Section Renderer', description: 'Renders hero, services, products, about, gallery, team, FAQ, testimonials' },
+  { category: 'Showrooms', feature: 'Showroom Publish / QR', description: 'Publish showroom, generate QR code, slug-based public URL' },
+  { category: 'Tasks', feature: 'Task Board', description: 'Post tasks with type, location, deadline, offered payment' },
+  { category: 'Tasks', feature: 'Task Bidding', description: 'Users bid on open tasks; poster reviews and accepts bids' },
+  { category: 'Tasks', feature: 'Task Calendar', description: 'Calendar view of tasks by deadline' },
+  { category: 'Messaging', feature: 'Real-time Chat', description: 'Socket.io-based DMs with seen receipts, reactions, pinned messages' },
+  { category: 'Messaging', feature: 'Message Translations', description: 'Auto-translate messages to user language' },
+  { category: 'Messaging', feature: 'Group Conversations', description: 'Multi-user conversations' },
+  { category: 'Notifications', feature: 'Push Notifications', description: 'Web Push via service worker for new notifications' },
+  { category: 'Notifications', feature: 'In-app Notification Feed', description: 'Bell icon with unread count, notification list' },
+  { category: 'Social', feature: 'Friends / Follow System', description: 'Send/accept friend requests, follow users, mutual connections' },
+  { category: 'Social', feature: 'Explore Page', description: 'Discover people, businesses, posts, trending content' },
+  { category: 'Social', feature: 'Hashtag Pages', description: 'Click hashtags to see all posts with that tag' },
+  { category: 'Events', feature: 'Event Creation', description: 'Title, description, location, start/end time, ticket price' },
+  { category: 'Jobs', feature: 'Job Board', description: 'Post jobs with requirements, salary, location; apply flow' },
+  { category: 'Courses', feature: 'Course Listings', description: 'List and browse educational courses' },
+  { category: 'Admin', feature: 'Admin Dashboard', description: 'User management, content moderation, analytics overview' },
+  { category: 'Admin', feature: 'Developer Ops Board', description: 'Kanban board for bugs, features, tasks with severity tracking' },
+  { category: 'UI/UX', feature: 'Dark / Light Mode', description: 'Full theme support with system preference detection' },
+  { category: 'UI/UX', feature: 'i18n (English + Amharic)', description: 'Multi-language support with react-i18next' },
+  { category: 'UI/UX', feature: 'Responsive Layout', description: 'Desktop sidebar + mobile bottom nav + mobile drawer' },
+  { category: 'UI/UX', feature: 'Fixed Navbar', description: 'Navbar fixed on all devices, never scrolls away' },
+  { category: 'UI/UX', feature: 'Price-Click Payment Popup', description: 'Clicking service/product prices opens PurchaseModal directly' },
+  { category: 'DevOps', feature: 'CI/CD Pipeline', description: 'GitHub Actions: lint, type-check, build, deploy to Vercel + Railway' },
+  { category: 'DevOps', feature: 'Neon PostgreSQL', description: 'Serverless Postgres with connection pooling' },
+  { category: 'DevOps', feature: 'Railway Backend', description: 'Node.js/Express API deployed on Railway' },
+];
+
+const INPROGRESS_DATA = [
+  { category: 'Authentication', feature: 'iOS Safari Registration Fix', description: 'autoFocus and Google button width issues on iPhone Safari' },
+  { category: 'UI/UX', feature: 'Mobile Color Token Consistency', description: 'Bottom nav, story frames, post composer using correct brand tokens' },
+  { category: 'Showrooms', feature: 'Price-Click Inquiry Form', description: '"Get Quote" items should open contact/inquiry form instead of payment' },
+  { category: 'Admin', feature: 'DevOps Solid Background', description: 'Ensuring all admin pages have solid opaque backgrounds' },
+  { category: 'Performance', feature: 'Feed Pagination', description: 'Infinite scroll with cursor-based pagination for feed posts' },
+  { category: 'Analytics', feature: 'Business Analytics', description: 'View counts, engagement metrics, sales data per business' },
+];
+
+const ROADMAP_DATA = [
+  { category: 'Authentication', feature: 'Biometric Login', description: 'Face ID / Touch ID via WebAuthn on supported devices', priority: 'High' },
+  { category: 'Authentication', feature: 'Phone Number OTP', description: 'Register/login with Ethiopian phone number (+251) via SMS', priority: 'High' },
+  { category: 'Payments', feature: 'Telebirr Integration', description: "Direct integration with Ethiopia's dominant mobile money platform", priority: 'High' },
+  { category: 'Payments', feature: 'M-Pesa Integration', description: 'Integration for East African M-Pesa users', priority: 'Medium' },
+  { category: 'AI', feature: 'AI Content Suggestions', description: 'AI-powered post suggestions, hashtag recommendations, product descriptions', priority: 'High' },
+  { category: 'AI', feature: 'Smart Search', description: 'Semantic search across posts, products, people, showrooms', priority: 'High' },
+  { category: 'Feed', feature: 'Video Posts', description: 'Short-form video upload and playback in feed (like Reels/TikTok)', priority: 'High' },
+  { category: 'Feed', feature: 'Live Streaming', description: 'Real-time video broadcasting for businesses and creators', priority: 'Medium' },
+  { category: 'Marketplace', feature: 'Escrow Payments', description: 'Hold payment in escrow until buyer confirms delivery', priority: 'High' },
+  { category: 'Marketplace', feature: 'Product Reviews', description: 'Star ratings and written reviews on products', priority: 'High' },
+  { category: 'Marketplace', feature: 'Seller Analytics', description: 'Detailed sales dashboard — revenue, conversion, top products', priority: 'High' },
+  { category: 'Showrooms', feature: 'Custom Domain', description: 'Map custom domain (e.g. mybrand.com) to showroom', priority: 'Medium' },
+  { category: 'Showrooms', feature: 'SEO Optimization', description: 'Meta tags, structured data, sitemap for showroom pages', priority: 'Medium' },
+  { category: 'Messaging', feature: 'Voice Messages', description: 'Record and send voice notes in chats', priority: 'Medium' },
+  { category: 'Messaging', feature: 'File Sharing', description: 'Send PDFs, documents in conversations', priority: 'Medium' },
+  { category: 'Social', feature: 'Community Groups', description: 'Create and manage public/private groups with feeds', priority: 'High' },
+  { category: 'Social', feature: 'Events RSVP + Ticketing', description: 'Full ticketing system with QR code scanning at door', priority: 'High' },
+  { category: 'Tasks', feature: 'Task Completion Escrow', description: 'Payment released only after task is marked complete by requester', priority: 'High' },
+  { category: 'Loyalty', feature: 'Points & Rewards System', description: 'Earn points for activity, redeem for discounts and perks', priority: 'Medium' },
+  { category: 'Mobile', feature: 'Native Mobile App', description: 'React Native app for iOS and Android', priority: 'High' },
+  { category: 'DevOps', feature: 'End-to-End Test Suite', description: 'Playwright/Cypress E2E tests covering critical user journeys', priority: 'High' },
+  { category: 'DevOps', feature: 'Error Monitoring', description: 'Sentry integration for real-time error tracking in production', priority: 'High' },
+  { category: 'DevOps', feature: 'Performance Monitoring', description: 'Vercel Analytics + Web Vitals tracking', priority: 'Medium' },
+];
+
+function ProjectSummaryTable() {
+  const [open, setOpen] = React.useState(false);
+  const [tab, setTab] = React.useState<TabKey>('completed');
+
+  return (
+    <div className="mb-6 bg-card border border-border/50 rounded-2xl overflow-hidden">
+      {/* Toggle header */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/40 transition-colors"
+      >
+        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center shrink-0">
+          <ListChecks className="w-4 h-4 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold">Project Summary</p>
+          <p className="text-[10px] text-muted-foreground font-mono">
+            {COMPLETED_DATA.length} completed · {INPROGRESS_DATA.length} in progress · {ROADMAP_DATA.length} roadmap items
+          </p>
+        </div>
+        {open
+          ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" />
+          : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+        }
+      </button>
+
+      {open && (
+        <div className="border-t border-border/50">
+          {/* Tab switcher */}
+          <div className="flex gap-2 p-3 pb-0">
+            {SUMMARY_TABS.map(t => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                  tab === t.key
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                    : 'bg-card border-border/50 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto p-3">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="text-left">
+                  <th className="pb-2 pr-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px] w-28">Category</th>
+                  <th className="pb-2 pr-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Feature</th>
+                  <th className="pb-2 pr-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Description</th>
+                  {tab === 'roadmap' && (
+                    <th className="pb-2 font-semibold text-muted-foreground uppercase tracking-wider text-[10px] w-16">Priority</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {tab === 'completed' && COMPLETED_DATA.map((row, i) => (
+                  <tr key={i} className={i % 2 === 0 ? 'bg-secondary/30' : ''}>
+                    <td className="py-1.5 pr-3 font-mono text-[10px] text-muted-foreground whitespace-nowrap">{row.category}</td>
+                    <td className="py-1.5 pr-3 font-medium text-foreground whitespace-nowrap">{row.feature}</td>
+                    <td className="py-1.5 pr-3 text-muted-foreground leading-relaxed">{row.description}</td>
+                  </tr>
+                ))}
+                {tab === 'inprogress' && INPROGRESS_DATA.map((row, i) => (
+                  <tr key={i} className={i % 2 === 0 ? 'bg-secondary/30' : ''}>
+                    <td className="py-1.5 pr-3 font-mono text-[10px] text-muted-foreground whitespace-nowrap">{row.category}</td>
+                    <td className="py-1.5 pr-3 font-medium text-foreground whitespace-nowrap">{row.feature}</td>
+                    <td className="py-1.5 pr-3 text-muted-foreground leading-relaxed">{row.description}</td>
+                  </tr>
+                ))}
+                {tab === 'roadmap' && ROADMAP_DATA.map((row, i) => (
+                  <tr key={i} className={i % 2 === 0 ? 'bg-secondary/30' : ''}>
+                    <td className="py-1.5 pr-3 font-mono text-[10px] text-muted-foreground whitespace-nowrap">{row.category}</td>
+                    <td className="py-1.5 pr-3 font-medium text-foreground whitespace-nowrap">{row.feature}</td>
+                    <td className="py-1.5 pr-3 text-muted-foreground leading-relaxed">{row.description}</td>
+                    <td className="py-1.5">
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-semibold border ${
+                        row.priority === 'High'
+                          ? 'bg-red-500/10 text-red-500 border-red-500/30'
+                          : 'bg-amber-500/10 text-amber-500 border-amber-500/30'
+                      }`}>
+                        {row.priority}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Main view ────────────────────────────────────────────────────────────────
 function DevOps() {
@@ -267,7 +464,7 @@ function DevOps() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-[1500px] mx-auto px-3 md:px-6 pb-24">
+    <div className="min-h-screen bg-background max-w-[1500px] mx-auto px-3 md:px-6 pb-24">
       {/* ══ Header ══ */}
       <div className="flex flex-wrap items-center gap-3 pt-5 pb-4">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
@@ -401,12 +598,13 @@ function DevOps() {
       </div>
 
       {/* ══ Board ══ */}
+      <ProjectSummaryTable />
       {loading ? (
         <div className="flex justify-center py-24">
           <Loader2 className="w-7 h-7 animate-spin text-primary" />
         </div>
       ) : (
-        <div className="flex gap-3 overflow-x-auto pb-4 -mx-1 px-1 items-start">
+        <div className="flex gap-3 overflow-x-auto pb-4 -mx-1 px-1 items-start snap-x snap-mandatory">
           {columns.map(status => {
             const meta = STATUS_META[status];
             const Icon = meta.icon;
@@ -414,7 +612,7 @@ function DevOps() {
               .filter(i => i.status === status)
               .sort((a, b) => moment(b.updated_at).valueOf() - moment(a.updated_at).valueOf());
             return (
-              <div key={status} className="w-[290px] shrink-0 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+              <div key={status} className="w-[290px] shrink-0 rounded-2xl border border-border/50 bg-card overflow-hidden snap-start">
                 {/* Column header */}
                 <div className={`flex items-center gap-2 px-3.5 py-3 ${meta.headBg} border-b border-border/40`}>
                   <Icon className={`w-4 h-4 ${meta.accent}`} />
