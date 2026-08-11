@@ -59,8 +59,8 @@ function TemplateMiniPane({ premium }: { premium: boolean }) {
     <div
       className={`relative h-16 overflow-hidden rounded-lg border p-1.5 ${
         premium
-          ? "border-amber-300/70 bg-gradient-to-br from-amber-500/90 to-amber-700/90"
-          : "border-amber-200/70 bg-gradient-to-br from-amber-300/70 to-amber-500/60"
+          ? "border-violet-300/70 bg-gradient-to-br from-blue-600/90 to-violet-700/90"
+          : "border-blue-200/70 bg-gradient-to-br from-blue-400/70 to-violet-500/60"
       }`}
     >
       <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 18% 34%, white 1px, transparent 1px)", backgroundSize: "12px 12px" }} />
@@ -94,8 +94,8 @@ function WizardTemplateCard({ template, selected, onSelect }: {
       onKeyDown={e => e.key === "Enter" && onSelect()}
       className={`relative cursor-pointer overflow-hidden rounded-xl border bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:bg-card ${
         selected
-          ? "border-amber-500 shadow-md ring-2 ring-amber-500/70"
-          : "border-border/50 hover:border-amber-300"
+          ? "border-primary shadow-md ring-2 ring-primary/70"
+          : "border-border/50 hover:border-primary/40"
       }`}
     >
       <div className="grid gap-1.5 p-1.5">
@@ -108,7 +108,7 @@ function WizardTemplateCard({ template, selected, onSelect }: {
           <motion.div
             initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="absolute left-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-amber-600 shadow"
+            className="absolute left-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 shadow"
           >
             <Check className="h-3 w-3 text-white" />
           </motion.div>
@@ -140,7 +140,7 @@ function WizardStepper({ step, canGoTo, onGoTo, labels }: {
         return (
           <React.Fragment key={n}>
             {i > 0 && (
-              <div className={`mx-1.5 h-0.5 flex-1 rounded-full transition-colors sm:mx-2 ${n <= step ? "bg-amber-500" : "bg-border"}`} />
+              <div className={`mx-1.5 h-0.5 flex-1 rounded-full transition-colors sm:mx-2 ${n <= step ? "bg-primary" : "bg-border"}`} />
             )}
             <button
               type="button"
@@ -151,9 +151,9 @@ function WizardStepper({ step, canGoTo, onGoTo, labels }: {
               <span
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
                   state === "done"
-                    ? "bg-amber-500 text-white"
+                    ? "bg-primary text-white"
                     : state === "active"
-                      ? "bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/30 ring-4 ring-amber-500/15"
+                      ? "bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md shadow-blue-600/20 ring-4 ring-blue-500/20"
                       : "border border-border bg-card text-muted-foreground"
                 }`}
               >
@@ -161,7 +161,7 @@ function WizardStepper({ step, canGoTo, onGoTo, labels }: {
               </span>
               <span
                 className={`hidden text-xs font-semibold sm:block ${
-                  state === "active" ? "text-amber-600 dark:text-amber-400" : state === "done" ? "text-foreground" : "text-muted-foreground"
+                  state === "active" ? "text-primary" : state === "done" ? "text-foreground" : "text-muted-foreground"
                 }`}
               >
                 {labels[i]}
@@ -321,12 +321,12 @@ function ShowroomWizard() {
   ];
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden bg-amber-50/30 dark:bg-slate-950">
+    <div className="flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden bg-background">
       {/* ── Stepper header ── */}
-      <div className="shrink-0 border-b border-amber-200/60 bg-white/95 backdrop-blur dark:border-amber-900/40 dark:bg-slate-950/95">
+      <div className="shrink-0 border-b border-border bg-card">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:gap-5">
           <div className="hidden items-center gap-2 md:flex">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-sm shadow-amber-500/30">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 shadow-sm shadow-blue-600/20">
               <Crown className="h-4 w-4 text-white" />
             </div>
             <div>
@@ -341,7 +341,7 @@ function ShowroomWizard() {
             <WizardStepper step={step} canGoTo={canGoTo} onGoTo={goToStep} labels={stepLabels} />
           </div>
           {/* Mobile step indicator */}
-          <span className="text-xs font-bold text-amber-600 md:hidden">{step}/3</span>
+          <span className="text-xs font-bold text-primary md:hidden">{step}/3</span>
         </div>
       </div>
 
@@ -358,7 +358,7 @@ function ShowroomWizard() {
                 className="mx-auto max-w-5xl px-4 py-8"
               >
                 <div className="mb-6">
-                  <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-600">
+                  <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
                     {t("showroomWizard.stepCategory")} — 1/3
                   </p>
                   <h1 className="font-display text-2xl font-bold tracking-normal">{t("showroomWizard.step1Title")}</h1>
@@ -375,10 +375,10 @@ function ShowroomWizard() {
                         onClick={() => pickCategory(cat.cat)}
                         initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.04, duration: 0.25 }}
-                        className={`group relative flex flex-col items-start gap-3 rounded-2xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-amber-500/10 ${
+                        className={`group relative flex flex-col items-start gap-3 rounded-2xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/10 ${
                           selected
-                            ? "border-amber-500 bg-gradient-to-br from-amber-50 to-amber-100/60 shadow-md shadow-amber-500/15 ring-2 ring-amber-500/60 dark:from-amber-900/25 dark:to-amber-900/10"
-                            : "border-border/60 bg-white hover:border-amber-300 dark:bg-card"
+                            ? "border-primary bg-gradient-to-br from-blue-50 to-blue-100/60 shadow-md shadow-blue-500/15 ring-2 ring-primary/60 dark:from-blue-900/25 dark:to-blue-900/10"
+                            : "border-border/60 bg-white hover:border-border dark:bg-card"
                         }`}
                       >
                         <div
@@ -394,12 +394,12 @@ function ShowroomWizard() {
                           </p>
                         </div>
                         {selected && (
-                          <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-amber-600 shadow">
+                          <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 shadow">
                             <Check className="h-3 w-3 text-white" />
                           </span>
                         )}
                         <span className={`absolute bottom-3 right-3 transition-opacity ${selected ? "opacity-100" : "opacity-0 group-hover:opacity-60"}`}>
-                          <ArrowRight className="h-4 w-4 text-amber-600" />
+                          <ArrowRight className="h-4 w-4 text-primary" />
                         </span>
                       </motion.button>
                     );
@@ -421,18 +421,18 @@ function ShowroomWizard() {
                   <button
                     type="button"
                     onClick={changeCategory}
-                    className="flex items-center gap-1.5 rounded-full border border-border/60 bg-white px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-amber-300 hover:text-foreground dark:bg-card"
+                    className="flex items-center gap-1.5 rounded-full border border-border/60 bg-white px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground dark:bg-card"
                   >
                     <ArrowLeft className="h-3.5 w-3.5" />
                     {t("showroomWizard.back")}
                   </button>
                   {activeCat && (
-                    <div className="flex items-center gap-2 rounded-full border border-amber-300/60 bg-amber-50 py-1.5 pl-2 pr-3 dark:bg-amber-900/20">
+                    <div className="flex items-center gap-2 rounded-full border border-primary/30 bg-blue-50 py-1.5 pl-2 pr-3 dark:bg-blue-900/20">
                       <span className="flex h-6 w-6 items-center justify-center rounded-full" style={{ backgroundColor: `${activeCat.color}1f` }}>
                         <activeCat.Icon className="h-3.5 w-3.5" style={{ color: activeCat.color }} />
                       </span>
-                      <span className="text-xs font-bold text-amber-800 dark:text-amber-300">{activeCat.cat}</span>
-                      <button type="button" onClick={changeCategory} className="text-[11px] font-semibold text-amber-600 underline-offset-2 hover:underline">
+                      <span className="text-xs font-bold text-blue-800 dark:text-blue-300">{activeCat.cat}</span>
+                      <button type="button" onClick={changeCategory} className="text-[11px] font-semibold text-primary underline-offset-2 hover:underline">
                         {t("showroomWizard.changeCategory")}
                       </button>
                     </div>
@@ -440,7 +440,7 @@ function ShowroomWizard() {
                 </div>
 
                 <div className="mb-5">
-                  <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-600">
+                  <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
                     {t("showroomWizard.stepTemplate")} — 2/3
                   </p>
                   <h1 className="font-display text-2xl font-bold tracking-normal">{t("showroomWizard.step2Title")}</h1>
@@ -454,7 +454,7 @@ function ShowroomWizard() {
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     placeholder={t("showroomWizard.searchPlaceholder")}
-                    className="w-full rounded-full border border-transparent bg-secondary py-2.5 pl-10 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    className="w-full rounded-full border border-transparent bg-secondary py-2.5 pl-10 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   {search && (
                     <button type="button" onClick={() => setSearch("")} className="absolute right-3.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-muted-foreground/20">
@@ -467,16 +467,16 @@ function ShowroomWizard() {
                 <button
                   type="button"
                   onClick={startFromScratch}
-                  className="mb-4 flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-amber-400/70 bg-amber-50/60 p-4 text-left transition-all hover:border-amber-500 hover:bg-amber-50 hover:shadow-md hover:shadow-amber-500/10 dark:border-amber-600/50 dark:bg-amber-900/15 dark:hover:bg-amber-900/25"
+                  className="mb-4 flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-primary/50 bg-blue-50/60 p-4 text-left transition-all hover:border-primary hover:bg-blue-50 hover:shadow-md hover:shadow-blue-500/10 dark:border-primary/30 dark:bg-blue-900/15 dark:hover:bg-blue-900/25"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-sm shadow-amber-500/30">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 shadow-sm shadow-blue-600/20">
                     <Plus className="h-5 w-5 text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{t("showroomWizard.startFromScratch")}</p>
-                    <p className="text-xs text-amber-700/80 dark:text-amber-300/70">{t("showroomWizard.startFromScratchDesc")}</p>
+                    <p className="text-sm font-bold text-foreground">{t("showroomWizard.startFromScratch")}</p>
+                    <p className="text-xs text-muted-foreground">{t("showroomWizard.startFromScratchDesc")}</p>
                   </div>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-amber-600" />
+                  <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
                 </button>
 
                 {/* Template grid */}
@@ -511,7 +511,7 @@ function ShowroomWizard() {
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                           <div>
                             <h2 className="font-display flex items-center gap-2 text-lg font-bold">
-                              <PenLine className="h-4 w-4 text-amber-600" />
+                              <PenLine className="h-4 w-4 text-primary" />
                               {t("showroomWizard.livePreview")} — {titleCase(templateId)}
                             </h2>
                             <p className="mt-0.5 text-xs text-muted-foreground">{t("showroomWizard.previewHint")}</p>
@@ -522,7 +522,7 @@ function ShowroomWizard() {
                                 key={m}
                                 type="button"
                                 onClick={() => setPreviewMode(m)}
-                                className={`rounded-full p-1.5 transition-colors ${previewMode === m ? "bg-gradient-to-br from-amber-500 to-amber-600 text-white" : "text-muted-foreground hover:bg-secondary"}`}
+                                className={`rounded-full p-1.5 transition-colors ${previewMode === m ? "bg-gradient-to-br from-blue-600 to-violet-600 text-white" : "text-muted-foreground hover:bg-secondary"}`}
                                 aria-label={m}
                               >
                                 <Icon className="h-3.5 w-3.5" />
@@ -539,7 +539,7 @@ function ShowroomWizard() {
                                   <div className="flex items-center gap-2">
                                     {sample.id === "premium"
                                       ? <Crown className="h-4 w-4 text-amber-500" />
-                                      : <Monitor className="h-4 w-4 text-amber-600" />}
+                                      : <Monitor className="h-4 w-4 text-primary" />}
                                     <h3 className="text-base font-bold">{sample.name}</h3>
                                   </div>
                                   <p className="mt-1 text-xs text-muted-foreground">{sample.desc}</p>
@@ -550,7 +550,7 @@ function ShowroomWizard() {
                                 <button
                                   type="button"
                                   onClick={() => customizeSample(sample.id)}
-                                  className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-4 text-xs font-bold text-white shadow-md shadow-amber-500/25 transition-all hover:from-amber-600 hover:to-amber-700 sm:h-9 sm:w-auto"
+                                  className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition-all hover:from-blue-700 hover:to-violet-700 sm:h-9 sm:w-auto"
                                 >
                                   <PenLine className="h-3.5 w-3.5" />
                                   {sample.id === "premium" ? t("showroomWizard.customizePremium") : t("showroomWizard.customizeStarter")}

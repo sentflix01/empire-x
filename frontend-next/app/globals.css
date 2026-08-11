@@ -135,7 +135,11 @@
   .border-empire-blue { border-color: var(--ex-blue); }
 }
 
-/* Scrollbar utilities */
+/* Hexagonal clip path for story frames */
+.clip-hexagon-outer,
+.clip-hexagon {
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+}
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

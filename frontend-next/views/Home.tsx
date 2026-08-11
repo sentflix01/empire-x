@@ -234,9 +234,9 @@ export default function Home() {
 
   return (
     <div className="max-w-xl mx-auto space-y-4">
-      {/* Mini Website Banner — business domain: gold/amber scheme */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-700 text-white shadow-lg shadow-amber-600/25 min-h-[132px]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.22),transparent_28%),radial-gradient(circle_at_15%_90%,rgba(16,185,129,0.22),transparent_26%)]" />
+      {/* Mini Website Banner — brand blue-to-purple gradient */}
+      <section className="relative overflow-hidden rounded-2xl text-white shadow-lg shadow-blue-600/25 min-h-[132px]" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }}>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.18),transparent_28%),radial-gradient(circle_at_15%_90%,rgba(124,58,237,0.22),transparent_26%)]" />
         <div className="relative z-10 flex min-h-[132px] items-center justify-between gap-4 px-5 py-5 sm:px-6">
           <div className="max-w-[250px]">
             <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/85 ring-1 ring-white/20">
@@ -249,7 +249,7 @@ export default function Home() {
             </h1>
             <p className="mt-2 text-sm font-medium leading-snug text-white/82">{t('feed.shareEmpire')}</p>
             <Link href="/showroom/create"
-              className="mt-4 inline-flex h-10 items-center rounded-xl bg-white px-5 text-sm font-bold text-amber-700 shadow-md shadow-black/10 transition-all duration-200 hover:bg-amber-50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+              className="mt-4 inline-flex h-10 items-center rounded-xl bg-white px-5 text-sm font-bold text-blue-700 shadow-md shadow-black/10 transition-all duration-200 hover:bg-blue-50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
               {t('feed.getStarted')}
             </Link>
           </div>
@@ -260,7 +260,7 @@ export default function Home() {
             <div className="absolute right-4 bottom-3 h-2 w-3 rotate-[-18deg] rounded-sm bg-blue-300/80 shadow-[0_0_12px_rgba(147,197,253,0.75)]" />
 
             <div className="absolute right-6 top-0 h-[7.5rem] w-20 rotate-[12deg] rounded-[1.55rem] bg-slate-950/78 p-1.5 shadow-2xl shadow-slate-950/45 ring-1 ring-white/20">
-              <div className="h-full rounded-[1.18rem] bg-gradient-to-br from-amber-500/90 via-amber-600/82 to-orange-600/90 p-2">
+              <div className="h-full rounded-[1.18rem] p-2" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }}>
                 <div className="mx-auto mb-3 h-1.5 w-7 rounded-full bg-slate-900/55" />
                 <div className="space-y-2">
                   <div className="h-4 rounded-md bg-white/28" />
