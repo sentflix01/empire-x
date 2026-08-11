@@ -72,12 +72,12 @@ function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-violet-50 flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
         {/* Logo */}
         <div className="text-center mb-8">
           <span className="text-3xl">👑</span>
-          <h1 className="font-display text-xl font-bold mt-1 bg-gradient-to-r from-amber-600 to-amber-500 bg-clip-text text-transparent">Empire X</h1>
+          <h1 className="font-display text-xl font-bold mt-1 bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">Empire X</h1>
         </div>
 
         {/* Step 0: Choose Profile Type */}
@@ -157,11 +157,11 @@ function Onboarding() {
                 </div>
               </div>
               {profileType === "business" ? (
-                <Button onClick={() => setStep(2)} disabled={!personal.display_name} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
+                <Button onClick={() => setStep(2)} disabled={!personal.display_name} className="w-full h-11 rounded-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700">
                   Continue to Business Setup <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
-                <Button onClick={handleFinish} disabled={saving || !personal.display_name} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
+                <Button onClick={handleFinish} disabled={saving || !personal.display_name} className="w-full h-11 rounded-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700">
                   {saving ? "Creating..." : "Create My Profile"} <Check className="w-4 h-4 ml-2" />
                 </Button>
               )}
@@ -201,7 +201,7 @@ function Onboarding() {
                         key={cat.value}
                         onClick={() => setBusiness({...business, business_category: cat.value})}
                         className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${
-                          business.business_category === cat.value ? "border-amber-400 bg-amber-50" : "border-border hover:border-amber-300"
+                          business.business_category === cat.value ? "border-blue-500 bg-blue-50" : "border-border hover:border-blue-300"
                         }`}
                       >
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: cat.color + "20" }}>
@@ -213,7 +213,7 @@ function Onboarding() {
                   })}
                 </div>
               </div>
-              <Button onClick={() => setStep(3)} disabled={!business.business_name || !business.business_category} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
+              <Button onClick={() => setStep(3)} disabled={!business.business_name || !business.business_category} className="w-full h-11 rounded-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700">
                 Choose Layout <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
@@ -243,7 +243,7 @@ function Onboarding() {
                 />
               ))}
             </div>
-            <Button onClick={handleFinish} disabled={saving} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
+            <Button onClick={handleFinish} disabled={saving} className="w-full h-11 rounded-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700">
               {saving ? "Creating..." : "Launch My Business"} <Sparkles className="w-4 h-4 ml-2" />
             </Button>
           </div>
