@@ -90,6 +90,11 @@ function Register() {
       setEmail(normalizedEmail);
       setShowOtp(true);
     } catch (err) {
+      // ADMIN_ONLY_MODE: 404 from backend → redirect to 404 page silently
+      if (err?.status === 404 || err?.response?.status === 404) {
+        window.location.href = '/404';
+        return;
+      }
       setError(err.error || err.message || t('auth.registrationFailed'));
     } finally {
       setLoading(false);

@@ -80,6 +80,12 @@ function generateOtp() {
 
 // ── POST /api/auth/register ──────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
+  // ADMIN_ONLY_MODE: block new registrations — generic 404 so it looks
+  // like the registration page was removed
+  if (process.env.ADMIN_ONLY_MODE === 'true') {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
   const { email, password, full_name } = req.body;
   if (!email || !password) {
     return apiError.validationError(res, 'Email and password are required');
@@ -266,6 +272,12 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    // ADMIN_ONLY_MODE: block non-admin logins — respond with generic 404 so
+    // it looks like the page/account doesn't exist
+    if (process.env.ADMIN_ONLY_MODE === 'true' && user.role !== 'admin') {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
     const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
@@ -311,6 +323,14 @@ router.post('/google', async (req, res) => {
       }
     }
 
+    // ADMIN_ONLY_MODE: block non-admin Google logins
+    if (process.env.ADMIN_ONLY_MODE === 'true') {
+      const { rows: roleCheck } = await pool.query('SELECT role FROM users WHERE id = $1', [user.id]);
+      if (!roleCheck.length || roleCheck[0].role !== 'admin') {
+        return res.status(404).json({ error: 'Not found' });
+      }
+    }
+
     const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
@@ -322,11 +342,6 @@ router.post('/google', async (req, res) => {
 // ── GET /api/auth/me ─────────────────────────────────────────────────────────
 router.get('/me', requireAuth, async (req, res) => {
   try {
-    // BUG-6 follow-up: fall back to the profile display_name when
-    // users.full_name is NULL/empty so the nav never shows "User".
-    // LATERAL + LIMIT 1 keeps this row-safe: user_profiles has no unique
-    // constraint on user_id, so a plain LEFT JOIN could fan out to multiple
-    // rows when duplicate profiles exist. Latest profile wins.
     const { rows } = await pool.query(
       `SELECT u.id, u.email,
               COALESCE(NULLIF(TRIM(u.full_name), ''), up.display_name) AS full_name,
@@ -343,6 +358,12 @@ router.get('/me', requireAuth, async (req, res) => {
       [req.user.id]
     );
     if (!rows.length) return apiError.notFound(res, 'User not found');
+
+    // ADMIN_ONLY_MODE: invalidate existing non-admin sessions silently
+    if (process.env.ADMIN_ONLY_MODE === 'true' && rows[0].role !== 'admin') {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
     res.json(rows[0]);
   } catch (err) {
     logger.error({ err }, 'Me error');

@@ -56,7 +56,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       clearToken();
       setUser(null);
       setIsAuth(false);
-      if (error?.status === 401 || error?.response?.status === 401) {
+      const status = error?.status || error?.response?.status;
+      if (status === 404) {
+        // ADMIN_ONLY_MODE: non-admin user — redirect to 404 so it looks
+        // like the app doesn't exist for them
+        if (typeof window !== 'undefined') window.location.href = '/404';
+        return;
+      }
+      if (status === 401 || error?.response?.status === 401) {
         setAuthError({ type: 'auth_required', message: 'Session expired. Please log in again.' });
       }
     } finally {
