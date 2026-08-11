@@ -853,19 +853,19 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
           {/* Home sub-tabs tray — REMOVED as per user request */}
 
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border z-50"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)', backgroundColor: 'hsl(var(--background))' }}>
             <div className="flex items-center h-16 px-1">
               {/* More — LEFT */}
               <button onClick={() => { setDrawerOpen(v => !v); }}
-                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${drawerOpen ? 'text-amber-500' : 'text-muted-foreground'}`}>
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${drawerOpen ? 'text-primary' : 'text-muted-foreground'}`}>
                 <Menu className="w-5 h-5" /><span className="text-[10px] font-medium">More</span>
               </button>
-              <Link href="/explore" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/explore') ? 'text-amber-500' : 'text-muted-foreground'}`}>
+              <Link href="/explore" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/explore') ? 'text-primary' : 'text-muted-foreground'}`}>
                 <TrendingUp className={`w-5 h-5 ${isActive('/explore') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Explore</span>
               </Link>
               {/* Messages with unread badge */}
-              <Link href="/messages" className={`relative flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/messages') ? 'text-amber-500' : 'text-muted-foreground'}`}>
+              <Link href="/messages" className={`relative flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/messages') ? 'text-primary' : 'text-muted-foreground'}`}>
                 <span className="relative">
                   <MessageCircle className={`w-5 h-5 ${isActive('/messages') ? 'stroke-[2.5]' : ''}`} />
                   {unreadMessages > 0 && (
@@ -876,7 +876,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </span>
                 <span className="text-[10px] font-medium">Messages</span>
               </Link>
-              <Link href="/friends" className={`relative flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/friends') ? 'text-amber-500' : 'text-muted-foreground'}`}>
+              <Link href="/friends" className={`relative flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/friends') ? 'text-primary' : 'text-muted-foreground'}`}>
                 <span className="relative">
                   <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} />
                   {unreadFollows > 0 && (
@@ -888,7 +888,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 <span className="text-[10px] font-medium">Friends</span>
               </Link>
               {/* Home — RIGHT */}
-              <Link href="/feed" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/feed') ? 'text-amber-500' : 'text-muted-foreground'}`}>
+              <Link href="/feed" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/feed') ? 'text-primary' : 'text-muted-foreground'}`}>
                 <Home className={`w-5 h-5 ${isActive('/feed') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Home</span>
               </Link>
             </div>

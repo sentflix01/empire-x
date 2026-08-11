@@ -171,13 +171,54 @@ export default function SectionRenderer({
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         {servTitle && <h2 className="font-display text-lg font-bold mb-4">{servTitle}</h2>}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {servList.map((item, i) => (
-            <div key={i} className="p-4 rounded-xl border border-border/40 hover:border-amber-300 transition-colors">
-              <h3 className="text-sm font-semibold">{item.name || item.title}</h3>
-              {(item.desc || item.description) && <p className="text-xs text-muted-foreground mt-1">{item.desc || item.description}</p>}
-              {item.price && <p className="text-sm font-bold mt-2" style={{ color: themeColor }}>{item.price}</p>}
-            </div>
-          ))}
+          {servList.map((item, i) => {
+            const hasPrice = item.price && item.price !== 'Get Quote';
+            const isGetQuote = item.price === 'Get Quote' || (!item.price && item.cta === 'Get Quote');
+            const priceNum = hasPrice ? parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0 : 0;
+            return (
+              <div key={i} className="p-4 rounded-xl border border-border/40 hover:border-border transition-colors hover:shadow-sm">
+                <h3 className="text-sm font-semibold">{item.name || item.title}</h3>
+                {(item.desc || item.description) && <p className="text-xs text-muted-foreground mt-1">{item.desc || item.description}</p>}
+                {item.price && (
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    {isGetQuote ? (
+                      <span className="text-sm font-bold" style={{ color: themeColor }}>Get Quote</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onBuy?.({
+                          title: item.name || item.title || 'Service',
+                          description: item.desc || item.description,
+                          price: priceNum,
+                          currency: 'ETB',
+                          // No id — service items don't have product IDs
+                        })}
+                        className="text-sm font-bold hover:underline underline-offset-2 transition-opacity hover:opacity-80 active:scale-95"
+                        style={{ color: themeColor }}
+                      >
+                        {item.price}
+                      </button>
+                    )}
+                    {hasPrice && onBuy && !isGetQuote && (
+                      <button
+                        type="button"
+                        onClick={() => onBuy({
+                          title: item.name || item.title || 'Service',
+                          description: item.desc || item.description,
+                          price: priceNum,
+                          currency: 'ETB',
+                        })}
+                        className="text-[11px] font-semibold px-2.5 py-1 rounded-full text-white transition-opacity hover:opacity-90 active:scale-95"
+                        style={{ backgroundColor: themeColor }}
+                      >
+                        Buy Now
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     );

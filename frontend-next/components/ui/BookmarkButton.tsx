@@ -26,10 +26,13 @@ export default function BookmarkButton({
 }: BookmarkButtonProps) {
   const [isPending, setIsPending] = useState<boolean>(false);
 
-  const isSaved = useAppStore((s) => s.isSaved);
+  // Select savedIds directly so the component re-renders whenever the map changes.
+  // Selecting isSaved (a stable function ref) does NOT trigger re-renders on toggle.
+  const savedIds = useAppStore((s) => s.savedIds);
   const toggleSave = useAppStore((s) => s.toggleSave);
 
-  const saved = isSaved(targetId);
+  // Derive saved state from the reactive savedIds map
+  const saved = Object.prototype.hasOwnProperty.call(savedIds, targetId);
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -57,21 +60,17 @@ export default function BookmarkButton({
       aria-pressed={saved}
       aria-label={saved ? 'Remove bookmark' : `Bookmark this ${targetType}`}
       className={cn(
-        // Base
         'inline-flex items-center justify-center rounded-md transition-colors',
-        // Focus ring
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
-        // Active vs inactive icon color
-        saved ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground',
-        // Disabled / in-flight state
+        saved ? 'text-amber-500' : 'text-muted-foreground',
         isPending && 'opacity-50 cursor-not-allowed pointer-events-none',
         className
       )}
     >
       <Bookmark
         className={cn(
-          'w-5 h-5',
-          saved ? 'fill-amber-500 text-amber-500' : 'fill-none text-muted-foreground'
+          'w-5 h-5 transition-all',
+          saved ? 'fill-amber-500 text-amber-500 scale-110' : 'fill-none text-muted-foreground'
         )}
       />
     </button>

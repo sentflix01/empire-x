@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeSVG } from "qrcode.react";
 import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
+import PurchaseModal from "@/components/checkout/PurchaseModal";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function ShowroomView() {
@@ -28,6 +29,7 @@ function ShowroomView() {
   const [showQr, setShowQr] = useState(false);
   const [user, setUser] = useState(null);
   const [authResolved, setAuthResolved] = useState(false);
+  const [purchaseItem, setPurchaseItem] = useState(null);
 
   useEffect(() => {
     auth.me().then(setUser).catch(() => {}).finally(() => setAuthResolved(true));
@@ -37,7 +39,6 @@ function ShowroomView() {
   const loadShowroom = async () => {
     setLoading(true);
     try {
-      // Slug route (/showroom/[slug]) uses the public slug endpoint; id route uses the entity API
       const s = slugParam
         ? (await client.get(`/api/showrooms/slug/${slugParam}`)).data
         : await entities.Showroom.get(id);
@@ -53,21 +54,16 @@ function ShowroomView() {
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
   if (!showroom) return <UnavailableNotice title="Showroom not found" message="This mini-website doesn't exist or has been removed." />;
 
-
   const sections = (() => { try { return JSON.parse(showroom.sections); } catch { return []; } })();
   const ctaTarget = resolveCtaTarget(sections);
   const productsIdx = firstProductsIndex(sections);
-
   const isOwner = user?.id === showroom.owner_id;
 
-  // Public access rule: only published showrooms are viewable; drafts/archived stay owner-only.
-  // Wait for auth to resolve so owners previewing their own draft don't flash the notice.
   if (showroom.status !== "published" && !(authResolved && isOwner)) {
     if (!authResolved) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
     return <UnavailableNotice title="Showroom unavailable" message="This mini-website is not publicly available." />;
   }
 
-  // Canonical share URL — slug-based when available (stable, human-readable)
   const showroomUrl = typeof window !== 'undefined'
     ? showroom.slug
       ? `${window.location.origin}/showroom/${showroom.slug}`
@@ -79,6 +75,12 @@ function ShowroomView() {
     business_name: showroom.title,
     business_description: showroom.description,
     display_name: showroom.title,
+  };
+
+  // Handler called by SectionRenderer when a priced service or product is clicked
+  const handleBuy = (item) => {
+    if (!user) { router.push('/login'); return; }
+    setPurchaseItem(item);
   };
 
   return (
@@ -121,6 +123,7 @@ function ShowroomView() {
               profile={profile}
               isOwner={isOwner}
               showProductLinks
+              onBuy={isOwner ? undefined : handleBuy}
               ctaTarget={ctaTarget}
               isPrimaryProducts={i === productsIdx}
             />
@@ -132,6 +135,17 @@ function ShowroomView() {
             <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {showroom.title}. Powered by Empire X 👑</p>
           </div>
         </div>
+
+        {/* Payment modal — opens when user clicks a priced service or product */}
+        {purchaseItem && (
+          <PurchaseModal
+            item={purchaseItem}
+            seller={{ user_id: showroom.owner_id, business_name: showroom.title }}
+            buyer={user ? { id: user.id, full_name: user.full_name, email: user.email } : undefined}
+            onClose={() => setPurchaseItem(null)}
+            onPurchased={() => setPurchaseItem(null)}
+          />
+        )}
       </div>
   );
 }
