@@ -648,7 +648,7 @@ function DevOps() {
 
       {/* ══ Create / Edit modal ══ */}
       <Dialog open={editorOpen} onOpenChange={(o) => !saving && setEditorOpen(o)}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto bg-card border border-border shadow-2xl" style={{ backgroundColor: 'hsl(var(--card))' }}>
           <DialogHeader className="text-left">
             <DialogTitle className="flex items-center gap-2">
               {editing ? <Pencil className="w-4 h-4 text-primary" /> : <Plus className="w-4 h-4 text-primary" />}
@@ -744,7 +744,7 @@ function DevOps() {
 
       {/* ══ Delete confirm ══ */}
       <Dialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-sm bg-card border border-border shadow-2xl" style={{ backgroundColor: 'hsl(var(--card))' }}>
           <DialogHeader className="text-left">
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <Trash2 className="w-4 h-4" /> Delete Item
@@ -809,7 +809,7 @@ function OpsCard({
                 <ChevronDown className="w-3.5 h-3.5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48" onClick={e => e.stopPropagation()}>
+            <DropdownMenuContent align="end" className="w-48 bg-card border border-border shadow-xl" style={{ backgroundColor: 'hsl(var(--card))' }} onClick={e => e.stopPropagation()}>
               <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-widest">Move to</DropdownMenuLabel>
               {STATUSES_FOR_KIND[item.kind].filter(s => s !== item.status).map(s => {
                 const m = STATUS_META[s];

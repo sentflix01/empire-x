@@ -131,10 +131,10 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-card rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60" onClick={onClose}>
+      <div className="bg-card rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl" style={{ backgroundColor: 'hsl(var(--card))' }} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="sticky top-0 bg-card border-b border-border/50 px-5 py-3 flex items-center justify-between z-10">
+        <div className="sticky top-0 border-b border-border/50 px-5 py-3 flex items-center justify-between z-10" style={{ backgroundColor: 'hsl(var(--card))' }}>
           <h2 className="font-display text-base font-bold">
             {step === "success" ? "Order Placed!" : "Checkout"}
           </h2>
