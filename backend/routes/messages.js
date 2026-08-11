@@ -635,5 +635,93 @@ router.post('/messages/:id/forward', requireAuth, async (req, res) => {
   }
 });
 
+// ── Inquiry / Get Quote ───────────────────────────────────────────────────────
+// POST /api/messages/inquiry — send a service inquiry to a business owner.
+// Creates a DM conversation (or reuses existing) and sends the inquiry as a
+// message, plus fires a notification so the owner is alerted immediately.
+router.post('/inquiry', requireAuth, async (req, res) => {
+  const { receiver_id, subject, body } = req.body;
+  if (!receiver_id) return res.status(400).json({ error: 'receiver_id is required' });
+  if (!body || !body.trim()) return res.status(400).json({ error: 'body is required' });
+
+  const senderId = req.user.id;
+
+  // Don't allow sending inquiry to yourself
+  if (String(receiver_id) === String(senderId)) {
+    return res.status(400).json({ error: 'Cannot send inquiry to yourself' });
+  }
+
+  try {
+    // Find or create a DM conversation between sender and receiver
+    const participantIds = JSON.stringify([String(senderId), String(receiver_id)]);
+    let conv;
+
+    const { rows: existing } = await pool.query(
+      `SELECT * FROM conversations
+       WHERE participant_ids::jsonb @> $1::jsonb
+         AND participant_ids::jsonb @> $2::jsonb
+         AND type = 'dm'
+       LIMIT 1`,
+      [JSON.stringify([String(senderId)]), JSON.stringify([String(receiver_id)])]
+    );
+
+    if (existing.length > 0) {
+      conv = existing[0];
+    } else {
+      const { rows: created } = await pool.query(
+        `INSERT INTO conversations (participant_ids, type, created_at, updated_at)
+         VALUES ($1, 'dm', NOW(), NOW()) RETURNING *`,
+        [participantIds]
+      );
+      conv = created[0];
+    }
+
+    // Insert the inquiry as a message
+    const messageText = subject ? `📋 ${subject}\n\n${body}` : body;
+    const { rows: msgs } = await pool.query(
+      `INSERT INTO messages (conversation_id, sender_id, content, created_at)
+       VALUES ($1, $2, $3, NOW()) RETURNING *`,
+      [conv.id, senderId, messageText]
+    );
+    const msg = msgs[0];
+
+    // Update conversation timestamp
+    await pool.query(
+      `UPDATE conversations SET updated_at = NOW() WHERE id = $1`,
+      [conv.id]
+    );
+
+    // Emit real-time socket event to the receiver
+    try {
+      emitNewMessage(String(receiver_id), { ...msg, conversation_id: conv.id });
+    } catch { /* socket optional */ }
+
+    // Create a notification for the business owner
+    try {
+      const senderName = req.user.full_name || req.user.email || 'Someone';
+      const notifTitle = subject || 'New Inquiry';
+      const notifBody = `${senderName} sent you an inquiry.`;
+      await pool.query(
+        `INSERT INTO notifications (user_id, type, title, body, link, created_at)
+         VALUES ($1, 'inquiry', $2, $3, $4, NOW())`,
+        [receiver_id, notifTitle, notifBody, `/messages/${conv.id}`]
+      );
+      try {
+        await sendPushToUser(receiver_id, notifTitle, notifBody, `/messages/${conv.id}`);
+      } catch { /* push optional */ }
+      try {
+        emitNotification(String(receiver_id), {
+          type: 'inquiry', title: notifTitle, body: notifBody, link: `/messages/${conv.id}`,
+        });
+      } catch { /* socket optional */ }
+    } catch { /* notification failure must not block inquiry response */ }
+
+    res.status(201).json({ success: true, conversation_id: conv.id, message_id: msg.id });
+  } catch (err) {
+    logger.error({ err: err.message }, 'Failed to send inquiry');
+    res.status(500).json({ error: 'Failed to send inquiry' });
+  }
+});
+
 module.exports = router;
 
