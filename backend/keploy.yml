@@ -1,8 +1,8 @@
-# Keploy configuration for Empire X backend
+# Keploy configuration for Halehame backend
 # Documentation: https://keploy.io/docs
 
 path: "./keploy"
-appId: "empire-x-backend"
+appId: "halehame-backend"
 command: "node index.js"
 
 # Keploy will capture and replay API traffic

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Showroom External API Integration feature allows businesses that already operate their own backend systems to connect their existing REST API endpoints to their Empire X Showroom (mini-website). Instead of manually entering data into the Showroom Builder, a business can point a showroom section at their own live API, map their fields to Empire X schema fields, and have their showroom reflect real-time or cached data from their own system.
+The Showroom External API Integration feature allows businesses that already operate their own backend systems to connect their existing REST API endpoints to their Halehame Showroom (mini-website). Instead of manually entering data into the Showroom Builder, a business can point a showroom section at their own live API, map their fields to Halehame schema fields, and have their showroom reflect real-time or cached data from their own system.
 
 The integration is designed around three core principles: **safety** (API keys and credentials never reach the browser — all requests are proxied server-side), **flexibility** (any REST API shape is supported via a field mapping UI), and **selectivity** (only explicitly mapped fields are exposed to showroom visitors; all other fields are discarded).
 
@@ -12,13 +12,13 @@ This feature extends the existing Showroom Builder (`frontend-next/components/sh
 
 ## Glossary
 
-- **Business_Owner**: An authenticated Empire X user who owns one or more showrooms. Identified via the existing JWT-based `requireAuth` middleware.
+- **Business_Owner**: An authenticated Halehame user who owns one or more showrooms. Identified via the existing JWT-based `requireAuth` middleware.
 - **Showroom**: An existing record in the `showrooms` PostgreSQL table, identified by `id` and `slug`, representing a business's mini-website.
 - **Section**: One of the 25 configurable section types defined in `builderSections.ts` (e.g., `items`, `services`, `events`). Sections have a defined schema of fields.
 - **External_Data_Source**: A configuration record storing the HTTPS URL, optional authentication method, and optional API key for a business's external REST endpoint, scoped to a single showroom section.
-- **Field_Mapping**: A configuration record that maps one external API response field path (e.g., `product_name`) to one Empire X section schema field (e.g., `name`) for a given External_Data_Source.
+- **Field_Mapping**: A configuration record that maps one external API response field path (e.g., `product_name`) to one Halehame section schema field (e.g., `name`) for a given External_Data_Source.
 - **Proxy_Gateway**: The server-side Express middleware and route that fetches from the external URL, injects credentials, applies field mappings, and returns only mapped fields to the caller.
-- **Mapped_Response**: The subset of external API data produced by applying all Field_Mappings for a section. Contains only Empire X schema fields; all unmapped source fields are discarded.
+- **Mapped_Response**: The subset of external API data produced by applying all Field_Mappings for a section. Contains only Halehame schema fields; all unmapped source fields are discarded.
 - **Cache**: The existing Redis-backed caching layer (`backend/lib/redis.js`) used to store Mapped_Responses with a configurable TTL, reducing calls to external APIs.
 - **Rate_Limiter**: A per-section, per-showroom request throttle enforced by the Proxy_Gateway to prevent abuse of external endpoints.
 - **Health_Record**: A stored log of the last fetch attempt for each External_Data_Source, including timestamp, HTTP status code, and success or failure state.
@@ -65,7 +65,7 @@ This feature extends the existing Showroom Builder (`frontend-next/components/sh
 
 ### Requirement 3: Field Mapping Configuration
 
-**User Story:** As a Business_Owner, I want to map fields from my external API's response to Empire X showroom schema fields, so that my data displays correctly in my chosen section layout.
+**User Story:** As a Business_Owner, I want to map fields from my external API's response to Halehame showroom schema fields, so that my data displays correctly in my chosen section layout.
 
 #### Acceptance Criteria
 

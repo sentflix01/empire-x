@@ -1,4 +1,4 @@
-# Empire X — Cost Breakdown by Growth Stage
+# Halehame — Cost Breakdown by Growth Stage
 
 > Realistic monthly infrastructure costs at every milestone.
 > All costs in USD. ETB conversion at ~0.008 (adjust for current rate).
@@ -19,7 +19,7 @@
 | Cloudflare R2 | Free (10GB, 1M ops) | $0 |
 | Resend (email) | Free (3K/month) | $0 |
 | Sentry | Free (5K errors/month) | $0 |
-| Domain (empirex.app) | Annual ÷ 12 | ~$1.50 |
+| Domain (halehame.vercel.app) | Annual ÷ 12 | ~$1.50 |
 | **Total** | | **~$6.50/month** |
 
 **ETB equivalent:** ~ETB 812/month

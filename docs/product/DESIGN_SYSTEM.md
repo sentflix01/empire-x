@@ -1,6 +1,6 @@
-# Empire X — Design System
+# Halehame — Design System
 
-> The visual language of Empire X. Consistent design = trusted product.
+> The visual language of Halehame. Consistent design = trusted product.
 > **Last updated:** August 2026
 
 ---
@@ -8,15 +8,16 @@
 ## Brand Identity
 
 ### Name & Logo
-- **Name:** Empire X
-- **Tagline:** "Ethiopia's Super-App"
-- **Logo:** Crown icon (👑) — symbolises the name "Empire" and Ethiopian royal heritage
-- **Logo file:** `frontend-next/public/brand/empire-x-logo.png`
+- **Name:** Halehame
+- **Tagline:** "The Global Superapp"
+- **Logo:** Crown icon (👑) — symbolises excellence, ambition, and achievement
+- **Logo file:** `frontend-next/public/brand/halehame-logo.png`
 
 ### Brand Voice
 - **Direct** — say what you mean, no filler
 - **Warm** — we're building community, not a transaction machine
-- **Ethiopian-first** — local references, Amharic-friendly, Ethiopian success stories
+- **Global-first** — accessible to users worldwide, with local relevance per region
+- **Multilingual** — English primary, with full support for local languages
 - **Empowering** — every feature helps someone earn more, connect better, or build something
 
 ---
@@ -27,8 +28,8 @@
 
 ```css
 :root {
-  /* Empire X brand colours */
-  --ex-gold:   #D4AF37;  /* Primary gold — Ethiopian heritage, wealth, royalty */
+  /* Halehame brand colours */
+  --ex-gold:   #D4AF37;  /* Primary gold — excellence, wealth, achievement */
   --ex-blue:   #2563EB;  /* Empire Blue — trust, technology, sky */
   --ex-purple: #7C3AED;  /* Empire Purple — premium, creativity */
   

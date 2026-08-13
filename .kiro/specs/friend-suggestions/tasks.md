@@ -9,7 +9,7 @@ Implement the `is_seed` data-model flag plus the friend suggestion system across
 - [x] 1. Database migration — `is_seed` column and `dismissed_suggestions` table
   - Create `backend/db/migrate12.js`
   - Add `is_seed BOOLEAN NOT NULL DEFAULT FALSE` to `users` via `ALTER TABLE … ADD COLUMN IF NOT EXISTS`
-  - Backfill `UPDATE users SET is_seed = TRUE WHERE email LIKE '%@empirex.test'`
+  - Backfill `UPDATE users SET is_seed = TRUE WHERE email LIKE '%@halehame.test'`
   - Create `dismissed_suggestions` table with `(id, requester_id, target_id, created_at)` and `UNIQUE(requester_id, target_id)`
   - Add index `idx_dismissed_suggestions_requester ON dismissed_suggestions(requester_id)`
   - Wrap all three operations in a single `BEGIN … COMMIT` transaction
@@ -22,9 +22,9 @@ Implement the `is_seed` data-model flag plus the friend suggestion system across
   - [x] 2.2 Update `POST /api/auth/register` (`routes/auth.js`) to explicitly set `is_seed = FALSE` in the INSERT
     - Add `is_seed` column to the INSERT statement with value `FALSE`
     - _Requirements: 1.4_
-  - [x] 2.3 Update `db/seed.js` user INSERT to set `is_seed = TRUE` for the 50 generated `@empirex.test` users
+  - [x] 2.3 Update `db/seed.js` user INSERT to set `is_seed = TRUE` for the 50 generated `@halehame.test` users
     - Add `is_seed` to the column list and pass `TRUE` for seed users
-    - Dev accounts (`admin@empirex.app`, `test@empirex.app`) keep `is_seed = FALSE`
+    - Dev accounts (`admin@halehame.app`, `test@halehame.app`) keep `is_seed = FALSE`
     - _Requirements: 1.2_
   - [x] 2.4 Update profile read routes (`routes/profiles.js`) to JOIN `users` and include `is_seed`
     - `GET /api/profiles/by-user/:userId` — add `JOIN users u ON u.id = up.user_id` and return `u.is_seed`
@@ -97,7 +97,7 @@ Implement the `is_seed` data-model flag plus the friend suggestion system across
   - Follow the existing pattern — place after similar social routes (e.g., after `/api/trending`)
   - _Requirements: 4.1, 6.1_
 
-- [~] 6. Checkpoint — run backend tests
+- [ ] 6. Checkpoint — run backend tests
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 7. Add `is_seed` to search results (`routes/search.js`)
@@ -164,7 +164,7 @@ Implement the `is_seed` data-model flag plus the friend suggestion system across
   - Open `frontend-next/views/Search.tsx` (or equivalent people-listing component) and add `<DemoBadge />` to user result cards when `is_seed === true`
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [~] 14. Checkpoint — run all tests
+- [ ] 14. Checkpoint — run all tests
   - Ensure all tests pass (backend: `npm run test:unit` in `/backend`; frontend: `npm test` in `/frontend-next`), ask the user if questions arise.
 
 ## Notes

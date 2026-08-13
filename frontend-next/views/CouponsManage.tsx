@@ -145,7 +145,7 @@ function CouponsManage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="percentage">Percentage (%)</SelectItem>
-                    <SelectItem value="fixed">Fixed Amount (ETB)</SelectItem>
+                    <SelectItem value="fixed">Fixed Amount</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -163,7 +163,7 @@ function CouponsManage() {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label>Min. Order (ETB)</Label>
+                <Label>Min. Order</Label>
                 <Input type="number" value={form.min_order} onChange={e => setForm(f => ({ ...f, min_order: e.target.value }))} placeholder="0" className="mt-1 h-10" />
               </div>
               <div>

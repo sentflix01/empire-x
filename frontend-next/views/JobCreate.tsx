@@ -75,10 +75,10 @@ function JobCreate() {
             <input type="checkbox" id="remote" checked={form.is_remote} onChange={e=>f("is_remote",e.target.checked)} className="w-4 h-4"/>
             <Label htmlFor="remote">Remote position</Label>
           </div>
-          {!form.is_remote && <div><Label>Location</Label><Input value={form.location} onChange={e=>f("location",e.target.value)} placeholder="Addis Ababa" className="mt-1"/></div>}
+          {!form.is_remote && <div><Label>Location</Label><Input value={form.location} onChange={e=>f("location",e.target.value)} placeholder="Your city" className="mt-1"/></div>}
           <div className="grid grid-cols-2 gap-3">
-            <div><Label>Min Salary (ETB)</Label><Input type="number" value={form.salary_min} onChange={e=>f("salary_min",e.target.value)} placeholder="Optional" className="mt-1"/></div>
-            <div><Label>Max Salary (ETB)</Label><Input type="number" value={form.salary_max} onChange={e=>f("salary_max",e.target.value)} placeholder="Optional" className="mt-1"/></div>
+            <div><Label>Min Salary</Label><Input type="number" value={form.salary_min} onChange={e=>f("salary_min",e.target.value)} placeholder="Optional" className="mt-1"/></div>
+            <div><Label>Max Salary</Label><Input type="number" value={form.salary_max} onChange={e=>f("salary_max",e.target.value)} placeholder="Optional" className="mt-1"/></div>
           </div>
           <div><Label>Application Deadline</Label><Input type="date" value={form.deadline} onChange={e=>f("deadline",e.target.value)} className="mt-1"/></div>
           <Button onClick={handleSubmit} disabled={saving||!form.title} className="w-full rounded-full bg-gradient-to-r from-amber-500 to-amber-600">

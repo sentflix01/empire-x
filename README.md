@@ -1,13 +1,13 @@
-# Empire X 👑
+# Halehame 👑
 
-African superapp — social networking, business showrooms, marketplace, messaging, and task services. Built for Ethiopia and designed to scale globally.
+Global superapp — social networking, business showrooms, marketplace, messaging, and task services. Built for everyone, everywhere.
 
 > **Status (August 2026):** Production-ready. 75+ features built, 252 backend tests passing, TypeScript 0 errors, full Stripe + Chapa payment integration, real-time chat, admin panel.
 
 ## Project Structure
 
 ```
-empire-x/
+halehame/
 ├── frontend-next/   Next.js 16 + TypeScript + TailwindCSS
 ├── backend/         Node.js + Express + PostgreSQL
 ├── docs/            Engineering handbook (architecture, runbooks, API docs)
@@ -35,7 +35,7 @@ cp frontend-next/.env.local.example frontend-next/.env.local
 
 ```bash
 # Create database (run once)
-psql -U postgres -c "CREATE DATABASE empirex;"
+psql -U postgres -c "CREATE DATABASE halehame;"
 
 # Run all migrations
 cd backend && npm run migrate
@@ -71,7 +71,7 @@ Then open http://localhost:3000
 | **`docs/README.md`** | Engineering handbook — start here |
 | `docs/ONBOARDING.md` | New developer setup guide — productive in 30 minutes |
 | `docs/ENGINEERING_STANDARDS.md` | Git, naming, API, testing, feature flag standards |
-| `docs/product/NORTH_STAR.md` | Why Empire X exists, who it's for, what it will never be |
+| `docs/product/NORTH_STAR.md` | Why Halehame exists, who it's for, what it will never be |
 | `docs/product/ROADMAP.md` | 2026 → 2030 milestones + tech debt register |
 | `docs/product/PRD.md` | Product Requirement Documents for key features |
 | `docs/architecture/C4.md` | C4 diagrams: Context → Container → Component → Code |

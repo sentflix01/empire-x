@@ -28,7 +28,7 @@ function AssistantLogo({ size = "sm", animated = false }: { size?: "xs" | "sm" |
       aria-hidden="true"
     >
       <Image
-        src="/brand/empire-x-logo.png"
+        src="/brand/halehame-logo.svg"
         alt=""
         width={44}
         height={44}
@@ -45,7 +45,7 @@ function AssistantFlipCoin() {
       <span className="ai-flip-coin-inner">
         <span className="ai-flip-coin-face ai-flip-coin-front">
           <Image
-            src="/brand/empire-x-logo.png"
+            src="/brand/halehame-logo.svg"
             alt=""
             width={48}
             height={48}

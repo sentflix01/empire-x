@@ -1,17 +1,17 @@
-# Empire X — Seller Handbook
+# Halehame — Seller Handbook
 
-> Everything a seller needs to know to succeed on Empire X.
+> Everything a seller needs to know to succeed on Halehame.
 > This is also the basis for seller onboarding emails, help articles, and workshop content.
 > **Last updated:** August 2026
 
 ---
 
-## Welcome to Empire X
+## Welcome to Halehame
 
-Empire X is Ethiopia's super-app for business. In 30 minutes, you can have:
+Halehame is the global superapp for business. In 30 minutes, you can have:
 - A professional online store (Showroom)
 - Products listed in the marketplace
-- A way to accept digital payment from anywhere in Ethiopia
+- A way to accept digital payment from anywhere in the world
 - An order management system
 - A direct line of communication with your customers
 
@@ -20,7 +20,7 @@ Empire X is Ethiopia's super-app for business. In 30 minutes, you can have:
 ## Getting Started: Your First 30 Minutes
 
 ### 1. Create your account (5 minutes)
-1. Go to empirex.app → Register
+1. Go to halehame.vercel.app → Register
 2. Enter your email or phone number
 3. Enter the 6-digit code sent to you
 4. Choose "Business Account" on the next screen
@@ -80,17 +80,17 @@ Empire X is Ethiopia's super-app for business. In 30 minutes, you can have:
 
 ## Accepting Payment
 
-Empire X supports four ways to get paid:
+Halehame supports four ways to get paid:
 
 | Method | How | Best for |
 |---|---|---|
-| **Chapa / Telebirr** | Buyer pays via Telebirr, CBE Birr, or M-Pesa | Ethiopian buyers |
+| **Chapa / Telebirr** | Buyer pays via Telebirr, CBE Birr, or M-Pesa | Local buyers in supported regions |
 | **Stripe (Card)** | Buyer pays with debit/credit card or digital wallet | International buyers or diaspora |
 | **Cash on Delivery** | Buyer pays when they receive the item | Local delivery, trusted buyers |
-| **Wallet** | Buyer pays from their Empire X wallet balance | Repeat customers |
+| **Wallet** | Buyer pays from their Halehame wallet balance | Repeat customers |
 
 **When do you get paid?**
-- Stripe/Chapa: Payment arrives in your Empire X wallet within 24–48 hours of order confirmation
+- Stripe/Chapa: Payment arrives in your Halehame wallet within 24–48 hours of order confirmation
 - COD: You collect cash on delivery — then mark order "Completed" in the app
 - Commission (platform fee) is automatically deducted when you mark an order "Completed"
 
@@ -158,7 +158,7 @@ Access: Business Analytics → select your business
 ### 1. Post regularly on the feed
 - Share your products, behind-the-scenes, and customer stories
 - Post at least 3 times per week
-- Use hashtags like #EthiopianFashion, #AddisAbeba, #HabeshaKemis
+- Use relevant hashtags for your product category and location
 
 ### 2. Use your Showroom link
 - Add it to your WhatsApp Business description
@@ -204,10 +204,10 @@ For the full list: see `docs/legal/CONTENT_POLICY.md`
 
 ## Getting Help
 
-- **In-app chat:** Message the Empire X support account
-- **Telegram:** @EmpireXSupport
-- **Email:** sellers@empirex.app
-- **Workshops:** Monthly free seller onboarding workshops in Addis Ababa (register in-app)
+- **In-app chat:** Message the Halehame support account
+- **Telegram:** @halehameSupport
+- **Email:** sellers@halehame.app
+- **Workshops:** Monthly free seller onboarding workshops (register in-app)
 
 ---
 

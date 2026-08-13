@@ -43,7 +43,7 @@ function TermsContent() {
       <Accordion title="3. Prohibited Activities">
         <p>Users may not:</p>
         <ul className="list-disc list-inside space-y-1 mt-1">
-          <li>Post content violating Ethiopian law (Computer Crime Proclamation No. 958/2016)</li>
+          <li>Post content violating applicable local laws</li>
           <li>Impersonate another person, business, or organization</li>
           <li>Upload malware, spyware, or harmful code</li>
           <li>Use the platform for money laundering or terrorism financing</li>
@@ -66,7 +66,7 @@ function TermsContent() {
         <p>Halehame is not liable for user-generated content or losses from platform outages. Our maximum liability to any user shall not exceed fees paid to us in the 12 months preceding the claim.</p>
       </Accordion>
       <Accordion title="8. Governing Law">
-        <p>These Terms are governed by the laws of the <strong>Federal Democratic Republic of Ethiopia</strong>. Disputes shall be submitted to the courts of Addis Ababa, Ethiopia.</p>
+        <p>These Terms are governed by the laws applicable in your jurisdiction. Disputes shall be submitted to the courts of City, Country.</p>
       </Accordion>
       <Accordion title="9. Changes to Terms">
         <p>We may update these Terms with 30 days' notice via in-app notification. Continued use after the effective date constitutes acceptance.</p>
@@ -92,7 +92,7 @@ function PrivacyContent() {
           <li>Push notifications you opted into</li>
           <li>Improving the platform (anonymous analytics)</li>
           <li>Marketing emails (only with opt-in)</li>
-          <li>Complying with Ethiopian law and tax obligations</li>
+          <li>Complying with applicable local laws and tax obligations</li>
         </ul>
       </Accordion>
       <Accordion title="3. Data Sharing">
@@ -101,7 +101,7 @@ function PrivacyContent() {
       <Accordion title="4. Data Retention">
         <ul className="list-disc list-inside space-y-1">
           <li>Account data: until you delete your account</li>
-          <li>Order records: 7 years (Ethiopian commercial law)</li>
+          <li>Order records: 7 years (standard commercial record-keeping)</li>
           <li>Message history: 1 year after account deletion</li>
           <li>Server logs: 90 days</li>
         </ul>
@@ -122,7 +122,7 @@ function PrivacyContent() {
         <p>Halehame is not intended for users under 18. We do not knowingly collect data from minors. Contact us immediately if you believe a minor has registered.</p>
       </Accordion>
       <Accordion title="8. Contact & DPO">
-        <p>Email: <a href="mailto:privacy@halehame.app" className="text-blue-600 hover:underline">privacy@halehame.app</a><br />Address: Addis Ababa, Ethiopia</p>
+        <p>Email: <a href="mailto:privacy@halehame.app" className="text-blue-600 hover:underline">privacy@halehame.app</a><br />Address: City, Country</p>
       </Accordion>
     </div>
   );
@@ -215,7 +215,7 @@ function ServiceAgreementView() {
           </div>
           <div>
             <h1 className="font-bold text-lg leading-tight">Service Agreement</h1>
-            <p className="text-white/70 text-xs">Halehame · Addis Ababa, Ethiopia · Last updated August 2026</p>
+            <p className="text-white/70 text-xs">Halehame · City, Country · Last updated August 2026</p>
           </div>
         </div>
       </div>

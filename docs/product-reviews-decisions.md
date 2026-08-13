@@ -8,7 +8,7 @@
 
 ## Introduction
 
-The Empire X app has a complete reviews backend (`/api/reviews`) but the `ProductDetail`
+The Halehame app has a complete reviews backend (`/api/reviews`) but the `ProductDetail`
 frontend page never calls it, never holds review state, and never renders a reviews section.
 Users see a completely blank reviews area even when the database contains reviews.
 

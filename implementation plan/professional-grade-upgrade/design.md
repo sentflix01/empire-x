@@ -2,7 +2,7 @@
 
 ## Overview
 
-Empire X is a Next.js 16 + Express.js African Superapp that is functionally complete but
+Halehame is a Next.js 16 + Express.js Global Superapp that is functionally complete but
 carries seven categories of engineering-quality gaps. This upgrade resolves all seven areas
 to bring the product to a production-ready baseline:
 
@@ -165,7 +165,7 @@ interface CartSlice {
 
 **SessionStorage persistence** — Zustand `persist` middleware on the `auth` slice only:
 ```typescript
-persist(authSlice, { name: 'empire-x-auth', storage: createJSONStorage(() => sessionStorage) })
+persist(authSlice, { name: 'halehame-auth', storage: createJSONStorage(() => sessionStorage) })
 ```
 
 **CartContext migration** — `CartContext.tsx` is rewritten to call into `useAppStore`

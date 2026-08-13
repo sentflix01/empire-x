@@ -1,4 +1,4 @@
-# Empire X — Frontend Component Conventions
+# Halehame — Frontend Component Conventions
 
 > Standards for building components in `frontend-next/`.
 > Follow these so any developer can read, contribute, and extend without asking questions.

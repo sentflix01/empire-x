@@ -1,4 +1,4 @@
-# Empire X — Networking, Domains & Security
+# Halehame — Networking, Domains & Security
 
 > DNS, SSL, load balancing, DDoS protection, and domain strategy.
 > **Last updated:** August 2026
@@ -11,20 +11,20 @@
 
 | Domain | Purpose | Register at |
 |---|---|---|
-| `empirex.app` | Main user-facing app | Cloudflare Registrar (~$12/year) |
-| `api.empirex.app` | Backend API | Subdomain (free via Cloudflare DNS) |
-| `status.empirex.app` | Status page | Subdomain → UptimeRobot/Statuspage.io |
-| `cdn.empirex.app` | R2 CDN custom domain | Subdomain → Cloudflare R2 |
+| `halehame.vercel.app` | Main user-facing app | Cloudflare Registrar (~$12/year) |
+| `api.halehame.app` | Backend API | Subdomain (free via Cloudflare DNS) |
+| `status.halehame.app` | Status page | Subdomain → UptimeRobot/Statuspage.io |
+| `cdn.halehame.app` | R2 CDN custom domain | Subdomain → Cloudflare R2 |
 
 ### Future Domains
 
 | Domain | When | Purpose |
 |---|---|---|
-| `empirex.et` | Ethiopia-specific launch | Ethiopian ccTLD, trust signal |
-| `empirex.co.ke` | Kenya launch | Kenya ccTLD |
-| `empirex.co.tz` | Tanzania launch | Tanzania ccTLD |
-| `business.empirex.app` | Business portal | White-label for enterprise |
-| `api.v2.empirex.app` | API v2 | When versioning needed |
+| `halehame.et` | Ethiopia-specific launch | Ethiopian ccTLD, trust signal |
+| `halehame.co.ke` | Kenya launch | Kenya ccTLD |
+| `halehame.co.tz` | Tanzania launch | Tanzania ccTLD |
+| `business.halehame.app` | Business portal | White-label for enterprise |
+| `api.v2.halehame.app` | API v2 | When versioning needed |
 
 **Why `.app` domain:**
 - HTTPS required by browser (.app is HSTS preloaded)
@@ -37,21 +37,21 @@
 ## DNS Architecture (Cloudflare)
 
 ```
-empirex.app (Cloudflare DNS)
+halehame.vercel.app (Cloudflare DNS)
 │
-├── A/CNAME empirex.app → Vercel (frontend)
+├── A/CNAME halehame.vercel.app → Vercel (frontend)
 │         TTL: 1 minute (auto-updated by Vercel)
 │         Proxy: ✅ (Cloudflare CDN + SSL)
 │
-├── CNAME api.empirex.app → empire-x.railway.app
+├── CNAME api.halehame.app → halehame.railway.app
 │         TTL: 1 minute
 │         Proxy: ✅ (Cloudflare CDN + WAF)
 │
-├── CNAME status.empirex.app → stats.uptimerobot.com
+├── CNAME status.halehame.app → stats.uptimerobot.com
 │         TTL: 5 minutes
 │         Proxy: ❌ (status page needs direct access)
 │
-├── CNAME cdn.empirex.app → pub-xxxx.r2.dev
+├── CNAME cdn.halehame.app → pub-xxxx.r2.dev
 │         TTL: 5 minutes
 │         Proxy: ✅ (R2 + Cloudflare CDN)
 │
@@ -62,7 +62,7 @@ empirex.app (Cloudflare DNS)
 │         (Email DKIM for deliverability)
 │
 └── MX @ → {email provider MX records}
-          (For contact@empirex.app mailbox)
+          (For contact@halehame.app mailbox)
 ```
 
 ### DNS TTL Strategy
@@ -175,14 +175,14 @@ Rule 5: Allow Stripe webhooks from Stripe IPs
 ### Single Instance (Now)
 
 ```
-empirex.app → Vercel (edge)
-api.empirex.app → Railway (single instance)
+halehame.vercel.app → Vercel (edge)
+api.halehame.app → Railway (single instance)
 ```
 
 ### Multi-Instance (Stage 2: 10K+ users)
 
 ```
-api.empirex.app → Cloudflare Load Balancer ($5/month)
+api.halehame.app → Cloudflare Load Balancer ($5/month)
                         ├── Railway US-West (primary)
                         ├── Railway US-East (secondary)
                         └── Health check: GET /health every 30s
@@ -193,7 +193,7 @@ Failover: If US-West fails, Cloudflare routes to US-East automatically
 ### Multi-Region (Stage 3: 100K+ users)
 
 ```
-api.empirex.app → Cloudflare Load Balancer (Geographic routing)
+api.halehame.app → Cloudflare Load Balancer (Geographic routing)
                         ├── US-West → Africa users (lowest latency via Dallas)
                         ├── EU-West → European diaspora
                         └── Middle East → UAE/Saudi diaspora
@@ -260,14 +260,14 @@ Backend → External:
 ### SPF / DKIM / DMARC (Required for email delivery)
 
 ```dns
-# SPF — who can send email for empirex.app
+# SPF — who can send email for halehame.vercel.app
 TXT @ v=spf1 include:_spf.resend.com ~all
 
 # DKIM — cryptographic signature (get from Resend dashboard)
 TXT resend._domainkey CNAME {resend_dkim_record}
 
 # DMARC — what to do with failed emails
-TXT _dmarc v=DMARC1; p=quarantine; rua=mailto:dmarc@empirex.app; pct=100
+TXT _dmarc v=DMARC1; p=quarantine; rua=mailto:dmarc@halehame.app; pct=100
 ```
 
 Without SPF/DKIM/DMARC:

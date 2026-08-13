@@ -1,4 +1,4 @@
-# Empire X — Privacy Policy (Draft)
+# Halehame — Privacy Policy (Draft)
 
 > **Status:** Internal draft — must be reviewed by a data protection specialist before launch.
 > **Applicable laws:** Ethiopian Personal Data Protection Proclamation (pending), GDPR (for EU users), CCPA (for California users).
@@ -93,7 +93,7 @@ Depending on your jurisdiction, you may have the right to:
 - **Object** to certain processing (e.g., marketing)
 - **Withdraw consent** for optional data uses
 
-To exercise these rights: **privacy@empirex.app**
+To exercise these rights: **privacy@halehame.app**
 
 We will respond within **30 days**.
 
@@ -101,7 +101,7 @@ We will respond within **30 days**.
 
 ## 6. Children's Privacy
 
-Empire X is not intended for users under 18. We do not knowingly collect data from minors. If you believe a minor has registered, contact us immediately.
+Halehame is not intended for users under 18. We do not knowingly collect data from minors. If you believe a minor has registered, contact us immediately.
 
 ---
 
@@ -141,7 +141,7 @@ We ensure appropriate safeguards for cross-border transfers.
 ## 10. Contact & DPO
 
 **Data Protection inquiries:**  
-Email: privacy@empirex.app  
+Email: privacy@halehame.app  
 Address: Addis Ababa, Ethiopia
 
 ---

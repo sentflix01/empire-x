@@ -304,7 +304,7 @@ function SellerReturnActions({ orderId, onActioned }: { orderId: string; onActio
       {rr.details && <p className="text-xs text-muted-foreground mb-2">{rr.details}</p>}
       <input
         type="number"
-        placeholder={`Refund amount (default: ${rr.total_price} ${rr.currency || "ETB"})`}
+        placeholder={`Refund amount (default: ${rr.total_price} ${rr.currency || "USD"})`}
         value={refundAmount}
         onChange={e => setRefundAmount(e.target.value)}
         className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-amber-400/40 mb-2"

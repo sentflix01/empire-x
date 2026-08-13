@@ -1,4 +1,4 @@
-# Empire X — Database Strategy
+# Halehame — Database Strategy
 
 > How the database evolves from a single instance to a globally distributed system.
 > **Last updated:** August 2026
@@ -40,7 +40,7 @@ Single PostgreSQL instance (Neon)
 
 ```sql
 -- All traffic on one connection string
-DATABASE_URL=postgresql://user:pass@neon.tech/empirex
+DATABASE_URL=postgresql://user:pass@neon.tech/halehame
 
 -- Enable connection pooling NOW (critical)
 -- In Neon Console → Project → Settings → Connection Pooling
@@ -266,7 +266,7 @@ async function backupDatabase() {
   // Upload to R2
   const client = new S3Client({ endpoint: process.env.R2_ENDPOINT });
   await client.send(new PutObjectCommand({
-    Bucket: 'empire-x-backups',
+    Bucket: 'halehame-backups',
     Key: `database/${filename}`,
     Body: require('fs').readFileSync(`/tmp/${filename}`),
   }));

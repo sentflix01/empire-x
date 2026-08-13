@@ -259,7 +259,7 @@ function ProductDetail() {
                     type="number"
                     value={alertInput}
                     onChange={e => setAlertInput(e.target.value)}
-                    placeholder={`Target price (${product.currency || "ETB"})`}
+                    placeholder={`Target price (${product.currency || "USD"})`}
                     className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
                     onKeyDown={e => { if (e.key === "Enter") handleSetAlert(); }}
                     autoFocus

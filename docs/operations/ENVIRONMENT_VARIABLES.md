@@ -1,4 +1,4 @@
-# Empire X — Environment Variables Reference
+# Halehame — Environment Variables Reference
 
 > The complete guide to every environment variable used by the platform.
 > **Last updated:** August 2026
@@ -11,7 +11,7 @@
 
 | Variable | Description | Example |
 |---|---|---|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/empirex?sslmode=require` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/halehame?sslmode=require` |
 | `JWT_SECRET` | Secret for signing JWTs. Generate: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` | `a8f3...` (64+ chars) |
 | `PORT` | HTTP server port | `3001` |
 | `NODE_ENV` | Environment | `development` \| `production` \| `test` |
@@ -23,7 +23,7 @@
 | Variable | Description | Example |
 |---|---|---|
 | `RESEND_API_KEY` | Resend.com API key (recommended) | `re_xxxxx` |
-| `EMAIL_FROM` | Sender name + address | `Empire X <noreply@empirex.app>` |
+| `EMAIL_FROM` | Sender name + address | `Halehame <noreply@halehame.app>` |
 | `SMTP_HOST` | SMTP server (alternative to Resend) | `smtp.gmail.com` |
 | `SMTP_PORT` | SMTP port | `587` |
 | `SMTP_SECURE` | Use TLS | `false` |
@@ -41,7 +41,7 @@
 | `STRIPE_CURRENCY` | Charge currency (`usd` or `etb`) | `usd` |
 | `STRIPE_ETB_TO_USD_RATE` | ETB → USD conversion rate | `0.008` |
 | `CHAPA_SECRET_KEY` | Chapa API key. `SANDBOX` for local testing | `CHASECK_test_...` or `SANDBOX` |
-| `API_URL` | Your backend URL (used for Chapa callback_url) | `https://api.empirex.app` |
+| `API_URL` | Your backend URL (used for Chapa callback_url) | `https://api.halehame.app` |
 
 ---
 
@@ -54,11 +54,11 @@
 | `R2_ACCOUNT_ID` | Cloudflare R2 account ID | `abc123` |
 | `R2_ACCESS_KEY_ID` | R2 access key | `xxxxx` |
 | `R2_SECRET_ACCESS_KEY` | R2 secret key | `xxxxx` |
-| `R2_BUCKET_NAME` | R2 bucket name | `empire-x-uploads` |
+| `R2_BUCKET_NAME` | R2 bucket name | `halehame-uploads` |
 | `R2_PUBLIC_URL` | Public CDN URL for R2 | `https://pub-xxx.r2.dev` |
 | `SUPABASE_URL` | Supabase project URL (alternative to R2) | `https://xxx.supabase.co` |
 | `SUPABASE_STORAGE_KEY` | Supabase storage API key | `eyJ...` |
-| `SUPABASE_BUCKET` | Supabase storage bucket name | `empire-x` |
+| `SUPABASE_BUCKET` | Supabase storage bucket name | `halehame` |
 
 ---
 
@@ -90,7 +90,7 @@
 |---|---|---|
 | `VAPID_PUBLIC_KEY` | Web Push VAPID public key | `node -e "const wp=require('web-push');const k=wp.generateVAPIDKeys();console.log(k)"` |
 | `VAPID_PRIVATE_KEY` | Web Push VAPID private key | (same command as above) |
-| `VAPID_EMAIL` | Contact email for VAPID | `mailto:admin@empirex.app` |
+| `VAPID_EMAIL` | Contact email for VAPID | `mailto:admin@halehame.app` |
 
 ---
 
@@ -126,7 +126,7 @@
 
 | Variable | Description | Example |
 |---|---|---|
-| `FRONTEND_URL` | Comma-separated frontend URLs (CORS) | `https://empirex.app,https://www.empirex.app` |
+| `FRONTEND_URL` | Comma-separated frontend URLs (CORS) | `https://halehame.vercel.app,https://halehame.vercel.app` |
 
 ---
 
@@ -145,8 +145,8 @@
 
 | Variable | Description | Example |
 |---|---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | Backend API base URL | `http://localhost:3001` (dev) \| `https://api.empirex.app` (prod) |
-| `NEXT_PUBLIC_APP_URL` | Frontend app URL | `http://localhost:3000` (dev) \| `https://empirex.app` (prod) |
+| `NEXT_PUBLIC_API_BASE_URL` | Backend API base URL | `http://localhost:3001` (dev) \| `https://api.halehame.app` (prod) |
+| `NEXT_PUBLIC_APP_URL` | Frontend app URL | `http://localhost:3000` (dev) \| `https://halehame.vercel.app` (prod) |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth client ID | `xxx.apps.googleusercontent.com` |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (for Stripe.js/Elements if used) | `pk_live_...` or `pk_test_...` |
 | `NEXT_PUBLIC_SENTRY_DSN` | Sentry frontend DSN | `https://xxx@o123.ingest.sentry.io/456` |
@@ -163,21 +163,21 @@ Add these in Railway → Project → Variables:
 DATABASE_URL=postgresql://...  (auto-set by Railway PostgreSQL plugin)
 JWT_SECRET=<generated>
 NODE_ENV=production
-FRONTEND_URL=https://empirex.app
+FRONTEND_URL=https://halehame.vercel.app
 RESEND_API_KEY=re_...
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 CHAPA_SECRET_KEY=CHASECK_live_...
-API_URL=https://api.empirex.app
+API_URL=https://api.halehame.app
 R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
-R2_BUCKET_NAME=empire-x-uploads
+R2_BUCKET_NAME=halehame-uploads
 R2_PUBLIC_URL=https://pub-xxx.r2.dev
 REDIS_URL=rediss://...  (Upstash)
 VAPID_PUBLIC_KEY=BN...
 VAPID_PRIVATE_KEY=...
-VAPID_EMAIL=mailto:admin@empirex.app
+VAPID_EMAIL=mailto:admin@halehame.app
 SENTRY_DSN=https://...
 ```
 
@@ -186,8 +186,8 @@ SENTRY_DSN=https://...
 Add these in Vercel → Project → Settings → Environment Variables:
 
 ```
-NEXT_PUBLIC_API_BASE_URL=https://api.empirex.app
-NEXT_PUBLIC_APP_URL=https://empirex.app
+NEXT_PUBLIC_API_BASE_URL=https://api.halehame.app
+NEXT_PUBLIC_APP_URL=https://halehame.vercel.app
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 NEXT_PUBLIC_SENTRY_DSN=https://...

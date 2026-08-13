@@ -524,7 +524,7 @@ describe('Preservation: ProfileEdit — Basic Information & Contact sections', (
     // Full Name input
     expect(screen.getByPlaceholderText('Your full name')).toBeInTheDocument();
     // Headline input
-    expect(screen.getByPlaceholderText('e.g. Software Engineer · Addis Ababa')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('e.g. Software Engineer · Your City')).toBeInTheDocument();
     // Bio textarea
     expect(screen.getByPlaceholderText(/Tell people who you are/)).toBeInTheDocument();
   });
@@ -539,8 +539,8 @@ describe('Preservation: ProfileEdit — Basic Information & Contact sections', (
       expect(screen.getByText('Contact & Location')).toBeInTheDocument();
     }, { timeout: 3000 });
 
-    expect(screen.getByPlaceholderText('Addis Ababa, Ethiopia')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('+251 9XX XXX XXX')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('City, Country')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('+1 234 567 8900')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('https://yourwebsite.com')).toBeInTheDocument();
   });
 
@@ -629,11 +629,11 @@ describe('Preservation: PBT — Basic Information and Contact sections render co
 
           // Basic Information section must be present
           expect(container!.querySelector('input[placeholder="Your full name"]')).not.toBeNull();
-          expect(container!.querySelector('input[placeholder="e.g. Software Engineer · Addis Ababa"]')).not.toBeNull();
+          expect(container!.querySelector('input[placeholder="e.g. Software Engineer · New York"]')).not.toBeNull();
 
           // Contact & Location inputs must be present
-          expect(container!.querySelector('input[placeholder="Addis Ababa, Ethiopia"]')).not.toBeNull();
-          expect(container!.querySelector('input[placeholder="+251 9XX XXX XXX"]')).not.toBeNull();
+          expect(container!.querySelector('input[placeholder="City, Country"]')).not.toBeNull();
+          expect(container!.querySelector('input[placeholder="+1 234 567 8900"]')).not.toBeNull();
           expect(container!.querySelector('input[placeholder="https://yourwebsite.com"]')).not.toBeNull();
 
           if (unmount) unmount();

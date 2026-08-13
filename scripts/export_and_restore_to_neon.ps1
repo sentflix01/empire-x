@@ -25,7 +25,7 @@ function ExitWith($msg, $code = 1) {
     exit $code
 }
 
-Write-Host "=== Empire X: Export local Postgres -> Restore to Neon ===" -ForegroundColor Cyan
+Write-Host "=== Halehame: Export local Postgres -> Restore to Neon ===" -ForegroundColor Cyan
 
 # 1) Find local DATABASE_URL from backend/.env if possible
 $envFile = Join-Path -Path (Resolve-Path .\backend).Path -ChildPath '.env'
@@ -43,7 +43,7 @@ if (Test-Path $envFile) {
 }
 
 if (-not $localDb) {
-    $localDb = Read-Host -Prompt "Local DATABASE_URL (e.g. postgresql://user:pass@localhost:5432/empirex)"
+    $localDb = Read-Host -Prompt "Local DATABASE_URL (e.g. postgresql://user:pass@localhost:5432/halehame)"
 }
 
 if (-not $localDb) { ExitWith "No local DATABASE_URL provided" }

@@ -1,4 +1,4 @@
-# Empire X — Security Hardening
+# Halehame — Security Hardening
 
 > Layered security at every level: network, application, database, and human.
 > **Last updated:** August 2026
@@ -144,7 +144,7 @@ Neon: Create separate database users for different access levels:
    GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly_user;
 
 3. migration_user — schema changes only (used for npm run migrate)
-   GRANT ALL PRIVILEGES ON DATABASE empirex TO migration_user;
+   GRANT ALL PRIVILEGES ON DATABASE halehame TO migration_user;
 
 Never use the superuser connection string in the application.
 ```
@@ -286,7 +286,7 @@ Cross-Origin-Embedder-Policy: require-corp ❌ Careful — can break third-party
 **Use OWASP ZAP (free automated scanner):**
 ```bash
 docker run -t owasp/zap2docker-stable zap-baseline.py \
-  -t https://api.empirex.app \
+  -t https://api.halehame.app \
   -r zap-report.html
 ```
 
@@ -331,11 +331,11 @@ Hire a professional penetration testing firm:
 ### Responsible Disclosure Policy
 
 ```
-# Add to https://empirex.app/.well-known/security.txt
+# Add to https://halehame.vercel.app/.well-known/security.txt
 
-Contact: security@empirex.app
+Contact: security@halehame.app
 Preferred-Languages: en, am
-Policy: https://empirex.app/security-policy
-Acknowledgments: https://empirex.app/security/hall-of-fame
+Policy: https://halehame.vercel.app/security-policy
+Acknowledgments: https://halehame.vercel.app/security/hall-of-fame
 Expires: 2027-08-01T00:00:00Z
 ```

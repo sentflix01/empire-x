@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the technical design for two interconnected features in Empire X:
+This document describes the technical design for two interconnected features in Halehame:
 
 1. **AI-User Distinction** — a data-model flag (`is_seed`) that permanently marks demo/seed accounts, exposed through every API surface and rendered as a "Demo" badge in the UI.
 2. **Friend Suggestion System** — a scored, ranked API that surfaces up to 20 users a requester may want to follow, computed from mutual connections, shared location, and activity recency, with a dismiss mechanism and a frontend widget.
@@ -45,7 +45,7 @@ The backend adds a single new route file (`routes/suggestions.js`) and a single 
 
 Performs three non-destructive operations in a single transaction:
 1. Adds `is_seed BOOLEAN NOT NULL DEFAULT FALSE` to `users`.
-2. Backfills `is_seed = TRUE` for all existing `@empirex.test` emails.
+2. Backfills `is_seed = TRUE` for all existing `@halehame.test` emails.
 3. Creates the `dismissed_suggestions` table.
 
 #### `routes/suggestions.js`
@@ -131,7 +131,7 @@ ALTER TABLE users
   ADD COLUMN IF NOT EXISTS is_seed BOOLEAN NOT NULL DEFAULT FALSE;
 ```
 
-All existing rows default to `FALSE`. The seed script backfill sets `TRUE` for `@empirex.test` accounts.
+All existing rows default to `FALSE`. The seed script backfill sets `TRUE` for `@halehame.test` accounts.
 
 ### `dismissed_suggestions` table — new table
 
@@ -320,5 +320,5 @@ Located in `frontend-next/test/`:
 
 ### Integration tests (not property-based)
 
-- **Migration smoke test**: Run `migrate12.js` against a test DB, verify `is_seed` column exists and all `@empirex.test` rows are backfilled.
+- **Migration smoke test**: Run `migrate12.js` against a test DB, verify `is_seed` column exists and all `@halehame.test` rows are backfilled.
 - **End-to-end follow/dismiss flow**: Single sequence — register two users, follow one, call suggestions, verify neither the followed user nor requester appear.

@@ -3,7 +3,7 @@
 ## Overview
 
 Two targeted changes:
-1. Replace all Telegram-blue (`#0088cc`) references in the messaging UI with Empire X brand tokens.
+1. Replace all Telegram-blue (`#0088cc`) references in the messaging UI with Halehame brand tokens.
 2. Fix the mobile chat layout so the input area is never obscured by the bottom nav or the virtual keyboard.
 3. Clean up duplicate CSS variable declarations in `globals.css`.
 
@@ -197,7 +197,7 @@ Total: **4 files**. No new files. No dependency changes.
 
 ### Chat header
 - **Before:** Telegram teal `#0088cc`
-- **After:** Empire X primary blue `hsl(var(--primary))` = `#2563eb`
+- **After:** Halehame primary blue `hsl(var(--primary))` = `#2563eb`
 
 ### Own message bubbles
 - **Before:** Telegram green-tinted `#effdde`
@@ -205,7 +205,7 @@ Total: **4 files**. No new files. No dependency changes.
 
 ### Modals (Channel & Group)
 - **Before:** Telegram teal on titles, avatars, buttons
-- **After:** Empire X primary blue on all chrome
+- **After:** Halehame primary blue on all chrome
 
 ### Mobile chat height
 - **Before:** `calc(100dvh - 7.5rem)` — incorrectly subtracts a nav bar that doesn't exist

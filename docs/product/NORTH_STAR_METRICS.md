@@ -1,4 +1,4 @@
-# Empire X — North Star Metrics
+# Halehame — North Star Metrics
 
 > The single metric that best captures the value we deliver, and the metrics that predict it.
 > **Last updated:** August 2026

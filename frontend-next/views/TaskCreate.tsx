@@ -83,11 +83,11 @@ function TaskCreate() {
           </div>
           <div>
             <Label>Location</Label>
-            <Input value={form.location} onChange={e => setForm({...form, location: e.target.value})} placeholder="e.g. Bole, Addis Ababa" className="mt-1" />
+            <Input value={form.location} onChange={e => setForm({...form, location: e.target.value})} placeholder="e.g. Downtown, New York" className="mt-1" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Payment (ETB)</Label>
+              <Label>Payment</Label>
               <Input type="number" value={form.offered_payment} onChange={e => setForm({...form, offered_payment: e.target.value})} placeholder="500" className="mt-1" />
             </div>
             <div>

@@ -1,4 +1,4 @@
-# Empire X — Backup & Recovery
+# Halehame — Backup & Recovery
 
 > Data loss is unrecoverable. Set this up before going to production.
 
@@ -63,7 +63,7 @@ Railway and Vercel env vars are not backed up automatically. If your account is 
 
 ```bash
 # Check what's currently set in Railway
-railway variables --service empire-x-backend
+railway variables --service halehame-backend
 ```
 
 ---

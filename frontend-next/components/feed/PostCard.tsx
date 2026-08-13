@@ -588,7 +588,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
           <ShareButton
             title={`${post.author_name ?? 'Halehame'} on Halehame`}
             text={(post.content ?? '').slice(0, 100)}
-            url={`${typeof window !== 'undefined' ? window.location.origin : 'https://halehame.app'}/profile/${post.author_id}`}
+            url={`${typeof window !== 'undefined' ? window.location.origin : 'https://halehame.vercel.app'}/profile/${post.author_id}`}
             label=""
           />
           <BookmarkButton

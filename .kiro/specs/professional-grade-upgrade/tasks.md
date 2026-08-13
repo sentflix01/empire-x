@@ -118,11 +118,11 @@ JavaScript/TypeScript — Express.js backend and Next.js 16 frontend.
   - [x] 7.1 Update `frontend-next/tsconfig.json` — set `"strict": true`
     - Replace `"strict": false` with `"strict": true`
     - _Requirements: 1.3_
-  - [-] 7.2 Update `frontend-next/next.config.ts` — add ESLint rules; do NOT remove `ignoreBuildErrors` yet
+  - [ ] 7.2 Update `frontend-next/next.config.ts` — add ESLint rules; do NOT remove `ignoreBuildErrors` yet
     - Add `@typescript-eslint/no-explicit-any` and `@typescript-eslint/ban-ts-comment` ESLint rules to the ESLint config
     - Leave `typescript.ignoreBuildErrors: true` in place until all type errors in 7.3 are resolved
     - _Requirements: 1.2, 1.5_
-  - [-] 7.3 Fix TypeScript strict-mode errors across all frontend `.tsx` / `.ts` files
+  - [ ] 7.3 Fix TypeScript strict-mode errors across all frontend `.tsx` / `.ts` files
     - Run `tsc --noEmit` to obtain the full error list; fix errors category by category:
       - Add `@types/*` devDependencies for any untyped third-party packages (_Requirements: 1.7_)
       - Fix `forwardRef` signatures for Radix UI / shadcn/ui wrappers using `React.forwardRef<ElType, PropType>` (_Requirements: 1.4_)
@@ -130,7 +130,7 @@ JavaScript/TypeScript — Express.js backend and Next.js 16 frontend.
       - Add explicit return types where inference fails under strict null checks (_Requirements: 1.1_)
     - `tsc --noEmit` must exit with code 0 before proceeding to 7.4
     - _Requirements: 1.1, 1.4, 1.5, 1.7_
-  - [~] 7.4 Remove `typescript.ignoreBuildErrors` from `next.config.ts` after zero errors confirmed
+  - [ ] 7.4 Remove `typescript.ignoreBuildErrors` from `next.config.ts` after zero errors confirmed
     - Verify `tsc --noEmit` exits with code 0 before applying this change
     - Ensures the Build_Pipeline enforces the zero-error baseline going forward
     - _Requirements: 1.2, 1.6_
@@ -139,7 +139,7 @@ JavaScript/TypeScript — Express.js backend and Next.js 16 frontend.
   - [x] 8.1 Create `frontend-next/store/authSlice.ts`
     - Implement `AuthSlice` interface: `user`, `isAuthenticated`, `isLoading`, `error`, `checkAuth`, `logout`
     - Add `checkAuth` promise-ref deduplication (coalesce concurrent calls to one `GET /api/auth/me`)
-    - Wire `persist` middleware to `sessionStorage` with key `empire-x-auth`
+    - Wire `persist` middleware to `sessionStorage` with key `halehame-auth`
     - _Requirements: 3.1, 3.2, 3.8_
   - [x] 8.2 Create `frontend-next/store/notificationsSlice.ts`
     - Implement `unreadCount`, `list`, `isLoading`, `error` fields, and WebSocket update action
@@ -180,7 +180,7 @@ JavaScript/TypeScript — Express.js backend and Next.js 16 frontend.
   - [x] 9.1 Rewrite `frontend-next/lib/CartContext.tsx` to delegate to `useAppStore` cart slice
     - Maintain same `useCart()` public API — zero changes to existing call sites
     - _Requirements: 3.5_
-  - [-] 9.2 Replace local `useEffect + useState` fetch patterns in shared-data views
+  - [ ] 9.2 Replace local `useEffect + useState` fetch patterns in shared-data views
     - Identify views that fetch user profile, notification count, or other globally-shared data using local state
     - Replace with Store subscriptions via `useAppStore` so data is fetched once and shared
     - _Requirements: 3.7_
@@ -214,36 +214,36 @@ JavaScript/TypeScript — Express.js backend and Next.js 16 frontend.
     - For any `{ error?: string }` API response shape, assert the toast text rendered by Sonner is a non-empty string
 
 - [ ] 11. Apply error-handling pattern to all frontend views
-  - [-] 11.1 Fix empty `catch {}` blocks in all views that perform network requests
+  - [ ] 11.1 Fix empty `catch {}` blocks in all views that perform network requests
     - For fetch errors: set the relevant Zustand slice `error` field; render `<ErrorState onRetry={reload} />`
     - For mutation errors: call `toast.error(message)` using Sonner with a fallback string if the `error` field is absent
     - Zero empty `catch {}` or `catch (e) {}` blocks may remain in network-request code paths
     - _Requirements: 2.3, 2.4_
-  - [-] 11.2 Wrap all views listed in `frontend-next/views/` with `<ErrorBoundary>`
+  - [ ] 11.2 Wrap all views listed in `frontend-next/views/` with `<ErrorBoundary>`
     - Match the pattern already present in `Wallet.tsx` and `Orders.tsx`
     - Every view file must export its default component wrapped in `<ErrorBoundary>`
     - _Requirements: 2.8_
-  - [-] 11.3 Fix CartContext `removeItem`, `updateQty`, `clearCart` — re-throw errors in catch blocks
+  - [ ] 11.3 Fix CartContext `removeItem`, `updateQty`, `clearCart` — re-throw errors in catch blocks
     - Change `catch {}` → `catch (err) { throw err; }` in each of the three methods
     - Enables callers to receive the error and display a toast notification
     - _Requirements: 2.6_
 
 - [ ] 12. Frontend tests — user flows
-  - [-] 12.1 Write `frontend-next/test/login.test.tsx`
+  - [ ] 12.1 Write `frontend-next/test/login.test.tsx`
     - Cover: empty form submission → validation errors displayed; valid credentials → API call made + redirect
     - _Requirements: 4.4, 4.6_
   - [ ] 12.2 Write `frontend-next/test/register.test.tsx`
     - Cover: valid form submission → API call + success flow; API failure → error message displayed
     - _Requirements: 4.4, 4.6_
-  - [~] 12.3 Write `frontend-next/test/cart.test.tsx`
+  - [ ] 12.3 Write `frontend-next/test/cart.test.tsx`
     - Cover: add item, remove item, empty cart state, error propagation to caller
     - Tests run against mocked Zustand store
     - _Requirements: 4.4, 4.6_
-  - [~] 12.4 Write `frontend-next/test/walletTopup.test.tsx`
+  - [ ] 12.4 Write `frontend-next/test/walletTopup.test.tsx`
     - Cover: invalid amount → validation error displayed; valid amount → successful submission flow
     - _Requirements: 4.4, 4.6_
 
-- [~] 13. Final checkpoint — full suite green
+- [ ] 13. Final checkpoint — full suite green
   - Run `tsc --noEmit` (must exit 0), `npm run test:unit` in `backend/`, and `npm test` in `frontend-next/`
   - Ensure all tests pass. Ask the user if any questions arise.
 

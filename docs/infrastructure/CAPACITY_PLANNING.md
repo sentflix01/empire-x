@@ -1,4 +1,4 @@
-# Empire X — Capacity Planning
+# Halehame — Capacity Planning
 
 > How much infrastructure do we need at each user count, and when to add more.
 > **Last updated:** August 2026

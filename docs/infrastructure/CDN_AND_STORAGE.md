@@ -1,4 +1,4 @@
-# Empire X — CDN & File Storage Strategy
+# Halehame — CDN & File Storage Strategy
 
 > How user uploads are stored, served, and optimized across the globe.
 > **Last updated:** August 2026
@@ -49,10 +49,10 @@ Cloudflare CDN serves from edge (300+ locations)
 ### Step 1: Create R2 bucket
 ```
 1. Go to: dash.cloudflare.com
-2. R2 → Create bucket → Name: "empire-x-uploads"
+2. R2 → Create bucket → Name: "halehame-uploads"
 3. R2 → Manage R2 API Tokens → Create Token
    Permissions: Object Read & Write
-   Bucket: empire-x-uploads
+   Bucket: halehame-uploads
 4. Copy: Account ID, Access Key ID, Secret Access Key
 ```
 
@@ -61,13 +61,13 @@ Cloudflare CDN serves from edge (300+ locations)
 R2_ACCOUNT_ID=your_cloudflare_account_id
 R2_ACCESS_KEY_ID=your_r2_access_key
 R2_SECRET_ACCESS_KEY=your_r2_secret
-R2_BUCKET_NAME=empire-x-uploads
+R2_BUCKET_NAME=halehame-uploads
 R2_PUBLIC_URL=https://pub-xxxx.r2.dev  # from R2 bucket settings → Public Access
 ```
 
 ### Step 3: Enable public access
 ```
-R2 Console → empire-x-uploads → Settings → Public Access → Allow Access
+R2 Console → halehame-uploads → Settings → Public Access → Allow Access
 Copy the public URL: https://pub-xxxx.r2.dev
 Set as R2_PUBLIC_URL
 ```
@@ -87,7 +87,7 @@ curl -X POST https://your-api.railway.app/api/upload \
 ## File Organization in R2
 
 ```
-empire-x-uploads/
+halehame-uploads/
 ├── avatars/          ← User profile photos
 │   └── {userId}/avatar.jpg
 ├── covers/           ← Profile cover photos

@@ -26,13 +26,13 @@ import {
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: "Halehame - Africa's Superapp",
+  title: "Halehame - The Global Superapp",
   description:
-    "Halehame is Africa's superapp for social networking, business showrooms, marketplace, messaging, payments, AI, jobs, courses, and local services.",
+    "Halehame is the global superapp for social networking, business showrooms, marketplace, messaging, payments, AI, jobs, courses, and local services.",
   openGraph: {
-    title: "Halehame - Africa's Superapp",
+    title: "Halehame - The Global Superapp",
     description: 'Social, commerce, payments, services, and AI in one trusted platform.',
-    images: ['/brand/empire-x-logo.png'],
+    images: ['/brand/halehame-logo.svg'],
   },
 };
 
@@ -67,7 +67,7 @@ export default function LandingPage() {
       {/* ── Top navigation bar ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/8">
         <div className="flex items-center gap-2">
-          <Image src="/brand/empire-x-logo.png" alt="Halehame" width={32} height={32} className="h-8 w-8 rounded-xl object-cover" />
+          <Image src="/brand/halehame-logo.svg" alt="Halehame" width={32} height={32} className="h-8 w-8 rounded-xl object-cover" />
           <span className="font-black text-white text-lg tracking-tight">Halehame</span>
         </div>
         <div className="flex items-center gap-2">
@@ -134,7 +134,7 @@ export default function LandingPage() {
 
         <div className="relative z-10 mx-auto flex min-h-[82svh] max-w-6xl flex-col items-center justify-center px-6 pb-28 pt-16 text-center">
           <Image
-            src="/brand/empire-x-logo.png"
+            src="/brand/halehame-logo.svg"
             alt="Halehame"
             width={88}
             height={88}
@@ -232,7 +232,7 @@ export default function LandingPage() {
               <div className="rounded-[1.5rem] bg-slate-50 p-4 text-slate-950">
                 <div className="mb-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Image src="/brand/empire-x-logo.png" alt="" width={40} height={40} className="h-10 w-10 rounded-xl object-cover" />
+                    <Image src="/brand/halehame-logo.svg" alt="" width={40} height={40} className="h-10 w-10 rounded-xl object-cover" />
                     <div>
                       <p className="text-sm font-black">Halehame</p>
                       <p className="text-xs text-slate-500">Superapp dashboard</p>

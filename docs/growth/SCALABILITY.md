@@ -1,4 +1,4 @@
-# Empire X — Scalability Architecture
+# Halehame — Scalability Architecture
 
 > How the system handles growth from 100 to 10 million users.
 > **Last updated:** August 2026
@@ -40,7 +40,7 @@
 R2_ACCOUNT_ID=your_id
 R2_ACCESS_KEY_ID=your_key
 R2_SECRET_ACCESS_KEY=your_secret
-R2_BUCKET_NAME=empire-x-uploads
+R2_BUCKET_NAME=halehame-uploads
 R2_PUBLIC_URL=https://pub-xxx.r2.dev
 ```
 
@@ -150,7 +150,7 @@ This allows any instance to emit to any socket room.
 Current monolith is fine until ~500K users. At that point, extract high-load services:
 
 ```
-empire-x-monolith (today)
+halehame-monolith (today)
 ├── feed-service (high read volume)
 ├── notification-service (high write volume, fan-out)
 ├── search-service (CPU-intensive)

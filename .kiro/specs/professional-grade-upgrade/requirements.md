@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Empire X is a Next.js 16 + Express.js African Superapp (social feed, marketplace, wallet,
+Halehame is a Next.js 16 + Express.js Global Superapp (social feed, marketplace, wallet,
 tasks, messaging, showrooms, and more). The codebase is functionally complete but carries
 several engineering-quality gaps that must be resolved before the product can be considered
 production-grade. This document captures requirements across seven upgrade areas:
@@ -19,7 +19,7 @@ production-grade. This document captures requirements across seven upgrade areas
 
 ## Glossary
 
-- **System**: The Empire X application as a whole (frontend + backend).
+- **System**: The Halehame application as a whole (frontend + backend).
 - **Frontend**: The Next.js 16 TypeScript application in `frontend-next/`.
 - **Backend**: The Express.js application in `backend/`.
 - **TypeChecker**: The TypeScript compiler (`tsc --noEmit`) running over the Frontend.

@@ -1,4 +1,4 @@
-# Empire X — Deployment Guide
+# Halehame — Deployment Guide
 
 > This file covers staging simulation, production deployment, environment variables, and day-to-day deploy workflow.
 
@@ -67,17 +67,17 @@ Public production requirements are stricter: use R2 for uploads, managed Redis i
 | `DATABASE_URL` | Yes | Neon PostgreSQL connection string |
 | `JWT_SECRET` | Yes | 64+ char random string |
 | `JWT_EXPIRES_IN` | No | Default `7d` |
-| `FRONTEND_URL` | Yes | `https://empirex.app` (comma-separated for multiple or wildcard patterns like `https://*.vercel.app`) |
+| `FRONTEND_URL` | Yes | `https://halehame.vercel.app` (comma-separated for multiple or wildcard patterns like `https://*.vercel.app`) |
 | `RESEND_API_KEY` | Recommended | Starts with `re_` |
 
 > Tip: `FRONTEND_URL` can contain multiple trusted origins separated by commas. The first valid URL is used for email/reset links and checkout redirects, while wildcard patterns are used for CORS origins.
-| `EMAIL_FROM` | No | `Empire X <noreply@empirex.app>` |
+| `EMAIL_FROM` | No | `Halehame <noreply@halehame.app>` |
 | `STRIPE_SECRET_KEY` | For payments | `sk_live_...` |
 | `STRIPE_WEBHOOK_SECRET` | For payments | `whsec_...` |
 | `R2_ACCOUNT_ID` | For uploads | Cloudflare account ID |
 | `R2_ACCESS_KEY_ID` | For uploads | R2 API token |
 | `R2_SECRET_ACCESS_KEY` | For uploads | R2 API secret |
-| `R2_BUCKET_NAME` | For uploads | `empire-x-uploads` |
+| `R2_BUCKET_NAME` | For uploads | `halehame-uploads` |
 | `R2_PUBLIC_URL` | For uploads | `https://pub-xxx.r2.dev` |
 | `REDIS_URL` | For Phase 2 | `rediss://...upstash.io` |
 
@@ -88,7 +88,7 @@ Public production requirements are stricter: use R2 for uploads, managed Redis i
 | `SENTRY_DSN` | Recommended | From Sentry project settings |
 | `VAPID_PUBLIC_KEY` | For push | Generated VAPID key |
 | `VAPID_PRIVATE_KEY` | For push | Generated VAPID key |
-| `VAPID_EMAIL` | For push | `mailto:admin@empirex.app` |
+| `VAPID_EMAIL` | For push | `mailto:admin@halehame.app` |
 | `TELEGRAM_BOT_TOKEN` | Optional | From @BotFather |
 | `GOOGLE_CLIENT_ID` | For OAuth | Google Cloud Console |
 
@@ -96,8 +96,8 @@ Public production requirements are stricter: use R2 for uploads, managed Redis i
 
 | Variable | Required | Description |
 |---|---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | Yes | `https://api.empirex.app` |
-| `NEXT_PUBLIC_APP_URL` | Yes | `https://empirex.app` |
+| `NEXT_PUBLIC_API_BASE_URL` | Yes | `https://api.halehame.app` |
+| `NEXT_PUBLIC_APP_URL` | Yes | `https://halehame.vercel.app` |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | For OAuth | Google Cloud Console |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | For push | Same as backend VAPID_PUBLIC_KEY |
 | `NEXT_PUBLIC_SENTRY_DSN` | Recommended | From Sentry project |
@@ -151,7 +151,7 @@ git push origin feature/my-feature
 ### Manual database migration
 ```bash
 # If a migration wasn't run automatically
-DATABASE_URL=postgresql://...neon.tech/empirex node backend/db/migrate-all.js
+DATABASE_URL=postgresql://...neon.tech/halehame node backend/db/migrate-all.js
 ```
 
 ---

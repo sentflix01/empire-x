@@ -1,4 +1,4 @@
-# Empire X — Architecture Decision Records (ADRs)
+# Halehame — Architecture Decision Records (ADRs)
 
 ADRs document the *why* behind key architectural choices. Each record captures the context, the options considered, the decision made, and its consequences.
 
@@ -8,7 +8,7 @@ ADRs document the *why* behind key architectural choices. Each record captures t
 
 **Status:** Accepted | **Date:** July 2026
 
-**Context:** Empire X started with React + Vite. Public-facing pages (showrooms, product listings, public profiles) need SEO and server-rendering. Server Components reduce client-side JavaScript bundle size.
+**Context:** Halehame started with React + Vite. Public-facing pages (showrooms, product listings, public profiles) need SEO and server-rendering. Server Components reduce client-side JavaScript bundle size.
 
 **Options:** Keep Vite SPA · Hybrid (Next.js for public, Vite for app) · Full Next.js migration
 

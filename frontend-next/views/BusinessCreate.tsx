@@ -199,12 +199,12 @@ function BusinessCreate() {
             </div>
             <div>
               <Label>Contact Phone</Label>
-              <Input value={business.business_contact_phone} onChange={e => setBusiness({...business, business_contact_phone: e.target.value})} placeholder="+251..." className="mt-1 h-11" />
+              <Input value={business.business_contact_phone} onChange={e => setBusiness({...business, business_contact_phone: e.target.value})} placeholder="+1 234 567 8900" className="mt-1 h-11" />
             </div>
           </div>
           <div>
             <Label>Business Address</Label>
-            <Input value={business.business_address} onChange={e => setBusiness({...business, business_address: e.target.value})} placeholder="Bole, Addis Ababa" className="mt-1 h-11" />
+            <Input value={business.business_address} onChange={e => setBusiness({...business, business_address: e.target.value})} placeholder="Your city or area" className="mt-1 h-11" />
           </div>
           <div>
             <Label>Theme Color</Label>

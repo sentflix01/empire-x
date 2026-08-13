@@ -1,4 +1,4 @@
-# Empire X — Sequence Diagrams
+# Halehame — Sequence Diagrams
 
 > This file is the authoritative reference for key request flows.
 > This file contains additional flows.

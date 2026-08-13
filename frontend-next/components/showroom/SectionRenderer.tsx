@@ -384,7 +384,7 @@ export default function SectionRenderer({
           {(biz.display_name || biz.business_name || biz.title)?.charAt(0) || "E"}
         </div>
         <h3 className="font-semibold">{biz.display_name || biz.business_name || biz.title}</h3>
-        <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">{biz.bio || biz.business_description || biz.description || "Experienced professional in Addis Ababa, Ethiopia."}</p>
+        <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">{biz.bio || biz.business_description || biz.description || "Experienced professional in City, Country."}</p>
       </div>
     );
   }

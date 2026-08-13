@@ -121,7 +121,7 @@ function Search() {
         setLocStatus("ok");
       },
       () => {
-        // Fallback to Addis Ababa centre
+        // Fallback to default map centre
         setUserLat(9.0192);
         setUserLon(38.7525);
         setLocStatus("ok");

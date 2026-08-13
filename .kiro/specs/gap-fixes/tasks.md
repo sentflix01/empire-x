@@ -2,7 +2,7 @@
 
 ## Overview
 
-This task list covers all 13 gap fixes across the Empire X full-stack application. Tasks are grouped by category, each following the exploratory bugfix workflow: write bug-condition tests first (expect failure), write preservation tests (expect pass), implement the fix, then verify both sets pass. Groups map to the five fix categories from the design document.
+This task list covers all 13 gap fixes across the Halehame full-stack application. Tasks are grouped by category, each following the exploratory bugfix workflow: write bug-condition tests first (expect failure), write preservation tests (expect pass), implement the fix, then verify both sets pass. Groups map to the five fix categories from the design document.
 
 ## Task Dependency Graph
 

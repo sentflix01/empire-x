@@ -1,6 +1,6 @@
 /**
  * templateData.js
- * Empire X — Business showroom section templates.
+ * Halehame — Business showroom section templates.
  *
  * Each template produces a `sections` array whose shape matches exactly what
  * SectionRenderer.tsx reads:
@@ -112,7 +112,7 @@ function rideServiceSections(biz) {
       { title: '24/7 Support', desc: 'Customer care available around the clock' },
     ]},
     { type: 'process', title: 'How to Book', items: [
-      { title: 'Open the App', desc: 'Download our app or book through Empire X' },
+      { title: 'Open the App', desc: 'Download our app or book through Halehame' },
       { title: 'Set Your Pickup', desc: 'Enter your location and destination' },
       { title: 'Get Matched', desc: 'A nearby verified driver accepts your request' },
       { title: 'Arrive Safely', desc: 'Track your ride live and rate your experience' },
@@ -440,7 +440,7 @@ function beautySections(biz) {
       { title: 'Certified Stylists', desc: 'All stylists hold professional beauty certificates and 3+ years experience' },
       { title: 'Premium Products', desc: 'We use only professional-grade products — safe for your skin and hair' },
       { title: 'Private Rooms', desc: 'Private treatment rooms available for massages and bridal prep sessions' },
-      { title: 'Easy Appointment Booking', desc: 'Book via Empire X, WhatsApp, or walk in — we accommodate same-day appointments' },
+      { title: 'Easy Appointment Booking', desc: 'Book via Halehame, WhatsApp, or walk in — we accommodate same-day appointments' },
     ]},
     { type: 'testimonials', title: 'Client Reviews', items: [
       { name: 'Lidya M.', text: 'My go-to salon in Addis. The hair stylists here actually listen to what you want and deliver. Never disappointed.' },
@@ -504,7 +504,7 @@ function genericServiceSections(biz) {
       { name: 'Repeat Customer', text: 'The team helped me choose the right option and delivered exactly as promised.' },
     ]},
     { type: 'faq', title: 'Common Questions', items: [
-      { question: 'How do I get started?', answer: 'Contact us through this showroom or send a message on Empire X. We respond within 2 hours.' },
+      { question: 'How do I get started?', answer: 'Contact us through this showroom or send a message on Halehame. We respond within 2 hours.' },
       { question: 'Do you deliver or come to my location?', answer: 'Yes — we offer both on-site service and delivery depending on the job type. Ask us for details.' },
     ]},
     { type: 'contact', title: 'Get in Touch', email: biz.email || 'hello@business.et', phone: biz.phone || '+251 911 234 567', location: biz.address || 'Addis Ababa, Ethiopia' },

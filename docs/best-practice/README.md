@@ -1,6 +1,6 @@
 # Best Practice Guides
 
-This folder contains a practical, step-by-step upgrade path for making the Empire X codebase more professional, scalable, and production-ready.
+This folder contains a practical, step-by-step upgrade path for making the Halehame codebase more professional, scalable, and production-ready.
 
 Start here:
 

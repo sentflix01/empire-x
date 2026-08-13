@@ -200,7 +200,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label>Phone</Label>
-                  <Input value={orderInfo.phone} onChange={e => setOrderInfo({...orderInfo, phone: e.target.value})} placeholder="+251..." className="mt-1 h-10" />
+                  <Input value={orderInfo.phone} onChange={e => setOrderInfo({...orderInfo, phone: e.target.value})} placeholder="+1 234 567 8900" className="mt-1 h-10" />
                 </div>
                 <div>
                   <Label>Email</Label>

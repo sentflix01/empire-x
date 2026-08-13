@@ -1,4 +1,4 @@
-# Empire X — Product Requirement Documents (PRDs)
+# Halehame — Product Requirement Documents (PRDs)
 
 > A PRD defines what to build and why, before writing any code.
 > Engineers, designers, and product managers all work from the same specification.
@@ -55,7 +55,7 @@ What still needs to be decided?
 **Target phase:** Phase 1
 
 ### Problem
-Users in Addis Ababa can't easily discover products, businesses, and services that are physically nearby. They have to search by text and have no sense of proximity.
+Users can't easily discover products, businesses, and services that are physically nearby. They have to search by text and have no sense of proximity.
 
 ### Goals
 - Users can find products and businesses within a configurable radius of their location
@@ -89,7 +89,7 @@ Users in Addis Ababa can't easily discover products, businesses, and services th
 **Target phase:** Phase 1
 
 ### Problem
-Small businesses in Ethiopia have no affordable, easy way to build a professional online presence. Setting up a website requires technical skills most don't have.
+Small businesses worldwide have no affordable, easy way to build a professional online presence. Setting up a website requires technical skills most don't have.
 
 ### Goals
 - A business owner can build a professional showroom in under 30 minutes
@@ -143,18 +143,18 @@ Buyers and sellers need to communicate. Without real-time chat, negotiations hap
 **Target phase:** Phase 2
 
 ### Problem
-Stripe requires international cards. Most Ethiopian users pay with Telebirr, CBE Birr, or local bank transfers. Without local payment options, conversion is low.
+Stripe requires international cards in some regions. Many users pay with local mobile money or bank transfers. Without local payment options, conversion is low.
 
 ### Goals
-- Ethiopian users can pay with Telebirr and local bank cards
-- Payment success rate for Ethiopian users increases from ~30% to >80%
+- Users can pay with local payment methods (Telebirr, CBE Birr, mobile money)
+- Payment success rate for local users increases significantly
 
 ### Non-Goals
 - Replace Stripe (keep for international buyers)
 
 ### User Stories
-- As an Ethiopian buyer, I want to pay with my Telebirr wallet, so I don't need an international card
-- As a seller, I want to receive payments in ETB directly to my bank account
+- As a local buyer, I want to pay with my mobile wallet, so I don't need an international card
+- As a seller, I want to receive payments in local currency directly to my bank account
 
 ### Technical Notes
 - Chapa API: https://developer.chapa.co

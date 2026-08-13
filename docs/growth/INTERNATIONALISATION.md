@@ -1,6 +1,6 @@
-# Empire X — Internationalisation (i18n) & Globalisation Strategy
+# Halehame — Internationalisation (i18n) & Globalisation Strategy
 
-> How Empire X expands from Ethiopia to the rest of Africa and globally.
+> How Halehame expands from Ethiopia to the rest of Africa and globally.
 > **Last updated:** August 2026
 
 ---

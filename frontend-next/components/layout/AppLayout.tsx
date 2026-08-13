@@ -137,7 +137,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
           <span className="text-sm font-semibold">Trending</span>
         </div>
         <div className="space-y-2">
-          {["#AddisAbaba","#EthiopianBusiness","#Halehame","#HabeshaLife","#EthioTech"].map((tag, i) => (
+          {["#GlobalBusiness","#Halehame","#Entrepreneur","#SmallBusiness","#StartupLife"].map((tag, i) => (
             <Link key={tag} href={`/hashtag/${tag.slice(1)}`} className="flex items-center justify-between hover:bg-secondary px-2 py-1.5 rounded-lg transition-all group">
               <div>
                 <p className="text-xs font-semibold group-hover:text-amber-600 transition-colors">{tag}</p>
@@ -400,7 +400,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           {/* Logo */}
           <Link href="/" className={`flex items-center gap-2 shrink-0 transition-all w-8 ${sidebarCollapsed ? "md:w-8" : "md:w-44"}`}>
             <Image
-              src="/brand/empire-x-logo.png"
+              src="/brand/halehame-logo.svg"
               alt="Halehame"
               width={32}
               height={32}

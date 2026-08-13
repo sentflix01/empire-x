@@ -1,4 +1,4 @@
-# Empire X — Product Roadmap
+# Halehame — Product Roadmap
 
 > Milestones from MVP to global platform. Updated quarterly.
 > Each phase builds on the previous — we never migrate everything at once.
@@ -43,7 +43,7 @@
 **Goal: 10,000 active users, first significant GMV**
 
 ### Product
-- [ ] Chapa payments (Ethiopian Birr, Telebirr integration)
+- [ ] Local payment methods (mobile money, regional gateways)
 - [ ] Product variants (size, color, stock per variant)
 - [ ] Return requests + refunds
 - [ ] Delivery tracking timeline
@@ -117,10 +117,10 @@
 - [ ] Android + iOS native apps (React Native)
 - [ ] Offline mode (PWA + cached data)
 - [ ] Financial services (lending, insurance)
-- [ ] Empire X Pay (proprietary payment network)
+- [ ] Halehame Pay (proprietary payment network)
 - [ ] Creator economy (subscriptions, tips, paid content)
 - [ ] B2B marketplace
-- [ ] Empire X for Teams (business accounts)
+- [ ] Halehame for Teams (business accounts)
 
 ### Engineering
 - [ ] Multi-region deployment (Africa, Europe, Asia)

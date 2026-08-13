@@ -143,7 +143,7 @@ function CertListEditor({ values, onChange, type }: {
     onChange(values.map(e => e.id === id ? { ...e, [field]: val } : e));
   const ph = type === 'cert'
     ? { name: 'e.g. ISO 9001:2015 Certification', issuer: 'e.g. ISO / Bureau Veritas', id: 'Credential ID (optional)' }
-    : { name: 'e.g. Best Startup 2023', issuer: 'e.g. Ethiopian Chamber of Commerce', id: '' };
+    : { name: 'e.g. Best Startup 2023', issuer: 'e.g. Chamber of Commerce', id: '' };
   return (
     <div className="space-y-3">
       {values.map(entry => (
@@ -438,7 +438,7 @@ function ProfileEdit() {
             </div>
             <div>
               <Label>Headline</Label>
-              <Input value={p.headline} onChange={e => sp('headline', e.target.value)} placeholder="e.g. Software Engineer · Addis Ababa" className="mt-1 h-11" />
+              <Input value={p.headline} onChange={e => sp('headline', e.target.value)} placeholder="e.g. Software Engineer · New York" className="mt-1 h-11" />
               <p className="text-[11px] text-muted-foreground mt-1">This appears under your name across the app</p>
             </div>
             <div>
@@ -453,11 +453,11 @@ function ProfileEdit() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>Location</Label>
-                <Input value={p.location} onChange={e => sp('location', e.target.value)} placeholder="Addis Ababa, Ethiopia" className="mt-1 h-11" />
+                <Input value={p.location} onChange={e => sp('location', e.target.value)} placeholder="City, Country" className="mt-1 h-11" />
               </div>
               <div>
                 <Label>Phone</Label>
-                <Input value={p.phone} onChange={e => sp('phone', e.target.value)} placeholder="+251 9XX XXX XXX" className="mt-1 h-11" />
+                <Input value={p.phone} onChange={e => sp('phone', e.target.value)} placeholder="+1 234 567 8900" className="mt-1 h-11" />
               </div>
             </div>
             <div>
@@ -475,7 +475,7 @@ function ProfileEdit() {
           {/* Education */}
           <Section icon={GraduationCap} title="Education" defaultOpen={false}>
             <EntryListEditor values={p.education} onChange={v => sp('education', v)}
-              labels={{ title: 'Degree / Field', org: 'Institution', titlePH: 'e.g. BSc Computer Science', orgPH: 'e.g. Addis Ababa University' }} />
+              labels={{ title: 'Degree / Field', org: 'Institution', titlePH: 'e.g. BSc Computer Science', orgPH: 'e.g. University Name' }} />
           </Section>
 
           {/* Skills */}
@@ -486,7 +486,7 @@ function ProfileEdit() {
 
           {/* Languages */}
           <Section icon={LangIcon} title="Languages" defaultOpen={false}>
-            <TagListEditor values={p.languages} onChange={v => sp('languages', v)} placeholder="e.g. Amharic, English, Oromo..." />
+            <TagListEditor values={p.languages} onChange={v => sp('languages', v)} placeholder="e.g. English, Spanish, French..." />
           </Section>
 
           {/* Social links */}
@@ -715,7 +715,7 @@ function ProfileEdit() {
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input value={b.business_contact_phone} onChange={e => sb('business_contact_phone', e.target.value)}
-                  placeholder="+251 9XX XXX XXX" className="pl-9 mt-0 h-11" />
+                  placeholder="+1 234 567 8900" className="pl-9 mt-0 h-11" />
               </div>
             </div>
             <div className="relative">
@@ -738,7 +738,7 @@ function ProfileEdit() {
           {/* Service areas */}
           <Section icon={MapPin} title="Service Areas" defaultOpen={false}>
             <p className="text-xs text-muted-foreground">Where do you provide your services?</p>
-            <TagListEditor values={b.service_areas} onChange={v => sb('service_areas', v)} placeholder="e.g. Addis Ababa, Dire Dawa..." />
+            <TagListEditor values={b.service_areas} onChange={v => sb('service_areas', v)} placeholder="e.g. London, Manchester..." />
           </Section>
 
           {/* Certifications */}

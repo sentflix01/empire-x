@@ -1,6 +1,6 @@
 # Security Best Practices
 
-This guide outlines the key security practices to make Empire X trustworthy and resistant to common attacks.
+This guide outlines the key security practices to make Halehame trustworthy and resistant to common attacks.
 
 ## Goals
 

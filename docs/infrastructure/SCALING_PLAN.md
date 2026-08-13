@@ -1,4 +1,4 @@
-# Empire X — Infrastructure Scaling Plan
+# Halehame — Infrastructure Scaling Plan
 
 > Exactly what changes to infrastructure at each user milestone.
 > Each stage builds on the previous — don't skip stages.
@@ -42,7 +42,7 @@ Priority: 🔴 CRITICAL — do these before any user pays real money
         Cost: Free (5K errors/month)
 
 [ ] 5. Register domain + configure DNS
-        Register: empirex.app (or equivalent)
+        Register: halehame.vercel.app (or equivalent)
         Configure: Cloudflare DNS → Railway + Vercel
         SSL: Cloudflare handles automatically (free)
         Time: 2 hours
@@ -228,7 +228,7 @@ Priority: 🟡 HIGH
 ### CDN
 ```
 [ ] Enable Cloudflare for the API domain
-    Route: api.empirex.app → Railway via Cloudflare
+    Route: api.halehame.app → Railway via Cloudflare
     Cache: Static assets, product images
     DDoS: Cloudflare free tier provides basic DDoS protection
     

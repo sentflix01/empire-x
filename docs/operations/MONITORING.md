@@ -1,4 +1,4 @@
-# Empire X — Monitoring & Observability
+# Halehame — Monitoring & Observability
 
 > You can't improve what you don't measure. Set up monitoring before going to production.
 
@@ -40,7 +40,7 @@ Add to Vercel env vars:
 ```
 NEXT_PUBLIC_SENTRY_DSN=https://xxx@o123.ingest.sentry.io/456
 SENTRY_ORG=your-org
-SENTRY_PROJECT=empire-x-frontend
+SENTRY_PROJECT=halehame-frontend
 ```
 
 ---

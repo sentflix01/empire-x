@@ -149,11 +149,11 @@ function Onboarding() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Location</Label>
-                  <Input value={personal.location} onChange={e => setPersonal({...personal, location: e.target.value})} placeholder="Addis Ababa" className="mt-1 h-11" />
+                  <Input value={personal.location} onChange={e => setPersonal({...personal, location: e.target.value})} placeholder="Your city" className="mt-1 h-11" />
                 </div>
                 <div>
                   <Label>Phone</Label>
-                  <Input value={personal.phone} onChange={e => setPersonal({...personal, phone: e.target.value})} placeholder="+251..." className="mt-1 h-11" />
+                  <Input value={personal.phone} onChange={e => setPersonal({...personal, phone: e.target.value})} placeholder="+1 234 567 8900" className="mt-1 h-11" />
                 </div>
               </div>
               {profileType === "business" ? (

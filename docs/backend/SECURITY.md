@@ -1,4 +1,4 @@
-# Empire X — Backend Security
+# Halehame — Backend Security
 
 > Security is built in from the start. This document explains every layer of protection.
 > For known threats and their mitigations, see `docs/architecture/THREAT_MODEL.md`.

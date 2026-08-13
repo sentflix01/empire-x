@@ -1,6 +1,6 @@
-# Empire X — Infrastructure Documentation
+# Halehame — Infrastructure Documentation
 
-> Everything about how Empire X runs, scales, costs, and stays alive.
+> Everything about how Halehame runs, scales, costs, and stays alive.
 > **Last updated:** August 2026
 
 ---
@@ -47,7 +47,7 @@
 R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
-R2_BUCKET_NAME=empire-x-uploads
+R2_BUCKET_NAME=halehame-uploads
 R2_PUBLIC_URL=https://pub-xxx.r2.dev
 
 # 2. Configure Sentry
@@ -57,7 +57,7 @@ NEXT_PUBLIC_SENTRY_DSN=https://xxx@o123.ingest.sentry.io/789
 # 3. Set VAPID keys for push notifications
 VAPID_PUBLIC_KEY=BN...
 VAPID_PRIVATE_KEY=...
-VAPID_EMAIL=mailto:admin@empirex.app
+VAPID_EMAIL=mailto:admin@halehame.app
 
 # 4. Register domain + Cloudflare DNS
 # 5. Register Stripe live webhook

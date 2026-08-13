@@ -1,4 +1,4 @@
-# Keploy Testing Guide — Empire X
+# Keploy Testing Guide — Halehame
 
 Keploy auto-generates API tests by recording real traffic and replaying it.
 No need to write test cases manually — just use the app and Keploy captures everything.

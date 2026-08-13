@@ -487,8 +487,8 @@ async function markStripeOrdersPaid(session) {
     }
     collectCommission(order.id, order.seller_id, order.total_price)
       .catch(err => logger.error({ err }, 'Failed to collect commission (Stripe webhook)'));
-    notifyUser(order.seller_id, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ETB via Stripe ✅`).catch(() => {});
-    sendPushToUser(order.seller_id, '💰 Payment received!', `${order.product_title} — ${order.total_price} ETB via Stripe`, '/orders').catch(() => {});
+    notifyUser(order.seller_id, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ${order.currency || 'USD'} via Stripe ✅`).catch(() => {});
+    sendPushToUser(order.seller_id, '💰 Payment received!', `${order.product_title} — ${order.total_price} ${order.currency || 'USD'} via Stripe`, '/orders').catch(() => {});
     sendPushToUser(order.buyer_id, '✅ Payment confirmed!', `Your payment for ${order.product_title} was successful.`, '/orders').catch(() => {});
     // Send confirmation email to buyer now that payment is confirmed
     try {
@@ -714,8 +714,8 @@ router.post('/chapa/webhook', async (req, res) => {
       if (rows.length) {
         const order = rows[0];
         collectCommission(order.id, order.seller_id, order.total_price).catch(err => logger.error({ err }, 'Failed to collect commission (Chapa webhook'));
-        notifyUser(order.seller_id, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ETB via Chapa ✅`).catch(() => {});
-        sendPushToUser(order.seller_id, '💰 Payment received!', `${order.product_title} — ${order.total_price} ETB`, '/orders').catch(() => {});
+        notifyUser(order.seller_id, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ${order.currency || 'USD'} via Chapa ✅`).catch(() => {});
+        sendPushToUser(order.seller_id, '💰 Payment received!', `${order.product_title} — ${order.total_price} ${order.currency || 'USD'}`, '/orders').catch(() => {});
         sendPushToUser(order.buyer_id, '✅ Payment confirmed!', `Your payment for ${order.product_title} was successful.`, '/orders').catch(() => {});
         logger.info({ orderId: order.id }, '[Chapa webhook] Order marked paid via webhook');
       }
@@ -757,7 +757,7 @@ router.get('/chapa/sandbox', async (req, res) => {
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chapa Sandbox Payment — Empire X</title>
+  <title>Chapa Sandbox Payment — Halehame</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0fdf4;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
@@ -854,17 +854,17 @@ router.post('/checkout/chapa', requireAuth, async (req, res) => {
     const chapaRes = await chapaPost('/transaction/initialize', {
       amount:           String(totalPrice),
       currency:         'ETB',
-      email:            buyer_email || req.user.email || 'buyer@empirex.app',
-      first_name:       (buyer_name || 'Empire').split(' ')[0],
-      last_name:        (buyer_name || 'X User').split(' ').slice(1).join(' ') || 'User',
+      email:            buyer_email || req.user.email || 'buyer@halehame.app',
+      first_name:       (buyer_name || 'Halehame').split(' ')[0],
+      last_name:        (buyer_name || 'User').split(' ').slice(1).join(' ') || 'User',
       phone_number:     buyer_phone || '',
       tx_ref,
       callback_url:     `${process.env.API_URL || 'http://localhost:3001'}/api/orders/chapa/verify/${tx_ref}`,
       return_url:       `${frontendUrl}/marketplace?payment=success&tx_ref=${tx_ref}`,
       customization: {
-        title:          'Empire X Order',
+        title:          'Halehame Order',
         description:    `${quantity}× ${product_title}`,
-        logo:           `${frontendUrl}/brand/empire-x-logo.png`,
+        logo:           `${frontendUrl}/brand/halehame-logo.png`,
       },
     });
 
@@ -933,9 +933,9 @@ router.get('/chapa/verify/:tx_ref', async (req, res) => {
       // Collect platform commission
       collectCommission(order.id, order.seller_id, order.total_price).catch(err => logger.error({ err }, 'Failed to collect commission (Chapa verify)'));
       // Notify seller
-      notifyUser(order.seller_id, `💰 <b>Payment Received!</b>\n${order.product_title}\nAmount: ${order.total_price} ETB\nPaid via Chapa ✅`).catch(() => {});
+      notifyUser(order.seller_id, `💰 <b>Payment Received!</b>\n${order.product_title}\nAmount: ${order.total_price} ${order.currency || 'USD'}\nPaid via Chapa ✅`).catch(() => {});
       // Push notification
-      sendPushToUser(order.seller_id, '💰 Payment received!', `${order.product_title} — ${order.total_price} ETB paid via Chapa`, '/orders').catch(() => {});
+      sendPushToUser(order.seller_id, '💰 Payment received!', `${order.product_title} — ${order.total_price} ${order.currency || 'USD'} paid via Chapa`, '/orders').catch(() => {});
       sendPushToUser(order.buyer_id, '✅ Payment confirmed!', `Your payment for ${order.product_title} was successful.`, '/orders').catch(() => {});
     }
 

@@ -1,4 +1,4 @@
-# Empire X — Payment Integration Guide
+# Halehame — Payment Integration Guide
 
 > Complete technical reference for Stripe and Chapa payment integrations.
 > **Last updated:** August 2026
@@ -7,7 +7,7 @@
 
 ## Overview
 
-Empire X supports two payment providers:
+Halehame supports two payment providers:
 
 | Provider | Currency | Use case | Status |
 |---|---|---|---|
@@ -220,7 +220,7 @@ https://your-api.railway.app/api/orders/chapa/webhook
 
 const sessionParams = {
   mode: 'payment',
-  line_items: [{ price_data: { currency, product_data: { name: 'Empire X Wallet Top-up' }, unit_amount: toCents(cur) }, quantity: 1 }],
+  line_items: [{ price_data: { currency, product_data: { name: 'Halehame Wallet Top-up' }, unit_amount: toCents(cur) }, quantity: 1 }],
   success_url: `${frontendUrl}/wallet?topup=success&provider=stripe`,
   cancel_url:  `${frontendUrl}/wallet?topup=cancelled`,
   metadata: {

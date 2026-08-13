@@ -1,6 +1,6 @@
-# Empire X — Engineering & Product Handbook
+# Halehame — Engineering & Product Handbook
 
-> This is the operating manual for Empire X. Treat it as seriously as the source code.
+> This is the operating manual for Halehame. Treat it as seriously as the source code.
 > Every important decision, system design, legal consideration, and operational procedure lives here.
 > **Last updated:** August 2026 — reflects current production state.
 
@@ -10,7 +10,7 @@
 
 New to the project? Read in this order:
 
-1. `docs/product/NORTH_STAR.md` — Why Empire X exists
+1. `docs/product/NORTH_STAR.md` — Why Halehame exists
 2. `docs/ONBOARDING.md` — Get your dev environment running in 30 minutes
 3. `docs/architecture/C4.md` — Understand the full system
 4. `docs/architecture/ADR.md` — Understand why decisions were made
@@ -86,12 +86,12 @@ New to the project? Read in this order:
 
 | Document | Description |
 |---|---|
-| `product/NORTH_STAR.md` | Why Empire X exists and what it will never be |
+| `product/NORTH_STAR.md` | Why Halehame exists and what it will never be |
 | `product/PRD.md` | Product Requirement Documents |
 | `product/ROADMAP.md` | 2026 → 2030 milestones + tech debt |
 | `product/NORTH_STAR_METRICS.md` | **NEW** — The metric that matters + leading indicators |
 | `product/USER_RESEARCH.md` | **NEW** — 5 personas + journey maps |
-| `product/SAFETY_TRUST.md` | **NEW** — How Empire X keeps users safe |
+| `product/SAFETY_TRUST.md` | **NEW** — How Halehame keeps users safe |
 | `product/DESIGN_SYSTEM.md` | **NEW** — Brand, colors, typography, components |
 | `product/ACCESSIBILITY.md` | **NEW** — WCAG 2.1 AA standards + audit process |
 | `product/SELLER_HANDBOOK.md` | **NEW** — Complete guide for sellers |
@@ -139,9 +139,9 @@ New to the project? Read in this order:
 
 ---
 
-## Five Operating Systems of Empire X
+## Five Operating Systems of Halehame
 
-Empire X is not just an app — it is five operating systems working together.
+Halehame is not just an app — it is five operating systems working together.
 
 ### 1. Product OS — How ideas become features
 ```
@@ -163,7 +163,7 @@ User → Purchase → Payment (Stripe/Chapa) → Commission → Revenue → Grow
 Content Policy → Moderation → Reports → Admin Review → Action → Appeal
 ```
 
-### 5. Growth OS — How Empire X expands
+### 5. Growth OS — How Halehame expands
 ```
 Sellers acquired → Products listed → Buyers discover → Transactions → Revenue → More investment
 ```

@@ -1,4 +1,4 @@
-# Empire X — Current Infrastructure State
+# Halehame — Current Infrastructure State
 
 > A snapshot of exactly what is running today, what it costs, and how it's configured.
 > **Last updated:** August 2026
@@ -19,7 +19,7 @@
 | CPU | Shared |
 | Auto-deploy | Yes — every push to `main` |
 | Health check | `GET /health` → 200 OK |
-| URL | `https://empire-x-backend.railway.app` (example) |
+| URL | `https://halehame-backend.railway.app` (example) |
 
 ### Frontend — Vercel
 | Property | Value |
@@ -31,7 +31,7 @@
 | CDN | Vercel Edge Network (automatic) |
 | Build | On every push to `main` |
 | Preview | Auto-deploy on every PR |
-| URL | `https://empire-x.vercel.app` (example) |
+| URL | `https://halehame.vercel.app` (example) |
 
 ### Database — Neon PostgreSQL
 | Property | Value |
@@ -110,6 +110,6 @@
 | 🔴 Critical | Set up VAPID keys for push notifications | 30 min |
 | 🟡 High | Enable Redis (Upstash free tier) | 30 min |
 | 🟡 High | Set up Chapa live key | 1 hour |
-| 🟡 High | Register a domain (empirex.app) | 1 hour |
+| 🟡 High | Register a domain (halehame.vercel.app) | 1 hour |
 | 🟢 Medium | Set up uptime monitoring (UptimeRobot free) | 30 min |
 | 🟢 Medium | Enable Neon connection pooling | 15 min |

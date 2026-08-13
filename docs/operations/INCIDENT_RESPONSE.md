@@ -1,4 +1,4 @@
-# Empire X — Incident Response Playbook
+# Halehame — Incident Response Playbook
 
 > Step-by-step procedures for when things go wrong.
 > **Last updated:** August 2026
@@ -198,7 +198,7 @@ WHERE state = 'idle' AND state_change < NOW() - INTERVAL '10 minutes';
 
 ## Status Page
 
-A public status page should be set up at `status.empirex.app` using:
+A public status page should be set up at `status.halehame.app` using:
 - **Statuspage.io** (free tier)
 - **UptimeRobot** + a simple HTML page
 - Or build one using Railway health check + public endpoint

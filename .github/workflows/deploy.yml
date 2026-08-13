@@ -1,4 +1,4 @@
-name: Empire X Deploy
+name: Halehame Deploy
 
 on:
   push:
@@ -83,7 +83,7 @@ jobs:
 
       - name: Deploy to Railway
         if: steps.token_check.outputs.has_token == 'true' && steps.validate_token.outputs.token_valid == 'true'
-        run: railway up --service empire-x-backend --detach
+        run: railway up --service halehame-backend --detach
         working-directory: backend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
@@ -176,7 +176,7 @@ jobs:
       - name: Check frontend health
         run: |
           # Use secret if set, otherwise fall back to known Vercel URL
-          CHECK_URL="${FRONTEND_URL:-https://empire-x-eosin.vercel.app}"
+          CHECK_URL="${FRONTEND_URL:-https://halehame-eosin.vercel.app}"
           echo "Checking frontend at $CHECK_URL ..."
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$CHECK_URL" 2>/dev/null || echo "000")
           if [ "$STATUS" = "200" ] || [ "$STATUS" = "307" ] || [ "$STATUS" = "308" ]; then

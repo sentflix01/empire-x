@@ -1,6 +1,6 @@
-# Empire X — API Documentation
+# Halehame — API Documentation
 
-> Base URL: `http://localhost:3001` (dev) · `https://api.empirex.app` (production)
+> Base URL: `http://localhost:3001` (dev) · `https://api.halehame.app` (production)
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.
 > Errors follow `{ "error": "message" }` format.
 

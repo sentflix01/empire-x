@@ -93,7 +93,7 @@ async function sendOtpEmail(to, otp) {
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#fff;">
       <div style="text-align:center;margin-bottom:24px;">
         <h1 style="color:#d97706;font-size:28px;margin:0;">👑 Halehame</h1>
-        <p style="color:#6b7280;margin:4px 0 0;">Africa's Superapp</p>
+        <p style="color:#6b7280;margin:4px 0 0;">The Global Superapp</p>
       </div>
       <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:24px;text-align:center;">
         <p style="color:#374151;font-size:16px;margin:0 0 16px;">Your verification code is:</p>
@@ -140,7 +140,7 @@ async function sendPasswordResetEmail(to, token) {
       </p>
       <hr style="border:none;border-top:1px solid #f3f4f6;margin:24px 0;" />
       <p style="color:#9ca3af;font-size:11px;text-align:center;">
-        © 2025 Halehame · Africa's Superapp
+        © 2025 Halehame · The Global Superapp
       </p>
     </div>`;
 
@@ -163,7 +163,7 @@ async function sendOrderConfirmation(to, order) {
         Your order has been placed successfully. The seller will process it shortly.
       </p>
       <p style="color:#9ca3af;font-size:11px;text-align:center;margin-top:32px;">
-        © 2025 Halehame · Africa's Superapp
+        © 2025 Halehame · The Global Superapp
       </p>
     </div>`;
 

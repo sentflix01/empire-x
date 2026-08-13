@@ -1,4 +1,4 @@
-# Empire X — Monitoring Stack
+# Halehame — Monitoring Stack
 
 > Full observability: metrics, logs, traces, alerts — at every scale.
 > **Last updated:** August 2026
@@ -35,8 +35,8 @@
 
 ```bash
 # Sign up at sentry.io (free: 5K errors/month)
-# Create project: Empire X Backend (Node.js)
-# Create project: Empire X Frontend (Next.js)
+# Create project: Halehame Backend (Node.js)
+# Create project: Halehame Frontend (Next.js)
 # Copy DSNs to env vars
 ```
 
@@ -61,8 +61,8 @@
 
 ```bash
 # Sign up at uptimerobot.com (free: 50 monitors, 5-minute checks)
-# Add monitor: https://api.empirex.app/health → HTTP(S) → GET → 200 OK
-# Add monitor: https://empirex.app → HTTP(S) → GET → 200 OK
+# Add monitor: https://api.halehame.app/health → HTTP(S) → GET → 200 OK
+# Add monitor: https://halehame.vercel.app → HTTP(S) → GET → 200 OK
 # Set alert: Telegram + email when down
 ```
 

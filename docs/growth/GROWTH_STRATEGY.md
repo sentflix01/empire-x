@@ -1,4 +1,4 @@
-# Empire X — Growth Strategy
+# Halehame — Growth Strategy
 
 > How we go from 0 to 1 million users.
 > **Last updated:** August 2026
@@ -43,7 +43,7 @@
 ```
 More sellers → More products → More buyers
 More buyers → More orders → More seller income
-More seller income → More sellers recommend Empire X
+More seller income → More sellers recommend Halehame
                               ↑
                         Flywheel accelerating
 ```
@@ -54,7 +54,7 @@ Sellers bring their own customers. Every seller you onboard is a free growth cha
 
 **Seller acquisition strategy:**
 1. **Free onboarding workshops** — "Build your online store in 30 minutes" at co-working spaces
-2. **WhatsApp Business migration** — Show sellers how to move their product photos + contacts to Empire X
+2. **WhatsApp Business migration** — Show sellers how to move their product photos + contacts to Halehame
 3. **First 3 months free** — No commission on first ETB 10,000 of sales
 4. **Success stories** — Feature one successful seller per week on social media
 
@@ -62,11 +62,11 @@ Sellers bring their own customers. Every seller you onboard is a free growth cha
 
 | Type | Platform | Frequency |
 |---|---|---|
-| Seller success stories | Empire X feed + Telegram + Instagram | 3x/week |
-| "How to sell on Empire X" tutorials | YouTube + TikTok | 2x/week |
-| Ethiopian business tips | Empire X feed | Daily |
+| Seller success stories | Halehame feed + Telegram + Instagram | 3x/week |
+| "How to sell on Halehame" tutorials | YouTube + TikTok | 2x/week |
+| Ethiopian business tips | Halehame feed | Daily |
 | Product highlights (beautiful photos) | Instagram | Daily |
-| Live Q&A / workshops | Zoom + Empire X live (future) | Weekly |
+| Live Q&A / workshops | Zoom + Halehame live (future) | Weekly |
 
 ---
 
@@ -114,7 +114,7 @@ By Phase 2, go deep in specific verticals before going broad:
 2. **Swahili** — widely spoken, single language covers Kenya + Tanzania
 3. **Tech ecosystem** — Nairobi is East Africa's tech hub (Silicon Savannah)
 4. **Ethiopian diaspora** — significant Ethiopian community in Nairobi
-5. **Existing Kenyan social apps** — weak compared to what Empire X offers
+5. **Existing Kenyan social apps** — weak compared to what Halehame offers
 
 ### Kenya launch strategy
 

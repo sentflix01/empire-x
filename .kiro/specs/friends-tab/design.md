@@ -2,7 +2,7 @@
 
 ## Overview
 
-This feature adds two enhancements to Empire X:
+This feature adds two enhancements to Halehame:
 
 1. **Friends Tab** — a dedicated `/friends` page accessible from a new sidebar nav entry. The page has three sections (My Friends, Friend Suggestions, Mutual Friends), each showing up to 5 user cards in a collapsed state with a "More" button to expand inline.
 

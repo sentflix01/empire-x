@@ -52,7 +52,7 @@ function EventCreate() {
         </div>
         <div className="space-y-4">
           <div><Label>Cover Image</Label><div className="mt-1"><ImageUpload value={form.cover_image} onChange={url => setForm({...form, cover_image: url})} aspectRatio="aspect-video" placeholder="Upload cover" /></div></div>
-          <div><Label>Event Title</Label><Input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g. Tech Meetup Addis 2025" className="mt-1" /></div>
+          <div><Label>Event Title</Label><Input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g. Tech Meetup 2025" className="mt-1" /></div>
           <div><Label>Description</Label><Textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Describe your event..." className="mt-1" rows={3} /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Start Date & Time</Label><Input type="datetime-local" value={form.start_at} onChange={e => setForm({...form, start_at: e.target.value})} className="mt-1" /></div>
@@ -68,7 +68,7 @@ function EventCreate() {
             <div><Label>Location</Label><Input value={form.location} onChange={e => setForm({...form, location: e.target.value})} placeholder="Venue, City" className="mt-1" /></div>
           )}
           <div className="grid grid-cols-2 gap-3">
-            <div><Label>Ticket Price (ETB) — 0 for free</Label><Input type="number" value={form.ticket_price} onChange={e => setForm({...form, ticket_price: e.target.value})} className="mt-1" /></div>
+            <div><Label>Ticket Price — 0 for free</Label><Input type="number" value={form.ticket_price} onChange={e => setForm({...form, ticket_price: e.target.value})} className="mt-1" /></div>
             <div><Label>Capacity (optional)</Label><Input type="number" value={form.capacity} onChange={e => setForm({...form, capacity: e.target.value})} placeholder="Unlimited" className="mt-1" /></div>
           </div>
           <Button onClick={handleSubmit} disabled={saving || !form.title || !form.start_at} className="w-full rounded-full bg-gradient-to-r from-amber-500 to-amber-600">

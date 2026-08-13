@@ -94,7 +94,7 @@ export const SECTION_DEFINITIONS: SectionDefinition[] = [
         itemFields: [
           { key: "name",        label: "Item Name",    type: "text", placeholder: "Dish name" },
           { key: "description", label: "Description",  type: "text", placeholder: "Brief description" },
-          { key: "price",       label: "Price",        type: "text", placeholder: "150 ETB" },
+          { key: "price",       label: "Price",        type: "text", placeholder: "15.00" },
         ],
       },
     ],
@@ -149,7 +149,7 @@ export const SECTION_DEFINITIONS: SectionDefinition[] = [
         key: "plans", label: "Plans", type: "repeater",
         itemFields: [
           { key: "name",     label: "Plan Name",                        type: "text",     placeholder: "Pro" },
-          { key: "price",    label: "Price",                            type: "text",     placeholder: "499 ETB/mo" },
+          { key: "price",    label: "Price",                            type: "text",     placeholder: "49.99/mo" },
           { key: "features", label: "Features (comma-separated)",       type: "text",     placeholder: "Feature 1, Feature 2" },
           { key: "cta",      label: "Button Text",                      type: "text",     placeholder: "Get started" },
         ],
@@ -170,7 +170,7 @@ export const SECTION_DEFINITIONS: SectionDefinition[] = [
         itemFields: [
           { key: "title",       label: "Service Name",  type: "text",     placeholder: "Web design" },
           { key: "description", label: "Description",   type: "text",     placeholder: "What we offer" },
-          { key: "price",       label: "Price",         type: "text",     placeholder: "From 2,000 ETB" },
+          { key: "price",       label: "Price",         type: "text",     placeholder: "From " },
           { key: "icon",        label: "Icon (name)",   type: "text",     placeholder: "e.g. Globe" },
         ],
       },
@@ -207,8 +207,8 @@ export const SECTION_DEFINITIONS: SectionDefinition[] = [
       { key: "title",       label: "Section Title", type: "text",     placeholder: "Get in touch" },
       { key: "description", label: "Description",   type: "textarea", placeholder: "We'd love to hear from you..." },
       { key: "email",       label: "Email",         type: "text",     placeholder: "hello@example.com" },
-      { key: "phone",       label: "Phone",         type: "text",     placeholder: "+251 91 234 5678" },
-      { key: "address",     label: "Address",       type: "textarea", placeholder: "Bole Road, Addis Ababa" },
+      { key: "phone",       label: "Phone",         type: "text",     placeholder: "+1 234 567 8900" },
+      { key: "address",     label: "Address",       type: "textarea", placeholder: "Your street address, City, Country" },
     ],
   },
 
@@ -309,7 +309,7 @@ export const SECTION_DEFINITIONS: SectionDefinition[] = [
         itemFields: [
           { key: "title",    label: "Event Name",  type: "text",     placeholder: "Workshop" },
           { key: "date",     label: "Date",        type: "text",     placeholder: "Feb 20, 2026" },
-          { key: "location", label: "Location",    type: "text",     placeholder: "Online / Addis Ababa" },
+          { key: "location", label: "Location",    type: "text",     placeholder: "Online / Your city" },
           { key: "description", label: "Description", type: "textarea", placeholder: "Event details..." },
         ],
       },
@@ -346,7 +346,7 @@ export const SECTION_DEFINITIONS: SectionDefinition[] = [
         key: "items", label: "Products", type: "repeater",
         itemFields: [
           { key: "name",        label: "Product Name",  type: "text",     placeholder: "Product name" },
-          { key: "price",       label: "Price",         type: "text",     placeholder: "299 ETB" },
+          { key: "price",       label: "Price",         type: "text",     placeholder: "29.99" },
           { key: "image",       label: "Image URL",     type: "text",     placeholder: "https://..." },
           { key: "description", label: "Description",   type: "text",     placeholder: "Short description" },
         ],

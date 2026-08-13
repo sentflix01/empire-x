@@ -1,4 +1,4 @@
-# Empire X — Infrastructure Timeline
+# Halehame — Infrastructure Timeline
 
 > Month-by-month infrastructure roadmap aligned with product and user growth.
 > **Last updated:** August 2026
@@ -119,7 +119,7 @@ Month 5–6:
 Month 6–7:
   - Railway: Upgrade to Team plan, consider 2nd instance
   - Neon: Evaluate read replica (if read queries > 70% of DB load)
-  - Add: Status page at status.empirex.app
+  - Add: Status page at status.halehame.app
   - Hire: First part-time DevOps/SRE contractor
 
 Month 7–8:

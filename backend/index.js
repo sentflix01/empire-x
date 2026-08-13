@@ -283,6 +283,7 @@ app.use('/api/flags', require('./routes/flags'));
 app.use('/api/showrooms/:showroomId/external-sources', require('./routes/externalSources'));
 app.use('/api/proxy', require('./routes/proxy'));
 app.use('/api/devops', require('./routes/devops'));
+app.use('/api/docs',   require('./routes/docs'));
 
 // ── Metrics endpoint (admin only) ─────────────────────────────────────────────
 app.get('/metrics', requireAuth, requireAdmin, (_req, res) => {
@@ -320,7 +321,7 @@ app.all('*', (_req, res) => apiError.notFound(res, 'Route not found'));
 const { startStoriesCleanup } = require('./db/cleanupStories');
 initSocket(server, allowedOrigins);
 server.listen(PORT, () => {
-  logger.info(`👑 Empire X backend running on http://localhost:${PORT}`);
+  logger.info(`👑 Halehame backend running on http://localhost:${PORT}`);
   logger.info(`   Health: http://localhost:${PORT}/health`);
   logger.info('   WebSocket: enabled for real-time chat');
   startStoriesCleanup();

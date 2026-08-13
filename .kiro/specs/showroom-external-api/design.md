@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Showroom External API Integration extends Empire X's existing Showroom Builder to let Business Owners connect live REST API endpoints to their showroom sections. Instead of entering data manually, an owner configures an external URL, maps response fields to Empire X schema fields, and the Proxy Gateway fetches, transforms, and caches the data server-side.
+The Showroom External API Integration extends Halehame's existing Showroom Builder to let Business Owners connect live REST API endpoints to their showroom sections. Instead of entering data manually, an owner configures an external URL, maps response fields to Halehame schema fields, and the Proxy Gateway fetches, transforms, and caches the data server-side.
 
 The three pillars driving this design are:
 

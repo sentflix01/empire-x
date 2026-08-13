@@ -9,7 +9,7 @@
 ## Introduction
 
 The Showroom External API Integration lets Business Owners attach a live REST API endpoint
-to any repeater-type section in their Empire X Showroom. A Proxy Gateway fetches, transforms,
+to any repeater-type section in their Halehame Showroom. A Proxy Gateway fetches, transforms,
 and caches the data server-side; a Field Mapper UI connects external response fields to the
 section's schema fields; a Health Dashboard shows the status of each integration.
 

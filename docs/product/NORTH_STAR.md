@@ -1,22 +1,22 @@
-# Empire X — North Star Document
+# Halehame — North Star Document
 
 > Every feature, every technical decision, every product choice should align with this document.
-> If a proposed feature doesn't fit here, it probably doesn't belong in Empire X.
+> If a proposed feature doesn't fit here, it probably doesn't belong in Halehame.
 
 ---
 
-## Why Empire X Exists
+## Why Halehame Exists
 
 Hundreds of millions of people across Africa lack access to the digital tools that people in other parts of the world take for granted — tools to run a business, find work, buy and sell locally, connect with their community, and access financial services.
 
-Empire X exists to change that. We are building Africa's superapp: one platform where people can do everything they need to participate in the digital economy.
+Halehame exists to change that. We are building the global superapp: one platform where people can do everything they need to participate in the digital economy.
 
 ---
 
 ## Who It Is For
 
 **Primary users:**
-- Entrepreneurs and small business owners in Ethiopia who want to sell products and services online
+- Entrepreneurs and small business owners anywhere who want to sell products and services online
 - Individuals who want to find local products, services, and jobs
 - Anyone who wants to connect with their community, share content, and communicate
 
@@ -29,7 +29,7 @@ Empire X exists to change that. We are building Africa's superapp: one platform 
 
 ## The Problem We Solve
 
-| Problem | Empire X Solution |
+| Problem | Halehame Solution |
 |---|---|
 | No easy way to sell products online locally | Marketplace with local delivery and ETB payments |
 | No digital presence for small businesses | Showroom Studio — a mini website in minutes |
@@ -40,7 +40,7 @@ Empire X exists to change that. We are building Africa's superapp: one platform 
 
 ---
 
-## What Empire X Will Never Be
+## What Halehame Will Never Be
 
 These boundaries protect the core identity:
 
@@ -53,7 +53,7 @@ These boundaries protect the core identity:
 
 ## Product Principles
 
-1. **Local first** — Every feature should work for someone in Addis Ababa before it works anywhere else
+1. **Local first** — Every feature should work for someone in their own city before it works anywhere else
 2. **Commerce and community together** — The feed, the marketplace, and the social layer reinforce each other
 3. **Simple enough for first-time smartphone users** — Low cognitive load, clear actions
 4. **Fast on slow connections** — Performance is a feature, not a bonus
@@ -65,7 +65,7 @@ These boundaries protect the core identity:
 ## The Vision at Scale
 
 ```
-2026 — Empire X launches in Ethiopia
+2026 — Halehame launches globally
         Core features: social feed, marketplace, showrooms, tasks, messaging
 
 2027 — 100,000 active users
@@ -84,10 +84,10 @@ These boundaries protect the core identity:
 
 ## Success Metrics
 
-We know Empire X is working when:
+We know Halehame is working when:
 
-- A small business owner in Addis Ababa can set up a showroom, list products, and receive their first order in under 30 minutes
-- A buyer can find a local product, pay with Telebirr or Chapa, and receive delivery confirmation — all in one app
+- A small business owner anywhere can set up a showroom, list products, and receive their first order in under 30 minutes
+- A buyer can find a local product, pay with their preferred payment method, and receive delivery confirmation — all in one app
 - A freelancer finds a task, bids, gets hired, delivers, and gets paid without leaving the platform
 - Monthly GMV (gross merchandise value) grows 20%+ month-over-month in the first year
 

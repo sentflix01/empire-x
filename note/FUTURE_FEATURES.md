@@ -1,4 +1,4 @@
-# Empire X — Future Features
+# Halehame — Future Features
 
 > Updated: August 2026 — reflects full codebase state after major engineering sprint.
 > ✅ = Built & confirmed in code | ⚠️ = Partially built | ❌ = Not yet built

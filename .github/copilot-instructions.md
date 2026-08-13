@@ -1,4 +1,4 @@
-# Copilot Instructions for Empire X
+# Copilot Instructions for Halehame
 
 Follow these rules for every feature addition, bug fix, refactor, or architectural change in this repository.
 

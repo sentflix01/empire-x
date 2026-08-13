@@ -285,7 +285,7 @@ import {
             { type: "hero", title: "Join the Summit", subtitle: "3 days of learning & networking", cta: "Register Now" },
             { type: "features", title: "What to Expect", items: [{ title: "30+ Speakers", desc: "Industry leaders" }, { title: "Workshops", desc: "Hands-on sessions" }, { title: "Networking", desc: "Connect with peers" }] },
             { type: "team", title: "Featured Speakers" },
-            { type: "faq", title: "Event FAQ", items: [{ question: "Where is it held?", answer: "At the main conference center in Addis Ababa" }, { question: "Is lunch included?", answer: "Yes, all tickets include lunch and refreshments" }] },
+            { type: "faq", title: "Event FAQ", items: [{ question: "Where is it held?", answer: "At the main conference center in the city" }, { question: "Is lunch included?", answer: "Yes, all tickets include lunch and refreshments" }] },
             { type: "contact", title: "Get Your Ticket" }
           ]
         }

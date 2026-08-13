@@ -288,7 +288,7 @@ function PrivacyAndSecurityView() {
       </Section>
 
       <p className="text-center text-[10px] text-muted-foreground px-4">
-        Halehame · Addis Ababa, Ethiopia · privacy@halehame.app
+        Halehame · City, Country · privacy@halehame.app
         <br />Last updated August 2026
       </p>
     </div>

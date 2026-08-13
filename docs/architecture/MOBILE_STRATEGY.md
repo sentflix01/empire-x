@@ -1,16 +1,16 @@
-# Empire X — Mobile Strategy
+# Halehame — Mobile Strategy
 
-> How Empire X reaches mobile users in Ethiopia — PWA today, native apps tomorrow.
+> How Halehame reaches mobile users in Ethiopia — PWA today, native apps tomorrow.
 > **Last updated:** August 2026
 
 ---
 
 ## Current State: Progressive Web App (PWA)
 
-Empire X is currently a **PWA** — a web app that behaves like a native app on mobile.
+Halehame is currently a **PWA** — a web app that behaves like a native app on mobile.
 
 ### What Works Today
-- **Install to home screen** — users see an Empire X icon, no App Store needed
+- **Install to home screen** — users see an Halehame icon, no App Store needed
 - **Push notifications** — works on Android Chrome; limited on iOS Safari
 - **Offline indicator** — service worker installed (`public/sw.js`)
 - **Fast loading** — Next.js static generation + Vercel Edge CDN
@@ -33,7 +33,7 @@ Empire X is currently a **PWA** — a web app that behaves like a native app on 
 
 ### Why TWA First
 - Reuses 100% of existing frontend code
-- Gets Empire X into Google Play Store (important for discovery in Ethiopia)
+- Gets Halehame into Google Play Store (important for discovery in Ethiopia)
 - Android dominates Ethiopian smartphone market (85%+ market share)
 - Takes 1–2 weeks to implement
 
@@ -43,7 +43,7 @@ Empire X is currently a **PWA** — a web app that behaves like a native app on 
 npm install -g @bubblewrap/cli
 
 # Initialize TWA project
-bubblewrap init --manifest https://empirex.app/manifest.json
+bubblewrap init --manifest https://halehame.vercel.app/manifest.json
 
 # Build APK
 bubblewrap build
@@ -183,7 +183,7 @@ style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
 ## App Store Optimisation (ASO)
 
 ### Google Play Store Listing
-- **App name:** Empire X — Ethiopian Superapp
+- **App name:** Halehame — Ethiopian Superapp
 - **Short description:** Social, marketplace & business tools for Ethiopia
 - **Category:** Social / Business
 - **Keywords:** Ethiopian marketplace, Amharic social media, business app Ethiopia, Chapa payment, Telebirr

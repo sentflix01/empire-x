@@ -2,7 +2,7 @@
 
 ## Overview
 
-Eight distinct bugs prevent the Empire X application from deploying cleanly to production. They fall into four layers:
+Eight distinct bugs prevent the Halehame application from deploying cleanly to production. They fall into four layers:
 
 - **Frontend auth token storage** — `client.ts`'s in-memory + cookie design is not communicated to the rest of the frontend; several files still use `localStorage` directly, breaking post-refresh auth state and WebSocket connections.
 - **Backend proxy trust** — `app.set('trust proxy', 1)` is missing, so IP-based rate limiting and the proxy gateway use the wrong IP behind Railway/Render.
@@ -67,7 +67,7 @@ END FUNCTION
 - **Bug 5**: Railway deployment → `req.ip = '10.0.0.1'` (load-balancer) → all 1000 concurrent users share one rate-limit bucket → one user exhausts quota, all others get 429.
 - **Bug 6**: Fresh DB deploy → `POST /api/orders/checkout/chapa` → `INSERT INTO orders (..., chapa_tx_ref, ...)` → `ERROR: column "chapa_tx_ref" of relation "orders" does not exist`.
 - **Bug 7**: Fresh DB deploy → `GET /api/referral/my-code` → `ERROR: column "referral_code" does not exist`; `POST /api/referral/apply` → `ERROR: column "points" does not exist`.
-- **Bug 8**: Production → browser `console.error: Refused to connect to 'wss://empire-x-backend.railway.app/socket.io/...' because it violates the following Content Security Policy directive: "connect-src 'self' http://..."`.
+- **Bug 8**: Production → browser `console.error: Refused to connect to 'wss://halehame-backend.railway.app/socket.io/...' because it violates the following Content Security Policy directive: "connect-src 'self' http://..."`.
 
 ---
 

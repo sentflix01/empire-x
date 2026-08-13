@@ -437,7 +437,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
         setMapCenter([loc.lat, loc.lon]);
         loadNearbyBusinesses(loc.lat, loc.lon, nearbyCategory);
         setLocating(false);
-        setNearbyError("Using Addis Ababa as default location.");
+        setNearbyError("Unable to detect location. Please enable location access.");
       },
       { timeout: 8000 }
     );

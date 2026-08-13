@@ -42,7 +42,7 @@ export const TICKER_TYPES: TickerTypeOption[] = [
     color: '#F97316',
     badgeLabel: 'PROMO',
     Icon: Tag,
-    placeholder: '30% OFF this weekend only! Visit us at Bole — Limited time offer',
+    placeholder: '30% OFF this weekend only! Limited time offer — shop now',
   },
   {
     value: 'news',
@@ -51,7 +51,7 @@ export const TICKER_TYPES: TickerTypeOption[] = [
     color: '#EF4444',
     badgeLabel: 'LIVE',
     Icon: Newspaper,
-    placeholder: 'We just opened our new branch in Bole! Grand opening this Saturday',
+    placeholder: 'We just opened our new branch! Grand opening this Saturday — come visit us',
   },
   {
     value: 'contact',
@@ -60,7 +60,7 @@ export const TICKER_TYPES: TickerTypeOption[] = [
     color: '#3B82F6',
     badgeLabel: 'CONTACT',
     Icon: Phone,
-    placeholder: '+251 912 345 678  ·  Available Mon–Sat 9AM–6PM',
+    placeholder: '+1 234 567 8900  ·  Available Mon–Sat 9AM–6PM',
   },
   {
     value: 'location',
@@ -69,7 +69,7 @@ export const TICKER_TYPES: TickerTypeOption[] = [
     color: '#06B6D4',
     badgeLabel: 'LOCATION',
     Icon: MapPin,
-    placeholder: 'Find us at Bole Road, opposite Edna Mall  ·  Addis Ababa',
+    placeholder: 'Find us at your nearest location',
   },
   {
     value: 'custom',

@@ -1,13 +1,13 @@
-# Empire X — Safety, Trust & Platform Integrity
+# Halehame — Safety, Trust & Platform Integrity
 
-> How Empire X keeps users safe, builds trust, and prevents abuse at scale.
+> How Halehame keeps users safe, builds trust, and prevents abuse at scale.
 > **Last updated:** August 2026
 
 ---
 
 ## Trust Is the Product
 
-In the Ethiopian market, **trust is the primary barrier to e-commerce adoption**. Buyers fear:
+In emerging markets, **trust is the primary barrier to e-commerce adoption**. Buyers fear:
 - Receiving a different/damaged item
 - Paying and getting nothing
 - Being scammed by fake sellers
@@ -94,8 +94,8 @@ async function reportCSAM(contentId, reporterId, contentUrl) {
   await pool.query('UPDATE users SET is_banned = TRUE WHERE id = $1', [userId]);
   // 3. Send to NCMEC (US) CyberTipline API
   await fetch('https://report.cybertip.org/api/v1/report', { ... });
-  // 4. Notify Ethiopian Federal Police
-  await sendEmail('cybercrime@federalpolice.gov.et', ...);
+  // 4. Notify relevant local authorities
+  await sendEmail('authorities@example.gov', ...);
   // 5. Log for legal records
 }
 ```

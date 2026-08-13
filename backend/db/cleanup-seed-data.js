@@ -1,7 +1,7 @@
 /**
  * cleanup-seed-data.js
- * Removes all faker/seeded data (empirex.test users and all their content)
- * Keeps: admin@empirex.app and test@empirex.app accounts and their data.
+ * Removes all faker/seeded data (halehame.test users and all their content)
+ * Keeps: admin@halehame.app and test@halehame.app accounts and their data.
  *
  * Run: node db/cleanup-seed-data.js
  */
@@ -10,7 +10,7 @@ const pool = require('./pool');
 
 async function cleanup() {
   const client = await pool.connect();
-  console.log('\n🧹 Empire X — Cleaning all faker/seed data...\n');
+  console.log('\n🧹 Halehame — Cleaning all faker/seed data...\n');
 
   try {
     await client.query('BEGIN');
@@ -33,22 +33,22 @@ async function cleanup() {
     `);
     console.log('  ✅ Content tables cleared.\n');
 
-    // ── Step 2: Delete all seeded test users (empirex.test domain) ─────────
+    // ── Step 2: Delete all seeded test users (halehame.test domain) ─────────
     console.log('👥 Deleting seeded test users...');
     const { rowCount: profilesDeleted } = await client.query(`
       DELETE FROM user_profiles
       WHERE user_id IN (
-        SELECT id FROM users WHERE email LIKE '%@empirex.test'
+        SELECT id FROM users WHERE email LIKE '%@halehame.test'
       )
     `);
     const { rowCount: walletsDeleted } = await client.query(`
       DELETE FROM wallets
       WHERE user_id IN (
-        SELECT id FROM users WHERE email LIKE '%@empirex.test'
+        SELECT id FROM users WHERE email LIKE '%@halehame.test'
       )
     `);
     const { rowCount: usersDeleted } = await client.query(
-      `DELETE FROM users WHERE email LIKE '%@empirex.test' RETURNING email`
+      `DELETE FROM users WHERE email LIKE '%@halehame.test' RETURNING email`
     );
     console.log(`  ✅ Deleted ${usersDeleted} seeded users, ${profilesDeleted} profiles, ${walletsDeleted} wallets.\n`);
 
@@ -61,7 +61,7 @@ async function cleanup() {
       END
       FROM users u
       WHERE w.user_id = u.id
-        AND u.email IN ('admin@empirex.app', 'test@empirex.app')
+        AND u.email IN ('admin@halehame.app', 'test@halehame.app')
     `);
 
     // Ensure wallets exist for dev accounts (in case they were accidentally deleted)
@@ -69,7 +69,7 @@ async function cleanup() {
       INSERT INTO wallets (user_id, balance, currency)
       SELECT id, CASE WHEN role = 'admin' THEN 50000 ELSE 5000 END, 'ETB'
       FROM users
-      WHERE email IN ('admin@empirex.app', 'test@empirex.app')
+      WHERE email IN ('admin@halehame.app', 'test@halehame.app')
         AND id NOT IN (SELECT user_id FROM wallets)
       ON CONFLICT DO NOTHING
     `);
@@ -93,8 +93,8 @@ async function cleanup() {
       wallet: `${r.balance} ETB`,
     })));
     console.log('\n🚀 App is ready for development with clean data.\n');
-    console.log('   Admin:   admin@empirex.app / Admin1234!');
-    console.log('   Tester:  test@empirex.app  / Test1234!\n');
+    console.log('   Admin:   admin@halehame.app / Admin1234!');
+    console.log('   Tester:  test@halehame.app  / Test1234!\n');
 
   } catch (err) {
     await client.query('ROLLBACK');

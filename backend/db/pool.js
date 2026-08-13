@@ -36,7 +36,7 @@ const pool = new Pool({
   connectionTimeoutMillis: 8_000,
   allowExitOnIdle: false,          // keep pool warm between requests
   statement_timeout: 10_000,       // 10 s — prevent slow queries from blocking the pool
-  application_name: 'empire-x-backend', // visible in Neon dashboard → Monitoring
+  application_name: 'halehame-backend', // visible in Neon dashboard → Monitoring
 });
 
 pool.on('error', (err) => {

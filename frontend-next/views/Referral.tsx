@@ -60,7 +60,7 @@ function Referral() {
       try {
         await navigator.share({
           title: "Join Halehame",
-          text: "Join me on Halehame — Ethiopia's super-app for social, commerce, and services. Use my referral link to get 20 bonus points!",
+          text: "Join me on Halehame — the superapp for social, commerce, and services. Use my referral link to get 20 bonus points!",
           url: referralData.referral_link,
         });
       } catch (err: any) {

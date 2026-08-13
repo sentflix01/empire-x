@@ -55,7 +55,7 @@ export const SECTION_TYPES: SectionType[] = [
         itemFields: [
           { key: "name",  label: "Name",        type: "text",     placeholder: "Product name" },
           { key: "desc",  label: "Description", type: "text",     placeholder: "Brief description" },
-          { key: "price", label: "Price",        type: "text",     placeholder: "299 ETB" },
+          { key: "price", label: "Price",        type: "text",     placeholder: "29.99" },
           { key: "icon",  label: "Icon",         type: "text",     placeholder: "fa-box" },
         ],
       },
@@ -105,11 +105,11 @@ export const SECTION_TYPES: SectionType[] = [
   {
     key: "contact", label: "Contact", icon: "Mail", tier: "freemium",
     fields: [
-      { key: "location", label: "Address",       type: "text", placeholder: "Bole Road, Addis Ababa" },
-      { key: "phone",    label: "Phone",         type: "text", placeholder: "+251 912 345 678" },
+      { key: "location", label: "Address",       type: "text", placeholder: "Your street address" },
+      { key: "phone",    label: "Phone",         type: "text", placeholder: "+1 234 567 8900" },
       { key: "email",    label: "Email",         type: "text", placeholder: "hello@example.com" },
       { key: "hours",    label: "Working Hours", type: "text", placeholder: "Mon-Sat 9AM-6PM" },
-      { key: "whatsapp", label: "WhatsApp No.",  type: "text", placeholder: "+251912345678" },
+      { key: "whatsapp", label: "WhatsApp No.",  type: "text", placeholder: "+12345678900" },
     ],
   },
   {
@@ -132,7 +132,7 @@ export const SECTION_TYPES: SectionType[] = [
         key: "plans", label: "Plans", type: "repeater",
         itemFields: [
           { key: "name",     label: "Plan Name", type: "text", placeholder: "Basic" },
-          { key: "price",    label: "Price",     type: "text", placeholder: "499 ETB" },
+          { key: "price",    label: "Price",     type: "text", placeholder: "49.99" },
           { key: "period",   label: "Period",    type: "text", placeholder: "/mo" },
           { key: "features", label: "Features (comma separated)", type: "text", placeholder: "Feature 1, Feature 2" },
         ],
@@ -231,7 +231,7 @@ export const SECTION_TYPES: SectionType[] = [
     fields: [
       { key: "mapTitle", label: "Section Title",     type: "text", placeholder: "Find Us" },
       { key: "mapUrl",   label: "Google Maps Embed", type: "text", placeholder: "https://maps.google.com/embed?..." },
-      { key: "address",  label: "Address Text",      type: "text", placeholder: "Bole Road, Addis Ababa" },
+      { key: "address",  label: "Address Text",      type: "text", placeholder: "Your street address" },
     ],
   },
   {
@@ -314,7 +314,7 @@ export const SECTION_TYPES: SectionType[] = [
         key: "careers", label: "Open Positions", type: "repeater",
         itemFields: [
           { key: "title",    label: "Job Title",  type: "text", placeholder: "Senior Designer" },
-          { key: "location", label: "Location",   type: "text", placeholder: "Addis Ababa" },
+          { key: "location", label: "Location",   type: "text", placeholder: "Your city" },
           { key: "type",     label: "Type",       type: "text", placeholder: "Full-time" },
         ],
       },

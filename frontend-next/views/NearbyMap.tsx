@@ -240,7 +240,7 @@ function NearbyMap() {
         const coords = { lat: DEFAULT_CENTER[0], lon: DEFAULT_CENTER[1] };
         setLocation(coords);
         fetchNearby(coords);
-        toast.info("Using Addis Ababa as default location");
+        toast.info("Unable to detect location. Please enable location access.");
       },
       { timeout: 8000 }
     );

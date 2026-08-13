@@ -97,7 +97,7 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, onClos
             </div>
             <div>
               <Label className="text-xs">Phone *</Label>
-              <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+251..." className="mt-1 h-10" />
+              <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 234 567 8900..." className="mt-1 h-10" />
             </div>
           </div>
           <div>

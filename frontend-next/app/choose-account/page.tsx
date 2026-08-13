@@ -16,7 +16,7 @@ export default function ChooseAccountPage() {
         {/* Logo + heading */}
         <div className="flex flex-col items-center text-center mb-8">
           <Image
-            src="/brand/empire-x-logo.png"
+            src="/brand/halehame-logo.png"
             alt="Halehame"
             width={64}
             height={64}

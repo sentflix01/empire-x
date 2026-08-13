@@ -18,7 +18,7 @@ function initSentry(app) {
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
       environment: process.env.NODE_ENV || 'development',
-      release: `empire-x-backend@${require('../package.json').version}`,
+      release: `halehame-backend@${require('../package.json').version}`,
       tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
       // Don't send events for known non-critical errors
       ignoreErrors: [

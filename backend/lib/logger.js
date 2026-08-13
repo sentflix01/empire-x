@@ -30,7 +30,7 @@ const logger = pino({
     paths: ['req.headers.authorization', 'body.password', 'body.password_hash', 'body.card_number'],
     censor: '[REDACTED]',
   },
-  base: { service: 'empire-x-backend', env: process.env.NODE_ENV },
+  base: { service: 'halehame-backend', env: process.env.NODE_ENV },
 });
 
 module.exports = logger;

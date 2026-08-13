@@ -139,7 +139,7 @@ function ProductCreate() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Price (ETB)</Label>
+              <Label>Price</Label>
               <Input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="mt-1" />
             </div>
             <div>

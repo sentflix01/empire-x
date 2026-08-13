@@ -1,17 +1,17 @@
-# Empire X — Accessibility Standards
+# Halehame — Accessibility Standards
 
-> Making Empire X usable by everyone, including users with disabilities and users on low-end devices.
+> Making Halehame usable by everyone, including users with disabilities and users on low-end devices.
 > **Standard:** WCAG 2.1 Level AA
 > **Last updated:** August 2026
 
 ---
 
-## Why Accessibility Matters for Empire X
+## Why Accessibility Matters for Halehame
 
 1. **Legal obligation:** ADA (US users), WCAG (international best practice), Ethiopian disability rights
 2. **Larger market:** ~15% of the world's population has some form of disability
-3. **Low-end devices:** Many Ethiopian users have older phones with smaller screens and slower CPUs
-4. **Assistive technology:** Screen readers are used in Ethiopia (NVDA, TalkBack)
+3. **Low-end devices:** Many users in emerging markets have older phones with smaller screens and slower CPUs
+4. **Assistive technology:** Screen readers are widely used globally (NVDA, VoiceOver, TalkBack)
 5. **Good UX:** Accessible apps are better apps for everyone
 
 ---
@@ -189,7 +189,7 @@ Key patterns:
 
 ## Low-Data / Low-End Device Support
 
-Important for Ethiopian users outside major cities:
+Important for users on slower connections:
 
 ### Image Optimisation
 ```tsx

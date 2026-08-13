@@ -112,7 +112,7 @@ const RULES: Rule[] = [
   // ── Points ─────────────────────────────────────────────────────────────────
   {
     patterns: [/points|earn.*points|what.*points|rewards/i],
-    answer: "⭐ Empire X Points:\n• Earn **50 points** when someone uses your referral code\n• Earn **20 points** when you sign up with a referral code\n• More ways to earn points are coming soon!\n\nCheck your points balance on your **Profile** or the **Referral** page.",
+    answer: "⭐ Halehame Points:\n• Earn **50 points** when someone uses your referral code\n• Earn **20 points** when you sign up with a referral code\n• More ways to earn points are coming soon!\n\nCheck your points balance on your **Profile** or the **Referral** page.",
   },
 
   // ── Events / Jobs / Courses ────────────────────────────────────────────────
@@ -140,17 +140,17 @@ const RULES: Rule[] = [
   // ── Offline / connectivity ─────────────────────────────────────────────────
   {
     patterns: [/offline|no internet|no connection|works offline/i],
-    answer: "📶 Empire X works in limited offline mode:\n• Previously loaded pages and content are cached\n• You can read your feed, messages, and notifications\n• Actions that require internet (posting, buying) will resume when you reconnect\n\nFor the best experience, stay connected to WiFi or mobile data.",
+    answer: "📶 Halehame works in limited offline mode:\n• Previously loaded pages and content are cached\n• You can read your feed, messages, and notifications\n• Actions that require internet (posting, buying) will resume when you reconnect\n\nFor the best experience, stay connected to WiFi or mobile data.",
   },
 
   // ── Help / general ─────────────────────────────────────────────────────────
   {
     patterns: [/help|support|contact.*support|problem|issue|bug/i],
-    answer: "🆘 Need help? Here's what you can do:\n• Use this AI assistant for instant answers\n• Check the **Settings** in your profile for account options\n• For serious issues, contact us at **support@empirex.app**\n\nWhat specific problem are you having? I'll do my best to help!",
+    answer: "🆘 Need help? Here's what you can do:\n• Use this AI assistant for instant answers\n• Check the **Settings** in your profile for account options\n• For serious issues, contact us at **support@halehame.app**\n\nWhat specific problem are you having? I'll do my best to help!",
   },
   {
     patterns: [/thank|thanks|thank you|appreciate/i],
-    answer: "You're welcome! 😊 Happy to help. Is there anything else you'd like to know about Empire X?",
+    answer: "You're welcome! 😊 Happy to help. Is there anything else you'd like to know about Halehame?",
   },
 ];
 

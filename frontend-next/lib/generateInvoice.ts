@@ -45,7 +45,7 @@ export function generateInvoice(order: Order): void {
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text("African Superapp — Social · Commerce · Services", margin, 24);
+  doc.text("Global Superapp — Social · Commerce · Services", margin, 24);
   doc.text("www.halehame.app  |  support@halehame.app", margin, 30);
 
   // Invoice label (right side of header)
@@ -191,7 +191,7 @@ export function generateInvoice(order: Order): void {
   doc.setTextColor(...gray);
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
-  doc.text("Thank you for using Halehame 👑 — Africa's Superapp for Social, Commerce & Services.", margin, y);
+  doc.text("Thank you for using Halehame 👑 — The Global Superapp for Social, Commerce & Services.", margin, y);
   doc.text("For support: support@halehame.app", margin, y + 5);
   doc.text(`Invoice generated: ${new Date().toLocaleString("en-GB")}`, W - margin, y, { align: "right" });
 

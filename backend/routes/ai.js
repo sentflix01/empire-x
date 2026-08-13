@@ -3,8 +3,8 @@ const { requireAuth } = require('../middleware/auth');
 const ai = require('../lib/ai');
 const logger = require('../lib/logger');
 
-const EMPIRE_X_SYSTEM_PROMPT = `You are Empire X AI — a smart, friendly assistant built into the Empire X super-app for Ethiopia and Africa.
-Empire X features: social feed, marketplace, tasks/errands, showrooms (business mini-sites), jobs, events, courses, wallet, referrals, nearby map, and real-time chat.
+const HALEHAME_SYSTEM_PROMPT = `You are Halehame AI — a smart, friendly assistant built into the Halehame superapp, available globally.
+Halehame features: social feed, marketplace, tasks/errands, showrooms (business mini-sites), jobs, events, courses, wallet, referrals, nearby map, and real-time chat.
 Help users with: finding products, posting tasks, creating showrooms, growing their business, writing descriptions, and navigating the app.
 Keep replies concise (2-4 sentences max). Use emojis occasionally. Respond in the same language the user writes in.`;
 
@@ -38,7 +38,7 @@ router.post('/chat', requireAuth, async (req, res) => {
 
   if (!ai.isConfigured()) {
     return res.json({
-      reply: "I'm the Empire X AI assistant, but the AI service isn't configured yet. Ask your admin to add OPENAI_API_KEY (or GEMINI_API_KEY / ANTHROPIC_API_KEY) to the backend .env file. In the meantime, I can help you navigate the app — try the Marketplace, Tasks, or Showrooms!",
+      reply: "I'm the Halehame AI assistant, but the AI service isn't configured yet. Ask your admin to add OPENAI_API_KEY (or GEMINI_API_KEY / ANTHROPIC_API_KEY) to the backend .env file. In the meantime, I can help you navigate the app — try the Marketplace, Tasks, or Showrooms!",
     });
   }
 
@@ -46,7 +46,7 @@ router.post('/chat', requireAuth, async (req, res) => {
     const reply = await ai.chat(messages, {
       maxTokens: 300,
       temperature: 0.7,
-      systemPrompt: EMPIRE_X_SYSTEM_PROMPT,
+      systemPrompt: HALEHAME_SYSTEM_PROMPT,
     });
     res.json({ reply });
   } catch (err) {
@@ -66,9 +66,9 @@ router.get('/status', requireAuth, async (req, res) => {
 
 function buildPrompt(title, category, type) {
   const map = {
-    product:  `Write a short product description for "${title}"${category ? ` in the ${category} category` : ''}. Focus on benefits and appeal to Ethiopian buyers. Max 80 words.`,
+    product:  `Write a short product description for "${title}"${category ? ` in the ${category} category` : ''}. Focus on benefits and universal appeal. Max 80 words.`,
     business: `Write a short business description for "${title}"${category ? ` (${category})` : ''}. Professional, welcoming, max 80 words.`,
-    job:      `Write a short job description intro for the position "${title}"${category ? ` in ${category}` : ''}. Professional, appealing to Ethiopian job seekers. Max 80 words.`,
+    job:      `Write a short job description intro for the position "${title}"${category ? ` in ${category}` : ''}. Professional, appealing to global job seekers. Max 80 words.`,
     showroom: `Write a tagline/description for a showroom called "${title}"${category ? ` (${category})` : ''}. Inviting and memorable. Max 60 words.`,
   };
   return map[type] || map.product;

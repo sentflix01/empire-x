@@ -1,11 +1,11 @@
-# Empire X — User Research & Personas
+# Halehame — User Research & Personas
 
-> Understanding who we're building for — their goals, frustrations, and how Empire X solves their problems.
+> Understanding who we're building for — their goals, frustrations, and how Halehame solves their problems.
 > **Last updated:** August 2026
 
 ---
 
-## Ethiopian Internet Context
+## Global User Context
 
 Before personas, understand the environment:
 
@@ -48,9 +48,9 @@ Before personas, understand the environment:
 - Banks are far away; getting paid is hard
 - Has no formal business registration
 
-**How Empire X helps:**
+**How Halehame helps:**
 - Showroom Studio → professional online store in 30 minutes
-- Marketplace listing → reach customers across Addis
+- Marketplace listing → reach local and global customers
 - Chapa checkout → accept Telebirr from customers
 - Orders page → track every sale in one place
 - No registration required to start selling
@@ -79,10 +79,10 @@ Before personas, understand the environment:
 - LinkedIn is too corporate and not Ethiopia-focused
 - TikTok/Instagram don't have commerce
 - Hard to find legitimate freelance work locally
-- No professional Ethiopian social network
+- No professional global social network
 
-**How Empire X helps:**
-- Social feed → connect with Ethiopian professionals
+**How Halehame helps:**
+- Social feed → connect with professionals
 - Task marketplace → find + post freelance work
 - Marketplace → buy/sell devices and electronics
 - Verified badge → build professional credibility
@@ -115,11 +115,11 @@ Before personas, understand the environment:
 - Hard to discover Ethiopian creators and businesses
 - Language barrier (prefers English interface)
 
-**How Empire X helps:**
+**How Halehame helps:**
 - English interface → comfortable for diaspora
 - USD/ETB pricing → see prices in both
-- Marketplace → buy direct from Ethiopian sellers
-- Social feed → stay connected to Ethiopian life
+- Marketplace → buy from sellers worldwide
+- Social feed → stay connected to community and culture
 - Wallet → send ETB to family members
 - Push notifications → stay updated on followed sellers
 
@@ -149,7 +149,7 @@ Before personas, understand the environment:
 - Distrustful of unfamiliar technology
 - Low digital literacy
 
-**How Empire X helps:**
+**How Halehame helps:**
 - Simple onboarding wizard → minimal reading required
 - Showroom → display fabric catalog with photos
 - Chapa → accept digital payment without a bank account
@@ -181,7 +181,7 @@ Before personas, understand the environment:
 - Brand deals are unpredictable income
 - Can't build a portfolio/professional presence
 
-**How Empire X helps:**
+**How Halehame helps:**
 - Business profile + Showroom → sell merch directly
 - Social feed → post content and grow following
 - Marketplace → list food products (recipes, spice mixes)
@@ -197,7 +197,7 @@ Before personas, understand the environment:
 ### Seller Journey: Tigist's First Sale
 
 ```
-Week 1: Discovers Empire X via WhatsApp group share
+Week 1: Discovers Halehame via WhatsApp group share
         ↓
 Day 1:  Registers with phone number
         ↓
@@ -219,13 +219,13 @@ Day 6:  Tigist marks order as "Processing" in Orders page
         ↓
 Day 7:  Delivery arranged → marks "Completed" → commission deducted
         ↓
-Day 7:  Reviews Empire X to friends: "It's like having a shop online"
+Day 7:  Reviews Halehame to friends: "It's like having a shop online"
 ```
 
 ### Buyer Journey: Yonas buying a second-hand phone
 
 ```
-Opens Empire X → goes to Marketplace
+Opens Halehame → goes to Marketplace
         ↓
 Searches "iPhone 12" → filters by distance (< 10km)
         ↓

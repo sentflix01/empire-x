@@ -1,4 +1,4 @@
-# Empire X — Entity Relationship Diagram (ERD)
+# Halehame — Entity Relationship Diagram (ERD)
 
 > Database conventions and useful queries live in `docs/backend/DATABASE.md`.
 > This file focuses on the relationships between major entities.

@@ -8,7 +8,7 @@ async function createAdmin() {
   // Create simple admin account
   await pool.query(`
     INSERT INTO users (email, password_hash, full_name, role, is_verified, provider)
-    VALUES ('admin@empirex.app', $1, 'Admin User', 'admin', TRUE, 'local')
+    VALUES ('admin@halehame.app', $1, 'Admin User', 'admin', TRUE, 'local')
     ON CONFLICT (email) DO UPDATE
       SET password_hash = $1, role = 'admin', is_verified = TRUE
   `, [hash]);
@@ -17,13 +17,13 @@ async function createAdmin() {
   const hash2 = await bcrypt.hash('Test1234!', 10);
   await pool.query(`
     INSERT INTO users (email, password_hash, full_name, role, is_verified, provider)
-    VALUES ('test@empirex.app', $1, 'Test User', 'user', TRUE, 'local')
+    VALUES ('test@halehame.app', $1, 'Test User', 'user', TRUE, 'local')
     ON CONFLICT (email) DO UPDATE
       SET password_hash = $1, is_verified = TRUE
   `, [hash2]);
 
   // Create profile for admin
-  const adminUser = await pool.query(`SELECT id FROM users WHERE email = 'admin@empirex.app'`);
+  const adminUser = await pool.query(`SELECT id FROM users WHERE email = 'admin@halehame.app'`);
   if (adminUser.rows.length) {
     const adminId = adminUser.rows[0].id;
     const existing = await pool.query('SELECT id FROM user_profiles WHERE user_id = $1', [adminId]);
@@ -37,7 +37,7 @@ async function createAdmin() {
   }
 
   // Create profile for test user
-  const testUser = await pool.query(`SELECT id FROM users WHERE email = 'test@empirex.app'`);
+  const testUser = await pool.query(`SELECT id FROM users WHERE email = 'test@halehame.app'`);
   if (testUser.rows.length) {
     const testId = testUser.rows[0].id;
     const existing = await pool.query('SELECT id FROM user_profiles WHERE user_id = $1', [testId]);
@@ -50,8 +50,8 @@ async function createAdmin() {
   }
 
   console.log('\n✅ Accounts ready:');
-  console.log('   Admin:  admin@empirex.app  /  Admin1234!');
-  console.log('   Test:   test@empirex.app   /  Test1234!\n');
+  console.log('   Admin:  admin@halehame.app  /  Admin1234!');
+  console.log('   Test:   test@halehame.app   /  Test1234!\n');
   await pool.end();
 }
 

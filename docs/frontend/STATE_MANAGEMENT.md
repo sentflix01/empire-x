@@ -1,4 +1,4 @@
-# Empire X — Frontend State Management
+# Halehame — Frontend State Management
 
 > How state is managed in `frontend-next/`. Read this before adding new state.
 

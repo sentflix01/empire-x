@@ -1,13 +1,13 @@
-# Empire X — Monetization Strategy
+# Halehame — Monetization Strategy
 
-> How Empire X makes money — today, next year, and at scale.
+> How Halehame makes money — today, next year, and at scale.
 > **Last updated:** August 2026
 
 ---
 
 ## Revenue Model Overview
 
-Empire X uses a **multi-stream revenue model** — no single dependency.
+Halehame uses a **multi-stream revenue model** — no single dependency.
 
 ```
 Revenue Streams:
@@ -38,7 +38,7 @@ Revenue Streams:
 | Etsy | 6.5% |
 | Jumia | 5–15% |
 | Fiverr | 20% |
-| Empire X (recommended) | 5–8% (start low to acquire sellers) |
+| Halehame (recommended) | 5–8% (start low to acquire sellers) |
 
 **Projection:**
 - 1,000 orders/month × ETB 500 avg order × 6% = **ETB 30,000/month**
@@ -137,12 +137,12 @@ Revenue Streams:
 
 ## Stream 7: API & White-label (FUTURE)
 
-**What:** Charge companies for API access to the Empire X marketplace, payments, or social graph.
+**What:** Charge companies for API access to the Halehame marketplace, payments, or social graph.
 
 **Use cases:**
-- Banks offering SMB storefronts powered by Empire X
-- Telecom bundles (Ethio Telecom offers Empire X Pro to subscribers)
-- Government e-procurement portals built on Empire X infrastructure
+- Banks offering SMB storefronts powered by Halehame
+- Telecom bundles (Ethio Telecom offers Halehame Pro to subscribers)
+- Government e-procurement portals built on Halehame infrastructure
 
 **Pricing:** ETB 5,000–50,000/month API access fee depending on usage tier.
 
