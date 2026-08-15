@@ -14,6 +14,18 @@ Global standard means every user interaction feels intentional — fast, clear, 
 
 ---
 
+## Go-To-Market Strategy
+
+See **[GO_TO_MARKET.md](./GO_TO_MARKET.md)** for the full 3-phase business strategy:
+
+| Phase | Theme | Trigger |
+|-------|-------|---------|
+| **Phase 1** | Community & Beta — free, invite-only showrooms | Launch → 10K users + 500 showrooms |
+| **Phase 2** | Developer Marketplace & Paid Plans — AI-priced templates | MRR > $10K + 50 developer templates |
+| **Phase 3** | Universal Builder — anyone builds anything | 500 paying businesses + stable platform |
+
+---
+
 ## Version Roadmap
 
 | Version | Theme | Focus | Status |
