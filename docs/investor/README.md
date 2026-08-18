@@ -7,6 +7,23 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| MAU | Monthly Active Users — unique users active at least once per month |
+| MRR | Monthly Recurring Revenue — total subscription revenue in one month |
+| ARR | Annual Recurring Revenue — total subscription revenue over 12 months |
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument |
+| VC | Venture Capital — professional investment firm funding high-growth startups |
+| CAC | Customer Acquisition Cost — total cost to acquire one paying customer |
+| LTV | Lifetime Value — total revenue from one customer over their lifetime |
+| TAM | Total Addressable Market — entire global market for the product |
+| SAM | Serviceable Addressable Market — portion of TAM you can realistically reach |
+| SOM | Serviceable Obtainable Market — realistic market share you can capture |
+
+---
+
 ## Folder Structure
 
 ```

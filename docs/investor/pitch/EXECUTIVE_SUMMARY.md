@@ -6,6 +6,25 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| MAU | Monthly Active Users — unique users active at least once per month |
+| MRR | Monthly Recurring Revenue — total subscription revenue in one month |
+| ARR | Annual Recurring Revenue — total subscription revenue over 12 months |
+| TAM | Total Addressable Market — entire global market for the product |
+| SAM | Serviceable Addressable Market — portion of TAM you can realistically reach |
+| SOM | Serviceable Obtainable Market — realistic market share you can capture |
+| CAC | Customer Acquisition Cost — total cost to acquire one paying customer |
+| LTV | Lifetime Value — total revenue from one customer over their lifetime |
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument |
+| CAGR | Compound Annual Growth Rate |
+| AI | Artificial Intelligence |
+| SMB | Small and Medium-sized Business |
+
+---
+
 ## HALEHAME — THE GLOBAL SUPERAPP FOR BUSINESS
 
 **One line:** Halehame lets any business in the world build a professional

@@ -5,6 +5,28 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| ARR | Annual Recurring Revenue — total subscription revenue over 12 months |
+| MRR | Monthly Recurring Revenue — total subscription revenue in one month |
+| MAU | Monthly Active Users — unique users active at least once per month |
+| TAM | Total Addressable Market — entire global market for a product |
+| SAM | Serviceable Addressable Market — portion of TAM you can realistically reach |
+| SOM | Serviceable Obtainable Market — realistic market share you can capture |
+| CAC | Customer Acquisition Cost — total cost to acquire one paying customer |
+| LTV | Lifetime Value — total revenue from one customer over their lifetime |
+| SaaS | Software as a Service — subscription software delivered over the internet |
+| CAGR | Compound Annual Growth Rate — year-over-year growth rate |
+| DCF | Discounted Cash Flow — valuation method using projected future cash |
+| ARPU | Average Revenue Per User — revenue divided by number of paying users |
+| MoM | Month over Month — comparing a metric to the previous month |
+| VC | Venture Capital — professional investment firm funding high-growth startups |
+| SMB | Small and Medium-sized Business |
+
+---
+
 ## 1. What Is Valuation?
 
 A company's valuation is the agreed-upon price of the entire company at a specific moment.

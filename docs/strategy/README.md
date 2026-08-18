@@ -6,6 +6,27 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| UX | User Experience — the overall experience of using the product |
+| UI | User Interface — visual elements users interact with |
+| API | Application Programming Interface — how software systems communicate |
+| SEO | Search Engine Optimization — improving visibility in search engine results |
+| PWA | Progressive Web App — web app installable on a device like a native app |
+| LCP | Largest Contentful Paint — Core Web Vital measuring page load speed |
+| INP | Interaction to Next Paint — Core Web Vital measuring responsiveness |
+| CLS | Cumulative Layout Shift — Core Web Vital measuring visual stability |
+| WCAG | Web Content Accessibility Guidelines — international web accessibility standard |
+| i18n | Internationalization — designing software to support multiple languages |
+| AI | Artificial Intelligence |
+| SaaS | Software as a Service |
+| OAuth | Open Authorization — open standard for secure API authentication |
+| GTM | Go-To-Market — strategy for bringing a product to market |
+
+---
+
 ## Philosophy
 
 > **"Don't build features. Build experiences."**

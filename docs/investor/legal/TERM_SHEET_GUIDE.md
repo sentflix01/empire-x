@@ -7,6 +7,25 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument |
+| VC | Venture Capital — professional investment firm funding high-growth startups |
+| ROFR | Right of First Refusal — right to buy shares before they are offered to others |
+| SHA | Shareholders Agreement — legal contract governing shareholder rights |
+| SPA | Share Purchase Agreement — legal document for a direct equity investment |
+| ESOP | Employee Stock Ownership Plan — reserved share pool for employee equity |
+| CEO | Chief Executive Officer — company head and decision maker |
+| CTO | Chief Technology Officer — technology leader |
+| IPO | Initial Public Offering — when a company first lists on a stock exchange |
+| MFN | Most Favored Nation — clause giving same terms as any future better deal |
+| NDA | Non-Disclosure Agreement — confidentiality contract |
+| FMV | Fair Market Value — price a willing buyer and seller would agree on |
+
+---
+
 ## What Is a Term Sheet?
 
 When a VC or angel agrees to invest, they send you a term sheet.

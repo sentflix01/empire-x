@@ -5,6 +5,31 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| VC | Venture Capital — professional investment firm funding high-growth startups |
+| YC | Y Combinator — world's most prestigious startup accelerator (funded Airbnb, Stripe, Dropbox) |
+| HNWI | High Net Worth Individual — person with $1M+ in investable assets |
+| MRR | Monthly Recurring Revenue — total subscription revenue in one month |
+| ARR | Annual Recurring Revenue — total subscription revenue over 12 months |
+| MAU | Monthly Active Users — unique users active at least once per month |
+| SDG | Sustainable Development Goals — UN's 17 global goals for sustainable development |
+| IFC | International Finance Corporation — World Bank Group's private sector investment arm |
+| USAID | United States Agency for International Development |
+| DIV | Development Innovation Ventures — USAID's grants program for impact innovations |
+| ASO | App Store Optimization — improving app visibility in App Store and Play Store |
+| ABAN | African Business Angel Network |
+| CAGR | Compound Annual Growth Rate — year-over-year growth rate |
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument |
+| NDA | Non-Disclosure Agreement — confidentiality contract |
+| LOI | Letter of Intent — non-binding expression of interest |
+| SMB | Small and Medium-sized Business |
+| B2B | Business to Business — selling to other businesses |
+
+---
+
 ## The Investment Ecosystem Map
 
 ```

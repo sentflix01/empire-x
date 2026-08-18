@@ -8,6 +8,28 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| IP | Intellectual Property — patents, trademarks, copyrights, trade secrets |
+| USPTO | United States Patent and Trademark Office — US government patent and trademark body |
+| EIPA | Ethiopian Intellectual Property Authority — Ethiopian trademark and patent office |
+| EUIPO | European Union Intellectual Property Office — EU trademark filing body |
+| WIPO | World Intellectual Property Organization — UN agency for international IP |
+| ARIPO | African Regional Intellectual Property Organization — covers 22 African countries |
+| PCT | Patent Cooperation Treaty — international patent filing system (157 countries) |
+| TM | Trademark — registered brand identifier |
+| NDA | Non-Disclosure Agreement — confidentiality contract |
+| PLC | Private Limited Company — standard Ethiopian business structure |
+| TIN | Tax Identification Number — government-issued business tax ID |
+| CEO | Chief Executive Officer |
+| ROFR | Right of First Refusal — right to purchase shares before they are offered to others |
+| KIPI | Kenya Industrial Property Institute — Kenyan trademark and patent office |
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument |
+
+---
+
 ## Critical Deadlines Calendar
 
 > ⚠️ MISSING ANY OF THESE DEADLINES IS IRREVERSIBLE DAMAGE TO YOUR IP RIGHTS

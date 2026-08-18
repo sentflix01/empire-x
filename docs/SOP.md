@@ -11,6 +11,42 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| SOP | Standard Operating Procedure — step-by-step instructions for recurring tasks |
+| API | Application Programming Interface — how software systems communicate |
+| UI | User Interface — visual elements users interact with |
+| UX | User Experience — the overall experience of using the product |
+| JWT | JSON Web Token — compact signed token for user authentication |
+| CI/CD | Continuous Integration / Continuous Delivery — automated test and deploy pipeline |
+| SQL | Structured Query Language — language for database queries |
+| CORS | Cross-Origin Resource Sharing — browser security policy controlling API access |
+| CSP | Content Security Policy — HTTP header preventing cross-site scripting |
+| HTTPS | HyperText Transfer Protocol Secure — encrypted web communication |
+| HTTP | HyperText Transfer Protocol — standard for web communication |
+| REST | Representational State Transfer — standard architecture for web APIs |
+| DRY | Don't Repeat Yourself — code quality principle avoiding duplication |
+| PR | Pull Request — code change submitted for review before merging |
+| LCP | Largest Contentful Paint — Core Web Vital measuring page load speed |
+| INP | Interaction to Next Paint — Core Web Vital measuring responsiveness |
+| CLS | Cumulative Layout Shift — Core Web Vital measuring visual stability |
+| TTFB | Time to First Byte — time from request to first byte of response |
+| WCAG | Web Content Accessibility Guidelines — international web accessibility standard |
+| GDPR | General Data Protection Regulation — EU data privacy law |
+| CCPA | California Consumer Privacy Act — California data privacy law |
+| PWA | Progressive Web App — web app installable on a device like a native app |
+| SEO | Search Engine Optimization — improving website visibility in search results |
+| OTP | One-Time Password — single-use code for authentication |
+| CDN | Content Delivery Network — distributed servers that deliver content faster |
+| TTL | Time to Live — duration a cache entry remains valid |
+| UUID | Universally Unique Identifier — unique ID for database records |
+| HMAC | Hash-based Message Authentication Code — cryptographic signature for webhooks |
+| MIME | Multipurpose Internet Mail Extensions — file type specification |
+
+---
+
 ## Table of Contents
 
 1. [The Golden Rules](#1-the-golden-rules)

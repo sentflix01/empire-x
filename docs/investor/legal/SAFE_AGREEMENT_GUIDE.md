@@ -6,6 +6,19 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument that converts to equity at a future priced round |
+| MFN | Most Favored Nation — clause giving a SAFE investor the same terms as any future better deal |
+| YC | Y Combinator — world's most prestigious startup accelerator, creators of the SAFE instrument |
+| VC | Venture Capital — professional investment firm funding high-growth startups |
+| NDA | Non-Disclosure Agreement — confidentiality contract |
+| ROFR | Right of First Refusal — right to purchase shares before they are offered to others |
+
+---
+
 ## What Is a SAFE?
 
 A SAFE is an agreement where an investor gives you money TODAY in exchange

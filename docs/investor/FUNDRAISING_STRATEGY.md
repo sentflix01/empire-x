@@ -5,6 +5,26 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument (converts to equity later) |
+| VC | Venture Capital — professional investment firm funding high-growth startups |
+| MRR | Monthly Recurring Revenue — total subscription revenue in one month |
+| ARR | Annual Recurring Revenue — total subscription revenue over 12 months |
+| MAU | Monthly Active Users — unique users active at least once per month |
+| NDA | Non-Disclosure Agreement — contract requiring confidentiality |
+| LOI | Letter of Intent — non-binding expression of interest to invest |
+| YC | Y Combinator — world's most prestigious startup accelerator |
+| CAC | Customer Acquisition Cost — total cost to acquire one paying customer |
+| LTV | Lifetime Value — total revenue from one customer over their lifetime |
+| MoM | Month over Month — comparing a metric to the previous month |
+| SMB | Small and Medium-sized Business |
+| TAM | Total Addressable Market — entire global market for a product |
+
+---
+
 ## 1. The Principle: Raise When You Have Leverage
 
 The single biggest mistake founders make is raising money when they are desperate.

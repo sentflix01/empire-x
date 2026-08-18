@@ -7,6 +7,26 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument that converts to equity later |
+| ESOP | Employee Stock Ownership Plan — reserved share pool for employee equity grants |
+| MFN | Most Favored Nation — SAFE clause giving investor the same terms as any future better deal |
+| ROFR | Right of First Refusal — right to buy shares before they are offered to anyone else |
+| SHA | Shareholders Agreement — legal contract governing all shareholder rights and obligations |
+| SPA | Share Purchase Agreement — legal document for a direct equity investment transaction |
+| FMV | Fair Market Value — price a willing buyer and seller would agree on in a free market |
+| VC | Venture Capital — professional investment firm funding high-growth startups |
+| LP | Limited Partner — investor in a VC fund who is not actively involved in operations |
+| IPO | Initial Public Offering — when a private company first lists shares on a stock exchange |
+| PLC | Private Limited Company — standard Ethiopian/UK business structure with limited liability |
+| HNW | High Net Worth — individual or entity with significant investable assets |
+| MoM | Month over Month — comparing a metric to the previous month |
+
+---
+
 ## 1. What Is a Cap Table?
 
 A capitalization table (cap table) is a spreadsheet showing exactly who owns

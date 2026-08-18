@@ -7,6 +7,29 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| MAU | Monthly Active Users — unique users active at least once per month |
+| MRR | Monthly Recurring Revenue — total subscription revenue in one month |
+| ARR | Annual Recurring Revenue — total subscription revenue over 12 months |
+| TAM | Total Addressable Market — entire global market for the product |
+| SAM | Serviceable Addressable Market — portion of TAM you can realistically reach |
+| CAC | Customer Acquisition Cost — total cost to acquire one paying customer |
+| LTV | Lifetime Value — total revenue from one customer over their lifetime |
+| VC | Venture Capital — professional investment firm funding high-growth startups |
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument |
+| SMB | Small and Medium-sized Business |
+| AI | Artificial Intelligence |
+| API | Application Programming Interface — how software systems communicate |
+| IP | Intellectual Property — patents, trademarks, copyrights, trade secrets |
+| CAGR | Compound Annual Growth Rate — year-over-year growth rate |
+| NPS | Net Promoter Score — measure of customer satisfaction and loyalty |
+| IPO | Initial Public Offering — when a company first lists shares on a stock exchange |
+
+---
+
 ## Category 1 — The Market
 
 **Q: How big is the market?**

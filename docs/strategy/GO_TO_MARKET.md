@@ -8,6 +8,29 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| GTM | Go-To-Market — strategy for bringing a product to market |
+| MAU | Monthly Active Users — unique users active at least once per month |
+| MRR | Monthly Recurring Revenue — total subscription revenue in one month |
+| ARR | Annual Recurring Revenue — total subscription revenue over 12 months |
+| GMV | Gross Merchandise Value — total value of goods sold through the platform |
+| TAM | Total Addressable Market — entire global market for the product |
+| SAM | Serviceable Addressable Market — portion of TAM you can realistically reach |
+| CAGR | Compound Annual Growth Rate — year-over-year growth rate |
+| SMB | Small and Medium-sized Business |
+| AI | Artificial Intelligence |
+| API | Application Programming Interface |
+| B2B | Business to Business — selling to other businesses |
+| SLA | Service Level Agreement — contract specifying uptime and performance guarantees |
+| NDA | Non-Disclosure Agreement — confidentiality contract |
+| ToS | Terms of Service — legal agreement between platform and users |
+| SDG | Sustainable Development Goals — UN's 17 global development goals |
+
+---
+
 ## The Core Insight
 
 | Platform | Phase 1 Focus | Why It Worked |

@@ -6,6 +6,26 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| MRR | Monthly Recurring Revenue — total subscription revenue in one month |
+| ARR | Annual Recurring Revenue — total subscription revenue over 12 months |
+| MAU | Monthly Active Users — unique users active at least once per month |
+| CAC | Customer Acquisition Cost — total cost to acquire one paying customer |
+| LTV | Lifetime Value — total revenue from one customer over their lifetime |
+| COGS | Cost of Goods Sold — direct costs of delivering the service |
+| ARPU | Average Revenue Per User — revenue divided by paying user count |
+| MoM | Month over Month — comparing a metric to the previous month |
+| YoY | Year over Year — comparing a metric to the same period last year |
+| SaaS | Software as a Service — subscription software over the internet |
+| SMB | Small and Medium-sized Business |
+| Q1/Q2/Q3/Q4 | Quarter 1 / Quarter 2 / Quarter 3 / Quarter 4 (3-month periods) |
+| M1–M12 | Month 1 through Month 12 |
+
+---
+
 ## Assumptions
 
 ```

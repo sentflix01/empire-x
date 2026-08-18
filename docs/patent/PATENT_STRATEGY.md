@@ -5,6 +5,25 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| IP | Intellectual Property — patents, trademarks, copyrights, trade secrets |
+| USPTO | United States Patent and Trademark Office — US government patent filing body |
+| PCT | Patent Cooperation Treaty — international patent application covering 157 countries |
+| NDA | Non-Disclosure Agreement — confidentiality contract |
+| EIPA | Ethiopian Intellectual Property Authority — Ethiopian trademark and patent office |
+| EIPO | Ethiopian Intellectual Property Office — alternate name for EIPA |
+| WIPO | World Intellectual Property Organization — UN agency managing international IP treaties |
+| ARIPO | African Regional Intellectual Property Organization — covers 22 African countries |
+| EPO | European Patent Office — EU patent filing body |
+| KIPI | Kenya Industrial Property Institute — Kenyan trademark and patent office |
+| AI | Artificial Intelligence |
+| SaaS | Software as a Service — subscription software delivered over the internet |
+
+---
+
 ## 1. Why File Patents
 
 Patent protection for Halehame serves three purposes:

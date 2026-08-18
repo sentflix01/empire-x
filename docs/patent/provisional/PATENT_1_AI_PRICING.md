@@ -10,6 +10,22 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| AI | Artificial Intelligence |
+| API | Application Programming Interface |
+| USPTO | United States Patent and Trademark Office — US government patent filing body |
+| PCT | Patent Cooperation Treaty — international patent application system |
+| SaaS | Software as a Service — subscription software over the internet |
+| SMB | Small and Medium-sized Business |
+| WCAG | Web Content Accessibility Guidelines — web accessibility standard |
+| UI | User Interface |
+| UX | User Experience |
+
+---
+
 ## TITLE OF INVENTION
 
 **Method and System for Dynamically Pricing Digital Business Templates

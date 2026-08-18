@@ -10,6 +10,20 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| IP | Intellectual Property — patents, trademarks, copyrights, and trade secrets |
+| USPTO | United States Patent and Trademark Office — US government body for patent and trademark filing |
+| PCT | Patent Cooperation Treaty — international patent filing system covering 157 countries |
+| NDA | Non-Disclosure Agreement — confidentiality contract |
+| EIPA | Ethiopian Intellectual Property Authority — Ethiopian trademark and patent office |
+| WIPO | World Intellectual Property Organization — UN agency managing international IP treaties |
+| WCAG | Web Content Accessibility Guidelines — international web accessibility standard |
+
+---
+
 ## Folder Structure
 
 ```

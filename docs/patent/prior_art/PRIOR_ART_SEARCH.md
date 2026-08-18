@@ -8,6 +8,26 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| USPTO | United States Patent and Trademark Office |
+| WIPO | World Intellectual Property Organization |
+| EPO | European Patent Office |
+| PCT | Patent Cooperation Treaty — international patent application system |
+| AI | Artificial Intelligence |
+| SGA | Social Graph Affinity — Halehame's discovery signal (Patent 3) |
+| CTMS | Category Taxonomy Match Score — Halehame's discovery signal (Patent 3) |
+| TVS | Trending Velocity Score — Halehame's discovery signal (Patent 3) |
+| GPS | Geographic Positioning System (used as GPS_score in Patent 3 context) |
+| API | Application Programming Interface |
+| UI | User Interface |
+| SaaS | Software as a Service |
+| SMB | Small and Medium-sized Business |
+
+---
+
 ## How to Use This Document
 
 Prior art is any publicly available information that existed before your

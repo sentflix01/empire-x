@@ -6,6 +6,17 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| SAFE | Simple Agreement for Future Equity — equity instrument with no interest or maturity |
+| MFN | Most Favored Nation — clause guaranteeing same terms as future investors |
+| YC | Y Combinator — startup accelerator and creator of the SAFE instrument |
+| E2E | End-to-End — in this context refers to the full investment lifecycle |
+
+---
+
 ## Convertible Note vs. SAFE — Quick Comparison
 
 | Feature | Convertible Note | SAFE |

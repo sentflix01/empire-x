@@ -11,6 +11,21 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| MAU | Monthly Active Users — unique users active at least once per month |
+| MRR | Monthly Recurring Revenue — total subscription revenue in one month |
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument |
+| KPI | Key Performance Indicator — measurable value tracking business goal progress |
+| MoM | Month over Month — comparing a metric to the previous month |
+| D7 | Day 7 Retention — percentage of users still active 7 days after registration |
+| D30 | Day 30 Retention — percentage of users still active 30 days after registration |
+| CAC | Customer Acquisition Cost — total cost to acquire one paying customer |
+
+---
+
 ## Why Monthly Updates Matter
 
 ```

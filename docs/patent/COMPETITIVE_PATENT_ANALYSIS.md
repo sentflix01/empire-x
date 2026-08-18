@@ -13,6 +13,32 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| IP | Intellectual Property — patents, trademarks, copyrights, trade secrets |
+| USPTO | United States Patent and Trademark Office |
+| AI | Artificial Intelligence |
+| API | Application Programming Interface |
+| UI | User Interface |
+| UX | User Experience |
+| SGA | Social Graph Affinity — Halehame's discovery signal (Patent 3) |
+| CTMS | Category Taxonomy Match Score — Halehame's discovery signal (Patent 3) |
+| TVS | Trending Velocity Score — Halehame's discovery signal (Patent 3) |
+| GPS | Geographic Positioning System (used as GPS_score in Patent 3 context) |
+| ROFR | Right of First Refusal |
+| E2E | End-to-End — in this context, end-to-end encryption in messaging |
+| WYSIWYG | What You See Is What You Get — editor where output matches the screen display |
+| CSS | Cascading Style Sheets — web styling language |
+| SMB | Small and Medium-sized Business |
+| SaaS | Software as a Service |
+| ETB | Ethiopian Birr — official currency of Ethiopia |
+| P2P | Peer to Peer — direct transactions between two users |
+| QR | Quick Response — matrix barcode used for payments and data encoding |
+
+---
+
 ## How to Read This Document
 
 Each feature of Halehame is analyzed across 6 direct competitors:

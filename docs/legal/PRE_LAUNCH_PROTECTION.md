@@ -10,6 +10,41 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| IP | Intellectual Property — patents, trademarks, copyrights, trade secrets |
+| TM | Trademark — registered brand identifier (name, logo, slogan) |
+| NDA | Non-Disclosure Agreement — confidentiality contract |
+| USPTO | United States Patent and Trademark Office — US government patent and trademark body |
+| EIPA | Ethiopian Intellectual Property Authority — Ethiopian trademark and patent office |
+| EUIPO | European Union Intellectual Property Office — EU trademark filing body |
+| WIPO | World Intellectual Property Organization — UN agency managing international IP treaties |
+| ARIPO | African Regional Intellectual Property Organization — covers 22 African countries |
+| PCT | Patent Cooperation Treaty — international patent filing system covering 130+ countries |
+| GDPR | General Data Protection Regulation — EU data privacy law |
+| CCPA | California Consumer Privacy Act — US state data privacy regulation |
+| PDPA | Personal Data Protection Act — Ethiopian data privacy legislation |
+| NDPR | Nigeria Data Protection Regulation — Nigerian data privacy law |
+| COPPA | Children's Online Privacy Protection Act — US law protecting children under 13 |
+| PLC | Private Limited Company — standard Ethiopian business structure |
+| TIN | Tax Identification Number — government-issued business tax ID |
+| EIC | Ethiopian Investment Commission — government body for business registration |
+| KIPI | Kenya Industrial Property Institute — Kenyan trademark and patent office |
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument |
+| ROFR | Right of First Refusal — right to purchase shares before offered to others |
+| HMAC | Hash-based Message Authentication Code — cryptographic signature for webhooks |
+| API | Application Programming Interface |
+| SSRF | Server-Side Request Forgery — security attack on server-side requests |
+| CSP | Content Security Policy — HTTP header preventing cross-site scripting |
+| CORS | Cross-Origin Resource Sharing — browser security policy controlling API access |
+| JWT | JSON Web Token — compact signed token for user authentication |
+| HTTPS | HyperText Transfer Protocol Secure — encrypted web communication |
+| DPA | Data Processing Agreement — required by GDPR with vendors processing user data |
+
+---
+
 ## Table of Contents
 
 1. [Why This Matters — The Risk If You Skip It](#1-why-this-matters)

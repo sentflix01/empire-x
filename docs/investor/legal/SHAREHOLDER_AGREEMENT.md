@@ -6,6 +6,25 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| SHA | Shareholders Agreement — legal contract governing shareholder rights and obligations |
+| SPA | Share Purchase Agreement — legal document for the actual equity investment transaction |
+| ROFR | Right of First Refusal — right to purchase shares before they are offered to others |
+| ESOP | Employee Stock Ownership Plan — reserved share pool for employee equity grants |
+| CEO | Chief Executive Officer — company head and primary decision maker |
+| CTO | Chief Technology Officer — technology leader |
+| VC | Venture Capital — professional investment firm |
+| IP | Intellectual Property — patents, trademarks, copyrights, trade secrets |
+| NDA | Non-Disclosure Agreement — confidentiality contract |
+| FMV | Fair Market Value — price a willing buyer and seller would agree on |
+| MFN | Most Favored Nation — clause ensuring same terms as any future better deal |
+| IPO | Initial Public Offering — when a company first lists shares on a stock exchange |
+
+---
+
 ## What Is a Shareholders Agreement?
 
 After a term sheet is agreed, lawyers draft the actual legal documents:

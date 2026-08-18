@@ -10,6 +10,23 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| USPTO | United States Patent and Trademark Office — US government patent filing body |
+| WCAG | Web Content Accessibility Guidelines — international web accessibility standard (e.g., WCAG 2.1 AA) |
+| AI | Artificial Intelligence |
+| API | Application Programming Interface |
+| USS | User Satisfaction Score — quality dimension in the composite quality formula |
+| ACS | Accessibility Compliance Score — quality dimension based on WCAG compliance |
+| PS | Performance Score — quality dimension based on page load speed |
+| RS | Retention Score — quality dimension based on 30-day user retention |
+| SaaS | Software as a Service |
+| UI | User Interface |
+
+---
+
 ## TITLE OF INVENTION
 
 **System and Method for Quality-Adjusted Revenue Distribution in

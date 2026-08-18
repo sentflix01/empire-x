@@ -7,6 +7,33 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| DD | Due Diligence — investor verification of all company information before investing |
+| VC | Venture Capital — professional investment firm |
+| NDA | Non-Disclosure Agreement — confidentiality contract required before sharing sensitive data |
+| IP | Intellectual Property — patents, trademarks, copyrights, trade secrets |
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument |
+| ESOP | Employee Stock Ownership Plan — option pool for employee equity |
+| SHA | Shareholders Agreement — legal contract governing shareholder rights |
+| SPA | Share Purchase Agreement — investment transaction document |
+| TIN | Tax Identification Number — government-issued business tax ID |
+| PLC | Private Limited Company — standard Ethiopian business structure |
+| GDPR | General Data Protection Regulation — European Union data privacy law |
+| WCAG | Web Content Accessibility Guidelines — international web accessibility standard |
+| JWT | JSON Web Token — compact signed token used for user authentication |
+| API | Application Programming Interface — how software systems communicate |
+| TAM | Total Addressable Market — entire global market for the product |
+| SAM | Serviceable Addressable Market — portion of TAM you can realistically reach |
+| CAC | Customer Acquisition Cost — total cost to acquire one paying customer |
+| LTV | Lifetime Value — total revenue from one customer over their lifetime |
+| MAU | Monthly Active Users — unique users active at least once per month |
+| MRR | Monthly Recurring Revenue — total subscription revenue in one month |
+
+---
+
 ## What Is Due Diligence?
 
 After a term sheet is signed, investors verify everything you've told them.

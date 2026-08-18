@@ -8,6 +8,21 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| NDA | Non-Disclosure Agreement — confidentiality contract all team members must sign |
+| IP | Intellectual Property — patents, trademarks, copyrights, trade secrets |
+| AI | Artificial Intelligence |
+| API | Application Programming Interface — how software systems communicate |
+| TRIPS | Agreement on Trade-Related Aspects of Intellectual Property Rights — international IP treaty |
+| GDPR | General Data Protection Regulation — EU data privacy law |
+| CEO | Chief Executive Officer — company head |
+| TS | Trade Secret (used as reference code e.g. TS-1, TS-2) |
+
+---
+
 ## What Is a Trade Secret?
 
 A trade secret is any information that:

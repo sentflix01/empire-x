@@ -13,6 +13,32 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| IP | Intellectual Property — patents, trademarks, copyrights, trade secrets |
+| NDA | Non-Disclosure Agreement — confidentiality contract |
+| TM | Trademark — registered brand identifier (name, logo, slogan) |
+| EIPA | Ethiopian Intellectual Property Authority — Ethiopian trademark and patent office |
+| USPTO | United States Patent and Trademark Office — US government patent and trademark body |
+| EUIPO | European Union Intellectual Property Office — EU trademark filing body |
+| WIPO | World Intellectual Property Organization — UN agency for international IP |
+| PCT | Patent Cooperation Treaty — international patent filing system covering 130+ countries |
+| GDPR | General Data Protection Regulation — EU data privacy law |
+| CCPA | California Consumer Privacy Act — California data privacy law |
+| PLC | Private Limited Company — standard Ethiopian business structure |
+| TIN | Tax Identification Number — government-issued business tax ID |
+| SAFE | Simple Agreement for Future Equity — pre-seed investment instrument |
+| ROFR | Right of First Refusal — right to purchase shares before they are offered to others |
+| SEO | Search Engine Optimization — improving visibility in search engine results |
+| API | Application Programming Interface |
+| PWA | Progressive Web App — web app installable on a device like a native app |
+| CEO | Chief Executive Officer |
+| EIC | Ethiopian Investment Commission — government body for business registration |
+
+---
+
 ## How to Read This Document
 
 Each step has:

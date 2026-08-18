@@ -10,6 +10,22 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| USPTO | United States Patent and Trademark Office — US government patent filing body |
+| AI | Artificial Intelligence |
+| API | Application Programming Interface |
+| SGA | Social Graph Affinity — Halehame's discovery signal measuring network engagement |
+| GPS | Geographic Positioning System — satellite-based location technology (also used as variable name: GPS_score) |
+| CTMS | Category Taxonomy Match Score — discovery signal measuring category interest alignment |
+| TVS | Trending Velocity Score — discovery signal measuring rate-of-change in engagement |
+| UI | User Interface |
+| MAU | Monthly Active Users |
+
+---
+
 ## TITLE OF INVENTION
 
 **Method and System for Unified Business Showroom Discovery Using

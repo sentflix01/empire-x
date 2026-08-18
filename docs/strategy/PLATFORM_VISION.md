@@ -8,6 +8,30 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface — how software systems communicate |
+| SDK | Software Development Kit — libraries and tools for building on a platform |
+| OAuth | Open Authorization — open standard for secure API authentication |
+| HMAC | Hash-based Message Authentication Code — cryptographic webhook signature |
+| MAU | Monthly Active Users — unique users active at least once per month |
+| MRR | Monthly Recurring Revenue — total subscription revenue in one month |
+| ARR | Annual Recurring Revenue — total subscription revenue over 12 months |
+| GMV | Gross Merchandise Value — total value of goods transacted through the platform |
+| SaaS | Software as a Service — subscription software over the internet |
+| AI | Artificial Intelligence |
+| CDN | Content Delivery Network — distributed servers for faster content delivery |
+| VC | Venture Capital — professional investment firm |
+| SMB | Small and Medium-sized Business |
+| B2B | Business to Business — selling products/services to other businesses |
+| NDA | Non-Disclosure Agreement — confidentiality contract |
+| IP | Intellectual Property — patents, trademarks, copyrights, trade secrets |
+| CI/CD | Continuous Integration / Continuous Delivery — automated test and deploy pipeline |
+
+---
+
 ## The Telegram Parallel
 
 Telegram started as a messaging app. It became a $30B platform by making one decision:
