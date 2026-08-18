@@ -318,4 +318,176 @@ router.get('/file', requireAuth, (req, res) => {
   }
 });
 
+// ── GET /api/docs/library ─────────────────────────────────────────────────────
+// Returns the full structured docs library — every folder and file under docs/
+// Used by the DevOps Knowledge Base "Docs Library" tab so engineers can browse
+// ALL documentation (finance, compliance, trust-safety, support, people, brand,
+// legal, architecture, backend, etc.) without leaving the DevOps panel.
+router.get('/library', requireAuth, (_req, res) => {
+  try {
+    const docsRoot = safePath('docs');
+    if (!docsRoot || !fs.existsSync(docsRoot)) return res.json([]);
+
+    // Map of folder → icon + description shown in UI
+    const FOLDER_META = {
+      'strategy':       { icon: '📋', label: 'Strategy & Roadmap',          color: 'blue' },
+      'architecture':   { icon: '🏗️',  label: 'Architecture & Engineering',  color: 'violet' },
+      'backend':        { icon: '⚙️',  label: 'Backend & API',               color: 'violet' },
+      'frontend':       { icon: '🖥️',  label: 'Frontend & UI',               color: 'violet' },
+      'infrastructure': { icon: '☁️',  label: 'Infrastructure & DevOps',     color: 'sky' },
+      'operations':     { icon: '🔧',  label: 'Operations & Runbooks',       color: 'sky' },
+      'product':        { icon: '🎯',  label: 'Product & PRD',               color: 'emerald' },
+      'growth':         { icon: '📈',  label: 'Growth & Partnerships',       color: 'emerald' },
+      'brand':          { icon: '🎨',  label: 'Brand & Communications',      color: 'pink' },
+      'people':         { icon: '👥',  label: 'People & Organization',       color: 'amber' },
+      'finance':        { icon: '💼',  label: 'Finance & Financial Controls', color: 'green' },
+      'compliance':     { icon: '🛡️',  label: 'Compliance & Regulatory',     color: 'red' },
+      'trust-safety':   { icon: '🔒',  label: 'Trust, Safety & Fraud',       color: 'red' },
+      'support':        { icon: '💬',  label: 'Customer Support',            color: 'cyan' },
+      'legal':          { icon: '⚖️',  label: 'Legal & Privacy',             color: 'slate' },
+      'investor':       { icon: '💰',  label: 'Investor & Fundraising',      color: 'yellow' },
+      'patent':         { icon: '📜',  label: 'Patents & IP',                color: 'orange' },
+      'best-practice':  { icon: '✅',  label: 'Best Practices',              color: 'teal' },
+    };
+
+    // Walk one level: docs/<folder>/<files>
+    const entries = fs.readdirSync(docsRoot, { withFileTypes: true });
+
+    const folders = entries
+      .filter(e => e.isDirectory())
+      .map(e => {
+        const folderPath = path.join(docsRoot, e.name);
+        const meta = FOLDER_META[e.name] || { icon: '📁', label: e.name, color: 'slate' };
+
+        // Walk sub-folders (one more level deep, e.g. strategy/v1.0/)
+        let files = [];
+        try {
+          const folderEntries = fs.readdirSync(folderPath, { withFileTypes: true });
+          folderEntries.forEach(fe => {
+            if (fe.isFile() && fe.name.endsWith('.md')) {
+              const fPath = `docs/${e.name}/${fe.name}`;
+              const content = readMd(path.join(folderPath, fe.name));
+              const titleMatch = content?.match(/^#\s+(.+)$/m);
+              const descMatch  = content?.match(/^>\s+\*\*(.+?)\*\*/m) || content?.match(/^>\s+(.+)$/m);
+              files.push({
+                name:    fe.name,
+                path:    fPath,
+                title:   titleMatch ? titleMatch[1].replace(/^Halehame\s*[—-]\s*/i, '') : fe.name.replace('.md', ''),
+                summary: descMatch  ? descMatch[1].trim().slice(0, 120) : '',
+              });
+            } else if (fe.isDirectory()) {
+              // One more level (e.g. strategy/v1.0/README.md)
+              const subPath = path.join(folderPath, fe.name);
+              try {
+                fs.readdirSync(subPath, { withFileTypes: true })
+                  .filter(sf => sf.isFile() && sf.name.endsWith('.md'))
+                  .forEach(sf => {
+                    files.push({
+                      name:    sf.name,
+                      path:    `docs/${e.name}/${fe.name}/${sf.name}`,
+                      title:   `${fe.name}/${sf.name.replace('.md', '')}`,
+                      summary: '',
+                    });
+                  });
+              } catch { /* skip unreadable */ }
+            }
+          });
+        } catch { /* skip unreadable */ }
+
+        return {
+          folder:    e.name,
+          label:     meta.label,
+          icon:      meta.icon,
+          color:     meta.color,
+          fileCount: files.length,
+          files,
+        };
+      })
+      .filter(f => f.fileCount > 0);
+
+    // Also include root-level .md files (SOP.md, ONBOARDING.md, etc.)
+    const rootFiles = entries
+      .filter(e => e.isFile() && e.name.endsWith('.md'))
+      .map(e => {
+        const fPath   = `docs/${e.name}`;
+        const content = readMd(path.join(docsRoot, e.name));
+        const titleMatch = content?.match(/^#\s+(.+)$/m);
+        const descMatch  = content?.match(/^>\s+\*\*(.+?)\*\*/m) || content?.match(/^>\s+(.+)$/m);
+        return {
+          name:    e.name,
+          path:    fPath,
+          title:   titleMatch ? titleMatch[1].replace(/^Halehame\s*[—-]\s*/i, '') : e.name.replace('.md', ''),
+          summary: descMatch  ? descMatch[1].trim().slice(0, 120) : '',
+        };
+      });
+
+    if (rootFiles.length > 0) {
+      folders.unshift({
+        folder:    '_root',
+        label:     'Core Documents',
+        icon:      '📌',
+        color:     'slate',
+        fileCount: rootFiles.length,
+        files:     rootFiles,
+      });
+    }
+
+    res.json(folders);
+  } catch (err) {
+    console.error('[docs/library]', err);
+    res.status(500).json({ error: 'Failed to load docs library' });
+  }
+});
+
+// ── GET /api/docs/search?q=aml ────────────────────────────────────────────────
+// Full-text search across all docs files — returns matching files with excerpt
+router.get('/search', requireAuth, (req, res) => {
+  try {
+    const query = String(req.query.q || '').toLowerCase().trim();
+    if (!query || query.length < 2) return res.json([]);
+
+    const docsRoot = safePath('docs');
+    if (!docsRoot || !fs.existsSync(docsRoot)) return res.json([]);
+
+    const results = [];
+
+    function walkDir(dir, relBase) {
+      try {
+        fs.readdirSync(dir, { withFileTypes: true }).forEach(e => {
+          const fullPath = path.join(dir, e.name);
+          const relPath  = `${relBase}/${e.name}`;
+          if (e.isDirectory()) {
+            walkDir(fullPath, relPath);
+          } else if (e.isFile() && e.name.endsWith('.md')) {
+            const content = readMd(fullPath);
+            if (!content) return;
+            const lower   = content.toLowerCase();
+            const idx     = lower.indexOf(query);
+            if (idx === -1) return;
+
+            // Extract a small excerpt around the match
+            const start   = Math.max(0, idx - 80);
+            const end     = Math.min(content.length, idx + 120);
+            const excerpt = (start > 0 ? '…' : '') + content.slice(start, end).replace(/\n/g, ' ') + (end < content.length ? '…' : '');
+
+            const titleMatch = content.match(/^#\s+(.+)$/m);
+            results.push({
+              path:    relPath.replace(/^\//, ''),
+              title:   titleMatch ? titleMatch[1].replace(/^Halehame\s*[—-]\s*/i, '') : e.name.replace('.md', ''),
+              excerpt,
+              folder:  relBase.replace(/^\/docs\//, '').replace(/^docs\//, ''),
+            });
+          }
+        });
+      } catch { /* skip unreadable dirs */ }
+    }
+
+    walkDir(docsRoot, 'docs');
+
+    res.json(results.slice(0, 30)); // cap at 30 results
+  } catch (err) {
+    res.status(500).json({ error: 'Search failed' });
+  }
+});
+
 module.exports = router;

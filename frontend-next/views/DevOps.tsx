@@ -362,6 +362,37 @@ interface OverallProgress {
   byVersion: Record<string, { total: number; done: number; pct: number }>;
 }
 
+// ── Docs Library types (full docs/ folder browser) ───────────────────────────
+interface DocFile {
+  name: string; path: string; title: string; summary: string;
+}
+
+interface DocLibraryFolder {
+  folder: string; label: string; icon: string; color: string;
+  fileCount: number; files: DocFile[];
+}
+
+interface DocSearchResult {
+  path: string; title: string; excerpt: string; folder: string;
+}
+
+// Maps a folder color name to Tailwind classes (header bg + text)
+const FOLDER_COLOR_MAP: Record<string, { bg: string; text: string; border: string }> = {
+  blue:    { bg: 'bg-blue-500/10',    text: 'text-blue-500',    border: 'border-blue-500/20'    },
+  violet:  { bg: 'bg-violet-500/10',  text: 'text-violet-500',  border: 'border-violet-500/20'  },
+  sky:     { bg: 'bg-sky-500/10',     text: 'text-sky-500',     border: 'border-sky-500/20'     },
+  emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20' },
+  pink:    { bg: 'bg-pink-500/10',    text: 'text-pink-500',    border: 'border-pink-500/20'    },
+  amber:   { bg: 'bg-amber-500/10',   text: 'text-amber-500',   border: 'border-amber-500/20'   },
+  green:   { bg: 'bg-green-500/10',   text: 'text-green-500',   border: 'border-green-500/20'   },
+  red:     { bg: 'bg-red-500/10',     text: 'text-red-500',     border: 'border-red-500/20'     },
+  cyan:    { bg: 'bg-cyan-500/10',    text: 'text-cyan-500',    border: 'border-cyan-500/20'    },
+  slate:   { bg: 'bg-slate-500/10',   text: 'text-slate-400',   border: 'border-slate-500/20'   },
+  yellow:  { bg: 'bg-yellow-500/10',  text: 'text-yellow-500',  border: 'border-yellow-500/20'  },
+  orange:  { bg: 'bg-orange-500/10',  text: 'text-orange-500',  border: 'border-orange-500/20'  },
+  teal:    { bg: 'bg-teal-500/10',    text: 'text-teal-500',    border: 'border-teal-500/20'    },
+};
+
 function ProgressBar({ pct, color = 'bg-primary' }: { pct: number; color?: string }) {
   return (
     <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
@@ -370,14 +401,160 @@ function ProgressBar({ pct, color = 'bg-primary' }: { pct: number; color?: strin
   );
 }
 
+// ── Docs Library Sub-component ────────────────────────────────────────────────
+// Full browseable library of every docs/ folder — finance, compliance,
+// trust-safety, support, people, brand, legal, architecture, backend, etc.
+// Engineers can read any document without leaving the DevOps panel.
+function DocsLibrary({ onOpenFile, externalSearch }: { onOpenFile: (path: string) => void; externalSearch: string }) {
+  const [folders,       setFolders]       = useState<DocLibraryFolder[]>([]);
+  const [loading,       setLoading]       = useState(true);
+  const [searchResults, setSearchResults] = useState<DocSearchResult[] | null>(null);
+  const [searching,     setSearching]     = useState(false);
+  const [expandedFolder, setExpandedFolder] = useState<string | null>(null);
+
+  useEffect(() => {
+    client.get('/api/docs/library')
+      .then(r => setFolders(r.data))
+      .catch(() => toast.error('Could not load docs library'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Full-text search with debounce — driven by externalSearch prop
+  useEffect(() => {
+    if (!externalSearch || externalSearch.length < 2) {
+      setSearchResults(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const { data } = await client.get(`/api/docs/search?q=${encodeURIComponent(externalSearch)}`);
+        setSearchResults(data);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [externalSearch]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-10">
+        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // ── Search results view ──────────────────────────────────────────────────────
+  if (externalSearch.length >= 2) {
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 px-1 pb-1">
+          {searching
+            ? <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+            : <Search className="w-3.5 h-3.5 text-muted-foreground" />}
+          <span className="text-xs text-muted-foreground">
+            {searching ? 'Searching all docs…' : searchResults
+              ? `${searchResults.length} result${searchResults.length !== 1 ? 's' : ''} for "${externalSearch}"`
+              : ''}
+          </span>
+        </div>
+        {searchResults?.length === 0 && !searching && (
+          <p className="text-center text-sm text-muted-foreground py-6">No documents match "{externalSearch}"</p>
+        )}
+        {searchResults?.map(r => (
+          <div key={r.path}
+            onClick={() => onOpenFile(r.path)}
+            className="group flex items-start gap-3 p-3 rounded-xl border border-border/40 cursor-pointer hover:bg-secondary/20 transition-colors">
+            <FileText className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm font-semibold group-hover:text-primary transition-colors">{r.title}</p>
+                <span className="text-[10px] font-mono text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded-full border border-border/30">
+                  docs/{r.folder}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{r.excerpt}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // ── Folder grid view ─────────────────────────────────────────────────────────
+  return (
+    <div className="space-y-2">
+      {/* Folder tiles */}
+      {folders.map(f => {
+        const isExp = expandedFolder === f.folder;
+        const colors = FOLDER_COLOR_MAP[f.color] ?? FOLDER_COLOR_MAP['slate'];
+        return (
+          <div key={f.folder} className="rounded-xl border border-border/40 overflow-hidden">
+            {/* Folder header */}
+            <button
+              onClick={() => setExpandedFolder(isExp ? null : f.folder)}
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/20 transition-colors text-left">
+              <span className={`w-8 h-8 rounded-lg ${colors.bg} border ${colors.border} flex items-center justify-center shrink-0 text-base`}>
+                {f.icon}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold">{f.label}</p>
+                <p className="text-[10px] text-muted-foreground font-mono">
+                  {f.fileCount} document{f.fileCount !== 1 ? 's' : ''} · docs/{f.folder === '_root' ? '' : f.folder}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} border ${colors.border}`}>
+                  {f.fileCount}
+                </span>
+                {isExp
+                  ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
+                  : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+              </div>
+            </button>
+
+            {/* File list */}
+            {isExp && (
+              <div className="border-t border-border/30 bg-secondary/10 divide-y divide-border/20">
+                {f.files.map(file => (
+                  <button
+                    key={file.path}
+                    onClick={() => onOpenFile(file.path)}
+                    className="w-full flex items-start gap-3 px-5 py-2.5 hover:bg-secondary/30 transition-colors text-left group">
+                    <FileText className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold group-hover:text-primary transition-colors truncate">{file.title}</p>
+                      {file.summary && (
+                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{file.summary}</p>
+                      )}
+                    </div>
+                    <span className="text-[9px] font-mono text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      Read →
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function KnowledgeBase() {
-  const [tab,         setTab]         = useState<'strategy' | 'impl' | 'notes'>('strategy');
+  const [tab,         setTab]         = useState<'strategy' | 'impl' | 'notes' | 'library'>('strategy');
   const [open,        setOpen]        = useState(true);
   const [versions,    setVersions]    = useState<StrategyVersionDoc[]>([]);
   const [impls,       setImpls]       = useState<ImplSpec[]>([]);
   const [notes,       setNotes]       = useState<NoteDoc[]>([]);
   const [progress,    setProgress]    = useState<OverallProgress | null>(null);
   const [loading,     setLoading]     = useState(true);
+  // Library-tab search lives at KnowledgeBase level so the search bar is always visible
+  const [libSearch,   setLibSearch]   = useState('');
   const [search,      setSearch]      = useState('');
   const [expanded,    setExpanded]    = useState<string | null>(null);
   const [fileContent, setFileContent] = useState<{ path: string; content: string } | null>(null);
@@ -460,17 +637,37 @@ function KnowledgeBase() {
                 className="w-full pl-8 pr-3 py-1.5 text-xs bg-secondary/30 border border-border/40 rounded-full outline-none focus:ring-1 focus:ring-primary" />
               {search && <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"><X className="w-3 h-3" /></button>}
             </div>
-            {(['strategy','impl','notes'] as const).map(t => (
+            {(['strategy','impl','notes','library'] as const).map(t => (
               <button key={t} onClick={() => setTab(t)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   tab === t ? 'bg-foreground text-background' : 'bg-secondary/30 text-muted-foreground hover:text-foreground border border-border/40'
                 }`}>
-                {t === 'strategy' ? `📋 Strategy (${versions.length})` : t === 'impl' ? `⚙️ Specs (${impls.length})` : `📝 Notes (${notes.length})`}
+                {t === 'strategy' ? `📋 Strategy (${versions.length})`
+                  : t === 'impl'    ? `⚙️ Specs (${impls.length})`
+                  : t === 'notes'   ? `📝 Notes (${notes.length})`
+                  :                   `🗂️ Docs Library`}
               </button>
             ))}
+            {/* Library tab: show inline search bar when active */}
+            {tab === 'library' && (
+              <div className="relative flex-1 min-w-[180px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <input
+                  value={libSearch}
+                  onChange={e => setLibSearch(e.target.value)}
+                  placeholder="Search all docs (finance, compliance, legal…)"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-secondary/30 border border-border/40 rounded-full outline-none focus:ring-1 focus:ring-primary"
+                />
+                {libSearch && (
+                  <button onClick={() => setLibSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
-          {loading ? (
+          {loading && tab !== 'library' ? (
             <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
           ) : (
             <div className="p-3 space-y-2 max-h-[600px] overflow-y-auto">
@@ -634,6 +831,11 @@ function KnowledgeBase() {
                 <p className="text-center text-sm text-muted-foreground py-8">
                   {search ? `No results for "${search}"` : 'No items found'}
                 </p>
+              )}
+
+              {/* ── Docs Library ─────────────────────────────────────────── */}
+              {tab === 'library' && (
+                <DocsLibrary onOpenFile={openFile} externalSearch={libSearch} />
               )}
             </div>
           )}
