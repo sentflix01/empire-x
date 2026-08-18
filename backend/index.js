@@ -11,6 +11,7 @@ const { initSocket } = require('./socket');
 const logger = require('./lib/logger');
 const { startWorkers, closeQueues } = require('./lib/queue');
 const { initSentry, getSentryErrorHandler } = require('./lib/sentry');
+const { errorMiddleware, installProcessHandlers } = require('./lib/errorCollector');
 const requestId = require('./middleware/requestId');
 const httpLogger = require('./middleware/httpLogger');
 const apiVersion = require('./middleware/apiVersion');
@@ -300,19 +301,12 @@ app.get('/metrics', requireAuth, requireAdmin, (_req, res) => {
 const sentryErrorHandler = getSentryErrorHandler();
 if (sentryErrorHandler) app.use(sentryErrorHandler);
 
-// ── Global error handler ──────────────────────────────────────────────────────
-app.use((err, _req, res, _next) => {
-  // Guard against double response — if headers already sent, nothing we can do
-  if (res.headersSent) {
-    logger.warn({ err: err.message }, 'Error after headers sent — ignoring');
-    return;
-  }
-  logger.error({ err: err.message, stack: err.stack }, 'Unhandled error');
-  if (err.code === 'LIMIT_FILE_SIZE') {
-    return res.status(413).json({ error: 'File too large' });
-  }
-  res.status(500).json({ error: err.message || 'Internal server error' });
-});
+// ── Global error handler — captures to error_events + responds ───────────────
+// errorMiddleware stores every error in DB so the DevOps panel shows a live feed
+app.use(errorMiddleware);
+
+// ── Install process-level handlers (uncaughtException, unhandledRejection) ───
+installProcessHandlers();
 
 // ── 404 catch-all (must be last) ──────────────────────────────────────────────
 app.all('*', (_req, res) => apiError.notFound(res, 'Route not found'));

@@ -871,6 +871,452 @@ function KnowledgeBase() {
   );
 }
 
+// ── Live Error Feed ───────────────────────────────────────────────────────────
+// Shows every error captured by errorCollector.js in real time.
+// Auto-polls every 15 seconds. Admins can resolve errors or convert to tickets.
+
+interface ErrorEvent {
+  id: string;
+  level: 'critical' | 'error' | 'warn' | 'info';
+  source: 'server' | 'route' | 'client' | 'manual';
+  message: string;
+  name: string | null;
+  stack: string | null;
+  code: string | null;
+  method: string | null;
+  path: string | null;
+  status_code: number | null;
+  user_id: string | null;
+  request_id: string | null;
+  context: Record<string, unknown>;
+  occurrence: number;
+  first_seen_at: string;
+  last_seen_at: string;
+  resolved: boolean;
+  resolved_at: string | null;
+  resolved_by_name: string | null;
+  resolution_note: string | null;
+  devops_item_id: string | null;
+  devops_item_title: string | null;
+  devops_item_status: string | null;
+}
+
+interface ErrorStats {
+  total: number; unresolved: number; critical: number;
+  errors: number; warnings: number; last_hour: number; last_24h: number;
+  server: number; route: number; client: number;
+}
+
+const ERROR_LEVEL_META = {
+  critical: { label: 'Critical', dot: 'bg-red-600',    text: 'text-red-500',    chip: 'bg-red-500/15 text-red-500 border-red-500/30',         pulse: true  },
+  error:    { label: 'Error',    dot: 'bg-red-500',    text: 'text-red-400',    chip: 'bg-red-400/10 text-red-400 border-red-400/20',          pulse: false },
+  warn:     { label: 'Warning',  dot: 'bg-amber-400',  text: 'text-amber-500',  chip: 'bg-amber-400/10 text-amber-500 border-amber-400/20',    pulse: false },
+  info:     { label: 'Info',     dot: 'bg-blue-400',   text: 'text-blue-400',   chip: 'bg-blue-400/10 text-blue-400 border-blue-400/20',       pulse: false },
+};
+
+const ERROR_SOURCE_META = {
+  server: { label: 'Server crash', icon: '💥', chip: 'bg-red-500/10 text-red-400 border-red-400/20' },
+  route:  { label: 'API route',    icon: '⚙️',  chip: 'bg-violet-500/10 text-violet-400 border-violet-400/20' },
+  client: { label: 'Frontend',     icon: '🖥️',  chip: 'bg-cyan-500/10 text-cyan-400 border-cyan-400/20' },
+  manual: { label: 'Manual',       icon: '🔧',  chip: 'bg-slate-500/10 text-slate-400 border-slate-400/20' },
+};
+
+function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
+  const [open,        setOpen]        = useState(true);
+  const [errors,      setErrors]      = useState<ErrorEvent[]>([]);
+  const [stats,       setStats]       = useState<ErrorStats | null>(null);
+  const [loading,     setLoading]     = useState(true);
+  const [expanded,    setExpanded]    = useState<string | null>(null);
+  const [levelFilter, setLevelFilter] = useState<string>('');
+  const [search,      setSearch]      = useState('');
+  const [resolving,   setResolving]   = useState<string | null>(null);
+  const [converting,  setConverting]  = useState<string | null>(null);
+  const [showResolved, setShowResolved] = useState(false);
+  const lastPollRef = React.useRef<string>(new Date().toISOString());
+
+  // Initial load
+  useEffect(() => {
+    fetchAll();
+  }, [levelFilter, showResolved]);
+
+  // Auto-poll every 15 seconds for new errors
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const params = new URLSearchParams({
+          resolved: showResolved ? 'true' : 'false',
+          since: lastPollRef.current,
+          limit: '50',
+        });
+        if (levelFilter) params.set('level', levelFilter);
+        const { data: newErrors } = await client.get(`/api/devops/errors?${params}`);
+        if (newErrors.length > 0) {
+          setErrors(prev => {
+            // Merge new errors: update existing (by id) or prepend new ones
+            const existingIds = new Set(prev.map((e: ErrorEvent) => e.id));
+            const fresh = newErrors.filter((e: ErrorEvent) => !existingIds.has(e.id));
+            const updated = prev.map((e: ErrorEvent) => {
+              const match = newErrors.find((n: ErrorEvent) => n.id === e.id);
+              return match || e;
+            });
+            return [...fresh, ...updated];
+          });
+          // Refresh stats too
+          const { data: s } = await client.get('/api/devops/errors/stats');
+          setStats(s);
+          lastPollRef.current = new Date().toISOString();
+        }
+      } catch { /* silent poll failure */ }
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [levelFilter, showResolved]);
+
+  async function fetchAll() {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        resolved: showResolved ? 'true' : 'false',
+        limit: '100',
+      });
+      if (levelFilter) params.set('level', levelFilter);
+      const [{ data: ev }, { data: st }] = await Promise.all([
+        client.get(`/api/devops/errors?${params}`),
+        client.get('/api/devops/errors/stats'),
+      ]);
+      setErrors(ev);
+      setStats(st);
+      lastPollRef.current = new Date().toISOString();
+    } catch {
+      // Table not created yet — show empty state
+      setErrors([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resolve(id: string) {
+    setResolving(id);
+    try {
+      await client.patch(`/api/devops/errors/${id}/resolve`);
+      setErrors(prev => prev.filter(e => e.id !== id));
+      setStats(prev => prev ? { ...prev, unresolved: Math.max(0, prev.unresolved - 1) } : prev);
+      toast.success('Error marked as resolved');
+    } catch {
+      toast.error('Failed to resolve error');
+    } finally {
+      setResolving(null);
+    }
+  }
+
+  async function resolveAll() {
+    try {
+      const { data } = await client.patch('/api/devops/errors/resolve-all', levelFilter ? { level: levelFilter } : {});
+      toast.success(`Resolved ${data.resolved} errors`);
+      fetchAll();
+    } catch {
+      toast.error('Failed to bulk resolve');
+    }
+  }
+
+  async function convertToTicket(id: string) {
+    setConverting(id);
+    try {
+      const { data } = await client.post(`/api/devops/errors/${id}/to-ticket`);
+      toast.success(`Bug ticket created: "${data.ticket.title.slice(0, 50)}…"`);
+      setErrors(prev => prev.map(e => e.id === id ? { ...e, devops_item_id: data.ticket.id, devops_item_title: data.ticket.title, devops_item_status: data.ticket.status } : e));
+    } catch {
+      toast.error('Failed to create ticket');
+    } finally {
+      setConverting(null);
+    }
+  }
+
+  const filtered = errors.filter(e => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return e.message.toLowerCase().includes(q) || (e.path || '').toLowerCase().includes(q) || (e.name || '').toLowerCase().includes(q);
+  });
+
+  const unresolved = stats?.unresolved ?? 0;
+  const hasUrgent  = (stats?.critical ?? 0) > 0;
+
+  return (
+    <div className={`mb-4 bg-card border rounded-2xl overflow-hidden ${hasUrgent ? 'border-red-500/40' : 'border-border/50'}`}>
+      {/* Header */}
+      <button onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors">
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${hasUrgent ? 'bg-red-500/20' : 'bg-gradient-to-br from-red-600 to-orange-600'}`}>
+          {hasUrgent
+            ? <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" /><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" /></span>
+            : <AlertTriangle className="w-4 h-4 text-white" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-sm font-semibold">Live Error Feed</p>
+            {unresolved > 0 && (
+              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-mono font-bold ${hasUrgent ? 'bg-red-500/15 text-red-500 border-red-500/30' : 'bg-amber-500/10 text-amber-500 border-amber-500/30'}`}>
+                {unresolved} unresolved
+              </span>
+            )}
+            {stats && (
+              <>
+                {(stats.critical > 0) && <span className="text-[10px] font-mono bg-red-500/10 text-red-500 border border-red-500/20 px-1.5 py-0.5 rounded-full">💥 {stats.critical} critical</span>}
+                {(stats.last_hour > 0) && <span className="text-[10px] font-mono bg-orange-500/10 text-orange-400 border border-orange-500/20 px-1.5 py-0.5 rounded-full">⚡ {stats.last_hour} last hour</span>}
+                {unresolved === 0 && <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">✅ All clear</span>}
+              </>
+            )}
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-0.5">Auto-refreshes every 15 seconds · captures server, API, and client errors</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button onClick={e => { e.stopPropagation(); fetchAll(); }}
+            className="p-1.5 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Refresh">
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+          {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+        </div>
+      </button>
+
+      {open && (
+        <div className="border-t border-border/50">
+          {/* Stats bar */}
+          {stats && (
+            <div className="flex flex-wrap gap-2 px-4 py-2.5 bg-secondary/10 border-b border-border/30">
+              {[
+                { label: 'Total',    val: stats.unresolved, color: 'text-foreground' },
+                { label: 'Critical', val: stats.critical,   color: 'text-red-500'    },
+                { label: 'Errors',   val: stats.errors,     color: 'text-red-400'    },
+                { label: 'Warnings', val: stats.warnings,   color: 'text-amber-500'  },
+                { label: '24h',      val: stats.last_24h,   color: 'text-muted-foreground' },
+                { label: 'Server',   val: stats.server,     color: 'text-violet-400' },
+                { label: 'API',      val: stats.route,      color: 'text-violet-400' },
+                { label: 'Frontend', val: stats.client,     color: 'text-cyan-400'   },
+              ].map(({ label, val, color }) => (
+                <div key={label} className="flex items-center gap-1.5 text-[10px] font-mono">
+                  <span className="text-muted-foreground">{label}</span>
+                  <span className={`font-bold ${color}`}>{val}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Toolbar */}
+          <div className="flex flex-wrap items-center gap-2 p-3 border-b border-border/30">
+            {/* Search */}
+            <div className="relative flex-1 min-w-[180px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <input value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Search errors, paths…"
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-secondary/30 border border-border/40 rounded-full outline-none focus:ring-1 focus:ring-primary" />
+              {search && <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"><X className="w-3 h-3" /></button>}
+            </div>
+
+            {/* Level filter */}
+            {(['', 'critical', 'error', 'warn', 'info'] as const).map(l => (
+              <button key={l} onClick={() => setLevelFilter(l)}
+                className={`px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
+                  levelFilter === l ? 'bg-foreground text-background' : 'bg-secondary/30 text-muted-foreground hover:text-foreground border border-border/40'
+                }`}>
+                {l === '' ? 'All' : l.charAt(0).toUpperCase() + l.slice(1)}
+              </button>
+            ))}
+
+            {/* Toggle resolved */}
+            <button onClick={() => setShowResolved(v => !v)}
+              className={`px-2.5 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
+                showResolved ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-secondary/30 text-muted-foreground border-border/40 hover:text-foreground'
+              }`}>
+              {showResolved ? '✅ Resolved' : 'Show resolved'}
+            </button>
+
+            {/* Resolve all (admin) */}
+            {isAdmin && filtered.filter(e => !e.resolved).length > 0 && (
+              <button onClick={resolveAll}
+                className="ml-auto px-2.5 py-1.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors">
+                Resolve all
+              </button>
+            )}
+          </div>
+
+          {/* Error list */}
+          {loading ? (
+            <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-2 text-muted-foreground">
+              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+              <p className="text-sm font-medium">No errors found</p>
+              <p className="text-xs">{search ? `No match for "${search}"` : showResolved ? 'No resolved errors' : 'All systems running clean'}</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border/20 max-h-[700px] overflow-y-auto">
+              {filtered.map(evt => {
+                const isExp  = expanded === evt.id;
+                const lMeta  = ERROR_LEVEL_META[evt.level]  || ERROR_LEVEL_META.error;
+                const sMeta  = ERROR_SOURCE_META[evt.source] || ERROR_SOURCE_META.route;
+
+                return (
+                  <div key={evt.id} className={`${evt.level === 'critical' ? 'bg-red-500/5' : ''}`}>
+                    {/* Row */}
+                    <div className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/10 transition-colors"
+                      onClick={() => setExpanded(isExp ? null : evt.id)}>
+
+                      {/* Level dot */}
+                      <div className="mt-1 shrink-0">
+                        {lMeta.pulse
+                          ? <span className="relative flex h-2.5 w-2.5">
+                              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${lMeta.dot} opacity-60`} />
+                              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${lMeta.dot}`} />
+                            </span>
+                          : <span className={`inline-block w-2.5 h-2.5 rounded-full ${lMeta.dot}`} />}
+                      </div>
+
+                      {/* Main content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-2 flex-wrap">
+                          {/* Error name */}
+                          <span className={`text-[10px] font-mono font-bold ${lMeta.text}`}>
+                            {evt.name || 'Error'}
+                          </span>
+                          {/* Source badge */}
+                          <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full border ${sMeta.chip}`}>
+                            {sMeta.icon} {sMeta.label}
+                          </span>
+                          {/* Occurrence badge */}
+                          {evt.occurrence > 1 && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border/30">
+                              ×{evt.occurrence}
+                            </span>
+                          )}
+                          {/* Linked ticket */}
+                          {evt.devops_item_id && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-400/20">
+                              🎫 Ticket
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Message */}
+                        <p className="text-xs font-medium mt-0.5 truncate">{evt.message}</p>
+
+                        {/* Path + time */}
+                        <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                          {evt.path && (
+                            <span className="text-[10px] font-mono text-muted-foreground">
+                              {evt.method} {evt.path}
+                              {evt.status_code && ` → ${evt.status_code}`}
+                            </span>
+                          )}
+                          <span className="text-[10px] text-muted-foreground">
+                            {formatDistanceToNow(new Date(evt.last_seen_at), { addSuffix: true })}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                        {isAdmin && !evt.resolved && !evt.devops_item_id && (
+                          <button
+                            onClick={() => convertToTicket(evt.id)}
+                            disabled={converting === evt.id}
+                            className="text-[10px] px-2 py-1 rounded-lg bg-violet-500/10 text-violet-400 border border-violet-400/20 hover:bg-violet-500/20 transition-colors flex items-center gap-1"
+                            title="Convert to bug ticket">
+                            {converting === evt.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Bug className="w-3 h-3" />}
+                            Ticket
+                          </button>
+                        )}
+                        {isAdmin && !evt.resolved && (
+                          <button
+                            onClick={() => resolve(evt.id)}
+                            disabled={resolving === evt.id}
+                            className="text-[10px] px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors flex items-center gap-1"
+                            title="Mark resolved">
+                            {resolving === evt.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                            Resolve
+                          </button>
+                        )}
+                        {isExp ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+                      </div>
+                    </div>
+
+                    {/* Expanded detail */}
+                    {isExp && (
+                      <div className="border-t border-border/20 bg-secondary/10 px-5 py-3 space-y-3">
+                        {/* Metadata grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {[
+                            { label: 'Level',       val: evt.level },
+                            { label: 'Source',      val: evt.source },
+                            { label: 'Occurrences', val: String(evt.occurrence) },
+                            { label: 'Status code', val: evt.status_code ? String(evt.status_code) : '—' },
+                            { label: 'First seen',  val: new Date(evt.first_seen_at).toLocaleString() },
+                            { label: 'Last seen',   val: new Date(evt.last_seen_at).toLocaleString() },
+                            { label: 'Request ID',  val: evt.request_id || '—' },
+                            { label: 'Error code',  val: evt.code || '—' },
+                          ].map(({ label, val }) => (
+                            <div key={label} className="bg-card/60 border border-border/30 rounded-lg p-2">
+                              <p className="text-[9px] text-muted-foreground font-mono uppercase">{label}</p>
+                              <p className="text-[10px] font-mono text-foreground mt-0.5 truncate">{val}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Stack trace */}
+                        {evt.stack && (
+                          <div>
+                            <p className="text-[10px] font-mono text-muted-foreground mb-1 uppercase">Stack Trace</p>
+                            <pre className="text-[10px] font-mono text-foreground/70 bg-black/30 border border-border/30 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap max-h-48 leading-relaxed">
+                              {evt.stack}
+                            </pre>
+                          </div>
+                        )}
+
+                        {/* Context */}
+                        {evt.context && Object.keys(evt.context).length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-mono text-muted-foreground mb-1 uppercase">Context</p>
+                            <pre className="text-[10px] font-mono text-foreground/70 bg-black/30 border border-border/30 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">
+                              {JSON.stringify(evt.context, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+
+                        {/* Linked ticket info */}
+                        {evt.devops_item_title && (
+                          <div className="flex items-center gap-2 p-2 rounded-lg bg-violet-500/5 border border-violet-500/20">
+                            <Bug className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] text-muted-foreground">Linked ticket</p>
+                              <p className="text-xs font-medium text-violet-400 truncate">{evt.devops_item_title}</p>
+                            </div>
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-400/20 shrink-0">
+                              {evt.devops_item_status}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Resolved info */}
+                        {evt.resolved && (
+                          <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            <p className="text-xs text-emerald-500">
+                              Resolved {evt.resolved_at ? formatDistanceToNow(new Date(evt.resolved_at), { addSuffix: true }) : ''} by {evt.resolved_by_name || 'admin'}
+                              {evt.resolution_note ? ` — ${evt.resolution_note}` : ''}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Section 2: Strategy Version Board ────────────────────────────────────────
 function StrategyBoard() {
   const [open, setOpen] = useState(true);
@@ -1276,7 +1722,7 @@ function DevOps() {
   const [busyId,     setBusyId]     = useState<string | null>(null);
 
   // Active section tab
-  const [activeSection, setActiveSection] = useState<'kanban' | 'strategy' | 'health' | 'changelog' | 'summary' | 'kb'>('kanban');
+  const [activeSection, setActiveSection] = useState<'kanban' | 'errors' | 'strategy' | 'health' | 'changelog' | 'summary' | 'kb'>('kanban');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1377,6 +1823,7 @@ function DevOps() {
   // Section nav tabs
   const SECTION_TABS = [
     { key: 'kanban'   as const, label: 'Kanban Board',    icon: KanbanSquare },
+    { key: 'errors'   as const, label: 'Live Errors',     icon: AlertTriangle },
     { key: 'strategy' as const, label: 'Strategy',        icon: Map          },
     { key: 'kb'       as const, label: 'Knowledge Base',  icon: BookOpen     },
     { key: 'health'   as const, label: 'System Health',   icon: Server       },
@@ -1615,6 +2062,7 @@ function DevOps() {
       )}
 
       {/* ══ Other sections ══════════════════════════════════════════════════ */}
+      {activeSection === 'errors'    && <LiveErrors isAdmin={isAdmin} />}
       {activeSection === 'strategy'  && <StrategyBoard />}
       {activeSection === 'kb'        && <KnowledgeBase />}
       {activeSection === 'health'    && <SystemHealth  />}
