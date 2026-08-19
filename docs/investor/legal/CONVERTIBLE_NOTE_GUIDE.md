@@ -1,4 +1,4 @@
-# Halehame — Convertible Note Guide
+﻿# Nodbusiness — Convertible Note Guide
 
 > **Classification:** Confidential
 > **Purpose:** Understand convertible notes as an alternative to SAFE.
@@ -29,7 +29,7 @@
 | Common in | Older investments, bridge rounds | Pre-seed, seed, modern investors |
 | Best for | When investor prefers debt protection | When speed and simplicity matter |
 
-**Halehame recommendation:** Use SAFE for pre-seed. Use convertible note
+**Nodbusiness recommendation:** Use SAFE for pre-seed. Use convertible note
 only if an investor specifically requires it or for a bridge round.
 
 ---

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * generateInvoice — generates a PDF invoice for a completed order using jsPDF.
  * jspdf is already installed in the project.
  */
@@ -41,12 +41,12 @@ export function generateInvoice(order: Order): void {
   doc.setTextColor(...white);
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text("Halehame 👑", margin, 16);
+  doc.text("Nodbusiness 👑", margin, 16);
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Global Superapp — Social · Commerce · Services", margin, 24);
-  doc.text("www.halehame.app  |  support@halehame.app", margin, 30);
+  doc.text("www.nodbusiness.app  |  support@nodbusiness.app", margin, 30);
 
   // Invoice label (right side of header)
   doc.setFontSize(18);
@@ -191,8 +191,8 @@ export function generateInvoice(order: Order): void {
   doc.setTextColor(...gray);
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
-  doc.text("Thank you for using Halehame 👑 — The Global Superapp for Social, Commerce & Services.", margin, y);
-  doc.text("For support: support@halehame.app", margin, y + 5);
+  doc.text("Thank you for using Nodbusiness 👑 — The Global Superapp for Social, Commerce & Services.", margin, y);
+  doc.text("For support: support@nodbusiness.app", margin, y + 5);
   doc.text(`Invoice generated: ${new Date().toLocaleString("en-GB")}`, W - margin, y, { align: "right" });
 
   // ── Save ─────────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
-/**
+﻿/**
  * routes/devops.js — Developer Ops Hub
  *
- * Tracks bugs, features, and tasks for the Halehame platform.
+ * Tracks bugs, features, and tasks for the Nodbusiness platform.
  * Also exposes strategy version status and board statistics.
  *
  * READ   — any authenticated user (developers/owner can view the board)

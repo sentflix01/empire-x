@@ -1,8 +1,8 @@
-# Halehame — Voice & Tone Guide
+﻿# Nodbusiness — Voice & Tone Guide
 
-> **How Halehame communicates with the world.**
+> **How Nodbusiness communicates with the world.**
 > Voice is who we are. Tone is how we adapt to the situation.
-> Every word written for or about Halehame follows this guide.
+> Every word written for or about Nodbusiness follows this guide.
 
 ---
 
@@ -19,7 +19,7 @@
 
 ## 1. Our Voice (Always the Same)
 
-Halehame always sounds:
+Nodbusiness always sounds:
 
 ### Direct
 We say what we mean in plain language. No corporate speak, no jargon, no filler.
@@ -58,7 +58,7 @@ We serve the world, but we understand local contexts.
 | Onboarding | Warm, encouraging | "Welcome! Let's set up your first showroom." |
 | Success states | Celebratory but brief | "Order placed. You'll hear from the seller soon." |
 | Error messages | Calm, helpful, not blaming | "Couldn't load the feed. Check your connection and try again." |
-| Legal / compliance | Clear, formal, precise | "By using Halehame, you agree to our Terms of Service." |
+| Legal / compliance | Clear, formal, precise | "By using Nodbusiness, you agree to our Terms of Service." |
 | Marketing | Energetic, aspirational | "Your business. The world's customers." |
 | Support | Empathetic, solution-focused | "We understand this is frustrating. Here's what you can do." |
 | Empty states | Encouraging, actionable | "No orders yet. Share your showroom to start selling." |
@@ -176,14 +176,14 @@ Short. Specific. Reassuring.
 
 ---
 
-## 6. Halehame in Third Person
+## 6. Nodbusiness in Third Person
 
-When writing about Halehame (press releases, legal, external docs):
+When writing about Nodbusiness (press releases, legal, external docs):
 ```
-✅ "Halehame is a global platform for businesses and communities."
-✅ "Halehame Technologies PLC" (full legal name in formal contexts)
-❌ "The Halehame platform" (drop "the" — it's a proper noun)
-❌ "Our Halehame" (redundant)
+✅ "Nodbusiness is a global platform for businesses and communities."
+✅ "Nodbusiness Technologies PLC" (full legal name in formal contexts)
+❌ "The Nodbusiness platform" (drop "the" — it's a proper noun)
+❌ "Our Nodbusiness" (redundant)
 ```
 
 ---

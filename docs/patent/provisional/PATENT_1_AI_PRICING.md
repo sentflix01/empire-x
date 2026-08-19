@@ -1,11 +1,11 @@
-# Provisional Patent Application Draft
+﻿# Provisional Patent Application Draft
 # Patent 1: AI Dynamic Template Pricing Method
 
 > **Classification:** CONFIDENTIAL — Attorney-Client Privileged
 > **Status:** DRAFT — To be reviewed and filed by patent attorney
 > **Priority:** CRITICAL — File before public launch
 > **Inventor(s):** [Founder Full Legal Name], [City, Country]
-> **Assignee:** Halehame Technologies PLC
+> **Assignee:** Nodbusiness Technologies PLC
 > **Date of Conception:** August 2026
 
 ---
@@ -253,4 +253,4 @@ incentivizes both template quality and developer participation.
 
 *This draft is prepared for review by a licensed patent attorney.*
 *Do not file this document directly — it requires professional legal preparation.*
-*All information herein is confidential and proprietary to Halehame Technologies.*
+*All information herein is confidential and proprietary to Nodbusiness Technologies.*

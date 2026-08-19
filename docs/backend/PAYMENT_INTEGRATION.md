@@ -1,4 +1,4 @@
-# Halehame — Payment Integration Guide
+﻿# Nodbusiness — Payment Integration Guide
 
 > Complete technical reference for Stripe and Chapa payment integrations.
 > Reference market: Ethiopia (Chapa/ETB). Global default: Stripe/USD.
@@ -31,7 +31,7 @@
 
 ## Overview
 
-Halehame supports two payment providers:
+Nodbusiness supports two payment providers:
 
 | Provider | Currency | Use case | Status |
 |---|---|---|---|
@@ -244,7 +244,7 @@ https://your-api.railway.app/api/orders/chapa/webhook
 
 const sessionParams = {
   mode: 'payment',
-  line_items: [{ price_data: { currency, product_data: { name: 'Halehame Wallet Top-up' }, unit_amount: toCents(cur) }, quantity: 1 }],
+  line_items: [{ price_data: { currency, product_data: { name: 'Nodbusiness Wallet Top-up' }, unit_amount: toCents(cur) }, quantity: 1 }],
   success_url: `${frontendUrl}/wallet?topup=success&provider=stripe`,
   cancel_url:  `${frontendUrl}/wallet?topup=cancelled`,
   metadata: {

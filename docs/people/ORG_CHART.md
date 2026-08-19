@@ -1,6 +1,6 @@
-# Halehame — Organization Chart & Structure
+﻿# Nodbusiness — Organization Chart & Structure
 
-> **How Halehame is organized as a company at each stage of growth.**
+> **How Nodbusiness is organized as a company at each stage of growth.**
 > The right structure enables speed. The wrong structure creates politics.
 > We restructure when the structure slows us down.
 

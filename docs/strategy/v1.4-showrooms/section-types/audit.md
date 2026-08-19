@@ -1,4 +1,4 @@
-# Showroom Section Types — Global Business Coverage Audit
+﻿# Showroom Section Types — Global Business Coverage Audit
 
 ## The Core Insight
 
@@ -40,7 +40,7 @@ intelligently. Not by hardcoding every business type, but by:
 2. **Mapping each category to a template** (which sections, what labels, what order)
 3. **Letting the user customize** within that template
 
-## The 20 Universal Business Categories (for Halehame)
+## The 20 Universal Business Categories (for Nodbusiness)
 
 These 20 categories map to the global 1st/2nd class taxonomy and cover every business
 a user in Ethiopia (or globally) would want to create a showroom for:

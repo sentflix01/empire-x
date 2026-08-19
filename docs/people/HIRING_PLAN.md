@@ -1,4 +1,4 @@
-# Halehame — Hiring Plan
+﻿# Nodbusiness — Hiring Plan
 
 > **Who to hire, when to hire them, and how much to pay.**
 > Wrong hires at the wrong time are more expensive than no hires at all.
@@ -70,11 +70,11 @@ Stage 1: Application review (resume + portfolio/GitHub)
   → Rejection: 48 hours max response
 
 Stage 2: 30-min culture fit call (founder)
-  → Questions: Why Halehame? What matters to you? Tell me about X on your resume.
+  → Questions: Why Nodbusiness? What matters to you? Tell me about X on your resume.
   → Goal: Assess communication, curiosity, alignment with mission
 
 Stage 3: Technical/skills assessment (role-specific)
-  → Engineers: 2-hour take-home task on a real Halehame problem
+  → Engineers: 2-hour take-home task on a real Nodbusiness problem
   → Designers: Portfolio review + 30-min walkthrough
   → Support: Written test — respond to 5 simulated support tickets
 
@@ -100,12 +100,12 @@ Senior/C-suite: 6–8 weeks
 ## Job Description Template
 
 ```markdown
-**[Role Title] — Halehame Technologies**
+**[Role Title] — Nodbusiness Technologies**
 
 We are looking for a [Role Title] to [one-sentence purpose of role].
 
-**About Halehame:**
-Halehame is the global superapp connecting businesses and customers through
+**About Nodbusiness:**
+Nodbusiness is the global superapp connecting businesses and customers through
 showrooms, social discovery, and commerce. We are growing fast and looking
 for people who want to build something meaningful at a global scale.
 

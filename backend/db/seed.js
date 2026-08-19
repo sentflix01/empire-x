@@ -1,5 +1,5 @@
-/**
- * seed.js — Halehame development seed data
+﻿/**
+ * seed.js — Nodbusiness development seed data
  *
  * Seeds: 50 Ethiopian users, 150 businesses (no showrooms/products),
  *        posts, hashtags, tasks, jobs, events, courses+lessons,
@@ -56,33 +56,33 @@ const BIZ_TEMPLATES = [
   { category: 'restaurant',  template: 'restaurant',   names: ['Yod Abyssinia','Kategna Kitchen','Totot Kitfo','Sunbird Cafe','Habesha Grill','Tej House','Addis Bites','Timket Restaurant'] },
   { category: 'shop',        template: 'retail_store',  names: ['Bole Fashion','Shiro Meda Textiles','Addis Electronics','Style Ethiopia','Habesha Crafts','Tech Zone','Merkato Store'] },
   { category: 'service',     template: 'agency',        names: ['Sur Construction','Flintstone Engineering','Spark Electric','Saba Consulting','SIMBA Cleaning','EthioTech Solutions','Addis Logistics'] },
-  { category: 'health',      template: 'clinic',        names: ['Bole Medical Center','Addis Wellness Clinic','Family Health Hub','Halehame Health','Bethzatha Clinic','Tikur Anbessa Pharmacy'] },
+  { category: 'health',      template: 'clinic',        names: ['Bole Medical Center','Addis Wellness Clinic','Family Health Hub','Nodbusiness Health','Bethzatha Clinic','Tikur Anbessa Pharmacy'] },
   { category: 'realestate',  template: 'real_estate',   names: ['Addis Property Group','Bole Realty','Sunshine Real Estate','Capital Homes','Gold Key Properties'] },
   { category: 'portfolio',   template: 'portfolio',     names: ['Addis Creative Studio','EthioDesign Lab','Pixel Ethiopia','Vision Media','Habesha Films'] },
 ];
 
 // ── Content data ──────────────────────────────────────────────────────────────
 const POST_CONTENTS = [
-  'Just launched my new showroom on Halehame! Check out our latest collection 🛍️ #AddisAbaba',
-  'Looking for reliable freelancers in Addis? Post your task on Halehame and get bids fast! 💼',
+  'Just launched my new showroom on Nodbusiness! Check out our latest collection 🛍️ #AddisAbaba',
+  'Looking for reliable freelancers in Addis? Post your task on Nodbusiness and get bids fast! 💼',
   'Ethiopian coffee is the best in the world ☕ Proud to share our culture globally.',
   'Shout out to everyone building businesses in Ethiopia 🇪🇹 Keep going, keep growing! #EthiopianBusiness',
   'Morning view from Entoto Hill 🌄 The city never looked more beautiful. #AddisVibes',
   'Just completed a big project for a client in Bole. So proud of our team! 💪 #EthioTech',
-  'Anyone else loving the new Halehame features? The task board is a game changer! 🚀',
+  'Anyone else loving the new Nodbusiness features? The task board is a game changer! 🚀',
   'Fresh injera from my grandma\'s recipe ❤️ Some traditions should never change. #HabeshaLife',
   'Looking for a 2-bedroom apartment in Yeka — anyone know a good place? 🏠',
   'Big sale this weekend — up to 30% off on all leather goods! 🔥 #Merkato',
-  'Our delivery team completed 50 orders this week. Thank you Halehame community! 🙏',
+  'Our delivery team completed 50 orders this week. Thank you Nodbusiness community! 🙏',
   'The future of global e-commerce is here. Proud to be an early seller! 🌍',
   'Live music event at the city theater next Friday 🎵 Who\'s coming?',
   'New course on digital marketing for entrepreneurs — just enrolled! 📚 #Growth',
-  'Found the perfect contractor through Halehame Tasks. Highly recommend! 👏',
+  'Found the perfect contractor through Nodbusiness Tasks. Highly recommend! 👏',
   'My showroom hit 1000 views this month! Thank you everyone who checked it out 🏪',
-  'Pro tip: Use Halehame\'s nearby map to find the best local shops around you 📍',
+  'Pro tip: Use Nodbusiness\'s nearby map to find the best local shops around you 📍',
   'Anyone want to collaborate on a social media project? DM me! 🤝 #CreativeEthiopia',
   'New arrivals just dropped at my showroom. Check it out now! ✨',
-  'Proud Ethiopian entrepreneur sharing my journey on Halehame 🇪🇹 #StartupEthiopia',
+  'Proud Ethiopian entrepreneur sharing my journey on Nodbusiness 🇪🇹 #StartupEthiopia',
 ];
 
 const TASK_SAMPLES = [
@@ -122,7 +122,7 @@ const COURSE_SAMPLES = [
 ];
 
 const HASHTAGS = [
-  'AddisAbaba','Ethiopia','Halehame','HabeshaLife','EthiopianBusiness',
+  'AddisAbaba','Ethiopia','Nodbusiness','HabeshaLife','EthiopianBusiness',
   'Bole','Merkato','EthioTech','AddisVibes','AfricanEntrepreneur',
   'ShegerCity','EthioBeauty','AddisFood','EthioFashion','StartupEthiopia',
 ];
@@ -143,7 +143,7 @@ const MSG_SAMPLES = [
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function seed() {
   const client = await pool.connect();
-  console.log('\n🌱 Halehame Seed — 50 users, 150 businesses, no products\n');
+  console.log('\n🌱 Nodbusiness Seed — 50 users, 150 businesses, no products\n');
 
   try {
     const pwHash    = await bcrypt.hash(TEST_PASSWORD, 10);
@@ -152,8 +152,8 @@ async function seed() {
     // ── Dev accounts (is_seed = FALSE — never touched by cleanup) ──────────
     console.log('🔑 Ensuring dev accounts...');
     const devAccounts = [
-      { email: 'admin@halehame.app', hash: adminHash, name: 'Admin User', role: 'admin', bal: 50000 },
-      { email: 'test@halehame.app',  hash: pwHash,    name: 'Test User',  role: 'user',  bal: 5000  },
+      { email: 'admin@nodbusiness.app', hash: adminHash, name: 'Admin User', role: 'admin', bal: 50000 },
+      { email: 'test@nodbusiness.app',  hash: pwHash,    name: 'Test User',  role: 'user',  bal: 5000  },
     ];
     for (const acc of devAccounts) {
       const { rows } = await client.query(
@@ -167,7 +167,7 @@ async function seed() {
         `INSERT INTO user_profiles (user_id, display_name, bio, profile_type, is_verified, location, latitude, longitude)
          VALUES ($1,$2,$3,'personal',TRUE,'Bole, Addis Ababa',9.0050,38.7910)
          ON CONFLICT DO NOTHING`,
-        [uid, acc.name, `${acc.name} — Halehame dev account`]
+        [uid, acc.name, `${acc.name} — Nodbusiness dev account`]
       );
       await client.query(
         `INSERT INTO wallets (user_id, balance, currency) VALUES ($1,$2,'ETB')
@@ -175,15 +175,15 @@ async function seed() {
         [uid, acc.bal]
       );
     }
-    console.log(`  ✅ admin@halehame.app / ${ADMIN_PASSWORD}`);
-    console.log(`  ✅ test@halehame.app  / ${TEST_PASSWORD}\n`);
+    console.log(`  ✅ admin@nodbusiness.app / ${ADMIN_PASSWORD}`);
+    console.log(`  ✅ test@nodbusiness.app  / ${TEST_PASSWORD}\n`);
 
     // ── 1. 50 seed users ─────────────────────────────────────────────────────
     console.log('👥 Creating 50 seed users...');
     const users = [];
     for (let i = 0; i < 50; i++) {
       const [first, last] = ETHIOPIAN_NAMES[i];
-      const email    = `${first.toLowerCase()}.${last.toLowerCase()}${i}@halehame.test`;
+      const email    = `${first.toLowerCase()}.${last.toLowerCase()}${i}@nodbusiness.test`;
       const district = pick(ADDIS_DISTRICTS);
       const coords   = jitter(CENTER.lat, CENTER.lon, 3);
       const isBiz    = i % 3 === 0; // every 3rd user has a business profile
@@ -242,7 +242,7 @@ async function seed() {
           [
             user.id, bName, tmpl.category, tmpl.template,
             `${bName} is a trusted ${tmpl.category} business serving ${user.district}, Addis Ababa.`,
-            color, `contact@halehame.et`, phone,
+            color, `contact@nodbusiness.et`, phone,
             `${user.district}, Addis Ababa, Ethiopia`,
             coords.lat, coords.lon,
           ]
@@ -528,7 +528,7 @@ async function seed() {
 
     // ── 14. Coupons ───────────────────────────────────────────────────────────
     console.log('🎟️  Creating coupons...');
-    const COUPON_CODES = ['ADDIS10','BOLE20','HALEHAME15','HABESHA25','NEWUSER30'];
+    const COUPON_CODES = ['ADDIS10','BOLE20','NODBUSINESS15','HABESHA25','NEWUSER30'];
     for (let i = 0; i < 20; i++) {
       const seller = users[i % users.length];
       await client.query(
@@ -620,9 +620,9 @@ async function seed() {
     console.log(`   Messages:      ${mR.rows[0].count}`);
     console.log(`   Products:      0 (sellers create their own)`);
     console.log('\n👤 Dev logins:');
-    console.log(`   Admin: admin@halehame.app / ${ADMIN_PASSWORD}`);
-    console.log(`   Test:  test@halehame.app  / ${TEST_PASSWORD}`);
-    console.log(`   Seed:  abebe.girma0@halehame.test … (50 accounts) / ${TEST_PASSWORD}\n`);
+    console.log(`   Admin: admin@nodbusiness.app / ${ADMIN_PASSWORD}`);
+    console.log(`   Test:  test@nodbusiness.app  / ${TEST_PASSWORD}`);
+    console.log(`   Seed:  abebe.girma0@nodbusiness.test … (50 accounts) / ${TEST_PASSWORD}\n`);
 
   } catch (err) {
     console.error('\n❌ Seed failed:', err.message);

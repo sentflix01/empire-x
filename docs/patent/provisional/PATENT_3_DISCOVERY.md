@@ -1,11 +1,11 @@
-# Provisional Patent Application Draft
+﻿# Provisional Patent Application Draft
 # Patent 3: Social-Commerce Showroom Discovery Method
 
 > **Classification:** CONFIDENTIAL — Attorney-Client Privileged
 > **Status:** DRAFT — To be reviewed and filed by patent attorney
 > **Priority:** HIGH — File before public launch
 > **Inventor(s):** [Founder Full Legal Name], [City, Country]
-> **Assignee:** Halehame Technologies PLC
+> **Assignee:** Nodbusiness Technologies PLC
 > **Date of Conception:** August 2026
 
 ---
@@ -17,7 +17,7 @@
 | USPTO | United States Patent and Trademark Office — US government patent filing body |
 | AI | Artificial Intelligence |
 | API | Application Programming Interface |
-| SGA | Social Graph Affinity — Halehame's discovery signal measuring network engagement |
+| SGA | Social Graph Affinity — Nodbusiness's discovery signal measuring network engagement |
 | GPS | Geographic Positioning System — satellite-based location technology (also used as variable name: GPS_score) |
 | CTMS | Category Taxonomy Match Score — discovery signal measuring category interest alignment |
 | TVS | Trending Velocity Score — discovery signal measuring rate-of-change in engagement |
@@ -283,4 +283,4 @@ signals independently.
 ---
 
 *This draft requires review by a licensed patent attorney before filing.*
-*All information is confidential and proprietary to Halehame Technologies.*
+*All information is confidential and proprietary to Nodbusiness Technologies.*

@@ -1,7 +1,7 @@
-{
-  "name": "halehame",
+﻿{
+  "name": "nodbusiness",
   "version": "1.0.0",
-  "description": "Halehame — Global Superapp. Monorepo root.",
+  "description": "Nodbusiness — Global Superapp. Monorepo root.",
   "private": true,
   "scripts": {
     "dev": "start \"backend\" cmd /k \"cd backend && npm run dev\" && start \"frontend-next\" cmd /k \"cd frontend-next && npm run dev\"",

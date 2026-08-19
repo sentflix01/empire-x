@@ -1,4 +1,4 @@
-/**
+﻿/**
  * routes/docs.js — Project Knowledge Base API
  *
  * Reads the project's docs, strategy, implementation plan, and notes
@@ -372,7 +372,7 @@ router.get('/library', requireAuth, (_req, res) => {
               files.push({
                 name:    fe.name,
                 path:    fPath,
-                title:   titleMatch ? titleMatch[1].replace(/^Halehame\s*[—-]\s*/i, '') : fe.name.replace('.md', ''),
+                title:   titleMatch ? titleMatch[1].replace(/^Nodbusiness\s*[—-]\s*/i, '') : fe.name.replace('.md', ''),
                 summary: descMatch  ? descMatch[1].trim().slice(0, 120) : '',
               });
             } else if (fe.isDirectory()) {
@@ -416,7 +416,7 @@ router.get('/library', requireAuth, (_req, res) => {
         return {
           name:    e.name,
           path:    fPath,
-          title:   titleMatch ? titleMatch[1].replace(/^Halehame\s*[—-]\s*/i, '') : e.name.replace('.md', ''),
+          title:   titleMatch ? titleMatch[1].replace(/^Nodbusiness\s*[—-]\s*/i, '') : e.name.replace('.md', ''),
           summary: descMatch  ? descMatch[1].trim().slice(0, 120) : '',
         };
       });
@@ -473,7 +473,7 @@ router.get('/search', requireAuth, (req, res) => {
             const titleMatch = content.match(/^#\s+(.+)$/m);
             results.push({
               path:    relPath.replace(/^\//, ''),
-              title:   titleMatch ? titleMatch[1].replace(/^Halehame\s*[—-]\s*/i, '') : e.name.replace('.md', ''),
+              title:   titleMatch ? titleMatch[1].replace(/^Nodbusiness\s*[—-]\s*/i, '') : e.name.replace('.md', ''),
               excerpt,
               folder:  relBase.replace(/^\/docs\//, '').replace(/^docs\//, ''),
             });

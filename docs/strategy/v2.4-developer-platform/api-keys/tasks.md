@@ -1,4 +1,4 @@
-# API Key System — Tasks
+﻿# API Key System — Tasks
 
 ## Status: 🔴 Not Started
 
@@ -122,7 +122,7 @@
 
 ## Step 7 — Verify
 
-- [ ] Create a key, copy it, make an API call: `curl -H "Authorization: Bearer hale_live_xxx" https://halehame.vercel.app/api/posts`
+- [ ] Create a key, copy it, make an API call: `curl -H "Authorization: Bearer hale_live_xxx" https://nodbusiness.vercel.app/api/posts`
 - [ ] Verify 401 on invalid key
 - [ ] Verify 429 when rate limit exceeded
 - [ ] Verify key shows as prefix-only in dashboard after creation

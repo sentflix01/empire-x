@@ -1,6 +1,6 @@
-# Halehame — Fraud Prevention Playbook
+﻿# Nodbusiness — Fraud Prevention Playbook
 
-> **How Halehame detects, prevents, and responds to fraud across the marketplace, payments, and identity systems.**
+> **How Nodbusiness detects, prevents, and responds to fraud across the marketplace, payments, and identity systems.**
 > Fraud prevention is a revenue protection function as much as a safety one — every dollar of fraud costs the platform trust, money, and regulatory exposure.
 
 ---
@@ -44,7 +44,7 @@ Understanding the likelihood and impact of each fraud type:
 | Promotion / coupon abuse | Medium | Low | P3 |
 | Money laundering via marketplace | Low | Critical | P1 |
 | Identity fraud (KYC bypass) | Low | High | P2 |
-| Phishing targeting Halehame users | Medium | High | P2 |
+| Phishing targeting Nodbusiness users | Medium | High | P2 |
 | Affiliate fraud | Low | Medium | P3 |
 
 ---
@@ -301,4 +301,4 @@ Track these metrics weekly:
 
 *Owner: CEO / Head of T&S (Phase 1), Dedicated Fraud team (Phase 2+)*
 *Review cycle: Monthly metrics review; policy updated quarterly*
-*Fraud incidents: fraud@halehame.com*
+*Fraud incidents: fraud@nodbusiness.com*

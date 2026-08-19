@@ -1,4 +1,4 @@
-# Halehame — Patent Strategy
+﻿# Nodbusiness — Patent Strategy
 
 > **Classification:** Confidential — Internal Use Only
 > **Last Updated:** August 2026
@@ -26,7 +26,7 @@
 
 ## 1. Why File Patents
 
-Patent protection for Halehame serves three purposes:
+Patent protection for Nodbusiness serves three purposes:
 
 1. **Offense** — Stop competitors from copying and commercializing your specific
    technical methods (AI pricing, revenue share algorithm, discovery method).
@@ -40,7 +40,7 @@ Patent protection for Halehame serves three purposes:
 
 ---
 
-## 2. What Is Patentable at Halehame
+## 2. What Is Patentable at Nodbusiness
 
 ### Rule: Patents protect methods and systems, not ideas.
 
@@ -153,7 +153,7 @@ After US utility patents are filed, consider:
 - Gives you 30 months to decide which countries to pursue nationally
 - Cost: $3,000–5,000 + $1,500–3,000 per country national phase entry
 
-**Priority Countries for Halehame:**
+**Priority Countries for Nodbusiness:**
 1. USA (USPTO) — already covered in Phase 1/2
 2. Ethiopia (EIPO) — home market
 3. Kenya (KIPI) — East Africa gateway
@@ -188,7 +188,7 @@ valuable than a patent because:
 
 ### Known Patents to Watch
 
-| Company | Patent Areas | Risk to Halehame |
+| Company | Patent Areas | Risk to Nodbusiness |
 |---------|-------------|-----------------|
 | Shopify | Checkout flow, storefront UI | LOW — your UI is different |
 | Wix | Drag-and-drop website builder | MEDIUM — monitor carefully |
@@ -251,5 +251,5 @@ Get quotes from at least 3 attorneys before engaging one.
 
 ---
 
-*This document is confidential and intended for Halehame Technologies internal use only.*
+*This document is confidential and intended for Nodbusiness Technologies internal use only.*
 *Consult a licensed patent attorney before filing any application.*

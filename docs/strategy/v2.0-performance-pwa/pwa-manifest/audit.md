@@ -1,4 +1,4 @@
-# PWA Manifest & Install — Audit
+﻿# PWA Manifest & Install — Audit
 
 ## What Makes a Good PWA
 
@@ -21,8 +21,8 @@ A Progressive Web App gives users a native-app-like experience:
 
 ```json
 {
-  "name": "Halehame",
-  "short_name": "Halehame",
+  "name": "Nodbusiness",
+  "short_name": "Nodbusiness",
   "description": "Ethiopian superapp — social, marketplace, tasks, and more",
   "start_url": "/feed",
   "display": "standalone",
@@ -45,7 +45,7 @@ A Progressive Web App gives users a native-app-like experience:
 <!-- In <head> -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Halehame">
+<meta name="apple-mobile-web-app-title" content="Nodbusiness">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <link rel="apple-touch-startup-image" href="/splash/splash-1242x2688.png">
 ```

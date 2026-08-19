@@ -1,6 +1,6 @@
-# Halehame — Monitoring & Observability
+﻿# Nodbusiness — Monitoring & Observability
 
-> Everything needed to monitor Halehame in production.
+> Everything needed to monitor Nodbusiness in production.
 > Full observability reference lives in `docs/infrastructure/MONITORING_STACK.md`.
 > This document covers the operational runbook: how to set up, check, and respond to monitoring alerts.
 > Last updated: August 2026
@@ -47,8 +47,8 @@ For the full observability stack (PostHog, Grafana, DataDog), see `docs/infrastr
 
 ```bash
 # Sign up at sentry.io — create two projects:
-# 1. "halehame-backend" (Node.js)
-# 2. "halehame-frontend" (Next.js)
+# 1. "nodbusiness-backend" (Node.js)
+# 2. "nodbusiness-frontend" (Next.js)
 
 # Add to Railway env vars:
 SENTRY_DSN=https://xxx@o123.ingest.sentry.io/456
@@ -64,9 +64,9 @@ NEXT_PUBLIC_SENTRY_DSN=https://xxx@o123.ingest.sentry.io/789
 At uptimerobot.com (free tier: 50 monitors, 5-minute checks):
 
 ```
-Monitor 1: GET https://api.halehame.app/health → expect 200
-Monitor 2: GET https://halehame.vercel.app → expect 200
-Monitor 3: GET https://api.halehame.app/api/products → expect 200
+Monitor 1: GET https://api.nodbusiness.app/health → expect 200
+Monitor 2: GET https://nodbusiness.vercel.app → expect 200
+Monitor 3: GET https://api.nodbusiness.app/api/products → expect 200
 
 Alert contacts: Telegram channel + email
 ```
@@ -86,7 +86,7 @@ Run this every morning before starting work:
    → Are there any critical or unresolved errors from overnight?
 
 2. Check /health endpoint
-   curl https://api.halehame.app/health
+   curl https://api.nodbusiness.app/health
    → All services should show "connected"
 
 3. Check Railway dashboard

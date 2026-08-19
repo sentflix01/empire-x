@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Real-Time Chat E2E Test
  * ========================
  * Tests the full Socket.IO + REST messaging pipeline:
@@ -78,7 +78,7 @@ function connectSocket(token) {
 
 async function main() {
   console.log('\n╔══════════════════════════════════════╗');
-  console.log('║  Halehame — Real-Time Chat Test     ║');
+  console.log('║  Nodbusiness — Real-Time Chat Test     ║');
   console.log('╚══════════════════════════════════════╝\n');
 
   // ── Step 1: Login both users ──────────────────────────────────────────────
@@ -86,7 +86,7 @@ async function main() {
   const adminLogin = await api('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'admin@halehame.app', password: 'Admin1234!' }),
+    body: JSON.stringify({ email: 'admin@nodbusiness.app', password: 'Admin1234!' }),
   });
   assert(adminLogin.ok && adminLogin.data.access_token, 'Admin login', `status ${adminLogin.status}`);
   const adminToken = adminLogin.data.access_token;
@@ -95,7 +95,7 @@ async function main() {
   const testLogin = await api('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'test@halehame.app', password: 'Test1234!' }),
+    body: JSON.stringify({ email: 'test@nodbusiness.app', password: 'Test1234!' }),
   });
   assert(testLogin.ok && testLogin.data.access_token, 'Test user login', `status ${testLogin.status}`);
   const testToken = testLogin.data.access_token;

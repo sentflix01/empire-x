@@ -1,6 +1,6 @@
-# Halehame — PR & Communications Strategy
+﻿# Nodbusiness — PR & Communications Strategy
 
-> **How Halehame tells its story to the world.**
+> **How Nodbusiness tells its story to the world.**
 > From launch press releases to crisis management.
 
 ---
@@ -23,7 +23,7 @@
 
 ### Phase 1 — Build Awareness
 ```
-Goal: 1,000 people know Halehame exists before launch
+Goal: 1,000 people know Nodbusiness exists before launch
 Channels: Tech blogs, startup communities, social media
 Message: "The global superapp is coming — join the waitlist"
 Target: Ethiopian tech community, African tech press, diaspora networks
@@ -31,15 +31,15 @@ Target: Ethiopian tech community, African tech press, diaspora networks
 
 ### Phase 2 — Establish Authority
 ```
-Goal: Halehame is recognized as the leading business platform in East Africa
+Goal: Nodbusiness is recognized as the leading business platform in East Africa
 Channels: Business press, partnerships, awards
-Message: "X businesses earning on Halehame. Join them."
+Message: "X businesses earning on Nodbusiness. Join them."
 Target: Business press, investors, enterprise clients
 ```
 
 ### Phase 3 — Global Story
 ```
-Goal: Halehame is mentioned alongside Telegram, Shopify, WeChat as a platform
+Goal: Nodbusiness is mentioned alongside Telegram, Shopify, WeChat as a platform
 Channels: International tech press, conference speaking, research citations
 Message: "The platform that democratized business for the next billion"
 Target: International VCs, global tech press, policy makers
@@ -95,11 +95,11 @@ SUBHEADLINE: One sentence expanding on the headline.
 to [do what] for the first time / more easily than ever before.
 
 "[Quote from founder that captures the mission emotionally]" said
-[Name], Founder & CEO of Halehame Technologies.
+[Name], Founder & CEO of Nodbusiness Technologies.
 
 [Paragraph: Problem being solved — 2-3 sentences with specific data]
 
-[Paragraph: Solution — what Halehame does, specifically]
+[Paragraph: Solution — what Nodbusiness does, specifically]
 
 [Paragraph: Key features or metrics — 3 bullet points maximum]
 
@@ -107,11 +107,11 @@ to [do what] for the first time / more easily than ever before.
 
 [Closing quote from another stakeholder — advisor, partner, or beta user]
 
-About Halehame Technologies:
-Halehame is the global superapp connecting businesses and customers through
+About Nodbusiness Technologies:
+Nodbusiness is the global superapp connecting businesses and customers through
 showrooms, a social feed, a marketplace, messaging, and task services.
-Founded in [year], Halehame serves [X] businesses in [Y countries].
-Learn more at halehame.vercel.app.
+Founded in [year], Nodbusiness serves [X] businesses in [Y countries].
+Learn more at nodbusiness.vercel.app.
 
 Media Contact:
 [Name]
@@ -200,7 +200,7 @@ We will provide an update by [specific time].
 For questions: [contact email]
 
 [Founder name]
-CEO, Halehame Technologies
+CEO, Nodbusiness Technologies
 ```
 
 ---

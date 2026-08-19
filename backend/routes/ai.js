@@ -1,10 +1,10 @@
-const router = require('express').Router();
+﻿const router = require('express').Router();
 const { requireAuth } = require('../middleware/auth');
 const ai = require('../lib/ai');
 const logger = require('../lib/logger');
 
-const HALEHAME_SYSTEM_PROMPT = `You are Halehame AI — a smart, friendly assistant built into the Halehame superapp, available globally.
-Halehame features: social feed, marketplace, tasks/errands, showrooms (business mini-sites), jobs, events, courses, wallet, referrals, nearby map, and real-time chat.
+const NODBUSINESS_SYSTEM_PROMPT = `You are Nodbusiness AI — a smart, friendly assistant built into the Nodbusiness superapp, available globally.
+Nodbusiness features: social feed, marketplace, tasks/errands, showrooms (business mini-sites), jobs, events, courses, wallet, referrals, nearby map, and real-time chat.
 Help users with: finding products, posting tasks, creating showrooms, growing their business, writing descriptions, and navigating the app.
 Keep replies concise (2-4 sentences max). Use emojis occasionally. Respond in the same language the user writes in.`;
 
@@ -38,7 +38,7 @@ router.post('/chat', requireAuth, async (req, res) => {
 
   if (!ai.isConfigured()) {
     return res.json({
-      reply: "I'm the Halehame AI assistant, but the AI service isn't configured yet. Ask your admin to add OPENAI_API_KEY (or GEMINI_API_KEY / ANTHROPIC_API_KEY) to the backend .env file. In the meantime, I can help you navigate the app — try the Marketplace, Tasks, or Showrooms!",
+      reply: "I'm the Nodbusiness AI assistant, but the AI service isn't configured yet. Ask your admin to add OPENAI_API_KEY (or GEMINI_API_KEY / ANTHROPIC_API_KEY) to the backend .env file. In the meantime, I can help you navigate the app — try the Marketplace, Tasks, or Showrooms!",
     });
   }
 
@@ -46,7 +46,7 @@ router.post('/chat', requireAuth, async (req, res) => {
     const reply = await ai.chat(messages, {
       maxTokens: 300,
       temperature: 0.7,
-      systemPrompt: HALEHAME_SYSTEM_PROMPT,
+      systemPrompt: NODBUSINESS_SYSTEM_PROMPT,
     });
     res.json({ reply });
   } catch (err) {

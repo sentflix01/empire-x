@@ -1,4 +1,4 @@
-# Halehame — Database Migration Guide
+﻿# Nodbusiness — Database Migration Guide
 
 > How to safely create, run, and roll back database migrations.
 > Every schema change goes through this process — no direct ALTER TABLE in production.

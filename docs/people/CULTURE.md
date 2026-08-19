@@ -1,4 +1,4 @@
-# Halehame — Culture & Values
+﻿# Nodbusiness — Culture & Values
 
 > **Who we are as a company, not just what we build.**
 > Culture is not a poster on the wall. It is the decisions we make
@@ -111,7 +111,7 @@ Annual 360 reviews for everyone, including the founder
 
 ---
 
-## 5. The Halehame Way (In Practice)
+## 5. The Nodbusiness Way (In Practice)
 
 ### When you get a bug report from a user:
 1. Thank them — they took time to help us

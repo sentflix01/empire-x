@@ -1,8 +1,8 @@
-# Halehame — Prior Art Search
+﻿# Nodbusiness — Prior Art Search
 
 > **Classification:** CONFIDENTIAL
 > **Purpose:** Document the results of prior art searches for each of the
-> three Halehame patent applications. This is required before filing and
+> three Nodbusiness patent applications. This is required before filing and
 > helps the patent attorney write stronger, differentiated claims.
 > **Status:** IN PROGRESS — Complete with attorney before filing
 
@@ -17,9 +17,9 @@
 | EPO | European Patent Office |
 | PCT | Patent Cooperation Treaty — international patent application system |
 | AI | Artificial Intelligence |
-| SGA | Social Graph Affinity — Halehame's discovery signal (Patent 3) |
-| CTMS | Category Taxonomy Match Score — Halehame's discovery signal (Patent 3) |
-| TVS | Trending Velocity Score — Halehame's discovery signal (Patent 3) |
+| SGA | Social Graph Affinity — Nodbusiness's discovery signal (Patent 3) |
+| CTMS | Category Taxonomy Match Score — Nodbusiness's discovery signal (Patent 3) |
+| TVS | Trending Velocity Score — Nodbusiness's discovery signal (Patent 3) |
 | GPS | Geographic Positioning System (used as GPS_score in Patent 3 context) |
 | API | Application Programming Interface |
 | UI | User Interface |
@@ -198,5 +198,5 @@ patent activity from Google, Meta, and Yelp.
 
 ---
 
-*This document is confidential and proprietary to Halehame Technologies.*
-*For use by Halehame management and authorized patent counsel only.*
+*This document is confidential and proprietary to Nodbusiness Technologies.*
+*For use by Nodbusiness management and authorized patent counsel only.*

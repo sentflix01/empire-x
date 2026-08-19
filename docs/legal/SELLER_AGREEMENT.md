@@ -1,6 +1,6 @@
-# Halehame — Seller Agreement (Draft)
+﻿# Nodbusiness — Seller Agreement (Draft)
 
-> The contractual relationship between Halehame and sellers on the platform.
+> The contractual relationship between Nodbusiness and sellers on the platform.
 > **Status:** Internal draft — requires legal review before publication.
 > **Last updated:** August 2026
 
@@ -8,7 +8,7 @@
 
 ## 1. Who This Agreement Is Between
 
-This agreement is between **Halehame** ("the platform") and you, the **seller** ("you"), when you list products or services for sale on Halehame.
+This agreement is between **Nodbusiness** ("the platform") and you, the **seller** ("you"), when you list products or services for sale on Nodbusiness.
 
 By clicking "Start Selling" or listing your first product, you agree to these terms.
 
@@ -16,7 +16,7 @@ By clicking "Start Selling" or listing your first product, you agree to these te
 
 ## 2. Seller Eligibility
 
-You may sell on Halehame if:
+You may sell on Nodbusiness if:
 - You are 18 or older (or have guardian consent if 16–17 with supervisor)
 - You have a valid Ethiopian phone number or email address
 - You are selling items you own or have authority to sell
@@ -31,7 +31,7 @@ You must only list:
 - Accurately described items (condition, size, material, age)
 - Items that comply with the Content Policy
 
-You are solely responsible for product legality in your jurisdiction. Halehame is a platform, not a seller.
+You are solely responsible for product legality in your jurisdiction. Nodbusiness is a platform, not a seller.
 
 ---
 
@@ -82,7 +82,7 @@ When a buyer places an order, you must:
 
 **How you receive payment:**
 1. Buyer pays via Chapa, Stripe, or wallet
-2. Payment is credited to your Halehame wallet (within 48 hours for digital payments)
+2. Payment is credited to your Nodbusiness wallet (within 48 hours for digital payments)
 3. You withdraw to your bank account via "Wallet → Withdraw"
 4. Processing time: 1–3 business days
 
@@ -127,33 +127,33 @@ You may not:
 ## 10. Intellectual Property
 
 - You must own or have rights to all images, text, and trademarks in your listings
-- You grant Halehame a license to display your content on the platform and in marketing
-- Halehame may use your seller name and product images in "Featured Seller" promotions
-- You may opt out of promotional use by emailing sellers@halehame.app
+- You grant Nodbusiness a license to display your content on the platform and in marketing
+- Nodbusiness may use your seller name and product images in "Featured Seller" promotions
+- You may opt out of promotional use by emailing sellers@nodbusiness.app
 
 ---
 
 ## 11. Tax Obligations
 
 You are responsible for:
-- Declaring income from Halehame sales to the Ethiopian Revenue and Customs Authority (ERCA)
+- Declaring income from Nodbusiness sales to the Ethiopian Revenue and Customs Authority (ERCA)
 - Collecting and remitting VAT if your annual sales exceed the VAT registration threshold
-- Halehame will provide transaction records on request for tax reporting
+- Nodbusiness will provide transaction records on request for tax reporting
 
-Halehame does NOT collect or remit taxes on your behalf (except where legally required).
+Nodbusiness does NOT collect or remit taxes on your behalf (except where legally required).
 
 ---
 
 ## 12. Account Suspension & Termination
 
-Halehame may suspend or terminate your seller account for:
+Nodbusiness may suspend or terminate your seller account for:
 - Selling prohibited items
 - Repeated order fulfillment failures
 - Fraud or deception
 - Harassment of buyers
 - Violation of this agreement
 
-**Appeal process:** You may appeal any suspension by emailing sellers@halehame.app within 14 days.
+**Appeal process:** You may appeal any suspension by emailing sellers@nodbusiness.app within 14 days.
 
 ---
 
@@ -161,16 +161,16 @@ Halehame may suspend or terminate your seller account for:
 
 In case of disagreement with a buyer:
 1. First attempt resolution through in-platform chat
-2. If unresolved after 3 days, escalate to Halehame mediation
-3. Halehame's decision in mediation is final and binding
+2. If unresolved after 3 days, escalate to Nodbusiness mediation
+3. Nodbusiness's decision in mediation is final and binding
 
-For disputes with Halehame itself: see Terms of Service §9.
+For disputes with Nodbusiness itself: see Terms of Service §9.
 
 ---
 
 ## 14. Changes to This Agreement
 
-Halehame may update this agreement with 30 days' notice via in-app notification. Continued selling after the effective date constitutes acceptance.
+Nodbusiness may update this agreement with 30 days' notice via in-app notification. Continued selling after the effective date constitutes acceptance.
 
 ---
 

@@ -1,6 +1,6 @@
-# Halehame — Accessibility Standards
+﻿# Nodbusiness — Accessibility Standards
 
-> Making Halehame usable by everyone, including users with disabilities and users on low-end devices.
+> Making Nodbusiness usable by everyone, including users with disabilities and users on low-end devices.
 > Standard: WCAG 2.1 Level AA
 > Last updated: August 2026
 
@@ -26,9 +26,9 @@
 
 ---
 
-## Why Accessibility Matters for Halehame---
+## Why Accessibility Matters for Nodbusiness---
 
-## Why Accessibility Matters for Halehame
+## Why Accessibility Matters for Nodbusiness
 
 1. **Legal obligation:** ADA (US users), WCAG (international best practice), Ethiopian disability rights
 2. **Larger market:** ~15% of the world's population has some form of disability

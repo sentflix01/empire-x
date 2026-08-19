@@ -1,4 +1,4 @@
-# Halehame — Feature Roadmap
+﻿# Nodbusiness — Feature Roadmap
 
 > Last updated: August 9, 2026
 > Based on full codebase state after major engineering sprint (July–August 2026).

@@ -1,4 +1,4 @@
-# Halehame — Fundraising Strategy
+﻿# Nodbusiness — Fundraising Strategy
 
 > **Classification:** Confidential
 > **Last Updated:** August 2026
@@ -36,7 +36,7 @@ Investors can sense desperation. It destroys your negotiating power.
 - You are not in immediate financial crisis
 - You have multiple investors interested (creates competition)
 
-**Halehame's current position:**
+**Nodbusiness's current position:**
 - Platform is built (strong technical foundation)
 - 0 paying users (no traction yet — early stage)
 - Seed round appropriate — but build traction first
@@ -139,8 +139,8 @@ After hitting Phase 1 targets:
 → Africa Netpreneur Prize (Jack Ma Foundation): Competition-based
 ```
 
-**Impact Investment Funds (relevant for Halehame):**
-Halehame creates economic opportunity for small businesses in developing markets.
+**Impact Investment Funds (relevant for Nodbusiness):**
+Nodbusiness creates economic opportunity for small businesses in developing markets.
 This qualifies for impact investment:
 ```
 → Acumen Fund: acumen.org
@@ -239,7 +239,7 @@ Email 1: Subject line: "[Company] — [One sentence traction metric]"
   Sentence 3: Ask for 20-minute call.
 
 Example:
-  "Halehame lets any business build a professional website in 10 minutes.
+  "Nodbusiness lets any business build a professional website in 10 minutes.
   We have 500 published showrooms and 3,000 MAU after 60 days.
   Would you have 20 minutes this week to learn more?"
 ```

@@ -1,8 +1,8 @@
-# Requirements Document
+﻿# Requirements Document
 
 ## Introduction
 
-This feature covers three UI/UX enhancements to the Halehame platform:
+This feature covers three UI/UX enhancements to the Nodbusiness platform:
 
 1. **Business name separator** — When multiple business names (with their Store icons) are displayed in a post header or user profile, each business entry beyond the first is prefixed with a `|` pipe character to visually separate them.
 2. **Bookmark toggle with active-state color** — The bookmark icon on Posts, Products, Showrooms, and Tasks acts as a toggle. A single click bookmarks the item and changes the icon to an amber/active color. A second click unbookmarks the item and reverts the icon to its default muted color.

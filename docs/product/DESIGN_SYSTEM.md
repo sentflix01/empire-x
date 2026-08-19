@@ -1,6 +1,6 @@
-# Halehame — Design System
+﻿# Nodbusiness — Design System
 
-> The visual language of Halehame. Consistent design = trusted product.
+> The visual language of Nodbusiness. Consistent design = trusted product.
 > Last updated: August 2026
 
 ---
@@ -29,10 +29,10 @@
 ## Brand Identity
 
 ### Name & Logo
-- **Name:** Halehame
+- **Name:** Nodbusiness
 - **Tagline:** "The Global Superapp"
 - **Logo:** Crown icon (👑) — symbolises excellence, ambition, and achievement
-- **Logo file:** `frontend-next/public/brand/halehame-logo.png`
+- **Logo file:** `frontend-next/public/brand/nodbusiness-logo.png`
 
 ### Brand Voice
 - **Direct** — say what you mean, no filler
@@ -49,7 +49,7 @@
 
 ```css
 :root {
-  /* Halehame brand colours */
+  /* Nodbusiness brand colours */
   --ex-gold:   #D4AF37;  /* Primary gold — excellence, wealth, achievement */
   --ex-blue:   #2563EB;  /* Empire Blue — trust, technology, sky */
   --ex-purple: #7C3AED;  /* Empire Purple — premium, creativity */

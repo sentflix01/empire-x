@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const { Pool } = require('pg');
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
@@ -22,7 +22,7 @@ async function api(path, options = {}) {
 }
 
 async function main() {
-  console.log('\n====== HALEHAME E2E TEST SUITE ======\n');
+  console.log('\n====== NODBUSINESS E2E TEST SUITE ======\n');
 
   // 1. Health Check
   const health = await test('Health Check', async () => {
@@ -37,7 +37,7 @@ async function main() {
     const r = await api('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'admin@halehame.app', password: 'Admin1234!' })
+      body: JSON.stringify({ email: 'admin@nodbusiness.app', password: 'Admin1234!' })
     });
     if (!r.ok) throw new Error(`Status ${r.status}: ${JSON.stringify(r.data)}`);
     token = r.data.access_token;

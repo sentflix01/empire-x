@@ -1,8 +1,8 @@
-# Halehame — Go-To-Market Strategy
+﻿# Nodbusiness — Go-To-Market Strategy
 
 > **The Three-Phase Platform Launch**
 >
-> Halehame is not launched all at once. It is grown in three deliberate phases,
+> Nodbusiness is not launched all at once. It is grown in three deliberate phases,
 > each phase funding and enabling the next. This is how Telegram, LinkedIn, and
 > Shopify all became platforms — they mastered one thing first, then expanded.
 
@@ -39,7 +39,7 @@
 | LinkedIn | Professional identity | Niche value proposition. Not "another social network." |
 | Telegram | Free messaging + bots | Developers built on it. Value created by ecosystem, not Telegram alone. |
 | Shopify | Easy store creation | Democratized commerce. Then opened to app developers. |
-| **Halehame** | **Business ↔ User connection via showrooms** | Businesses bring their customers. Showrooms are the hook. |
+| **Nodbusiness** | **Business ↔ User connection via showrooms** | Businesses bring their customers. Showrooms are the hook. |
 
 ---
 
@@ -53,7 +53,7 @@
 
 Phase 1 is about building the community that will sustain everything else.
 Like Facebook's early focus on connecting people before introducing ads,
-Halehame's Phase 1 focuses on connecting business owners with their customers
+Nodbusiness's Phase 1 focuses on connecting business owners with their customers
 through the social feed, messaging, and showroom discovery — not on monetizing.
 
 **The hidden engine:** The showroom is the product. Every business that creates
@@ -135,7 +135,7 @@ This scarcity creates desire. People want what they cannot freely have.
 ### What Phase 2 Is
 
 Phase 2 is the Telegram Bot Store moment. Like how Telegram opened bots to
-developers and became far more valuable, Halehame opens the showroom system to
+developers and became far more valuable, Nodbusiness opens the showroom system to
 developers who can build and sell templates — and to paying businesses that want
 professional, unique showrooms.
 
@@ -155,14 +155,14 @@ The price of a showroom plan is not fixed. It responds to:
 
 ```
 Free Tier (Phase 1 users keep this forever)
-└── 1 showroom, basic templates only, Halehame branding visible
+└── 1 showroom, basic templates only, Nodbusiness branding visible
 └── Max 5 products listed
 └── Standard support
 
 Starter Plan (~$19/month, AI-adjusted)
 └── 1 showroom, all standard templates
 └── Unlimited products
-└── Remove Halehame branding
+└── Remove Nodbusiness branding
 └── Basic analytics
 
 Pro Plan (~$49/month, AI-adjusted)
@@ -175,7 +175,7 @@ Pro Plan (~$49/month, AI-adjusted)
 Business Plan (~$99/month, AI-adjusted)
 └── Unlimited showrooms
 └── API access (connect external inventory/data)
-└── White-label (remove all Halehame branding)
+└── White-label (remove all Nodbusiness branding)
 └── Dedicated account manager
 ```
 
@@ -206,7 +206,7 @@ Approved → listed in Template Marketplace
     ↓
 Businesses discover and install the template
     ↓
-Revenue split: 70% developer / 30% Halehame
+Revenue split: 70% developer / 30% Nodbusiness
     ↓
 Developer earns every month a business stays on their template
 ```
@@ -251,7 +251,7 @@ Developer earns every month a business stays on their template
 - Loads in < 2s
 - Accessibility: alt text, labels, keyboard navigation
 - No broken links or placeholder content
-- Follows Halehame design system
+- Follows Nodbusiness design system
 - At least 3 category-specific section types
 
 ### 2C — Featured Placement
@@ -291,7 +291,7 @@ Feed Promoted Post (per post): $9–$49 (AI-priced by estimated reach)
 ### What Phase 3 Is
 
 Phase 3 is when the builder becomes available to everyone with no gatekeeping.
-Like Shopify opened to all merchants, Halehame opens the builder to every user —
+Like Shopify opened to all merchants, Nodbusiness opens the builder to every user —
 free and paid tiers both available.
 
 **The key difference from Phase 2:** The developer marketplace from Phase 2 still
@@ -302,7 +302,7 @@ who built great templates in Phase 2 now have a massive new distribution channel
 
 **Free tier gets richer:**
 - Every user can build 1 showroom using any free template
-- Halehame branding visible ("Powered by Halehame" badge)
+- Nodbusiness branding visible ("Powered by Nodbusiness" badge)
 - This is the growth engine — every free showroom is a distribution channel
 
 **Paid tiers unlock premium templates:**
@@ -316,8 +316,8 @@ who built great templates in Phase 2 now have a massive new distribution channel
 - Direct fan-to-creator payments
 
 **Enterprise tier:**
-- White-label: entire Halehame platform under client's domain
-- Custom template development by Halehame team
+- White-label: entire Nodbusiness platform under client's domain
+- Custom template development by Nodbusiness team
 - SLA + dedicated support
 - Pricing: custom
 
@@ -368,7 +368,7 @@ Phase 3 Revenue: Scale all Phase 2 streams × 10
 
 ## The Competitive Moat
 
-What makes Halehame's position defensible long-term:
+What makes Nodbusiness's position defensible long-term:
 
 ```
 1. Network Effect
@@ -376,8 +376,8 @@ What makes Halehame's position defensible long-term:
    Each phase multiplies this effect.
 
 2. Developer Ecosystem
-   Developers who invest in building templates have a stake in Halehame's success.
-   They become advocates and improve quality without Halehame spending money.
+   Developers who invest in building templates have a stake in Nodbusiness's success.
+   They become advocates and improve quality without Nodbusiness spending money.
 
 3. Data Advantage
    AI pricing uses real platform data (demand, engagement, conversion).
@@ -385,10 +385,10 @@ What makes Halehame's position defensible long-term:
 
 4. Switching Cost
    A business with a published showroom, active customers, order history,
-   and reviews has high switching cost. Their customers are on Halehame.
+   and reviews has high switching cost. Their customers are on Nodbusiness.
 
 5. Template Lock-in
-   Developers publishing on Halehame marketplace earn from the platform.
+   Developers publishing on Nodbusiness marketplace earn from the platform.
    Leaving means losing that income stream.
 ```
 

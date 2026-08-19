@@ -1,6 +1,6 @@
-# Halehame — Competitive Analysis
+﻿# Nodbusiness — Competitive Analysis
 
-> Understanding who we are up against, what they do well, and where Halehame wins.
+> Understanding who we are up against, what they do well, and where Nodbusiness wins.
 > Reference market: Ethiopia + East Africa. Global competitive lens applied throughout.
 > Last updated: August 2026
 
@@ -27,7 +27,7 @@
 
 ## The Three Competitive Layers
 
-Halehame competes at three levels simultaneously:
+Nodbusiness competes at three levels simultaneously:
 
 ```
 Layer 1: Global super-apps (WeChat, Line, Grab, Gojek)
@@ -40,7 +40,7 @@ Layer 3: African & Ethiopian local players (Telebirr, Chapa, local apps)
 ## Layer 1: Global Super-Apps
 
 ### WeChat (Tencent, China)
-| Dimension | WeChat | Halehame |
+| Dimension | WeChat | Nodbusiness |
 |---|---|---|
 | Monthly Active Users | 1.3 billion | — (starting) |
 | Core model | Social + payments + mini-apps | Social + commerce + services |
@@ -49,10 +49,10 @@ Layer 3: African & Ethiopian local players (Telebirr, Chapa, local apps)
 | Key advantage | Network effects, government backing | Ethiopia-first, local payments |
 | Our edge | **We launch with local payment rails from day 1** | |
 
-**Lesson:** WeChat's dominance came from owning payments early. Halehame already has Chapa (ETB native). This is our WeChat Pay moment.
+**Lesson:** WeChat's dominance came from owning payments early. Nodbusiness already has Chapa (ETB native). This is our WeChat Pay moment.
 
 ### Gojek (Indonesia) / Grab (Southeast Asia)
-| Dimension | Gojek | Halehame |
+| Dimension | Gojek | Nodbusiness |
 |---|---|---|
 | Core model | Ride + food + payments + social | Social + commerce + services |
 | Users | 190M+ | — (starting) |
@@ -111,7 +111,7 @@ Layer 3: African & Ethiopian local players (Telebirr, Chapa, local apps)
 ### WhatsApp Business
 | Strength | Their Gap | Our Opportunity |
 |---|---|---|
-| 2B+ users | No marketplace | Halehame full marketplace |
+| 2B+ users | No marketplace | Nodbusiness full marketplace |
 | Ethiopian businesses live here | No payment processing | Chapa integration |
 | Business catalog | Basic, no checkout | Full cart + checkout |
 | Broadcast lists | One-way | Channels (already built) |
@@ -122,18 +122,18 @@ Layer 3: African & Ethiopian local players (Telebirr, Chapa, local apps)
 | Strength | Their Gap | Our Opportunity |
 |---|---|---|
 | 30M+ Ethiopian users | No social layer | Social + marketplace |
-| Mobile money market leader | Not a marketplace | Halehame marketplace |
+| Mobile money market leader | Not a marketplace | Nodbusiness marketplace |
 | Government-backed trust | Rigid, slow innovation | Agile, developer-friendly |
 | USSD support | Web/app experience is dated | Modern mobile-first UI |
 
-**Strategy:** Integrate Telebirr as a payment option through Chapa (Telebirr is a Chapa payment method). Turn Telebirr users into Halehame users.
+**Strategy:** Integrate Telebirr as a payment option through Chapa (Telebirr is a Chapa payment method). Turn Telebirr users into Nodbusiness users.
 
 ---
 
 ## African Competitors
 
 ### Jumia (Pan-Africa)
-| Dimension | Jumia | Halehame |
+| Dimension | Jumia | Nodbusiness |
 |---|---|---|
 | Model | E-commerce marketplace | Super-app (social + commerce) |
 | Ethiopia presence | Limited | Primary market |
@@ -143,16 +143,16 @@ Layer 3: African & Ethiopian local players (Telebirr, Chapa, local apps)
 
 ### Flutterwave / Paystack (Fintech)
 - Payment infrastructure players — potential partners, not competitors
-- Halehame can use their APIs for future payment expansion
+- Nodbusiness can use their APIs for future payment expansion
 
 ### Ama Platform (Ethiopia, emerging)
 - Local social/commerce hybrid
 - Smaller engineering team, less comprehensive
-- Halehame has more features, better UX, more payment options
+- Nodbusiness has more features, better UX, more payment options
 
 ---
 
-## Halehame's Unique Position
+## Nodbusiness's Unique Position
 
 ```
 The only platform that combines:
@@ -176,7 +176,7 @@ No single competitor does all of this. That's the moat.
 
 ## Feature Benchmark
 
-| Feature | Facebook | LinkedIn | Instagram | Shopify | WhatsApp | Halehame |
+| Feature | Facebook | LinkedIn | Instagram | Shopify | WhatsApp | Nodbusiness |
 |---|---|---|---|---|---|---|
 | Social feed | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | Business pages | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
@@ -197,6 +197,6 @@ No single competitor does all of this. That's the moat.
 
 1. **Win Ethiopia first** — Local payments, Amharic, real understanding of local commerce
 2. **Network effects** — Every seller needs buyers; every buyer needs sellers. Be the platform where both live.
-3. **Don't fight WhatsApp** — Integrate with it (order notifications). Then gradually pull sellers to manage their businesses on Halehame.
+3. **Don't fight WhatsApp** — Integrate with it (order notifications). Then gradually pull sellers to manage their businesses on Nodbusiness.
 4. **Build the LinkedIn for Ethiopia** — Professional profiles, verified badges, task marketplace, business analytics.
 5. **Expand to East Africa** — Kenya, Uganda, Tanzania share payment rails (M-Pesa). Port after Ethiopia is established.

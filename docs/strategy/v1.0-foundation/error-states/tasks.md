@@ -1,4 +1,4 @@
-# Error States — Tasks
+﻿# Error States — Tasks
 
 ## Status: 🔴 Not Started
 
@@ -18,7 +18,7 @@
 
 - [ ] Update `ErrorBoundary` to show branded recovery UI
   - Current: likely generic React error boundary
-  - Target: Halehame-branded illustration + "Something went wrong" + "Refresh page" button
+  - Target: Nodbusiness-branded illustration + "Something went wrong" + "Refresh page" button
   - Include error ID (from Sentry) so user can report it
 
 ---

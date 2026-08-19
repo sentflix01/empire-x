@@ -1,12 +1,12 @@
-[
+﻿[
   {"type":"hero","title":"T21 Renderer QA","subtitle":"All 25 builder sections render","cta":"Explore","heroBg":"#7C3AED","heroBg2":"#2563EB"},
   {"type":"about","aboutTitle":"About T21","aboutDesc":"Builder-shape about section with description.","aboutImage":""},
   {"type":"items","itemsTitle":"Our Items","items":[{"name":"Item One","desc":"First item","price":"299 ETB","icon":"fa-box"},{"name":"Item Two","desc":"Second item","price":"499 ETB","icon":"fa-box"}]},
   {"type":"gallery","galleryTitle":"QA Gallery","galleryImages":[{"url":"https://picsum.photos/seed/t21a/400/400","caption":"Photo A"},{"url":"https://picsum.photos/seed/t21b/400/400","caption":"Photo B"},{"url":"https://picsum.photos/seed/t21c/400/400","caption":"Photo C"}]},
   {"type":"services","servTitle":"QA Services","services":[{"name":"Web Design","desc":"Design work","icon":"fa-cog"},{"name":"Hosting","desc":"Managed hosting","icon":"fa-server"}]},
   {"type":"testimonials","testTitle":"QA Testimonials","testimonials":[{"quote":"Everything renders!","author":"Jane Doe","role":"CEO, QA Inc"}]},
-  {"type":"contact","location":"Bole Road, Addis Ababa","phone":"+251 912 345 678","email":"qa@halehame.app","hours":"Mon-Sat 9AM-6PM","whatsapp":"+251912345678"},
-  {"type":"social","facebook":"https://facebook.com/halehame","instagram":"https://instagram.com/halehame","telegram":"https://t.me/halehame","youtube":"","tiktok":"","twitter":"","linkedin":""},
+  {"type":"contact","location":"Bole Road, Addis Ababa","phone":"+251 912 345 678","email":"qa@nodbusiness.app","hours":"Mon-Sat 9AM-6PM","whatsapp":"+251912345678"},
+  {"type":"social","facebook":"https://facebook.com/nodbusiness","instagram":"https://instagram.com/nodbusiness","telegram":"https://t.me/nodbusiness","youtube":"","tiktok":"","twitter":"","linkedin":""},
   {"type":"pricing","pricingTitle":"QA Pricing","plans":[{"name":"Basic","price":"499 ETB","period":"/mo","features":"Feature 1, Feature 2"},{"name":"Pro","price":"999 ETB","period":"/mo","features":"All basics, Priority support"}]},
   {"type":"team","teamTitle":"QA Team","members":[{"name":"Alex Rivera","role":"Lead","image":"","bio":"Builder team member bio."}]},
   {"type":"faq","faqTitle":"QA FAQ","faqs":[{"question":"Does it render?","answer":"Yes, all 25 types."}]},

@@ -1,7 +1,7 @@
-# Halehame — Master Acronym Glossary
+﻿# Nodbusiness — Master Acronym Glossary
 
 > This is the single source of truth for all acronyms used across the
-> Halehame project. Every document in docs/ should reference this glossary
+> Nodbusiness project. Every document in docs/ should reference this glossary
 > and define acronyms inline on first use like this: `API (Application Programming Interface)`.
 
 ---
@@ -48,7 +48,7 @@
 | CSS | Cascading Style Sheets | Frontend — web styling language |
 | CTA | Call to Action | UX/Marketing — button or link prompting user to take a specific action |
 | CTO | Chief Technology Officer | Business — technology leader |
-| CTMS | Category Taxonomy Match Score | Patent — Halehame's discovery signal (Patent 3) |
+| CTMS | Category Taxonomy Match Score | Patent — Nodbusiness's discovery signal (Patent 3) |
 
 ## D
 
@@ -199,7 +199,7 @@
 | SAFE | Simple Agreement for Future Equity | Finance — pre-seed investment instrument (converts to equity later) |
 | SDG | Sustainable Development Goals | Legal/Impact — UN's 17 global goals for sustainable development |
 | SEO | Search Engine Optimization | Marketing — improving website visibility in search engine results |
-| SGA | Social Graph Affinity | Patent — Halehame's discovery signal (Patent 3) |
+| SGA | Social Graph Affinity | Patent — Nodbusiness's discovery signal (Patent 3) |
 | SHA | Shareholders Agreement | Legal — legal contract governing company ownership and governance |
 | SLA | Service Level Agreement | Operations — contract specifying uptime and performance guarantees |
 | SOM | Serviceable Obtainable Market | Finance — realistic market share you can capture within a timeframe |
@@ -220,14 +220,14 @@
 | ToS | Terms of Service | Legal — legal agreement between platform and users |
 | TTL | Time to Live | Engineering — duration a cache entry remains valid |
 | TTFB | Time to First Byte | Performance — time from request to first byte of response |
-| TVS | Trending Velocity Score | Patent — Halehame's novel discovery signal (Patent 3) |
+| TVS | Trending Velocity Score | Patent — Nodbusiness's novel discovery signal (Patent 3) |
 
 ## U
 
 | Acronym | Full Form | Context |
 |---------|-----------|---------|
 | UI | User Interface | Design — visual elements users interact with |
-| URL | Uniform Resource Locator | Technology — web address (e.g., https://halehame.app/feed) |
+| URL | Uniform Resource Locator | Technology — web address (e.g., https://nodbusiness.app/feed) |
 | USD | United States Dollar | Finance — US currency; also used as international reference |
 | USPTO | United States Patent and Trademark Office | Legal — US government body for patent and trademark registration |
 | UX | User Experience | Design — the overall experience of using a product |

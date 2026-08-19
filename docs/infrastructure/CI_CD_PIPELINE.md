@@ -1,4 +1,4 @@
-# Halehame — CI/CD Pipeline
+﻿# Nodbusiness — CI/CD Pipeline
 
 > How code goes from developer laptop to production safely and automatically.
 > Last updated: August 2026
@@ -179,8 +179,8 @@ This "expand/contract" pattern has zero downtime.
 | Tier | Branch | Database | URL |
 |---|---|---|---|
 | **Local dev** | any | Local PostgreSQL | localhost:3000 |
-| **Staging** | `develop` | Neon branch | staging.halehame.app |
-| **Production** | `main` | Neon production | halehame.vercel.app |
+| **Staging** | `develop` | Neon branch | staging.nodbusiness.app |
+| **Production** | `main` | Neon production | nodbusiness.vercel.app |
 
 ### Neon Database Branching for Staging
 
@@ -357,7 +357,7 @@ cd frontend-next && npx lint-staged
     to: ${{ secrets.TELEGRAM_CHAT_ID }}
     token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
     message: |
-      ✅ Halehame deployed successfully
+      ✅ Nodbusiness deployed successfully
       Branch: ${{ github.ref_name }}
       Commit: ${{ github.sha }}
       Author: ${{ github.actor }}
@@ -370,7 +370,7 @@ cd frontend-next && npx lint-staged
     to: ${{ secrets.TELEGRAM_CHAT_ID }}
     token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
     message: |
-      ❌ Halehame deployment FAILED
+      ❌ Nodbusiness deployment FAILED
       Branch: ${{ github.ref_name }}
       Commit: ${{ github.sha }}
       Author: ${{ github.actor }}

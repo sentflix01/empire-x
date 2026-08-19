@@ -1,6 +1,6 @@
-version: '3.9'
+﻿version: '3.9'
 
-# Halehame — Local development with Docker Compose
+# Nodbusiness — Local development with Docker Compose
 # Usage:
 #   docker compose up          — start all services
 #   docker compose up backend  — start backend + dependencies only
@@ -11,18 +11,18 @@ services:
   # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: halehame_postgres
+    container_name: nodbusiness_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: halehame
-      POSTGRES_PASSWORD: halehame_dev
-      POSTGRES_DB: halehame
+      POSTGRES_USER: nodbusiness
+      POSTGRES_PASSWORD: nodbusiness_dev
+      POSTGRES_DB: nodbusiness
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U halehame"]
+      test: ["CMD-SHELL", "pg_isready -U nodbusiness"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,7 +30,7 @@ services:
   # ── Redis ────────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: halehame_redis
+    container_name: nodbusiness_redis
     restart: unless-stopped
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
@@ -48,7 +48,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: halehame_backend
+    container_name: nodbusiness_backend
     restart: unless-stopped
     depends_on:
       postgres:
@@ -58,7 +58,7 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3001
-      DATABASE_URL: postgresql://halehame:halehame_dev@postgres:5432/halehame
+      DATABASE_URL: postgresql://nodbusiness:nodbusiness_dev@postgres:5432/nodbusiness
       REDIS_URL: redis://redis:6379
       JWT_SECRET: local_dev_secret_change_in_production
       FRONTEND_URL: http://localhost:3000
@@ -76,7 +76,7 @@ services:
   # ── Frontend (Next.js) ────────────────────────────────────────────────────────
   frontend:
     image: node:20-alpine
-    container_name: halehame_frontend
+    container_name: nodbusiness_frontend
     working_dir: /app
     restart: unless-stopped
     depends_on:

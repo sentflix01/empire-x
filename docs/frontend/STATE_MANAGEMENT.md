@@ -1,4 +1,4 @@
-# Halehame — Frontend State Management
+﻿# Nodbusiness — Frontend State Management
 
 > How state is managed in `frontend-next/`. Read this before adding new state.
 > Last updated: August 2026

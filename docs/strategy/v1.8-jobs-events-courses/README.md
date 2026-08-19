@@ -1,7 +1,7 @@
-# v1.8 — Jobs, Events & Courses
+﻿# v1.8 — Jobs, Events & Courses
 
 > **Theme:** Community Value
-> **Goal:** Halehame is where Ethiopian professionals find work, attend events, and grow their skills. These three sections turn the app from a social platform into a career and community platform.
+> **Goal:** Nodbusiness is where Ethiopian professionals find work, attend events, and grow their skills. These three sections turn the app from a social platform into a career and community platform.
 
 ---
 

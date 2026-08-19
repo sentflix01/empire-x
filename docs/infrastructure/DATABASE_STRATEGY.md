@@ -1,4 +1,4 @@
-# Halehame — Database Strategy
+﻿# Nodbusiness — Database Strategy
 
 > How the database evolves from a single instance to a globally distributed system.
 > Last updated: August 2026
@@ -62,7 +62,7 @@ Single PostgreSQL instance (Neon)
 
 ```sql
 -- All traffic on one connection string
-DATABASE_URL=postgresql://user:pass@neon.tech/halehame
+DATABASE_URL=postgresql://user:pass@neon.tech/nodbusiness
 
 -- Enable connection pooling NOW (critical)
 -- In Neon Console → Project → Settings → Connection Pooling
@@ -288,7 +288,7 @@ async function backupDatabase() {
   // Upload to R2
   const client = new S3Client({ endpoint: process.env.R2_ENDPOINT });
   await client.send(new PutObjectCommand({
-    Bucket: 'halehame-backups',
+    Bucket: 'nodbusiness-backups',
     Key: `database/${filename}`,
     Body: require('fs').readFileSync(`/tmp/${filename}`),
   }));

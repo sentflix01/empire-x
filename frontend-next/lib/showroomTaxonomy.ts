@@ -1,9 +1,9 @@
-/**
+﻿/**
  * showroomTaxonomy.ts
  *
  * Maps the global 5-class business taxonomy (Primary → Quinary sectors,
  * 500+ business types worldwide) into 20 practical categories that
- * Halehame's showroom builder can serve intelligently.
+ * Nodbusiness's showroom builder can serve intelligently.
  *
  * Design principle: Any business in the world should be able to find
  * their category in under 10 seconds — by typing keywords OR by browsing.

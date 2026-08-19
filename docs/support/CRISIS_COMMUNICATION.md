@@ -1,4 +1,4 @@
-# Halehame — Crisis Communication Playbook
+﻿# Nodbusiness — Crisis Communication Playbook
 
 > **What to say, who says it, and when — when things go wrong.**
 > A platform that communicates badly in a crisis loses more users than the crisis itself caused.
@@ -123,16 +123,16 @@ Replace [PLACEHOLDERS] with specifics:
 ### Template 3: Resolution Announcement
 > **Status Page:**
 > 
-> "Resolved [TIME UTC]: The issue affecting [feature] has been resolved. All services are now operating normally. If you're still experiencing problems, please [clear your cache / try logging out and back in / contact support at support@halehame.com].
+> "Resolved [TIME UTC]: The issue affecting [feature] has been resolved. All services are now operating normally. If you're still experiencing problems, please [clear your cache / try logging out and back in / contact support at support@nodbusiness.com].
 >
 > We apologize for the inconvenience. A full post-mortem will be published within [48 hours / 7 days]."
 
 ### Template 4: Data Breach Notification (user email)
-> **Subject:** Important security notice about your Halehame account
+> **Subject:** Important security notice about your Nodbusiness account
 >
 > "Dear [Name],
 >
-> We're writing to inform you of a security incident that may have affected your Halehame account. We take the security of your information extremely seriously and want to be transparent about what happened.
+> We're writing to inform you of a security incident that may have affected your Nodbusiness account. We take the security of your information extremely seriously and want to be transparent about what happened.
 >
 > **What happened:**
 > On [date], we discovered that [brief description of what occurred].
@@ -149,11 +149,11 @@ Replace [PLACEHOLDERS] with specifics:
 > **Our commitment:**
 > We are continuing to investigate and will update you if we learn anything new. We have notified relevant regulatory authorities as required by law.
 >
-> If you have questions, please contact us at security@halehame.com.
+> If you have questions, please contact us at security@nodbusiness.com.
 >
 > Sincerely,
 > [CEO Name]
-> CEO, Halehame Technologies"
+> CEO, Nodbusiness Technologies"
 
 ### Template 5: Regulatory Breach Notification (GDPR 72-hour)
 > *This template is for notifying the relevant Data Protection Authority (DPA) within 72 hours of discovering a breach affecting EU users.*
@@ -163,12 +163,12 @@ Replace [PLACEHOLDERS] with specifics:
 > Include: Nature of breach, categories and approximate number of individuals concerned, likely consequences, measures taken or proposed.
 
 ### Template 6: Negative Press Response
-> "We're aware of the recent [article/social media post/report] regarding Halehame. [Choose one:]
+> "We're aware of the recent [article/social media post/report] regarding Nodbusiness. [Choose one:]
 > - We take these concerns seriously and are investigating.
 > - We disagree with the characterization and here is our position: [facts].
 > - We have already addressed this: [what was done].
 > 
-> We're committed to [transparency / the safety of our users / continuous improvement]. For press inquiries: press@halehame.com"
+> We're committed to [transparency / the safety of our users / continuous improvement]. For press inquiries: press@nodbusiness.com"
 
 ---
 
@@ -191,7 +191,7 @@ Replace [PLACEHOLDERS] with specifics:
 
 | Channel | Use Case | Who Posts | Approval |
 |---------|---------|---------|---------|
-| Status page (status.halehame.com) | All technical incidents | CTO / technical team | Incident Commander |
+| Status page (status.nodbusiness.com) | All technical incidents | CTO / technical team | Incident Commander |
 | In-app banner | Incidents affecting active users | Support team | CEO |
 | Email (to affected users) | Data breaches, payment issues, major outages | CEO (from CEO email) | Legal review if breach |
 | Twitter / X | Public incidents; fast acknowledgment | Communications Lead | CEO |
@@ -255,4 +255,4 @@ Every 6 months, run a simulated crisis drill:
 
 *Owner: CEO*
 *Review cycle: Annually, or after any major incident*
-*Crisis contact: ceo@halehame.com | Press: press@halehame.com | Security: security@halehame.com*
+*Crisis contact: ceo@nodbusiness.com | Press: press@nodbusiness.com | Security: security@nodbusiness.com*

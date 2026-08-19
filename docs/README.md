@@ -1,6 +1,6 @@
-# Halehame — Engineering & Business Documentation
+﻿# Nodbusiness — Engineering & Business Documentation
 
-> **The complete knowledge base for building Halehame into a global platform.**
+> **The complete knowledge base for building Nodbusiness into a global platform.**
 > Every decision, standard, policy, strategy, and plan lives here.
 > If it is not documented here, it does not officially exist.
 > Last updated: August 2026
@@ -242,7 +242,7 @@ docs/
 | Document | Purpose |
 |----------|---------|
 | `brand/BRAND_BOOK.md` | Logo, colors, typography, photography |
-| `brand/VOICE_AND_TONE.md` | How Halehame communicates |
+| `brand/VOICE_AND_TONE.md` | How Nodbusiness communicates |
 | `brand/PR_STRATEGY.md` | Press relations and thought leadership |
 
 ---
@@ -298,5 +298,5 @@ docs/
 
 ---
 
-*This documentation is the operational backbone of Halehame Technologies.*
+*This documentation is the operational backbone of Nodbusiness Technologies.*
 *Keep it updated. If something is not documented, it will be forgotten.*

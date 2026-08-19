@@ -1,4 +1,4 @@
-// @ts-check
+﻿// @ts-check
 import React from 'react';
 
 export type VerificationType = 'personal' | 'business' | 'creator' | 'official' | null | undefined;
@@ -13,7 +13,7 @@ const BADGE_CONFIG = {
   personal:  { color: '#2563EB', label: 'Verified Person',        title: '✓' },
   business:  { color: '#10B981', label: 'Verified Business',      title: '✓' },
   creator:   { color: '#7C3AED', label: 'Verified Creator',       title: '✓' },
-  official:  { color: '#2563EB', label: 'Halehame Official',      title: '✓' },
+  official:  { color: '#2563EB', label: 'Nodbusiness Official',      title: '✓' },
 };
 
 const SIZE = {

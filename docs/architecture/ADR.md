@@ -1,4 +1,4 @@
-# Halehame — Architecture Decision Records (ADRs)
+﻿# Nodbusiness — Architecture Decision Records (ADRs)
 
 > ADRs document the *why* behind key architectural choices.
 > Each record captures the context, the options considered, the decision made, and its consequences.
@@ -37,7 +37,7 @@
 
 **Status:** Accepted | **Date:** July 2026
 
-**Context:** Halehame started with React + Vite. Public-facing pages (showrooms, product listings, public profiles) need SEO (Search Engine Optimization) and server-rendering. Server Components reduce client-side JavaScript bundle size.
+**Context:** Nodbusiness started with React + Vite. Public-facing pages (showrooms, product listings, public profiles) need SEO (Search Engine Optimization) and server-rendering. Server Components reduce client-side JavaScript bundle size.
 
 **Options:** Keep Vite SPA · Hybrid (Next.js for public, Vite for app) · Full Next.js migration
 
@@ -199,7 +199,7 @@
 
 **Status:** Accepted | **Date:** August 2026
 
-**Context:** Original platform was designed for Ethiopia. Platform vision is global — any business anywhere can use Halehame.
+**Context:** Original platform was designed for Ethiopia. Platform vision is global — any business anywhere can use Nodbusiness.
 
 **Decision:** All UI text, defaults, and documentation target global users. Ethiopian context (ETB currency, Chapa payment, Amharic language, Ethiopian examples) is preserved as a reference and example, not as the primary framing. Currency defaults to USD or user's local currency. Language defaults to English with Amharic as supported locale.
 

@@ -1,4 +1,4 @@
-# Core Web Vitals — Audit
+﻿# Core Web Vitals — Audit
 
 ## Metrics to Measure
 
@@ -38,7 +38,7 @@ Run Lighthouse in Chrome DevTools (Mobile, Slow 4G simulation) on these pages:
 ## Measurement Commands
 ```bash
 # Run Lighthouse programmatically
-npx lighthouse https://halehame.vercel.app/feed \
+npx lighthouse https://nodbusiness.vercel.app/feed \
   --preset=perf --emulated-form-factor=mobile \
   --output=json --output-path=lighthouse-feed.json
 

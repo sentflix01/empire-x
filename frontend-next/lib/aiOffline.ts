@@ -1,6 +1,6 @@
-/**
+﻿/**
  * aiOffline.ts
- * Rule-based offline AI engine for the Halehame assistant.
+ * Rule-based offline AI engine for the Nodbusiness assistant.
  * Returns an answer string if the question matches a known pattern,
  * or null if the question should be forwarded to the OpenAI API.
  */
@@ -14,15 +14,15 @@ const RULES: Rule[] = [
   // ── Greetings ──────────────────────────────────────────────────────────────
   {
     patterns: [/^(hi|hello|hey|selam|salam|good morning|good afternoon|good evening)\b/i],
-    answer: "👋 Hello! I'm the Halehame AI assistant. I can help you navigate the app, write descriptions, find products, post tasks, and more. What would you like to do today?",
+    answer: "👋 Hello! I'm the Nodbusiness AI assistant. I can help you navigate the app, write descriptions, find products, post tasks, and more. What would you like to do today?",
   },
   {
     patterns: [/how are you|are you okay|what('s| is) up/i],
-    answer: "I'm doing great, thanks for asking! 😊 Ready to help you get the most out of Halehame. What can I do for you?",
+    answer: "I'm doing great, thanks for asking! 😊 Ready to help you get the most out of Nodbusiness. What can I do for you?",
   },
   {
     patterns: [/who are you|what are you|what can you do|your name/i],
-    answer: "I'm **Halehame AI** — your built-in smart assistant. I can help with:\n• Navigating the app\n• Writing product/business descriptions\n• Answering how-to questions\n• Tips for growing your business on Halehame\n\nAsk me anything!",
+    answer: "I'm **Nodbusiness AI** — your built-in smart assistant. I can help with:\n• Navigating the app\n• Writing product/business descriptions\n• Answering how-to questions\n• Tips for growing your business on Nodbusiness\n\nAsk me anything!",
   },
 
   // ── Showroom ───────────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ const RULES: Rule[] = [
   },
   {
     patterns: [/what is.*showroom|showroom mean|showroom feature/i],
-    answer: "A Showroom is your personal business mini-website inside Halehame. It's like having a professional webpage — with your products, services, gallery, testimonials, contact info, and social links — all in one place. Share it with customers via a direct link. 🌟",
+    answer: "A Showroom is your personal business mini-website inside Nodbusiness. It's like having a professional webpage — with your products, services, gallery, testimonials, contact info, and social links — all in one place. Share it with customers via a direct link. 🌟",
   },
 
   // ── Marketplace / Products ─────────────────────────────────────────────────
@@ -66,13 +66,13 @@ const RULES: Rule[] = [
   // ── Referral ───────────────────────────────────────────────────────────────
   {
     patterns: [/referral|refer.*friend|invite.*friend|referral.*code|how.*referral/i],
-    answer: "🎁 The Halehame Referral Program:\n• Go to **My Account → Referral** in the sidebar\n• Copy your unique referral code or link\n• Share it with friends\n• When they sign up using your code → you earn **50 points**, they earn **20 welcome points**\n\nPoints can be used for discounts and rewards!",
+    answer: "🎁 The Nodbusiness Referral Program:\n• Go to **My Account → Referral** in the sidebar\n• Copy your unique referral code or link\n• Share it with friends\n• When they sign up using your code → you earn **50 points**, they earn **20 welcome points**\n\nPoints can be used for discounts and rewards!",
   },
 
   // ── Wallet ─────────────────────────────────────────────────────────────────
   {
     patterns: [/wallet|top.?up|withdraw|balance|how.*pay/i],
-    answer: "💳 Your Halehame Wallet:\n• Go to **My Account → Wallet**\n• **Top Up**: Add funds (connected to Chapa/Stripe in production)\n• **Withdraw**: Request a payout to your bank account\n• **History**: See all transactions\n\nYour wallet balance is used for marketplace purchases and task payments.",
+    answer: "💳 Your Nodbusiness Wallet:\n• Go to **My Account → Wallet**\n• **Top Up**: Add funds (connected to Chapa/Stripe in production)\n• **Withdraw**: Request a payout to your bank account\n• **History**: See all transactions\n\nYour wallet balance is used for marketplace purchases and task payments.",
   },
 
   // ── Messages / Chat ────────────────────────────────────────────────────────
@@ -112,7 +112,7 @@ const RULES: Rule[] = [
   // ── Points ─────────────────────────────────────────────────────────────────
   {
     patterns: [/points|earn.*points|what.*points|rewards/i],
-    answer: "⭐ Halehame Points:\n• Earn **50 points** when someone uses your referral code\n• Earn **20 points** when you sign up with a referral code\n• More ways to earn points are coming soon!\n\nCheck your points balance on your **Profile** or the **Referral** page.",
+    answer: "⭐ Nodbusiness Points:\n• Earn **50 points** when someone uses your referral code\n• Earn **20 points** when you sign up with a referral code\n• More ways to earn points are coming soon!\n\nCheck your points balance on your **Profile** or the **Referral** page.",
   },
 
   // ── Events / Jobs / Courses ────────────────────────────────────────────────
@@ -140,17 +140,17 @@ const RULES: Rule[] = [
   // ── Offline / connectivity ─────────────────────────────────────────────────
   {
     patterns: [/offline|no internet|no connection|works offline/i],
-    answer: "📶 Halehame works in limited offline mode:\n• Previously loaded pages and content are cached\n• You can read your feed, messages, and notifications\n• Actions that require internet (posting, buying) will resume when you reconnect\n\nFor the best experience, stay connected to WiFi or mobile data.",
+    answer: "📶 Nodbusiness works in limited offline mode:\n• Previously loaded pages and content are cached\n• You can read your feed, messages, and notifications\n• Actions that require internet (posting, buying) will resume when you reconnect\n\nFor the best experience, stay connected to WiFi or mobile data.",
   },
 
   // ── Help / general ─────────────────────────────────────────────────────────
   {
     patterns: [/help|support|contact.*support|problem|issue|bug/i],
-    answer: "🆘 Need help? Here's what you can do:\n• Use this AI assistant for instant answers\n• Check the **Settings** in your profile for account options\n• For serious issues, contact us at **support@halehame.app**\n\nWhat specific problem are you having? I'll do my best to help!",
+    answer: "🆘 Need help? Here's what you can do:\n• Use this AI assistant for instant answers\n• Check the **Settings** in your profile for account options\n• For serious issues, contact us at **support@nodbusiness.app**\n\nWhat specific problem are you having? I'll do my best to help!",
   },
   {
     patterns: [/thank|thanks|thank you|appreciate/i],
-    answer: "You're welcome! 😊 Happy to help. Is there anything else you'd like to know about Halehame?",
+    answer: "You're welcome! 😊 Happy to help. Is there anything else you'd like to know about Nodbusiness?",
   },
 ];
 

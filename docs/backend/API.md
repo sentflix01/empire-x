@@ -1,6 +1,6 @@
-# Halehame — API Documentation
+﻿# Nodbusiness — API Documentation
 
-> Base URL: `http://localhost:3001` (dev) · `https://api.halehame.app` (production)
+> Base URL: `http://localhost:3001` (dev) · `https://api.nodbusiness.app` (production)
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.
 > Errors follow `{ "error": "message" }` format.
 > Last updated: August 2026

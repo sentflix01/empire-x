@@ -1,4 +1,4 @@
-# Halehame — Data Governance Framework
+﻿# Nodbusiness — Data Governance Framework
 
 > **How data flows, who owns it, how it is protected, and how long it is kept.**
 > Data governance is the foundation of user trust, regulatory compliance, and platform integrity.
@@ -36,7 +36,7 @@
 
 ## 1. Data Classification
 
-All data on the Halehame platform is classified into one of four tiers:
+All data on the Nodbusiness platform is classified into one of four tiers:
 
 ### Tier 1 — Public
 Data intentionally made available to anyone:
@@ -58,7 +58,7 @@ Data accessible to authenticated users within their own scope:
 **Controls:** Authentication required, RBAC (Role-Based Access Control), HTTPS (TLS 1.2+).
 
 ### Tier 3 — Confidential
-Data that is sensitive and restricted to Halehame employees and systems:
+Data that is sensitive and restricted to Nodbusiness employees and systems:
 - Full names + addresses + phone numbers (combined)
 - KYC documents and identity verification data
 - Payment card metadata (not full card numbers — Stripe handles those)
@@ -96,7 +96,7 @@ Highest sensitivity — legal, financial, and identity data:
 | Session tokens | Tier 3 | Redis (TTL 24h) | Auto-expiry |
 | Error logs | Tier 3 | Sentry | 90 days |
 | Server logs | Tier 3 | Railway/Cloud | 30 days |
-| Payment tokens | Tier 4 | Stripe (never in Halehame DB) | Managed by Stripe |
+| Payment tokens | Tier 4 | Stripe (never in Nodbusiness DB) | Managed by Stripe |
 | IP addresses | Tier 3 | Server logs | 30 days |
 
 ---
@@ -129,10 +129,10 @@ User submits ID document
 ### Payment Flow
 ```
 User initiates payment
-  → Payment details go directly to Stripe/Chapa (never touch Halehame servers)
+  → Payment details go directly to Stripe/Chapa (never touch Nodbusiness servers)
   → Stripe returns payment intent ID
   → Backend stores: order ID, payment intent ID, amount, currency, status
-  → Card numbers, CVV, bank details: NEVER stored by Halehame
+  → Card numbers, CVV, bank details: NEVER stored by Nodbusiness
   → Webhook from Stripe confirms success → order status updated
 ```
 
@@ -151,7 +151,7 @@ User sends message
 ## 4. Regulatory Compliance Requirements
 
 ### GDPR (EU/EEA Users)
-| Right | What Halehame Must Do | SLA |
+| Right | What Nodbusiness Must Do | SLA |
 |-------|-----------------------|-----|
 | Right to Access | Provide all personal data held | 30 days |
 | Right to Erasure ("be forgotten") | Delete all PII on request | 30 days |
@@ -169,12 +169,12 @@ User sends message
 ### CCPA (California Users)
 - Right to know what data is collected
 - Right to delete personal information
-- Right to opt out of sale of personal information (Halehame does NOT sell personal data)
+- Right to opt out of sale of personal information (Nodbusiness does NOT sell personal data)
 - Non-discrimination for exercising rights
 - **"Do Not Sell My Personal Information"** link required on website if serving California users
 
 ### PDPA / Local Laws
-Each country where Halehame operates may have its own data protection law:
+Each country where Nodbusiness operates may have its own data protection law:
 - Ethiopia: Pending data protection legislation — follow GDPR as best practice
 - UK: UK GDPR (same as EU GDPR post-Brexit)
 - UAE: DIFC Data Protection Law / Federal Decree Law No. 45 of 2021
@@ -187,7 +187,7 @@ Each country where Halehame operates may have its own data protection law:
 When a user requests access, deletion, or export of their data:
 
 ```
-Step 1: Request received via privacy@halehame.com or in-app form
+Step 1: Request received via privacy@nodbusiness.com or in-app form
 Step 2: Identity verified (user must be logged in or verify via email OTP)
 Step 3: Request logged with timestamp and requester ID
 Step 4: Engineering team pulls data export within 10 business days
@@ -232,7 +232,7 @@ Days 2–7:
 
 ## 7. Third-Party Data Sharing
 
-Halehame shares data with these processors:
+Nodbusiness shares data with these processors:
 
 | Processor | Data Shared | Purpose | DPA in Place |
 |-----------|------------|---------|-------------|
@@ -278,4 +278,4 @@ A DPIA is required before launching any feature that:
 
 *Owner: CEO (Phase 1), Data Protection Officer/DPO (Phase 2+)*
 *Review cycle: Annually, or after any major feature launch or data incident*
-*Privacy contact: privacy@halehame.com*
+*Privacy contact: privacy@nodbusiness.com*

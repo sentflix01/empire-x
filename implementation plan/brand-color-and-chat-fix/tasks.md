@@ -1,9 +1,9 @@
-# Implementation Plan: Brand Color Consistency & Chat Mobile Fix
+﻿# Implementation Plan: Brand Color Consistency & Chat Mobile Fix
 
 ## Overview
 
-Fix two issues in the Halehame frontend:
-1. Replace all Telegram-blue (`#0088cc`) color references in messaging UI with the three Halehame brand tokens (blue `#2563eb`, purple `#7c3aed`, gold `#f59e0b`).
+Fix two issues in the Nodbusiness frontend:
+1. Replace all Telegram-blue (`#0088cc`) color references in messaging UI with the three Nodbusiness brand tokens (blue `#2563eb`, purple `#7c3aed`, gold `#f59e0b`).
 2. Fix the mobile chat layout so the input field is never hidden behind the bottom nav zone or the on-screen keyboard.
 3. Remove the duplicate CSS variable block from `globals.css`.
 
@@ -17,7 +17,7 @@ All changes are in 4 files: `globals.css`, `ChatRoom.tsx`, `CreateChannelModal.t
   - After removal the file must contain exactly one `:root { … }` block and one `.dark { … }` block
   - Verify the file still has no stray braces
 
-- [x] 2. Fix ChatRoom.tsx — replace Telegram-blue with Halehame brand tokens
+- [x] 2. Fix ChatRoom.tsx — replace Telegram-blue with Nodbusiness brand tokens
   - Remove the two constants at the top of the file: `const TG_BLUE = "#0088cc"` and `const TG_BLUE_LIGHT = "#effdde"`
   - Chat header `<div>`: replace `style={{ backgroundColor: TG_BLUE }}` with `className="bg-primary"`
   - Online presence dot: replace `border-[#0088cc]` with `border-primary` in the Tailwind class string
@@ -35,7 +35,7 @@ All changes are in 4 files: `globals.css`, `ChatRoom.tsx`, `CreateChannelModal.t
   - Ensure the reply-preview banner, edit-mode banner, and text input row are direct children of this outer container
   - Apply the same safe-area padding to the `!canSend` fallback bar
 
-- [x] 4. Fix CreateChannelModal.tsx — replace Telegram-blue with Halehame brand tokens
+- [x] 4. Fix CreateChannelModal.tsx — replace Telegram-blue with Nodbusiness brand tokens
   - Remove `const TG_BLUE = "#0088cc"` from the file
   - Modal title `<h2>`: replace `style={{ color: TG_BLUE }}` with `className="text-primary font-semibold text-lg"`
   - Icon circle `<div>`: replace `style={{ backgroundColor: TG_BLUE }}` with `className="bg-primary"`
@@ -45,7 +45,7 @@ All changes are in 4 files: `globals.css`, `ChatRoom.tsx`, `CreateChannelModal.t
   - Info box label `<span>`: replace `style={{ color: TG_BLUE }}` with `className="text-primary font-medium"`
   - Create Channel `<Button>`: remove `style={{ backgroundColor: TG_BLUE }}` — rely on the default Button `bg-primary` variant
 
-- [x] 5. Fix CreateGroupModal.tsx — replace Telegram-blue and off-brand green with Halehame brand tokens
+- [x] 5. Fix CreateGroupModal.tsx — replace Telegram-blue and off-brand green with Nodbusiness brand tokens
   - Remove `const TG_BLUE = "#0088cc"` from the file
   - Modal title `<h2>`: replace `style={{ color: TG_BLUE }}` with `className="text-primary font-semibold text-lg"`
   - Group icon circle: replace `style={{ backgroundColor: "#4CAF50" }}` (random green) with `className="bg-accent"`

@@ -1,4 +1,4 @@
-# Product Reviews Bugfix — Spec Decisions
+﻿# Product Reviews Bugfix — Spec Decisions
 
 **Spec location:** `.kiro/specs/product-reviews/`  
 **Files:** `bugfix.md` · `design.md` · `tasks.md`  
@@ -8,7 +8,7 @@
 
 ## Introduction
 
-The Halehame app has a complete reviews backend (`/api/reviews`) but the `ProductDetail`
+The Nodbusiness app has a complete reviews backend (`/api/reviews`) but the `ProductDetail`
 frontend page never calls it, never holds review state, and never renders a reviews section.
 Users see a completely blank reviews area even when the database contains reviews.
 

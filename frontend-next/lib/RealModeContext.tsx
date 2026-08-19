@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 /**
  * RealModeContext — global toggle between "All users" and "Real users only" mode.
  *
@@ -13,7 +13,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import client from '@/api/client';
 
-const STORAGE_KEY = 'empire_real_mode';
+const STORAGE_KEY = 'nodbusiness_real_mode';
 
 interface RealModeContextValue {
   realMode: boolean;

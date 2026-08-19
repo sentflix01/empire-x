@@ -1,20 +1,20 @@
-# Requirements Document
+﻿# Requirements Document
 
 ## Introduction
 
-This feature adds two interconnected capabilities to Halehame, the global superapp:
+This feature adds two interconnected capabilities to Nodbusiness, the global superapp:
 
 1. **Friend Suggestion System** — surfaces a ranked list of suggested users to follow, computed from mutual connections, shared location, and platform activity. Suggestions exclude users the requester already follows, the requester themselves, and accounts they have previously dismissed.
 
 2. **AI-User Distinction** — formally separates AI-generated seed/demo accounts from real registered users at the data-model level and exposes that distinction in every API response and UI surface that displays user identity, so real users always know when they are looking at a demo account.
 
-The backend is Node.js/Express with PostgreSQL (Neon). The frontend is Next.js 16 with TailwindCSS/shadcn/ui. Existing relevant tables: `users`, `user_profiles`, `follows`. Seed accounts currently carry `@halehame.test` email addresses.
+The backend is Node.js/Express with PostgreSQL (Neon). The frontend is Next.js 16 with TailwindCSS/shadcn/ui. Existing relevant tables: `users`, `user_profiles`, `follows`. Seed accounts currently carry `@nodbusiness.test` email addresses.
 
 ---
 
 ## Glossary
 
-- **System**: The Halehame backend API and frontend application collectively.
+- **System**: The Nodbusiness backend API and frontend application collectively.
 - **Suggestion_Engine**: The backend component that computes and ranks friend suggestions for a given user.
 - **Suggestion**: A recommended user account returned by the Suggestion_Engine.
 - **Real_User**: A human-registered account whose `is_seed` flag is `FALSE`.
@@ -37,8 +37,8 @@ The backend is Node.js/Express with PostgreSQL (Neon). The frontend is Next.js 1
 #### Acceptance Criteria
 
 1. THE System SHALL add an `is_seed` boolean column (default `FALSE`, not null) to the `users` table via a non-destructive migration.
-2. WHEN the seed script creates a user with an `@halehame.test` email, THE System SHALL set `is_seed = TRUE` for that user record.
-3. THE System SHALL backfill `is_seed = TRUE` for all existing users whose email ends with `@halehame.test` during the migration.
+2. WHEN the seed script creates a user with an `@nodbusiness.test` email, THE System SHALL set `is_seed = TRUE` for that user record.
+3. THE System SHALL backfill `is_seed = TRUE` for all existing users whose email ends with `@nodbusiness.test` during the migration.
 4. WHEN a new user registers through the standard auth flow, THE System SHALL set `is_seed = FALSE` for that user record.
 5. THE System SHALL expose `is_seed` in the user object returned by every authenticated `/api/auth/me` response.
 
@@ -72,7 +72,7 @@ The backend is Node.js/Express with PostgreSQL (Neon). The frontend is Next.js 1
 
 ### Requirement 4: Friend Suggestion API
 
-**User Story:** As a registered user, I want to see a list of people I might want to follow, so that I can discover relevant connections on Halehame.
+**User Story:** As a registered user, I want to see a list of people I might want to follow, so that I can discover relevant connections on Nodbusiness.
 
 #### Acceptance Criteria
 

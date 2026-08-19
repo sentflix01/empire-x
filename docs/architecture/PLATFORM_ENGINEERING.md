@@ -1,7 +1,7 @@
-# Halehame — Platform Engineering at Scale
+﻿# Nodbusiness — Platform Engineering at Scale
 
 > How the world's biggest platforms manage their code, teams, and deployments.
-> What Halehame should adopt at each growth stage.
+> What Nodbusiness should adopt at each growth stage.
 > Last updated: August 2026
 
 ---
@@ -87,7 +87,7 @@ Every feature is tested on a small % of users first. Data decides what ships.
 | Infra | Azure (Microsoft owns LinkedIn) + their own data centers |
 
 **Key insight:** LinkedIn invented 3+ major open-source projects (Kafka, Samza, Pinot)
-because they hit scale walls that existing tools couldn't handle. At Halehame's scale,
+because they hit scale walls that existing tools couldn't handle. At Nodbusiness's scale,
 we use the tools LinkedIn invented — we don't need to reinvent them.
 
 ---
@@ -142,7 +142,7 @@ No team needs another team's permission to ship.
 2. Their scale exceeded what existing tools could handle
 3. Chinese government requirements demanded domestic infrastructure
 
-Halehame should use existing global tools (Railway, Vercel, Neon, Stripe, Redis) instead
+Nodbusiness should use existing global tools (Railway, Vercel, Neon, Stripe, Redis) instead
 of building infrastructure. Alibaba's path was forced by geopolitics and extreme scale.
 
 ---
@@ -162,7 +162,7 @@ Amazon AppConfig:       0.1% canary → staged → full
 Alibaba:                Region-by-region rollout
 ```
 
-**Halehame equivalent:** `backend/lib/featureFlags.js` already supports this.
+**Nodbusiness equivalent:** `backend/lib/featureFlags.js` already supports this.
 ```javascript
 // Check if feature is enabled for this user
 const enabled = await isEnabled('personalized_feed', req.user.id);
@@ -177,7 +177,7 @@ Never deploy directly to 100% of traffic. Always:
 - Gradually shift more traffic
 - Roll back instantly if errors spike
 
-**Halehame equivalent:** Railway supports this with health checks + zero-downtime deploys.
+**Nodbusiness equivalent:** Railway supports this with health checks + zero-downtime deploys.
 
 ### 3. Experimentation Culture (Universal)
 
@@ -187,13 +187,13 @@ Every UI change is a controlled experiment. Data decides what ships.
 - LinkedIn: A/B tested every homepage redesign with statistical significance
 - Amazon: tested 1-Click ordering on a small segment before global launch
 
-**Halehame needs:** PostHog or Mixpanel for A/B testing framework.
+**Nodbusiness needs:** PostHog or Mixpanel for A/B testing framework.
 
 ### 4. Observability (Universal)
 
 Every request is traced. Every error is captured. Every metric is dashboarded.
 
-| What | Facebook | LinkedIn | Amazon | Halehame |
+| What | Facebook | LinkedIn | Amazon | Nodbusiness |
 |---|---|---|---|---|
 | Error tracking | Scuba | Internal | CloudWatch | **Sentry** |
 | Log aggregation | ODS | Kafka | CloudWatch Logs | **Pino → Railway logs** |
@@ -211,11 +211,11 @@ Every service has:
 - A runbook for every alert
 - A post-mortem process
 
-**Halehame equivalent:** `docs/operations/INCIDENT_RESPONSE.md`
+**Nodbusiness equivalent:** `docs/operations/INCIDENT_RESPONSE.md`
 
 ---
 
-## What Halehame Should Adopt at Each Stage
+## What Nodbusiness Should Adopt at Each Stage
 
 ### Now (0–10K users): Culture and Process
 ✅ Already done:
@@ -228,7 +228,7 @@ Every service has:
 
 🔲 Add immediately:
 - On-call rotation (even if it's just 1 person)
-- Status page (`status.halehame.app`)
+- Status page (`status.nodbusiness.app`)
 - Basic analytics (PostHog — free tier, self-hosted)
 
 ### Month 3–6 (10K–50K users): Tooling
@@ -254,9 +254,9 @@ Every service has:
 
 ---
 
-## Tools Comparison: Big Tech vs Halehame
+## Tools Comparison: Big Tech vs Nodbusiness
 
-| Function | Facebook | LinkedIn | Amazon | **Halehame** |
+| Function | Facebook | LinkedIn | Amazon | **Nodbusiness** |
 |---|---|---|---|---|
 | Source control | Mercurial/Sapling | Git/GitHub | CodeCommit | **Git/GitHub** |
 | CI/CD | Sandcastle (internal) | Gradle+Li.Deploy | CodePipeline | **GitHub Actions** |
@@ -273,16 +273,16 @@ Every service has:
 
 ---
 
-## The Biggest Lessons for Halehame
+## The Biggest Lessons for Nodbusiness
 
 ### 1. You don't need to build the infrastructure
 Facebook, LinkedIn, Amazon, and Alibaba built their own databases, queues, and clouds
-because they had to — existing tools couldn't handle their scale. Halehame at 1M users
+because they had to — existing tools couldn't handle their scale. Nodbusiness at 1M users
 can use PostgreSQL, Redis, and Cloudflare R2 perfectly well. Don't build what you can buy.
 
 ### 2. Ownership beats coordination
 Amazon's "Two-Pizza Teams" rule and "you build it, you run it" principle means teams
-move faster because they have full ownership. For Halehame: as teams grow, assign
+move faster because they have full ownership. For Nodbusiness: as teams grow, assign
 clear ownership (e.g., "Marketplace team" owns products/orders/cart/coupons).
 
 ### 3. Data decides, not opinions

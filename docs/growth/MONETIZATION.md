@@ -1,6 +1,6 @@
-# Halehame — Monetization Strategy
+﻿# Nodbusiness — Monetization Strategy
 
-> How Halehame makes money — today, next year, and at scale.
+> How Nodbusiness makes money — today, next year, and at scale.
 > Reference market: Ethiopia (ETB). Global revenue model applies to all markets.
 > Last updated: August 2026
 
@@ -27,7 +27,7 @@
 
 ## Revenue Model Overview
 
-Halehame uses a **multi-stream revenue model** — no single dependency.
+Nodbusiness uses a **multi-stream revenue model** — no single dependency.
 
 ```
 Revenue Streams:
@@ -58,7 +58,7 @@ Revenue Streams:
 | Etsy | 6.5% |
 | Jumia | 5–15% |
 | Fiverr | 20% |
-| Halehame (recommended) | 5–8% (start low to acquire sellers) |
+| Nodbusiness (recommended) | 5–8% (start low to acquire sellers) |
 
 **Projection:**
 - 1,000 orders/month × ETB 500 avg order × 6% = **ETB 30,000/month**
@@ -157,12 +157,12 @@ Revenue Streams:
 
 ## Stream 7: API & White-label (FUTURE)
 
-**What:** Charge companies for API access to the Halehame marketplace, payments, or social graph.
+**What:** Charge companies for API access to the Nodbusiness marketplace, payments, or social graph.
 
 **Use cases:**
-- Banks offering SMB storefronts powered by Halehame
-- Telecom bundles (Ethio Telecom offers Halehame Pro to subscribers)
-- Government e-procurement portals built on Halehame infrastructure
+- Banks offering SMB storefronts powered by Nodbusiness
+- Telecom bundles (Ethio Telecom offers Nodbusiness Pro to subscribers)
+- Government e-procurement portals built on Nodbusiness infrastructure
 
 **Pricing:** ETB 5,000–50,000/month API access fee depending on usage tier.
 

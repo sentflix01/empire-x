@@ -1,8 +1,8 @@
-# Halehame — Equity Structure & Cap Table
+﻿# Nodbusiness — Equity Structure & Cap Table
 
 > **Classification:** STRICTLY CONFIDENTIAL
 > **Purpose:** Documents all share ownership, equity grants, option pools,
-> and the capitalization table (cap table) for Halehame Technologies.
+> and the capitalization table (cap table) for Nodbusiness Technologies.
 > **Last Updated:** August 2026
 
 ---
@@ -72,7 +72,7 @@ Investors will inspect this document in detail before investing. It must be:
 
 ---
 
-## 3. Halehame Starting Structure
+## 3. Nodbusiness Starting Structure
 
 ### At Incorporation (Today)
 

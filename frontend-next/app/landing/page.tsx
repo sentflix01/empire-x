@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -26,13 +26,13 @@ import {
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: "Halehame - The Global Superapp",
+  title: "Nodbusiness - The Global Superapp",
   description:
-    "Halehame is the global superapp for social networking, business showrooms, marketplace, messaging, payments, AI, jobs, courses, and local services.",
+    "Nodbusiness is the global superapp for social networking, business showrooms, marketplace, messaging, payments, AI, jobs, courses, and local services.",
   openGraph: {
-    title: "Halehame - The Global Superapp",
+    title: "Nodbusiness - The Global Superapp",
     description: 'Social, commerce, payments, services, and AI in one trusted platform.',
-    images: ['/brand/halehame-logo.svg'],
+    images: ['/brand/nodbusiness-logo.svg'],
   },
 };
 
@@ -49,10 +49,10 @@ const modules = [
 ];
 
 const stats = [
-  ['9+', 'Core apps'],
-  ['27', 'Showroom templates'],
-  ['24/7', 'AI help'],
-  ['1', 'Connected empire'],
+  ['9+', 'Core modules'],
+  ['27+', 'Showroom templates'],
+  ['24/7', 'AI assistant'],
+  ['1', 'Connected platform'],
 ];
 
 const previewRows = [
@@ -67,8 +67,8 @@ export default function LandingPage() {
       {/* ── Top navigation bar ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/8">
         <div className="flex items-center gap-2">
-          <Image src="/brand/halehame-logo.svg" alt="Halehame" width={32} height={32} className="h-8 w-8 rounded-xl object-cover" />
-          <span className="font-black text-white text-lg tracking-tight">Halehame</span>
+          <Image src="/brand/nodbusiness-icon.svg" alt="Nodbusiness" width={32} height={32} className="h-8 w-8 rounded-xl object-cover" />
+          <span className="font-black text-white text-lg tracking-tight">Nodbusiness</span>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/register" className="hidden sm:inline-flex h-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-xl hover:bg-white/20 transition-all">
@@ -134,8 +134,8 @@ export default function LandingPage() {
 
         <div className="relative z-10 mx-auto flex min-h-[82svh] max-w-6xl flex-col items-center justify-center px-6 pb-28 pt-16 text-center">
           <Image
-            src="/brand/halehame-logo.svg"
-            alt="Halehame"
+            src="/brand/nodbusiness-icon.svg"
+            alt="Nodbusiness"
             width={88}
             height={88}
             className="mb-6 h-20 w-20 rounded-3xl object-cover shadow-2xl shadow-blue-950/45 ring-1 ring-white/25"
@@ -146,9 +146,9 @@ export default function LandingPage() {
             <span>Social, commerce, payments, services, and AI</span>
           </p>
           <h1 className="max-w-5xl text-4xl font-black leading-tight tracking-normal sm:text-7xl lg:text-8xl">
-            Halehame
+            Nodbusiness
             <span className="block text-white/78">
-              <span className="block sm:inline">Africa&apos;s</span>
+              <span className="block sm:inline">The Global</span>
               <span className="hidden sm:inline"> </span>
               <span className="block sm:inline">Superapp</span>
             </span>
@@ -190,7 +190,7 @@ export default function LandingPage() {
             <p className="mb-3 text-sm font-bold uppercase tracking-wide text-blue-600">Everything Connected</p>
             <h2 className="text-4xl font-black tracking-normal sm:text-5xl">A full digital economy in one app.</h2>
             <p className="mt-4 text-lg leading-8 text-slate-600">
-              Halehame is designed as a daily operating system for users, creators, merchants, service providers, and local communities.
+              Nodbusiness is designed as a daily operating system for users, creators, merchants, service providers, and local communities.
             </p>
           </div>
 
@@ -232,9 +232,9 @@ export default function LandingPage() {
               <div className="rounded-[1.5rem] bg-slate-50 p-4 text-slate-950">
                 <div className="mb-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Image src="/brand/halehame-logo.svg" alt="" width={40} height={40} className="h-10 w-10 rounded-xl object-cover" />
+                    <Image src="/brand/nodbusiness-icon.svg" alt="" width={40} height={40} className="h-10 w-10 rounded-xl object-cover" />
                     <div>
-                      <p className="text-sm font-black">Halehame</p>
+                      <p className="text-sm font-black">Nodbusiness</p>
                       <p className="text-xs text-slate-500">Superapp dashboard</p>
                     </div>
                   </div>
@@ -279,9 +279,9 @@ export default function LandingPage() {
 
       <section className="bg-slate-950 px-6 py-20 text-white">
         <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl font-black tracking-normal sm:text-5xl">Start with one account. Grow into an empire.</h2>
+          <h2 className="text-4xl font-black tracking-normal sm:text-5xl">One account. Endless possibilities.</h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-white/65">
-            Join the preview, test the superapp experience, and build the business presence that customers can discover, trust, message, and pay.
+            Join Nodbusiness, test the superapp experience, and build a business presence that customers everywhere can discover, trust, message, and pay.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link href="/register" className="inline-flex h-12 items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700">
@@ -296,7 +296,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-white/10 bg-slate-950 px-6 py-8 text-sm text-white/55">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-          <p>© 2026 Halehame. Built for Africa.</p>
+          <p>© 2026 Nodbusiness. The Global Superapp.</p>
           <div className="flex gap-5">
             <Link href="/login" className="hover:text-white">Sign In</Link>
             <Link href="/register" className="hover:text-white">Register</Link>

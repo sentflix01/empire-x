@@ -1,4 +1,4 @@
-# Halehame — Incident Response Playbook
+﻿# Nodbusiness — Incident Response Playbook
 
 > Step-by-step procedures for when things go wrong.
 > The goal is consistent, calm, fast recovery — not heroics.
@@ -215,7 +215,7 @@ WHERE state = 'idle' AND state_change < NOW() - INTERVAL '10 minutes';
 
 ## Status Page
 
-A public status page should be set up at `status.halehame.app` using:
+A public status page should be set up at `status.nodbusiness.app` using:
 - **Statuspage.io** (free tier)
 - **UptimeRobot** + a simple HTML page
 - Or build one using Railway health check + public endpoint

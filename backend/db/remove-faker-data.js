@@ -1,4 +1,4 @@
-/**
+﻿/**
  * remove-faker-data.js
  * Deletes all faker/seed generated users and all their content.
  * Keeps only real accounts (gmail.com, real emails — not test domains).
@@ -10,7 +10,7 @@ const pool = require('./pool');
 
 async function run() {
   const client = await pool.connect();
-  console.log('\n🧹 Halehame — Removing all faker/seed data...\n');
+  console.log('\n🧹 Nodbusiness — Removing all faker/seed data...\n');
 
   try {
     await client.query('BEGIN');
@@ -19,7 +19,7 @@ async function run() {
     const { rows: seedUsers } = await client.query(`
       SELECT id FROM users
       WHERE email LIKE '%@empirex.test'
-         OR email LIKE '%@halehame.test'
+         OR email LIKE '%@nodbusiness.test'
          OR email LIKE 'e2etest%@test.com'
          OR email LIKE 'perf_%@test.com'
          OR email LIKE 'qa-register-%@example.test'
@@ -114,7 +114,7 @@ async function run() {
       SET balance = CASE WHEN u.role = 'admin' THEN 50000 ELSE 5000 END
       FROM users u
       WHERE w.user_id = u.id
-        AND (u.email LIKE '%@halehame.app' OR u.email LIKE '%@empirex.app')
+        AND (u.email LIKE '%@nodbusiness.app' OR u.email LIKE '%@empirex.app')
     `);
     console.log('  ✅ Done.\n');
 

@@ -1,6 +1,6 @@
-# Halehame — Content Policy
+﻿# Nodbusiness — Content Policy
 
-> The rules that govern what is and isn't allowed on Halehame.
+> The rules that govern what is and isn't allowed on Nodbusiness.
 > This applies to all users, sellers, and business accounts.
 > **Last updated:** August 2026
 
@@ -103,20 +103,20 @@
 | Serious violation (fraud, harassment) | Permanent ban + possible legal referral |
 | CSAM or terrorism | Immediate permanent ban + mandatory legal reporting |
 
-Appeals: appeals@halehame.app (response within 7 business days)
+Appeals: appeals@nodbusiness.app (response within 7 business days)
 
 ---
 
 ## Reporting
 
 To report a violation: use the "Report" button on any post, product, or profile.
-Urgent reports (CSAM, threats of violence): safety@halehame.app — monitored 24/7
+Urgent reports (CSAM, threats of violence): safety@nodbusiness.app — monitored 24/7
 
 ---
 
 ## Compliance with Ethiopian Law
 
-Halehame operates under Ethiopian law, including:
+Nodbusiness operates under Ethiopian law, including:
 - Computer Crime Proclamation No. 958/2016
 - Mass Media and Freedom of Information Proclamation No. 590/2008
 - Anti-Terrorism Proclamation No. 652/2009

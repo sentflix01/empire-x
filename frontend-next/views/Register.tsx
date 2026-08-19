@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client';
 import React, { useEffect, useRef, useState } from "react";
 import Link from 'next/link';
@@ -236,7 +236,7 @@ function Register() {
               {agreed && <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              I agree to Halehame's{' '}
+              I agree to Nodbusiness's{' '}
               <Link
                 href="/service-agreement?tab=terms"
                 target="_blank"

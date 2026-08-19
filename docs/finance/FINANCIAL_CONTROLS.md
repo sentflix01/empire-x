@@ -1,6 +1,6 @@
-# Halehame — Financial Controls & Internal Audit Framework
+﻿# Nodbusiness — Financial Controls & Internal Audit Framework
 
-> **The internal control system that keeps Halehame's money safe, accountable, and audit-ready.**
+> **The internal control system that keeps Nodbusiness's money safe, accountable, and audit-ready.**
 > Every financial process has a control. Every control has an owner. Every deviation is escalated.
 
 ---
@@ -113,7 +113,7 @@ Target: Refund rate < 2% of GMV
 
 ### Vendor Payment Process
 ```
-Step 1: Vendor submits invoice to finance@halehame.com
+Step 1: Vendor submits invoice to finance@nodbusiness.com
 Step 2: Finance team logs invoice in accounting software
 Step 3: Invoice matched against purchase order or approval email
 Step 4: Payment approved per spending authority matrix

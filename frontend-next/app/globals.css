@@ -1,7 +1,7 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 /*
- * ── Halehame Brand Palette ──────────────────────────────────────────────────
+ * ── Nodbusiness Brand Palette ──────────────────────────────────────────────────
  *
  *   Blue   #2563eb  — primary action, active states, links, buttons
  *   Purple #7c3aed  — accent, gradients, secondary brand
@@ -127,8 +127,11 @@
 .dark .text-slate-900, .dark .text-slate-800 { color: hsl(var(--foreground)) !important; }
 
 @layer utilities {
-  /* Halehame brand gradient — blue → purple */
+  /* Nodbusiness brand gradient — blue → purple */
+  .bg-nodbusiness-gradient { background-image: linear-gradient(135deg, var(--ex-blue) 0%, var(--ex-purple) 100%); }
+  /* Legacy alias — kept for backward compatibility */
   .bg-empire-gradient { background-image: linear-gradient(135deg, var(--ex-blue) 0%, var(--ex-purple) 100%); }
+
   .text-empire-blue   { color: var(--ex-blue); }
   .text-empire-purple { color: var(--ex-purple); }
   .text-empire-gold   { color: var(--ex-gold); }

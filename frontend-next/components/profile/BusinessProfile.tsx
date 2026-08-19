@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from "react";
@@ -156,7 +156,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
 
           {/* Footer */}
           <div className="px-5 py-6 bg-gray-900 text-center">
-            <p className="text-xs text-white/60">© 2024 {biz.business_name}. Powered by Halehame 👑</p>
+            <p className="text-xs text-white/60">© 2024 {biz.business_name}. Powered by Nodbusiness 👑</p>
           </div>
         </div>
       </div>

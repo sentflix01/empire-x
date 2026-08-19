@@ -1,4 +1,4 @@
-# Halehame — Valuation Model
+﻿# Nodbusiness — Valuation Model
 
 > **Classification:** Confidential
 > **Last Updated:** August 2026
@@ -65,7 +65,7 @@ Revenue multiples by stage (2024–2026 market):
   Scale ($100K+ MRR):      20× – 60× ARR
   (Multiples are lower for Africa/emerging market deals)
 
-Halehame projections:
+Nodbusiness projections:
   Phase 2 target: $25,000 MRR = $300,000 ARR
   Valuation at 15× ARR: $4,500,000
   Valuation at 20× ARR: $6,000,000
@@ -84,7 +84,7 @@ Look at what similar companies sold for or raised at:
 | Jumia (Pan-Africa) | E-commerce | Series A | $35M | ~$150M |
 | African SaaS average | B2B SaaS | Seed | $500K–$2M | $3M–$10M |
 
-Halehame comparable: marketplace + SaaS hybrid in Africa
+Nodbusiness comparable: marketplace + SaaS hybrid in Africa
 **Realistic seed valuation: $2M–$6M pre-money**
 
 ### Method 3 — Discounted Cash Flow (DCF)
@@ -94,7 +94,7 @@ Not typically used at seed stage — too much uncertainty.
 
 ---
 
-## 3. Halehame Valuation by Stage
+## 3. Nodbusiness Valuation by Stage
 
 ### Pre-Seed (Today)
 
@@ -165,7 +165,7 @@ SAM (Serviceable Addressable Market) — where you can realistically reach
 
 SOM (Serviceable Obtainable Market) — what you can capture in 5 years
   Capturing 1% of Africa SAM + diaspora: $12,000,000 ARR
-  Halehame Year 5 target revenue: $10,000,000 ARR (conservative)
+  Nodbusiness Year 5 target revenue: $10,000,000 ARR (conservative)
 ```
 
 ---

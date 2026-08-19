@@ -1,4 +1,4 @@
-/**
+﻿/**
  * reset-admin.js — One-time admin credential reset script
  *
  * Usage (run from backend/ directory):
@@ -26,13 +26,13 @@ async function resetAdmin() {
     if (!rows.length) {
       // No admin found — create one
       console.log('No admin user found. Creating one...');
-      const newPassword = process.env.ADMIN_NEW_PASSWORD || 'Halehame@Admin2026!';
+      const newPassword = process.env.ADMIN_NEW_PASSWORD || 'Nodbusiness@Admin2026!';
       const hash = await bcrypt.hash(newPassword, 12);
 
       const { rows: created } = await pool.query(
         `INSERT INTO users (email, password_hash, full_name, role, is_verified)
          VALUES ($1, $2, $3, 'admin', TRUE) RETURNING id, email`,
-        ['admin@halehame.app', hash, 'Admin User']
+        ['admin@nodbusiness.app', hash, 'Admin User']
       );
 
       console.log('\n✅ Admin user CREATED:');
@@ -43,7 +43,7 @@ async function resetAdmin() {
     }
 
     const admin = rows[0];
-    const newPassword = process.env.ADMIN_NEW_PASSWORD || 'Halehame@Admin2026!';
+    const newPassword = process.env.ADMIN_NEW_PASSWORD || 'Nodbusiness@Admin2026!';
     const hash = await bcrypt.hash(newPassword, 12);
 
     await pool.query(

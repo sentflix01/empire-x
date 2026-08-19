@@ -1,4 +1,4 @@
-# Halehame — Investor FAQ
+﻿# Nodbusiness — Investor FAQ
 
 > **Classification:** Confidential
 > **Purpose:** Prepared answers to every question investors ask.
@@ -80,7 +80,7 @@ Four moats:
 
 ## Category 2 — The Product
 
-**Q: What problem does Halehame solve that WhatsApp doesn't already solve?**
+**Q: What problem does Nodbusiness solve that WhatsApp doesn't already solve?**
 ```
 WhatsApp solves communication. It doesn't solve discovery.
 
@@ -88,11 +88,11 @@ A business on WhatsApp can message existing customers.
 But: New customers cannot FIND that business. There is no searchable directory.
 There is no catalog. There is no payment integration. There is no professional presence.
 
-Halehame solves the discovery problem: Any customer anywhere can find
+Nodbusiness solves the discovery problem: Any customer anywhere can find
 a business, see their full product catalog, read reviews, and pay —
 without ever needing the business's WhatsApp number.
 
-WhatsApp is a messaging tool. Halehame is a business platform.
+WhatsApp is a messaging tool. Nodbusiness is a business platform.
 They complement each other — we integrate with WhatsApp for notifications.
 ```
 
@@ -101,7 +101,7 @@ They complement each other — we integrate with WhatsApp for notifications.
 Five differences:
 
 1. Discovery layer: A Wix website lives at a URL nobody visits.
-   A Halehame showroom is discovered through a social feed, nearby map,
+   A Nodbusiness showroom is discovered through a social feed, nearby map,
    and search — just like Instagram stories or Google Maps, but for businesses.
 
 2. Community: Users follow businesses, comment, share, and engage.
@@ -162,12 +162,12 @@ before we've even launched the paid tier.
 **Q: How do you prevent businesses from building their showroom then canceling?**
 ```
 High switching cost architecture:
-1. All customer relationships live on Halehame (followers, order history, reviews)
+1. All customer relationships live on Nodbusiness (followers, order history, reviews)
 2. Published showroom URL is indexed by search engines — losing it hurts SEO
 3. Developer templates earn revenue monthly — template developers create
    ongoing value that incentivizes staying subscribed
 4. Integrated payments: switching means rebuilding payment integration
-5. Customer base: their customers are used to finding them on Halehame
+5. Customer base: their customers are used to finding them on Nodbusiness
 
 Our target churn: <3% monthly (industry average for SMB SaaS: 2–5%)
 Payback period: 1.2 months (making churn economics very forgiving)
@@ -197,10 +197,10 @@ We will have a 5-year head start on network effects.
 
 But more importantly: Our architecture is fundamentally different.
 Shopify is built around inventory management → checkout → payments.
-Halehame is built around social graph → discovery → commerce.
+Nodbusiness is built around social graph → discovery → commerce.
 
 These are different architectural philosophies. Shopify adding a "follow"
-button doesn't make them Halehame — it requires rebuilding their core loop.
+button doesn't make them Nodbusiness — it requires rebuilding their core loop.
 
 Also: Shopify's smallest plan is $29/month, requires a laptop to set up,
 and has no social discovery layer. Our free tier beats their paid tier

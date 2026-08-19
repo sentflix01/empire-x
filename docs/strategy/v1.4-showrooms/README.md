@@ -1,4 +1,4 @@
-# v1.4 — Showrooms
+﻿# v1.4 — Showrooms
 
 > **Theme:** Business Identity
 > **Goal:** Every business owner can build a professional-looking mini-website (showroom) in under 10 minutes, without any technical knowledge. Public showroom pages are SEO-indexed and load in under 2 seconds.
@@ -23,7 +23,7 @@
 - [ ] Builder has live preview — changes visible instantly without save
 - [ ] Drag-and-drop section reordering works on desktop AND a simple up/down on mobile
 - [ ] All 25+ section types render correctly across devices
-- [ ] Custom slug URL works: `halehame.vercel.app/showroom/my-business`
+- [ ] Custom slug URL works: `nodbusiness.vercel.app/showroom/my-business`
 - [ ] Public showroom page loads in < 2s (Next.js SSR or ISR)
 - [ ] Open Graph image generated automatically for each showroom
 - [ ] Share button generates correct preview on WhatsApp, Telegram, Twitter

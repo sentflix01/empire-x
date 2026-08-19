@@ -1,7 +1,7 @@
-# v3.0 — Scale & Growth
+﻿# v3.0 — Scale & Growth
 
 > **Theme:** Expansion
-> **Goal:** Halehame scales from Ethiopia to East Africa and beyond. The technical architecture handles 10× user growth without rewrite. New revenue streams are live. A native mobile app is available on the App Store and Play Store.
+> **Goal:** Nodbusiness scales from Ethiopia to East Africa and beyond. The technical architecture handles 10× user growth without rewrite. New revenue streams are live. A native mobile app is available on the App Store and Play Store.
 
 ---
 

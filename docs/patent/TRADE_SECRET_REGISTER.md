@@ -1,7 +1,7 @@
-# Halehame — Trade Secret Register
+﻿# Nodbusiness — Trade Secret Register
 
 > **Classification:** STRICTLY CONFIDENTIAL — Do Not Distribute
-> **Purpose:** Official register of all trade secrets held by Halehame Technologies.
+> **Purpose:** Official register of all trade secrets held by Nodbusiness Technologies.
 > This document is maintained to establish the existence and value of trade secrets
 > in any future legal proceeding.
 > **Last Updated:** August 2026
@@ -40,7 +40,7 @@ and Ethiopian trade secret law.
 ## Trade Secret #1 — AI Dynamic Template Pricing Algorithm
 
 **Date of Creation:** August 2026
-**Creator:** Halehame Technologies
+**Creator:** Nodbusiness Technologies
 **Location:** `backend/lib/featureFlags.js`, `backend/routes/devops.js` (pricing module)
 **Access Level:** Restricted — CEO + 1 Lead Engineer only
 
@@ -57,7 +57,7 @@ The proprietary algorithm that calculates template prices dynamically based on:
 No competitor (Shopify, Wix, Squarespace, Telegram) uses this method.
 It enables demand-responsive pricing that maximizes both developer revenue and
 user satisfaction simultaneously. Replicating it requires significant data
-that only Halehame possesses after operating the platform.
+that only Nodbusiness possesses after operating the platform.
 
 **Protection Measures in Place:**
 - [ ] Algorithm code stored in access-controlled private repository
@@ -78,7 +78,7 @@ that only Halehame possesses after operating the platform.
 ## Trade Secret #2 — Developer Revenue Share Quality Score Formula
 
 **Date of Creation:** August 2026
-**Creator:** Halehame Technologies
+**Creator:** Nodbusiness Technologies
 **Location:** Revenue share calculation module (to be built)
 **Access Level:** Restricted — CEO + Product Lead only
 
@@ -107,7 +107,7 @@ significant research and will take competitors significant time to calibrate.
 ## Trade Secret #3 — Showroom Discovery Ranking Algorithm
 
 **Date of Creation:** August 2026
-**Creator:** Halehame Technologies
+**Creator:** Nodbusiness Technologies
 **Location:** `backend/routes/trending.js`, `backend/routes/suggestions.js`
 **Access Level:** Restricted — CEO + Engineering Lead only
 
@@ -137,7 +137,7 @@ the same user behavior dataset.
 ## Trade Secret #4 — Platform User Behavior Dataset
 
 **Date of Creation:** Ongoing from launch
-**Creator:** Halehame Technologies (aggregated from user activity)
+**Creator:** Nodbusiness Technologies (aggregated from user activity)
 **Location:** Neon PostgreSQL database (encrypted)
 **Access Level:** System only + CEO with admin credentials
 
@@ -166,7 +166,7 @@ the same platform for the same duration. It is a compounding data moat.
 ## Trade Secret #5 — Business Templates Design System
 
 **Date of Creation:** August 2026
-**Creator:** Halehame Technologies
+**Creator:** Nodbusiness Technologies
 **Location:** `frontend-next/lib/showroomTemplates.ts`, `showroomTaxonomy.ts`
 **Access Level:** Internal engineering team (read), CEO (full access)
 
@@ -219,7 +219,7 @@ Perform this review annually to maintain trade secret status:
 ---
 
 *This register was created on August 2026 and constitutes evidence that
-Halehame Technologies took reasonable steps to protect these trade secrets
+Nodbusiness Technologies took reasonable steps to protect these trade secrets
 as of this date.*
 
 *This document is confidential attorney-work-product when prepared with

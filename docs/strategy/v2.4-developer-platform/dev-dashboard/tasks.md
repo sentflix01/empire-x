@@ -1,4 +1,4 @@
-# Developer Dashboard — Tasks
+﻿# Developer Dashboard — Tasks
 
 ## Status: 🔴 Not Started
 
@@ -6,8 +6,8 @@
 
 ## What It Is
 
-A dedicated section of Halehame where developers manage their integrations.
-Single URL: `halehame.vercel.app/developers`
+A dedicated section of Nodbusiness where developers manage their integrations.
+Single URL: `nodbusiness.vercel.app/developers`
 
 Think: Stripe Dashboard, Twilio Console, GitHub Developer Settings.
 
@@ -21,7 +21,7 @@ Think: Stripe Dashboard, Twilio Console, GitHub Developer Settings.
   Overview        — stats and quick actions
   API Keys        — create/revoke keys
   Webhooks        — manage subscriptions + view logs
-  OAuth Apps      — register apps for "Login with Halehame"
+  OAuth Apps      — register apps for "Login with Nodbusiness"
   My Integrations — integrations you've published
   Usage & Billing — API call volume, tier, upgrade
   Documentation   — links to API docs

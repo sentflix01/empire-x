@@ -1,8 +1,8 @@
-# Implementation Plan
+﻿# Implementation Plan
 
 ## Overview
 
-Fix eight deployment-blocking bugs found across the Halehame frontend and backend. The bugs span token storage inconsistency, missing Express `trust proxy` configuration, missing database schema columns, and a CSP misconfiguration that blocks WebSocket connections in production.
+Fix eight deployment-blocking bugs found across the Nodbusiness frontend and backend. The bugs span token storage inconsistency, missing Express `trust proxy` configuration, missing database schema columns, and a CSP misconfiguration that blocks WebSocket connections in production.
 
 ## Tasks
 

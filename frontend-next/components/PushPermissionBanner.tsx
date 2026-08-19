@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect } from "react";
 import { Bell, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { getPushPermission, subscribeToPush } from "@/lib/push";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-const DISMISSED_KEY = "empire_push_banner_dismissed";
+const DISMISSED_KEY = "nodbusiness_push_banner_dismissed";
 
 export default function PushPermissionBanner() {
   const { t } = useTranslation();

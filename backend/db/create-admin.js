@@ -1,4 +1,4 @@
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+﻿require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const bcrypt = require('bcryptjs');
 const pool = require('./pool');
 
@@ -8,7 +8,7 @@ async function createAdmin() {
   // Create simple admin account
   await pool.query(`
     INSERT INTO users (email, password_hash, full_name, role, is_verified, provider)
-    VALUES ('admin@halehame.app', $1, 'Admin User', 'admin', TRUE, 'local')
+    VALUES ('admin@nodbusiness.app', $1, 'Admin User', 'admin', TRUE, 'local')
     ON CONFLICT (email) DO UPDATE
       SET password_hash = $1, role = 'admin', is_verified = TRUE
   `, [hash]);
@@ -17,13 +17,13 @@ async function createAdmin() {
   const hash2 = await bcrypt.hash('Test1234!', 10);
   await pool.query(`
     INSERT INTO users (email, password_hash, full_name, role, is_verified, provider)
-    VALUES ('test@halehame.app', $1, 'Test User', 'user', TRUE, 'local')
+    VALUES ('test@nodbusiness.app', $1, 'Test User', 'user', TRUE, 'local')
     ON CONFLICT (email) DO UPDATE
       SET password_hash = $1, is_verified = TRUE
   `, [hash2]);
 
   // Create profile for admin
-  const adminUser = await pool.query(`SELECT id FROM users WHERE email = 'admin@halehame.app'`);
+  const adminUser = await pool.query(`SELECT id FROM users WHERE email = 'admin@nodbusiness.app'`);
   if (adminUser.rows.length) {
     const adminId = adminUser.rows[0].id;
     const existing = await pool.query('SELECT id FROM user_profiles WHERE user_id = $1', [adminId]);
@@ -37,7 +37,7 @@ async function createAdmin() {
   }
 
   // Create profile for test user
-  const testUser = await pool.query(`SELECT id FROM users WHERE email = 'test@halehame.app'`);
+  const testUser = await pool.query(`SELECT id FROM users WHERE email = 'test@nodbusiness.app'`);
   if (testUser.rows.length) {
     const testId = testUser.rows[0].id;
     const existing = await pool.query('SELECT id FROM user_profiles WHERE user_id = $1', [testId]);
@@ -50,8 +50,8 @@ async function createAdmin() {
   }
 
   console.log('\n✅ Accounts ready:');
-  console.log('   Admin:  admin@halehame.app  /  Admin1234!');
-  console.log('   Test:   test@halehame.app   /  Test1234!\n');
+  console.log('   Admin:  admin@nodbusiness.app  /  Admin1234!');
+  console.log('   Test:   test@nodbusiness.app   /  Test1234!\n');
   await pool.end();
 }
 

@@ -1,4 +1,4 @@
-# Implementation Plan: Professional-Grade Upgrade
+﻿# Implementation Plan: Professional-Grade Upgrade
 
 ## Overview
 
@@ -139,7 +139,7 @@ JavaScript/TypeScript — Express.js backend and Next.js 16 frontend.
   - [x] 8.1 Create `frontend-next/store/authSlice.ts`
     - Implement `AuthSlice` interface: `user`, `isAuthenticated`, `isLoading`, `error`, `checkAuth`, `logout`
     - Add `checkAuth` promise-ref deduplication (coalesce concurrent calls to one `GET /api/auth/me`)
-    - Wire `persist` middleware to `sessionStorage` with key `halehame-auth`
+    - Wire `persist` middleware to `sessionStorage` with key `nodbusiness-auth`
     - _Requirements: 3.1, 3.2, 3.8_
   - [x] 8.2 Create `frontend-next/store/notificationsSlice.ts`
     - Implement `unreadCount`, `list`, `isLoading`, `error` fields, and WebSocket update action

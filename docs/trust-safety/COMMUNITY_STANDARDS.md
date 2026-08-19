@@ -1,7 +1,7 @@
-# Halehame Community Standards
+﻿# Nodbusiness Community Standards
 
-> **The rules that govern what is allowed on the Halehame platform.**
-> These standards apply to all users, businesses, and developers on the platform, in every country where Halehame operates.
+> **The rules that govern what is allowed on the Nodbusiness platform.**
+> These standards apply to all users, businesses, and developers on the platform, in every country where Nodbusiness operates.
 > Last updated: [Date]
 
 ---
@@ -22,9 +22,9 @@
 
 ## Our Commitment
 
-Halehame is built on the belief that business and community are better when people can trust each other. These standards exist to protect that trust — for individual users, for business owners, and for the global community.
+Nodbusiness is built on the belief that business and community are better when people can trust each other. These standards exist to protect that trust — for individual users, for business owners, and for the global community.
 
-We want Halehame to be a place where:
+We want Nodbusiness to be a place where:
 - Businesses can build a trusted presence without fear of fake competition
 - Buyers can purchase with confidence
 - People can connect authentically
@@ -120,7 +120,7 @@ We do not remove opinions or content just because it is controversial. We remove
 - Disagreement and debate (done respectfully)
 
 ### 3.3 Hate Organizations
-Organizations that promote hatred, terrorism, or violence are not allowed on Halehame in any capacity — as users, businesses, or advertisers.
+Organizations that promote hatred, terrorism, or violence are not allowed on Nodbusiness in any capacity — as users, businesses, or advertisers.
 
 ---
 
@@ -140,7 +140,7 @@ Organizations that promote hatred, terrorism, or violence are not allowed on Hal
 ## 5. Marketplace Rules
 
 ### 5.1 Prohibited Products and Services
-The following may NOT be listed or sold on Halehame under any circumstances:
+The following may NOT be listed or sold on Nodbusiness under any circumstances:
 
 | Category | Examples |
 |---------|---------|
@@ -180,7 +180,7 @@ The following may NOT be listed or sold on Halehame under any circumstances:
 - Do not list counterfeit products using real brand names
 
 ### 6.3 AI-Generated Content
-- You may use AI to help create content on Halehame
+- You may use AI to help create content on Nodbusiness
 - You must not use AI to generate fake reviews, fake business listings, or impersonate real people
 
 ---
@@ -204,7 +204,7 @@ The following may NOT be listed or sold on Halehame under any circumstances:
 
 ### 7.4 Developer Rules (for third-party integrators)
 - Apps and integrations must follow these Community Standards
-- You may not use Halehame APIs to scrape data for other platforms
+- You may not use Nodbusiness APIs to scrape data for other platforms
 - You may not use API access to spam or harm users
 - Data collected via API may only be used for the disclosed purpose
 
@@ -228,7 +228,7 @@ If you believe we made a mistake, you can appeal through the in-app process. See
 
 ### What We Don't Remove
 We do not remove content simply because:
-- It is critical of Halehame
+- It is critical of Nodbusiness
 - It is controversial or unpopular
 - Someone disagrees with it
 - It is politically sensitive (without specific rule violations)
@@ -239,13 +239,13 @@ We do not remove content simply because:
 
 If you see a violation:
 - Use the "Report" button on any content, profile, or listing
-- Email us at: safety@halehame.com
-- For urgent child safety issues: safety@halehame.com (flagged as URGENT)
+- Email us at: safety@nodbusiness.com
+- For urgent child safety issues: safety@nodbusiness.com (flagged as URGENT)
 
 We investigate every report. We do not tolerate false reporting to harm competitors.
 
 ---
 
-*Halehame Technologies reserves the right to update these standards as the platform evolves.*
+*Nodbusiness Technologies reserves the right to update these standards as the platform evolves.*
 *Your continued use of the platform constitutes acceptance of the current Community Standards.*
-*Questions: safety@halehame.com*
+*Questions: safety@nodbusiness.com*

@@ -1,7 +1,7 @@
-# Halehame — Trust & Safety Framework
+﻿# Nodbusiness — Trust & Safety Framework
 
-> **The platform-wide system for keeping Halehame safe, fair, and trustworthy.**
-> Trust is Halehame's most valuable product. Without it, the marketplace fails, the community disappears, and the platform dies. This framework is not optional — it is foundational.
+> **The platform-wide system for keeping Nodbusiness safe, fair, and trustworthy.**
+> Trust is Nodbusiness's most valuable product. Without it, the marketplace fails, the community disappears, and the platform dies. This framework is not optional — it is foundational.
 
 ---
 
@@ -32,7 +32,7 @@
 
 ## 1. Trust & Safety Philosophy
 
-Halehame's Trust & Safety model is built on four principles:
+Nodbusiness's Trust & Safety model is built on four principles:
 
 1. **Prevention first** — Stop harm before it happens through design, onboarding, and signals
 2. **Fast detection** — Catch harm within minutes using automated systems
@@ -200,7 +200,7 @@ Step 5: CEO escalation available for permanent bans only
 
 ## 6. Transparency Reporting
 
-Once at scale (> 100,000 users), Halehame publishes a semi-annual Transparency Report covering:
+Once at scale (> 100,000 users), Nodbusiness publishes a semi-annual Transparency Report covering:
 - Total reports received by category
 - Total content removed by category
 - Total accounts banned
@@ -244,7 +244,7 @@ These features help users self-assess trustworthiness of sellers/buyers:
 
 ## 9. Law Enforcement Cooperation
 
-Halehame cooperates with law enforcement where legally required:
+Nodbusiness cooperates with law enforcement where legally required:
 
 | Request Type | Response |
 |-------------|---------|
@@ -259,4 +259,4 @@ All law enforcement requests are logged. Government requests are included in Tra
 
 *Owner: CEO (Phase 1), Head of Trust & Safety (Phase 2+)*
 *Review cycle: Quarterly. Updated after any major incident or policy change.*
-*T&S contact: safety@halehame.com*
+*T&S contact: safety@nodbusiness.com*

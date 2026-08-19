@@ -1,8 +1,8 @@
-# Gap Fixes Bugfix Design
+﻿# Gap Fixes Bugfix Design
 
 ## Overview
 
-This document formalises the fix strategy for 13 identified bugs across the Halehame
+This document formalises the fix strategy for 13 identified bugs across the Nodbusiness
 full-stack application (Node.js/Express backend + Next.js frontend). The bugs fall into
 four categories: migration/schema gaps, route/handler defects, CORS/connectivity issues,
 and frontend auth-flow problems. One additional gap covers missing wallet transaction

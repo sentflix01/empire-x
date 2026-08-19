@@ -1,4 +1,4 @@
-# Halehame — Compensation & Equity Policy
+﻿# Nodbusiness — Compensation & Equity Policy
 
 > **How we pay people fairly and create shared ownership.**
 > Compensation is one of the clearest signals of what a company values.

@@ -1,6 +1,6 @@
-# Halehame — Development Strategy
+﻿# Nodbusiness — Development Strategy
 
-> This folder is the **single source of truth** for how Halehame evolves from its current state to a globally competitive superapp.
+> This folder is the **single source of truth** for how Nodbusiness evolves from its current state to a globally competitive superapp.
 >
 > Every version has a dedicated folder. Every section of the app has a dedicated audit and improvement plan. Work through versions in order.
 

@@ -1,6 +1,6 @@
-# Halehame — Mobile Strategy
+﻿# Nodbusiness — Mobile Strategy
 
-> How Halehame reaches mobile users globally — PWA today, native apps in future phases.
+> How Nodbusiness reaches mobile users globally — PWA today, native apps in future phases.
 > Reference market: Ethiopia (Android-dominant). Principle applies globally.
 > Last updated: August 2026
 
@@ -29,10 +29,10 @@
 
 ## Current State: Progressive Web App (PWA)
 
-Halehame is currently a **PWA** — a web app that behaves like a native app on mobile.
+Nodbusiness is currently a **PWA** — a web app that behaves like a native app on mobile.
 
 ### What Works Today
-- **Install to home screen** — users see an Halehame icon, no App Store needed
+- **Install to home screen** — users see an Nodbusiness icon, no App Store needed
 - **Push notifications** — works on Android Chrome; limited on iOS Safari
 - **Offline indicator** — service worker installed (`public/sw.js`)
 - **Fast loading** — Next.js static generation + Vercel Edge CDN
@@ -55,7 +55,7 @@ Halehame is currently a **PWA** — a web app that behaves like a native app on 
 
 ### Why TWA First
 - Reuses 100% of existing frontend code
-- Gets Halehame into Google Play Store (important for discovery in Ethiopia)
+- Gets Nodbusiness into Google Play Store (important for discovery in Ethiopia)
 - Android dominates Ethiopian smartphone market (85%+ market share)
 - Takes 1–2 weeks to implement
 
@@ -65,7 +65,7 @@ Halehame is currently a **PWA** — a web app that behaves like a native app on 
 npm install -g @bubblewrap/cli
 
 # Initialize TWA project
-bubblewrap init --manifest https://halehame.vercel.app/manifest.json
+bubblewrap init --manifest https://nodbusiness.vercel.app/manifest.json
 
 # Build APK
 bubblewrap build
@@ -205,7 +205,7 @@ style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
 ## App Store Optimisation (ASO)
 
 ### Google Play Store Listing
-- **App name:** Halehame — Ethiopian Superapp
+- **App name:** Nodbusiness — Ethiopian Superapp
 - **Short description:** Social, marketplace & business tools for Ethiopia
 - **Category:** Social / Business
 - **Keywords:** Ethiopian marketplace, Amharic social media, business app Ethiopia, Chapa payment, Telebirr

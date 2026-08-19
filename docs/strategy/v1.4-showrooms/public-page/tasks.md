@@ -1,4 +1,4 @@
-# Public Showroom Page — Tasks
+﻿# Public Showroom Page — Tasks
 
 ## Status: 🔴 Not Started
 
@@ -28,13 +28,13 @@
   export async function generateMetadata({ params }) {
     const showroom = await fetchShowroom(params.slug);
     return {
-      title: `${showroom.title} — Halehame`,
-      description: showroom.description?.slice(0, 155) || `${showroom.title} on Halehame`,
+      title: `${showroom.title} — Nodbusiness`,
+      description: showroom.description?.slice(0, 155) || `${showroom.title} on Nodbusiness`,
       openGraph: {
         title: showroom.title,
         description: showroom.description?.slice(0, 155),
         images: [showroom.cover_image || showroom.logo_url],
-        url: `https://halehame.vercel.app/showroom/${showroom.slug}`,
+        url: `https://nodbusiness.vercel.app/showroom/${showroom.slug}`,
         type: 'website',
       },
       twitter: { card: 'summary_large_image' },

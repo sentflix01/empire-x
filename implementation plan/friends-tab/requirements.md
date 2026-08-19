@@ -1,8 +1,8 @@
-# Requirements Document
+﻿# Requirements Document
 
 ## Introduction
 
-This feature adds two enhancements to Halehame, the global global superapp:
+This feature adds two enhancements to Nodbusiness, the global global superapp:
 
 1. **Friends Tab** — A dedicated `/friends` page reachable from a new "Friends" sidebar navigation entry (positioned after "Explore"). The page shows three sections — My Friends (people the current user follows), Friend Suggestions (new people to follow), and Mutual Friends (people who follow back or share mutual connections) — each displaying up to 5 user cards initially with a "More" button to expand to all results. Each card shows avatar, name, headline, and a Follow/Unfollow button.
 
@@ -14,7 +14,7 @@ The backend is Node.js/Express with PostgreSQL. The frontend is Next.js 16 with 
 
 ## Glossary
 
-- **System**: The Halehame backend API and frontend application collectively.
+- **System**: The Nodbusiness backend API and frontend application collectively.
 - **Friends_Page**: The frontend page rendered at the `/friends` route.
 - **Friends_Tab**: The navigation entry in the left sidebar that links to the Friends_Page.
 - **My_Friends_Section**: The portion of the Friends_Page listing users the Current_User follows.

@@ -1,4 +1,4 @@
-# Halehame — API Versioning Strategy
+﻿# Nodbusiness — API Versioning Strategy
 
 > How we evolve the API without breaking clients.
 > Last updated: August 2026
@@ -69,7 +69,7 @@ app.use('/api', require('./routes/v1')); // legacy
 ## Mobile App Considerations
 
 When a mobile app (React Native) is built:
-- The app version must be stored: `User-Agent: halehame-iOS/2.1.0`
+- The app version must be stored: `User-Agent: nodbusiness-iOS/2.1.0`
 - The API must support at least 2 previous major versions
 - Deprecation warning: `Deprecation: sunset=2027-01-01` header
 - Force-upgrade mechanism for security-critical versions

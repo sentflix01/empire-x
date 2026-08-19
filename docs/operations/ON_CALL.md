@@ -1,4 +1,4 @@
-# Halehame — On-Call Guide
+﻿# Nodbusiness — On-Call Guide
 
 > Who is responsible when something breaks, how to respond, and what to do at every severity level.
 > This is the first document you read when your phone alerts at 3AM.
@@ -57,7 +57,7 @@ You will be paged from:
 - **Sentry** — uncaught errors in backend or frontend
 - **Uptime monitoring** (Railway/Vercel health checks)
 - **DevOps Live Error Feed** — `/devops` panel shows real-time errors
-- **User reports** — support@halehame.com, social media
+- **User reports** — support@nodbusiness.com, social media
 - **Manual escalation** — teammate or CEO messages you
 
 ---
@@ -119,7 +119,7 @@ Option C: Disable feature
 
 ### Check backend health
 ```bash
-curl https://api.halehame.com/health
+curl https://api.nodbusiness.com/health
 ```
 
 ### View recent errors

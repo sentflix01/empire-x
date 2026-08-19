@@ -1,7 +1,7 @@
-# Halehame — Developer Onboarding
+﻿# Nodbusiness — Developer Onboarding
 
 > If five developers joined tomorrow, this is how they'd get productive in a week.
-> Welcome to Halehame. Read this first.
+> Welcome to Nodbusiness. Read this first.
 
 ---
 
@@ -24,7 +24,7 @@
 
 ## Day 1 — Understand the product
 
-1. Read `docs/product/NORTH_STAR.md` — understand *why* Halehame exists and what we're building
+1. Read `docs/product/NORTH_STAR.md` — understand *why* Nodbusiness exists and what we're building
 2. Read `docs/README.md` — understand the engineering handbook structure
 3. Set up local dev (see below)
 4. Register a test account, create a product, place an order — experience the product as a user
@@ -60,17 +60,17 @@
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/your-org/halehame.git
-cd halehame
+git clone https://github.com/your-org/nodbusiness.git
+cd nodbusiness
 
 # 2. Backend setup
 cp backend/.env.example backend/.env
 # Edit backend/.env:
-#   DATABASE_URL=postgresql://postgres:postgres@localhost:5432/halehame
+#   DATABASE_URL=postgresql://postgres:postgres@localhost:5432/nodbusiness
 #   JWT_SECRET=any-long-random-string-for-local-dev
 
 # 3. Create database and run migrations
-psql -U postgres -c "CREATE DATABASE halehame;"
+psql -U postgres -c "CREATE DATABASE nodbusiness;"
 cd backend && npm install && npm run migrate
 
 # 4. Seed test data (optional)

@@ -1,4 +1,4 @@
-# Halehame — Engineering Decisions Index
+﻿# Nodbusiness — Engineering Decisions Index
 
 > This folder documents every design decision made during spec development.
 > Every question that arose, every option considered, and every choice made — recorded here.
@@ -84,5 +84,5 @@ When a significant technical decision is made during a spec:
 
 ---
 
-*This folder is the institutional memory of Halehame's engineering decisions.*
+*This folder is the institutional memory of Nodbusiness's engineering decisions.*
 *Without it, the same questions get answered differently each time.*

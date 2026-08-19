@@ -1,4 +1,4 @@
-# Halehame — Cost Breakdown by Growth Stage
+﻿# Nodbusiness — Cost Breakdown by Growth Stage
 
 > Realistic monthly infrastructure costs at every milestone.
 > All costs in USD. Reference market (ETB) conversion: ~130 ETB/USD (adjust for current rate).
@@ -39,7 +39,7 @@
 | Cloudflare R2 | Free (10GB, 1M ops) | $0 |
 | Resend (email) | Free (3K/month) | $0 |
 | Sentry | Free (5K errors/month) | $0 |
-| Domain (halehame.vercel.app) | Annual ÷ 12 | ~$1.50 |
+| Domain (nodbusiness.vercel.app) | Annual ÷ 12 | ~$1.50 |
 | **Total** | | **~$6.50/month** |
 
 **ETB equivalent:** ~ETB 812/month

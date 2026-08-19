@@ -1,4 +1,4 @@
-const router = require('express').Router();
+﻿const router = require('express').Router();
 const logger = require('../lib/logger');
 const pool = require('../db/pool');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
@@ -12,7 +12,7 @@ async function geocode(address) {
   try {
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1&countrycodes=et`;
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'halehameApp/1.0 (contact@halehame.app)' },
+      headers: { 'User-Agent': 'nodbusinessApp/1.0 (contact@nodbusiness.app)' },
     });
     const data = await res.json();
     if (data.length) return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };

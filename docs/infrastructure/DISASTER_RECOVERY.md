@@ -1,4 +1,4 @@
-# Halehame — Disaster Recovery Plan
+﻿# Nodbusiness — Disaster Recovery Plan
 
 > What happens when things go catastrophically wrong, and how we recover.
 > Last updated: August 2026
@@ -89,7 +89,7 @@ git push origin main
 **Failover database setup (prepare now, use if needed):**
 ```bash
 # Keep a daily pg_dump to Cloudflare R2:
-pg_dump $DATABASE_URL | gzip | aws s3 cp - s3://halehame-backups/db/daily-$(date +%Y%m%d).sql.gz
+pg_dump $DATABASE_URL | gzip | aws s3 cp - s3://nodbusiness-backups/db/daily-$(date +%Y%m%d).sql.gz
 
 # Restore to DigitalOcean Managed PostgreSQL ($15/month) as emergency:
 # 1. Create DO Managed PostgreSQL
@@ -177,7 +177,7 @@ async function runBackup() {
   });
   
   await client.send(new PutObjectCommand({
-    Bucket: 'halehame-backups',
+    Bucket: 'nodbusiness-backups',
     Key: `database/${timestamp}.sql.gz`,
     Body: createReadStream(localPath),
     ContentType: 'application/gzip',
@@ -198,7 +198,7 @@ runBackup().catch(err => {
 **Recovery from backup:**
 ```bash
 # 1. Download latest backup from R2
-aws s3 cp s3://halehame-backups/database/$(date +%Y-%m-%d).sql.gz /tmp/restore.sql.gz
+aws s3 cp s3://nodbusiness-backups/database/$(date +%Y-%m-%d).sql.gz /tmp/restore.sql.gz
 
 # 2. Create new database instance (Neon or DO)
 # 3. Restore
@@ -330,9 +330,9 @@ Keep this updated and accessible to all team members:
 
 ## Business Continuity
 
-**If Halehame is down for > 1 hour:**
+**If Nodbusiness is down for > 1 hour:**
 
-1. Post on Telegram/WhatsApp groups: "Halehame is experiencing technical difficulties. We're working on it. Orders placed today will be processed within 24 hours."
+1. Post on Telegram/WhatsApp groups: "Nodbusiness is experiencing technical difficulties. We're working on it. Orders placed today will be processed within 24 hours."
 
 2. Sellers who took COD orders: orders are safe in database (assuming it's not a DB issue). When platform recovers, their orders will appear.
 

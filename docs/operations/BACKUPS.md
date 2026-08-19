@@ -1,4 +1,4 @@
-# Halehame — Backup & Recovery
+﻿# Nodbusiness — Backup & Recovery
 
 > Data loss is unrecoverable. Set this up before going to production.
 > Last updated: August 2026
@@ -79,7 +79,7 @@ Railway and Vercel env vars are not backed up automatically. If your account is 
 
 ```bash
 # Check what's currently set in Railway
-railway variables --service halehame-backend
+railway variables --service nodbusiness-backend
 ```
 
 ---

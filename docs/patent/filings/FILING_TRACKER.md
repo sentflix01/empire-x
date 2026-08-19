@@ -1,7 +1,7 @@
-# Halehame — Patent & IP Filing Tracker
+﻿# Nodbusiness — Patent & IP Filing Tracker
 
 > **Classification:** CONFIDENTIAL
-> **Purpose:** Single source of truth for every IP filing made by Halehame Technologies.
+> **Purpose:** Single source of truth for every IP filing made by Nodbusiness Technologies.
 > Track filing dates, serial numbers, deadlines, costs, and status in one place.
 > **Owner:** CEO / Legal Counsel
 > **Last Updated:** August 2026
@@ -48,11 +48,11 @@
 
 ## Trademark Filings
 
-### TM-001 — "HALEHAME" Word Mark (Ethiopia)
+### TM-001 — "NODBUSINESS" Word Mark (Ethiopia)
 
 | Field | Value |
 |-------|-------|
-| Mark | HALEHAME (word mark) |
+| Mark | NODBUSINESS (word mark) |
 | Classes | 9, 35, 36, 38, 42 |
 | Jurisdiction | Ethiopia (EIPA) |
 | Filing Date | [TO BE FILED] |
@@ -66,11 +66,11 @@
 
 ---
 
-### TM-002 — Halehame Crown Logo (Design Mark, Ethiopia)
+### TM-002 — Nodbusiness Crown Logo (Design Mark, Ethiopia)
 
 | Field | Value |
 |-------|-------|
-| Mark | Halehame crown logo (design mark) |
+| Mark | Nodbusiness crown logo (design mark) |
 | Classes | 9, 35, 42 |
 | Jurisdiction | Ethiopia (EIPA) |
 | Filing Date | [TO BE FILED — same day as TM-001] |
@@ -79,11 +79,11 @@
 
 ---
 
-### TM-003 — "HALEHAME" Word Mark (USA)
+### TM-003 — "NODBUSINESS" Word Mark (USA)
 
 | Field | Value |
 |-------|-------|
-| Mark | HALEHAME (word mark) |
+| Mark | NODBUSINESS (word mark) |
 | Classes | 9, 35, 36, 38, 42 |
 | Jurisdiction | USA (USPTO) |
 | Filing Date | [Within 6 months of TM-001 filing date] |
@@ -98,11 +98,11 @@
 
 ---
 
-### TM-004 — "HALEHAME" Word Mark (European Union)
+### TM-004 — "NODBUSINESS" Word Mark (European Union)
 
 | Field | Value |
 |-------|-------|
-| Mark | HALEHAME (word mark) |
+| Mark | NODBUSINESS (word mark) |
 | Classes | 9, 35, 36, 38, 42 |
 | Jurisdiction | European Union (EUIPO) |
 | Filing Date | [Within 6 months of TM-001 filing date] |
@@ -117,7 +117,7 @@
 
 | Field | Value |
 |-------|-------|
-| Mark | HALEHAME (word mark + logo) |
+| Mark | NODBUSINESS (word mark + logo) |
 | Countries | To be selected (KE, NG, ZA, UAE, IN, AU) |
 | Jurisdiction | WIPO Madrid System |
 | Based On | TM-001 (Ethiopian base mark) |
@@ -140,7 +140,7 @@
 | Filing Date | [TO BE FILED — before public launch] |
 | Application Number | [Assigned at filing] |
 | Inventor(s) | [Founder Full Legal Name] |
-| Assignee | Halehame Technologies PLC |
+| Assignee | Nodbusiness Technologies PLC |
 | Attorney | [USPTO-registered patent attorney] |
 | Filing Fee | $320 (micro entity) |
 | Attorney Fee | $1,500–3,000 |
@@ -227,7 +227,7 @@
 
 | Field | Value |
 |-------|-------|
-| Work | Halehame Platform Source Code v1.0 |
+| Work | Nodbusiness Platform Source Code v1.0 |
 | Type | Software / Literary Work |
 | Jurisdiction | USA (Copyright.gov) |
 | Registration Date | [TO BE FILED] |
@@ -239,7 +239,7 @@
 
 ## Company Registrations
 
-### CORP-001 — Halehame Technologies PLC (Ethiopia)
+### CORP-001 — Nodbusiness Technologies PLC (Ethiopia)
 
 | Field | Value |
 |-------|-------|
@@ -254,7 +254,7 @@
 
 ---
 
-### CORP-002 — Halehame Technologies Inc. (Delaware, USA)
+### CORP-002 — Nodbusiness Technologies Inc. (Delaware, USA)
 
 | Field | Value |
 |-------|-------|
@@ -306,6 +306,6 @@
 
 ---
 
-*This document is the official IP filing record of Halehame Technologies.*
+*This document is the official IP filing record of Nodbusiness Technologies.*
 *Update every entry immediately upon filing, registration, or status change.*
 *Treat as confidential — restricted to CEO and authorized legal counsel.*

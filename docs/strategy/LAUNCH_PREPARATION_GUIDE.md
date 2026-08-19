@@ -1,7 +1,7 @@
-# Halehame — Launch Preparation Guide
+﻿# Nodbusiness — Launch Preparation Guide
 
 > **What this document is:**
-> A step-by-step action guide for everything that must happen before Halehame
+> A step-by-step action guide for everything that must happen before Nodbusiness
 > goes to market. Each step has a clear explanation of WHY it matters, WHAT
 > exactly to do, and HOW to do it. Follow this in order.
 >
@@ -65,7 +65,7 @@ Steps are organized by urgency:
 
 ### 📌 What it is
 Every major social platform lets users register unique usernames (handles).
-If someone registers `@halehame` before you, they own that handle.
+If someone registers `@nodbusiness` before you, they own that handle.
 You cannot take it back without expensive legal action — if at all.
 
 ### ⚠️ Why you must do it TODAY
@@ -79,14 +79,14 @@ Rebuilding trust with a different handle costs months of marketing effort.
 **Step 1.1 — Check availability**
 1. Open your browser
 2. Go to: **https://namecheckr.com**
-3. Type `halehame` in the search box
+3. Type `nodbusiness` in the search box
 4. Click Search
-5. You will see a grid showing which platforms have `@halehame` available (green) or taken (red)
+5. You will see a grid showing which platforms have `@nodbusiness` available (green) or taken (red)
 6. Note which platforms need immediate registration
 
 **Step 1.2 — Register on each platform**
 Open each website and create an account. Use the same email for all:
-`social@halehame.app` (or your personal email if that does not exist yet).
+`social@nodbusiness.app` (or your personal email if that does not exist yet).
 
 Register in this exact order (most important first):
 
@@ -94,7 +94,7 @@ Register in this exact order (most important first):
 1. Instagram
    → Go to: instagram.com
    → Click "Sign Up"
-   → Username: halehame
+   → Username: nodbusiness
    → Use a business email
    → Verify with phone number
    → Upload the crown logo as profile photo
@@ -103,20 +103,20 @@ Register in this exact order (most important first):
 2. Twitter / X
    → Go to: twitter.com
    → Click "Sign Up"
-   → Username: @halehame
+   → Username: @nodbusiness
    → Add profile photo (crown logo)
-   → Add bio: "Halehame — The Global Superapp"
+   → Add bio: "Nodbusiness — The Global Superapp"
 
 3. TikTok
    → Go to: tiktok.com
    → Sign up with email
-   → Username: halehame
+   → Username: nodbusiness
    → Business account (not personal)
 
 4. LinkedIn (Company Page)
    → Go to: linkedin.com/company/setup/new
-   → Company name: Halehame
-   → URL: linkedin.com/company/halehame
+   → Company name: Nodbusiness
+   → URL: linkedin.com/company/nodbusiness
    → Industry: Internet
    → Company size: 1–10 employees
    → Add logo and description
@@ -124,36 +124,36 @@ Register in this exact order (most important first):
 5. Facebook (Page)
    → Go to: facebook.com/pages/create
    → Category: Software / Technology Company
-   → Page name: Halehame
-   → Username: @halehame
+   → Page name: Nodbusiness
+   → Username: @nodbusiness
 
 6. YouTube Channel
    → Go to: youtube.com
    → Sign in with Google account
-   → Create a channel named "Halehame"
+   → Create a channel named "Nodbusiness"
    → Brand account (not personal)
 
 7. Telegram Channel
    → Open Telegram
    → Create New Channel
-   → Name: Halehame
-   → Username: @halehame_official (if @halehame is taken)
+   → Name: Nodbusiness
+   → Username: @nodbusiness_official (if @nodbusiness is taken)
    → Public channel
 
 8. WhatsApp Business
    → Download WhatsApp Business app
    → Register with a business phone number
-   → Business name: Halehame
+   → Business name: Nodbusiness
    → Category: Software & Tech
 
 9. Pinterest (optional but worth 5 minutes)
    → pinterest.com
    → Create business account
-   → Username: halehame
+   → Username: nodbusiness
 
 10. Reddit
     → reddit.com/subreddits/create
-    → Create r/halehame
+    → Create r/nodbusiness
     → Set as public community
     → Add description and rules
 ```
@@ -174,14 +174,14 @@ Free
 30–60 minutes
 
 ### ✅ Done when
-You have registered @halehame (or the closest available handle) on all 10 platforms above and saved all login credentials securely.
+You have registered @nodbusiness (or the closest available handle) on all 10 platforms above and saved all login credentials securely.
 
 ---
 
 ## Step 2 — Register Your Domain Names
 
 ### 📌 What it is
-A domain name is your address on the internet (like halehame.com).
+A domain name is your address on the internet (like nodbusiness.com).
 Whoever registers a domain first owns it. Registration costs $10–15 per year.
 Without registration, anyone can take your domain and sell it back to you
 for thousands of dollars (called "domain squatting").
@@ -189,7 +189,7 @@ for thousands of dollars (called "domain squatting").
 ### ⚠️ Why you must do it TODAY
 Domain names are registered on a first-come, first-served basis.
 There is no legal protection until you register. A squatter can register
-halehame.com today and demand $5,000–50,000 to sell it to you.
+nodbusiness.com today and demand $5,000–50,000 to sell it to you.
 For $10, you eliminate this risk permanently.
 
 ### 🎯 Exact Action
@@ -213,33 +213,33 @@ Why Cloudflare:
 
 **Priority 1 — Register TODAY:**
 ```
-halehame.com       ← Most important. This is your primary domain.
-halehame.app       ← Already referenced in the code. Register this too.
-halehame.io        ← Tech/startup image. Popular with developers.
+nodbusiness.com       ← Most important. This is your primary domain.
+nodbusiness.app       ← Already referenced in the code. Register this too.
+nodbusiness.io        ← Tech/startup image. Popular with developers.
 ```
 
 **Priority 2 — Register this week:**
 ```
-halehame.net       ← Defensive registration
-halehame.org       ← Defensive registration
-halehame.co        ← Popular alternative TLD
-halehame.ai        ← Valuable for AI features marketing
-gethalehame.com    ← Alternative brand domain if .com issues
+nodbusiness.net       ← Defensive registration
+nodbusiness.org       ← Defensive registration
+nodbusiness.co        ← Popular alternative TLD
+nodbusiness.ai        ← Valuable for AI features marketing
+getnodbusiness.com    ← Alternative brand domain if .com issues
 ```
 
 **Priority 3 — Country domains (register before entering those markets):**
 ```
-halehame.et        ← Ethiopia (.et domain — register at ethiotelecom or through a local agent)
-halehame.ke        ← Kenya
-halehame.ng        ← Nigeria
+nodbusiness.et        ← Ethiopia (.et domain — register at ethiotelecom or through a local agent)
+nodbusiness.ke        ← Kenya
+nodbusiness.ng        ← Nigeria
 ```
 
 **Step 2.4 — How to register on Cloudflare**
 1. Go to: https://dash.cloudflare.com
 2. Click "Domain Registration" in the left sidebar
 3. Click "Register Domains"
-4. Search for "halehame" — you will see which extensions are available
-5. Add halehame.com to cart → Add halehame.app → Add halehame.io
+4. Search for "nodbusiness" — you will see which extensions are available
+5. Add nodbusiness.com to cart → Add nodbusiness.app → Add nodbusiness.io
 6. Click "Continue to payment"
 7. Enter payment details
 8. Complete registration
@@ -251,17 +251,17 @@ Or use a local domain registrar in Addis Ababa who handles .et registrations.
 Cost: ~$50–100/year for .et domain.
 
 ### 💰 Cost
-- halehame.com: ~$10/year
-- halehame.app: ~$14/year
-- halehame.io: ~$32/year
-- halehame.net, .org, .co: ~$10–15/year each
+- nodbusiness.com: ~$10/year
+- nodbusiness.app: ~$14/year
+- nodbusiness.io: ~$32/year
+- nodbusiness.net, .org, .co: ~$10–15/year each
 - Total for top 6 domains: ~$85–95/year
 
 ### ⏱️ Time
 30 minutes
 
 ### ✅ Done when
-halehame.com, halehame.app, and halehame.io are registered in your Cloudflare account and you receive confirmation emails.
+nodbusiness.com, nodbusiness.app, and nodbusiness.io are registered in your Cloudflare account and you receive confirmation emails.
 
 ---
 
@@ -276,7 +276,7 @@ and when your name appears anywhere online.
 ### ⚠️ Why you must do it TODAY
 You need to know immediately if:
 - A competitor copies your idea and uses similar language
-- Someone mentions Halehame online (press, review, criticism)
+- Someone mentions Nodbusiness online (press, review, criticism)
 - A trademark conflict emerges (someone using similar name)
 - An investor or journalist writes about you
 
@@ -290,7 +290,7 @@ Without alerts, you find out weeks later — too late to respond.
 
 **Alert 1: Your brand name**
 ```
-Query: "Halehame"
+Query: "Nodbusiness"
 Frequency: As-it-happens
 Sources: Automatic
 Language: All Languages
@@ -313,7 +313,7 @@ Frequency: Once a week
 
 **Alert 4: Trademark monitoring**
 ```
-Query: "halehame" site:trademark*
+Query: "nodbusiness" site:trademark*
 Frequency: As-it-happens
 ```
 
@@ -354,8 +354,8 @@ history (which is good evidence but not as strong as blockchain timestamps).
 **Step 4.1 — Create a snapshot of your codebase**
 1. Open your project folder: `C:\Users\Administrator\Desktop\app\pro-v1`
 2. Create a ZIP file of the entire project (excluding node_modules and .next)
-3. Name it: `halehame-source-[today's date].zip`
-   Example: `halehame-source-2026-08-15.zip`
+3. Name it: `nodbusiness-source-[today's date].zip`
+   Example: `nodbusiness-source-2026-08-15.zip`
 
 **Step 4.2 — Timestamp on OriginStamp (Free)**
 1. Go to: **https://originstamp.com**
@@ -377,7 +377,7 @@ Repeat the process for:
 **Step 4.4 — Email yourself a backup**
 1. Attach the ZIP file and the certificate PDFs to an email
 2. Send it to yourself AND to a trusted person (family member, lawyer)
-3. Subject line: "Halehame Codebase Timestamp - [Date]"
+3. Subject line: "Nodbusiness Codebase Timestamp - [Date]"
 4. Do NOT delete this email — ever
 
 **Step 4.5 — Your Git history is also evidence**
@@ -419,7 +419,7 @@ did not know it was protected. The notice removes any ambiguity.
 
 In `frontend-next/app/layout.tsx` or your footer component, ensure this appears:
 ```
-© 2026 Halehame Technologies. All rights reserved.
+© 2026 Nodbusiness Technologies. All rights reserved.
 ```
 
 **Step 5.2 — Add to all source files**
@@ -429,10 +429,10 @@ The most critical files are: `index.js`, `seed.js`, key components, and the AI m
 
 ```javascript
 /**
- * © 2026 Halehame Technologies. All Rights Reserved.
+ * © 2026 Nodbusiness Technologies. All Rights Reserved.
  * Proprietary and Confidential.
  * Unauthorized copying of this file, via any medium, is strictly prohibited.
- * Written by Halehame Technologies, August 2026.
+ * Written by Nodbusiness Technologies, August 2026.
  */
 ```
 
@@ -442,24 +442,24 @@ Replace or update the LICENSE file in the project root:
 ```
 PROPRIETARY AND CONFIDENTIAL
 
-Copyright (c) 2026 Halehame Technologies. All Rights Reserved.
+Copyright (c) 2026 Nodbusiness Technologies. All Rights Reserved.
 
 This software and its source code are proprietary and confidential.
 No part of this software may be reproduced, distributed, transmitted,
 displayed, published, or broadcast without the prior written permission
-of Halehame Technologies.
+of Nodbusiness Technologies.
 
 Unauthorized use, copying, modification, or distribution of this software,
 via any medium, is strictly prohibited.
 
-For licensing inquiries: legal@halehame.app
+For licensing inquiries: legal@nodbusiness.app
 ```
 
 **Step 5.4 — Update the README**
 Ensure the README.md has at the bottom:
 ```
 ---
-© 2026 Halehame Technologies. Proprietary software. All rights reserved.
+© 2026 Nodbusiness Technologies. Proprietary software. All rights reserved.
 ```
 
 ### 💰 Cost
@@ -508,7 +508,7 @@ Search methods:
 When you meet the attorney, ask:
 
 ```
-1. "I want to trademark the name 'Halehame' and the logo. What classes
+1. "I want to trademark the name 'Nodbusiness' and the logo. What classes
    should I file in for a social media and marketplace platform?"
 
 2. "What is the current process and timeline at EIPA for trademark registration?"
@@ -529,7 +529,7 @@ When you meet the attorney, ask:
 **Step 6.3 — What to bring to the consultation**
 - Your business plan (GO_TO_MARKET.md — print it)
 - Logo files (PNG, high resolution)
-- A clear description of what Halehame does
+- A clear description of what Nodbusiness does
 - This document (PRE_LAUNCH_PROTECTION.md)
 - List of countries you plan to operate in
 
@@ -571,7 +571,7 @@ Make a list of:
 - Any developer who has worked on the codebase
 - Any business advisor who has seen your strategy
 - Any potential investors who have seen your pitch
-- Any contractors (designers, copywriters) who created assets for Halehame
+- Any contractors (designers, copywriters) who created assets for Nodbusiness
 
 **Step 7.2 — Get an NDA template**
 Your attorney will provide a customized one. In the meantime, use this structure:
@@ -580,12 +580,12 @@ Your attorney will provide a customized one. In the meantime, use this structure
 NON-DISCLOSURE AGREEMENT
 
 This Non-Disclosure Agreement ("Agreement") is entered into as of
-[DATE] between Halehame Technologies ("Disclosing Party") and
+[DATE] between Nodbusiness Technologies ("Disclosing Party") and
 [NAME] ("Receiving Party").
 
 1. CONFIDENTIAL INFORMATION
 The Receiving Party agrees to keep confidential all information disclosed
-by Halehame Technologies, including but not limited to:
+by Nodbusiness Technologies, including but not limited to:
 - Source code, algorithms, and technical architecture
 - Business strategy, roadmap, and financial projections
 - User data and database contents
@@ -599,13 +599,13 @@ b) Use confidential information to build a competing product
 c) Copy, reproduce, or distribute the source code
 
 3. INTELLECTUAL PROPERTY ASSIGNMENT
-All work created for Halehame Technologies is the sole property of
-Halehame Technologies. The Receiving Party assigns all intellectual
-property rights in such work to Halehame Technologies.
+All work created for Nodbusiness Technologies is the sole property of
+Nodbusiness Technologies. The Receiving Party assigns all intellectual
+property rights in such work to Nodbusiness Technologies.
 
 4. TERM
 This agreement is effective from the date signed and remains in effect
-for 5 years after the relationship with Halehame Technologies ends.
+for 5 years after the relationship with Nodbusiness Technologies ends.
 
 5. GOVERNING LAW
 This agreement is governed by the laws of Ethiopia.
@@ -614,7 +614,7 @@ Signed: _____________________ Date: _____________
 [Receiving Party Name and Signature]
 
 Signed: _____________________ Date: _____________
-[Halehame Technologies Representative]
+[Nodbusiness Technologies Representative]
 ```
 
 **Step 7.3 — Get it signed**
@@ -648,11 +648,11 @@ Every person who has seen your code or strategy has signed a dated NDA and you h
 ### 📌 What it is
 Both Apple App Store and Google Play Store allow you to reserve an app name
 before your app is even built. This prevents another app from taking the
-name "Halehame" on mobile platforms.
+name "Nodbusiness" on mobile platforms.
 
 ### ⚠️ Why this week?
 App store names are first-come, first-served. If another app registers
-"Halehame" first, you cannot use that name on mobile — even if you own
+"Nodbusiness" first, you cannot use that name on mobile — even if you own
 the trademark. You would need to dispute it, which takes months and costs money.
 
 ### 🎯 Exact Action
@@ -669,9 +669,9 @@ the trademark. You would need to dispute it, which takes months and costs money.
 7. Wait for approval (1–2 business days)
 8. After approval, go to: **https://appstoreconnect.apple.com**
 9. Click "My Apps" → "+" → "New App"
-10. Name: "Halehame"
-11. Bundle ID: com.halehame.app
-12. SKU: halehame-app-2026
+10. Name: "Nodbusiness"
+11. Bundle ID: com.nodbusiness.app
+12. SKU: nodbusiness-app-2026
 13. Platform: iOS (even without an app ready yet)
 14. Primary Language: English
 15. Click "Create" — the name is now reserved
@@ -684,12 +684,12 @@ the trademark. You would need to dispute it, which takes months and costs money.
 4. Pay $25 one-time fee (via credit card)
 5. Wait for account verification (1–3 days)
 6. After approval, click "Create app"
-7. App name: "Halehame"
+7. App name: "Nodbusiness"
 8. Default language: English (United States)
 9. App or game: App
 10. Free or paid: Free
 11. Complete the content rating survey (to save the listing)
-12. The name "Halehame" is now reserved on Google Play
+12. The name "Nodbusiness" is now reserved on Google Play
 
 **Important note:** You do not need to submit an actual app to reserve the name.
 Creating a draft listing is enough to hold the name.
@@ -704,7 +704,7 @@ Apple: 30 minutes to enroll + 1–2 days for approval
 Google: 20 minutes to enroll + 1–3 days for approval
 
 ### ✅ Done when
-You have developer accounts on both platforms and a draft app listing named "Halehame" on each. You receive confirmation emails from both Apple and Google.
+You have developer accounts on both platforms and a draft app listing named "Nodbusiness" on each. You receive confirmation emails from both Apple and Google.
 
 ---
 
@@ -717,7 +717,7 @@ You have developer accounts on both platforms and a draft app listing named "Hal
 ### 📌 What it is
 A company registration creates a legal entity separate from you as a person.
 Without it, you are personally liable for any debt, lawsuit, or legal issue
-that arises from Halehame. With a registered company, the company is liable —
+that arises from Nodbusiness. With a registered company, the company is liable —
 not you personally.
 
 ### ⚠️ Why this month?
@@ -783,7 +783,7 @@ Step 8: Open permanent business bank account with registration certificate
 - Commercial Bank of Ethiopia (for initial bank account)
 
 **Step 9.1 — Company naming convention**
-Register as: **Halehame Technologies PLC** or **Halehame PLC**
+Register as: **Nodbusiness Technologies PLC** or **Nodbusiness PLC**
 
 **Option B: Delaware C-Corporation (USA) — Register Before Fundraising**
 
@@ -799,7 +799,7 @@ Step 1: Go to: https://stripe.com/atlas OR https://clerky.com
         (Both handle the full Delaware C-Corp setup for ~$500)
         OR go directly to Delaware at: corp.delaware.gov ($109 filing fee)
 
-Step 2: Choose company name: Halehame Technologies Inc.
+Step 2: Choose company name: Nodbusiness Technologies Inc.
 
 Step 3: Provide:
         - Registered agent in Delaware ($50–200/year)
@@ -828,7 +828,7 @@ Ethiopian PLC: 2–4 weeks
 Delaware C-Corp: 1–5 business days
 
 ### ✅ Done when
-You have a Business Registration Certificate from Ethiopia in the name "Halehame Technologies PLC" and a Tax Identification Number (TIN).
+You have a Business Registration Certificate from Ethiopia in the name "Nodbusiness Technologies PLC" and a Tax Identification Number (TIN).
 
 ---
 
@@ -836,13 +836,13 @@ You have a Business Registration Certificate from Ethiopia in the name "Halehame
 
 ### 📌 What it is
 A trademark registration gives you the exclusive legal right to use the name
-"Halehame" and your crown logo in commerce in Ethiopia, with priority rights
+"Nodbusiness" and your crown logo in commerce in Ethiopia, with priority rights
 internationally (Paris Convention). It is the single most important legal filing
 for protecting your brand.
 
 ### ⚠️ Why this month?
 The moment you file your trademark, that date becomes your "priority date."
-If anyone else tries to register "Halehame" anywhere in the world within
+If anyone else tries to register "Nodbusiness" anywhere in the world within
 6 months, YOUR date takes precedence — even if you haven't filed in their
 country yet. This is the Paris Convention right. Every month you delay,
 a competitor can establish a stronger priority date.
@@ -855,11 +855,11 @@ Your attorney will handle the filing, but you need to provide:
 
 ```
 1. Applicant name and address
-   → "Halehame Technologies PLC" (your registered company)
+   → "Nodbusiness Technologies PLC" (your registered company)
    → Registered office address in Ethiopia
 
 2. Trademark representation
-   → Word mark: HALEHAME (all capitals, black on white)
+   → Word mark: NODBUSINESS (all capitals, black on white)
    → Design mark: Your crown logo (PNG, 300dpi minimum, on white background)
    → File both: one application for the word, one for the logo
 
@@ -918,7 +918,7 @@ You have filed your trademark application at EIPA and received a filing receipt 
 
 ### 📌 What it is
 A business bank account is separate from your personal account and belongs
-to your registered company. All Halehame revenue goes here.
+to your registered company. All Nodbusiness revenue goes here.
 
 ### ⚠️ Why this month?
 You need this to:
@@ -981,7 +981,7 @@ Ethiopian bank: 1–3 business days
 Wise/Payoneer: 1–7 days for online applications
 
 ### ✅ Done when
-You have a business bank account in the name "Halehame Technologies PLC" and can receive and send payments separately from your personal account.
+You have a business bank account in the name "Nodbusiness Technologies PLC" and can receive and send payments separately from your personal account.
 
 ---
 
@@ -1026,14 +1026,14 @@ In Account Settings, add a "Delete Account" button with:
    - All posts (or anonymize them as "Deleted User")
    - All personal messages
    - Payment/wallet data (keep for legal record-keeping, anonymize user link)
-4. Send confirmation email: "Your Halehame account has been deleted."
+4. Send confirmation email: "Your Nodbusiness account has been deleted."
 5. Log the deletion event (for compliance audit trail)
 
 **Step 12.3 — Cookie Consent Banner**
 Required by GDPR for EU users. On first visit, show:
 ```
 "We use cookies to provide our service and improve your experience.
- By using Halehame, you agree to our [Privacy Policy] and [Cookie Policy].
+ By using Nodbusiness, you agree to our [Privacy Policy] and [Cookie Policy].
  [Accept All] [Manage Preferences] [Reject Non-Essential]"
 ```
 
@@ -1046,7 +1046,7 @@ Your Privacy Policy at `docs/legal/PRIVACY_POLICY.md` must clearly state:
 - How long it is kept
 - Who it is shared with (Stripe, Supabase, Sentry)
 - How to request deletion
-- Contact: privacy@halehame.app
+- Contact: privacy@nodbusiness.app
 - Last updated date
 
 ### 💰 Cost
@@ -1074,7 +1074,7 @@ trademark rights in the USA — the world's largest tech market. It also
 signals to global investors that you have protected your brand.
 
 ### ⚠️ Why before Phase 2?
-When you start charging users, Halehame becomes commercially valuable.
+When you start charging users, Nodbusiness becomes commercially valuable.
 Competitors will notice and may try to register similar marks in the USA
 before you. Filing before Phase 2 launch protects you.
 
@@ -1086,12 +1086,12 @@ Using your Ethiopian priority date (Paris Convention), you can file within
 **Option A: File yourself at USPTO.gov (cheapest)**
 ```
 1. Go to: https://tmsearch.uspto.gov
-2. Search "Halehame" to confirm no conflicts
+2. Search "Nodbusiness" to confirm no conflicts
 3. If clear, go to: https://www.uspto.gov/trademarks/apply
 4. Use TEAS Plus form ($250 per class × 5 classes = $1,250 total)
 5. Complete the application:
-   → Applicant: Halehame Technologies Inc. (Delaware Corp) or Halehame Technologies PLC
-   → Mark: HALEHAME (word mark) — do the logo separately
+   → Applicant: Nodbusiness Technologies Inc. (Delaware Corp) or Nodbusiness Technologies PLC
+   → Mark: NODBUSINESS (word mark) — do the logo separately
    → International Class: 9, 35, 36, 38, 42
    → Goods and services description (must be from USPTO's ID Manual)
    → Specimen: screenshot of the app showing the mark in use (or intent-to-use filing)
@@ -1151,7 +1151,7 @@ It is NOT a granted patent. But "Patent Pending" means competitors cannot
 copy your method and patent it themselves.
 
 ### ⚠️ Why before Phase 2?
-The moment Halehame launches publicly with your AI pricing algorithm,
+The moment Nodbusiness launches publicly with your AI pricing algorithm,
 competitors can see it, analyze it, and file their own patent before you.
 Filing a provisional before launch protects you.
 
@@ -1268,9 +1268,9 @@ Terms of Service:
 → Right to modify terms with notice
 
 Developer Agreement (Phase 2):
-→ Revenue split clearly defined (70% developer / 30% Halehame)
+→ Revenue split clearly defined (70% developer / 30% Nodbusiness)
 → Payment timing (monthly, net 30)
-→ Halehame's right to remove templates
+→ Nodbusiness's right to remove templates
 → Developer's IP ownership of templates they create
 → Quality standards and compliance requirements
 → Exclusivity terms (can they sell on other platforms?)
@@ -1304,19 +1304,19 @@ All 4 legal documents have been reviewed by an attorney, updated based on their 
 
 ### 📌 What it is
 A trademark only has value if you enforce it. If you allow others to use
-"Halehame" without objection, you can lose trademark rights through "abandonment."
+"Nodbusiness" without objection, you can lose trademark rights through "abandonment."
 
 ### 🎯 Exact Action
 
 **Set up monitoring:**
 ```
-1. Google Alerts for "Halehame" (already done in Step 3)
-2. Social media monitoring: check monthly for @halehame impersonators
-3. App store monitoring: search "Halehame" in App Store and Play Store monthly
+1. Google Alerts for "Nodbusiness" (already done in Step 3)
+2. Social media monitoring: check monthly for @nodbusiness impersonators
+3. App store monitoring: search "Nodbusiness" in App Store and Play Store monthly
 4. Domain monitoring: set alerts on Cloudflare for domains similar to yours
    → haIehame.com (capital i instead of l — looks identical)
    → hallehame.com (double l)
-   → halehame.net (different TLD)
+   → nodbusiness.net (different TLD)
 ```
 
 **When you find a potential infringer:**
@@ -1351,14 +1351,14 @@ Print this page and check off each item as you complete it:
 
 ### 🔴 TODAY
 ```
-□ Register @halehame on all social media platforms
-□ Register halehame.com on Cloudflare Registrar
-□ Register halehame.app and halehame.io on Cloudflare
-□ Set up Google Alerts for "Halehame" and related terms
+□ Register @nodbusiness on all social media platforms
+□ Register nodbusiness.com on Cloudflare Registrar
+□ Register nodbusiness.app and nodbusiness.io on Cloudflare
+□ Set up Google Alerts for "Nodbusiness" and related terms
 □ Create ZIP of codebase, timestamp on OriginStamp.com
 □ Download and save OriginStamp certificate PDF
 □ Email timestamped ZIP to yourself and one trusted person
-□ Add © 2026 Halehame Technologies to website footer
+□ Add © 2026 Nodbusiness Technologies to website footer
 □ Add proprietary license to LICENSE file in repository
 ```
 
@@ -1372,7 +1372,7 @@ Print this page and check off each item as you complete it:
 □ Collect signed NDAs (digital via DocuSign free tier is fine)
 □ Register Apple Developer Account ($99)
 □ Register Google Play Developer Account ($25)
-□ Reserve "Halehame" app listing on both stores
+□ Reserve "Nodbusiness" app listing on both stores
 □ Save all new account credentials in a secure location
 ```
 
@@ -1380,14 +1380,14 @@ Print this page and check off each item as you complete it:
 ```
 □ Complete 1-hour attorney consultation
 □ Engage attorney for trademark and company registration
-□ Register Halehame Technologies PLC in Ethiopia
+□ Register Nodbusiness Technologies PLC in Ethiopia
 □ Receive Business Registration Certificate
 □ Register for TIN at Ethiopian Revenue Authority
 □ Open business bank account at CBE or Awash Bank
 □ File trademark application at EIPA
 □ Note your trademark filing date (PRIORITY DATE — keep this safe)
 □ Plan international trademark filing within 6 months of EIPA filing
-□ Register halehame.et domain (through EthioTelecom or local agent)
+□ Register nodbusiness.et domain (through EthioTelecom or local agent)
 □ Implement "Download my data" feature in app settings
 □ Implement "Delete my account" feature in app settings
 □ Add cookie consent banner to website
@@ -1448,6 +1448,6 @@ OR
 ---
 
 *Last updated: August 2026*
-*Halehame Technologies*
+*Nodbusiness Technologies*
 *All actions in this guide should be verified with a licensed attorney
  before execution. This document is for planning purposes only.*

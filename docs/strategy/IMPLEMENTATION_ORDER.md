@@ -1,4 +1,4 @@
-# Implementation Order
+﻿# Implementation Order
 
 > This document tells you exactly what to work on next, in what order, and why.
 > Follow this sequence. Skipping versions creates technical debt that multiplies.
@@ -130,7 +130,7 @@ v1.7 Discover:
 
 ## Phase 5 — Make It Complete (v1.8 + v1.9)
 
-**Why fifth:** Jobs, events, courses, and wallet complete the superapp value proposition. These sections turn Halehame from "the Ethiopian social app" into "the app you need for your professional and financial life."
+**Why fifth:** Jobs, events, courses, and wallet complete the superapp value proposition. These sections turn Nodbusiness from "the Ethiopian social app" into "the app you need for your professional and financial life."
 
 ```
 v1.8 Jobs / Events / Courses:
@@ -213,14 +213,14 @@ v2.3 AI & Intelligence:
 ## Phase 8 — Open the Platform (v2.4)
 
 **Why eighth:** Once the product is proven, open it to the world. This is the
-Telegram move — turning Halehame from an app into infrastructure.
+Telegram move — turning Nodbusiness from an app into infrastructure.
 
 ```
 v2.4 Developer Platform:
 ─────────────────────────────────────────────────────
 □ API key system (any developer can access the API)
-□ Webhook system (any system receives Halehame events)
-□ OAuth 2.0 ("Login with Halehame" for external sites)
+□ Webhook system (any system receives Nodbusiness events)
+□ OAuth 2.0 ("Login with Nodbusiness" for external sites)
 □ Showroom embed widget (one line of code)
 □ Developer dashboard (key management, webhook logs)
 □ API documentation (OpenAPI spec, interactive playground)

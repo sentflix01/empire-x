@@ -1,4 +1,4 @@
-# Halehame — Growth Strategy
+﻿# Nodbusiness — Growth Strategy
 
 > How we go from 0 to 1 million users globally.
 > Primary launch reference market: Ethiopia and East Africa. Global expansion follows.
@@ -31,7 +31,7 @@
 ```
 More sellers → More products → More buyers
 More buyers → More orders → More seller income
-More seller income → More sellers recommend Halehame
+More seller income → More sellers recommend Nodbusiness
                               ↑
                         Flywheel accelerating
 ```
@@ -82,7 +82,7 @@ Every growth strategy below serves this flywheel. Sellers bring their own custom
 
 **Seller acquisition tactics:**
 1. **Free workshops** — "Build your online store in 30 minutes" at co-working spaces and business districts
-2. **Messaging app migration** — Show sellers how to move their product catalogs from WhatsApp/Telegram to Halehame
+2. **Messaging app migration** — Show sellers how to move their product catalogs from WhatsApp/Telegram to Nodbusiness
 3. **First 3 months free** — No commission on first sales during onboarding period
 4. **Success stories** — Feature one successful seller per week on social media
 5. **Seller referrals** — Sellers who refer other sellers earn bonus points
@@ -91,11 +91,11 @@ Every growth strategy below serves this flywheel. Sellers bring their own custom
 
 | Content Type | Platforms | Frequency |
 |-------------|----------|-----------|
-| Seller success stories | Halehame feed + Instagram + local social platforms | 3× per week |
-| "How to sell on Halehame" tutorials | YouTube + TikTok | 2× per week |
-| Business tips (relevant to target market) | Halehame feed | Daily |
+| Seller success stories | Nodbusiness feed + Instagram + local social platforms | 3× per week |
+| "How to sell on Nodbusiness" tutorials | YouTube + TikTok | 2× per week |
+| Business tips (relevant to target market) | Nodbusiness feed | Daily |
 | Product highlights (professional photos) | Instagram | Daily |
-| Live Q&A / workshops | Zoom + Halehame live (future) | Weekly |
+| Live Q&A / workshops | Zoom + Nodbusiness live (future) | Weekly |
 
 ### Vertical Focus (Phase 1)
 

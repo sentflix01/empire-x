@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 /**
- * DevOps.tsx — Halehame Developer Operations Hub
+ * DevOps.tsx — Nodbusiness Developer Operations Hub
  *
  * Sections:
  *  1. System Health   — live service status from /health endpoint
@@ -184,7 +184,7 @@ const INPROGRESS_DATA = [
 ];
 
 const ROADMAP_DATA = [
-  { category: 'Auth',          feature: 'Phone Number OTP (+251)',           description: 'Register/login with Ethiopian phone via SMS',                  priority: 'High'   },
+  { category: 'Auth',          feature: 'Phone Number OTP (Global)',          description: 'Register/login with phone via SMS — supports all country codes',     priority: 'High'   },
   { category: 'Auth',          feature: 'Biometric Login (WebAuthn)',        description: 'Face ID / Touch ID on supported devices',                     priority: 'Medium' },
   { category: 'Payments',      feature: 'Telebirr Direct Integration',      description: "Direct API with Ethiopia's dominant mobile money platform",    priority: 'High'   },
   { category: 'Payments',      feature: 'M-Pesa (East Africa)',             description: 'Integration for Kenya, Tanzania, Uganda users',                priority: 'Medium' },
@@ -1856,7 +1856,7 @@ function DevOps() {
             )}
           </div>
           <p className="text-xs text-muted-foreground font-mono tracking-wide">
-            halehame · {items.length} tracked items · {openBugs} open bugs · v{CHANGELOG[0].tag}
+            nodbusiness · {items.length} tracked items · {openBugs} open bugs · v{CHANGELOG[0].tag}
           </p>
         </div>
         <div className="flex-1" />

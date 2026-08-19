@@ -1,6 +1,6 @@
-# Halehame — Seller Handbook
+﻿# Nodbusiness — Seller Handbook
 
-> Everything a seller needs to know to succeed on Halehame.
+> Everything a seller needs to know to succeed on Nodbusiness.
 > This handbook is the basis for seller onboarding emails, help articles, and workshop content.
 > Ethiopian context is included as a reference for the launch market — the guide applies globally.
 > Last updated: August 2026
@@ -20,9 +20,9 @@
 
 ---
 
-## Welcome to Halehame
+## Welcome to Nodbusiness
 
-Halehame is the global superapp for business. In 30 minutes, you can have:
+Nodbusiness is the global superapp for business. In 30 minutes, you can have:
 - A professional online store (Showroom) — visible globally
 - Products listed in the marketplace
 - A way to accept digital payment from customers anywhere in the world
@@ -34,7 +34,7 @@ Halehame is the global superapp for business. In 30 minutes, you can have:
 ## Getting Started: Your First 30 Minutes
 
 ### 1. Create your account (5 minutes)
-1. Go to halehame.vercel.app → Register
+1. Go to nodbusiness.vercel.app → Register
 2. Enter your email or phone number
 3. Enter the 6-digit OTP code sent to you
 4. Choose "Business Account" on the next screen
@@ -101,19 +101,19 @@ Answer these questions:
 
 ## Accepting Payment
 
-Halehame supports multiple payment methods. Available methods depend on your country and buyer's location.
+Nodbusiness supports multiple payment methods. Available methods depend on your country and buyer's location.
 
 | Method | How | Best for |
 |--------|-----|---------|
 | **Card (Stripe)** | Buyer pays with debit/credit card or digital wallet | International buyers, diaspora customers |
 | **Mobile Money** | Buyer pays via local mobile payment app | Local buyers (M-Pesa, Telebirr, MTN Mobile Money, etc.) |
 | **Cash on Delivery (COD)** | Buyer pays when they receive the item | Local delivery, buyers who don't have digital payment |
-| **Wallet** | Buyer pays from their Halehame wallet balance | Repeat customers |
+| **Wallet** | Buyer pays from their Nodbusiness wallet balance | Repeat customers |
 
 **Reference (Ethiopia):** Chapa supports Telebirr, CBE Birr, M-Pesa, and all major Ethiopian bank transfers.
 
 ### When do you get paid?
-- Card/Mobile Money: Payment arrives in your Halehame wallet within 24–48 hours of order confirmation
+- Card/Mobile Money: Payment arrives in your Nodbusiness wallet within 24–48 hours of order confirmation
 - COD: You collect payment on delivery — then mark the order "Completed" in the app
 - Platform commission is automatically deducted when you mark an order "Completed"
 
@@ -248,9 +248,9 @@ Commission is charged as a percentage of the order total when an order is marked
 
 ## Getting Help
 
-- **In-app chat:** Message the Halehame Support account from any page
-- **Email:** sellers@halehame.app
-- **Help Center:** halehame.vercel.app/help (coming soon)
+- **In-app chat:** Message the Nodbusiness Support account from any page
+- **Email:** sellers@nodbusiness.app
+- **Help Center:** nodbusiness.vercel.app/help (coming soon)
 - **Community:** Join the Seller Community group in-app for tips from experienced sellers
 - **Workshops:** Free monthly seller onboarding workshops — register in-app
 

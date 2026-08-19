@@ -1,4 +1,4 @@
-# PWA Manifest & Install — Tasks
+﻿# PWA Manifest & Install — Tasks
 
 ## Status: 🔴 Not Started
 
@@ -13,7 +13,7 @@
   - `apple-touch-icon.png` — 180×180px for iOS
   - `favicon-32.png` — 32×32px
   - `favicon-16.png` — 16×16px
-- [ ] All icons use the Halehame brand (logo on primary blue background)
+- [ ] All icons use the Nodbusiness brand (logo on primary blue background)
 - [ ] Test maskable icon at [maskable.app](https://maskable.app)
 
 ---
@@ -38,7 +38,7 @@
     appleWebApp: {
       capable: true,
       statusBarStyle: 'black-translucent',
-      title: 'Halehame',
+      title: 'Nodbusiness',
     },
   };
   ```
@@ -67,7 +67,7 @@
   - API responses (`/api/posts`, `/api/products`): `NetworkFirst`, 5-min TTL
   - Pages: `NetworkFirst`
 - [ ] Create `frontend-next/public/offline.html` — custom offline page
-  - Shows Halehame logo + "You're offline. Reconnect to continue."
+  - Shows Nodbusiness logo + "You're offline. Reconnect to continue."
   - Links to last cached pages
 
 ---
@@ -77,8 +77,8 @@
 - [ ] Create `frontend-next/hooks/usePWAInstall.ts`
   - Captures `beforeinstallprompt` event
   - Exposes `canInstall: boolean` and `promptInstall: () => void`
-- [ ] Show "Install Halehame App" banner after user's 2nd session:
-  - Bottom banner: [Halehame icon] "Add to home screen for the best experience" [Install] [×]
+- [ ] Show "Install Nodbusiness App" banner after user's 2nd session:
+  - Bottom banner: [Nodbusiness icon] "Add to home screen for the best experience" [Install] [×]
   - Dismissable — stores dismissal in localStorage for 7 days
 - [ ] "Install App" option in Settings page
 
@@ -90,7 +90,7 @@
   - 1242×2688 (iPhone XS Max)
   - 1125×2436 (iPhone X/11 Pro)
   - 750×1334 (iPhone 8)
-- [ ] Use: dark background (#0f172a) + centered Halehame logo
+- [ ] Use: dark background (#0f172a) + centered Nodbusiness logo
 - [ ] Add `<link rel="apple-touch-startup-image">` tags for each size
 
 ---

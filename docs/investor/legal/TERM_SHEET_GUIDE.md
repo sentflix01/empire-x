@@ -1,4 +1,4 @@
-# Halehame — Term Sheet Guide
+﻿# Nodbusiness — Term Sheet Guide
 
 > **Classification:** Confidential
 > **Purpose:** Understand every clause in a term sheet before negotiating.
@@ -357,7 +357,7 @@ Step 7: Close quickly once terms are agreed.
 
 ```
 TERM SHEET
-Halehame Technologies PLC
+Nodbusiness Technologies PLC
 Series Seed Preferred Stock
 
 Date: [Date]

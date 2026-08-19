@@ -1,7 +1,7 @@
-{
-  "name": "halehame-server",
+﻿{
+  "name": "nodbusiness-server",
   "version": "1.0.0",
-  "description": "Halehame backend API server",
+  "description": "Nodbusiness backend API server",
   "type": "commonjs",
   "main": "index.js",
   "scripts": {

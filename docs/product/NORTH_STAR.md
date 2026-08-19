@@ -1,7 +1,7 @@
-# Halehame — North Star Vision & Metrics
+﻿# Nodbusiness — North Star Vision & Metrics
 
 > Every feature, every technical decision, every product choice should align with this document.
-> If a proposed feature does not fit here, it probably does not belong in Halehame.
+> If a proposed feature does not fit here, it probably does not belong in Nodbusiness.
 > Last updated: August 2026
 
 ---
@@ -24,11 +24,11 @@
 
 ---
 
-## Why Halehame Exists
+## Why Nodbusiness Exists
 
 Billions of people globally lack access to the digital tools that people in developed markets take for granted — tools to run a business, find work, buy and sell, connect with their community, and access financial services.
 
-Halehame exists to change that. We are building the global superapp: one platform where anyone, anywhere can participate in the digital economy.
+Nodbusiness exists to change that. We are building the global superapp: one platform where anyone, anywhere can participate in the digital economy.
 
 ---
 
@@ -43,13 +43,13 @@ Halehame exists to change that. We are building the global superapp: one platfor
 - Businesses that want a showroom — a full digital storefront in minutes
 - Freelancers and service providers finding clients through the tasks marketplace
 - Educators selling courses to a local or global audience
-- Developers building integrations on the Halehame platform
+- Developers building integrations on the Nodbusiness platform
 
 ---
 
 ## The Problem We Solve
 
-| Problem | Halehame Solution |
+| Problem | Nodbusiness Solution |
 |---------|-------------------|
 | No easy way to sell products online | Marketplace with global payment support |
 | No digital presence for small businesses | Showroom Studio — a mini website in minutes |
@@ -60,7 +60,7 @@ Halehame exists to change that. We are building the global superapp: one platfor
 
 ---
 
-## What Halehame Will Never Be
+## What Nodbusiness Will Never Be
 
 These boundaries protect the core identity:
 
@@ -84,7 +84,7 @@ These boundaries protect the core identity:
 ## The Vision at Scale
 
 ```
-2026 — Halehame launches globally
+2026 — Nodbusiness launches globally
         Core: social feed, marketplace, showrooms, tasks, messaging
 
 2027 — 100,000 active users
@@ -219,7 +219,7 @@ These boundaries protect the core identity:
 
 ## Success Definition
 
-We know Halehame is working when:
+We know Nodbusiness is working when:
 - A small business owner can set up a showroom, list products, and receive their first order in under 30 minutes
 - A buyer can find a product, pay with their preferred payment method, and receive delivery — all in one app
 - A freelancer finds a task, bids, gets hired, delivers, and gets paid without leaving the platform

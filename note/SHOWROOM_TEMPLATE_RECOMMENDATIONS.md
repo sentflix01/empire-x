@@ -1,4 +1,4 @@
-# Halehame — Showroom Template Recommendations
+﻿# Nodbusiness — Showroom Template Recommendations
 
 > Recommended business showroom templates to add beyond the current 27.
 > Focused on Ethiopian and African market needs. Each entry includes
@@ -660,7 +660,7 @@ Combined with existing 27 → **139 total templates**
 
 ## 🔴 Category 3 — Food & Beverage
 
-> Food businesses are one of the most searched categories on Halehame.
+> Food businesses are one of the most searched categories on Nodbusiness.
 
 ### 3.1 Catering Business
 **Who:** Event caterers, corporate food services, wedding caterers
@@ -1524,4 +1524,4 @@ Based on market size and digital gap in Ethiopia:
 ---
 
 *Last updated: July 2026*
-*Prepared for Halehame — Global Superapp*
+*Prepared for Nodbusiness — Global Superapp*

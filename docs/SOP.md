@@ -1,9 +1,9 @@
-# Halehame — Standard Operating Procedure (SOP)
+﻿# Nodbusiness — Standard Operating Procedure (SOP)
 
 > **Version:** 1.0 | **Status:** Active | **Last Updated:** August 2026
 >
 > This document governs every single decision, change, and addition made to the
-> Halehame platform — from a one-line bug fix to a full feature version. Nothing
+> Nodbusiness platform — from a one-line bug fix to a full feature version. Nothing
 > ships without passing through this system.
 >
 > **Purpose:** Ensure every part of the platform is professional, clean, consistent,
@@ -827,7 +827,7 @@ Create a new product listing.
 1. Push to main branch
 2. GitHub Actions runs CI (lint, typecheck, tests, build)
 3. On success: Railway auto-deploys backend, Vercel auto-deploys frontend
-4. Verify health: GET https://api.halehame.app/health → { status: "ok" }
+4. Verify health: GET https://api.nodbusiness.app/health → { status: "ok" }
 5. Smoke test: log in, create a post, check feed
 6. Monitor Sentry for 30 minutes after deployment
 ```

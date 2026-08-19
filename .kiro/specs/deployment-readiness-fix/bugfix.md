@@ -1,8 +1,8 @@
-# Bugfix Requirements Document
+﻿# Bugfix Requirements Document
 
 ## Introduction
 
-A thorough scan of the Halehame codebase (backend + frontend) revealed a set of bugs, misconfigurations, and inconsistencies that would prevent a clean production deployment. The issues span three categories:
+A thorough scan of the Nodbusiness codebase (backend + frontend) revealed a set of bugs, misconfigurations, and inconsistencies that would prevent a clean production deployment. The issues span three categories:
 
 1. **Authentication token inconsistency** — the frontend uses two conflicting storage strategies for the access token (in-memory + cookie vs. `localStorage`), causing broken auth state after page refresh and broken WebSocket connections in production.
 2. **Missing `trust proxy` setting** — the Express backend does not set `app.set('trust proxy', 1)`, so `req.ip` returns the internal IP of the load-balancer on Railway/Vercel, breaking IP-based rate limiting and the SSRF proxy gateway.

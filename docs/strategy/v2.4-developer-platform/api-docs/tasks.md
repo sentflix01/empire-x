@@ -1,4 +1,4 @@
-# API Documentation — Tasks
+﻿# API Documentation — Tasks
 
 ## Status: 🔴 Not Started
 
@@ -21,16 +21,16 @@ multiple language examples, interactive playground.
   ```yaml
   openapi: "3.0.0"
   info:
-    title: Halehame API
+    title: Nodbusiness API
     version: "1.0.0"
     description: |
-      The Halehame API lets you build on top of Africa's leading superapp.
+      The Nodbusiness API lets you build on top of Africa's leading superapp.
       Integrate your tools, automate workflows, or build entirely new products.
     contact:
-      email: developers@halehame.app
-      url: https://halehame.vercel.app/developers
+      email: developers@nodbusiness.app
+      url: https://nodbusiness.vercel.app/developers
   servers:
-    - url: https://halehame.vercel.app/api
+    - url: https://nodbusiness.vercel.app/api
       description: Production
     - url: http://localhost:3001/api
       description: Local development
@@ -91,7 +91,7 @@ The most important page in the entire docs:
 
 - [ ] `GET /developers/docs/getting-started`:
   ```markdown
-  # Getting Started with Halehame API
+  # Getting Started with Nodbusiness API
 
   ## 1. Create an API key
   Go to your Dashboard → Developer → API Keys → Create New Key.
@@ -99,12 +99,12 @@ The most important page in the entire docs:
 
   ## 2. Make your first request
   ```bash
-  curl https://halehame.vercel.app/api/posts \
+  curl https://nodbusiness.vercel.app/api/posts \
     -H "Authorization: Bearer hale_live_YOUR_KEY"
   ```
 
   ## 3. You're in
-  You just fetched the Halehame feed. Now explore what you can build.
+  You just fetched the Nodbusiness feed. Now explore what you can build.
   ```
 
 ---
@@ -125,7 +125,7 @@ Create a new product listing.
 
 **Request:**
 \`\`\`bash
-curl -X POST https://halehame.vercel.app/api/products \
+curl -X POST https://nodbusiness.vercel.app/api/products \
   -H "Authorization: Bearer hale_live_xxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -181,10 +181,10 @@ curl -X POST https://halehame.vercel.app/api/products \
 ## Step 7 — SDKs (Future)
 
 - [ ] Plan for official SDK libraries:
-  - `@halehame/node` — Node.js SDK
-  - `halehame-python` — Python SDK
-  - `halehame-php` — PHP SDK
-  - `@halehame/react` — React hooks for Halehame data
+  - `@nodbusiness/node` — Node.js SDK
+  - `nodbusiness-python` — Python SDK
+  - `nodbusiness-php` — PHP SDK
+  - `@nodbusiness/react` — React hooks for Nodbusiness data
 
 ---
 

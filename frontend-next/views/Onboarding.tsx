@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client'
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from "react";
@@ -77,7 +77,7 @@ function Onboarding() {
         {/* Logo */}
         <div className="text-center mb-8">
           <span className="text-3xl">👑</span>
-          <h1 className="font-display text-xl font-bold mt-1 bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">Halehame</h1>
+          <h1 className="font-display text-xl font-bold mt-1 bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">Nodbusiness</h1>
         </div>
 
         {/* Step 0: Choose Profile Type */}
@@ -131,7 +131,7 @@ function Onboarding() {
                 <User className="w-5 h-5 text-blue-500" />
                 <h2 className="font-display text-xl font-bold">Personal Information</h2>
               </div>
-              <p className="text-sm text-muted-foreground">Set up your personal identity on Halehame</p>
+              <p className="text-sm text-muted-foreground">Set up your personal identity on Nodbusiness</p>
             </div>
             <div className="space-y-4">
               <div>

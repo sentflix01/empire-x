@@ -1,4 +1,4 @@
-{
+﻿{
   "nav": {
     "home": "መነሻ",
     "explore": "ያስሱ",
@@ -103,7 +103,7 @@
     "launchBusiness": "ንግዴን ጀምር"
   },
   "feed": {
-    "welcomeTitle": "ወደ Halehame እንኳን ደህና መጣህ 👑",
+    "welcomeTitle": "ወደ Nodbusiness እንኳን ደህና መጣህ 👑",
     "welcomeSubtitle": "ለማህበራዊ፣ ንግድ እና አገልግሎቶች የአፍሪካ ሱፐር-አፕ።",
     "forYou": "ለአንተ",
     "trending": "ተወዳጅ",
@@ -607,16 +607,16 @@
     "noData": "ምንም ውሂብ የለም"
   },
   "ai": {
-    "title": "Halehame AI",
+    "title": "Nodbusiness AI",
     "online": "ኦንላይን",
     "offlineMode": "ኦፍላይን ሁነታ",
     "clearHistory": "ታሪክ ጽዳ",
     "close": "ዝጋ",
     "placeholder": "ሁሉንም ጠይቅ…",
     "placeholderOffline": "ሁሉንም ጠይቅ (ኦፍላይን ሁነታ)…",
-    "welcomeMessage": "👋 ሰላም! እኔ Halehame AI ነኝ። ኦፍላይን ስትሆን እንኳ ሊረዳህ እችላለሁ። ምን ላድርግልህ?",
-    "offlineFallback": "📶 ኦፍላይን ትመስላለህ። ስለ Halehame ብዙ ጥያቄዎችን ልመልስ እችላለሁ።",
-    "apiFallback": "⚠️ አሁን AI አገልግሎቱን ማግኘት አልተሳካም። ሌላ ነገር ጠይቅ — ስለ Halehame ብዙ ጥያቄዎችን ኢንተርኔት ሳይኖር ልመልስ እችላለሁ!",
+    "welcomeMessage": "👋 ሰላም! እኔ Nodbusiness AI ነኝ። ኦፍላይን ስትሆን እንኳ ሊረዳህ እችላለሁ። ምን ላድርግልህ?",
+    "offlineFallback": "📶 ኦፍላይን ትመስላለህ። ስለ Nodbusiness ብዙ ጥያቄዎችን ልመልስ እችላለሁ።",
+    "apiFallback": "⚠️ አሁን AI አገልግሎቱን ማግኘት አልተሳካም። ሌላ ነገር ጠይቅ — ስለ Nodbusiness ብዙ ጥያቄዎችን ኢንተርኔት ሳይኖር ልመልስ እችላለሁ!",
     "offline": "ኦፍላይን",
     "suggestion1": "ሾዎሩም እንዴት እፈጥራለሁ?",
     "suggestion2": "ተግባር እንዴት ለጥፋለሁ?",
@@ -633,7 +633,7 @@
     "failed": "ማሳወቂያዎችን ማንቃት አልተሳካም። የቡቃያ ቅንብሮችህን ፈትሽ።"
   },
   "notFound": {
-    "message": "ይህ ገጽ በ Halehame ላይ የለም።",
+    "message": "ይህ ገጽ በ Nodbusiness ላይ የለም።",
     "goHome": "ወደ ቤት ሂድ"
   },
   "common": {

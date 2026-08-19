@@ -1,4 +1,4 @@
-# Halehame — Runbooks
+﻿# Nodbusiness — Runbooks
 
 > Step-by-step response procedures for common incidents.
 > The goal is consistent, calm, fast recovery — not heroics.
@@ -43,13 +43,13 @@
 
 **Step 1 — Verify the problem**
 ```
-GET https://api.halehame.app/health
+GET https://api.nodbusiness.app/health
 Expected: { "status": "ok" }
 Actual:   Connection refused / 502
 ```
 
 **Step 2 — Check Railway dashboard**
-- Open https://railway.app → halehame-backend service
+- Open https://railway.app → nodbusiness-backend service
 - Check Deployments tab — is the latest deploy green or failed?
 - Check Logs tab — look for crash errors or OOM (out of memory)
 
@@ -140,7 +140,7 @@ Actual:   Connection refused / 502
 **Symptoms:** Sentry alert fires; many errors of the same type in a short window
 
 **Step 1 — Open Sentry**
-- https://sentry.io → Halehame project
+- https://sentry.io → Nodbusiness project
 - Look at the Issues tab, sort by "First Seen" (new errors) or "Events" (volume)
 
 **Step 2 — Identify the error**
@@ -173,7 +173,7 @@ Actual:   Connection refused / 502
 **Symptoms:** App shows blank page, 404, or build error
 
 **Step 1 — Check Vercel dashboard**
-- https://vercel.com → halehame project
+- https://vercel.com → nodbusiness project
 - Deployments tab → is the latest deploy green?
 - Check build logs for errors
 
@@ -191,7 +191,7 @@ Actual:   Connection refused / 502
 - Takes ~30 seconds
 
 **Step 4 — Verify**
-- Visit https://halehame.vercel.app
+- Visit https://nodbusiness.vercel.app
 - Test: login, load feed, open a product
 
 ---
@@ -233,7 +233,7 @@ The app is designed to work without Redis (no-op fallback in `lib/redis.js`):
   - `R2_PUBLIC_URL`
 
 **Step 2 — Check Cloudflare R2 dashboard**
-- https://dash.cloudflare.com → R2 → halehame-uploads bucket
+- https://dash.cloudflare.com → R2 → nodbusiness-uploads bucket
 - Is public access enabled? Is the bucket accessible?
 
 **Step 3 — Fallback**
@@ -242,7 +242,7 @@ The app is designed to work without Redis (no-op fallback in `lib/redis.js`):
 
 **Step 4 — Test manually**
 ```bash
-curl -X POST https://api.halehame.app/api/upload \
+curl -X POST https://api.nodbusiness.app/api/upload \
   -H "Authorization: Bearer <token>" \
   -F "file=@test.jpg"
 # Should return { url: "https://pub-xxx.r2.dev/..." }

@@ -1,8 +1,8 @@
-# Halehame — Competitive Patent Analysis
+﻿# Nodbusiness — Competitive Patent Analysis
 # What You Can Own vs. What Already Belongs to Competitors
 
 > **Classification:** STRICTLY CONFIDENTIAL — Attorney-Client Privileged
-> **Purpose:** Detailed comparison of Halehame's features against competitor
+> **Purpose:** Detailed comparison of Nodbusiness's features against competitor
 > patent portfolios to identify:
 >   (A) What you CANNOT use freely — risk of infringement
 >   (B) What you CAN use — prior art, common practice, or expired patents
@@ -23,9 +23,9 @@
 | API | Application Programming Interface |
 | UI | User Interface |
 | UX | User Experience |
-| SGA | Social Graph Affinity — Halehame's discovery signal (Patent 3) |
-| CTMS | Category Taxonomy Match Score — Halehame's discovery signal (Patent 3) |
-| TVS | Trending Velocity Score — Halehame's discovery signal (Patent 3) |
+| SGA | Social Graph Affinity — Nodbusiness's discovery signal (Patent 3) |
+| CTMS | Category Taxonomy Match Score — Nodbusiness's discovery signal (Patent 3) |
+| TVS | Trending Velocity Score — Nodbusiness's discovery signal (Patent 3) |
 | GPS | Geographic Positioning System (used as GPS_score in Patent 3 context) |
 | ROFR | Right of First Refusal |
 | E2E | End-to-End — in this context, end-to-end encryption in messaging |
@@ -41,14 +41,14 @@
 
 ## How to Read This Document
 
-Each feature of Halehame is analyzed across 6 direct competitors:
+Each feature of Nodbusiness is analyzed across 6 direct competitors:
 
 | Symbol | Meaning |
 |--------|---------|
 | 🔴 RISK | Competitor has a patent in this area — requires attorney review before shipping |
 | 🟡 MONITOR | Similar patents exist but distinguishable — proceed with care, document differentiation |
 | 🟢 SAFE | No known patent coverage — common practice or prior art predates any claims |
-| 🔵 YOURS | Novel to Halehame — worth filing provisional patent immediately |
+| 🔵 YOURS | Novel to Nodbusiness — worth filing provisional patent immediately |
 
 **The 6 Direct Competitors Analyzed:**
 1. **Shopify** — E-commerce platform (most relevant for marketplace + payments)
@@ -73,7 +73,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Interest-based content filtering | Facebook (US9824407) | 🟡 MONITOR | Meta patents on personalized filtering. Safe if you use different signals. |
 | Business content in social feed | Instagram (US20170109786) | 🟡 MONITOR | Instagram filed on business posts in social context. Distinguish: your businesses ARE users, not advertisers. |
 
-**Halehame approach — SAFE:**
+**Nodbusiness approach — SAFE:**
 ```
 ✅ Default to chronological feed in Phase 1 (prior art — not patentable by anyone)
 ✅ Document your feed as "discovery of businesses the user follows"
@@ -96,7 +96,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Business stories (branded) | Meta | 🟢 SAFE | Business-specific story functionality is not specifically patented. |
 | Story analytics | Meta | 🟢 SAFE | Providing analytics to creators/businesses on story views is prior art. |
 
-**Halehame approach — SAFE:**
+**Nodbusiness approach — SAFE:**
 ```
 ✅ Your hexagonal story design is visually distinct from Instagram's circular stories
    — this matters for design patent / trade dress differentiation
@@ -118,7 +118,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Post sharing / reposting | Prior art (Twitter retweet 2009) | 🟢 SAFE | Reposting mechanisms are prior art. |
 | Post linked to product listing | Pinterest (US9600557) | 🟡 MONITOR | Pinterest patented "shoppable posts" with product links. Distinguish: your posts are organic user content, not paid product pins. |
 
-**Halehame approach — SAFE:**
+**Nodbusiness approach — SAFE:**
 ```
 ✅ All basic posting functionality is prior art — safe to implement
 ✅ "Business post" that links to a showroom product is meaningfully different from
@@ -141,7 +141,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Section-based page building | Multiple (WordPress, Elementor prior art) | 🟢 SAFE | Section-based page builders (add a section, fill content) predate these patents sufficiently. |
 | Template selection interface | Prior art | 🟢 SAFE | Template selection UX is prior art from CMS systems (WordPress themes 2004+). |
 
-**Halehame approach — SAFE:**
+**Nodbusiness approach — SAFE:**
 ```
 ✅ DO NOT implement free-placement drag-and-drop (risk of Wix patent infringement)
 ✅ DO implement section-based building: user adds pre-defined sections (hero, about,
@@ -168,7 +168,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Template marketplace (buy/sell) | Shopify Theme Store, Envato | 🟢 SAFE | Template marketplaces are well-established prior art (ThemeForest since 2008). |
 | **Dynamic AI-priced templates** | **No known patent** | 🔵 **YOURS** | **Pricing templates dynamically based on demand + quality + competition: NOVEL. File Patent 1 immediately.** |
 
-**Halehame approach:**
+**Nodbusiness approach:**
 ```
 ✅ Basic template system: prior art, fully safe
 ✅ Category-specific templates: prior art, fully safe
@@ -190,7 +190,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Split-screen editor/preview | Wix, Webflow | 🟢 SAFE | Widely implemented. Not novel enough to patent. |
 | Mobile preview toggle | Multiple platforms | 🟢 SAFE | Common feature, prior art. |
 
-**Halehame approach — SAFE:**
+**Nodbusiness approach — SAFE:**
 ```
 ✅ All live preview functionality is safe to implement
 ✅ Auto-save with 2-second debounce is a common pattern — safe
@@ -227,7 +227,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Wishlist / save product | Prior art | 🟢 SAFE | Wishlists are prior art (Amazon 1999). |
 | Price drop alerts on wishlist | Prior art (multiple e-commerce platforms) | 🟢 SAFE | Price alerts are well-established prior art. |
 
-**Halehame approach — SAFE:**
+**Nodbusiness approach — SAFE:**
 ```
 ✅ All standard marketplace features are safe to implement
 ✅ Product variants: keep your implementation simple and distinct from Shopify's
@@ -250,7 +250,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Coupon / discount codes | Prior art | 🟢 SAFE | Coupon systems are decades-old prior art. |
 | Multi-seller cart | Amazon (US8655753) | 🟡 MONITOR | Amazon has patents on multi-seller checkout flows. Distinguish: your flow creates separate orders per seller, not a unified Amazon-style cart. |
 
-**Halehame approach — SAFE:**
+**Nodbusiness approach — SAFE:**
 ```
 ✅ All standard checkout functionality is safe
 ✅ Multi-seller cart: implement as separate orders per seller
@@ -289,7 +289,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Escrow payment on task | Escrow.com (US7155410) | 🟡 MONITOR | Escrow for online transactions has been patented. Distinguish: use Stripe's payment hold + release, not a custom escrow system. |
 | Task location on map | TaskRabbit | 🟡 MONITOR | TaskRabbit specifically patented "location-based task discovery." Distinguish: your map shows tasks in a discovery feed context, with social + category signals, not pure geolocation matching. |
 
-**Halehame approach:**
+**Nodbusiness approach:**
 ```
 ✅ Basic task posting and bidding: prior art — safe
 ✅ For escrow: use Stripe's payment hold capability (you're using Stripe's patent-covered tech as a licensed customer, not implementing your own)
@@ -319,7 +319,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Presence (online/offline) | Prior art (AIM away status 1997) | 🟢 SAFE | |
 | Block users in messaging | Prior art | 🟢 SAFE | |
 
-**Halehame approach — SAFE:**
+**Nodbusiness approach — SAFE:**
 ```
 ✅ All standard messaging features are completely safe — deep prior art
 ✅ Real-time via Socket.IO is an implementation choice, not a patentable method
@@ -343,7 +343,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Autocomplete search suggestions | Google (US6421669) | 🟡 MONITOR | Google has patents on search autocomplete/suggestions. Distinguish: your suggestions are within your own platform data, not web-scale. |
 | Search ranking algorithm | Google (multiple) | 🟡 MONITOR | Google's PageRank and many ranking algorithms are patented. Distinguish: you are not using web links — your ranking uses platform-specific signals. |
 
-**Halehame approach — SAFE:**
+**Nodbusiness approach — SAFE:**
 ```
 ✅ Basic platform search: safe (you're not Google — you search your own data)
 ✅ Google's patents are specific to web-scale link analysis (PageRank)
@@ -375,7 +375,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | People you may know (suggestions) | Facebook (US8918418) | 🔴 RISK | Facebook has patents specifically on "people you may know" algorithms using mutual connections. Distinguish: your "business discovery" combines 4 factors; keep "people suggestions" separate and use distinct signals. |
 | **Trending velocity (rate of change, not volume)** | **No known patent** | 🔵 **YOURS** | **Your specific use of rate-of-change (velocity) vs. absolute engagement for trending is novel. Part of Patent 3.** |
 
-**Halehame approach:**
+**Nodbusiness approach:**
 ```
 🔴 Personalized recommendations: Delay or distinguish carefully from Netflix/Meta claims
    → Use terminology: "discovery based on your network and location" not "personalized recommendations"
@@ -406,7 +406,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Rate limiting | Prior art | 🟢 SAFE | |
 | Developer dashboard | Prior art (Stripe, Twilio) | 🟢 SAFE | |
 
-**Halehame approach — SAFE:**
+**Nodbusiness approach — SAFE:**
 ```
 ✅ All developer platform features are safe — all prior art or open standards
 ✅ None require patent concern
@@ -441,7 +441,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | AI content suggestions | Multiple | 🟡 MONITOR | |
 | AI chatbot / assistant | Multiple (Google, Microsoft, Meta) | 🟡 MONITOR | You are using third-party models (OpenAI/Gemini) via API — you don't infringe the underlying model patents. |
 
-**Halehame approach — SAFE:**
+**Nodbusiness approach — SAFE:**
 ```
 ✅ Using AI APIs (OpenAI, Gemini, Anthropic): SAFE — you are a licensed customer
 ✅ You are NOT creating a new AI model — you are applying existing models to your context
@@ -477,7 +477,7 @@ Each feature of Halehame is analyzed across 6 direct competitors:
 | Commission auto-deduction | Prior art (eBay, Airbnb) | 🟢 SAFE | Platform taking commission on transactions is prior art. |
 | Referral points / loyalty points | Prior art | 🟢 SAFE | Points/loyalty programs are prior art. |
 
-**Halehame approach:**
+**Nodbusiness approach:**
 ```
 🟡 Wallet: position as "platform balance for in-app purchases"
    NOT as "digital financial service" — this distinction matters legally
@@ -579,14 +579,14 @@ ONGOING:
 
 ## Legal Disclaimer
 
-> This analysis is prepared by Halehame Technologies for internal planning
+> This analysis is prepared by Nodbusiness Technologies for internal planning
 > purposes. It represents the founder's research and analysis, NOT legal advice.
 > Patent law is complex, jurisdiction-specific, and changes frequently.
 > A USPTO-registered patent attorney must review this document before any
 > filing decisions are made.
 >
 > This document should be treated as attorney work product once reviewed
-> by licensed counsel. Do not share outside of Halehame Technologies without
+> by licensed counsel. Do not share outside of Nodbusiness Technologies without
 > explicit written authorization.
 
 ---

@@ -1,6 +1,6 @@
-# Halehame — Tax Structure & Corporate Entity Strategy
+﻿# Nodbusiness — Tax Structure & Corporate Entity Strategy
 
-> **How Halehame Technologies is structured legally and how it handles tax obligations globally.**
+> **How Nodbusiness Technologies is structured legally and how it handles tax obligations globally.**
 > This document guides entity setup, cross-border transactions, and tax compliance as the company expands.
 
 ---
@@ -36,21 +36,21 @@
 
 ### Phase 1 (Pre-seed / Bootstrap)
 ```
-Halehame Technologies [Country of Incorporation]
+Nodbusiness Technologies [Country of Incorporation]
   └── Operating Entity (single company)
       All revenue, IP, employees in one entity
 ```
 
 ### Phase 2 (Post-seed / Series A)
 ```
-Halehame Technologies Inc. (Delaware, USA)  ← Holding Company + IP Owner
-  └── Halehame Technologies Ltd. (UK or Singapore)  ← EMEA/APAC Operating Company
-  └── Halehame Technologies PLC (Ethiopia or home country)  ← Africa/MENA Operations
+Nodbusiness Technologies Inc. (Delaware, USA)  ← Holding Company + IP Owner
+  └── Nodbusiness Technologies Ltd. (UK or Singapore)  ← EMEA/APAC Operating Company
+  └── Nodbusiness Technologies PLC (Ethiopia or home country)  ← Africa/MENA Operations
 ```
 
 ### Phase 3 (Global expansion)
 ```
-Halehame Technologies Inc. (Delaware)  ← Global HQ + IP holder
+Nodbusiness Technologies Inc. (Delaware)  ← Global HQ + IP holder
   └── EU Entity (Ireland or Estonia) ← EU data compliance, VAT registration
   └── Asia-Pacific Entity (Singapore)  ← APAC hub, favorable tax rates
   └── Africa Entity (home country)  ← Local operations, regulatory compliance
@@ -70,7 +70,7 @@ Delaware is the global standard for tech startups because:
 - **Strong legal precedent** — Delaware Court of Chancery handles corporate disputes efficiently
 - **IP ownership** — best jurisdiction to hold the core platform IP (Intellectual Property)
 
-**Action:** Incorporate Halehame Technologies Inc. in Delaware before first institutional fundraise.
+**Action:** Incorporate Nodbusiness Technologies Inc. in Delaware before first institutional fundraise.
 **Cost:** ~$500 via Stripe Atlas, Clerky, or a US attorney.
 
 ---
@@ -127,7 +127,7 @@ Condition:                       Must not derive income from UAE mainland
 ## 4. Cross-Border Tax Issues
 
 ### 4.1 Withholding Tax (WHT) on Payments
-When Halehame pays contractors or licensees in other countries, WHT may apply:
+When Nodbusiness pays contractors or licensees in other countries, WHT may apply:
 
 | Payment Type | Typical WHT Rate | How to Reduce |
 |-------------|-----------------|---------------|
@@ -137,7 +137,7 @@ When Halehame pays contractors or licensees in other countries, WHT may apply:
 | Royalties on IP | 5–30% | Hold IP in low-WHT jurisdiction |
 
 ### 4.2 Transfer Pricing
-When related Halehame entities transact with each other (e.g., Ethiopia OpCo pays Delaware HoldCo a license fee for using the platform), transfer pricing rules apply:
+When related Nodbusiness entities transact with each other (e.g., Ethiopia OpCo pays Delaware HoldCo a license fee for using the platform), transfer pricing rules apply:
 
 - **Rule:** All inter-company transactions must be priced at arm's length (as if unrelated parties)
 - **Documentation required:** Transfer pricing study (required once revenue > $1M between entities)
@@ -188,7 +188,7 @@ Digital services (SaaS) are taxable where the customer is located in most jurisd
 **Action:** Establish ESOP through Delaware entity. Use ISOs (Incentive Stock Options) for US-based employees and EMI (Enterprise Management Incentives) for UK-based employees where possible.
 
 ### 6.2 Investor Exit Tax
-When investors sell shares in Halehame:
+When investors sell shares in Nodbusiness:
 - **Capital gains tax** applies in the investor's home country
 - **Delaware:** 0% state tax on capital gains for non-US investors
 - **Structure tip:** Many US VCs prefer Delaware C-Corp for clean exit mechanics
@@ -197,7 +197,7 @@ When investors sell shares in Halehame:
 
 ## 7. R&D Tax Credits
 
-Halehame's engineering work likely qualifies for R&D tax credits in multiple jurisdictions:
+Nodbusiness's engineering work likely qualifies for R&D tax credits in multiple jurisdictions:
 
 | Country | Credit | Notes |
 |---------|--------|-------|

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { entities } from '@/api/entities';
@@ -586,9 +586,9 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
             <span className="font-medium">{commentCount}</span>
           </button>
           <ShareButton
-            title={`${post.author_name ?? 'Halehame'} on Halehame`}
+            title={`${post.author_name ?? 'Nodbusiness'} on Nodbusiness`}
             text={(post.content ?? '').slice(0, 100)}
-            url={`${typeof window !== 'undefined' ? window.location.origin : 'https://halehame.vercel.app'}/profile/${post.author_id}`}
+            url={`${typeof window !== 'undefined' ? window.location.origin : 'https://nodbusiness.vercel.app'}/profile/${post.author_id}`}
             label=""
           />
           <BookmarkButton

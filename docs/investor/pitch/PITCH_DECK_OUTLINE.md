@@ -1,4 +1,4 @@
-# Halehame — Pitch Deck Outline
+﻿# Nodbusiness — Pitch Deck Outline
 
 > **Classification:** Confidential
 > **Format:** 10–12 slides. Clear. Visual. No walls of text.
@@ -37,7 +37,7 @@
 
 ```
 Content:
-  • Company name: Halehame
+  • Company name: Nodbusiness
   • Tagline: "The Global Superapp — Social. Commerce. Services."
   • Logo (crown icon)
   • Founder name
@@ -81,14 +81,14 @@ Key message: The problem is real, large, and painful.
 
 ```
 Content:
-  • Headline: "Halehame — Professional business presence in 10 minutes"
+  • Headline: "Nodbusiness — Professional business presence in 10 minutes"
 
   3 key points:
     → Any business builds a showroom (mini-website) with no coding
     → Customers discover it through a social feed + map + search
     → Buyers and sellers connect, communicate, and transact — all in one platform
 
-  Visual: Screenshot of the Halehame app showing a published showroom
+  Visual: Screenshot of the Nodbusiness app showing a published showroom
   + the feed discovery experience
 
 Key message: Simple to build. Easy to discover. Complete for users.
@@ -153,7 +153,7 @@ Content:
 
   Stream 2: Template Marketplace (Phase 2)
     • Developers build templates, earn 70% revenue share
-    • Halehame earns 30% of all template revenue
+    • Nodbusiness earns 30% of all template revenue
     • AI-priced: high-demand templates earn more
 
   Stream 3: Featured Placement (Phase 2)
@@ -210,7 +210,7 @@ Content:
     Bottom-left (low social, low commerce): N/A
     Top-left (high social, low commerce): Facebook, Instagram
     Bottom-right (low social, high commerce): Shopify, Wix, Squarespace
-    Top-right (high social, high commerce): HALEHAME ← only one here
+    Top-right (high social, high commerce): NODBUSINESS ← only one here
 
   Key differentiators:
     ✓ The only platform combining social + commerce + showroom builder + tasks
@@ -261,7 +261,7 @@ Key message: Organic growth in Phase 1. Paid acquisition scales in Phase 2.
 
 ```
 Content:
-  Headline: "The team that built and will scale Halehame"
+  Headline: "The team that built and will scale Nodbusiness"
 
   For each team member (include photo if possible):
     • Name + title
@@ -351,9 +351,9 @@ Key message: Specific amount. Clear milestones. Ready to execute.
 ✅ Maximum 12 slides (most investors spend < 3 minutes on a deck)
 ✅ One key message per slide
 ✅ Large visuals, minimal text (< 30 words per slide)
-✅ Consistent branding (Halehame colors, font)
+✅ Consistent branding (Nodbusiness colors, font)
 ✅ High-resolution images and screenshots
-✅ Footer on every slide: "Halehame Technologies — Confidential"
+✅ Footer on every slide: "Nodbusiness Technologies — Confidential"
 ✅ Page numbers on every slide
 
 ❌ No Comic Sans or Times New Roman

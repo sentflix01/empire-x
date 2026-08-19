@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
@@ -15,7 +15,7 @@ interface Message {
   ts: number;        // timestamp for display
 }
 
-const STORAGE_KEY = "empire_ai_history";
+const STORAGE_KEY = "nodbusiness_ai_history";
 const MAX_STORED = 60;
 
 function AssistantLogo({ size = "sm", animated = false }: { size?: "xs" | "sm" | "md"; animated?: boolean }) {
@@ -28,7 +28,7 @@ function AssistantLogo({ size = "sm", animated = false }: { size?: "xs" | "sm" |
       aria-hidden="true"
     >
       <Image
-        src="/brand/halehame-logo.svg"
+        src="/brand/nodbusiness-icon.svg"
         alt=""
         width={44}
         height={44}
@@ -45,7 +45,7 @@ function AssistantFlipCoin() {
       <span className="ai-flip-coin-inner">
         <span className="ai-flip-coin-face ai-flip-coin-front">
           <Image
-            src="/brand/halehame-logo.svg"
+            src="/brand/nodbusiness-icon.svg"
             alt=""
             width={48}
             height={48}
@@ -109,7 +109,7 @@ export default function AiAssistant() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Draggable position state
-  const STORAGE_POS_KEY = "empire_ai_pos";
+  const STORAGE_POS_KEY = "nodbusiness_ai_pos";
   const defaultPos = { x: -1, y: -1 }; // -1 means "use CSS default"
   const [pos, setPos] = useState(defaultPos);
   const dragging = useRef(false);

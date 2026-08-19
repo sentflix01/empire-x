@@ -1,4 +1,4 @@
-# Halehame — Database Reference
+﻿# Nodbusiness — Database Reference
 
 > Full ERD: `docs/architecture/ERD.md`
 > Schema details are maintained here and in `docs/architecture/ERD.md`.
@@ -144,7 +144,7 @@ WHERE state = 'active';
 Neon uses PgBouncer for connection pooling automatically. The connection string uses a pooled endpoint:
 
 ```
-postgresql://user:pass@ep-xxx-pooler.neon.tech/halehame?sslmode=require
+postgresql://user:pass@ep-xxx-pooler.neon.tech/nodbusiness?sslmode=require
 ```
 
 For direct connections (migrations, admin queries), use the non-pooled endpoint. For the app, always use the pooled endpoint.

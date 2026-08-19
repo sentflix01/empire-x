@@ -1,4 +1,4 @@
-# Implementation Plan: Friend Suggestions & AI-User Distinction
+﻿# Implementation Plan: Friend Suggestions & AI-User Distinction
 
 ## Overview
 
@@ -9,7 +9,7 @@ Implement the `is_seed` data-model flag plus the friend suggestion system across
 - [x] 1. Database migration — `is_seed` column and `dismissed_suggestions` table
   - Create `backend/db/migrate12.js`
   - Add `is_seed BOOLEAN NOT NULL DEFAULT FALSE` to `users` via `ALTER TABLE … ADD COLUMN IF NOT EXISTS`
-  - Backfill `UPDATE users SET is_seed = TRUE WHERE email LIKE '%@halehame.test'`
+  - Backfill `UPDATE users SET is_seed = TRUE WHERE email LIKE '%@nodbusiness.test'`
   - Create `dismissed_suggestions` table with `(id, requester_id, target_id, created_at)` and `UNIQUE(requester_id, target_id)`
   - Add index `idx_dismissed_suggestions_requester ON dismissed_suggestions(requester_id)`
   - Wrap all three operations in a single `BEGIN … COMMIT` transaction
@@ -22,9 +22,9 @@ Implement the `is_seed` data-model flag plus the friend suggestion system across
   - [x] 2.2 Update `POST /api/auth/register` (`routes/auth.js`) to explicitly set `is_seed = FALSE` in the INSERT
     - Add `is_seed` column to the INSERT statement with value `FALSE`
     - _Requirements: 1.4_
-  - [x] 2.3 Update `db/seed.js` user INSERT to set `is_seed = TRUE` for the 50 generated `@halehame.test` users
+  - [x] 2.3 Update `db/seed.js` user INSERT to set `is_seed = TRUE` for the 50 generated `@nodbusiness.test` users
     - Add `is_seed` to the column list and pass `TRUE` for seed users
-    - Dev accounts (`admin@halehame.app`, `test@halehame.app`) keep `is_seed = FALSE`
+    - Dev accounts (`admin@nodbusiness.app`, `test@nodbusiness.app`) keep `is_seed = FALSE`
     - _Requirements: 1.2_
   - [x] 2.4 Update profile read routes (`routes/profiles.js`) to JOIN `users` and include `is_seed`
     - `GET /api/profiles/by-user/:userId` — add `JOIN users u ON u.id = up.user_id` and return `u.is_seed`

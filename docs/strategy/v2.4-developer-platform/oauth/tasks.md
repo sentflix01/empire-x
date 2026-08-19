@@ -1,4 +1,4 @@
-# OAuth 2.0 "Login with Halehame" — Tasks
+﻿# OAuth 2.0 "Login with Nodbusiness" — Tasks
 
 ## Status: 🔴 Not Started
 
@@ -6,8 +6,8 @@
 
 ## What This Enables
 
-Any website can add a "Continue with Halehame" button.
-Users click it → approve on Halehame → return to the website logged in.
+Any website can add a "Continue with Nodbusiness" button.
+Users click it → approve on Nodbusiness → return to the website logged in.
 The website gets the user's basic profile (name, avatar, verified status).
 
 This is exactly how "Login with Google" / "Login with Apple" works.
@@ -66,7 +66,7 @@ This is exactly how "Login with Google" / "Login with Apple" works.
   ```
   GET  /oauth/authorize
     Params: client_id, redirect_uri, scope, state, response_type=code
-    Shows: Halehame consent screen ("App X wants access to your profile")
+    Shows: Nodbusiness consent screen ("App X wants access to your profile")
     On approve: redirects to redirect_uri?code=xxx&state=xxx
     On deny:    redirects to redirect_uri?error=access_denied
 
@@ -97,7 +97,7 @@ This is exactly how "Login with Google" / "Login with Apple" works.
   - Shows: app name + logo, what permissions they're requesting
   - "Allow" and "Deny" buttons
   - Must be server-rendered (no loading flash on OAuth redirects)
-  - Design: clean, trustworthy, shows Halehame logo prominently
+  - Design: clean, trustworthy, shows Nodbusiness logo prominently
   - Permission explanations in plain language:
     - `profile` → "See your name and profile photo"
     - `email` → "See your email address"
@@ -118,19 +118,19 @@ This is exactly how "Login with Google" / "Login with Apple" works.
 
 ---
 
-## Step 5 — "Login with Halehame" Button Component
+## Step 5 — "Login with Nodbusiness" Button Component
 
 - [ ] Create a copy-paste button code snippet in the docs:
   ```html
   <!-- Add to your website -->
-  <a href="https://halehame.vercel.app/oauth/authorize
+  <a href="https://nodbusiness.vercel.app/oauth/authorize
     ?client_id=YOUR_CLIENT_ID
     &redirect_uri=https://yoursite.com/callback
     &scope=profile
     &response_type=code"
     style="background: #2563eb; color: white; padding: 12px 24px;
            border-radius: 9999px; font-weight: 600; text-decoration: none;">
-    Continue with Halehame
+    Continue with Nodbusiness
   </a>
   ```
 

@@ -1,6 +1,6 @@
-# Halehame — Content Moderation Operations
+﻿# Nodbusiness — Content Moderation Operations
 
-> **How Halehame moderates user-generated content at scale — from automated detection through human review to policy enforcement.**
+> **How Nodbusiness moderates user-generated content at scale — from automated detection through human review to policy enforcement.**
 > Moderation protects the community, satisfies legal obligations, and maintains advertiser/partner confidence.
 
 ---
@@ -207,14 +207,14 @@ No further appeals after second review.
 For users claiming their copyrighted content is on the platform:
 
 ```
-Step 1: Claimant submits takedown notice to legal@halehame.com with:
+Step 1: Claimant submits takedown notice to legal@nodbusiness.com with:
   → Identification of the copyrighted work
   → Location of the infringing content (URL)
   → Good faith statement
   → Statement under penalty of perjury
   → Contact information and signature
 
-Step 2: Halehame reviews notice for completeness within 48 hours
+Step 2: Nodbusiness reviews notice for completeness within 48 hours
 
 Step 3: If valid:
   → Content removed within 24 hours
@@ -266,4 +266,4 @@ Track these weekly:
 
 *Owner: CEO / T&S lead (Phase 1), Head of Content Operations (Phase 2+)*
 *Review cycle: Monthly metrics review, policy updated quarterly*
-*Escalations: safety@halehame.com*
+*Escalations: safety@nodbusiness.com*

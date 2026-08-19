@@ -1,4 +1,4 @@
-# Halehame — Shareholder Agreement Guide
+﻿# Nodbusiness — Shareholder Agreement Guide
 
 > **Classification:** Confidential
 > **Purpose:** What to include, what to fight for, and what to avoid
@@ -181,12 +181,12 @@ Standard: 12–24 months after leaving the company
 Jurisdiction matters: In many countries (including Ethiopia), non-competes
 are unenforceable if too broad
 
-Non-solicitation: Founder cannot hire Halehame employees for X period
+Non-solicitation: Founder cannot hire Nodbusiness employees for X period
 Standard: 12–24 months after leaving
 → More enforceable than non-compete in most jurisdictions
 
 Negotiate:
-  → Limit scope: "competing with Halehame's actual business at time of departure"
+  → Limit scope: "competing with Nodbusiness's actual business at time of departure"
   → Not "any business in the technology sector" (too broad)
   → 12 months, not 36 months
 ```
@@ -288,7 +288,7 @@ Step 4: Investor due diligence (Day 1-14)
 Step 5: SHA drafting + negotiation (Day 7-21)
 Step 6: Board resolution approving the investment (Day 18-23)
 Step 7: Documents signed by all parties (Day 20-28)
-Step 8: Money wired to Halehame business account (Day 21-30)
+Step 8: Money wired to Nodbusiness business account (Day 21-30)
 Step 9: Shares issued + cap table updated (Day 21-30)
 Step 10: Shareholder register updated (Day 30)
 

@@ -1,6 +1,6 @@
-// Halehame Service Worker — PWA offline support + push notifications
+﻿// Nodbusiness Service Worker — PWA offline support + push notifications
 
-const CACHE_NAME = 'halehame-v2';
+const CACHE_NAME = 'nodbusiness-v2';
 const STATIC_ASSETS = ['/', '/index.html'];
 
 // Install — cache static assets
@@ -42,7 +42,7 @@ self.addEventListener('push', event => {
   if (!event.data) return;
   const data = event.data.json();
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Halehame', {
+    self.registration.showNotification(data.title || 'Nodbusiness', {
       body: data.body || '',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',

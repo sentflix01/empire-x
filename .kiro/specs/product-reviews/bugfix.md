@@ -1,8 +1,8 @@
-# Bugfix Requirements Document
+﻿# Bugfix Requirements Document
 
 ## Introduction
 
-The Halehame app has a fully functional reviews backend (`/api/reviews`) with routes for fetching, creating, and deleting product reviews — including automatic average rating recalculation and duplicate prevention (one review per user per product via a unique constraint). However, the frontend `ProductDetail` page exposes none of this functionality. Users cannot see existing reviews, submit a star rating, write a comment, or view an average rating sourced from actual review data. The bug condition is: a product has a reviews API surface that exists and is ready to consume, but users encounter a completely blank reviews section on every product page.
+The Nodbusiness app has a fully functional reviews backend (`/api/reviews`) with routes for fetching, creating, and deleting product reviews — including automatic average rating recalculation and duplicate prevention (one review per user per product via a unique constraint). However, the frontend `ProductDetail` page exposes none of this functionality. Users cannot see existing reviews, submit a star rating, write a comment, or view an average rating sourced from actual review data. The bug condition is: a product has a reviews API surface that exists and is ready to consume, but users encounter a completely blank reviews section on every product page.
 
 ## Bug Analysis
 

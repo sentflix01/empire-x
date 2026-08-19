@@ -1,4 +1,4 @@
-# Halehame — Executive Summary (1-Page Investor Brief)
+﻿# Nodbusiness — Executive Summary (1-Page Investor Brief)
 
 > This is your one-page summary sent BEFORE the pitch deck.
 > If this doesn't capture interest, they won't open the deck.
@@ -25,9 +25,9 @@
 
 ---
 
-## HALEHAME — THE GLOBAL SUPERAPP FOR BUSINESS
+## NODBUSINESS — THE GLOBAL SUPERAPP FOR BUSINESS
 
-**One line:** Halehame lets any business in the world build a professional
+**One line:** Nodbusiness lets any business in the world build a professional
 showroom website in 10 minutes, sell products, and connect with customers —
 all in one platform.
 
@@ -44,7 +44,7 @@ discovery, local payments, or community features that emerging market businesses
 
 ### The Solution
 
-Halehame is a three-in-one platform:
+Nodbusiness is a three-in-one platform:
 - **Showroom Builder** — Build a professional business website in 10 minutes, no code required
 - **Social Feed** — Customers discover businesses through a social feed, nearby map, and search
 - **Commerce Layer** — Sell products, accept payments (Stripe + local gateways), manage orders
@@ -64,7 +64,7 @@ Halehame is a three-in-one platform:
 - Platform fully built: 45+ features, 252 backend tests passing, 0 TypeScript errors
 - 3 provisional patents filed (AI pricing, revenue share system, discovery algorithm)
 - Trademark filed in Ethiopia; USA + EU pending
-- Registered company: Halehame Technologies PLC
+- Registered company: Nodbusiness Technologies PLC
 
 ---
 
@@ -129,8 +129,8 @@ Milestones: 10,000 MAU → 500 paying businesses → $25,000 MRR → Series A re
 
 ### Contact
 
-[Founder Name] | [email@halehame.app] | [Phone]
-[LinkedIn URL] | halehame.vercel.app
+[Founder Name] | [email@nodbusiness.app] | [Phone]
+[LinkedIn URL] | nodbusiness.vercel.app
 
 ---
 

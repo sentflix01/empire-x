@@ -1,4 +1,4 @@
-/**
+﻿/**
  * logger.js — Structured logging with Pino
  * 
  * Outputs JSON in production (for log aggregators like Datadog, Logtail).
@@ -30,7 +30,7 @@ const logger = pino({
     paths: ['req.headers.authorization', 'body.password', 'body.password_hash', 'body.card_number'],
     censor: '[REDACTED]',
   },
-  base: { service: 'halehame-backend', env: process.env.NODE_ENV },
+  base: { service: 'nodbusiness-backend', env: process.env.NODE_ENV },
 });
 
 module.exports = logger;

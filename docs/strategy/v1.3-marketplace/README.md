@@ -1,7 +1,7 @@
-# v1.3 — Marketplace
+﻿# v1.3 — Marketplace
 
 > **Theme:** Commerce
-> **Goal:** Buying and selling on Halehame feels as smooth and trustworthy as any global e-commerce platform. Every step of the commerce flow — browse, detail, cart, checkout, order tracking — is polished and professional.
+> **Goal:** Buying and selling on Nodbusiness feels as smooth and trustworthy as any global e-commerce platform. Every step of the commerce flow — browse, detail, cart, checkout, order tracking — is polished and professional.
 
 ---
 

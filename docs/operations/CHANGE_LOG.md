@@ -1,4 +1,4 @@
-# Halehame — Platform Changelog
+﻿# Nodbusiness — Platform Changelog
 
 > Every significant deployment and milestone recorded here.
 > Used by: DevOps panel, team, investors, and support.
@@ -106,10 +106,10 @@ When you deploy, add an entry at the top of the DEPLOYED section:
 
 ### v0.9.1 — August 2026
 **Type:** feat + infra
-**Impact:** Platform renamed to Halehame; global positioning
+**Impact:** Platform renamed to Nodbusiness; global positioning
 
-- Brand rename from Empire X → Halehame across 124+ files
-- Domain updated to halehame.vercel.app
+- Brand rename from Empire X → Nodbusiness across 124+ files
+- Domain updated to nodbusiness.vercel.app
 - Removed all Ethiopia-specific UI text and phone formats from non-locale strings
 - Seed script updated for global structure
 - Removed faker-generated test data from production DB (150 businesses, 50 users)

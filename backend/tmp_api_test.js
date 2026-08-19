@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Quick API test — verifies the profile PUT now works after migration 17
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
@@ -31,11 +31,11 @@ function request(method, path, body, token) {
 }
 
 (async () => {
-  console.log('\n=== Halehame Profile API Test ===\n');
+  console.log('\n=== Nodbusiness Profile API Test ===\n');
 
   // 1. Login
-  console.log('1. Logging in as test@halehame.app...');
-  const login = await request('POST', '/auth/login', { email: 'test@halehame.app', password: 'Test1234!' });
+  console.log('1. Logging in as test@nodbusiness.app...');
+  const login = await request('POST', '/auth/login', { email: 'test@nodbusiness.app', password: 'Test1234!' });
   if (login.status !== 200) {
     console.error('   ❌ Login failed:', login.status, JSON.stringify(login.body));
     process.exit(1);
@@ -58,11 +58,11 @@ function request(method, path, body, token) {
   console.log('\n3. Testing PUT /profiles/:id with full payload...');
   const payload = {
     display_name: 'Test User E2E',
-    headline: 'QA Engineer · Halehame',
+    headline: 'QA Engineer · Nodbusiness',
     bio: 'This profile was edited during E2E testing.',
     location: 'Addis Ababa, Ethiopia',
     phone: '+251 911 123 456',
-    website: 'https://halehame.vercel.app',
+    website: 'https://nodbusiness.vercel.app',
     skills: JSON.stringify(['JavaScript', 'React', 'Testing']),
     languages: JSON.stringify(['English', 'Amharic']),
     experience: JSON.stringify([]),
@@ -88,7 +88,7 @@ function request(method, path, body, token) {
   console.log('\n4. Testing business profile save...');
   const bizPayload = {
     has_business_profile: true,
-    business_name: 'Halehame Test Business',
+    business_name: 'Nodbusiness Test Business',
     business_category: 'tech',
     business_description: 'A test business created during E2E testing.',
     business_type: 'Sole Proprietorship',
@@ -123,10 +123,10 @@ function request(method, path, body, token) {
     const v = verify.body;
     const checks = [
       ['display_name', 'Test User E2E', v.display_name],
-      ['headline', 'QA Engineer · Halehame', v.headline],
-      ['website', 'https://halehame.vercel.app', v.website],
+      ['headline', 'QA Engineer · Nodbusiness', v.headline],
+      ['website', 'https://nodbusiness.vercel.app', v.website],
       ['social_linkedin', 'https://linkedin.com/in/testuser', v.social_linkedin],
-      ['business_name', 'Halehame Test Business', v.business_name],
+      ['business_name', 'Nodbusiness Test Business', v.business_name],
       ['has_business_profile', true, v.has_business_profile],
     ];
     let allPass = true;

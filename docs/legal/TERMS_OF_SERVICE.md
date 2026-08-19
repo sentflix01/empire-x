@@ -1,4 +1,4 @@
-# Halehame — Terms of Service (Draft)
+﻿# Nodbusiness — Terms of Service (Draft)
 
 > **Status:** Internal draft — must be reviewed by qualified legal counsel before public launch.
 > **Primary jurisdiction:** Delaware, USA (holding company) with local entity provisions per market.
@@ -24,7 +24,7 @@
 
 ## 1. Acceptance of Terms
 
-By registering an account or accessing Halehame, you agree to these Terms of Service ("Terms"). If you do not agree, do not use the platform. These Terms form a binding agreement between you and Halehame Technologies Inc. ("we," "our," "the platform").
+By registering an account or accessing Nodbusiness, you agree to these Terms of Service ("Terms"). If you do not agree, do not use the platform. These Terms form a binding agreement between you and Nodbusiness Technologies Inc. ("we," "our," "the platform").
 
 ---
 
@@ -39,7 +39,7 @@ By registering an account or accessing Halehame, you agree to these Terms of Ser
 
 ## 3. Global Legal Compliance
 
-Users are responsible for complying with the laws of their own jurisdiction. Halehame operates globally and does not guarantee that all platform features are legally available in every country.
+Users are responsible for complying with the laws of their own jurisdiction. Nodbusiness operates globally and does not guarantee that all platform features are legally available in every country.
 
 **Reference (Ethiopia):** Ethiopian users are additionally subject to:
 - Computer Crime Proclamation No. 958/2016 (online fraud, unauthorized access)
@@ -56,7 +56,7 @@ Users may not, in any jurisdiction:
 - Impersonate another person, business, or organization
 - Upload malware, spyware, or any harmful code
 - Use the platform for money laundering, fraud, or financing terrorism
-- Scrape, crawl, or automate requests without written permission from Halehame
+- Scrape, crawl, or automate requests without written permission from Nodbusiness
 - Sell counterfeit or prohibited goods (see Community Standards and Content Policy)
 - Harass, threaten, or target individuals based on protected characteristics
 - Post content involving minors in any sexual or exploitative context
@@ -68,7 +68,7 @@ Users may not, in any jurisdiction:
 ## 5. Content Ownership & License
 
 - You retain ownership of all content you post ("User Content")
-- You grant Halehame a **worldwide, royalty-free, sublicensable, non-exclusive license** to display, distribute, store, and promote your content within the platform
+- You grant Nodbusiness a **worldwide, royalty-free, sublicensable, non-exclusive license** to display, distribute, store, and promote your content within the platform
 - This license ends when you delete your content or account, except where we have already shared it with third parties before deletion
 - We may remove content that violates these Terms without prior notice
 
@@ -77,34 +77,34 @@ Users may not, in any jurisdiction:
 ## 6. Commerce & Payments
 
 - Sellers are responsible for the accuracy of product listings, pricing, and delivery
-- Halehame is a marketplace platform — we are not a direct party to buyer-seller transactions
+- Nodbusiness is a marketplace platform — we are not a direct party to buyer-seller transactions
 - Payment processing is handled by third-party providers (Stripe for international; local payment processors per market)
 - Platform commission applies to completed orders as published in the Seller Handbook
 - Disputes between buyers and sellers must first use the in-platform return/refund system
-- Halehame reserves the right to withhold payment pending fraud investigation or disputes
+- Nodbusiness reserves the right to withhold payment pending fraud investigation or disputes
 
 ---
 
 ## 7. Intellectual Property
 
-- The Halehame name, logo, brand identity, and codebase are the proprietary property of Halehame Technologies Inc.
+- The Nodbusiness name, logo, brand identity, and codebase are the proprietary property of Nodbusiness Technologies Inc.
 - Users may not reproduce, redistribute, or create derivative works without written permission
 - We respect third-party intellectual property
-- Copyright/DMCA takedown requests: legal@halehame.app
+- Copyright/DMCA takedown requests: legal@nodbusiness.app
 - We implement a repeat infringer termination policy
 
 ---
 
 ## 8. Privacy
 
-Data collection and use is governed by our **Privacy Policy** (`docs/legal/PRIVACY_POLICY.md`). By using Halehame you consent to the practices described there.
+Data collection and use is governed by our **Privacy Policy** (`docs/legal/PRIVACY_POLICY.md`). By using Nodbusiness you consent to the practices described there.
 
 ---
 
 ## 9. Limitation of Liability
 
 TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW:
-- Halehame is not liable for user-generated content
+- Nodbusiness is not liable for user-generated content
 - We are not liable for losses arising from platform outages, bugs, or third-party service failures
 - Our maximum liability to any user for any claim shall not exceed the fees paid to us in the 12 months preceding the claim
 - Nothing in these Terms limits liability for death, personal injury, or fraud caused by our negligence
@@ -141,8 +141,8 @@ We may suspend or terminate any account that violates these Terms, with or witho
 
 ## Contact
 
-**Halehame Legal**
-Email: legal@halehame.app
+**Nodbusiness Legal**
+Email: legal@nodbusiness.app
 
 ---
 

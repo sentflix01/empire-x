@@ -1,4 +1,4 @@
-# Product Detail Page — Tasks
+﻿# Product Detail Page — Tasks
 
 ## Status: 🔴 Not Started
 
@@ -79,7 +79,7 @@
   export async function generateMetadata({ params }) {
     const product = await fetchProduct(params.id);
     return {
-      title: `${product.title} — Halehame`,
+      title: `${product.title} — Nodbusiness`,
       description: product.description?.slice(0, 155),
       openGraph: {
         title: product.title,

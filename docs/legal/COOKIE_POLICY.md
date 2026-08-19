@@ -1,4 +1,4 @@
-# Halehame — Cookie Policy
+﻿# Nodbusiness — Cookie Policy
 
 > What cookies and local storage we use and why.
 > **Last updated:** August 2026
@@ -7,7 +7,7 @@
 
 ## Summary
 
-Halehame uses minimal tracking. We use cookies and browser storage **only to make the app work** — not to track you across the internet or sell your data.
+Nodbusiness uses minimal tracking. We use cookies and browser storage **only to make the app work** — not to track you across the internet or sell your data.
 
 ---
 
@@ -20,7 +20,7 @@ Halehame uses minimal tracking. We use cookies and browser storage **only to mak
 | **Purpose** | Keeps you logged in |
 | **Type** | Session cookie (currently in localStorage; HttpOnly cookie migration planned) |
 | **Duration** | 7 days |
-| **Third-party?** | No — Halehame only |
+| **Third-party?** | No — Nodbusiness only |
 | **Required?** | Yes — app cannot function without it |
 
 ```
@@ -90,9 +90,9 @@ Planned: Set-Cookie: access_token=jwt; HttpOnly; Secure; SameSite=Strict; Max-Ag
 - Firefox: Settings → Privacy & Security → Clear Data → Cookies
 - Safari: Settings → Safari → Clear History and Website Data
 
-**Effect:** You will be logged out of Halehame and all preferences reset.
+**Effect:** You will be logged out of Nodbusiness and all preferences reset.
 
-**In the Halehame app:**
+**In the Nodbusiness app:**
 - Account Settings → Privacy → Clear local data (planned feature)
 
 ---
@@ -112,4 +112,4 @@ This banner is not yet implemented but is required before serving EU users.
 
 We will notify you of changes to this Cookie Policy via in-app notification with 30 days' notice.
 
-**Contact:** privacy@halehame.app
+**Contact:** privacy@nodbusiness.app

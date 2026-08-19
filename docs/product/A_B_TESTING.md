@@ -1,6 +1,6 @@
-# Halehame — A/B Testing Framework
+﻿# Nodbusiness — A/B Testing Framework
 
-> How Halehame runs controlled experiments to make data-driven product decisions.
+> How Nodbusiness runs controlled experiments to make data-driven product decisions.
 > Every significant UI or feature change should be measured before a full rollout.
 > Last updated: August 2026
 
@@ -34,7 +34,7 @@ Intuition about UI changes is often wrong. A/B tests replace guesses with eviden
 - Removing a form field increased completion by 30%
 - A shorter product description outperformed the longer one
 
-At Halehame, we run A/B tests on changes that affect:
+At Nodbusiness, we run A/B tests on changes that affect:
 - Checkout conversion
 - Seller onboarding completion
 - Feed engagement (likes, comments, shares)

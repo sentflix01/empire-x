@@ -1,4 +1,4 @@
-# Halehame — Production Launch Checklist
+﻿# Nodbusiness — Production Launch Checklist
 
 > Every item that must be checked before real users and real money flow through the platform.
 > Work through this list top-to-bottom before announcing public launch.
@@ -36,7 +36,7 @@
 - [ ] Set `R2_ACCOUNT_ID` in Railway env vars
 - [ ] Set `R2_ACCESS_KEY_ID` in Railway env vars
 - [ ] Set `R2_SECRET_ACCESS_KEY` in Railway env vars
-- [ ] Set `R2_BUCKET_NAME=halehame-uploads`
+- [ ] Set `R2_BUCKET_NAME=nodbusiness-uploads`
 - [ ] Set `R2_PUBLIC_URL=https://pub-xxx.r2.dev`
 - [ ] Enable R2 public access in Cloudflare dashboard
 - [ ] Test: Upload a profile photo → verify URL is `pub-xxx.r2.dev/...`
@@ -47,7 +47,7 @@
 - [ ] Stripe account verified for live payments
 - [ ] Set `STRIPE_SECRET_KEY=sk_live_...` in Railway
 - [ ] Register webhook at dashboard.stripe.com → Developers → Webhooks
-  - Endpoint URL: `https://api.halehame.app/api/orders/webhook`
+  - Endpoint URL: `https://api.nodbusiness.app/api/orders/webhook`
   - Events: `checkout.session.completed`, `checkout.session.expired`, `payment_intent.payment_failed`, `charge.refunded`
 - [ ] Set `STRIPE_WEBHOOK_SECRET=whsec_...` in Railway
 - [ ] Test: Place a real order with test card `4242 4242 4242 4242`
@@ -60,14 +60,14 @@
 - [ ] Chapa business account approved
 - [ ] Set `CHAPA_SECRET_KEY=CHASECK_live_...` in Railway
 - [ ] Register webhook at dashboard.chapa.co → Settings → Webhooks
-  - URL: `https://api.halehame.app/api/orders/chapa/webhook`
-- [ ] Set `API_URL=https://api.halehame.app` in Railway
+  - URL: `https://api.nodbusiness.app/api/orders/chapa/webhook`
+- [ ] Set `API_URL=https://api.nodbusiness.app` in Railway
 - [ ] Test: Place a real order via Telebirr sandbox
 - [ ] Test: Verify payment confirmed in Orders page
 
 ### Error Monitoring
-- [ ] Create Sentry project: Halehame Backend (Node.js)
-- [ ] Create Sentry project: Halehame Frontend (Next.js)
+- [ ] Create Sentry project: Nodbusiness Backend (Node.js)
+- [ ] Create Sentry project: Nodbusiness Frontend (Next.js)
 - [ ] Set `SENTRY_DSN` in Railway env vars
 - [ ] Set `NEXT_PUBLIC_SENTRY_DSN` in Vercel env vars
 - [ ] Trigger a test error → verify it appears in Sentry
@@ -84,13 +84,13 @@
 ## 🟡 HIGH — Complete Before First 100 Users
 
 ### Domain & SSL
-- [ ] Domain registered (halehame.vercel.app or similar)
+- [ ] Domain registered (nodbusiness.vercel.app or similar)
 - [ ] Cloudflare DNS configured:
-  - `halehame.vercel.app` → Vercel (proxied ✅)
-  - `api.halehame.app` → Railway (proxied ✅)
-- [ ] SSL working: `https://halehame.vercel.app` → 200 OK
-- [ ] SSL working: `https://api.halehame.app/health` → 200 OK
-- [ ] HTTP redirects to HTTPS (test: `http://halehame.vercel.app` → 301)
+  - `nodbusiness.vercel.app` → Vercel (proxied ✅)
+  - `api.nodbusiness.app` → Railway (proxied ✅)
+- [ ] SSL working: `https://nodbusiness.vercel.app` → 200 OK
+- [ ] SSL working: `https://api.nodbusiness.app/health` → 200 OK
+- [ ] HTTP redirects to HTTPS (test: `http://nodbusiness.vercel.app` → 301)
 - [ ] HSTS header present (check: securityheaders.com)
 
 ### Email
@@ -106,7 +106,7 @@
 - [ ] Generate VAPID keys: `node -e "const wp=require('web-push');console.log(JSON.stringify(wp.generateVAPIDKeys()))"`
 - [ ] Set `VAPID_PUBLIC_KEY` in Railway
 - [ ] Set `VAPID_PRIVATE_KEY` in Railway
-- [ ] Set `VAPID_EMAIL=mailto:admin@halehame.app` in Railway
+- [ ] Set `VAPID_EMAIL=mailto:admin@nodbusiness.app` in Railway
 - [ ] Set `NEXT_PUBLIC_VAPID_PUBLIC_KEY` in Vercel
 - [ ] Test: Enable push notifications in app → allow in browser
 - [ ] Test: Send a message → push notification appears on device
@@ -120,8 +120,8 @@
 
 ### Uptime Monitoring
 - [ ] Create UptimeRobot account
-- [ ] Add monitor: `https://api.halehame.app/health` (5-minute interval)
-- [ ] Add monitor: `https://halehame.vercel.app` (5-minute interval)
+- [ ] Add monitor: `https://api.nodbusiness.app/health` (5-minute interval)
+- [ ] Add monitor: `https://nodbusiness.vercel.app` (5-minute interval)
 - [ ] Configure alert: Email + Telegram when down
 - [ ] Test: Temporarily block a route → verify alert fires within 5 minutes
 
@@ -150,7 +150,7 @@
 - [ ] Privacy Policy published at `/privacy`
 - [ ] Content Policy linked in footer
 - [ ] Cookie notice displayed to new visitors (EU users)
-- [ ] Contact email functional (`contact@halehame.app`)
+- [ ] Contact email functional (`contact@nodbusiness.app`)
 
 ### Admin Panel
 - [ ] Admin account created (your account with `role=admin`)

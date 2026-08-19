@@ -1,10 +1,10 @@
-const router = require('express').Router();
+﻿const router = require('express').Router();
 const logger = require('../lib/logger');
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || 'HalehameBot';
+const BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || 'NodbusinessBot';
 
 /**
  * Send a Telegram message to a user (internal helper)
@@ -100,7 +100,7 @@ router.post('/webhook', async (req, res) => {
           [String(chatId), userId]
         );
         await sendTelegram(chatId,
-          `👑 <b>Halehame Connected!</b>\n\nYou'll now receive notifications for:\n` +
+          `👑 <b>Nodbusiness Connected!</b>\n\nYou'll now receive notifications for:\n` +
           `• New orders\n• New messages\n• Task bids\n• Task updates\n\nType /stop to disable notifications.`
         );
       } catch (err) {
@@ -117,7 +117,7 @@ router.post('/webhook', async (req, res) => {
     } catch {}
   } else if (text === '/help') {
     await sendTelegram(chatId,
-      `👑 <b>Halehame Bot</b>\n\nCommands:\n/stop — Disable notifications\n/help — Show this message`
+      `👑 <b>Nodbusiness Bot</b>\n\nCommands:\n/stop — Disable notifications\n/help — Show this message`
     );
   }
 });

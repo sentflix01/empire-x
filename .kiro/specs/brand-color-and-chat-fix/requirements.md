@@ -1,8 +1,8 @@
-# Requirements — Brand Color Consistency & Chat Mobile Fix
+﻿# Requirements — Brand Color Consistency & Chat Mobile Fix
 
 ## Background
 
-Halehame has three official brand colors:
+Nodbusiness has three official brand colors:
 - **Blue** `#2563eb` — primary actions, active states, CTA buttons
 - **Purple** `#7c3aed` — accent, gradient end, secondary brand moments
 - **Gold** `#f59e0b` — highlights, badges, notifications, selected nav items
@@ -15,10 +15,10 @@ inaccessible on small screens.
 
 ---
 
-## Requirement 1 — Replace all Telegram-blue with Halehame brand blue
+## Requirement 1 — Replace all Telegram-blue with Nodbusiness brand blue
 
 ### User Story
-As a user opening any part of the messaging feature, I want to see the Halehame brand
+As a user opening any part of the messaging feature, I want to see the Nodbusiness brand
 identity (blue/purple/gold), not Telegram's teal/blue-green color scheme.
 
 ### Acceptance Criteria
@@ -27,20 +27,20 @@ identity (blue/purple/gold), not Telegram's teal/blue-green color scheme.
     `CreateChannelModal.tsx`, and `CreateGroupModal.tsx`. No file in the app should
     reference `#0088cc` for UI chrome.
 
-1.2 The chat room header background must use the Halehame primary blue (`#2563eb` /
+1.2 The chat room header background must use the Nodbusiness primary blue (`#2563eb` /
     `var(--ex-blue)`), consistent with the app's primary action color.
 
 1.3 Outgoing message bubbles must use a light blue tint that matches the brand (derived
     from the primary blue) instead of Telegram's `#effdde` (WhatsApp-green-tinted).
 
 1.4 The send-button background, sender-name color in group chats, reply-preview accent,
-    and double-check icon must all use the Halehame primary blue token.
+    and double-check icon must all use the Nodbusiness primary blue token.
 
 1.5 Online presence dot border in the chat header must match the header background
-    (Halehame blue), not `#0088cc`.
+    (Nodbusiness blue), not `#0088cc`.
 
 1.6 `CreateChannelModal` and `CreateGroupModal` titles, icon backgrounds, input focus
-    rings, and action buttons must use the same Halehame blue token — not `TG_BLUE`.
+    rings, and action buttons must use the same Nodbusiness blue token — not `TG_BLUE`.
 
 1.7 Changes must not affect user-generated content (profile photos, cover images, product
     images, showroom templates).

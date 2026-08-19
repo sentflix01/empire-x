@@ -1,4 +1,4 @@
-# Halehame — Privacy Policy (Draft)
+﻿# Nodbusiness — Privacy Policy (Draft)
 
 > **Status:** Internal draft — must be reviewed by a qualified data protection specialist before launch.
 > **Applicable laws:** GDPR (EU users), CCPA (California users), UK GDPR, and local data protection laws per market.
@@ -114,11 +114,11 @@ Rights vary by jurisdiction. The following apply to all users; starred rights (*
 
 | Right | What it means | How to exercise |
 |-------|--------------|----------------|
-| Access* | Get a copy of your personal data | Email privacy@halehame.app |
+| Access* | Get a copy of your personal data | Email privacy@nodbusiness.app |
 | Rectification* | Correct inaccurate data | Update in Settings, or email us |
 | Deletion ("right to be forgotten")* | Delete your account and associated data | Settings → Delete Account, or email us |
-| Portability* | Export your data in machine-readable format | Email privacy@halehame.app |
-| Object to processing* | Stop certain uses of your data | Email privacy@halehame.app |
+| Portability* | Export your data in machine-readable format | Email privacy@nodbusiness.app |
+| Object to processing* | Stop certain uses of your data | Email privacy@nodbusiness.app |
 | Withdraw consent | Stop marketing emails | Unsubscribe link in any email |
 | CCPA opt-out | California users: opt out of sale of data | We don't sell data — document on request |
 | Lodge a complaint | Report to your local data protection authority | See regulator details below |
@@ -140,7 +140,7 @@ For EU/UK users: We rely on Standard Contractual Clauses (SCCs) for transfers ou
 
 ## 7. Children's Privacy
 
-Halehame is not intended for users under 18. We do not knowingly collect data from minors. If you believe a minor has registered, contact us immediately at privacy@halehame.app and we will delete their account within 48 hours.
+Nodbusiness is not intended for users under 18. We do not knowingly collect data from minors. If you believe a minor has registered, contact us immediately at privacy@nodbusiness.app and we will delete their account within 48 hours.
 
 ---
 
@@ -182,8 +182,8 @@ We use **no third-party tracking cookies**. We do not use Google Analytics cooki
 
 **Reference (Ethiopia):** Ethiopian Communications Authority (ECA) — pending data protection framework
 
-**Halehame Privacy Contact:**
-Email: privacy@halehame.app
+**Nodbusiness Privacy Contact:**
+Email: privacy@nodbusiness.app
 DPO appointment: Required when EU user base exceeds threshold — under review
 
 ---

@@ -1,4 +1,4 @@
-# Halehame — Capacity Planning
+﻿# Nodbusiness — Capacity Planning
 
 > How much infrastructure we need at each user count, and when to add more.
 > Last updated: August 2026

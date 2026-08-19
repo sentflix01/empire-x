@@ -1,6 +1,6 @@
-# Global Standards Reference
+﻿# Global Standards Reference
 
-> This document defines the exact standards every feature in Halehame must meet.
+> This document defines the exact standards every feature in Nodbusiness must meet.
 > When in doubt, refer here before implementing anything.
 
 ---

@@ -1,9 +1,9 @@
-/**
+﻿/**
  * migrate30.js — Error Events table for DevOps live error feed
  *
  * Creates the `error_events` table that stores every unhandled error,
  * unhandled promise rejection, and manually captured error from the
- * Halehame backend. The DevOps panel polls this table in real time so
+ * Nodbusiness backend. The DevOps panel polls this table in real time so
  * engineers can see and fix issues the moment they happen.
  *
  * Run: node backend/db/migrate30.js

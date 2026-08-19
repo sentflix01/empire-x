@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
@@ -166,7 +166,7 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
             <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200 p-5 text-center">
               <Store className="w-8 h-8 text-amber-500 mx-auto mb-2" />
               <h3 className="font-semibold text-sm">Have a business?</h3>
-              <p className="text-xs text-muted-foreground mt-1 mb-3">Create a business profile with a mini-website to sell products and services directly on Halehame.</p>
+              <p className="text-xs text-muted-foreground mt-1 mb-3">Create a business profile with a mini-website to sell products and services directly on Nodbusiness.</p>
               <Link href="/business/create"><Button size="sm" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"><Plus className="w-3 h-3 mr-1" /> Create Business Profile</Button></Link>
             </div>
           )}

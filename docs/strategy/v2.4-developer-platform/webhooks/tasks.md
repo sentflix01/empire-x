@@ -1,4 +1,4 @@
-# Webhook System — Tasks
+﻿# Webhook System — Tasks
 
 ## Status: 🔴 Not Started
 
@@ -6,8 +6,8 @@
 
 ## What Webhooks Enable
 
-When something happens on Halehame (new order, new message, task completed),
-Halehame instantly POSTs a JSON payload to any URL the developer registered.
+When something happens on Nodbusiness (new order, new message, task completed),
+Nodbusiness instantly POSTs a JSON payload to any URL the developer registered.
 
 Use cases:
 - ERP system auto-updates inventory on new order
@@ -93,7 +93,7 @@ payment.received      payment.failed
   }
   ```
 
-- [ ] Add `X-Halehame-Signature: sha256=xxxxx` header on every delivery
+- [ ] Add `X-Nodbusiness-Signature: sha256=xxxxx` header on every delivery
   - Developer verifies this on their end to confirm payload is genuine
 
 - [ ] Retry logic: 3 attempts with exponential backoff (1s, 5s, 30s)

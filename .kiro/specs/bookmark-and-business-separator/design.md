@@ -1,8 +1,8 @@
-# Design Document — bookmark-and-business-separator
+﻿# Design Document — bookmark-and-business-separator
 
 ## Overview
 
-This feature delivers three coordinated UI/UX enhancements to the Halehame platform:
+This feature delivers three coordinated UI/UX enhancements to the Nodbusiness platform:
 
 1. **Business Name Pipe Separator** — a `|` delimiter rendered between consecutive business entries in the `PostCard` header (and profile header), styled with `text-muted-foreground`, capped at `slice(0, 2)`.
 2. **Bookmark Toggle with Amber Active State** — a unified `BookmarkButton` component that shows `fill-amber-500 text-amber-500` when saved and `text-muted-foreground` with no fill when unsaved, with optimistic UI, in-flight disabling, and rollback + error toast on failure. Applied to Posts, Products, Showrooms, and Tasks.

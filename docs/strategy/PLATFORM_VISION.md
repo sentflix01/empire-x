@@ -1,8 +1,8 @@
-# Halehame — Platform Vision
+﻿# Nodbusiness — Platform Vision
 
 > **"We build the infrastructure. The world builds the value."**
 >
-> Halehame is not an app. It is a platform.
+> Nodbusiness is not an app. It is a platform.
 > The difference: an app serves its users. A platform serves its users AND
 > the developers, businesses, and builders who create value on top of it.
 
@@ -39,7 +39,7 @@ open everything. Any developer can build on Telegram. Any business can run on Te
 Any community can organize on Telegram. Telegram provided the infrastructure; the world
 provided the value.
 
-Halehame follows the same strategy — but for commerce, identity, and community in
+Nodbusiness follows the same strategy — but for commerce, identity, and community in
 Africa and beyond.
 
 ---
@@ -56,7 +56,7 @@ Africa and beyond.
 │  Commerce widget · Webhook system · API keys                 │
 ├─────────────────────────────────────────────────────────────┤
 │  LAYER 2: DEVELOPER PLATFORM                                 │
-│  Public REST API · "Login with Halehame" · Embed widgets     │
+│  Public REST API · "Login with Nodbusiness" · Embed widgets     │
 │  Developer dashboard · Documentation · SDKs                 │
 ├─────────────────────────────────────────────────────────────┤
 │  LAYER 1: CORE PRODUCT (built)                               │
@@ -88,11 +88,11 @@ The foundation is built. This is the hook that brings users onto the platform.
 
 ## Layer 2 — Developer Platform
 
-What needs to be built so any developer can build on Halehame.
+What needs to be built so any developer can build on Nodbusiness.
 
 ### 2.1 Public REST API (with API Keys)
 
-**Today:** The API exists but requires a user JWT. Only Halehame's own frontend uses it.
+**Today:** The API exists but requires a user JWT. Only Nodbusiness's own frontend uses it.
 
 **Target:** Any developer registers, gets an API key, and can:
 - Read public showrooms, products, events (no auth required)
@@ -115,38 +115,38 @@ Rate limiting per key:
   Enterprise: 10,000 req/hour
 ```
 
-### 2.2 "Login with Halehame" (OAuth 2.0)
+### 2.2 "Login with Nodbusiness" (OAuth 2.0)
 
-Any website can add a "Continue with Halehame" button.
+Any website can add a "Continue with Nodbusiness" button.
 
 **Flow:**
 ```
-1. Developer registers their app at halehame.vercel.app/developers
+1. Developer registers their app at nodbusiness.vercel.app/developers
 2. Gets client_id + client_secret
-3. User clicks "Login with Halehame" on their site
-4. Redirected to halehame.vercel.app/oauth/authorize?client_id=xxx
+3. User clicks "Login with Nodbusiness" on their site
+4. Redirected to nodbusiness.vercel.app/oauth/authorize?client_id=xxx
 5. User approves → redirected back with auth_code
 6. Developer exchanges code for access_token
 7. Developer calls GET /api/auth/me with token → gets user profile
 ```
 
-**Value:** Every site that adopts "Login with Halehame" sends their users to Halehame.
-Halehame becomes identity infrastructure for African businesses.
+**Value:** Every site that adopts "Login with Nodbusiness" sends their users to Nodbusiness.
+Nodbusiness becomes identity infrastructure for African businesses.
 
 ### 2.3 Showroom Embed Widget
 
 One line of code embeds a full showroom on any website:
 
 ```html
-<script src="https://halehame.vercel.app/embed.js"></script>
-<div data-halehame-showroom="my-business-slug"></div>
+<script src="https://nodbusiness.vercel.app/embed.js"></script>
+<div data-nodbusiness-showroom="my-business-slug"></div>
 ```
 
 Renders the business's live showroom inside any website.
 Updates automatically when the owner edits their showroom.
 
-**Value:** Business owners share their Halehame showroom on their personal website,
-Facebook page, or WhatsApp link. Halehame gets distribution everywhere.
+**Value:** Business owners share their Nodbusiness showroom on their personal website,
+Facebook page, or WhatsApp link. Nodbusiness gets distribution everywhere.
 
 ### 2.4 Webhook System
 
@@ -160,7 +160,7 @@ POST /api/developer/webhooks
 }
 ```
 
-When an event fires on Halehame, we POST to their URL instantly.
+When an event fires on Nodbusiness, we POST to their URL instantly.
 
 **Use cases:**
 - ERP system updates inventory when an order is placed
@@ -184,11 +184,11 @@ A dedicated section of the admin/settings area:
 
 ## Layer 3 — Business Infrastructure
 
-What makes Halehame essential infrastructure for any business, not just a social app.
+What makes Nodbusiness essential infrastructure for any business, not just a social app.
 
-### 3.1 Halehame Payments API
+### 3.1 Nodbusiness Payments API
 
-Any external website can accept payment via a customer's Halehame wallet:
+Any external website can accept payment via a customer's Nodbusiness wallet:
 
 ```
 POST /api/payments/charge
@@ -196,18 +196,18 @@ POST /api/payments/charge
   "amount": 500,
   "currency": "ETB",
   "description": "Order #12345",
-  "customer_halehame_id": "user_uuid",
+  "customer_nodbusiness_id": "user_uuid",
   "callback_url": "https://my-site.com/payment-success"
 }
 ```
 
 **Value:** For businesses in countries where card infrastructure is poor but
-mobile money is universal, Halehame wallet becomes the payment layer.
+mobile money is universal, Nodbusiness wallet becomes the payment layer.
 This is how M-Pesa became infrastructure — by opening the payment API.
 
-### 3.2 Halehame Notifications API
+### 3.2 Nodbusiness Notifications API
 
-Send push notifications to Halehame users from external systems:
+Send push notifications to Nodbusiness users from external systems:
 
 ```
 POST /api/notifications/send
@@ -219,12 +219,12 @@ POST /api/notifications/send
 }
 ```
 
-Any app with a Halehame user's ID can send them a notification.
-They receive it in the Halehame notification center.
+Any app with a Nodbusiness user's ID can send them a notification.
+They receive it in the Nodbusiness notification center.
 
-### 3.3 Halehame Verify (Identity)
+### 3.3 Nodbusiness Verify (Identity)
 
-Other platforms verify that a Halehame user is a real, verified human:
+Other platforms verify that a Nodbusiness user is a real, verified human:
 
 ```
 GET /api/verify/:user_id
@@ -232,26 +232,26 @@ GET /api/verify/:user_id
 ```
 
 **Use cases:**
-- Marketplace prevents fake accounts by requiring Halehame verification
-- Lending platform checks Halehame history before approving a loan
+- Marketplace prevents fake accounts by requiring Nodbusiness verification
+- Lending platform checks Nodbusiness history before approving a loan
 - Event platform confirms identity for high-value tickets
 
 ---
 
 ## Layer 4 — Ecosystem
 
-How Halehame becomes self-sustaining through the developer community.
+How Nodbusiness becomes self-sustaining through the developer community.
 
 ### 4.1 Integration Marketplace
 
-A public directory of apps and integrations built on Halehame:
+A public directory of apps and integrations built on Nodbusiness:
 
 ```
 /integrations
-  → Shopify Sync         — import your Shopify products to Halehame
+  → Shopify Sync         — import your Shopify products to Nodbusiness
   → QuickBooks Connect   — sync orders to accounting
   → WhatsApp Gateway     — send order updates via WhatsApp
-  → Telegram Bot         — manage Halehame from Telegram
+  → Telegram Bot         — manage Nodbusiness from Telegram
   → Google Sheets Sync   — export orders to spreadsheet
   → WooCommerce Bridge   — connect WordPress store
 ```
@@ -263,10 +263,10 @@ Any developer can submit an integration. Verified integrations get a badge.
 Developers who drive transactions earn a percentage:
 
 - Integration drives $10,000 in orders → developer earns 0.5% = $50
-- "Login with Halehame" drives 1,000 new users → developer earns flat bonus
-- Published course earns $5,000 → instructor earns 70%, Halehame earns 30%
+- "Login with Nodbusiness" drives 1,000 new users → developer earns flat bonus
+- Published course earns $5,000 → instructor earns 70%, Nodbusiness earns 30%
 
-### 4.3 Halehame for Developers Program
+### 4.3 Nodbusiness for Developers Program
 
 - **Free tier:** Public API access, 100 req/hour, community support
 - **Pro tier ($29/mo):** 10,000 req/hour, webhooks, priority support
@@ -297,7 +297,7 @@ And exactly how Stripe went from a payment library to financial infrastructure.
 2. **API key system** — add `api_keys` table + middleware to accept bearer keys
 3. **Webhook system** — `webhook_subscriptions` table + event emitter
 4. **Developer dashboard** — frontend page for key/webhook management
-5. **OAuth 2.0 server** — "Login with Halehame" for external sites
+5. **OAuth 2.0 server** — "Login with Nodbusiness" for external sites
 6. **Embed widget** — `<script>` tag showroom embed
 7. **Integration marketplace** — public directory of built integrations
 8. **Revenue sharing** — developer payment infrastructure
@@ -316,7 +316,7 @@ The difference between Telegram and a typical API:
 | You must build every feature | The community builds features for you |
 | Limited by your team's speed | Scales with developer community |
 
-Halehame's goal: **by 2028, more than half of Halehame's valuable features are built
+Nodbusiness's goal: **by 2028, more than half of Nodbusiness's valuable features are built
 by third-party developers, not the core team.**
 
 That is the Telegram model.

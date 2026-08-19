@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Register form tests
  * Feature: professional-grade-upgrade
  * Requirements: 4.4, 4.6
@@ -83,7 +83,7 @@ describe('Register form', () => {
     fireEvent.change(passwordInputs[1], { target: { value: 'password123' } });
 
     // Check the Terms of Service checkbox before submitting
-    const tosCheckbox = screen.getByRole('button', { name: /I agree to Halehame/i });
+    const tosCheckbox = screen.getByRole('button', { name: /I agree to Nodbusiness/i });
     fireEvent.click(tosCheckbox);
 
     const form = emailInput.closest('form') as HTMLFormElement;

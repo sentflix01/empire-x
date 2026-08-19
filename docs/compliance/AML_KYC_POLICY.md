@@ -1,6 +1,6 @@
-# Halehame — AML/KYC Policy
+﻿# Nodbusiness — AML/KYC Policy
 
-> **Anti-Money Laundering (AML) and Know Your Customer (KYC) policy for the Halehame platform.**
+> **Anti-Money Laundering (AML) and Know Your Customer (KYC) policy for the Nodbusiness platform.**
 > Financial crime prevention is a legal obligation, not an option. This policy applies globally to all users, merchants, and money flows on the platform.
 
 ---
@@ -38,7 +38,7 @@ This policy applies to:
 - All users who handle money on the platform (sellers, service providers, withdrawal requesters)
 - All marketplace transactions above defined thresholds
 - All wallet top-ups and withdrawals
-- All businesses (showrooms) accepting payments through Halehame
+- All businesses (showrooms) accepting payments through Nodbusiness
 - All employees and contractors handling financial data
 
 This policy does NOT apply to:
@@ -49,7 +49,7 @@ This policy does NOT apply to:
 
 ## 2. Why This Matters
 
-Halehame operates a marketplace and payment infrastructure across multiple countries. Regulators globally — including FATF (Financial Action Task Force), the EU, and the US — require platforms that process payments to:
+Nodbusiness operates a marketplace and payment infrastructure across multiple countries. Regulators globally — including FATF (Financial Action Task Force), the EU, and the US — require platforms that process payments to:
 
 1. Verify who their users are
 2. Monitor transactions for suspicious patterns
@@ -224,7 +224,7 @@ All KYC data is stored encrypted, access-controlled, and compliant with GDPR (Ge
 
 ## 10. Third-Party KYC Vendors
 
-Rather than building identity verification from scratch, Halehame uses third-party providers:
+Rather than building identity verification from scratch, Nodbusiness uses third-party providers:
 
 | Provider | Function | Status |
 |----------|---------|--------|
@@ -245,5 +245,5 @@ Internal violations of this policy by employees or contractors:
 ---
 
 *This policy is reviewed annually and updated when regulations change.*
-*Questions: compliance@halehame.com*
+*Questions: compliance@nodbusiness.com*
 *Owner: CEO (Phase 1), Chief Compliance Officer (Phase 2+)*

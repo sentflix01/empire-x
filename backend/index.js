@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
@@ -315,7 +315,7 @@ app.all('*', (_req, res) => apiError.notFound(res, 'Route not found'));
 const { startStoriesCleanup } = require('./db/cleanupStories');
 initSocket(server, allowedOrigins);
 server.listen(PORT, () => {
-  logger.info(`👑 Halehame backend running on http://localhost:${PORT}`);
+  logger.info(`👑 Nodbusiness backend running on http://localhost:${PORT}`);
   logger.info(`   Health: http://localhost:${PORT}/health`);
   logger.info('   WebSocket: enabled for real-time chat');
   startStoriesCleanup();

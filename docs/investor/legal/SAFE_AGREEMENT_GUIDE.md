@@ -1,4 +1,4 @@
-# Halehame — SAFE Agreement Guide
+﻿# Nodbusiness — SAFE Agreement Guide
 
 > **Classification:** Confidential
 > **Purpose:** Understand SAFE notes before signing any with investors.
@@ -70,7 +70,7 @@ Formula:
     SAFE investor gets 2× more shares → fair reward for early risk
 ```
 
-**Recommended for Halehame pre-seed.**
+**Recommended for Nodbusiness pre-seed.**
 
 ---
 
@@ -126,7 +126,7 @@ How to set the cap:
   → If you expect to raise seed at $4M pre-money:
     → Set SAFE cap at $1.5M – $2M
   
-Halehame recommendation:
+Nodbusiness recommendation:
   → Raise pre-seed at $1M – $2M cap
   → This is fair given the platform is built but has no revenue
 ```
@@ -207,7 +207,7 @@ Download the official YC SAFE templates for free:
 **https://www.ycombinator.com/documents**
 
 Four versions available:
-1. Valuation Cap, no discount (recommended for Halehame)
+1. Valuation Cap, no discount (recommended for Nodbusiness)
 2. Discount, no valuation cap
 3. Valuation Cap and discount
 4. MFN, no valuation cap, no discount

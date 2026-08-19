@@ -1,4 +1,4 @@
-# Showroom Embed Widget — Tasks
+﻿# Showroom Embed Widget — Tasks
 
 ## Status: 🔴 Not Started
 
@@ -7,12 +7,12 @@
 ## What This Enables
 
 Any business owner pastes one line of code onto their personal website,
-Facebook page description, or any HTML page — and their live Halehame
+Facebook page description, or any HTML page — and their live Nodbusiness
 showroom appears there instantly. Updates automatically.
 
 ```html
 <!-- Paste anywhere -->
-<script src="https://halehame.vercel.app/embed.js"
+<script src="https://nodbusiness.vercel.app/embed.js"
         data-showroom="kategna-kitchen-bole">
 </script>
 ```
@@ -34,7 +34,7 @@ showroom appears there instantly. Updates automatically.
 
       // Create iframe
       var iframe = document.createElement('iframe');
-      iframe.src = 'https://halehame.vercel.app/embed/showroom/' + slug
+      iframe.src = 'https://nodbusiness.vercel.app/embed/showroom/' + slug
         + '?theme=' + theme + '&sections=' + sections;
       iframe.width = '100%';
       iframe.height = height;
@@ -56,10 +56,10 @@ showroom appears there instantly. Updates automatically.
 
 - [ ] Create `frontend-next/app/embed/showroom/[slug]/page.tsx`
   - Same data as `/showroom/[slug]` but:
-  - No Halehame header/nav/footer
+  - No Nodbusiness header/nav/footer
   - No "Create your own showroom" banner
   - Minimal chrome — just the showroom content
-  - Adds "Powered by Halehame" small badge at bottom-right
+  - Adds "Powered by Nodbusiness" small badge at bottom-right
   - Query param `?theme=dark` forces dark mode
   - Query param `?sections=hero,items,contact` shows only those sections
 
@@ -107,4 +107,4 @@ showroom appears there instantly. Updates automatically.
 - [ ] Updates on showroom edit within 60s (ISR revalidation)
 - [ ] Works in dark mode when `data-theme="dark"`
 - [ ] `data-sections="hero,contact"` shows only those two sections
-- [ ] "Powered by Halehame" badge links back to the showroom page
+- [ ] "Powered by Nodbusiness" badge links back to the showroom page

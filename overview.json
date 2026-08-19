@@ -1,4 +1,4 @@
-{
+﻿{
   "rootFolder": "c:\\Users\\Administrator\\Desktop\\app\\pro-v1",
   "analyzedAt": "2026-07-20T19:56:21.988Z",
   "rootStructure": [
@@ -83,7 +83,7 @@
     "docker-compose.yml": [
       "version: '3.9'",
       "",
-      "# Halehame — Local development with Docker Compose",
+      "# Nodbusiness — Local development with Docker Compose",
       "# Usage:",
       "#   docker compose up          — start all services",
       "#   docker compose up backend  — start backend + dependencies only",
@@ -115,9 +115,9 @@
     ],
     "package.json": [
       "{",
-      "\"name\": \"halehame\",",
+      "\"name\": \"nodbusiness\",",
       "\"version\": \"1.0.0\",",
-      "\"description\": \"Halehame — Global Superapp. Monorepo root.\",",
+      "\"description\": \"Nodbusiness — Global Superapp. Monorepo root.\",",
       "\"private\": true,",
       "\"scripts\": {",
       "\"dev\": \"start \\\"backend\\\" cmd /k \\\"cd backend && npm run dev\\\" && start \\\"frontend-next\\\" cmd /k \\\"cd frontend-next && npm run dev\\\"\",",
@@ -126,14 +126,14 @@
       "\"build\": \"cd frontend-next && npm run build\","
     ],
     "README.md": [
-      "# Halehame 👑",
+      "# Nodbusiness 👑",
       "",
       "global superapp — social networking, business showrooms, marketplace, messaging, and task services. Built for everyone, everywhere.",
       "",
       "## Project Structure",
       "",
       "```",
-      "halehame/",
+      "nodbusiness/",
       "├── frontend-next/  Next.js 16 + TypeScript + TailwindCSS  ← Active frontend",
       "├── backend/        Node.js + Express + PostgreSQL"
     ],
@@ -304,11 +304,11 @@
     }
   ],
   "readmeParagraphs": {
-    "docs\\best-practice": "# Best Practice Guides\r\n\r\nThis folder contains a practical, step-by-step upgrade path for making the Halehame codebase more professional, scalable, and production-ready.\r",
-    "docs": "# Halehame — Engineering Handbook\r\n\r\n> This is the operating manual for Halehame. Treat it as seriously as the source code.\r",
-    "frontend-next": "# Halehame Frontend",
+    "docs\\best-practice": "# Best Practice Guides\r\n\r\nThis folder contains a practical, step-by-step upgrade path for making the Nodbusiness codebase more professional, scalable, and production-ready.\r",
+    "docs": "# Nodbusiness — Engineering Handbook\r\n\r\n> This is the operating manual for Nodbusiness. Treat it as seriously as the source code.\r",
+    "frontend-next": "# Nodbusiness Frontend",
     "note": "# Notes",
-    "root": "# Halehame 👑\r\n\r\nglobal superapp — social networking, business showrooms, marketplace, messaging, and task services. Built for everyone, everywhere.\r"
+    "root": "# Nodbusiness 👑\r\n\r\nglobal superapp — social networking, business showrooms, marketplace, messaging, and task services. Built for everyone, everywhere.\r"
   },
   "totals": {
     "numFiles": 501,
@@ -393,7 +393,7 @@
       "totalLoc": 33574,
       "dominantLanguage": "TypeScript",
       "category": "Web/UI",
-      "description": "# Halehame Frontend",
+      "description": "# Nodbusiness Frontend",
       "subdirectories": [
         {
           "path": "frontend-next\\components",
@@ -638,7 +638,7 @@
       "numFiles": 33,
       "totalLoc": 0,
       "category": "Documentation",
-      "description": "# Halehame — Engineering Handbook\r",
+      "description": "# Nodbusiness — Engineering Handbook\r",
       "subdirectories": [
         {
           "path": "docs\\best-practice",
@@ -746,7 +746,7 @@
     "numContributors": 0,
     "currentBranch": "main",
     "remoteUrls": [
-      "https://github.com/sentflix01/halehame.git"
+      "https://github.com/sentflix01/nodbusiness.git"
     ]
   }
 }

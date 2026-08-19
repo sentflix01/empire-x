@@ -1,7 +1,7 @@
-# Halehame — Investor Relations Folder
+﻿# Nodbusiness — Investor Relations Folder
 
 > **Classification:** STRICTLY CONFIDENTIAL
-> **Purpose:** All documents related to raising investment for Halehame Technologies.
+> **Purpose:** All documents related to raising investment for Nodbusiness Technologies.
 > Covers seed funding, equity structure, share sales, term sheets, cap table,
 > valuation, pitch materials, and investor communications.
 
@@ -79,4 +79,4 @@ docs/investor/
 ---
 
 *All documents in this folder are confidential.*
-*Do not share with anyone outside Halehame Technologies without NDA.*
+*Do not share with anyone outside Nodbusiness Technologies without NDA.*

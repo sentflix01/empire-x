@@ -1,4 +1,4 @@
-# Halehame — Monthly Investor Update Template
+﻿# Nodbusiness — Monthly Investor Update Template
 
 > **Classification:** Confidential
 > **Purpose:** Send this to all investors and key advisors every month.
@@ -50,9 +50,9 @@ Investors who DON'T receive updates:
 ## The Update Structure (Keep It Under 500 Words)
 
 ```
-Subject line: Halehame Update — [Month Year] | [One key metric]
+Subject line: Nodbusiness Update — [Month Year] | [One key metric]
 
-Example: "Halehame Update — August 2026 | 2,847 MAU (+18%)"
+Example: "Nodbusiness Update — August 2026 | 2,847 MAU (+18%)"
 
 Why this subject line works:
   → Immediately shows progress (the key metric)
@@ -65,11 +65,11 @@ Why this subject line works:
 ## Email Template
 
 ```
-Subject: Halehame Update — [Month] [Year] | [Key metric]
+Subject: Nodbusiness Update — [Month] [Year] | [Key metric]
 
 Hi [First name or "Everyone"],
 
-Here's Halehame's monthly update. As always, short and to the point.
+Here's Nodbusiness's monthly update. As always, short and to the point.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 KEY METRICS
@@ -112,13 +112,13 @@ Hiding problems destroys trust when they eventually surface.)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Product update: [halehame.vercel.app]
+Product update: [nodbusiness.vercel.app]
 Questions or feedback: reply to this email
 
 Thank you for your support.
 
 [Your name]
-Founder, Halehame Technologies
+Founder, Nodbusiness Technologies
 [phone] | [email]
 ```
 
@@ -127,11 +127,11 @@ Founder, Halehame Technologies
 ## Real Example (Month 3 Post-Launch)
 
 ```
-Subject: Halehame Update — October 2026 | 4,200 MAU (+31%)
+Subject: Nodbusiness Update — October 2026 | 4,200 MAU (+31%)
 
 Hi everyone,
 
-Short update on Halehame's progress this month.
+Short update on Nodbusiness's progress this month.
 
 📊 KEY METRICS
 Monthly Active Users: 4,200 (+31% vs September)
@@ -143,7 +143,7 @@ Runway remaining:     14 months (at current burn)
 ✅ WHAT WE ACCOMPLISHED THIS MONTH
 • Launched Stories feature — 20% of users post a story in their first week
 • Fixed mobile layout issues on 6 pages (375px breakpoint — all clean now)
-• First media coverage: Disrupt Africa featured Halehame in their weekly newsletter
+• First media coverage: Disrupt Africa featured Nodbusiness in their weekly newsletter
 • Onboarded 3 content creators in Addis Ababa as Beta Pioneers (500–12K followers each)
 • Filed provisional patent for AI pricing algorithm at USPTO (Pat. App. pending)
 
@@ -165,14 +165,14 @@ Runway remaining:     14 months (at current burn)
 1. Intro to any seed-stage VC focused on Africa + marketplace — we plan to raise
    $500K in Q1 2027 and want to start conversations now
 2. Anyone who knows a strong React developer available for part-time contract work?
-3. If you use Halehame yourself (or know businesses who should): share
-   halehame.vercel.app — word of mouth is our only growth channel right now
+3. If you use Nodbusiness yourself (or know businesses who should): share
+   nodbusiness.vercel.app — word of mouth is our only growth channel right now
 
-Try the latest build: halehame.vercel.app
+Try the latest build: nodbusiness.vercel.app
 Feedback welcome — reply directly to this email.
 
 Sintayehu
-Founder, Halehame Technologies
+Founder, Nodbusiness Technologies
 +251 9XX XXX XXX
 ```
 

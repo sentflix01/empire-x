@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { createAuthSlice, AuthSlice } from './authSlice';
 import { createNotificationsSlice, NotificationsSlice } from './notificationsSlice';
@@ -18,7 +18,7 @@ export const useAppStore = create<AppStore>()(
       ...createBookmarksSlice(...a),
     }),
     {
-      name: 'halehame-auth',
+      name: 'nodbusiness-auth',
       // SSR safe: only use sessionStorage in the browser
       storage: createJSONStorage(() =>
         typeof window !== 'undefined' ? sessionStorage : ({} as Storage)

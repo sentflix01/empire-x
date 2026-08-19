@@ -1,4 +1,4 @@
-# Wallet Dashboard — Tasks
+﻿# Wallet Dashboard — Tasks
 
 ## Status: 🔴 Not Started
 
@@ -65,7 +65,7 @@
 ## Step 6 — Referral Section
 
 - [ ] Referral card: user's unique code + share button
-- [ ] "Share on WhatsApp" generates: "Join Halehame with my code [CODE] and get 20 bonus points! [link]"
+- [ ] "Share on WhatsApp" generates: "Join Nodbusiness with my code [CODE] and get 20 bonus points! [link]"
 - [ ] Points earned from referrals shown in points history
 - [ ] Count: "3 friends joined using your code"
 

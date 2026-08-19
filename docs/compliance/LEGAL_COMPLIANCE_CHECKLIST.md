@@ -1,4 +1,4 @@
-# Halehame — Regulatory Compliance Guide
+﻿# Nodbusiness — Regulatory Compliance Guide
 
 > This document maps the platform's legal obligations by jurisdiction and feature area.
 > **Last updated:** August 2026
@@ -9,7 +9,7 @@
 
 ### Applicable Laws
 
-| Law | Relevance to Halehame |
+| Law | Relevance to Nodbusiness |
 |---|---|
 | **Computer Crime Proclamation No. 958/2016** | Governs online fraud, hacking, cyberstalking, unauthorized access |
 | **Mass Media and Freedom of Information Proclamation No. 590/2008** | User-generated content standards, platform liability |
@@ -37,7 +37,7 @@
 
 Applies when serving users in EU member states.
 
-| Requirement | Halehame Status | Action |
+| Requirement | Nodbusiness Status | Action |
 |---|---|---|
 | Privacy Policy | ✅ Draft exists | Finalize + publish |
 | Lawful basis for processing | ✅ Documented in Privacy Policy | Review with DPO |
@@ -52,7 +52,7 @@ Applies when serving users in EU member states.
 ## United States
 
 ### COPPA (Children's Online Privacy Protection Act)
-- Halehame prohibits users under 18
+- Nodbusiness prohibits users under 18
 - Must not knowingly collect data from minors
 - **Required:** Age gate on registration, parental consent mechanism
 
@@ -65,7 +65,7 @@ Applies when serving users in EU member states.
 - Register a DMCA agent with the US Copyright Office
 - Implement take-down and counter-notice process
 - Safe harbor only applies if we respond promptly to valid notices
-- **Contact:** dmca@halehame.app
+- **Contact:** dmca@nodbusiness.app
 
 ---
 

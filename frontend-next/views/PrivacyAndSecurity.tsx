@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
@@ -135,7 +135,7 @@ function PrivacyAndSecurityView() {
       const res = await client.get('/api/auth/me');
       const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = 'my-halehame-data.json'; a.click();
+      const a = document.createElement('a'); a.href = url; a.download = 'my-nodbusiness-data.json'; a.click();
       URL.revokeObjectURL(url);
       toast.success('Data exported successfully');
     } catch { toast.error('Export failed'); }
@@ -238,7 +238,7 @@ function PrivacyAndSecurityView() {
       <Section title="Data & Analytics" icon={Database} iconColor="text-emerald-600" iconBg="bg-emerald-50 dark:bg-emerald-900/20">
         <ToggleRow
           label="Usage Analytics"
-          description="Help improve Halehame by sharing anonymous usage data"
+          description="Help improve Nodbusiness by sharing anonymous usage data"
           checked={dataAnalytics}
           onChange={setDataAnalytics}
         />
@@ -259,13 +259,13 @@ function PrivacyAndSecurityView() {
       {/* ── Legal ── */}
       <Section title="Legal" icon={FileText} iconColor="text-slate-600" iconBg="bg-slate-100 dark:bg-slate-800/40">
         <LinkRow label="Privacy Policy" description="How we collect, use and protect your data" href="/service-agreement?tab=privacy" />
-        <LinkRow label="Terms of Service" description="Rules and conditions for using Halehame" href="/service-agreement?tab=terms" />
+        <LinkRow label="Terms of Service" description="Rules and conditions for using Nodbusiness" href="/service-agreement?tab=terms" />
         <LinkRow label="Cookie Policy" description="How we use cookies and tracking" href="/service-agreement?tab=cookies" />
         <div className="px-4 py-3 flex items-start gap-2">
           <Mail className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground">
             Privacy questions? Contact us at{' '}
-            <a href="mailto:privacy@halehame.app" className="text-blue-600 hover:underline">privacy@halehame.app</a>
+            <a href="mailto:privacy@nodbusiness.app" className="text-blue-600 hover:underline">privacy@nodbusiness.app</a>
           </p>
         </div>
       </Section>
@@ -288,7 +288,7 @@ function PrivacyAndSecurityView() {
       </Section>
 
       <p className="text-center text-[10px] text-muted-foreground px-4">
-        Halehame · City, Country · privacy@halehame.app
+        Nodbusiness · City, Country · privacy@nodbusiness.app
         <br />Last updated August 2026
       </p>
     </div>

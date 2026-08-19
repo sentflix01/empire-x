@@ -1,4 +1,4 @@
-/**
+﻿/**
  * api.test.js — Integration tests for all major API endpoints.
  *
  * Run:  node test/api.test.js
@@ -16,8 +16,8 @@ let token2 = '';
 let testUserId = '';
 let testUser2Id = '';
 
-const TEST_EMAIL = `test_${Date.now()}@halehame.test`;
-const TEST_EMAIL2 = `test2_${Date.now()}@halehame.test`;
+const TEST_EMAIL = `test_${Date.now()}@nodbusiness.test`;
+const TEST_EMAIL2 = `test2_${Date.now()}@nodbusiness.test`;
 const TEST_PASSWORD = 'Test1234!';
 
 // ── HTTP helpers ──────────────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ function expect(value) {
 
 // ── Test suites ───────────────────────────────────────────────────────────────
 async function runTests() {
-  console.log('\n🧪 Halehame API Tests');
+  console.log('\n🧪 Nodbusiness API Tests');
   console.log('═'.repeat(50));
 
   // ── Health ────────────────────────────────────────────────────────────────
@@ -177,7 +177,7 @@ async function runTests() {
   let postId;
 
   await test('POST /api/posts — creates post', async () => {
-    const r = await request('POST', '/api/posts', { content: 'Hello Halehame! #test', post_type: 'text' });
+    const r = await request('POST', '/api/posts', { content: 'Hello Nodbusiness! #test', post_type: 'text' });
     expect(r.status).toBe(201);
     expect(r.data.content).toExist();
     postId = r.data.id;

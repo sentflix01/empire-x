@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
@@ -27,8 +27,8 @@ const FILTERS = [
 ];
 
 const COMPANY_TICKER =
-  "Halehame announcement: Launch your mini website from Showroom Studio, promote updates, and share new offers with your customers.";
-const COMPANY_TICKER_HIDDEN_KEY = "empire_company_ticker_hidden";
+  "Nodbusiness announcement: Launch your mini website from Showroom Studio, promote updates, and share new offers with your customers.";
+const COMPANY_TICKER_HIDDEN_KEY = "nodbusiness_company_ticker_hidden";
 
 function CompanyAnnouncementTicker() {
   const { t } = useTranslation();
@@ -68,7 +68,7 @@ function CompanyAnnouncementTicker() {
       <div className="flex min-h-10 items-center overflow-hidden">
         <div className="flex h-10 shrink-0 items-center gap-1.5 bg-slate-950 px-3 text-white dark:bg-blue-600">
           <Megaphone className="h-3.5 w-3.5" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Halehame</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Nodbusiness</span>
         </div>
         <div className="min-w-0 flex-1 overflow-hidden">
           <div className="flex w-max animate-marquee whitespace-nowrap py-2 text-blue-950 dark:text-blue-100">
@@ -79,8 +79,8 @@ function CompanyAnnouncementTicker() {
           type="button"
           onClick={hideTicker}
           className="mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-blue-700 transition-colors hover:bg-blue-100 dark:text-blue-200 dark:hover:bg-blue-950/60"
-          title="Hide Halehame announcements"
-          aria-label="Hide Halehame announcements"
+          title="Hide Nodbusiness announcements"
+          aria-label="Hide Nodbusiness announcements"
         >
           <X className="h-3.5 w-3.5" />
         </button>

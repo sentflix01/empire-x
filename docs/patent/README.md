@@ -1,12 +1,12 @@
-# Halehame — Patent & Intellectual Property Folder
+﻿# Nodbusiness — Patent & Intellectual Property Folder
 
 > **Purpose:** This folder contains every document related to patent strategy,
 > provisional patent drafts, trade secret documentation, and IP protection
-> for the Halehame platform.
+> for the Nodbusiness platform.
 >
 > **Confidentiality:** This entire folder is STRICTLY CONFIDENTIAL.
 > Do not share any document from this folder without written authorization
-> from Halehame Technologies management.
+> from Nodbusiness Technologies management.
 
 ---
 
@@ -73,7 +73,7 @@ docs/patent/
 ## Key Rule
 
 > **File the provisional patent application BEFORE public launch.**
-> The moment Halehame is publicly accessible, competitors can see your
+> The moment Nodbusiness is publicly accessible, competitors can see your
 > innovations and file patents on them before you. A provisional application
 > filed before launch establishes your priority date.
 

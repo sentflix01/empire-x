@@ -1,4 +1,4 @@
-# Public Showroom Page — Audit
+﻿# Public Showroom Page — Audit
 
 ## Route
 `/showroom/[slug]` — publicly accessible, no auth required
@@ -30,12 +30,12 @@ This requires **Next.js SSR or ISR** (not client-side fetch).
 
 ## SEO Requirements
 ```html
-<title>Kategna Kitchen Bole — Halehame Showroom</title>
+<title>Kategna Kitchen Bole — Nodbusiness Showroom</title>
 <meta name="description" content="Kategna Kitchen Bole is a restaurant in Bole, Addis Ababa...">
 <meta property="og:title" content="Kategna Kitchen Bole">
 <meta property="og:description" content="...">
 <meta property="og:image" content="[cover_image_url]">
-<meta property="og:url" content="https://halehame.vercel.app/showroom/kategna-kitchen-bole">
+<meta property="og:url" content="https://nodbusiness.vercel.app/showroom/kategna-kitchen-bole">
 <meta name="twitter:card" content="summary_large_image">
 ```
 

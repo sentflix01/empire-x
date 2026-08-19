@@ -1,6 +1,6 @@
-# Halehame — Sequence Diagrams
+﻿# Nodbusiness — Sequence Diagrams
 
-> Authoritative reference for key request flows in the Halehame platform.
+> Authoritative reference for key request flows in the Nodbusiness platform.
 > Last updated: August 2026
 
 ---

@@ -1,6 +1,6 @@
-# Halehame — User Research & Personas
+﻿# Nodbusiness — User Research & Personas
 
-> Understanding who we are building for — their goals, frustrations, and how Halehame solves their problems.
+> Understanding who we are building for — their goals, frustrations, and how Nodbusiness solves their problems.
 > Personas span global markets. Ethiopian personas are preserved as primary reference market examples.
 > Last updated: August 2026
 
@@ -69,7 +69,7 @@ The table below shows global patterns with Ethiopia as the reference launch mark
 - Payment collection is inconvenient and cash-heavy
 - No formal business registration or digital identity
 
-**How Halehame helps:**
+**How Nodbusiness helps:**
 - Showroom Studio → professional online store in 30 minutes, no technical skills needed
 - Marketplace listing → reach local and global customers
 - Local payment method (Chapa/Telebirr for Ethiopia; M-Pesa for Kenya; UPI for India) → digital payments without a bank account
@@ -106,7 +106,7 @@ The table below shows global patterns with Ethiopia as the reference launch mark
 - Fragmented tools: one app for networking, another for selling, another for messaging
 - Hard to find legitimate local freelance work
 
-**How Halehame helps:**
+**How Nodbusiness helps:**
 - Social feed → connect with local professionals and creators
 - Task marketplace → find and post freelance work
 - Marketplace → buy and sell devices, books, electronics
@@ -143,7 +143,7 @@ The table below shows global patterns with Ethiopia as the reference launch mark
 - Currency confusion (wants to see prices in USD, pay in local equivalent)
 - Sellers aren't verified — fear of scams
 
-**How Halehame helps:**
+**How Nodbusiness helps:**
 - English interface with localized content from home market
 - Multi-currency pricing display (USD + local currency)
 - Marketplace → browse verified sellers globally
@@ -180,7 +180,7 @@ The table below shows global patterns with Ethiopia as the reference launch mark
 - Cannot reach buyers outside the local market
 - Distrustful of new technology — needs in-person support
 
-**How Halehame helps:**
+**How Nodbusiness helps:**
 - Simple onboarding wizard with minimal reading required
 - Showroom → display product catalog with photos (no writing needed)
 - Local payment method → accept digital payment without bank account
@@ -216,7 +216,7 @@ The table below shows global patterns with Ethiopia as the reference launch mark
 - Brand deals are unpredictable income
 - Can't build a professional portfolio or verified identity
 
-**How Halehame helps:**
+**How Nodbusiness helps:**
 - Business profile + Showroom → sell products directly to followers
 - Social feed → grow following alongside commerce
 - Marketplace → list physical or digital products
@@ -243,7 +243,7 @@ The table below shows global patterns with Ethiopia as the reference launch mark
 - Track shipments systematically
 - Reduce time spent on supplier discovery
 
-**How Halehame helps (Phase 2+):**
+**How Nodbusiness helps (Phase 2+):**
 - Verified business profiles with order history
 - Bulk order functionality
 - B2B invoicing (planned)
@@ -258,7 +258,7 @@ The table below shows global patterns with Ethiopia as the reference launch mark
 ### Seller Journey: First Sale (30-minute path)
 
 ```
-Discovers Halehame via referral link / social media / workshop
+Discovers Nodbusiness via referral link / social media / workshop
     ↓
 Registers (email or phone + OTP)
     ↓
@@ -286,7 +286,7 @@ Seller tells others: "It's like having a real shop online"
 ### Buyer Journey: Purchase Flow
 
 ```
-Opens Halehame → browses Marketplace or Feed
+Opens Nodbusiness → browses Marketplace or Feed
     ↓
 Finds product → views photos, description, seller profile, reviews
     ↓

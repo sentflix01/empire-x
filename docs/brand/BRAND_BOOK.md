@@ -1,6 +1,6 @@
-# Halehame — Brand Book
+﻿# Nodbusiness — Brand Book
 
-> **The definitive guide to how Halehame looks, sounds, and feels.**
+> **The definitive guide to how Nodbusiness looks, sounds, and feels.**
 > Every designer, developer, marketer, and partner follows this guide.
 > Consistency builds trust. Trust builds brands.
 
@@ -24,14 +24,15 @@
 ## 1. Brand Identity
 
 ### Name
-**Halehame** — one word, no spaces, no hyphens.
+**Nodbusiness** — one word, no spaces, no hyphens.
 
 ```
-✅ Halehame
-✅ HALEHAME (in all-caps contexts only)
-❌ HaleHame
-❌ Hale-hame
-❌ hale hame
+✅ Nodbusiness
+✅ NODBUSINESS (in all-caps contexts only)
+❌ NodeBusiness
+❌ Node-business
+❌ node business
+❌ NodBusiness
 ```
 
 ### Tagline
@@ -39,11 +40,11 @@
 
 Alternative taglines by context:
 - Marketplace: "Your business, everywhere"
-- Developers: "Build on Halehame"
+- Developers: "Build on Nodbusiness"
 - Community: "Connect. Trade. Grow."
 
 ### Mission Statement
-Halehame exists to give every business in the world a professional presence,
+Nodbusiness exists to give every business in the world a professional presence,
 a way to reach customers, and a community to grow with — regardless of their
 size, location, or technical ability.
 
@@ -61,9 +62,9 @@ Enabling       — We give people tools, not limitations.
 ## 2. Logo System
 
 ### Primary Logo
-- Crown icon (👑) + wordmark "Halehame"
+- Crown icon (👑) + wordmark "Nodbusiness"
 - Crown represents: excellence, achievement, ambition
-- File: `frontend-next/public/brand/halehame-logo.svg`
+- File: `frontend-next/public/brand/nodbusiness-logo.svg`
 
 ### Logo Variations
 ```
@@ -89,13 +90,13 @@ Never place text, icons, or images inside the clear space.
 
 ### File Formats to Always Have Available
 ```
-halehame-logo.svg          ← Primary (scalable, use everywhere possible)
-halehame-logo.png          ← For contexts that don't support SVG
-halehame-logo-white.svg    ← For dark backgrounds
-halehame-logo-black.svg    ← For light/neutral backgrounds
-halehame-icon.svg          ← Crown only (favicon, app icon)
-halehame-icon-192.png      ← PWA icon
-halehame-icon-512.png      ← PWA icon large
+nodbusiness-logo.svg          ← Primary (scalable, use everywhere possible)
+nodbusiness-logo.png          ← For contexts that don't support SVG
+nodbusiness-logo-white.svg    ← For dark backgrounds
+nodbusiness-logo-black.svg    ← For light/neutral backgrounds
+nodbusiness-icon.svg          ← Crown only (favicon, app icon)
+nodbusiness-icon-192.png      ← PWA icon
+nodbusiness-icon-512.png      ← PWA icon large
 ```
 
 ---
@@ -106,9 +107,9 @@ halehame-icon-512.png      ← PWA icon large
 
 | Color | Name | HEX | RGB | Usage |
 |-------|------|-----|-----|-------|
-| ![#2563eb](https://via.placeholder.com/15/2563eb/000000?text=+) | Halehame Blue | `#2563eb` | 37, 99, 235 | Primary actions, links, buttons, active states |
-| ![#7c3aed](https://via.placeholder.com/15/7c3aed/000000?text=+) | Halehame Purple | `#7c3aed` | 124, 58, 237 | Accent, gradients, secondary brand |
-| ![#D4AF37](https://via.placeholder.com/15/D4AF37/000000?text=+) | Halehame Gold | `#D4AF37` | 212, 175, 55 | Premium, verified badges, highlights |
+| ![#2563eb](https://via.placeholder.com/15/2563eb/000000?text=+) | Nodbusiness Blue | `#2563eb` | 37, 99, 235 | Primary actions, links, buttons, active states |
+| ![#7c3aed](https://via.placeholder.com/15/7c3aed/000000?text=+) | Nodbusiness Purple | `#7c3aed` | 124, 58, 237 | Accent, gradients, secondary brand |
+| ![#D4AF37](https://via.placeholder.com/15/D4AF37/000000?text=+) | Nodbusiness Gold | `#D4AF37` | 212, 175, 55 | Premium, verified badges, highlights |
 | ![#111111](https://via.placeholder.com/15/111111/000000?text=+) | Black | `#111111` | 17, 17, 17 | Primary text, headings |
 | ![#ffffff](https://via.placeholder.com/15/ffffff/000000?text=+) | White | `#ffffff` | 255, 255, 255 | Backgrounds, reversed text |
 
@@ -174,7 +175,7 @@ font-family-mono: 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
 ## 5. Iconography
 
 ### Icon Library
-**Lucide React** — the only icon library used across all Halehame products.
+**Lucide React** — the only icon library used across all Nodbusiness products.
 
 ```
 Why Lucide:
@@ -195,7 +196,7 @@ Why Lucide:
 | Hero/empty state icons | 48px | `w-12 h-12` |
 
 ### Custom Icons
-For brand-specific icons (crown, halehame logo mark), use the SVG files
+For brand-specific icons (crown, nodbusiness logo mark), use the SVG files
 in `frontend-next/public/brand/`.
 
 ---

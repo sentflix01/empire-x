@@ -1,4 +1,4 @@
-# Showroom External API Integration — Full Implementation Reference
+﻿# Showroom External API Integration — Full Implementation Reference
 
 **Spec:** `.kiro/specs/showroom-external-api/`
 **Status:** All 18 tasks completed
@@ -35,7 +35,7 @@
 
 ## Overview
 
-The Showroom External API Integration lets Business Owners connect a live REST API to any repeater-type section in their Halehame Showroom. Instead of entering data manually, they point a section at their own endpoint, map fields, and the Proxy Gateway fetches, transforms, and caches data server-side.
+The Showroom External API Integration lets Business Owners connect a live REST API to any repeater-type section in their Nodbusiness Showroom. Instead of entering data manually, they point a section at their own endpoint, map fields, and the Proxy Gateway fetches, transforms, and caches data server-side.
 
 **Three pillars:**
 - **Safety** — credentials never reach the browser; all requests are proxied server-side with SSRF validation at both save time and fetch time.

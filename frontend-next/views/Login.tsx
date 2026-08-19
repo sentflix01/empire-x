@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client';
 import React, { useState } from "react";
 import Link from 'next/link';
@@ -102,8 +102,8 @@ function Login() {
 
       {process.env.NODE_ENV === 'development' && (
         <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
-          <p><strong>{t('auth.devLoginHint')}</strong> admin@halehame.app / Admin1234!</p>
-          <p>Test user: test@halehame.app / Test1234!</p>
+          <p><strong>{t('auth.devLoginHint')}</strong> admin@nodbusiness.app / Admin1234!</p>
+          <p>Test user: test@nodbusiness.app / Test1234!</p>
         </div>
       )}
 

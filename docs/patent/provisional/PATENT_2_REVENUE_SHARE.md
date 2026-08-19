@@ -1,11 +1,11 @@
-# Provisional Patent Application Draft
+﻿# Provisional Patent Application Draft
 # Patent 2: Developer Revenue Share Quality-Adjustment System
 
 > **Classification:** CONFIDENTIAL — Attorney-Client Privileged
 > **Status:** DRAFT — To be reviewed and filed by patent attorney
 > **Priority:** HIGH — File before public launch
 > **Inventor(s):** [Founder Full Legal Name], [City, Country]
-> **Assignee:** Halehame Technologies PLC
+> **Assignee:** Nodbusiness Technologies PLC
 > **Date of Conception:** August 2026
 
 ---
@@ -233,4 +233,4 @@ predictable, stable developer economics.
 ---
 
 *This draft requires review by a licensed patent attorney before filing.*
-*All information is confidential and proprietary to Halehame Technologies.*
+*All information is confidential and proprietary to Nodbusiness Technologies.*

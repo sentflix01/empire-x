@@ -1,4 +1,4 @@
-# Halehame — Product Roadmap
+﻿# Nodbusiness — Product Roadmap
 
 > Milestones from MVP to global platform. Updated quarterly.
 > Each phase builds on the previous — we never migrate everything at once.
@@ -138,10 +138,10 @@
 - [ ] Android + iOS native apps (React Native)
 - [ ] Offline mode (PWA + cached data)
 - [ ] Financial services (lending, insurance)
-- [ ] Halehame Pay (proprietary payment network)
+- [ ] Nodbusiness Pay (proprietary payment network)
 - [ ] Creator economy (subscriptions, tips, paid content)
 - [ ] B2B marketplace
-- [ ] Halehame for Teams (business accounts)
+- [ ] Nodbusiness for Teams (business accounts)
 
 ### Engineering
 - [ ] Multi-region deployment (Africa, Europe, Asia)

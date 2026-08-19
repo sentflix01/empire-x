@@ -1,6 +1,6 @@
-# Halehame — Customer Support Framework
+﻿# Nodbusiness — Customer Support Framework
 
-> **How Halehame delivers world-class customer support — from first contact through resolution.**
+> **How Nodbusiness delivers world-class customer support — from first contact through resolution.**
 > Support is a trust-building function. Every interaction is an opportunity to deepen user loyalty or destroy it.
 
 ---
@@ -31,7 +31,7 @@
 
 ## 1. Support Philosophy
 
-Halehame's support model is built on three commitments:
+Nodbusiness's support model is built on three commitments:
 1. **Fast** — every user deserves a response, not a wait
 2. **Human** — even when AI helps, a real person is accountable
 3. **Honest** — we tell users what happened and what we will do, even when the answer is uncomfortable
@@ -46,7 +46,7 @@ We do not aim to close tickets quickly. We aim to resolve problems completely.
 The best support interaction is one the user solves themselves:
 - Help Center / FAQ (Knowledge Base)
 - In-app tooltips and guided walkthroughs
-- Status page (uptime.halehame.com) for platform issues
+- Status page (uptime.nodbusiness.com) for platform issues
 - Community forum (Phase 2+)
 
 Target: 60–70% of support inquiries resolved at Tier 0 (no agent contact).
@@ -93,9 +93,9 @@ Target: 60–70% of support inquiries resolved at Tier 0 (no agent contact).
 | Channel | Use Case | Hours |
 |---------|---------|-------|
 | In-app chat | Real-time support for active users | Phase 2: 9AM–9PM UTC |
-| Email (support@halehame.com) | All issues; creates ticket | 24/7 (async) |
+| Email (support@nodbusiness.com) | All issues; creates ticket | 24/7 (async) |
 | Help Center (self-service) | FAQs, guides, how-tos | Always available |
-| Social media (@halehame) | Public complaints, visibility | Monitored weekdays |
+| Social media (@nodbusiness) | Public complaints, visibility | Monitored weekdays |
 | Phone | VIP / enterprise only (Phase 3) | Business hours |
 
 **Phase 1 (bootstrap):** Email only + in-app help center. Founder manages support.
@@ -284,4 +284,4 @@ High-value accounts (Business plan subscribers, large merchants) receive:
 
 *Owner: CEO / Support Lead (Phase 1), Head of Customer Success (Phase 2+)*
 *Review cycle: Monthly metrics; policy updated quarterly*
-*Support: support@halehame.com*
+*Support: support@nodbusiness.com*

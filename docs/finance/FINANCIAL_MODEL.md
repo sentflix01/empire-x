@@ -1,6 +1,6 @@
-# Halehame — Financial Model & P&L Framework
+﻿# Nodbusiness — Financial Model & P&L Framework
 
-> **The financial operating model for Halehame Technologies.**
+> **The financial operating model for Nodbusiness Technologies.**
 > Every financial decision is grounded in this model.
 > Updated monthly with actuals vs. projections.
 
@@ -40,7 +40,7 @@ Stream 1: Subscriptions (primary)
   Business:      $99/month   (unlimited showrooms, API access)
 
 Stream 2: Template Marketplace Commission (Phase 2+)
-  Halehame takes 30% of all template subscription revenue
+  Nodbusiness takes 30% of all template subscription revenue
   Developer takes 70%
   Revenue = total template subscriptions × 30%
 
@@ -61,7 +61,7 @@ Stream 4: Transaction Fees (Phase 3)
 Use this structure every month to track actuals vs. budget:
 
 ```
-HALEHAME TECHNOLOGIES — MONTHLY P&L
+NODBUSINESS TECHNOLOGIES — MONTHLY P&L
 Month: [Month Year]
 Currency: USD (convert ETB at current rate)
 
@@ -187,7 +187,7 @@ Annually: Audited financial statements (required for Series A+)
 
 ### Bank Account Rules
 ```
-→ All revenue deposited to Halehame Technologies PLC business account
+→ All revenue deposited to Nodbusiness Technologies PLC business account
 → No personal transactions through company account — ever
 → All payments tracked in accounting software (QuickBooks or Xero)
 → Two-signature requirement for transfers > $5,000

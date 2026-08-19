@@ -1,4 +1,4 @@
-# Showroom Section Types — Tasks
+﻿# Showroom Section Types — Tasks
 
 ## Status: 🔴 Not Started
 
@@ -16,7 +16,7 @@ The showroom system needs three interconnected pieces:
 - [ ] Create `frontend-next/lib/showroomTaxonomy.ts`
 
 This file is the brain. It maps the global 5-class business taxonomy down to 20 categories
-that Halehame's showroom builder can handle.
+that Nodbusiness's showroom builder can handle.
 
 ```ts
 export interface BusinessCategory {

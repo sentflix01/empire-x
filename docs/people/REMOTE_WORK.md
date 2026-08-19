@@ -1,6 +1,6 @@
-# Halehame — Remote Work & Distributed Team Policy
+﻿# Nodbusiness — Remote Work & Distributed Team Policy
 
-> **How Halehame operates as a distributed, globally-minded team — and how remote work is done right.**
+> **How Nodbusiness operates as a distributed, globally-minded team — and how remote work is done right.**
 > Remote is not a compromise. It is a competitive advantage — when done with the right systems, culture, and discipline.
 
 ---
@@ -30,7 +30,7 @@
 
 ## 1. Our Remote Philosophy
 
-Halehame is remote-first by design, not by default.
+Nodbusiness is remote-first by design, not by default.
 
 **Remote-first** means:
 - Processes are designed for remote from day one — not retrofitted
@@ -67,7 +67,7 @@ Working from a country creates potential tax and legal obligations:
 ## 3. Working Hours and Availability
 
 ### Core Overlap Hours
-Halehame requires all team members to be available for synchronous collaboration during:
+Nodbusiness requires all team members to be available for synchronous collaboration during:
 
 **Core hours: 10:00–14:00 UTC, Monday–Friday**
 
@@ -152,7 +152,7 @@ CEO/Management: Core hours + async response within 4 hours generally
 
 ## 6. Equipment and Home Office
 
-### Provided by Halehame
+### Provided by Nodbusiness
 ```
 Engineer:        Laptop (up to $2,000 for MacBook Pro or equivalent)
 All team:        Headset / earbuds for video calls (up to $100)
@@ -165,7 +165,7 @@ Setup allowance: One-time $500 for desk, chair, or home office setup
 - Team members encouraged to use co-working 1–2 days/week for social health
 
 ### Internet
-- If home internet is insufficient for remote work, Halehame reimburses up to $50/month for an upgrade
+- If home internet is insufficient for remote work, Nodbusiness reimburses up to $50/month for an upgrade
 
 ### Equipment Return
 - All company-provided equipment must be returned within 30 days of employment ending
@@ -178,7 +178,7 @@ Setup allowance: One-time $500 for desk, chair, or home office setup
 All team members must:
 
 ```
-□ Use a Halehame-provided or approved device for work (no personal devices for code access)
+□ Use a Nodbusiness-provided or approved device for work (no personal devices for code access)
 □ Enable full disk encryption on their work machine
 □ Use MFA (Multi-Factor Authentication) on all company accounts
 □ Connect via VPN when accessing internal systems from public networks
@@ -200,7 +200,7 @@ All team members must:
 - Book via company card or expense and submit within 30 days
 
 ### Visa and Immigration
-- Halehame assists with letters of support for business travel visas
+- Nodbusiness assists with letters of support for business travel visas
 - Work visa sponsorship: available for key hires where required; discussion with CEO before offer
 
 ---
@@ -249,4 +249,4 @@ If a team member is underperforming remotely:
 
 *Owner: CEO (Phase 1), Head of People (Phase 2+)*
 *Review cycle: Annually, or when team structure changes significantly*
-*Remote work questions: people@halehame.com*
+*Remote work questions: people@nodbusiness.com*

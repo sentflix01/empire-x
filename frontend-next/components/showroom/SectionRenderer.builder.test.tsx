@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Task 21 regression test — published renderer must cover all 25 builder
  * section types (builder-shape keys) without breaking legacy business-template
  * shapes or the index-based anchor scheme.
@@ -22,7 +22,7 @@ const EXPECTED: Record<string, string> = {
   gallery: "Photo A",
   services: "Web Design",
   testimonials: "Everything renders!",
-  contact: "qa@halehame.app",
+  contact: "qa@nodbusiness.app",
   social: "Telegram",
   pricing: "999 ETB",
   team: "Alex Rivera",

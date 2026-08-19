@@ -1,4 +1,4 @@
-# Halehame — Investor Types Guide
+﻿# Nodbusiness — Investor Types Guide
 
 > **Classification:** Confidential
 > **Purpose:** Know exactly who to approach, when, and how for each stage.
@@ -311,7 +311,7 @@ Norrsken Impact Accelerator
   Website: norrsken.org
   Focus: Impact startups in Africa
   Investment: $100K–$500K
-  Note: Impact lens — good fit for Halehame (democratizing business tools)
+  Note: Impact lens — good fit for Nodbusiness (democratizing business tools)
 
 4DX Ventures
   Website: 4dxventures.com
@@ -345,9 +345,9 @@ Norrsken Impact Accelerator
 
 ## Type 5 — Impact Investors & Grants
 
-### Why Halehame Qualifies for Impact Investment
+### Why Nodbusiness Qualifies for Impact Investment
 ```
-Halehame creates measurable social impact:
+Nodbusiness creates measurable social impact:
   → Democratizes business presence for SMBs with no digital access
   → Creates jobs and income for template developers (gig economy)
   → Enables financial inclusion through integrated wallet + payments

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -299,7 +299,7 @@ function ShowroomCreate({
   useEffect(() => {
     auth.me().then(setUser).catch(() => {});
     // Try to restore draft
-    const draft = localStorage.getItem("empire_builder_draft");
+    const draft = localStorage.getItem("nodbusiness_builder_draft");
     if (draft && !templateParam && !categoryParam && !sampleParam) {
       try {
         const parsed = JSON.parse(draft);
@@ -322,7 +322,7 @@ function ShowroomCreate({
   // Auto-save draft
   useEffect(() => {
     const timer = setTimeout(() => {
-      localStorage.setItem("empire_builder_draft", JSON.stringify({ formData, activeSections }));
+      localStorage.setItem("nodbusiness_builder_draft", JSON.stringify({ formData, activeSections }));
     }, 1500);
     return () => clearTimeout(timer);
   }, [formData, activeSections]);
@@ -399,7 +399,7 @@ function ShowroomCreate({
   };
 
   const handleSaveDraft = () => {
-    localStorage.setItem("empire_builder_draft", JSON.stringify({ formData, activeSections }));
+    localStorage.setItem("nodbusiness_builder_draft", JSON.stringify({ formData, activeSections }));
     toast.success("Draft saved ✅");
   };
 
@@ -486,7 +486,7 @@ function ShowroomCreate({
         sections: JSON.stringify(sections),
         status: "published",
       });
-      localStorage.removeItem("empire_builder_draft");
+      localStorage.removeItem("nodbusiness_builder_draft");
       toast.success("Showroom published! 🎉");
       router.push(`/showrooms/${showroom.id}`);
     } catch (e) {
@@ -601,7 +601,7 @@ function ShowroomCreate({
           canUndo={undoStack.length > 0}
           canRedo={redoStack.length > 0}
           onLoad={() => {
-            const draft = localStorage.getItem("empire_builder_draft");
+            const draft = localStorage.getItem("nodbusiness_builder_draft");
             if (!draft) { toast.error("No draft found"); return; }
             try {
               const p = JSON.parse(draft);
@@ -611,7 +611,7 @@ function ShowroomCreate({
             } catch { toast.error("Failed to load draft"); }
           }}
           onClear={() => {
-            localStorage.removeItem("empire_builder_draft");
+            localStorage.removeItem("nodbusiness_builder_draft");
             setFormData(getDefaultFormData(templateName, categoryParam, sampleParam));
             setActiveSections(getDefaultSections(templateName, categoryParam, sampleParam));
             toast.success("Draft cleared");

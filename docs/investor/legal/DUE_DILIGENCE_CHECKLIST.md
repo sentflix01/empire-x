@@ -1,4 +1,4 @@
-# Halehame — Due Diligence Checklist
+﻿# Nodbusiness — Due Diligence Checklist
 
 > **Classification:** Confidential
 > **Purpose:** Every document an investor will request before closing.
@@ -48,7 +48,7 @@ folder (Google Drive or Dropbox) organized clearly.
 ## How to Organize Your Data Room
 
 ```
-Halehame Data Room/
+Nodbusiness Data Room/
 │
 ├── 01_Company/
 │   ├── Certificate of Incorporation (Ethiopian PLC or Delaware Corp)
@@ -281,7 +281,7 @@ A: Comparable seed rounds in African SaaS: $2M–$8M pre-money.
 
 ```
 1. Use numbered folders (01_, 02_) so files appear in logical order
-2. Name files clearly: "Cap_Table_Halehame_2026-08-15.xlsx" not "final.xlsx"
+2. Name files clearly: "Cap_Table_Nodbusiness_2026-08-15.xlsx" not "final.xlsx"
 3. Use Google Drive with "Anyone with link can view" (not edit)
 4. Send the data room link ONLY after NDA is signed
 5. Track who accesses what (Google Drive tracks views)

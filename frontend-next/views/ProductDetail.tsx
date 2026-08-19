@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -211,7 +211,7 @@ function ProductDetail() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold">{seller.display_name}</p>
-                <p className="text-xs text-muted-foreground">{seller.headline || "Seller on Halehame"}</p>
+                <p className="text-xs text-muted-foreground">{seller.headline || "Seller on Nodbusiness"}</p>
               </div>
               <MessageCircle className="w-4 h-4 text-muted-foreground" />
             </Link>

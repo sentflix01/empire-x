@@ -1,6 +1,6 @@
-# Halehame — Regulatory Map
+﻿# Nodbusiness — Regulatory Map
 
-> **Country-by-country regulatory requirements for operating Halehame as a global platform.**
+> **Country-by-country regulatory requirements for operating Nodbusiness as a global platform.**
 > Before entering any new market, review this document and consult local legal counsel.
 
 ---
@@ -33,7 +33,7 @@
 
 ## 1. How to Use This Document
 
-This map covers the primary regulatory domains for each region Halehame targets:
+This map covers the primary regulatory domains for each region Nodbusiness targets:
 1. **Data Protection** — user privacy laws
 2. **Payment / Financial** — money movement licenses and rules
 3. **Tax** — VAT/GST and corporate tax obligations
@@ -70,7 +70,7 @@ Color-coded risk level: 🟢 Low complexity | 🟡 Medium complexity | 🔴 High
 | Domain | Rule | Risk | Action |
 |--------|------|------|--------|
 | Data Protection | GDPR + BDSG (Federal Data Protection Act) — stricter than base GDPR | 🔴 | German-language privacy policy required for .de users |
-| Marketplace | Marketplace Facilitator Act — Halehame may be liable for seller compliance | 🟡 | Seller vetting + ToS must cover liability allocation |
+| Marketplace | Marketplace Facilitator Act — Nodbusiness may be liable for seller compliance | 🟡 | Seller vetting + ToS must cover liability allocation |
 | Consumer | Fernabsatzgesetz — strong distance selling rules | 🟡 | 14-day returns, clear pricing |
 
 ---

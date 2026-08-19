@@ -1,7 +1,7 @@
-/**
+﻿/**
  * errorCollector.js — Central error capture and storage for the DevOps feed
  *
- * Every error that occurs in the Halehame backend flows through here.
+ * Every error that occurs in the Nodbusiness backend flows through here.
  * Errors are stored in `error_events` table and the DevOps panel polls
  * that table to show a live error feed to engineers.
  *

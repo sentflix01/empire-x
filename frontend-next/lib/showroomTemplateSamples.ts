@@ -1,4 +1,4 @@
-
+﻿
 export type ShowroomSampleId = "starter" | "premium";
 
 export interface ShowroomTemplateSample {
@@ -36,7 +36,7 @@ const sampleBase = (templateName: string, category: string) => {
     heroBg: "#2563EB",
     heroBg2: "#7C3AED",
     aboutTitle: `About ${name}`,
-    aboutDesc: `${name} helps customers get reliable products, clear service, and fast support through Halehame.`,
+    aboutDesc: `${name} helps customers get reliable products, clear service, and fast support through Nodbusiness.`,
     galleryTitle: "Gallery",
     galleryImages: [],
     itemsTitle: "Featured Offers",
@@ -76,7 +76,7 @@ const sampleBase = (templateName: string, category: string) => {
     ],
     faqTitle: "Questions",
     faqs: [
-      { question: "How do I order?", answer: "Contact us from this showroom or message us through Halehame." },
+      { question: "How do I order?", answer: "Contact us from this showroom or message us through Nodbusiness." },
       { question: "Do you deliver?", answer: "Yes, delivery options are available depending on location and order size." },
     ],
     ctaTitle: "Ready to Start?",

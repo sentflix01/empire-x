@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from 'next';
+﻿import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Providers from './providers';
 import GoogleSignInInit from '@/components/GoogleSignInInit';
@@ -6,27 +6,27 @@ import GoogleSignInInit from '@/components/GoogleSignInInit';
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: {
-    default: 'Halehame 👑',
-    template: '%s | Halehame',
+    default: 'Nodbusiness 👑',
+    template: '%s | Nodbusiness',
   },
   description: 'The global superapp — social networking, business showrooms, marketplace, messaging, and task services. For everyone, everywhere.',
   keywords: ['superapp', 'marketplace', 'social', 'business', 'global', 'showroom', 'tasks', 'ecommerce'],
-  authors: [{ name: 'Halehame' }],
-  creator: 'Halehame',
+  authors: [{ name: 'Nodbusiness' }],
+  creator: 'Nodbusiness',
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_APP_URL || 'https://halehame.vercel.app',
-    siteName: 'Halehame',
-    title: 'Halehame 👑 — Africa\'s Superapp',
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://nodbusiness.vercel.app',
+    siteName: 'Nodbusiness',
+    title: 'Nodbusiness 👑 — Africa\'s Superapp',
     description: 'Social networking, business showrooms, marketplace, messaging, and task services.',
-    images: ['/brand/halehame-logo.svg'],
+    images: ['/brand/nodbusiness-logo.svg'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Halehame 👑',
+    title: 'Nodbusiness 👑',
     description: 'Africa\'s Superapp — Social · Commerce · Services',
-    images: ['/brand/halehame-logo.svg'],
+    images: ['/brand/nodbusiness-logo.svg'],
   },
   manifest: '/manifest.json',
   icons: {

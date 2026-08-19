@@ -1,7 +1,7 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client';
 /**
- * Admin.tsx — Halehame Platform Operations Hub
+ * Admin.tsx — Nodbusiness Platform Operations Hub
  *
  * Tabs:
  *  1. Overview      — key platform metrics + revenue chart + quick actions
@@ -58,7 +58,7 @@ const VERIFY_TYPES = [
   { value: 'personal', label: 'Personal', color: '#3B82F6', desc: 'Public figure / notable person' },
   { value: 'business', label: 'Business', color: '#F97316', desc: 'Verified business or brand'    },
   { value: 'creator',  label: 'Creator',  color: '#8B5CF6', desc: 'Content creator / influencer'  },
-  { value: 'official', label: 'Official', color: '#D4AF37', desc: 'Halehame official account'     },
+  { value: 'official', label: 'Official', color: '#D4AF37', desc: 'Nodbusiness official account'     },
 ];
 
 // ── Status badge ─────────────────────────────────────────────────────────────

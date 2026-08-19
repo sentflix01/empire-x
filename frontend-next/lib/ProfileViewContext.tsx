@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 /**
  * ProfileViewContext — global toggle between "personal" and "business" profile view.
  *
@@ -14,7 +14,7 @@
  */
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-const STORAGE_KEY = 'empire_profile_view';
+const STORAGE_KEY = 'nodbusiness_profile_view';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
