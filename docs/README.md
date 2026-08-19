@@ -96,9 +96,11 @@ docs/
 | `product/ROADMAP.md` | Feature roadmap by quarter |
 | `product/DESIGN_SYSTEM.md` | Design tokens, components, and visual language |
 | `product/ACCESSIBILITY.md` | WCAG 2.1 compliance and accessibility standards |
-| `product/USER_RESEARCH.md` | User research findings and personas |
-| `product/SELLER_HANDBOOK.md` | Guide for sellers on the platform |
+| `product/USER_RESEARCH.md` | User research findings and global personas |
+| `product/SELLER_HANDBOOK.md` | Guide for sellers on the platform (global + ETB reference) |
 | `product/FEATURE_FLAGS.md` | Feature flag registry and rollout strategy |
+| `product/LOCALIZATION.md` | i18n strategy, language support, translation workflow |
+| `product/A_B_TESTING.md` | Experiment framework, statistical requirements, experiment log |
 
 ---
 
@@ -150,6 +152,9 @@ docs/
 | `operations/ENVIRONMENT_VARIABLES.md` | All env vars documented |
 | `operations/TECHNICAL_DEBT.md` | Known technical debt register |
 | `operations/KEPLOY.md` | Keploy test automation setup |
+| `operations/CHANGE_LOG.md` | Platform deployment changelog |
+| `infrastructure/MIGRATION_GUIDE.md` | Database migration guide — create, run, rollback |
+| `infrastructure/SCALABILITY_PLAN_GROWTH.md` | Architecture scaling from 100 to 10M users |
 | `best-practice/README.md` | Engineering best practices overview |
 | `best-practice/security.md` | Security best practices |
 | `best-practice/performance.md` | Performance optimization patterns |

@@ -2,6 +2,27 @@
 
 > Milestones from MVP to global platform. Updated quarterly.
 > Each phase builds on the previous — we never migrate everything at once.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| MVP | Minimum Viable Product |
+| MAU | Monthly Active Users |
+| DAU | Daily Active Users |
+| GMV | Gross Merchandise Value |
+| API | Application Programming Interface |
+| PWA | Progressive Web App |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| ETB | Ethiopian Birr — reference market currency |
+| USD | United States Dollar |
+| SDK | Software Development Kit |
+| CDN | Content Delivery Network |
+| SSO | Single Sign-On |
+| B2B | Business to Business |
 
 ---
 

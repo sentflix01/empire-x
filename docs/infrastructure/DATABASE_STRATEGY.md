@@ -1,10 +1,32 @@
 # Halehame — Database Strategy
 
 > How the database evolves from a single instance to a globally distributed system.
-> **Last updated:** August 2026
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| DB | Database |
+| SQL | Structured Query Language |
+| PITR | Point-In-Time Recovery |
+| WAL | Write-Ahead Log — PostgreSQL transaction log |
+| RDS | Relational Database Service — AWS managed PostgreSQL |
+| ORM | Object-Relational Mapping |
+| JSONB | JSON Binary — PostgreSQL binary JSON type |
+| FTS | Full-Text Search |
+| UUID | Universally Unique Identifier |
+| SLA | Service Level Agreement |
+| API | Application Programming Interface |
+| MAU | Monthly Active Users |
+| RPO | Recovery Point Objective |
+| RTO | Recovery Time Objective |
+| GB | Gigabyte |
+| TB | Terabyte |
+
+---
 ## Current State
 
 ```

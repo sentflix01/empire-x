@@ -1,6 +1,22 @@
 # Halehame — Backup & Recovery
 
 > Data loss is unrecoverable. Set this up before going to production.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| DB | Database |
+| PITR | Point-In-Time Recovery — restoring a database to an earlier state |
+| WAL | Write-Ahead Log — PostgreSQL transaction log used for PITR |
+| R2 | Cloudflare R2 — object storage |
+| CDN | Content Delivery Network |
+| RPO | Recovery Point Objective — maximum acceptable data loss in time |
+| RTO | Recovery Time Objective — maximum acceptable downtime |
+| SQL | Structured Query Language |
 
 ---
 

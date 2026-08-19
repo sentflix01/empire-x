@@ -1,10 +1,35 @@
 # Halehame — Security Hardening
 
 > Layered security at every level: network, application, database, and human.
-> **Last updated:** August 2026
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| OWASP | Open Web Application Security Project |
+| XSS | Cross-Site Scripting |
+| CSRF | Cross-Site Request Forgery |
+| SSRF | Server-Side Request Forgery |
+| SQL | Structured Query Language |
+| IDOR | Insecure Direct Object Reference |
+| CSP | Content Security Policy |
+| CORS | Cross-Origin Resource Sharing |
+| HSTS | HTTP Strict Transport Security |
+| TLS | Transport Layer Security |
+| WAF | Web Application Firewall |
+| DDoS | Distributed Denial of Service |
+| MFA | Multi-Factor Authentication |
+| JWT | JSON Web Token |
+| API | Application Programming Interface |
+| PII | Personally Identifiable Information |
+| SAST | Static Application Security Testing |
+| DAST | Dynamic Application Security Testing |
+| CVE | Common Vulnerabilities and Exposures |
+
+---
 ## Security Layers (Defence in Depth)
 
 ```

@@ -1,6 +1,26 @@
 # Release Process Best Practices
 
-This guide explains how to deploy changes safely and keep releases stable.
+> How to deploy changes safely and keep releases stable.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| CI/CD | Continuous Integration / Continuous Delivery |
+| PR | Pull Request |
+| API | Application Programming Interface |
+| DB | Database |
+| SLA | Service Level Agreement |
+| MTTR | Mean Time to Resolve |
+| RCA | Root Cause Analysis |
+| E2E | End-to-End testing |
+| CDN | Content Delivery Network |
+| ENV | Environment Variable |
+
+---
 
 ## Goals
 

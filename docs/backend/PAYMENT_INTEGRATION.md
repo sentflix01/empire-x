@@ -1,7 +1,31 @@
 # Halehame — Payment Integration Guide
 
 > Complete technical reference for Stripe and Chapa payment integrations.
-> **Last updated:** August 2026
+> Reference market: Ethiopia (Chapa/ETB). Global default: Stripe/USD.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface |
+| ETB | Ethiopian Birr — reference market currency |
+| USD | United States Dollar |
+| COD | Cash on Delivery |
+| HMAC | Hash-based Message Authentication Code |
+| JWT | JSON Web Token |
+| KYC | Know Your Customer |
+| PCI-DSS | Payment Card Industry Data Security Standard |
+| SAQ | Self-Assessment Questionnaire — PCI compliance form |
+| SCA | Strong Customer Authentication — EU payment regulation |
+| PSD2 | Payment Services Directive 2 — EU open banking regulation |
+| URL | Uniform Resource Locator |
+| UUID | Universally Unique Identifier |
+| DB | Database |
+| GMV | Gross Merchandise Value |
+| NBE | National Bank of Ethiopia — reference market payment regulator |
 
 ---
 

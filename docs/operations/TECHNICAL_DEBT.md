@@ -3,9 +3,27 @@
 > A living document. Track what needs to improve and why.
 > Add items when you notice them. Resolve them intentionally, not reactively.
 > Priority: High (fix before Phase 2) · Medium (fix in Phase 2) · Low (nice to have)
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| TD | Technical Debt item (numbered TD-001, TD-002, etc.) |
+| JWT | JSON Web Token |
+| API | Application Programming Interface |
+| E2E | End-to-End testing |
+| ORM | Object-Relational Mapping |
+| TS | TypeScript |
+| XSS | Cross-Site Scripting |
+| DB | Database |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| PR | Pull Request |
+| CSRF | Cross-Site Request Forgery |
+
+---
 ## High Priority
 
 ### TD-001: HttpOnly cookie refresh tokens

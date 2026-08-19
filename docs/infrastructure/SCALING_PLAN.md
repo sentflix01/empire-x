@@ -2,8 +2,32 @@
 
 > Exactly what changes to infrastructure at each user milestone.
 > Each stage builds on the previous — don't skip stages.
-> **Last updated:** August 2026
+> Last updated: August 2026
 
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| MAU | Monthly Active Users |
+| DAU | Daily Active Users |
+| RPS | Requests Per Second |
+| CDN | Content Delivery Network |
+| R2 | Cloudflare R2 — object storage |
+| DB | Database |
+| API | Application Programming Interface |
+| CPU | Central Processing Unit |
+| RAM | Random Access Memory |
+| Redis | Remote Dictionary Server — in-memory cache/queue |
+| BullMQ | Bull Message Queue — background job processing |
+| PITR | Point-In-Time Recovery |
+| SLA | Service Level Agreement |
+| GB | Gigabyte |
+| TB | Terabyte |
+| PoP | Point of Presence — CDN edge location |
+
+---
 ---
 
 ## Stage 0 → Stage 1: Launch Ready (0 → 1,000 users)

@@ -3,8 +3,27 @@
 > A PRD defines what to build and why, before writing any code.
 > Engineers, designers, and product managers all work from the same specification.
 > Use this template for every new major feature.
+> Last updated: August 2026
 
 ---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| PRD | Product Requirements Document |
+| API | Application Programming Interface |
+| UI | User Interface |
+| UX | User Experience |
+| KPI | Key Performance Indicator |
+| MAU | Monthly Active Users |
+| GMV | Gross Merchandise Value |
+| ETB | Ethiopian Birr — reference market currency |
+| USD | United States Dollar |
+| MVP | Minimum Viable Product |
+| A/B | A/B Testing — comparing two variants |
+
+------
 
 ## PRD Template
 

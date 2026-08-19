@@ -3,10 +3,30 @@
 > Step-by-step response procedures for common incidents.
 > The goal is consistent, calm, fast recovery — not heroics.
 > When something goes wrong, open this document first.
+> Last updated: August 2026
 
 ---
 
-## Incident Severity Levels
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| P0/P1/P2/P3 | Priority 0/1/2/3 — incident severity levels |
+| API | Application Programming Interface |
+| DB | Database |
+| OOM | Out of Memory |
+| RCA | Root Cause Analysis |
+| PITR | Point-In-Time Recovery |
+| DNS | Domain Name System |
+| SSL | Secure Sockets Layer |
+| TLS | Transport Layer Security |
+| CDN | Content Delivery Network |
+| CPU | Central Processing Unit |
+| RAM | Random Access Memory |
+
+---
+
+## Incident Severity Levels## Incident Severity Levels
 
 | Level | Description | Response Time | Example |
 |---|---|---|---|

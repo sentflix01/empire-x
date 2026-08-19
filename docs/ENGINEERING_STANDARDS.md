@@ -5,6 +5,27 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| ADR | Architecture Decision Record |
+| PR | Pull Request |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| API | Application Programming Interface |
+| JWT | JSON Web Token |
+| SQL | Structured Query Language |
+| XSS | Cross-Site Scripting |
+| CORS | Cross-Origin Resource Sharing |
+| HTTPS | HyperText Transfer Protocol Secure |
+| TLS | Transport Layer Security |
+| MFA | Multi-Factor Authentication |
+| UUID | Universally Unique Identifier |
+| MIME | Multipurpose Internet Mail Extensions |
+| DRY | Don't Repeat Yourself — avoid duplicating code/logic |
+
+---
+
 ## Git Workflow
 
 ### Branching Strategy

@@ -1,7 +1,29 @@
 # Halehame — Mobile Strategy
 
-> How Halehame reaches mobile users in Ethiopia — PWA today, native apps tomorrow.
-> **Last updated:** August 2026
+> How Halehame reaches mobile users globally — PWA today, native apps in future phases.
+> Reference market: Ethiopia (Android-dominant). Principle applies globally.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| PWA | Progressive Web App |
+| TWA | Trusted Web Activity — Android wrapper for PWAs |
+| APK | Android Package — Android app installation file |
+| CDN | Content Delivery Network |
+| API | Application Programming Interface |
+| SDK | Software Development Kit |
+| UI | User Interface |
+| UX | User Experience |
+| FCM | Firebase Cloud Messaging — push notification service |
+| VAPID | Voluntary Application Server Identification — Web Push keys |
+| LCP | Largest Contentful Paint — Core Web Vital |
+| CLS | Cumulative Layout Shift — Core Web Vital |
+| FID | First Input Delay — Core Web Vital |
+| WebAuthn | Web Authentication — browser biometric auth standard |
 
 ---
 

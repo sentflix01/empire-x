@@ -1,7 +1,24 @@
 # Halehame — Incident Response Playbook
 
 > Step-by-step procedures for when things go wrong.
-> **Last updated:** August 2026
+> The goal is consistent, calm, fast recovery — not heroics.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| P0/P1/P2/P3 | Priority 0/1/2/3 — incident severity levels |
+| RCA | Root Cause Analysis |
+| SLA | Service Level Agreement |
+| MTTR | Mean Time to Resolve |
+| API | Application Programming Interface |
+| DB | Database |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| ETB | Ethiopian Birr — reference market currency |
+| UTC | Coordinated Universal Time |
 
 ---
 

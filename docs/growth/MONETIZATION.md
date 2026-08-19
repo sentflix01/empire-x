@@ -1,7 +1,27 @@
 # Halehame — Monetization Strategy
 
 > How Halehame makes money — today, next year, and at scale.
-> **Last updated:** August 2026
+> Reference market: Ethiopia (ETB). Global revenue model applies to all markets.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| GMV | Gross Merchandise Value |
+| MRR | Monthly Recurring Revenue |
+| ARR | Annual Recurring Revenue |
+| ETB | Ethiopian Birr — reference market currency |
+| USD | United States Dollar |
+| API | Application Programming Interface |
+| SaaS | Software as a Service |
+| B2B | Business to Business |
+| B2C | Business to Consumer |
+| ARPU | Average Revenue Per User |
+| LTV | Lifetime Value |
+| CAC | Customer Acquisition Cost |
 
 ---
 

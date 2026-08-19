@@ -1,7 +1,25 @@
 # Halehame — Data Flow Diagrams
 
 > How data moves through the system for key user journeys.
-> **Last updated:** August 2026
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface |
+| JWT | JSON Web Token |
+| DB | Database |
+| OTP | One-Time Password |
+| PII | Personally Identifiable Information |
+| CDN | Content Delivery Network |
+| WS | WebSocket |
+| GPS | Global Positioning System |
+| UUID | Universally Unique Identifier |
+| TTL | Time to Live |
+| HMAC | Hash-based Message Authentication Code |
 
 ---
 

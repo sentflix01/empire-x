@@ -1,10 +1,32 @@
 # Halehame — Accessibility Standards
 
 > Making Halehame usable by everyone, including users with disabilities and users on low-end devices.
-> **Standard:** WCAG 2.1 Level AA
-> **Last updated:** August 2026
+> Standard: WCAG 2.1 Level AA
+> Last updated: August 2026
 
 ---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| WCAG | Web Content Accessibility Guidelines |
+| A11y | Accessibility (short form of "a-ccessibilit-y") |
+| ARIA | Accessible Rich Internet Applications — HTML accessibility attributes |
+| ADA | Americans with Disabilities Act (US) |
+| NVDA | NonVisual Desktop Access — free screen reader (Windows) |
+| UI | User Interface |
+| UX | User Experience |
+| CSS | Cascading Style Sheets |
+| DOM | Document Object Model |
+| CTA | Call to Action |
+| RGB | Red Green Blue — color model |
+| LCP | Largest Contentful Paint — Core Web Vital |
+| FCP | First Contentful Paint — Core Web Vital |
+
+---
+
+## Why Accessibility Matters for Halehame---
 
 ## Why Accessibility Matters for Halehame
 

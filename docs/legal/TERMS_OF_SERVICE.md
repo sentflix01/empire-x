@@ -1,104 +1,149 @@
 # Halehame — Terms of Service (Draft)
 
-> **Status:** Internal draft — must be reviewed by a qualified Ethiopian lawyer before public launch.
-> **Jurisdiction:** Federal Democratic Republic of Ethiopia (primary), with international user provisions.
-> **Last updated:** August 2026
+> **Status:** Internal draft — must be reviewed by qualified legal counsel before public launch.
+> **Primary jurisdiction:** Delaware, USA (holding company) with local entity provisions per market.
+> **Reference market provision:** Ethiopian law references retained as an example for local entity compliance.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| ToS | Terms of Service |
+| IP | Intellectual Property |
+| DMCA | Digital Millennium Copyright Act (US) |
+| GDPR | General Data Protection Regulation (EU) |
+| UGC | User-Generated Content |
+| GMT | Greenwich Mean Time |
+| API | Application Programming Interface |
+| SLA | Service Level Agreement |
 
 ---
 
 ## 1. Acceptance of Terms
 
-By registering an account or accessing Halehame, you agree to these Terms of Service ("Terms"). If you do not agree, do not use the platform. These Terms form a binding agreement between you and Halehame ("we," "our," "the platform").
+By registering an account or accessing Halehame, you agree to these Terms of Service ("Terms"). If you do not agree, do not use the platform. These Terms form a binding agreement between you and Halehame Technologies Inc. ("we," "our," "the platform").
 
 ---
 
 ## 2. Eligibility
 
-- You must be **at least 18 years old** (or the age of digital majority in your jurisdiction) to create an account.
-- Business accounts must be operated by a person with legal authority to bind that business.
-- Accounts are personal and non-transferable.
+- You must be **at least 18 years old** (or the age of digital majority in your jurisdiction) to create an account
+- Business accounts must be operated by a person with legal authority to bind that business
+- Accounts are personal and non-transferable
+- We may require identity verification (KYC) for seller accounts or large transactions
 
 ---
 
-## 3. Prohibited Activities
+## 3. Global Legal Compliance
 
-Users may not:
+Users are responsible for complying with the laws of their own jurisdiction. Halehame operates globally and does not guarantee that all platform features are legally available in every country.
 
-- Post content that violates Ethiopian law, including the **Computer Crime Proclamation No. 958/2016** or the **Mass Media and Freedom of Information Proclamation No. 590/2008**
+**Reference (Ethiopia):** Ethiopian users are additionally subject to:
+- Computer Crime Proclamation No. 958/2016 (online fraud, unauthorized access)
+- Mass Media and Freedom of Information Proclamation No. 590/2008 (user-generated content)
+- National Bank of Ethiopia (NBE) Directives (payment and wallet features)
+- Electronic Signature & E-Commerce Proclamation No. 1067/2018 (digital contracts)
+
+---
+
+## 4. Prohibited Activities
+
+Users may not, in any jurisdiction:
+
 - Impersonate another person, business, or organization
 - Upload malware, spyware, or any harmful code
 - Use the platform for money laundering, fraud, or financing terrorism
-- Scrape, crawl, or automate requests without written permission
-- Sell counterfeit or prohibited goods (see Product Policy below)
+- Scrape, crawl, or automate requests without written permission from Halehame
+- Sell counterfeit or prohibited goods (see Community Standards and Content Policy)
 - Harass, threaten, or target individuals based on protected characteristics
 - Post content involving minors in any sexual or exploitative context
+- Circumvent any technical protection measures
+- Use the platform to violate any applicable law in your jurisdiction
 
 ---
 
-## 4. Content Ownership & License
+## 5. Content Ownership & License
 
-- You retain ownership of content you post ("User Content")
-- You grant Halehame a **worldwide, royalty-free, sublicensable license** to display, distribute, and promote your content within the platform
-- This license ends when you delete your content or account, except where we have shared it with third parties before deletion
-- We may remove content that violates these Terms without notice
+- You retain ownership of all content you post ("User Content")
+- You grant Halehame a **worldwide, royalty-free, sublicensable, non-exclusive license** to display, distribute, store, and promote your content within the platform
+- This license ends when you delete your content or account, except where we have already shared it with third parties before deletion
+- We may remove content that violates these Terms without prior notice
 
 ---
 
-## 5. Commerce & Payments
+## 6. Commerce & Payments
 
 - Sellers are responsible for the accuracy of product listings, pricing, and delivery
-- Halehame is a platform — we are not a party to buyer-seller transactions
-- Payment processing is handled by **Stripe** (international) and **Chapa** (Ethiopia)
-- Platform commission applies to completed orders (currently configurable by admin)
-- Disputes between buyers and sellers should first use the in-platform return/refund system
-- Halehame reserves the right to withhold payment pending fraud investigation
+- Halehame is a marketplace platform — we are not a direct party to buyer-seller transactions
+- Payment processing is handled by third-party providers (Stripe for international; local payment processors per market)
+- Platform commission applies to completed orders as published in the Seller Handbook
+- Disputes between buyers and sellers must first use the in-platform return/refund system
+- Halehame reserves the right to withhold payment pending fraud investigation or disputes
 
 ---
 
-## 6. Intellectual Property
+## 7. Intellectual Property
 
-- The Halehame name, logo, brand identity, and codebase are proprietary
+- The Halehame name, logo, brand identity, and codebase are the proprietary property of Halehame Technologies Inc.
 - Users may not reproduce, redistribute, or create derivative works without written permission
-- We respect third-party intellectual property. DMCA/copyright takedown requests: legal@halehame.app
+- We respect third-party intellectual property
+- Copyright/DMCA takedown requests: legal@halehame.app
+- We implement a repeat infringer termination policy
 
 ---
 
-## 7. Privacy
+## 8. Privacy
 
-Data collection and use is governed by our **Privacy Policy** (see `docs/legal/PRIVACY_POLICY.md`). By using Halehame you consent to the practices described there.
+Data collection and use is governed by our **Privacy Policy** (`docs/legal/PRIVACY_POLICY.md`). By using Halehame you consent to the practices described there.
 
 ---
 
-## 8. Limitation of Liability
+## 9. Limitation of Liability
 
-TO THE MAXIMUM EXTENT PERMITTED BY LAW:
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW:
 - Halehame is not liable for user-generated content
 - We are not liable for losses arising from platform outages, bugs, or third-party service failures
 - Our maximum liability to any user for any claim shall not exceed the fees paid to us in the 12 months preceding the claim
+- Nothing in these Terms limits liability for death, personal injury, or fraud caused by our negligence
 
 ---
 
-## 9. Governing Law & Dispute Resolution
+## 10. Governing Law & Dispute Resolution
 
-- These Terms are governed by the laws of the **Federal Democratic Republic of Ethiopia**
-- Disputes shall first be attempted through good-faith negotiation
-- Unresolved disputes shall be submitted to the courts of **Addis Ababa, Ethiopia**
-- For international users: you consent to Ethiopian jurisdiction
+**Primary jurisdiction:** These Terms are governed by the laws of the State of Delaware, United States.
+
+**Dispute resolution:**
+1. Good-faith negotiation (30 days)
+2. Mediation (if negotiation fails)
+3. Binding arbitration under AAA (American Arbitration Association) rules
+4. Exception: either party may seek injunctive relief in any court of competent jurisdiction
+
+**Reference (Ethiopia):** For users and transactions subject exclusively to Ethiopian law, disputes may be submitted to the courts of Addis Ababa, Ethiopia, where Ethiopian law requires local jurisdiction.
+
+**EU/UK users:** Your statutory consumer rights are not affected by these Terms.
 
 ---
 
-## 10. Changes to Terms
+## 11. Changes to Terms
 
-We may update these Terms with 30 days' notice via in-app notification. Continued use after the effective date constitutes acceptance.
+We may update these Terms with 30 days' notice via in-app notification and email. Continued use after the effective date constitutes acceptance. Material changes will be highlighted clearly.
+
+---
+
+## 12. Termination
+
+We may suspend or terminate any account that violates these Terms, with or without notice. Users may delete their account at any time from Settings → Account → Delete Account. Deletion is subject to the data retention schedule in the Privacy Policy.
 
 ---
 
 ## Contact
 
-**Halehame Legal**  
-Email: legal@halehame.app  
-Address: Addis Ababa, Ethiopia
+**Halehame Legal**
+Email: legal@halehame.app
 
 ---
 
-> ⚠️ **This is a draft document.** It must be reviewed and finalized by a qualified Ethiopian attorney before user-facing publication.
+> ⚠️ **This is an internal draft.** It must be reviewed and finalized by qualified legal counsel before public user-facing publication. Different jurisdictions may require additional provisions.

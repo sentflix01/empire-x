@@ -1,10 +1,33 @@
 # Halehame — Networking, Domains & Security
 
 > DNS, SSL, load balancing, DDoS protection, and domain strategy.
-> **Last updated:** August 2026
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| DNS | Domain Name System |
+| SSL | Secure Sockets Layer |
+| TLS | Transport Layer Security |
+| CDN | Content Delivery Network |
+| WAF | Web Application Firewall |
+| DDoS | Distributed Denial of Service |
+| HTTPS | HyperText Transfer Protocol Secure |
+| HTTP | HyperText Transfer Protocol |
+| IP | Internet Protocol |
+| CORS | Cross-Origin Resource Sharing |
+| HSTS | HTTP Strict Transport Security |
+| TTL | Time to Live — DNS record expiry |
+| API | Application Programming Interface |
+| URL | Uniform Resource Locator |
+| VPN | Virtual Private Network |
+| CNAME | Canonical Name — DNS record type |
+| A Record | Address Record — DNS record mapping domain to IP |
+
+---
 ## Domain Strategy
 
 ### Primary Domains (Register Now)

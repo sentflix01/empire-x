@@ -1,9 +1,29 @@
 # Halehame — Cost Breakdown by Growth Stage
 
 > Realistic monthly infrastructure costs at every milestone.
-> All costs in USD. ETB conversion at ~0.008 (adjust for current rate).
-> **Last updated:** August 2026
+> All costs in USD. Reference market (ETB) conversion: ~130 ETB/USD (adjust for current rate).
+> Last updated: August 2026
 
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| USD | United States Dollar |
+| ETB | Ethiopian Birr — reference market currency |
+| MAU | Monthly Active Users |
+| CDN | Content Delivery Network |
+| R2 | Cloudflare R2 — object storage |
+| DB | Database |
+| API | Application Programming Interface |
+| RAM | Random Access Memory |
+| CPU | Central Processing Unit |
+| MRR | Monthly Recurring Revenue |
+| GMV | Gross Merchandise Value |
+| COGS | Cost of Goods Sold |
+
+---
 ---
 
 ## Stage 0: Development / Pre-Launch

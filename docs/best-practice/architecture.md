@@ -1,6 +1,25 @@
 # Architecture Best Practices
 
-This document describes the high-level architectural upgrades needed to make the codebase more scalable, maintainable, and professional.
+> Architectural guidelines to make the Halehame codebase more scalable, maintainable, and professional.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface |
+| DB | Database |
+| ORM | Object-Relational Mapping |
+| SPA | Single Page Application |
+| SSR | Server-Side Rendering |
+| DRY | Don't Repeat Yourself |
+| SOLID | Single responsibility, Open/closed, Liskov substitution, Interface segregation, Dependency inversion |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| ADR | Architecture Decision Record |
+
+---
 
 ## Goals
 

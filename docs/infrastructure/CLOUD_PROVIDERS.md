@@ -1,10 +1,31 @@
 # Halehame — Cloud Provider Decisions
 
 > Why we chose each provider, alternatives considered, and when to switch.
-> **Last updated:** August 2026
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface |
+| CDN | Content Delivery Network |
+| R2 | Cloudflare R2 — S3-compatible zero-egress object storage |
+| S3 | Amazon Simple Storage Service |
+| DB | Database |
+| SLA | Service Level Agreement |
+| PITR | Point-In-Time Recovery |
+| WAF | Web Application Firewall |
+| DDoS | Distributed Denial of Service |
+| CPU | Central Processing Unit |
+| RAM | Random Access Memory |
+| PoP | Point of Presence — edge network location |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| USD | United States Dollar |
+| MAU | Monthly Active Users |
+
+---
 ## Current Provider Stack
 
 | Layer | Provider | Why chosen | Switch when |

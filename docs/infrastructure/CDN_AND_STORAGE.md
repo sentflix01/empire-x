@@ -1,10 +1,27 @@
 # Halehame — CDN & File Storage Strategy
 
 > How user uploads are stored, served, and optimized across the globe.
-> **Last updated:** August 2026
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| CDN | Content Delivery Network |
+| R2 | Cloudflare R2 — S3-compatible object storage with zero egress fees |
+| S3 | Amazon Simple Storage Service |
+| MIME | Multipurpose Internet Mail Extensions — file type identifier |
+| UUID | Universally Unique Identifier — random filename for uploaded files |
+| URL | Uniform Resource Locator |
+| MB | Megabyte |
+| GB | Gigabyte |
+| API | Application Programming Interface |
+| PoP | Point of Presence — CDN edge server location |
+| LCP | Largest Contentful Paint — Core Web Vital for image load speed |
+
+---
 ## Current State: Local Disk (Broken for Production)
 
 ```

@@ -1,144 +1,160 @@
 # Halehame — Monitoring & Observability
 
-> You can't improve what you don't measure. Set up monitoring before going to production.
+> Everything needed to monitor Halehame in production.
+> Full observability reference lives in `docs/infrastructure/MONITORING_STACK.md`.
+> This document covers the operational runbook: how to set up, check, and respond to monitoring alerts.
+> Last updated: August 2026
 
 ---
 
-## Tools
+## Acronyms Used in This Document
 
-| Tool | What it monitors | Setup |
-|---|---|---|
-| **Sentry** | Frontend + backend errors and crashes | Add `SENTRY_DSN` to Railway and Vercel |
-| **Pino** | Structured backend logs (JSON) | Already wired — runs automatically |
-| **Better Uptime** | Site uptime + alert when down | Free — add `/health` endpoint monitor |
-| **Railway Metrics** | CPU, memory, response times | Built into Railway dashboard |
-| **Vercel Analytics** | Page views, Web Vitals, Core Web Vitals | One-click enable in Vercel dashboard |
-| **Datadog** (Phase 2+) | Full APM, trace every request, DB queries | Add when at 10K+ users |
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface |
+| P0/P1/P2/P3 | Priority 0/1/2/3 — incident severity |
+| RCA | Root Cause Analysis |
+| SLA | Service Level Agreement |
+| DSN | Data Source Name — Sentry project identifier |
+| CPU | Central Processing Unit |
+| RAM | Random Access Memory |
+| MAU | Monthly Active Users |
+| DAU | Daily Active Users |
+| GMV | Gross Merchandise Value |
+| FTS | Full-Text Search |
+| UTC | Coordinated Universal Time |
 
 ---
 
-## Sentry Setup
+## Tools In Use
 
-### Backend
+| Tool | What it monitors | Status | Where to check |
+|------|-----------------|--------|---------------|
+| **Sentry** | Frontend + backend errors and crashes | Needs `SENTRY_DSN` set | sentry.io |
+| **Pino** | Structured backend logs (JSON) | ✅ Active automatically | Railway → Logs tab |
+| **DevOps Live Error Feed** | Real-time errors from all sources | ✅ Active | /devops → Live Errors |
+| **Railway Metrics** | CPU, RAM, response times | ✅ Active | railway.app dashboard |
+| **UptimeRobot** | Site availability, uptime alerts | Configure at uptimerobot.com | uptimerobot.com |
+| **Vercel Analytics** | Page views, Core Web Vitals | One-click enable | Vercel dashboard |
+
+For the full observability stack (PostHog, Grafana, DataDog), see `docs/infrastructure/MONITORING_STACK.md`.
+
+---
+
+## Minimum Setup (Do Before Launch)
+
+### 1. Set Sentry DSN
+
 ```bash
-# Already in package.json
-# Just set the env var in Railway:
+# Sign up at sentry.io — create two projects:
+# 1. "halehame-backend" (Node.js)
+# 2. "halehame-frontend" (Next.js)
+
+# Add to Railway env vars:
 SENTRY_DSN=https://xxx@o123.ingest.sentry.io/456
+
+# Add to Vercel env vars:
+NEXT_PUBLIC_SENTRY_DSN=https://xxx@o123.ingest.sentry.io/789
 ```
 
-`backend/lib/sentry.js` is already wired into `index.js` — errors are captured automatically.
+`backend/lib/sentry.js` is already wired — just set `SENTRY_DSN`.
 
-### Frontend (Next.js)
-```bash
-cd frontend-next
-npx @sentry/wizard@latest -i nextjs
+### 2. Configure UptimeRobot
+
+At uptimerobot.com (free tier: 50 monitors, 5-minute checks):
+
+```
+Monitor 1: GET https://api.halehame.app/health → expect 200
+Monitor 2: GET https://halehame.vercel.app → expect 200
+Monitor 3: GET https://api.halehame.app/api/products → expect 200
+
+Alert contacts: Telegram channel + email
 ```
 
-This creates `sentry.client.config.ts`, `sentry.server.config.ts`, and `instrumentation.ts`.
+### 3. Verify DevOps Live Error Feed
 
-Add to Vercel env vars:
+Navigate to `/devops` → Live Errors tab. This is your real-time error dashboard — no extra setup needed.
+
+---
+
+## Daily Morning Check (5 minutes)
+
+Run this every morning before starting work:
+
 ```
-NEXT_PUBLIC_SENTRY_DSN=https://xxx@o123.ingest.sentry.io/456
-SENTRY_ORG=your-org
-SENTRY_PROJECT=halehame-frontend
+1. Open DevOps → Live Errors
+   → Are there any critical or unresolved errors from overnight?
+
+2. Check /health endpoint
+   curl https://api.halehame.app/health
+   → All services should show "connected"
+
+3. Check Railway dashboard
+   → CPU + RAM within normal range?
+   → No failed deployments?
+
+4. Check Sentry (if configured)
+   → Any new error types appeared overnight?
+
+5. Check UptimeRobot
+   → 100% uptime? Any incidents?
 ```
 
 ---
 
-## Health Check
+## Key Metrics (Weekly Review)
 
-The backend exposes a health endpoint that checks every service:
+Run these queries on the database for weekly review:
 
+```sql
+-- New registrations this week
+SELECT DATE_TRUNC('day', created_at) AS day, COUNT(*)
+FROM users
+WHERE created_at > NOW() - INTERVAL '7 days'
+GROUP BY day ORDER BY day;
+
+-- Orders and GMV this week
+SELECT 
+  COUNT(*) AS orders,
+  SUM(total) AS gmv,
+  ROUND(100.0 * COUNT(*) FILTER (WHERE status = 'paid') / COUNT(*), 1) AS payment_success_rate
+FROM orders
+WHERE created_at > NOW() - INTERVAL '7 days';
+
+-- Active users (posted or ordered this week)
+SELECT COUNT(DISTINCT author_id) AS active_users
+FROM posts
+WHERE created_at > NOW() - INTERVAL '7 days';
+
+-- Error counts by level (from DevOps)
+SELECT level, COUNT(*), MAX(last_seen_at) AS last_seen
+FROM error_events
+WHERE resolved = false
+GROUP BY level ORDER BY COUNT(*) DESC;
 ```
-GET /health
-
-Response:
-{
-  "status": "ok",
-  "timestamp": "2026-07-04T12:00:00Z",
-  "version": "1.0.0",
-  "services": {
-    "database": "connected",
-    "redis": "connected | not configured",
-    "ai": "openai | not configured",
-    "email": "resend | smtp | console",
-    "storage": "r2 | local"
-  }
-}
-```
-
-Set up Better Uptime to hit this URL every 1 minute and alert you (email/SMS/Slack) if it returns anything other than 200.
 
 ---
 
-## Key Metrics to Track
+## Alert Thresholds
 
-### Business Metrics (CEO Dashboard)
-
-Track these weekly. Build an admin page at `/admin` that surfaces them.
-
-| Metric | SQL / Source |
-|---|---|
-| Daily Active Users | `SELECT COUNT(DISTINCT user_id) FROM user_profiles WHERE updated_at > NOW() - INTERVAL '1 day'` |
-| New registrations today | `SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '1 day'` |
-| GMV this month | `SELECT SUM(total_price) FROM orders WHERE status IN ('paid','completed') AND created_at > date_trunc('month', NOW())` |
-| Orders today | `SELECT COUNT(*) FROM orders WHERE created_at > NOW() - INTERVAL '1 day'` |
-| Payment success rate | Stripe Dashboard → Payments |
-| Active showrooms | `SELECT COUNT(*) FROM showrooms WHERE status = 'published'` |
-| Products listed | `SELECT COUNT(*) FROM products WHERE status = 'active'` |
-| Messages sent today | `SELECT COUNT(*) FROM messages WHERE created_at > NOW() - INTERVAL '1 day'` |
-
-### Engineering Metrics (DORA Metrics)
-
-| Metric | Target | How to measure |
-|---|---|---|
-| Deployment frequency | Daily | Count GitHub deployments |
-| Lead time for changes | <1 hour (MVP) | PR open → deployed |
-| Failed deployment rate | <5% | CI/CD failures |
-| Mean time to recovery | <30 min | Incident start → resolved |
-
-### API Performance
-
-Monitor these in Railway Metrics or Datadog:
-
-| Metric | Target |
-|---|---|
-| Average response time | <200ms |
-| p95 response time | <500ms |
-| Error rate | <0.1% |
-| 5xx rate | <0.01% |
+| Metric | Warning | Critical | Action |
+|--------|---------|---------|--------|
+| API error rate | > 1% | > 5% | Check Sentry + Railway logs |
+| P95 response time | > 1s | > 3s | Check slow queries, scale if needed |
+| Database connections | > 80% of pool | > 95% | Increase pool or scale DB tier |
+| RAM usage | > 70% | > 90% | Scale Railway instance |
+| CPU usage | > 60% sustained | > 90% sustained | Scale Railway instance |
+| Payment success rate | < 97% | < 95% | Check Stripe/Chapa status pages |
+| Uptime | < 99.9% | < 99% | Investigate immediately |
 
 ---
 
-## Structured Logging (Pino)
+## When Alerts Fire
 
-The backend uses Pino for structured JSON logs. Every log entry has:
-- `timestamp`
-- `level` (info, warn, error, debug)
-- `msg` (human-readable message)
-- Custom fields (e.g., `userId`, `orderId`, `route`)
-
-**Reading logs in Railway:**
-- Railway → Service → Logs
-- Filter by level: search `"level":50` for errors (Pino level 50 = error)
-
-**Never log:**
-- Passwords or password hashes
-- JWT tokens
-- Full request bodies on auth endpoints
-- Database connection strings
+See `docs/operations/RUNBOOKS.md` for step-by-step response procedures.
+See `docs/operations/INCIDENT_RESPONSE.md` for the full incident response playbook.
+See `docs/operations/ON_CALL.md` for on-call rotation and escalation.
 
 ---
 
-## Alerts to Configure
-
-Set these up in Better Uptime or PagerDuty:
-
-| Alert | Trigger | Action |
-|---|---|---|
-| Backend down | `/health` returns non-200 | Page on-call developer |
-| High error rate | Sentry > 100 new errors/hour | Notify Slack |
-| Database slow | Query time > 2s in Datadog | Investigate indexes |
-| Payment failures | Stripe dashboard alert | Check webhook config |
-| Memory spike | Railway CPU/RAM > 90% | Scale up or investigate leak |
-| Redis down | `redis` in `/health` shows error | Check Upstash, app works without it (fallback) |
+*For the full observability architecture (PostHog analytics, Grafana dashboards, advanced tracing), see `docs/infrastructure/MONITORING_STACK.md`.*

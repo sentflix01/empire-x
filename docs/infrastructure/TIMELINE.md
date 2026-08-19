@@ -1,10 +1,27 @@
 # Halehame — Infrastructure Timeline
 
 > Month-by-month infrastructure roadmap aligned with product and user growth.
-> **Last updated:** August 2026
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| MAU | Monthly Active Users |
+| API | Application Programming Interface |
+| CDN | Content Delivery Network |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| DB | Database |
+| R2 | Cloudflare R2 — object storage |
+| PWA | Progressive Web App |
+| SLA | Service Level Agreement |
+| MRR | Monthly Recurring Revenue |
+| GMV | Gross Merchandise Value |
+| USD | United States Dollar |
+
+---
 ## Month 0 (Now): Pre-Launch Hardening
 
 **Goal:** Make what's already built production-safe before a single real user pays.

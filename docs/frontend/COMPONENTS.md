@@ -2,6 +2,28 @@
 
 > Standards for building components in `frontend-next/`.
 > Follow these so any developer can read, contribute, and extend without asking questions.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| UI | User Interface |
+| UX | User Experience |
+| API | Application Programming Interface |
+| SSR | Server-Side Rendering |
+| CSR | Client-Side Rendering |
+| JSDoc | JavaScript Documentation — inline code documentation standard |
+| ARIA | Accessible Rich Internet Applications — HTML accessibility attributes |
+| JWT | JSON Web Token |
+| URL | Uniform Resource Locator |
+| CSS | Cascading Style Sheets |
+| DRY | Don't Repeat Yourself |
+| PR | Pull Request |
+| A11y | Accessibility (short form) |
+| WCAG | Web Content Accessibility Guidelines |
 
 ---
 

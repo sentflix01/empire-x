@@ -1,10 +1,30 @@
 # Halehame — Capacity Planning
 
-> How much infrastructure do we need at each user count, and when to add more.
-> **Last updated:** August 2026
+> How much infrastructure we need at each user count, and when to add more.
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| CPU | Central Processing Unit |
+| RAM | Random Access Memory |
+| DB | Database |
+| CDN | Content Delivery Network |
+| API | Application Programming Interface |
+| MAU | Monthly Active Users |
+| DAU | Daily Active Users |
+| RPS | Requests Per Second |
+| QPS | Queries Per Second |
+| P95 | 95th percentile response time |
+| SLA | Service Level Agreement |
+| GB | Gigabyte |
+| TB | Terabyte |
+| MB | Megabyte |
+
+---
 ## How to Read This Document
 
 Each section answers: "At X users, what does the infrastructure need to be?"

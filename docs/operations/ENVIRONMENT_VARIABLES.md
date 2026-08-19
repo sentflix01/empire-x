@@ -1,7 +1,26 @@
 # Halehame — Environment Variables Reference
 
 > The complete guide to every environment variable used by the platform.
-> **Last updated:** August 2026
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| ENV | Environment Variable |
+| JWT | JSON Web Token |
+| API | Application Programming Interface |
+| DB | Database |
+| SMTP | Simple Mail Transfer Protocol |
+| CDN | Content Delivery Network |
+| R2 | Cloudflare R2 — object storage |
+| VAPID | Voluntary Application Server Identification — Web Push keys |
+| TLS | Transport Layer Security |
+| OTP | One-Time Password |
+| ETB | Ethiopian Birr — reference market currency |
+| URL | Uniform Resource Locator |
 
 ---
 

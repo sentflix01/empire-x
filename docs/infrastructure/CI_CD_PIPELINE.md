@@ -1,10 +1,27 @@
 # Halehame — CI/CD Pipeline
 
 > How code goes from developer laptop to production safely and automatically.
-> **Last updated:** August 2026
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| CI/CD | Continuous Integration / Continuous Delivery |
+| PR | Pull Request |
+| API | Application Programming Interface |
+| DB | Database |
+| E2E | End-to-End testing |
+| SAST | Static Application Security Testing |
+| ENV | Environment Variable |
+| SHA | Commit hash (Git) |
+| YAML | YAML Ain't Markup Language — CI/CD config format |
+| NPM | Node Package Manager |
+| CDN | Content Delivery Network |
+
+---
 ## Pipeline Overview
 
 ```

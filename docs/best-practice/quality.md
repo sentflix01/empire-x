@@ -1,6 +1,25 @@
 # Quality Best Practices
 
-This document covers testing, code quality, and developer workflow improvements required for a professional product.
+> Testing, code quality, and developer workflow improvements required for a professional product.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| E2E | End-to-End testing |
+| TDD | Test-Driven Development |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| PR | Pull Request |
+| API | Application Programming Interface |
+| UI | User Interface |
+| QA | Quality Assurance |
+| SLA | Service Level Agreement |
+| LGTM | Looks Good To Me — PR approval phrase |
+
+---
 
 ## Goals
 

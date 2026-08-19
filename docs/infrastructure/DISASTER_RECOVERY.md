@@ -1,10 +1,28 @@
 # Halehame — Disaster Recovery Plan
 
 > What happens when things go catastrophically wrong, and how we recover.
-> **Last updated:** August 2026
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| RTO | Recovery Time Objective — maximum acceptable downtime |
+| RPO | Recovery Point Objective — maximum acceptable data loss window |
+| PITR | Point-In-Time Recovery — restoring database to a past state |
+| DB | Database |
+| API | Application Programming Interface |
+| CDN | Content Delivery Network |
+| DNS | Domain Name System |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| WAL | Write-Ahead Log — PostgreSQL transaction log |
+| P0/P1 | Priority 0/1 — critical/high severity incidents |
+| SLA | Service Level Agreement |
+| RCA | Root Cause Analysis |
+
+---
 ## Recovery Objectives
 
 | Scenario | RTO (Recovery Time) | RPO (Data Loss) |

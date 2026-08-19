@@ -1,44 +1,32 @@
 # Halehame — Growth Strategy
 
-> How we go from 0 to 1 million users.
-> **Last updated:** August 2026
+> How we go from 0 to 1 million users globally.
+> Primary launch reference market: Ethiopia and East Africa. Global expansion follows.
+> Last updated: August 2026
 
 ---
 
-## Phase 0: Foundation (Now — Month 3)
+## Acronyms Used in This Document
 
-**Goal:** 1,000 real, active users. Prove the product works.
-
-### Who are the first 1,000 users?
-
-1. **Addis Ababa tech community** — developers, startup founders, tech journalists
-2. **University students** — Addis Ababa University, AAiT, Dire Dawa University
-3. **Small business owners** — shops in Merkato, Bole, Kazanchis who want an online presence
-4. **Ethiopian diaspora** — US, Europe, Middle East communities wanting to connect with home
-
-### How to acquire them
-
-| Channel | Why | Action |
-|---|---|---|
-| **Referral program** | Already built (50 pts referrer + 20 pts new user) | Activate referral + share links |
-| **WhatsApp groups** | Ethiopian business/community groups are massive | Post to 20+ groups |
-| **Telegram channels** | Ethiopia's #1 social channel | Post to top tech/business channels |
-| **Addis Ababa tech meetups** | Get in front of early adopters | Sponsor 2 meetups |
-| **University campus activation** | Students = early adopters + viral | Deploy 5 campus ambassadors |
-
-### Key metrics to track
-- Daily Active Users (DAU)
-- Posts per DAU per week
-- Orders per month
-- Seller → buyer conversion rate
+| Acronym | Full Form |
+|---------|-----------|
+| MAU | Monthly Active Users |
+| DAU | Daily Active Users |
+| GMV | Gross Merchandise Value — total value of all transactions |
+| NPS | Net Promoter Score — "how likely are you to recommend us?" |
+| CAC | Customer Acquisition Cost |
+| LTV | Lifetime Value |
+| ETB | Ethiopian Birr — reference market currency |
+| USD | United States Dollar |
+| SMB | Small and Medium-sized Business |
+| COD | Cash on Delivery |
+| PWA | Progressive Web App |
+| SEO | Search Engine Optimization |
+| API | Application Programming Interface |
 
 ---
 
-## Phase 1: Product-Market Fit (Month 3–12)
-
-**Goal:** 10,000 MAU, 500 active sellers, ETB 100K+ monthly GMV.
-
-### The Flywheel
+## The Growth Flywheel
 
 ```
 More sellers → More products → More buyers
@@ -48,81 +36,141 @@ More seller income → More sellers recommend Halehame
                         Flywheel accelerating
 ```
 
-### Priority Acquisition: Sellers First
+Every growth strategy below serves this flywheel. Sellers bring their own customers. Every seller onboarded is a free growth channel.
 
-Sellers bring their own customers. Every seller you onboard is a free growth channel.
+---
 
-**Seller acquisition strategy:**
-1. **Free onboarding workshops** — "Build your online store in 30 minutes" at co-working spaces
-2. **WhatsApp Business migration** — Show sellers how to move their product photos + contacts to Halehame
-3. **First 3 months free** — No commission on first ETB 10,000 of sales
+## Phase 0: Foundation (Now — Month 3)
+
+**Goal:** 1,000 real, active users. Prove the product works.
+
+### Target User Segments (Global + Local Reference)
+
+| Segment | Global Example | Reference Market (Ethiopia) |
+|---------|---------------|---------------------------|
+| Tech community | Startup founders, developers | Addis Ababa tech community, AAiT graduates |
+| University students | Campus entrepreneurs | Addis Ababa University, Dire Dawa University |
+| Micro-entrepreneurs | Home-based sellers, crafters | Merkato shops, Bole/Kazanchis businesses |
+| Diaspora community | Immigrants wanting to connect home | Ethiopian diaspora in US, Europe, Middle East |
+
+### Acquisition Channels
+
+| Channel | Why | Action |
+|---------|-----|--------|
+| **Referral program** | Already built (50 pts referrer + 20 pts new user) | Activate and promote referral links |
+| **Messaging apps** | Business communities are massive on WhatsApp/Telegram | Post to relevant groups in target market |
+| **Local tech community** | Early adopters drive word-of-mouth | Sponsor meetups, attend hackathons |
+| **Campus activation** | Students = early adopters + viral spreaders | Deploy campus ambassadors at universities |
+| **Seller workshops** | "Build your online store in 30 minutes" | Host free onboarding sessions |
+| **Social content** | Seller success stories build trust and FOMO | 3 posts/week per platform |
+
+### Key Metrics to Track
+- Daily Active Users (DAU)
+- Posts per DAU per week
+- Orders per month
+- Seller → buyer conversion rate
+
+---
+
+## Phase 1: Product-Market Fit (Month 3–12)
+
+**Goal:** 10,000 MAU, 500 active sellers, meaningful GMV in primary market.
+
+### Seller-First Strategy
+
+**Why sellers first:** Every seller brings their own customer network. Onboarding one seller with 200 WhatsApp contacts is equivalent to acquiring 200 potential buyers.
+
+**Seller acquisition tactics:**
+1. **Free workshops** — "Build your online store in 30 minutes" at co-working spaces and business districts
+2. **Messaging app migration** — Show sellers how to move their product catalogs from WhatsApp/Telegram to Halehame
+3. **First 3 months free** — No commission on first sales during onboarding period
 4. **Success stories** — Feature one successful seller per week on social media
+5. **Seller referrals** — Sellers who refer other sellers earn bonus points
 
 ### Content Strategy
 
-| Type | Platform | Frequency |
-|---|---|---|
-| Seller success stories | Halehame feed + Telegram + Instagram | 3x/week |
-| "How to sell on Halehame" tutorials | YouTube + TikTok | 2x/week |
-| Ethiopian business tips | Halehame feed | Daily |
-| Product highlights (beautiful photos) | Instagram | Daily |
+| Content Type | Platforms | Frequency |
+|-------------|----------|-----------|
+| Seller success stories | Halehame feed + Instagram + local social platforms | 3× per week |
+| "How to sell on Halehame" tutorials | YouTube + TikTok | 2× per week |
+| Business tips (relevant to target market) | Halehame feed | Daily |
+| Product highlights (professional photos) | Instagram | Daily |
 | Live Q&A / workshops | Zoom + Halehame live (future) | Weekly |
+
+### Vertical Focus (Phase 1)
+
+Before going broad, go deep in specific verticals where trust and demand exist:
+
+| Vertical | Global Opportunity | Reference Market (East Africa) |
+|---------|-------------------|-------------------------------|
+| Fashion & Clothing | Huge global category | Traditional textiles, habesha kemis |
+| Food & Specialty Products | Direct-to-consumer boom | Ethiopian coffee (Yirgacheffe, Sidama), spices |
+| Crafts & Handmade | Etsy-sized global market | Lalibela crafts, Dorze weaving, gold/silver jewelry |
+| Electronics & Devices | High demand everywhere | Used/refurbished phones in Addis, Lagos, Nairobi |
+| Services & Freelance | Gig economy growing everywhere | Task marketplace for local services |
 
 ---
 
 ## Phase 2: Expansion (Month 12–24)
 
-**Goal:** 100,000 MAU, ETB 1M+ monthly GMV, expand to 3 Ethiopian cities.
+**Goal:** 100,000 MAU, significant GMV, expand to 3+ cities/markets.
 
-### Geographic expansion within Ethiopia
+### Geographic Expansion
 
-1. **Addis Ababa** — headquarters, primary market
-2. **Dire Dawa** — second largest commercial city, major trade hub
-3. **Hawassa** — Sidama capital, growing manufacturing/tourism hub
-4. **Mekelle** (when conditions allow)
-5. **Gondar** — major northern city
-6. **Bahir Dar** — Amhara capital, tourism hub
+**Primary expansion sequence:**
 
-### Vertical depth
+```
+Phase 2a: Depth in launch market
+  → Expand to secondary cities (outside capital)
+  → Reference: Dire Dawa, Hawassa, Mekelle, Gondar, Bahir Dar (Ethiopia)
+  → Principle applies globally: tier-2 cities after capital
 
-By Phase 2, go deep in specific verticals before going broad:
+Phase 2b: Regional expansion
+  → Adjacent countries sharing language or currency
+  → Reference: Kenya (M-Pesa, Swahili) → Tanzania → Uganda
+  → Principle: always expand where payment infrastructure exists
 
-1. **Fashion & Clothing** — Ethiopia has a strong traditional dress industry (habesha kemis, gabi, etc.)
-2. **Food & Coffee** — Ethiopian coffee is world-famous; connect producers to buyers
-3. **Crafts & Art** — Lalibela crafts, Dorze weaving, gold/silver jewelry
-4. **Electronics & Phones** — High demand in Addis for used/imported electronics
+Phase 2c: Diaspora communities
+  → Ethnic communities in developed markets who want to shop from home
+  → High purchasing power + emotional connection to home
+```
 
-### Partnership strategy
+### Partnership Strategy
 
-| Partner | What they bring | What we offer |
-|---|---|---|
-| **Ethio Telecom / Telebirr** | 30M users, trust, distribution | API integration, joint promotion |
-| **Commercial Bank of Ethiopia** | Merchant credibility | Business verified badge, payment gateway |
-| **Ethiopian Airlines** | B2B procurement, global reach | Enterprise marketplace access |
-| **Addis Ababa Chamber of Commerce** | SMB network, credibility | Partner storefront program |
-| **Development Bank of Ethiopia** | SMB loans | Link qualified sellers to financing |
+| Partner Type | What They Bring | What We Offer |
+|-------------|----------------|--------------|
+| **Telecom operators** | User base, distribution, mobile money | API integration, co-branded promotion |
+| **Banks / financial institutions** | Merchant credibility, payment gateway | Business verified badge, payment rails |
+| **Airlines / travel** | B2B procurement, global reach | Enterprise marketplace access |
+| **Chambers of commerce** | SMB network, local credibility | Partner storefront program |
+| **Development banks / microfinance** | SMB loans and financing | Link qualified sellers to financing |
+| **Reference (Ethiopia):** Ethio Telecom/Telebirr, CBE, Ethiopian Airlines, Addis Ababa Chamber | — | — |
 
 ---
 
-## Phase 3: East Africa (Month 24–36)
+## Phase 3: Multi-Country (Month 24–36)
 
-**Goal:** Launch in Kenya and Tanzania. 500,000 MAU across East Africa.
+**Goal:** 500,000 MAU across multiple markets.
 
-### Why Kenya first after Ethiopia
+### Market Entry Criteria
 
-1. **M-Pesa** — payment already integrated (via Chapa which supports M-Pesa)
-2. **Swahili** — widely spoken, single language covers Kenya + Tanzania
-3. **Tech ecosystem** — Nairobi is East Africa's tech hub (Silicon Savannah)
-4. **Ethiopian diaspora** — significant Ethiopian community in Nairobi
-5. **Existing Kenyan social apps** — weak compared to what Halehame offers
+Before entering any new country, verify:
+- [ ] Local payment method integrated (mobile money, bank transfer, or card)
+- [ ] Language support available (or English is sufficient)
+- [ ] Local legal entity or partner engaged
+- [ ] Country manager or ambassador hired
+- [ ] Regulatory requirements reviewed (see `docs/compliance/REGULATORY_MAP.md`)
 
-### Kenya launch strategy
+### Priority Markets After Launch Market
 
-1. Hire 1 local country manager in Nairobi
-2. Translate to Swahili (3 months before launch)
-3. Partner with a Kenyan incubator/accelerator
-4. Run "Sellers Day" activation events in Nairobi business districts
-5. Integrate M-Pesa as primary payment method
+| Market | Why | Key Payment Method | Language |
+|--------|-----|------------------|---------|
+| Kenya | Tech hub, M-Pesa ubiquitous | M-Pesa | Swahili + English |
+| Nigeria | Largest African economy, 200M+ people | Paystack, Flutterwave | English |
+| Ghana | Stable, growing tech ecosystem | Mobile money | English |
+| India | Massive SMB market, diaspora connections | UPI, Razorpay | English + Hindi |
+| UAE / Gulf | Large African diaspora, high purchasing power | Credit cards, local gateways | Arabic + English |
+| UK | Large African diaspora communities | Stripe | English |
 
 ---
 
@@ -133,50 +181,49 @@ By Phase 2, go deep in specific verticals before going broad:
 **Mechanics:**
 - Referrer earns **50 points** when referral registers + completes onboarding
 - Referred user earns **20 welcome points**
-- Points redeemable for: discounts on orders, featured listing boosts, subscription credit
+- Points redeemable for: order discounts, featured listing boosts, subscription credit
 
-**Growth benchmarks (industry):**
+**Growth benchmarks:**
 - Dropbox referral: 60% of signups from referrals at peak
 - Uber: 25% of rides from referral in early markets
-- Target: 30% of new user signups from referrals within 6 months
+- Target: 30% of new user signups from referrals within 6 months of activating
 
 ---
 
-## Metrics That Matter
+## Metrics Dashboard
 
 ### North Star Metric
-**Weekly Active Sellers posting + Weekly Transacting Buyers**
+**Weekly Transacting Pairs** — unique buyer-seller pairs who complete at least one transaction per week.
 
-A platform is healthy when sellers and buyers are both active weekly. Single-user activity (just posting, no commerce) doesn't capture the full flywheel.
+### Growth Metrics by Phase
 
-### Secondary Metrics
+| Metric | Phase 0 Target | Phase 1 Target (Month 12) | Phase 2 Target (Month 24) |
+|--------|--------------|--------------------------|--------------------------|
+| MAU | 1,000 | 50,000 | 500,000 |
+| DAU | 300 | 15,000 | 150,000 |
+| DAU/MAU | 30% | 35% | 40% |
+| Active sellers | 50 | 2,000 | 20,000 |
+| Monthly GMV | $5K | $200K | $5M |
+| Messages sent/day | 500 | 20,000 | 500,000 |
+| D7 retention | 20% | 35% | 45% |
+| D30 retention | 10% | 20% | 30% |
 
-| Metric | Target (Month 6) | Target (Month 12) |
-|---|---|---|
-| Monthly Active Users (MAU) | 5,000 | 50,000 |
-| Daily Active Users (DAU) | 1,500 | 15,000 |
-| DAU/MAU ratio (stickiness) | 30% | 35% |
-| Active sellers | 200 | 2,000 |
-| Monthly GMV | ETB 200K | ETB 2M |
-| Messages sent/day | 1,000 | 20,000 |
-| Average session length | 8 min | 12 min |
-| D7 retention | 20% | 35% |
-| D30 retention | 10% | 20% |
+*ETB equivalent for reference market: multiply USD by ~130 (approximate rate, fluctuates)*
 
 ---
 
 ## Anti-Churn Strategies
 
 **Why users leave:**
-1. Content feed is empty (no one they follow is posting) → **Following tab + seed content**
+1. Feed is empty (no one they follow is posting) → **Curated content + seed posts**
 2. No one responded to their post → **Notification system + community management**
-3. Their product didn't sell → **Seller onboarding + promotion tools**
+3. Product didn't sell → **Seller onboarding + promotion tools**
 4. App is slow → **Performance optimization, CDN, skeleton loading**
-5. Found a bug → **ErrorBoundary, Sentry monitoring**
+5. Found a bug → **ErrorBoundary, Sentry + DevOps live error feed**
 
 **Retention levers already built:**
 - Push notifications (brings users back)
 - Real-time chat (daily engagement driver)
-- Stories (24hr FOMO loop)
+- Stories (24hr loop)
 - Order notifications (sellers check every day)
 - Referral points (incentive to return + invite)

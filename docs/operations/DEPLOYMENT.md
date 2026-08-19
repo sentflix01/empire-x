@@ -1,6 +1,26 @@
 # Halehame — Deployment Guide
 
 > This file covers staging simulation, production deployment, environment variables, and day-to-day deploy workflow.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| CI/CD | Continuous Integration / Continuous Delivery |
+| API | Application Programming Interface |
+| JWT | JSON Web Token |
+| HTTPS | HyperText Transfer Protocol Secure |
+| CDN | Content Delivery Network |
+| R2 | Cloudflare R2 — object storage service |
+| OTP | One-Time Password |
+| DB | Database |
+| SSL | Secure Sockets Layer |
+| TLS | Transport Layer Security |
+| ENV | Environment variable |
+| VAPID | Voluntary Application Server Identification — Web Push keys |
 
 ---
 

@@ -1,7 +1,27 @@
 # Halehame — Competitive Analysis
 
-> Understanding who we're up against, what they do well, and where Halehame wins.
-> **Last updated:** August 2026
+> Understanding who we are up against, what they do well, and where Halehame wins.
+> Reference market: Ethiopia + East Africa. Global competitive lens applied throughout.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| MAU | Monthly Active Users |
+| GMV | Gross Merchandise Value |
+| API | Application Programming Interface |
+| SDK | Software Development Kit |
+| B2B | Business to Business |
+| B2C | Business to Consumer |
+| SMB | Small and Medium-sized Business |
+| SaaS | Software as a Service |
+| ETB | Ethiopian Birr — reference market currency |
+| USD | United States Dollar |
+| SEA | Southeast Asia |
+| VC | Venture Capital |
 
 ---
 

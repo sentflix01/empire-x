@@ -1,10 +1,27 @@
 # Halehame — Sequence Diagrams
 
-> This file is the authoritative reference for key request flows.
-> This file contains additional flows.
+> Authoritative reference for key request flows in the Halehame platform.
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface |
+| JWT | JSON Web Token |
+| OTP | One-Time Password |
+| DB | Database |
+| WS | WebSocket |
+| CDN | Content Delivery Network |
+| ETB | Ethiopian Birr — reference market currency |
+| COD | Cash on Delivery |
+| UI | User Interface |
+| AI | Artificial Intelligence |
+| GPS | Global Positioning System |
+
+---
 ## Payment Flow (Chapa — planned)
 
 ```

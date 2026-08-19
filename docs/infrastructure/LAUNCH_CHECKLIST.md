@@ -2,8 +2,32 @@
 
 > Every item that must be checked before real users and real money flow through the platform.
 > Work through this list top-to-bottom before announcing public launch.
-> **Last updated:** August 2026
+> Last updated: August 2026
 
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface |
+| JWT | JSON Web Token |
+| HTTPS | HyperText Transfer Protocol Secure |
+| TLS | Transport Layer Security |
+| CDN | Content Delivery Network |
+| DNS | Domain Name System |
+| SSL | Secure Sockets Layer |
+| R2 | Cloudflare R2 — object storage |
+| VAPID | Voluntary Application Server Identification — Web Push keys |
+| KYC | Know Your Customer |
+| AML | Anti-Money Laundering |
+| GDPR | General Data Protection Regulation |
+| DB | Database |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| WAF | Web Application Firewall |
+| MFA | Multi-Factor Authentication |
+
+---
 ---
 
 ## 🔴 CRITICAL — Must Complete Before First Real User

@@ -1,7 +1,28 @@
 # Halehame — Design System
 
 > The visual language of Halehame. Consistent design = trusted product.
-> **Last updated:** August 2026
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| UI | User Interface |
+| UX | User Experience |
+| CSS | Cascading Style Sheets |
+| HEX | Hexadecimal — color code format (e.g., #2563eb) |
+| RGB | Red Green Blue — color model for screens |
+| HSL | Hue Saturation Lightness — CSS color model |
+| SVG | Scalable Vector Graphics |
+| PNG | Portable Network Graphics |
+| A11y | Accessibility (short form) |
+| WCAG | Web Content Accessibility Guidelines |
+| CTA | Call to Action |
+| DPI | Dots Per Inch — screen resolution |
+| RTL | Right-to-Left — text direction for Arabic etc. |
+| LTR | Left-to-Right — standard English/Amharic direction |
 
 ---
 

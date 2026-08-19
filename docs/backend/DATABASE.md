@@ -3,6 +3,26 @@
 > Full ERD: `docs/architecture/ERD.md`
 > Schema details are maintained here and in `docs/architecture/ERD.md`.
 > Migration files: `backend/db/migrate*.js`
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| DB | Database |
+| SQL | Structured Query Language |
+| DDL | Data Definition Language — CREATE, ALTER, DROP |
+| DML | Data Manipulation Language — INSERT, UPDATE, DELETE |
+| UUID | Universally Unique Identifier |
+| FTS | Full-Text Search |
+| JSONB | JSON Binary — PostgreSQL binary JSON storage |
+| PITR | Point-In-Time Recovery |
+| ORM | Object-Relational Mapping |
+| PK | Primary Key |
+| FK | Foreign Key |
+| ETB | Ethiopian Birr — reference market currency |
 
 ---
 

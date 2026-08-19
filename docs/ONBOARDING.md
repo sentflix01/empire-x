@@ -5,6 +5,23 @@
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| OTP | One-Time Password — 6-digit verification code |
+| API | Application Programming Interface |
+| DB | Database |
+| JWT | JSON Web Token |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| ADR | Architecture Decision Record |
+| ERD | Entity Relationship Diagram |
+| PWA | Progressive Web App |
+| PR | Pull Request |
+| SOP | Standard Operating Procedure |
+
+---
+
 ## Day 1 — Understand the product
 
 1. Read `docs/product/NORTH_STAR.md` — understand *why* Halehame exists and what we're building

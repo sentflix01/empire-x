@@ -2,9 +2,33 @@
 
 > How the world's biggest platforms manage their code, teams, and deployments.
 > What Halehame should adopt at each growth stage.
-> **Last updated:** August 2026
+> Last updated: August 2026
 
 ---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| CI/CD | Continuous Integration / Continuous Delivery |
+| API | Application Programming Interface |
+| SDK | Software Development Kit |
+| SRE | Site Reliability Engineering |
+| ML | Machine Learning |
+| A/B | A/B Testing — comparing two variants |
+| VCS | Version Control System |
+| OKR | Objectives and Key Results — goal-setting framework |
+| SLA | Service Level Agreement |
+| MTTR | Mean Time to Resolve |
+| CDN | Content Delivery Network |
+| DB | Database |
+| MAU | Monthly Active Users |
+| DAU | Daily Active Users |
+| PoP | Point of Presence — CDN edge location |
+
+---
+
+## How Big Tech Actually Works---
 
 ## How Big Tech Actually Works
 

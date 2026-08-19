@@ -1,10 +1,30 @@
 # Halehame — Internationalisation (i18n) & Globalisation Strategy
 
-> How Halehame expands from Ethiopia to the rest of Africa and globally.
-> **Last updated:** August 2026
+> How Halehame expands from the reference market (Ethiopia) to the rest of Africa and globally.
+> Ethiopian context preserved as a reference — all principles apply globally.
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| i18n | Internationalization — designing software to support multiple languages/regions |
+| l10n | Localization — adapting content for a specific locale |
+| MAU | Monthly Active Users |
+| GMV | Gross Merchandise Value |
+| ETB | Ethiopian Birr — reference market currency |
+| USD | United States Dollar |
+| KES | Kenyan Shilling |
+| NGN | Nigerian Naira |
+| RTL | Right-to-Left text direction |
+| API | Application Programming Interface |
+| SEO | Search Engine Optimization |
+| MVP | Minimum Viable Product |
+| SaaS | Software as a Service |
+
+---
 ## Current State
 
 | Language | Status | Coverage |

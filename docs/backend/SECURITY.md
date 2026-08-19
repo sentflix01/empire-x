@@ -2,6 +2,28 @@
 
 > Security is built in from the start. This document explains every layer of protection.
 > For known threats and their mitigations, see `docs/architecture/THREAT_MODEL.md`.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| JWT | JSON Web Token |
+| XSS | Cross-Site Scripting |
+| CORS | Cross-Origin Resource Sharing |
+| CSP | Content Security Policy |
+| HTTPS | HyperText Transfer Protocol Secure |
+| TLS | Transport Layer Security |
+| API | Application Programming Interface |
+| OTP | One-Time Password |
+| SQL | Structured Query Language |
+| HMAC | Hash-based Message Authentication Code |
+| MIME | Multipurpose Internet Mail Extensions |
+| UUID | Universally Unique Identifier |
+| DDoS | Distributed Denial of Service |
+| HSTS | HTTP Strict Transport Security |
 
 ---
 

@@ -3,6 +3,30 @@
 > Base URL: `http://localhost:3001` (dev) · `https://api.halehame.app` (production)
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.
 > Errors follow `{ "error": "message" }` format.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface |
+| JWT | JSON Web Token |
+| OTP | One-Time Password |
+| UUID | Universally Unique Identifier |
+| HTTP | HyperText Transfer Protocol |
+| HTTPS | HyperText Transfer Protocol Secure |
+| REST | Representational State Transfer |
+| JSON | JavaScript Object Notation |
+| CRUD | Create, Read, Update, Delete |
+| GMV | Gross Merchandise Value |
+| ETB | Ethiopian Birr — reference market currency |
+| USD | United States Dollar |
+| COD | Cash on Delivery |
+| KYC | Know Your Customer |
+| FTS | Full-Text Search |
+| WS | WebSocket |
 
 ---
 

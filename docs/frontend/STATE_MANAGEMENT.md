@@ -1,6 +1,23 @@
 # Halehame — Frontend State Management
 
 > How state is managed in `frontend-next/`. Read this before adding new state.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| UI | User Interface |
+| API | Application Programming Interface |
+| URL | Uniform Resource Locator |
+| JWT | JSON Web Token |
+| SPA | Single Page Application |
+| SSR | Server-Side Rendering |
+| OTP | One-Time Password |
+| MAU | Monthly Active Users |
+| PII | Personally Identifiable Information |
 
 ---
 

@@ -1,7 +1,23 @@
 # Halehame — API Versioning Strategy
 
 > How we evolve the API without breaking clients.
-> **Last updated:** August 2026
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface |
+| URL | Uniform Resource Locator |
+| HTTP | HyperText Transfer Protocol |
+| REST | Representational State Transfer |
+| SLA | Service Level Agreement |
+| SDK | Software Development Kit |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| CDN | Content Delivery Network |
+| UI | User Interface |
 
 ---
 

@@ -2,6 +2,31 @@
 
 > Security is part of the design, not an afterthought.
 > This document identifies threats, current mitigations, and remaining work.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| XSS | Cross-Site Scripting — injecting malicious scripts |
+| CSRF | Cross-Site Request Forgery |
+| IDOR | Insecure Direct Object Reference |
+| JWT | JSON Web Token |
+| HMAC | Hash-based Message Authentication Code |
+| CSP | Content Security Policy |
+| CORS | Cross-Origin Resource Sharing |
+| OTP | One-Time Password |
+| DDoS | Distributed Denial of Service |
+| ReDoS | Regular Expression Denial of Service |
+| SQL | Structured Query Language |
+| API | Application Programming Interface |
+| UUID | Universally Unique Identifier |
+| OWASP | Open Web Application Security Project |
+| MFA | Multi-Factor Authentication |
+| WAF | Web Application Firewall |
+| PCI-DSS | Payment Card Industry Data Security Standard |
 
 ---
 

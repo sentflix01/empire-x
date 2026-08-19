@@ -2,6 +2,23 @@
 
 > Database conventions and useful queries live in `docs/backend/DATABASE.md`.
 > This file focuses on the relationships between major entities.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| ERD | Entity Relationship Diagram |
+| UUID | Universally Unique Identifier — primary key type |
+| FK | Foreign Key |
+| PK | Primary Key |
+| JSONB | JSON Binary — PostgreSQL JSON storage type |
+| FTS | Full-Text Search |
+| UTC | Coordinated Universal Time |
+| N | One-to-N relationship |
+| M:N | Many-to-Many relationship |
 
 ---
 

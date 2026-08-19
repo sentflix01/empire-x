@@ -1,269 +1,329 @@
 # Halehame — User Research & Personas
 
-> Understanding who we're building for — their goals, frustrations, and how Halehame solves their problems.
-> **Last updated:** August 2026
+> Understanding who we are building for — their goals, frustrations, and how Halehame solves their problems.
+> Personas span global markets. Ethiopian personas are preserved as primary reference market examples.
+> Last updated: August 2026
+
+---
+
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| SMB | Small and Medium-sized Business |
+| ETB | Ethiopian Birr — reference market currency |
+| USD | United States Dollar |
+| COD | Cash on Delivery |
+| NPS | Net Promoter Score |
+| DAU | Daily Active Users |
+| MAU | Monthly Active Users |
+| PWA | Progressive Web App |
+| UI | User Interface |
+| UX | User Experience |
 
 ---
 
 ## Global User Context
 
-Before personas, understand the environment:
+The table below shows global patterns with Ethiopia as the reference launch market. The implications apply across all emerging and growth markets.
 
-| Fact | Implication |
-|---|---|
-| Mobile internet penetration: ~35% | Mobile-first, not desktop-first |
-| Average connection speed: 5–15 Mbps 4G | Images must be optimized; avoid large JS bundles |
-| Most-used platform: Telegram (60%+ of connected Ethiopians) | Compete with / integrate with Telegram behavior |
-| WhatsApp penetration: ~40% | Business owners manage orders via WhatsApp |
-| Facebook: ~20% (declining among youth) | Younger users are on TikTok / Instagram |
-| Smartphone penetration: ~28% (growing fast) | PWA matters — must work on entry-level Android |
-| Primary business communication: Phone call + Telegram | Order notifications via push + Telegram bot |
-| Average transaction size: ETB 200–2,000 | Most commerce is micro/small business |
-| Cash dominance: ~80% of transactions | COD must work; Chapa + Telebirr needed |
-| Language: 80+ languages, but Amharic is lingua franca | Amharic + English sufficient for launch |
+| Fact | Global Context | Reference Market (Ethiopia) |
+|------|---------------|---------------------------|
+| Mobile internet penetration: growing fast | Mobile-first everywhere | ~35% penetration, growing rapidly |
+| Connection speed: variable | Optimize for 3G/4G users | 5–15 Mbps average 4G |
+| Primary social/messaging platform | Varies by region | Telegram (~60% of connected users) |
+| Business communication platform | WhatsApp or local equivalent | WhatsApp + phone calls |
+| Smartphone penetration: growing | Design for entry-level Android | ~28% penetration, growing fast |
+| Transaction size: micro/small business | Average order $5–$200 in emerging markets | ETB 200–2,000 (~$1.50–$15 USD) |
+| Cash dominance | Still significant in most markets | ~80% of transactions are cash |
+| Language: multilingual | English + local language | Amharic + English |
 
 ---
 
-## Core Personas
+## Global Personas
 
-### Persona 1: Tigist — The Micro-Entrepreneur
+---
 
-**Profile:**
-- Age: 28 | Female | Addis Ababa, Bole sub-city
-- Education: 12th grade + vocational training
+### Persona 1: The Micro-Entrepreneur (Reference: Tigist, Addis Ababa)
+
+**Global archetype:** Home-based seller in an emerging market who uses informal channels (WhatsApp, Instagram DMs) to manage their business.
+
+**Reference profile:**
+- Age: 28 | Female | Addis Ababa, Bole sub-city, Ethiopia
+- Education: Secondary school + vocational training
 - Occupation: Sells traditional clothing and accessories from home
-- Tech: Samsung A-series Android, Telebirr, Telegram, WhatsApp
-- Income: ETB 3,000–8,000/month
+- Tech: Mid-range Android (Samsung A-series), mobile money app (Telebirr), Telegram, WhatsApp
 
-**Goals:**
-- Reach more customers beyond her neighborhood
-- Accept digital payment (not just cash)
-- Show her products professionally without a physical shop
-- Manage orders without constant WhatsApp back-and-forth
+**Applicable markets:** Ethiopia, Nigeria, Kenya, Ghana, India (rural), Southeast Asia, Latin America
 
-**Frustrations:**
-- Has to manually reply to every WhatsApp inquiry
-- Can't track which customers placed orders
-- No professional way to show her catalog
-- Banks are far away; getting paid is hard
-- Has no formal business registration
+**Goals (universal):**
+- Reach more customers beyond her local neighborhood or social contacts
+- Accept digital payment without going to a bank
+- Show products professionally without renting a physical shop
+- Manage orders without manually replying to every inquiry
+
+**Frustrations (universal):**
+- Must reply to every customer inquiry individually via messaging apps
+- No way to track which customers placed orders
+- No professional way to display her catalog
+- Payment collection is inconvenient and cash-heavy
+- No formal business registration or digital identity
 
 **How Halehame helps:**
-- Showroom Studio → professional online store in 30 minutes
+- Showroom Studio → professional online store in 30 minutes, no technical skills needed
 - Marketplace listing → reach local and global customers
-- Chapa checkout → accept Telebirr from customers
-- Orders page → track every sale in one place
-- No registration required to start selling
+- Local payment method (Chapa/Telebirr for Ethiopia; M-Pesa for Kenya; UPI for India) → digital payments without a bank account
+- Orders page → automatic record-keeping for every sale
+- No business registration required to start selling
 
-**Feature priorities for Tigist:** Showroom, Marketplace, Chapa payment, Orders, Chat (to answer customer questions)
+**Feature priorities:** Showroom, Marketplace, Local payment method, Orders, Chat
 
 ---
 
-### Persona 2: Yonas — The Employed Young Professional
+### Persona 2: The Young Professional (Reference: Yonas, Addis Ababa)
 
-**Profile:**
-- Age: 24 | Male | Addis Ababa, Kazanchis
+**Global archetype:** Educated young professional in an emerging market who wants a professional network, freelance income, and access to a local marketplace.
+
+**Reference profile:**
+- Age: 24 | Male | Addis Ababa, Kazanchis, Ethiopia
 - Education: University graduate (Computer Science)
-- Occupation: Junior software developer at a local company
-- Tech: iPhone 13, TikTok, Instagram, LinkedIn, Telegram
-- Income: ETB 15,000/month
+- Occupation: Junior software developer
+- Tech: Smartphone, LinkedIn, TikTok/Instagram, Telegram
+- Income: Middle-income for local market
 
-**Goals:**
-- Connect with other young professionals
-- Find freelance side projects (tasks/jobs)
-- Buy and sell second-hand items
-- Stay updated on Ethiopian tech and business news
-- Build a professional presence online
+**Applicable markets:** Any city in Africa, India, Southeast Asia, Eastern Europe, Latin America
 
-**Frustrations:**
-- LinkedIn is too corporate and not Ethiopia-focused
-- TikTok/Instagram don't have commerce
-- Hard to find legitimate freelance work locally
-- No professional global social network
+**Goals (universal):**
+- Connect with peers and mentors in their professional field
+- Find freelance side projects and additional income
+- Buy and sell second-hand items conveniently
+- Build a professional online presence
+- Access local job opportunities
+
+**Frustrations (universal):**
+- Global platforms (LinkedIn) are not tailored to local job markets or salary norms
+- Social apps (Instagram, TikTok) have no commerce features
+- Fragmented tools: one app for networking, another for selling, another for messaging
+- Hard to find legitimate local freelance work
 
 **How Halehame helps:**
-- Social feed → connect with professionals
-- Task marketplace → find + post freelance work
-- Marketplace → buy/sell devices and electronics
+- Social feed → connect with local professionals and creators
+- Task marketplace → find and post freelance work
+- Marketplace → buy and sell devices, books, electronics
 - Verified badge → build professional credibility
-- Jobs board → find better employment
+- Jobs board → find local employment opportunities
+- Unified platform → no app switching
 
-**Feature priorities for Yonas:** Feed, Tasks, Jobs, Profile, Messaging, Marketplace
+**Feature priorities:** Feed, Tasks, Jobs, Profile, Messaging, Marketplace
 
 ---
 
-### Persona 3: Mekdes — The Diaspora Professional
+### Persona 3: The Diaspora Buyer (Reference: Mekdes, Washington DC)
 
-**Profile:**
-- Age: 35 | Female | Washington DC, USA (Ethiopian origin)
+**Global archetype:** Immigrant living in a developed country who wants to maintain cultural connection and shop from sellers back home.
+
+**Reference profile:**
+- Age: 35 | Female | Washington DC, USA (originally from Ethiopia)
 - Education: Master's degree (Public Health)
 - Occupation: Healthcare consultant
-- Tech: iPhone + iPad, WhatsApp (to call Ethiopia), Facebook (Ethiopian community groups)
-- Income: $80,000/year USD
+- Income: USD $80,000/year
+- Tech: iPhone, iPad, WhatsApp (calls home), Facebook (diaspora groups)
 
-**Goals:**
-- Stay connected to family and Ethiopian news
-- Send money home efficiently
-- Buy Ethiopian products (tej, berbere, injera ingredients, habesha kemis)
-- Support Ethiopian small businesses remotely
-- Reconnect with culture
+**Applicable markets:** African diaspora in US/UK/Europe, Indian diaspora, South Asian diaspora, East European diaspora
 
-**Frustrations:**
-- Facebook groups are chaotic and hard to buy from
-- Can't pay in ETB directly
-- No trusted marketplace for Ethiopian products
-- Hard to discover Ethiopian creators and businesses
-- Language barrier (prefers English interface)
+**Goals (universal):**
+- Buy products from sellers in their home country
+- Support small businesses from their origin country
+- Stay connected to culture, language, and community
+- Gift products to family back home
+
+**Frustrations (universal):**
+- No trusted marketplace for culturally specific products
+- Facebook groups are chaotic with no structured purchasing flow
+- Currency confusion (wants to see prices in USD, pay in local equivalent)
+- Sellers aren't verified — fear of scams
 
 **How Halehame helps:**
-- English interface → comfortable for diaspora
-- USD/ETB pricing → see prices in both
-- Marketplace → buy from sellers worldwide
-- Social feed → stay connected to community and culture
-- Wallet → send ETB to family members
-- Push notifications → stay updated on followed sellers
+- English interface with localized content from home market
+- Multi-currency pricing display (USD + local currency)
+- Marketplace → browse verified sellers globally
+- Social feed → stay connected to home community and culture
+- Wallet → send funds to family who sell on the platform
+- Trust signals (verified badge, reviews, order protection)
 
-**Feature priorities for Mekdes:** Marketplace, Feed, English interface, USD display, Wallet
+**Feature priorities:** Marketplace, Feed, English interface, Multi-currency display, Wallet, Verified sellers
 
 ---
 
-### Persona 4: Dawit — The Traditional Business Owner
+### Persona 4: The Traditional Business Owner (Reference: Dawit, Merkato)
 
-**Profile:**
-- Age: 45 | Male | Merkato market, Addis Ababa
+**Global archetype:** Established offline business owner, older, low digital literacy, high transaction volume in cash.
+
+**Reference profile:**
+- Age: 45 | Male | Merkato market, Addis Ababa, Ethiopia
 - Education: Primary school
 - Occupation: Wholesale fabric importer and retailer
-- Tech: Basic Android phone, calls, SMS, doesn't use social media
-- Income: ETB 20,000–50,000/month (cash)
+- Tech: Basic Android phone, calls/SMS only
+- Income: High cash volume ($2,000–$5,000/month)
 
-**Goals:**
-- Reach more retailers outside Merkato
-- Keep a digital record of orders and payments
+**Applicable markets:** Traditional market traders in any African, Asian, or Latin American city
+
+**Goals (universal):**
+- Reach customers outside their immediate physical market
+- Keep digital records of orders (to reduce errors)
 - Avoid carrying large amounts of cash
-- Train his staff to use digital tools
+- Transition business to the next generation
 
-**Frustrations:**
-- All transactions are in cash — risky to carry
-- No digital record of who bought what
-- Can't reach customers outside Merkato easily
-- Distrustful of unfamiliar technology
-- Low digital literacy
+**Frustrations (universal):**
+- All transactions are in cash — risky, time-consuming to count and deposit
+- No digital record of who bought what — disputes are common
+- Cannot reach buyers outside the local market
+- Distrustful of new technology — needs in-person support
 
 **How Halehame helps:**
-- Simple onboarding wizard → minimal reading required
-- Showroom → display fabric catalog with photos
-- Chapa → accept digital payment without a bank account
+- Simple onboarding wizard with minimal reading required
+- Showroom → display product catalog with photos (no writing needed)
+- Local payment method → accept digital payment without bank account
 - Orders page → automatic record-keeping
-- In-person seller support → workshops in Merkato
+- In-person support → workshops in business districts
+- Family/employee can manage the account on their behalf
 
-**Feature priorities for Dawit:** Extremely simple UI, Amharic interface, Chapa payment, Basic orders, No complex features
+**Feature priorities:** Maximum simplicity, Local language (Amharic/Swahili/Hindi), Local payment method, Basic orders, In-person support
 
 ---
 
-### Persona 5: Almaz — The Content Creator
+### Persona 5: The Content Creator (Reference: Almaz, Hawassa)
 
-**Profile:**
-- Age: 21 | Female | Hawassa
+**Global archetype:** Social media creator with a following who wants to monetize their audience directly.
+
+**Reference profile:**
+- Age: 21 | Female | Hawassa, Ethiopia
 - Education: University student (Marketing)
 - Occupation: Part-time food blogger + TikTok creator (8K followers)
-- Tech: Xiaomi Redmi, TikTok, Instagram, YouTube
-- Income: ETB 1,000–3,000/month (brand deals)
+- Income: Irregular brand deal income
 
-**Goals:**
-- Monetize her audience directly (not just brand deals)
-- Sell her own products or merch to followers
-- Build a business around her content
-- Become known professionally in Ethiopia
+**Applicable markets:** Any country with growing creator economy — Nigeria, Kenya, India, Southeast Asia, Latin America
 
-**Frustrations:**
-- TikTok/Instagram don't pay Ethiopian creators
-- No platform to sell directly to her audience
+**Goals (universal):**
+- Sell products directly to their audience without a middleman
+- Build a professional business profile alongside their social content
+- Earn predictable income from their audience
+- Expand reach beyond a single social platform
+
+**Frustrations (universal):**
+- Local creators not paid by TikTok/Meta in emerging markets
+- No platform to sell directly to their followers
 - Brand deals are unpredictable income
-- Can't build a portfolio/professional presence
+- Can't build a professional portfolio or verified identity
 
 **How Halehame helps:**
-- Business profile + Showroom → sell merch directly
-- Social feed → post content and grow following
-- Marketplace → list food products (recipes, spice mixes)
-- Verified Creator badge → build credibility
-- Analytics → see how content performs
+- Business profile + Showroom → sell products directly to followers
+- Social feed → grow following alongside commerce
+- Marketplace → list physical or digital products
+- Verified Creator badge → build professional credibility
+- Analytics → understand content performance
 
-**Feature priorities for Almaz:** Feed, Stories, Creator tools, Business profile, Commerce
-
----
-
-## Journey Maps
-
-### Seller Journey: Tigist's First Sale
-
-```
-Week 1: Discovers Halehame via WhatsApp group share
-        ↓
-Day 1:  Registers with phone number
-        ↓
-Day 1:  Completes onboarding (personal profile)
-        ↓
-Day 2:  Adds business profile (clothing category)
-        ↓
-Day 2:  Opens Showroom Studio → picks "Fashion" template
-        ↓
-Day 3:  Uploads 5 product photos to Marketplace
-        ↓
-Day 4:  Shares her Showroom link to her WhatsApp contacts
-        ↓
-Day 5:  First inquiry in Chat from a buyer
-        ↓
-Day 6:  Buyer places order via Chapa → Tigist gets push notification
-        ↓
-Day 6:  Tigist marks order as "Processing" in Orders page
-        ↓
-Day 7:  Delivery arranged → marks "Completed" → commission deducted
-        ↓
-Day 7:  Reviews Halehame to friends: "It's like having a shop online"
-```
-
-### Buyer Journey: Yonas buying a second-hand phone
-
-```
-Opens Halehame → goes to Marketplace
-        ↓
-Searches "iPhone 12" → filters by distance (< 10km)
-        ↓
-Finds listing → views photos, reviews, seller profile
-        ↓
-Messages seller via Chat: "Is this still available?"
-        ↓
-Seller replies: "Yes, ETB 18,000"
-        ↓
-Yonas taps "Buy Now" → PurchaseModal opens
-        ↓
-Fills delivery address → pays with Chapa (CBE Birr)
-        ↓
-Order confirmed → notification to both buyer + seller
-        ↓
-Seller marks as "Processing" → Yonas sees status in Orders
-        ↓
-Item delivered → Yonas leaves 5-star review
-```
+**Feature priorities:** Feed, Stories, Creator profile, Business/Showroom, Commerce, Analytics
 
 ---
 
-## User Research Methods
+### Persona 6: The Enterprise Buyer (Global — new persona)
 
-### What we should do before/during launch:
+**Global archetype:** Procurement manager at a mid-size company who wants to source products through a verified supplier marketplace.
+
+**Profile:**
+- Age: 38 | Any country | B2B procurement role
+- Occupation: Procurement manager or business owner
+- Transaction size: $500–$50,000 per order
+- Focus: Quality verification, reliable supply, invoicing
+
+**Goals:**
+- Find verified suppliers with good reviews and delivery history
+- Place bulk orders with structured invoicing
+- Track shipments systematically
+- Reduce time spent on supplier discovery
+
+**How Halehame helps (Phase 2+):**
+- Verified business profiles with order history
+- Bulk order functionality
+- B2B invoicing (planned)
+- Enterprise API access for procurement systems
+
+**Feature priorities:** Verified sellers, Bulk orders, Invoicing, API access
+
+---
+
+## User Journey Maps
+
+### Seller Journey: First Sale (30-minute path)
+
+```
+Discovers Halehame via referral link / social media / workshop
+    ↓
+Registers (email or phone + OTP)
+    ↓
+Onboarding wizard → personal profile
+    ↓
+Creates business profile (name, category, logo)
+    ↓
+Opens Showroom Studio → picks template → customizes sections
+    ↓
+Uploads first products to Marketplace
+    ↓
+Shares showroom link on WhatsApp / Telegram / social
+    ↓
+First buyer inquiry via Chat
+    ↓
+Buyer places order → seller gets push notification
+    ↓
+Seller marks "Processing" → ships → marks "Completed"
+    ↓
+Commission deducted automatically
+    ↓
+Seller tells others: "It's like having a real shop online"
+```
+
+### Buyer Journey: Purchase Flow
+
+```
+Opens Halehame → browses Marketplace or Feed
+    ↓
+Finds product → views photos, description, seller profile, reviews
+    ↓
+Messages seller via Chat (optional)
+    ↓
+Taps "Buy Now" → PurchaseModal opens
+    ↓
+Fills delivery address → selects payment method
+    ↓
+Pays (card / mobile money / wallet)
+    ↓
+Order confirmed → notification to buyer + seller
+    ↓
+Seller marks "Processing" → buyer tracks status
+    ↓
+Item delivered → buyer leaves review
+```
+
+---
+
+## Research Methods
+
+### Ongoing Research Activities
 
 | Method | Frequency | Goal |
-|---|---|---|
+|--------|-----------|------|
 | In-app feedback widget | Always on | Capture frustrations in the moment |
 | User interviews (sellers) | Monthly | Understand seller pain points deeply |
-| Analytics (PostHog/Mixpanel) | Daily review | See where users drop off |
+| Analytics (PostHog / Mixpanel) | Daily review | See where users drop off |
 | App Store reviews | Weekly | Surface recurring issues |
-| Net Promoter Score (NPS) survey | Quarterly | Measure overall satisfaction |
+| NPS survey | Quarterly | Measure overall satisfaction |
 | Usability testing | Before major features | Catch UX problems before they ship |
 
-### Key questions to answer through research:
+### Key Questions to Answer
+
 1. Why do sellers not complete their first product listing?
 2. Why do buyers add to cart but not check out?
-3. What brings users back on Day 7 vs. what causes churn?
+3. What brings users back on Day 7 vs. what causes them to churn?
 4. What do users use most on mobile vs. desktop?
-5. Where do users get confused / stuck?
+5. Where do users from different countries get confused vs. where is the experience universal?

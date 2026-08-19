@@ -1,10 +1,30 @@
 # Halehame — Partnership Strategy
 
-> Strategic partners who can accelerate Halehame growth.
-> **Last updated:** August 2026
+> Strategic partners who can accelerate Halehame growth globally.
+> Ethiopian reference market partners included as examples — framework applies globally.
+> Last updated: August 2026
 
 ---
 
+## Acronyms Used in This Document
+
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface |
+| SDK | Software Development Kit |
+| B2B | Business to Business |
+| SMB | Small and Medium-sized Business |
+| MAU | Monthly Active Users |
+| GMV | Gross Merchandise Value |
+| MoU | Memorandum of Understanding |
+| NDA | Non-Disclosure Agreement |
+| ETB | Ethiopian Birr — reference market currency |
+| USD | United States Dollar |
+| KES | Kenyan Shilling |
+| SLA | Service Level Agreement |
+| KYC | Know Your Customer |
+
+---
 ## Tier 1: Critical Partners (Must Have Before Launch)
 
 ### 1. Ethio Telecom / Telebirr
