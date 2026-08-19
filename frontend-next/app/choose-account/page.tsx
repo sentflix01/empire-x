@@ -16,11 +16,11 @@ export default function ChooseAccountPage() {
         {/* Logo + heading */}
         <div className="flex flex-col items-center text-center mb-8">
           <Image
-            src="/brand/nodbusiness-icon.svg"
+            src="/brand/nodbusiness-logo-white.svg"
             alt="Nodbusiness"
-            width={64}
-            height={64}
-            className="h-16 w-16 rounded-2xl object-cover shadow-xl mb-4 ring-1 ring-white/20"
+            width={240}
+            height={36}
+            className="h-9 w-auto mb-6"
           />
           <h1 className="text-3xl font-black text-white">Choose Your Account Type</h1>
           <p className="text-white/60 mt-2 text-sm leading-relaxed">

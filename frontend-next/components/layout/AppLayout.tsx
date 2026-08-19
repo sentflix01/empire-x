@@ -398,19 +398,25 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           </button>
 
           {/* Logo */}
-          <Link href="/" className={`flex items-center gap-2 shrink-0 transition-all w-8 ${sidebarCollapsed ? "md:w-8" : "md:w-44"}`}>
-            <Image
-              src="/brand/nodbusiness-icon.svg"
-              alt="Nodbusiness"
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded-xl object-cover shadow-sm"
-              priority
-            />
-            {!sidebarCollapsed && (
-              <span className="hidden md:inline font-display text-lg font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
-                Nodbusiness
-              </span>
+          <Link href="/" className={`flex items-center shrink-0 transition-all ${sidebarCollapsed ? "md:w-8" : "md:w-44"}`}>
+            {sidebarCollapsed ? (
+              <Image
+                src="/brand/nodbusiness-icon.svg"
+                alt="Nodbusiness"
+                width={32}
+                height={32}
+                className="w-8 h-8 rounded-xl object-cover shadow-sm"
+                priority
+              />
+            ) : (
+              <Image
+                src="/brand/nodbusiness-logo.svg"
+                alt="Nodbusiness"
+                width={176}
+                height={27}
+                className="h-7 w-auto"
+                priority
+              />
             )}
           </Link>
 

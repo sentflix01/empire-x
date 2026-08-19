@@ -67,8 +67,7 @@ export default function LandingPage() {
       {/* ── Top navigation bar ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/8">
         <div className="flex items-center gap-2">
-          <Image src="/brand/nodbusiness-icon.svg" alt="Nodbusiness" width={32} height={32} className="h-8 w-8 rounded-xl object-cover" />
-          <span className="font-black text-white text-lg tracking-tight">Nodbusiness</span>
+          <Image src="/brand/nodbusiness-logo-white.svg" alt="Nodbusiness" width={180} height={27} className="h-7 w-auto" priority />
         </div>
         <div className="flex items-center gap-2">
           <Link href="/register" className="hidden sm:inline-flex h-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-xl hover:bg-white/20 transition-all">
@@ -134,11 +133,11 @@ export default function LandingPage() {
 
         <div className="relative z-10 mx-auto flex min-h-[82svh] max-w-6xl flex-col items-center justify-center px-6 pb-28 pt-16 text-center">
           <Image
-            src="/brand/nodbusiness-icon.svg"
+            src="/brand/nodbusiness-logo-white.svg"
             alt="Nodbusiness"
-            width={88}
-            height={88}
-            className="mb-6 h-20 w-20 rounded-3xl object-cover shadow-2xl shadow-blue-950/45 ring-1 ring-white/25"
+            width={280}
+            height={42}
+            className="mb-6 h-10 w-auto"
             priority
           />
           <p className="mb-4 inline-flex max-w-[22rem] flex-wrap items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-2 text-center text-xs font-semibold text-white/85 backdrop-blur-xl sm:max-w-full sm:text-sm">
@@ -232,7 +231,7 @@ export default function LandingPage() {
               <div className="rounded-[1.5rem] bg-slate-50 p-4 text-slate-950">
                 <div className="mb-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Image src="/brand/nodbusiness-icon.svg" alt="" width={40} height={40} className="h-10 w-10 rounded-xl object-cover" />
+                    <Image src="/brand/nodbusiness-icon.svg" alt="" width={40} height={40} className="h-10 w-10 rounded-xl object-cover flex-shrink-0" />
                     <div>
                       <p className="text-sm font-black">Nodbusiness</p>
                       <p className="text-xs text-slate-500">Superapp dashboard</p>
