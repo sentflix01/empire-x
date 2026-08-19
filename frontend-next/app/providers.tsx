@@ -15,6 +15,7 @@ import { AuthProvider } from '@/lib/AuthContext';
 import { CartProvider } from '@/lib/CartContext';
 import { Toaster } from '@/components/ui/toaster';
 import AiAssistant from '@/components/AiAssistant';
+import GlobalErrorReporter from '@/components/GlobalErrorReporter';
 // Initialize i18n — must be imported here so it runs before any component renders
 import i18n from '@/lib/i18n';
 
@@ -29,6 +30,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <AuthProvider>
           <CartProvider>
             <QueryClientProvider client={queryClient}>
+              {/* Global error reporter — captures window.onerror + unhandledrejection */}
+              {/* Reports to DevOps Live Error Feed in real time */}
+              <GlobalErrorReporter />
               {children}
               <AiAssistant />
               <Toaster />

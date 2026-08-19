@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { AlertCircle } from 'lucide-react';
+import { reportClientError } from './GlobalErrorReporter';
 
 interface Props {
   children: React.ReactNode;
@@ -14,11 +15,10 @@ interface State {
 
 /**
  * ErrorBoundary — catches render errors in child components.
- * Calls Sentry.captureException when available.
+ * Reports to:
+ *  1. DevOps Live Error Feed via /api/devops/errors/report
+ *  2. Sentry (when configured)
  * Prevents a single broken component from crashing the entire page.
- *
- * Feature: professional-grade-upgrade
- * Requirements: 2.5, 5.4
  */
 export default class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -32,7 +32,19 @@ export default class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('[ErrorBoundary]', error, info.componentStack);
-    // Report to Sentry when configured
+
+    // Report to DevOps live error feed
+    reportClientError({
+      message: error.message,
+      name:    error.name || 'ReactRenderError',
+      stack:   error.stack || null,
+      context: {
+        componentStack: info.componentStack?.slice(0, 1000),
+        errorType: 'react_render',
+      },
+    });
+
+    // Also report to Sentry when configured
     try {
       const Sentry = (globalThis as any).__SENTRY__;
       if (Sentry?.captureException) {
