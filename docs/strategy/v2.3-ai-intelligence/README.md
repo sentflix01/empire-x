@@ -1,4 +1,4 @@
-﻿# v2.3 — AI & Intelligence
+# v2.3 — AI & Intelligence
 
 > **Theme:** Smart Features
 > **Goal:** AI makes every part of Nodbusiness smarter — helping sellers write better listings, surfacing the most relevant content in the feed, and giving users a genuinely useful assistant.

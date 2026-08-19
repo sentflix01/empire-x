@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Incident Response Playbook
+# Nodbusiness — Incident Response Playbook
 
 > Step-by-step procedures for when things go wrong.
 > The goal is consistent, calm, fast recovery — not heroics.

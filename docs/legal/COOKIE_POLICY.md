@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Cookie Policy
+# Nodbusiness — Cookie Policy
 
 > What cookies and local storage we use and why.
 > **Last updated:** August 2026

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * ProfileViewContext — global toggle between "personal" and "business" profile view.
  *

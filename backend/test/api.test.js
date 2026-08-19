@@ -1,4 +1,4 @@
-﻿/**
+/**
  * api.test.js — Integration tests for all major API endpoints.
  *
  * Run:  node test/api.test.js

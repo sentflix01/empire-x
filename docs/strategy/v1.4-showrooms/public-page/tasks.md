@@ -1,4 +1,4 @@
-﻿# Public Showroom Page — Tasks
+# Public Showroom Page — Tasks
 
 ## Status: 🔴 Not Started
 

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Platform Changelog
+# Nodbusiness — Platform Changelog
 
 > Every significant deployment and milestone recorded here.
 > Used by: DevOps panel, team, investors, and support.

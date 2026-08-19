@@ -1,4 +1,4 @@
-﻿# Design Document — Friends Tab
+# Design Document — Friends Tab
 
 ## Overview
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Run all database migrations in order.
  * Usage: node db/migrate-all.js
  */

@@ -1,4 +1,4 @@
-﻿# Design — Brand Color Consistency & Chat Mobile Fix
+# Design — Brand Color Consistency & Chat Mobile Fix
 
 ## Overview
 

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Launch Preparation Guide
+# Nodbusiness — Launch Preparation Guide
 
 > **What this document is:**
 > A step-by-step action guide for everything that must happen before Nodbusiness

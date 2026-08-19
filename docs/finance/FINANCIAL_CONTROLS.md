@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Financial Controls & Internal Audit Framework
+# Nodbusiness — Financial Controls & Internal Audit Framework
 
 > **The internal control system that keeps Nodbusiness's money safe, accountable, and audit-ready.**
 > Every financial process has a control. Every control has an owner. Every deviation is escalated.

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Infrastructure Documentation
+# Nodbusiness — Infrastructure Documentation
 
 > Everything about how Nodbusiness runs, scales, costs, and stays alive.
 > **Last updated:** August 2026

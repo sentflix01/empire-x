@@ -1,4 +1,4 @@
-﻿# API Documentation — Tasks
+# API Documentation — Tasks
 
 ## Status: 🔴 Not Started
 

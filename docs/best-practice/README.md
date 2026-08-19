@@ -1,4 +1,4 @@
-﻿# Best Practice Guides
+# Best Practice Guides
 
 This folder contains a practical, step-by-step upgrade path for making the Nodbusiness codebase more professional, scalable, and production-ready.
 

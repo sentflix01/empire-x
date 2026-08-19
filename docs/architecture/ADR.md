@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Architecture Decision Records (ADRs)
+# Nodbusiness — Architecture Decision Records (ADRs)
 
 > ADRs document the *why* behind key architectural choices.
 > Each record captures the context, the options considered, the decision made, and its consequences.

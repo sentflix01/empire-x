@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Go-To-Market Strategy
+# Nodbusiness — Go-To-Market Strategy
 
 > **The Three-Phase Platform Launch**
 >

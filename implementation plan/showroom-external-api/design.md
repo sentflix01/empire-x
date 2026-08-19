@@ -1,4 +1,4 @@
-﻿# Design Document: Showroom External API Integration
+# Design Document: Showroom External API Integration
 
 ## Overview
 

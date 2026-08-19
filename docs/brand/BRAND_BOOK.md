@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Brand Book
+# Nodbusiness — Brand Book
 
 > **The definitive guide to how Nodbusiness looks, sounds, and feels.**
 > Every designer, developer, marketer, and partner follows this guide.

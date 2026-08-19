@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Convertible Note Guide
+# Nodbusiness — Convertible Note Guide
 
 > **Classification:** Confidential
 > **Purpose:** Understand convertible notes as an alternative to SAFE.

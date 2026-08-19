@@ -1,4 +1,4 @@
-﻿# Nodbusiness — API Versioning Strategy
+# Nodbusiness — API Versioning Strategy
 
 > How we evolve the API without breaking clients.
 > Last updated: August 2026

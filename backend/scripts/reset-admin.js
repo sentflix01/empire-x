@@ -1,4 +1,4 @@
-﻿/**
+/**
  * reset-admin.js — One-time admin credential reset script
  *
  * Usage (run from backend/ directory):

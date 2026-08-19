@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Customer Support Framework
+# Nodbusiness — Customer Support Framework
 
 > **How Nodbusiness delivers world-class customer support — from first contact through resolution.**
 > Support is a trust-building function. Every interaction is an opportunity to deepen user loyalty or destroy it.

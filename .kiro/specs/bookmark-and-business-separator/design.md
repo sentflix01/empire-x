@@ -1,4 +1,4 @@
-﻿# Design Document — bookmark-and-business-separator
+# Design Document — bookmark-and-business-separator
 
 ## Overview
 

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Crisis Communication Playbook
+# Nodbusiness — Crisis Communication Playbook
 
 > **What to say, who says it, and when — when things go wrong.**
 > A platform that communicates badly in a crisis loses more users than the crisis itself caused.

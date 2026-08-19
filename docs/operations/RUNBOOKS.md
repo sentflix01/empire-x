@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Runbooks
+# Nodbusiness — Runbooks
 
 > Step-by-step response procedures for common incidents.
 > The goal is consistent, calm, fast recovery — not heroics.

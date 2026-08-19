@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Infrastructure Scaling Plan
+# Nodbusiness — Infrastructure Scaling Plan
 
 > Exactly what changes to infrastructure at each user milestone.
 > Each stage builds on the previous — don't skip stages.

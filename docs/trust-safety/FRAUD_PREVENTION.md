@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Fraud Prevention Playbook
+# Nodbusiness — Fraud Prevention Playbook
 
 > **How Nodbusiness detects, prevents, and responds to fraud across the marketplace, payments, and identity systems.**
 > Fraud prevention is a revenue protection function as much as a safety one — every dollar of fraud costs the platform trust, money, and regulatory exposure.

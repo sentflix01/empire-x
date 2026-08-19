@@ -1,4 +1,4 @@
-﻿
+
 export type ShowroomSampleId = "starter" | "premium";
 
 export interface ShowroomTemplateSample {

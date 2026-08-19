@@ -1,4 +1,4 @@
-﻿# Implementation Plan: Friend Suggestions & AI-User Distinction
+# Implementation Plan: Friend Suggestions & AI-User Distinction
 
 ## Overview
 

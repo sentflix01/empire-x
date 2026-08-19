@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Growth Strategy
+# Nodbusiness — Growth Strategy
 
 > How we go from 0 to 1 million users globally.
 > Primary launch reference market: Ethiopia and East Africa. Global expansion follows.

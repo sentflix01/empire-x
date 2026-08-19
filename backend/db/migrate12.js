@@ -1,4 +1,4 @@
-﻿/**
+/**
  * migrate12.js — is_seed column and dismissed_suggestions table
  *
  * Performs three non-destructive operations in a single transaction:

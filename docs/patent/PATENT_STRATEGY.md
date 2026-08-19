@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Patent Strategy
+# Nodbusiness — Patent Strategy
 
 > **Classification:** Confidential — Internal Use Only
 > **Last Updated:** August 2026

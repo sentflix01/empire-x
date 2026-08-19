@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Platform Vision
+# Nodbusiness — Platform Vision
 
 > **"We build the infrastructure. The world builds the value."**
 >

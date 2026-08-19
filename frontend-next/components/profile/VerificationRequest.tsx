@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * VerificationRequest — allows users to submit a selfie + ID document
  * for admin review to receive a verified badge on their profile.

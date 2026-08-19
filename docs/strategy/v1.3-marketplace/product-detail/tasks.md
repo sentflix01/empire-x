@@ -1,4 +1,4 @@
-﻿# Product Detail Page — Tasks
+# Product Detail Page — Tasks
 
 ## Status: 🔴 Not Started
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * showroomTaxonomy.ts
  *
  * Maps the global 5-class business taxonomy (Primary → Quinary sectors,

@@ -1,4 +1,4 @@
-﻿# Implementation Order
+# Implementation Order
 
 > This document tells you exactly what to work on next, in what order, and why.
 > Follow this sequence. Skipping versions creates technical debt that multiplies.

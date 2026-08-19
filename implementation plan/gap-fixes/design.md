@@ -1,4 +1,4 @@
-﻿# Gap Fixes Bugfix Design
+# Gap Fixes Bugfix Design
 
 ## Overview
 

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Standard Operating Procedure (SOP)
+# Nodbusiness — Standard Operating Procedure (SOP)
 
 > **Version:** 1.0 | **Status:** Active | **Last Updated:** August 2026
 >

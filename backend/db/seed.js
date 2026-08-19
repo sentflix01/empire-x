@@ -1,4 +1,4 @@
-﻿/**
+/**
  * seed.js — Nodbusiness development seed data
  *
  * Seeds: 50 Ethiopian users, 150 businesses (no showrooms/products),

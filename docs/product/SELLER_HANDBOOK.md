@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Seller Handbook
+# Nodbusiness — Seller Handbook
 
 > Everything a seller needs to know to succeed on Nodbusiness.
 > This handbook is the basis for seller onboarding emails, help articles, and workshop content.

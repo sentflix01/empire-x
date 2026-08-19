@@ -1,4 +1,4 @@
-﻿/**
+/**
  * logger.js — Structured logging with Pino
  * 
  * Outputs JSON in production (for log aggregators like Datadog, Logtail).

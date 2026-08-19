@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Shareholder Agreement Guide
+# Nodbusiness — Shareholder Agreement Guide
 
 > **Classification:** Confidential
 > **Purpose:** What to include, what to fight for, and what to avoid

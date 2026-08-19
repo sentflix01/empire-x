@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Data Governance Framework
+# Nodbusiness — Data Governance Framework
 
 > **How data flows, who owns it, how it is protected, and how long it is kept.**
 > Data governance is the foundation of user trust, regulatory compliance, and platform integrity.

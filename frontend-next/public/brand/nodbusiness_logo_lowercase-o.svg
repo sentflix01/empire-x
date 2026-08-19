@@ -1,0 +1,81 @@
+<svg viewBox="0 0 1486 225" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&amp;display=swap');
+      .wordmark { font-family: 'Poppins', 'Arial Black', Arial, Helvetica, sans-serif; }
+    </style>
+  </defs>
+
+  <text x="40" y="195" class="wordmark" font-size="205" font-weight="700" fill="#0a0a0a"
+        textLength="154" lengthAdjust="spacingAndGlyphs">N</text>
+
+  <g stroke="#8c8c8c" stroke-width="1.30" fill="none">
+    <circle cx="262.2" cy="137.0" r="58.0" />
+    <line x1="262.2" y1="79.0" x2="320.2" y2="137.0" />
+    <line x1="262.2" y1="79.0" x2="303.2" y2="178.0" />
+    <line x1="262.2" y1="79.0" x2="262.2" y2="195.0" />
+    <line x1="262.2" y1="79.0" x2="221.1" y2="178.0" />
+    <line x1="262.2" y1="79.0" x2="204.2" y2="137.0" />
+    <line x1="303.2" y1="96.0" x2="303.2" y2="178.0" />
+    <line x1="303.2" y1="96.0" x2="262.2" y2="195.0" />
+    <line x1="303.2" y1="96.0" x2="221.1" y2="178.0" />
+    <line x1="303.2" y1="96.0" x2="204.2" y2="137.0" />
+    <line x1="303.2" y1="96.0" x2="221.1" y2="96.0" />
+    <line x1="320.2" y1="137.0" x2="262.2" y2="195.0" />
+    <line x1="320.2" y1="137.0" x2="221.1" y2="178.0" />
+    <line x1="320.2" y1="137.0" x2="204.2" y2="137.0" />
+    <line x1="320.2" y1="137.0" x2="221.1" y2="96.0" />
+    <line x1="303.2" y1="178.0" x2="221.1" y2="178.0" />
+    <line x1="303.2" y1="178.0" x2="204.2" y2="137.0" />
+    <line x1="303.2" y1="178.0" x2="221.1" y2="96.0" />
+    <line x1="262.2" y1="195.0" x2="204.2" y2="137.0" />
+    <line x1="262.2" y1="195.0" x2="221.1" y2="96.0" />
+    <line x1="221.1" y1="178.0" x2="221.1" y2="96.0" />
+  </g>
+
+  <g>
+    <g>
+      <path d="M 258.3 76.4 a 3.9 6.1 0 0 1 7.7 0" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="250.0" y="73.5" width="24.3" height="17.7" rx="2.8" fill="#111111"/>
+      <rect x="258.3" y="76.8" width="7.7" height="2.8" rx="0.8" fill="#f5f5f5"/>
+    </g>
+    <g>
+      <path d="M 299.3 93.4 a 3.9 6.1 0 0 1 7.7 0" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="291.0" y="90.5" width="24.3" height="17.7" rx="2.8" fill="#111111"/>
+      <rect x="299.3" y="93.8" width="7.7" height="2.8" rx="0.8" fill="#f5f5f5"/>
+    </g>
+    <g>
+      <path d="M 316.3 134.4 a 3.9 6.1 0 0 1 7.7 0" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="308.0" y="131.5" width="24.3" height="17.7" rx="2.8" fill="#111111"/>
+      <rect x="316.3" y="134.8" width="7.7" height="2.8" rx="0.8" fill="#f5f5f5"/>
+    </g>
+    <g>
+      <path d="M 299.3 175.4 a 3.9 6.1 0 0 1 7.7 0" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="291.0" y="172.5" width="24.3" height="17.7" rx="2.8" fill="#111111"/>
+      <rect x="299.3" y="175.8" width="7.7" height="2.8" rx="0.8" fill="#f5f5f5"/>
+    </g>
+    <g>
+      <path d="M 258.3 192.4 a 3.9 6.1 0 0 1 7.7 0" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="250.0" y="189.5" width="24.3" height="17.7" rx="2.8" fill="#111111"/>
+      <rect x="258.3" y="192.8" width="7.7" height="2.8" rx="0.8" fill="#f5f5f5"/>
+    </g>
+    <g>
+      <path d="M 217.2 175.4 a 3.9 6.1 0 0 1 7.7 0" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="208.9" y="172.5" width="24.3" height="17.7" rx="2.8" fill="#111111"/>
+      <rect x="217.2" y="175.8" width="7.7" height="2.8" rx="0.8" fill="#f5f5f5"/>
+    </g>
+    <g>
+      <path d="M 200.3 134.4 a 3.9 6.1 0 0 1 7.7 0" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="192.0" y="131.5" width="24.3" height="17.7" rx="2.8" fill="#111111"/>
+      <rect x="200.3" y="134.8" width="7.7" height="2.8" rx="0.8" fill="#f5f5f5"/>
+    </g>
+    <g>
+      <path d="M 217.2 93.4 a 3.9 6.1 0 0 1 7.7 0" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="208.9" y="90.5" width="24.3" height="17.7" rx="2.8" fill="#111111"/>
+      <rect x="217.2" y="93.8" width="7.7" height="2.8" rx="0.8" fill="#f5f5f5"/>
+    </g>
+  </g>
+
+  <text x="330.2" y="195" class="wordmark" font-size="205" fill="#0a0a0a"
+        textLength="1109" lengthAdjust="spacingAndGlyphs"><tspan font-weight="900">db</tspan><tspan font-weight="700">usiness</tspan></text>
+</svg>

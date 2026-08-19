@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Database Reference
+# Nodbusiness — Database Reference
 
 > Full ERD: `docs/architecture/ERD.md`
 > Schema details are maintained here and in `docs/architecture/ERD.md`.

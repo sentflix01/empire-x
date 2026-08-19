@@ -1,4 +1,4 @@
-﻿/**
+/**
  * mailer.js — Email sending for Nodbusiness
  *
  * Supports two providers (checked in order):

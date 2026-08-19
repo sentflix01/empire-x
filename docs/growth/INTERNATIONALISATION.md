@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Internationalisation (i18n) & Globalisation Strategy
+# Nodbusiness — Internationalisation (i18n) & Globalisation Strategy
 
 > How Nodbusiness expands from the reference market (Ethiopia) to the rest of Africa and globally.
 > Ethiopian context preserved as a reference — all principles apply globally.

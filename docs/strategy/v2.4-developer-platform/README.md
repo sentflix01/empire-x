@@ -1,4 +1,4 @@
-﻿# v2.4 — Developer Platform
+# v2.4 — Developer Platform
 
 > **Theme:** Open Infrastructure
 > **Goal:** Any developer anywhere in the world can build on Nodbusiness in under

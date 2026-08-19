@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";

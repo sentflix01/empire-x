@@ -1,4 +1,4 @@
-﻿/**
+/**
  * sentry.js — Error tracking initialisation
  * 
  * Set SENTRY_DSN in .env to enable.

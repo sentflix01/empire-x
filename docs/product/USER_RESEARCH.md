@@ -1,4 +1,4 @@
-﻿# Nodbusiness — User Research & Personas
+# Nodbusiness — User Research & Personas
 
 > Understanding who we are building for — their goals, frustrations, and how Nodbusiness solves their problems.
 > Personas span global markets. Ethiopian personas are preserved as primary reference market examples.

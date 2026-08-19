@@ -1,4 +1,4 @@
-﻿# Nodbusiness — CDN & File Storage Strategy
+# Nodbusiness — CDN & File Storage Strategy
 
 > How user uploads are stored, served, and optimized across the globe.
 > Last updated: August 2026

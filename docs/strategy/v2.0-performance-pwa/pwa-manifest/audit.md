@@ -1,4 +1,4 @@
-﻿# PWA Manifest & Install — Audit
+# PWA Manifest & Install — Audit
 
 ## What Makes a Good PWA
 

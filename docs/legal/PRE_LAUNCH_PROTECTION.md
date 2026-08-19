@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Pre-Launch Legal & Technical Protection Document
+# Nodbusiness — Pre-Launch Legal & Technical Protection Document
 
 > **Purpose:** Before Nodbusiness goes to market, this document covers every legal,
 > technical, and strategic protection measure needed to ensure the platform is

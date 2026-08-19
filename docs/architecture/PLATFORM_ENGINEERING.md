@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Platform Engineering at Scale
+# Nodbusiness — Platform Engineering at Scale
 
 > How the world's biggest platforms manage their code, teams, and deployments.
 > What Nodbusiness should adopt at each growth stage.

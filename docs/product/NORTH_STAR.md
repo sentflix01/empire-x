@@ -1,4 +1,4 @@
-﻿# Nodbusiness — North Star Vision & Metrics
+# Nodbusiness — North Star Vision & Metrics
 
 > Every feature, every technical decision, every product choice should align with this document.
 > If a proposed feature does not fit here, it probably does not belong in Nodbusiness.

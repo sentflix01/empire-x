@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Infrastructure Timeline
+# Nodbusiness — Infrastructure Timeline
 
 > Month-by-month infrastructure roadmap aligned with product and user growth.
 > Last updated: August 2026

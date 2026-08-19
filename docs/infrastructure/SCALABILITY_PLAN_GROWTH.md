@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Scalability Architecture
+# Nodbusiness — Scalability Architecture
 
 > How the system handles growth from 100 to 10 million users.
 > **Last updated:** August 2026

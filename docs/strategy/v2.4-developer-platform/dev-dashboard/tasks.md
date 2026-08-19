@@ -1,4 +1,4 @@
-﻿# Developer Dashboard — Tasks
+# Developer Dashboard — Tasks
 
 ## Status: 🔴 Not Started
 

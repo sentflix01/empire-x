@@ -1,4 +1,4 @@
-﻿/**
+/**
  * templateData.js
  * Nodbusiness — Business showroom section templates.
  *

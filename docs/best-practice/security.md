@@ -1,4 +1,4 @@
-﻿# Security Best Practices
+# Security Best Practices
 
 This guide outlines the key security practices to make Nodbusiness trustworthy and resistant to common attacks.
 

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Regulatory Map
+# Nodbusiness — Regulatory Map
 
 > **Country-by-country regulatory requirements for operating Nodbusiness as a global platform.**
 > Before entering any new market, review this document and consult local legal counsel.

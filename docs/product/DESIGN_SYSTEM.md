@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Design System
+# Nodbusiness — Design System
 
 > The visual language of Nodbusiness. Consistent design = trusted product.
 > Last updated: August 2026

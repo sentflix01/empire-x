@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import Image from 'next/image';
 import { Users, Store, ArrowLeft } from 'lucide-react';
 

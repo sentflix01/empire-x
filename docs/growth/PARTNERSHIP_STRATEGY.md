@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Partnership Strategy
+# Nodbusiness — Partnership Strategy
 
 > Strategic partners who can accelerate Nodbusiness growth globally.
 > Ethiopian reference market partners included as examples — framework applies globally.

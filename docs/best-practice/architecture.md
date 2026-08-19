@@ -1,4 +1,4 @@
-﻿# Architecture Best Practices
+# Architecture Best Practices
 
 > Architectural guidelines to make the Nodbusiness codebase more scalable, maintainable, and professional.
 > Last updated: August 2026

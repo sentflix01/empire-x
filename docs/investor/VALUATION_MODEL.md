@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Valuation Model
+# Nodbusiness — Valuation Model
 
 > **Classification:** Confidential
 > **Last Updated:** August 2026

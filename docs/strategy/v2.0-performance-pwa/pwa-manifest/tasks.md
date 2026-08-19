@@ -1,4 +1,4 @@
-﻿# PWA Manifest & Install — Tasks
+# PWA Manifest & Install — Tasks
 
 ## Status: 🔴 Not Started
 

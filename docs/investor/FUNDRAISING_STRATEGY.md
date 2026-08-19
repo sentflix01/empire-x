@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Fundraising Strategy
+# Nodbusiness — Fundraising Strategy
 
 > **Classification:** Confidential
 > **Last Updated:** August 2026

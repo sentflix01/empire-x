@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Organization Chart & Structure
+# Nodbusiness — Organization Chart & Structure
 
 > **How Nodbusiness is organized as a company at each stage of growth.**
 > The right structure enables speed. The wrong structure creates politics.

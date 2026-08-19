@@ -1,4 +1,4 @@
-﻿# Showroom Section Types — Tasks
+# Showroom Section Types — Tasks
 
 ## Status: 🔴 Not Started
 

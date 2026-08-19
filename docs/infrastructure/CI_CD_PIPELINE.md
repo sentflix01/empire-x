@@ -1,4 +1,4 @@
-﻿# Nodbusiness — CI/CD Pipeline
+# Nodbusiness — CI/CD Pipeline
 
 > How code goes from developer laptop to production safely and automatically.
 > Last updated: August 2026

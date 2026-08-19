@@ -1,4 +1,4 @@
-﻿# Showroom External API Integration — Full Implementation Reference
+# Showroom External API Integration — Full Implementation Reference
 
 **Spec:** `.kiro/specs/showroom-external-api/`
 **Status:** All 18 tasks completed

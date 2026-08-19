@@ -1,4 +1,4 @@
-﻿# v1.4 — Showrooms
+# v1.4 — Showrooms
 
 > **Theme:** Business Identity
 > **Goal:** Every business owner can build a professional-looking mini-website (showroom) in under 10 minutes, without any technical knowledge. Public showroom pages are SEO-indexed and load in under 2 seconds.

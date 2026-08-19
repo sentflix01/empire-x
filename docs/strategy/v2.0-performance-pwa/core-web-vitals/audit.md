@@ -1,4 +1,4 @@
-﻿# Core Web Vitals — Audit
+# Core Web Vitals — Audit
 
 ## Metrics to Measure
 

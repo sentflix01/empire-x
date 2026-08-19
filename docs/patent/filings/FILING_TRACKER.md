@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Patent & IP Filing Tracker
+# Nodbusiness — Patent & IP Filing Tracker
 
 > **Classification:** CONFIDENTIAL
 > **Purpose:** Single source of truth for every IP filing made by Nodbusiness Technologies.

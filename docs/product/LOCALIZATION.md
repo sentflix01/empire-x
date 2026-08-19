@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Localization & Internationalization Strategy
+# Nodbusiness — Localization & Internationalization Strategy
 
 > How Nodbusiness supports multiple languages, currencies, and regional contexts.
 > i18n (internationalization) is built into the platform from day one — not retrofitted later.

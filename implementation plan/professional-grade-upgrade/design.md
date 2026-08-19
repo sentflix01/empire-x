@@ -1,4 +1,4 @@
-﻿# Design Document — Professional-Grade Upgrade
+# Design Document — Professional-Grade Upgrade
 
 ## Overview
 

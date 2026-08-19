@@ -1,4 +1,4 @@
-﻿# Nodbusiness — AML/KYC Policy
+# Nodbusiness — AML/KYC Policy
 
 > **Anti-Money Laundering (AML) and Know Your Customer (KYC) policy for the Nodbusiness platform.**
 > Financial crime prevention is a legal obligation, not an option. This policy applies globally to all users, merchants, and money flows on the platform.

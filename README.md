@@ -1,4 +1,4 @@
-﻿# Nodbusiness 👑
+# Nodbusiness 👑
 
 Global superapp — social networking, business showrooms, marketplace, messaging, and task services. Built for everyone, everywhere.
 

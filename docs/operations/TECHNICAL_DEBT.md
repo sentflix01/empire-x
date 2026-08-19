@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Technical Debt Register
+# Nodbusiness — Technical Debt Register
 
 > A living document. Track what needs to improve and why.
 > Add items when you notice them. Resolve them intentionally, not reactively.

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * remove-faker-data.js
  * Deletes all faker/seed generated users and all their content.
  * Keeps only real accounts (gmail.com, real emails — not test domains).

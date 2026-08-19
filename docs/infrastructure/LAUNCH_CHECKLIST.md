@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Production Launch Checklist
+# Nodbusiness — Production Launch Checklist
 
 > Every item that must be checked before real users and real money flow through the platform.
 > Work through this list top-to-bottom before announcing public launch.

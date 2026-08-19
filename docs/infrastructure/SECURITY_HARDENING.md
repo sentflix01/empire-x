@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Security Hardening
+# Nodbusiness — Security Hardening
 
 > Layered security at every level: network, application, database, and human.
 > Last updated: August 2026

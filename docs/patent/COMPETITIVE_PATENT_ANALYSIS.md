@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Competitive Patent Analysis
+# Nodbusiness — Competitive Patent Analysis
 # What You Can Own vs. What Already Belongs to Competitors
 
 > **Classification:** STRICTLY CONFIDENTIAL — Attorney-Client Privileged

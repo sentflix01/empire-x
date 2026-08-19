@@ -1,4 +1,4 @@
-﻿# Showroom Embed Widget — Tasks
+# Showroom Embed Widget — Tasks
 
 ## Status: 🔴 Not Started
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Quick API test — verifies the profile PUT now works after migration 17
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });

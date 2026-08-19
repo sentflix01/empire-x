@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Investor Relations Folder
+# Nodbusiness — Investor Relations Folder
 
 > **Classification:** STRICTLY CONFIDENTIAL
 > **Purpose:** All documents related to raising investment for Nodbusiness Technologies.

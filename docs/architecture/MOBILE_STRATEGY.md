@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Mobile Strategy
+# Nodbusiness — Mobile Strategy
 
 > How Nodbusiness reaches mobile users globally — PWA today, native apps in future phases.
 > Reference market: Ethiopia (Android-dominant). Principle applies globally.

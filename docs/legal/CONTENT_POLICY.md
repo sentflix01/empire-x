@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Content Policy
+# Nodbusiness — Content Policy
 
 > The rules that govern what is and isn't allowed on Nodbusiness.
 > This applies to all users, sellers, and business accounts.

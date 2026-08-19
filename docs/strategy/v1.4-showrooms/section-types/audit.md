@@ -1,4 +1,4 @@
-﻿# Showroom Section Types — Global Business Coverage Audit
+# Showroom Section Types — Global Business Coverage Audit
 
 ## The Core Insight
 

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Executive Summary (1-Page Investor Brief)
+# Nodbusiness — Executive Summary (1-Page Investor Brief)
 
 > This is your one-page summary sent BEFORE the pitch deck.
 > If this doesn't capture interest, they won't open the deck.

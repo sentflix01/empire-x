@@ -1,4 +1,4 @@
-﻿// Nodbusiness Service Worker — PWA offline support + push notifications
+// Nodbusiness Service Worker — PWA offline support + push notifications
 
 const CACHE_NAME = 'nodbusiness-v2';
 const STATIC_ASSETS = ['/', '/index.html'];

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Nodbusiness — Profile Picture & Cover Upload E2E Tests
  *
  * Tests the full pipeline:

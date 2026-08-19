@@ -1,4 +1,4 @@
-﻿# Design Document: Friend Suggestions & AI-User Distinction
+# Design Document: Friend Suggestions & AI-User Distinction
 
 ## Overview
 

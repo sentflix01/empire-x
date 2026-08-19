@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Database Strategy
+# Nodbusiness — Database Strategy
 
 > How the database evolves from a single instance to a globally distributed system.
 > Last updated: August 2026

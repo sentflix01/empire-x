@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Monthly Investor Update Template
+# Nodbusiness — Monthly Investor Update Template
 
 > **Classification:** Confidential
 > **Purpose:** Send this to all investors and key advisors every month.

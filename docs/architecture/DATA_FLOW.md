@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Data Flow Diagrams
+# Nodbusiness — Data Flow Diagrams
 
 > How data moves through the system for key user journeys.
 > Last updated: August 2026

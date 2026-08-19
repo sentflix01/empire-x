@@ -1,4 +1,4 @@
-﻿# Implementation Plan: Professional-Grade Upgrade
+# Implementation Plan: Professional-Grade Upgrade
 
 ## Overview
 

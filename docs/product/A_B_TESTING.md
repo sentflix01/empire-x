@@ -1,4 +1,4 @@
-﻿# Nodbusiness — A/B Testing Framework
+# Nodbusiness — A/B Testing Framework
 
 > How Nodbusiness runs controlled experiments to make data-driven product decisions.
 > Every significant UI or feature change should be measured before a full rollout.

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Developer Onboarding
+# Nodbusiness — Developer Onboarding
 
 > If five developers joined tomorrow, this is how they'd get productive in a week.
 > Welcome to Nodbusiness. Read this first.

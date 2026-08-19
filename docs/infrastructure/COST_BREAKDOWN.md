@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Cost Breakdown by Growth Stage
+# Nodbusiness — Cost Breakdown by Growth Stage
 
 > Realistic monthly infrastructure costs at every milestone.
 > All costs in USD. Reference market (ETB) conversion: ~130 ETB/USD (adjust for current rate).

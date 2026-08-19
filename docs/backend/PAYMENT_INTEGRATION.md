@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Payment Integration Guide
+# Nodbusiness — Payment Integration Guide
 
 > Complete technical reference for Stripe and Chapa payment integrations.
 > Reference market: Ethiopia (Chapa/ETB). Global default: Stripe/USD.

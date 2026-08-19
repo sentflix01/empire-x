@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Presence System E2E Test
  * ========================
  * Tests every time-bucket label via the backend API + frontend formatLastSeen logic.

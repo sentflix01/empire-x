@@ -1,4 +1,4 @@
-﻿# Provisional Patent Application Draft
+# Provisional Patent Application Draft
 # Patent 2: Developer Revenue Share Quality-Adjustment System
 
 > **Classification:** CONFIDENTIAL — Attorney-Client Privileged

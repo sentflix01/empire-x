@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Due Diligence Checklist
+# Nodbusiness — Due Diligence Checklist
 
 > **Classification:** Confidential
 > **Purpose:** Every document an investor will request before closing.

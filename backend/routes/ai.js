@@ -1,4 +1,4 @@
-﻿const router = require('express').Router();
+const router = require('express').Router();
 const { requireAuth } = require('../middleware/auth');
 const ai = require('../lib/ai');
 const logger = require('../lib/logger');

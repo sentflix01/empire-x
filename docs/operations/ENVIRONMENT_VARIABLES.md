@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Environment Variables Reference
+# Nodbusiness — Environment Variables Reference
 
 > The complete guide to every environment variable used by the platform.
 > Last updated: August 2026

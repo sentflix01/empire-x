@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Patent & Intellectual Property Folder
+# Nodbusiness — Patent & Intellectual Property Folder
 
 > **Purpose:** This folder contains every document related to patent strategy,
 > provisional patent drafts, trade secret documentation, and IP protection

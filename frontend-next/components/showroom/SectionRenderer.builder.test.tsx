@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Task 21 regression test — published renderer must cover all 25 builder
  * section types (builder-shape keys) without breaking legacy business-template
  * shapes or the index-based anchor scheme.

@@ -1,4 +1,4 @@
-﻿const router = require('express').Router();
+const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const apiError = require('../lib/apiError');

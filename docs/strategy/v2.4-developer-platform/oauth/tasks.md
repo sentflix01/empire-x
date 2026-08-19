@@ -1,4 +1,4 @@
-﻿# OAuth 2.0 "Login with Nodbusiness" — Tasks
+# OAuth 2.0 "Login with Nodbusiness" — Tasks
 
 ## Status: 🔴 Not Started
 

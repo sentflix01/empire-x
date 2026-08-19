@@ -1,4 +1,4 @@
-﻿# Bugfix Requirements Document
+# Bugfix Requirements Document
 
 ## Introduction
 

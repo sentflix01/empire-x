@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Remote Work & Distributed Team Policy
+# Nodbusiness — Remote Work & Distributed Team Policy
 
 > **How Nodbusiness operates as a distributed, globally-minded team — and how remote work is done right.**
 > Remote is not a compromise. It is a competitive advantage — when done with the right systems, culture, and discipline.

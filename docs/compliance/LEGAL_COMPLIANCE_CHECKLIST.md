@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Regulatory Compliance Guide
+# Nodbusiness — Regulatory Compliance Guide
 
 > This document maps the platform's legal obligations by jurisdiction and feature area.
 > **Last updated:** August 2026

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Monetization Strategy
+# Nodbusiness — Monetization Strategy
 
 > How Nodbusiness makes money — today, next year, and at scale.
 > Reference market: Ethiopia (ETB). Global revenue model applies to all markets.

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Engineering Decisions Index
+# Nodbusiness — Engineering Decisions Index
 
 > This folder documents every design decision made during spec development.
 > Every question that arose, every option considered, and every choice made — recorded here.

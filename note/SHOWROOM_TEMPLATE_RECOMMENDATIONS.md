@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Showroom Template Recommendations
+# Nodbusiness — Showroom Template Recommendations
 
 > Recommended business showroom templates to add beyond the current 27.
 > Focused on Ethiopian and African market needs. Each entry includes

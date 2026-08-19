@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Prior Art Search
+# Nodbusiness — Prior Art Search
 
 > **Classification:** CONFIDENTIAL
 > **Purpose:** Document the results of prior art searches for each of the

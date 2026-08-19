@@ -1,4 +1,4 @@
-﻿# Provisional Patent Application Draft
+# Provisional Patent Application Draft
 # Patent 3: Social-Commerce Showroom Discovery Method
 
 > **Classification:** CONFIDENTIAL — Attorney-Client Privileged

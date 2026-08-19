@@ -1,4 +1,4 @@
-﻿# v2.1 — Accessibility & Internationalization
+# v2.1 — Accessibility & Internationalization
 
 > **Theme:** Inclusion
 > **Goal:** Nodbusiness is usable by everyone — people with visual impairments, motor disabilities, and those who prefer Amharic over English. WCAG 2.1 Level AA compliance and full Amharic translation.

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * migrate30.js — Error Events table for DevOps live error feed
  *
  * Creates the `error_events` table that stores every unhandled error,

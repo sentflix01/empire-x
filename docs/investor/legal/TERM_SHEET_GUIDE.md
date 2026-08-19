@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Term Sheet Guide
+# Nodbusiness — Term Sheet Guide
 
 > **Classification:** Confidential
 > **Purpose:** Understand every clause in a term sheet before negotiating.

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Privacy Policy (Draft)
+# Nodbusiness — Privacy Policy (Draft)
 
 > **Status:** Internal draft — must be reviewed by a qualified data protection specialist before launch.
 > **Applicable laws:** GDPR (EU users), CCPA (California users), UK GDPR, and local data protection laws per market.

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Content Moderation Operations
+# Nodbusiness — Content Moderation Operations
 
 > **How Nodbusiness moderates user-generated content at scale — from automated detection through human review to policy enforcement.**
 > Moderation protects the community, satisfies legal obligations, and maintains advertiser/partner confidence.

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Trade Secret Register
+# Nodbusiness — Trade Secret Register
 
 > **Classification:** STRICTLY CONFIDENTIAL — Do Not Distribute
 > **Purpose:** Official register of all trade secrets held by Nodbusiness Technologies.

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * routes/devops.js — Developer Ops Hub
  *
  * Tracks bugs, features, and tasks for the Nodbusiness platform.

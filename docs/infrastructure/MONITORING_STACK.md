@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Monitoring Stack
+# Nodbusiness — Monitoring Stack
 
 > Full observability: metrics, logs, traces, alerts — at every scale.
 > **Last updated:** August 2026

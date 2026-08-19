@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Engineering & Business Documentation
+# Nodbusiness — Engineering & Business Documentation
 
 > **The complete knowledge base for building Nodbusiness into a global platform.**
 > Every decision, standard, policy, strategy, and plan lives here.

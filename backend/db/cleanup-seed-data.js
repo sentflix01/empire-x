@@ -1,4 +1,4 @@
-﻿/**
+/**
  * cleanup-seed-data.js
  * Removes all faker/seeded data (nodbusiness.test users and all their content)
  * Keeps: admin@nodbusiness.app and test@nodbusiness.app accounts and their data.

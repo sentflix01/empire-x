@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Register form tests
  * Feature: professional-grade-upgrade
  * Requirements: 4.4, 4.6

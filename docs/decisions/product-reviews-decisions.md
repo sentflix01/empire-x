@@ -1,4 +1,4 @@
-﻿# Product Reviews Bugfix — Spec Decisions
+# Product Reviews Bugfix — Spec Decisions
 
 **Spec location:** `.kiro/specs/product-reviews/`  
 **Files:** `bugfix.md` · `design.md` · `tasks.md`  

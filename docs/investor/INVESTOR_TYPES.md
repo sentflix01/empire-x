@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Investor Types Guide
+# Nodbusiness — Investor Types Guide
 
 > **Classification:** Confidential
 > **Purpose:** Know exactly who to approach, when, and how for each stage.

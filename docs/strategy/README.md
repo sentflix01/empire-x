@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Development Strategy
+# Nodbusiness — Development Strategy
 
 > This folder is the **single source of truth** for how Nodbusiness evolves from its current state to a globally competitive superapp.
 >

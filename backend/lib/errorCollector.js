@@ -1,4 +1,4 @@
-﻿/**
+/**
  * errorCollector.js — Central error capture and storage for the DevOps feed
  *
  * Every error that occurs in the Nodbusiness backend flows through here.

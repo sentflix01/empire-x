@@ -1,4 +1,4 @@
-﻿# Error States — Tasks
+# Error States — Tasks
 
 ## Status: 🔴 Not Started
 

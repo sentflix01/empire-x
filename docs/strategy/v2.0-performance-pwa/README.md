@@ -1,4 +1,4 @@
-﻿# v2.0 — Performance & PWA
+# v2.0 — Performance & PWA
 
 > **Theme:** Speed & Installability
 > **Goal:** Nodbusiness loads fast on any connection, scores green on Core Web Vitals, and can be installed on Android and iOS as a native-feeling app.

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Hiring Plan
+# Nodbusiness — Hiring Plan
 
 > **Who to hire, when to hire them, and how much to pay.**
 > Wrong hires at the wrong time are more expensive than no hires at all.

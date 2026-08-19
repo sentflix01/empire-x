@@ -1,4 +1,4 @@
-﻿# Nodbusiness Frontend
+# Nodbusiness Frontend
 
 Active web frontend for Nodbusiness. Built with Next.js 16 App Router, TypeScript, TailwindCSS, shadcn/ui components, TanStack Query, and Socket.IO client.
 

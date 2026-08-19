@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Tax Structure & Corporate Entity Strategy
+# Nodbusiness — Tax Structure & Corporate Entity Strategy
 
 > **How Nodbusiness Technologies is structured legally and how it handles tax obligations globally.**
 > This document guides entity setup, cross-border transactions, and tax compliance as the company expands.

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Networking, Domains & Security
+# Nodbusiness — Networking, Domains & Security
 
 > DNS, SSL, load balancing, DDoS protection, and domain strategy.
 > Last updated: August 2026

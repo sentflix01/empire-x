@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Seller Agreement (Draft)
+# Nodbusiness — Seller Agreement (Draft)
 
 > The contractual relationship between Nodbusiness and sellers on the platform.
 > **Status:** Internal draft — requires legal review before publication.

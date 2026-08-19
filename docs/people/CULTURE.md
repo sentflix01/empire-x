@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Culture & Values
+# Nodbusiness — Culture & Values
 
 > **Who we are as a company, not just what we build.**
 > Culture is not a poster on the wall. It is the decisions we make

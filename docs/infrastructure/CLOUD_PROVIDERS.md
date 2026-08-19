@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Cloud Provider Decisions
+# Nodbusiness — Cloud Provider Decisions
 
 > Why we chose each provider, alternatives considered, and when to switch.
 > Last updated: August 2026

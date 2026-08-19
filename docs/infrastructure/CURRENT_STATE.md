@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Current Infrastructure State
+# Nodbusiness — Current Infrastructure State
 
 > A snapshot of exactly what is running today, what it costs, and how it's configured.
 > **Last updated:** August 2026

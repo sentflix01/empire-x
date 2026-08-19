@@ -1,4 +1,4 @@
-﻿# Public Showroom Page — Audit
+# Public Showroom Page — Audit
 
 ## Route
 `/showroom/[slug]` — publicly accessible, no auth required

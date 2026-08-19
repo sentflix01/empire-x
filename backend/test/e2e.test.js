@@ -1,4 +1,4 @@
-﻿/**
+/**
  * e2e.test.js — Nodbusiness End-to-End API Test Suite
  * Tests frontend-next ↔ backend connectivity and all key endpoints.
  * Run: node test/e2e.test.js

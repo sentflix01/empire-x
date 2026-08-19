@@ -1,4 +1,4 @@
-﻿/**
+/**
  * routes/docs.js — Project Knowledge Base API
  *
  * Reads the project's docs, strategy, implementation plan, and notes

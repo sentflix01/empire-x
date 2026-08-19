@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * RealModeContext — global toggle between "All users" and "Real users only" mode.
  *

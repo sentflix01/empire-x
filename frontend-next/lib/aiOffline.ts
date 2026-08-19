@@ -1,4 +1,4 @@
-﻿/**
+/**
  * aiOffline.ts
  * Rule-based offline AI engine for the Nodbusiness assistant.
  * Returns an answer string if the question matches a known pattern,

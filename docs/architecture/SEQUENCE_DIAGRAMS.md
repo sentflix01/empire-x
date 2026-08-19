@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Sequence Diagrams
+# Nodbusiness — Sequence Diagrams
 
 > Authoritative reference for key request flows in the Nodbusiness platform.
 > Last updated: August 2026

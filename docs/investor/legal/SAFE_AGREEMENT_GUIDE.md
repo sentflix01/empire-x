@@ -1,4 +1,4 @@
-﻿# Nodbusiness — SAFE Agreement Guide
+# Nodbusiness — SAFE Agreement Guide
 
 > **Classification:** Confidential
 > **Purpose:** Understand SAFE notes before signing any with investors.

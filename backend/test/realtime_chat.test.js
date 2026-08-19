@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Real-Time Chat E2E Test
  * ========================
  * Tests the full Socket.IO + REST messaging pipeline:

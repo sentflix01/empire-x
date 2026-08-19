@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Investor FAQ
+# Nodbusiness — Investor FAQ
 
 > **Classification:** Confidential
 > **Purpose:** Prepared answers to every question investors ask.

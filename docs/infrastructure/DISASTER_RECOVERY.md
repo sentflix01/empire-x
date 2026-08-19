@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Disaster Recovery Plan
+# Nodbusiness — Disaster Recovery Plan
 
 > What happens when things go catastrophically wrong, and how we recover.
 > Last updated: August 2026

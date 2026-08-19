@@ -1,4 +1,4 @@
-﻿# Nodbusiness — PR & Communications Strategy
+# Nodbusiness — PR & Communications Strategy
 
 > **How Nodbusiness tells its story to the world.**
 > From launch press releases to crisis management.

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Monitoring & Observability
+# Nodbusiness — Monitoring & Observability
 
 > Everything needed to monitor Nodbusiness in production.
 > Full observability reference lives in `docs/infrastructure/MONITORING_STACK.md`.

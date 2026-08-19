@@ -1,4 +1,4 @@
-﻿# API Key System — Tasks
+# API Key System — Tasks
 
 ## Status: 🔴 Not Started
 

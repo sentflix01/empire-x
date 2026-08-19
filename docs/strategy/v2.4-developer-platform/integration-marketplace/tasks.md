@@ -1,4 +1,4 @@
-﻿# Integration Marketplace — Tasks
+# Integration Marketplace — Tasks
 
 ## Status: 🔴 Not Started
 

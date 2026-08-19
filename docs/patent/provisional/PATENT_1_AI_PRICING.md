@@ -1,4 +1,4 @@
-﻿# Provisional Patent Application Draft
+# Provisional Patent Application Draft
 # Patent 1: AI Dynamic Template Pricing Method
 
 > **Classification:** CONFIDENTIAL — Attorney-Client Privileged

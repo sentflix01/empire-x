@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Feature Flags & Rollout Strategy
+# Nodbusiness — Feature Flags & Rollout Strategy
 
 > How Nodbusiness controls the gradual release of features without deploying new code.
 > Feature flags allow shipping to production safely, running A/B tests, and instantly disabling broken features.

@@ -1,4 +1,4 @@
-﻿# Requirements — Brand Color Consistency & Chat Mobile Fix
+# Requirements — Brand Color Consistency & Chat Mobile Fix
 
 ## Background
 

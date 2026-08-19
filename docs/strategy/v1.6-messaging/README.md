@@ -1,4 +1,4 @@
-﻿# v1.6 — Messaging
+# v1.6 — Messaging
 
 > **Theme:** Real-time Communication
 > **Goal:** Messaging on Nodbusiness feels as fast and reliable as WhatsApp. Every message delivers instantly, presence is accurate, and the UI handles all message states cleanly.

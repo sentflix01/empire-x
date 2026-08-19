@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Competitive Analysis
+# Nodbusiness — Competitive Analysis
 
 > Understanding who we are up against, what they do well, and where Nodbusiness wins.
 > Reference market: Ethiopia + East Africa. Global competitive lens applied throughout.

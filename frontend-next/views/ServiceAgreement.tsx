@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FileText, Shield, Cookie, Scale, ChevronDown, ChevronUp } from 'lucide-react';

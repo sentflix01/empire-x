@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Engineering Standards
+# Nodbusiness — Engineering Standards
 
 > Rules every developer follows. Consistency reduces friction, bugs, and arguments.
 > Update this document via ADR when standards change — don't edit silently.

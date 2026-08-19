@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Pitch Deck Outline
+# Nodbusiness — Pitch Deck Outline
 
 > **Classification:** Confidential
 > **Format:** 10–12 slides. Clear. Visual. No walls of text.

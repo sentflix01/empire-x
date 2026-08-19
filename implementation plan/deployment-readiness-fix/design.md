@@ -1,4 +1,4 @@
-﻿# Deployment Readiness Fix — Bugfix Design
+# Deployment Readiness Fix — Bugfix Design
 
 ## Overview
 

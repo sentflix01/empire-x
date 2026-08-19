@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import React, { useState, useEffect, useCallback } from "react";
 import { entities } from "@/api/entities";
 import client from "@/api/client";

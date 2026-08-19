@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Safety, Trust & Platform Integrity
+# Nodbusiness — Safety, Trust & Platform Integrity
 
 > How Nodbusiness keeps users safe, builds trust, and prevents abuse at scale.
 > **Last updated:** August 2026

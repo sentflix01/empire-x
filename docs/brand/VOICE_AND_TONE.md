@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Voice & Tone Guide
+# Nodbusiness — Voice & Tone Guide
 
 > **How Nodbusiness communicates with the world.**
 > Voice is who we are. Tone is how we adapt to the situation.

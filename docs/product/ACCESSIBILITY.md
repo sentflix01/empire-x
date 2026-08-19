@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Accessibility Standards
+# Nodbusiness — Accessibility Standards
 
 > Making Nodbusiness usable by everyone, including users with disabilities and users on low-end devices.
 > Standard: WCAG 2.1 Level AA

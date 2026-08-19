@@ -1,4 +1,4 @@
-﻿# Implementation Plan: Brand Color Consistency & Chat Mobile Fix
+# Implementation Plan: Brand Color Consistency & Chat Mobile Fix
 
 ## Overview
 

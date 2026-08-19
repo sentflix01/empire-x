@@ -1,4 +1,4 @@
-﻿# Wallet Dashboard — Tasks
+# Wallet Dashboard — Tasks
 
 ## Status: 🔴 Not Started
 

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Threat Model
+# Nodbusiness — Threat Model
 
 > Security is part of the design, not an afterthought.
 > This document identifies threats, current mitigations, and remaining work.

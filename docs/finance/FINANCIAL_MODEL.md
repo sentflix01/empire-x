@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Financial Model & P&L Framework
+# Nodbusiness — Financial Model & P&L Framework
 
 > **The financial operating model for Nodbusiness Technologies.**
 > Every financial decision is grounded in this model.

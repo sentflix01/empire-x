@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Master Acronym Glossary
+# Nodbusiness — Master Acronym Glossary
 
 > This is the single source of truth for all acronyms used across the
 > Nodbusiness project. Every document in docs/ should reference this glossary

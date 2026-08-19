@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Trust & Safety Framework
+# Nodbusiness — Trust & Safety Framework
 
 > **The platform-wide system for keeping Nodbusiness safe, fair, and trustworthy.**
 > Trust is Nodbusiness's most valuable product. Without it, the marketplace fails, the community disappears, and the platform dies. This framework is not optional — it is foundational.

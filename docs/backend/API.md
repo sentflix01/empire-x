@@ -1,4 +1,4 @@
-﻿# Nodbusiness — API Documentation
+# Nodbusiness — API Documentation
 
 > Base URL: `http://localhost:3001` (dev) · `https://api.nodbusiness.app` (production)
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.

@@ -1,4 +1,4 @@
-﻿# Showroom External API Integration — Spec Decisions
+# Showroom External API Integration — Spec Decisions
 
 **Spec location:** `.kiro/specs/showroom-external-api/`  
 **Files:** `requirements.md` · `design.md` · `tasks.md`  

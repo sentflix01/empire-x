@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Product Roadmap
+# Nodbusiness — Product Roadmap
 
 > Milestones from MVP to global platform. Updated quarterly.
 > Each phase builds on the previous — we never migrate everything at once.

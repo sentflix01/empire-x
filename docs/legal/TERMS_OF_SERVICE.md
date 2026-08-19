@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Terms of Service (Draft)
+# Nodbusiness — Terms of Service (Draft)
 
 > **Status:** Internal draft — must be reviewed by qualified legal counsel before public launch.
 > **Primary jurisdiction:** Delaware, USA (holding company) with local entity provisions per market.

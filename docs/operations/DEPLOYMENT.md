@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Deployment Guide
+# Nodbusiness — Deployment Guide
 
 > This file covers staging simulation, production deployment, environment variables, and day-to-day deploy workflow.
 > Last updated: August 2026

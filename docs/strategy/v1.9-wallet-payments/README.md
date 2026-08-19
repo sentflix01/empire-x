@@ -1,4 +1,4 @@
-﻿# v1.9 — Wallet & Payments
+# v1.9 — Wallet & Payments
 
 > **Theme:** Money Flow
 > **Goal:** Every financial transaction on Nodbusiness is fast, transparent, and trustworthy. Users always know their balance, where money came from, and where it went.

@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Equity Structure & Cap Table
+# Nodbusiness — Equity Structure & Cap Table
 
 > **Classification:** STRICTLY CONFIDENTIAL
 > **Purpose:** Documents all share ownership, equity grants, option pools,

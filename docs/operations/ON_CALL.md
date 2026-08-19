@@ -1,4 +1,4 @@
-﻿# Nodbusiness — On-Call Guide
+# Nodbusiness — On-Call Guide
 
 > Who is responsible when something breaks, how to respond, and what to do at every severity level.
 > This is the first document you read when your phone alerts at 3AM.

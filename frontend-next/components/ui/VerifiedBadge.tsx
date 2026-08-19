@@ -1,4 +1,4 @@
-﻿// @ts-check
+// @ts-check
 import React from 'react';
 
 export type VerificationType = 'personal' | 'business' | 'creator' | 'official' | null | undefined;

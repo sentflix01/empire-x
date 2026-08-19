@@ -1,4 +1,4 @@
-﻿# Nodbusiness — Backup & Recovery
+# Nodbusiness — Backup & Recovery
 
 > Data loss is unrecoverable. Set this up before going to production.
 > Last updated: August 2026
