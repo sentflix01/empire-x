@@ -1,232 +1,297 @@
-# Halehame — Engineering & Product Handbook
+# Halehame — Engineering & Business Documentation
 
-> This is the operating manual for Halehame. Treat it as seriously as the source code.
-> Every important decision, system design, legal consideration, and operational procedure lives here.
-> **Last updated:** August 2026 — reflects current production state.
-
----
-
-## Start Here
-
-New to the project? Read in this order:
-
-1. `docs/product/NORTH_STAR.md` — Why Halehame exists
-2. `docs/ONBOARDING.md` — Get your dev environment running in 30 minutes
-3. `docs/architecture/C4.md` — Understand the full system
-4. `docs/architecture/ADR.md` — Understand why decisions were made
-5. `docs/ENGINEERING_STANDARDS.md` — Rules everyone follows
-6. `docs/operations/ENVIRONMENT_VARIABLES.md` — Every env var explained
+> **The complete knowledge base for building Halehame into a global platform.**
+> Every decision, standard, policy, strategy, and plan lives here.
+> If it is not documented here, it does not officially exist.
+> Last updated: August 2026
 
 ---
 
-## Complete Document Index
+## Acronyms Used in This Document
 
-### 📐 Architecture
-
-| Document | Description |
-|---|---|
-| `architecture/ADR.md` | Architecture Decision Records — why key choices were made |
-| `architecture/C4.md` | C4 diagrams: Context → Container → Component → Code |
-| `architecture/ERD.md` | Database entity relationships |
-| `architecture/SEQUENCE_DIAGRAMS.md` | Auth, orders, chat, AI — full request flows |
-| `architecture/THREAT_MODEL.md` | Security threats, mitigations, remaining work |
-| `architecture/DATA_FLOW.md` | **NEW** — How data moves through key user journeys |
-| `architecture/API_VERSIONING.md` | **NEW** — API versioning strategy + changelog |
-| `architecture/MOBILE_STRATEGY.md` | **NEW** — PWA → TWA → React Native roadmap |
-
----
-
-### 🔧 Backend
-
-| Document | Description |
-|---|---|
-| `backend/API.md` | Every endpoint documented |
-| `backend/DATABASE.md` | Schema, migrations, conventions, useful queries |
-| `backend/SECURITY.md` | Auth layers, input validation, rate limiting |
-| `backend/PAYMENT_INTEGRATION.md` | **NEW** — Full Stripe + Chapa technical reference |
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface |
+| SOP | Standard Operating Procedure |
+| IP | Intellectual Property |
+| PRD | Product Requirements Document |
+| ADR | Architecture Decision Record |
+| ERD | Entity Relationship Diagram |
+| CI/CD | Continuous Integration / Continuous Delivery |
+| AML | Anti-Money Laundering |
+| KYC | Know Your Customer |
+| GTM | Go-To-Market |
+| SLA | Service Level Agreement |
+| GMV | Gross Merchandise Value |
+| MAU | Monthly Active Users |
+| GDPR | General Data Protection Regulation |
+| PII | Personally Identifiable Information |
+| T&S | Trust and Safety |
 
 ---
 
-### 🖥 Frontend
+## Folder Structure
 
-| Document | Description |
-|---|---|
-| `frontend/COMPONENTS.md` | Component standards, accessibility, patterns |
-| `frontend/STATE_MANAGEMENT.md` | Auth context, cart context, Zustand slices |
-
----
-
-### ⚖️ Legal
-
-| Document | Description |
-|---|---|
-| `legal/TERMS_OF_SERVICE.md` | **NEW** — User agreement (draft, needs legal review) |
-| `legal/PRIVACY_POLICY.md` | **NEW** — GDPR/Ethiopian data protection (draft) |
-| `legal/CONTENT_POLICY.md` | **NEW** — What is/isn't allowed on the platform |
-| `legal/COMPLIANCE.md` | **NEW** — Regulatory obligations by jurisdiction |
-| `legal/COOKIE_POLICY.md` | **NEW** — What cookies and local storage we use |
-| `legal/SELLER_AGREEMENT.md` | **NEW** — Contractual terms for sellers (draft) |
-
----
-
-### 📈 Growth
-
-| Document | Description |
-|---|---|
-| `growth/COMPETITIVE_ANALYSIS.md` | **NEW** — Facebook, LinkedIn, WeChat, Gojek, Telebirr comparison |
-| `growth/MONETIZATION.md` | **NEW** — 7 revenue streams, projections, unit economics |
-| `growth/GROWTH_STRATEGY.md` | **NEW** — 0→1M users: phases, channels, flywheel |
-| `growth/INTERNATIONALISATION.md` | **NEW** — Languages, currencies, East Africa expansion |
-| `growth/SCALABILITY.md` | **NEW** — Architecture for 10K → 10M users |
-| `growth/PARTNERSHIP_STRATEGY.md` | **NEW** — Telebirr, CBE, Ethiopian Airlines, universities |
-
----
-
-### 🛍 Product
-
-| Document | Description |
-|---|---|
-| `product/NORTH_STAR.md` | Why Halehame exists and what it will never be |
-| `product/PRD.md` | Product Requirement Documents |
-| `product/ROADMAP.md` | 2026 → 2030 milestones + tech debt |
-| `product/NORTH_STAR_METRICS.md` | **NEW** — The metric that matters + leading indicators |
-| `product/USER_RESEARCH.md` | **NEW** — 5 personas + journey maps |
-| `product/SAFETY_TRUST.md` | **NEW** — How Halehame keeps users safe |
-| `product/DESIGN_SYSTEM.md` | **NEW** — Brand, colors, typography, components |
-| `product/ACCESSIBILITY.md` | **NEW** — WCAG 2.1 AA standards + audit process |
-| `product/SELLER_HANDBOOK.md` | **NEW** — Complete guide for sellers |
-
----
-
-### 🔧 Operations
-
-| Document | Description |
-|---|---|
-| `operations/DEPLOYMENT.md` | Deploy architecture + configuration |
-| `operations/MONITORING.md` | Sentry, Pino, health checks, dashboards |
-| `operations/RUNBOOKS.md` | Step-by-step incident response (8 runbooks) |
-| `operations/BACKUPS.md` | Database backup and recovery procedures |
-| `operations/TECHNICAL_DEBT.md` | Known issues, prioritized |
-| `operations/KEPLOY.md` | API test recording with Keploy |
-| `operations/INCIDENT_RESPONSE.md` | **NEW** — P0–P3 severity levels + response playbooks |
-| `operations/ENVIRONMENT_VARIABLES.md` | **NEW** — Every env var explained with examples |
-
----
-
-### ✅ Best Practices
-
-| Document | Description |
-|---|---|
-| `best-practice/README.md` | Overview of engineering best practices |
-| `best-practice/architecture.md` | Architectural patterns and decisions |
-| `best-practice/observability.md` | Logging, metrics, alerting |
-| `best-practice/performance.md` | Performance optimisation patterns |
-| `best-practice/quality.md` | Code quality standards |
-| `best-practice/release-process.md` | How to release safely |
-| `best-practice/security.md` | Security patterns and checklist |
-
----
-
-### 📝 Root Docs
-
-| Document | Description |
-|---|---|
-| `README.md` | ← You are here |
-| `ONBOARDING.md` | New developer setup — productive in 30 minutes |
-| `ENGINEERING_STANDARDS.md` | Git, naming, API, testing, feature flag standards |
-| `gap-fixes-decisions.md` | Decisions log for the 13-bug gap-fixes sprint |
-| `spec-decisions-index.md` | Index of all spec decision documents |
-
----
-
-## Five Operating Systems of Halehame
-
-Halehame is not just an app — it is five operating systems working together.
-
-### 1. Product OS — How ideas become features
 ```
-Idea → Research → PRD → Design → Development → Testing → Deployment → Analytics → Improvement
-```
-
-### 2. Engineering OS — How code moves to production
-```
-Task → Code → Pull Request → Code Review → Tests → Deployment → Monitoring → Feedback
-```
-
-### 3. Business OS — How money flows
-```
-User → Purchase → Payment (Stripe/Chapa) → Commission → Revenue → Growth
-```
-
-### 4. Trust OS — How users stay safe
-```
-Content Policy → Moderation → Reports → Admin Review → Action → Appeal
-```
-
-### 5. Growth OS — How Halehame expands
-```
-Sellers acquired → Products listed → Buyers discover → Transactions → Revenue → More investment
+docs/
+│
+├── README.md                    ← This file — master index
+├── ACRONYMS.md                  ← Master glossary of all acronyms
+├── SOP.md                       ← Standard Operating Procedure (how we work)
+├── ONBOARDING.md                ← New developer setup guide
+├── ENGINEERING_STANDARDS.md     ← Code quality and engineering rules
+│
+├── strategy/                    ← Business strategy, roadmap, launch planning
+├── product/                     ← Product design, PRD, research, metrics
+├── architecture/                ← System design, C4, ERD, ADRs, threat model
+├── backend/                     ← API reference, database, security, payments
+├── frontend/                    ← Components, state management
+├── infrastructure/              ← Cloud, CI/CD, scaling, monitoring, DR
+├── operations/                  ← Incident response, runbooks, deployment, on-call
+├── growth/                      ← Marketing, partnerships, internationalisation
+├── brand/                       ← Brand identity, voice, PR
+├── people/                      ← Hiring, org chart, culture, compensation, remote work
+├── finance/                     ← P&L model, financial controls, tax structure
+├── compliance/                  ← AML/KYC, data governance, regulatory map
+├── trust-safety/                ← Fraud, content moderation, community standards
+├── support/                     ← Customer support, crisis communications
+├── legal/                       ← Terms of Service, Privacy Policy, contracts
+├── investor/                    ← Fundraising, cap table, pitch materials
+├── patent/                      ← IP protection, patent filings, trade secrets
+├── best-practice/               ← Engineering and operational best practices
+└── decisions/                   ← Engineering design decisions (ADR-style)
 ```
 
 ---
 
-## Current Platform Health (August 2026)
+## Document Index
 
-| Metric | Status |
-|---|---|
-| Backend tests | 252 passing (17 suites) |
-| Frontend tests | 68 passing (11 suites) |
-| TypeScript errors | 0 |
-| DB migrations | 28 (migrate.js → migrate28.js) |
-| Views with ErrorBoundary | 45/45 |
-| Native dialogs (alert/confirm/prompt) | 0 |
-| Stripe integration | ✅ Full (checkout, webhook, success/cancel pages) |
-| Chapa integration | ✅ Full (ETB native, sandbox mode) |
-| Admin ban enforcement | ✅ Live (migrate28) |
-| Revenue chart | ✅ Live (admin overview) |
+### 📌 Core Documents (Root Level)
+| Document | Purpose |
+|----------|---------|
+| `SOP.md` | Standard operating procedure — how every change passes through the system |
+| `ONBOARDING.md` | New developer setup guide — start here |
+| `ENGINEERING_STANDARDS.md` | Code quality rules, naming conventions, review process |
+| `ACRONYMS.md` | Master glossary — every acronym defined |
 
 ---
 
-## Definition of Done
-
-A feature is not done until all of these are true:
-
-- [ ] Code written and reviewed
-- [ ] Tests passing (unit + integration)
-- [ ] Security reviewed (auth check, input validation, ownership check)
-- [ ] Performance checked (no N+1 queries)
-- [ ] Accessibility verified (keyboard, ARIA, color contrast)
-- [ ] Documentation updated (API docs, ADR if architectural)
-- [ ] Monitoring in place (Sentry captures errors)
-- [ ] Feature flag configured if gradual rollout needed
-- [ ] Product approved
+### 📋 Strategy & Vision
+| Document | Purpose |
+|----------|---------|
+| `strategy/README.md` | v1.0–v3.0 development roadmap |
+| `strategy/PLATFORM_VISION.md` | Telegram-style open platform strategy |
+| `strategy/GO_TO_MARKET.md` | 3-phase launch strategy |
+| `strategy/IMPLEMENTATION_ORDER.md` | Phase-by-phase execution sequence |
+| `strategy/LAUNCH_PREPARATION_GUIDE.md` | Pre-launch checklist (16 steps) |
+| `strategy/STANDARDS.md` | Global quality standards |
 
 ---
 
-## Quick Reference
+### 🎯 Product
+| Document | Purpose |
+|----------|---------|
+| `product/NORTH_STAR.md` | Vision, principles, and all metrics (North Star + revenue + trust + health) |
+| `product/PRD.md` | Full Product Requirements Document |
+| `product/ROADMAP.md` | Feature roadmap by quarter |
+| `product/DESIGN_SYSTEM.md` | Design tokens, components, and visual language |
+| `product/ACCESSIBILITY.md` | WCAG 2.1 compliance and accessibility standards |
+| `product/USER_RESEARCH.md` | User research findings and personas |
+| `product/SELLER_HANDBOOK.md` | Guide for sellers on the platform |
+| `product/FEATURE_FLAGS.md` | Feature flag registry and rollout strategy |
 
-| I want to... | Go to |
-|---|---|
-| Get started as a new developer | `ONBOARDING.md` |
-| Understand the system architecture | `architecture/C4.md` |
-| Know why a decision was made | `architecture/ADR.md` |
-| See data flow for a feature | `architecture/DATA_FLOW.md` |
-| Integrate Stripe or Chapa | `backend/PAYMENT_INTEGRATION.md` |
-| Understand the database | `backend/DATABASE.md` |
-| Look up an API endpoint | `backend/API.md` |
-| Know the security model | `architecture/THREAT_MODEL.md` |
-| Understand legal obligations | `legal/COMPLIANCE.md` |
-| Know our competitors | `growth/COMPETITIVE_ANALYSIS.md` |
-| Understand how we make money | `growth/MONETIZATION.md` |
-| Expand to a new country | `growth/INTERNATIONALISATION.md` |
-| Scale to 1M users | `growth/SCALABILITY.md` |
-| Find our users and their needs | `product/USER_RESEARCH.md` |
-| Measure the right things | `product/NORTH_STAR_METRICS.md` |
-| Keep the platform safe | `product/SAFETY_TRUST.md` |
-| Design consistently | `product/DESIGN_SYSTEM.md` |
-| Make it accessible | `product/ACCESSIBILITY.md` |
-| Help sellers succeed | `product/SELLER_HANDBOOK.md` |
-| Respond to an incident | `operations/INCIDENT_RESPONSE.md` |
-| Know all environment variables | `operations/ENVIRONMENT_VARIABLES.md` |
-| Deploy to production | `operations/DEPLOYMENT.md` |
-| Know coding standards | `ENGINEERING_STANDARDS.md` |
+---
+
+### 🏗️ Architecture & Engineering
+| Document | Purpose |
+|----------|---------|
+| `architecture/C4.md` | System context, container, component diagrams |
+| `architecture/ERD.md` | Database entity relationship diagram |
+| `architecture/ADR.md` | Architecture Decision Records (technical choices) |
+| `architecture/THREAT_MODEL.md` | Security threats and mitigations |
+| `architecture/SEQUENCE_DIAGRAMS.md` | Request flow diagrams |
+| `architecture/DATA_FLOW.md` | How data moves through the system |
+| `architecture/API_VERSIONING.md` | API versioning strategy |
+| `architecture/MOBILE_STRATEGY.md` | Mobile app strategy (PWA + native) |
+| `architecture/PLATFORM_ENGINEERING.md` | Internal platform engineering principles |
+| `backend/API.md` | All API endpoints documented |
+| `backend/DATABASE.md` | Schema, migrations, query patterns |
+| `backend/SECURITY.md` | Auth, rate limiting, input validation |
+| `backend/PAYMENT_INTEGRATION.md` | Stripe and Chapa integration guide |
+| `frontend/COMPONENTS.md` | Component library and usage guide |
+| `frontend/STATE_MANAGEMENT.md` | State management patterns |
+
+---
+
+### ☁️ Infrastructure & Operations
+| Document | Purpose |
+|----------|---------|
+| `infrastructure/README.md` | Infrastructure overview |
+| `infrastructure/CURRENT_STATE.md` | Current hosting, services, and costs |
+| `infrastructure/CI_CD_PIPELINE.md` | Build, test, deploy pipeline |
+| `infrastructure/CLOUD_PROVIDERS.md` | Railway, Vercel, Neon, Upstash usage |
+| `infrastructure/DATABASE_STRATEGY.md` | PostgreSQL + Redis strategy |
+| `infrastructure/MONITORING_STACK.md` | Sentry, logging, alerting |
+| `infrastructure/SCALING_PLAN.md` | How we scale at each growth stage |
+| `infrastructure/CAPACITY_PLANNING.md` | Resource planning |
+| `infrastructure/DISASTER_RECOVERY.md` | Backup and recovery procedures |
+| `infrastructure/SECURITY_HARDENING.md` | Server and network security |
+| `infrastructure/CDN_AND_STORAGE.md` | File storage and CDN strategy |
+| `infrastructure/NETWORKING.md` | DNS, SSL, CORS configuration |
+| `infrastructure/COST_BREAKDOWN.md` | Monthly infrastructure cost breakdown |
+| `infrastructure/LAUNCH_CHECKLIST.md` | Pre-launch technical checklist |
+| `infrastructure/TIMELINE.md` | Infrastructure build timeline |
+| `operations/DEPLOYMENT.md` | How to deploy to production |
+| `operations/RUNBOOKS.md` | Step-by-step fixes for known issues |
+| `operations/INCIDENT_RESPONSE.md` | How to respond to incidents |
+| `operations/ON_CALL.md` | On-call guide and escalation matrix |
+| `operations/MONITORING.md` | Monitoring dashboards and alerts |
+| `operations/BACKUPS.md` | Backup schedule and restore procedures |
+| `operations/ENVIRONMENT_VARIABLES.md` | All env vars documented |
+| `operations/TECHNICAL_DEBT.md` | Known technical debt register |
+| `operations/KEPLOY.md` | Keploy test automation setup |
+| `best-practice/README.md` | Engineering best practices overview |
+| `best-practice/security.md` | Security best practices |
+| `best-practice/performance.md` | Performance optimization patterns |
+| `best-practice/observability.md` | Logging, metrics, and tracing |
+| `best-practice/quality.md` | Code quality and testing standards |
+| `best-practice/release-process.md` | Release and deployment process |
+| `best-practice/architecture.md` | Architecture best practices |
+
+---
+
+### 💼 Business & Finance
+| Document | Purpose |
+|----------|---------|
+| `finance/FINANCIAL_MODEL.md` | P&L framework, revenue model, key metrics tracker |
+| `finance/FINANCIAL_CONTROLS.md` | Spending authority, bank controls, AP/AR processes |
+| `finance/TAX_STRUCTURE.md` | Corporate entity strategy, multi-jurisdiction tax |
+| `investor/README.md` | Investor section overview |
+| `investor/FUNDRAISING_STRATEGY.md` | Fundraising stages and approach |
+| `investor/VALUATION_MODEL.md` | Company valuation methodology |
+| `investor/EQUITY_AND_CAP_TABLE.md` | Share structure and ownership |
+| `investor/INVESTOR_TYPES.md` | Types of investors and how to approach them |
+| `investor/pitch/PITCH_DECK_OUTLINE.md` | Pitch deck structure |
+| `investor/pitch/EXECUTIVE_SUMMARY.md` | 2-page executive summary |
+| `investor/pitch/FINANCIAL_PROJECTIONS.md` | 3-year financial projections |
+| `investor/communications/INVESTOR_FAQ.md` | Common investor questions answered |
+| `investor/communications/INVESTOR_UPDATE_TEMPLATE.md` | Monthly investor update template |
+| `investor/legal/SAFE_AGREEMENT_GUIDE.md` | SAFE agreement guide |
+| `investor/legal/CONVERTIBLE_NOTE_GUIDE.md` | Convertible note guide |
+| `investor/legal/TERM_SHEET_GUIDE.md` | Term sheet guide |
+| `investor/legal/SHAREHOLDER_AGREEMENT.md` | Shareholder agreement template |
+| `investor/legal/DUE_DILIGENCE_CHECKLIST.md` | Investor due diligence checklist |
+
+---
+
+### 🛡️ Legal & Compliance
+| Document | Purpose |
+|----------|---------|
+| `legal/TERMS_OF_SERVICE.md` | User Terms of Service |
+| `legal/PRIVACY_POLICY.md` | Privacy Policy (GDPR + global) |
+| `legal/COOKIE_POLICY.md` | Cookie policy |
+| `legal/SELLER_AGREEMENT.md` | Marketplace seller contract |
+| `legal/CONTENT_POLICY.md` | Platform content rules (legal document) |
+| `legal/PRE_LAUNCH_PROTECTION.md` | IP and legal protection before launch |
+| `compliance/AML_KYC_POLICY.md` | Anti-money laundering and identity verification |
+| `compliance/DATA_GOVERNANCE.md` | How data flows, is stored, and protected |
+| `compliance/REGULATORY_MAP.md` | Country-by-country regulatory requirements |
+| `compliance/LEGAL_COMPLIANCE_CHECKLIST.md` | Compliance checklist by jurisdiction |
+| `patent/README.md` | Patent strategy overview |
+| `patent/PATENT_STRATEGY.md` | What to patent and how |
+| `patent/COMPETITIVE_PATENT_ANALYSIS.md` | What competitors own vs. what we can build |
+| `patent/TRADE_SECRET_REGISTER.md` | Trade secrets register |
+| `patent/filings/FILING_TRACKER.md` | Patent filing tracker |
+| `patent/prior_art/PRIOR_ART_SEARCH.md` | Prior art research |
+| `patent/provisional/PATENT_1_AI_PRICING.md` | Provisional patent: AI-driven pricing |
+| `patent/provisional/PATENT_2_REVENUE_SHARE.md` | Provisional patent: template revenue sharing |
+| `patent/provisional/PATENT_3_DISCOVERY.md` | Provisional patent: business discovery engine |
+
+---
+
+### 🔒 Trust, Safety & Support
+| Document | Purpose |
+|----------|---------|
+| `trust-safety/TRUST_SAFETY_FRAMEWORK.md` | Platform-wide trust architecture |
+| `trust-safety/FRAUD_PREVENTION.md` | Detecting and stopping marketplace fraud |
+| `trust-safety/CONTENT_MODERATION_OPS.md` | Moderation workflows at scale |
+| `trust-safety/COMMUNITY_STANDARDS.md` | Public community rules |
+| `trust-safety/SAFETY_TRUST_PRODUCT.md` | Trust roadmap and feature status |
+| `support/CUSTOMER_SUPPORT_FRAMEWORK.md` | Support tiers, SLAs, escalation |
+| `support/CRISIS_COMMUNICATION.md` | What to say when things go wrong |
+
+---
+
+### 👥 People & Organization
+| Document | Purpose |
+|----------|---------|
+| `people/ORG_CHART.md` | Company structure and reporting lines |
+| `people/HIRING_PLAN.md` | Who to hire and when |
+| `people/CULTURE.md` | Values, principles, ways of working |
+| `people/COMPENSATION.md` | Salary bands and equity policy |
+| `people/REMOTE_WORK.md` | Distributed team operating model |
+
+---
+
+### 🎨 Brand
+| Document | Purpose |
+|----------|---------|
+| `brand/BRAND_BOOK.md` | Logo, colors, typography, photography |
+| `brand/VOICE_AND_TONE.md` | How Halehame communicates |
+| `brand/PR_STRATEGY.md` | Press relations and thought leadership |
+
+---
+
+### 📈 Growth & Partnerships
+| Document | Purpose |
+|----------|---------|
+| `growth/GROWTH_STRATEGY.md` | User acquisition and retention |
+| `growth/PARTNERSHIP_STRATEGY.md` | Telecom, bank, government partners |
+| `growth/INTERNATIONALISATION.md` | Country expansion playbook |
+| `growth/COMPETITIVE_ANALYSIS.md` | Competitor tracking |
+| `growth/MONETIZATION.md` | Revenue stream development |
+| `growth/SCALABILITY.md` | Platform scalability for growth |
+
+---
+
+### 🔍 Engineering Decisions
+| Document | Purpose |
+|----------|---------|
+| `decisions/README.md` | Index of all engineering decisions |
+| `decisions/showroom-external-api-decisions.md` | Showroom External API design decisions |
+| `decisions/showroom-external-api-implementation.md` | Implementation reference |
+| `decisions/product-reviews-decisions.md` | Product reviews bugfix decisions |
+| `decisions/gap-fixes-decisions.md` | Application-wide gap fixes decisions |
+
+---
+
+## How to Use This Documentation
+
+| Situation | Where to go |
+|-----------|------------|
+| New team member | Start with `ONBOARDING.md` → `SOP.md` |
+| Building a feature | `strategy/README.md` → find your version → read tasks |
+| Changing architecture | Create an entry in `architecture/ADR.md` |
+| Legal question | `legal/` then `compliance/` |
+| Investor meeting | Everything is in `investor/` |
+| Patent question | `patent/PATENT_STRATEGY.md` |
+| Something broke | `operations/RUNBOOKS.md` → `operations/ON_CALL.md` |
+| Why was X built this way | `decisions/README.md` |
+| Brand/design question | `brand/BRAND_BOOK.md` |
+| Hiring question | `people/HIRING_PLAN.md` + `people/COMPENSATION.md` |
+
+---
+
+## Documentation Standards
+
+1. **Every document has an acronym table** at the top
+2. **Every document has a purpose statement** in the first blockquote
+3. **Folder names are lowercase-with-hyphens**, document names are UPPERCASE_WITH_UNDERSCORES
+4. **No duplicate information** — one document owns each topic, others reference it
+5. **Keep it current** — outdated docs are worse than no docs
+6. **Language** — plain English, no jargon without definition
+
+---
+
+*This documentation is the operational backbone of Halehame Technologies.*
+*Keep it updated. If something is not documented, it will be forgotten.*
