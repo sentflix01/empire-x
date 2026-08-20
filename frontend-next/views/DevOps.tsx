@@ -2134,7 +2134,7 @@ function DevOps() {
       {/* ══ Delete confirm dialog ════════════════════════════════════════════ */}
       <Dialog open={!!deleting} onOpenChange={o => !o && setDeleting(null)}>
         <DialogContent className="sm:max-w-sm bg-card border border-border shadow-2xl" style={{ backgroundColor: 'hsl(var(--card))' }}>
-          <DialogHeader><DialogTitle className="flex items-center gap-2 text-red-500"><Trash2 className="w-4 h-4" /> Delete Item</DialogTitle></DialogHeader>
+          <DialogHeader className=""><DialogTitle className="flex items-center gap-2 text-red-500"><Trash2 className="w-4 h-4" /> Delete Item</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground mt-1">Delete <span className="font-semibold text-foreground">"{deleting?.title}"</span>? This cannot be undone.</p>
           <div className="flex gap-2 mt-4">
             <Button variant="outline" onClick={() => setDeleting(null)} className="flex-1">Cancel</Button>
