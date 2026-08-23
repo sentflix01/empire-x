@@ -118,18 +118,21 @@ router.post('/conversations/find-or-create', requireAuth, async (req: Request, r
   if (target_user_id === userId) { apiError.validationError(res, 'Cannot DM yourself'); return; }
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-    let existing: Record<string,unknown>|null = null;
+    // Existence probe runs OUTSIDE the transaction: if the junction table is
+    // missing, its error must not abort the tx used by the create path.
+    // (The old fallback-in-catch pattern always hit "transaction is aborted".)
+    let existing: Record<string,unknown> | null = null;
     try {
-      const { rows } = await client.query(`SELECT c.* FROM conversations c JOIN conversation_participants cp1 ON cp1.conversation_id=c.id AND cp1.user_id=$1 JOIN conversation_participants cp2 ON cp2.conversation_id=c.id AND cp2.user_id=$2 WHERE c.type='dm' AND (SELECT COUNT(*) FROM conversation_participants WHERE conversation_id=c.id)=2 LIMIT 1`, [userId, target_user_id]);
-      existing = rows[0] as Record<string,unknown>|undefined ?? null;
+      const { rows } = await pool.query(`SELECT c.* FROM conversations c JOIN conversation_participants cp1 ON cp1.conversation_id=c.id AND cp1.user_id=$1 JOIN conversation_participants cp2 ON cp2.conversation_id=c.id AND cp2.user_id=$2 WHERE c.type='dm' AND (SELECT COUNT(*) FROM conversation_participants WHERE conversation_id=c.id)=2 LIMIT 1`, [userId, target_user_id]);
+      existing = rows[0] as Record<string,unknown> | undefined ?? null;
     } catch {
-      const { rows } = await client.query(`SELECT * FROM conversations WHERE type='dm' AND participant_ids::jsonb@>$1::jsonb`, [JSON.stringify([userId])]);
+      const { rows } = await pool.query(`SELECT * FROM conversations WHERE type='dm' AND participant_ids::jsonb @> $1::jsonb`, [JSON.stringify([userId])]);
       existing = (rows.find((c: Record<string,unknown>) => {
-        try { const ids=JSON.parse(c.participant_ids as string).map(String); return ids.length===2&&ids.includes(userId)&&ids.includes(target_user_id); } catch { return false; }
-      }) ?? null) as Record<string,unknown>|null;
+        try { const ids = JSON.parse(c.participant_ids as string).map(String); return ids.length === 2 && ids.includes(userId) && ids.includes(target_user_id); } catch { return false; }
+      }) ?? null) as Record<string,unknown> | null;
     }
-    if (existing) { await client.query('ROLLBACK'); res.json(existing); return; }
+    if (existing) { res.json(existing); return; }
+    await client.query('BEGIN');
     const { rows: profiles } = await client.query('SELECT user_id,display_name FROM user_profiles WHERE user_id=ANY($1::uuid[])', [[userId, target_user_id]]);
     const myName = (profiles.find((p: Record<string,string>) => String(p.user_id)===userId) as Record<string,string>|undefined)?.display_name ?? 'User';
     const targetProf = profiles.find((p: Record<string,string>) => String(p.user_id)===target_user_id) as Record<string,string>|undefined;

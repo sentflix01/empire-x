@@ -4,7 +4,9 @@
  * movements, backup outcomes, security signals. Powers /api/devops/
  * health-summary + telemetry queries and the alert evaluator.
  */
-module.exports = async function migrate(pool) {
+let pool;
+module.exports = async function migrate(trackPool) {
+  pool = trackPool ?? require('./pool');
   await pool.query(`
     CREATE TABLE IF NOT EXISTS telemetry_events (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

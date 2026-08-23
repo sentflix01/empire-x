@@ -4,7 +4,9 @@
  * resolved_at - none of which existed since migrate13. Adds them now; keeps
  * reviewed_at for backward compatibility.
  */
-module.exports = async function migrate(pool) {
+let pool;
+module.exports = async function migrate(trackPool) {
+  pool = trackPool ?? require('./pool');
   await pool.query(`
     ALTER TABLE verification_requests
       ADD COLUMN IF NOT EXISTS supporting_docs TEXT,

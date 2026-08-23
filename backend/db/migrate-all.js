@@ -104,7 +104,12 @@ function isExportedFunction(filePath) {
 
 // ── Run a single legacy migration via spawnSync ───────────────────────────────
 function runLegacyMigration(filePath) {
-  const result = spawnSync(process.execPath, [filePath], {
+// Legacy scripts import TS modules (db/pool.ts etc.), so they must run under
+// tsx — plain node cannot load TypeScript (broke the runner post-migration).
+const tsxLoader = path.join(__dirname, '..', 'node_modules', 'tsx', 'dist', 'cli.mjs');
+const runner = fs.existsSync(tsxLoader) ? process.execPath : process.execPath;
+const runnerArgs = fs.existsSync(tsxLoader) ? [tsxLoader, filePath] : [filePath];
+const result = spawnSync(runner, runnerArgs, {
     stdio: 'inherit',
     env: process.env,
   });
@@ -116,7 +121,7 @@ async function runExportedMigration(filePath) {
   // Clear require cache so we always get a fresh module
   delete require.cache[require.resolve(filePath)];
   const fn = require(filePath);
-  await fn();
+  await fn(trackPool);
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
