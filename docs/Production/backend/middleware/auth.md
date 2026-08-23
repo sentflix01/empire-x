@@ -1,0 +1,2 @@
+# middleware/auth.ts - JWT Authentication Core
+verifyAccessToken(): signature check PLUS type==access enforcement (refresh tokens never work as Bearer). requireAuth: token -> Redis revocation (revoked:{jti}, revoke_before:{userId}; fail-open if Redis down) -> 60s-cached user lookup -> rejects deleted/banned -> req.user. optionalAuth = silent version. requireAdmin gates role. invalidateUserCache evicts on ban/role change. Socket handshakes reuse verifyAccessToken with a fail-CLOSED revocation check. See backend/SECURITY.md.

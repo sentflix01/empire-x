@@ -1,0 +1,2 @@
+# lib/errorCollector.ts - Central Error Capture + DevOps Feed
+captureError() writes/increments rows in error_events (MD5 fingerprint dedupes repeats within 24h) powering the /admin/devops Live Errors tab. errorMiddleware = global Express handler: records, maps LIMIT_FILE_SIZE to 413, returns GENERIC text for 5xx (no internals leak). Also THE process handlers: headers-sent noise is ignored; anything else flushes telemetry then exits. Idempotent install - index.ts adds none of its own.

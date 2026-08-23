@@ -1,0 +1,2 @@
+# lib/featureFlags.ts - Runtime Feature Flags
+Single registry powering rollouts (docs/product/FEATURE_FLAGS.md). Priority: env FF_<NAME> > Redis ff:<name> (live flips) > hardcoded DEFAULT_FLAGS (20 flags). Percentage rollouts hash userId deterministically. Exports isEnabled(flag,userId?), getAllFlags() (admin), setFlag() via Redis. Connects: checkout gates in orders/wallet, flags route, admin panel.
