@@ -51,8 +51,10 @@ export default function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get('access_token')?.value;
-  const isLoggedIn = !!token;
+  // Non-sensitive hint cookie ("this browser may have a session") — the JWT
+  // itself is never stored client-side (TD-014). Real verification happens
+  // via the HttpOnly refresh cookie against the API.
+  const isLoggedIn = request.cookies.get('nb_auth')?.value === '1';
 
   // Authenticated users on auth pages → feed
   if (isLoggedIn && AUTH_PAGES.has(pathname)) {

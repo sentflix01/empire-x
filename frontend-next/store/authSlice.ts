@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import client, { storeToken, clearToken } from '@/api/client';
+import client, { clearToken, ensureFreshToken } from '@/api/client';
 
 export interface User {
   id: string;
@@ -31,8 +31,9 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (set)
 
   checkAuth: async () => {
     if (typeof window === 'undefined') return;
-    const token = localStorage.getItem('access_token');
-    if (!token) {
+    // TD-014: tokens live in memory only — re-hydrate via the refresh cookie.
+    const hydrated = await ensureFreshToken();
+    if (!hydrated) {
       set({ isAuthenticated: false, isLoading: false, user: null });
       return;
     }
@@ -42,7 +43,6 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (set)
 
     _checkAuthPromise = (async () => {
       set({ isLoading: true, error: null });
-      storeToken(token); // hydrate in-memory token before the request
       try {
         const { data } = await client.get('/api/auth/me');
         set({ user: data, isAuthenticated: true, isLoading: false, error: null });

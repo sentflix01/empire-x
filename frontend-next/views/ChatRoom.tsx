@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from "@/lib/AuthContext";
 import { getSocket } from "@/lib/socket";
-import client from "@/api/client";
+import client, { getAccessToken } from "@/api/client";
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
@@ -117,8 +117,7 @@ function ChatRoom() {
     if (!convId) { setLoading(false); return; }
 
     const socket = getSocket();
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') || '' : '';
-    socket.auth = { token };
+    socket.auth = { token: getAccessToken() || '' };
     if (!socket.connected) {
       socket.connect();
       socket.once('connect', () => { socket.emit('join_conversation', convId); });

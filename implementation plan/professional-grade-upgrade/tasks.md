@@ -105,7 +105,7 @@ JavaScript/TypeScript — Express.js backend and Next.js 16 frontend.
     - Use `fast-check`; `numRuns: 100`; vary all fields including `type` union (`credit`, `debit`, `withdrawal`, `refund`, `pending_topup`, `failed_topup`)
     - Assert `JSON.parse(JSON.stringify(tx))` deeply equals original `tx`
 
-- [ ] 5. Checkpoint — backend tests and middleware
+- [x] 5. Checkpoint — backend tests and middleware
   - Ensure all tests pass (`npm run test:unit` in `backend/`), ask the user if questions arise.
 
 - [x] 6. Database migration — composite indexes
@@ -115,14 +115,14 @@ JavaScript/TypeScript — Express.js backend and Next.js 16 frontend.
     - _Requirements: 7.4, 7.5, 7.6, 7.9_
 
 - [ ] 7. TypeScript strict mode — frontend config and type fixes
-  - [x] 7.1 Update `frontend-next/tsconfig.json` — set `"strict": true`
+  - [ ] 7.1 Update `frontend-next/tsconfig.json` — set `"strict": true`
     - Replace `"strict": false` with `"strict": true`
     - _Requirements: 1.3_
-  - [-] 7.2 Update `frontend-next/next.config.ts` — add ESLint rules; do NOT remove `ignoreBuildErrors` yet
+  - [x] 7.2 Update `frontend-next/next.config.ts` — add ESLint rules; do NOT remove `ignoreBuildErrors` yet
     - Add `@typescript-eslint/no-explicit-any` and `@typescript-eslint/ban-ts-comment` ESLint rules to the ESLint config
     - Leave `typescript.ignoreBuildErrors: true` in place until all type errors in 7.3 are resolved
     - _Requirements: 1.2, 1.5_
-  - [-] 7.3 Fix TypeScript strict-mode errors across all frontend `.tsx` / `.ts` files
+  - [x] 7.3 Fix TypeScript strict-mode errors across all frontend `.tsx` / `.ts` files
     - Run `tsc --noEmit` to obtain the full error list; fix errors category by category:
       - Add `@types/*` devDependencies for any untyped third-party packages (_Requirements: 1.7_)
       - Fix `forwardRef` signatures for Radix UI / shadcn/ui wrappers using `React.forwardRef<ElType, PropType>` (_Requirements: 1.4_)
@@ -176,11 +176,11 @@ JavaScript/TypeScript — Express.js backend and Next.js 16 frontend.
     - **Validates: Requirements 3.8**
     - Simulate page reload (clear in-memory store, re-instantiate); assert auth state restored from `sessionStorage` without a new `GET /api/auth/me`
 
-- [ ] 9. Migrate CartContext to Zustand and replace per-component fetch patterns
+- [x] 9. Migrate CartContext to Zustand and replace per-component fetch patterns
   - [x] 9.1 Rewrite `frontend-next/lib/CartContext.tsx` to delegate to `useAppStore` cart slice
     - Maintain same `useCart()` public API — zero changes to existing call sites
     - _Requirements: 3.5_
-  - [-] 9.2 Replace local `useEffect + useState` fetch patterns in shared-data views
+  - [x] 9.2 Replace local `useEffect + useState` fetch patterns in shared-data views
     - Identify views that fetch user profile, notification count, or other globally-shared data using local state
     - Replace with Store subscriptions via `useAppStore` so data is fetched once and shared
     - _Requirements: 3.7_
@@ -213,33 +213,33 @@ JavaScript/TypeScript — Express.js backend and Next.js 16 frontend.
     - **Validates: Requirements 2.4**
     - For any `{ error?: string }` API response shape, assert the toast text rendered by Sonner is a non-empty string
 
-- [ ] 11. Apply error-handling pattern to all frontend views
-  - [-] 11.1 Fix empty `catch {}` blocks in all views that perform network requests
+- [x] 11. Apply error-handling pattern to all frontend views
+  - [x] 11.1 Fix empty `catch {}` blocks in all views that perform network requests
     - For fetch errors: set the relevant Zustand slice `error` field; render `<ErrorState onRetry={reload} />`
     - For mutation errors: call `toast.error(message)` using Sonner with a fallback string if the `error` field is absent
     - Zero empty `catch {}` or `catch (e) {}` blocks may remain in network-request code paths
     - _Requirements: 2.3, 2.4_
-  - [-] 11.2 Wrap all views listed in `frontend-next/views/` with `<ErrorBoundary>`
+  - [x] 11.2 Wrap all views listed in `frontend-next/views/` with `<ErrorBoundary>`
     - Match the pattern already present in `Wallet.tsx` and `Orders.tsx`
     - Every view file must export its default component wrapped in `<ErrorBoundary>`
     - _Requirements: 2.8_
-  - [-] 11.3 Fix CartContext `removeItem`, `updateQty`, `clearCart` — re-throw errors in catch blocks
+  - [x] 11.3 Fix CartContext `removeItem`, `updateQty`, `clearCart` — re-throw errors in catch blocks
     - Change `catch {}` → `catch (err) { throw err; }` in each of the three methods
     - Enables callers to receive the error and display a toast notification
     - _Requirements: 2.6_
 
-- [ ] 12. Frontend tests — user flows
-  - [-] 12.1 Write `frontend-next/test/login.test.tsx`
+- [x] 12. Frontend tests — user flows
+  - [x] 12.1 Write `frontend-next/test/login.test.tsx`
     - Cover: empty form submission → validation errors displayed; valid credentials → API call made + redirect
     - _Requirements: 4.4, 4.6_
-  - [ ] 12.2 Write `frontend-next/test/register.test.tsx`
+  - [x] 12.2 Write `frontend-next/test/register.test.tsx`
     - Cover: valid form submission → API call + success flow; API failure → error message displayed
     - _Requirements: 4.4, 4.6_
-  - [~] 12.3 Write `frontend-next/test/cart.test.tsx`
+  - [x] 12.3 Write `frontend-next/test/cart.test.tsx`
     - Cover: add item, remove item, empty cart state, error propagation to caller
     - Tests run against mocked Zustand store
     - _Requirements: 4.4, 4.6_
-  - [~] 12.4 Write `frontend-next/test/walletTopup.test.tsx`
+  - [x] 12.4 Write `frontend-next/test/walletTopup.test.tsx`
     - Cover: invalid amount → validation error displayed; valid amount → successful submission flow
     - _Requirements: 4.4, 4.6_
 

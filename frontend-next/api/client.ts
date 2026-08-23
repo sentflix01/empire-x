@@ -1,17 +1,16 @@
 /**
  * Axios HTTP client for Next.js.
  *
- * TD-001: Access token stored in memory only (not localStorage).
- * A short-lived access token (15 min) is kept in a module-level variable.
- * When it expires, the 401 interceptor silently calls POST /api/auth/refresh
- * which reads the HttpOnly refresh_token cookie and returns a new access token.
+ * TD-001 / TD-014 (completed): access token is stored IN MEMORY ONLY.
+ * A short-lived token (15 min) lives in a module-level variable. On expiry,
+ * the 401 interceptor silently calls POST /api/auth/refresh, which uses the
+ * HttpOnly refresh_token cookie — JavaScript can never read that cookie.
  *
- * The HttpOnly cookie is set by the backend on login/refresh and is never
- * readable by JavaScript — eliminates the main XSS consequence.
+ * For middleware route gating we set a NON-SENSITIVE hint cookie (`nb_auth=1`)
+ * whose only meaning is "this browser may have a session" — stealing it
+ * grants nothing. The real session always re-hydrates through /refresh.
  *
- * Backwards compatibility:
- *   - storeToken() still exists so existing callers (AuthContext, auth.ts) work.
- *   - clearToken() clears the in-memory token and calls /logout to clear the cookie.
+ * Nothing about the JWT is ever written to localStorage or a JS-readable cookie.
  */
 import axios, { InternalAxiosRequestConfig } from 'axios';
 
@@ -19,32 +18,64 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
 
 // ── In-memory access token store ─────────────────────────────────────────────
-// Never written to localStorage or a JS-readable cookie.
 let _accessToken: string | null = null;
+
+const AUTH_HINT_COOKIE = 'nb_auth';
+const HINT_MAX_AGE = 7 * 24 * 60 * 60; // 7 days — matches refresh-token lifetime
+
+function setHintCookie() {
+  document.cookie = `${AUTH_HINT_COOKIE}=1; path=/; max-age=${HINT_MAX_AGE}; SameSite=Lax`;
+}
+
+function clearHintCookie() {
+  document.cookie = `${AUTH_HINT_COOKIE}=; path=/; max-age=0`;
+}
+
+/** True when this browser may hold a refreshable session (hint cookie present). */
+export function hasAuthHint(): boolean {
+  if (typeof document === 'undefined') return false;
+  return document.cookie.split(';').some(c => c.trim().startsWith(`${AUTH_HINT_COOKIE}=`));
+}
 
 export function storeToken(token: string) {
   _accessToken = token;
-  // Keep the cookie for Next.js middleware route protection (not HttpOnly —
-  // this is just for server-side middleware to check auth, not a secret).
-  // Also write to localStorage so AuthContext, CartContext, socket.ts, and
-  // ChatRoom.tsx can read the token after a page refresh.
-  if (typeof window !== 'undefined') {
-    const maxAge = 15 * 60; // 15 min — matches access token lifetime
-    document.cookie = `access_token=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
-    localStorage.setItem('access_token', token);
-  }
+  // Hint cookie only — never the token itself (TD-014).
+  if (typeof document !== 'undefined') setHintCookie();
 }
 
 export function clearToken() {
   _accessToken = null;
   if (typeof window !== 'undefined') {
-    document.cookie = 'access_token=; path=/; max-age=0';
+    clearHintCookie();
+    // Legacy cleanup: remove tokens persisted by pre-TD-014 builds.
     localStorage.removeItem('access_token');
   }
 }
 
 export function getAccessToken() {
   return _accessToken;
+}
+
+/**
+ * Silently obtain a fresh access token via the HttpOnly refresh cookie.
+ * Deduplicated across callers. Returns true when a token is now in memory.
+ */
+export async function ensureFreshToken(): Promise<boolean> {
+  if (_accessToken) return true;
+  if (!hasAuthHint()) return false;
+  try {
+    const r = await axios.post(
+      `${API_BASE_URL}/api/auth/refresh`,
+      {},
+      { withCredentials: true },
+    );
+    const token: string | undefined = r.data?.access_token;
+    if (!token) return false;
+    storeToken(token);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // ── Axios instance ────────────────────────────────────────────────────────────

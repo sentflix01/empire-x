@@ -190,15 +190,15 @@ Frontend → POST /api/orders/checkout/chapa
 | Endpoint | Purpose |
 |---|---|
 | `POST /api/orders/checkout/chapa` | Initialize Chapa checkout for a product (auth required) |
-| `GET /api/orders/chapa/verify/:tx_ref` | Server-to-server verification callback + frontend polling endpoint. Calls Chapa's verify API, then flips the order `pending → paid` exactly once. |
+| `GET /api/orders/chapa/verify/:tx_ref` | Server-to-server verification callback (Chapa `callback_url`). Calls Chapa's verify API, then flips the order `pending → paid` exactly once. |
+| `GET /api/orders/chapa/status/:tx_ref` | Read-only order status lookup (DB-only, no upstream Chapa calls). Frontend polls this while the Chapa window is open. |
 | `GET /api/orders/chapa/sandbox` | Local sandbox simulation page. **Dev/test only — returns 404 outside sandbox mode or in production.** |
 | `GET /api/wallet/topup/chapa/verify/:tx_ref` | Wallet top-up verification (same pull model, transactional claim) |
 | `GET /api/wallet/topup/chapa/sandbox` | Wallet sandbox page (same restrictions) |
 
-> ⚠️ **Known gap:** the frontend `PurchaseModal.tsx` polls `/api/orders/chapa/status/:tx_ref`,
-> which does not exist — that poll always 404s and the modal relies on the redirect instead.
-> Fix tracked in `operations/TECHNICAL_DEBT.md` (TD-015). Polling should target the order by id
-> (`GET /api/orders/:id`) or the verify endpoint above.
+> ✅ **Resolved (TD-015):** `PurchaseModal.tsx` polls `GET /api/orders/chapa/status/:tx_ref`,
+> which now exists as a DB-only read — confirmation still arrives server-side via the verify
+> callback, so polling never duplicates upstream verification calls.
 
 ### Sandbox Mode
 

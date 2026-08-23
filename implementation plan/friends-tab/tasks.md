@@ -6,8 +6,8 @@ Implements the Friends Tab feature: a new `/friends` page with three sections (M
 
 ## Tasks
 
-- [ ] 1. Backend — `GET /api/friends/mutual` endpoint
-  - [ ] 1.1 Create `backend/routes/friends.js` with the `GET /api/friends/mutual` route
+- [x] 1. Backend — `GET /api/friends/mutual` endpoint
+  - [x] 1.1 Create `backend/routes/friends.js` with the `GET /api/friends/mutual` route
     - Implement the mutual friends SQL query (follow-back UNION shared-connection) from the design Data Models section
     - Apply `requireAuth` middleware; return HTTP 401 if unauthenticated
     - Exclude the authenticated user from results (`WHERE u.id <> $1`)
@@ -15,25 +15,25 @@ Implements the Friends Tab feature: a new `/friends` page with three sections (M
     - Order by `mutual_count DESC`, then `display_name ASC`; apply `LIMIT 50`
     - **Files**: `backend/routes/friends.js`
 
-  - [ ] 1.2 Register the new friends router in `backend/index.js`
+  - [x] 1.2 Register the new friends router in `backend/index.js`
     - Add `app.use('/api/friends', require('./routes/friends'));` after the suggestions route line
     - **Files**: `backend/index.js`
 
-- [ ] 2. Frontend API module
-  - [ ] 2.1 Create `frontend-next/api/friends.ts`
+- [x] 2. Frontend API module
+  - [x] 2.1 Create `frontend-next/api/friends.ts`
     - Export `MutualFriend` TypeScript interface matching the backend response shape
     - Export `friendsApi.getMutual()` that calls `GET /api/friends/mutual`
     - **Files**: `frontend-next/api/friends.ts`
 
-- [ ] 3. `useCollapse` custom hook
-  - [ ] 3.1 Create `frontend-next/hooks/useCollapse.ts`
+- [x] 3. `useCollapse` custom hook
+  - [x] 3.1 Create `frontend-next/hooks/useCollapse.ts`
     - Accept `total: number` and optional `threshold: number` (default 5)
     - Return `{ visibleCount, isExpanded, expand, collapse, reset }`
     - `reset()` sets state back to collapsed (used by Search on query/tab change)
     - **Files**: `frontend-next/hooks/useCollapse.ts`
 
-- [ ] 4. `UserCard` component
-  - [ ] 4.1 Create `frontend-next/components/friends/UserCard.tsx`
+- [x] 4. `UserCard` component
+  - [x] 4.1 Create `frontend-next/components/friends/UserCard.tsx`
     - Accept props: `userId`, `displayName`, `avatarUrl`, `headline`, `mutualCount?`, `isFollowing`, `onToggleFollow`
     - Mirror the visual layout of `SuggestionCard` (avatar/initials, name, headline, mutual count)
     - No dismiss button
@@ -42,8 +42,8 @@ Implements the Friends Tab feature: a new `/friends` page with three sections (M
     - On API failure, revert local state and call `toast.error('Failed to update follow status')`
     - **Files**: `frontend-next/components/friends/UserCard.tsx`
 
-- [ ] 5. Friends page
-  - [ ] 5.1 Create `frontend-next/views/Friends.tsx`
+- [x] 5. Friends page
+  - [x] 5.1 Create `frontend-next/views/Friends.tsx`
     - On mount, fire three parallel requests: `GET /api/profiles/me/follows`, `GET /api/suggestions/people`, `GET /api/friends/mutual`
     - Build `followsSet: Set<string>` from the follows response; derive `isFollowing` for all `UserCard` instances
     - Shared `toggleFollow(userId, currentlyFollowing)` handler calls `POST /api/profiles/follow/:userId`, updates `followsSet`, removes followed users from suggestions list
@@ -54,19 +54,19 @@ Implements the Friends Tab feature: a new `/friends` page with three sections (M
     - Each section shows skeleton placeholder cards while loading
     - **Files**: `frontend-next/views/Friends.tsx`
 
-  - [ ] 5.2 Create `frontend-next/app/(app)/friends/page.tsx`
+  - [x] 5.2 Create `frontend-next/app/(app)/friends/page.tsx`
     - Thin route file: `'use client'; export { default } from '@/views/Friends';`
     - **Files**: `frontend-next/app/(app)/friends/page.tsx`
 
-- [ ] 6. Sidebar nav entry
-  - [ ] 6.1 Update `frontend-next/components/layout/AppLayout.tsx`
+- [x] 6. Sidebar nav entry
+  - [x] 6.1 Update `frontend-next/components/layout/AppLayout.tsx`
     - Insert `{ path: "/friends", icon: Users, label: "Friends" }` into `mainNavItems` immediately after the Explore entry
     - `Users` icon is already imported; `NavLink` component handles active state, icon-only collapsed mode, and tooltip automatically
     - The mobile drawer already iterates `mainNavItems` so no separate drawer change is needed
     - **Files**: `frontend-next/components/layout/AppLayout.tsx`
 
-- [ ] 7. Collapsible Search sections
-  - [ ] 7.1 Update `frontend-next/views/Search.tsx`
+- [x] 7. Collapsible Search sections
+  - [x] 7.1 Update `frontend-next/views/Search.tsx`
     - Add `expandedSections: Record<string, boolean>` state initialized to `{}`
     - Add `useEffect` on `debouncedQuery` that resets `expandedSections` to `{}`
     - Add `useEffect` on `tab` that resets `expandedSections` to `{}`
@@ -78,8 +78,8 @@ Implements the Friends Tab feature: a new `/friends` page with three sections (M
     - Apply `CollapsibleSection` to all 7 result sections (users, products, showrooms, tasks, posts, jobs, events)
     - **Files**: `frontend-next/views/Search.tsx`
 
-- [ ] 8. Property-based tests
-  - [ ] 8.1 Write property tests for `useCollapse` hook (Properties 1, 2, 13)
+- [x] 8. Property-based tests
+  - [x] 8.1 Write property tests for `useCollapse` hook (Properties 1, 2, 13)
     - Use **fast-check** (`fc`)
     - P1: `fc.integer({ min: 0, max: 100 })` → assert `visibleCount === Math.min(N, 5)` and `showMore === N > 5`
     - P2: For any N > 5, expand → all visible + "Show less" present; collapse → back to 5
@@ -87,13 +87,13 @@ Implements the Friends Tab feature: a new `/friends` page with three sections (M
     - Tag: `// Feature: friends-tab, Property 1: Collapse threshold invariant`
     - **Files**: `frontend-next/__tests__/useCollapse.test.ts`
 
-  - [ ] 8.2 Write property tests for `UserCard` component (Properties 4, 5)
+  - [x] 8.2 Write property tests for `UserCard` component (Properties 4, 5)
     - P4: Generate arbitrary `UserCardProps` with `fc.record`; assert rendered output contains all required elements
     - P5: `fc.boolean()` for API success/fail; verify optimistic state flip and conditional revert
     - Tag: `// Feature: friends-tab, Property 4: UserCard contains all required fields`
     - **Files**: `frontend-next/__tests__/UserCard.test.tsx`
 
-  - [ ] 8.3 Write property tests for mutual friends SQL logic (Properties 6, 7, 8, 9, 10)
+  - [x] 8.3 Write property tests for mutual friends SQL logic (Properties 6, 7, 8, 9, 10)
     - P6: Generate `fc.array(fc.tuple(fc.uuid(), fc.uuid()))` for follows edges; verify result matches union of follow-back + shared-connection conditions
     - P7: Assert own user ID never appears in result
     - P8: Assert all six fields present on every record
@@ -102,7 +102,7 @@ Implements the Friends Tab feature: a new `/friends` page with three sections (M
     - Tag: `// Feature: friends-tab, Property 6: Mutual friends SQL correctness`
     - **Files**: `backend/__tests__/friends.mutual.test.js`
 
-  - [ ] 8.4 Write property tests for Search collapse and nav (Properties 3, 11, 12, 14, 15)
+  - [x] 8.4 Write property tests for Search collapse and nav (Properties 3, 11, 12, 14, 15)
     - P11: `fc.integer({ min: 6, max: 20 })` → "More" label equals `"Show ${N-5} more"`
     - P12: Toggle one section; assert other sections' state unchanged
     - P3: Generate any pathname; assert Friends nav active state equals `pathname === "/friends"`

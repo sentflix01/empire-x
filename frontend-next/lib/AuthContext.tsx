@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode } from 'react';
-import client, { storeToken, clearToken } from '@/api/client';
+import client, { storeToken, clearToken, ensureFreshToken } from '@/api/client';
 
 export interface AuthUser {
   id?: string;
@@ -36,16 +36,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkUserAuth = useCallback(async () => {
     if (typeof window === 'undefined') return; // SSR guard
-    const token = localStorage.getItem('access_token');
-    if (!token) {
+    // Re-hydrate the in-memory token via the HttpOnly refresh cookie (TD-014:
+    // nothing is persisted to localStorage anymore).
+    const hydrated = await ensureFreshToken();
+    if (!hydrated) {
       setIsAuth(false);
       setIsLoadingAuth(false);
       setAuthChecked(true);
       return;
     }
-    // Fix #3: Hydrate _accessToken in memory BEFORE calling /me so the
-    // axios request interceptor sends the Authorization header correctly.
-    storeToken(token);
     try {
       setIsLoadingAuth(true);
       const res = await client.get('/api/auth/me');

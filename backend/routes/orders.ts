@@ -444,6 +444,20 @@ router.get('/chapa/sandbox', (req: Request, res: Response) => {
   res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Chapa Sandbox</title></head><body style="font-family:sans-serif;text-align:center;padding:2rem"><h1>🇪🇹 Chapa Sandbox</h1><p>ref: ${safe(tx_ref)}</p><button onclick="pay()" style="background:#16a34a;color:#fff;padding:1rem 2rem;border:none;border-radius:8px;cursor:pointer;font-size:1rem">✅ Confirm Payment</button><script>async function pay(){window.location.href='${safeReturn}';}</script></body></html>`);
 });
 
+// Chapa payment status (read-only, DB-only)
+// Frontend polls this while the Chapa window is open. Confirmation still
+// arrives server-side via GET /chapa/verify/:tx_ref (Chapa callback_url) —
+// polling here never triggers upstream Chapa verification calls.
+router.get('/chapa/status/:tx_ref', async (req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query<{ status: string }>(
+      'SELECT status FROM orders WHERE chapa_tx_ref=$1 ORDER BY created_at DESC LIMIT 1',
+      [req.params.tx_ref],
+    );
+    res.json({ status: rows[0]?.status ?? null });
+  } catch { apiError.serverError(res, 'Failed to fetch payment status'); }
+});
+
 // Chapa verify
 router.get('/chapa/verify/:tx_ref', async (req: Request, res: Response) => {
   if (!CHAPA_SECRET) { res.status(503).json({ error:'Chapa not configured' }); return; }

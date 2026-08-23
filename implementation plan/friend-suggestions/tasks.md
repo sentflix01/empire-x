@@ -37,7 +37,7 @@ Implement the `is_seed` data-model flag plus the friend suggestion system across
     - Place in `backend/test/suggestions/is-seed.pbt.test.js`
     - Use `fast-check` to generate boolean `is_seed` values, set them in a mock user object, feed through the response shaping logic, assert the value is preserved
 
-- [ ] 3. Implement the pure `computeScore` function
+- [x] 3. Implement the pure `computeScore` function
   - Create `backend/lib/suggestionScore.js` exporting `computeScore(candidate, requester)`
   - Implement the formula: `min(mutual_count * 5, 50) + (location match ? 10 : 0) + (active within 30 days ? 5 : 0)`
   - `last_active_at` is the candidate's `users.updated_at` ISO timestamp
@@ -55,7 +55,7 @@ Implement the `is_seed` data-model flag plus the friend suggestion system across
     - Test: location null on either side → no location bonus
     - Place in `backend/test/suggestions/computeScore.test.js`
 
-- [ ] 4. Implement the suggestion backend route
+- [x] 4. Implement the suggestion backend route
   - Create `backend/routes/suggestions.js`
   - Implement `GET /api/suggestions/people` (requires auth)
     - Run the scored SQL query (see design.md Data Models section)
@@ -112,7 +112,7 @@ Implement the `is_seed` data-model flag plus the friend suggestion system across
   - Implement `suggestionsApi.dismiss(targetUserId: string): Promise<void>`
   - _Requirements: 4.1, 6.1_
 
-- [ ] 9. Frontend — `DemoBadge` component
+- [x] 9. Frontend — `DemoBadge` component
   - Create `frontend-next/components/profile/DemoBadge.tsx`
   - Render a small, visually distinct badge with text "Demo"
   - Include `aria-label="AI-generated demo account"` on the badge element
@@ -133,7 +133,7 @@ Implement the `is_seed` data-model flag plus the friend suggestion system across
   - Dismiss icon button: calls `onDismiss`; use `X` icon from `lucide-react`
   - _Requirements: 3.1, 3.2, 8.2, 8.3_
 
-- [ ] 11. Frontend — `PeopleYouMayKnow` widget
+- [x] 11. Frontend — `PeopleYouMayKnow` widget
   - Create `frontend-next/components/suggestions/PeopleYouMayKnow.tsx`
   - Use `useQuery` from `@tanstack/react-query` to call `suggestionsApi.getPeople()`
   - Display first 5 items from the API response

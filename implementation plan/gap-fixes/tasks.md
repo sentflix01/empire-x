@@ -26,7 +26,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
      Files: backend/db/migrate7.js, backend/db/migrate8.js
      ═══════════════════════════════════════════════════════════════════════════ -->
 
-- [ ] 1. Write bug condition exploration test — Migration failures on fresh database
+- [x] 1. Write bug condition exploration test — Migration failures on fresh database
   - **Property 1: Bug Condition** - Migration Schema Gaps (bugs 1.1 & 1.2)
   - **CRITICAL**: This test MUST FAIL on unfixed code — failure confirms the bugs exist
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -42,7 +42,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
   - _Requirements: 1.1, 1.2_
 
 
-- [ ] 2. Write preservation property tests — Prior migrations unaffected (BEFORE implementing fix)
+- [x] 2. Write preservation property tests — Prior migrations unaffected (BEFORE implementing fix)
   - **Property 2: Preservation** - Migrations 1–6 Continue to Succeed
   - **IMPORTANT**: Follow observation-first methodology
   - Observe: Run `node db/migrate-all.js` on a fresh DB using only migrate.js–migrate6.js; all succeed
@@ -52,9 +52,9 @@ Groups are independent of each other and can be worked in parallel. Within each 
   - Mark task complete when tests are written, run, and passing on unfixed code
   - _Requirements: 3.1, 3.2_
 
-- [ ] 3. Fix Group 1 — Database Migration Bugs
+- [x] 3. Fix Group 1 — Database Migration Bugs
 
-  - [ ] 3.1 Fix migrate7.js — add ticker_type column before altering its default
+  - [x] 3.1 Fix migrate7.js — add ticker_type column before altering its default
     - File: `backend/db/migrate7.js`
     - Insert `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS ticker_type TEXT DEFAULT 'none';` as the FIRST statement in the `schema` string, before the existing `ALTER COLUMN ticker_type SET DEFAULT 'none'` line
     - The `IF NOT EXISTS` guard keeps it safe on databases that already have the column
@@ -69,7 +69,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Requirements: 2.1, 3.1_
 
 
-  - [ ] 3.2 Fix migrate8.js — correct column name in stories index
+  - [x] 3.2 Fix migrate8.js — correct column name in stories index
     - File: `backend/db/migrate8.js`
     - Change `ON stories(author_id, expires_at)` → `ON stories(user_id, expires_at)`
     - Before: `CREATE INDEX IF NOT EXISTS idx_stories_author_expires ON stories(author_id, expires_at);`
@@ -80,20 +80,20 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Preservation: all other performance indexes in migrate8.js created identically_
     - _Requirements: 2.2, 3.2_
 
-  - [ ] 3.3 Verify bug condition exploration test now passes (Property 1: Expected Behavior)
+  - [x] 3.3 Verify bug condition exploration test now passes (Property 1: Expected Behavior)
     - **Property 1: Expected Behavior** - Migration Schema Gaps Fixed
     - **IMPORTANT**: Re-run the SAME test from task 1 — do NOT write a new test
     - Run migrate7 and migrate8 tests against freshly patched files
     - **EXPECTED OUTCOME**: Both tests PASS — no column errors, correct index created
     - _Requirements: 2.1, 2.2_
 
-  - [ ] 3.4 Verify preservation tests still pass (Property 2: Preservation)
+  - [x] 3.4 Verify preservation tests still pass (Property 2: Preservation)
     - **Property 2: Preservation** - Migrations 1–6 Unaffected
     - **IMPORTANT**: Re-run the SAME tests from task 2 — do NOT write new tests
     - Run migrate.js–migrate6.js tests again
     - **EXPECTED OUTCOME**: Tests PASS — no regressions in prior migrations
 
-- [ ] 4. Checkpoint Group 1 — run `node db/migrate-all.js` on a fresh test database; assert all 8 migrations succeed and schema contains `ticker_type` column and correct stories index
+- [x] 4. Checkpoint Group 1 — run `node db/migrate-all.js` on a fresh test database; assert all 8 migrations succeed and schema contains `ticker_type` column and correct stories index
 
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -102,7 +102,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
             reviews.js, posts.js, crud.js
      ═══════════════════════════════════════════════════════════════════════════ -->
 
-- [ ] 5. Write bug condition exploration test — Route and handler defects
+- [x] 5. Write bug condition exploration test — Route and handler defects
   - **Property 1: Bug Condition** - Route & Handler Defects (bugs 1.3–1.7)
   - **CRITICAL**: These tests MUST FAIL on unfixed code
   - **DO NOT attempt to fix the test or the code when they fail**
@@ -119,7 +119,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
   - _Requirements: 1.3, 1.4, 1.5, 1.6, 1.7_
 
 
-- [ ] 6. Write preservation property tests — Existing route behaviour unchanged (BEFORE implementing fix)
+- [x] 6. Write preservation property tests — Existing route behaviour unchanged (BEFORE implementing fix)
   - **Property 2: Preservation** - Existing Route Behaviours
   - **IMPORTANT**: Follow observation-first methodology
   - Observe on unfixed code:
@@ -135,9 +135,9 @@ Groups are independent of each other and can be worked in parallel. Within each 
   - **EXPECTED OUTCOME**: Tests PASS — confirms baselines to preserve
   - _Requirements: 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9_
 
-- [ ] 7. Fix Group 2 — Route & Handler Bugs
+- [x] 7. Fix Group 2 — Route & Handler Bugs
 
-  - [ ] 7.1 Remove duplicate PUT /me/upsert from profiles.js
+  - [x] 7.1 Remove duplicate PUT /me/upsert from profiles.js
     - File: `backend/routes/profiles.js`
     - Delete the SECOND `router.put('/me/upsert', requireAuth, async (req, res) => { ... })` block — the one that appears AFTER `router.put('/:id', requireAuth, ...)` (lines approx. 89–104 in current file)
     - Keep the first registration (before `PUT /:id`) intact; it is the correct one
@@ -148,7 +148,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Requirements: 2.3, 3.3_
 
 
-  - [ ] 7.2 Add null checks after updateRecord in products.js, profiles.js, and notifications.js
+  - [x] 7.2 Add null checks after updateRecord in products.js, profiles.js, and notifications.js
     - **products.js** `PUT /:id` — after `const updated = await updateRecord('products', req.params.id, req.body);` insert:
       ```js
       if (!updated) return res.status(404).json({ error: 'Record not found' });
@@ -167,7 +167,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Preservation: updateRecord returning a valid row → HTTP 200 with updated row (Requirements 3.4)_
     - _Requirements: 2.4, 3.4_
 
-  - [ ] 7.3 Add GET / route to reviews.js
+  - [x] 7.3 Add GET / route to reviews.js
     - File: `backend/routes/reviews.js`
     - Add the following route as the FIRST route definition in the file (before `GET /product/:productId`):
       ```js
@@ -201,7 +201,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Requirements: 2.5, 3.5, 3.6, 3.7_
 
 
-  - [ ] 7.4 Rewrite smart feed query in posts.js to sort by feed_rank
+  - [x] 7.4 Rewrite smart feed query in posts.js to sort by feed_rank
     - File: `backend/routes/posts.js`
     - Replace the existing `SELECT DISTINCT ON (id) ... ORDER BY id, feed_rank LIMIT $4` block inside the `if (feed === 'true' && !author_id && !post_type)` branch with a CTE-based query:
       ```js
@@ -233,7 +233,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Preservation: GET /api/posts without feed=true → sort order identical to before (Requirements 3.8)_
     - _Requirements: 2.6, 3.8_
 
-  - [ ] 7.5 Add ALLOWED_TABLES validation to crud.js
+  - [x] 7.5 Add ALLOWED_TABLES validation to crud.js
     - File: `backend/utils/crud.js`
     - Add the following after the `const pool = require('../db/pool');` line:
       ```js
@@ -262,19 +262,19 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Requirements: 2.7, 3.9_
 
 
-  - [ ] 7.6 Verify bug condition exploration test now passes (Property 1: Expected Behavior)
+  - [x] 7.6 Verify bug condition exploration test now passes (Property 1: Expected Behavior)
     - **Property 1: Expected Behavior** - Route & Handler Defects Fixed
     - **IMPORTANT**: Re-run the SAME tests from task 5 — do NOT write new tests
     - Run all five route/handler bug condition tests against patched files
     - **EXPECTED OUTCOME**: All tests PASS — one PUT /me/upsert handler; updateRecord null → 404; GET /api/reviews → 200; feed sorted by feed_rank; invalid table → throws
     - _Requirements: 2.3, 2.4, 2.5, 2.6, 2.7_
 
-  - [ ] 7.7 Verify preservation tests still pass (Property 2: Preservation)
+  - [x] 7.7 Verify preservation tests still pass (Property 2: Preservation)
     - **Property 2: Preservation** - Route Behaviours Unchanged
     - **IMPORTANT**: Re-run the SAME tests from task 6 — do NOT write new tests
     - **EXPECTED OUTCOME**: Tests PASS — no regressions in existing route behaviour
 
-- [ ] 8. Checkpoint Group 2 — confirm all route/handler integration tests pass; run the property-based test for ALLOWED_TABLES (generate 1000 random strings, assert only Set members pass)
+- [x] 8. Checkpoint Group 2 — confirm all route/handler integration tests pass; run the property-based test for ALLOWED_TABLES (generate 1000 random strings, assert only Set members pass)
 
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -282,7 +282,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
      Files: backend/index.js, backend/socket.js, backend/.env.example
      ═══════════════════════════════════════════════════════════════════════════ -->
 
-- [ ] 9. Write bug condition exploration test — CORS blocks Next.js origin
+- [x] 9. Write bug condition exploration test — CORS blocks Next.js origin
   - **Property 1: Bug Condition** - Single-Origin CORS Blocks Next.js (bugs 1.8 & 1.9)
   - **CRITICAL**: These tests MUST FAIL on unfixed code
   - **DO NOT attempt to fix the test or the code when they fail**
@@ -295,7 +295,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
   - Mark task complete when tests are written, run, and failures are documented
   - _Requirements: 1.8, 1.9_
 
-- [ ] 10. Write preservation property tests — Vite origin continues to work (BEFORE implementing fix)
+- [x] 10. Write preservation property tests — Vite origin continues to work (BEFORE implementing fix)
   - **Property 2: Preservation** - Vite Origin (port 5173) Still Accepted
   - **IMPORTANT**: Follow observation-first methodology
   - Observe on unfixed code: credentialed request from `http://localhost:5173` → response includes `Access-Control-Allow-Origin: http://localhost:5173`
@@ -305,9 +305,9 @@ Groups are independent of each other and can be worked in parallel. Within each 
   - _Requirements: 3.10_
 
 
-- [ ] 11. Fix Group 3 — CORS & Connectivity Bugs
+- [x] 11. Fix Group 3 — CORS & Connectivity Bugs
 
-  - [ ] 11.1 Update CORS to support multiple origins in index.js
+  - [x] 11.1 Update CORS to support multiple origins in index.js
     - File: `backend/index.js`
     - Replace the current `const corsOptions = { origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true };` block with:
       ```js
@@ -330,7 +330,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Preservation: http://localhost:5173 continues to be accepted (Requirements 3.10)_
     - _Requirements: 2.8, 3.10_
 
-  - [ ] 11.2 Update Socket.IO CORS to support multiple origins in socket.js
+  - [x] 11.2 Update Socket.IO CORS to support multiple origins in socket.js
     - File: `backend/socket.js`
     - In `initSocket(httpServer, corsOrigin)`, replace `cors: { origin: corsOrigin || 'http://localhost:5173', credentials: true }` with:
       ```js
@@ -347,23 +347,23 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Preservation: Vite frontend Socket.IO connections continue to work_
     - _Requirements: 2.9, 3.10_
 
-  - [ ] 11.3 Update .env.example with comma-separated FRONTEND_URL example
+  - [x] 11.3 Update .env.example with comma-separated FRONTEND_URL example
     - File: `backend/.env.example`
     - Change `FRONTEND_URL=http://localhost:5173` to `FRONTEND_URL=http://localhost:5173,http://localhost:3000`
     - No other changes to this file
     - _Requirements: 2.8_
 
-  - [ ] 11.4 Verify bug condition exploration test now passes (Property 1: Expected Behavior)
+  - [x] 11.4 Verify bug condition exploration test now passes (Property 1: Expected Behavior)
     - **Property 1: Expected Behavior** - Multi-Origin CORS Fixed
     - **IMPORTANT**: Re-run the SAME tests from task 9 — do NOT write new tests
     - **EXPECTED OUTCOME**: Tests PASS — both `http://localhost:3000` HTTP and Socket.IO connections accepted
 
-  - [ ] 11.5 Verify preservation tests still pass (Property 2: Preservation)
+  - [x] 11.5 Verify preservation tests still pass (Property 2: Preservation)
     - **Property 2: Preservation** - Vite Origin Still Accepted
     - **IMPORTANT**: Re-run the SAME tests from task 10 — do NOT write new tests
     - **EXPECTED OUTCOME**: Tests PASS — http://localhost:5173 continues to work
 
-- [ ] 12. Checkpoint Group 3 — start both Vite (port 5173) and Next.js (port 3000) dev frontends; confirm credentialed API requests and WebSocket connections from both origins succeed without CORS errors
+- [x] 12. Checkpoint Group 3 — start both Vite (port 5173) and Next.js (port 3000) dev frontends; confirm credentialed API requests and WebSocket connections from both origins succeed without CORS errors
 
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -373,7 +373,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
             frontend-next/components/layout/AppLayout.tsx
      ═══════════════════════════════════════════════════════════════════════════ -->
 
-- [ ] 13. Write bug condition exploration test — Frontend auth and provider ordering defects
+- [x] 13. Write bug condition exploration test — Frontend auth and provider ordering defects
   - **Property 1: Bug Condition** - Auth & Provider Defects (bugs 1.10, 1.11, 1.12)
   - **CRITICAL**: These tests MUST FAIL on unfixed code
   - **DO NOT attempt to fix the test or the code when they fail**
@@ -386,7 +386,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
   - Mark task complete when tests are written, run, and failures are documented
   - _Requirements: 1.10, 1.11, 1.12_
 
-- [ ] 14. Write preservation property tests — Authenticated UI behaviour unchanged (BEFORE implementing fix)
+- [x] 14. Write preservation property tests — Authenticated UI behaviour unchanged (BEFORE implementing fix)
   - **Property 2: Preservation** - Authenticated AppLayout Renders Correctly
   - **IMPORTANT**: Follow observation-first methodology
   - Observe on unfixed code (authenticated state):
@@ -400,9 +400,9 @@ Groups are independent of each other and can be worked in parallel. Within each 
   - _Requirements: 3.11, 3.12_
 
 
-- [ ] 15. Fix Group 4 — Frontend Auth & Provider Bugs
+- [x] 15. Fix Group 4 — Frontend Auth & Provider Bugs
 
-  - [ ] 15.1 Reorder providers in providers.tsx — CartProvider inside AuthProvider
+  - [x] 15.1 Reorder providers in providers.tsx — CartProvider inside AuthProvider
     - File: `frontend-next/app/providers.tsx`
     - Change the provider nesting so `AuthProvider` wraps `CartProvider` (not the other way):
       ```tsx
@@ -423,7 +423,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Preservation: ThemeProvider and QueryClientProvider positions unchanged_
     - _Requirements: 2.10_
 
-  - [ ] 15.2 Update CartContext.tsx to re-fetch cart after auth resolves
+  - [x] 15.2 Update CartContext.tsx to re-fetch cart after auth resolves
     - File: `frontend-next/lib/CartContext.tsx`
     - Add `import { useAuth } from '@/lib/AuthContext';` after the existing `import client from '@/api/client';` line
     - Inside `CartProvider`, add the following after the existing `useEffect(() => { fetchCart(); }, [fetchCart]);`:
@@ -442,7 +442,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Requirements: 2.10_
 
 
-  - [ ] 15.3 Replace auth.me() with useAuth() in AppLayout.tsx
+  - [x] 15.3 Replace auth.me() with useAuth() in AppLayout.tsx
     - File: `frontend-next/components/layout/AppLayout.tsx`
     - Add `import { useAuth } from '@/lib/AuthContext';` near the top (with other imports); remove or keep `import { auth } from '@/api/auth'` only if `auth` is used elsewhere in this file (it is not — safe to remove)
     - Remove `const [user, setUser] = useState(null);` and `const [checkingProfile, setCheckingProfile] = useState(true);` from the component's local state declarations
@@ -482,7 +482,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Preservation: avatar initial, admin link, and user display name continue to render correctly (Requirements 3.11)_
     - _Requirements: 2.11, 3.11_
 
-  - [ ] 15.4 Add /login redirect when authChecked=true and isAuthenticated=false in AppLayout.tsx
+  - [x] 15.4 Add /login redirect when authChecked=true and isAuthenticated=false in AppLayout.tsx
     - File: `frontend-next/components/layout/AppLayout.tsx`
     - Add the following `useEffect` after the `user`-dependent effect added in 15.3:
       ```tsx
@@ -498,17 +498,17 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Preservation: authenticated users (authChecked=true, isAuthenticated=true) are NOT redirected (Requirements 3.12)_
     - _Requirements: 2.12, 3.12_
 
-  - [ ] 15.5 Verify bug condition exploration test now passes (Property 1: Expected Behavior)
+  - [x] 15.5 Verify bug condition exploration test now passes (Property 1: Expected Behavior)
     - **Property 1: Expected Behavior** - Frontend Auth & Provider Defects Fixed
     - **IMPORTANT**: Re-run the SAME tests from task 13 — do NOT write new tests
     - **EXPECTED OUTCOME**: All tests PASS — cart deferred until auth resolves; one auth/me call; 401 redirects to /login
 
-  - [ ] 15.6 Verify preservation tests still pass (Property 2: Preservation)
+  - [x] 15.6 Verify preservation tests still pass (Property 2: Preservation)
     - **Property 2: Preservation** - Authenticated UI Renders Correctly
     - **IMPORTANT**: Re-run the SAME tests from task 14 — do NOT write new tests
     - **EXPECTED OUTCOME**: Tests PASS — avatar initial, admin link, logout, and cart count all correct
 
-- [ ] 16. Checkpoint Group 4 — perform end-to-end auth flow test: clear localStorage, navigate to any protected page, confirm redirect to /login; log in, confirm user data renders in AppLayout, cart loads after auth, socket connects; log out, confirm token cleared and redirect occurs
+- [x] 16. Checkpoint Group 4 — perform end-to-end auth flow test: clear localStorage, navigate to any protected page, confirm redirect to /login; log in, confirm user data renders in AppLayout, cart loads after auth, socket connects; log out, confirm token cleared and redirect occurs
 
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -516,7 +516,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
      File: backend/routes/wallet.js
      ═══════════════════════════════════════════════════════════════════════════ -->
 
-- [ ] 17. Write bug condition exploration test — Missing debit and refund wallet routes
+- [x] 17. Write bug condition exploration test — Missing debit and refund wallet routes
   - **Property 1: Bug Condition** - Missing POST /debit and POST /refund (bug 1.13)
   - **CRITICAL**: These tests MUST FAIL on unfixed code
   - **DO NOT attempt to fix the test or the code when they fail**
@@ -529,7 +529,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
   - Mark task complete when tests are written, run, and failures are documented
   - _Requirements: 1.13_
 
-- [ ] 18. Write preservation property tests — Existing wallet routes unchanged (BEFORE implementing fix)
+- [x] 18. Write preservation property tests — Existing wallet routes unchanged (BEFORE implementing fix)
   - **Property 2: Preservation** - topup, withdraw, and GET /me Unaffected
   - **IMPORTANT**: Follow observation-first methodology
   - Observe on unfixed code:
@@ -542,9 +542,9 @@ Groups are independent of each other and can be worked in parallel. Within each 
   - **EXPECTED OUTCOME**: Tests PASS — baselines confirmed
   - _Requirements: 3.13, 3.14_
 
-- [ ] 19. Fix Group 5 — Wallet Transaction Type Gaps
+- [x] 19. Fix Group 5 — Wallet Transaction Type Gaps
 
-  - [ ] 19.1 Add POST /debit route to wallet.js
+  - [x] 19.1 Add POST /debit route to wallet.js
     - File: `backend/routes/wallet.js`
     - Add the following route after the existing `POST /withdraw` handler (before `module.exports`):
       ```js
@@ -583,7 +583,7 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Preservation: topup, withdraw, and GET /me routes unchanged (Requirements 3.13, 3.14)_
     - _Requirements: 2.13, 3.13, 3.14_
 
-  - [ ] 19.2 Add POST /refund route to wallet.js
+  - [x] 19.2 Add POST /refund route to wallet.js
     - File: `backend/routes/wallet.js`
     - Add the following route after the POST /debit handler added in 19.1 (before `module.exports`):
       ```js
@@ -616,24 +616,24 @@ Groups are independent of each other and can be worked in parallel. Within each 
     - _Preservation: topup, withdraw, and GET /me routes unchanged (Requirements 3.13, 3.14)_
     - _Requirements: 2.13, 3.13, 3.14_
 
-  - [ ] 19.3 Verify bug condition exploration test now passes (Property 1: Expected Behavior)
+  - [x] 19.3 Verify bug condition exploration test now passes (Property 1: Expected Behavior)
     - **Property 1: Expected Behavior** - Debit and Refund Routes Exist and Work
     - **IMPORTANT**: Re-run the SAME tests from task 17 — do NOT write new tests
     - **EXPECTED OUTCOME**: Both tests PASS — POST /debit decrements balance and inserts 'debit' transaction; POST /refund increments balance and inserts 'refund' transaction
 
-  - [ ] 19.4 Verify preservation tests still pass (Property 2: Preservation)
+  - [x] 19.4 Verify preservation tests still pass (Property 2: Preservation)
     - **Property 2: Preservation** - Existing Wallet Routes Unchanged
     - **IMPORTANT**: Re-run the SAME tests from task 18 — do NOT write new tests
     - **EXPECTED OUTCOME**: Tests PASS — topup, withdraw, and GET /me behave identically to before
 
-- [ ] 20. Checkpoint Group 5 — run the full wallet balance invariant property-based test: for any sequence of topup, debit (admin), refund, and withdraw operations where no operation causes a negative balance, assert final_balance = (sum of credits + refunds) − (sum of debits + withdrawals)
+- [x] 20. Checkpoint Group 5 — run the full wallet balance invariant property-based test: for any sequence of topup, debit (admin), refund, and withdraw operations where no operation causes a negative balance, assert final_balance = (sum of credits + refunds) − (sum of debits + withdrawals)
 
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
      FINAL CHECKPOINT — All 13 bugs resolved
      ═══════════════════════════════════════════════════════════════════════════ -->
 
-- [ ] 21. Final checkpoint — Ensure all tests pass
+- [x] 21. Final checkpoint — Ensure all tests pass
   - Run `node db/migrate-all.js` on a fresh test database; assert zero errors and correct schema
   - Run full backend test suite; assert all route tests pass
   - Run all property-based tests (table allowlist, CORS origins, wallet balance invariant, feed ordering)

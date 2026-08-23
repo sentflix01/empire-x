@@ -165,25 +165,25 @@ Removed the old Vite frontend folder entirely. `frontend-next/` is the only fron
 ## Added 2026-08-23 (security hardening audit)
 
 ### TD-014: Access token still mirrored to localStorage + JS cookie
-**Status:** Open · **Priority:** High
-**Problem:** rontend-next/api/client.ts storeToken() writes the 15-min access token to
-localStorage and a JS-readable cookie (for middleware route gating), contradicting ADR-004's
-"memory only" goal. XSS can steal the session.
-**Fix:** Move route-gating off cookie sniffing (session probe via /api/auth/me), keep token in memory only.
+**Status:** ✅ Done (2026-08-23)
+**Resolution:** `api/client.ts` keeps the JWT in memory only. Middleware gating now uses a
+non-sensitive hint cookie (`nb_auth=1`); sessions re-hydrate silently via the HttpOnly
+refresh cookie (`ensureFreshToken()`). All readers (AuthContext, authSlice, socket, ChatRoom)
+migrated; legacy localStorage keys are cleaned up on logout/boot.
 
 ---
 
 ### TD-015: PurchaseModal polls a non-existent Chapa endpoint
-**Status:** Open · **Priority:** High
-**Problem:** components/checkout/PurchaseModal.tsx polls GET /api/orders/chapa/status/:tx_ref
-every 3s — that endpoint does not exist; every poll 404s. Confirmation works only via redirect.
-**Fix:** Poll GET /api/orders/:id or the verify callback; see docs/backend/PAYMENT_INTEGRATION.md.
+**Status:** ✅ Done (2026-08-23)
+**Resolution:** Added read-only `GET /api/orders/chapa/status/:tx_ref` (DB-only lookup —
+polling never triggers upstream Chapa verification; the server-side verify callback remains
+the sole confirmation path).
 
 ---
 
 ### TD-016: TLS certificate validation disabled on Neon/Upstash
 **Status:** Open · **Priority:** High
-**Problem:** ejectUnauthorized: false in db/pool.ts, lib/redis.ts, socket Redis adapter —
+**Problem:** `rejectUnauthorized: false` in db/pool.ts, lib/redis.ts, socket Redis adapter —
 traffic is encrypted but not authenticated (MITM-tolerant).
 **Fix:** Validate certificates against system CAs or pin the provider CA.
 

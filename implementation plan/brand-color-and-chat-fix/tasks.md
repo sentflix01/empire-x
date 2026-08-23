@@ -55,7 +55,7 @@ All changes are in 4 files: `globals.css`, `ChatRoom.tsx`, `CreateChannelModal.t
   - Selection checkmark overlay circle: replace `style={{ backgroundColor: TG_BLUE }}` with `className="bg-primary"`
   - Create Group `<Button>`: remove `style={{ backgroundColor: TG_BLUE }}` and rely on the default Button `bg-primary` variant
 
-- [ ] 6. Fix Messages.tsx — replace TG_BLUE colors and verify real-chat end-to-end wiring
+- [x] 6. Fix Messages.tsx — replace TG_BLUE colors and verify real-chat end-to-end wiring
   - Remove `const TG_BLUE = "#0088cc"` from `views/Messages.tsx`
   - Page title `<h1>`: replace `style={{ color: TG_BLUE }}` with `className="font-display text-2xl font-bold text-primary"`
   - Active tab button: replace `style={tab === t.id ? { backgroundColor: TG_BLUE } : {}}` with a conditional Tailwind class `tab === t.id ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground hover:bg-secondary/80'` and remove the style prop entirely

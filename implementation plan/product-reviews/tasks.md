@@ -131,7 +131,7 @@ Implement the product reviews feature by following the exploratory bugfix workfl
     - If any preservation test fails, the fix introduced an unintended side effect — review task 3.2 to ensure no existing code was modified
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 4. Checkpoint — Ensure all tests pass
+- [x] 4. Checkpoint — Ensure all tests pass
   - Run the full test suite: `npm test -- --run`
   - All tests must pass: test infrastructure setup (task 0), bug condition exploration (task 1 / 3.3), preservation property tests (task 2 / 3.4)
   - Optionally run `npm run lint` and `npm run typecheck` to catch any import or type errors introduced by the new component
