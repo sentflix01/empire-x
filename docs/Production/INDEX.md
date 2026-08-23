@@ -15,10 +15,11 @@ Status: [x] done, [~] partial, [ ] planned batch
 ## Frontend (frontend-next)
 - [ ] architecture overview + data flow
 - [x] `views` (47 screens)
-- [ ] `components` (grouped by domain)
-- [ ] `lib`, `store`, `api`, `hooks`
+- [x] `components` (individual docs for substantial files; small primitives grouped)
+- [x] `lib`, `store`, `api`, `hooks`
 - [ ] `app-routes` (60 page wrappers, grouped)
 - [ ] configs + e2e
+
 
 
 
