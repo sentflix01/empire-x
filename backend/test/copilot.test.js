@@ -40,6 +40,10 @@ describe('parseIntent — slash commands', () => {
     expect(parseIntent('/done showroom chips')).toEqual({ intent: 'done_item', query: 'showroom chips' });
     expect(parseIntent('mark like state done')).toEqual({ intent: 'done_item', query: 'like state' });
   });
+  test('/doctor resolves a showroom query', () => {
+    expect(parseIntent('/doctor addis kitchen')).toEqual({ intent: 'doctor', query: 'addis kitchen' });
+    expect(parseIntent('analyze 3f1a9c')).toEqual({ intent: 'doctor', query: '3f1a9c' });
+  });
   test('unknown stays safe', () => {
     expect(parseIntent('')).toEqual({ intent: 'unknown' });
     expect(parseIntent('tell me a joke')).toEqual({ intent: 'unknown' });

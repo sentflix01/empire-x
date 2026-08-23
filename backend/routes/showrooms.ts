@@ -39,7 +39,33 @@ router.get('/:id/doctor', requireAuth, async (req: Request, res: Response) => {
     }
     const result = await runDoctor(pool, req.params.id);
     if (!result) { res.status(404).json({ error: 'Showroom not found' }); return; }
-    res.json(result.report);
+    // Phase 2: optional LLM narrative over the deterministic findings.
+    // The FACTS come from the rule engine — the model only explains and
+    // prioritizes them, so the audit stays hallucination-free.
+    if (req.query.narrate === '1') {
+      try {
+        const { chat, isConfigured } = await import('../lib/ai');
+        if (isConfigured()) {
+          const { findings, score, grades, sector } = result.report;
+          const system = 'You are a Showroom Growth Advisor for a social-commerce platform. ' +
+            'You receive a deterministic audit (score, grades, findings) for a tenant showroom and write a concise, encouraging, actionable report. ' +
+            'Rules: never invent problems not listed in the findings; prioritize by severity; group into (1) one-paragraph summary, ' +
+            '(2) prioritized fix list referencing the finding messages, (3) a 30-day plan with 3-5 bullet steps. Keep under 220 words. Plain text.';
+          const user = 'Sector: ' + sector +
+            '\nScore: ' + score + '/100 (completeness ' + grades.completeness + ', health ' + grades.health + ', freshness ' + grades.freshness + ')' +
+            '\nShowroom title: ' + String(result.showroom.title ?? '') +
+            '\nFindings:\n' + findings.map(f => '- [' + f.severity + '] ' + f.message).join('\n');
+          const narrative = await chat(
+            [{ role: 'system', content: system }, { role: 'user', content: user }],
+            { maxTokens: 600 },
+          ).catch(() => null);
+          if (narrative) (result.report as unknown as Record<string, unknown>).narrative = narrative;
+        }
+      } catch { /* narrative is best-effort — findings are the source of truth */ }
+      res.json(result.report);
+    } else {
+      res.json(result.report);
+    }
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'showroom doctor failed');
     res.status(500).json({ error: 'Doctor analysis failed' });

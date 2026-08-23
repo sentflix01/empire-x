@@ -17,6 +17,7 @@ export type CopilotIntent =
   | { intent: 'items'; open: boolean }
   | { intent: 'add_item'; kind: 'bug' | 'feature' | 'task'; title: string; description: string }
   | { intent: 'done_item'; query: string }
+  | { intent: 'doctor'; query: string }
   | { intent: 'unknown' };
 
 export function parseIntent(raw: string): CopilotIntent {
@@ -62,6 +63,10 @@ export function parseIntent(raw: string): CopilotIntent {
     const q = msg.replace(/^\/done\s+/i, '').replace(/^(?:mark|close)\s+/i, '').replace(/\s+(done|fixed|resolved)[.!]?$/i, '').trim();
     if (q) return { intent: 'done_item', query: q };
   }
+  if (low.startsWith('/doctor ') || /^doctor\b/.test(low) || /^analyze\b/.test(low)) {
+    const q = msg.replace(/^\/?doctor\s*/i, '').replace(/^(?:analyze)\s*/i, '').trim();
+    if (q) return { intent: 'doctor', query: q };
+  }
   return { intent: 'unknown' };
 }
 
@@ -78,4 +83,5 @@ export const COPILOT_HELP = [
   '`/bug <title> | <description>` — add a bug to the board',
   '`/feature <title> | <desc>` · `/task <title> | <desc>`',
   '`/done <title-substring>` — close a board item',
+  '`/doctor <showroom-id|title>` — sector-aware showroom diagnosis',
 ].join('\n');

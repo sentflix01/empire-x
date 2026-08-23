@@ -267,6 +267,26 @@ async function executeIntent(intent: CopilotIntent): Promise<{ reply: string; da
       return { reply: 'Unrecognised command.', action: 'unknown' };
     }
 
+    case 'doctor': {
+      const q = intent.query;
+      const { rows } = await pool.query(
+        `SELECT id FROM showrooms WHERE id::text=$1 OR title ILIKE $2 ORDER BY created_at DESC LIMIT 1`,
+        [q, '%' + q + '%'],
+      );
+      if (!rows.length) return { reply: `No showroom matching "${q}". Use the id or (part of) the title.`, action: 'doctor' };
+      const { runDoctor } = await import('../lib/showroomDoctor');
+      const result = await runDoctor(pool, String(rows[0].id));
+      if (!result) return { reply: 'Showroom not found.', action: 'doctor' };
+      const { report } = result;
+      const top = report.findings.slice(0, 8).map((f) => `- [${f.severity}] ${f.message}`).join('\n');
+      return {
+        reply: `🏥 **${String(result.showroom.title ?? result.showroom.id)}** (${report.sector}) — Score ${report.score}/100` +
+          ` (completeness ${report.grades.completeness}, health ${report.grades.health}, freshness ${report.grades.freshness})` +
+          (top ? '\n\n' + top : '\n✓ No issues found.'),
+        data: report, action: 'doctor',
+      };
+    }
+
     case 'done_item': {
       const { rows } = await pool.query(
         `UPDATE devops_items SET status='done', resolved_at=NOW(), updated_at=NOW()

@@ -6,7 +6,7 @@
  * fix deep-links into the builder.
  */
 import React, { useState } from 'react';
-import { Loader2, Stethoscope, AlertTriangle, CheckCircle2, ExternalLink } from 'lucide-react';
+import { Loader2, Stethoscope, AlertTriangle, CheckCircle2, ExternalLink, Sparkles } from 'lucide-react';
 
 interface Finding { id: string; severity: 'critical'|'high'|'medium'|'low'; area: string; message: string;
   fix?: { type: string; sections?: string[]; sectionKey?: string } }
@@ -23,8 +23,21 @@ const SEV: Record<string, string> = {
 export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [report, setReport] = useState<Report | null>(null);
+  const [report, setReport] = useState<Report & { narrative?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [narrating, setNarrating] = useState(false);
+
+  const narrate = async () => {
+    if (!report || narrating) return;
+    setNarrating(true);
+    try {
+      const res = await fetch(`/api/showrooms/${showroomId}/doctor?narrate=1`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setReport(data);
+      }
+    } catch { /* best-effort */ } finally { setNarrating(false); }
+  };
 
   const run = async () => {
     setOpen((v) => !v);
@@ -77,8 +90,24 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
                     </div>
                   ))}
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg bg-secondary/60 shrink-0">{report.sector}</span>
+                <div className="shrink-0 flex flex-col items-end gap-1">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg bg-secondary/60">{report.sector}</span>
+                  <button onClick={narrate} disabled={narrating}
+                    className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg bg-violet-500/10 text-violet-500 hover:bg-violet-500/20 disabled:opacity-50">
+                    {narrating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                    AI Advisor
+                  </button>
+                </div>
               </div>
+
+              {report.narrative && (
+                <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-3">
+                  <p className="text-[10px] font-semibold uppercase text-violet-500 mb-1 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" /> AI Advisor
+                  </p>
+                  <p className="text-[11px] whitespace-pre-wrap leading-relaxed">{report.narrative}</p>
+                </div>
+              )}
 
               <div className="space-y-1.5 max-h-64 overflow-y-auto">
                 {report.findings.length === 0 && (
