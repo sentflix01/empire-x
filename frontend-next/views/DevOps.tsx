@@ -1,5 +1,5 @@
-import OpsCopilot from '@/components/devops/OpsCopilot';
 'use client';
+import OpsCopilot from '@/components/devops/OpsCopilot';
 /**
  * DevOps.tsx — Nodbusiness Developer Operations Hub
  *
