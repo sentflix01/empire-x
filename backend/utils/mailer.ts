@@ -8,6 +8,7 @@
  */
 import nodemailer from 'nodemailer';
 import { getPrimaryFrontendUrl } from '../lib/frontendUrl';
+import logger from '../lib/logger';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -155,3 +156,16 @@ export async function sendOrderConfirmation(to: string, order: OrderLike): Promi
 }
 
 module.exports = { sendOtpEmail, sendPasswordResetEmail, sendOrderConfirmation };
+
+/**
+ * sendCustomEmail - generic transactional send (Resend first, SMTP fallback).
+ * Used by operational features (e.g. weekly Showroom Doctor digests).
+ */
+export async function sendCustomEmail(to: string, subject: string, html: string): Promise<void> {
+  try {
+    await sendViaResend(to, subject, html);
+  } catch (resendErr) {
+    logger.warn({ err: (resendErr as Error).message, to }, 'Resend failed — falling back to SMTP');
+    await sendViaSMTP(to, subject, html);
+  }
+}

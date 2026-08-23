@@ -315,6 +315,8 @@ app.all('*', (_req: Request, res: Response) => {
 const { startStoriesCleanup } = require('./db/cleanupStories') as { startStoriesCleanup: () => void };
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { startBackupSchedule } = require('./scripts/backup-database') as { startBackupSchedule: () => void };
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { startDigestSchedule } = require('./scripts/showroom-digests') as { startDigestSchedule: () => void };
 
 initSocket(server, allowedOrigins);
 
@@ -325,6 +327,7 @@ server.listen(PORT, () => {
   startStoriesCleanup();
   startWorkers();
   startBackupSchedule();
+  startDigestSchedule();
 
   // ── Auto-create Supabase Storage bucket ──────────────────────────────────
   setTimeout(async () => {
