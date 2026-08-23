@@ -313,6 +313,8 @@ app.all('*', (_req: Request, res: Response) => {
 // ── Start server ──────────────────────────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { startStoriesCleanup } = require('./db/cleanupStories') as { startStoriesCleanup: () => void };
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { startBackupSchedule } = require('./scripts/backup-database') as { startBackupSchedule: () => void };
 
 initSocket(server, allowedOrigins);
 
@@ -322,6 +324,7 @@ server.listen(PORT, () => {
   logger.info('   WebSocket: enabled for real-time chat');
   startStoriesCleanup();
   startWorkers();
+  startBackupSchedule();
 
   // ── Auto-create Supabase Storage bucket ──────────────────────────────────
   setTimeout(async () => {

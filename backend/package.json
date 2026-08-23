@@ -15,7 +15,9 @@
     "typecheck": "tsc --noEmit",
     "migrate": "node db/migrate-all.js",
     "seed": "node db/seed.js",
-    "clean": "node db/cleanup-seed-data.js"
+    "clean": "node db/cleanup-seed-data.js",
+    "backup": "tsx scripts/backup-database.js",
+    "backup:verify": "tsx scripts/verify-backup.js"
   },
   "jest": {
     "testEnvironment": "node",

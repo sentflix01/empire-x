@@ -44,3 +44,4 @@ Thumbs.db
 # TypeScript incremental build caches
 *.tsbuildinfo
 backend/dist/
+backend/backups/

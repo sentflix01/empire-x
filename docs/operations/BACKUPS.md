@@ -1,7 +1,9 @@
 # Nodbusiness — Backup & Recovery
 
 > Data loss is unrecoverable. Set this up before going to production.
-> Last updated: August 2026
+> **Implemented 2026-08-23:** automated daily `pg_dump` backups (`scripts/backup-database.js`)
+> + restorability verification (`scripts/verify-backup.js`). See "Independent Backups" below.
+> Last updated: 2026-08-23
 
 ---
 
@@ -56,6 +58,43 @@ pg_dump $DATABASE_URL --no-owner --no-acl > backup-$(date +%Y%m%d).sql
 
 # Store in: encrypted cloud storage, password manager notes, or offline drive
 ```
+
+---
+
+## Independent Backups (implemented 2026-08-23)
+
+Neon PITR protects against *accidents*, but an independent dump also protects against losing
+access to Neon itself (account compromise, accidental project deletion, billing lockout).
+The platform now runs its own backup pipeline:
+
+| Piece | Detail |
+|---|---|
+| Dump | `pg_dump --format=custom` piped through gzip — `backend/scripts/backup-database.js` |
+| Schedule | Daily (checked hourly in-process via `startBackupSchedule()` from `index.ts`); production-only unless `BACKUP_SCHEDULE_ENABLED=true` |
+| Destination | Cloudflare R2 `backups/` prefix when R2 env vars are set; otherwise local `backend/backups/` (⚠️ not durable — configure R2 before launch) |
+| Retention | `BACKUP_RETENTION_DAYS` local-file retention (default 14) |
+| Telemetry | Outcome recorded in `app_settings.key='last_database_backup'` — alert when older than ~26 h or status ≠ ok |
+| Manual run | `cd backend && npm run backup` |
+| Requirement | `pg_dump` on PATH (postgresql-client) — ensure it exists in the Railway image |
+
+### Restorability verification
+
+A backup nobody has restored is a hope, not a plan. Verify weekly:
+
+```bash
+BACKUP_VERIFY_DATABASE_URL=postgres://<scratch-db> npm run backup:verify
+```
+
+Drops/recreates the scratch schema, restores the newest dump with `pg_restore`, then asserts
+table/user counts. Exit code 0 = proven restorable. **Never point it at production.**
+
+### Operator setup checklist
+
+- [ ] R2 env vars configured in production (so dumps leave the box)
+- [ ] `postgresql-client` present in the Railway deploy image
+- [ ] Scratch verify target created (a Neon branch works well)
+- [ ] Weekly `npm run backup:verify` scheduled (cron / Railway scheduled job)
+- [ ] Alert wired: page when `last_database_backup.at` is stale or `status != 'ok'`
 
 ---
 

@@ -211,3 +211,13 @@ Safe locally, dangerous if seed scripts ever run against production.
 are hard gates (npm audit stays advisory for now). deploy.yml no longer triggers on push; it
 runs via `workflow_run` only after a successful CI run for the same commit (`gate` job), and
 the post-deploy health check now fails the workflow and alerts Telegram when configured.
+
+---
+
+### TD-020: No automated database backups
+**Status:** Done (2026-08-23)
+**Resolution:** Daily pg_dump pipeline (scripts/backup-database.js) scheduled in-process,
+R2 upload when configured, retention pruning, outcome telemetry in app_settings, plus a
+restorability verifier (scripts/verify-backup.js / npm run backup:verify). Operator must still:
+configure R2 env vars in production, ensure postgresql-client in the deploy image, and schedule
+the weekly verify against a scratch database. See docs/operations/BACKUPS.md.

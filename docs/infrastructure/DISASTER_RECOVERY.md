@@ -141,68 +141,32 @@ PostgreSQL triggers cannot inspect a DELETE's WHERE clause, so a row-count trigg
 
 **This is the worst case. Preparation is critical.**
 
-**Daily backup job (must implement):**
-```javascript
-// backend/scripts/backup-to-r2.js (schedule via BullMQ cron)
-// Run daily at 3:00 AM Addis Ababa time (UTC midnight)
+**Daily backup job — ✅ implemented 2026-08-23:**
 
-const { execSync } = require('child_process');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-const { createReadStream } = require('fs');
-const { gzip } = require('zlib');
-const { pipeline } = require('stream/promises');
+`backend/scripts/backup-database.js` runs daily in production (in-process schedule, hourly
+check), dumps with `pg_dump --format=custom | gzip`, uploads to R2 `backups/` when configured
+(local `backend/backups/` otherwise), prunes after `BACKUP_RETENTION_DAYS` (default 14), and
+records status to `app_settings.key='last_database_backup'`.
 
-async function runBackup() {
-  const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const localPath = `/tmp/backup-${timestamp}.sql.gz`;
-  
-  // Dump and compress
-  execSync(`pg_dump "${process.env.DATABASE_URL}" | gzip > ${localPath}`, {
-    stdio: 'inherit',
-    timeout: 300_000, // 5 minutes max
-  });
-  
-  const stat = require('fs').statSync(localPath);
-  console.log(`Backup size: ${(stat.size / 1024 / 1024).toFixed(1)} MB`);
-  
-  // Upload to R2
-  const client = new S3Client({
-    region: 'auto',
-    endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: process.env.R2_ACCESS_KEY_ID,
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-    },
-  });
-  
-  await client.send(new PutObjectCommand({
-    Bucket: 'nodbusiness-backups',
-    Key: `database/${timestamp}.sql.gz`,
-    Body: createReadStream(localPath),
-    ContentType: 'application/gzip',
-  }));
-  
-  // Clean up local file
-  require('fs').unlinkSync(localPath);
-  
-  console.log(`✅ Backup completed: database/${timestamp}.sql.gz`);
-}
+```bash
+# Manual run / one-off:
+cd backend && npm run backup
 
-runBackup().catch(err => {
-  console.error('❌ Backup failed:', err.message);
-  process.exit(1);
-});
+# Weekly restorability proof (scratch DB only — never production):
+BACKUP_VERIFY_DATABASE_URL=postgres://<scratch> npm run backup:verify
 ```
+
+Operator prerequisites: R2 env vars set, `postgresql-client` in the Railway image, weekly
+verify scheduled. Full details: `operations/BACKUPS.md § Independent Backups`.
 
 **Recovery from backup:**
 ```bash
-# 1. Download latest backup from R2
-aws s3 cp s3://nodbusiness-backups/database/$(date +%Y-%m-%d).sql.gz /tmp/restore.sql.gz
+# 1. Download latest backup from R2 (prefix: backups/)
+#    If dumped with --format=custom use pg_restore (NOT gunzip|psql):
+pg_restore --no-owner --dbname="$NEW_DATABASE_URL" nodbusiness-<stamp>.sql
 
 # 2. Create new database instance (Neon or DO)
-# 3. Restore
-gunzip -c /tmp/restore.sql.gz | psql $NEW_DATABASE_URL
-
+# 3. Restore (above)
 # 4. Verify row counts
 psql $NEW_DATABASE_URL -c "
   SELECT 'users' AS table, COUNT(*) FROM users

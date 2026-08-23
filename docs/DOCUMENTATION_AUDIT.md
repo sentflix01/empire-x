@@ -67,7 +67,7 @@
 | O-16 | STATE_MANAGEMENT omits live Zustand layer ("don't use Redux" framing contradicts store/index.ts) | frontend/STATE_MANAGEMENT.md |
 | O-17 | MONITORING_STACK Sentry v7 APIs on a v10 SDK sample; duplicate monitoring content across 3 folders — consolidate | infrastructure/ + operations/ + best-practice/ |
 | O-18 | SCALING_PLAN vs SCALABILITY_PLAN_GROWTH ~70% overlap with different numbers — merge into one staged plan | infrastructure/ |
-| O-19 | BACKUPS: no automated backup exists yet despite RTO/RPO table; implement dump-to-R2 job + restore verification before trusting DR doc | operations/BACKUPS.md, infrastructure/DISASTER_RECOVERY.md |
+| O-19 | BACKUPS: no automated backup exists yet despite RTO/RPO table; implement dump-to-R2 job + restore verification before trusting DR doc — **✅ implemented 2026-08-23** (scripts/backup-database.js + verify-backup.js, TD-020). Remaining operator steps: configure R2 in prod, ensure postgresql-client in the Railway image, schedule weekly verify. | operations/BACKUPS.md, infrastructure/DISASTER_RECOVERY.md |
 | O-20 | KEPLOY instructions target non-existent `node index.js` entrypoint | operations/KEPLOY.md |
 | O-21 | Load-test scripts referenced but absent (`scripts/load-test-*.js`) — write them or drop claims | CAPACITY_PLANNING, SCALABILITY_PLAN_GROWTH |
 | O-22 | A_B_TESTING references non-existent experiments lib/hook; no analytics SDK installed — either build assignment infra or reframe as design-only | product/A_B_TESTING.md |

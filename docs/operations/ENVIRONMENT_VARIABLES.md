@@ -105,6 +105,8 @@ The boot-time check in `index.ts` enforces **only these two** — the app hard-e
 | `OPENAI_API_KEY` | OpenAI API key | `sk-...` |
 | `DB_POOL_MAX` | PostgreSQL pool size (`db/pool.ts`) | `10` — raise under load; Neon pooled connections recommended |
 | `COMMISSION_RATE` | Platform commission as decimal (`services/commission.ts`) | `0.03` (flat 3%) |
+| `BACKUP_RETENTION_DAYS` | Local backup retention (`scripts/backup-database.js`) | `14` |
+| `BACKUP_SCHEDULE_ENABLED` | Force the daily backup schedule outside production | unset (auto-enables in production) |
 | `OPENAI_MODEL` | Model to use | match `.env.example`; verify against your OpenAI account before relying on a specific model |
 | `GEMINI_API_KEY` | Google Gemini API key | `AIza...` |
 | `GEMINI_MODEL` | Gemini model | `gemini-1.5-flash` |
