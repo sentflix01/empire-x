@@ -299,4 +299,4 @@ Phase 3 (Series A+): Full audit by Big 4 or reputable CPA firm
 
 *Maintained by: CEO (Phase 1), CFO (Phase 2+)*
 *Review cycle: Quarterly, or after any financial incident*
-*Last reviewed: [Date]*
+*Last reviewed: August 2026 — spending authority table in §1 supersedes FINANCIAL_MODEL §6*

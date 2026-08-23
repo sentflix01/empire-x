@@ -3,7 +3,12 @@
 > **The complete knowledge base for building Nodbusiness into a global platform.**
 > Every decision, standard, policy, strategy, and plan lives here.
 > If it is not documented here, it does not officially exist.
-> Last updated: August 2026
+> Last updated: 2026-08-23
+>
+> **Canonical sources (single source of truth — other docs must reference, not redefine):**
+> Incident severity → `operations/SEVERITY_LEVELS.md` · Money model → `architecture/CURRENCY_AND_COMMISSION.md`
+> Shipped status → `product/ROADMAP.md` · Feature flags → `product/FEATURE_FLAGS.md`
+> Audit/remediation register → `DOCUMENTATION_AUDIT.md`
 
 ---
 
@@ -111,6 +116,7 @@ docs/
 | `architecture/ERD.md` | Database entity relationship diagram |
 | `architecture/ADR.md` | Architecture Decision Records (technical choices) |
 | `architecture/THREAT_MODEL.md` | Security threats and mitigations |
+| `architecture/CURRENCY_AND_COMMISSION.md` | **Canonical money model** — ETB ledger, 3% commission, payout status |
 | `architecture/SEQUENCE_DIAGRAMS.md` | Request flow diagrams |
 | `architecture/DATA_FLOW.md` | How data moves through the system |
 | `architecture/API_VERSIONING.md` | API versioning strategy |
@@ -129,6 +135,7 @@ docs/
 | Document | Purpose |
 |----------|---------|
 | `infrastructure/README.md` | Infrastructure overview |
+| `infrastructure/SLO.md` | Service Level Objectives & error budgets |
 | `infrastructure/CURRENT_STATE.md` | Current hosting, services, and costs |
 | `infrastructure/CI_CD_PIPELINE.md` | Build, test, deploy pipeline |
 | `infrastructure/CLOUD_PROVIDERS.md` | Railway, Vercel, Neon, Upstash usage |
@@ -144,8 +151,9 @@ docs/
 | `infrastructure/LAUNCH_CHECKLIST.md` | Pre-launch technical checklist |
 | `infrastructure/TIMELINE.md` | Infrastructure build timeline |
 | `operations/DEPLOYMENT.md` | How to deploy to production |
-| `operations/RUNBOOKS.md` | Step-by-step fixes for known issues |
-| `operations/INCIDENT_RESPONSE.md` | How to respond to incidents |
+| `operations/SEVERITY_LEVELS.md` | **Canonical incident severity matrix** — SLAs, escalation, comms |
+| `operations/POSTMORTEM_TEMPLATE.md` | Blameless postmortem template (72h deadline) |
+| `operations/RUNBOOKS.md` | Step-by-step fixes for known issues || `operations/INCIDENT_RESPONSE.md` | How to respond to incidents |
 | `operations/ON_CALL.md` | On-call guide and escalation matrix |
 | `operations/MONITORING.md` | Monitoring dashboards and alerts |
 | `operations/BACKUPS.md` | Backup schedule and restore procedures |
@@ -255,7 +263,6 @@ docs/
 | `growth/INTERNATIONALISATION.md` | Country expansion playbook |
 | `growth/COMPETITIVE_ANALYSIS.md` | Competitor tracking |
 | `growth/MONETIZATION.md` | Revenue stream development |
-| `growth/SCALABILITY.md` | Platform scalability for growth |
 
 ---
 

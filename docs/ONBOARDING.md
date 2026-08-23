@@ -107,12 +107,12 @@ docker compose up
 
 | File | What it does |
 |---|---|
-| `backend/index.js` | App entry point — middleware, routes, server startup |
-| `backend/utils/crud.js` | Generic CRUD helpers — used by most route files |
+| `backend/index.ts` | App entry point — middleware, routes, server startup |
+| `backend/utils/crud.ts` | Generic CRUD helpers — used by most route files |
 | `backend/lib/ai.js` | AI abstraction — supports OpenAI/Gemini/Anthropic |
-| `backend/lib/featureFlags.js` | Feature flag system with % rollouts |
-| `backend/lib/queue.js` | BullMQ background jobs with sync fallback |
-| `backend/middleware/auth.js` | JWT auth — `requireAuth`, `optionalAuth`, `requireAdmin` |
+| `backend/lib/featureFlags.ts` | Feature flag system with % rollouts |
+| `backend/lib/queue.ts` | BullMQ background jobs with sync fallback |
+| `backend/middleware/auth.ts` | JWT auth — `requireAuth`, `optionalAuth`, `requireAdmin` |
 | `frontend-next/lib/AuthContext.tsx` | Auth state — the single source of truth for user |
 | `frontend-next/lib/CartContext.tsx` | Cart state — syncs with backend |
 | `frontend-next/api/entities.ts` | Typed API layer for all entities |
@@ -127,9 +127,9 @@ docker compose up
 
 1. Create or open `backend/routes/feature.js`
 2. Add the route with `requireAuth`, input validation, ownership check, error handling
-3. Register in `backend/index.js`: `app.use('/api/feature', require('./routes/feature'))`
+3. Register in `backend/index.ts`: `app.use('/api/feature', require('./routes/feature'))`
 4. Add any new tables to a new migration file (`migrate9.js`, etc.)
-5. Add new table names to `ALLOWED_TABLES` in `backend/utils/crud.js`
+5. Add new table names to `ALLOWED_TABLES` in `backend/utils/crud.ts`
 6. Document the endpoint in `docs/backend/API.md`
 
 ### Frontend — new page
@@ -143,7 +143,7 @@ docker compose up
 ### Feature flag
 
 ```js
-// 1. Add to DEFAULT_FLAGS in backend/lib/featureFlags.js
+// 1. Add to DEFAULT_FLAGS in backend/lib/featureFlags.ts
 my_feature: { enabled: false, rollout: 0, description: 'My new feature' }
 
 // 2. Check in route

@@ -170,7 +170,7 @@ These boundaries protect the core identity:
 |--------|-----------|--------|
 | GMV | Total value of all orders | $50K/mo (Month 6) |
 | MRR (Monthly Recurring Revenue) | Subscription revenue | $5K (Month 6) |
-| Take Rate | Net Revenue / GMV | ~7% |
+| Take Rate | Net Revenue / GMV | Current: 3% (flat commission, see `architecture/CURRENCY_AND_COMMISSION.md`) · Target: ~5% by 2027 via subscriptions + value-added services |
 | ARPU | Monthly revenue / MAU | $2/mo (Month 6) |
 | LTV | Avg revenue per user × avg retention | $200+ |
 | CAC | Marketing spend / new users | < $10 |

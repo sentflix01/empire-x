@@ -50,19 +50,19 @@ Layer 7: Process         — Code review, pen testing, post-mortems
 
 | Control | Where | What it does |
 |---|---|---|
-| JWT authentication | `middleware/auth.js` | Verifies every request has valid token |
-| Ban enforcement | `middleware/auth.js` | Banned users get 403 immediately |
-| Rate limiting | `index.js` | 500 req/15min general; 20 req/15min auth |
-| ALLOWED_TABLES | `utils/crud.js` | Prevents SQL injection via table names |
+| JWT authentication | `middleware/auth.ts` | Verifies every request has valid token |
+| Ban enforcement | `middleware/auth.ts` | Banned users get 403 immediately |
+| Rate limiting | `index.ts` | 500 req/15min general; 20 req/15min auth |
+| ALLOWED_TABLES | `utils/crud.ts` | Prevents SQL injection via table names |
 | Parameterized SQL | All routes | `$1`, `$2` params in all queries |
 | Input validation | All routes | Required field checks before DB operations |
 | Ownership checks | All mutation routes | Only owner or admin can modify resources |
-| CORS | `index.js` | Only configured frontend origins allowed |
-| Helmet.js | `index.js` | Security headers (CSP, HSTS, XSS protection) |
-| Content Security Policy | `index.js` + `next.config.ts` | Blocks unauthorized script sources |
+| CORS | `index.ts` | Only configured frontend origins allowed |
+| Helmet.js | `index.ts` | Security headers (CSP, HSTS, XSS protection) |
+| Content Security Policy | `index.ts` + `next.config.ts` | Blocks unauthorized script sources |
 | HTTPS everywhere | Cloudflare | TLS enforced, HTTP redirected |
-| File upload validation | `middleware/upload.js` | MIME type and size checks |
-| Admin role enforcement | `middleware/auth.js` | `requireAdmin` on admin routes |
+| File upload validation | `middleware/upload.ts` | MIME type and size checks |
+| Admin role enforcement | `middleware/auth.ts` | `requireAdmin` on admin routes |
 
 ### ❌ Not Yet Implemented (Prioritized)
 
@@ -111,7 +111,7 @@ const token = req.cookies?.access_token || req.headers.authorization?.slice(7);
 ### JWT Rotation (Token Revocation)
 
 ```javascript
-// backend/middleware/auth.js — already built
+// backend/middleware/auth.ts — already built
 // Revoke by JTI (per-token):
 await redis.set(`revoked:${payload.jti}`, '1', 'EX', 7 * 24 * 60 * 60);
 
@@ -122,7 +122,7 @@ await redis.set(`revoke_before:${userId}`, String(Math.floor(Date.now() / 1000))
 ### Password Security
 
 ```javascript
-// backend/routes/auth.js — bcrypt with cost factor 12
+// backend/routes/auth.ts — bcrypt with cost factor 12
 const hash = await bcrypt.hash(password, 12);
 
 // Minimum requirements (enforce on frontend + backend):
@@ -149,7 +149,7 @@ const { rows } = await pool.query(
 );
 
 // ✅ ALLOWED_TABLES prevents table injection:
-// backend/utils/crud.js
+// backend/utils/crud.ts
 validateTable(table); // throws if not in allowlist
 
 // ❌ Never do:
@@ -216,7 +216,7 @@ Every new endpoint must pass this checklist:
 ## File Upload Security
 
 ```javascript
-// backend/middleware/upload.js — current security:
+// backend/middleware/upload.ts — current security:
 
 const ALLOWED_MIME_TYPES = new Set([
   'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif',
@@ -285,7 +285,7 @@ updates:
 ## Security Headers (Current vs Target)
 
 ```javascript
-// Current (Helmet.js in index.js):
+// Current (Helmet.js in index.ts):
 X-Content-Type-Options: nosniff             ✅
 X-Frame-Options: DENY                       ✅
 X-XSS-Protection: 1; mode=block            ✅

@@ -29,19 +29,24 @@
 ## Running Migrations
 
 ```bash
-# Run all migrations in order (fresh database)
+# Run all pending migrations in order (tracked, idempotent)
 cd backend && npm run migrate
 
-# Run a specific migration
-node db/migrate7.js
+# Check what is applied / pending
+psql $DATABASE_URL -c "SELECT * FROM schema_migrations ORDER BY applied_at"
 
-# Check migration status (no built-in tracker — each migration uses IF NOT EXISTS)
-psql $DATABASE_URL -c "\dt"  # list all tables
+# List all tables
+psql $DATABASE_URL -c "\dt"
 ```
+
+`db/migrate-all.js` auto-discovers `migrate*.js` files and records each applied migration in the
+**`schema_migrations`** tracking table (name, checksum, applied_at). Re-running is safe: already
+applied migrations are skipped. Legacy scripts are spawned as subprocesses; newer ones export a
+function.
 
 ---
 
-## Migration Files
+## Migration Files (complete registry — 34 files)
 
 | File | Contents |
 |---|---|
@@ -53,6 +58,31 @@ psql $DATABASE_URL -c "\dt"  # list all tables
 | `migrate6.js` | Adds 'poll' to posts post_type constraint |
 | `migrate7.js` | Adds ticker_type column, sets default to 'none', backfills existing profiles |
 | `migrate8.js` | 30+ performance indexes for queries, geo, FTS, notifications |
+| `migrate9.js` | Chapa support: `orders.chapa_tx_ref` column |
+| `migrate10.js` | Showroom External API: external_data_sources, external_health_records, field_mappings |
+| `migrate11.js` | Composite indexes (notifications unread count, feed, chat) |
+| `migrate12.js` | `users.is_seed` flag + dismissed_suggestions table |
+| `migrate13.js` | verification_requests table (selfie + ID document review) — ⚠️ see TECHNICAL_DEBT: routes/verification.ts writes columns that don't exist here yet |
+| `migrate14.js` | messages: edited + reply_to_id columns |
+| `migrate15.js` | users.last_seen (presence) |
+| `migrate16.js` | Missing performance indexes on hot query paths |
+| `migrate17.js` | user_profiles social/website/phone/languages/certifications columns (ProfileEdit) |
+| `migrate18.js` | user_profiles verification_type / verified_at / verification_note |
+| `migrate19.js` | user_profiles cover position columns (drag-to-position editor) |
+| `migrate20.js` | Stripe schema support; orders.status CHECK extended with payment_failed/refunded |
+| `migrate21.js` | devops_items table (admin Developer Ops board) |
+| `migrate22.js` | Repair of migrate20's broad constraint drops on orders |
+| `migrate23.js` | Data cleanup/repair pass |
+| `migrate24.js` | Repair posts.comment_count drift from seed data |
+| `migrate25.js` | Backfill users.full_name from profile display_name |
+| `migrate26.js` | Performance indexes for messages/conversations |
+| `migrate27.js` | comments.parent_id for threaded replies |
+| `migrate28.js` | users.is_banned + ban_reason (moderation) |
+| `migrate29.js` | app_settings key-value store (version board, feature toggles) |
+| `migrate30.js` | error_events table (DevOps live error feed, fingerprint dedupe) |
+| `migrate31.js` | conversation_participants junction table (replaces JSON-array-only lookup) |
+| `migrate32.js` | Full-text search tsvector columns (posts/products/profiles) + indexes |
+| `migrate33.js` | Scalability indexes: FK columns + high-traffic query paths |
 
 ---
 
@@ -104,7 +134,7 @@ migrate();
 | `IF NOT EXISTS` on all migrations | Idempotent — safe to re-run |
 | No soft deletes | Hard delete; `reports` table handles abuse tracking |
 | Parameterized queries only | SQL injection prevention |
-| ALLOWED_TABLES allowlist | `crud.js` validates table names |
+| ALLOWED_TABLES allowlist | `crud.ts` validates table names |
 
 ---
 

@@ -28,7 +28,7 @@
 
 ### TD-001: HttpOnly cookie refresh tokens
 **Status:** ✅ Done (July 2026)
-**Files changed:** `backend/routes/auth.js`, `backend/middleware/auth.js`, `backend/index.js`, `frontend-next/api/client.ts`
+**Files changed:** `backend/routes/auth.ts`, `backend/middleware/auth.ts`, `backend/index.ts`, `frontend-next/api/client.ts`
 **What was done:**
 - Access token shortened to 15 min, stored in memory only (not localStorage)
 - Refresh token (7 days) set as HttpOnly cookie by backend on every login/refresh
@@ -42,7 +42,7 @@
 
 ### TD-002: Wallet topup should be internal-only in production
 **Status:** ✅ Done (July 2026)
-**File:** `backend/routes/wallet.js`
+**File:** `backend/routes/wallet.ts`
 **What was done:** `POST /api/wallet/topup` now requires `requireAdmin` middleware. Direct topup is admin-only; user topups flow exclusively through Chapa (`/topup/chapa` → webhook verify).
 
 ---
@@ -58,17 +58,16 @@
 ## Medium Priority
 
 ### TD-004: TypeScript migration (backend)
-**Status:** Not started  
-**File:** All `backend/` files  
-**Problem:** Backend is JavaScript — no type checking, autocomplete is limited, refactoring is risky.  
-**Fix:** Rename `.js` to `.ts`, add `tsconfig.json`, fix type errors incrementally. Add Prisma for type-safe DB queries.  
+**Status:** ✅ Done (August 2026)
+**File:** All `backend/` files
+**Resolution:** Backend is fully TypeScript (70 `.ts` files, `tsconfig.json`, `tsc --noEmit` clean in CI). Prisma was evaluated and not adopted — pg + typed helpers remain.
 **Impact:** Developer experience, bug prevention at scale.
 
 ---
 
 ### TD-005: JWT revocation blocklist
 **Status:** ✅ Done (July 2026)
-**Files changed:** `backend/routes/auth.js`, `backend/middleware/auth.js`
+**Files changed:** `backend/routes/auth.ts`, `backend/middleware/auth.ts`
 **What was done:**
 - All JWTs now include a `jti` (JWT ID) claim
 - Revoked JTIs stored in Redis as `revoked:{jti}` with TTL matching token expiry
@@ -94,7 +93,7 @@
 
 ### TD-008: Prisma ORM migration
 **Status:** Not started (depends on TD-004)  
-**File:** `backend/utils/crud.js` and all route files  
+**File:** `backend/utils/crud.ts` and all route files  
 **Problem:** Raw SQL is hard to refactor safely and doesn't provide type safety.  
 **Fix:** After TypeScript migration, add Prisma. Generate schema from existing DB. Replace `pool.query` calls progressively.  
 **Impact:** Developer experience, safer database access.
@@ -136,7 +135,7 @@ Removed the old Vite frontend folder entirely. `frontend-next/` is the only fron
 
 ### TD-013: CSP headers
 **Status:** ✅ Done (July 2026)
-**Files changed:** `backend/index.js`, `frontend-next/next.config.ts`
+**Files changed:** `backend/index.ts`, `frontend-next/next.config.ts`
 **What was done:**
 - Backend (API-only): strict CSP in production — `default-src 'none'`, allows only `connect-src 'self'`
 - Frontend (Next.js): full CSP with `script-src`, `img-src`, `connect-src`, `frame-src` for Stripe; `unsafe-inline`/`unsafe-eval` only in dev for HMR
@@ -153,10 +152,61 @@ Removed the old Vite frontend folder entirely. `frontend-next/` is the only fron
 | TD-0xx | updateRecord null not checked by callers | July 2026 |
 | TD-0xx | Missing GET / route in reviews.js | July 2026 |
 | TD-0xx | Feed query sorted by UUID instead of recency | July 2026 |
-| TD-0xx | No table name validation in crud.js | July 2026 |
+| TD-0xx | No table name validation in crud.ts | July 2026 |
 | TD-0xx | CORS blocking Next.js frontend (port 3000) | July 2026 |
 | TD-0xx | Socket.IO CORS single origin | July 2026 |
 | TD-0xx | CartProvider wrapping AuthProvider (wrong order) | July 2026 |
 | TD-0xx | AppLayout duplicating auth.me() call | July 2026 |
 | TD-0xx | 401 in AppLayout not redirecting to /login | July 2026 |
 | TD-0xx | Missing wallet debit/refund routes | July 2026 |
+
+---
+
+## Added 2026-08-23 (security hardening audit)
+
+### TD-014: Access token still mirrored to localStorage + JS cookie
+**Status:** Open · **Priority:** High
+**Problem:** rontend-next/api/client.ts storeToken() writes the 15-min access token to
+localStorage and a JS-readable cookie (for middleware route gating), contradicting ADR-004's
+"memory only" goal. XSS can steal the session.
+**Fix:** Move route-gating off cookie sniffing (session probe via /api/auth/me), keep token in memory only.
+
+---
+
+### TD-015: PurchaseModal polls a non-existent Chapa endpoint
+**Status:** Open · **Priority:** High
+**Problem:** components/checkout/PurchaseModal.tsx polls GET /api/orders/chapa/status/:tx_ref
+every 3s — that endpoint does not exist; every poll 404s. Confirmation works only via redirect.
+**Fix:** Poll GET /api/orders/:id or the verify callback; see docs/backend/PAYMENT_INTEGRATION.md.
+
+---
+
+### TD-016: TLS certificate validation disabled on Neon/Upstash
+**Status:** Open · **Priority:** High
+**Problem:** ejectUnauthorized: false in db/pool.ts, lib/redis.ts, socket Redis adapter —
+traffic is encrypted but not authenticated (MITM-tolerant).
+**Fix:** Validate certificates against system CAs or pin the provider CA.
+
+---
+
+### TD-017: SVG uploads allowed without sanitization
+**Status:** Open · **Priority:** Medium
+**Problem:** middleware/upload.ts accepts image/svg+xml into public storage — stored-XSS vector.
+Also no magic-byte validation (MIME + extension are client-controlled strings).
+**Fix:** Drop SVG or sanitize server-side (e.g., DOMPurify/svgo); add file-type sniffing.
+
+---
+
+### TD-018: Dev seed credentials tracked in git
+**Status:** Open · **Priority:** Medium
+**Problem:** backend/db/dev-credentials.json contains plaintext dev account passwords incl. admin.
+Safe locally, dangerous if seed scripts ever run against production.
+**Fix:** Generate credentials from env at seed time; remove the tracked file.
+
+---
+
+### TD-019: CI is non-blocking and deploys are not gated on it
+**Status:** Open · **Priority:** High
+**Problem:** ci.yml wraps tests/typecheck/audit in || true; deploy.yml runs independently of CI;
+post-deploy healthcheck always exits 0. See docs/infrastructure/CI_CD_PIPELINE.md gap plan.
+**Fix:** Remove || true, add workflow_run gating, fail the healthcheck job + notify Telegram.

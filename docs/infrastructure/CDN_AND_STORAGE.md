@@ -243,7 +243,7 @@ When video posts are built:
 ## File Upload Security
 
 ```javascript
-// Current validation in backend/middleware/upload.js:
+// Current validation in backend/middleware/upload.ts:
 
 const ALLOWED_MIME_TYPES = [
   'image/jpeg', 'image/png', 'image/gif', 'image/webp',

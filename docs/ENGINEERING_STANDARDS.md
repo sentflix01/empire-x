@@ -107,7 +107,7 @@ PR description explains: what changed, why, how to test.
 
 | Thing | Convention | Example |
 |---|---|---|
-| Files | camelCase | `featureFlags.js`, `crud.js` |
+| Files | camelCase | `featureFlags.ts`, `crud.ts` |
 | Route files | plural nouns | `products.js`, `orders.js` |
 | Functions | camelCase | `getOrCreateWallet()` |
 | Constants | UPPER_SNAKE | `LOW_STOCK_THRESHOLD`, `ALLOWED_TABLES` |
@@ -177,7 +177,7 @@ router.put('/:id', requireAuth, async (req, res) => {
 | UUID primary keys | All tables — `gen_random_uuid()` |
 | Timestamps on all tables | `created_at` always; `updated_at` on mutable tables |
 | Parameterized queries | Never string-concatenate SQL with user input |
-| ALLOWED_TABLES validation | `crud.js` — validated before every query |
+| ALLOWED_TABLES validation | `crud.ts` — validated before every query |
 | Migrations are idempotent | Always use `IF NOT EXISTS` |
 | No hardcoded IDs in migrations | Use SELECT to find related records |
 | Backwards-compatible migrations | Add columns, don't drop them mid-flight |
@@ -259,7 +259,7 @@ console.log('Order created:', order);
 
 Every new feature that's not a bug fix should be behind a feature flag:
 
-1. Add the flag to `DEFAULT_FLAGS` in `backend/lib/featureFlags.js`
+1. Add the flag to `DEFAULT_FLAGS` in `backend/lib/featureFlags.ts`
 2. Check the flag in the route or component
 3. Default to `false` (disabled) for new features
 4. Enable gradually: 1% → 10% → 50% → 100%

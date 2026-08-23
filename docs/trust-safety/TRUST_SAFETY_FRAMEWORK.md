@@ -221,7 +221,7 @@ These features help users self-assess trustworthiness of sellers/buyers:
 | ✅ Verified badge | Identity verified via KYC |
 | ⭐ Star rating | Aggregated from completed transactions |
 | 📦 Transaction count | Number of completed orders |
-| 🔒 Escrow | Funds held until buyer confirms delivery |
+| 🔒 Escrow | Funds held until buyer confirms delivery — **planned, not built** (see `SAFETY_TRUST_PRODUCT.md`) |
 | 📋 Response rate | % of messages replied to within 24 hours |
 | 📅 Member since | Account age (older = more trusted baseline) |
 | 🌍 Location verified | Business address confirmed |
@@ -231,10 +231,16 @@ These features help users self-assess trustworthiness of sellers/buyers:
 ## 8. Special Populations Policy
 
 ### Minors
-- No users under 13 permitted (align with COPPA)
-- Users 13–17 require parental consent (where local law requires it)
-- Minor accounts have restricted access to marketplace and messaging features
-- If we identify a minor in an adult account, account is suspended
+
+> **Canonical age policy: 18+.** This matches `legal/TERMS_OF_SERVICE.md` §2,
+> `legal/PRIVACY_POLICY.md`, and `compliance/LEGAL_COMPLIANCE_CHECKLIST.md`. Nodbusiness is a
+> marketplace with payments and financial features; there is no minor tier, no parental-consent
+> flow, and no DOB collection yet (age gate tracked in TECHNICAL_DEBT).
+
+- No users under 18 are permitted. Terms of Service require users to be 18 or older.
+- If we identify a user under 18 in an account, the account is suspended pending review.
+- Any future relaxation (e.g., 16+ with verified guardian consent) requires an ADR, a
+  consent workflow in code, and synchronized updates to every legal document first.
 
 ### Vulnerable Users
 - Users who show signs of mental health crisis are shown crisis resources

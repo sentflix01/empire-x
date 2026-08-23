@@ -26,14 +26,12 @@
 
 ---
 
-## Incident Severity Levels## Incident Severity Levels
+## Incident Severity Levels
 
-| Level | Description | Response Time | Example |
-|---|---|---|---|
-| P0 | Complete outage — all users affected | Immediate | Database down, backend crash loop |
-| P1 | Major degradation — key feature broken | <15 min | Payments failing, auth broken |
-| P2 | Partial degradation — some users affected | <1 hour | AI not responding, notifications delayed |
-| P3 | Minor issue — workaround exists | <24 hours | Slow queries, email delays |
+> **Canonical matrix: [`operations/SEVERITY_LEVELS.md`](SEVERITY_LEVELS.md).** Summary:
+> SEV-1 platform down / money or data at risk (immediate) · SEV-2 core feature degraded
+> (<15 min) · SEV-3 limited impact (<4 business hours) · SEV-4 cosmetic (backlog).
+> This runbook uses those levels; do not redefine them here.
 
 ---
 
@@ -157,7 +155,7 @@ Actual:   Connection refused / 502
 | Error | Cause | Fix |
 |---|---|---|
 | `Cannot read properties of null` | updateRecord returned null, not checked | Add null guard (`if (!updated) return 404`) |
-| `Invalid table name` | crud.js validateTable rejected a table | Add missing table to ALLOWED_TABLES |
+| `Invalid table name` | crud.ts validateTable rejected a table | Add missing table to ALLOWED_TABLES |
 | `JWT expired` | User's token is old | Expected — client should refresh. Check if redirect to /login works |
 | `ECONNREFUSED` | Database or Redis unreachable | See Runbook 2 or Runbook 6 |
 | `Webhook signature invalid` | Wrong STRIPE_WEBHOOK_SECRET | Update env var in Railway |
@@ -205,7 +203,7 @@ Actual:   Connection refused / 502
 - Check if it shows connected or an error
 
 **Step 2 — Impact assessment**
-The app is designed to work without Redis (no-op fallback in `lib/redis.js`):
+The app is designed to work without Redis (no-op fallback in `lib/redis.ts`):
 - Feature flags fall back to env vars + hardcoded defaults ✅
 - BullMQ jobs run synchronously (emails/notifications still work, slower) ✅
 - Real-time Socket.IO still works (single instance) ✅

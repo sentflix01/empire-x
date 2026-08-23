@@ -13,7 +13,7 @@
     user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name        TEXT NOT NULL,               -- "My Shopify Integration"
     key_hash    TEXT NOT NULL UNIQUE,        -- SHA-256 hash of actual key
-    key_prefix  TEXT NOT NULL,              -- "hale_live_xxxx" first 16 chars (for display)
+    key_prefix  TEXT NOT NULL,              -- "nodb_live_xxxx" first 16 chars (for display)
     tier        TEXT NOT NULL DEFAULT 'free'
                 CHECK (tier IN ('free','pro','enterprise')),
     rate_limit  INTEGER NOT NULL DEFAULT 100, -- req/hour
@@ -35,9 +35,9 @@
   const crypto = require('crypto');
 
   function generateKey() {
-    // Format: hale_live_[32 random hex chars]
+    // Format: nodb_live_[32 random hex chars]
     const raw = crypto.randomBytes(16).toString('hex');
-    return `hale_live_${raw}`;
+    return `nodb_live_${raw}`;
   }
 
   function hashKey(key) {
@@ -71,9 +71,9 @@
 
 ## Step 4 — API Key Authentication Middleware
 
-- [ ] Create `backend/middleware/apiKeyAuth.js`:
+- [ ] Create `backend/middleware/apiKeyauth.ts`:
   ```js
-  // Accepts: Authorization: Bearer hale_live_xxxxxxxxxxxx
+  // Accepts: Authorization: Bearer nodb_live_xxxxxxxxxxxx
   // Looks up key hash → finds user → sets req.user
   // Increments usage counter
   // Checks rate limit (Redis counter per key per hour)
@@ -81,9 +81,9 @@
   // Returns 429 if rate limited
   ```
 
-- [ ] Update `backend/middleware/auth.js`:
+- [ ] Update `backend/middleware/auth.ts`:
   - `requireAuth` middleware checks BOTH JWT token AND API key
-  - If Authorization header starts with `hale_live_` → use API key auth
+  - If Authorization header starts with `nodb_live_` → use API key auth
   - Otherwise → use JWT auth (existing behavior)
   - This is backward compatible — no existing code changes needed
 
@@ -122,7 +122,7 @@
 
 ## Step 7 — Verify
 
-- [ ] Create a key, copy it, make an API call: `curl -H "Authorization: Bearer hale_live_xxx" https://nodbusiness.vercel.app/api/posts`
+- [ ] Create a key, copy it, make an API call: `curl -H "Authorization: Bearer nodb_live_xxx" https://nodbusiness.vercel.app/api/posts`
 - [ ] Verify 401 on invalid key
 - [ ] Verify 429 when rate limit exceeded
 - [ ] Verify key shows as prefix-only in dashboard after creation

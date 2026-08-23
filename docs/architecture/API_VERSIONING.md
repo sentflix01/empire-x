@@ -56,7 +56,7 @@ Do NOT version for:
 ## Versioning in Code
 
 ```javascript
-// backend/middleware/apiVersion.js
+// backend/middleware/apiVersion.ts
 // Current: sets API-Version header on all responses
 
 // Future: route-level versioning

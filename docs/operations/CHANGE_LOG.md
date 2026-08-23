@@ -45,12 +45,37 @@ When you deploy, add an entry at the top of the DEPLOYED section:
 
 ---
 
+### v1.0.0 — August 2026
+**Type:** security + fix + docs
+**Impact:** Major security hardening pass; TypeScript backend complete; test suite restored to 257 green
+
+**Security**
+- Access-token type enforcement: refresh tokens no longer work as Bearer credentials (`middleware/auth.ts`, Socket.IO handshake — with revocation + ban checks)
+- OTPs now generated with CSPRNG (`crypto.randomBytes`); null-safe verification
+- Password-reset tokens stored hashed (SHA-256), not plaintext
+- SQL injection closed: `sanitizeColumn()` in crud helpers + field allowlists on orders/devops; `resolved_at` set-bug fixed in devops
+- Mass-assignment protection on order create/update (role-scoped status transitions, money/ownership fields stripped)
+- Wallet Chapa top-up verify made concurrency-safe (transactional claim, underpayment rejection); sandbox pages 404 in production
+- SSRF hardening: redirects rejected on proxy fetch; IPv6 ULA/link-local/multicast/NAT64 blocked; proxy rate-limit key uses validated `req.ip`
+- Stripe webhook idempotency made atomic (claim + release-on-failure)
+- Feed cache isolated per user (was serving one user's personalized feed to another); personalized responses now `Cache-Control: private`
+- 5xx error messages no longer leak internals; single crash-handler owner; safe ROLLBACKs
+
+**Fixes / infra**
+- Jest configured for TypeScript (ts-jest) — all 17 suites, 257 tests passing (were 14 broken suites)
+- Frontend: client-error reporter env var fixed (reports were going nowhere); root + global error boundaries added; `useAuth` guard made real; lint errors cleared; production build verified
+
+**Docs**
+- Documentation audit completed across all 170+ files: canonical severity matrix, money model, postmortem template created; fictional endpoints/commands removed; commission/currency/age policies reconciled
+
+---
+
 ### v0.9.5 — August 2026
 **Type:** feat + security + docs
 **Impact:** DevOps live error feed; full docs reorganization; frontend errors auto-reported
 
 - Added `error_events` table (migrate30.js) for real-time error capture
-- Added `backend/lib/errorCollector.js` — all server errors auto-captured to DB
+- Added `backend/lib/errorCollector.ts` — all server errors auto-captured to DB
 - Added `GlobalErrorReporter.tsx` — frontend JS errors reported to DevOps
 - ErrorBoundary updated to also report React render errors
 - DevOps panel: new "Live Errors" tab with auto-poll every 15 seconds

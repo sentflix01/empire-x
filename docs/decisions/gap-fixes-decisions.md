@@ -13,10 +13,10 @@ This spec covers 13 bugs across the full-stack application, grouped into five ca
 | Category | Bugs | Files Affected |
 |----------|------|---------------|
 | Migration & Schema | 1.1, 1.2 | `migrate7.js`, `migrate8.js` |
-| Route & Handler | 1.3, 1.4, 1.5, 1.6, 1.7 | `profiles.js`, `products.js`, `notifications.js`, `reviews.js`, `posts.js`, `crud.js` |
-| CORS & Connectivity | 1.8, 1.9 | `index.js`, `socket.js`, `.env.example` |
+| Route & Handler | 1.3, 1.4, 1.5, 1.6, 1.7 | `profiles.js`, `products.js`, `notifications.js`, `reviews.js`, `posts.js`, `crud.ts` |
+| CORS & Connectivity | 1.8, 1.9 | `index.ts`, `socket.ts`, `.env.example` |
 | Frontend Auth & Providers | 1.10, 1.11, 1.12 | `providers.tsx`, `CartContext.tsx`, `AppLayout.tsx` |
-| Wallet Transactions | 1.13 | `wallet.js`, `returns.js` |
+| Wallet Transactions | 1.13 | `wallet.ts`, `returns.js` |
 
 Each decision below documents why a particular fix strategy was chosen over alternatives.
 
@@ -178,7 +178,7 @@ is replaced with the CTE query. No other branches are touched.
 
 ---
 
-### Decision R.5 — Bug 1.7: How to prevent SQL injection via table name in `crud.js`?
+### Decision R.5 — Bug 1.7: How to prevent SQL injection via table name in `crud.ts`?
 
 **Bug:** The `table` argument in all five CRUD functions is interpolated directly into SQL
 without validation.
@@ -238,29 +238,29 @@ if (process.env.NODE_ENV !== 'production') {
 }
 ```
 
-**Impact:** `index.js` CORS config and the `initSocket` call are updated. `.env.example`
+**Impact:** `index.ts` CORS config and the `initSocket` call are updated. `.env.example`
 shows the comma-separated format.
 
 ---
 
 ### Decision C.2 — Bug 1.9: Should Socket.IO CORS use the same origin list as HTTP?
 
-**Bug:** `socket.js` `initSocket` passes the raw `corsOrigin` string directly to Socket.IO,
+**Bug:** `socket.ts` `initSocket` passes the raw `corsOrigin` string directly to Socket.IO,
 blocking the Next.js origin.
 
 **Options Considered:**
 | Option | Description |
 |--------|-------------|
-| **A — Pass the same `allowedOrigins` array from index.js** ✅ | Single source of truth; guaranteed consistency |
+| **A — Pass the same `allowedOrigins` array from index.ts** ✅ | Single source of truth; guaranteed consistency |
 | B — Maintain a separate Socket.IO origin list | Two configs to keep in sync; fragile |
 
 **Decision Made:** Option A.
 
 **Rationale:** HTTP CORS and Socket.IO CORS should always agree on which origins are
-permitted. `index.js` builds the `allowedOrigins` array and passes it to both
+permitted. `index.ts` builds the `allowedOrigins` array and passes it to both
 `cors(corsOptions)` and `initSocket(server, allowedOrigins)`.
 
-**Impact:** `initSocket` signature is unchanged but now accepts an array. Inside `socket.js`,
+**Impact:** `initSocket` signature is unchanged but now accepts an array. Inside `socket.ts`,
 `const origins = Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin || 'http://localhost:5173']`
 ensures backward compatibility.
 
@@ -360,7 +360,7 @@ branch is covered by a preservation test.
 
 ### Decision W.1 — Bug 1.13: How to add debit and refund wallet routes?
 
-**Bug:** `wallet.js` only has `POST /topup` (credit) and `POST /withdraw`. The schema
+**Bug:** `wallet.ts` only has `POST /topup` (credit) and `POST /withdraw`. The schema
 supports `debit` and `refund` types but no routes exist.
 
 **Options Considered:**
@@ -414,7 +414,7 @@ solution.
 
 ---
 
-### Decision TM.3 — Property-based testing scope for crud.js allowlist
+### Decision TM.3 — Property-based testing scope for crud.ts allowlist
 
 **Question:** For the `ALLOWED_TABLES` validation, should PBT generate random strings or
 use a constrained set?
@@ -441,7 +441,7 @@ The following behaviors were verified on unfixed code and must remain unchanged 
 | 3.6 | `POST /api/reviews` upserts and recalculates rating | 1.5 |
 | 3.7 | `DELETE /api/reviews/:id` deletes and recalculates | 1.5 |
 | 3.8 | `GET /api/posts` without `feed=true` sorts correctly | 1.6 |
-| 3.9 | All current crud.js callers still work (in ALLOWED_TABLES) | 1.7 |
+| 3.9 | All current crud.ts callers still work (in ALLOWED_TABLES) | 1.7 |
 | 3.10 | Vite frontend (port 5173) continues to work after CORS fix | 1.8, 1.9 |
 | 3.11 | AppLayout displays correct user name, avatar, admin link | 1.11 |
 | 3.12 | `logout()` clears token and redirects to /login | 1.12 |

@@ -26,8 +26,6 @@
 
 ---
 
-## Why Accessibility Matters for Nodbusiness---
-
 ## Why Accessibility Matters for Nodbusiness
 
 1. **Legal obligation:** ADA (US users), WCAG (international best practice), Ethiopian disability rights

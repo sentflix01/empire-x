@@ -61,7 +61,7 @@ This is exactly how "Login with Google" / "Login with Apple" works.
 
 ## Step 2 — OAuth Server Routes
 
-- [ ] Create `backend/routes/oauth.js`:
+- [ ] Create `backend/routes/oauth.ts`:
 
   ```
   GET  /oauth/authorize

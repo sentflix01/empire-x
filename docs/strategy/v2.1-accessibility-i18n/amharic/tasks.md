@@ -23,7 +23,7 @@
   locales/
     en/
       common.json     ← shared: buttons, labels, status messages
-      auth.json       ← login, register, OTP
+      auth.tson       ← login, register, OTP
       feed.json       ← feed, posts, stories
       marketplace.json← products, cart, checkout, orders
       tasks.json      ← tasks, bids
@@ -31,7 +31,7 @@
       profile.json    ← profile, settings
       showrooms.json  ← builder, public page
       discover.json   ← search, explore, nearby
-      wallet.json     ← wallet, payments
+      wallet.tson     ← wallet, payments
       jobs.json       ← jobs, applications
       events.json     ← events, tickets
       courses.json    ← courses, lessons
@@ -51,7 +51,7 @@
 
 ---
 
-## Step 4 — Translate auth.json
+## Step 4 — Translate auth.tson
 
 - [ ] "Create your account", "Sign in", "Verify your email", "Enter the 6-digit code"
 - [ ] All error messages: "Email already taken", "Wrong OTP code", "Password too weak"

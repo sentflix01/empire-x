@@ -47,7 +47,7 @@ Revenue Streams:
 **What:** A percentage of every completed order goes to the platform.
 
 **Current implementation:**
-- `commission.js` route collects commission on order completion
+- `commission.ts` route collects commission on order completion
 - Commission is collected from **seller's wallet** automatically
 - Rate is configurable via admin
 

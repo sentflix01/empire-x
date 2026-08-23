@@ -209,7 +209,7 @@ Priority: 🟡 HIGH
 [ ] Configure Socket.IO Redis adapter
     Allows WebSocket rooms to work across multiple instances:
     
-    // backend/socket.js
+    // backend/socket.ts
     const { createAdapter } = require('@socket.io/redis-adapter');
     const pubClient = createClient({ url: process.env.REDIS_URL });
     const subClient = pubClient.duplicate();
@@ -243,7 +243,7 @@ Priority: 🟡 HIGH
     Alert: If > 8,000 commands/day (near free tier limit)
     
 [ ] Implement cache warming on startup
-    Already built in index.js — ensure it fires correctly
+    Already built in index.ts — ensure it fires correctly
     
 [ ] Add cache for: user profiles, business listings, showrooms
     TTL: 60–300 seconds

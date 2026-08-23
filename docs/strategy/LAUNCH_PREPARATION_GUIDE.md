@@ -425,7 +425,7 @@ In `frontend-next/app/layout.tsx` or your footer component, ensure this appears:
 **Step 5.2 — Add to all source files**
 
 Add this header comment to every important source file.
-The most critical files are: `index.js`, `seed.js`, key components, and the AI module.
+The most critical files are: `index.ts`, `seed.js`, key components, and the AI module.
 
 ```javascript
 /**
@@ -1314,9 +1314,9 @@ A trademark only has value if you enforce it. If you allow others to use
 2. Social media monitoring: check monthly for @nodbusiness impersonators
 3. App store monitoring: search "Nodbusiness" in App Store and Play Store monthly
 4. Domain monitoring: set alerts on Cloudflare for domains similar to yours
-   → haIehame.com (capital i instead of l — looks identical)
-   → hallehame.com (double l)
-   → nodbusiness.net (different TLD)
+   → nodbisiness.com (letter swap: i instead of u — looks identical)
+   → nodbusiness.net / .io / .co (different TLDs)
+   → getnodbusiness.com / nodbusiness-app.com (prefix/suffix impersonation)
 ```
 
 **When you find a potential infringer:**

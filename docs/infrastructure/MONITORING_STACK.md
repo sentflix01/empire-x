@@ -41,7 +41,7 @@
 ```
 
 ```javascript
-// backend/lib/sentry.js — already built, just needs SENTRY_DSN set
+// backend/lib/sentry.ts — already built, just needs SENTRY_DSN set
 // Frontend: next.config.ts already includes Sentry CSP headers
 
 // What Sentry captures automatically:
@@ -94,7 +94,7 @@
 ### Structured Logging with Pino (Already Built)
 
 ```javascript
-// backend/lib/logger.js — already configured
+// backend/lib/logger.ts — already configured
 // Every log has: timestamp, level, service, env, plus context
 
 // Good log examples:
@@ -147,7 +147,7 @@ WHERE created_at > NOW() - INTERVAL '7 days';
 ### Sentry Performance Monitoring
 
 ```javascript
-// backend/index.js — Sentry is already initialized
+// backend/index.ts — Sentry is already initialized
 // Add performance monitoring configuration:
 
 Sentry.init({

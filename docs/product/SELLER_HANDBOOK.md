@@ -235,14 +235,19 @@ For the full list: see `docs/legal/CONTENT_POLICY.md` and `docs/trust-safety/COM
 
 Commission is charged as a percentage of the order total when an order is marked "Completed." You only pay commission on completed sales — never on listings or pending orders.
 
-| Order value | Commission rate |
-|------------|----------------|
-| Under $10 (or local equivalent) | 6% |
-| $10 – $50 (or local equivalent) | 5% |
-| Over $50 (or local equivalent) | 4% |
-| Pro subscribers (any value) | 4% |
+| Item | Rate |
+|------|------|
+| **Platform commission** | **Flat 3%** of the total paid amount (after discounts, before delivery) |
+| Payment processing | Charged by Stripe/Chapa, not by Nodbusiness |
 
-**Reference (Ethiopia):** ETB equivalent thresholds apply at the current exchange rate.
+> Tiered commission rates may be introduced in the future. If they are, this page and the
+> Seller Agreement will be updated before any change takes effect — you will always see the
+> exact rate at the time of sale.
+
+**Payouts:** After an order completes, net proceeds (order total minus 3%) are settled to your
+Nodbusiness wallet, from which you can request withdrawal to your bank ("Wallet → Withdraw",
+processed within 1–3 business days). During the launch period settlement is initiated by
+Nodbusiness after completion rather than automatically at payment time.
 
 ---
 

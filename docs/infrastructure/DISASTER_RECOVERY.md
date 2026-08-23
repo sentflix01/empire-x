@@ -103,19 +103,18 @@ pg_dump $DATABASE_URL | gzip | aws s3 cp - s3://nodbusiness-backups/db/daily-$(d
 
 ## Scenario 3: Accidental Data Deletion
 
-**Prevention (do now):**
+**Prevention:**
+PostgreSQL triggers cannot inspect a DELETE's WHERE clause, so a row-count trigger would block
+*every* delete on busy tables. Use layered controls instead:
+
 ```sql
--- Add BEFORE DELETE triggers on critical tables
-CREATE OR REPLACE FUNCTION prevent_mass_delete()
-RETURNS trigger AS $$
-BEGIN
-  -- Block DELETE without WHERE clause on critical tables
-  IF (SELECT COUNT(*) FROM orders) > 100 THEN
-    RAISE EXCEPTION 'Mass delete blocked. Use WHERE clause or contact DBA.';
-  END IF;
-  RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
+-- 1. Application-level guard (already implemented in utils/crud.ts):
+--    ALLOWED_TABLES + parameterized IDs — no bulk-delete endpoints exist.
+
+-- 2. Neon-side safety nets:
+--    • Point-in-time restore (below) is the real protection.
+--    • Restrict production DATABASE_URL to the backend service only;
+--      ad-hoc psql work uses a read-only role.
 ```
 
 **Recovery using Neon point-in-time recovery:**
@@ -224,16 +223,15 @@ psql $NEW_DATABASE_URL -c "
 ### Account Takeover (JWT leak)
 
 ```bash
-# Immediately invalidate ALL JWT tokens
-# This logs out every user — communicate before doing
+# Invalidate ALL tokens (access + refresh) at once:
+# Rotate JWT_SECRET in Railway env vars — both token kinds are signed with it.
+# New secret = every existing token fails verification. Railway redeploys with the new secret.
 
-# In Redis (if configured):
-redis-cli SET revoke_before:all $(date +%s)
-
-# Or: rotate JWT_SECRET in Railway env vars
-# New secret = all existing tokens invalid
-# Railway auto-restarts with new secret
-# Time: < 2 minutes
+# ⚠️ There is NO global "revoke_before:all" Redis key. Per-user revocation exists as
+#    revoke_before:{userId} (used by logout-all) and must be set per user:
+#    redis-cli SET revoke_before:<userId> $(date +%s)
+# Use the JWT_SECRET rotation for platform-wide invalidation.
+# Time: < 2 minutes + redeploy
 ```
 
 ### Data Breach (unauthorized DB access)
@@ -266,16 +264,18 @@ Within 72 hours (GDPR requirement):
 ## Scenario 6: Stripe Outage (Payment Processing Down)
 
 ```javascript
-// Feature flag already built — enable immediately if Stripe is down
+// Feature flag exists — disable the Stripe rail instantly if Stripe is down.
 
-// In Railway env vars:
-FF_STRIPE_PAYMENTS=false
+// FAST PATH (no redeploy): flip the flag in Redis (setFlag('stripe_payments', false))
+//   redis-cli SET ff:stripe_payments '{"enabled":false,"rollout":0,"description":"Stripe hosted checkout (automatic payment methods)"}' EX 3600
 
-// Effect (no redeploy needed, takes effect in < 5 minutes):
-// - Stripe checkout button disappears
-// - Chapa button still works
-// - COD still works
-// - 503 error message for Stripe attempts changes to "Use Chapa or COD"
+// SLOW PATH: FF_STRIPE_PAYMENTS=false in Railway env vars
+//   ⚠️ Changing env vars TRIGGERS A REDEPLOY — not the emergency path.
+
+// Effect:
+// - Stripe checkout returns 503 "Stripe payments temporarily disabled"
+// - Chapa button still works (when chapa_payments enabled)
+// - COD order creation still works
 ```
 
 ---

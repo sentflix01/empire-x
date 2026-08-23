@@ -131,7 +131,7 @@
 
 ### Performance
 - [ ] Enable Neon connection pooling (Neon Console → Settings → Connection Pooling)
-- [ ] Verify pool size set to `max: 20` in `backend/db/pool.js`
+- [ ] Verify pool size set to `max: 20` in `backend/db/pool.ts`
 - [ ] Run `EXPLAIN ANALYZE` on 5 most common queries — no seq scans
 - [ ] Feed load time: < 1 second on 4G connection (test with DevTools throttle)
 - [ ] Product listing load time: < 800ms
@@ -161,7 +161,7 @@
 - [ ] Test verification granting
 
 ### Business
-- [ ] Commission rate configured correctly in featureFlags.js
+- [ ] Commission rate configured correctly in featureFlags.ts
 - [ ] At least 10 seed products listed in marketplace
 - [ ] At least 5 seed showrooms published
 - [ ] At least 3 real seller accounts onboarded and trained

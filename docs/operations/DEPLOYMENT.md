@@ -82,15 +82,17 @@ Public production requirements are stricter: use R2 for uploads, managed Redis i
 
 | Variable | Required | Description |
 |---|---|---|
-| `NODE_ENV` | Yes | `production` |
-| `PORT` | Yes | `3001` |
-| `DATABASE_URL` | Yes | Neon PostgreSQL connection string |
-| `JWT_SECRET` | Yes | 64+ char random string |
-| `JWT_EXPIRES_IN` | No | Default `7d` |
+| `DATABASE_URL` | **Yes (enforced)** | Neon PostgreSQL connection string — app hard-exits without it |
+| `JWT_SECRET` | **Yes (enforced)** | 64+ char random string — app hard-exits without it |
+| `NODE_ENV` | Recommended | `production` enables Helmet CSP, prod rate limits, Secure cookies |
+| `PORT` | No | Default `3001` |
 | `FRONTEND_URL` | Yes | `https://nodbusiness.vercel.app` (comma-separated for multiple or wildcard patterns like `https://*.vercel.app`) |
 | `RESEND_API_KEY` | Recommended | Starts with `re_` |
 
 > Tip: `FRONTEND_URL` can contain multiple trusted origins separated by commas. The first valid URL is used for email/reset links and checkout redirects, while wildcard patterns are used for CORS origins.
+
+| Variable | Required | Description |
+|---|---|---|
 | `EMAIL_FROM` | No | `Nodbusiness <noreply@nodbusiness.app>` |
 | `STRIPE_SECRET_KEY` | For payments | `sk_live_...` |
 | `STRIPE_WEBHOOK_SECRET` | For payments | `whsec_...` |

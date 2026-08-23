@@ -51,13 +51,13 @@ frontend-next/locales/
     common.json      ← buttons, labels, states
     feed.json        ← feed-specific strings
     marketplace.json ← marketplace strings
-    auth.json        ← login/register strings
+    auth.tson        ← login/register strings
     ...
   am/
     common.json      ← Amharic equivalents
     feed.json
     marketplace.json
-    auth.json
+    auth.tson
     ...
 ```
 

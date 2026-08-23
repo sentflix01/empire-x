@@ -166,9 +166,9 @@ R2:         $0.50/month
 Resend:     $0 (< 3K emails, upgrade at ~2K users to $20/month)
 Total:      ~$70/month
 
-Revenue (assuming 1,000 orders/month × ETB 500 × 6%):
-→ ETB 30,000/month commission = ~$240/month
-→ Infrastructure is 29% of revenue → OK
+Revenue (assuming 1,000 orders/month × ETB 500 × 3%):
+→ ETB 15,000/month commission = ~$120/month
+→ Infrastructure is 58% of revenue → acceptable at launch; subscriptions/other revenue close the gap
 ```
 
 ---
@@ -234,9 +234,9 @@ Resend Growth:                   $89/month (50K emails)
 Sentry Team:                     $26/month
 Total:                           ~$316/month
 
-Revenue (5,000 orders/month × ETB 800 × 6%):
-→ ETB 240,000 commission ≈ $1,920/month
-→ Infrastructure is 16% of revenue → Healthy
+Revenue (5,000 orders/month × ETB 800 × 3%):
+→ ETB 120,000 commission ≈ $960/month
+→ Infrastructure is 33% of revenue → acceptable; monitor as order value grows
 ```
 
 ---
@@ -289,9 +289,9 @@ PagerDuty:                              $100/month
 DataDog/Grafana:                        $200/month
 Total:                                  ~$1,530/month
 
-Revenue (20,000 orders/month × ETB 1,000 × 6% + 1,000 subscriptions × ETB 299):
-→ ETB 1.2M commission + ETB 299K subs = ETB 1.5M/month ≈ $12,000/month
-→ Infrastructure is 13% of revenue → Excellent ratio
+Revenue (20,000 orders/month × ETB 1,000 × 3% + 1,000 subscriptions × ETB 299):
+→ ETB 600K commission + ETB 299K subs = ETB 0.9M/month ≈ $7,000/month
+→ Infrastructure is 22% of revenue → Healthy
 ```
 
 ---
@@ -311,9 +311,9 @@ At this scale, move from Railway to AWS:
   
 Total cost: ~$20,000–50,000/month
 
-Revenue (100,000 orders/month × ETB 1,500 × 6% + 10,000 subs × ETB 299):
-→ ETB 9M commission + ETB 3M subs = ETB 12M/month ≈ $96,000/month
-→ Infrastructure is 21–52% of revenue → Need to optimize
+Revenue (100,000 orders/month × ETB 1,500 × 3% + 10,000 subs × ETB 299):
+→ ETB 4.5M commission + ETB 3M subs = ETB 7.5M/month ≈ $60,000/month
+→ Infrastructure is 33–83% of revenue → Must optimize before this stage
 ```
 
 ---

@@ -50,7 +50,7 @@ At Nodbusiness, we run A/B tests on changes that affect:
 Users are assigned to experiment variants using a **deterministic hash** of their user ID:
 
 ```javascript
-// backend/lib/experiments.js
+// backend/lib/experiments.ts
 function getVariant(userId, experimentName, variants = ['control', 'treatment']) {
   const hash = crypto.createHash('md5')
     .update(`${userId}:${experimentName}`)

@@ -42,12 +42,16 @@
 
 ## 2. Severity Levels
 
+> **Canonical matrix: [`operations/SEVERITY_LEVELS.md`](SEVERITY_LEVELS.md).** This page uses
+> SEV-1…SEV-4 (formerly P0–P3) as defined there — response SLAs, update cadence, escalation,
+> and communication rules all come from that document, not from here.
+
 | Level | Definition | Response Time | Examples |
 |-------|-----------|--------------|---------|
-| **P0 — Critical** | Platform-wide outage; no users can use the app | 15 minutes | Database down, all API calls failing, payment system down |
-| **P1 — High** | Core feature broken for many users | 1 hour | Login broken, orders not processing, messages not sending |
-| **P2 — Medium** | Feature degraded or broken for some users | 4 hours | Search slow, images not loading, some payments failing |
-| **P3 — Low** | Minor issue affecting few users | 24 hours | UI glitch, non-critical feature broken, edge case error |
+| **SEV-1** | Platform down; money or data at risk | Immediate (24/7) | Database down, payment double-charging, data breach |
+| **SEV-2** | Core feature degraded, workaround exists | <15 min (24/7) | Login broken for some users, one payment rail failing |
+| **SEV-3** | Limited impact | <4 business hours | Search slow, notifications delayed, Redis down |
+| **SEV-4** | Cosmetic / no user impact | Backlog | UI glitch, dashboard tile broken |
 
 ---
 

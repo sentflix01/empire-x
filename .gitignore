@@ -40,3 +40,7 @@ Thumbs.db
 # Kiro / Codex temporary working directories
 .codex-tmp*/
 .kiro/tmp*/
+
+# TypeScript incremental build caches
+*.tsbuildinfo
+backend/dist/

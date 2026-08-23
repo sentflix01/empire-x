@@ -529,7 +529,7 @@ function getDisplayStatus(record) {
 
 Strips query params before truncating to 80 chars — prevents leaking `api_key_query` credentials that may be in the URL's query string.
 
-### Registration in `index.js`
+### Registration in `index.ts`
 
 ```js
 app.use('/api/showrooms/:showroomId/external-sources', require('./routes/externalSources'));
@@ -567,7 +567,7 @@ Respects `X-Forwarded-For` for proxied/load-balanced environments.
 | `{ mappingFailed: true }` | 500 | `{ "error": "mapping_failed" }` |
 | Unexpected throw | 502 | `{ "error": "upstream_error", "status": null }` |
 
-**Registration in `index.js`:**
+**Registration in `index.ts`:**
 ```js
 app.use('/api/proxy', require('./routes/proxy'));
 ```
@@ -1169,7 +1169,7 @@ The three new tables are **not yet in the database**. This is the only thing blo
    ```
    EXTERNAL_API_ENCRYPTION_KEY=  # 64 hex chars = 32 bytes for AES-256-GCM
    ```
-4. Update `backend/index.js` `checkEnv()` to warn in dev (not error) if the key is absent
+4. Update `backend/index.ts` `checkEnv()` to warn in dev (not error) if the key is absent
 
 ### Generate a key
 
@@ -1197,7 +1197,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 | File | Change |
 |------|--------|
-| `backend/index.js` | Two new `app.use()` registrations |
+| `backend/index.ts` | Two new `app.use()` registrations |
 | `backend/db/migrate-all.js` | ⚠️ Needs migrate10 registration |
 | `backend/.env.example` | ⚠️ Needs `EXTERNAL_API_ENCRYPTION_KEY` |
 

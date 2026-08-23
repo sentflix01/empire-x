@@ -86,8 +86,8 @@
 
 **ETB equivalent:** ~ETB 27,000–33,000/month
 
-**Revenue to cover costs (at 6% commission, ETB 500 avg order):**
-→ Need ~900 orders/month to cover infrastructure = ~30 orders/day
+**Revenue to cover costs (at 3% commission — the current platform rate, ETB 500 avg order):**
+→ Need ~1,800 orders/month to cover infrastructure = ~60 orders/day
 
 ---
 
@@ -112,8 +112,8 @@
 
 **ETB equivalent:** ~ETB 72,000–113,000/month
 
-**Revenue to cover costs (at 6% commission, ETB 800 avg order):**
-→ Need ~2,400 orders/month = ~80 orders/day (very achievable at 10K+ users)
+**Revenue to cover costs (at 3% commission, ETB 800 avg order):**
+→ Need ~4,700 orders/month = ~160 orders/day (achievable at 10K+ users)
 
 ---
 
@@ -139,7 +139,7 @@
 
 **ETB equivalent:** ~ETB 294,000–638,000/month
 
-**Revenue to cover costs (at 6% commission + subscriptions):**
+**Revenue to cover costs (at 3% commission + subscriptions):**
 → At 100K users, revenue should be ETB 1–5M/month
 → Infrastructure is ~10–20% of revenue (healthy ratio)
 

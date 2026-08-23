@@ -64,23 +64,27 @@
 **Goal: 10,000 active users, first significant GMV**
 
 ### Product
-- [ ] Local payment methods (mobile money, regional gateways)
-- [ ] Product variants (size, color, stock per variant)
-- [ ] Return requests + refunds
-- [ ] Delivery tracking timeline
-- [ ] Order confirmation emails
-- [ ] Price drop alerts (wishlist)
-- [ ] Coupon codes
-- [ ] Business analytics dashboard
-- [ ] Referral program
-- [ ] Events ticketing
-- [ ] Jobs board
-- [ ] Courses marketplace
+- [ ] Local payment methods beyond Chapa (mobile money, regional gateways)
+- [x] Product variants (size, color, stock per variant) — `product_variants`, variant-aware cart
+- [x] Return requests + refunds — `returns.ts` (approve/reject; refunds executed by admin via wallet)
+- [x] Delivery tracking timeline — `delivery.ts`
+- [x] Order confirmation emails — Resend/SMTP on order completion
+- [x] Price drop alerts (wishlist) — price_alerts table
+- [x] Coupon codes — seller coupon CRUD + checkout redemption
+- [ ] Business analytics dashboard (basic version shipped in Admin; seller-facing analytics next)
+- [x] Referral program — `referral.ts`
+- [x] Events ticketing — events + event_tickets
+- [x] Jobs board — jobs + job_applications
+- [x] Courses marketplace — courses + lessons + enrollments
+
+> Statuses verified against `backend/routes/` and feature-flag defaults 2026-08-23.
+> This file is the **single source of truth for shipped status** — other docs must not mark
+> features built/shipped except by reference to this roadmap.
 
 ### Engineering
-- [ ] Redis + BullMQ activated (`REDIS_URL` configured)
-- [ ] Performance indexes (`migrate8.js` run on production)
-- [ ] Better Uptime monitoring
+- [ ] Redis + BullMQ fully activated in production paths (`REDIS_URL` configured)
+- [x] Performance indexes (`migrate8.js` + migrate11/16/26/32/33 run in production)
+- [ ] Uptime monitoring with alerting wired to the severity matrix (`operations/MONITORING.md`)
 - [ ] Vercel Analytics enabled
 
 ---
@@ -89,8 +93,8 @@
 **Goal: 100,000 users, expand to Kenya and Nigeria**
 
 ### Product
-- [ ] Multi-language (Swahili, Hausa, Yoruba alongside Amharic + English)
-- [ ] Multi-currency (KES, NGN alongside ETB)
+- [ ] Multi-language (Swahili + French alongside Amharic + English; sequence per `product/LOCALIZATION.md`)
+- [ ] Multi-currency display (KES, NGN — ledger stays ETB per `architecture/CURRENCY_AND_COMMISSION.md`)
 - [ ] Community groups
 - [ ] Live streaming (feature flag: `live_streaming`)
 - [ ] Video posts (feature flag: `video_posts`)
@@ -101,9 +105,10 @@
 
 ### Engineering
 - [ ] Meilisearch for full-text product/profile search
-- [ ] TypeScript migration (backend)
-- [ ] Prisma ORM
-- [ ] HttpOnly cookie refresh tokens
+- [x] TypeScript migration (backend) — complete since August 2026
+- [ ] Prisma ORM (evaluate again post-TypeScript; pg + typed helpers currently sufficient)
+- [x] HttpOnly cookie refresh tokens (shipped July 2026) + access-token type enforcement (Aug 2026); remaining work: remove localStorage mirror of access token (TD-014)
+- [x] JWT revocation via Redis blocklist (`revoked:{jti}` + `revoke_before:{userId}`)
 - [ ] Read replicas (Neon Scale plan)
 - [ ] Separate BullMQ worker containers
 
@@ -171,17 +176,22 @@
 
 ## Technical Debt (Living List)
 
+Canonical register: **`operations/TECHNICAL_DEBT.md`** — this list mirrors its highlights.
+
 ### High Priority
-- [ ] HttpOnly cookie refresh tokens (replace localStorage JWT)
-- [ ] JWT revocation via Redis blocklist
+- [x] HttpOnly cookie refresh tokens (replace localStorage JWT) — shipped; residual: remove access-token localStorage mirror (TD-014)
+- [x] JWT revocation via Redis blocklist — shipped July 2026
 - [ ] End-to-end test suite (Playwright)
+- [ ] CI made blocking + deploys gated on CI (TD-019)
+- [ ] TLS certificate validation on Neon/Upstash (TD-016)
 
 ### Medium Priority
-- [ ] TypeScript on backend
-- [ ] Prisma ORM migration
+- [x] TypeScript on backend — complete
+- [ ] Prisma ORM migration (re-evaluate)
 - [ ] Optimize notification polling (replace with socket-only)
 - [ ] Image optimization pipeline (Cloudflare Workers)
+- [ ] Audit logging for financial/admin actions (TD-012)
 
 ### Low Priority
-- [ ] Refactor `AppLayout.tsx` — remove `@ts-nocheck`
+- [x] Refactor `AppLayout.tsx` — no `@ts-nocheck` remains
 - [ ] Replace polling interval in entities.ts subscribe()

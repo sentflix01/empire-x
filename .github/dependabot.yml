@@ -1,0 +1,42 @@
+version: 2
+updates:
+  # Backend dependencies — weekly, grouped to keep PRs reviewable
+  - package-ecosystem: npm
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    labels:
+      - dependencies
+      - backend
+
+  # Frontend dependencies — Next.js majors can be breaking; keep them separate
+  - package-ecosystem: npm
+    directory: /frontend-next
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    labels:
+      - dependencies
+      - frontend
+
+  # GitHub Actions versions (checkout/setup-node/etc.)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - ci

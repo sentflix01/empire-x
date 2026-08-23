@@ -65,7 +65,7 @@
 
 **Context:** Prisma/Drizzle add type safety but require a build step and schema maintenance. Speed of iteration matters more at MVP (Minimum Viable Product).
 
-**Decision:** Raw SQL with `backend/utils/crud.js` helpers. `ALLOWED_TABLES` Set prevents SQL injection via dynamic table names.
+**Decision:** Raw SQL with `backend/utils/crud.ts` helpers. `ALLOWED_TABLES` Set prevents SQL injection via dynamic table names.
 
 **Future:** Adopt Prisma when backend migrates to TypeScript.
 
@@ -117,7 +117,7 @@
 
 **Context:** Releasing features to all users at once risks outages. Staged rollout catches issues early.
 
-**Decision:** `backend/lib/featureFlags.js` — env var override (instant) > Redis override (real-time) > hardcoded defaults. Percentage rollout uses deterministic user ID hash so the same user always gets the same experience.
+**Decision:** `backend/lib/featureFlags.ts` — env var override (instant) > Redis override (real-time) > hardcoded defaults. Percentage rollout uses deterministic user ID hash so the same user always gets the same experience.
 
 **Consequences:** Any feature can be disabled instantly without a deploy. Rollout percentage is configurable via admin panel.
 
@@ -171,25 +171,25 @@
 
 ---
 
-## ADR-012: ALLOWED_TABLES allowlist in crud.js
+## ADR-012: ALLOWED_TABLES allowlist in crud.ts
 
 **Status:** Accepted | **Date:** July 2026
 
 **Context:** Raw SQL with dynamic table names is a SQL injection vector if table names ever come from user input.
 
-**Decision:** Add `ALLOWED_TABLES` Set to `crud.js`. Every CRUD (Create, Read, Update, Delete) function validates the table name before executing SQL. Unknown tables throw `Error('Invalid table name: ...')` before any SQL executes.
+**Decision:** Add `ALLOWED_TABLES` Set to `crud.ts`. Every CRUD (Create, Read, Update, Delete) function validates the table name before executing SQL. Unknown tables throw `Error('Invalid table name: ...')` before any SQL executes.
 
 **Consequences:** SQL injection via table name parameter is impossible. New tables added to CRUD operations must be consciously added to the allowlist.
 
 ---
 
-## ADR-013: Error capture to DB via errorCollector.js
+## ADR-013: Error capture to DB via errorCollector.ts
 
 **Status:** Accepted | **Date:** August 2026
 
 **Context:** Sentry alone does not give engineers immediate visibility into errors within the DevOps panel. Engineers need to see, resolve, and convert errors to tickets without switching tools.
 
-**Decision:** All backend errors (uncaught exceptions, unhandled rejections, route errors) are captured to `error_events` PostgreSQL table via `backend/lib/errorCollector.js`. Frontend errors are captured via `GlobalErrorReporter.tsx` and reported to `POST /api/devops/errors/report`.
+**Decision:** All backend errors (uncaught exceptions, unhandled rejections, route errors) are captured to `error_events` PostgreSQL table via `backend/lib/errorCollector.ts`. Frontend errors are captured via `GlobalErrorReporter.tsx` and reported to `POST /api/devops/errors/report`.
 
 **Consequences:** DevOps panel shows real-time error feed. Errors can be resolved and converted to bug tickets from within the app. Sentry remains as secondary for external alerting. Errors are deduplicated by fingerprint — same error fires once, increments occurrence counter.
 

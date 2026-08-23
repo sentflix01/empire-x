@@ -57,7 +57,7 @@ SENTRY_DSN=https://xxx@o123.ingest.sentry.io/456
 NEXT_PUBLIC_SENTRY_DSN=https://xxx@o123.ingest.sentry.io/789
 ```
 
-`backend/lib/sentry.js` is already wired — just set `SENTRY_DSN`.
+`backend/lib/sentry.ts` is already wired — just set `SENTRY_DSN`.
 
 ### 2. Configure UptimeRobot
 

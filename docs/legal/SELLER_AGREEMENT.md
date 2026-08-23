@@ -64,27 +64,32 @@ When a buyer places an order, you must:
 
 ## 6. Commission & Fees
 
-| Order value | Commission rate |
+| Item | Rate |
 |---|---|
-| ETB 0 – 1,000 | 6% |
-| ETB 1,001 – 5,000 | 5% |
-| ETB 5,001+ | 4% |
-| Pro/Enterprise subscribers | 4% regardless of amount |
+| **Platform commission** | **Flat 3%** of the total paid order amount |
+| Tiered / subscription discounts | Not currently offered; if introduced they will be published here and in the Seller Handbook before taking effect |
+| Payment processing | Charged by the payment provider (Stripe/Chapa), not by Nodbusiness |
 
 **When commission is collected:**
 - Automatically deducted from your wallet when you mark an order "Completed"
 - Commission is calculated on the **total paid amount** (after discounts, before delivery)
 - For payment failures: no commission charged on failed orders
+- If your wallet balance is insufficient at completion time, the commission is recorded as owed and collected from future balance
 
 ---
 
 ## 7. Payments & Payouts
 
+> ⚠️ **Status disclosure (2026-08):** automatic crediting of net proceeds to seller wallets is
+> under development. Until it ships, funds for completed orders are held by the platform and
+> settlement is initiated by Nodbusiness after order completion — no fixed payout SLA is
+> offered during the launch period.
+
 **How you receive payment:**
-1. Buyer pays via Chapa, Stripe, or wallet
-2. Payment is credited to your Nodbusiness wallet (within 48 hours for digital payments)
-3. You withdraw to your bank account via "Wallet → Withdraw"
-4. Processing time: 1–3 business days
+1. Buyer pays via Chapa, Stripe, or COD
+2. Order is marked "Completed" and verified
+3. Net proceeds (order total minus 3% commission) are settled to your Nodbusiness wallet by Nodbusiness
+4. You withdraw to your bank account via "Wallet → Withdraw" — requests are reviewed and processed within 1–3 business days
 
 **Platform may hold payment when:**
 - A buyer has opened a dispute

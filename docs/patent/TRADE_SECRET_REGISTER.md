@@ -41,7 +41,7 @@ and Ethiopian trade secret law.
 
 **Date of Creation:** August 2026
 **Creator:** Nodbusiness Technologies
-**Location:** `backend/lib/featureFlags.js`, `backend/routes/devops.js` (pricing module)
+**Location:** `backend/lib/featureFlags.ts`, `backend/routes/devops.js` (pricing module)
 **Access Level:** Restricted — CEO + 1 Lead Engineer only
 
 **Description:**

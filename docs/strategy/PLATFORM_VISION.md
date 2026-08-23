@@ -106,7 +106,7 @@ GET  /api/developer/keys        → list keys
 DELETE /api/developer/keys/:id  → revoke key
 
 All existing API routes accept:
-  Authorization: Bearer hale_live_xxxxxxxxxxxx
+  Authorization: Bearer nodb_live_xxxxxxxxxxxx
   (in addition to the existing JWT flow)
 
 Rate limiting per key:

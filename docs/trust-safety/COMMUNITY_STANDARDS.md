@@ -2,7 +2,7 @@
 
 > **The rules that govern what is allowed on the Nodbusiness platform.**
 > These standards apply to all users, businesses, and developers on the platform, in every country where Nodbusiness operates.
-> Last updated: [Date]
+> Last updated: August 2026
 
 ---
 

@@ -49,9 +49,9 @@ Stream 3: Featured Placement (Phase 2+)
   City-wide featured (monthly): $99
   Feed promoted post (per post): $9–$49
 
-Stream 4: Transaction Fees (Phase 3)
-  Marketplace orders: 2% per transaction (on top of Stripe/Chapa fees)
-  Task completions: 5% platform fee on gig payments
+Stream 4: Transaction Fees (LIVE — see architecture/CURRENCY_AND_COMMISSION.md)
+  Marketplace orders: 3% commission per completed order (COMMISSION_RATE env, default 0.03)
+  Task completions: no platform fee yet — same rate planned when gig payments route through the wallet
 ```
 
 ---

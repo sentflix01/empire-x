@@ -55,9 +55,11 @@ Nodbusiness displays prices in the user's preferred currency where possible.
 
 **Implementation:**
 - Exchange rates fetched from a public API daily and cached in Redis
-- Prices stored in a base currency (USD) in the database
-- Display currency converted on the frontend per user preference
-- Sellers set prices in their local currency; buyers see converted price
+- **Prices are stored and settled in ETB only** (the ledger currency — see
+  `architecture/CURRENCY_AND_COMMISSION.md`); multi-currency display is a planned layer that
+  never changes stored amounts
+- Display currency converted on the frontend per user preference once that layer ships
+- Sellers set prices in ETB today
 
 ---
 
@@ -69,11 +71,11 @@ All translation strings live in `frontend-next/locales/`:
 locales/
   en/
     common.json        ← buttons, navigation, general UI
-    auth.json          ← login, register, OTP screens
+    auth.tson          ← login, register, OTP screens
     marketplace.json   ← product listing, cart, orders
     showroom.json      ← showroom builder, templates
     feed.json          ← post, comment, story
-    wallet.json        ← balance, topup, withdraw
+    wallet.tson        ← balance, topup, withdraw
     errors.json        ← all error messages
   am/
     common.json        ← Amharic translations

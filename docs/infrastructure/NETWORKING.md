@@ -114,7 +114,7 @@ Cloudflare → Origin: Full (Strict)
 ### HSTS (HTTP Strict Transport Security)
 
 ```
-Already set in backend/index.js:
+Already set in backend/index.ts:
   hsts: { maxAge: 31536000, includeSubDomains: true }
   
 This tells browsers: "Never connect to this domain over HTTP"
@@ -316,7 +316,7 @@ Cloudflare connects to Railway over IPv4. No IPv6 configuration needed on Railwa
 Currently: Express rate-limiter middleware (application level)
 
 ```javascript
-// backend/index.js — already configured
+// backend/index.ts — already configured
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500, skip: () => isDev });
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, skip: () => isDev });
 ```

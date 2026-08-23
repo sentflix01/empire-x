@@ -28,8 +28,6 @@
 
 ---
 
-## How Big Tech Actually Works---
-
 ## How Big Tech Actually Works
 
 A common misconception is that LinkedIn, Facebook, Amazon, and Alibaba have some
@@ -162,7 +160,7 @@ Amazon AppConfig:       0.1% canary → staged → full
 Alibaba:                Region-by-region rollout
 ```
 
-**Nodbusiness equivalent:** `backend/lib/featureFlags.js` already supports this.
+**Nodbusiness equivalent:** `backend/lib/featureFlags.ts` already supports this.
 ```javascript
 // Check if feature is enabled for this user
 const enabled = await isEnabled('personalized_feed', req.user.id);
@@ -219,7 +217,7 @@ Every service has:
 
 ### Now (0–10K users): Culture and Process
 ✅ Already done:
-- Feature flags (`featureFlags.js`)
+- Feature flags (`featureFlags.ts`)
 - Error tracking (Sentry)
 - Structured logging (Pino)
 - Incident runbooks
@@ -260,7 +258,7 @@ Every service has:
 |---|---|---|---|---|
 | Source control | Mercurial/Sapling | Git/GitHub | CodeCommit | **Git/GitHub** |
 | CI/CD | Sandcastle (internal) | Gradle+Li.Deploy | CodePipeline | **GitHub Actions** |
-| Feature flags | GateKeeper | LiX | AppConfig | **featureFlags.js** |
+| Feature flags | GateKeeper | LiX | AppConfig | **featureFlags.ts** |
 | Error tracking | Scuba | Internal | CloudWatch | **Sentry** |
 | Logging | ODS | Kafka+Pinot | CloudWatch | **Pino** |
 | Database | Custom | MySQL+Espresso | DynamoDB+RDS | **PostgreSQL (Neon)** |

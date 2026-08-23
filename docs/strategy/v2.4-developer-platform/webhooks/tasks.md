@@ -108,7 +108,7 @@ Add `emitWebhookEvent()` calls at key points in existing routes:
 - [ ] `routes/orders.js` — emit `order.created`, `order.paid`, `order.completed`
 - [ ] `routes/tasks.js` — emit `task.created`, `task.bid_received`, `task.completed`
 - [ ] `routes/products.js` — emit `product.created`, `product.updated`
-- [ ] `routes/auth.js` — emit `user.registered`, `user.verified`
+- [ ] `routes/auth.ts` — emit `user.registered`, `user.verified`
 - [ ] `routes/messages.js` — emit `message.received`
 - [ ] `routes/showrooms.js` — emit `showroom.published`
 - [ ] `routes/reviews.js` — emit `review.created`

@@ -28,12 +28,20 @@
 
 ### Required (App will not start without these)
 
+The boot-time check in `index.ts` enforces **only these two** — the app hard-exits if either is missing:
+
 | Variable | Description | Example |
 |---|---|---|
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/nodbusiness?sslmode=require` |
 | `JWT_SECRET` | Secret for signing JWTs. Generate: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` | `a8f3...` (64+ chars) |
+
+### Strongly recommended (features degrade or misroute without them)
+
+| Variable | Description | Default behavior without it |
+|---|---|---|
 | `PORT` | HTTP server port | `3001` |
-| `NODE_ENV` | Environment | `development` \| `production` \| `test` |
+| `NODE_ENV` | `production` enables Helmet CSP, prod rate limits, secure cookies, Redis-backed limiter store | dev mode (rate limits skipped, cookies not Secure) |
+| `FRONTEND_URL` | Comma-separated frontend URLs (CORS allowlist, email links) | localhost fallbacks |
 
 ---
 
@@ -95,7 +103,9 @@
 |---|---|---|
 | `AI_PROVIDER` | AI provider selection | `openai` \| `gemini` \| `anthropic` |
 | `OPENAI_API_KEY` | OpenAI API key | `sk-...` |
-| `OPENAI_MODEL` | Model to use | `gpt-4o-mini` |
+| `DB_POOL_MAX` | PostgreSQL pool size (`db/pool.ts`) | `10` — raise under load; Neon pooled connections recommended |
+| `COMMISSION_RATE` | Platform commission as decimal (`services/commission.ts`) | `0.03` (flat 3%) |
+| `OPENAI_MODEL` | Model to use | match `.env.example`; verify against your OpenAI account before relying on a specific model |
 | `GEMINI_API_KEY` | Google Gemini API key | `AIza...` |
 | `GEMINI_MODEL` | Gemini model | `gemini-1.5-flash` |
 | `ANTHROPIC_API_KEY` | Anthropic API key | `sk-ant-...` |
@@ -153,7 +163,7 @@
 
 | Variable | Default | Description |
 |---|---|---|
-| `FF_CHAPA_PAYMENTS` | `true` | Enable Chapa payment option |
+| `FF_CHAPA_PAYMENTS` | `false` | Enable Chapa payment option (code default is **off** — `featureFlags.ts`) |
 | `FF_STRIPE_PAYMENTS` | `true` | Enable Stripe payment option |
 | `FF_PERSONALIZED_FEED` | `false` | Enable ML feed ranking |
 | `FF_VIDEO_POSTS` | `false` | Enable video post upload |

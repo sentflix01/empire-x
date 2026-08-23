@@ -61,7 +61,7 @@ Frontend → POST /api/orders/checkout/session
 
 ### Key Files
 - `backend/routes/orders.js` — checkout session + webhook handler
-- `backend/routes/wallet.js` — wallet top-up via Stripe
+- `backend/routes/wallet.ts` — wallet top-up via Stripe
 - `frontend-next/views/Cart.tsx` — cart checkout flow
 - `frontend-next/components/checkout/PurchaseModal.tsx` — single product checkout
 - `frontend-next/app/(app)/orders/success/page.tsx` — post-payment confirmation page
@@ -103,7 +103,7 @@ const sessionParams = {
 
 ```javascript
 // The raw body must be preserved for signature verification
-// This is set BEFORE express.json() in index.js:
+// This is set BEFORE express.json() in index.ts:
 app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
 
 // Verification in webhook handler:
@@ -165,30 +165,40 @@ Use any future expiry date, any 3-digit CVC, any ZIP code.
 
 ## Chapa Integration
 
-### Architecture
+### Architecture (pull-based verification — no webhook)
+
+Chapa confirmation is **pull-based**: the backend verifies each transaction server-to-server.
+There is no Chapa webhook endpoint — do not register one and do not call one.
 
 ```
 Frontend → POST /api/orders/checkout/chapa
                     ↓
-         Chapa Hosted Checkout (or sandbox page)
+         Chapa Hosted Checkout (or sandbox page in dev)
                     ↓
          User pays via Telebirr/CBE/etc.
                     ↓
-         Chapa redirects to /marketplace?payment=success
+         Chapa calls the registered callback_url:
+           GET /api/orders/chapa/verify/:tx_ref   ← server-side verification
                     ↓
-         Chapa sends webhook POST /api/orders/chapa/webhook
-         (also: GET /api/orders/chapa/verify/:tx_ref)
+         Order marked paid, stock decremented, commission recorded,
+         buyer/seller notified; browser redirected to
+         /orders/success?tx_ref=…&provider=chapa
 ```
 
 ### Key Endpoints
 
 | Endpoint | Purpose |
 |---|---|
-| `POST /api/orders/checkout/chapa` | Initialize Chapa checkout for a product |
-| `GET /api/orders/chapa/verify/:tx_ref` | Verify Chapa payment (called by Chapa + frontend) |
-| `POST /api/orders/chapa/webhook` | Server-to-server webhook from Chapa |
-| `GET /api/orders/chapa/sandbox` | Local sandbox simulation page |
-| `GET /api/orders/chapa/status/:tx_ref` | Frontend polls for payment status |
+| `POST /api/orders/checkout/chapa` | Initialize Chapa checkout for a product (auth required) |
+| `GET /api/orders/chapa/verify/:tx_ref` | Server-to-server verification callback + frontend polling endpoint. Calls Chapa's verify API, then flips the order `pending → paid` exactly once. |
+| `GET /api/orders/chapa/sandbox` | Local sandbox simulation page. **Dev/test only — returns 404 outside sandbox mode or in production.** |
+| `GET /api/wallet/topup/chapa/verify/:tx_ref` | Wallet top-up verification (same pull model, transactional claim) |
+| `GET /api/wallet/topup/chapa/sandbox` | Wallet sandbox page (same restrictions) |
+
+> ⚠️ **Known gap:** the frontend `PurchaseModal.tsx` polls `/api/orders/chapa/status/:tx_ref`,
+> which does not exist — that poll always 404s and the modal relies on the redirect instead.
+> Fix tracked in `operations/TECHNICAL_DEBT.md` (TD-015). Polling should target the order by id
+> (`GET /api/orders/:id`) or the verify endpoint above.
 
 ### Sandbox Mode
 
@@ -197,42 +207,36 @@ Frontend → POST /api/orders/checkout/chapa
 CHAPA_SECRET_KEY=SANDBOX
 ```
 
-With `SANDBOX` as the key, Chapa calls are intercepted and a local sandbox page is shown instead of the real Chapa checkout. No real money moves.
+With `SANDBOX` as the key, Chapa calls are intercepted and a local sandbox page is shown instead of the real Chapa checkout. No real money moves. Sandbox pages are hard-disabled in production regardless of configuration.
 
 ### Transaction Reference Format
 
 ```javascript
-// Order payments
-const tx_ref = `empx-${req.user.id.slice(0, 8)}-${Date.now()}`;
+// Order payments  (backend/routes/orders.ts)
+const tx_ref = `ndb-${req.user.id.slice(0, 8)}-${Date.now()}`;
 
-// Wallet top-ups
+// Wallet top-ups  (backend/routes/wallet.ts)
 const tx_ref = `empx-wallet-${req.user.id.slice(0, 8)}-${Date.now()}`;
 ```
 
-### PurchaseModal Chapa Flow
+> Note: unifying these prefixes is cosmetic debt (TD-016); both are unique per user+timestamp.
 
-```javascript
-// Open Chapa in a new tab while modal stays open
-window.open(data.checkout_url, '_blank', 'width=500,height=700,noopener');
-setChapaTxRef(data.tx_ref);
-setStep("chapa_pending");
+### Callback Registration
 
-// Poll every 3 seconds for payment confirmation
-const interval = setInterval(async () => {
-  const { data } = await client.get(`/api/orders/chapa/status/${chapaTxRef}`);
-  if (data.status === "paid") {
-    clearInterval(interval);
-    setStep("success");
-  }
-}, 3000);
+The verify URL is passed per-transaction as `callback_url` during initialize — no dashboard
+webhook registration exists or is needed:
+
+```
+callback_url = `${API_URL}/api/orders/chapa/verify/${tx_ref}`
+return_url   = `${FRONTEND_URL}/orders/success?tx_ref=${tx_ref}&provider=chapa`
 ```
 
-### Webhook Registration
+### Concurrency & amount safety
 
-Register this URL in Chapa Dashboard → Settings → Webhooks:
-```
-https://your-api.railway.app/api/orders/chapa/webhook
-```
+- The wallet top-up verify claims the `pending_topup` row inside a transaction, so two
+  simultaneous callbacks can never double-credit; the credited amount is the server-recorded
+  expected amount and underpayments are rejected (`routes/wallet.ts`).
+- Order verification flips `pending → paid` with a guarded `UPDATE … WHERE status='pending'`.
 
 ---
 

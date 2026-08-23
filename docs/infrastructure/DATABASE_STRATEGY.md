@@ -98,7 +98,7 @@ ORDER BY pg_total_relation_size(relid) DESC;
 **Trigger:** Database CPU > 60% sustained; OR read queries > 70% of total
 
 ```javascript
-// backend/db/pool.js — add read pool
+// backend/db/pool.ts — add read pool
 
 const { Pool } = require('pg');
 
@@ -152,7 +152,7 @@ module.exports = { query, writePool, readPool };
 **Already built — just needs REDIS_URL activated.**
 
 ```javascript
-// backend/lib/redis.js — already integrated
+// backend/lib/redis.ts — already integrated
 // Caches: trending, feed, profiles, products
 
 // Cache usage in routes:

@@ -72,7 +72,7 @@ Move these off the request path to background workers:
 - Trending score recalculation
 
 ```javascript
-// backend/lib/queue.js already has BullMQ set up
+// backend/lib/queue.ts already has BullMQ set up
 // Just add workers for each job type
 ```
 
@@ -122,7 +122,7 @@ const writePool = new Pool({ connectionString: process.env.DATABASE_URL });
 Socket.IO rooms don't work across instances by default. Solution: Redis adapter.
 
 ```javascript
-// backend/socket.js
+// backend/socket.ts
 const { createAdapter } = require('@socket.io/redis-adapter');
 const { createClient } = require('redis');
 const pubClient = createClient({ url: process.env.REDIS_URL });
