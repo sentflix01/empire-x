@@ -17,7 +17,8 @@
     "seed": "node db/seed.js",
     "clean": "node db/cleanup-seed-data.js",
     "backup": "tsx scripts/backup-database.js",
-    "backup:verify": "tsx scripts/verify-backup.js"
+    "backup:verify": "tsx scripts/verify-backup.js",
+    "docs:api": "tsx scripts/generate-api-docs.js"
   },
   "jest": {
     "testEnvironment": "node",

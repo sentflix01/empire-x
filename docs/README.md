@@ -122,7 +122,8 @@ docs/
 | `architecture/API_VERSIONING.md` | API versioning strategy |
 | `architecture/MOBILE_STRATEGY.md` | Mobile app strategy (PWA + native) |
 | `architecture/PLATFORM_ENGINEERING.md` | Internal platform engineering principles |
-| `backend/API.md` | All API endpoints documented |
+| `backend/API.md` | API conventions, auth model, money-endpoint rules |
+| `backend/API_REFERENCE.md` | **Full endpoint catalog — auto-generated** from routes (`npm run docs:api`) |
 | `backend/DATABASE.md` | Schema, migrations, query patterns |
 | `backend/SECURITY.md` | Auth, rate limiting, input validation |
 | `backend/PAYMENT_INTEGRATION.md` | Stripe and Chapa integration guide |

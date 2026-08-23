@@ -75,13 +75,13 @@ perf(feed): rewrite feed query to sort by feed_rank using CTE
 
 Before opening a PR:
 - [ ] Branch is up-to-date with main
-- [ ] `npm test` passes (backend)
+- [ ] `npx jest --runInBand` passes (backend)
 - [ ] `npm run build` passes (frontend-next)
 - [ ] `npm run lint` passes (frontend-next)
 - [ ] No secrets or credentials in the diff
 - [ ] Feature has a feature flag if gradual rollout is needed
 - [ ] ADR added if this is a significant architectural change
-- [ ] API docs updated if new endpoints were added
+- [ ] **API changed?** Run `cd backend && npm run docs:api` and commit the regenerated `docs/backend/API_REFERENCE.md`
 
 PR title follows conventional commits format.
 PR description explains: what changed, why, how to test.

@@ -1,0 +1,2301 @@
+{
+  "generated_at": "2026-08-23T06:52:06.855Z",
+  "count": 255,
+  "endpoints": [
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/stats",
+      "method": "GET",
+      "path": "/stats",
+      "auth": "public",
+      "line": 11
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/users",
+      "method": "GET",
+      "path": "/users",
+      "auth": "public",
+      "line": 41
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/users/:id/role",
+      "method": "PUT",
+      "path": "/users/:id/role",
+      "auth": "public",
+      "line": 54
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/users/:id",
+      "method": "DELETE",
+      "path": "/users/:id",
+      "auth": "public",
+      "line": 64
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/users/:id/ban",
+      "method": "POST",
+      "path": "/users/:id/ban",
+      "auth": "public",
+      "line": 73
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/users/:id/unban",
+      "method": "POST",
+      "path": "/users/:id/unban",
+      "auth": "public",
+      "line": 87
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/verifications",
+      "method": "GET",
+      "path": "/verifications",
+      "auth": "public",
+      "line": 100
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/verifications/:userId",
+      "method": "POST",
+      "path": "/verifications/:userId",
+      "auth": "public",
+      "line": 115
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/verifications/:userId",
+      "method": "DELETE",
+      "path": "/verifications/:userId",
+      "auth": "public",
+      "line": 134
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/posts",
+      "method": "GET",
+      "path": "/posts",
+      "auth": "public",
+      "line": 146
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/posts/:id",
+      "method": "DELETE",
+      "path": "/posts/:id",
+      "auth": "public",
+      "line": 154
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/products",
+      "method": "GET",
+      "path": "/products",
+      "auth": "public",
+      "line": 167
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/products/:id",
+      "method": "DELETE",
+      "path": "/products/:id",
+      "auth": "public",
+      "line": 175
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/orders",
+      "method": "GET",
+      "path": "/orders",
+      "auth": "public",
+      "line": 181
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/reports",
+      "method": "GET",
+      "path": "/reports",
+      "auth": "public",
+      "line": 190
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/reports/:id",
+      "method": "PUT",
+      "path": "/reports/:id",
+      "auth": "public",
+      "line": 199
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/users/:id/verify",
+      "method": "PUT",
+      "path": "/users/:id/verify",
+      "auth": "public",
+      "line": 207
+    },
+    {
+      "module": "admin",
+      "title": "admin",
+      "full_path": "/api/admin/stats/revenue",
+      "method": "GET",
+      "path": "/stats/revenue",
+      "auth": "public",
+      "line": 215
+    },
+    {
+      "module": "ai",
+      "title": "ai",
+      "full_path": "/api/ai/status",
+      "method": "GET",
+      "path": "/status",
+      "auth": "public",
+      "line": 11
+    },
+    {
+      "module": "ai",
+      "title": "ai",
+      "full_path": "/api/ai/generate",
+      "method": "POST",
+      "path": "/generate",
+      "auth": "auth",
+      "line": 15
+    },
+    {
+      "module": "ai",
+      "title": "ai",
+      "full_path": "/api/ai/chat",
+      "method": "POST",
+      "path": "/chat",
+      "auth": "auth",
+      "line": 31
+    },
+    {
+      "module": "auth",
+      "title": "Authentication endpoints",
+      "full_path": "/api/auth/register",
+      "method": "POST",
+      "path": "/register",
+      "auth": "public",
+      "line": 133
+    },
+    {
+      "module": "auth",
+      "title": "Authentication endpoints",
+      "full_path": "/api/auth/verify-otp",
+      "method": "POST",
+      "path": "/verify-otp",
+      "auth": "public",
+      "line": 209
+    },
+    {
+      "module": "auth",
+      "title": "Authentication endpoints",
+      "full_path": "/api/auth/resend-otp",
+      "method": "POST",
+      "path": "/resend-otp",
+      "auth": "public",
+      "line": 256
+    },
+    {
+      "module": "auth",
+      "title": "Authentication endpoints",
+      "full_path": "/api/auth/login",
+      "method": "POST",
+      "path": "/login",
+      "auth": "public",
+      "line": 299
+    },
+    {
+      "module": "auth",
+      "title": "Authentication endpoints",
+      "full_path": "/api/auth/google",
+      "method": "POST",
+      "path": "/google",
+      "auth": "public",
+      "line": 369
+    },
+    {
+      "module": "auth",
+      "title": "Authentication endpoints",
+      "full_path": "/api/auth/me",
+      "method": "GET",
+      "path": "/me",
+      "auth": "auth",
+      "line": 440
+    },
+    {
+      "module": "auth",
+      "title": "Authentication endpoints",
+      "full_path": "/api/auth/forgot-password",
+      "method": "POST",
+      "path": "/forgot-password",
+      "auth": "public",
+      "line": 474
+    },
+    {
+      "module": "auth",
+      "title": "Authentication endpoints",
+      "full_path": "/api/auth/reset-password",
+      "method": "POST",
+      "path": "/reset-password",
+      "auth": "public",
+      "line": 509
+    },
+    {
+      "module": "auth",
+      "title": "Authentication endpoints",
+      "full_path": "/api/auth/change-password",
+      "method": "PUT",
+      "path": "/change-password",
+      "auth": "auth",
+      "line": 548
+    },
+    {
+      "module": "auth",
+      "title": "Authentication endpoints",
+      "full_path": "/api/auth/refresh",
+      "method": "POST",
+      "path": "/refresh",
+      "auth": "public",
+      "line": 582
+    },
+    {
+      "module": "auth",
+      "title": "Authentication endpoints",
+      "full_path": "/api/auth/logout",
+      "method": "POST",
+      "path": "/logout",
+      "auth": "public",
+      "line": 623
+    },
+    {
+      "module": "auth",
+      "title": "Authentication endpoints",
+      "full_path": "/api/auth/logout-all",
+      "method": "POST",
+      "path": "/logout-all",
+      "auth": "auth",
+      "line": 641
+    },
+    {
+      "module": "businesses",
+      "title": "businesses",
+      "full_path": "/api/businesses/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 10
+    },
+    {
+      "module": "businesses",
+      "title": "businesses",
+      "full_path": "/api/businesses/:id",
+      "method": "GET",
+      "path": "/:id",
+      "auth": "optional",
+      "line": 19
+    },
+    {
+      "module": "businesses",
+      "title": "businesses",
+      "full_path": "/api/businesses/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 27
+    },
+    {
+      "module": "businesses",
+      "title": "businesses",
+      "full_path": "/api/businesses/:id",
+      "method": "PUT",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 41
+    },
+    {
+      "module": "businesses",
+      "title": "businesses",
+      "full_path": "/api/businesses/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 50
+    },
+    {
+      "module": "cart",
+      "title": "cart",
+      "full_path": "/api/cart/",
+      "method": "GET",
+      "path": "/",
+      "auth": "auth",
+      "line": 9
+    },
+    {
+      "module": "cart",
+      "title": "cart",
+      "full_path": "/api/cart/add",
+      "method": "POST",
+      "path": "/add",
+      "auth": "auth",
+      "line": 21
+    },
+    {
+      "module": "cart",
+      "title": "cart",
+      "full_path": "/api/cart/:itemId",
+      "method": "PUT",
+      "path": "/:itemId",
+      "auth": "auth",
+      "line": 42
+    },
+    {
+      "module": "cart",
+      "title": "cart",
+      "full_path": "/api/cart/:itemId",
+      "method": "DELETE",
+      "path": "/:itemId",
+      "auth": "auth",
+      "line": 55
+    },
+    {
+      "module": "cart",
+      "title": "cart",
+      "full_path": "/api/cart/",
+      "method": "DELETE",
+      "path": "/",
+      "auth": "auth",
+      "line": 62
+    },
+    {
+      "module": "commission",
+      "title": "Platform commission tracking",
+      "full_path": "/api/commission/my-commissions",
+      "method": "GET",
+      "path": "/my-commissions",
+      "auth": "auth",
+      "line": 44
+    },
+    {
+      "module": "commission",
+      "title": "Platform commission tracking",
+      "full_path": "/api/commission/admin/summary",
+      "method": "GET",
+      "path": "/admin/summary",
+      "auth": "admin",
+      "line": 55
+    },
+    {
+      "module": "coupons",
+      "title": "coupons",
+      "full_path": "/api/coupons/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 8
+    },
+    {
+      "module": "coupons",
+      "title": "coupons",
+      "full_path": "/api/coupons/mine",
+      "method": "GET",
+      "path": "/mine",
+      "auth": "auth",
+      "line": 25
+    },
+    {
+      "module": "coupons",
+      "title": "coupons",
+      "full_path": "/api/coupons/validate",
+      "method": "POST",
+      "path": "/validate",
+      "auth": "public",
+      "line": 32
+    },
+    {
+      "module": "coupons",
+      "title": "coupons",
+      "full_path": "/api/coupons/use",
+      "method": "POST",
+      "path": "/use",
+      "auth": "auth",
+      "line": 52
+    },
+    {
+      "module": "coupons",
+      "title": "coupons",
+      "full_path": "/api/coupons/:id/toggle",
+      "method": "PATCH",
+      "path": "/:id/toggle",
+      "auth": "auth",
+      "line": 60
+    },
+    {
+      "module": "coupons",
+      "title": "coupons",
+      "full_path": "/api/coupons/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 70
+    },
+    {
+      "module": "courses",
+      "title": "courses",
+      "full_path": "/api/courses/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 9
+    },
+    {
+      "module": "courses",
+      "title": "courses",
+      "full_path": "/api/courses/:id",
+      "method": "GET",
+      "path": "/:id",
+      "auth": "optional",
+      "line": 18
+    },
+    {
+      "module": "courses",
+      "title": "courses",
+      "full_path": "/api/courses/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 27
+    },
+    {
+      "module": "courses",
+      "title": "courses",
+      "full_path": "/api/courses/:id",
+      "method": "PUT",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 35
+    },
+    {
+      "module": "courses",
+      "title": "courses",
+      "full_path": "/api/courses/:id/lessons",
+      "method": "POST",
+      "path": "/:id/lessons",
+      "auth": "auth",
+      "line": 44
+    },
+    {
+      "module": "courses",
+      "title": "courses",
+      "full_path": "/api/courses/:id/enroll",
+      "method": "POST",
+      "path": "/:id/enroll",
+      "auth": "auth",
+      "line": 59
+    },
+    {
+      "module": "courses",
+      "title": "courses",
+      "full_path": "/api/courses/:id/enrolled",
+      "method": "GET",
+      "path": "/:id/enrolled",
+      "auth": "auth",
+      "line": 72
+    },
+    {
+      "module": "courses",
+      "title": "courses",
+      "full_path": "/api/courses/:id/progress",
+      "method": "PUT",
+      "path": "/:id/progress",
+      "auth": "auth",
+      "line": 79
+    },
+    {
+      "module": "delivery",
+      "title": "delivery",
+      "full_path": "/api/delivery/order/:orderId",
+      "method": "GET",
+      "path": "/order/:orderId",
+      "auth": "optional",
+      "line": 9
+    },
+    {
+      "module": "delivery",
+      "title": "delivery",
+      "full_path": "/api/delivery/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 19
+    },
+    {
+      "module": "devops",
+      "title": "devops",
+      "full_path": "/api/devops/",
+      "method": "GET",
+      "path": "/",
+      "auth": "admin",
+      "line": 11
+    },
+    {
+      "module": "devops",
+      "title": "devops",
+      "full_path": "/api/devops/",
+      "method": "POST",
+      "path": "/",
+      "auth": "admin",
+      "line": 18
+    },
+    {
+      "module": "devops",
+      "title": "devops",
+      "full_path": "/api/devops/:id",
+      "method": "PUT",
+      "path": "/:id",
+      "auth": "admin",
+      "line": 35
+    },
+    {
+      "module": "devops",
+      "title": "devops",
+      "full_path": "/api/devops/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "admin",
+      "line": 54
+    },
+    {
+      "module": "devops",
+      "title": "devops",
+      "full_path": "/api/devops/errors",
+      "method": "GET",
+      "path": "/errors",
+      "auth": "admin",
+      "line": 63
+    },
+    {
+      "module": "devops",
+      "title": "devops",
+      "full_path": "/api/devops/errors/:id/resolve",
+      "method": "PUT",
+      "path": "/errors/:id/resolve",
+      "auth": "admin",
+      "line": 78
+    },
+    {
+      "module": "devops",
+      "title": "devops",
+      "full_path": "/api/devops/errors/report",
+      "method": "POST",
+      "path": "/errors/report",
+      "auth": "optional",
+      "line": 91
+    },
+    {
+      "module": "devops",
+      "title": "devops",
+      "full_path": "/api/devops/versions",
+      "method": "GET",
+      "path": "/versions",
+      "auth": "public",
+      "line": 106
+    },
+    {
+      "module": "devops",
+      "title": "devops",
+      "full_path": "/api/devops/versions",
+      "method": "PUT",
+      "path": "/versions",
+      "auth": "admin",
+      "line": 113
+    },
+    {
+      "module": "docs",
+      "title": "docs",
+      "full_path": "/api/docs/",
+      "method": "GET",
+      "path": "/",
+      "auth": "public",
+      "line": 6
+    },
+    {
+      "module": "events",
+      "title": "events",
+      "full_path": "/api/events/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 9
+    },
+    {
+      "module": "events",
+      "title": "events",
+      "full_path": "/api/events/:id",
+      "method": "GET",
+      "path": "/:id",
+      "auth": "optional",
+      "line": 16
+    },
+    {
+      "module": "events",
+      "title": "events",
+      "full_path": "/api/events/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 24
+    },
+    {
+      "module": "events",
+      "title": "events",
+      "full_path": "/api/events/:id",
+      "method": "PUT",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 32
+    },
+    {
+      "module": "events",
+      "title": "events",
+      "full_path": "/api/events/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 41
+    },
+    {
+      "module": "events",
+      "title": "events",
+      "full_path": "/api/events/:id/book",
+      "method": "POST",
+      "path": "/:id/book",
+      "auth": "auth",
+      "line": 51
+    },
+    {
+      "module": "events",
+      "title": "events",
+      "full_path": "/api/events/:id/attendees",
+      "method": "GET",
+      "path": "/:id/attendees",
+      "auth": "optional",
+      "line": 69
+    },
+    {
+      "module": "externalSources",
+      "title": "External Data Sources",
+      "full_path": "/api/showrooms/:showroomId/external-sources/health",
+      "method": "GET",
+      "path": "/health",
+      "auth": "public",
+      "line": 89
+    },
+    {
+      "module": "externalSources",
+      "title": "External Data Sources",
+      "full_path": "/api/showrooms/:showroomId/external-sources/",
+      "method": "GET",
+      "path": "/",
+      "auth": "public",
+      "line": 113
+    },
+    {
+      "module": "externalSources",
+      "title": "External Data Sources",
+      "full_path": "/api/showrooms/:showroomId/external-sources/",
+      "method": "POST",
+      "path": "/",
+      "auth": "public",
+      "line": 125
+    },
+    {
+      "module": "externalSources",
+      "title": "External Data Sources",
+      "full_path": "/api/showrooms/:showroomId/external-sources/:sourceId",
+      "method": "PUT",
+      "path": "/:sourceId",
+      "auth": "public",
+      "line": 148
+    },
+    {
+      "module": "externalSources",
+      "title": "External Data Sources",
+      "full_path": "/api/showrooms/:showroomId/external-sources/:sourceId",
+      "method": "DELETE",
+      "path": "/:sourceId",
+      "auth": "public",
+      "line": 173
+    },
+    {
+      "module": "externalSources",
+      "title": "External Data Sources",
+      "full_path": "/api/showrooms/:showroomId/external-sources/:sourceId/mappings",
+      "method": "GET",
+      "path": "/:sourceId/mappings",
+      "auth": "public",
+      "line": 188
+    },
+    {
+      "module": "externalSources",
+      "title": "External Data Sources",
+      "full_path": "/api/showrooms/:showroomId/external-sources/:sourceId/mappings",
+      "method": "POST",
+      "path": "/:sourceId/mappings",
+      "auth": "public",
+      "line": 198
+    },
+    {
+      "module": "externalSources",
+      "title": "External Data Sources",
+      "full_path": "/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId",
+      "method": "DELETE",
+      "path": "/:sourceId/mappings/:mappingId",
+      "auth": "public",
+      "line": 213
+    },
+    {
+      "module": "externalSources",
+      "title": "External Data Sources",
+      "full_path": "/api/showrooms/:showroomId/external-sources/:sourceId/refresh",
+      "method": "POST",
+      "path": "/:sourceId/refresh",
+      "auth": "public",
+      "line": 225
+    },
+    {
+      "module": "flags",
+      "title": "flags",
+      "full_path": "/api/flags/",
+      "method": "GET",
+      "path": "/",
+      "auth": "auth",
+      "line": 8
+    },
+    {
+      "module": "flags",
+      "title": "flags",
+      "full_path": "/api/flags/:name",
+      "method": "GET",
+      "path": "/:name",
+      "auth": "auth",
+      "line": 22
+    },
+    {
+      "module": "flags",
+      "title": "flags",
+      "full_path": "/api/flags/:name",
+      "method": "PUT",
+      "path": "/:name",
+      "auth": "admin",
+      "line": 29
+    },
+    {
+      "module": "friends",
+      "title": "friends",
+      "full_path": "/api/friends/mutual",
+      "method": "GET",
+      "path": "/mutual",
+      "auth": "auth",
+      "line": 8
+    },
+    {
+      "module": "hashtags",
+      "title": "hashtags",
+      "full_path": "/api/hashtags/trending",
+      "method": "GET",
+      "path": "/trending",
+      "auth": "public",
+      "line": 23
+    },
+    {
+      "module": "hashtags",
+      "title": "hashtags",
+      "full_path": "/api/hashtags/:name",
+      "method": "GET",
+      "path": "/:name",
+      "auth": "optional",
+      "line": 32
+    },
+    {
+      "module": "hashtags",
+      "title": "hashtags",
+      "full_path": "/api/hashtags/:name/posts",
+      "method": "GET",
+      "path": "/:name/posts",
+      "auth": "optional",
+      "line": 45
+    },
+    {
+      "module": "jobs",
+      "title": "jobs",
+      "full_path": "/api/jobs/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 9
+    },
+    {
+      "module": "jobs",
+      "title": "jobs",
+      "full_path": "/api/jobs/:id",
+      "method": "GET",
+      "path": "/:id",
+      "auth": "optional",
+      "line": 20
+    },
+    {
+      "module": "jobs",
+      "title": "jobs",
+      "full_path": "/api/jobs/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 28
+    },
+    {
+      "module": "jobs",
+      "title": "jobs",
+      "full_path": "/api/jobs/:id",
+      "method": "PUT",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 36
+    },
+    {
+      "module": "jobs",
+      "title": "jobs",
+      "full_path": "/api/jobs/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 45
+    },
+    {
+      "module": "jobs",
+      "title": "jobs",
+      "full_path": "/api/jobs/:id/apply",
+      "method": "POST",
+      "path": "/:id/apply",
+      "auth": "auth",
+      "line": 55
+    },
+    {
+      "module": "jobs",
+      "title": "jobs",
+      "full_path": "/api/jobs/:id/applications",
+      "method": "GET",
+      "path": "/:id/applications",
+      "auth": "auth",
+      "line": 70
+    },
+    {
+      "module": "jobs",
+      "title": "jobs",
+      "full_path": "/api/jobs/applications/:id",
+      "method": "PUT",
+      "path": "/applications/:id",
+      "auth": "auth",
+      "line": 83
+    },
+    {
+      "module": "maps",
+      "title": "maps",
+      "full_path": "/api/maps/nearby",
+      "method": "GET",
+      "path": "/nearby",
+      "auth": "optional",
+      "line": 25
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/conversations",
+      "method": "GET",
+      "path": "/conversations",
+      "auth": "auth",
+      "line": 80
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/conversations/:id",
+      "method": "GET",
+      "path": "/conversations/:id",
+      "auth": "auth",
+      "line": 105
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/conversations/find-or-create",
+      "method": "POST",
+      "path": "/conversations/find-or-create",
+      "auth": "auth",
+      "line": 114
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/conversations",
+      "method": "POST",
+      "path": "/conversations",
+      "auth": "auth",
+      "line": 149
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/conversations/:id",
+      "method": "PUT",
+      "path": "/conversations/:id",
+      "auth": "auth",
+      "line": 171
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/conversations/:convId/messages",
+      "method": "GET",
+      "path": "/conversations/:convId/messages",
+      "auth": "auth",
+      "line": 182
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/conversations/:convId/messages",
+      "method": "POST",
+      "path": "/conversations/:convId/messages",
+      "auth": "auth",
+      "line": 195
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/messages/:id",
+      "method": "PUT",
+      "path": "/messages/:id",
+      "auth": "auth",
+      "line": 249
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/messages/:id",
+      "method": "DELETE",
+      "path": "/messages/:id",
+      "auth": "auth",
+      "line": 262
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/conversations/:id/history",
+      "method": "DELETE",
+      "path": "/conversations/:id/history",
+      "auth": "auth",
+      "line": 273
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/conversations/:id/leave",
+      "method": "POST",
+      "path": "/conversations/:id/leave",
+      "auth": "auth",
+      "line": 281
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/conversations/:id/members",
+      "method": "POST",
+      "path": "/conversations/:id/members",
+      "auth": "auth",
+      "line": 293
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/conversations/:id/members/:userId",
+      "method": "DELETE",
+      "path": "/conversations/:id/members/:userId",
+      "auth": "auth",
+      "line": 308
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/conversations/:id",
+      "method": "DELETE",
+      "path": "/conversations/:id",
+      "auth": "auth",
+      "line": 321
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/presence",
+      "method": "PUT",
+      "path": "/presence",
+      "auth": "auth",
+      "line": 334
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/presence/:userId",
+      "method": "GET",
+      "path": "/presence/:userId",
+      "auth": "auth",
+      "line": 347
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/presence/settings",
+      "method": "PUT",
+      "path": "/presence/settings",
+      "auth": "auth",
+      "line": 362
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/block/:targetId",
+      "method": "POST",
+      "path": "/block/:targetId",
+      "auth": "auth",
+      "line": 371
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/block/:targetId",
+      "method": "DELETE",
+      "path": "/block/:targetId",
+      "auth": "auth",
+      "line": 377
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/block/:targetId",
+      "method": "GET",
+      "path": "/block/:targetId",
+      "auth": "auth",
+      "line": 382
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/messages/:id/forward",
+      "method": "POST",
+      "path": "/messages/:id/forward",
+      "auth": "auth",
+      "line": 389
+    },
+    {
+      "module": "messages",
+      "title": "Conversations and real-time messaging",
+      "full_path": "/api/messages/inquiry",
+      "method": "POST",
+      "path": "/inquiry",
+      "auth": "auth",
+      "line": 408
+    },
+    {
+      "module": "moderation",
+      "title": "moderation",
+      "full_path": "/api/moderation/report",
+      "method": "POST",
+      "path": "/report",
+      "auth": "auth",
+      "line": 8
+    },
+    {
+      "module": "moderation",
+      "title": "moderation",
+      "full_path": "/api/moderation/reports",
+      "method": "GET",
+      "path": "/reports",
+      "auth": "admin",
+      "line": 26
+    },
+    {
+      "module": "moderation",
+      "title": "moderation",
+      "full_path": "/api/moderation/reports/:id",
+      "method": "PUT",
+      "path": "/reports/:id",
+      "auth": "admin",
+      "line": 42
+    },
+    {
+      "module": "notifications",
+      "title": "notifications",
+      "full_path": "/api/notifications/",
+      "method": "GET",
+      "path": "/",
+      "auth": "auth",
+      "line": 12
+    },
+    {
+      "module": "notifications",
+      "title": "notifications",
+      "full_path": "/api/notifications/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 73
+    },
+    {
+      "module": "notifications",
+      "title": "notifications",
+      "full_path": "/api/notifications/read-all",
+      "method": "PUT",
+      "path": "/read-all",
+      "auth": "auth",
+      "line": 84
+    },
+    {
+      "module": "notifications",
+      "title": "notifications",
+      "full_path": "/api/notifications/mark-read",
+      "method": "POST",
+      "path": "/mark-read",
+      "auth": "auth",
+      "line": 91
+    },
+    {
+      "module": "notifications",
+      "title": "notifications",
+      "full_path": "/api/notifications/:id/read",
+      "method": "PUT",
+      "path": "/:id/read",
+      "auth": "auth",
+      "line": 106
+    },
+    {
+      "module": "notifications",
+      "title": "notifications",
+      "full_path": "/api/notifications/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 117
+    },
+    {
+      "module": "orders",
+      "title": "Orders, Stripe + Chapa payments, webhooks",
+      "full_path": "/api/orders/",
+      "method": "GET",
+      "path": "/",
+      "auth": "auth",
+      "line": 59
+    },
+    {
+      "module": "orders",
+      "title": "Orders, Stripe + Chapa payments, webhooks",
+      "full_path": "/api/orders/session/:sessionId",
+      "method": "GET",
+      "path": "/session/:sessionId",
+      "auth": "auth",
+      "line": 88
+    },
+    {
+      "module": "orders",
+      "title": "Orders, Stripe + Chapa payments, webhooks",
+      "full_path": "/api/orders/:id",
+      "method": "GET",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 96
+    },
+    {
+      "module": "orders",
+      "title": "Orders, Stripe + Chapa payments, webhooks",
+      "full_path": "/api/orders/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 134
+    },
+    {
+      "module": "orders",
+      "title": "Orders, Stripe + Chapa payments, webhooks",
+      "full_path": "/api/orders/:id",
+      "method": "PUT",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 162
+    },
+    {
+      "module": "orders",
+      "title": "Orders, Stripe + Chapa payments, webhooks",
+      "full_path": "/api/orders/checkout/session",
+      "method": "POST",
+      "path": "/checkout/session",
+      "auth": "auth",
+      "line": 211
+    },
+    {
+      "module": "orders",
+      "title": "Orders, Stripe + Chapa payments, webhooks",
+      "full_path": "/api/orders/webhook",
+      "method": "POST",
+      "path": "/webhook",
+      "auth": "public",
+      "line": 376
+    },
+    {
+      "module": "orders",
+      "title": "Orders, Stripe + Chapa payments, webhooks",
+      "full_path": "/api/orders/checkout/chapa",
+      "method": "POST",
+      "path": "/checkout/chapa",
+      "auth": "auth",
+      "line": 406
+    },
+    {
+      "module": "orders",
+      "title": "Orders, Stripe + Chapa payments, webhooks",
+      "full_path": "/api/orders/chapa/sandbox",
+      "method": "GET",
+      "path": "/chapa/sandbox",
+      "auth": "public",
+      "line": 439
+    },
+    {
+      "module": "orders",
+      "title": "Orders, Stripe + Chapa payments, webhooks",
+      "full_path": "/api/orders/chapa/status/:tx_ref",
+      "method": "GET",
+      "path": "/chapa/status/:tx_ref",
+      "auth": "public",
+      "line": 451
+    },
+    {
+      "module": "orders",
+      "title": "Orders, Stripe + Chapa payments, webhooks",
+      "full_path": "/api/orders/chapa/verify/:tx_ref",
+      "method": "GET",
+      "path": "/chapa/verify/:tx_ref",
+      "auth": "public",
+      "line": 462
+    },
+    {
+      "module": "polls",
+      "title": "polls",
+      "full_path": "/api/polls/:postId/vote",
+      "method": "POST",
+      "path": "/:postId/vote",
+      "auth": "auth",
+      "line": 8
+    },
+    {
+      "module": "polls",
+      "title": "polls",
+      "full_path": "/api/polls/:postId/results",
+      "method": "GET",
+      "path": "/:postId/results",
+      "auth": "optional",
+      "line": 43
+    },
+    {
+      "module": "posts",
+      "title": "Social feed posts",
+      "full_path": "/api/posts/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 26
+    },
+    {
+      "module": "posts",
+      "title": "Social feed posts",
+      "full_path": "/api/posts/:id",
+      "method": "GET",
+      "path": "/:id",
+      "auth": "optional",
+      "line": 88
+    },
+    {
+      "module": "posts",
+      "title": "Social feed posts",
+      "full_path": "/api/posts/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 96
+    },
+    {
+      "module": "posts",
+      "title": "Social feed posts",
+      "full_path": "/api/posts/:id",
+      "method": "PUT",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 125
+    },
+    {
+      "module": "posts",
+      "title": "Social feed posts",
+      "full_path": "/api/posts/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 134
+    },
+    {
+      "module": "posts",
+      "title": "Social feed posts",
+      "full_path": "/api/posts/:id/like",
+      "method": "GET",
+      "path": "/:id/like",
+      "auth": "optional",
+      "line": 146
+    },
+    {
+      "module": "posts",
+      "title": "Social feed posts",
+      "full_path": "/api/posts/:id/like",
+      "method": "POST",
+      "path": "/:id/like",
+      "auth": "auth",
+      "line": 154
+    },
+    {
+      "module": "posts",
+      "title": "Social feed posts",
+      "full_path": "/api/posts/:id/comments",
+      "method": "GET",
+      "path": "/:id/comments",
+      "auth": "optional",
+      "line": 184
+    },
+    {
+      "module": "posts",
+      "title": "Social feed posts",
+      "full_path": "/api/posts/:id/comments",
+      "method": "POST",
+      "path": "/:id/comments",
+      "auth": "auth",
+      "line": 196
+    },
+    {
+      "module": "posts",
+      "title": "Social feed posts",
+      "full_path": "/api/posts/:postId/comments/:commentId",
+      "method": "DELETE",
+      "path": "/:postId/comments/:commentId",
+      "auth": "auth",
+      "line": 248
+    },
+    {
+      "module": "products",
+      "title": "Marketplace products",
+      "full_path": "/api/products/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 31
+    },
+    {
+      "module": "products",
+      "title": "Marketplace products",
+      "full_path": "/api/products/:id",
+      "method": "GET",
+      "path": "/:id",
+      "auth": "optional",
+      "line": 64
+    },
+    {
+      "module": "products",
+      "title": "Marketplace products",
+      "full_path": "/api/products/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 73
+    },
+    {
+      "module": "products",
+      "title": "Marketplace products",
+      "full_path": "/api/products/:id",
+      "method": "PUT",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 86
+    },
+    {
+      "module": "products",
+      "title": "Marketplace products",
+      "full_path": "/api/products/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 146
+    },
+    {
+      "module": "profiles",
+      "title": "profiles",
+      "full_path": "/api/profiles/me",
+      "method": "GET",
+      "path": "/me",
+      "auth": "auth",
+      "line": 30
+    },
+    {
+      "module": "profiles",
+      "title": "profiles",
+      "full_path": "/api/profiles/by-user/:userId",
+      "method": "GET",
+      "path": "/by-user/:userId",
+      "auth": "optional",
+      "line": 38
+    },
+    {
+      "module": "profiles",
+      "title": "profiles",
+      "full_path": "/api/profiles/me/follows",
+      "method": "GET",
+      "path": "/me/follows",
+      "auth": "auth",
+      "line": 49
+    },
+    {
+      "module": "profiles",
+      "title": "profiles",
+      "full_path": "/api/profiles/follows",
+      "method": "GET",
+      "path": "/follows",
+      "auth": "auth",
+      "line": 56
+    },
+    {
+      "module": "profiles",
+      "title": "profiles",
+      "full_path": "/api/profiles/:id",
+      "method": "GET",
+      "path": "/:id",
+      "auth": "optional",
+      "line": 63
+    },
+    {
+      "module": "profiles",
+      "title": "profiles",
+      "full_path": "/api/profiles/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 74
+    },
+    {
+      "module": "profiles",
+      "title": "profiles",
+      "full_path": "/api/profiles/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 106
+    },
+    {
+      "module": "profiles",
+      "title": "profiles",
+      "full_path": "/api/profiles/me/upsert",
+      "method": "PUT",
+      "path": "/me/upsert",
+      "auth": "auth",
+      "line": 119
+    },
+    {
+      "module": "profiles",
+      "title": "profiles",
+      "full_path": "/api/profiles/:id",
+      "method": "PUT",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 137
+    },
+    {
+      "module": "profiles",
+      "title": "profiles",
+      "full_path": "/api/profiles/me/ticker",
+      "method": "PATCH",
+      "path": "/me/ticker",
+      "auth": "auth",
+      "line": 151
+    },
+    {
+      "module": "profiles",
+      "title": "profiles",
+      "full_path": "/api/profiles/follow/:targetUserId",
+      "method": "POST",
+      "path": "/follow/:targetUserId",
+      "auth": "auth",
+      "line": 177
+    },
+    {
+      "module": "proxy",
+      "title": "Public Proxy Route",
+      "full_path": "/api/proxy/:showroomId/:sectionKey",
+      "method": "GET",
+      "path": "/:showroomId/:sectionKey",
+      "auth": "public",
+      "line": 16
+    },
+    {
+      "module": "push",
+      "title": "push",
+      "full_path": "/api/push/vapid-public-key",
+      "method": "GET",
+      "path": "/vapid-public-key",
+      "auth": "public",
+      "line": 52
+    },
+    {
+      "module": "push",
+      "title": "push",
+      "full_path": "/api/push/subscribe",
+      "method": "POST",
+      "path": "/subscribe",
+      "auth": "auth",
+      "line": 57
+    },
+    {
+      "module": "push",
+      "title": "push",
+      "full_path": "/api/push/unsubscribe",
+      "method": "DELETE",
+      "path": "/unsubscribe",
+      "auth": "auth",
+      "line": 72
+    },
+    {
+      "module": "referral",
+      "title": "referral",
+      "full_path": "/api/referral/my-code",
+      "method": "GET",
+      "path": "/my-code",
+      "auth": "auth",
+      "line": 8
+    },
+    {
+      "module": "referral",
+      "title": "referral",
+      "full_path": "/api/referral/use",
+      "method": "POST",
+      "path": "/use",
+      "auth": "public",
+      "line": 27
+    },
+    {
+      "module": "returns",
+      "title": "returns",
+      "full_path": "/api/returns/",
+      "method": "GET",
+      "path": "/",
+      "auth": "auth",
+      "line": 10
+    },
+    {
+      "module": "returns",
+      "title": "returns",
+      "full_path": "/api/returns/seller",
+      "method": "GET",
+      "path": "/seller",
+      "auth": "auth",
+      "line": 21
+    },
+    {
+      "module": "returns",
+      "title": "returns",
+      "full_path": "/api/returns/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 33
+    },
+    {
+      "module": "returns",
+      "title": "returns",
+      "full_path": "/api/returns/:id/approve",
+      "method": "PUT",
+      "path": "/:id/approve",
+      "auth": "auth",
+      "line": 58
+    },
+    {
+      "module": "returns",
+      "title": "returns",
+      "full_path": "/api/returns/:id/reject",
+      "method": "PUT",
+      "path": "/:id/reject",
+      "auth": "auth",
+      "line": 78
+    },
+    {
+      "module": "reviews",
+      "title": "reviews",
+      "full_path": "/api/reviews/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 9
+    },
+    {
+      "module": "reviews",
+      "title": "reviews",
+      "full_path": "/api/reviews/product/:productId",
+      "method": "GET",
+      "path": "/product/:productId",
+      "auth": "optional",
+      "line": 29
+    },
+    {
+      "module": "reviews",
+      "title": "reviews",
+      "full_path": "/api/reviews/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 39
+    },
+    {
+      "module": "reviews",
+      "title": "reviews",
+      "full_path": "/api/reviews/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 61
+    },
+    {
+      "module": "saves",
+      "title": "saves",
+      "full_path": "/api/saves/",
+      "method": "GET",
+      "path": "/",
+      "auth": "auth",
+      "line": 8
+    },
+    {
+      "module": "saves",
+      "title": "saves",
+      "full_path": "/api/saves/toggle",
+      "method": "POST",
+      "path": "/toggle",
+      "auth": "auth",
+      "line": 20
+    },
+    {
+      "module": "saves",
+      "title": "saves",
+      "full_path": "/api/saves/check/:targetId",
+      "method": "GET",
+      "path": "/check/:targetId",
+      "auth": "auth",
+      "line": 34
+    },
+    {
+      "module": "search",
+      "title": "Cross-entity full-text search",
+      "full_path": "/api/search/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 45
+    },
+    {
+      "module": "showrooms",
+      "title": "showrooms",
+      "full_path": "/api/showrooms/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 11
+    },
+    {
+      "module": "showrooms",
+      "title": "showrooms",
+      "full_path": "/api/showrooms/slug/:slug",
+      "method": "GET",
+      "path": "/slug/:slug",
+      "auth": "optional",
+      "line": 22
+    },
+    {
+      "module": "showrooms",
+      "title": "showrooms",
+      "full_path": "/api/showrooms/:id",
+      "method": "GET",
+      "path": "/:id",
+      "auth": "optional",
+      "line": 31
+    },
+    {
+      "module": "showrooms",
+      "title": "showrooms",
+      "full_path": "/api/showrooms/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 39
+    },
+    {
+      "module": "showrooms",
+      "title": "showrooms",
+      "full_path": "/api/showrooms/:id",
+      "method": "PUT",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 55
+    },
+    {
+      "module": "showrooms",
+      "title": "showrooms",
+      "full_path": "/api/showrooms/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 64
+    },
+    {
+      "module": "stories",
+      "title": "stories",
+      "full_path": "/api/stories/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 15
+    },
+    {
+      "module": "stories",
+      "title": "stories",
+      "full_path": "/api/stories/user/:userId",
+      "method": "GET",
+      "path": "/user/:userId",
+      "auth": "optional",
+      "line": 28
+    },
+    {
+      "module": "stories",
+      "title": "stories",
+      "full_path": "/api/stories/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 40
+    },
+    {
+      "module": "stories",
+      "title": "stories",
+      "full_path": "/api/stories/:id/view",
+      "method": "POST",
+      "path": "/:id/view",
+      "auth": "auth",
+      "line": 52
+    },
+    {
+      "module": "stories",
+      "title": "stories",
+      "full_path": "/api/stories/:id/reactions",
+      "method": "POST",
+      "path": "/:id/reactions",
+      "auth": "auth",
+      "line": 60
+    },
+    {
+      "module": "stories",
+      "title": "stories",
+      "full_path": "/api/stories/:id/comments",
+      "method": "GET",
+      "path": "/:id/comments",
+      "auth": "auth",
+      "line": 75
+    },
+    {
+      "module": "stories",
+      "title": "stories",
+      "full_path": "/api/stories/:id/comments",
+      "method": "POST",
+      "path": "/:id/comments",
+      "auth": "auth",
+      "line": 82
+    },
+    {
+      "module": "stories",
+      "title": "stories",
+      "full_path": "/api/stories/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 100
+    },
+    {
+      "module": "suggestions",
+      "title": "suggestions",
+      "full_path": "/api/suggestions/people",
+      "method": "GET",
+      "path": "/people",
+      "auth": "auth",
+      "line": 9
+    },
+    {
+      "module": "suggestions",
+      "title": "suggestions",
+      "full_path": "/api/suggestions/dismiss/:targetUserId",
+      "method": "POST",
+      "path": "/dismiss/:targetUserId",
+      "auth": "auth",
+      "line": 73
+    },
+    {
+      "module": "tasks",
+      "title": "tasks",
+      "full_path": "/api/tasks/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 54
+    },
+    {
+      "module": "tasks",
+      "title": "tasks",
+      "full_path": "/api/tasks/:id",
+      "method": "GET",
+      "path": "/:id",
+      "auth": "optional",
+      "line": 65
+    },
+    {
+      "module": "tasks",
+      "title": "tasks",
+      "full_path": "/api/tasks/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 73
+    },
+    {
+      "module": "tasks",
+      "title": "tasks",
+      "full_path": "/api/tasks/bids/:bidId",
+      "method": "PUT",
+      "path": "/bids/:bidId",
+      "auth": "auth",
+      "line": 88
+    },
+    {
+      "module": "tasks",
+      "title": "tasks",
+      "full_path": "/api/tasks/:id",
+      "method": "PUT",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 100
+    },
+    {
+      "module": "tasks",
+      "title": "tasks",
+      "full_path": "/api/tasks/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 109
+    },
+    {
+      "module": "tasks",
+      "title": "tasks",
+      "full_path": "/api/tasks/:taskId/bids",
+      "method": "GET",
+      "path": "/:taskId/bids",
+      "auth": "optional",
+      "line": 119
+    },
+    {
+      "module": "tasks",
+      "title": "tasks",
+      "full_path": "/api/tasks/:taskId/bids",
+      "method": "POST",
+      "path": "/:taskId/bids",
+      "auth": "auth",
+      "line": 126
+    },
+    {
+      "module": "telegram",
+      "title": "telegram",
+      "full_path": "/api/telegram/connect",
+      "method": "POST",
+      "path": "/connect",
+      "auth": "auth",
+      "line": 29
+    },
+    {
+      "module": "telegram",
+      "title": "telegram",
+      "full_path": "/api/telegram/disconnect",
+      "method": "POST",
+      "path": "/disconnect",
+      "auth": "auth",
+      "line": 38
+    },
+    {
+      "module": "telegram",
+      "title": "telegram",
+      "full_path": "/api/telegram/status",
+      "method": "GET",
+      "path": "/status",
+      "auth": "auth",
+      "line": 45
+    },
+    {
+      "module": "telegram",
+      "title": "telegram",
+      "full_path": "/api/telegram/test",
+      "method": "POST",
+      "path": "/test",
+      "auth": "auth",
+      "line": 52
+    },
+    {
+      "module": "trending",
+      "title": "trending",
+      "full_path": "/api/trending/",
+      "method": "GET",
+      "path": "/",
+      "auth": "optional",
+      "line": 10
+    },
+    {
+      "module": "trending",
+      "title": "trending",
+      "full_path": "/api/trending/warm",
+      "method": "GET",
+      "path": "/warm",
+      "auth": "public",
+      "line": 63
+    },
+    {
+      "module": "upload",
+      "title": "upload",
+      "full_path": "/api/upload/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 9
+    },
+    {
+      "module": "variants",
+      "title": "variants",
+      "full_path": "/api/variants/product/:productId",
+      "method": "GET",
+      "path": "/product/:productId",
+      "auth": "optional",
+      "line": 8
+    },
+    {
+      "module": "variants",
+      "title": "variants",
+      "full_path": "/api/variants/product/:productId",
+      "method": "POST",
+      "path": "/product/:productId",
+      "auth": "auth",
+      "line": 15
+    },
+    {
+      "module": "variants",
+      "title": "variants",
+      "full_path": "/api/variants/:id",
+      "method": "PUT",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 30
+    },
+    {
+      "module": "variants",
+      "title": "variants",
+      "full_path": "/api/variants/:id",
+      "method": "DELETE",
+      "path": "/:id",
+      "auth": "auth",
+      "line": 42
+    },
+    {
+      "module": "verification",
+      "title": "verification",
+      "full_path": "/api/verification/request",
+      "method": "POST",
+      "path": "/request",
+      "auth": "auth",
+      "line": 8
+    },
+    {
+      "module": "verification",
+      "title": "verification",
+      "full_path": "/api/verification/my-request",
+      "method": "GET",
+      "path": "/my-request",
+      "auth": "auth",
+      "line": 28
+    },
+    {
+      "module": "verification",
+      "title": "verification",
+      "full_path": "/api/verification/",
+      "method": "GET",
+      "path": "/",
+      "auth": "admin",
+      "line": 38
+    },
+    {
+      "module": "verification",
+      "title": "verification",
+      "full_path": "/api/verification/:id/approve",
+      "method": "PUT",
+      "path": "/:id/approve",
+      "auth": "admin",
+      "line": 51
+    },
+    {
+      "module": "verification",
+      "title": "verification",
+      "full_path": "/api/verification/:id/reject",
+      "method": "PUT",
+      "path": "/:id/reject",
+      "auth": "admin",
+      "line": 66
+    },
+    {
+      "module": "wallet",
+      "title": "Wallet management",
+      "full_path": "/api/wallet/me",
+      "method": "GET",
+      "path": "/me",
+      "auth": "auth",
+      "line": 63
+    },
+    {
+      "module": "wallet",
+      "title": "Wallet management",
+      "full_path": "/api/wallet/topup",
+      "method": "POST",
+      "path": "/topup",
+      "auth": "auth",
+      "line": 74
+    },
+    {
+      "module": "wallet",
+      "title": "Wallet management",
+      "full_path": "/api/wallet/withdraw",
+      "method": "POST",
+      "path": "/withdraw",
+      "auth": "auth",
+      "line": 87
+    },
+    {
+      "module": "wallet",
+      "title": "Wallet management",
+      "full_path": "/api/wallet/debit",
+      "method": "POST",
+      "path": "/debit",
+      "auth": "auth",
+      "line": 100
+    },
+    {
+      "module": "wallet",
+      "title": "Wallet management",
+      "full_path": "/api/wallet/refund",
+      "method": "POST",
+      "path": "/refund",
+      "auth": "auth",
+      "line": 113
+    },
+    {
+      "module": "wallet",
+      "title": "Wallet management",
+      "full_path": "/api/wallet/topup/chapa",
+      "method": "POST",
+      "path": "/topup/chapa",
+      "auth": "auth",
+      "line": 128
+    },
+    {
+      "module": "wallet",
+      "title": "Wallet management",
+      "full_path": "/api/wallet/topup/chapa/sandbox",
+      "method": "GET",
+      "path": "/topup/chapa/sandbox",
+      "auth": "public",
+      "line": 164
+    },
+    {
+      "module": "wallet",
+      "title": "Wallet management",
+      "full_path": "/api/wallet/topup/chapa/verify/:tx_ref",
+      "method": "GET",
+      "path": "/topup/chapa/verify/:tx_ref",
+      "auth": "public",
+      "line": 178
+    },
+    {
+      "module": "wallet",
+      "title": "Wallet management",
+      "full_path": "/api/wallet/topup/stripe",
+      "method": "POST",
+      "path": "/topup/stripe",
+      "auth": "auth",
+      "line": 242
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/wishlists/",
+      "method": "GET",
+      "path": "/",
+      "auth": "auth",
+      "line": 8
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/price-alerts/",
+      "method": "GET",
+      "path": "/",
+      "auth": "auth",
+      "line": 8
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/wishlists/check/:productId",
+      "method": "GET",
+      "path": "/check/:productId",
+      "auth": "auth",
+      "line": 19
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/price-alerts/check/:productId",
+      "method": "GET",
+      "path": "/check/:productId",
+      "auth": "auth",
+      "line": 19
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/wishlists/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 26
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/price-alerts/",
+      "method": "POST",
+      "path": "/",
+      "auth": "auth",
+      "line": 26
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/wishlists/:productId",
+      "method": "DELETE",
+      "path": "/:productId",
+      "auth": "auth",
+      "line": 35
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/price-alerts/:productId",
+      "method": "DELETE",
+      "path": "/:productId",
+      "auth": "auth",
+      "line": 35
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/wishlists/price-alerts",
+      "method": "GET",
+      "path": "/price-alerts",
+      "auth": "auth",
+      "line": 44
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/price-alerts/price-alerts",
+      "method": "GET",
+      "path": "/price-alerts",
+      "auth": "auth",
+      "line": 44
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/wishlists/price-alerts",
+      "method": "POST",
+      "path": "/price-alerts",
+      "auth": "auth",
+      "line": 54
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/price-alerts/price-alerts",
+      "method": "POST",
+      "path": "/price-alerts",
+      "auth": "auth",
+      "line": 54
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/wishlists/price-alerts/:productId",
+      "method": "DELETE",
+      "path": "/price-alerts/:productId",
+      "auth": "auth",
+      "line": 67
+    },
+    {
+      "module": "wishlists",
+      "title": "wishlists",
+      "full_path": "/api/price-alerts/price-alerts/:productId",
+      "method": "DELETE",
+      "path": "/price-alerts/:productId",
+      "auth": "auth",
+      "line": 67
+    }
+  ]
+}

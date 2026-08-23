@@ -59,7 +59,7 @@
 
 | # | Item | Where |
 |---|------|-------|
-| O-11 | API.md covers ~10 of 44 route modules; wallet topup/refund documented without admin-only note (now fixed inline); order status enum incomplete. Build a generated endpoint catalog. | backend/API.md |
+| O-11 | API.md covered ~10 of 44 route modules with wrong auth notes on money endpoints — **✅ addressed 2026-08-23**: API.md rewritten as conventions overview; `API_REFERENCE.md` now auto-generates all 255+ endpoints from source (`npm run docs:api`); machine-readable twin at backend/api-catalog.json. Remaining: per-endpoint request/response examples (OpenAPI). | backend/API.md, docs/backend/API_REFERENCE.md |
 | O-12 | ERD missing 11 tables (webhook_events, error_events, conversation_participants, external_* …) | architecture/ERD.md |
 | O-13 | DATA_FLOW JWT section wrong (says RS256/7d/email-role claims; real: HS256/15min/{sub,type,jti}); feed algorithm section stale | architecture/DATA_FLOW.md |
 | O-14 | SEQUENCE_DIAGRAMS: Chapa "(planned)" label + chapa-webhook diagram, returns auto-refund step, PostGIS references | architecture/SEQUENCE_DIAGRAMS.md |

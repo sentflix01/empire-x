@@ -33,6 +33,8 @@ Full engineering standards (naming, API patterns, security rules, testing bar):
 - Every endpoint: auth check → input validation → ownership check → consistent error shape.
 - Docs that describe code must not drift: if your PR changes an API, flag default, payment
   flow, or operational procedure, update the corresponding page under `docs/`.
+  API endpoints specifically: run `cd backend && npm run docs:api` and include the regenerated
+  `docs/backend/API_REFERENCE.md`.
 
 ## Reporting bugs & security issues
 
