@@ -1,3 +1,4 @@
+import OpsCopilot from '@/components/devops/OpsCopilot';
 'use client';
 /**
  * DevOps.tsx — Nodbusiness Developer Operations Hub
@@ -20,7 +21,7 @@ import Link from 'next/link';
 import {
   Activity, AlertTriangle, BarChart3, Ban, BookOpen, Bug, CheckCircle2, ChevronDown,
   ChevronUp, CircleDot, ClipboardList, Clock, Code2, Database, Eye, FileText, Flag,
-  GitBranch, Globe, KanbanSquare, ListChecks, Loader2, Map, Pencil,
+  Bot, GitBranch, Globe, KanbanSquare, ListChecks, Loader2, Map, Pencil,
   Plus, RefreshCw, Rocket, Search, Server, ShieldAlert, Sparkles, Tag, Terminal,
   Trash2, TrendingUp, User, Users, Wifi, WifiOff, X, Zap,
 } from 'lucide-react';
@@ -1842,7 +1843,7 @@ function DevOps() {
   const [busyId,     setBusyId]     = useState<string | null>(null);
 
   // Active section tab
-  const [activeSection, setActiveSection] = useState<'kanban' | 'errors' | 'strategy' | 'health' | 'changelog' | 'summary' | 'kb'>('kanban');
+  const [activeSection, setActiveSection] = useState<'kanban' | 'errors' | 'strategy' | 'health' | 'changelog' | 'copilot' | 'summary' | 'kb'>('kanban');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1940,6 +1941,7 @@ function DevOps() {
   // Section nav tabs
   const SECTION_TABS = [
     { key: 'kanban'   as const, label: 'Kanban Board',    icon: KanbanSquare },
+  { key: 'copilot'  as const, label: 'AI Copilot',      icon: Bot },
     { key: 'errors'   as const, label: 'Live Errors',     icon: AlertTriangle },
     { key: 'strategy' as const, label: 'Strategy',        icon: Map          },
     { key: 'kb'       as const, label: 'Knowledge Base',  icon: BookOpen     },
@@ -2044,7 +2046,8 @@ function DevOps() {
       </div>
 
       {/* ══ Section: Kanban ══════════════════════════════════════════════════ */}
-      {activeSection === 'kanban' && (
+      {activeSection === 'copilot'  && <OpsCopilot />}
+        {activeSection === 'kanban' && (
         <>
           {/* Severity telemetry rail */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-3">
