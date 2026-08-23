@@ -18,25 +18,25 @@ Chat REST layer backing Socket.IO: conversation lists, message history paginatio
 | `GET` | `/api/messages/conversations` | auth | 80 |
 | `GET` | `/api/messages/conversations/:id` | auth | 105 |
 | `POST` | `/api/messages/conversations/find-or-create` | auth | 114 |
-| `POST` | `/api/messages/conversations` | auth | 149 |
-| `PUT` | `/api/messages/conversations/:id` | auth | 171 |
-| `GET` | `/api/messages/conversations/:convId/messages` | auth | 182 |
-| `POST` | `/api/messages/conversations/:convId/messages` | auth | 195 |
-| `PUT` | `/api/messages/messages/:id` | auth | 249 |
-| `DELETE` | `/api/messages/messages/:id` | auth | 262 |
-| `DELETE` | `/api/messages/conversations/:id/history` | auth | 273 |
-| `POST` | `/api/messages/conversations/:id/leave` | auth | 281 |
-| `POST` | `/api/messages/conversations/:id/members` | auth | 293 |
-| `DELETE` | `/api/messages/conversations/:id/members/:userId` | auth | 308 |
-| `DELETE` | `/api/messages/conversations/:id` | auth | 321 |
-| `PUT` | `/api/messages/presence` | auth | 334 |
-| `GET` | `/api/messages/presence/:userId` | auth | 347 |
-| `PUT` | `/api/messages/presence/settings` | auth | 362 |
-| `POST` | `/api/messages/block/:targetId` | auth | 371 |
-| `DELETE` | `/api/messages/block/:targetId` | auth | 377 |
-| `GET` | `/api/messages/block/:targetId` | auth | 382 |
-| `POST` | `/api/messages/messages/:id/forward` | auth | 389 |
-| `POST` | `/api/messages/inquiry` | auth | 408 |
+| `POST` | `/api/messages/conversations` | auth | 152 |
+| `PUT` | `/api/messages/conversations/:id` | auth | 174 |
+| `GET` | `/api/messages/conversations/:convId/messages` | auth | 185 |
+| `POST` | `/api/messages/conversations/:convId/messages` | auth | 198 |
+| `PUT` | `/api/messages/messages/:id` | auth | 252 |
+| `DELETE` | `/api/messages/messages/:id` | auth | 265 |
+| `DELETE` | `/api/messages/conversations/:id/history` | auth | 276 |
+| `POST` | `/api/messages/conversations/:id/leave` | auth | 284 |
+| `POST` | `/api/messages/conversations/:id/members` | auth | 296 |
+| `DELETE` | `/api/messages/conversations/:id/members/:userId` | auth | 311 |
+| `DELETE` | `/api/messages/conversations/:id` | auth | 324 |
+| `PUT` | `/api/messages/presence` | auth | 337 |
+| `GET` | `/api/messages/presence/:userId` | auth | 350 |
+| `PUT` | `/api/messages/presence/settings` | auth | 365 |
+| `POST` | `/api/messages/block/:targetId` | auth | 374 |
+| `DELETE` | `/api/messages/block/:targetId` | auth | 380 |
+| `GET` | `/api/messages/block/:targetId` | auth | 385 |
+| `POST` | `/api/messages/messages/:id/forward` | auth | 392 |
+| `POST` | `/api/messages/inquiry` | auth | 411 |
 
 ## 4. What does it touch?
 

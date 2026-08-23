@@ -15,15 +15,15 @@ PATENT 4 surface A: tenants register external HTTPS data sources per showroom se
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/showrooms/:showroomId/external-sources/health` | public | 89 |
-| `GET` | `/api/showrooms/:showroomId/external-sources/` | public | 113 |
-| `POST` | `/api/showrooms/:showroomId/external-sources/` | public | 125 |
-| `PUT` | `/api/showrooms/:showroomId/external-sources/:sourceId` | public | 148 |
-| `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId` | public | 173 |
-| `GET` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | public | 188 |
-| `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | public | 198 |
-| `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId` | public | 213 |
-| `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/refresh` | public | 225 |
+| `GET` | `/api/showrooms/:showroomId/external-sources/health` | public | 90 |
+| `GET` | `/api/showrooms/:showroomId/external-sources/` | public | 114 |
+| `POST` | `/api/showrooms/:showroomId/external-sources/` | public | 126 |
+| `PUT` | `/api/showrooms/:showroomId/external-sources/:sourceId` | public | 149 |
+| `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId` | public | 174 |
+| `GET` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | public | 189 |
+| `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | public | 199 |
+| `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId` | public | 214 |
+| `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/refresh` | public | 226 |
 
 ## 4. What does it touch?
 

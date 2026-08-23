@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **255** across **44** mounted modules · Generated: 2026-08-23
+> Endpoints: **260** across **44** mounted modules · Generated: 2026-08-23
 
 | Legend | Meaning |
 |---|---|
@@ -25,7 +25,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`coupons`](#coupons) (6)
 - [`courses`](#courses) (8)
 - [`delivery`](#delivery) (2)
-- [`devops`](#devops) (9)
+- [`devops`](#devops) (12)
 - [`docs`](#docs) (1)
 - [`events`](#events) (7)
 - [`externalSources`](#externalsources) (9)
@@ -49,7 +49,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`reviews`](#reviews) (4)
 - [`saves`](#saves) (3)
 - [`search`](#search) (1)
-- [`showrooms`](#showrooms) (6)
+- [`showrooms`](#showrooms) (8)
 - [`stories`](#stories) (8)
 - [`suggestions`](#suggestions) (2)
 - [`tasks`](#tasks) (8)
@@ -172,15 +172,18 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/devops/` | 👑 admin | routes/devops.ts:11 |
-| `POST` | `/api/devops/` | 👑 admin | routes/devops.ts:18 |
-| `PUT` | `/api/devops/:id` | 👑 admin | routes/devops.ts:35 |
-| `DELETE` | `/api/devops/:id` | 👑 admin | routes/devops.ts:54 |
-| `GET` | `/api/devops/errors` | 👑 admin | routes/devops.ts:63 |
-| `PUT` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:78 |
-| `POST` | `/api/devops/errors/report` | ⚪ optional | routes/devops.ts:91 |
-| `GET` | `/api/devops/versions` | 🌐 public | routes/devops.ts:106 |
-| `PUT` | `/api/devops/versions` | 👑 admin | routes/devops.ts:113 |
+| `GET` | `/api/devops/` | 👑 admin | routes/devops.ts:12 |
+| `POST` | `/api/devops/` | 👑 admin | routes/devops.ts:19 |
+| `PUT` | `/api/devops/:id` | 👑 admin | routes/devops.ts:36 |
+| `DELETE` | `/api/devops/:id` | 👑 admin | routes/devops.ts:55 |
+| `GET` | `/api/devops/errors` | 👑 admin | routes/devops.ts:64 |
+| `PUT` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:79 |
+| `POST` | `/api/devops/errors/report` | ⚪ optional | routes/devops.ts:92 |
+| `GET` | `/api/devops/versions` | 🌐 public | routes/devops.ts:107 |
+| `PUT` | `/api/devops/versions` | 👑 admin | routes/devops.ts:114 |
+| `GET` | `/api/devops/health-summary` | 👑 admin | routes/devops.ts:129 |
+| `GET` | `/api/devops/telemetry` | 👑 admin | routes/devops.ts:164 |
+| `POST` | `/api/devops/copilot` | 👑 admin | routes/devops.ts:303 |
 
 ## docs — docs
 
@@ -204,15 +207,15 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/showrooms/:showroomId/external-sources/health` | 🌐 public | routes/externalSources.ts:89 |
-| `GET` | `/api/showrooms/:showroomId/external-sources/` | 🌐 public | routes/externalSources.ts:113 |
-| `POST` | `/api/showrooms/:showroomId/external-sources/` | 🌐 public | routes/externalSources.ts:125 |
-| `PUT` | `/api/showrooms/:showroomId/external-sources/:sourceId` | 🌐 public | routes/externalSources.ts:148 |
-| `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId` | 🌐 public | routes/externalSources.ts:173 |
-| `GET` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | 🌐 public | routes/externalSources.ts:188 |
-| `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | 🌐 public | routes/externalSources.ts:198 |
-| `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId` | 🌐 public | routes/externalSources.ts:213 |
-| `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/refresh` | 🌐 public | routes/externalSources.ts:225 |
+| `GET` | `/api/showrooms/:showroomId/external-sources/health` | 🌐 public | routes/externalSources.ts:90 |
+| `GET` | `/api/showrooms/:showroomId/external-sources/` | 🌐 public | routes/externalSources.ts:114 |
+| `POST` | `/api/showrooms/:showroomId/external-sources/` | 🌐 public | routes/externalSources.ts:126 |
+| `PUT` | `/api/showrooms/:showroomId/external-sources/:sourceId` | 🌐 public | routes/externalSources.ts:149 |
+| `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId` | 🌐 public | routes/externalSources.ts:174 |
+| `GET` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | 🌐 public | routes/externalSources.ts:189 |
+| `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | 🌐 public | routes/externalSources.ts:199 |
+| `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId` | 🌐 public | routes/externalSources.ts:214 |
+| `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/refresh` | 🌐 public | routes/externalSources.ts:226 |
 
 ## flags — flags
 
@@ -262,25 +265,25 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `GET` | `/api/messages/conversations` | 🔒 auth | routes/messages.ts:80 |
 | `GET` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:105 |
 | `POST` | `/api/messages/conversations/find-or-create` | 🔒 auth | routes/messages.ts:114 |
-| `POST` | `/api/messages/conversations` | 🔒 auth | routes/messages.ts:149 |
-| `PUT` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:171 |
-| `GET` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:182 |
-| `POST` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:195 |
-| `PUT` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:249 |
-| `DELETE` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:262 |
-| `DELETE` | `/api/messages/conversations/:id/history` | 🔒 auth | routes/messages.ts:273 |
-| `POST` | `/api/messages/conversations/:id/leave` | 🔒 auth | routes/messages.ts:281 |
-| `POST` | `/api/messages/conversations/:id/members` | 🔒 auth | routes/messages.ts:293 |
-| `DELETE` | `/api/messages/conversations/:id/members/:userId` | 🔒 auth | routes/messages.ts:308 |
-| `DELETE` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:321 |
-| `PUT` | `/api/messages/presence` | 🔒 auth | routes/messages.ts:334 |
-| `GET` | `/api/messages/presence/:userId` | 🔒 auth | routes/messages.ts:347 |
-| `PUT` | `/api/messages/presence/settings` | 🔒 auth | routes/messages.ts:362 |
-| `POST` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:371 |
-| `DELETE` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:377 |
-| `GET` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:382 |
-| `POST` | `/api/messages/messages/:id/forward` | 🔒 auth | routes/messages.ts:389 |
-| `POST` | `/api/messages/inquiry` | 🔒 auth | routes/messages.ts:408 |
+| `POST` | `/api/messages/conversations` | 🔒 auth | routes/messages.ts:152 |
+| `PUT` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:174 |
+| `GET` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:185 |
+| `POST` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:198 |
+| `PUT` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:252 |
+| `DELETE` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:265 |
+| `DELETE` | `/api/messages/conversations/:id/history` | 🔒 auth | routes/messages.ts:276 |
+| `POST` | `/api/messages/conversations/:id/leave` | 🔒 auth | routes/messages.ts:284 |
+| `POST` | `/api/messages/conversations/:id/members` | 🔒 auth | routes/messages.ts:296 |
+| `DELETE` | `/api/messages/conversations/:id/members/:userId` | 🔒 auth | routes/messages.ts:311 |
+| `DELETE` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:324 |
+| `PUT` | `/api/messages/presence` | 🔒 auth | routes/messages.ts:337 |
+| `GET` | `/api/messages/presence/:userId` | 🔒 auth | routes/messages.ts:350 |
+| `PUT` | `/api/messages/presence/settings` | 🔒 auth | routes/messages.ts:365 |
+| `POST` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:374 |
+| `DELETE` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:380 |
+| `GET` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:385 |
+| `POST` | `/api/messages/messages/:id/forward` | 🔒 auth | routes/messages.ts:392 |
+| `POST` | `/api/messages/inquiry` | 🔒 auth | routes/messages.ts:411 |
 
 ## moderation — moderation
 
@@ -305,17 +308,17 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/orders/` | 🔒 auth | routes/orders.ts:59 |
-| `GET` | `/api/orders/session/:sessionId` | 🔒 auth | routes/orders.ts:88 |
-| `GET` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:96 |
-| `POST` | `/api/orders/` | 🔒 auth | routes/orders.ts:134 |
-| `PUT` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:162 |
-| `POST` | `/api/orders/checkout/session` | 🔒 auth | routes/orders.ts:211 |
-| `POST` | `/api/orders/webhook` | 🌐 public | routes/orders.ts:376 |
-| `POST` | `/api/orders/checkout/chapa` | 🔒 auth | routes/orders.ts:406 |
-| `GET` | `/api/orders/chapa/sandbox` | 🌐 public | routes/orders.ts:439 |
-| `GET` | `/api/orders/chapa/status/:tx_ref` | 🌐 public | routes/orders.ts:451 |
-| `GET` | `/api/orders/chapa/verify/:tx_ref` | 🌐 public | routes/orders.ts:462 |
+| `GET` | `/api/orders/` | 🔒 auth | routes/orders.ts:60 |
+| `GET` | `/api/orders/session/:sessionId` | 🔒 auth | routes/orders.ts:89 |
+| `GET` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:97 |
+| `POST` | `/api/orders/` | 🔒 auth | routes/orders.ts:135 |
+| `PUT` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:163 |
+| `POST` | `/api/orders/checkout/session` | 🔒 auth | routes/orders.ts:212 |
+| `POST` | `/api/orders/webhook` | 🌐 public | routes/orders.ts:384 |
+| `POST` | `/api/orders/checkout/chapa` | 🔒 auth | routes/orders.ts:414 |
+| `GET` | `/api/orders/chapa/sandbox` | 🌐 public | routes/orders.ts:447 |
+| `GET` | `/api/orders/chapa/status/:tx_ref` | 🌐 public | routes/orders.ts:459 |
+| `GET` | `/api/orders/chapa/verify/:tx_ref` | 🌐 public | routes/orders.ts:470 |
 
 ## polls — polls
 
@@ -328,16 +331,16 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/posts/` | ⚪ optional | routes/posts.ts:26 |
-| `GET` | `/api/posts/:id` | ⚪ optional | routes/posts.ts:88 |
-| `POST` | `/api/posts/` | 🔒 auth | routes/posts.ts:96 |
-| `PUT` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:125 |
-| `DELETE` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:134 |
-| `GET` | `/api/posts/:id/like` | ⚪ optional | routes/posts.ts:146 |
-| `POST` | `/api/posts/:id/like` | 🔒 auth | routes/posts.ts:154 |
-| `GET` | `/api/posts/:id/comments` | ⚪ optional | routes/posts.ts:184 |
-| `POST` | `/api/posts/:id/comments` | 🔒 auth | routes/posts.ts:196 |
-| `DELETE` | `/api/posts/:postId/comments/:commentId` | 🔒 auth | routes/posts.ts:248 |
+| `GET` | `/api/posts/` | ⚪ optional | routes/posts.ts:38 |
+| `GET` | `/api/posts/:id` | ⚪ optional | routes/posts.ts:102 |
+| `POST` | `/api/posts/` | 🔒 auth | routes/posts.ts:111 |
+| `PUT` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:140 |
+| `DELETE` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:149 |
+| `GET` | `/api/posts/:id/like` | ⚪ optional | routes/posts.ts:161 |
+| `POST` | `/api/posts/:id/like` | 🔒 auth | routes/posts.ts:169 |
+| `GET` | `/api/posts/:id/comments` | ⚪ optional | routes/posts.ts:199 |
+| `POST` | `/api/posts/:id/comments` | 🔒 auth | routes/posts.ts:211 |
+| `DELETE` | `/api/posts/:postId/comments/:commentId` | 🔒 auth | routes/posts.ts:263 |
 
 ## products — Marketplace products
 
@@ -423,12 +426,14 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/showrooms/` | ⚪ optional | routes/showrooms.ts:11 |
-| `GET` | `/api/showrooms/slug/:slug` | ⚪ optional | routes/showrooms.ts:22 |
-| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:31 |
-| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:39 |
-| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:55 |
-| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:64 |
+| `GET` | `/api/showrooms/` | ⚪ optional | routes/showrooms.ts:13 |
+| `GET` | `/api/showrooms/slug/:slug` | ⚪ optional | routes/showrooms.ts:24 |
+| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | 🔒 auth | routes/showrooms.ts:35 |
+| `GET` | `/api/showrooms/:id/doctor` | 🔒 auth | routes/showrooms.ts:60 |
+| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:116 |
+| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:124 |
+| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:140 |
+| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:149 |
 
 ## stories — stories
 
@@ -508,15 +513,15 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/wallet/me` | 🔒 auth | routes/wallet.ts:63 |
-| `POST` | `/api/wallet/topup` | 🔒 auth | routes/wallet.ts:74 |
-| `POST` | `/api/wallet/withdraw` | 🔒 auth | routes/wallet.ts:87 |
-| `POST` | `/api/wallet/debit` | 🔒 auth | routes/wallet.ts:100 |
-| `POST` | `/api/wallet/refund` | 🔒 auth | routes/wallet.ts:113 |
-| `POST` | `/api/wallet/topup/chapa` | 🔒 auth | routes/wallet.ts:128 |
-| `GET` | `/api/wallet/topup/chapa/sandbox` | 🌐 public | routes/wallet.ts:164 |
-| `GET` | `/api/wallet/topup/chapa/verify/:tx_ref` | 🌐 public | routes/wallet.ts:178 |
-| `POST` | `/api/wallet/topup/stripe` | 🔒 auth | routes/wallet.ts:242 |
+| `GET` | `/api/wallet/me` | 🔒 auth | routes/wallet.ts:64 |
+| `POST` | `/api/wallet/topup` | 🔒 auth | routes/wallet.ts:75 |
+| `POST` | `/api/wallet/withdraw` | 🔒 auth | routes/wallet.ts:88 |
+| `POST` | `/api/wallet/debit` | 🔒 auth | routes/wallet.ts:101 |
+| `POST` | `/api/wallet/refund` | 🔒 auth | routes/wallet.ts:114 |
+| `POST` | `/api/wallet/topup/chapa` | 🔒 auth | routes/wallet.ts:129 |
+| `GET` | `/api/wallet/topup/chapa/sandbox` | 🌐 public | routes/wallet.ts:165 |
+| `GET` | `/api/wallet/topup/chapa/verify/:tx_ref` | 🌐 public | routes/wallet.ts:179 |
+| `POST` | `/api/wallet/topup/stripe` | 🔒 auth | routes/wallet.ts:246 |
 
 ## wishlists — wishlists
 

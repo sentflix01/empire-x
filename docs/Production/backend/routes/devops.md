@@ -11,19 +11,22 @@ Developer Operations hub: devops_items board CRUD (column-allowlisted), error_ev
 ## 3. What does it do?
 
 
-### Endpoints (9)
+### Endpoints (12)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/devops/` | admin | 11 |
-| `POST` | `/api/devops/` | admin | 18 |
-| `PUT` | `/api/devops/:id` | admin | 35 |
-| `DELETE` | `/api/devops/:id` | admin | 54 |
-| `GET` | `/api/devops/errors` | admin | 63 |
-| `PUT` | `/api/devops/errors/:id/resolve` | admin | 78 |
-| `POST` | `/api/devops/errors/report` | optional | 91 |
-| `GET` | `/api/devops/versions` | public | 106 |
-| `PUT` | `/api/devops/versions` | admin | 113 |
+| `GET` | `/api/devops/` | admin | 12 |
+| `POST` | `/api/devops/` | admin | 19 |
+| `PUT` | `/api/devops/:id` | admin | 36 |
+| `DELETE` | `/api/devops/:id` | admin | 55 |
+| `GET` | `/api/devops/errors` | admin | 64 |
+| `PUT` | `/api/devops/errors/:id/resolve` | admin | 79 |
+| `POST` | `/api/devops/errors/report` | optional | 92 |
+| `GET` | `/api/devops/versions` | public | 107 |
+| `PUT` | `/api/devops/versions` | admin | 114 |
+| `GET` | `/api/devops/health-summary` | admin | 129 |
+| `GET` | `/api/devops/telemetry` | admin | 164 |
+| `POST` | `/api/devops/copilot` | admin | 303 |
 
 ## 4. What does it touch?
 

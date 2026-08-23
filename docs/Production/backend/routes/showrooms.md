@@ -11,16 +11,18 @@ Showroom CRUD: draft/publish lifecycle, layout template selection, section conte
 ## 3. What does it do?
 
 
-### Endpoints (6)
+### Endpoints (8)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/showrooms/` | optional | 11 |
-| `GET` | `/api/showrooms/slug/:slug` | optional | 22 |
-| `GET` | `/api/showrooms/:id` | optional | 31 |
-| `POST` | `/api/showrooms/` | auth | 39 |
-| `PUT` | `/api/showrooms/:id` | auth | 55 |
-| `DELETE` | `/api/showrooms/:id` | auth | 64 |
+| `GET` | `/api/showrooms/` | optional | 13 |
+| `GET` | `/api/showrooms/slug/:slug` | optional | 24 |
+| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | auth | 35 |
+| `GET` | `/api/showrooms/:id/doctor` | auth | 60 |
+| `GET` | `/api/showrooms/:id` | optional | 116 |
+| `POST` | `/api/showrooms/` | auth | 124 |
+| `PUT` | `/api/showrooms/:id` | auth | 140 |
+| `DELETE` | `/api/showrooms/:id` | auth | 149 |
 
 ## 4. What does it touch?
 
