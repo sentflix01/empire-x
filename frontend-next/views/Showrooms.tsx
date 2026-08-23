@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/lib/AuthContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BookmarkButton from '@/components/ui/BookmarkButton';
 
@@ -31,6 +32,7 @@ const CAT_LABELS = {
 
 function Showrooms() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [showrooms, setShowrooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -42,6 +44,16 @@ function Showrooms() {
       .finally(() => setLoading(false));
   }, []);
 
+  // BUG[2]: owner management - edit/delete published showrooms
+  const mine = showrooms.filter((s: { owner_id?: string }) => s.owner_id && s.owner_id === user?.id);
+  const deleteShowroom = async (id: string) => {
+    if (!window.confirm('Delete this showroom permanently?')) return;
+    try {
+      const res = await fetch(`/api/showrooms/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (!res.ok) throw new Error();
+      setShowrooms((prev: unknown[]) => prev.filter((x: { id: string }) => x.id !== id));
+    } catch { alert('Delete failed'); }
+  };
   const filtered = showrooms.filter(s => {
     const matchSearch = !search || s.title?.toLowerCase().includes(search.toLowerCase());
     const matchCat = category === t('common.all') || s.category === category;
@@ -67,10 +79,25 @@ function Showrooms() {
           <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('showrooms.title') + '...'} className="pl-9 rounded-full bg-card border-border/50" />
         </div>
 
+        {/* Owner management (BUG[2]) */}
+        {mine.length > 0 && (
+          <div className="mb-4 rounded-2xl border border-border/50 bg-card p-3">
+            <p className="text-xs font-semibold mb-2">Your showrooms</p>
+            <div className="space-y-2">
+              {mine.map((s: { id: string; title?: string }) => (
+                <div key={s.id} className="flex items-center justify-between gap-2 rounded-xl bg-secondary/40 px-3 py-2">
+                  <span className="text-xs truncate flex-1">{s.title || s.id}</span>
+                  <Link href={`/showroom/create?edit=${s.id}`} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-600 hover:bg-amber-500/25">Edit</Link>
+                  <button onClick={() => deleteShowroom(s.id)} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20">Delete</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
-          {["All", ...Object.keys(CAT_LABELS)].map(c => (
+          {["All", ...Array.from(new Set(showrooms.map((s: { category?: string }) => s.category).filter(Boolean)))].map((c: string) => (
             <button key={c} onClick={() => setCategory(c)} className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${category === c ? "bg-amber-500 text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"}`}>
-              {c === t('common.all') ? t('common.all') : CAT_LABELS[c]}
+              {c === t('common.all') ? t('common.all') : (CAT_LABELS[c] || c)}
             </button>
           ))}
         </div>

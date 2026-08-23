@@ -270,6 +270,7 @@ function ShowroomCreate({
   const templateParam = templateParamOverride ?? (searchParams.get("template") || "");
   const categoryParam = categoryParamOverride ?? (searchParams.get("category") || "");
   const sampleParam = sampleParamOverride ?? (searchParams.get("sample") || "");
+  const editId = searchParams.get("edit") || "";
   const templateName = templateParam.replace(/-/g, " ");
 
   const { user } = useAuth();
@@ -291,6 +292,28 @@ function ShowroomCreate({
     getDefaultFormData(templateName, categoryParam, sampleParam)
   );
 
+  // BUG[2]: edit mode - load an existing showroom into the builder
+  useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/showrooms/${editId}`, { credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        let sections = data.sections;
+        if (typeof sections === 'string') { try { sections = JSON.parse(sections); } catch { sections = undefined; } }
+        if (Array.isArray(sections) && sections.length) setActiveSections(sections);
+        setFormData((prev: Record<string, unknown>) => ({
+          ...prev,
+          ...Object.fromEntries(Object.entries(data).filter(([, v]) => v !== null && v !== undefined && typeof v !== 'object')),
+          ...(sections && typeof sections === 'object' && !Array.isArray(sections) ? (sections as Record<string, unknown>) : {}),
+        }));
+      } catch { /* non-fatal */ }
+    })();
+    return () => { cancelled = true; };
+  }, [editId]);
   // Undo/redo stacks
   const [undoStack, setUndoStack] = useState<any[]>([]);
   const [redoStack, setRedoStack] = useState<any[]>([]);

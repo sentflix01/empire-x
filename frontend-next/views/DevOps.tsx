@@ -600,8 +600,12 @@ function KnowledgeBase() {
   return (
     <div className="mb-4 bg-card border border-border/50 rounded-2xl overflow-hidden">
       {/* Header */}
-      <button onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setOpen(v => !v)}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v); } }}
+        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors cursor-pointer">
         <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-600 to-blue-600 flex items-center justify-center shrink-0">
           <BookOpen className="w-4 h-4 text-white" />
         </div>
@@ -624,7 +628,7 @@ function KnowledgeBase() {
           )}
         </div>
         {open ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />}
-      </button>
+      </div>
 
       {open && (
         <div className="border-t border-border/50">

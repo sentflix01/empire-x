@@ -303,7 +303,7 @@ interface PostCardProps {
 
 export default function PostCard({ post, currentUserId, currentUser, feedMode }: PostCardProps) {
   const { t } = useTranslation();
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(Boolean((post as unknown as Record<string, unknown>).liked_by_me));
   const [likeCount, setLikeCount] = useState(post.like_count ?? 0);
   const [commentCount, setCommentCount] = useState(post.comment_count ?? 0);
   const [showComments, setShowComments] = useState(false);
@@ -323,6 +323,9 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
   useEffect(() => { if (feedMode) setViewMode(feedMode); }, [feedMode]);
   useEffect(() => { if (!currentUserData && !currentUser) auth.me().then(setCurrentUserData).catch(() => {}); }, [currentUser, currentUserData]);
   useEffect(() => {
+    // Server embeds liked_by_me on feed/single payloads; per-card lookup only
+    // as legacy fallback when the flag is absent.
+    if ((post as unknown as Record<string, unknown>).liked_by_me !== undefined) return;
     client.get(`/api/posts/${post.id}/like`)
       .then(({ data }) => setLiked(Boolean(data.liked)))
       .catch(() => setLiked(false));

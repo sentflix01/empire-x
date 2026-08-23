@@ -18,6 +18,18 @@ import { sendPushToUser } from './push';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache';
 
 const router = Router();
+/** Attach per-user liked_by_me to a page of posts (single query, no N+1). */
+async function attachLikedByMe(userId: string | undefined, rows: Array<Record<string,unknown>>): Promise<void> {
+  if (!userId || !rows.length) return;
+  const ids = rows.map(r => String(r.id));
+  const { rows: liked } = await pool.query(
+    "SELECT target_id FROM likes WHERE target_type='post' AND user_id=$1 AND target_id=ANY($2::uuid[])",
+    [userId, ids],
+  );
+  const set = new Set(liked.map((l: { target_id: string }) => String(l.target_id)));
+  for (const r of rows) r.liked_by_me = set.has(String(r.id));
+}
+
 
 // ── GET / — smart feed with scoring + keyset cursor ──────────────────────────
 // varyByUser is REQUIRED here: feed=true responses embed per-user social
@@ -52,6 +64,7 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: tr
            p.created_at DESC LIMIT $1`,
         [lim, cursorTs, idList],
       );
+      await attachLikedByMe(req.user?.id, rows as Array<Record<string,unknown>>);
       res.json({
         posts: rows,
         next_cursor: rows.length===lim ? rows[rows.length-1].created_at : null,
@@ -78,6 +91,7 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: tr
       `SELECT p.* FROM posts p WHERE ${conditions.join(' AND ')} ORDER BY p.${sortCol} ${sortDir} LIMIT $${params.length}`,
       params,
     );
+    await attachLikedByMe(req.user?.id, rows as Array<Record<string,unknown>>);
     res.json({ posts: rows, next_cursor: rows.length===lim ? rows[rows.length-1].created_at : null });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Failed to fetch posts');
@@ -89,6 +103,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
     const post = await getRecord('posts', req.params.id);
     if (!post) { res.status(404).json({ error: 'Post not found' }); return; }
+    await attachLikedByMe(req.user?.id, [post as unknown as Record<string,unknown>]);
     res.json(post);
   } catch { res.status(500).json({ error: 'Failed to fetch post' }); }
 });

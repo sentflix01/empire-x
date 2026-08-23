@@ -352,6 +352,11 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
     return;
   }
   if (type==='charge.refunded') {
+    // DOUBLE-REFUND REVIEW (bug[6]): buyer compensation happens ONLY via
+    // Stripe's automatic card refund - we never credit the buyer wallet here.
+    // Wallet adjustments below reverse the SELLER commission (and reverse
+    // wallet-topup payments), which is correct and non-duplicative.
+
     if (!obj.payment_intent) return;
     const isFullRefund = Number(obj.amount_refunded??obj.amount) >= Number(obj.amount);
     const ratio = Number(obj.amount)>0 ? Math.min(1,Number(obj.amount_refunded??obj.amount)/Number(obj.amount)) : 1;
