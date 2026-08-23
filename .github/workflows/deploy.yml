@@ -1,7 +1,12 @@
-name: Halehame Deploy
+name: Nodbusiness Deploy
 
+# Deploys ONLY after CI ("Nodbusiness CI") succeeds on main (TD-019).
+# The push trigger was removed: deploys are chained to the CI run instead,
+# so a red build can never reach production.
 on:
-  push:
+  workflow_run:
+    workflows: ["Nodbusiness CI"]
+    types: [completed]
     branches: [main]
 
 # Only run one deploy at a time
@@ -10,11 +15,38 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # ── Gate: only proceed when the pinned CI run passed for this exact commit ──
+  gate:
+    name: Gate — require green CI on this commit
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+    steps:
+      - name: Check CI result and commit match
+        id: check
+        run: |
+          echo "CI conclusion : ${{ github.event.workflow_run.conclusion }}"
+          echo "CI head commit : ${{ github.event.workflow_run.head_commit.id }}"
+          echo "Deploy target  : ${{ github.sha }}"
+          if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
+            echo "❌ CI did not pass — blocking deploy."
+            echo "proceed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          if [ -n "${{ github.event.workflow_run.head_commit.id }}" ] && \
+             [ "${{ github.event.workflow_run.head_commit.id }}" != "${{ github.sha }}" ]; then
+            echo "ℹ️ A newer commit is queued — letting its own deploy handle this."
+            echo "proceed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "✅ Green CI for this exact commit."
+          echo "proceed=true" >> $GITHUB_OUTPUT
+
   # ── Run DB Migrations on Neon ────────────────────────────────────────────────
-  # Runs automatically on every push to main.
-  # Works from any device — no local DB needed.
   migrate:
     name: Run DB Migrations → Neon
+    needs: gate
+    if: needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     environment: production
 
@@ -44,6 +76,8 @@ jobs:
   # own git-integration still picks up the push independently.
   deploy-backend:
     name: Deploy Backend → Railway
+    needs: [gate, migrate]
+    if: needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     environment: production
 
@@ -98,6 +132,8 @@ jobs:
   # ── Deploy Frontend to Vercel ─────────────────────────────────────────────────
   deploy-frontend:
     name: Deploy Frontend (Next.js) → Vercel
+    needs: [gate, migrate]
+    if: needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     environment: production
 
@@ -143,19 +179,24 @@ jobs:
         working-directory: frontend-next
 
   # ── Post-deploy health check ─────────────────────────────────────────────────
+  # BLOCKING (TD-019): a failed health check fails the workflow and pages via
+  # Telegram when TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID secrets are configured.
   healthcheck:
     name: Post-deploy Health Check
     runs-on: ubuntu-latest
-    needs: [deploy-frontend]
+    needs: [gate, deploy-frontend]
+    if: needs.gate.outputs.proceed == 'true'
 
     steps:
       - name: Wait for Railway to pick up the push
         run: sleep 30
 
       - name: Check backend health
+        id: backend_health
         run: |
           if [ -z "$BACKEND_URL" ]; then
-            echo "⚠️  BACKEND_URL secret not set — skipping health check"
+            echo "⚠️  BACKEND_URL secret not set — marking check as skipped"
+            echo "result=skipped" >> $GITHUB_OUTPUT
             exit 0
           fi
           echo "Pinging $BACKEND_URL/health ..."
@@ -163,26 +204,51 @@ jobs:
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/health" 2>/dev/null || echo "000")
             if [ "$STATUS" = "200" ]; then
               echo "✅ Backend healthy (attempt $i)"
+              echo "result=ok" >> $GITHUB_OUTPUT
               exit 0
             fi
             echo "⏳ Attempt $i — status $STATUS, waiting 15s..."
             sleep 15
           done
-          echo "⚠️  Backend health check could not confirm 200 — check Railway dashboard"
-          exit 0
+          echo "❌ Backend failed to become healthy after 90s"
+          echo "result=fail" >> $GITHUB_OUTPUT
+          exit 1
         env:
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
 
       - name: Check frontend health
+        id: frontend_health
         run: |
-          # Use secret if set, otherwise fall back to known Vercel URL
           CHECK_URL="${FRONTEND_URL:-https://halehame-eosin.vercel.app}"
           echo "Checking frontend at $CHECK_URL ..."
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$CHECK_URL" 2>/dev/null || echo "000")
-          if [ "$STATUS" = "200" ] || [ "$STATUS" = "307" ] || [ "$STATUS" = "308" ]; then
-            echo "✅ Frontend healthy (status $STATUS)"
-          else
-            echo "⚠️  Frontend returned status $STATUS — check Vercel dashboard"
-          fi
+          for i in 1 2 3; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$CHECK_URL" 2>/dev/null || echo "000")
+            if [ "$STATUS" = "200" ] || [ "$STATUS" = "307" ] || [ "$STATUS" = "308" ]; then
+              echo "✅ Frontend healthy (status $STATUS)"
+              echo "result=ok" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "❌ Frontend returned status $STATUS after retries"
+          echo "result=fail" >> $GITHUB_OUTPUT
+          exit 1
         env:
           FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+
+      - name: Notify Telegram on failure
+        if: failure()
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "ℹ️ Telegram secrets not set — skipping notification"
+            exit 0
+          fi
+          MSG=$'<b>Deploy health check FAILED</b>\nCommit: <code>'"${GITHUB_SHA}"'</code>\nBackend: '"${{ steps.backend_health.outputs.result }}"' · Frontend: '"${{ steps.frontend_health.outputs.result }}"$'\nAction: consider immediate rollback (git revert + push) per docs/infrastructure/CI_CD_PIPELINE.md'
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="$TELEGRAM_CHAT_ID" \
+            -d parse_mode="HTML" \
+            --data-urlencode text="$MSG" > /dev/null || true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GITHUB_SHA: ${{ github.sha }}

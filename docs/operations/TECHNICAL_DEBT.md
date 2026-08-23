@@ -206,7 +206,8 @@ Safe locally, dangerous if seed scripts ever run against production.
 ---
 
 ### TD-019: CI is non-blocking and deploys are not gated on it
-**Status:** Open · **Priority:** High
-**Problem:** ci.yml wraps tests/typecheck/audit in || true; deploy.yml runs independently of CI;
-post-deploy healthcheck always exits 0. See docs/infrastructure/CI_CD_PIPELINE.md gap plan.
-**Fix:** Remove || true, add workflow_run gating, fail the healthcheck job + notify Telegram.
+**Status:** ✅ Done (2026-08-23)
+**Resolution:** ci.yml — backend typecheck + Jest suites and frontend lint + typecheck + build
+are hard gates (npm audit stays advisory for now). deploy.yml no longer triggers on push; it
+runs via `workflow_run` only after a successful CI run for the same commit (`gate` job), and
+the post-deploy health check now fails the workflow and alerts Telegram when configured.

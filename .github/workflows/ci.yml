@@ -1,4 +1,4 @@
-name: Halehame CI
+name: Nodbusiness CI
 
 on:
   push:
@@ -13,16 +13,16 @@ concurrency:
 jobs:
   # ── Backend ──────────────────────────────────────────────────────────────────
   backend:
-    name: Backend — Lint & Test
+    name: Backend — Typecheck & Tests (blocking)
     runs-on: ubuntu-latest
 
     services:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: halehame
+          POSTGRES_USER: nodbusiness
           POSTGRES_PASSWORD: testpassword
-          POSTGRES_DB: halehame_test
+          POSTGRES_DB: nodbusiness_test
         ports:
           - 5432:5432
         options: >-
@@ -33,7 +33,7 @@ jobs:
 
     env:
       NODE_ENV: test
-      DATABASE_URL: postgresql://halehame:testpassword@localhost:5432/halehame_test
+      DATABASE_URL: postgresql://nodbusiness:testpassword@localhost:5432/nodbusiness_test
       JWT_SECRET: ci-test-secret-do-not-use-in-production-at-all
       PORT: 3001
 
@@ -53,11 +53,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Typecheck (blocking)
+        run: npx tsc --noEmit
+
       - name: Run migrations
         run: npm run migrate
 
-      - name: Run tests
-        run: npm test --if-present || true
+      # Jest unit/integration suites — the proven green gate (257 tests).
+      # The live-server e2e script stays out of the blocking path.
+      - name: Run tests (blocking)
+        run: npx jest --runInBand
 
   # ── Next.js Frontend ─────────────────────────────────────────────────────────
   frontend:
@@ -80,15 +85,14 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Lint
+      - name: Lint (blocking)
         run: npm run lint
 
-      - name: Type-check
-        # React 19 changed forwardRef children typing — 1752 pre-existing errors
-        # across shadcn/Radix components. Non-blocking until components are updated.
-        run: npx tsc --noEmit || true
+      # Clean as of 2026-08-23 (0 errors) — kept blocking to stay that way.
+      - name: Type-check (blocking)
+        run: npx tsc --noEmit
 
-      - name: Build
+      - name: Build (blocking)
         run: npm run build
         env:
           NEXT_PUBLIC_API_BASE_URL: https://example-ci-build.railway.app
@@ -98,8 +102,10 @@ jobs:
           NEXT_PUBLIC_SENTRY_DSN: ""
 
   # ── Security audit ───────────────────────────────────────────────────────────
+  # Advisory until the dependency backlog is cleared; then flip
+  # --audit-level=high into a hard gate.
   audit:
-    name: Security Audit
+    name: Security Audit (advisory)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
