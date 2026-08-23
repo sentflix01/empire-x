@@ -1,6 +1,14 @@
 # frontend-next — Architecture & Data Flow
 
-> How the frontend is wired: layers, state ownership, auth lifecycle, realtime.
+## 1. What is this?
+
+**Documentation page.** How the frontend is wired: layers, state ownership, auth lifecycle, realtime.
+
+## 2. Why does it exist?
+
+How the frontend is wired: layers, state ownership, auth lifecycle, realtime.
+
+## 3. What does it do?
 
 ## Layers (outside-in)
 1. `app/` - App Router: 59 thin page wrappers + root layout/providers + error boundaries
@@ -32,3 +40,8 @@ server-side revocation/ban checks.
 ## Styling & i18n
 Tailwind v4 tokens from globals.css (brand purple/amber); i18next flat locales
 en/am single namespace.
+
+## 4. What does it touch?
+
+**Files referenced:**
+- `proxy.ts`

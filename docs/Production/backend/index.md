@@ -1,10 +1,15 @@
 # backend/index.ts — Server Entry Point
-> The front door of the entire API: builds the Express app, wires every
-> protection layer in order, mounts all 45 route groups, and starts the server.
 
-## Purpose
+## 1. What is this?
+
+**Documentation page.** The front door of the entire API: builds the Express app, wires every
+
+## 2. Why does it exist?
+
 Single boot file. Everything a request touches, in exact order, is configured here.
-## What It Does (request pipeline, top to bottom)
+
+## 3. What does it do?
+
 1. Sentry init -> compression + ETag caching -> realMode filter (hides seed data)
 2. requestId / httpLogger / apiVersion (every response carries `API-Version: 1`)
 3. **Boot guard**: hard-exits unless `DATABASE_URL` + `JWT_SECRET` are set
@@ -18,12 +23,17 @@ Single boot file. Everything a request touches, in exact order, is configured he
 After listen: stories cleanup scheduler, queue workers, **backup schedule**,
 Supabase bucket auto-create, production cache warm + DB keep-alive pings,
 graceful SIGTERM/SIGINT shutdown.
-## Key Exports
+
 None - it runs. See `startBackupSchedule`, `startWorkers` wiring.
-## Connects To
+
+## 4. What does it touch?
+
+**Connections:**
 All 45 routes (see INDEX), lib/logger, lib/redis, db/pool, socket.ts (HTTP server share).
-## Data & Security
+
+**Safety / data notes:**
 Env validation is the only hard gate; everything else degrades gracefully.
 Rate limits are enforced ONLY outside development - see ENVIRONMENT_VARIABLES.md.
-## Related Docs
+
+**Related docs:**
 operations/DEPLOYMENT.md, infrastructure/CI_CD_PIPELINE.md, backend/SECURITY.md

@@ -1,15 +1,28 @@
 # frontend-next/views/Jobs.tsx
 
-> Job board listing with search/filter and apply flow.
+## 1. What is this?
 
-## Facts
-- Size: ~124 lines (view-layer logic; thin page wrapper delegates here)
-- API endpoints touched:
-  - `/api/entities`
-  - `/api/client`
-  - `/api/jobs/${job.id}/apply`
-- State / realtime: AuthContext (useAuth)
+**Screen component (view layer).** Job board listing with search/filter and apply flow.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 124 lines of source.
+
+## 2. Why does it exist?
+
+Job board listing with search/filter and apply flow.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/entities`
+- `/api/client`
+- `/api/jobs/${job.id}/apply`
+
+**Integrations:** AuthContext (useAuth)
+
+**Source file:** `frontend-next/views/Jobs`

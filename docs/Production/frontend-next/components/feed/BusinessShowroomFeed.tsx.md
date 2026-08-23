@@ -1,14 +1,27 @@
 # frontend-next/components/feed/BusinessShowroomFeed.tsx
 
-> Module of the frontend application.
+## 1. What is this?
 
-## Facts
-- Size: ~811 lines
-- API endpoints touched:
-  - `/api/entities`
-  - `/api/client`
-  - `/api/saves/check/${businessId}`
-  - `/api/saves/toggle`
+**React component.** Module of the frontend application.
 
-## Notes
-- Client-side module; auth handled globally by api/client interceptors.
+Size: roughly 811 lines of source.
+
+## 2. Why does it exist?
+
+Module of the frontend application.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/entities`
+- `/api/client`
+- `/api/saves/check/${businessId}`
+- `/api/saves/toggle`
+
+**Source file:** `frontend-next/components/feed/BusinessShowroomFeed.tsx`

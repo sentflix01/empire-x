@@ -1,13 +1,26 @@
 # frontend-next/views/JobCreate.tsx
 
-> Employer job posting form: role details, salary, category, application settings.
+## 1. What is this?
 
-## Facts
-- Size: ~95 lines (view-layer logic; thin page wrapper delegates here)
-- API endpoints touched:
-  - `/api/entities`
-- State / realtime: zustand stores
+**Screen component (view layer).** Employer job posting form: role details, salary, category, application settings.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 95 lines of source.
+
+## 2. Why does it exist?
+
+Employer job posting form: role details, salary, category, application settings.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/entities`
+
+**Integrations:** zustand stores
+
+**Source file:** `frontend-next/views/JobCreate`

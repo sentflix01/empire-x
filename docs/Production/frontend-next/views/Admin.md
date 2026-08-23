@@ -1,20 +1,33 @@
 # frontend-next/views/Admin.tsx
 
-> Admin control center: stats overview, user management (ban/unban), verifications queue, revenue charts, content tables.
+## 1. What is this?
 
-## Facts
-- Size: ~962 lines (view-layer logic; thin page wrapper delegates here)
-- API endpoints touched:
-  - `/api/client`
-  - `/api/devops/stats`
-  - `/api/flags`
-  - `/api/flags/${name}`
-  - `/api/admin/stats`
-  - `/api/admin/users`
-  - `/api/admin/verifications`
-  - `/api/admin/posts`
-- State / realtime: AuthContext (useAuth)
+**Screen component (view layer).** Admin control center: stats overview, user management (ban/unban), verifications queue, revenue charts, content tables.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 962 lines of source.
+
+## 2. Why does it exist?
+
+Admin control center: stats overview, user management (ban/unban), verifications queue, revenue charts, content tables.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/client`
+- `/api/devops/stats`
+- `/api/flags`
+- `/api/flags/${name}`
+- `/api/admin/stats`
+- `/api/admin/users`
+- `/api/admin/verifications`
+- `/api/admin/posts`
+
+**Integrations:** AuthContext (useAuth)
+
+**Source file:** `frontend-next/views/Admin`

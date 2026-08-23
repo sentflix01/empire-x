@@ -1,8 +1,16 @@
-# backend/routes/showrooms.ts - Showroom CRUD: draft/publish lifecycle, layout template selection, section content persistence, cover/branding assets, slug-based public access.
+# backend/routes/showrooms.ts
 
-> Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+## 1. What is this?
 
-## Endpoints (6)
+**Express API route module.** Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+
+## 2. Why does it exist?
+
+Showroom CRUD: draft/publish lifecycle, layout template selection, section content persistence, cover/branding assets, slug-based public access.
+
+## 3. What does it do?
+
+### Endpoints
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -13,7 +21,13 @@
 | `PUT` | `/api/showrooms/:id` | auth | 55 |
 | `DELETE` | `/api/showrooms/:id` | auth | 64 |
 
-## Notes
+
+## 4. What does it touch?
+
+**Notes:**
 - All handlers follow the standard contract (see ../index.md): auth -> validation -> ownership -> consistent errors.
 - Full request/response conventions: docs/backend/API.md; machine catalog: backend/api-catalog.json.
 
+**Machine catalog:** `backend/api-catalog.json` (regenerate: `npm run docs:api`).
+
+**Contract:** follows the standard handler pipeline — see `../index.md`.

@@ -1,10 +1,21 @@
 # frontend-next/views/ServiceAgreement.tsx
 
-> Seller service agreement acceptance flow gating selling features.
+## 1. What is this?
 
-## Facts
-- Size: ~261 lines (view-layer logic; thin page wrapper delegates here)
+**Screen component (view layer).** Seller service agreement acceptance flow gating selling features.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 261 lines of source.
+
+## 2. Why does it exist?
+
+Seller service agreement acceptance flow gating selling features.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**Source file:** `frontend-next/views/ServiceAgreement`

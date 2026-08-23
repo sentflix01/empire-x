@@ -1,13 +1,26 @@
 # frontend-next/components/profile/VerificationRequest.tsx
 
-> Module of the frontend application.
+## 1. What is this?
 
-## Facts
-- Size: ~405 lines
-- API endpoints touched:
-  - `/api/client`
-  - `/api/verification/status`
-  - `/api/verification/request`
+**React component.** Module of the frontend application.
 
-## Notes
-- Client-side module; auth handled globally by api/client interceptors.
+Size: roughly 405 lines of source.
+
+## 2. Why does it exist?
+
+Module of the frontend application.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/client`
+- `/api/verification/status`
+- `/api/verification/request`
+
+**Source file:** `frontend-next/components/profile/VerificationRequest.tsx`

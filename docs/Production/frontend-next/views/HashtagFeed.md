@@ -1,14 +1,27 @@
 # frontend-next/views/HashtagFeed.tsx
 
-> Feed filtered by a single hashtag pulled from post_hashtags.
+## 1. What is this?
 
-## Facts
-- Size: ~72 lines (view-layer logic; thin page wrapper delegates here)
-- API endpoints touched:
-  - `/api/client`
-  - `/api/hashtags/${encodeURIComponent`
-- State / realtime: AuthContext (useAuth)
+**Screen component (view layer).** Feed filtered by a single hashtag pulled from post_hashtags.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 72 lines of source.
+
+## 2. Why does it exist?
+
+Feed filtered by a single hashtag pulled from post_hashtags.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/client`
+- `/api/hashtags/${encodeURIComponent`
+
+**Integrations:** AuthContext (useAuth)
+
+**Source file:** `frontend-next/views/HashtagFeed`

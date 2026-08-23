@@ -1,6 +1,14 @@
 # Grouped: ui-primitives
 
-> Small primitive modules documented together (individual docs reserved for substantial files).
+## 1. What is this?
+
+**Documentation page.** Small primitive modules documented together (individual docs reserved for substantial files).
+
+## 2. Why does it exist?
+
+Small primitive modules documented together (individual docs reserved for substantial files).
+
+## 3. What does it do?
 
 | File | LOC | Purpose |
 |---|---|---|
@@ -49,3 +57,19 @@
 | `components/ui/toggle-group.tsx` | 64 | Small primitive — see source for exact props. |
 | `components/ui/toggle.tsx` | 41 | Small primitive — see source for exact props. |
 | `components/ui/tooltip.tsx` | 31 | Small primitive — see source for exact props. |
+
+## 4. What does it touch?
+
+**Files referenced:**
+- `components/ui/BookmarkButton.tsx`
+- `components/ui/ErrorState.tsx`
+- `components/ui/SafeImage.tsx`
+- `components/ui/ShareButton.tsx`
+- `components/ui/VerifiedBadge.tsx`
+- `components/ui/accordion.tsx`
+- `components/ui/alert-dialog.tsx`
+- `components/ui/alert.tsx`
+- `components/ui/aspect-ratio.tsx`
+- `components/ui/avatar.tsx`
+- `components/ui/badge.tsx`
+- `components/ui/breadcrumb.tsx`

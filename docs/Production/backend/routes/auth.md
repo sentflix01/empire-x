@@ -1,8 +1,16 @@
-# backend/routes/auth.ts - Authentication and account lifecycle: register with OTP email verification, verify/resend code, login (bcrypt + timing-equalized), Google OAuth linking, /me profile fetch, forgot/reset password (hashed single-use tokens), change password, refresh rotation, logout and logout-all.
+# backend/routes/auth.ts
 
-> Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+## 1. What is this?
 
-## Endpoints (12)
+**Express API route module.** Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+
+## 2. Why does it exist?
+
+Authentication and account lifecycle: register with OTP email verification, verify/resend code, login (bcrypt + timing-equalized), Google OAuth linking, /me profile fetch, forgot/reset password (hashed single-use tokens), change password, refresh rotation, logout and logout-all.
+
+## 3. What does it do?
+
+### Endpoints
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -19,7 +27,13 @@
 | `POST` | `/api/auth/logout` | public | 623 |
 | `POST` | `/api/auth/logout-all` | auth | 641 |
 
-## Notes
+
+## 4. What does it touch?
+
+**Notes:**
 - All handlers follow the standard contract (see ../index.md): auth -> validation -> ownership -> consistent errors.
 - Full request/response conventions: docs/backend/API.md; machine catalog: backend/api-catalog.json.
 
+**Machine catalog:** `backend/api-catalog.json` (regenerate: `npm run docs:api`).
+
+**Contract:** follows the standard handler pipeline — see `../index.md`.

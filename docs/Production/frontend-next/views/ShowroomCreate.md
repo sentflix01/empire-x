@@ -1,13 +1,26 @@
 # frontend-next/views/ShowroomCreate.tsx
 
-> Entry to the builder wizard — picks template/layout then routes into the showroom editor.
+## 1. What is this?
 
-## Facts
-- Size: ~906 lines (view-layer logic; thin page wrapper delegates here)
-- API endpoints touched:
-  - `/api/entities`
-- State / realtime: AuthContext (useAuth), zustand stores
+**Screen component (view layer).** Entry to the builder wizard — picks template/layout then routes into the showroom editor.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 906 lines of source.
+
+## 2. Why does it exist?
+
+Entry to the builder wizard — picks template/layout then routes into the showroom editor.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/entities`
+
+**Integrations:** AuthContext (useAuth), zustand stores
+
+**Source file:** `frontend-next/views/ShowroomCreate`

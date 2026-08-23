@@ -1,8 +1,16 @@
-# backend/routes/telegram.ts - Telegram integration: bot webhook receiver and notifyUser helper used for seller payment alerts; chat-id linkage stored on users.
+# backend/routes/telegram.ts
 
-> Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+## 1. What is this?
 
-## Endpoints (4)
+**Express API route module.** Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+
+## 2. Why does it exist?
+
+Telegram integration: bot webhook receiver and notifyUser helper used for seller payment alerts; chat-id linkage stored on users.
+
+## 3. What does it do?
+
+### Endpoints
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -11,7 +19,13 @@
 | `GET` | `/api/telegram/status` | auth | 45 |
 | `POST` | `/api/telegram/test` | auth | 52 |
 
-## Notes
+
+## 4. What does it touch?
+
+**Notes:**
 - All handlers follow the standard contract (see ../index.md): auth -> validation -> ownership -> consistent errors.
 - Full request/response conventions: docs/backend/API.md; machine catalog: backend/api-catalog.json.
 
+**Machine catalog:** `backend/api-catalog.json` (regenerate: `npm run docs:api`).
+
+**Contract:** follows the standard handler pipeline — see `../index.md`.

@@ -1,8 +1,16 @@
-# backend/routes/wishlists.ts - Wishlists plus price-alert sub-routes mounted under /api/price-alerts: save products to wishlist, target-price alerts checked on price changes.
+# backend/routes/wishlists.ts
 
-> Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+## 1. What is this?
 
-## Endpoints (14)
+**Express API route module.** Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+
+## 2. Why does it exist?
+
+Wishlists plus price-alert sub-routes mounted under /api/price-alerts: save products to wishlist, target-price alerts checked on price changes.
+
+## 3. What does it do?
+
+### Endpoints
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -21,7 +29,13 @@
 | `DELETE` | `/api/wishlists/price-alerts/:productId` | auth | 67 |
 | `DELETE` | `/api/price-alerts/price-alerts/:productId` | auth | 67 |
 
-## Notes
+
+## 4. What does it touch?
+
+**Notes:**
 - All handlers follow the standard contract (see ../index.md): auth -> validation -> ownership -> consistent errors.
 - Full request/response conventions: docs/backend/API.md; machine catalog: backend/api-catalog.json.
 
+**Machine catalog:** `backend/api-catalog.json` (regenerate: `npm run docs:api`).
+
+**Contract:** follows the standard handler pipeline — see `../index.md`.

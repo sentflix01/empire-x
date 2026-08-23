@@ -4,22 +4,22 @@
 > Read this folder top-to-bottom and you understand the entire product without
 > opening a single line of code.
 
-## How to read this folder
-1. Start with `INDEX.md` — the map of everything.
-2. Each document follows the same template so you always know where to look:
+## The four-question standard
+Every document answers the same four questions, in this order:
 
-| Section | Answers |
-|---|---|
-| **Purpose** | Why does this file exist? |
-| **What It Does** | Functionality in plain language |
-| **Key Exports** | Table of functions/components and what they do |
-| **Connects To** | What it imports, who consumes it, which DB tables |
-| **Data & Security** | Auth levels, validation, money-safety notes |
-| **Related Docs** | Links into the wider documentation |
+| # | Section | Answers |
+|---|---------|---------|
+| 1 | **What is this?** | File identity: kind of module, one-line essence, size |
+| 2 | **Why does it exist?** | The problem it solves / reason it was created |
+| 3 | **What does it do?** | Functionality in plain language (endpoints, tables, behavior) |
+| 4 | **What does it touch?** | Connections: APIs, DB tables, libraries, related docs |
 
 ## Conventions
-- Meaningful files get **one document each**: `routes/orders.md` etc.
-- Trivial boilerplate (thin Next.js page wrappers, numbered DB migrations) is
-  **grouped** into one document with a per-file table - flagged in INDEX.md.
-- Docs are regenerated knowledge, not guesses: every claim was verified against
-  the code during the August 2026 audit passes.
+- Meaningful files get one document each; trivial boilerplate (thin page
+  wrappers, numbered migrations) is grouped into a single doc with a table.
+- Route endpoint tables are generated from backend/api-catalog.json and can be
+  refreshed with `npm run docs:api`.
+- All claims verified against source during the August 2026 audit passes.
+
+## Navigation
+Start at INDEX.md for the full map.

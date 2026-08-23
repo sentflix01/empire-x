@@ -1,13 +1,26 @@
 # frontend-next/views/EventCreate.tsx
 
-> Event authoring form: schedule, venue/map link, ticketing setup.
+## 1. What is this?
 
-## Facts
-- Size: ~85 lines (view-layer logic; thin page wrapper delegates here)
-- API endpoints touched:
-  - `/api/entities`
-- State / realtime: AuthContext (useAuth), zustand stores
+**Screen component (view layer).** Event authoring form: schedule, venue/map link, ticketing setup.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 85 lines of source.
+
+## 2. Why does it exist?
+
+Event authoring form: schedule, venue/map link, ticketing setup.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/entities`
+
+**Integrations:** AuthContext (useAuth), zustand stores
+
+**Source file:** `frontend-next/views/EventCreate`

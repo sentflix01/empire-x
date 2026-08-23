@@ -1,20 +1,33 @@
 # frontend-next/views/ChatRoom.tsx
 
-> Real-time chat room over Socket.IO: message stream, typing/presence indicators, pinned/saved messages, media sharing.
+## 1. What is this?
 
-## Facts
-- Size: ~1057 lines (view-layer logic; thin page wrapper delegates here)
-- API endpoints touched:
-  - `/api/client`
-  - `/api/messages/conversations/${convId}/messages`
-  - `/api/messages/conversations/${convId}`
-  - `/api/messages/block/${otherUserId}`
-  - `/api/messages/presence/${otherUserId}`
-  - `/api/profiles`
-  - `/api/messages/${editingMsg.id}`
-  - `/api/messages/${msg.id}`
-- State / realtime: AuthContext (useAuth), Socket.IO
+**Screen component (view layer).** Real-time chat room over Socket.IO: message stream, typing/presence indicators, pinned/saved messages, media sharing.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 1057 lines of source.
+
+## 2. Why does it exist?
+
+Real-time chat room over Socket.IO: message stream, typing/presence indicators, pinned/saved messages, media sharing.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/client`
+- `/api/messages/conversations/${convId}/messages`
+- `/api/messages/conversations/${convId}`
+- `/api/messages/block/${otherUserId}`
+- `/api/messages/presence/${otherUserId}`
+- `/api/profiles`
+- `/api/messages/${editingMsg.id}`
+- `/api/messages/${msg.id}`
+
+**Integrations:** AuthContext (useAuth), Socket.IO
+
+**Source file:** `frontend-next/views/ChatRoom`

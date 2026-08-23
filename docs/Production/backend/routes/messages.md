@@ -1,8 +1,16 @@
-# backend/routes/messages.ts - Chat REST layer backing Socket.IO: conversation lists, message history pagination, send/edit/delete/forward, read receipts. Real-time fan-out lives in socket.ts.
+# backend/routes/messages.ts
 
-> Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+## 1. What is this?
 
-## Endpoints (22)
+**Express API route module.** Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+
+## 2. Why does it exist?
+
+Chat REST layer backing Socket.IO: conversation lists, message history pagination, send/edit/delete/forward, read receipts. Real-time fan-out lives in socket.ts.
+
+## 3. What does it do?
+
+### Endpoints
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -29,7 +37,13 @@
 | `POST` | `/api/messages/messages/:id/forward` | auth | 389 |
 | `POST` | `/api/messages/inquiry` | auth | 408 |
 
-## Notes
+
+## 4. What does it touch?
+
+**Notes:**
 - All handlers follow the standard contract (see ../index.md): auth -> validation -> ownership -> consistent errors.
 - Full request/response conventions: docs/backend/API.md; machine catalog: backend/api-catalog.json.
 
+**Machine catalog:** `backend/api-catalog.json` (regenerate: `npm run docs:api`).
+
+**Contract:** follows the standard handler pipeline — see `../index.md`.

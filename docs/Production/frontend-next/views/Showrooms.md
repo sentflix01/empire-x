@@ -1,12 +1,24 @@
 # frontend-next/views/Showrooms.tsx
 
-> Showroom directory browsing published storefronts.
+## 1. What is this?
 
-## Facts
-- Size: ~146 lines (view-layer logic; thin page wrapper delegates here)
-- API endpoints touched:
-  - `/api/entities`
+**Screen component (view layer).** Showroom directory browsing published storefronts.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 146 lines of source.
+
+## 2. Why does it exist?
+
+Showroom directory browsing published storefronts.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/entities`
+
+**Source file:** `frontend-next/views/Showrooms`

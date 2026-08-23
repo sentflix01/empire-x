@@ -1,8 +1,14 @@
 # frontend-next/app — Route Pages (grouped)
 
-> Every URL in the product and the view component behind it. These page files are
-> intentional 3–10 line wrappers (App Router requirement) — all logic lives in
-> `views/` and `components/`, which have their own encyclopedia docs.
+## 1. What is this?
+
+**Express API route module.** Every URL in the product and the view component behind it. These page files are
+
+## 2. Why does it exist?
+
+Every URL in the product and the view component behind it. These page files are
+
+## 3. What does it do?
 
 | Route | Delegates to | LOC | Source |
 |---|---|---|---|
@@ -72,3 +78,15 @@
 - `app/error.tsx` / `app/global-error.tsx` — root error boundaries (public routes)
 - `(app)/error.tsx`, `(auth)/error.tsx` — segment boundaries reporting via GlobalErrorReporter
 - `app/not-found.tsx` — 404 page
+
+## 4. What does it touch?
+
+**Files referenced:**
+- `app/page.tsx`
+- `app/choose-account/page.tsx`
+- `app/landing/page.tsx`
+- `app/layout.tsx`
+- `app/providers.tsx`
+- `app/error.tsx`
+- `app/global-error.tsx`
+- `app/not-found.tsx`

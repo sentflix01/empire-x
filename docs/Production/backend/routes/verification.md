@@ -1,8 +1,16 @@
-# backend/routes/verification.ts - Creator/business badge verification requests: submit selfie+ID references, admin approve/reject updating profile verification columns. NOTE schema drift bug tracked TD (routes write columns migrate13 lacks).
+# backend/routes/verification.ts
 
-> Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+## 1. What is this?
 
-## Endpoints (5)
+**Express API route module.** Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+
+## 2. Why does it exist?
+
+Creator/business badge verification requests: submit selfie+ID references, admin approve/reject updating profile verification columns. NOTE schema drift bug tracked TD (routes write columns migrate13 lacks).
+
+## 3. What does it do?
+
+### Endpoints
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -12,7 +20,13 @@
 | `PUT` | `/api/verification/:id/approve` | admin | 51 |
 | `PUT` | `/api/verification/:id/reject` | admin | 66 |
 
-## Notes
+
+## 4. What does it touch?
+
+**Notes:**
 - All handlers follow the standard contract (see ../index.md): auth -> validation -> ownership -> consistent errors.
 - Full request/response conventions: docs/backend/API.md; machine catalog: backend/api-catalog.json.
 
+**Machine catalog:** `backend/api-catalog.json` (regenerate: `npm run docs:api`).
+
+**Contract:** follows the standard handler pipeline — see `../index.md`.

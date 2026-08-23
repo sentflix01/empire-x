@@ -1,8 +1,16 @@
-# backend/routes/jobs.ts - Job board: job posting CRUD, application submission with resume links, applicant tracking states for employers.
+# backend/routes/jobs.ts
 
-> Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+## 1. What is this?
 
-## Endpoints (8)
+**Express API route module.** Auto-built endpoint table from backend/api-catalog.json (regenerate via `npm run docs:api`); narrative curated.
+
+## 2. Why does it exist?
+
+Job board: job posting CRUD, application submission with resume links, applicant tracking states for employers.
+
+## 3. What does it do?
+
+### Endpoints
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -15,7 +23,13 @@
 | `GET` | `/api/jobs/:id/applications` | auth | 70 |
 | `PUT` | `/api/jobs/applications/:id` | auth | 83 |
 
-## Notes
+
+## 4. What does it touch?
+
+**Notes:**
 - All handlers follow the standard contract (see ../index.md): auth -> validation -> ownership -> consistent errors.
 - Full request/response conventions: docs/backend/API.md; machine catalog: backend/api-catalog.json.
 
+**Machine catalog:** `backend/api-catalog.json` (regenerate: `npm run docs:api`).
+
+**Contract:** follows the standard handler pipeline — see `../index.md`.

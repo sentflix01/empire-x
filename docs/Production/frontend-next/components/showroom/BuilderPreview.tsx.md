@@ -1,9 +1,21 @@
 # frontend-next/components/showroom/BuilderPreview.tsx
 
-> Live preview pane rendering sections as the tenant edits them.
+## 1. What is this?
 
-## Facts
-- Size: ~476 lines
+**React component.** Live preview pane rendering sections as the tenant edits them.
 
-## Notes
-- Client-side module; auth handled globally by api/client interceptors.
+Size: roughly 476 lines of source.
+
+## 2. Why does it exist?
+
+Live preview pane rendering sections as the tenant edits them.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**Source file:** `frontend-next/components/showroom/BuilderPreview.tsx`

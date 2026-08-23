@@ -1,16 +1,29 @@
 # frontend-next/views/Profile.tsx
 
-> Public/private profile view: cover/avatar, social links, tabs over posts/products/showrooms, follow button, verification badge display.
+## 1. What is this?
 
-## Facts
-- Size: ~352 lines (view-layer logic; thin page wrapper delegates here)
-- API endpoints touched:
-  - `/api/auth`
-  - `/api/entities`
-  - `/api/client`
-  - `/api/profiles/me/ticker`
-- State / realtime: AuthContext (useAuth)
+**Screen component (view layer).** Public/private profile view: cover/avatar, social links, tabs over posts/products/showrooms, follow button, verification badge display.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 352 lines of source.
+
+## 2. Why does it exist?
+
+Public/private profile view: cover/avatar, social links, tabs over posts/products/showrooms, follow button, verification badge display.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/auth`
+- `/api/entities`
+- `/api/client`
+- `/api/profiles/me/ticker`
+
+**Integrations:** AuthContext (useAuth)
+
+**Source file:** `frontend-next/views/Profile`

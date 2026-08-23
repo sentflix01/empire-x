@@ -1,15 +1,28 @@
 # frontend-next/views/PrivacyAndSecurity.tsx
 
-> Privacy controls surface: data download request, blocklist management, security status.
+## 1. What is this?
 
-## Facts
-- Size: ~301 lines (view-layer logic; thin page wrapper delegates here)
-- API endpoints touched:
-  - `/api/client`
-  - `/api/messages/presence/settings`
-  - `/api/auth/me`
-- State / realtime: AuthContext (useAuth)
+**Screen component (view layer).** Privacy controls surface: data download request, blocklist management, security status.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 301 lines of source.
+
+## 2. Why does it exist?
+
+Privacy controls surface: data download request, blocklist management, security status.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/client`
+- `/api/messages/presence/settings`
+- `/api/auth/me`
+
+**Integrations:** AuthContext (useAuth)
+
+**Source file:** `frontend-next/views/PrivacyAndSecurity`

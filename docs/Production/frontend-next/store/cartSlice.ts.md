@@ -1,15 +1,29 @@
 # frontend-next/store/cartSlice.ts
 
-> Module of the frontend application.
+## 1. What is this?
 
-## Facts
-- Size: ~106 lines
-- API endpoints touched:
-  - `/api/client`
-  - `/api/cart`
-  - `/api/cart/add`
-  - `/api/cart/${cartItemId}`
-- Integrations: zustand
+**State store slice.** Module of the frontend application.
 
-## Notes
-- Client-side module; auth handled globally by api/client interceptors.
+Size: roughly 106 lines of source.
+
+## 2. Why does it exist?
+
+Module of the frontend application.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/client`
+- `/api/cart`
+- `/api/cart/add`
+- `/api/cart/${cartItemId}`
+
+**Integrations:** zustand
+
+**Source file:** `frontend-next/store/cartSlice.ts`

@@ -1,12 +1,26 @@
 # frontend-next/lib/socket.ts
 
-> Socket.IO singleton with SSRF-safe stub during SSR; injects current access token on connect.
+## 1. What is this?
 
-## Facts
-- Size: ~41 lines
-- API endpoints touched:
-  - `/api/client`
-- Integrations: Socket.IO
+**Shared frontend library.** Socket.IO singleton with SSRF-safe stub during SSR; injects current access token on connect.
 
-## Notes
-- Client-side module; auth handled globally by api/client interceptors.
+Size: roughly 41 lines of source.
+
+## 2. Why does it exist?
+
+Socket.IO singleton with SSRF-safe stub during SSR; injects current access token on connect.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/client`
+
+**Integrations:** Socket.IO
+
+**Source file:** `frontend-next/lib/socket.ts`

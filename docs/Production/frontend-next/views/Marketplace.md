@@ -1,15 +1,28 @@
 # frontend-next/views/Marketplace.tsx
 
-> Product browsing grid with category filters, search, sorting and product cards linking to detail pages.
+## 1. What is this?
 
-## Facts
-- Size: ~240 lines (view-layer logic; thin page wrapper delegates here)
-- API endpoints touched:
-  - `/api/entities`
-  - `/api/client`
-  - `/api/products`
-- State / realtime: AuthContext (useAuth)
+**Screen component (view layer).** Product browsing grid with category filters, search, sorting and product cards linking to detail pages.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 240 lines of source.
+
+## 2. Why does it exist?
+
+Product browsing grid with category filters, search, sorting and product cards linking to detail pages.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/entities`
+- `/api/client`
+- `/api/products`
+
+**Integrations:** AuthContext (useAuth)
+
+**Source file:** `frontend-next/views/Marketplace`

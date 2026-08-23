@@ -1,16 +1,29 @@
 # frontend-next/views/CourseDetail.tsx
 
-> Course sales page: curriculum outline, instructor card, enrollment action.
+## 1. What is this?
 
-## Facts
-- Size: ~153 lines (view-layer logic; thin page wrapper delegates here)
-- API endpoints touched:
-  - `/api/entities`
-  - `/api/client`
-  - `/api/courses/${id}/enrolled`
-  - `/api/courses/${id}/enroll`
-- State / realtime: AuthContext (useAuth)
+**Screen component (view layer).** Course sales page: curriculum outline, instructor card, enrollment action.
 
-## Notes
-- Client component (interactive UI); server data via axios client with silent token refresh.
-- Errors surface through sonner toasts; auth failures are handled globally by api/client interceptors.
+Size: roughly 153 lines of source.
+
+## 2. Why does it exist?
+
+Course sales page: curriculum outline, instructor card, enrollment action.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/entities`
+- `/api/client`
+- `/api/courses/${id}/enrolled`
+- `/api/courses/${id}/enroll`
+
+**Integrations:** AuthContext (useAuth)
+
+**Source file:** `frontend-next/views/CourseDetail`

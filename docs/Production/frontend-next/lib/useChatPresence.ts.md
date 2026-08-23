@@ -1,12 +1,25 @@
 # frontend-next/lib/useChatPresence.ts
 
-> Hook tracking online/typing state across ChatRoom instances.
+## 1. What is this?
 
-## Facts
-- Size: ~49 lines
-- API endpoints touched:
-  - `/api/client`
-  - `/api/messages/presence`
+**Shared frontend library.** Hook tracking online/typing state across ChatRoom instances.
 
-## Notes
-- Client-side module; auth handled globally by api/client interceptors.
+Size: roughly 49 lines of source.
+
+## 2. Why does it exist?
+
+Hook tracking online/typing state across ChatRoom instances.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**API endpoints:**
+- `/api/client`
+- `/api/messages/presence`
+
+**Source file:** `frontend-next/lib/useChatPresence.ts`

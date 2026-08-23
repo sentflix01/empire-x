@@ -1,10 +1,23 @@
 # frontend-next/lib/CartContext.tsx
 
-> Module of the frontend application.
+## 1. What is this?
 
-## Facts
-- Size: ~82 lines
-- Integrations: useAuth
+**Shared frontend library.** Module of the frontend application.
 
-## Notes
-- Client-side module; auth handled globally by api/client interceptors.
+Size: roughly 82 lines of source.
+
+## 2. Why does it exist?
+
+Module of the frontend application.
+
+## 3. What does it do?
+
+Implements the behavior described above as an interactive client-side module:
+data flows through `api/client.ts` (silent token refresh), errors surface via
+sonner toasts, and auth failures are handled globally by interceptors.
+
+## 4. What does it touch?
+
+**Integrations:** useAuth
+
+**Source file:** `frontend-next/lib/CartContext.tsx`
