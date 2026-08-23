@@ -10,7 +10,8 @@ Product variants: option matrices (size/color), per-variant stock and price over
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (4)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -18,7 +19,6 @@ Product variants: option matrices (size/color), per-variant stock and price over
 | `POST` | `/api/variants/product/:productId` | auth | 15 |
 | `PUT` | `/api/variants/:id` | auth | 30 |
 | `DELETE` | `/api/variants/:id` | auth | 42 |
-
 
 ## 4. What does it touch?
 

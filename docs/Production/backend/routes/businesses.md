@@ -10,7 +10,8 @@ Business entity pages: create/manage business profiles linked to owners, busines
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (5)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -19,7 +20,6 @@ Business entity pages: create/manage business profiles linked to owners, busines
 | `POST` | `/api/businesses/` | auth | 27 |
 | `PUT` | `/api/businesses/:id` | auth | 41 |
 | `DELETE` | `/api/businesses/:id` | auth | 50 |
-
 
 ## 4. What does it touch?
 

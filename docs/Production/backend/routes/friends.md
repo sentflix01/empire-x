@@ -10,12 +10,12 @@ Friend graph operations: friend request send/accept/reject, friend list retrieva
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (1)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/friends/mutual` | auth | 8 |
-
 
 ## 4. What does it touch?
 

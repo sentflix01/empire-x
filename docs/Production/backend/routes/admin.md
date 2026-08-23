@@ -10,7 +10,8 @@ Platform administration: dashboard stats aggregation, user ban/unban + role chan
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (18)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -32,7 +33,6 @@ Platform administration: dashboard stats aggregation, user ban/unban + role chan
 | `PUT` | `/api/admin/reports/:id` | public | 199 |
 | `PUT` | `/api/admin/users/:id/verify` | public | 207 |
 | `GET` | `/api/admin/stats/revenue` | public | 215 |
-
 
 ## 4. What does it touch?
 

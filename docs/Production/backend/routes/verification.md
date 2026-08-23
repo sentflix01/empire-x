@@ -10,7 +10,8 @@ Creator/business badge verification requests: submit selfie+ID references, admin
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (5)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -19,7 +20,6 @@ Creator/business badge verification requests: submit selfie+ID references, admin
 | `GET` | `/api/verification/` | admin | 38 |
 | `PUT` | `/api/verification/:id/approve` | admin | 51 |
 | `PUT` | `/api/verification/:id/reject` | admin | 66 |
-
 
 ## 4. What does it touch?
 

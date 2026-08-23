@@ -10,13 +10,13 @@ Poll interactions on posts: vote once-per-user enforcement, live vote_count tall
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (2)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `POST` | `/api/polls/:postId/vote` | auth | 8 |
 | `GET` | `/api/polls/:postId/results` | optional | 43 |
-
 
 ## 4. What does it touch?
 

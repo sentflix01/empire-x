@@ -10,7 +10,8 @@ Chat REST layer backing Socket.IO: conversation lists, message history paginatio
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (22)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -36,7 +37,6 @@ Chat REST layer backing Socket.IO: conversation lists, message history paginatio
 | `GET` | `/api/messages/block/:targetId` | auth | 382 |
 | `POST` | `/api/messages/messages/:id/forward` | auth | 389 |
 | `POST` | `/api/messages/inquiry` | auth | 408 |
-
 
 ## 4. What does it touch?
 

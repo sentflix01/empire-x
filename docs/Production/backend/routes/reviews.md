@@ -10,7 +10,8 @@ Product reviews and star ratings: create/update with purchase-bias checks, per-p
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (4)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -18,7 +19,6 @@ Product reviews and star ratings: create/update with purchase-bias checks, per-p
 | `GET` | `/api/reviews/product/:productId` | optional | 29 |
 | `POST` | `/api/reviews/` | auth | 39 |
 | `DELETE` | `/api/reviews/:id` | auth | 61 |
-
 
 ## 4. What does it touch?
 

@@ -10,7 +10,8 @@ The social feed engine: smart ranked feed (recency + engagement + social boost) 
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (10)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -24,7 +25,6 @@ The social feed engine: smart ranked feed (recency + engagement + social boost) 
 | `GET` | `/api/posts/:id/comments` | optional | 184 |
 | `POST` | `/api/posts/:id/comments` | auth | 196 |
 | `DELETE` | `/api/posts/:postId/comments/:commentId` | auth | 248 |
-
 
 ## 4. What does it touch?
 

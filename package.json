@@ -10,6 +10,8 @@
     "build": "cd frontend-next && npm run build",
     "lint": "cd frontend-next && npm run lint",
     "typecheck": "cd frontend-next && npx tsc --noEmit",
-    "test": "cd backend && npm test"
+    "test": "cd backend && npm test",
+    "production:sync": "node scripts/production-docs-sync.cjs",
+    "production:sync:check": "node scripts/production-docs-sync.cjs --check"
   }
 }

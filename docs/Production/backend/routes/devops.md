@@ -10,7 +10,8 @@ Developer Operations hub: devops_items board CRUD (column-allowlisted), error_ev
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (9)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -23,7 +24,6 @@ Developer Operations hub: devops_items board CRUD (column-allowlisted), error_ev
 | `POST` | `/api/devops/errors/report` | optional | 91 |
 | `GET` | `/api/devops/versions` | public | 106 |
 | `PUT` | `/api/devops/versions` | admin | 113 |
-
 
 ## 4. What does it touch?
 

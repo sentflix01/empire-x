@@ -10,13 +10,13 @@ Referral program: referral codes, attribution on signup, reward point issuance l
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (2)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/referral/my-code` | auth | 8 |
 | `POST` | `/api/referral/use` | public | 27 |
-
 
 ## 4. What does it touch?
 

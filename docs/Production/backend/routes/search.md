@@ -10,12 +10,12 @@ Global search: keyword queries across products/posts/users/businesses using FTS 
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (1)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/search/` | optional | 45 |
-
 
 ## 4. What does it touch?
 

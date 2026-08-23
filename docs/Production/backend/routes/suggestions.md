@@ -10,13 +10,13 @@ People-you-may-know: suggestionScore-ranked candidate list excluding existing fo
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (2)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/suggestions/people` | auth | 9 |
 | `POST` | `/api/suggestions/dismiss/:targetUserId` | auth | 73 |
-
 
 ## 4. What does it touch?
 

@@ -10,7 +10,8 @@ Event listings: create/manage events, ticket types, purchase/RSVP flows writing 
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (7)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -21,7 +22,6 @@ Event listings: create/manage events, ticket types, purchase/RSVP flows writing 
 | `DELETE` | `/api/events/:id` | auth | 41 |
 | `POST` | `/api/events/:id/book` | auth | 51 |
 | `GET` | `/api/events/:id/attendees` | optional | 69 |
-
 
 ## 4. What does it touch?
 

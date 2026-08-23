@@ -10,14 +10,14 @@ Public feature-flag exposure: returns effective flags for the calling user so th
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (3)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/flags/` | auth | 8 |
 | `GET` | `/api/flags/:name` | auth | 22 |
 | `PUT` | `/api/flags/:name` | admin | 29 |
-
 
 ## 4. What does it touch?
 

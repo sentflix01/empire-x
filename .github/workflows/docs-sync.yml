@@ -1,0 +1,72 @@
+name: Nodbusiness Docs Sync
+
+# Keeps docs/Production/ and the generated API reference in lockstep with code.
+# Runs AFTER CI succeeds on main; auto-commits doc updates with [skip ci].
+on:
+  workflow_run:
+    workflows: ["Nodbusiness CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync Production encyclopedia
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend deps (for API catalog generation)
+        run: npm ci
+        working-directory: backend
+
+      - name: Regenerate API reference + catalog
+        run: npm run docs:api
+        working-directory: backend
+
+      - name: Sync Production encyclopedia
+        run: node scripts/production-docs-sync.cjs
+
+      - name: Commit updated docs
+        id: commit
+        run: |
+          git config user.name "nodbusiness-docs-bot"
+          git config user.email "docs-bot@nodbusiness.app"
+          if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard docs/)" ]; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "Docs already in sync"
+          else
+            git add docs/
+            git commit -m "docs(sync): auto-update Production encyclopedia + API reference [skip ci]"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push
+        if: steps.commit.outputs.changed == 'true'
+        run: git push origin HEAD:main
+
+  pr-check:
+    name: PR — Production docs coverage check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - name: Verify no missing/stale Production docs
+        run: node scripts/production-docs-sync.cjs --check

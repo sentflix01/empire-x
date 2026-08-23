@@ -10,7 +10,8 @@ Marketplace catalog: product listing/detail/create/edit/archive by sellers, imag
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (5)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -19,7 +20,6 @@ Marketplace catalog: product listing/detail/create/edit/archive by sellers, imag
 | `POST` | `/api/products/` | auth | 73 |
 | `PUT` | `/api/products/:id` | auth | 86 |
 | `DELETE` | `/api/products/:id` | auth | 146 |
-
 
 ## 4. What does it touch?
 

@@ -10,7 +10,8 @@ Seller coupon system: create/manage discount codes (percentage/fixed, min order,
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (6)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -20,7 +21,6 @@ Seller coupon system: create/manage discount codes (percentage/fixed, min order,
 | `POST` | `/api/coupons/use` | auth | 52 |
 | `PATCH` | `/api/coupons/:id/toggle` | auth | 60 |
 | `DELETE` | `/api/coupons/:id` | auth | 70 |
-
 
 ## 4. What does it touch?
 

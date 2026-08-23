@@ -10,13 +10,13 @@ Commission ledger access: seller-facing commission history and platform-wide tot
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (2)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/commission/my-commissions` | auth | 44 |
 | `GET` | `/api/commission/admin/summary` | admin | 55 |
-
 
 ## 4. What does it touch?
 

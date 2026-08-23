@@ -10,7 +10,8 @@ Authentication and account lifecycle: register with OTP email verification, veri
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (12)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -26,7 +27,6 @@ Authentication and account lifecycle: register with OTP email verification, veri
 | `POST` | `/api/auth/refresh` | public | 582 |
 | `POST` | `/api/auth/logout` | public | 623 |
 | `POST` | `/api/auth/logout-all` | auth | 641 |
-
 
 ## 4. What does it touch?
 

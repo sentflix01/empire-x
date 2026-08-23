@@ -10,7 +10,8 @@ Wishlists plus price-alert sub-routes mounted under /api/price-alerts: save prod
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (14)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -28,7 +29,6 @@ Wishlists plus price-alert sub-routes mounted under /api/price-alerts: save prod
 | `POST` | `/api/price-alerts/price-alerts` | auth | 54 |
 | `DELETE` | `/api/wishlists/price-alerts/:productId` | auth | 67 |
 | `DELETE` | `/api/price-alerts/price-alerts/:productId` | auth | 67 |
-
 
 ## 4. What does it touch?
 

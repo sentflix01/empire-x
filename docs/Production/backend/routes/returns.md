@@ -10,7 +10,8 @@ Return requests: buyer opens return with reason/images, seller respond window, a
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (5)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -19,7 +20,6 @@ Return requests: buyer opens return with reason/images, seller respond window, a
 | `POST` | `/api/returns/` | auth | 33 |
 | `PUT` | `/api/returns/:id/approve` | auth | 58 |
 | `PUT` | `/api/returns/:id/reject` | auth | 78 |
-
 
 ## 4. What does it touch?
 

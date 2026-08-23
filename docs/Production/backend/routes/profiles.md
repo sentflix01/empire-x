@@ -10,7 +10,8 @@ User profile system: fetch/upsert profile rows, follow/unfollow toggle inside a 
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (11)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -25,7 +26,6 @@ User profile system: fetch/upsert profile rows, follow/unfollow toggle inside a 
 | `PUT` | `/api/profiles/:id` | auth | 137 |
 | `PATCH` | `/api/profiles/me/ticker` | auth | 151 |
 | `POST` | `/api/profiles/follow/:targetUserId` | auth | 177 |
-
 
 ## 4. What does it touch?
 

@@ -10,7 +10,8 @@
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (8)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -22,7 +23,6 @@
 | `GET` | `/api/stories/:id/comments` | auth | 75 |
 | `POST` | `/api/stories/:id/comments` | auth | 82 |
 | `DELETE` | `/api/stories/:id` | auth | 100 |
-
 
 ## 4. What does it touch?
 

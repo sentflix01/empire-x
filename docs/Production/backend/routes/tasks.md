@@ -10,7 +10,8 @@ Gig/task marketplace: task posting with offered payment, bidding flow, offer acc
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (8)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -22,7 +23,6 @@ Gig/task marketplace: task posting with offered payment, bidding flow, offer acc
 | `DELETE` | `/api/tasks/:id` | auth | 109 |
 | `GET` | `/api/tasks/:taskId/bids` | optional | 119 |
 | `POST` | `/api/tasks/:taskId/bids` | auth | 126 |
-
 
 ## 4. What does it touch?
 

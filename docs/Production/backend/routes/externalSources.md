@@ -10,7 +10,8 @@ PATENT 4 surface A: tenants register external HTTPS data sources per showroom se
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (9)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -23,7 +24,6 @@ PATENT 4 surface A: tenants register external HTTPS data sources per showroom se
 | `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | public | 198 |
 | `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId` | public | 213 |
 | `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/refresh` | public | 225 |
-
 
 ## 4. What does it touch?
 

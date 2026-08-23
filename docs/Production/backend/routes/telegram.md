@@ -10,7 +10,8 @@ Telegram integration: bot webhook receiver and notifyUser helper used for seller
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (4)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -18,7 +19,6 @@ Telegram integration: bot webhook receiver and notifyUser helper used for seller
 | `POST` | `/api/telegram/disconnect` | auth | 38 |
 | `GET` | `/api/telegram/status` | auth | 45 |
 | `POST` | `/api/telegram/test` | auth | 52 |
-
 
 ## 4. What does it touch?
 

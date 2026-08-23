@@ -10,7 +10,8 @@ In-app notification inbox: list newest-first, unread count badge, mark-read sing
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (6)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -20,7 +21,6 @@ In-app notification inbox: list newest-first, unread count badge, mark-read sing
 | `POST` | `/api/notifications/mark-read` | auth | 91 |
 | `PUT` | `/api/notifications/:id/read` | auth | 106 |
 | `DELETE` | `/api/notifications/:id` | auth | 117 |
-
 
 ## 4. What does it touch?
 

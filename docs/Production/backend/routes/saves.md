@@ -10,14 +10,14 @@ Bookmark service powering the bookmarks store: toggle save/unsave for any target
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (3)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/saves/` | auth | 8 |
 | `POST` | `/api/saves/toggle` | auth | 20 |
 | `GET` | `/api/saves/check/:targetId` | auth | 34 |
-
 
 ## 4. What does it touch?
 

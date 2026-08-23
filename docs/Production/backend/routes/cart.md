@@ -10,7 +10,8 @@ Shopping cart: add/update/remove line items incl. variant selection, cart totals
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (5)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -19,7 +20,6 @@ Shopping cart: add/update/remove line items incl. variant selection, cart totals
 | `PUT` | `/api/cart/:itemId` | auth | 42 |
 | `DELETE` | `/api/cart/:itemId` | auth | 55 |
 | `DELETE` | `/api/cart/` | auth | 62 |
-
 
 ## 4. What does it touch?
 

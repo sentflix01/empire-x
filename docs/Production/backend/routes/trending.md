@@ -10,13 +10,13 @@ Trending rankings: computed leaderboards for posts/products/showrooms cached via
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (2)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/trending/` | optional | 10 |
 | `GET` | `/api/trending/warm` | public | 63 |
-
 
 ## 4. What does it touch?
 

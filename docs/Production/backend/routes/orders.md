@@ -10,7 +10,8 @@ Money core: COD order creation (field allowlisted), order status transitions rol
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (11)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -25,7 +26,6 @@ Money core: COD order creation (field allowlisted), order status transitions rol
 | `GET` | `/api/orders/chapa/sandbox` | public | 439 |
 | `GET` | `/api/orders/chapa/status/:tx_ref` | public | 451 |
 | `GET` | `/api/orders/chapa/verify/:tx_ref` | public | 462 |
-
 
 ## 4. What does it touch?
 

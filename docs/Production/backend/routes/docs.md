@@ -10,12 +10,12 @@ Docs library API serving the docs/ folder tree and full-text search results into
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (1)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/docs/` | public | 6 |
-
 
 ## 4. What does it touch?
 

@@ -10,7 +10,8 @@ Job board: job posting CRUD, application submission with resume links, applicant
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (8)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -22,7 +23,6 @@ Job board: job posting CRUD, application submission with resume links, applicant
 | `POST` | `/api/jobs/:id/apply` | auth | 55 |
 | `GET` | `/api/jobs/:id/applications` | auth | 70 |
 | `PUT` | `/api/jobs/applications/:id` | auth | 83 |
-
 
 ## 4. What does it touch?
 

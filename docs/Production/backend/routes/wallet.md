@@ -10,7 +10,8 @@ Wallet money movement: balance + transaction history, admin-only topup/debit/ref
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (9)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -23,7 +24,6 @@ Wallet money movement: balance + transaction history, admin-only topup/debit/ref
 | `GET` | `/api/wallet/topup/chapa/sandbox` | public | 164 |
 | `GET` | `/api/wallet/topup/chapa/verify/:tx_ref` | public | 178 |
 | `POST` | `/api/wallet/topup/stripe` | auth | 242 |
-
 
 ## 4. What does it touch?
 

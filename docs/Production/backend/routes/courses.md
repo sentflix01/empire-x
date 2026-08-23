@@ -10,7 +10,8 @@ Course marketplace: course/lesson authoring, enrollment (course_enrollments), le
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (8)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -22,7 +23,6 @@ Course marketplace: course/lesson authoring, enrollment (course_enrollments), le
 | `POST` | `/api/courses/:id/enroll` | auth | 59 |
 | `GET` | `/api/courses/:id/enrolled` | auth | 72 |
 | `PUT` | `/api/courses/:id/progress` | auth | 79 |
-
 
 ## 4. What does it touch?
 

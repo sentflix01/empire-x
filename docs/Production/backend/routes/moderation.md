@@ -10,14 +10,14 @@ Trust-and-safety primitives: report content/user, blocklist management, admin mo
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (3)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `POST` | `/api/moderation/report` | auth | 8 |
 | `GET` | `/api/moderation/reports` | admin | 26 |
 | `PUT` | `/api/moderation/reports/:id` | admin | 42 |
-
 
 ## 4. What does it touch?
 

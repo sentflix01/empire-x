@@ -10,12 +10,12 @@ File intake: authenticated multipart upload through middleware/upload storage ch
 
 ## 3. What does it do?
 
-### Endpoints
+
+### Endpoints (1)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `POST` | `/api/upload/` | auth | 9 |
-
 
 ## 4. What does it touch?
 
