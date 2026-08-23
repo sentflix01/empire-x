@@ -14,10 +14,11 @@ Status: [x] done, [~] partial, [ ] planned batch
 - [x] `backend/routes` (44 modules) - endpoint tables auto-built from api-catalog.json
 ## Frontend (frontend-next)
 - [ ] architecture overview + data flow
-- [ ] `views` (47 screens)
+- [x] `views` (47 screens)
 - [ ] `components` (grouped by domain)
 - [ ] `lib`, `store`, `api`, `hooks`
 - [ ] `app-routes` (60 page wrappers, grouped)
 - [ ] configs + e2e
+
 
 
