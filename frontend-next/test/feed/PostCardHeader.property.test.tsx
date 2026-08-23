@@ -9,8 +9,8 @@
  * the real rendering logic.
  */
 
-import { describe, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { render } from '@testing-library/react';
 import React from 'react';
 import * as fc from 'fast-check';
 
@@ -41,6 +41,7 @@ function BusinessRow({ businesses }: { businesses: Array<{ id: string; business_
             <span
               className="text-muted-foreground text-[10px] select-none"
               aria-hidden="true"
+              data-testid="separator"
             >
               |
             </span>
@@ -56,11 +57,17 @@ function BusinessRow({ businesses }: { businesses: Array<{ id: string; business_
 
 const arbBusinesses = fc.uniqueArray(
   fc.record({
-    id: fc.string({ minLength: 1 }),
-    business_name: fc.string(),
+    id: fc.string({ minLength: 1 }).filter(s => s.trim().length > 0),
+    // Exclude "|" from names: getAllByText('|') would otherwise match a name
+    // span too and flake the separator-count/styling properties.
+    business_name: fc.string({ minLength: 1 }).filter(s => !s.includes('|')),
   }),
   { minLength: 2, maxLength: 15, selector: (b) => b.id },
 );
+
+/** Separators are the aria-hidden spans — never matched by text content. */
+const getSeparators = (container: HTMLElement) =>
+  Array.from(container.querySelectorAll<HTMLElement>('span[aria-hidden="true"]'));
 
 // ─── Property 1: Separator count invariant ────────────────────────────────────
 
@@ -69,10 +76,9 @@ describe('Property 1: Separator count invariant', () => {
   it('For N businesses (N >= 2), renders exactly min(N,2)-1 = 1 separator with text "|" and aria-hidden="true"', () => {
     fc.assert(
       fc.property(arbBusinesses, (businesses) => {
-        const { unmount } = render(<BusinessRow businesses={businesses} />);
+        const { container, unmount } = render(<BusinessRow businesses={businesses} />);
 
-        // Separators are the spans with aria-hidden="true"
-        const separators = screen.getAllByText('|');
+        const separators = getSeparators(container);
         // For any N >= 2: min(N, 2) - 1 = 1
         const expected = Math.min(businesses.length, 2) - 1;
         expect(separators).toHaveLength(expected);
@@ -96,9 +102,9 @@ describe('Property 2: Separator styling invariant', () => {
   it('Every separator span has the text-muted-foreground CSS class', () => {
     fc.assert(
       fc.property(arbBusinesses, (businesses) => {
-        const { unmount } = render(<BusinessRow businesses={businesses} />);
+        const { container, unmount } = render(<BusinessRow businesses={businesses} />);
 
-        const separators = screen.getAllByText('|');
+        const separators = getSeparators(container);
         separators.forEach((sep) => {
           expect(sep.className).toContain('text-muted-foreground');
         });
@@ -120,8 +126,6 @@ describe('Property 3: Business entry cap invariant', () => {
         const { container, unmount } = render(<BusinessRow businesses={businesses} />);
 
         // Business name spans are the non-separator spans inside the div.
-        // The separator spans contain only "|"; the business name spans are
-        // everything else rendered by the map. We count by excluding separators.
         const allSpans = container.querySelectorAll('span');
         const nameSpans = Array.from(allSpans).filter(
           (s) => s.getAttribute('aria-hidden') !== 'true',

@@ -294,7 +294,7 @@ function ProductDetail() {
         </div>
       </div>
 
-      <ReviewsSection productId={id} currentUser={user} />
+      <ReviewsSection productId={id} currentUser={user?.id ? { id: user.id } : null} />
 
       {/* Purchase modal — same pattern as BusinessProfile */}
       {purchaseItem && (

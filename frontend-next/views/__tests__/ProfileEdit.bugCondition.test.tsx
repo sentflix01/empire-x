@@ -41,6 +41,20 @@ vi.mock('@/api/auth', () => ({
   },
 }));
 
+// ─── Mock @/lib/AuthContext (component requires an AuthProvider) ─────────────
+vi.mock('@/lib/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: 'user-1', full_name: 'Test User', email: 'test@example.com' },
+    isAuthenticated: true,
+    isLoadingAuth: false,
+    authChecked: true,
+    logout: vi.fn(),
+    navigateToLogin: vi.fn(),
+    checkUserAuth: vi.fn().mockResolvedValue(undefined),
+    refreshUser: vi.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 // ─── Mock @/api/entities ────────────────────────────────────────────────────
 vi.mock('@/api/entities', () => ({
   entities: {

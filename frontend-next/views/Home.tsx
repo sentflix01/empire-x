@@ -89,7 +89,7 @@ function CompanyAnnouncementTicker() {
   );
 }
 
-export default function Home() {
+function Home() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { accentTokens, isPersonal, activeView } = useProfileView();

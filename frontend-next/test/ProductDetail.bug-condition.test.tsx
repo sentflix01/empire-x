@@ -73,7 +73,7 @@ vi.mock('@/lib/CartContext', () => ({
 
 // ─── Mock @/lib/AuthContext ───────────────────────────────────────────────────
 vi.mock('@/lib/AuthContext', () => ({
-  useAuth: vi.fn(() => ({ authChecked: true, isAuthenticated: false })),
+  useAuth: vi.fn(() => ({ user: { id: 'u99' }, authChecked: true, isAuthenticated: true, isLoadingAuth: false })),
 }));
 
 // ─── Mock react-i18next ───────────────────────────────────────────────────────
@@ -223,6 +223,15 @@ describe('Bug Condition Exploration: Reviews Section Absent Before Fix', () => {
   it('shows "Sign in to leave a review" for unauthenticated user (expected to FAIL on unfixed code)', async () => {
     setupDefaultMocks([REVIEW_ALICE]);
 
+    // Override useAuth for this test — simulate unauthenticated state
+    // ProductDetail passes currentUser={null} to ReviewsSection when user is null
+    const authCtx = await import('@/lib/AuthContext');
+    vi.mocked(authCtx.useAuth).mockReturnValue({
+      user: null, authChecked: true, isAuthenticated: false, isLoadingAuth: false,
+      logout: vi.fn(), navigateToLogin: vi.fn(), checkUserAuth: vi.fn(), refreshUser: vi.fn(),
+      authError: null, appPublicSettings: null, isLoadingPublicSettings: false,
+    } as any);
+
     // Mock auth.me to throw (unauthenticated)
     (auth.me as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Not authenticated'));
 
@@ -233,6 +242,11 @@ describe('Bug Condition Exploration: Reviews Section Absent Before Fix', () => {
     await waitFor(() => {
       expect(screen.getByText(/Sign in to leave a review/i)).toBeInTheDocument();
     }, { timeout: 3000 });
+
+    // Restore default useAuth mock for subsequent tests
+    vi.mocked(authCtx.useAuth).mockReturnValue({
+      user: { id: 'u99' }, authChecked: true, isAuthenticated: true, isLoadingAuth: false,
+    } as any);
   });
 
   /**

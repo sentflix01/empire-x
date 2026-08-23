@@ -104,7 +104,7 @@ describe('Property 10 & 11: BookmarkButton aria attributes', () => {
     await fc.assert(
       fc.asyncProperty(
         fc.record({
-          targetId: fc.string({ minLength: 1 }),
+          targetId: fc.string({ minLength: 1 }).filter(s => !['__proto__', 'constructor', 'prototype'].includes(s)),
           saved: fc.boolean(),
         }),
         async ({ targetId, saved }) => {
@@ -164,7 +164,7 @@ describe('Property 7: Optimistic update is immediate', () => {
     await fc.assert(
       fc.asyncProperty(
         fc.record({
-          targetId: fc.string({ minLength: 1 }),
+          targetId: fc.string({ minLength: 1 }).filter(s => !['__proto__', 'constructor', 'prototype'].includes(s)),
           saved: fc.boolean(),
         }),
         arbTargetType,

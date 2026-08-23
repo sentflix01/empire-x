@@ -1326,9 +1326,6 @@ function StrategyBoard() {
   );
   const [loadingVersions, setLoadingVersions] = useState(true);
   const [savingVersion,   setSavingVersion]   = useState<string | null>(null);
-  const { user: authUser } = useAuth();
-  const isAdminRef = React.useRef(false);
-  isAdminRef.current = authUser?.role === 'admin';
 
   // Load persisted statuses from backend
   useEffect(() => {

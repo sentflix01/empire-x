@@ -40,12 +40,20 @@ function buildBookmarksStore() {
 const TARGET_TYPES: SavedItem['target_type'][] = ['post', 'product', 'showroom', 'task'];
 
 // Arbitrary generators
-const arbTargetId = fc.string({ minLength: 1, maxLength: 40 });
+// Keys must never be Object.prototype danger keys ("__proto__", "constructor",
+// "prototype"): assigning obj["__proto__"] mutates the prototype instead of
+// creating an own property, which randomly breaks these object-shape
+// properties depending on what fast-check generates.
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+const safeKeyArb = fc
+  .string({ minLength: 1, maxLength: 40 })
+  .filter(s => !UNSAFE_KEYS.has(s));
+const arbTargetId = safeKeyArb;
 const arbTargetType = fc.constantFrom<SavedItem['target_type']>(...TARGET_TYPES);
 
 /** Build an arbitrary savedIds map seeded into the store */
 const arbSavedIdsRecord = fc.dictionary(
-  fc.string({ minLength: 1, maxLength: 40 }),
+  safeKeyArb,
   fc.record({
     target_id: fc.string({ minLength: 1, maxLength: 40 }),
     target_type: arbTargetType,

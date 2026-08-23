@@ -16,7 +16,11 @@
  */
 import { useEffect } from 'react';
 
-const REPORT_URL = `${process.env.NEXT_PUBLIC_API_URL || ''}/api/devops/errors/report`;
+// Must match NEXT_PUBLIC_API_BASE_URL (the var every other client uses).
+// An empty base would post to the frontend origin, where /api/devops/* does
+// not exist — silently discarding every client error report.
+const API_BASE   = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const REPORT_URL = `${API_BASE}/api/devops/errors/report`;
 const MAX_STACK  = 3000;   // chars — keep payloads small
 
 // Debounce identical errors within a short window to avoid flooding

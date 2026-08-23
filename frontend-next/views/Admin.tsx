@@ -398,13 +398,6 @@ function Admin() {
   const [banTarget,     setBanTarget]     = useState<string | null>(null);
   const [banReason,     setBanReason]     = useState('');
 
-  useEffect(() => {
-    if (!user) return;
-    if (user.role !== 'admin') { router.push('/'); return; }
-    loadAll();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
-
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
@@ -426,6 +419,13 @@ function Admin() {
     } catch { toast.error('Failed to load admin data'); }
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.role !== 'admin') { router.push('/'); return; }
+    loadAll();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const loadVerifications = useCallback(async () => {
     const url = vFilter === 'all' ? '/api/admin/verifications' : `/api/admin/verifications?status=${vFilter}`;

@@ -19,9 +19,9 @@ const TX_ICONS = {
   refund: { icon: ArrowDownLeft, color: "text-accent bg-accent/10" },
 };
 
-export default function Wallet() {
+function Wallet() {
   const { t } = useTranslation();
-  const [wallet, setWallet] = useState(null);
+  const [wallet, setWallet] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [tab, setTab] = useState("overview");

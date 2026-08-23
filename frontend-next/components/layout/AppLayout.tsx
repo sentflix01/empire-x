@@ -25,6 +25,7 @@ import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { useRealMode } from "@/lib/RealModeContext";
 import { useProfileView } from "@/lib/ProfileViewContext";
 import { BUILDER_CATEGORY_META, BUILDER_TEMPLATES } from "@/lib/builderSections";
+import { PeopleYouMayKnow } from "@/components/suggestions/PeopleYouMayKnow";
 // AccountSettings popup replaced by /settings navigation
 
 const STUDIO_CATEGORY_COUNT = BUILDER_CATEGORY_META.length;
@@ -47,6 +48,9 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
 
   return (
     <>
+      {/* People You May Know — only for authenticated users */}
+      {user && <PeopleYouMayKnow />}
+
       {/* Quick links */}
       <div className="bg-card dark:bg-card rounded-2xl border border-border/50 p-4">
         <div className="flex items-center gap-2 mb-3">

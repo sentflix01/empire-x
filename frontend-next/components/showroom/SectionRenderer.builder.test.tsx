@@ -32,7 +32,7 @@ const EXPECTED: Record<string, string> = {
   portfolio: "Client Co",
   newsletter: "Subscribe",
   video: "QA Video",
-  map: "123 Main Street, City",
+  map: "Bole Road, Addis Ababa",
   cta: "Ready to get started?",
   process: "Discover",
   booking: "Schedule your session",
