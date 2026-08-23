@@ -139,11 +139,19 @@ editor with live preview, and social-identity association embodiments.)*
 |---|---|
 | Source registration + declarative mappings | `backend/routes/externalSources.ts`; `external_data_sources`, `field_mappings` tables (migrate10.js) |
 | AES-256-GCM credential vault | `backend/services/credentialEncryption.ts` |
+| **Per-tenant key derivation (HKDF, dependent claim 4)** | `credentialEncryption.getKey(context)` — encrypt/decrypt take showroom scope; legacy master-key payloads still decrypt (backward compatible). **Implemented 2026-08-23** |
 | SSRF validation (IPv4+IPv6 ranges, HTTPS-only) | `backend/services/ssrfValidator.ts` |
 | Redirect rejection, timeout, quota, cache, unwrap heuristic | `backend/services/proxyGateway.ts` (`redirect:'error'`, `AbortSignal.timeout`, `checkLimit`, `buildCacheKey`, single-key-array unwrap) |
+| **Stale-cache fallback to last-known-good (claim 3)** | `proxyGateway` stale namespace (`stale:proxy:…`, 7-day TTL); upstream failure/circuit-open serves stale, route emits `X-Stale: true`. **Implemented 2026-08-23** |
+| **Health-driven circuit breaker (degradation embodiment)** | Consecutive-failure counter per source; opens after 5 failures for a 5-minute cooldown, then half-open retry. **Implemented 2026-08-23** |
 | Per-tenant-per-section rate limiting | `backend/services/rateLimiter.ts` (Redis INCR fixed window, fail-open) |
 | Health records | `writeHealthRecord` → `external_health_records` table |
 | Section composition + theming | `frontend-next/components/showroom/SectionRenderer.tsx`, layout templates |
+| Executable evidence of reduction to practice | `backend/test/proxyResilience.test.js` (stale fallback + no-history failure paths) |
+
+> **Filing note:** all four independent/dependent claim elements referenced above are now
+> implemented AND unit-tested as of 2026-08-23 — strengthen the utility application by citing
+> `proxyResilience.test.js` alongside the code map when converting the provisional.
 
 ## 7. Filing Notes
 

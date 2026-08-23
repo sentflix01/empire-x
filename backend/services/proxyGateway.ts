@@ -22,7 +22,8 @@ export type FetchSectionResult =
   | { ssrfBlocked: true }
   | { upstreamError: true; status: number | null }
   | { timeout: true }
-  | { mappingFailed: true };
+  | { mappingFailed: true }
+  | { items: MappedItem[]; stale: true };
 
 interface SourceRecord {
   id: string;
@@ -33,6 +34,7 @@ interface SourceRecord {
   query_param: string | null;
   ttl_seconds: number | null;
   is_enabled: boolean;
+  showroom_id?: string; // tenant scope — drives per-tenant key derivation
 }
 
 interface HealthParams {
@@ -78,12 +80,12 @@ export function buildCacheKey(showroomId: string, sectionKey: string): string {
 
 export function injectCredentials(
   fetchOptions: { url: string; headers: Record<string,string> },
-  source: Pick<SourceRecord,'auth_method'|'credential'|'header_name'|'query_param'>,
+  source: Pick<SourceRecord,'auth_method'|'credential'|'header_name'|'query_param'|'showroom_id'>,
 ): { url: string; headers: Record<string,string> } {
   const { auth_method } = source;
   if (!auth_method || auth_method === 'none') return { ...fetchOptions };
   const parsed = typeof source.credential === 'string' ? JSON.parse(source.credential) : source.credential;
-  const decrypted = decrypt(parsed);
+  const decrypted = decrypt(parsed, source.showroom_id);
   const headers = { ...(fetchOptions.headers ?? {}) };
   if (auth_method === 'bearer_token') { headers['Authorization'] = `Bearer ${decrypted}`; return { ...fetchOptions, headers }; }
   if (auth_method === 'api_key_header') {
@@ -108,6 +110,57 @@ export async function writeHealthRecord(pool: Pool, params: HealthParams): Promi
   } catch (err) {
     logger.error({ err: (err as Error).message, ...params }, 'writeHealthRecord: DB write failed');
   }
+}
+
+// ── Resilience: stale-cache fallback + circuit breaker (Patent 4, claim 3) ────
+
+const STALE_TTL_SECONDS = 7 * 24 * 60 * 60; // keep last-known-good for 7 days
+const CIRCUIT_THRESHOLD = 5;                // consecutive failures before opening
+const CIRCUIT_COOLDOWN_MS = 5 * 60 * 1000;  // stay open this long
+
+function staleCacheKey(cacheKey: string): string {
+  return `stale:${cacheKey}`;
+}
+
+async function readStaleCache(redis: AnyRedis, cacheKey: string): Promise<MappedItem[] | null> {
+  try {
+    const raw = await (redis as import('ioredis').default).get(staleCacheKey(cacheKey));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as MappedItem[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+// In-memory consecutive-failure tracking. Single-instance scope is acceptable:
+// worst case on multi-instance deployments is that each instance opens its own
+// circuit a few requests apart.
+const failureCounts = new Map<string, { count: number; openedAt: number | null }>();
+
+function noteSuccess(sourceId: string): void {
+  failureCounts.set(sourceId, { count: 0, openedAt: null });
+}
+
+function noteFailure(sourceId: string): void {
+  const entry = failureCounts.get(sourceId) ?? { count: 0, openedAt: null };
+  entry.count += 1;
+  if (entry.count >= CIRCUIT_THRESHOLD && entry.openedAt === null) {
+    entry.openedAt = Date.now();
+    logger.warn({ sourceId }, 'proxyGateway: circuit OPEN — serving stale until cooldown ends');
+  }
+  failureCounts.set(sourceId, entry);
+}
+
+function isCircuitOpen(sourceId: string): boolean {
+  const entry = failureCounts.get(sourceId);
+  if (!entry?.openedAt) return false;
+  if (Date.now() - entry.openedAt >= CIRCUIT_COOLDOWN_MS) {
+    // Half-open: allow one live attempt again.
+    failureCounts.set(sourceId, { count: CIRCUIT_THRESHOLD - 1, openedAt: null });
+    return false;
+  }
+  return true;
 }
 
 // ── fetchSection ──────────────────────────────────────────────────────────────
@@ -161,7 +214,20 @@ export async function fetchSection(
   catch (e) {
     logger.error({ err: (e as Error).message, showroomId, sectionKey }, 'fetchSection: credential injection failed');
     await writeHealthRecord(pool, { showroomId, sectionKey, sourceId: source.id, httpStatus: null, success: false, errorMsg: (e as Error).message });
+    const stale = await readStaleCache(redis, cacheKey);
+    if (stale) return { items: stale, stale: true } as FetchSectionResult & { items?: MappedItem[]; stale?: boolean };
     return { upstreamError: true, status: null };
+  }
+
+  // ── Circuit breaker (Patent 4 embodiment): after repeated consecutive
+  // upstream failures, stop hammering the endpoint for a cool-down window and
+  // serve last-known-good data instead.
+  if (isCircuitOpen(source.id)) {
+    const stale = await readStaleCache(redis, cacheKey);
+    if (stale) {
+      await writeHealthRecord(pool, { showroomId, sectionKey, sourceId: source.id, httpStatus: null, success: false, errorMsg: 'circuit_open_serving_stale' });
+      return { items: stale, stale: true } as FetchSectionResult & { items?: MappedItem[]; stale?: boolean };
+    }
   }
 
   // 7-8. Outbound fetch
@@ -173,13 +239,19 @@ export async function fetchSection(
     response = await fetch(fetchOpts.url, { method: 'GET', headers: fetchOpts.headers, signal, redirect: 'error' });
   } catch (e) {
     const err = e as Error & { name?: string; code?: string };
+    noteFailure(source.id);
     await writeHealthRecord(pool, { showroomId, sectionKey, sourceId: source.id, httpStatus: null, success: false, errorMsg: err.message });
+    const stale = await readStaleCache(redis, cacheKey);
+    if (stale) return { items: stale, stale: true } as FetchSectionResult & { items?: MappedItem[]; stale?: boolean };
     if (err.name === 'AbortError' || err.name === 'TimeoutError' || err.code === 'UND_ERR_CONNECT_TIMEOUT') return { timeout: true };
     return { upstreamError: true, status: null };
   }
 
   if (!response.ok) {
+    noteFailure(source.id);
     await writeHealthRecord(pool, { showroomId, sectionKey, sourceId: source.id, httpStatus: response.status, success: false, errorMsg: `HTTP ${response.status}` });
+    const stale = await readStaleCache(redis, cacheKey);
+    if (stale) return { items: stale, stale: true } as FetchSectionResult & { items?: MappedItem[]; stale?: boolean };
     return { upstreamError: true, status: response.status };
   }
 
@@ -187,7 +259,10 @@ export async function fetchSection(
   let body: unknown;
   try { body = await response.json(); }
   catch (e) {
+    noteFailure(source.id);
     await writeHealthRecord(pool, { showroomId, sectionKey, sourceId: source.id, httpStatus: response.status, success: false, errorMsg: `JSON parse error: ${(e as Error).message}` });
+    const stale = await readStaleCache(redis, cacheKey);
+    if (stale) return { items: stale, stale: true } as FetchSectionResult & { items?: MappedItem[]; stale?: boolean };
     return { upstreamError: true, status: response.status };
   }
 
@@ -207,15 +282,19 @@ export async function fetchSection(
     return { mappingFailed: true };
   }
 
-  // 11. Cache write
+  // 11. Cache writes — fresh copy for the normal TTL window plus a long-lived
+  // "stale" copy that keeps the last-known-good payload available when the
+  // upstream later fails (Patent 4, claim 3 embodiment).
   const ttl = (source.ttl_seconds ?? 0) >= 1 ? source.ttl_seconds! : 300;
   (redis as import('ioredis').default).setex(cacheKey, ttl, JSON.stringify(result)).catch((e: Error) =>
     logger.warn({ err: e.message, cacheKey }, 'fetchSection: cache write failed'),
   );
+  (redis as import('ioredis').default).setex(staleCacheKey(cacheKey), STALE_TTL_SECONDS, JSON.stringify(result)).catch(() => undefined);
+  noteSuccess(source.id);
 
   // 12. Health record + return
   await writeHealthRecord(pool, { showroomId, sectionKey, sourceId: source.id, httpStatus: response.status, success: true, errorMsg: null });
   return result;
 }
 
-module.exports = { resolveDotPath, applyMappings, buildCacheKey, injectCredentials, writeHealthRecord, fetchSection };
+module.exports = { resolveDotPath, applyMappings, buildCacheKey, injectCredentials, writeHealthRecord, fetchSection, staleCacheKey, readStaleCache };

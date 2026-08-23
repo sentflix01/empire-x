@@ -36,6 +36,15 @@ router.get('/:showroomId/:sectionKey', async (req: Request, res: Response) => {
 
   if (Array.isArray(result)) { res.status(200).json(result); return; }
 
+  // Stale-serve: upstream failed but last-known-good data exists (Patent 4 claim 3)
+  const r0 = result as { items?: unknown[]; stale?: boolean };
+  if (r0?.stale && Array.isArray(r0.items)) {
+    res.set('X-Stale', 'true');
+    res.set('Warning', '110 - Response is stale');
+    res.status(200).json(r0.items);
+    return;
+  }
+
   const r = result as Record<string, unknown>;
   if (r.rateLimited)   { res.set('Retry-After', '60'); res.status(429).json({ error: 'rate_limit_exceeded' }); return; }
   if (r.ssrfBlocked)   { res.status(502).json({ error: 'upstream_blocked' }); return; }

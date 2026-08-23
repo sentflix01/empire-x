@@ -74,9 +74,10 @@ function getBuildCacheKey(showroomId: string, sectionKey: string): string {
   } catch { return `proxy:${showroomId}:${sectionKey}`; }
 }
 
-function encrypt(value: string): unknown {
+function encrypt(value: string, showroomId: string): unknown {
+  // Tenant-scoped key derivation (Patent 4, dependent claim 4)
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return (require('../services/credentialEncryption') as { encrypt: (v: string) => unknown }).encrypt(value);
+  return (require('../services/credentialEncryption') as { encrypt: (v: string, ctx?: string) => unknown }).encrypt(value, showroomId);
 }
 
 // ── Apply shared middleware ───────────────────────────────────────────────────
@@ -131,7 +132,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     if (!validateSourceFields({ auth_method, ttl_seconds, section_key }, res)) return;
     if (!(await validateSourceUrl(url as string, res))) return;
     let encryptedCredential: string | null = null;
-    if (auth_method !== 'none' && credential) encryptedCredential = JSON.stringify(encrypt(String(credential)));
+    if (auth_method !== 'none' && credential) encryptedCredential = JSON.stringify(encrypt(String(credential), showroomId));
     const { rows } = await pool.query(
       `INSERT INTO external_data_sources (showroom_id,section_key,url,auth_method,credential,header_name,query_param,ttl_seconds,is_enabled)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
@@ -157,7 +158,7 @@ router.put('/:sourceId', async (req: Request, res: Response, next: NextFunction)
     if (body.url !== undefined && body.url !== cur.url) { if (!(await validateSourceUrl(newUrl, res))) return; }
     const newAuthMethod = body.auth_method !== undefined ? body.auth_method : cur.auth_method;
     let newCredential: string | null = cur.credential ? JSON.stringify(cur.credential) : null;
-    if (body.credential !== undefined) newCredential = (newAuthMethod !== 'none' && body.credential) ? JSON.stringify(encrypt(String(body.credential))) : null;
+    if (body.credential !== undefined) newCredential = (newAuthMethod !== 'none' && body.credential) ? JSON.stringify(encrypt(String(body.credential), showroomId)) : null;
     else if (body.auth_method === 'none') newCredential = null;
     const { rows } = await pool.query(
       `UPDATE external_data_sources SET url=$1,auth_method=$2,credential=$3,header_name=$4,query_param=$5,ttl_seconds=$6,is_enabled=$7,section_key=$8,updated_at=NOW()
