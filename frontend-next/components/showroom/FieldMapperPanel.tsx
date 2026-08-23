@@ -1,7 +1,8 @@
 'use client'
-import React, { useState, useEffect, useCallback } from 'react';
-import { Trash2, FlaskConical, Save, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Trash2, FlaskConical, Save, Loader2, ChevronDown, ChevronUp, ClipboardPaste } from 'lucide-react';
 import { FieldMapping } from '../../types/externalApi';
+import { computePreview } from '../../lib/externalMappingPreview';
 
 export interface FieldDef {
   key: string;
@@ -45,6 +46,15 @@ export default function FieldMapperPanel({
   // Keys detected from the sample response
   const [sampleKeys, setSampleKeys] = useState<string[]>([]);
   const [sampleKeysOpen, setSampleKeysOpen] = useState(false);
+
+  // ── Live preview (Patent 4 embodiment): paste a sample response and see each
+  // mapping resolve in real time — no request needed.
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [rawSample, setRawSample] = useState('');
+  const preview = useMemo(
+    () => computePreview(rawSample, rows),
+    [rawSample, rows]
+  );
 
   // UI state
   const [testing, setTesting] = useState(false);
@@ -285,6 +295,68 @@ export default function FieldMapperPanel({
           )}
         </div>
 
+        {/* Paste-sample live preview */}
+        <div className="rounded-xl border border-border/50 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setPasteOpen((o) => !o)}
+            className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-secondary/40 transition-colors"
+          >
+            <span className="flex items-center gap-1.5">
+              <ClipboardPaste className="w-3.5 h-3.5" />
+              Preview with a sample response (optional)
+            </span>
+            {pasteOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+          {pasteOpen && (
+            <div className="px-3 pb-3 pt-1 border-t border-border/30 space-y-2">
+              <textarea
+                value={rawSample}
+                onChange={(e) => setRawSample(e.target.value)}
+                rows={5}
+                spellCheck={false}
+                placeholder={'Paste one sample response here, e.g.\n[{"name": "Widget", "price": 10}]\nor\n{"items": [{"title": "Hat"}]}'}
+                className="w-full text-[11px] font-mono px-2.5 py-2 rounded-lg border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400 resize-y"
+              />
+              {preview.parseError && (
+                <p className="text-[11px] text-red-500 font-medium">{preview.parseError}</p>
+              )}
+              {!preview.parseError && rawSample.trim() && preview.mappedSample && (
+                <div>
+                  <p className="text-[10px] font-semibold text-muted-foreground mb-1">
+                    Live mapped result
+                  </p>
+                  <pre className="text-[10px] font-mono bg-secondary/60 rounded-lg p-2 overflow-auto max-h-40 border border-border/40">
+                    {JSON.stringify(preview.mappedSample, null, 2)}
+                  </pre>
+                </div>
+              )}
+              {!preview.parseError && rawSample.trim() && !preview.mappedSample && (
+                <p className="text-[11px] text-muted-foreground">
+                  Type a source path below to see it resolve against this sample.
+                </p>
+              )}
+              {preview.detectedKeys.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {preview.detectedKeys.map((k) => (
+                    <span
+                      key={k}
+                      className="text-[10px] font-mono bg-secondary/60 text-foreground px-2 py-0.5 rounded-lg border border-border/40 cursor-pointer hover:bg-secondary"
+                      onClick={() => {
+                        // Clicking a detected key fills the first empty row — quick mapping.
+                        const empty = rows.find((r) => !r.sourcePath.trim());
+                        if (empty) updateSourcePath(empty.targetField, k);
+                      }}
+                    >
+                      {k}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Mapping rows */}
         <div className="space-y-2">
           {rows.map((row) => (
@@ -305,6 +377,24 @@ export default function FieldMapperPanel({
                 placeholder="dot.notation.path"
                 className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400 font-mono"
               />
+
+              {/* Live resolved value from the pasted sample (if any) */}
+              {rawSample.trim() && !preview.parseError && (
+                <span
+                  title={preview.values[row.targetField] || 'No match in sample'}
+                  className={`text-[10px] font-mono max-w-[7rem] truncate px-2 py-0.5 rounded-lg border shrink-0 ${
+                    row.sourcePath.trim() && preview.values[row.targetField]
+                      ? 'bg-green-50 text-green-700 border-green-200'
+                      : row.sourcePath.trim()
+                        ? 'bg-red-50 text-red-500 border-red-200'
+                        : 'bg-secondary/60 text-muted-foreground border-border/40'
+                  }`}
+                >
+                  {row.sourcePath.trim()
+                    ? preview.values[row.targetField] || 'no match'
+                    : '—'}
+                </span>
+              )}
 
               {/* Delete button — only shown when a mapping has been saved */}
               {row.mappingId && (

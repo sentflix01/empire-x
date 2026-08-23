@@ -147,7 +147,8 @@ editor with live preview, and social-identity association embodiments.)*
 | Per-tenant-per-section rate limiting | `backend/services/rateLimiter.ts` (Redis INCR fixed window, fail-open) |
 | Health records | `writeHealthRecord` → `external_health_records` table |
 | Section composition + theming | `frontend-next/components/showroom/SectionRenderer.tsx`, layout templates |
-| Executable evidence of reduction to practice | `backend/test/proxyResilience.test.js` (stale fallback + no-history failure paths) |
+| **Mapping editor with live sample preview (dependent embodiment)** | `frontend-next/lib/externalMappingPreview.ts` + `FieldMapperPanel.tsx` — tenant pastes a sample response; per-row resolved values render live before saving. **Implemented 2026-08-23** |
+| Executable evidence of reduction to practice | `backend/test/proxyResilience.test.js` (stale fallback + no-history failure paths); `frontend-next/test/externalMappingPreview.test.ts` (preview engine) |
 
 > **Filing note:** all four independent/dependent claim elements referenced above are now
 > implemented AND unit-tested as of 2026-08-23 — strengthen the utility application by citing
