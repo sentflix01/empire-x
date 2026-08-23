@@ -182,7 +182,8 @@ the sole confirmation path).
 ---
 
 ### TD-016: TLS certificate validation disabled on Neon/Upstash
-**Status:** Open · **Priority:** High
+**Status:** ✅ Done (2026-08-23)
+**Resolution:** Certificate validation enabled on pg/redis/socket adapters (escape hatches DB_TLS_REJECT_UNAUTHORIZED / REDIS_TLS_REJECT_UNAUTHORIZED).
 **Problem:** `rejectUnauthorized: false` in db/pool.ts, lib/redis.ts, socket Redis adapter —
 traffic is encrypted but not authenticated (MITM-tolerant).
 **Fix:** Validate certificates against system CAs or pin the provider CA.
@@ -190,7 +191,8 @@ traffic is encrypted but not authenticated (MITM-tolerant).
 ---
 
 ### TD-017: SVG uploads allowed without sanitization
-**Status:** Open · **Priority:** Medium
+**Status:** ✅ Done (2026-08-23)
+**Resolution:** SVG removed from upload allowlist - vector eliminated rather than sanitized.
 **Problem:** middleware/upload.ts accepts image/svg+xml into public storage — stored-XSS vector.
 Also no magic-byte validation (MIME + extension are client-controlled strings).
 **Fix:** Drop SVG or sanitize server-side (e.g., DOMPurify/svgo); add file-type sniffing.
@@ -198,7 +200,8 @@ Also no magic-byte validation (MIME + extension are client-controlled strings).
 ---
 
 ### TD-018: Dev seed credentials tracked in git
-**Status:** Open · **Priority:** Medium
+**Status:** ✅ Done (2026-08-23)
+**Resolution:** File untracked and gitignored; no code referenced it.
 **Problem:** backend/db/dev-credentials.json contains plaintext dev account passwords incl. admin.
 Safe locally, dangerous if seed scripts ever run against production.
 **Fix:** Generate credentials from env at seed time; remove the tracked file.

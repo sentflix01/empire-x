@@ -24,7 +24,7 @@ const needsSsl =
 
 const pool = new Pool({
   connectionString,
-  ssl: needsSsl ? { rejectUnauthorized: false } : false,
+  ssl: needsSsl ? { rejectUnauthorized: process.env.DB_TLS_REJECT_UNAUTHORIZED === 'false' ? false : true } : false,
   max: parseInt(process.env.DB_POOL_MAX ?? '10', 10),
   min: 1,
   idleTimeoutMillis: 60_000,

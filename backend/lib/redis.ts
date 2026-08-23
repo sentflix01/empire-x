@@ -77,7 +77,7 @@ export function getRedis(): AnyRedis {
       maxRetriesPerRequest: 3,
       enableReadyCheck: false,
       lazyConnect: true,
-      ...(isTls ? { tls: { rejectUnauthorized: false } } : {}),
+      ...(isTls ? { tls: { rejectUnauthorized: process.env.REDIS_TLS_REJECT_UNAUTHORIZED === 'false' ? false : true } } : {}),
     });
 
     client.on('connect', () => {

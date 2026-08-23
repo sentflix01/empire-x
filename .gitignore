@@ -49,3 +49,5 @@ backend/backups/
 # Playwright artifacts
 test-results/
 playwright-report/
+
+backend/db/dev-credentials.json

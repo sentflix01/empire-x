@@ -201,7 +201,7 @@ export function initSocket(httpServer: HttpServer, corsOrigin: string | string[]
       const { createAdapter } = require('@socket.io/redis-adapter') as typeof import('@socket.io/redis-adapter');
       const IORedis = require('ioredis') as typeof import('ioredis').default;
       const isTls = (process.env.REDIS_URL ?? '').startsWith('rediss://');
-      const tlsOpts = isTls ? { tls: { rejectUnauthorized: false } } : {};
+      const tlsOpts = isTls ? { tls: { rejectUnauthorized: process.env.REDIS_TLS_REJECT_UNAUTHORIZED === 'false' ? false : true } } : {};
       // @ts-expect-error — IORedis constructor overload
       const pubClient = new IORedis(process.env.REDIS_URL, {
         maxRetriesPerRequest: 3,

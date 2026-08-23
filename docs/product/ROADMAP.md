@@ -183,7 +183,7 @@ Canonical register: **`operations/TECHNICAL_DEBT.md`** — this list mirrors its
 - [x] JWT revocation via Redis blocklist — shipped July 2026
 - [x] End-to-end test suite — Playwright smoke suite shipped 2026-08-23 (TD-003); checkout/chat coverage next
 - [x] CI made blocking + deploys gated on CI (TD-019 — shipped 2026-08-23)
-- [ ] TLS certificate validation on Neon/Upstash (TD-016)
+- [x] TLS certificate validation on Neon/Upstash (TD-016 — shipped 2026-08-23)
 
 ### Medium Priority
 - [x] TypeScript on backend — complete

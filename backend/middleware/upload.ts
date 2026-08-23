@@ -33,7 +33,7 @@ const allowedMimeTypesByExtension = new Map<string, Set<string>>([
   ['.avif', new Set(['image/avif'])],
   ['.heic', new Set(['image/heic', 'image/heif'])],
   ['.heif', new Set(['image/heif', 'image/heic'])],
-  ['.svg',  new Set(['image/svg+xml'])],
+  ['.',  new Set(['image/svg+xml'])],
   ['.pdf',  new Set(['application/pdf'])],
   ['.mp4',  new Set(['video/mp4'])],
   ['.webm', new Set(['video/webm'])],
