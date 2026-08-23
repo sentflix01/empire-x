@@ -123,13 +123,33 @@ router.put('/versions', requireAuth, requireAdmin, async (req: Request, res: Res
 // ── Observability: health summary + telemetry (DevOps catches-everything) ────
 
 import { assembleInputs, evaluate } from '../lib/alerts';
-import { typeCountsSince, recentEvents } from '../lib/telemetry';
+import { typeCountsSince, recentEvents, recordEvent } from '../lib/telemetry';
 
 router.get('/health-summary', requireAuth, requireAdmin, async (_req: Request, res: Response) => {
   try {
     const inputs = await assembleInputs(pool);
     const alerts = evaluate(inputs);
     const critical = alerts.filter((a) => a.severity === 'SEV1');
+
+    // SEV1 → Telegram page to the first admin, throttled to one send per
+    // alert-key per hour (claim row doubles as the throttle + audit trail).
+    for (const a of critical) {
+      const throttleKey = `alert_dispatch:${a.key}:${new Date().toISOString().slice(0, 13)}`;
+      const claim = await pool.query(
+        `INSERT INTO app_settings (key,value) VALUES ($1,'1') ON CONFLICT (key) DO NOTHING RETURNING key`,
+        [throttleKey],
+      );
+      if (claim.rows.length) {
+        try {
+          const admin = await pool.query(`SELECT id FROM users WHERE role='admin' ORDER BY created_at LIMIT 1`);
+          if (admin.rows[0]) {
+            const { notifyUser } = await import('./telegram');
+            notifyUser(String(admin.rows[0].id), `🚨 <b>${a.severity} ALERT — Nodbusiness</b>\n${a.message}\n\nConsole: /admin/devops → System Health`).catch(() => undefined);
+            recordEvent('alert_dispatched', { key: a.key, severity: a.severity, message: a.message }, { level: 'critical' });
+          }
+        } catch { /* dispatch is best-effort */ }
+      }
+    }
     res.json({
       status: critical.length ? 'critical' : alerts.some((a) => a.severity === 'SEV2') ? 'degraded' : 'healthy',
       generated_at: new Date().toISOString(),

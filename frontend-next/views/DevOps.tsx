@@ -262,9 +262,12 @@ function SystemHealth() {
 
   return (
     <div className="mb-4 bg-card border border-border/50 rounded-2xl overflow-hidden">
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v); } }}
+        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors cursor-pointer"
       >
         <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isOk ? 'bg-emerald-500/15' : 'bg-red-500/15'}`}>
           <Server className={`w-4 h-4 ${isOk ? 'text-emerald-500' : 'text-red-500'}`} />
@@ -294,7 +297,7 @@ function SystemHealth() {
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
         </button>
         {open ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />}
-      </button>
+      </div>
 
       {open && (
         <div className="border-t border-border/50 p-4">
@@ -924,6 +927,121 @@ const ERROR_SOURCE_META = {
   client: { label: 'Frontend',     icon: '🖥️',  chip: 'bg-cyan-500/10 text-cyan-400 border-cyan-400/20' },
   manual: { label: 'Manual',       icon: '🔧',  chip: 'bg-slate-500/10 text-slate-400 border-slate-400/20' },
 };
+
+// ── Section 1b: Ops Alerts & Telemetry (admin health-summary) ──────────────
+function OpsAlerts() {
+  const [ops, setOps]       = useState<any>(null);
+  const [tel, setTel]       = useState<any>(null);
+  const [open, setOpen]     = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+
+  const refresh = useCallback(async () => {
+    try {
+      const [a, t] = await Promise.all([
+        client.get('/api/devops/health-summary').catch(() => null),
+        client.get('/api/devops/telemetry?hours=24&limit=12').catch(() => null),
+      ]);
+      if (a?.data) setOps(a.data);
+      if (t?.data) setTel(t.data);
+      setLastRefresh(new Date());
+    } catch { /* non-admin or offline */ }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+    const t = setInterval(refresh, 60_000);
+    return () => clearInterval(t);
+  }, [refresh]);
+
+  if (!ops) return null; // non-admin / not configured — render nothing
+  const sevColor: Record<string, string> = {
+    SEV1: 'bg-red-500/10 text-red-500 border-red-500/30',
+    SEV2: 'bg-amber-500/10 text-amber-500 border-amber-500/30',
+    SEV3: 'bg-sky-500/10 text-sky-500 border-sky-500/30',
+  };
+  const statusColor = ops.status === 'critical' ? 'text-red-500 border-red-500/30 bg-red-500/10'
+    : ops.status === 'degraded' ? 'text-amber-500 border-amber-500/30 bg-amber-500/10'
+    : 'text-emerald-500 border-emerald-500/30 bg-emerald-500/10';
+
+  return (
+    <div className="mb-4 bg-card border border-border/50 rounded-2xl overflow-hidden">
+      <div
+        role="button" tabIndex={0}
+        onClick={() => setOpen(v => !v)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v); } }}
+        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors cursor-pointer"
+      >
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${ops.status === 'healthy' ? 'bg-emerald-500/15' : 'bg-amber-500/15'}`}>
+          <Activity className={`w-4 h-4 ${ops.status === 'healthy' ? 'text-emerald-500' : 'text-amber-500'}`} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold">Ops Alerts & Telemetry</p>
+            <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-mono uppercase ${statusColor}`}>
+              {ops.status}
+            </span>
+            {(ops.alerts || []).length > 0 && (
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-secondary/60">{(ops.alerts || []).length} alert(s)</span>
+            )}
+          </div>
+          <p className="text-[10px] text-muted-foreground font-mono">
+            errors/hr {ops.inputs?.errorsLastHour ?? 0} · payments 24h {ops.inputs?.paymentAttempts24h ?? 0} · checked {formatDistanceToNow(lastRefresh, { addSuffix: true })}
+          </p>
+        </div>
+      </div>
+
+      {open && (
+        <div className="border-t border-border/50 p-4 space-y-4">
+          {(ops.alerts || []).length > 0 && (
+            <div className="space-y-2">
+              {ops.alerts.map((a: { key: string; severity: string; message: string }) => (
+                <div key={a.key} className={`flex items-start gap-2 rounded-xl border px-3 py-2 text-xs ${sevColor[a.severity] || 'bg-secondary/40'}`}>
+                  <span className="font-mono font-bold shrink-0">{a.severity}</span>
+                  <span>{a.message}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {(ops.alerts || []).length === 0 && (
+            <p className="text-xs text-emerald-500 flex items-center gap-1.5">✓ No alerts — all thresholds within targets</p>
+          )}
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="rounded-xl bg-secondary/30 border border-border/30 p-2.5">
+              <p className="text-[9px] uppercase text-muted-foreground">Errors / hr</p>
+              <p className="text-sm font-bold font-mono">{ops.inputs?.errorsLastHour ?? 0}</p>
+            </div>
+            <div className="rounded-xl bg-secondary/30 border border-border/30 p-2.5">
+              <p className="text-[9px] uppercase text-muted-foreground">Payments 24h</p>
+              <p className="text-sm font-bold font-mono">{ops.inputs?.paymentAttempts24h ?? 0}</p>
+            </div>
+            <div className="rounded-xl bg-secondary/30 border border-border/30 p-2.5">
+              <p className="text-[9px] uppercase text-muted-foreground">Last backup</p>
+              <p className="text-[11px] font-mono truncate">{ops.inputs?.lastBackupAt ? new Date(ops.inputs.lastBackupAt).toLocaleString() : '—'}</p>
+            </div>
+            <div className="rounded-xl bg-secondary/30 border border-border/30 p-2.5">
+              <p className="text-[9px] uppercase text-muted-foreground">Redis</p>
+              <p className="text-sm font-bold font-mono">{ops.inputs?.redisConfigured ? 'up' : 'down'}</p>
+            </div>
+          </div>
+
+          {(tel?.counts || []).length > 0 && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase text-muted-foreground mb-1.5">Telemetry (24h)</p>
+              <div className="flex flex-wrap gap-1.5">
+                {tel.counts.slice(0, 10).map((c: { type: string; count: number; errors: number }) => (
+                  <span key={c.type} className="text-[10px] font-mono px-2 py-0.5 rounded-lg border border-border/40 bg-secondary/40">
+                    {c.type} × {c.count}{Number(c.errors) > 0 ? ` ⚠${c.errors}` : ''}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
   const [open,        setOpen]        = useState(true);
@@ -2064,7 +2182,7 @@ function DevOps() {
       {activeSection === 'errors'    && <LiveErrors isAdmin={isAdmin} />}
       {activeSection === 'strategy'  && <StrategyBoard />}
       {activeSection === 'kb'        && <KnowledgeBase />}
-      {activeSection === 'health'    && <SystemHealth  />}
+      {activeSection === 'health'    && <><SystemHealth /><OpsAlerts /></>}
       {activeSection === 'changelog' && <Changelog     />}
       {activeSection === 'summary'   && <ProjectSummaryTable />}
 
