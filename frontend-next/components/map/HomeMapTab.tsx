@@ -314,7 +314,7 @@ function SearchResultBusinessCard({ business, query, onOpenProfile }) {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] font-medium truncate">{p.title}</p>
-                    <p className="text-[11px] text-amber-600 font-bold">{p.price?.toLocaleString()} {p.currency || "ETB"}</p>
+                    <p className="text-[11px] text-amber-600 font-bold">{p.price?.toLocaleString()} {p.currency || "USD"}</p>
                   </div>
                 </div>
               );

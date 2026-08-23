@@ -19,7 +19,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { auth } from '@/api/auth';
+import { useAuth } from '@/lib/AuthContext';
 import client from '@/api/client';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
@@ -368,6 +368,7 @@ function FeatureFlagsPanel() {
 // ── Main Admin Component ──────────────────────────────────────────────────────
 function Admin() {
   const router = useRouter();
+  const { user } = useAuth();
   const [tab,          setTab]          = useState<TabKey>('overview');
   const [stats,        setStats]        = useState<any>({});
   const [users,        setUsers]        = useState<any[]>([]);
@@ -398,11 +399,11 @@ function Admin() {
   const [banReason,     setBanReason]     = useState('');
 
   useEffect(() => {
-    auth.me().then(u => {
-      if (u?.role !== 'admin') { router.push('/'); return; }
-      loadAll();
-    }).catch(() => router.push('/login'));
-  }, []);
+    if (!user) return;
+    if (user.role !== 'admin') { router.push('/'); return; }
+    loadAll();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const loadAll = useCallback(async () => {
     setLoading(true);

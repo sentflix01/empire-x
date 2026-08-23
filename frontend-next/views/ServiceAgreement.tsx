@@ -167,7 +167,7 @@ function SellerContent() {
         <p>Any registered Nodbusiness user (18+) may create a business profile and list products or services. Business accounts must accurately represent a real business entity.</p>
       </Accordion>
       <Accordion title="2. Product Listings">
-        <p>Sellers must: provide accurate descriptions and images, price products in ETB or supported currencies, maintain accurate stock levels, and remove discontinued products promptly. Prohibited: counterfeit goods, illegal items, adult content, weapons, or any item banned under Ethiopian law.</p>
+        <p>Sellers must: provide accurate descriptions and images, price products in their preferred currency, maintain accurate stock levels, and remove discontinued products promptly. Prohibited: counterfeit goods, illegal items, adult content, weapons, or any item banned under applicable law.</p>
       </Accordion>
       <Accordion title="3. Commission & Fees">
         <p>Nodbusiness charges a platform commission on completed orders (rate configurable by admin, displayed in your analytics). The commission is deducted automatically from your wallet balance after each confirmed order.</p>

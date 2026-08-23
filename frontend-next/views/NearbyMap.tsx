@@ -38,17 +38,20 @@ async function loadLeaflet() {
     document.head.appendChild(link);
   };
   addCSS('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+  addCSS('https://unpkg.com/react-leaflet-cluster@2.1.0/lib/index.css');
 
-  const [rl, leaflet] = await Promise.all([
+  const [rl, leaflet, cluster] = await Promise.all([
     import("react-leaflet"),
     import("leaflet"),
+    import("react-leaflet-cluster"),
   ]);
 
   MapContainer = rl.MapContainer;
   TileLayer = rl.TileLayer;
   Marker = rl.Marker;
   Circle = rl.Circle;
-  MarkerClusterGroup = function MarkerGroup({ children }: any) { return <>{children}</>; };
+  // react-leaflet-cluster default export is the MarkerClusterGroup component
+  MarkerClusterGroup = (cluster as any).default ?? cluster;
   L = leaflet.default;
 
     delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -517,7 +520,7 @@ function NearbyMap() {
                   </div>
                 </div>
                 <p className="font-bold text-amber-600 shrink-0 ml-2">
-                  {t.offered_payment?.toLocaleString()} ETB
+                  {t.offered_payment?.toLocaleString()} {t.currency || 'USD'}
                 </p>
               </button>
             ))}

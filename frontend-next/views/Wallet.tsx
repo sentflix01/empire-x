@@ -141,7 +141,7 @@ export default function Wallet() {
         <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 text-white mb-6">
           <p className="text-sm text-white/70 mb-1">{t('wallet.availableBalance')}</p>
           <p className="text-4xl font-bold">{wallet?.balance?.toLocaleString() || "0"}</p>
-          <p className="text-sm text-white/70 mt-1">{wallet?.currency || "ETB"}</p>
+          <p className="text-sm text-white/70 mt-1">{wallet?.currency || "USD"}</p>
         </div>
         <div className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-5">
           {["overview","topup","withdraw"].map(t2=>(
@@ -254,3 +254,8 @@ export default function Wallet() {
 
 
 
+
+
+export default function WalletPage() {
+  return <ErrorBoundary><Wallet /></ErrorBoundary>;
+}

@@ -7,7 +7,6 @@ import { TrendingUp, ShoppingBag, Crown, ClipboardList, Users, Loader2, Banknote
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import PostCard from "@/components/feed/PostCard";
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
@@ -38,13 +37,12 @@ function ProductThumbnail({ src, title }: { src?: string; title: string }) {
 
 function Explore() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [hashtags, setHashtags] = useState([]);
 
   useEffect(() => {
-    auth.me().then(setUser).catch(() => {});
     client.get("/api/trending").then(r => setData(r.data)).finally(() => setLoading(false));
     client.get("/api/hashtags/trending").then(r => setHashtags(r.data || [])).catch(() => {});
   }, []);

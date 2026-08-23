@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import { entities } from "@/api/entities";
 import { useTranslation } from 'react-i18next';
@@ -273,7 +272,7 @@ function ShowroomCreate({
   const sampleParam = sampleParamOverride ?? (searchParams.get("sample") || "");
   const templateName = templateParam.replace(/-/g, " ");
 
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [darkBuilder, setDarkBuilder] = useState(false);
   const [previewMode, setPreviewMode] = useState<"desktop"|"tablet"|"mobile">("desktop");
@@ -297,7 +296,6 @@ function ShowroomCreate({
   const [redoStack, setRedoStack] = useState<any[]>([]);
 
   useEffect(() => {
-    auth.me().then(setUser).catch(() => {});
     // Try to restore draft
     const draft = localStorage.getItem("nodbusiness_builder_draft");
     if (draft && !templateParam && !categoryParam && !sampleParam) {

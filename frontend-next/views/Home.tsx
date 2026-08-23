@@ -409,3 +409,8 @@ export default function Home() {
 }
 
 
+
+
+export default function HomePage() {
+  return <ErrorBoundary><Home /></ErrorBoundary>;
+}

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import client from "@/api/client";
+import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from 'react-i18next';
 
 import { Hash, ArrowLeft, Loader2 } from "lucide-react";
@@ -12,13 +13,12 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 
 function HashtagFeed() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { name } = useParams();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    auth.me().then(setUser).catch(() => {});
     client.get(`/api/hashtags/${encodeURIComponent(name)}/posts`)
       .then(r => setPosts(r.data))
       .catch(() => {})

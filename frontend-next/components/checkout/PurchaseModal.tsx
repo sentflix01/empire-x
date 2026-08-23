@@ -91,7 +91,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
         order_total: subtotal,
       });
       setCouponData(data);
-      toast.success(`Coupon applied! You save ${data.discount.toLocaleString()} ${item.currency || "ETB"}`);
+      toast.success(`Coupon applied! You save ${data.discount.toLocaleString()} ${item.currency || "USD"}`);
     } catch (e) {
       setCouponData(null);
       toast.error(e?.response?.data?.error || "Invalid coupon code");
@@ -110,7 +110,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
       quantity,
       unit_price: unitPrice,
       total_price: totalPrice,
-      currency: item.currency || "ETB",
+      currency: item.currency || "USD",
       status: "pending",
       buyer_name: orderInfo.name || buyer?.full_name || "",
       buyer_phone: orderInfo.phone,
@@ -122,7 +122,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
       seller.user_id,
       "order",
       `New order: ${item.title}`,
-      `${orderInfo.name || buyer?.full_name || "A buyer"} ordered ${quantity}× ${item.title} for ${totalPrice.toLocaleString()} ${item.currency || "ETB"}.`,
+      `${orderInfo.name || buyer?.full_name || "A buyer"} ordered ${quantity}× ${item.title} for ${totalPrice.toLocaleString()} ${item.currency || "USD"}.`,
       "/profile"
     );
     setProcessing(false);
@@ -152,7 +152,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm">{item.title}</h3>
                 {item.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
-                <p className="text-amber-600 font-bold text-lg mt-1">{unitPrice.toLocaleString()} <span className="text-xs font-normal">{item.currency || "ETB"}</span></p>
+                <p className="text-amber-600 font-bold text-lg mt-1">{unitPrice.toLocaleString()} <span className="text-xs font-normal">{item.currency || "USD"}</span></p>
               </div>
             </div>
 
@@ -169,7 +169,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
             {/* Total */}
             <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/30">
               <span className="text-sm font-medium">Total</span>
-              <span className="text-xl font-bold text-amber-600">{totalPrice.toLocaleString()} {item.currency || "ETB"}</span>
+              <span className="text-xl font-bold text-amber-600">{totalPrice.toLocaleString()} {item.currency || "USD"}</span>
             </div>
 
             <Button onClick={() => setStep("checkout")} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
@@ -187,7 +187,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{item.title}</p>
-                <p className="text-xs text-muted-foreground">{quantity} × {unitPrice.toLocaleString()} {item.currency || "ETB"}</p>
+                <p className="text-xs text-muted-foreground">{quantity} × {unitPrice.toLocaleString()} {item.currency || "USD"}</p>
               </div>
               <p className="text-sm font-bold text-amber-600">{totalPrice.toLocaleString()}</p>
             </div>
@@ -231,7 +231,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
                 </div>
                 {couponData?.valid && (
                   <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5" /> Coupon applied — you save {couponData.discount.toLocaleString()} {item.currency || "ETB"}
+                    <Check className="w-3.5 h-3.5" /> Coupon applied — you save {couponData.discount.toLocaleString()} {item.currency || "USD"}
                   </p>
                 )}
               </div>
@@ -242,18 +242,18 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
                 <>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>{subtotal.toLocaleString()} {item.currency || "ETB"}</span>
+                    <span>{subtotal.toLocaleString()} {item.currency || "USD"}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-green-600">Discount ({couponData.coupon.code})</span>
-                    <span className="text-green-600">−{discount.toLocaleString()} {item.currency || "ETB"}</span>
+                    <span className="text-green-600">−{discount.toLocaleString()} {item.currency || "USD"}</span>
                   </div>
                   <div className="border-t border-amber-200 pt-1" />
                 </>
               )}
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium">Total Amount</p>
-                <p className="text-xl font-bold text-amber-600">{totalPrice.toLocaleString()} {item.currency || "ETB"}</p>
+                <p className="text-xl font-bold text-amber-600">{totalPrice.toLocaleString()} {item.currency || "USD"}</p>
               </div>
             </div>
 
@@ -333,10 +333,10 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
               >
                 {processing
                   ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Opening secure checkout...</>
-                  : `💳 Pay with Card & Wallets • ${totalPrice.toLocaleString()} ${item.currency || "ETB"}`}
+                  : `💳 Pay with Card & Wallets • ${totalPrice.toLocaleString()} ${item.currency || "USD"}`}
               </Button>
               <Button onClick={handleCheckout} disabled={processing || !orderInfo.name || !orderInfo.phone} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
-                {processing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Placing Order...</> : `Place Order (COD) • ${totalPrice.toLocaleString()} ${item.currency || "ETB"}`}
+                {processing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Placing Order...</> : `Place Order (COD) • ${totalPrice.toLocaleString()} ${item.currency || "USD"}`}
               </Button>
             </div>
           </div>
@@ -378,7 +378,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
               <div className="flex justify-between text-sm mb-1"><span className="text-muted-foreground">Product</span><span className="font-medium">{item.title}</span></div>
               <div className="flex justify-between text-sm mb-1"><span className="text-muted-foreground">Quantity</span><span className="font-medium">{quantity}</span></div>
               <div className="flex justify-between text-sm mb-1"><span className="text-muted-foreground">Seller</span><span className="font-medium">{seller.business_name || seller.display_name}</span></div>
-              <div className="flex justify-between text-sm pt-2 border-t border-border/30 mt-2"><span className="font-medium">Total</span><span className="font-bold text-amber-600">{totalPrice.toLocaleString()} {item.currency || "ETB"}</span></div>
+              <div className="flex justify-between text-sm pt-2 border-t border-border/30 mt-2"><span className="font-medium">Total</span><span className="font-bold text-amber-600">{totalPrice.toLocaleString()} {item.currency || "USD"}</span></div>
             </div>
             <Button onClick={onClose} className="w-full h-11 rounded-full">Done</Button>
           </div>

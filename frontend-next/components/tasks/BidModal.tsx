@@ -49,7 +49,7 @@ export default function BidModal({ task, user, onClose, onPlaced }) {
           <div className="bg-secondary/30 rounded-xl p-3">
             <p className="text-sm font-semibold">{task.title}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Offered payment: <span className="font-semibold text-amber-600">{task.offered_payment?.toLocaleString()} {task.currency || "ETB"}</span>
+              Offered payment: <span className="font-semibold text-amber-600">{task.offered_payment?.toLocaleString()} {task.currency || "USD"}</span>
             </p>
           </div>
           <div>

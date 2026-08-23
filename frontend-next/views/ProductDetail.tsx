@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import ReviewsSection from "@/components/product/ReviewsSection";
 import client from "@/api/client";
-import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, Heart, Share2, ShoppingCart, MapPin, Star, Truck, Shield, MessageCircle, Bell, BellOff, Check, Zap } from "lucide-react";
@@ -24,13 +24,13 @@ function ProductDetail() {
   const id = typeof idParam === 'string' ? idParam : '';
   const router = useRouter();
   const { addItem } = useCart();
+  const { user } = useAuth();
   const [product, setProduct] = useState<any>(null);
   const [seller, setSeller] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [wishlisted, setWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
-  const [user, setUser] = useState(null);
   const [alertActive, setAlertActive] = useState(false);
   const [alertTarget, setAlertTarget] = useState("");
   const [alertInput, setAlertInput] = useState("");
@@ -42,15 +42,27 @@ function ProductDetail() {
     loadProduct();
   }, [id]);
 
+  // Re-check wishlist when user logs in
+  useEffect(() => {
+    if (!user || !id) return;
+    client.get(`/api/wishlists/check/${id}`)
+      .then(r => setWishlisted(r.data.wishlisted))
+      .catch(() => {});
+    client.get("/api/wishlists/price-alerts")
+      .then(r => {
+        const existing = r.data.find((a: any) => a.product_id === id);
+        if (existing) { setAlertActive(true); setAlertTarget(String(existing.target_price)); }
+      })
+      .catch(() => {});
+  }, [id, user?.id]);
+
   const loadProduct = async () => {
     try {
       const p = await client.get(`/api/products/${id}`).then(r => r.data).catch(() => null)
         || await import("@/api/entities").then(m => m.entities.Product.get(id));
       setProduct(p);
-      // Check wishlist
+      // Check wishlist for authenticated users
       try {
-        const me = await auth.me();
-        setUser(me);
         const { data } = await client.get(`/api/wishlists/check/${id}`);
         setWishlisted(data.wishlisted);
         // Check existing price alert
@@ -103,7 +115,7 @@ function ProductDetail() {
       setAlertTarget(String(price));
       setShowAlertForm(false);
       setAlertInput("");
-      toast.success(`🔔 Alert set! We'll notify you when price drops to ${price.toLocaleString()} ${product?.currency || "ETB"}`);
+      toast.success(`🔔 Alert set! We'll notify you when price drops to ${price.toLocaleString()} ${product?.currency || "USD"}`);
     } catch (e) {
       toast.error(e?.response?.data?.error || "Failed to set alert");
     }
@@ -174,7 +186,7 @@ function ProductDetail() {
             </div>
             <div className="text-right shrink-0">
               <p className="text-2xl font-bold text-amber-600">{product.price?.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">{product.currency || "ETB"}</p>
+              <p className="text-xs text-muted-foreground">{product.currency || "USD"}</p>
             </div>
           </div>
 
@@ -248,7 +260,7 @@ function ProductDetail() {
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
                   <Bell className="w-4 h-4 text-amber-600 shrink-0" />
                   <p className="text-xs text-amber-700 dark:text-amber-400 flex-1">
-                    Alert active — notifying you when price drops to <strong>{parseFloat(alertTarget).toLocaleString()} {product.currency || "ETB"}</strong>
+                    Alert active — notifying you when price drops to <strong>{parseFloat(alertTarget).toLocaleString()} {product.currency || "USD"}</strong>
                   </p>
                   <button onClick={handleRemoveAlert} className="text-xs text-amber-600 hover:text-red-500 font-medium transition-colors">Remove</button>
                 </div>

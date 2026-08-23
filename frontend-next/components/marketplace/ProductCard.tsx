@@ -66,7 +66,7 @@ export default function ProductCard({ product, images }: ProductCardProps) {
           <div className="p-3">
             <h3 className="text-sm font-medium truncate">{product.title}</h3>
             <p className="text-amber-600 font-bold text-sm mt-1">
-              {product.price?.toLocaleString()} {product.currency || 'ETB'}
+              {product.price?.toLocaleString()} {product.currency || 'USD'}
             </p>
           </div>
         </div>

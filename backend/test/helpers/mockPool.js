@@ -1,7 +1,7 @@
 const mockPool = {
   query: jest.fn(),
   connect: jest.fn().mockResolvedValue({
-    query: jest.fn(),
+    query: jest.fn().mockResolvedValue({ rows: [] }),
     release: jest.fn(),
   }),
   end: jest.fn().mockResolvedValue(undefined),

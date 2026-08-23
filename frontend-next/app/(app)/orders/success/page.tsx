@@ -77,7 +77,7 @@ export default function OrderSuccessPage() {
                 </div>
               </div>
               <p className="text-sm font-bold text-amber-600 shrink-0">
-                {Number(order.total_price).toLocaleString()} {order.currency || 'ETB'}
+                {Number(order.total_price).toLocaleString()} {order.currency || 'USD'}
               </p>
             </div>
           ))}
@@ -85,7 +85,7 @@ export default function OrderSuccessPage() {
             <div className="flex justify-between pt-1 font-bold text-base">
               <span>Total</span>
               <span className="text-amber-600">
-                {orders.reduce((s, o) => s + Number(o.total_price), 0).toLocaleString()} {orders[0]?.currency || 'ETB'}
+                {orders.reduce((s, o) => s + Number(o.total_price), 0).toLocaleString()} {orders[0]?.currency || 'USD'}
               </span>
             </div>
           )}

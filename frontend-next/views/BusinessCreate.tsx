@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from 'react-i18next';
 
@@ -45,7 +44,7 @@ function BusinessCreate() {
   const idValue = searchParams.get("id") || paramId;
   const id = typeof idValue === 'string' ? idValue : '';
   const isEdit = !!id;
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   type BizState = {
     business_name: string;
@@ -67,11 +66,9 @@ function BusinessCreate() {
   });
 
   useEffect(() => {
-    auth.me().then(u => {
-      setUser(u);
-      if (isEdit) loadBusiness();
-    }).catch(() => {});
-  }, []);
+    if (isEdit) loadBusiness();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const loadBusiness = async () => {
     try {

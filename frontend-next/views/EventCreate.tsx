@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import React, { useState } from "react";
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, CalendarDays } from "lucide-react";
@@ -17,24 +17,24 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 function EventCreate() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: "", description: "", cover_image: "", location: "", is_online: false,
-    online_link: "", start_at: "", end_at: "", ticket_price: "0", currency: "ETB", capacity: ""
+    online_link: "", start_at: "", end_at: "", ticket_price: "0", currency: "USD", capacity: ""
   });
 
   const handleSubmit = async () => {
-    if (!form.title || !form.start_at) return;
+    if (!form.title || !form.start_at || !user) return;
     setSaving(true);
     try {
-      const u = await auth.me();
       await entities.Event.create({
         ...form,
         ticket_price: parseFloat(form.ticket_price) || 0,
         capacity: form.capacity ? parseInt(form.capacity) : null,
         is_online: form.is_online,
         status: "published",
-        organizer_id: u.id,
+        organizer_id: user.id,
       });
       router.push("/events");
     } catch (e) { console.error(e); }

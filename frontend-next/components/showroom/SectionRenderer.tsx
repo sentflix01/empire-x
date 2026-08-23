@@ -132,7 +132,7 @@ export default function SectionRenderer({
                     <p className="text-sm font-medium truncate">{p.title}</p>
                     {p.description && <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{p.description}</p>}
                     <div className="flex items-center justify-between mt-2">
-                      <p className="text-sm font-bold" style={{ color: themeColor }}>{p.price?.toLocaleString()} {p.currency || "ETB"}</p>
+                      <p className="text-sm font-bold" style={{ color: themeColor }}>{p.price?.toLocaleString()} {p.currency || "USD"}</p>
                       {!isOwner && onBuy && (
                         <Button size="sm" className="h-7 text-xs rounded-full text-white px-3" style={{ backgroundColor: themeColor }} onClick={() => onBuy(p)}>Buy</Button>
                       )}

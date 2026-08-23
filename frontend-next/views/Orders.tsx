@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 import {
@@ -326,7 +325,7 @@ function SellerReturnActions({ orderId, onActioned }: { orderId: string; onActio
 /* ── Main Orders Page ────────────────────────────────────────────────────── */
 function Orders() {
   const { t } = useTranslation();
-  const [user, setUser]       = useState(null);
+  const { user } = useAuth();
   const [orders, setOrders]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -337,8 +336,8 @@ function Orders() {
   const [nameMap, setNameMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    auth.me().then(u => { setUser(u); loadOrders(u, "selling"); }).catch(() => {});
-  }, []);
+    if (user) loadOrders(user, "selling");
+  }, [user?.id]);
 
   const loadOrders = async (u, mode) => {
     setLoading(true);

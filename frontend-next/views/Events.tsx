@@ -3,7 +3,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 
@@ -18,13 +17,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 function Events() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [bookingId, setBookingId] = useState(null);
 
   useEffect(() => {
-    auth.me().then(setUser).catch(() => {});
     entities.Event.filter({ status: "published" }, "-start_at", 50)
       .then(setEvents).finally(() => setLoading(false));
   }, []);

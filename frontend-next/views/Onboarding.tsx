@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from 'react-i18next';
 
 import { User, Store, ArrowRight, ArrowLeft, Check, Crown, Sparkles } from "lucide-react";
@@ -20,7 +20,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 function Onboarding() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [profileType, setProfileType] = useState("personal");
@@ -29,11 +29,8 @@ function Onboarding() {
   const [selectedLayout, setSelectedLayout] = useState("aurora_modern");
 
   useEffect(() => {
-    auth.me().then(u => {
-      setUser(u);
-      setPersonal(prev => ({ ...prev, display_name: u.full_name || "" }));
-    }).catch(() => router.push("/login"));
-  }, []);
+    if (user) setPersonal(prev => ({ ...prev, display_name: user.full_name || "" }));
+  }, [user?.id]);
 
   const handleFinish = async () => {
     if (!user) return; // Fix: guard against null user

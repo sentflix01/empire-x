@@ -13,7 +13,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import client from '@/api/client';
-import { auth } from '@/api/auth';
+import { useAuth } from '@/lib/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -1326,15 +1326,15 @@ function StrategyBoard() {
   );
   const [loadingVersions, setLoadingVersions] = useState(true);
   const [savingVersion,   setSavingVersion]   = useState<string | null>(null);
+  const { user: authUser } = useAuth();
   const isAdminRef = React.useRef(false);
+  isAdminRef.current = authUser?.role === 'admin';
 
   // Load persisted statuses from backend
   useEffect(() => {
     client.get('/api/devops/versions').then(({ data }) => {
       setStatuses(prev => ({ ...prev, ...data }));
     }).catch(() => {}).finally(() => setLoadingVersions(false));
-    // Check admin
-    auth.me().then(u => { isAdminRef.current = u?.role === 'admin'; }).catch(() => {});
   }, []);
 
   async function updateVersionStatus(version: string, status: VersionStatus) {
@@ -1702,7 +1702,8 @@ function OpsCard({ item, isAdmin, busy, onEdit, onDelete, onMove }: {
 
 // ── Main DevOps Component ─────────────────────────────────────────────────────
 function DevOps() {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user: authUser } = useAuth();
+  const isAdmin = authUser?.role === 'admin';
   const [booted,  setBooted]  = useState(false);
   const [items,   setItems]   = useState<DevOpsItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1734,11 +1735,8 @@ function DevOps() {
   }, []);
 
   useEffect(() => {
-    auth.me().then(u => {
-      setIsAdmin(u?.role === 'admin');
-      setBooted(true);
-      load();
-    }).catch(() => setBooted(true));
+    setBooted(true);
+    load();
   }, [load]);
 
   // Derived stats

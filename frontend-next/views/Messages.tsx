@@ -4,8 +4,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
 import client from "@/api/client";
+import { useAuth } from "@/lib/AuthContext";
 import { useRealMode } from "@/lib/RealModeContext";
 import { Search, Users, Radio, User as UserIcon, MessageCircle, Check, CheckCheck, Edit } from "lucide-react";
 import moment from "moment";
@@ -21,10 +21,10 @@ type Tab = 'all' | 'dm' | 'groups' | 'channels';
 function Messages() {
   const router = useRouter();
   const { realMode } = useRealMode();
+  const { user } = useAuth();
   const [conversations, setConversations] = useState<any[]>([]);
   const [contacts, setContacts]           = useState<any[]>([]);
   const [loading, setLoading]             = useState(true);
-  const [user, setUser]                   = useState<any>(null);
   const [search, setSearch]               = useState("");
   const [tab, setTab]                     = useState<Tab>('all');
   const [unreadByConv, setUnreadByConv]   = useState<Record<string, number>>({});
@@ -33,12 +33,13 @@ function Messages() {
 
   useChatPresence(Boolean(user));
 
-  // ── Init ──────────────────────────────────────────────────────────────────
+  // ── Init — load data once user is resolved ────────────────────────────────
   useEffect(() => {
-    auth.me()
-      .then(u => { setUser(u); loadConversations(u); loadContacts(u); })
-      .catch(() => setLoading(false));
-  }, []);
+    if (!user) return;
+    loadConversations(user);
+    loadContacts(user);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user) return;

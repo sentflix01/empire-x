@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { entities } from "@/api/entities";
 import client from "@/api/client";
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from 'react-i18next';
 
@@ -138,13 +137,12 @@ function ShowroomView() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showQr, setShowQr] = useState(false);
-  const [user, setUser] = useState(null);
-  const [authResolved, setAuthResolved] = useState(false);
+  const { user } = useAuth();
+  const [authResolved] = useState(true); // auth state from useAuth is synchronous
   const [purchaseItem, setPurchaseItem] = useState(null);
   const [quoteItem, setQuoteItem] = useState<{ name: string; desc?: string } | null>(null);
 
   useEffect(() => {
-    auth.me().then(setUser).catch(() => {}).finally(() => setAuthResolved(true));
     loadShowroom();
   }, [id, slugParam]);
 

@@ -69,7 +69,7 @@ function Cart() {
             quantity: item.quantity,
             unit_price: parseFloat(item.price),
             total_price: Math.round(parseFloat(item.price) * item.quantity * 100) / 100,
-            currency: item.currency || 'ETB',
+            currency: item.currency || 'USD',
             status: 'pending',
           });
           placedItemIds.push(item.id);
@@ -158,7 +158,7 @@ function Cart() {
                   {/* Details */}
                   <div className="flex-1 min-w-0">
                     <Link href={`/products/${item.product_id}`} className="font-semibold text-sm truncate block hover:underline">{item.title}</Link>
-                    <p className="text-xs text-muted-foreground mt-0.5">{parseFloat(item.price).toLocaleString()} {item.currency || "ETB"} each</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{parseFloat(item.price).toLocaleString()} {item.currency || "USD"} each</p>
 
                     {/* Qty controls */}
                     <div className="flex items-center gap-2 mt-3">
@@ -184,7 +184,7 @@ function Cart() {
                   {/* Line total */}
                   <div className="text-right shrink-0">
                     <p className="font-bold text-amber-600">{lineTotal.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">{item.currency || "ETB"}</p>
+                    <p className="text-xs text-muted-foreground">{item.currency || "USD"}</p>
                   </div>
                 </div>
               );

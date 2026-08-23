@@ -21,7 +21,7 @@ function JobCreate() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title:"", description:"", requirements:"", location:"", is_remote:false,
-    job_type:"full_time", salary_min:"", salary_max:"", currency:"ETB",
+    job_type:"full_time", salary_min:"", salary_max:"", currency:"USD",
     category:"", deadline:""
   });
 

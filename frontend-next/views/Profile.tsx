@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from "@/lib/AuthContext";
 import { auth } from "@/api/auth";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
@@ -30,7 +31,7 @@ function Profile() {
   const searchParams = useSearchParams();
   const viewParam = searchParams.get("view");
   const { theme, setTheme } = useTheme();
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const { activeView: view, setActiveView, accentTokens } = useProfileView();
@@ -42,15 +43,15 @@ function Profile() {
   const [tickerToggling, setTickerToggling] = useState(false);
 
   useEffect(() => {
+    if (!user) return;
     loadProfile();
-  }, [id]); // ← removed viewParam — switching views no longer triggers full reload
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, user?.id]);
 
   const loadProfile = async () => {
     setLoading(true);
     try {
-      const me = await auth.me();
-      setUser(me);
-      const targetUserId = id || me.id;
+      const targetUserId = id || user.id;
 
       // ── Parallel fetches — 2 RTTs instead of 3 ──────────────────────────
       const [profiles, bizList] = await Promise.all([
@@ -74,7 +75,7 @@ function Profile() {
       if (bizList.length > 0) setSelectedBizId(bizList[0].id);
     } catch (err) {
       if (err?.message?.includes("Authentication required") || err?.message?.includes("auth")) {
-        auth.redirectToLogin(window.location.pathname);
+        router.push("/login");
         return;
       }
     }

@@ -2,7 +2,6 @@
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import { Bell, Heart, MessageCircle, UserPlus, ShoppingBag, ClipboardList, Check, Trash2, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,16 +35,14 @@ function NotificationsView() {
   const { t } = useTranslation();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [markingAll, setMarkingAll] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    auth.me().then(u => {
-      setUser(u);
-      loadNotifications(u);
-    }).catch(() => setLoading(false));
-  }, []);
+    if (user) loadNotifications(user);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   // Live updates via socket — prepend new notifications as they arrive
   useEffect(() => {

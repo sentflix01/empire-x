@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 import { Briefcase, MapPin, Plus, Clock, DollarSign } from "lucide-react";
@@ -22,14 +21,13 @@ const JOB_TYPE_LABELS = {
 
 function Jobs() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [jobs, setJobs] = useState([]);
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [applying, setApplying] = useState(null);
 
   useEffect(() => {
-    auth.me().then(setUser).catch(() => {});
     entities.Job.filter({ status: "open" }, "-created_at", 50)
       .then(setJobs).finally(() => setLoading(false));
   }, []);

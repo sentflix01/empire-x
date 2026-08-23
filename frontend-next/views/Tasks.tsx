@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import { Plus, MapPin, Clock, Banknote, ClipboardList, Gavel, Users, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,16 +33,15 @@ const STATUS_STYLES = {
 
 function Tasks() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [bids, setBids] = useState({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("open");
-  const [user, setUser] = useState(null);
   const [bidTask, setBidTask] = useState(null);
   const [bidsViewTask, setBidsViewTask] = useState(null);
 
   useEffect(() => {
-    auth.me().then(setUser).catch(() => {});
     loadTasks();
   }, []);
 
@@ -136,7 +134,7 @@ function Tasks() {
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{moment(task.deadline).fromNow()}</span>
                   )}
                   <span className="flex items-center gap-1 text-amber-600 font-semibold">
-                    <Banknote className="w-3 h-3" />{task.offered_payment?.toLocaleString()} {task.currency || "ETB"}
+                    <Banknote className="w-3 h-3" />{task.offered_payment?.toLocaleString()} {task.currency || 'USD'}
                   </span>
                 </div>
                 {task.status === "open" && task.requester_id !== user?.id && (

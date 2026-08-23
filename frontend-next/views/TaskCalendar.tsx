@@ -1,7 +1,6 @@
 'use client'
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import { entities } from "@/api/entities";
 import { useTranslation } from 'react-i18next';
@@ -35,15 +34,14 @@ const STATUS_STYLES = {
 
 function TaskCalendar() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [tasks, setTasks] = useState([]);
   const [bids, setBids] = useState({});
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
 
   useEffect(() => {
-    auth.me().then(setUser).catch(() => {});
     loadData();
   }, []);
 
@@ -233,7 +231,7 @@ function TaskCalendar() {
                           <span className="flex items-center gap-1 text-muted-foreground"><MapPin className="w-3 h-3" />{item.task.location}</span>
                         )}
                         <span className="flex items-center gap-1 text-amber-600 font-semibold">
-                          <Banknote className="w-3 h-3" />{item.task.offered_payment?.toLocaleString()} {item.task.currency || "ETB"}
+                          <Banknote className="w-3 h-3" />{item.task.offered_payment?.toLocaleString()} {item.task.currency || "USD"}
                         </span>
                         {item.pendingBids > 0 && (
                           <span className="flex items-center gap-1 text-primary font-semibold">

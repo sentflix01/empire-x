@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 
 import { ArrowLeft, GraduationCap, Play, Lock, CheckCircle } from "lucide-react";
@@ -16,25 +16,31 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 function CourseDetail() {
   const { id } = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [course, setCourse] = useState(null);
-  const [user, setUser] = useState(null);
   const [enrollment, setEnrollment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
   const [activeLesson, setActiveLesson] = useState(null);
 
   useEffect(() => {
-    auth.me().then(async u => {
-      setUser(u);
-      const [c, { data: enr }] = await Promise.all([
-        entities.Course.get(id),
-        client.get(`/api/courses/${id}/enrolled`).catch(() => ({ data: { enrolled: false } })),
-      ]);
-      setCourse(c);
-      setEnrollment(enr.enrolled ? enr.enrollment : null);
-      if (c.lessons?.length) setActiveLesson(c.lessons[0]);
-    }).catch(() => router.push("/login")).finally(() => setLoading(false));
-  }, [id]);
+    if (!user) return;
+    (async () => {
+      try {
+        const [c, { data: enr }] = await Promise.all([
+          entities.Course.get(id),
+          client.get(`/api/courses/${id}/enrolled`).catch(() => ({ data: { enrolled: false } })),
+        ]);
+        setCourse(c);
+        setEnrollment(enr.enrolled ? enr.enrollment : null);
+        if (c.lessons?.length) setActiveLesson(c.lessons[0]);
+      } catch {
+        router.push("/login");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id, user?.id]);
 
   const handleEnroll = async () => {
     setEnrolling(true);

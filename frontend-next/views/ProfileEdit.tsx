@@ -12,7 +12,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { auth } from '@/api/auth';
+import { useAuth } from '@/lib/AuthContext';
 import { entities, type UserProfile } from '@/api/entities';
 import { useTranslation } from 'react-i18next';
 import {
@@ -176,7 +176,7 @@ function ProfileEdit() {
   const router = useRouter();
   const pathname = usePathname();
   const isBusinessSetup = pathname.includes('setup-business');
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<'personal' | 'business'>(isBusinessSetup ? 'business' : 'personal');
@@ -215,7 +215,7 @@ function ProfileEdit() {
     service_areas: [] as string[],
   });
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { if (user) loadData(); }, [user?.id]);
 
   const parseJSON = (v: any, fallback: any) => {
     if (!v) return fallback;
@@ -224,10 +224,9 @@ function ProfileEdit() {
   };
 
   const loadData = async () => {
+    if (!user) return;
     try {
-      const me = (await auth.me()) as { id?: string; full_name?: string; email?: string };
-      setUser(me);
-      const profiles = await entities.UserProfile.filter({ user_id: me.id }) as UserProfile[];
+      const profiles = await entities.UserProfile.filter({ user_id: user.id }) as UserProfile[];
       if (profiles.length > 0) {
         const p = profiles[0] as any;
         setProfile(p);
@@ -239,7 +238,7 @@ function ProfileEdit() {
         const biz_cover_url  = Array.isArray(p.business_cover_url)  ? (p.business_cover_url[0]  ?? '') : (p.business_cover_url  || '');
 
         setPersonal({
-          display_name: p.display_name || me.full_name || '',
+          display_name: p.display_name || user.full_name || '',
           bio: p.bio || '', headline: p.headline || '',
           location: p.location || '', phone: p.phone || '',
           website: p.website || extra.website || '',
@@ -260,7 +259,7 @@ function ProfileEdit() {
         setBusiness({
           business_name: p.business_name || '', business_category: p.business_category || '',
           business_template: biz_template, business_description: p.business_description || '',
-          business_contact_email: p.business_contact_email || me.email || '',
+          business_contact_email: p.business_contact_email || user.email || '',
           business_contact_phone: p.business_contact_phone || p.phone || '',
           business_address: p.business_address || p.location || '',
           business_theme_color: p.business_theme_color || '#2563EB',

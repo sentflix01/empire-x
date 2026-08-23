@@ -4,7 +4,6 @@ import Image from 'next/image';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 import { Search, Plus, ShoppingBag, CheckCircle2, XCircle, Loader2 } from "lucide-react";
@@ -31,6 +30,7 @@ function ProductSkeleton() {
 
 function Marketplace() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const CATEGORIES = [
     t('marketplace.categories.all'), t('marketplace.categories.electronics'),
@@ -45,14 +45,12 @@ function Marketplace() {
   const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
-  const [user, setUser] = useState(null);
   const [paymentBanner, setPaymentBanner] = useState<"success"|"failed"|"cancelled"|null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(0);
   const PAGE_SIZE = 24;
 
   useEffect(() => {
-    auth.me().then(setUser).catch(() => {});
     loadProducts(true);
     const payment = searchParams?.get("payment");
     if (payment === "success") {

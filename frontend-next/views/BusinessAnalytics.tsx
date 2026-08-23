@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 
 import {
   ArrowLeft, TrendingUp, ShoppingBag, Eye, Users, BarChart3, Heart,
@@ -30,6 +30,7 @@ function BusinessAnalytics() {
   const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [businesses, setBusinesses] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -39,19 +40,20 @@ function BusinessAnalytics() {
   const selectedBizId = searchParams.get("business");
 
   useEffect(() => {
+    if (!user) return;
     loadUser();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const loadUser = async () => {
     try {
-      const me = await auth.me();
       const [profiles, bizList] = await Promise.all([
-        entities.UserProfile.filter({ user_id: me.id }).catch(() => []),
-        entities.Business.filter({ owner_id: me.id }, "-created_at", 50).catch(() => [])
+        entities.UserProfile.filter({ user_id: user.id }).catch(() => []),
+        entities.Business.filter({ owner_id: user.id }, "-created_at", 50).catch(() => [])
       ]);
       if (profiles.length > 0) setProfile(profiles[0]);
       setBusinesses(bizList);
-      await loadData(me.id, bizList);
+      await loadData(user.id, bizList);
     } catch (e) {
       console.error(e);
     }

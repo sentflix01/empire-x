@@ -5,18 +5,38 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js",
+    "dev": "tsx watch index.ts",
+    "start": "tsx index.ts",
+    "build": "tsc --project tsconfig.json",
     "test": "node test/e2e.test.js",
     "test:unit": "jest --testPathPattern=test/.*\\.test\\.js --runInBand",
     "test:keploy:record": "keploy record -c 'node index.js'",
     "test:keploy:test": "keploy test -c 'node index.js'",
+    "typecheck": "tsc --noEmit",
     "migrate": "node db/migrate-all.js",
     "seed": "node db/seed.js",
     "clean": "node db/cleanup-seed-data.js"
   },
   "jest": {
     "testEnvironment": "node",
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ],
+    "transform": {
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "isolatedModules": true,
+          "tsconfig": {
+            "esModuleInterop": true,
+            "allowJs": true,
+            "resolveJsonModule": true
+          }
+        }
+      ]
+    },
     "testPathIgnorePatterns": [
       "/node_modules/",
       "test/e2e.test.js",
@@ -33,6 +53,7 @@
     "@aws-sdk/client-s3": "^3.540.0",
     "@aws-sdk/s3-request-presigner": "^3.540.0",
     "@sentry/node": "^10.66.0",
+    "@socket.io/redis-adapter": "^8.3.0",
     "bcryptjs": "2.4.3",
     "bullmq": "^5.79.2",
     "chapa-nodejs": "^2.1.1",
@@ -53,6 +74,7 @@
     "pg": "8.11.3",
     "pino": "^10.3.1",
     "pino-pretty": "^13.1.3",
+    "rate-limit-redis": "^4.3.1",
     "sharp": "^0.33.2",
     "socket.io": "^4.8.3",
     "stripe": "14.21.0",
@@ -61,11 +83,25 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.25",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^1.4.13",
+    "@types/node": "^20.19.43",
+    "@types/nodemailer": "^6.4.24",
+    "@types/pg": "^8.23.1",
+    "@types/uuid": "^9.0.8",
     "axios": "^1.7.9",
     "fast-check": "^3.23.2",
     "jest": "29.7.0",
     "nodemon": "3.1.0",
     "socket.io-client": "^4.8.3",
-    "supertest": "^7.1.0"
+    "supertest": "^7.1.0",
+    "ts-jest": "^29.4.12",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3"
   }
 }

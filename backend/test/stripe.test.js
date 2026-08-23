@@ -103,11 +103,11 @@ describe('Stripe webhook — checkout.session.completed', () => {
   test('marks the order paid, collects commission, increments coupon usage', async () => {
     mockConstructEvent.mockReturnValue(sessionEvent());
     routeQueries([
-      ['SELECT id FROM webhook_events', { rows: [] }], // not seen yet
-      ["status = 'paid'", { rows: [ORDER] }],          // orders UPDATE ... RETURNING *
+      // Atomic claim insert returns the row when the event is new
+      ['INSERT INTO webhook_events', { rows: [{ id: 'evt_completed_1' }] }],
+      ["status='paid'", { rows: [ORDER] }],            // orders UPDATE ... RETURNING *
       ['INSERT INTO commissions', { rows: [] }],       // collectCommission
       ['SELECT id, balance FROM wallets', { rows: [] }],
-      ['INSERT INTO webhook_events', { rows: [] }],    // dedupe written AFTER success
     ]);
 
     const res = await postWebhook(sessionEvent());
@@ -115,13 +115,13 @@ describe('Stripe webhook — checkout.session.completed', () => {
     expect(res.body).toEqual({ received: true });
     await flushAsync();
 
-    // Dedupe ledger insert happened — and only AFTER processing succeeded
+    // Claim insert happened FIRST (before any processing)
     const calls = pool.query.mock.calls;
-    const paidIdx = calls.findIndex(c => c[0].includes("status = 'paid'"));
-    const dedupeIdx = calls.findIndex(c => c[0].includes('INSERT INTO webhook_events'));
-    expect(paidIdx).toBeGreaterThan(-1);
-    expect(dedupeIdx).toBeGreaterThan(paidIdx);
-    expect(calls[dedupeIdx][1]).toEqual(['evt_completed_1', 'checkout.session.completed']);
+    const claimIdx = calls.findIndex(c => c[0].includes('INSERT INTO webhook_events'));
+    const paidIdx = calls.findIndex(c => c[0].includes("status='paid'"));
+    expect(claimIdx).toBeGreaterThan(-1);
+    expect(paidIdx).toBeGreaterThan(claimIdx);
+    expect(calls[claimIdx][1]).toEqual(['evt_completed_1', 'checkout.session.completed']);
 
     // Order moved to paid with the payment intent recorded
     const paidCall = calls[paidIdx];
@@ -139,10 +139,11 @@ describe('Stripe webhook — checkout.session.completed', () => {
     expect(commissionCall[1][1]).toBe('seller-1');
   });
 
-  test('duplicate event ids are skipped (no processing, no new dedupe row)', async () => {
+  test('duplicate event ids are skipped (no processing)', async () => {
     mockConstructEvent.mockReturnValue(sessionEvent('evt_completed_dup'));
     routeQueries([
-      ['SELECT id FROM webhook_events', { rows: [{ id: 'evt_completed_dup' }] }], // already processed
+      // Atomic claim loses the race → zero rows returned → duplicate
+      ['INSERT INTO webhook_events', { rows: [] }],
     ]);
 
     const res = await postWebhook(sessionEvent('evt_completed_dup'));
@@ -153,36 +154,35 @@ describe('Stripe webhook — checkout.session.completed', () => {
     expect(orderUpdates).toHaveLength(0);
     const commissions = pool.query.mock.calls.filter(c => c[0].includes('INSERT INTO commissions'));
     expect(commissions).toHaveLength(0);
-    const inserts = pool.query.mock.calls.filter(c => c[0].includes('INSERT INTO webhook_events'));
-    expect(inserts).toHaveLength(0);
   });
 
-  test('processing failure returns 500 and writes NO dedupe row (Stripe retries)', async () => {
+  test('processing failure returns 500, releases the claim (Stripe retries)', async () => {
     const event = sessionEvent('evt_flaky');
     mockConstructEvent.mockReturnValue(event);
 
     // First attempt: the DB blows up mid-processing
     routeQueries([
-      ['SELECT id FROM webhook_events', { rows: [] }],
-      ["status = 'paid'", () => { throw new Error('connection lost'); }],
+      ['INSERT INTO webhook_events', { rows: [{ id: 'evt_flaky' }] }],
+      ["status='paid'", () => { throw new Error('connection lost'); }],
     ]);
     const fail = await postWebhook(event);
     expect(fail.status).toBe(500);
-    expect(pool.query.mock.calls.filter(c => c[0].includes('INSERT INTO webhook_events')))
-      .toHaveLength(0); // nothing recorded → Stripe will redeliver
+    // The claim was released so Stripe's redelivery is not misread as a duplicate
+    expect(pool.query.mock.calls.filter(c => c[0].includes('DELETE FROM webhook_events')))
+      .toHaveLength(1);
 
-    // Retry: processing succeeds this time and the event is recorded
+    // Retry: processing succeeds this time and the event is recorded again
     routeQueries([
-      ['SELECT id FROM webhook_events', { rows: [] }],
-      ["status = 'paid'", { rows: [ORDER] }],
+      ['INSERT INTO webhook_events', { rows: [{ id: 'evt_flaky' }] }],
+      ["status='paid'", { rows: [ORDER] }],
       ['INSERT INTO commissions', { rows: [] }],
       ['SELECT id, balance FROM wallets', { rows: [] }],
-      ['INSERT INTO webhook_events', { rows: [] }],
     ]);
     const retry = await postWebhook(event);
     expect(retry.status).toBe(200);
     await flushAsync();
-    expect(pool.query.mock.calls.filter(c => c[0].includes('INSERT INTO webhook_events')))
+    // The only DELETE is the claim release from the failed first attempt
+    expect(pool.query.mock.calls.filter(c => c[0].includes('DELETE FROM webhook_events')))
       .toHaveLength(1);
   });
 });
@@ -196,14 +196,13 @@ describe('Stripe webhook — payment failures', () => {
     };
     mockConstructEvent.mockReturnValue(event);
     routeQueries([
-      ['SELECT id FROM webhook_events', { rows: [] }],
-      ['INSERT INTO webhook_events', { rows: [] }],
+      ['INSERT INTO webhook_events', { rows: [{ id: 'evt_failed_1' }] }],
     ]);
 
     const res = await postWebhook(event);
     expect(res.status).toBe(200);
 
-    const failedCall = pool.query.mock.calls.find(c => c[0].includes("status = 'payment_failed'"));
+    const failedCall = pool.query.mock.calls.find(c => c[0].includes("status='payment_failed'"));
     expect(failedCall).toBeTruthy();
     expect(failedCall[1]).toEqual(['pi_test_fail']);
   });
@@ -216,14 +215,13 @@ describe('Stripe webhook — payment failures', () => {
     };
     mockConstructEvent.mockReturnValue(event);
     routeQueries([
-      ['SELECT id FROM webhook_events', { rows: [] }],
-      ['INSERT INTO webhook_events', { rows: [] }],
+      ['INSERT INTO webhook_events', { rows: [{ id: 'evt_expired_1' }] }],
     ]);
 
     const res = await postWebhook(event);
     expect(res.status).toBe(200);
 
-    const failedCall = pool.query.mock.calls.find(c => c[0].includes("status = 'payment_failed'"));
+    const failedCall = pool.query.mock.calls.find(c => c[0].includes("status='payment_failed'"));
     expect(failedCall).toBeTruthy();
     expect(failedCall[1]).toEqual(['cs_test_expired']);
   });
@@ -245,10 +243,9 @@ describe('Stripe webhook — charge.refunded', () => {
     });
     mockConstructEvent.mockReturnValue(event);
     routeQueries([
-      ['SELECT id FROM webhook_events', { rows: [] }],
+      ['INSERT INTO webhook_events', { rows: [{ id: 'evt_refund_1' }] }],
       ['SELECT * FROM orders', { rows: [ORDER] }],
-      ['SELECT id, amount FROM commissions', { rows: [{ id: 'comm-1', amount: '30.00' }] }],
-      ['INSERT INTO webhook_events', { rows: [] }],
+      ['FROM commissions', { rows: [{ id: 'comm-1', amount: '30.00' }] }],
     ]);
 
     const res = await postWebhook(event);
@@ -256,22 +253,22 @@ describe('Stripe webhook — charge.refunded', () => {
     await flushAsync();
 
     // Order marked refunded
-    const refundCall = pool.query.mock.calls.find(c => c[0].includes("status = 'refunded'"));
+    const refundCall = pool.query.mock.calls.find(c => c[0].includes("status='refunded'"));
     expect(refundCall).toBeTruthy();
     expect(refundCall[1]).toEqual(['order-1']);
 
     // Commission reversed
-    const commCall = pool.query.mock.calls.find(c => c[0].includes("UPDATE commissions SET status = 'refunded'"));
+    const commCall = pool.query.mock.calls.find(c => c[0].includes("UPDATE commissions SET status='refunded'"));
     expect(commCall).toBeTruthy();
     expect(commCall[1]).toEqual(['comm-1']);
 
     // Seller gets the commission back — NOT the buyer (Stripe already refunded the card)
-    const walletCredits = pool.query.mock.calls.filter(c => c[0].includes('balance = balance +'));
+    const walletCredits = pool.query.mock.calls.filter(c => c[0].includes('balance=balance+$1'));
     expect(walletCredits).toHaveLength(1);
     expect(walletCredits[0][1]).toEqual([30, 'seller-1']);
 
     const ledger = pool.query.mock.calls.find(c => c[0].includes("INSERT INTO wallet_transactions"));
-    expect(ledger[1]).toContain('Commission reversal (full Stripe refund)');
+    expect(ledger[1]).toContain('Commission reversal (full)');
 
     // No buyer refund bookkeeping anywhere
     expect(pool.query.mock.calls.find(c => Array.isArray(c[1]) && c[1].includes('buyer-1') && c[0].includes('UPDATE wallets'))).toBeUndefined();
@@ -286,10 +283,9 @@ describe('Stripe webhook — charge.refunded', () => {
     });
     mockConstructEvent.mockReturnValue(event);
     routeQueries([
-      ['SELECT id FROM webhook_events', { rows: [] }],
+      ['INSERT INTO webhook_events', { rows: [{ id: 'evt_refund_1' }] }],
       ['SELECT * FROM orders', { rows: [ORDER] }],
-      ['SELECT id, amount FROM commissions', { rows: [{ id: 'comm-1', amount: '30.00' }] }],
-      ['INSERT INTO webhook_events', { rows: [] }],
+      ['FROM commissions', { rows: [{ id: 'comm-1', amount: '30.00' }] }],
     ]);
 
     const res = await postWebhook(event);
@@ -297,16 +293,16 @@ describe('Stripe webhook — charge.refunded', () => {
     await flushAsync();
 
     // Order is NOT marked refunded for a partial refund
-    const refundCall = pool.query.mock.calls.find(c => c[0].includes("status = 'refunded'"));
+    const refundCall = pool.query.mock.calls.find(c => c[0].includes("status='refunded'"));
     expect(refundCall).toBeUndefined();
 
     // Commission reduced by 25% (7.50 of 30.00)
-    const commCall = pool.query.mock.calls.find(c => c[0].includes('GREATEST(amount - $1, 0)'));
+    const commCall = pool.query.mock.calls.find(c => c[0].includes('GREATEST(amount-$1,0)'));
     expect(commCall).toBeTruthy();
     expect(commCall[1]).toEqual([7.5, 'comm-1']);
 
     // Seller credited the reversed slice only
-    const walletCredits = pool.query.mock.calls.filter(c => c[0].includes('balance = balance +'));
+    const walletCredits = pool.query.mock.calls.filter(c => c[0].includes('balance=balance+$1'));
     expect(walletCredits).toHaveLength(1);
     expect(walletCredits[0][1]).toEqual([7.5, 'seller-1']);
   });
@@ -321,19 +317,18 @@ describe('Stripe webhook — charge.refunded', () => {
     });
     mockConstructEvent.mockReturnValue(event);
     routeQueries([
-      ['SELECT id FROM webhook_events', { rows: [] }],
-      ['INSERT INTO webhook_events', { rows: [] }],
+      ['INSERT INTO webhook_events', { rows: [{ id: 'ch_topup' }] }],
     ]);
 
     const res = await postWebhook(event);
     expect(res.status).toBe(200);
 
-    const debit = pool.query.mock.calls.find(c => c[0].includes('GREATEST(balance - $1, 0)'));
+    const debit = pool.query.mock.calls.find(c => c[0].includes('GREATEST(balance-$1,0)'));
     expect(debit).toBeTruthy();
     expect(debit[1]).toEqual([250, 'w-1']); // 500 ETB × 50%
 
     const ledger = pool.query.mock.calls.find(c => c[0].includes("INSERT INTO wallet_transactions"));
-    expect(ledger[1]).toContain('Stripe top-up refund reversal (partial)');
+    expect(ledger[1]).toContain('Stripe top-up reversal (partial)');
 
     // No order-side refund handling for a top-up charge
     expect(pool.query.mock.calls.find(c => c[0].includes('SELECT * FROM orders'))).toBeUndefined();
@@ -355,8 +350,7 @@ describe('Stripe webhook — wallet top-up completion', () => {
     };
     mockConstructEvent.mockReturnValue(event);
     routeQueries([
-      ['SELECT id FROM webhook_events', { rows: [] }],
-      ['INSERT INTO webhook_events', { rows: [] }],
+      ['INSERT INTO webhook_events', { rows: [{ id: 'evt_topup_unpaid' }] }],
     ]);
 
     const res = await postWebhook(event);
@@ -391,8 +385,7 @@ describe('Stripe webhook — wallet top-up completion', () => {
     };
     mockConstructEvent.mockReturnValue(event);
     routeQueries([
-      ['SELECT id FROM webhook_events', { rows: [] }],
-      ['INSERT INTO webhook_events', { rows: [] }],
+      ['INSERT INTO webhook_events', { rows: [{ id: 'evt_topup_paid' }] }],
     ]);
 
     const res = await postWebhook(event);
@@ -402,14 +395,15 @@ describe('Stripe webhook — wallet top-up completion', () => {
     expect(sqls[0]).toBe('BEGIN');
     expect(sqls[sqls.length - 1]).toBe('COMMIT');
 
-    const creditCall = clientQuery.mock.calls.find(c => c[0].includes('balance = balance +'));
+    const creditCall = clientQuery.mock.calls.find(c => c[0].includes('balance=balance+$1'));
     expect(creditCall[1]).toEqual([500, 'w-1']);
     expect(client.release).toHaveBeenCalled();
   });
 });
 
 describe('Stripe checkout — multi-seller cart creates ONE session', () => {
-  const auth = () => `Bearer ${jwt.sign({ sub: 'buyer-1' }, 'test_jwt_secret')}`;
+  // requireAuth enforces type='access' — refresh tokens must not authenticate.
+  const auth = () => `Bearer ${jwt.sign({ sub: 'buyer-1', type: 'access' }, 'test_jwt_secret')}`;
   const PRODUCTS = [
     { id: 'prod-1', seller_id: 'seller-1', title: 'Shirt', price: '123.45', status: 'active', stock: null, business_id: 'biz-1' },
     { id: 'prod-2', seller_id: 'seller-2', title: 'Shoes', price: '67.89', status: 'active', stock: null, business_id: null },
@@ -419,7 +413,8 @@ describe('Stripe checkout — multi-seller cart creates ONE session', () => {
     const orderIds = ['order-A', 'order-B'];
     let insertIdx = 0;
     routeQueries([
-      ['SELECT id, email, role FROM users', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user' }] }],
+      // requireAuth → getCachedUser SELECT
+      ['FROM users WHERE id', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user', is_banned: false }] }],
       ['SELECT * FROM products', { rows: PRODUCTS }],
       ['INSERT INTO orders', () => ({ rows: [{ id: orderIds[insertIdx++] }] })],
       ['UPDATE orders SET stripe_session_id', { rows: [] }],
@@ -468,7 +463,7 @@ describe('Stripe checkout — multi-seller cart creates ONE session', () => {
     const orderIds = ['order-X', 'order-Y'];
     let insertIdx = 0;
     routeQueries([
-      ['SELECT id, email, role FROM users', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user' }] }],
+      ['FROM users WHERE id', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user', is_banned: false }] }],
       ['SELECT * FROM products', { rows: driftProducts }],
       ['INSERT INTO orders', () => ({ rows: [{ id: orderIds[insertIdx++] }] })],
       ['UPDATE orders SET stripe_session_id', { rows: [] }],
@@ -490,7 +485,7 @@ describe('Stripe checkout — multi-seller cart creates ONE session', () => {
 
   test('session creation failure marks session-less orders payment_failed (no deletes)', async () => {
     routeQueries([
-      ['SELECT id, email, role FROM users', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user' }] }],
+      ['FROM users WHERE id', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user', is_banned: false }] }],
       ['SELECT * FROM products', { rows: PRODUCTS }],
       ['INSERT INTO orders', { rows: [{ id: 'order-Z' }] }],
     ]);
@@ -505,7 +500,7 @@ describe('Stripe checkout — multi-seller cart creates ONE session', () => {
     await flushAsync();
 
     // Rollback flags orders instead of deleting them, and only session-less ones
-    const rollback = pool.query.mock.calls.find(c => c[0].includes("SET status = 'payment_failed'") && c[0].includes('stripe_session_id IS NULL'));
+    const rollback = pool.query.mock.calls.find(c => c[0].includes("SET status='payment_failed'") && c[0].includes('stripe_session_id IS NULL'));
     expect(rollback).toBeTruthy();
     expect(rollback[1]).toEqual([['order-Z']]);
     const deletes = pool.query.mock.calls.filter(c => /^DELETE FROM orders/i.test(c[0].trim()));

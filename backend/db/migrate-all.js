@@ -1,23 +1,205 @@
 /**
- * Run all database migrations in order.
- * Usage: node db/migrate-all.js
+ * migrate-all.js — Smart migration runner with tracking table
+ *
+ * Phase 2 Task 5 improvements over the previous version:
+ *
+ *   1. schema_migrations tracking table: records every applied migration with
+ *      its version, timestamp, and duration. Running migrate-all.js twice is
+ *      safe — already-applied migrations are skipped, not re-run.
+ *
+ *   2. Auto-discovery: scans the db/ directory for migrate*.js files and sorts
+ *      them numerically. No more hardcoded array — adding migrate31.js is
+ *      automatically picked up on the next run.
+ *
+ *   3. Backward-compatible: existing migration files (migrate.js–migrate30.js)
+ *      are self-executing scripts that call pool.end(). They are run via
+ *      spawnSync exactly as before. New migrations (migrate31.js onward) may
+ *      export an async function and will be require()'d directly — faster and
+ *      more testable.
+ *
+ * Usage:
+ *   node db/migrate-all.js           — run all pending migrations
+ *   node db/migrate-all.js --status  — show applied/pending state without running
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+
 const { spawnSync } = require('child_process');
-const path = require('path');
+const path          = require('path');
+const fs            = require('fs');
+const { Pool }      = require('pg');
 
-const migrations = ['migrate.js', 'migrate2.js', 'migrate3.js', 'migrate4.js', 'migrate5.js', 'migrate6.js', 'migrate7.js', 'migrate8.js', 'migrate9.js', 'migrate10.js', 'migrate11.js', 'migrate12.js', 'migrate13.js', 'migrate14.js', 'migrate15.js', 'migrate16.js', 'migrate17.js', 'migrate18.js', 'migrate19.js', 'migrate20.js', 'migrate21.js', 'migrate22.js', 'migrate23.js', 'migrate24.js', 'migrate25.js', 'migrate26.js', 'migrate27.js', 'migrate28.js', 'migrate29.js'];
+// ── Bootstrap a minimal pool just for the tracking table ─────────────────────
+// We cannot use ./pool.js here because some legacy migrations call pool.end(),
+// which would close the shared pool. This pool is only used by migrate-all itself.
+function buildConnectionString(raw) {
+  if (!raw || !raw.includes('neon.tech')) return raw;
+  if (raw.includes('pgbouncer=true')) return raw;
+  const sep = raw.includes('?') ? '&' : '?';
+  return `${raw}${sep}pgbouncer=true`;
+}
 
-console.log('\n🗄️  Running all Nodbusiness migrations...\n');
+const connectionString = buildConnectionString(process.env.DATABASE_URL);
+const needsSsl =
+  process.env.NODE_ENV === 'production' ||
+  (connectionString && /neon\.tech|sslmode=require|ssl=true/i.test(connectionString));
 
-for (const file of migrations) {
-  const full = path.join(__dirname, file);
-  console.log(`── ${file}`);
-  const result = spawnSync(process.execPath, [full], { stdio: 'inherit', env: process.env });
-  if (result.status !== 0) {
-    console.error(`\n❌ ${file} failed`);
-    process.exit(1);
+const trackPool = new Pool({
+  connectionString,
+  ssl: needsSsl ? { rejectUnauthorized: false } : false,
+  max: 2,
+  idleTimeoutMillis: 10_000,
+  connectionTimeoutMillis: 10_000,
+});
+
+// ── Schema migrations tracking table ─────────────────────────────────────────
+async function ensureTrackingTable() {
+  await trackPool.query(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      version     TEXT        PRIMARY KEY,
+      applied_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      duration_ms INTEGER
+    )
+  `);
+}
+
+async function getAppliedVersions() {
+  const { rows } = await trackPool.query(
+    'SELECT version FROM schema_migrations ORDER BY applied_at ASC'
+  );
+  return new Set(rows.map(r => r.version));
+}
+
+async function recordMigration(version, durationMs) {
+  await trackPool.query(
+    `INSERT INTO schema_migrations (version, duration_ms)
+     VALUES ($1, $2)
+     ON CONFLICT (version) DO NOTHING`,
+    [version, durationMs]
+  );
+}
+
+// ── File discovery ────────────────────────────────────────────────────────────
+function discoverMigrationFiles() {
+  return fs.readdirSync(__dirname)
+    .filter(f => /^migrate\d*\.js$/.test(f))
+    .sort((a, b) => {
+      // migrate.js (no number) sorts first as version 0
+      const numA = parseInt(a.replace('migrate', '').replace('.js', '') || '0', 10);
+      const numB = parseInt(b.replace('migrate', '').replace('.js', '') || '0', 10);
+      return numA - numB;
+    });
+}
+
+// ── Determine whether a file exports a function or is a self-executing script ─
+// New migrations (migrate31.js onward) export `module.exports = async function`.
+// Legacy migrations (migrate.js – migrate30.js) are self-executing and call pool.end().
+function isExportedFunction(filePath) {
+  try {
+    const mod = require(filePath);
+    return typeof mod === 'function';
+  } catch {
+    return false;
   }
 }
 
-console.log('\n✅ All migrations complete.\n');
+// ── Run a single legacy migration via spawnSync ───────────────────────────────
+function runLegacyMigration(filePath) {
+  const result = spawnSync(process.execPath, [filePath], {
+    stdio: 'inherit',
+    env: process.env,
+  });
+  return result.status === 0;
+}
+
+// ── Run a single exported-function migration directly ─────────────────────────
+async function runExportedMigration(filePath) {
+  // Clear require cache so we always get a fresh module
+  delete require.cache[require.resolve(filePath)];
+  const fn = require(filePath);
+  await fn();
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+async function main() {
+  const showStatus = process.argv.includes('--status');
+
+  if (!process.env.DATABASE_URL) {
+    console.error('\n❌  DATABASE_URL is not set. Copy backend/.env.example to backend/.env\n');
+    process.exit(1);
+  }
+
+  try {
+    await ensureTrackingTable();
+  } catch (err) {
+    console.error('❌  Could not create schema_migrations table:', err.message);
+    process.exit(1);
+  }
+
+  const applied = await getAppliedVersions();
+  const files   = discoverMigrationFiles();
+
+  if (showStatus) {
+    console.log('\n📋  Migration status:\n');
+    for (const file of files) {
+      const version = file.replace('.js', '');
+      const status  = applied.has(version) ? '✅ applied' : '⏳ pending';
+      console.log(`   ${status}  ${file}`);
+    }
+    const pending = files.filter(f => !applied.has(f.replace('.js', '')));
+    console.log(`\n   ${applied.size} applied, ${pending.length} pending\n`);
+    await trackPool.end();
+    return;
+  }
+
+  console.log('\n🗄️   Running Nodbusiness migrations...\n');
+
+  let ran = 0;
+
+  for (const file of files) {
+    const version  = file.replace('.js', '');
+    const filePath = path.join(__dirname, file);
+
+    if (applied.has(version)) {
+      console.log(`  ✓  ${file} (already applied)`);
+      continue;
+    }
+
+    console.log(`  →  ${file} ...`);
+    const start = Date.now();
+
+    try {
+      if (isExportedFunction(filePath)) {
+        // New-style: exported async function — run in-process
+        await runExportedMigration(filePath);
+      } else {
+        // Legacy-style: self-executing script — run as subprocess
+        const ok = runLegacyMigration(filePath);
+        if (!ok) {
+          console.error(`\n❌  ${file} exited with non-zero status`);
+          process.exit(1);
+        }
+      }
+
+      const duration = Date.now() - start;
+      await recordMigration(version, duration);
+      console.log(`  ✅  ${file} complete (${duration}ms)`);
+      ran++;
+    } catch (err) {
+      console.error(`\n❌  ${file} failed: ${err.message}`);
+      process.exit(1);
+    }
+  }
+
+  if (ran === 0) {
+    console.log('\n  All migrations already applied — database is up to date.\n');
+  } else {
+    console.log(`\n✅  ${ran} migration(s) applied successfully.\n`);
+  }
+
+  await trackPool.end();
+}
+
+main().catch(err => {
+  console.error('Migration runner error:', err.message);
+  process.exit(1);
+});

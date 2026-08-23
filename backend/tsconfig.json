@@ -1,0 +1,63 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./",
+
+    // Type safety — strict enough to catch real bugs, lenient enough to migrate incrementally
+    "strict": false,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Module resolution
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+
+    // Mixed JS/TS during migration
+    "allowJs": false,
+    "checkJs": false,
+
+    // Output
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+
+    // Path aliases for cleaner imports
+    "baseUrl": ".",
+    "paths": {
+      "@lib/*":        ["lib/*"],
+      "@middleware/*": ["middleware/*"],
+      "@routes/*":     ["routes/*"],
+      "@db/*":         ["db/*"],
+      "@utils/*":      ["utils/*"],
+      "@services/*":   ["services/*"]
+    }
+  },
+  "include": ["**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*.test.ts",
+    "db/migrate*.js",
+    "db/seed.js",
+    "db/check*.js",
+    "db/create*.js",
+    "db/clean*.js",
+    "db/remove*.js",
+    "db/dev-credentials.json",
+    "scripts/**",
+    "tmp_*.js",
+    "check_*.js",
+    "check-*.js",
+    "e2e_comprehensive.js"
+  ]
+}

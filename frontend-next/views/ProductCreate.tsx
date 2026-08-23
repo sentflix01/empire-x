@@ -2,7 +2,6 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
@@ -28,7 +27,7 @@ function ProductCreate() {
   const id = searchParams.get("id") || paramId;
   const isEdit = Boolean(id);
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
   const [generating, setGenerating] = useState(false);
@@ -36,11 +35,9 @@ function ProductCreate() {
   const [form, setForm] = useState({ title: "", description: "", price: "", stock: "1", category: "", tags: "", status: "active" });
 
   useEffect(() => {
-    auth.me().then(u => {
-      setUser(u);
-      if (isEdit) loadProduct(u);
-    }).catch(() => {});
-  }, [id]);
+    if (isEdit) loadProduct(user);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, user?.id]);
 
   const loadProduct = async (currentUser) => {
     setLoading(true);
