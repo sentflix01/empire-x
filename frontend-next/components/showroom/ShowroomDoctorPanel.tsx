@@ -11,7 +11,7 @@ import { Loader2, Stethoscope, AlertTriangle, CheckCircle2, ExternalLink, Sparkl
 interface Finding { id: string; severity: 'critical'|'high'|'medium'|'low'; area: string; message: string;
   fix?: { type: string; sections?: string[]; sectionKey?: string } }
 interface Report { score: number; grades: { completeness: number; health: number; freshness: number };
-  sector: string; findings: Finding[] }
+  sector: string; findings: Finding[]; history?: Array<{ score: string; created_at: string }> }
 
 const SEV: Record<string, string> = {
   critical: 'bg-red-500/10 text-red-500 border-red-500/30',
@@ -26,6 +26,16 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
   const [report, setReport] = useState<Report & { narrative?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [narrating, setNarrating] = useState(false);
+  const [rechecking, setRechecking] = useState<string | null>(null);
+
+  const recheckSource = async (sectionKey: string) => {
+    setRechecking(sectionKey);
+    try {
+      await fetch(`/api/showrooms/${showroomId}/recheck/${sectionKey}`, { method: 'POST', credentials: 'include' });
+      const res = await fetch(`/api/showrooms/${showroomId}/doctor`, { credentials: 'include' });
+      if (res.ok) setReport(await res.json());
+    } catch { /* non-fatal */ } finally { setRechecking(null); }
+  };
 
   const narrate = async () => {
     if (!report || narrating) return;
@@ -64,7 +74,7 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
       </button>
 
       {open && (
-        <div className="mt-2 rounded-xl border border-border/50 bg-card p-3 space-y-3">
+        <div className="relative mt-2 rounded-xl border border-border/50 bg-card p-3 space-y-3">
           {loading && <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
             <Loader2 className="w-4 h-4 animate-spin" /> Analyzing showroom…</div>}
           {error && <p className="text-xs text-red-500">{error}</p>}
@@ -90,6 +100,14 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
                     </div>
                   ))}
                 </div>
+                {report.history && report.history.length > 1 && (
+                  <div className="absolute right-4 top-14 flex items-end gap-0.5 h-8" title="Score history">
+                    {report.history.slice(0, 10).reverse().map((h, i) => (
+                      <div key={i} className="w-1.5 rounded-sm bg-violet-500/60"
+                        style={{ height: `${Math.max(8, Number(h.score))}%` }} title={`${h.score} · ${new Date(h.created_at).toLocaleDateString()}`} />
+                    ))}
+                  </div>
+                )}
                 <div className="shrink-0 flex flex-col items-end gap-1">
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg bg-secondary/60">{report.sector}</span>
                   <button onClick={narrate} disabled={narrating}
@@ -119,10 +137,16 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
                     <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
                     <span className="flex-1">{f.message}</span>
                     {f.fix?.type === 'add_sections' && (
-                      <a href={`/showroom/create?edit=${showroomId}`}
+                      <a href={`/showroom/create?edit=${showroomId}&add=${(f.fix.sections || []).join(',')}`}
                         className="shrink-0 inline-flex items-center gap-1 font-semibold underline underline-offset-2">
                         Fix <ExternalLink className="w-3 h-3" />
                       </a>
+                    )}
+                    {f.fix?.type === 'recheck_source' && (
+                      <button onClick={() => recheckSource(f.fix!.sectionKey!)} disabled={rechecking === f.fix!.sectionKey}
+                        className="shrink-0 inline-flex items-center gap-1 font-semibold underline underline-offset-2 disabled:opacity-50">
+                        {rechecking === f.fix!.sectionKey ? <Loader2 className="w-3 h-3 animate-spin" /> : null} Re-check
+                      </button>
                     )}
                   </div>
                 ))}

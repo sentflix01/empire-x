@@ -6,6 +6,7 @@ import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { listRecords, getRecord, createRecord, updateRecord, deleteRecord } from '../utils/crud';
 import { runDoctor } from '../lib/showroomDoctor';
+import { recordEvent } from '../lib/telemetry';
 
 const router = Router();
 
@@ -29,6 +30,32 @@ router.get('/slug/:slug', optionalAuth, async (req: Request, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to fetch showroom' }); }
 });
 
+
+// ── Re-check an external source (Doctor fix action) ─────────────────────────
+router.post('/:id/recheck/:sectionKey', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const showroom = await getRecord<Record<string, unknown>>('showrooms', req.params.id);
+    if (!showroom) { res.status(404).json({ error: 'Showroom not found' }); return; }
+    if (showroom.owner_id !== req.user!.id && req.user!.role !== 'admin') {
+      res.status(403).json({ error: 'Forbidden' }); return;
+    }
+    const { getRedis } = await import('../lib/redis');
+    const { fetchSection, buildCacheKey } = await import('../services/proxyGateway');
+    const redis = getRedis();
+    const key = buildCacheKey(req.params.id, req.params.sectionKey);
+    // Drop fresh + stale copies so the next fetch is truly live.
+    await redis.del(key, `stale:${key}`).catch(() => undefined);
+    const result = await fetchSection(pool, redis, {
+      showroomId: req.params.id, sectionKey: req.params.sectionKey, ip: req.ip ?? '0.0.0.0',
+    });
+    const ok = Array.isArray(result);
+    res.json({ ok, result: ok ? { count: (result as unknown[]).length } : result });
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'source recheck failed');
+    res.status(500).json({ error: 'Re-check failed' });
+  }
+});
+
 // ── Showroom Doctor (owner or admin) — sector-aware diagnosis ────────────────
 router.get('/:id/doctor', requireAuth, async (req: Request, res: Response) => {
   try {
@@ -39,6 +66,10 @@ router.get('/:id/doctor', requireAuth, async (req: Request, res: Response) => {
     }
     const result = await runDoctor(pool, req.params.id);
     if (!result) { res.status(404).json({ error: 'Showroom not found' }); return; }
+    // Score history — every run is recorded so owners see trends over time.
+    recordEvent('showroom_doctor_score', {
+      showroomId: req.params.id, score: result.report.score, sector: result.report.sector,
+    });
     // Phase 2: optional LLM narrative over the deterministic findings.
     // The FACTS come from the rule engine — the model only explains and
     // prioritizes them, so the audit stays hallucination-free.
@@ -62,8 +93,18 @@ router.get('/:id/doctor', requireAuth, async (req: Request, res: Response) => {
           if (narrative) (result.report as unknown as Record<string, unknown>).narrative = narrative;
         }
       } catch { /* narrative is best-effort — findings are the source of truth */ }
+      const history = await pool.query(
+        `SELECT payload->>'score' AS score, created_at FROM telemetry_events
+         WHERE type='showroom_doctor_score' AND payload->>'showroomId'=$1
+         ORDER BY created_at DESC LIMIT 12`, [req.params.id]);
+      (result.report as unknown as Record<string, unknown>).history = history.rows;
       res.json(result.report);
     } else {
+      const history = await pool.query(
+        `SELECT payload->>'score' AS score, created_at FROM telemetry_events
+         WHERE type='showroom_doctor_score' AND payload->>'showroomId'=$1
+         ORDER BY created_at DESC LIMIT 12`, [req.params.id]);
+      (result.report as unknown as Record<string, unknown>).history = history.rows;
       res.json(result.report);
     }
   } catch (err) {

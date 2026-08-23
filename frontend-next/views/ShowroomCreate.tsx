@@ -271,6 +271,7 @@ function ShowroomCreate({
   const categoryParam = categoryParamOverride ?? (searchParams.get("category") || "");
   const sampleParam = sampleParamOverride ?? (searchParams.get("sample") || "");
   const editId = searchParams.get("edit") || "";
+  const addSectionsParam = searchParams.get("add") || "";
   const templateName = templateParam.replace(/-/g, " ");
 
   const { user } = useAuth();
@@ -292,6 +293,13 @@ function ShowroomCreate({
     getDefaultFormData(templateName, categoryParam, sampleParam)
   );
 
+  // Doctor fix deep-link: append recommended sections after load
+  useEffect(() => {
+    if (!addSectionsParam) return;
+    const wanted = addSectionsParam.split(",").map((x) => x.trim()).filter(Boolean);
+    if (!wanted.length) return;
+    setActiveSections((prev: string[]) => [...prev, ...wanted.filter((w) => !prev.includes(w))]);
+  }, [addSectionsParam]);
   // BUG[2]: edit mode - load an existing showroom into the builder
   useEffect(() => {
     if (!editId) return;
