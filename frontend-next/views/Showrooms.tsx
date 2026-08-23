@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/AuthContext';
+import ShowroomDoctorPanel from '@/components/showroom/ShowroomDoctorPanel';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BookmarkButton from '@/components/ui/BookmarkButton';
 
@@ -46,6 +47,7 @@ function Showrooms() {
 
   // BUG[2]: owner management - edit/delete published showrooms
   const mine = showrooms.filter((s: { owner_id?: string }) => s.owner_id && s.owner_id === user?.id);
+  const [doctorOpen, setDoctorOpen] = useState<string | null>(null);
   const deleteShowroom = async (id: string) => {
     if (!window.confirm('Delete this showroom permanently?')) return;
     try {
@@ -89,8 +91,12 @@ function Showrooms() {
                   <span className="text-xs truncate flex-1">{s.title || s.id}</span>
                   <Link href={`/showroom/create?edit=${s.id}`} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-600 hover:bg-amber-500/25">Edit</Link>
                   <button onClick={() => deleteShowroom(s.id)} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20">Delete</button>
+                  <button onClick={() => setDoctorOpen(doctorOpen === s.id ? null : s.id)} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20">Health</button>
                 </div>
               ))}
+              {mine.map((s: { id: string }) => doctorOpen === s.id ? (
+                <ShowroomDoctorPanel key={'doc-' + s.id} showroomId={s.id} />
+              ) : null)}
             </div>
           </div>
         )}

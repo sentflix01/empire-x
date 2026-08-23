@@ -5,6 +5,7 @@ import { cacheMiddleware } from '../middleware/cache';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { listRecords, getRecord, createRecord, updateRecord, deleteRecord } from '../utils/crud';
+import { runDoctor } from '../lib/showroomDoctor';
 
 const router = Router();
 
@@ -26,6 +27,23 @@ router.get('/slug/:slug', optionalAuth, async (req: Request, res: Response) => {
     await pool.query('UPDATE showrooms SET view_count=view_count+1 WHERE id=$1', [rows[0].id]);
     res.json({ ...rows[0], view_count: rows[0].view_count + 1 });
   } catch { res.status(500).json({ error: 'Failed to fetch showroom' }); }
+});
+
+// ── Showroom Doctor (owner or admin) — sector-aware diagnosis ────────────────
+router.get('/:id/doctor', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const showroom = await getRecord<Record<string, unknown>>('showrooms', req.params.id);
+    if (!showroom) { res.status(404).json({ error: 'Showroom not found' }); return; }
+    if (showroom.owner_id !== req.user!.id && req.user!.role !== 'admin') {
+      res.status(403).json({ error: 'Forbidden' }); return;
+    }
+    const result = await runDoctor(pool, req.params.id);
+    if (!result) { res.status(404).json({ error: 'Showroom not found' }); return; }
+    res.json(result.report);
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'showroom doctor failed');
+    res.status(500).json({ error: 'Doctor analysis failed' });
+  }
 });
 
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
