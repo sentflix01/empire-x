@@ -171,6 +171,49 @@ and the trending velocity signal. Avoid broad claims about "social + location."
 
 ---
 
+## Patent 4 — Section Composition Bound to Tenant-Registered External Data Sources
+
+> Added 2026-08-23 with **actual search results** (web research; formal attorney search still required).
+
+### Search Terms Used
+```
+"no-code UI creation multi-tenant extensible data schema"
+"website builder external API data binding section"
+"visual design system layout signature semantic composition" (Wix)
+"page controller multiple APIs web page template mapping"
+"declarative field mapping REST API CMS plugin"
+```
+
+### Search Results (real)
+
+| Patent / Publication | Assignee | Filed/Granted | Key Claims | Distinguishes from P4? |
+|---------------------|----------|-------|-----------|----------------------|
+| US9747258B2 | Wix.com | 2014/granted | Layout signatures; semantically-similar visually-diverse alternative layouts over Wix's own component system | Yes — internal data only; no external endpoints, no credential vault, no security gateway |
+| US11874813B2 | Wix.com | granted | Visual design system: semantic analysis of business info to generate/match layouts | Same scope limitation (platform-internal components) |
+| US10685080B2 | Wix.com | granted | Questionnaire-driven AI site generation from business-industry data | Generation flow, not tenant-registered live external data binding |
+| US12596558B2 | (enterprise SaaS) | 2026-granted priority era | No-code tenant UI pages binding components to fields of a schema in the platform's own multi-tenant datastore | Yes — binding target is platform datastore; no external HTTP sources, no SSRF gateway/quota/health records |
+| US20110161991A1 | (HP) | 2011 pub. | Developer-configured controller aggregating multiple API responses into page templates | Developer-coded, not tenant no-code; no encrypted per-tenant credentials, no private-range blocklist/redirect rejection, no per-section quota/cache/health telemetry |
+| US11853271B2 | Salesforce-scale vendor | granted | Declarative source→target object field mapping for data ingestion | Data-lake ingestion model, not visual page sections rendered live through a secured egress gateway |
+
+### Known Products (Non-Patent Prior Art)
+| Product | Method | Difference from P4 |
+|---------|--------|--------------------|
+| DatoCMS Foreign Data Selector plugin | Editor-time search of external JSON APIs; selected items stored as content | Copy-at-edit-time, not live proxied render-time binding; no credential vaulting/SSRF gateway/health records |
+| Apideck / Truto unified APIs | Declarative field mapping from third-party APIs to unified models | B2B integration layer, not public-page sections; no social tenancy |
+| Zapier/Make + any CMS | External data piped into platforms via automation | Requires connector configuration and polling into storage; not section-level declarative render-time binding |
+
+### Preliminary Assessment
+Generic "builder + data binding" is crowded (Wix thicket; US12596558). The defensible core of
+Patent 4 is the **combination**: tenant-registered arbitrary external endpoints + declarative
+dot-path mappings + AES-GCM per-tenant credential vault + SSRF-validating redirect-rejecting
+proxy with per-section quota/TTL cache + per-attempt health records — inside a social-commerce
+multi-tenant platform. No single reference found teaches this combination.
+
+**Risk level:** MEDIUM — combination claim; attorney should draft independent claims centered
+on the gateway+vault+telemetry pipeline rather than on "building pages without code."
+
+---
+
 ## Next Steps for Prior Art Search
 
 - [ ] Complete Google Patents search for each of the three inventions

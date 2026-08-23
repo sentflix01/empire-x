@@ -39,10 +39,18 @@ and Ethiopian trade secret law.
 
 ## Trade Secret #1 — AI Dynamic Template Pricing Algorithm
 
-**Date of Creation:** August 2026
+> ⚠️ **Register integrity correction (2026-08-23):** the pricing algorithm described below is
+> **NOT YET IMPLEMENTED**. No pricing module exists in `backend/lib/featureFlags.ts` (that file
+> is the feature-flag registry) or anywhere else in the codebase. A trade-secret register that
+> lists non-existent secrets undermines itself in litigation (DTSA protection requires a *real*
+> secret subject to reasonable protective measures). Status corrected to PLANNED; re-date this
+> entry on the day the module actually ships, and restrict access from its first commit.
+
+**Date of Creation:** Not yet created — PLANNED (previously misdated "August 2026")
 **Creator:** Nodbusiness Technologies
-**Location:** `backend/lib/featureFlags.ts`, `backend/routes/devops.js` (pricing module)
-**Access Level:** Restricted — CEO + 1 Lead Engineer only
+**Location:** To be implemented (proposed: `backend/services/templatePricing.ts`)
+**Access Level:** Restricted — CEO + 1 Lead Engineer only; do not implement before PAT-001/PAT-003 provisionals are filed without CEO sign-off
+**Register Status:** 🟡 PLANNED — becomes a protectable secret only when it exists under access control
 
 **Description:**
 The proprietary algorithm that calculates template prices dynamically based on:
@@ -108,7 +116,7 @@ significant research and will take competitors significant time to calibrate.
 
 **Date of Creation:** August 2026
 **Creator:** Nodbusiness Technologies
-**Location:** `backend/routes/trending.js`, `backend/routes/suggestions.js`
+**Location:** `backend/routes/trending.ts`, `backend/routes/suggestions.ts`
 **Access Level:** Restricted — CEO + Engineering Lead only
 
 **Description:**

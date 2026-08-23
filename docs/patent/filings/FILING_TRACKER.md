@@ -207,7 +207,7 @@
 
 ---
 
-### PAT-006 — PCT International Application (All 3 Inventions)
+### PAT-006 — PCT International Application (All Inventions)
 
 | Field | Value |
 |-------|-------|
@@ -218,6 +218,22 @@
 | Status | 🔴 NOT FILED — awaiting provisionals |
 | Countries to Pursue | USA (already covered), Ethiopia (EIPO), Kenya, Nigeria, EU, India |
 | Notes | One PCT application covers all — decide national phase entries at 30 months |
+
+---
+
+### PAT-007 — External-Data-Bound Section Composition (Provisional) ⭐ FLAGSHIP
+
+| Field | Value |
+|-------|-------|
+| Title | Method and System for Composing Multi-Tenant Web Pages from Sections Bound to Tenant-Registered External Data Sources via Declarative Mappings Through a Secured Proxy Gateway |
+| Type | Provisional Patent Application |
+| Jurisdiction | USA (USPTO) |
+| Filing Date | [TO BE FILED — URGENT: feature is publicly live; §102 grace period running] |
+| Filing Fee | $320 (micro entity) |
+| Status | 🔴 NOT FILED — **highest priority of all patent items** |
+| Draft Location | docs/patent/provisional/PATENT_4_SECTION_DATA_BINDING.md |
+| Prior Art | docs/patent/prior_art/PRIOR_ART_SEARCH.md § Patent 4 (Wix thicket US9747258/US11874813; US12596558; US20110161991 differentiated in writing) |
+| Notes | Feature is LIVE in production — every day unfiled narrows claimable scope under 35 USC 102(b) grace period |
 
 ---
 
@@ -286,6 +302,7 @@
 | EU trademark (TM-004) | $4,500–5,500 | 🔴 Pending |
 | Madrid Protocol (TM-005) | $2,000–5,000 | 🔴 Future |
 | 3 Provisional patents (PAT-001, 003, 005) | $6,000–10,000 | 🔴 URGENT |
+| **PAT-007 provisional (builder/external-data binding — FLAGSHIP)** | **$2,000–3,500** | 🔴 **MOST URGENT — feature already public** |
 | 3 Full utility patents (PAT-002, 004, 006) | $30,000–55,000 | 🔴 Future |
 | PCT international application (PAT-007) | $5,000–10,000 | 🔴 Future |
 | Copyright registration (CR-001) | $65 | 🔴 Pending |

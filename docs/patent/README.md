@@ -49,13 +49,18 @@ docs/patent/
 
 ---
 
-## Quick Summary: 3 Inventions to Protect
+## Quick Summary: 4 Inventions to Protect
 
 | # | Invention | Status | Priority |
 |---|-----------|--------|----------|
-| 1 | AI Dynamic Template Pricing Method | 🔴 Not Filed | CRITICAL |
-| 2 | Developer Revenue Share Quality-Adjustment | 🔴 Not Filed | HIGH |
+| **4** | **External-Data-Bound Section Composition (the website builder)** — tenant pages composed of sections bound live to tenant-registered external APIs via declarative mappings, secured proxy gateway (SSRF-safe, quota'd), encrypted credential vault, health telemetry | 🔴 Not Filed — **feature is LIVE; §102 grace clock running** | ⭐ CRITICAL #1 |
+| 1 | AI Dynamic Template Pricing Method | 🔴 Not Filed (not yet built/disclosed) | HIGH — file before building |
+| 2 | Developer Revenue Share Quality-Adjustment | 🔴 Not Filed (not yet built/disclosed) | HIGH — file before building |
 | 3 | Social-Commerce Showroom Discovery Method | 🔴 Not Filed | HIGH |
+
+> **Reality check added 2026-08-23:** the app is publicly deployed. For Patents 1–2 that is
+> *good* (nothing disclosed yet); for Patent 4 every day without a provisional narrows US
+> claimable scope, and EU/CN absolute novelty is likely already gone. File PAT-007 first.
 
 ---
 

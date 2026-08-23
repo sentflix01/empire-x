@@ -49,6 +49,21 @@ technical process that is new and non-obvious?"
 
 ### Patentable Inventions Identified
 
+**Patent 4 — Section Composition Bound to Tenant-Registered External Data Sources (FLAGSHIP)**
+The platform's defining feature: a non-technical tenant composes their public website from
+pre-defined visual sections, and binds any section to **an external REST endpoint the tenant
+registers themselves** via declarative field mappings — with the platform performing encrypted
+per-tenant credential vaulting (AES-256-GCM), SSRF-safe server-side fetching (private-range
+blocklist, redirect rejection), per-tenant-per-section quotas, per-source TTL caching, and
+per-attempt health telemetry, inside a social-commerce platform where each generated site is
+tied to the tenant's social identity.
+
+*Why it's patentable:* The closest art either generates layouts from platform-internal data
+(Wix US9747258/US11874813/US10685080) or binds components to a schema in the vendor's own
+datastore (US12596558). None teaches live render-time binding of visual sections to
+tenant-registered third-party endpoints through a secured egress gateway with health records.
+Full draft: `provisional/PATENT_4_SECTION_DATA_BINDING.md`. Risk: MEDIUM (combination claim).
+
 **Patent 1 — AI Dynamic Template Pricing Method**
 The system continuously monitors demand signals (view count, install rate, retention)
 combined with quality signals (user ratings, accessibility scores) and a competition
@@ -93,10 +108,27 @@ Avoid wasting money on these:
 | Claim | Why Not Patentable |
 |-------|-------------------|
 | "A platform combining social and commerce" | Too broad, abstract idea |
-| "A showroom builder with templates" | Functional feature, already exists conceptually |
+| "A showroom builder with templates" (generic) | Functional feature, already exists conceptually — **but the specific external-data-binding method IS claimed as Patent 4** |
 | "A marketplace where developers earn revenue" | Abstract business method |
 | "AI-generated product descriptions" | OpenAI, Google, and others already patented AI content generation broadly |
 | "A wallet for digital payments" | Mobile payment patents are saturated |
+
+---
+
+## ⚠️ Section 2.5 — Public Disclosure Status (HIGH RISK — read before anything else)
+
+**The platform is already publicly live.** Consequences under 35 U.S.C. §102:
+
+- The **US one-year grace period** started when each feature first became publicly
+  available. Every day without a provisional filing narrows what can still be claimed.
+- **Absolute-novelty jurisdictions (EU, China, and most others) are likely already lost**
+  for anything disclosed before filing — plan US-first; do not budget for EU/CN on these.
+- Actions this forces, in order:
+  1. File Patent 4 + Patent 3 provisionals **immediately** (they cover live features).
+  2. For Patents 1–2 (template pricing / revenue share): these are **not yet built or
+     disclosed** — keep them undisclosed until filed; they are the safest claims in the set.
+  3. Never publish marketing copy describing gateway internals, mapping heuristics, or
+     ranking formulas before filing.
 
 ---
 
@@ -190,12 +222,13 @@ valuable than a patent because:
 
 | Company | Patent Areas | Risk to Nodbusiness |
 |---------|-------------|-----------------|
+| **Wix** | Dense AI-builder thicket: US9747258, US11874813, US10685080, US11113456, US9436765, EP3593254 + pending (ADI/auto-generation) | **HIGH for any "AI builds your site" claim.** Patent 4 deliberately avoids this space — keep claims on external-data binding + gateway, never on AI layout generation |
 | Shopify | Checkout flow, storefront UI | LOW — your UI is different |
-| Wix | Drag-and-drop website builder | MEDIUM — monitor carefully |
 | Squarespace | Template design systems | LOW — your templates are data-driven |
 | Amazon | Marketplace algorithms | LOW — e-commerce but different context |
-| Meta | Social graph algorithms | LOW — your discovery combines 4 factors differently |
-| Google | Search ranking, map algorithms | MEDIUM — your map discovery method must be clearly differentiated |
+| Meta | Social graph ranking (US10867119) | MEDIUM — Patent 3 must stay narrow on the four-factor combination |
+| Google | Local search ranking (US9483557), maps | MEDIUM — same as above |
+| Enterprise SaaS (US12596558) | No-code tenant UI bound to platform datastore | MEDIUM for builder claims generally — Patent 4's differentiation is the external-endpoint binding; do not drift claims toward generic page building |
 
 ### Regular Monitoring
 
