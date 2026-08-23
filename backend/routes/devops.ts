@@ -120,4 +120,35 @@ router.put('/versions', requireAuth, requireAdmin, async (req: Request, res: Res
   } catch { res.status(500).json({ error: 'Failed to update versions' }); }
 });
 
+// ── Observability: health summary + telemetry (DevOps catches-everything) ────
+
+import { assembleInputs, evaluate } from '../lib/alerts';
+import { typeCountsSince, recentEvents } from '../lib/telemetry';
+
+router.get('/health-summary', requireAuth, requireAdmin, async (_req: Request, res: Response) => {
+  try {
+    const inputs = await assembleInputs(pool);
+    const alerts = evaluate(inputs);
+    const critical = alerts.filter((a) => a.severity === 'SEV1');
+    res.json({
+      status: critical.length ? 'critical' : alerts.some((a) => a.severity === 'SEV2') ? 'degraded' : 'healthy',
+      generated_at: new Date().toISOString(),
+      db: { totalCount: pool.totalCount, idleCount: pool.idleCount, waitingCount: pool.waitingCount },
+      inputs,
+      alerts,
+    });
+  } catch { res.status(500).json({ error: 'Failed to build health summary' }); }
+});
+
+router.get('/telemetry', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { type, hours = '24', limit = '100' } = req.query as Record<string, string>;
+    const [counts, events] = await Promise.all([
+      typeCountsSince(Math.min(parseInt(hours) || 24, 720)),
+      recentEvents(type ?? null, Math.min(parseInt(limit) || 100, 500)),
+    ]);
+    res.json({ counts, events });
+  } catch { res.status(500).json({ error: 'Failed to fetch telemetry' }); }
+});
+
 module.exports = router;

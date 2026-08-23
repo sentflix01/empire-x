@@ -21,6 +21,7 @@ import { sendOrderConfirmation } from '../utils/mailer';
 import * as apiError from '../lib/apiError';
 import { getPrimaryFrontendUrl } from '../lib/frontendUrl';
 import { isEnabled } from '../lib/featureFlags';
+import { recordEvent } from '../lib/telemetry';
 
 const router = Router();
 
@@ -325,6 +326,7 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
       return;
     }
     const { rows } = await pool.query(`UPDATE orders SET status='paid',stripe_payment_intent_id=$1,updated_at=NOW() WHERE stripe_session_id=$2 AND status='pending' RETURNING *`, [obj.payment_intent??null, obj.id]);
+    recordEvent('payment_result',{provider:'stripe',outcome:rows.length?'paid':'no_pending_match',session:String(obj.id),count:rows.length},{level:rows.length?'info':'warn'});
     const couponId = (obj.metadata as Record<string,string>)?.coupon_id;
     if (couponId) await pool.query('UPDATE coupons SET usage_count=usage_count+1 WHERE id=$1', [couponId]);
     for (const order of rows) {
@@ -340,6 +342,7 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
     return;
   }
   if (type==='checkout.session.expired') {
+    recordEvent('payment_result',{provider:'stripe',outcome:'expired',session:String(obj.id)},{level:'warn'});
     if ((obj.metadata as Record<string,string>)?.purpose==='wallet_topup') { await pool.query(`UPDATE wallet_transactions SET type='failed_topup',description='Stripe top-up expired' WHERE reference=$1 AND type='pending_topup'`, [obj.id]); return; }
     await pool.query(`UPDATE orders SET status='payment_failed',updated_at=NOW() WHERE stripe_session_id=$1 AND status='pending'`, [obj.id]);
     return;

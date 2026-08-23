@@ -27,6 +27,7 @@ const zlib = require('zlib');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const logger = require('../lib/logger');
+let recordEvent=null; try{recordEvent=require('../lib/telemetry').recordEvent;}catch{}
 const pool = require('../db/pool');
 
 const RETENTION_DAYS = parseInt(process.env.BACKUP_RETENTION_DAYS ?? '14', 10);
@@ -143,6 +144,7 @@ async function runBackup() {
   const durationMs = Date.now() - startedAt;
   logger.info({ destination, durationMs, pruned }, 'backup: completed');
   await recordOutcome('ok', { destination, durationMs });
+  if(recordEvent)recordEvent('backup_completed',{destination,durationMs});
   return { ok: true, destination, durationMs };
 }
 

@@ -12,6 +12,7 @@ import { requireAuth } from '../middleware/auth';
 import * as apiError from '../lib/apiError';
 import { getPrimaryFrontendUrl } from '../lib/frontendUrl';
 import { isEnabled } from '../lib/featureFlags';
+import { recordEvent } from '../lib/telemetry';
 
 const router = Router();
 
@@ -187,6 +188,7 @@ router.get('/topup/chapa/verify/:tx_ref', async (req: Request, res: Response) =>
       const { default: nodeFetch } = await import('node-fetch');
       const chapaRes = await nodeFetch(`https://api.chapa.co/v1/transaction/verify/${encodeURIComponent(tx_ref)}`, { headers: { Authorization: `Bearer ${CHAPA_SECRET}` } }).then(r=>r.json()) as Record<string,unknown>;
       const ok = chapaRes.status==='success' && (chapaRes.data as Record<string,string>)?.status==='success';
+      recordEvent('chapa_verify',{outcome:ok?'ok':'rejected',tx_ref},{level:ok?'info':'warn'});
       paidAmount = parseFloat((chapaRes.data as Record<string,string>)?.amount ?? '0');
       if (!ok) {
         await pool.query(`UPDATE wallet_transactions SET description='Chapa FAILED',type='failed_topup' WHERE reference=$1 AND type='pending_topup'`, [tx_ref]);
@@ -215,6 +217,7 @@ router.get('/topup/chapa/verify/:tx_ref', async (req: Request, res: Response) =>
         await client.query(`UPDATE wallet_transactions SET type='failed_topup',description=$2 WHERE id=$1`, [claimed[0].id, `Chapa underpaid: sent ${paidAmount}, expected ${expected}`]);
         await client.query('COMMIT');
         if (req.headers.accept?.includes('text/html')) { res.redirect(`${frontendUrl}/wallet?topup=failed&tx_ref=${tx_ref}`); return; }
+        recordEvent('topup_underpaid',{tx_ref,expected,paid:paidAmount},{level:'error'});
         apiError.validationError(res, 'Payment amount does not match the requested top-up'); return;
       }
       // Credit the EXPECTED (server-recorded) amount — never a client- or
@@ -222,6 +225,7 @@ router.get('/topup/chapa/verify/:tx_ref', async (req: Request, res: Response) =>
       await client.query('UPDATE wallets SET balance=balance+$1,updated_at=NOW() WHERE id=$2', [expected, claimed[0].wallet_id]);
       await client.query('COMMIT');
       if (req.headers.accept?.includes('text/html')) { res.redirect(`${frontendUrl}/wallet?topup=success&tx_ref=${tx_ref}`); return; }
+      recordEvent('wallet_topup_credited',{tx_ref,amount:expected,provider:SANDBOX?'chapa-sandbox':'chapa'});
       res.json({ success: true, amount_credited: expected });
     } catch (err) {
       try { await client.query('ROLLBACK'); } catch (rollbackErr) {
