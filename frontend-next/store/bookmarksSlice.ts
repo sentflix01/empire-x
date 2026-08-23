@@ -26,6 +26,26 @@ export interface BookmarksSlice {
   ) => Promise<void>;
 }
 
+/**
+ * Prototype-pollution-safe key write (TD-021).
+ *
+ * Plain assignment `obj[key] = v` silently mutates the prototype when
+ * `key === '__proto__'` — server data or crafted API responses could then
+ * poison every object. Object.fromEntries uses CreateDataProperty, which
+ * creates a real OWN property even for danger keys.
+ */
+function withKey(
+  obj: Record<string, SavedItem>,
+  key: string,
+  value: SavedItem
+): Record<string, SavedItem> {
+  return Object.fromEntries([...Object.entries(obj), [key, value]]);
+}
+
+function withoutKey(obj: Record<string, SavedItem>, key: string): Record<string, SavedItem> {
+  return Object.fromEntries(Object.entries(obj).filter(([k]) => k !== key));
+}
+
 export const createBookmarksSlice: StateCreator<BookmarksSlice, [], [], BookmarksSlice> = (set, get) => ({
   savedIds: {},
   isHydrating: false,
@@ -41,12 +61,12 @@ export const createBookmarksSlice: StateCreator<BookmarksSlice, [], [], Bookmark
     try {
       const { data } = await client.get('/api/saves');
       const records = Array.isArray(data) ? data : [];
-      const savedIds: Record<string, SavedItem> = {};
+      let savedIds: Record<string, SavedItem> = {};
       for (const record of records) {
-        savedIds[record.target_id] = {
+        savedIds = withKey(savedIds, record.target_id, {
           target_id: record.target_id,
           target_type: record.target_type,
-        };
+        });
       }
       set({ savedIds, isHydrating: false });
     } catch (err: any) {
@@ -63,16 +83,16 @@ export const createBookmarksSlice: StateCreator<BookmarksSlice, [], [], Bookmark
     const snapshot = get().savedIds;
 
     // Optimistic update: add or remove
-    const newSavedIds = { ...snapshot };
-    if (Object.prototype.hasOwnProperty.call(newSavedIds, targetId)) {
-      delete newSavedIds[targetId];
+    let newSavedIds = snapshot;
+    if (Object.prototype.hasOwnProperty.call(snapshot, targetId)) {
+      newSavedIds = withoutKey(snapshot, targetId);
     } else {
-      newSavedIds[targetId] = {
+      newSavedIds = withKey(snapshot, targetId, {
         target_id: targetId,
         target_type: targetType,
         title: itemData?.title,
         thumbnailUrl: itemData?.thumbnailUrl,
-      };
+      });
     }
     set({ savedIds: newSavedIds, error: null });
 
@@ -85,21 +105,14 @@ export const createBookmarksSlice: StateCreator<BookmarksSlice, [], [], Bookmark
       // Reconcile from API response: { saved: boolean }
       const current = get().savedIds;
       if (data?.saved === true && !Object.prototype.hasOwnProperty.call(current, targetId)) {
-        set({
-          savedIds: {
-            ...current,
-            [targetId]: {
-              target_id: targetId,
-              target_type: targetType,
-              title: itemData?.title,
-              thumbnailUrl: itemData?.thumbnailUrl,
-            },
-          },
-        });
+        set({ savedIds: withKey(current, targetId, {
+          target_id: targetId,
+          target_type: targetType,
+          title: itemData?.title,
+          thumbnailUrl: itemData?.thumbnailUrl,
+        }) });
       } else if (data?.saved === false && Object.prototype.hasOwnProperty.call(current, targetId)) {
-        const reconciled = { ...current };
-        delete reconciled[targetId];
-        set({ savedIds: reconciled });
+        set({ savedIds: withoutKey(current, targetId) });
       }
     } catch (err: any) {
       // Rollback to snapshot

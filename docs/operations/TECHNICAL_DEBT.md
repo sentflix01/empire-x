@@ -221,3 +221,23 @@ R2 upload when configured, retention pruning, outcome telemetry in app_settings,
 restorability verifier (scripts/verify-backup.js / npm run backup:verify). Operator must still:
 configure R2 env vars in production, ensure postgresql-client in the deploy image, and schedule
 the weekly verify against a scratch database. See docs/operations/BACKUPS.md.
+
+---
+
+### TD-003 (closed): End-to-end test suite
+**Status:** ✅ Smoke suite shipped 2026-08-23 — Playwright (`frontend-next/e2e/`), 6 specs:
+public pages, auth-gate redirects, seeded login/logout flows. Also regression-guards TD-014
+in a real browser (token never readable client-side; silent refresh rehydration works).
+Run locally with backend + seed: `cd frontend-next && npm run test:e2e`.
+**Remaining:** checkout/payment and chat E2E coverage; CI wiring once staging DB exists.
+
+---
+
+### TD-021: Bookmarks store vulnerable to prototype pollution via server data
+**Status:** ✅ Done (2026-08-23)
+**Problem:** `bookmarksSlice` built `savedIds[key] = value` with plain assignment; a
+`target_id` of `"__proto__"` from API data silently mutated the prototype instead of creating
+an own property — bookmark state corrupted, potential pollution vector.
+**Resolution:** All map writes now go through `withKey()/withoutKey()` helpers using
+`Object.fromEntries` (CreateDataProperty — safe for danger keys). Property tests generate
+danger-key values to keep the invariant locked.

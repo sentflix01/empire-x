@@ -79,7 +79,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <section className="relative min-h-[88svh] overflow-hidden bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_47%,#7c3aed_100%)] pt-16">
+      <section className="relative flex min-h-[88svh] flex-col overflow-hidden bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_47%,#7c3aed_100%)] pt-16">
         <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:48px_48px]" />
         <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-slate-950 to-transparent" />
 
@@ -119,19 +119,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="absolute bottom-20 left-1/2 hidden w-[min(82vw,860px)] -translate-x-1/2 grid-cols-3 gap-3 opacity-95 md:grid">
-          {previewRows.map(([type, text, status]) => (
-            <div key={text} className="rounded-2xl border border-white/12 bg-white/10 p-4 shadow-xl shadow-slate-950/25 backdrop-blur-xl">
-              <div className="mb-3 flex items-center justify-between text-xs text-white/65">
-                <span>{type}</span>
-                <span className="rounded-full bg-emerald-400/18 px-2 py-1 text-emerald-100">{status}</span>
-              </div>
-              <p className="text-sm font-semibold leading-snug">{text}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="relative z-10 mx-auto flex min-h-[82svh] max-w-6xl flex-col items-center justify-center px-6 pb-28 pt-16 text-center">
+        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-10 pt-16 text-center">
           <Image
             src="/brand/nodbusiness-logo-white.svg"
             alt="Nodbusiness"
@@ -155,20 +143,18 @@ export default function LandingPage() {
           <p className="mt-6 max-w-[21rem] text-sm font-medium leading-7 text-white/76 sm:max-w-2xl sm:text-xl">
             One trusted platform where people connect, businesses sell, customers pay, teams chat, tasks move, and AI helps the whole ecosystem grow.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/choose-account"
-              className="inline-flex h-12 items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700 shadow-xl shadow-slate-950/25 transition-all duration-200 hover:bg-blue-50"
-            >
-              Create Your Account
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex h-12 items-center justify-center rounded-2xl border border-white/24 bg-white/10 px-7 text-sm font-bold text-white backdrop-blur-xl transition-all duration-200 hover:bg-white/16"
-            >
-              Sign In →
-            </Link>
-          </div>
+        </div>
+
+        <div className="relative z-10 mx-auto hidden w-[min(82vw,860px)] grid-cols-3 gap-3 px-6 pb-16 opacity-95 md:grid">
+          {previewRows.map(([type, text, status]) => (
+            <div key={text} className="rounded-2xl border border-white/12 bg-white/10 p-4 shadow-xl shadow-slate-950/25 backdrop-blur-xl">
+              <div className="mb-3 flex items-center justify-between text-xs text-white/65">
+                <span>{type}</span>
+                <span className="rounded-full bg-emerald-400/18 px-2 py-1 text-emerald-100">{status}</span>
+              </div>
+              <p className="text-sm font-semibold leading-snug">{text}</p>
+            </div>
+          ))}
         </div>
       </section>
 

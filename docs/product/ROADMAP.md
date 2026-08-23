@@ -179,9 +179,9 @@
 Canonical register: **`operations/TECHNICAL_DEBT.md`** — this list mirrors its highlights.
 
 ### High Priority
-- [x] HttpOnly cookie refresh tokens (replace localStorage JWT) — shipped; residual: remove access-token localStorage mirror (TD-014)
+- [x] HttpOnly cookie refresh tokens (replace localStorage JWT) — shipped; residual: remove access-token localStorage mirror (TD-014 ✅ 2026-08-23)
 - [x] JWT revocation via Redis blocklist — shipped July 2026
-- [ ] End-to-end test suite (Playwright)
+- [x] End-to-end test suite — Playwright smoke suite shipped 2026-08-23 (TD-003); checkout/chat coverage next
 - [x] CI made blocking + deploys gated on CI (TD-019 — shipped 2026-08-23)
 - [ ] TLS certificate validation on Neon/Upstash (TD-016)
 
