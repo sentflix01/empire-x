@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **260** across **44** mounted modules · Generated: 2026-08-23
+> Endpoints: **260** across **44** mounted modules · Generated: 2026-08-24
 
 | Legend | Meaning |
 |---|---|
