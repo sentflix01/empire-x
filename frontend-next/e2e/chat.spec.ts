@@ -26,12 +26,24 @@ async function apiLogin(email: string, password: string) {
 
 async function loginViaUi(page: Page, email: string, password: string) {
   await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  // Dev-mode lazy compilation: wait for hydration to settle before interacting.
+  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
   await page.locator('input[type="email"], input[name="email"]').first().fill(email);
   await page.locator('input[type="password"]').first().fill(password);
-  await Promise.all([
-    page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 }),
-    page.locator('button[type="submit"], button:has-text("Log in"), button:has-text("Login"), button:has-text("Sign in")').first().click(),
-  ]);
+  const loginResponse = page.waitForResponse((r) => r.url().includes('/api/auth/login'), { timeout: 20_000 }).catch(() => null);
+  await page.locator('button[type="submit"], button:has-text("Log in"), button:has-text("Login"), button:has-text("Sign in")').first().click();
+  try {
+    await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 });
+  } catch (e) {
+    const cookies = await page.context().cookies();
+    console.log('[chat-e2e] STUCK URL:', page.url());
+    console.log('[chat-e2e] cookies:', cookies.map((c) => c.name).join(','));
+    console.log('[chat-e2e] login POST status:', (await loginResponse)?.status() ?? 'none');
+    console.log('[chat-e2e] body text:', (await page.locator('body').innerText().catch(() => '')).slice(0, 200).replace(/\n/g, ' | '));
+    throw e;
+  }
+  const resp = await loginResponse;
+  console.log(`[chat-e2e] UI login ${email}: POST status ${resp?.status() ?? 'none'}`);
 }
 
 let convId: string | null = null;
@@ -41,6 +53,7 @@ let skipReason = 'Seeded accounts or conversation unavailable — run backend se
 test.beforeAll(async () => {
   const tokenA = await apiLogin(A.email, A.password);
   const tokenB = await apiLogin(B.email, B.password);
+  console.log('[chat-e2e] tokenA:', Boolean(tokenA), '· tokenB:', Boolean(tokenB));
   seeded = Boolean(tokenA && tokenB);
   if (!seeded) {
     // Distinguish "no seed data" from "backend/DB unreachable" (e.g. Neon
@@ -55,16 +68,18 @@ test.beforeAll(async () => {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenA}` },
     body: JSON.stringify({ target_user_id: meBody.id }),
   });
+  console.log('[chat-e2e] find-or-create:', conv.status);
   if (conv.ok) {
     const body = await conv.json() as { id?: string; conversation?: { id?: string } };
     convId = body.id ?? body.conversation?.id ?? null;
   }
+  console.log('[chat-e2e] convId:', convId);
   seeded = Boolean(convId);
 });
 
-test.skip(!seeded, skipReason);
-
 test.describe('Realtime chat', () => {
+  // beforeEach runs AFTER beforeAll, so the seeded flag is already computed.
+  test.beforeEach(() => { test.skip(!seeded, skipReason); });
   test('message sent by A appears live for B without a reload', async ({ browser }) => {
     const ctxA = await browser.newContext();
     const ctxB = await browser.newContext();

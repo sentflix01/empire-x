@@ -39,6 +39,8 @@ test.beforeAll(async () => {
 test.describe('Authenticated flows', () => {
   test('login with valid credentials reaches the authenticated app shell', async ({ page }) => {
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  // Dev-mode lazy compilation: wait for hydration to settle before interacting.
+  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
 
     // Fill whatever email/password inputs the form exposes.
     await page.locator('input[type="email"], input[name="email"]').first().fill(SEEDED_EMAIL);
