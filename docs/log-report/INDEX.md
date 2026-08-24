@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-24 | Feature | feat(docs): implementation log — auto-generated task reports for every merge | [d73089605](2026-08-24-d73089605-implementation-log-auto-generated-task-reports-f.md) |
 | 2026-08-24 | Feature | feat(production): SEO robots+sitemap, a11y labels, lazy images + readiness scorecard | [116212ac9](2026-08-24-116212ac9-seo-robots-sitemap-a11y-labels-lazy-images-readi.md) |
 | 2026-08-24 | Testing | test(e2e): realtime chat suite — 2-browser Socket.IO delivery + persistence | [ace05ca36](2026-08-24-ace05ca36-realtime-chat-suite-2-browser-socket-io-delivery.md) |
 | 2026-08-24 | Bugfix | fix(devops): restore 'use client' as first directive in DevOps.tsx | [7c24298d4](2026-08-24-7c24298d4-restore-use-client-as-first-directive-in-devops-.md) |
