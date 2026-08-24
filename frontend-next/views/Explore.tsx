@@ -95,7 +95,7 @@ function Explore() {
         {data?.trending_posts?.length > 0 && (
           <Section title={t('explore.trendingPosts')} icon={TrendingUp}>
             <div className="space-y-3">
-              {data.trending_posts.slice(0, 5).map(p => (
+              {[...new Map(data.trending_posts.slice(0, 5).map(p => [p.id, p])).values()].map(p => (
                 <PostCard key={p.id} post={p} currentUserId={user?.id} />
               ))}
             </div>
@@ -105,7 +105,7 @@ function Explore() {
         {data?.top_products?.length > 0 && (
           <Section title={t('explore.topProducts')} icon={ShoppingBag}>
             <div className="grid grid-cols-2 gap-3">
-              {data.top_products.map(p => {
+              {[...new Map(data.top_products.map(p => [p.id, p])).values()].map(p => {
                 const imgs = (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })();
                 return (
                   <Link key={p.id} href={`/products/${p.id}`} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow group">
