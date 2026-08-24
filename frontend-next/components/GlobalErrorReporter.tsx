@@ -59,7 +59,7 @@ async function send(payload: {
 }) {
   if (!shouldReport(payload.message)) return;
   try {
-    await fetch(REPORT_URL, {
+    const res = await fetch(REPORT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -71,7 +71,14 @@ async function send(payload: {
       }),
       keepalive: true,
     });
-  } catch { /* never throw from error reporter */ }
+    if (!res.ok && res.status !== 202) {
+      // Surface in the browser console so developers see capture failures
+      _origConsoleError(`[DevOps] Error report failed: ${res.status} ${res.statusText}`);
+    }
+  } catch (e) {
+    // Surface in the browser console — silent failure is how bugs hide
+    _origConsoleError('[DevOps] Error report fetch failed:', e);
+  }
 }
 
 function extractMessage(args: unknown[]): string {
