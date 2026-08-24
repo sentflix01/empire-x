@@ -11,7 +11,7 @@ import {
   Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, MapPin, Tag,
   Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
   PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield,
-  ArrowLeft, KanbanSquare, Settings, FileText,
+  ArrowLeft, KanbanSquare, Settings, FileText, ClipboardCheck,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -657,6 +657,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 <div className="my-2 border-t border-border/40" />
                 <NavLink path="/admin" icon={ShieldAlert} label={tr('common.adminPanel')} />
                 <NavLink path="/admin/devops" icon={KanbanSquare} label="Dev Ops" />
+            <NavLink path="/scorecard" icon={ClipboardCheck} label="Scorecard" />
               </>
             )}
             <div className="h-4" />

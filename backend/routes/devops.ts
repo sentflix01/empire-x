@@ -4,6 +4,7 @@ import pool from '../db/pool';
 import { requireAuth, requireAdmin, optionalAuth } from '../middleware/auth';
 import { captureError } from '../lib/errorCollector';
 import logger from '../lib/logger';
+const fsSync = require('fs') as typeof import('fs');
 
 const router = Router();
 
@@ -319,6 +320,51 @@ router.post('/copilot', requireAuth, requireAdmin, async (req: Request, res: Res
     logger.error({ err: (err as Error).message }, 'copilot: execution failed');
     res.status(500).json({ reply: `Execution failed: ${(err as Error).message.slice(0, 200)}`, action: intent.intent });
   }
+});
+
+// ── Scorecard: live readiness grades (admin) ─────────────────────────────────
+
+router.get('/scorecard', requireAuth, requireAdmin, async (_req: Request, res: Response) => {
+  try {
+    const { buildScorecard } = await import('../lib/scorecard');
+    res.json(await buildScorecard(pool));
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'scorecard failed');
+    res.status(500).json({ error: 'Failed to build scorecard' });
+  }
+});
+
+// ── Implementation Log (docs/log-report) ─────────────────────────────────────
+
+router.get('/log-report', requireAuth, requireAdmin, async (_req: Request, res: Response) => {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const dir = path.join(process.cwd(), '..', 'docs', 'log-report');
+    if (!fs.existsSync(dir)) { res.json({ available: false, reports: [], index: null }); return; }
+    const reports = fs.readdirSync(dir)
+      .filter((f) => /^\d{4}-/.test(f) && f.endsWith('.md'))
+      .map((f) => {
+        const parts = f.replace(/\.md$/, '').split('-');
+        return { file: f, date: `${parts[0]}-${parts[1]}-${parts[2]}`, short: parts[3] ?? '', title: parts.slice(4).join('-').replace(/-/g, ' ') };
+      })
+      .sort((a, b) => b.file.localeCompare(a.file));
+    const indexPath = path.join(dir, 'INDEX.md');
+    const index = fs.existsSync(indexPath) ? fs.readFileSync(indexPath, 'utf8') : null;
+    res.json({ available: true, reports, index });
+  } catch { res.status(500).json({ error: 'Failed to read implementation log' }); }
+});
+
+router.get('/log-report/:file', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    // Path-traversal guard: strict filename pattern only.
+    if (!/^\d{4}-\d{2}-\d{2}-[a-f0-9-]+-[a-z0-9-]+\.md$/.test(req.params.file)) {
+      res.status(400).json({ error: 'Invalid report filename' }); return;
+    }
+    const p = (await import('path')).join(process.cwd(), '..', 'docs', 'log-report', req.params.file);
+    if (!fsSync.existsSync(p)) { res.status(404).json({ error: 'Report not found' }); return; }
+    res.json({ file: req.params.file, content: fsSync.readFileSync(p, 'utf8') });
+  } catch { res.status(500).json({ error: 'Failed to read report' }); }
 });
 
 module.exports = router;

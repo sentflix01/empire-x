@@ -1044,6 +1044,59 @@ function OpsAlerts() {
   );
 }
 
+// ── Task Log (implementation reports) ───────────────────────────────────────
+function TaskLogPanel() {
+  const [data, setData]       = useState<{ available: boolean; reports: Array<{file:string;date:string;short:string;title:string}>; index: string | null } | null>(null);
+  const [openFile, setOpenFile] = useState<{ file: string; content: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { const { data } = await client.get('/api/devops/log-report'); setData(data); }
+    catch { setData({ available: false, reports: [], index: null }); }
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const openReport = async (file: string) => {
+    try { const { data } = await client.get(`/api/devops/log-report/${file}`); setOpenFile(data); }
+    catch { /* non-fatal */ }
+  };
+
+  return (
+    <div className="mb-4 bg-card border border-border/50 rounded-2xl overflow-hidden">
+      <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border/30 bg-secondary/10">
+        <FileText className="w-4 h-4 text-violet-500" />
+        <p className="text-sm font-semibold">Implementation Log</p>
+        <span className="text-[10px] font-mono text-muted-foreground">{data?.reports.length ?? 0} task reports · auto-generated per merge</span>
+      </div>
+      <div className="p-4 space-y-2">
+        {loading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+        {data && !data.available && (
+          <p className="text-xs text-muted-foreground">Implementation log not present in this deployment (docs/ folder not bundled). Available in the repository and local runs.</p>
+        )}
+        {data?.available && data.reports.map((r) => (
+          <button key={r.file} onClick={() => openReport(r.file)}
+            className="w-full text-left flex items-center gap-3 rounded-xl bg-secondary/30 hover:bg-secondary/60 px-3 py-2 transition-colors">
+            <span className="text-[10px] font-mono text-muted-foreground shrink-0">{r.date}</span>
+            <span className="text-xs flex-1 truncate capitalize">{r.title || r.file}</span>
+            <span className="text-[10px] font-mono text-violet-400 shrink-0">{r.short}</span>
+          </button>
+        ))}
+        {openFile && (
+          <div className="rounded-xl border border-border/50 bg-background p-3">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-mono text-muted-foreground">{openFile.file}</p>
+              <button onClick={() => setOpenFile(null)} className="text-[10px] text-muted-foreground hover:text-foreground">close</button>
+            </div>
+            <pre className="text-[10px] font-mono whitespace-pre-wrap max-h-80 overflow-auto">{openFile.content}</pre>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
   const [open,        setOpen]        = useState(true);
   const [errors,      setErrors]      = useState<ErrorEvent[]>([]);
@@ -1843,7 +1896,7 @@ function DevOps() {
   const [busyId,     setBusyId]     = useState<string | null>(null);
 
   // Active section tab
-  const [activeSection, setActiveSection] = useState<'kanban' | 'errors' | 'strategy' | 'health' | 'changelog' | 'copilot' | 'summary' | 'kb'>('kanban');
+  const [activeSection, setActiveSection] = useState<'kanban' | 'errors' | 'strategy' | 'health' | 'changelog' | 'copilot' | 'log' | 'summary' | 'kb'>('kanban');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1942,6 +1995,7 @@ function DevOps() {
   const SECTION_TABS = [
     { key: 'kanban'   as const, label: 'Kanban Board',    icon: KanbanSquare },
   { key: 'copilot'  as const, label: 'AI Copilot',      icon: Bot },
+  { key: 'log'      as const, label: 'Task Log',       icon: FileText },
     { key: 'errors'   as const, label: 'Live Errors',     icon: AlertTriangle },
     { key: 'strategy' as const, label: 'Strategy',        icon: Map          },
     { key: 'kb'       as const, label: 'Knowledge Base',  icon: BookOpen     },
@@ -2047,6 +2101,7 @@ function DevOps() {
 
       {/* ══ Section: Kanban ══════════════════════════════════════════════════ */}
       {activeSection === 'copilot'  && <OpsCopilot />}
+        {activeSection === 'log'     && <TaskLogPanel />}
         {activeSection === 'kanban' && (
         <>
           {/* Severity telemetry rail */}
