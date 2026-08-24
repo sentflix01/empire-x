@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-24 | Bugfix | fix(devops): fix remaining nested <button> hydration + capture console.error in Live Error Feed | [e2a8583ab](2026-08-24-e2a8583ab-fix-remaining-nested-button-hydration-capture-co.md) |
 | 2026-08-24 | Feature | feat(admin): Scorecard page + Implementation Log tab — live readiness in the console | [1d2903731](2026-08-24-1d2903731-scorecard-page-implementation-log-tab-live-readi.md) |
 | 2026-08-24 | Feature | feat(docs): implementation log — auto-generated task reports for every merge | [d73089605](2026-08-24-d73089605-implementation-log-auto-generated-task-reports-f.md) |
 | 2026-08-24 | Feature | feat(production): SEO robots+sitemap, a11y labels, lazy images + readiness scorecard | [116212ac9](2026-08-24-116212ac9-seo-robots-sitemap-a11y-labels-lazy-images-readi.md) |
