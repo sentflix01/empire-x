@@ -19,7 +19,7 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
 
   useEffect(() => {
     entities.Post.filter({ author_id: profile.user_id }, "-created_at", 20)
-      .then(p => { setPosts(p); setLoading(false); })
+      .then(p => { setPosts(Array.isArray(p) ? p : []); setLoading(false); })
       .catch(() => setLoading(false));
   }, [profile.user_id]);
 

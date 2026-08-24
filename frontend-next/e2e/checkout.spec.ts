@@ -36,21 +36,56 @@ async function loginViaUi(page: Page, email: string, password: string) {
 
 let token: string | null = null;
 let productId: string | null = null;
+let sellerId: string | null = null;
 let seeded = false;
 
 test.beforeAll(async () => {
   token = await apiLogin(A.email, A.password);
   if (!token) return;
-  try {
-    const res = await fetch(`${API}/api/products?limit=1&status=active`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.ok) {
-      const body = await res.json() as { products?: Array<{ id: string }>; data?: Array<{ id: string }> };
-      const list = body.products ?? body.data ?? [];
-      if (list.length) { productId = list[0].id; seeded = true; }
+
+  // Get our user id
+  const me = await fetch(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+  const meBody = await me.json() as { id?: string };
+  if (!meBody.id) return;
+
+  // Check for an existing active product; if none, create one
+  const listRes = await fetch(`${API}/api/products?limit=1&status=active`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (listRes.ok) {
+    const body = await listRes.json() as { products?: Array<{ id: string }>; data?: Array<{ id: string }> };
+    const list = body.products ?? body.data ?? [];
+    if (list.length) { productId = list[0].id; seeded = true; return; }
+  }
+
+  // No products exist — create one (the test user becomes the seller)
+  const createRes = await fetch(`${API}/api/products`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      title: 'E2E Test Product',
+      description: 'Product created by checkout E2E test',
+      price: 250,
+      category: 'electronics',
+      status: 'active',
+      stock: 10,
+      currency: 'ETB',
+    }),
+  });
+  if (createRes.ok) {
+    const created = await createRes.json() as { id?: string; seller_id?: string };
+    productId = created.id ?? null;
+    sellerId = created.seller_id ?? meBody.id;
+    seeded = Boolean(productId);
+
+    // Create a second user as the buyer (can't buy from yourself)
+    // For simplicity, use the admin account as the buyer
+    const adminToken = await apiLogin('admin@nodbusiness.app', 'Admin1234!');
+    if (adminToken) {
+      // Use admin token for purchase tests
+      token = adminToken;
     }
-  } catch { /* skip */ }
+  }
 });
 
 test.describe('Checkout flow', () => {

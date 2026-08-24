@@ -68,7 +68,10 @@ async function migrate() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_error_events_source     ON error_events(source)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_error_events_resolved   ON error_events(resolved)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_error_events_created    ON error_events(created_at DESC)`);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_error_events_last_seen  ON error_events(last_seen_at DESC)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_error_events_last_seen  ON error_events(last_seen_at DESC)
+  -- Unique fingerprint index for ON CONFLICT dedup (was missing — caused all
+  -- fresh deployments to silently fail error capture)
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_error_events_fingerprint ON error_events(fingerprint)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_error_events_fingerprint ON error_events(fingerprint)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_error_events_path       ON error_events(path)`);
 

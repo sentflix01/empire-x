@@ -76,12 +76,13 @@ export async function captureError(err: Error | string, opts: CaptureOptions = {
         (message, name, stack, code, method, path, status_code, user_id, request_id,
          ip, user_agent, context, fingerprint, level, source, occurrence, first_seen_at, last_seen_at)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,1,NOW(),NOW())
-      ON CONFLICT (fingerprint) WHERE (last_seen_at > NOW() - INTERVAL '24 hours' AND resolved = false)
-      DO UPDATE SET
+      ON CONFLICT (fingerprint) DO UPDATE SET
         occurrence   = error_events.occurrence + 1,
         last_seen_at = NOW(),
         stack        = EXCLUDED.stack,
         context      = error_events.context || EXCLUDED.context
+      WHERE error_events.resolved = false
+        AND error_events.last_seen_at > NOW() - INTERVAL '24 hours'
     `, [
       error.message?.slice(0, 2000) ?? 'Unknown error',
       error.name   ?? 'Error',
