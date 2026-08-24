@@ -123,7 +123,7 @@ export default function SectionRenderer({
                 <>
                   <div className="aspect-square bg-secondary/20 relative overflow-hidden">
                     {imgs[0] ? (
-                      <img src={imgs[0]} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <img loading="lazy" src={imgs[0]} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-muted-foreground/20"><ShoppingBag className="w-8 h-8" /></div>
                     )}
@@ -159,7 +159,7 @@ export default function SectionRenderer({
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/20">
         {aboutTitle && <h2 className="font-display text-lg font-bold mb-3">{aboutTitle}</h2>}
-        {s.aboutImage && <img src={s.aboutImage} alt={aboutTitle || "About"} className="w-full max-w-sm rounded-xl object-cover mb-3 max-h-56" />}
+        {s.aboutImage && <img loading="lazy" src={s.aboutImage} alt={aboutTitle || "About"} className="w-full max-w-sm rounded-xl object-cover mb-3 max-h-56" />}
         <p className="text-sm text-muted-foreground leading-relaxed max-w-md whitespace-pre-line">{aboutDesc}</p>
       </div>
     );
@@ -329,7 +329,7 @@ export default function SectionRenderer({
           <div className="grid grid-cols-3 gap-2">
             {builderImages.map((img, i) => (
               <figure key={i} className="relative">
-                <img src={img.url} alt={img.caption || ""} className="w-full aspect-square object-cover rounded-lg" />
+                <img loading="lazy" src={img.url} alt={img.caption || ""} className="w-full aspect-square object-cover rounded-lg" />
                 {img.caption && <figcaption className="absolute bottom-0 inset-x-0 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-b-lg truncate">{img.caption}</figcaption>}
               </figure>
             ))}
@@ -347,7 +347,7 @@ export default function SectionRenderer({
       <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/20">
         {galleryTitle && <h2 className="font-display text-lg font-bold mb-4">{galleryTitle}</h2>}
         <div className="grid grid-cols-3 gap-2">
-          {galleryImages.map((img, i) => <img key={i} src={img} alt="" className="w-full aspect-square object-cover rounded-lg" />)}
+          {galleryImages.map((img, i) => <img loading="lazy" key={i} src={img} alt="" className="w-full aspect-square object-cover rounded-lg" />)}
         </div>
       </div>
     );
@@ -364,7 +364,7 @@ export default function SectionRenderer({
             {members.map((m, i) => (
               <div key={i} className="p-4 rounded-xl border border-border/40 text-center">
                 {m.image ? (
-                  <img src={m.image} alt={m.name} className="w-16 h-16 rounded-full object-cover mx-auto mb-2" />
+                  <img loading="lazy" src={m.image} alt={m.name} className="w-16 h-16 rounded-full object-cover mx-auto mb-2" />
                 ) : (
                   <div className="w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center text-white text-xl font-bold" style={{ backgroundColor: themeColor }}>{(m.name || "?").charAt(0)}</div>
                 )}
@@ -482,7 +482,7 @@ export default function SectionRenderer({
           {projects.map((p, i) => (
             <div key={i} className="rounded-xl border border-border/40 overflow-hidden bg-card">
               {p.image ? (
-                <img src={p.image} alt={p.title || ""} className="w-full h-32 object-cover" />
+                <img loading="lazy" src={p.image} alt={p.title || ""} className="w-full h-32 object-cover" />
               ) : (
                 <div className="w-full h-32 bg-secondary/40 flex items-center justify-center text-muted-foreground/30"><ShoppingBag className="w-8 h-8" /></div>
               )}
@@ -590,7 +590,7 @@ export default function SectionRenderer({
           {partners.map((p, i) => (
             <div key={i} className="p-4 rounded-xl border border-border/40 bg-card text-center">
               {p.logo ? (
-                <img src={p.logo} alt={p.name || ""} className="h-10 mx-auto mb-2 object-contain" />
+                <img loading="lazy" src={p.logo} alt={p.name || ""} className="h-10 mx-auto mb-2 object-contain" />
               ) : (
                 <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold" style={{ backgroundColor: themeColor }}>{(p.name || "?").charAt(0)}</div>
               )}

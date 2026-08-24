@@ -68,7 +68,7 @@ function CourseDetail() {
         {/* Header */}
         <div className="bg-card rounded-2xl border border-border/50 overflow-hidden mb-4">
           <div className="h-48 bg-gradient-to-br from-amber-100 to-orange-100 relative">
-            {course.cover_image && <img src={course.cover_image} alt={course.title} className="w-full h-full object-cover"/>}
+            {course.cover_image && <img loading="lazy" src={course.cover_image} alt={course.title} className="w-full h-full object-cover"/>}
           </div>
           <div className="p-5">
             <div className="flex items-start justify-between mb-2">

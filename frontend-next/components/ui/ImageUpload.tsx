@@ -100,7 +100,7 @@ export default function ImageUpload({
           value && 'border-solid border-border/30'
         )}>
           {singleValue && !failedUrls.includes(singleValue) ? (
-            <img
+            <img loading="lazy"
               src={singleValue}
               alt="upload preview"
               className="w-full h-full object-cover"
@@ -160,7 +160,7 @@ export default function ImageUpload({
                 Image unavailable
               </div>
             ) : (
-              <img
+              <img loading="lazy"
                 src={url}
                 alt=""
                 className="w-full h-full object-cover"

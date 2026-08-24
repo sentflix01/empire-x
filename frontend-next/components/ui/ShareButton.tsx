@@ -53,7 +53,7 @@ export default function ShareButton({ title, text, url, size = "sm", label }) {
   }`;
 
   return (
-    <button onClick={handleShare} className={btnClass} title="Share">
+    <button onClick={handleShare} className={btnClass} title="Share" aria-label="Share">
       {copied ? (
         <Check className={iconSize} />
       ) : canNativeShare ? (

@@ -84,7 +84,7 @@ function makeLabeledIcon(label, color = "blue") {
 
   const bubbleHtml = `<div style="position:absolute;bottom:49px;left:50%;transform:translateX(-50%);background:#fff;color:#111;font-size:11px;font-weight:700;font-family:system-ui,sans-serif;white-space:nowrap;padding:5px 10px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.25);pointer-events:none;line-height:1.4;border:1.5px solid ${accent};z-index:2;">${truncated}<div style="position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:9px solid ${accent};"></div><div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:8px solid #fff;"></div></div>`;
 
-  const pinHtml = `<img src="${pinUrls[color]}" width="25" height="41" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:1;" />`;
+  const pinHtml = `<img loading="lazy" src="${pinUrls[color]}" width="25" height="41" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:1;" />`;
 
   if (!L) return undefined;
   return new L.DivIcon({

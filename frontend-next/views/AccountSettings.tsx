@@ -153,7 +153,7 @@ function AccountSettingsView() {
             <div className="relative">
               <div className="w-20 h-20 rounded-2xl ring-4 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                 {avatarUrl
-                  ? <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  ? <img loading="lazy" src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
                   : initial}
               </div>
               <Link href="/profile/edit"

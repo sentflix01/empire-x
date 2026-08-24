@@ -128,7 +128,7 @@ function Explore() {
                 <Link key={s.id} href={`/showrooms/${s.id}`} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow">
                   <div className="h-24 relative bg-gradient-to-br from-amber-100 to-amber-50 overflow-hidden">
                     {(s.cover_image || s.logo_url) ? (
-                      <img
+                      <img loading="lazy"
                         src={s.cover_image || s.logo_url}
                         alt={s.title}
                         className="w-full h-full object-cover"

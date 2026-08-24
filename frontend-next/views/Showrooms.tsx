@@ -125,7 +125,7 @@ function Showrooms() {
                 <Link href={`/showrooms/${s.id}`} className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-md transition-all block group">
                   <div className="h-28 relative overflow-hidden bg-gradient-to-r from-amber-100 to-amber-50">
                     {s.cover_image ? (
-                      <img
+                      <img loading="lazy"
                         src={s.cover_image}
                         alt={s.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

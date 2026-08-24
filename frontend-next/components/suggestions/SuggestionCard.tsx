@@ -53,7 +53,7 @@ export function SuggestionCard({ suggestion, onFollow, onDismiss }: SuggestionCa
       {/* Avatar */}
       <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
         {avatar_url && !avatarFailed ? (
-          <img
+          <img loading="lazy"
             src={avatar_url}
             alt={display_name ?? 'User avatar'}
             className="w-full h-full object-cover"

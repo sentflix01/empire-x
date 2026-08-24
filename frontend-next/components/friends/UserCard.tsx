@@ -54,7 +54,7 @@ export function UserCard({
       {/* Avatar */}
       <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
         {avatarUrl && !avatarFailed ? (
-          <img
+          <img loading="lazy"
             src={avatarUrl}
             alt={displayName ?? 'User avatar'}
             className="w-full h-full object-cover"

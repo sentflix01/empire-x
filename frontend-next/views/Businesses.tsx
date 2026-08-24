@@ -57,7 +57,7 @@ function BusinessCard({
       <div className="w-11 h-11 rounded-xl shrink-0 overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
         {biz.business_logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <img loading="lazy"
             src={biz.business_logo_url}
             alt={biz.business_name}
             className="w-full h-full object-cover"
@@ -101,7 +101,7 @@ function BusinessCard({
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-[9px] font-bold shrink-0">
                 {ownerProfile.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <img loading="lazy"
                     src={ownerProfile.avatar_url}
                     alt={ownerProfile.display_name}
                     className="w-full h-full rounded-full object-cover"

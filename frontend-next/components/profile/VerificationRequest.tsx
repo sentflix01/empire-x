@@ -280,7 +280,7 @@ export default function VerificationRequest() {
 
             {selfieUrl ? (
               <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-border/50">
-                <img src={selfieUrl} alt="selfie" className="w-full h-full object-cover" />
+                <img loading="lazy" src={selfieUrl} alt="selfie" className="w-full h-full object-cover" />
                 <button
                   onClick={() => setSelfieUrl('')}
                   className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80"
@@ -358,7 +358,7 @@ export default function VerificationRequest() {
 
             {idDocUrl ? (
               <div className="relative w-full max-w-xs rounded-xl overflow-hidden border border-border/50">
-                <img src={idDocUrl} alt="ID document" className="w-full object-cover" />
+                <img loading="lazy" src={idDocUrl} alt="ID document" className="w-full object-cover" />
                 <button
                   onClick={() => setIdDocUrl('')}
                   className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80"

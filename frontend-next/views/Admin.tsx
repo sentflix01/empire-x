@@ -866,7 +866,7 @@ function Admin() {
               {filteredVer.map((u: any) => (
                 <div key={u.id} className="flex items-center gap-3 p-4 border-b border-border/20 last:border-0">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden">
-                    {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : (u.display_name?.[0] ?? u.full_name?.[0] ?? '?')}
+                    {u.avatar_url ? <img loading="lazy" src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : (u.display_name?.[0] ?? u.full_name?.[0] ?? '?')}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">

@@ -118,7 +118,7 @@ export default function CoverPositionEditor({
       ref={frameRef}
       className={cn('relative overflow-hidden select-none rounded-[inherit]', t.frame, className)}
     >
-      <img
+      <img loading="lazy"
         ref={imgRef}
         src={src}
         alt="Cover preview — drag to reposition"

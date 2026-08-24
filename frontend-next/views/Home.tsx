@@ -54,7 +54,7 @@ function CompanyAnnouncementTicker() {
       <div className="flex justify-end">
         <button type="button" onClick={showTicker}
           className="inline-flex h-8 items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3 text-xs font-bold text-blue-700 shadow-sm shadow-blue-950/5 transition-colors hover:bg-blue-50 dark:border-blue-500/25 dark:bg-slate-900 dark:text-blue-200 dark:hover:bg-slate-800"
-          title="Show announcements">
+          title="Show announcements" aria-label="Show announcements">
           <Eye className="h-3.5 w-3.5" />
           {t('feed.showNews')}
         </button>

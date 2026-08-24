@@ -147,7 +147,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
             {/* Product */}
             <div className="flex gap-3">
               <div className="w-20 h-20 rounded-xl bg-secondary/20 overflow-hidden shrink-0">
-                {images[0] ? <img src={images[0]} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-muted-foreground/30"><ShoppingBag className="w-6 h-6" /></div>}
+                {images[0] ? <img loading="lazy" src={images[0]} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-muted-foreground/30"><ShoppingBag className="w-6 h-6" /></div>}
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm">{item.title}</h3>
@@ -183,7 +183,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
           <div className="p-5 space-y-4">
             <div className="flex gap-3 p-3 rounded-xl bg-secondary/20">
               <div className="w-12 h-12 rounded-lg bg-secondary/30 overflow-hidden shrink-0">
-                {images[0] ? <img src={images[0]} alt="" className="w-full h-full object-cover" /> : <ShoppingBag className="w-5 h-5 text-muted-foreground/30 m-auto mt-3" />}
+                {images[0] ? <img loading="lazy" src={images[0]} alt="" className="w-full h-full object-cover" /> : <ShoppingBag className="w-5 h-5 text-muted-foreground/30 m-auto mt-3" />}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{item.title}</p>

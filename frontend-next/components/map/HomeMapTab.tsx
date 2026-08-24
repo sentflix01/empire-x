@@ -106,7 +106,7 @@ function makeLabeledIcon(label: string, color: "gold" | "red" | "blue" | "green"
     </div>`;
 
   const pinHtml = `
-    <img src="${pinUrls[color]}" width="25" height="41"
+    <img loading="lazy" src="${pinUrls[color]}" width="25" height="41"
       style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:1;" />`;
 
   if (!L) return undefined;
@@ -174,7 +174,7 @@ function MarkerHoverCard({ data, onClose }: { data: HoverData; onClose: () => vo
           <div className="w-9 h-9 rounded-xl shrink-0 overflow-hidden flex items-center justify-center text-white font-bold text-sm"
             style={{ background: `linear-gradient(135deg, ${accentColor}cc, ${accentColor})` }}>
             {profile?.avatar_url
-              ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+              ? <img loading="lazy" src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
               : (data.name?.charAt(0) ?? "?")}
           </div>
           <div className="min-w-0 flex-1">
@@ -193,7 +193,7 @@ function MarkerHoverCard({ data, onClose }: { data: HoverData; onClose: () => vo
               const imgs = (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })();
               return (
                 <div key={p.id} className="flex-1 bg-secondary/40 rounded-lg p-1.5 min-w-0">
-                  {imgs[0] && <img src={imgs[0]} alt="" className="w-full h-8 object-cover rounded mb-1" />}
+                  {imgs[0] && <img loading="lazy" src={imgs[0]} alt="" className="w-full h-8 object-cover rounded mb-1" />}
                   <p className="text-[9px] font-medium truncate">{p.title}</p>
                   <p className="text-[9px] font-bold" style={{ color: accentColor }}>{p.price?.toLocaleString()} ETB</p>
                 </div>
@@ -309,7 +309,7 @@ function SearchResultBusinessCard({ business, query, onOpenProfile }) {
                 <div key={p.id} className="flex items-center gap-2 bg-secondary/40 rounded-xl p-2">
                   <div className="w-9 h-9 rounded-lg bg-secondary/60 overflow-hidden shrink-0">
                     {pImgs[0]
-                      ? <img src={pImgs[0]} alt={p.title} className="w-full h-full object-cover" />
+                      ? <img loading="lazy" src={pImgs[0]} alt={p.title} className="w-full h-full object-cover" />
                       : <ShoppingBag className="w-4 h-4 text-muted-foreground/30 m-auto mt-2.5" />}
                   </div>
                   <div className="min-w-0">
@@ -339,7 +339,7 @@ function NearbyPersonCard({ person, onOpenProfile }) {
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-sm">
           {person.avatar_url
-            ? <img src={person.avatar_url} alt="" className="w-full h-full object-cover" />
+            ? <img loading="lazy" src={person.avatar_url} alt="" className="w-full h-full object-cover" />
             : (person.display_name?.charAt(0) ?? "U")}
         </div>
         <div className="flex-1 min-w-0">

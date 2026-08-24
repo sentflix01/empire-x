@@ -198,7 +198,7 @@ function Search() {
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
             <button onClick={handleVoiceSearch}
               className={`p-1.5 rounded-full transition-colors ${listening ? "text-red-500 animate-pulse" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
-              title="Voice search">
+              title="Voice search" aria-label="Voice search">
               {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             </button>
             <button

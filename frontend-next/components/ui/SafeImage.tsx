@@ -21,7 +21,7 @@ export default function SafeImage({ src, fallback = null, onError, ...props }: S
   if (!resolvedSrc || failed) return <>{fallback}</>;
 
   return (
-    <img
+    <img loading="lazy"
       {...props}
       src={resolvedSrc}
       onError={(event) => {
