@@ -78,7 +78,7 @@ export default function GlobalErrorReporter() {
         stack: error?.stack || `${source}:${lineno}:${colno}`,
         context: { source, lineno, colno },
       });
-      return false; // don't suppress default browser error handling
+      return false;
     };
 
     // ── unhandledrejection — catches unhandled Promise rejections ─────────
@@ -93,12 +93,34 @@ export default function GlobalErrorReporter() {
       });
     };
 
-    window.addEventListener('error',             onError as EventListener);
+    // ── console.error — catches React hydration errors, warnings, and any
+    //    library-level error logging that doesn't throw ────────────────────
+    const origConsoleError = console.error.bind(console);
+    const onConsoleError = (...args: unknown[]) => {
+      origConsoleError(...args);
+      const message = args.map(a =>
+        typeof a === 'string' ? a :
+        a instanceof Error ? a.message :
+        JSON.stringify(a).slice(0, 200)
+      ).join(' ');
+      // Filter noise: React DevTools suggestion, act() warnings
+      if (/React DevTools|act\(|Warning: Possible/.test(message)) return;
+      report({
+        message: message.slice(0, 500),
+        name: 'ConsoleError',
+        stack: args.find(a => a instanceof Error)?.stack ?? null,
+        context: { source: 'console.error', args: args.length },
+      });
+    };
+    console.error = onConsoleError as typeof console.error;
+
+    window.addEventListener('error',             onError);
     window.addEventListener('unhandledrejection', onUnhandledRejection);
 
     return () => {
-      window.removeEventListener('error',             onError as EventListener);
+      window.removeEventListener('error',             onError);
       window.removeEventListener('unhandledrejection', onUnhandledRejection);
+      console.error = origConsoleError;
     };
   }, []);
 

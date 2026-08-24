@@ -1219,8 +1219,12 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
   return (
     <div className={`mb-4 bg-card border rounded-2xl overflow-hidden ${hasUrgent ? 'border-red-500/40' : 'border-border/50'}`}>
       {/* Header */}
-      <button onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setOpen(v => !v)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v); } }}
+        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors cursor-pointer">
         <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${hasUrgent ? 'bg-red-500/20' : 'bg-gradient-to-br from-red-600 to-orange-600'}`}>
           {hasUrgent
             ? <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" /><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" /></span>
@@ -1251,7 +1255,7 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
           </button>
           {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
         </div>
-      </button>
+      </div>
 
       {open && (
         <div className="border-t border-border/50">
