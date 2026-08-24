@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **260** across **44** mounted modules · Generated: 2026-08-24
+> Endpoints: **263** across **44** mounted modules · Generated: 2026-08-24
 
 | Legend | Meaning |
 |---|---|
@@ -25,7 +25,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`coupons`](#coupons) (6)
 - [`courses`](#courses) (8)
 - [`delivery`](#delivery) (2)
-- [`devops`](#devops) (12)
+- [`devops`](#devops) (15)
 - [`docs`](#docs) (1)
 - [`events`](#events) (7)
 - [`externalSources`](#externalsources) (9)
@@ -172,18 +172,21 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/devops/` | 👑 admin | routes/devops.ts:12 |
-| `POST` | `/api/devops/` | 👑 admin | routes/devops.ts:19 |
-| `PUT` | `/api/devops/:id` | 👑 admin | routes/devops.ts:36 |
-| `DELETE` | `/api/devops/:id` | 👑 admin | routes/devops.ts:55 |
-| `GET` | `/api/devops/errors` | 👑 admin | routes/devops.ts:64 |
-| `PUT` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:79 |
-| `POST` | `/api/devops/errors/report` | ⚪ optional | routes/devops.ts:92 |
-| `GET` | `/api/devops/versions` | 🌐 public | routes/devops.ts:107 |
-| `PUT` | `/api/devops/versions` | 👑 admin | routes/devops.ts:114 |
-| `GET` | `/api/devops/health-summary` | 👑 admin | routes/devops.ts:129 |
-| `GET` | `/api/devops/telemetry` | 👑 admin | routes/devops.ts:164 |
-| `POST` | `/api/devops/copilot` | 👑 admin | routes/devops.ts:303 |
+| `GET` | `/api/devops/` | 👑 admin | routes/devops.ts:13 |
+| `POST` | `/api/devops/` | 👑 admin | routes/devops.ts:20 |
+| `PUT` | `/api/devops/:id` | 👑 admin | routes/devops.ts:37 |
+| `DELETE` | `/api/devops/:id` | 👑 admin | routes/devops.ts:56 |
+| `GET` | `/api/devops/errors` | 👑 admin | routes/devops.ts:65 |
+| `PUT` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:80 |
+| `POST` | `/api/devops/errors/report` | ⚪ optional | routes/devops.ts:93 |
+| `GET` | `/api/devops/versions` | 🌐 public | routes/devops.ts:108 |
+| `PUT` | `/api/devops/versions` | 👑 admin | routes/devops.ts:115 |
+| `GET` | `/api/devops/health-summary` | 👑 admin | routes/devops.ts:130 |
+| `GET` | `/api/devops/telemetry` | 👑 admin | routes/devops.ts:165 |
+| `POST` | `/api/devops/copilot` | 👑 admin | routes/devops.ts:304 |
+| `GET` | `/api/devops/scorecard` | 👑 admin | routes/devops.ts:327 |
+| `GET` | `/api/devops/log-report` | 👑 admin | routes/devops.ts:339 |
+| `GET` | `/api/devops/log-report/:file` | 👑 admin | routes/devops.ts:358 |
 
 ## docs — docs
 
