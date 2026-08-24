@@ -345,7 +345,7 @@ function Orders() {
     try {
       const filter = mode === "selling" ? { seller_id: u.id } : { buyer_id: u.id };
       const data = await entities.Order.filter(filter, "-created_at", 100);
-      setOrders(data);
+      setOrders(Array.isArray(data) ? data : (data as any)?.orders ?? []);
       // Resolve counterparty names (seller names for buying tab, buyer names already in order)
       if (data.length > 0) {
         const ids = [...new Set(data.map(o => mode === "selling" ? o.buyer_id : o.seller_id).filter(Boolean))];

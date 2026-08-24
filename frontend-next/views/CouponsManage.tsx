@@ -34,7 +34,7 @@ function CouponsManage() {
     setLoading(true);
     try {
       const { data } = await client.get("/api/coupons/mine");
-      setCoupons(data);
+      setCoupons(Array.isArray(data) ? data : []);
     } catch { toast.error("Failed to load coupons"); }
     setLoading(false);
   };

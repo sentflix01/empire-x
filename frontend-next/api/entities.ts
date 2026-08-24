@@ -297,7 +297,15 @@ export const entities = {
   Product:      buildEntityApi<Product>('products'),
   Business:     buildEntityApi<Business>('businesses'),
   Showroom:     buildEntityApi<Showroom>('showrooms'),
-  Order:        buildEntityApi<Order>('orders'),
+  Order: {
+    ...buildEntityApi<Order>('orders'),
+    // GET /api/orders returns { orders: [...], next_cursor: ... } (keyset pagination)
+    // — extract the array so consumers always get an array.
+    async filter(filterObj: FilterObj = {}, sort = '-created_at', limit = 100) {
+      const res = await client.get(`/api/orders`, { params: { ...filterObj, sort, limit } });
+      return Array.isArray(res.data) ? res.data : res.data?.orders ?? [];
+    },
+  },
   Task:         buildEntityApi<Task>('tasks'),
   TaskBid: {
     async list(sort = '-created_at', limit = 50) {

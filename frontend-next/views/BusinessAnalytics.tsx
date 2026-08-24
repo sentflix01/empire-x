@@ -68,7 +68,7 @@ function BusinessAnalytics() {
       entities.Product.filter(productFilter, "-created_at", 200).catch(() => []),
       entities.Like.filter({ target_type: "product" }, "-created_at", 500).catch(() => [])
     ]);
-    setOrders(ords);
+    setOrders(Array.isArray(ords) ? ords : ords?.orders ?? []);
     setProducts(prods);
     setLikes(allLikes);
   };
@@ -83,7 +83,7 @@ function BusinessAnalytics() {
         entities.Product.filter(productFilter, "-created_at", 200).catch(() => []),
         entities.Like.filter({ target_type: "product" }, "-created_at", 500).catch(() => [])
       ]).then(([ords, prods, allLikes]) => {
-        setOrders(ords);
+        setOrders(Array.isArray(ords) ? ords : ords?.orders ?? []);
         setProducts(prods);
         setLikes(allLikes);
       });

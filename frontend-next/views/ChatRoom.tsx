@@ -92,7 +92,7 @@ function ChatRoom() {
     if (!convId) return;
     try {
       const { data } = await client.get(`/api/messages/conversations/${convId}/messages?limit=200`);
-      setMessages(data);
+      setMessages(Array.isArray(data) ? data : (data as any)?.messages ?? []);
     } catch { /* ignore */ }
   }, [id]);
 

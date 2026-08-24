@@ -412,7 +412,7 @@ function Admin() {
         client.get('/api/admin/stats/revenue').then(r => r.data).catch(() => ({ daily: [], order_stats: [], top_sellers: [] })),
       ]);
       setStats(s); setUsers(u); setVerifications(v);
-      setPosts(po); setProducts(pr); setOrders(o); setReports(r);
+      setPosts(po); setProducts(pr); setOrders(Array.isArray(o) ? o : []); setReports(r);
       setRevenueChart(rc.daily || []);
       setOrderStats(rc.order_stats || []);
       setTopSellers(rc.top_sellers || []);

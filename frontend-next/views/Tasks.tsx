@@ -51,7 +51,7 @@ function Tasks() {
       entities.Task.list("-created_at", 50),
       entities.TaskBid.list("-created_at", 200).catch(() => []),
     ]);
-    setTasks(data);
+    setTasks(Array.isArray(data) ? data : (data as any)?.tasks ?? []);
     const bidsMap = {};
     allBids.forEach(b => {
       if (!bidsMap[b.task_id]) bidsMap[b.task_id] = [];
