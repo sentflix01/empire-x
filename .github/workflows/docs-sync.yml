@@ -39,6 +39,9 @@ jobs:
         run: npm run docs:api
         working-directory: backend
 
+      - name: Generate implementation log reports
+        run: node scripts/generate-task-report.cjs
+
       - name: Sync Production encyclopedia
         run: node scripts/production-docs-sync.cjs
 
