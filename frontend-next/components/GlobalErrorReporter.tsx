@@ -1,154 +1,116 @@
 'use client';
-import { useEffect } from 'react';
 /**
  * GlobalErrorReporter.tsx
  *
  * Captures ALL client-side errors and reports them to the DevOps Live Error
- * Feed: /api/devops/errors/report
+ * Feed. Uses the axios client (NOT raw fetch) so the API URL, CORS, and
+ * credentials are guaranteed to match every other API call in the app.
  *
- * Captures:
- *  - window.onerror            (uncaught synchronous errors)
- *  - unhandledrejection        (unhandled Promise rejections)
- *  - console.error             (React hydration, library errors, warnings)
- *
- * CRITICAL: All interceptors are installed at MODULE SCOPE — the instant
- * this file is imported, BEFORE React renders. This is the only way to
- * catch hydration errors, which fire during the initial render pass.
- * Early errors (before the component mounts) are buffered and flushed
- * when GlobalErrorReporter mounts.
- *
- * This is the same pattern Sentry and Datadog RUM use.
+ * Interceptors are installed at MODULE SCOPE — before React renders — so
+ * hydration errors are caught. Early errors are buffered and flushed when
+ * the component mounts.
  */
+import { useEffect } from 'react';
+import client from '@/api/client';
 
-// ── Module-scope setup — runs at import time, before any React render ────────
-
-const API_BASE   = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-const REPORT_URL = `${API_BASE}/api/devops/errors/report`;
-const MAX_STACK  = 3000;
-
-// Dedup: same error won't report twice within 10s
-const recentlySent = new Map<string, number>();
-
-// Buffer for errors that fire before the reporter is ready to send
-const earlyBuffer: Array<Record<string, unknown>> = [];
-let readyToSend = false;
-
-// Save originals so cleanup can restore them
-const _origConsoleError = typeof console !== 'undefined' ? console.error : null;
-
-function shouldReport(message: string): boolean {
-  // Filter React dev noise that isn't actionable
-  if (/React DevTools|act\(|Warning: Possible/.test(message)) return false;
-  // Dedup within 10 seconds
-  const key = message.slice(0, 100);
-  const now = Date.now();
-  const last = recentlySent.get(key);
-  if (last && now - last < 10_000) return false;
-  recentlySent.set(key, now);
-  // Prune old entries
-  for (const [k, t] of recentlySent) { if (now - t > 30_000) recentlySent.delete(k); }
-  return true;
-}
-
-async function send(payload: {
+interface ErrorPayload {
   message: string;
   name?: string;
   stack?: string | null;
   path?: string;
   context?: Record<string, unknown>;
-}) {
-  if (!shouldReport(payload.message)) return;
-  try {
-    const res = await fetch(REPORT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: payload.message.slice(0, 1000),
-        name:    payload.name    || 'ClientError',
-        stack:   payload.stack?.slice(0, MAX_STACK) || null,
-        path:    payload.path    || (typeof window !== 'undefined' ? window.location.pathname : ''),
-        context: payload.context || {},
-      }),
-      keepalive: true,
-    });
-    if (!res.ok && res.status !== 202) {
-      // Surface in the browser console so developers see capture failures
-      _origConsoleError(`[DevOps] Error report failed: ${res.status} ${res.statusText}`);
+}
+
+// ── Buffer for pre-mount errors ──────────────────────────────────────────────
+const buffer: ErrorPayload[] = [];
+let mounted = false;
+
+// ── Send via axios client (guaranteed same baseURL + CORS as login) ─────────
+function send(payload: ErrorPayload) {
+  if (!mounted) { buffer.push(payload); return; }
+  client.post('/api/devops/errors/report', {
+    message: payload.message.slice(0, 1000),
+    name:    payload.name    || 'ClientError',
+    stack:   payload.stack?.slice(0, 3000) || null,
+    path:    payload.path    || (typeof window !== 'undefined' ? window.location.pathname : ''),
+    context: payload.context || {},
+  }).catch((e: unknown) => {
+    // Surface capture failures in console so they're never fully invisible
+    if (typeof console !== 'undefined') {
+      const orig = (console.error as { _orig?: typeof console.error })._orig ?? console.error;
+      orig('[DevOps] Error report failed:', e);
     }
-  } catch (e) {
-    // Surface in the browser console — silent failure is how bugs hide
-    _origConsoleError('[DevOps] Error report fetch failed:', e);
-  }
+  });
 }
 
-function extractMessage(args: unknown[]): string {
-  return args.map(a =>
-    typeof a === 'string' ? a :
-    a instanceof Error ? a.message :
-    typeof a === 'object' && a !== null ? (() => { try { return JSON.stringify(a).slice(0, 200); } catch { return '[object]'; } })() :
-    String(a)
-  ).join(' ');
+// ── Dedup ────────────────────────────────────────────────────────────────────
+const recent = new Map<string, number>();
+function shouldReport(msg: string): boolean {
+  if (/React DevTools|act\(|Warning: Possible/.test(msg)) return false;
+  const key = msg.slice(0, 100);
+  const now = Date.now();
+  const last = recent.get(key);
+  if (last && now - last < 10_000) return false;
+  recent.set(key, now);
+  for (const [k, t] of recent) { if (now - t > 30_000) recent.delete(k); }
+  return true;
 }
 
-// ── Install interceptors at MODULE SCOPE ─────────────────────────────────────
-// These fire the instant this module is imported — before React renders.
+function extractMsg(args: unknown[]): string {
+  return args.map(a => {
+    if (typeof a === 'string') return a;
+    if (a instanceof Error) return a.message;
+    if (typeof a === 'object' && a !== null) { try { return JSON.stringify(a).slice(0, 200); } catch { return '[obj]'; } }
+    return String(a);
+  }).join(' ');
+}
+
+function capture(payload: ErrorPayload) {
+  if (!shouldReport(payload.message)) return;
+  send(payload);
+}
+
+// ── Module-scope interceptors — active from the instant this file loads ──────
 if (typeof window !== 'undefined') {
-  // 1. console.error — catches hydration errors, React warnings, library errors
-  const origError = console.error;
+  const orig = console.error;
+  (console.error as { _orig?: typeof console.error })._orig = orig;
   console.error = (...args: unknown[]) => {
-    origError(...args);
-    const msg = extractMessage(args);
-    const payload = {
-      message: msg.slice(0, 500),
+    orig(...args);
+    capture({
+      message: extractMsg(args).slice(0, 500),
       name: 'ConsoleError',
       stack: (args.find(a => a instanceof Error) as Error)?.stack ?? null,
-      path: window.location.pathname,
       context: { source: 'console.error' },
-    };
-    if (readyToSend) send(payload);
-    else earlyBuffer.push(payload);
+    });
   };
 
-  // 2. window.onerror — uncaught synchronous errors
-  window.addEventListener('error', (event) => {
-    const payload = {
-      message: event.message || 'Unknown error',
-      name: 'Error',
-      stack: event.error?.stack ?? `${event.filename}:${event.lineno}:${event.colno}`,
-      path: window.location.pathname,
+  window.addEventListener('error', (e) => {
+    capture({
+      message: e.message || 'Unknown error',
+      name: e.error?.name ?? 'Error',
+      stack: e.error?.stack ?? `${e.filename}:${e.lineno}:${e.colno}`,
       context: { source: 'window.onerror' },
-    };
-    if (readyToSend) send(payload);
-    else earlyBuffer.push(payload);
+    });
   });
 
-  // 3. unhandledrejection — unhandled Promise rejections
-  window.addEventListener('unhandledrejection', (event) => {
-    const reason = event.reason;
-    const payload = {
-      message: reason instanceof Error ? reason.message : String(reason || 'Unhandled rejection'),
-      name: reason instanceof Error ? reason.name : 'UnhandledRejection',
-      stack: reason instanceof Error ? reason.stack : null,
-      path: window.location.pathname,
+  window.addEventListener('unhandledrejection', (e) => {
+    capture({
+      message: e.reason instanceof Error ? e.reason.message : String(e.reason || 'Unhandled rejection'),
+      name: e.reason instanceof Error ? e.reason.name : 'UnhandledRejection',
+      stack: e.reason instanceof Error ? e.reason.stack : null,
       context: { source: 'unhandledrejection' },
-    };
-    if (readyToSend) send(payload);
-    else earlyBuffer.push(payload);
+    });
   });
 }
 
-// ── Component: flushes the early buffer on mount ─────────────────────────────
-
+// ── Component: flushes buffer on mount ───────────────────────────────────────
 export default function GlobalErrorReporter() {
   useEffect(() => {
-    readyToSend = true;
-    // Flush any errors that fired between module import and component mount
-    for (const p of earlyBuffer) { send(p as { message: string; name?: string; stack?: string | null; path?: string; context?: Record<string, unknown> }); }
-    earlyBuffer.length = 0;
+    mounted = true;
+    for (const p of buffer) send(p);
+    buffer.length = 0;
   }, []);
-
   return null;
 }
 
-// Export so ErrorBoundary can call it directly
 export { send as reportClientError };
