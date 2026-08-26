@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * sentry.ts — Frontend Sentry initialisation shim.
  *

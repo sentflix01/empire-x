@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 'use client'
 import React, { useState } from "react";
 import { entities } from "@/api/entities";
@@ -42,7 +42,7 @@ export default function BidModal({ task, user, onClose, onPlaced }) {
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md">
-        <DialogHeader>
+        <DialogHeader className="">
           <DialogTitle>Apply for Task</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">

@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -49,16 +48,16 @@ function ProductCreate() {
         return;
       }
       let imgs = [];
-      try { imgs = JSON.parse(p.images || "[]"); } catch { imgs = p.images ? [p.images] : []; }
+      try { imgs = JSON.parse((p.images as string) || "[]"); } catch { imgs = (p.images as string) ? [(p.images as string)] : []; }
       setImages(imgs);
       setForm({
-        title: p.title || "",
-        description: p.description || "",
+        title: (p.title as string) || "",
+        description: (p.description as string) || "",
         price: String(p.price ?? ""),
         stock: String(p.stock ?? "1"),
-        category: p.category || "",
-        tags: p.tags || "",
-        status: p.status || "active",
+        category: (p.category as string) || "",
+        tags: (p.tags as string) || "",
+        status: (p.status as string) || "active",
       });
     } catch {
       toast.error("Product not found");
@@ -119,7 +118,7 @@ function ProductCreate() {
         <div className="space-y-4">
           <div>
             <Label className="text-sm font-medium mb-2 block">Product Images</Label>
-            <ImageUpload multiple max={6} value={images} onChange={setImages} />
+            <ImageUpload multiple max={6} value={images} onChange={setImages as any} />
           </div>
           <div>
             <Label>Title</Label>

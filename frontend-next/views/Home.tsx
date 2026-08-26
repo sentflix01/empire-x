@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
@@ -362,7 +361,7 @@ function Home() {
               ) : feedError ? (
                 <div className="text-center py-12 rounded-2xl border border-destructive/20 bg-destructive/5">
                   <p className="text-sm text-destructive font-medium">{feedError}</p>
-                  <button onClick={loadPosts} className="mt-3 text-xs hover:underline font-medium" style={{ color: accentTokens.primary }}>Try again</button>
+                  <button onClick={() => loadPosts()} className="mt-3 text-xs hover:underline font-medium" style={{ color: accentTokens.primary }}>Try again</button>
                 </div>
               ) : posts.length === 0 ? (
                 <div className="text-center py-16 text-muted-foreground">

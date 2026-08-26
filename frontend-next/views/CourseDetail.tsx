@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from 'next/navigation';
@@ -28,12 +27,12 @@ function CourseDetail() {
     (async () => {
       try {
         const [c, { data: enr }] = await Promise.all([
-          entities.Course.get(id),
+          entities.Course.get(String(id)),
           client.get(`/api/courses/${id}/enrolled`).catch(() => ({ data: { enrolled: false } })),
         ]);
         setCourse(c);
         setEnrollment(enr.enrolled ? enr.enrollment : null);
-        if (c.lessons?.length) setActiveLesson(c.lessons[0]);
+        if ((c as any)?.lessons?.length) setActiveLesson((c as any).lessons[0]);
       } catch {
         router.push("/login");
       } finally {

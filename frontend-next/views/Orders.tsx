@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client'
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
@@ -358,7 +357,7 @@ function Orders() {
               })).catch(() => ({ id: uid, name: '' }))
             ));
             const map: Record<string, string> = {};
-            res.forEach(r => { if (r.name) map[r.id] = r.name; });
+            res.forEach(r => { if (r.name) map[r.id as string] = r.name; });
             setNameMap(map);
           } catch { /* silenced */ }
         }

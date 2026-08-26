@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 /**
  * Admin.tsx — Nodbusiness Platform Operations Hub
@@ -33,7 +32,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import VerifiedBadge from '@/components/ui/VerifiedBadge';
+import VerifiedBadge, { type VerificationType } from '@/components/ui/VerifiedBadge';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   PieChart, Pie, Cell, Legend,
@@ -918,7 +917,7 @@ function Admin() {
               <div>
                 <div className="flex items-center gap-1.5">
                   <p className="text-sm font-semibold">{verifyModal.display_name || verifyModal.full_name}</p>
-                  <VerifiedBadge type={verifyType} size="sm" />
+                  <VerifiedBadge type={verifyType as VerificationType} size="sm" />
                 </div>
                 <p className="text-xs text-muted-foreground">{verifyModal.email}</p>
               </div>
@@ -931,7 +930,7 @@ function Admin() {
                     verifyType === vt.value ? 'border-2 shadow-sm' : 'border-border/60 hover:border-border'
                   }`}
                   style={verifyType === vt.value ? { borderColor: vt.color, backgroundColor: vt.color + '10' } : {}}>
-                  <VerifiedBadge type={vt.value} size="sm" />
+                  <VerifiedBadge type={vt.value as VerificationType} size="sm" />
                   <div>
                     <p className="text-xs font-semibold">{vt.label}</p>
                     <p className="text-[10px] text-muted-foreground">{vt.desc}</p>

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 'use client'
 import { useRouter } from 'next/navigation';
 import React, { useState } from "react";
@@ -53,7 +53,7 @@ export default function TaskBidsDialog({ task, user, bids, onClose, onAccepted }
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="">
           <DialogTitle>Bids for "{task.title}"</DialogTitle>
         </DialogHeader>
         {sortedBids.length === 0 ? (

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 'use client';
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
@@ -199,7 +199,7 @@ function Wallet() {
                 setProcessing(false);
               }}
             >
-              {processing ? "Processing..." : `🇪🇹 Top Up with Chapa • ${parseFloat(topupAmount || 0).toLocaleString()} ETB`}
+              {processing ? "Processing..." : `🇪🇹 Top Up with Chapa • ${parseFloat(topupAmount || "0").toLocaleString()} ETB`}
             </Button>
 
             {/* Stripe — cards, wallets & local payment methods */}
@@ -226,7 +226,7 @@ function Wallet() {
                 setProcessing(false);
               }}
             >
-              {processing ? "Processing..." : `💳 Top Up with Card & Wallets • ${parseFloat(topupAmount || 0).toLocaleString()} ETB`}
+              {processing ? "Processing..." : `💳 Top Up with Card & Wallets • ${parseFloat(topupAmount || "0").toLocaleString()} ETB`}
             </Button>
 
             {/* Manual / admin top-up — only visible to admin users */}

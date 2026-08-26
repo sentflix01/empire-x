@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
@@ -50,6 +49,9 @@ ChartContainer.displayName = "Chart"
 const ChartStyle = ({
   id,
   config
+}: {
+  id: string
+  config: Record<string, any>
 }) => {
   const colorConfig = Object.entries(config).filter(([, config]) => config.theme || config.color)
 
@@ -183,7 +185,7 @@ const ChartTooltipContent = React.forwardRef<any, any>((
                           {
                             "--color-bg": indicatorColor,
                             "--color-border": indicatorColor
-                          }
+                          } as React.CSSProperties
                         } />
                     )
                   )}

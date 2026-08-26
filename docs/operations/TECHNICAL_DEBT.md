@@ -77,8 +77,8 @@
 ---
 
 ### TD-006: Remove broad `@ts-nocheck` usage from frontend-next
-**Status:** ✅ Done (July 2026)
-**What was done:** Removed all 86 `@ts-nocheck` directives from source files. `npx tsc --noEmit` now shows zero errors in source files (one auto-generated `.next/dev/types/routes.d.ts` error is a Next.js dev artifact, not a source issue). `strict` mode is off and `strictNullChecks` is on — a good starting baseline for incremental type hardening.
+**Status:** ✅ Done (2026-08-24 — final pass)
+**What was done:** Removed all 30 remaining `@ts-nocheck` directives across views/, components/ui/, components/tasks/, and lib/. Fixed 35 type errors (missing Radix types, ParamValue casts, CSS variable casts, Controller typing, API response guards). All 30 files now type-check cleanly. `npx tsc --noEmit` exits 0 on both frontend and backend. Frontend strict mode remains off with `strictNullChecks` on.
 
 ---
 

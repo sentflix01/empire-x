@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client'
 import { useRouter } from 'next/navigation';
 import React, { useState } from "react";
@@ -51,7 +50,7 @@ function EventCreate() {
           <h1 className="font-display text-2xl font-bold">Create Event</h1>
         </div>
         <div className="space-y-4">
-          <div><Label>Cover Image</Label><div className="mt-1"><ImageUpload value={form.cover_image} onChange={url => setForm({...form, cover_image: url})} aspectRatio="aspect-video" placeholder="Upload cover" /></div></div>
+          <div><Label>Cover Image</Label><div className="mt-1"><ImageUpload value={form.cover_image} onChange={url => setForm({...form, cover_image: url as string})} aspectRatio="aspect-video" placeholder="Upload cover" /></div></div>
           <div><Label>Event Title</Label><Input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g. Tech Meetup 2025" className="mt-1" /></div>
           <div><Label>Description</Label><Textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Describe your event..." className="mt-1" rows={3} /></div>
           <div className="grid grid-cols-2 gap-3">

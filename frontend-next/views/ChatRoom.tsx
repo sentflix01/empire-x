@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from 'next/navigation';
@@ -650,7 +649,7 @@ function ChatRoom() {
               </span>
             </div>
 
-            {msgs.map((msg, idx) => {
+            {(msgs as any[]).map((msg, idx) => {
               const isMe = msg.sender_id === user?.id;
               const prev = msgs[idx - 1];
               const showSender = (isGroup || isChannel) && !isMe && (!prev || prev.sender_id !== msg.sender_id);

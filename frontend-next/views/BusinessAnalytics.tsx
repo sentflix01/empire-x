@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
@@ -66,7 +65,7 @@ function BusinessAnalytics() {
     const [ords, prods, allLikes] = await Promise.all([
       entities.Order.filter({ seller_id: userId }, "-created_at", 300).catch(() => []),
       entities.Product.filter(productFilter, "-created_at", 200).catch(() => []),
-      entities.Like.filter({ target_type: "product" }, "-created_at", 500).catch(() => [])
+      (entities.Like as any).filter({ target_type: "product" }, "-created_at", 500).catch(() => [])
     ]);
     setOrders(Array.isArray(ords) ? ords : ords?.orders ?? []);
     setProducts(prods);
@@ -81,7 +80,7 @@ function BusinessAnalytics() {
       Promise.all([
         entities.Order.filter({ seller_id: profile.user_id }, "-created_at", 300).catch(() => []),
         entities.Product.filter(productFilter, "-created_at", 200).catch(() => []),
-        entities.Like.filter({ target_type: "product" }, "-created_at", 500).catch(() => [])
+        (entities.Like as any).filter({ target_type: "product" }, "-created_at", 500).catch(() => [])
       ]).then(([ords, prods, allLikes]) => {
         setOrders(Array.isArray(ords) ? ords : ords?.orders ?? []);
         setProducts(prods);

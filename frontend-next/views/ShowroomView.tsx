@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from 'next/navigation';
@@ -151,7 +150,7 @@ function ShowroomView() {
     try {
       const s = slugParam
         ? (await client.get(`/api/showrooms/slug/${slugParam}`)).data
-        : await entities.Showroom.get(id);
+        : await entities.Showroom.get(id as string);
       setShowroom(s);
       const prods = await entities.Product.filter({ seller_id: s.owner_id, status: "active" }, "-created_at", 24);
       setProducts(prods);

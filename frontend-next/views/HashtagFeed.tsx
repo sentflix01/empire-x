@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React, { useState, useEffect } from "react";
 import { useParams } from 'next/navigation';
@@ -19,7 +18,7 @@ function HashtagFeed() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    client.get(`/api/hashtags/${encodeURIComponent(name)}/posts`)
+    client.get(`/api/hashtags/${encodeURIComponent(name as string)}/posts`)
       .then(r => setPosts(r.data))
       .catch(() => {})
       .finally(() => setLoading(false));
