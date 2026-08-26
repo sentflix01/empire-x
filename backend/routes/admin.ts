@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import logger from '../lib/logger';
 import pool from '../db/pool';
 import { requireAuth, requireAdmin, invalidateUserCache } from '../middleware/auth';
+import * as apiError from '../lib/apiError';
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
@@ -229,6 +230,28 @@ router.get('/stats/revenue', async (_req: Request, res: Response) => {
     ]);
     res.json({ daily: daily.rows, top_sellers: topSellers.rows, top_products: topProducts.rows });
   } catch { res.status(500).json({ error: 'Failed to fetch revenue chart' }); }
+});
+
+// ── Audit Logs ──────────────────────────────────────────────────────────────
+router.get('/audit-logs', async (req: Request, res: Response) => {
+  try {
+    const { action, actor_id, entity_type, limit: rawLimit, offset: rawOffset } = req.query as Record<string,string>;
+    const limit = Math.min(parseInt(rawLimit || '100', 10) || 100, 500);
+    const offset = parseInt(rawOffset || '0', 10) || 0;
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+    let idx = 1;
+    if (action) { conditions.push(`action=$${idx++}`); params.push(action); }
+    if (actor_id) { conditions.push(`actor_id=$${idx++}`); params.push(actor_id); }
+    if (entity_type) { conditions.push(`entity_type=$${idx++}`); params.push(entity_type); }
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const { rows } = await pool.query(`SELECT * FROM audit_logs ${where} ORDER BY created_at DESC LIMIT $${idx++} OFFSET $${idx++}`, [...params, limit, offset]);
+    const { rows: [{ count }] } = await pool.query(`SELECT COUNT(*)::int AS count FROM audit_logs ${where}`, params);
+    res.json({ logs: rows, total: count, limit, offset });
+  } catch (err) {
+    logger.error({ err }, 'Failed to fetch audit logs');
+    apiError.serverError(res, 'Failed to fetch audit logs');
+  }
 });
 
 module.exports = router;

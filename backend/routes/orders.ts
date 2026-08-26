@@ -22,6 +22,7 @@ import * as apiError from '../lib/apiError';
 import { getPrimaryFrontendUrl } from '../lib/frontendUrl';
 import { isEnabled } from '../lib/featureFlags';
 import { recordEvent } from '../lib/telemetry';
+import { auditLog } from '../lib/auditLogger';
 
 const router = Router();
 
@@ -362,7 +363,7 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
     const ratio = Number(obj.amount)>0 ? Math.min(1,Number(obj.amount_refunded??obj.amount)/Number(obj.amount)) : 1;
     if ((obj.metadata as Record<string,string>)?.purpose==='wallet_topup') {
       const walletId=(obj.metadata as Record<string,string>)?.wallet_id; const etb=parseFloat(String((obj.metadata as Record<string,string>)?.amount_etb??'0')); const rev=Math.round(etb*ratio*100)/100;
-      if (walletId&&rev>0) { await pool.query('UPDATE wallets SET balance=GREATEST(balance-$1,0),updated_at=NOW() WHERE id=$2',[rev,walletId]); await pool.query(`INSERT INTO wallet_transactions (wallet_id,type,amount,description,reference) VALUES ($1,'debit',$2,$3,$4)`,[walletId,rev,`Stripe top-up reversal (${isFullRefund?'full':'partial'})`,(obj.id||obj.payment_intent) as string]); }
+      if (walletId&&rev>0) { await pool.query('UPDATE wallets SET balance=GREATEST(balance-$1,0),updated_at=NOW() WHERE id=$2',[rev,walletId]); await pool.query(`INSERT INTO wallet_transactions (wallet_id,type,amount,description,reference) VALUES ($1,'debit',$2,$3,$4)`,[walletId,rev,`Stripe top-up reversal (${isFullRefund?'full':'partial'})`,(obj.id||obj.payment_intent) as string]); auditLog({ action:'stripe_topup_reversal', entity_type:'wallet', entity_id:walletId, amount:-rev, metadata:{tx_ref:obj.id,reason:isFullRefund?'full_refund':'partial_refund'} }).catch(()=>{}); }
       return;
     }
     const { rows } = await pool.query(`SELECT * FROM orders WHERE stripe_payment_intent_id=$1 AND status IN ('paid','processing','completed')`, [obj.payment_intent]);
@@ -375,6 +376,7 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
         else await pool.query(`UPDATE commissions SET amount=GREATEST(amount-$1,0) WHERE id=$2`, [rev, c.id]);
         await pool.query('UPDATE wallets SET balance=balance+$1,updated_at=NOW() WHERE user_id=$2', [rev, order.seller_id]);
         await pool.query(`INSERT INTO wallet_transactions (wallet_id,type,amount,description,reference) SELECT id,'credit',$1,$2,$3 FROM wallets WHERE user_id=$4`, [rev,`Commission reversal (${isFullRefund?'full':'partial'})`,order.id,order.seller_id]);
+        auditLog({ action:'commission_reversal', entity_type:'wallet', entity_id:order.seller_id as string, amount:rev, metadata:{order_id:order.id, is_full_refund:isFullRefund} }).catch(()=>{});
       }
       notifyUser(order.buyer_id as string, `💸 <b>Refund processed</b>\n${order.product_title}`).catch(()=>undefined);
     }

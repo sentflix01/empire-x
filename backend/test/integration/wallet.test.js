@@ -20,6 +20,8 @@ jest.mock('../../middleware/auth', () => ({
   optionalAuth: (_req, _res, next) => next(),
 }));
 
+jest.mock('../../lib/auditLogger', () => ({ auditLog: jest.fn().mockResolvedValue(undefined) }));
+
 const walletRouter = require('../../routes/wallet');
 
 function buildApp(role = 'user') {

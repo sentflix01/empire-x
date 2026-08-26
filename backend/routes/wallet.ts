@@ -13,6 +13,7 @@ import * as apiError from '../lib/apiError';
 import { getPrimaryFrontendUrl } from '../lib/frontendUrl';
 import { isEnabled } from '../lib/featureFlags';
 import { recordEvent } from '../lib/telemetry';
+import { auditLog } from '../lib/auditLogger';
 
 const router = Router();
 
@@ -25,6 +26,7 @@ export async function atomicWalletOp(
   amount: number,
   description: string,
   reference: string | null = null,
+  auditContext: { actor_id?: string; actor_email?: string; ip?: string; ua?: string } = {},
 ): Promise<{ wallet: Record<string,unknown>; transaction: Record<string,unknown> }> {
   const delta = CREDIT_TYPES.has(type) ? amount : -amount;
   const client = await pool.connect();
@@ -41,6 +43,22 @@ export async function atomicWalletOp(
     if (newBalance < 0) throw Object.assign(new Error(`Insufficient balance: have ${current}, need ${amount}`), { code: 'INSUFFICIENT_BALANCE' });
     const { rows: [updated] } = await client.query('UPDATE wallets SET balance=$1, updated_at=NOW() WHERE id=$2 RETURNING *', [newBalance, locked[0].id]);
     const { rows: [tx] } = await client.query(`INSERT INTO wallet_transactions (wallet_id,type,amount,description,reference) VALUES ($1,$2,$3,$4,$5) RETURNING *`, [locked[0].id, type, amount, description, reference]);
+
+    // Audit log — captures every wallet mutation (topup, debit, refund, withdrawal)
+    auditLog({
+      actor_id: auditContext.actor_id ?? userId,
+      actor_email: auditContext.actor_email ?? null,
+      action: type,
+      entity_type: 'wallet',
+      entity_id: locked[0].id as string,
+      amount,
+      balance_before: current,
+      balance_after: newBalance,
+      metadata: { description, reference, target_user: userId },
+      ip_address: auditContext.ip ?? null,
+      user_agent: auditContext.ua ?? null,
+    }).catch(() => {}); // fire-and-forget — never block the transaction
+
     await client.query('COMMIT');
     return { wallet: updated as Record<string,unknown>, transaction: tx as Record<string,unknown> };
   } catch (err) {
@@ -77,7 +95,7 @@ router.post('/topup', requireAuth, async (req: Request, res: Response) => {
   const { amount, reference } = req.body as { amount?: number; reference?: string };
   if (!amount || amount <= 0) { apiError.validationError(res, 'Valid amount is required'); return; }
   try {
-    const { wallet } = await atomicWalletOp(req.user!.id, 'credit', parseFloat(String(amount)), 'Wallet top-up', reference ?? null);
+    const { wallet } = await atomicWalletOp(req.user!.id, 'credit', parseFloat(String(amount)), 'Wallet top-up', reference ?? null, { actor_id: req.user!.id, actor_email: req.user!.email, ip: req.ip, ua: req.get('user-agent') });
     res.json(wallet);
   } catch (err) {
     logger.error({ err }, 'Failed to top up wallet');
@@ -89,7 +107,7 @@ router.post('/withdraw', requireAuth, async (req: Request, res: Response) => {
   const { amount, bank_name, account_number } = req.body as Record<string,unknown>;
   if (!amount || Number(amount) <= 0) { apiError.validationError(res, 'Valid amount is required'); return; }
   try {
-    const { wallet } = await atomicWalletOp(req.user!.id, 'withdrawal', parseFloat(String(amount)), `Withdrawal to ${bank_name ?? 'bank'} ${account_number ?? ''}`.trim());
+    const { wallet } = await atomicWalletOp(req.user!.id, 'withdrawal', parseFloat(String(amount)), `Withdrawal to ${bank_name ?? 'bank'} ${account_number ?? ''}`.trim(), null, { actor_id: req.user!.id, actor_email: req.user!.email, ip: req.ip, ua: req.get('user-agent') });
     pool.query(`INSERT INTO notifications (user_id,type,title,body) SELECT id,'order','Withdrawal Request',$1 FROM users WHERE role='admin' LIMIT 1`, [`User ${req.user!.id} requested withdrawal of ${amount} ETB`]).catch(()=>undefined);
     res.json({ success: true, message: 'Withdrawal request submitted. Processing within 1-3 business days.', wallet });
   } catch (err) {
@@ -103,7 +121,7 @@ router.post('/debit', requireAuth, async (req: Request, res: Response) => {
   const { user_id, amount, description, reference } = req.body as Record<string,unknown>;
   if (!user_id || !amount || Number(amount) <= 0) { apiError.validationError(res, 'user_id and a positive amount are required'); return; }
   try {
-    const { wallet } = await atomicWalletOp(String(user_id), 'debit', parseFloat(String(amount)), String(description ?? 'Debit'), String(reference ?? null) === 'null' ? null : String(reference ?? null));
+    const { wallet } = await atomicWalletOp(String(user_id), 'debit', parseFloat(String(amount)), String(description ?? 'Debit'), String(reference ?? null) === 'null' ? null : String(reference ?? null), { actor_id: req.user!.id, actor_email: req.user!.email, ip: req.ip, ua: req.get('user-agent') });
     res.json(wallet);
   } catch (err) {
     if ((err as {code?:string}).code === 'INSUFFICIENT_BALANCE') { apiError.validationError(res, 'Insufficient balance'); return; }
@@ -116,7 +134,7 @@ router.post('/refund', requireAuth, async (req: Request, res: Response) => {
   const { user_id, amount, description, reference } = req.body as Record<string,unknown>;
   if (!user_id || !amount || Number(amount) <= 0) { apiError.validationError(res, 'user_id and a positive amount are required'); return; }
   try {
-    const { wallet } = await atomicWalletOp(String(user_id), 'refund', parseFloat(String(amount)), String(description ?? 'Refund'), String(reference ?? null) === 'null' ? null : String(reference ?? null));
+    const { wallet } = await atomicWalletOp(String(user_id), 'refund', parseFloat(String(amount)), String(description ?? 'Refund'), String(reference ?? null) === 'null' ? null : String(reference ?? null), { actor_id: req.user!.id, actor_email: req.user!.email, ip: req.ip, ua: req.get('user-agent') });
     res.json(wallet);
   } catch (err) {
     logger.error({ err }, 'Failed to process refund');
