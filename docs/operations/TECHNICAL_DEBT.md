@@ -48,10 +48,8 @@
 ---
 
 ### TD-003: End-to-end test suite
-**Status:** Partially started  
-**Problem:** Backend API E2E coverage exists (`backend/test/e2e.test.js`), but there are no browser E2E tests for critical frontend flows.  
-**Fix:** Add Playwright tests for: registration → OTP → onboarding → create post → add product → checkout → view order.  
-**Impact:** Prevents regressions on every deploy.
+**Status:** ✅ Done (2026-08-24)
+**Resolution:** Playwright E2E suite with 9 specs (2 fixme): public pages (4), auth (2), realtime chat (2), checkout COD (1). Covers critical paths: landing, forms, protected-route redirects, login success/rejection, realtime message delivery + persistence, COD order creation via API. Run: `cd frontend-next && npx playwright test`.
 
 ---
 
@@ -114,11 +112,8 @@ Removed the old Vite frontend folder entirely. `frontend-next/` is the only fron
 ---
 
 ### TD-011: Consolidate Sentry in frontend-next
-**Status:** Not started  
-**File:** `frontend-next/lib/sentry.ts`  
-**Problem:** Sentry may not be fully wired into Next.js error boundaries and API routes.  
-**Fix:** Follow the Next.js Sentry SDK setup guide: `sentry.client.config.ts`, `sentry.server.config.ts`, `instrumentation.ts`.  
-**Impact:** Error tracking completeness.
+**Status:** ✅ Done (2026-08-24)
+**Resolution:** `initSentry()` called in `providers.tsx` on mount (no-ops when `NEXT_PUBLIC_SENTRY_DSN` absent). Sentry captures via `globalThis.__SENTRY__` which `ErrorBoundary.componentDidCatch` reads. Full error pipeline: GlobalErrorReporter → DevOps feed + Sentry; ErrorBoundary → DevOps feed + Sentry; Next.js error.tsx → DevOps feed.
 
 ---
 

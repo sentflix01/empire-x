@@ -16,6 +16,7 @@ import { CartProvider } from '@/lib/CartContext';
 import { Toaster } from '@/components/ui/toaster';
 import AiAssistant from '@/components/AiAssistant';
 import GlobalErrorReporter from '@/components/GlobalErrorReporter';
+import { initSentry } from '@/lib/sentry';
 // Initialize i18n — must be imported here so it runs before any component renders
 import i18n from '@/lib/i18n';
 
@@ -23,6 +24,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   // useState ensures the QueryClient is created once per component instance
   // and not recreated on every render
   const [queryClient] = useState(() => makeQueryClient());
+
+  // Initialize Sentry once on mount (no-ops when DSN is absent)
+  React.useEffect(() => { initSentry(); }, []);
 
   return (
     <I18nextProvider i18n={i18n}>
