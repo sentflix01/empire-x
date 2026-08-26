@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { usePathname, useRouter } from "next/navigation";
@@ -8,9 +8,9 @@ import Image from "next/image";
 import {
   Home, Search, MessageCircle, ShoppingBag, ClipboardList, Bell, User,
   Crown, TrendingUp, Briefcase, GraduationCap, CalendarDays,
-  Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, MapPin, Tag,
+  Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, Tag,
   Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
-  PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield,
+  PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock,
   ArrowLeft, KanbanSquare, Settings, FileText, ClipboardCheck,
 } from "lucide-react";
 import { useTheme } from "next-themes";

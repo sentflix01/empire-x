@@ -489,7 +489,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     entities.Product.filter(filter, '-created_at', 4)
       .then((p) => setProducts(p as unknown as Product[]))
       .catch(() => setProducts([]));
-  }, [selectedBizId]);
+  }, [selectedBizId, isFeedMode, allBusinesses, profile]);
 
   const handleMessage = async (targetUserId: string, targetName: string) => {
     if (!currentUser || messaging) return;

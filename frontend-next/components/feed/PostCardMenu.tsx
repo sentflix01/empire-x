@@ -1,7 +1,6 @@
 'use client'
 import React, { useState, useRef, useEffect } from "react";
 import { MoreHorizontal, User, Store } from "lucide-react";
-import { useTranslation } from 'react-i18next';
 
 export default function PostCardMenu({ currentView, onSelect }) {
   const [open, setOpen] = useState(false);

@@ -1,15 +1,13 @@
 'use client'
-import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import React, { useState, useEffect, useRef } from "react";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { createNotification } from "@/lib/notifications";
-import { X, ShoppingBag, Check, Loader2, Tag, AlertCircle } from "lucide-react";
+import { X, ShoppingBag, Check, Loader2, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { useTranslation } from 'react-i18next';
 
 interface CouponData {
   valid: boolean;
@@ -51,6 +49,10 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
   const [couponData, setCouponData] = useState<CouponData | null>(null); // { valid, coupon, discount }
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
+  // Use ref for onPurchased to avoid useEffect re-runs
+  const onPurchasedRef = useRef(onPurchased);
+  onPurchasedRef.current = onPurchased;
+
   // Poll for Chapa payment confirmation after redirect back to app
   useEffect(() => {
     if (step !== "chapa_pending" || !chapaTxRef) return;
@@ -62,7 +64,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
         if (data.status === "paid") {
           clearInterval(interval);
           setStep("success");
-          onPurchased?.();
+          onPurchasedRef.current?.();
         } else if (data.status === "payment_failed") {
           clearInterval(interval);
           toast.error("Payment failed. Please try again.");

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { entities } from '@/api/entities';
 import client from '@/api/client';
@@ -8,9 +8,9 @@ import { auth } from '@/api/auth';
 import {
   Heart, MessageCircle, Store, User as UserIcon,
   Tag, Sparkles, MapPin, CalendarDays, BarChart2, Newspaper,
-  Maximize2, Minimize2, X, Reply, ChevronDown, ChevronUp,
+  Maximize2, X, Reply, ChevronDown, ChevronUp,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import moment from 'moment';
 import TickerBar from './TickerBar';
 import PostCardMenu from './PostCardMenu';

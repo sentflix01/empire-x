@@ -2,10 +2,9 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
 import { X, Send, RotateCcw, Wifi, WifiOff } from "lucide-react";
 import client from "@/api/client";
-import { offlineAnswer, isOnline } from "@/lib/aiOffline";
+import { offlineAnswer } from "@/lib/aiOffline";
 import { useTranslation } from "react-i18next";
 
 interface Message {
@@ -99,7 +98,6 @@ export default function AiAssistant() {
     t('ai.suggestion3'),
     t('ai.suggestion4'),
   ];
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
