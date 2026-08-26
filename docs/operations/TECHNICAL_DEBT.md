@@ -96,13 +96,11 @@
 ---
 
 ### TD-009: Image optimization pipeline
-**Status:** ✅ Done (2026-08-24 — config pass)
-**Resolution:** `next.config.ts` images block now includes:
-- `formats: ['image/avif', 'image/webp']` — modern format delivery (25-50% smaller)
-- `minimumCacheTTL: 30 days` — aggressive caching for repeat visits
-- `deviceSizes` + `imageSizes` — responsive srcset generation for all breakpoints
-- `remotePatterns` already covered R2, Railway, Supabase, GitHub, Google
-**Remaining:** Convert `SafeImage` from native `<img>` to `next/image` for full optimization on all image paths (22 usages — separate refactor). Components already using `<Image>` (Bookmarks, Cart, etc.) get full optimization now.
+**Status:** ✅ Done (2026-08-24 — complete)
+**Resolution:**
+1. `next.config.ts` images block: `formats: ['avif', 'webp']`, `minimumCacheTTL: 30d`, `deviceSizes`/`imageSizes`, `remotePatterns` covering R2/Railway/Supabase/GitHub/Google
+2. `SafeImage` (22 usages) converted from native `<img>` to `next/image` with `fill=true` — fallback behavior preserved for invalid sources
+**Result:** All image paths now use Next.js optimization (avif/webp delivery, responsive srcset, 30-day CDN cache). Zero manual migration of `<img>` → `<Image>` needed — existing SafeImage callers get full optimization automatically.
 
 ---
 
