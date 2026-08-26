@@ -123,10 +123,8 @@ Removed the old Vite frontend folder entirely. `frontend-next/` is the only fron
 ---
 
 ### TD-012: Audit logging for financial transactions
-**Status:** Not started  
-**Problem:** No append-only audit trail for wallet transactions, commission collections, or refunds.  
-**Fix:** Create an `audit_logs` table. INSERT a row on every wallet operation with: user, action, amount, before/after balance, timestamp, IP.  
-**Impact:** Compliance, fraud investigation.
+**Status:** ✅ Done (2026-08-24)
+**Resolution:** Append-only `audit_logs` table (migrate36.js) captures every wallet mutation: topup, debit, refund, withdrawal, commission collection, Stripe webhook reversals. Non-blocking insert via `auditLog()` helper in `lib/auditLogger.ts`. `atomicWalletOp` accepts optional `auditContext` (actor, IP, UA). Admin API at `GET /api/admin/audit-logs` with action/actor/entity filters and pagination.
 
 ---
 
