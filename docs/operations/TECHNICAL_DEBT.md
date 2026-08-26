@@ -96,10 +96,13 @@
 ---
 
 ### TD-009: Image optimization pipeline
-**Status:** Not started  
-**Problem:** Images uploaded to R2 are stored as-is (original size). Large images slow down the marketplace and profile pages.  
-**Fix:** Add Cloudflare Workers image resize transform on R2 public URL. Or use `next/image` with R2 domain configured in `next.config.ts`.  
-**Impact:** Page load performance, mobile experience.
+**Status:** ✅ Done (2026-08-24 — config pass)
+**Resolution:** `next.config.ts` images block now includes:
+- `formats: ['image/avif', 'image/webp']` — modern format delivery (25-50% smaller)
+- `minimumCacheTTL: 30 days` — aggressive caching for repeat visits
+- `deviceSizes` + `imageSizes` — responsive srcset generation for all breakpoints
+- `remotePatterns` already covered R2, Railway, Supabase, GitHub, Google
+**Remaining:** Convert `SafeImage` from native `<img>` to `next/image` for full optimization on all image paths (22 usages — separate refactor). Components already using `<Image>` (Bookmarks, Cart, etc.) get full optimization now.
 
 ---
 

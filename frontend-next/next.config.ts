@@ -28,6 +28,13 @@ const nextConfig: NextConfig = {
 
   // Image optimization — allow backend uploads and external images
   images: {
+    // Serve modern formats (webp/avif) for 25-50% smaller payloads
+    formats: ['image/avif', 'image/webp'],
+    // Cache optimized images for 30 days (default is 60s)
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+    // Responsive breakpoints for srcset generation
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       { protocol: "http",  hostname: "localhost" },
       { protocol: "https", hostname: "*.railway.app" },
