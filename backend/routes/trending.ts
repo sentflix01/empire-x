@@ -26,7 +26,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
            WHERE p.created_at > NOW()-INTERVAL '48 hours' ORDER BY p.like_count DESC, p.comment_count DESC LIMIT 10`,
         ),
         pool.query(
-          `SELECT id,seller_id,title,price,currency,images,category,view_count,average_rating::float8 AS average_rating
+          `SELECT DISTINCT id,seller_id,title,price,currency,images,category,view_count,average_rating::float8 AS average_rating
            FROM products WHERE status='active' ${realProdWhere} ORDER BY view_count DESC LIMIT 8`,
         ),
         pool.query(
@@ -67,8 +67,8 @@ router.get('/warm', async (_req: Request, res: Response) => {
         pool.query(`SELECT p.id,p.author_id,p.author_name,p.content,p.image_url,p.post_type,p.like_count,p.comment_count,p.created_at
                     FROM posts p WHERE p.created_at > NOW()-INTERVAL '48 hours' ORDER BY p.like_count DESC LIMIT 10`),
         pool.query(`SELECT id,seller_id,title,price,currency,images,category,view_count,average_rating::float8 AS average_rating FROM products WHERE status='active' ORDER BY view_count DESC LIMIT 8`),
-        pool.query(`SELECT id,owner_id,title,description,category,cover_image,logo_url,view_count FROM showrooms WHERE status='published' ORDER BY view_count DESC LIMIT 6`),
-        pool.query(`SELECT id,requester_id,title,task_type,offered_payment,currency,location FROM tasks WHERE status='open' ORDER BY created_at DESC LIMIT 8`),
+        pool.query(`SELECT DISTINCT id,owner_id,title,description,category,cover_image,logo_url,view_count FROM showrooms WHERE status='published' ORDER BY view_count DESC LIMIT 6`),
+        pool.query(`SELECT DISTINCT id,requester_id,title,task_type,offered_payment,currency,location FROM tasks WHERE status='open' ORDER BY created_at DESC LIMIT 8`),
         pool.query(`SELECT user_id,display_name,avatar_url,headline,follower_count,is_verified FROM user_profiles ORDER BY follower_count DESC, created_at DESC LIMIT 8`),
       ]);
       return { trending_posts: posts.rows, top_products: products.rows, featured_showrooms: showrooms.rows, open_tasks: tasks.rows, suggested_users: users.rows };

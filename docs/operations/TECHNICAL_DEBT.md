@@ -83,11 +83,8 @@
 ---
 
 ### TD-007: Replace polling in entities.ts subscribe()
-**Status:** Not started  
-**File:** `frontend-next/api/entities.ts`  
-**Problem:** `subscribe()` uses `setInterval` for polling. For notifications, this is replaced by Socket.IO, but the pattern remains.  
-**Fix:** Remove or deprecate `subscribe()` from EntityApi. All real-time updates should use Socket.IO events.  
-**Impact:** Reduces unnecessary API calls, removes dead code.
+**Status:** ✅ Done (2026-08-24)  
+**Resolution:** The old `subscribe()` polling pattern was already removed from `entities.ts` (line 5: "The old subscribe() polling pattern has been removed - TD-007"). All real-time updates use Socket.IO events. No polling remains.
 
 ---
 

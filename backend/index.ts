@@ -363,9 +363,9 @@ server.listen(PORT, () => {
       try {
         await cached('trending:global', 300, async () => {
           const [posts, products, showrooms, tasks, users] = await Promise.all([
-            pool.query(`SELECT p.id,p.author_id,p.author_name,p.content,p.image_url,p.post_type,p.like_count,p.comment_count,p.created_at FROM posts p WHERE p.created_at > NOW()-INTERVAL '48 hours' ORDER BY p.like_count DESC LIMIT 10`),
-            pool.query(`SELECT id,seller_id,title,price,currency,images,category,view_count FROM products WHERE status='active' ORDER BY view_count DESC LIMIT 8`),
-            pool.query(`SELECT id,owner_id,title,category,cover_image,logo_url,view_count FROM showrooms WHERE status='published' ORDER BY view_count DESC LIMIT 6`),
+            pool.query(`SELECT DISTINCT p.id,p.author_id,p.author_name,p.content,p.image_url,p.post_type,p.like_count,p.comment_count,p.created_at FROM posts p WHERE p.created_at > NOW()-INTERVAL '48 hours' ORDER BY p.like_count DESC LIMIT 10`),
+            pool.query(`SELECT DISTINCT id,seller_id,title,price,currency,images,category,view_count FROM products WHERE status='active' ORDER BY view_count DESC LIMIT 8`),
+            pool.query(`SELECT DISTINCT id,owner_id,title,category,cover_image,logo_url,view_count FROM showrooms WHERE status='published' ORDER BY view_count DESC LIMIT 6`),
             pool.query(`SELECT id,requester_id,title,task_type,offered_payment,currency,location FROM tasks WHERE status='open' ORDER BY created_at DESC LIMIT 8`),
             pool.query(`SELECT user_id,display_name,avatar_url,headline,follower_count FROM user_profiles ORDER BY follower_count DESC LIMIT 8`),
           ]);
