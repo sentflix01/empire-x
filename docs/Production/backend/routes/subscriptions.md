@@ -14,14 +14,16 @@ Newly introduced as part of recent development; see source and git history for t
 
 ## 3. What does it do?
 
-Extracted facts (auto):
-- Lines: ~385
-- API references:
-  - `/api/subscriptions/plans`
-  - `/api/subscriptions/my`
-  - `/api/subscriptions/create`
-  - `/api/subscriptions/cancel`
-  - `/api/subscriptions/webhook`
+
+### Endpoints (5)
+
+| Method | Path | Auth | Line |
+|---|---|---|---|
+| `GET` | `/api/subscriptions/plans` | public | 67 |
+| `GET` | `/api/subscriptions/my` | auth | 84 |
+| `POST` | `/api/subscriptions/create` | auth | 113 |
+| `POST` | `/api/subscriptions/cancel` | auth | 157 |
+| `POST` | `/api/subscriptions/webhook` | public | 196 |
 
 ## 4. What does it touch?
 

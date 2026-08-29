@@ -14,11 +14,14 @@ Newly introduced as part of recent development; see source and git history for t
 
 ## 3. What does it do?
 
-Extracted facts (auto):
-- Lines: ~145
-- API references:
-  - `/api/business-api-keys`
-  - `/api/business-api-keys/:id`
+
+### Endpoints (3)
+
+| Method | Path | Auth | Line |
+|---|---|---|---|
+| `GET` | `/api/business-api-keys/` | auth | 42 |
+| `POST` | `/api/business-api-keys/` | auth | 68 |
+| `DELETE` | `/api/business-api-keys/:id` | auth | 107 |
 
 ## 4. What does it touch?
 

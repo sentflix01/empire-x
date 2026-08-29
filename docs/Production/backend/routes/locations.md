@@ -14,10 +14,13 @@ Newly introduced as part of recent development; see source and git history for t
 
 ## 3. What does it do?
 
-Extracted facts (auto):
-- Lines: ~127
-- API references:
-  - `/api/locations/update`
+
+### Endpoints (2)
+
+| Method | Path | Auth | Line |
+|---|---|---|---|
+| `POST` | `/api/locations/update` | auth | 30 |
+| `GET` | `/api/locations/:businessId` | public | 104 |
 
 ## 4. What does it touch?
 

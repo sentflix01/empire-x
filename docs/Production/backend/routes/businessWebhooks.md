@@ -14,11 +14,15 @@ Newly introduced as part of recent development; see source and git history for t
 
 ## 3. What does it do?
 
-Extracted facts (auto):
-- Lines: ~248
-- API references:
-  - `/api/business-webhooks`
-  - `/api/business-webhooks/:id`
+
+### Endpoints (4)
+
+| Method | Path | Auth | Line |
+|---|---|---|---|
+| `GET` | `/api/business-webhooks/` | auth | 56 |
+| `POST` | `/api/business-webhooks/` | auth | 80 |
+| `PUT` | `/api/business-webhooks/:id` | auth | 134 |
+| `DELETE` | `/api/business-webhooks/:id` | auth | 226 |
 
 ## 4. What does it touch?
 
