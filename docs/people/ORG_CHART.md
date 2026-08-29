@@ -1,189 +1,242 @@
-# Nodbusiness — Organization Chart & Structure
+# Nodbusiness — Org Chart
 
-> **How Nodbusiness is organized as a company at each stage of growth.**
-> The right structure enables speed. The wrong structure creates politics.
-> We restructure when the structure slows us down.
+> **Classification:** Confidential — Internal Use Only
+> **Version:** 1.0
+> **Last Updated:** August 2026
 
 ---
 
-## Acronyms Used in This Document
+## Acronyms
 
 | Acronym | Full Form |
 |---------|-----------|
-| CEO | Chief Executive Officer — company head and decision maker |
-| CTO | Chief Technology Officer — technology leader |
-| CPO | Chief Product Officer — product strategy and roadmap |
-| CFO | Chief Financial Officer — financial management |
-| CMO | Chief Marketing Officer — marketing and growth |
-| COO | Chief Operating Officer — operations and execution |
-| VP | Vice President — senior leadership below C-suite |
-| IC | Individual Contributor — non-manager role focused on doing the work |
-| PM | Product Manager — owns a product area |
-| SWE | Software Engineer |
-| SRE | Site Reliability Engineer — infrastructure and uptime |
+| CEO | Chief Executive Officer |
+| CTO | Chief Technology Officer |
+| VP | Vice President |
+| EM | Engineering Manager |
+| PM | Product Manager |
+| IC | Individual Contributor |
+| TL | Team Lead |
+| SRE | Site Reliability Engineer |
+| DevRel | Developer Relations |
+| BD | Business Development |
+| CS | Customer Success |
 
 ---
 
-## Phase 1 Structure (0–10,000 MAU) — Founder-Led
+## 1. Current Org Chart (Seed — 21 People)
 
 ```
-CEO / Founder (you)
-├── Engineering (1–2 contractors)
-│   ├── Full-Stack Developer (contract)
-│   └── Designer (contract, part-time)
-├── Operations (you, directly)
-│   ├── Customer support (you, then first hire)
-│   └── Finance & legal (outsourced)
-└── Advisors
-    ├── Technical Advisor
-    ├── Business Advisor
-    └── Legal Advisor (IP attorney)
+┌─────────────────────────────────────────────────────────────────────┐
+│                        CEO / FOUNDER                                │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                     ▼
+┌───────────────┐    ┌───────────────┐    ┌───────────────┐
+│   CTO /       │    │ HEAD OF       │    │ HEAD OF       │
+│ ENG LEAD      │    │ PRODUCT       │    │ GROWTH        │
+│ (1)           │    │ (1)           │    │ (1)           │
+└───────┬───────┘    └───────┬───────┘    └───────┬───────┘
+        │                    │                    │
+ ┌──────┼──────┐        ┌────┴────┐        ┌─────┴─────┐
+ ▼      ▼      ▼        ▼         ▼        ▼           ▼
+BE x4  FE x2  DevOps   PM x1    Designer  Growth Mkt  Content  Community
+(1)   (1)    x1      (1)       (1)       x1         x1      Mgr x1
+        QA x1
 ```
 
-**Phase 1 headcount:** 1 founder + 2 contractors + advisors
-**Total cost:** ~$8,000–12,000/month
+### Detailed Roster (Seed)
+
+| # | Role | Name | Level | Start Date | Location |
+|---|------|------|-------|------------|----------|
+| 1 | CEO / Founder | [Name] | C-Level | 2024-01 | Addis Ababa |
+| 2 | CTO / Eng Lead | [Name] | L7 | 2024-02 | Addis Ababa |
+| 3 | Backend Engineer | [Name] | L3 | 2024-03 | Addis Ababa |
+| 4 | Backend Engineer | [Name] | L2 | 2024-04 | Addis Ababa |
+| 5 | Backend Engineer | [Name] | L2 | 2024-05 | Remote (Kenya) |
+| 6 | Backend Engineer | [Name] | L1 | 2024-06 | Addis Ababa |
+| 7 | Frontend Engineer | [Name] | L3 | 2024-03 | Addis Ababa |
+| 8 | Frontend Engineer | [Name] | L2 | 2024-05 | Addis Ababa |
+| 9 | DevOps / Platform | [Name] | L3 | 2024-04 | Addis Ababa |
+| 10 | QA / Test Engineer | [Name] | L2 | 2024-06 | Addis Ababa |
+| 11 | Head of Product | [Name] | L6 | 2024-02 | Addis Ababa |
+| 12 | Product Designer | [Name] | L3 | 2024-04 | Addis Ababa |
+| 13 | UX Researcher (PT) | [Name] | L2 | 2024-05 | Remote |
+| 14 | Head of Growth | [Name] | L6 | 2024-03 | Addis Ababa |
+| 15 | Growth Marketer | [Name] | L2 | 2024-05 | Addis Ababa |
+| 16 | Content/SEO Specialist | [Name] | L2 | 2024-05 | Addis Ababa |
+| 17 | Community Manager | [Name] | L2 | 2024-05 | Addis Ababa |
+| 18 | Head of Operations | [Name] | L5 | 2024-03 | Addis Ababa |
+| 19 | Support Lead | [Name] | L3 | 2024-04 | Addis Ababa |
+| 20 | Support Agent | [Name] | L1 | 2024-05 | Addis Ababa |
+| 21 | Support Agent | [Name] | L1 | 2024-06 | Addis Ababa |
+| 22 | Office/Finance Admin | [Name] | L1 | 2024-03 | Addis Ababa |
 
 ---
 
-## Phase 2 Structure (Seed-funded, 10K–50K MAU)
-
-After raising seed round ($500K–$2M):
-
-```
-CEO / Founder
-│
-├── Engineering (CTO or Lead Engineer)
-│   ├── Backend Engineers (2)
-│   ├── Frontend Engineers (2)
-│   └── Designer / UX (1)
-│
-├── Product (PM or founder directly)
-│   └── Product Manager (1, may be founder)
-│
-├── Growth & Marketing (Head of Growth)
-│   ├── Content / Social Media (1)
-│   └── Community Manager (1)
-│
-├── Operations (COO or founder directly)
-│   ├── Customer Support (2–3)
-│   └── Finance & Admin (1, part-time)
-│
-└── Advisors & Board
-    ├── Lead Investor (board seat)
-    ├── Independent Director
-    └── Domain Advisors (fintech, legal, Africa)
-```
-
-**Phase 2 headcount:** 10–15 people
-**Total cost:** ~$45,000–75,000/month
-
----
-
-## Phase 3 Structure (Series A, 50K–500K MAU)
-
-After raising Series A ($3M–$8M):
+## 2. Phase 2 Org Chart (Series A — 33 People)
 
 ```
 CEO
-│
 ├── CTO
-│   ├── Engineering Manager (Backend)
-│   │   ├── Backend Engineers (4–6)
-│   │   └── Data Engineer (1)
-│   ├── Engineering Manager (Frontend/Mobile)
-│   │   ├── Web Engineers (3–4)
-│   │   └── Mobile Engineers (2) [React Native]
-│   ├── SRE / DevOps (2)
+│   ├── EM Backend (1) → Backend x6, API/Integrations x2
+│   ├── EM Frontend (1) → Frontend x4, Mobile/PWA x1
+│   ├── Platform/DevOps Lead (1) → DevOps x2, Data Engineer x1
+│   ├── QA Lead (1) → QA x2
 │   └── Security Engineer (1)
-│
-├── CPO
-│   ├── Product Manager — Feed & Social (1)
-│   ├── Product Manager — Commerce (1)
-│   ├── Product Manager — Platform/Developer (1)
-│   └── Design Lead + Designer (2)
-│
-├── CMO / Head of Growth
-│   ├── Growth Engineer (1)
-│   ├── Content & SEO (1)
-│   ├── Partnerships (1)
-│   └── Community (2)
-│
-├── COO
-│   ├── Customer Support Lead + Team (5–8)
-│   ├── Trust & Safety (2)
-│   ├── Finance & Accounting (1–2)
-│   └── HR / People Ops (1)
-│
-├── Head of Business Development
-│   ├── Enterprise Sales (1)
-│   └── Partner Integrations (1)
-│
-└── General Counsel (legal, contracted or in-house)
+├── VP Product
+│   ├── PM x2
+│   ├── Design Lead (1) → Product Designers x2, UX Researcher x1
+│   └── Design System Engineer (1)
+├── VP Growth
+│   ├── Growth Marketing Lead (1)
+│   ├── Performance Marketing (1)
+│   ├── Content/SEO Lead (1)
+│   ├── Community Manager (1)
+│   ├── Partnerships/BD (1)
+│   └── DevRel (1)
+├── VP Operations
+│   ├── Support Manager (1)
+│   ├── Support Agents (4)
+│   ├── Customer Success (2)
+│   ├── Office/Finance Admin (1)
+│   └── People Ops (1)
+├── Finance Lead (1)
+├── Legal/Compliance (1)
+└── People/HR Lead (1)
 ```
 
-**Phase 3 headcount:** 35–50 people
-**Total cost:** ~$200,000–350,000/month
+### Phase 2 Hiring Plan (12 New Hires)
+
+| Priority | Role | Count | Target Start | Budget |
+|----------|------|-------|--------------|--------|
+| 1 | Backend Engineers | 2 | Month 1 | $48K/yr each |
+| 2 | Frontend Engineers | 2 | Month 1 | $48K/yr each |
+| 3 | DevOps Engineer | 1 | Month 2 | $54K/yr |
+| 4 | Data Engineer | 1 | Month 2 | $54K/yr |
+| 5 | QA Engineers | 2 | Month 2 | $36K/yr each |
+| 6 | Security Engineer | 1 | Month 3 | $60K/yr |
+| 7 | Product Manager | 1 | Month 2 | $60K/yr |
+| 8 | Product Designer | 1 | Month 2 | $54K/yr |
+| 9 | UX Researcher (FT) | 1 | Month 3 | $48K/yr |
+| 10 | Growth Marketing Lead | 1 | Month 1 | $60K/yr |
+| 11 | Performance Marketer | 1 | Month 2 | $48K/yr |
+| 12 | Partnerships/BD | 1 | Month 3 | $60K/yr |
+| 13 | DevRel | 1 | Month 3 | $54K/yr |
+| 14 | Support Agents | 2 | Month 1 | $24K/yr each |
+| 15 | Customer Success | 2 | Month 2 | $36K/yr each |
+| 15 | People Ops | 1 | Month 2 | $48K/yr |
+| 16 | Finance Lead | 1 | Month 1 | $72K/yr |
+| 17 | Legal/Compliance | 1 | Month 2 | $72K/yr |
+| 18 | People/HR Lead | 1 | Month 2 | $60K/yr |
+
+**Total New Headcount:** 24 (net +12 from current 21 → 33)
 
 ---
 
-## Principles for Building the Team
-
-### 1. Hire for the Next 18 Months
-Don't hire a VP of Engineering when you have 3 engineers.
-Hire the person who will do the work AND grow into the role.
-
-### 2. Founders Don't Hire Themselves
-Every hire should be stronger in their domain than you are.
-If you're the best engineer, writer, and designer on the team — you hired too junior.
-
-### 3. The First 10 Hires Define the Culture
-They set standards, behavior, and what is tolerated.
-Be extremely selective. One toxic hire is harder to undo than a month of slow progress.
-
-### 4. Remote-First but In-Person for Key Moments
-Team is distributed — Africa, diaspora, global.
-Fly the team together for:
-  → Annual planning (1 week)
-  → Product launches
-  → Fundraising preparation
-  → Culture/values workshops
-
-### 5. Equity Over Salary (Early Stage)
-Engineers and key hires should get meaningful equity (0.25%–2% depending on stage/seniority).
-Use the standard 4-year vesting, 1-year cliff.
-This aligns long-term incentives.
-
----
-
-## Key First Hires (Priority Order)
+## 3. Phase 3 Org Chart (Series B — 52+ People)
 
 ```
-Hire 1: Full-Stack Engineer (to reduce founder dependency on contractors)
-  → When: Phase 1, before launch
-  → Skills: React/Next.js + Node.js + PostgreSQL
-  → Equity: 1.5–2.5%
-
-Hire 2: Head of Customer Support / Operations
-  → When: When support volume exceeds 50 tickets/day
-  → Skills: Systems thinking, empathy, process builder
-  → Equity: 0.5–1%
-
-Hire 3: Growth Lead
-  → When: After product-market fit (D30 retention > 35%)
-  → Skills: Data, experiments, channels
-  → Equity: 0.5–1%
-
-Hire 4: CTO (if founder is not technical) or Lead Engineer (if founder is technical)
-  → When: After seed round
-  → Skills: Architecture, team leadership, scale thinking
-  → Equity: 2–4% (if post-seed, pre-Series A)
-
-Hire 5: Product Manager
-  → When: When product roadmap exceeds what one person can manage
-  → Skills: User research, prioritization, cross-functional
-  → Equity: 0.5–1%
+CEO
+├── CTO
+│   ├── VP Engineering
+│   │   ├── EM Backend → Backend x8, API x3
+│   │   ├── EM Frontend → Frontend x6, Mobile x2
+│   │   ├── EM Platform → DevOps x4, Data x3, ML Ops x2
+│   │   ├── EM Security → Security x3
+│   │   └── EM QA → QA x4
+│   ├── VP AI/ML
+│   │   ├── ML Engineers x4
+│   │   ├── ML Platform x2
+│   │   └── Applied Scientists x2
+│   └── VP Developer Platform
+│       ├── DevRel Lead → DevRel x3
+│       ├── SDK Engineers x2
+│       └── Technical Writers x2
+├── VP Product
+│   ├── PMs x4
+│   ├── Design Lead → Designers x4, UXR x2, Design Sys x2
+│   └── PMM x2
+├── VP Growth
+│   ├── Growth Marketing Lead → Growth x3, Perf Mktg x2
+│   ├── Content/SEO Lead → Content x2, SEO x1
+│   ├── Community Lead → Community x2, Events x1
+│   ├── Partnerships Lead → BD x3, DevRel x2
+│   └── Regional GMs (KE, NG, GH, ZA) x4
+├── VP Sales
+│   ├── Enterprise Sales Lead → AEs x4, SDRs x4
+│   └── SMB Sales Lead → AEs x4
+├── VP Operations
+│   ├── Support Director → Support Mgrs x2, Agents x10
+│   ├── CS Director → CSMs x6, Onboarding x2
+│   ├── People Ops Lead → HR x2, Recruiting x1
+│   └── Office/Finance Admin x2
+├── VP Finance
+│   ├── Controller x1
+│   ├── FP&A x1
+│   └── Treasury x1
+├── VP Legal/Compliance
+│   ├── Counsel x2
+│   ├── Compliance x1
+│   └── DPO x1
+└── VP People
+    ├── HRBPs x2
+    ├── Recruiting Lead → Recruiters x2
+    ├── L&D Lead x1
+    └── Comp & Benefits x1
 ```
 
 ---
 
-*Org chart reviewed quarterly. Updated whenever reporting changes.*
+## 4. Reporting Lines & Span of Control
+
+| Manager | Direct Reports | Max Span | Current Span |
+|---------|----------------|----------|--------------|
+| **CEO** | 6 (CTO, VP Product, VP Growth, VP Ops, Finance, Legal) | 8 | 6 |
+| **CTO** | 5 (EMs, Security, QA) | 7 | 5 |
+| **VP Product** | 4 (PMs, Design, PMM) | 6 | 4 |
+| **VP Growth** | 5 (Leads) | 7 | 5 |
+| **VP Ops** | 5 (Support, CS, People, Admin, Finance) | 7 | 5 |
+| **EM Backend** | 8 (Engineers) | 8 | 6 |
+| **EM Frontend** | 5 (Engineers) | 8 | 4 |
+| **Support Mgr** | 4 (Agents) | 8 | 2 |
+
+---
+
+## 5. Decision Rights (RACI)
+
+| Decision | CEO | CTO | VP Product | VP Growth | VP Ops | EM | PM |
+|----------|-----|-----|------------|-----------|--------|----|----|
+| **Strategy** | A | C | C | C | C | I | I |
+| **Architecture** | I | A | C | I | C | R | C |
+| **Product Roadmap** | I | C | A | C | I | C | R |
+| **Hiring (Eng)** | A | R | I | I | C | R | I |
+| **Hiring (Non-Eng)** | A | I | C | C | R | I | I |
+| **Budget** | A | C | C | C | R | I | I |
+| **Incident (SEV-1)** | A | R | I | I | C | R | I |
+| **Security Policy** | A | R | I | I | C | C | I |
+| **Pricing** | A | C | R | C | I | I | C |
+| **Marketing Campaign** | A | I | C | R | I | I | C |
+
+---
+
+## 5. Communication Cadence
+
+| Meeting | Cadence | Attendees | Duration |
+|---------|---------|-----------|----------|
+| **All Hands** | Monthly | All | 60 min |
+| **Leadership Sync** | Weekly | CEO + VPs + CTO | 60 min |
+| **Eng All Hands** | Bi-weekly | All Engineering | 30 min |
+| **Product Review** | Weekly | PMs, Design, Eng Leads | 60 min |
+| **Growth Review** | Weekly | Growth Team | 60 min |
+| **Ops Review** | Weekly | Ops Team | 30 min |
+| **Sprint Planning** | Bi-weekly | Eng + Product | 90 min |
+| **Retro** | Bi-weekly | Per team | 60 min |
+| **1:1** | Weekly | Manager ↔ IC | 30 min |
+| **Skip Level** | Quarterly | CEO ↔ IC | 30 min |
+| **Offsite** | Quarterly | Leadership + Team Leads | 2 days |
+
+---
+
+*Confidential. For Nodbusiness Technologies internal use only.*

@@ -91,7 +91,10 @@ async function isSocketTokenRevoked(
     }
     return false;
   } catch {
-    return false;
+    // Fail CLOSED: a socket is a long-lived privileged channel, so when
+    // Redis is unreachable we reject the handshake rather than let a
+    // potentially-revoked token connect.
+    return true;
   }
 }
 
@@ -305,6 +308,28 @@ export function initSocket(httpServer: HttpServer, corsOrigin: string | string[]
 
     socket.on('disconnect', () => {
       // Presence offline handled by HTTP PUT /presence
+    });
+
+    // ── Live location tracking room (Enterprise tier) ─────────────────────
+    socket.on('join_business_tracking', async (businessId: unknown) => {
+      if (!businessId || typeof businessId !== 'string') return;
+      try {
+        // Verify the business has pro tier before allowing join
+        const { rows } = await pool.query(
+          `SELECT tier FROM business_subscriptions WHERE business_id = $1`,
+          [businessId],
+        );
+        const tier = rows[0]?.tier ?? 'freemium';
+        if (tier === 'pro') {
+          socket.join(`business:${businessId}:tracking`);
+        }
+      } catch { /* non-fatal — deny silently */ }
+    });
+
+    socket.on('leave_business_tracking', (businessId: unknown) => {
+      if (businessId && typeof businessId === 'string') {
+        socket.leave(`business:${businessId}:tracking`);
+      }
     });
   });
 

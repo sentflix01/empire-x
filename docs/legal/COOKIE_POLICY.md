@@ -1,115 +1,188 @@
 # Nodbusiness — Cookie Policy
 
-> What cookies and local storage we use and why.
-> **Last updated:** August 2026
+> **Classification:** Confidential — Internal Use Only (Public when published)
+> **Version:** 1.0
+> **Effective Date:** [Date]
+> **Last Updated:** August 2026
 
 ---
 
-## Summary
+## Acronyms
 
-Nodbusiness uses minimal tracking. We use cookies and browser storage **only to make the app work** — not to track you across the internet or sell your data.
-
----
-
-## What We Use
-
-### 1. Authentication Cookie (`access_token`)
-
-| Property | Value |
-|---|---|
-| **Purpose** | Keeps you logged in |
-| **Type** | Session cookie (currently in localStorage; HttpOnly cookie migration planned) |
-| **Duration** | 7 days |
-| **Third-party?** | No — Nodbusiness only |
-| **Required?** | Yes — app cannot function without it |
-
-```
-Current: localStorage.setItem('access_token', jwt)
-Planned: Set-Cookie: access_token=jwt; HttpOnly; Secure; SameSite=Strict; Max-Age=604800
-```
-
-### 2. Theme Preference
-
-| Property | Value |
-|---|---|
-| **Purpose** | Remember your dark/light mode choice |
-| **Type** | localStorage |
-| **Duration** | Permanent until cleared |
-| **Third-party?** | No |
-| **Required?** | No — defaults to light mode |
-
-### 3. Tab Order Preference (Chat)
-
-| Property | Value |
-|---|---|
-| **Purpose** | Remember your chat tab order (Contacts/All/Groups/Channels) |
-| **Type** | localStorage (`empire_chat_tab_order`) |
-| **Duration** | Permanent until cleared |
-| **Third-party?** | No |
-| **Required?** | No |
-
-### 4. Announcement Ticker (Dismissed)
-
-| Property | Value |
-|---|---|
-| **Purpose** | Remember that you dismissed the company announcement banner |
-| **Type** | localStorage (`empire_company_ticker_hidden`) |
-| **Duration** | Until localStorage is cleared |
-| **Third-party?** | No |
-| **Required?** | No |
-
-### 5. Draft Builder State
-
-| Property | Value |
-|---|---|
-| **Purpose** | Save your showroom builder progress so you don't lose work |
-| **Type** | localStorage (`empire_builder_draft`) |
-| **Duration** | Until you clear or publish |
-| **Third-party?** | No |
-| **Required?** | No — but without it you lose unsaved work |
+| Acronym | Full Form |
+|---------|-----------|
+| API | Application Programming Interface |
+| CDN | Content Delivery Network |
+| CSRF | Cross-Site Request Forgery |
+| GDPR | General Data Protection Regulation |
+| PII | Personally Identifiable Information |
+| SDK | Software Development Kit |
 
 ---
 
-## Third-Party Cookies
+## 1. What Are Cookies
 
-| Service | Purpose | Can you opt out? |
-|---|---|---|
-| **Stripe** | Payment processing (only on checkout pages) | You can avoid by not using Stripe checkout |
-| **Google OAuth** | Sign in with Google (only if you use Google login) | You can register with email instead |
-| **Sentry** | Error tracking (no PII, no cross-site tracking) | Cannot opt out while using app |
-| **Vercel** | Preview deployment authentication | Not set in production |
+Cookies are small text files stored on your device (computer, phone, tablet) when you visit a website. They help websites remember your preferences, keep you logged in, understand how you use the site, and show relevant content.
 
-**We do NOT use:** Google Analytics, Facebook Pixel, TikTok Pixel, or any advertising tracking cookies.
+**We use cookies and similar technologies** (localStorage, sessionStorage, IndexedDB, pixel tags) — collectively "Cookies" in this policy.
 
 ---
 
-## How to Clear
+## 2. Cookie Categories
 
-**In your browser:**
-- Chrome: Settings → Privacy and Security → Clear browsing data → Cookies
-- Firefox: Settings → Privacy & Security → Clear Data → Cookies
-- Safari: Settings → Safari → Clear History and Website Data
+### 2.1 Essential (Strictly Necessary)
+**No consent required** — required for the Platform to function.
 
-**Effect:** You will be logged out of Nodbusiness and all preferences reset.
+| Cookie | Purpose | Duration | Domain |
+|--------|---------|----------|--------|
+| `session_id` | Authenticated session identifier | Session / 30 days | nodbusiness.app |
+| `csrf_token` | CSRF protection for forms | Session | nodbusiness.app |
+| `wallet_nonce` | Wallet operation nonce (anti-replay) | 1 hour | nodbusiness.app |
+| `auth_refresh` | Refresh token rotation flag | 7 days | nodbusiness.app (HttpOnly) |
+| `rate_limit_bucket` | Client-side rate limit tracking | 1 hour | nodbusiness.app |
+| `feature_flags` | Cached feature flag state | 5 minutes | nodbusiness.app |
 
-**In the Nodbusiness app:**
-- Account Settings → Privacy → Clear local data (planned feature)
+### 2.2 Preferences (Functional)
+**Consent required** — remember your choices.
+
+| Cookie | Purpose | Duration | Domain |
+|--------|---------|----------|--------|
+| `locale` | Language (en, am, etc.) | 1 year | nodbusiness.app |
+| `theme` | Light/dark/system | 1 year | nodbusiness.app |
+| `currency` | Preferred currency (ETB, USD, KES, etc.) | 1 year | nodbusiness.app |
+| `timezone` | User timezone for timestamps | 1 year | nodbusiness.app |
+| `sidebar_collapsed` | UI state persistence | 1 year | nodbusiness.app |
+| `notification_sound` | Sound preference for notifications | 1 year | nodbusiness.app |
+
+### 2.3 Analytics & Performance
+**Consent required** — understand usage, improve Platform.
+
+| Cookie | Purpose | Duration | Domain |
+|--------|---------|----------|--------|
+| `_ga` | Google Analytics client ID | 2 years | nodbusiness.app |
+| `_ga_<container>` | GA4 session tracking | 2 years | nodbusiness.app |
+| `_gid` | GA session ID | 24 hours | nodbusiness.app |
+| `_gat` | GA throttle | 1 minute | nodbusiness.app |
+| `nod_analytics_session` | Custom session ID for internal analytics | 30 minutes | nodbusiness.app |
+| `nod_feature_usage` | Feature adoption tracking | 1 year | nodbusiness.app |
+| `nod_perf_timing` | Core Web Vitals sampling | Session | nodbusiness.app |
+
+### 2.4 Marketing & Personalization
+**Consent required** — relevant content, attribution.
+
+| Cookie | Purpose | Duration | Domain |
+|--------|---------|----------|--------|
+| `_fbp` | Meta (Facebook) Pixel client ID | 3 months | nodbusiness.app |
+| `_gcl_au` | Google Ads conversion linker | 3 months | nodbusiness.app |
+| `nod_attribution` | First-touch / last-touch attribution | 90 days | nodbusiness.app |
+| `nod_personalization` | Content recommendations, feed ranking | 1 year | nodbusiness.app |
+| `nod_ab_test_<exp>` | A/B test variant assignment | Experiment duration | nodbusiness.app |
 
 ---
 
-## GDPR / Cookie Consent
+## 3. Third-Party Cookies
 
-For users in the European Union, we will display a cookie consent banner that allows you to:
-- Accept all (including Stripe/Google analytics if applicable)
-- Reject non-essential cookies
-- See a detailed breakdown of each cookie
+| Provider | Purpose | Cookies | Consent Category |
+|----------|---------|---------|------------------|
+| **Stripe** | Payment processing (Elements, Link) | `__stripe_mid`, `__stripe_sid` | Essential |
+| **Chapa** | Payment redirect/verification | Session only | Essential |
+| **Flutterwave** | Payment processing | Session only | Essential |
+| **Google Maps** | Map embed in showrooms | `NID`, `CONSENT` | Preferences |
+| **Firebase (FCM)** | Push notifications | `FCM_TOKEN` | Preferences |
+| **Cloudflare** | Bot management, CDN | `__cf_bm`, `cf_clearance` | Essential |
 
-This banner is not yet implemented but is required before serving EU users.
+**We do not allow** third-party advertising networks to set cookies on our Platform for cross-site tracking.
 
 ---
 
-## Changes
+## 4. Local Storage & Similar Technologies
 
-We will notify you of changes to this Cookie Policy via in-app notification with 30 days' notice.
+| Technology | Purpose | Cleared |
+|------------|---------|---------|
+| **localStorage** | Draft showrooms, cart, offline queue, feature flag cache | On logout / manual clear |
+| **sessionStorage** | Temporary UI state, wizard steps, form drafts | Tab close |
+| **IndexedDB** | Offline message queue, draft posts, image cache | Manual clear / quota |
+| **Service Worker Cache** | PWA offline assets, fallback pages | Service worker update |
 
-**Contact:** privacy@nodbusiness.app
+**These are not cookies** but serve similar purposes. Cleared via browser settings or our "Clear Data" button in Privacy settings.
+
+---
+
+## 5. Cookie Consent Management
+
+### 5.1 Consent Banner
+- **Shown:** First visit, after policy changes, when consent expires
+- **Options:** Accept All, Reject All, Customize (per category)
+- **Granular:** Toggle per category (Essential always on)
+- **Record:** Consent logged with timestamp, IP hash, user agent, version
+
+### 5.2 Managing Consent
+- **Dashboard:** Settings → Privacy → Cookies (toggle per category)
+- **Reject All:** Only Essential cookies set
+- **Withdraw:** Anytime via dashboard or "Cookie Settings" link in footer
+- **Effect:** Non-essential cookies removed on next page load
+
+### 5.3 Consent Records
+| Field | Stored |
+|-------|--------|
+| `consent_id` | UUID |
+| `user_id` | UUID (or anonymous ID) |
+| `categories` | JSON array of accepted categories |
+| `version` | Policy version |
+| `timestamp` | ISO 8601 UTC |
+| `ip_hash` | SHA-256(IP + salt) |
+| `user_agent` | Browser string |
+
+---
+
+## 6. Cookie Duration
+
+| Category | Max Duration | Renewal |
+|----------|--------------|---------|
+| **Essential** | Session to 30 days | Auto on activity |
+| **Preferences** | 13 months | On revisit |
+| **Analytics** | 13 months (GA: 2 years) | On revisit |
+| **Marketing** | 13 months | On revisit |
+| **Third-Party** | Per provider (max 13 months) | Per provider |
+
+**Session cookies** expire on browser close. **Persistent cookies** expire per above.
+
+---
+
+## 7. Your Rights
+
+| Right | Cookies |
+|-------|---------|
+| **Withdraw Consent** | Anytime via dashboard → Privacy → Cookies |
+| **Delete Cookies** | Browser settings → Clear site data; or our "Clear All Data" button |
+| **Block Cookies** | Browser settings (may break Essential functions) |
+| **Access Logs** | Request via privacy@nodbusiness.app |
+
+---
+
+## 8. Changes to This Policy
+
+- **Material changes:** 30 days notice via email + dashboard banner
+- **Version history:** Maintained at bottom of this document
+- **Continued use** after effective date = acceptance
+
+---
+
+## 9. Contact
+
+**Nodbusiness Technologies PLC**  
+[Address, Addis Ababa, Ethiopia]  
+**Privacy Email:** privacy@nodbusiness.app  
+**DPO Email:** dpo@nodbusiness.app  
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | [Date] | Initial release |
+
+---
+
+*Confidential. For Nodbusiness Technologies internal use only.*

@@ -205,7 +205,8 @@ app.use('/api/auth/login',    rateLimit({ windowMs: 15 * 60 * 1000, max: 20, ski
 app.use('/api/auth/register', rateLimit({ windowMs: 15 * 60 * 1000, max: 20, skip: () => isDev, store: buildRateLimitStore() as any, message: { error: 'Too many requests, try again later' }, standardHeaders: true, legacyHeaders: false }));
 
 // ── Body parsing ──────────────────────────────────────────────────────────────
-app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
+app.use('/api/orders/webhook',        express.raw({ type: 'application/json' }));
+app.use('/api/subscriptions/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
@@ -286,6 +287,12 @@ app.use('/api/showrooms/:showroomId/external-sources', require('./routes/externa
 app.use('/api/proxy',        require('./routes/proxy'));
 app.use('/api/devops',       require('./routes/devops'));
 app.use('/api/docs',         require('./routes/docs'));
+
+// ── Subscription tiers & business features ───────────────────────────────────
+app.use('/api/subscriptions',      require('./routes/subscriptions'));
+app.use('/api/locations',          require('./routes/locations'));
+app.use('/api/business-webhooks',  require('./routes/businessWebhooks'));
+app.use('/api/business-api-keys',  require('./routes/businessApiKeys'));
 
 // ── Metrics (admin only) ──────────────────────────────────────────────────────
 app.get('/metrics', requireAuth, requireAdmin, (_req: Request, res: Response) => {

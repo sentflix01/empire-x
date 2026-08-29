@@ -24,6 +24,8 @@ export interface SectionType {
   label: string;
   icon: string; // lucide icon name
   tier: "freemium" | "premium" | "pro";
+  tierLabel?: string;     // e.g. "Premium feature" — shown in locked state
+  tierFeatures?: string[]; // bullet points shown in upgrade prompt
   fields: BuilderField[];
 }
 
@@ -197,6 +199,8 @@ export const SECTION_TYPES: SectionType[] = [
   },
   {
     key: "portfolio", label: "Portfolio / Work", icon: "FolderOpen", tier: "premium",
+    tierLabel: "Premium feature",
+    tierFeatures: ["Showcase projects", "Client logos", "Project details"],
     fields: [
       { key: "portTitle", label: "Section Title", type: "text", placeholder: "Our Work" },
       {
@@ -212,6 +216,8 @@ export const SECTION_TYPES: SectionType[] = [
   },
   {
     key: "newsletter", label: "Newsletter", icon: "Send", tier: "premium",
+    tierLabel: "Premium feature",
+    tierFeatures: ["Email capture", "Subscriber management", "Custom forms"],
     fields: [
       { key: "newsTitle", label: "Headline",     type: "text", placeholder: "Subscribe for Updates" },
       { key: "newsDesc",  label: "Description",  type: "text", placeholder: "Get the latest news" },
@@ -220,6 +226,8 @@ export const SECTION_TYPES: SectionType[] = [
   },
   {
     key: "video", label: "Video", icon: "PlayCircle", tier: "premium",
+    tierLabel: "Premium feature",
+    tierFeatures: ["Video embedding", "Custom thumbnails", "Playback analytics"],
     fields: [
       { key: "vidTitle", label: "Section Title",   type: "text", placeholder: "Watch Our Story" },
       { key: "vidUrl",   label: "YouTube URL",     type: "text", placeholder: "https://youtu.be/..." },
@@ -228,6 +236,8 @@ export const SECTION_TYPES: SectionType[] = [
   },
   {
     key: "map", label: "Location Map", icon: "MapPin", tier: "premium",
+    tierLabel: "Premium feature",
+    tierFeatures: ["Google Maps embed", "Custom markers", "Directions link"],
     fields: [
       { key: "mapTitle", label: "Section Title",     type: "text", placeholder: "Find Us" },
       { key: "mapUrl",   label: "Google Maps Embed", type: "text", placeholder: "https://maps.google.com/embed?..." },
@@ -236,6 +246,8 @@ export const SECTION_TYPES: SectionType[] = [
   },
   {
     key: "cta", label: "Call to Action", icon: "Megaphone", tier: "premium",
+    tierLabel: "Premium feature",
+    tierFeatures: ["Conversion tracking", "A/B testing", "Custom styling"],
     fields: [
       { key: "ctaTitle", label: "Headline",     type: "text",  placeholder: "Ready to get started?" },
       { key: "ctaDesc",  label: "Description",  type: "text",  placeholder: "Contact us today" },
@@ -245,6 +257,8 @@ export const SECTION_TYPES: SectionType[] = [
   },
   {
     key: "process", label: "How It Works", icon: "GitBranch", tier: "premium",
+    tierLabel: "Premium feature",
+    tierFeatures: ["Step-by-step flow", "Custom icons", "Progress tracking"],
     fields: [
       { key: "processTitle", label: "Section Title", type: "text", placeholder: "How It Works" },
       {
@@ -259,6 +273,8 @@ export const SECTION_TYPES: SectionType[] = [
   },
   {
     key: "booking", label: "Booking / Appointment", icon: "CalendarCheck", tier: "premium",
+    tierLabel: "Premium feature",
+    tierFeatures: ["Calendar integration", "Payment collection", "Reminders"],
     fields: [
       { key: "bookingTitle", label: "Section Title", type: "text",     placeholder: "Book an Appointment" },
       { key: "bookingDesc",  label: "Description",   type: "textarea", placeholder: "Schedule your session..." },
@@ -267,6 +283,8 @@ export const SECTION_TYPES: SectionType[] = [
   },
   {
     key: "caseStudies", label: "Case Studies", icon: "TrendingUp", tier: "pro",
+    tierLabel: "Pro feature",
+    tierFeatures: ["Detailed metrics", "Client quotes", "Visual storytelling"],
     fields: [
       { key: "caseTitle", label: "Section Title", type: "text", placeholder: "Success Stories" },
       {
@@ -281,6 +299,8 @@ export const SECTION_TYPES: SectionType[] = [
   },
   {
     key: "partners", label: "Partners / Clients", icon: "Handshake", tier: "pro",
+    tierLabel: "Pro feature",
+    tierFeatures: ["Logo grid", "Partner categories", "Testimonials"],
     fields: [
       { key: "partnersTitle", label: "Section Title", type: "text", placeholder: "Our Partners" },
       {
@@ -295,6 +315,8 @@ export const SECTION_TYPES: SectionType[] = [
   },
   {
     key: "awards", label: "Awards & Recognition", icon: "Award", tier: "pro",
+    tierLabel: "Pro feature",
+    tierFeatures: ["Award showcase", "Year filtering", "Category tags"],
     fields: [
       { key: "awardsTitle", label: "Section Title", type: "text", placeholder: "Awards & Recognition" },
       {
@@ -308,6 +330,8 @@ export const SECTION_TYPES: SectionType[] = [
   },
   {
     key: "careers", label: "Careers / Jobs", icon: "UserPlus", tier: "pro",
+    tierLabel: "Pro feature",
+    tierFeatures: ["Job board", "Application tracking", "Team pages"],
     fields: [
       { key: "careersTitle", label: "Section Title", type: "text", placeholder: "Join Our Team" },
       {
@@ -322,6 +346,8 @@ export const SECTION_TYPES: SectionType[] = [
   },
   {
     key: "industries", label: "Industries We Serve", icon: "Building2", tier: "pro",
+    tierLabel: "Pro feature",
+    tierFeatures: ["Industry filtering", "Case study links", "Expertise tags"],
     fields: [
       { key: "industriesTitle", label: "Section Title", type: "text", placeholder: "Industries We Serve" },
       {
@@ -331,6 +357,30 @@ export const SECTION_TYPES: SectionType[] = [
           { key: "desc", label: "Description", type: "textarea", placeholder: "How we help" },
         ],
       },
+    ],
+  },
+  // ── Pro-only sections for Enterprise tier ───────────────────────────────────
+  {
+    key: "inventory_catalog",
+    label: "Inventory Catalog",
+    icon: "Package",
+    tier: "pro",
+    tierLabel: "Pro feature",
+    tierFeatures: ["Live product sync", "Bulk CSV/JSON import", "Stock indicators"],
+    fields: [
+      { key: "catalogTitle", label: "Section Title", type: "text", placeholder: "Our Products" },
+      { key: "showStock",    label: "Show stock levels", type: "text", placeholder: "true" },
+    ],
+  },
+  {
+    key: "live_location_tracking",
+    label: "Live Location",
+    icon: "Navigation",
+    tier: "pro",
+    tierLabel: "Pro feature",
+    tierFeatures: ["Real-time GPS pin on showroom", "Visible to any visitor", "Socket.IO powered"],
+    fields: [
+      { key: "locationTitle", label: "Section Title", type: "text", placeholder: "Find us live" },
     ],
   },
 ];

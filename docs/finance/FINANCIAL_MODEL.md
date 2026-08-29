@@ -1,200 +1,263 @@
-# Nodbusiness — Financial Model & P&L Framework
+# Nodbusiness — Finance Strategy & Model
 
-> **The financial operating model for Nodbusiness Technologies.**
-> Every financial decision is grounded in this model.
-> Updated monthly with actuals vs. projections.
+> **Classification:** Confidential — Internal Use Only
+> **Version:** 1.0
+> **Last Updated:** August 2026
 
 ---
 
-## Acronyms Used in This Document
+## Acronyms
 
 | Acronym | Full Form |
 |---------|-----------|
-| P&L | Profit and Loss — income statement showing revenue minus costs |
-| MRR | Monthly Recurring Revenue — total subscription revenue in one month |
-| ARR | Annual Recurring Revenue — MRR × 12 |
-| COGS | Cost of Goods Sold — direct costs of delivering the service |
-| OPEX | Operating Expenses — ongoing costs to run the business |
-| CAPEX | Capital Expenditure — one-time investment in long-term assets |
-| EBITDA | Earnings Before Interest, Taxes, Depreciation, and Amortization |
+| ARR | Annual Recurring Revenue |
+| ARPU | Average Revenue Per User |
 | CAC | Customer Acquisition Cost |
-| LTV | Lifetime Value — total revenue from one customer over their lifetime |
-| GMV | Gross Merchandise Value — total value of transactions on the platform |
-| ETB | Ethiopian Birr |
-| USD | United States Dollar |
-| MoM | Month over Month |
-| YoY | Year over Year |
+| CapEx | Capital Expenditure |
+| COGS | Cost of Goods Sold |
+| EBITDA | Earnings Before Interest, Taxes, Depreciation, Amortization |
+| GMV | Gross Merchandise Value |
+| LTV | Lifetime Value |
+| MAU | Monthly Active Users |
+| MRR | Monthly Recurring Revenue |
+| OpEx | Operating Expenditure |
+| P&L | Profit and Loss |
 | ROI | Return on Investment |
+| SaaS | Software as a Service |
+| SMB | Small and Medium Business |
 
 ---
 
-## 1. Revenue Model
+## 1. Financial Vision
 
-### Revenue Streams (all active by Phase 2)
-
-```
-Stream 1: Subscriptions (primary)
-  Free tier:      $0/month    (viral growth engine — no revenue)
-  Starter:       $19/month   (remove branding, unlimited products)
-  Pro:           $49/month   (3 showrooms, full analytics)
-  Business:      $99/month   (unlimited showrooms, API access)
-
-Stream 2: Template Marketplace Commission (Phase 2+)
-  Nodbusiness takes 30% of all template subscription revenue
-  Developer takes 70%
-  Revenue = total template subscriptions × 30%
-
-Stream 3: Featured Placement (Phase 2+)
-  Category featured (monthly): $29
-  City-wide featured (monthly): $99
-  Feed promoted post (per post): $9–$49
-
-Stream 4: Transaction Fees (LIVE — see architecture/CURRENCY_AND_COMMISSION.md)
-  Marketplace orders: 3% commission per completed order (COMMISSION_RATE env, default 0.03)
-  Task completions: no platform fee yet — same rate planned when gig payments route through the wallet
-```
+> **Build a capital-efficient, high-margin platform that compounds value through network effects — where every business brings customers, every transaction funds growth, and every developer adds leverage.**
 
 ---
 
-## 2. P&L Statement Template (Monthly)
+## 2. Revenue Model
 
-Use this structure every month to track actuals vs. budget:
+### 2.1 Revenue Streams
 
-```
-NODBUSINESS TECHNOLOGIES — MONTHLY P&L
-Month: [Month Year]
-Currency: USD (convert ETB at current rate)
+| Stream | Model | Year 1 | Year 2 | Year 3 |
+|--------|-------|--------|--------|--------|
+| **Subscriptions** | Tiered: Free / $19 / $49 / $99 / Custom | $180K | $1.2M | $3.6M |
+| **Template Marketplace** | 30% cut (quality-adjusted 70-84% to dev) | $0 | $150K | $1.1M |
+| **Featured Placement** | Vickrey auction (5% platform fee) | $0 | $60K | $300K |
+| **Transaction Fees** | 1-3% (Stripe/Chapa/COD/Wallet) | $50K | $600K | $2.5M |
+| **Developer Subscriptions** | $29/$99/mo (Pro/Enterprise) | $0 | $36K | $240K |
+| **Total ARR** | | **$230K** | **$2.05M** | **$7.7M** |
 
-REVENUE
-  Subscription Revenue (Starter × count)     $______
-  Subscription Revenue (Pro × count)          $______
-  Subscription Revenue (Business × count)     $______
-  Template Marketplace Commission              $______
-  Featured Placement Revenue                  $______
-  Transaction Fees                            $______
-  ─────────────────────────────────────────────────────
-  TOTAL REVENUE                               $______
+### 2.2 Revenue Quality Metrics
 
-COST OF GOODS SOLD (COGS)
-  Cloud Infrastructure (Railway + Neon + Vercel)  $______
-  Payment Processing Fees (Stripe + Chapa)        $______
-  AI API Costs (OpenAI / Gemini)                  $______
-  Email Service (Resend)                          $______
-  Error Monitoring (Sentry)                       $______
-  Other direct costs                              $______
-  ─────────────────────────────────────────────────────
-  TOTAL COGS                                  $______
-  GROSS PROFIT                                $______
-  GROSS MARGIN %                              _____%
-
-OPERATING EXPENSES (OPEX)
-  Salaries & Contractor Fees                  $______
-  Marketing & Advertising                     $______
-  Legal & Compliance                          $______
-  Accounting & Finance                        $______
-  Tools & Subscriptions (non-COGS)            $______
-  Travel & Team Meetings                      $______
-  Office / Coworking                          $______
-  Miscellaneous                               $______
-  ─────────────────────────────────────────────────────
-  TOTAL OPEX                                  $______
-
-  EBITDA                                      $______
-  EBITDA MARGIN %                             _____%
-
-  Taxes                                       $______
-
-  NET INCOME / (LOSS)                         $______
-```
+| Metric | Target | Rationale |
+|--------|--------|-----------|
+| **Recurring %** | >80% | Predictability, valuation |
+| **Net Revenue Retention** | >110% | Expansion > churn |
+| **Gross Margin** | >80% | SaaS benchmark |
+| **LTV:CAC** | >18:1 | Capital efficiency |
+| **Payback Period** | <12 months | Cash flow health |
 
 ---
 
-## 3. Key Financial Metrics Tracker
+## 3. Unit Economics
 
-Update these at the start of every month:
+### 3.1 Per Business (Steady State Year 3)
 
-| Metric | Formula | Last Month | This Month | Target |
-|--------|---------|-----------|-----------|--------|
-| MRR | Sum of all active subscriptions | $0 | $0 | $25,000 (Phase 2 end) |
-| ARR | MRR × 12 | $0 | $0 | $300,000 |
-| MRR Growth % | (This MRR - Last MRR) / Last MRR | — | — | 20%+ |
-| Gross Margin % | (Revenue - COGS) / Revenue | — | — | 80%+ |
-| Net Burn | OPEX - Revenue (when negative, you're burning) | — | — | < $15,000 |
-| Runway | Cash / Monthly Net Burn | — | — | 12+ months |
-| CAC | Total marketing spend / New paying customers | — | — | < $30 |
-| LTV | ARPU × Average months retained | — | — | $696+ |
-| LTV:CAC Ratio | LTV / CAC | — | — | > 10:1 |
-| Payback Period | CAC / Monthly ARPU | — | — | < 3 months |
-| Paying Customers | Count of active paid subscriptions | 0 | 0 | 500 |
-| ARPU | MRR / Paying Customers | — | — | $35+ |
-| Churn Rate | Lost customers / Total customers | — | — | < 3% |
-| Cash on Hand | Bank account balance | — | — | 12+ months runway |
+| Metric | Value | Calculation |
+|--------|-------|-------------|
+| **Avg Plan** | $49/mo | Mix: 40% Pro, 30% Business, 20% Starter, 10% Enterprise |
+| **Marketplace Attach** | 30% | 30% of businesses buy ≥1 template |
+| **Avg Marketplace Spend** | $120/yr | 4 templates × $30 avg |
+| **Transaction Fees** | $200/yr | $50K GMV × 0.4% blended rate |
+| **Total ARPU** | **$788/yr** | $588 sub + $120 marketplace + $80 fees |
+| **LTV (3-yr, 90% retention)** | **$2,127** | ARPU × (1 / (1 - retention)) × margin |
 
----
+### 3.2 Acquisition Costs
 
-## 4. Budget by Department (Monthly, Post-Seed)
+| Channel | CAC | Volume | Notes |
+|---------|-----|--------|-------|
+| **Organic/Viral** | $0 | 60% | Business-led, customer-to-maker |
+| **Referral Program** | $15 | 20% | $15 credit each side |
+| **Content/SEO** | $30 | 15% | Long-tail, compounding |
+| **Paid Social** | $45 | 5% | Lookalike from purchasers |
+| **Blended CAC** | **$12** | | Weighted average |
 
-| Department | Monthly Budget (USD) | % of Total |
-|-----------|---------------------|-----------|
-| Engineering (salaries + contractors) | $15,000 | 47% |
-| Marketing & Growth | $4,000 | 12.5% |
-| Customer Support | $3,000 | 9.4% |
-| Operations & Legal | $2,500 | 7.8% |
-| Infrastructure (COGS) | $600 | 1.9% |
-| Product & Design | $3,500 | 10.9% |
-| CEO / Admin | $2,000 | 6.3% |
-| Buffer | $1,400 | 4.4% |
-| **Total** | **$32,000** | **100%** |
+**LTV:CAC = 177:1** — exceptional capital efficiency
 
 ---
 
-## 5. Break-Even Analysis
+## 4. Cost Structure
 
-```
-Monthly fixed costs (post-seed, 10-person team): ~$32,000
-Required MRR to break even: $32,000 / 0.82 gross margin = ~$39,000 MRR
-Required paying businesses: $39,000 / $35 ARPU = ~1,115 paying businesses
+### 4.1 COGS (Direct Costs)
 
-Timeline to break-even (base case):
-  Month 18: $25,000 MRR → Series A trigger (not yet break-even)
-  Month 24: $70,500 MRR → Approaching break-even
-  Month 30: $120,000 MRR → Cash-flow positive
+| Category | Year 1 | Year 2 | Year 3 | % of Revenue |
+|----------|--------|--------|--------|--------------|
+| **Payment Processing** | $12K | $120K | $400K | 3-5% |
+| **Infrastructure (Cloud)** | $24K | $100K | $400K | 5-6% |
+| **Email/Push/Comm** | $6K | $30K | $120K | 1-2% |
+| **Support Tools** | $6K | $18K | $60K | 1% |
+| **Total COGS** | **$48K** | **$268K** | **$980K** | **10-12%** |
 
-With Series A ($4M raised, larger team):
-  Monthly costs: ~$120,000–$180,000
-  Break-even MRR: ~$150,000–$220,000
-  Expected timing: Month 36–42
-```
+### 4.2 Operating Expenses (OpEx)
 
----
+| Category | Year 1 | Year 2 | Year 3 | Notes |
+|----------|--------|--------|--------|-------|
+| **Engineering** | $300K | $600K | $1.2M | 8→12→20 engineers |
+| **Product/Design** | $120K | $240K | $480K | 2→4→6 people |
+| **Growth/Marketing** | $180K | $400K | $800K | 3→6→10 people |
+| **Sales/BD** | $0 | $120K | $360K | 0→2→4 (Phase 2+) |
+| **Ops/Support** | $90K | $180K | $360K | 3→5→8 people |
+| **G&A (Legal, Finance, HR)** | $120K | $180K | $300K | |
+| **Total OpEx** | **$810K** | **$1.72M** | **$3.2M** | |
 
-## 6. Financial Controls
+### 4.3 Headcount Plan
 
-### Spending Authority
-```
-< $500:    Any team member can approve (expense report required)
-$500–$2,000: Direct manager approval
-$2,000–$10,000: CEO approval
-$10,000+:  CEO + Board approval (or investor approval per SHA)
-```
-
-### Financial Reporting Calendar
-```
-Monthly: P&L statement prepared by 10th of following month
-Quarterly: Board report (P&L + metrics + projections update)
-Annually: Audited financial statements (required for Series A+)
-```
-
-### Bank Account Rules
-```
-→ All revenue deposited to Nodbusiness Technologies PLC business account
-→ No personal transactions through company account — ever
-→ All payments tracked in accounting software (QuickBooks or Xero)
-→ Two-signature requirement for transfers > $5,000
-→ Monthly bank reconciliation required
-```
+| Role | Year 1 | Year 2 | Year 3 | Fully Loaded Cost |
+|------|--------|--------|--------|-------------------|
+| **Engineering** | 8 | 12 | 20 | $75K |
+| **Product/Design** | 2 | 4 | 6 | $60K |
+| **Growth/Marketing** | 3 | 6 | 10 | $60K |
+| **Sales/BD** | 0 | 2 | 4 | $75K |
+| **Ops/Support** | 3 | 5 | 8 | $30K |
+| **G&A** | 2 | 3 | 4 | $75K |
+| **Total** | **21** | **33** | **52** | |
 
 ---
 
-*Financial model maintained by CEO (Phase 1) or CFO (Phase 2+).*
-*Updated monthly, reviewed quarterly with board.*
+## 5. Financial Projections
+
+### 5.1 P&L Projection (Annual)
+
+| Line Item | Year 1 | Year 2 | Year 3 |
+|-----------|--------|--------|--------|
+| **Revenue** | $230K | $2.05M | $7.7M |
+| **COGS** | ($48K) | ($268K) | ($980K) |
+| **Gross Profit** | $182K | $1.78M | $6.72M |
+| **Gross Margin** | 79% | 87% | 87% |
+| **OpEx** | ($810K) | ($1.72M) | ($3.2M) |
+| **EBITDA** | ($628K) | $60K | $3.52M |
+| **EBITDA Margin** | -273% | 3% | 46% |
+| **D&A** | ($24K) | ($48K) | ($96K) |
+| **EBIT** | ($652K) | $12K | $3.42M |
+| **Tax** | $0 | ($3K) | ($855K) |
+| **Net Income** | ($652K) | $9K | $2.57M |
+
+### 5.2 Cash Flow
+
+| Metric | Year 1 | Year 2 | Year 3 |
+|--------|--------|--------|--------|
+| **Operating Cash Flow** | ($600K) | $200K | $3.2M |
+| **CapEx** | ($50K) | ($100K) | ($200K) |
+| **Free Cash Flow** | ($650K) | $100K | $3.0M |
+| **Cash Balance (EoY)** | $350K | $450K | $3.45M |
+
+---
+
+## 6. Funding Strategy
+
+### 6.1 Seed Round (Current)
+
+| Term | Detail |
+|------|--------|
+| **Raise** | $500K |
+| **Structure** | SAFE, $4M cap, 20% discount |
+| **Use of Funds** | Eng 40%, Growth 30%, Ops 15%, Buffer 15% |
+| **Runway** | 18 months (to Series A milestones) |
+| **Milestones** | 10K MAU, 500 paid, $25K MRR |
+
+### 6.2 Series A (Month 18)
+
+| Metric | Target |
+|--------|--------|
+| **MAU** | 100K |
+| **Paid Businesses** | 5,000 |
+| **MRR** | $125K |
+| **Raise** | $3-5M |
+| **Valuation** | $15-20M pre |
+| **Use** | Multi-country, developer platform, enterprise |
+
+### 6.3 Series B (Month 36)
+
+| Metric | Target |
+|--------|--------|
+| **MAU** | 500K |
+| **Paid Businesses** | 25K |
+| **ARR** | $6M+ |
+| **Raise** | $15-25M |
+| **Valuation** | $60-100M pre |
+| **Use** | Multi-region, enterprise, financing products |
+
+---
+
+## 6. Cap Table (Projected)
+
+| Holder | Pre-Seed | Post-Seed | Series A | Series B |
+|--------|----------|-----------|----------|----------|
+| **Founders** | 80% | 68% | 51% | 38% |
+| **ESOP** | 10% | 10% | 15% | 15% |
+| **Seed Investors** | — | 12% | 9% | 7% |
+| **Series A** | — | — | 20% | 15% |
+| **Series B** | — | — | — | 18% |
+| **Advisors** | 2% | 2% | 1.5% | 1% |
+| **Total** | 100% | 100% | 100% | 100% |
+
+---
+
+## 7. Key Financial Risks & Mitigations
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| **Slower adoption** | Medium | High | Organic-first GTM, low fixed costs, flexible hiring |
+| **Payment failures** | High | Medium | Multi-gateway, COD fallback, wallet escrow |
+| **Regulatory changes** | Medium | High | Local counsel, compliance roadmap, SOC2 |
+| **Competition (Shopify/WhatsApp)** | High | Medium | Patents, network effects, local-first |
+| **Talent retention** | High | High | Equity, mission, compute budget, culture |
+| **Currency volatility (ETB)** | High | Medium | Multi-currency wallet, USD hedging, local pricing |
+
+---
+
+## 8. Financial Controls
+
+| Control | Frequency | Owner |
+|---------|-----------|-------|
+| **Monthly Close** | 5th business day | Finance Lead |
+| **Budget vs Actual** | Monthly | Founder + Finance |
+| **Cash Flow Forecast** | Weekly (13-week rolling) | Finance Lead |
+| **Runway Calculation** | Weekly | Founder |
+| **Unit Economics Review** | Monthly | Founder + Growth |
+| **Cap Table Update** | Per transaction | Founder + Legal |
+| **Audit Prep** | Quarterly | Finance Lead |
+| **Tax Filings** | Per jurisdiction | Local Accountant |
+
+---
+
+## 9. Banking & Treasury
+
+| Account | Purpose | Institution |
+|---------|---------|-------------|
+| **Operating (USD)** | Payroll, vendors, OpEx | [Bank] |
+| **Operating (ETB)** | Local payroll, vendors | [Ethiopian Bank] |
+| **Revenue (USD)** | Stripe, Flutterwave settlements | [Bank] |
+| **Revenue (ETB)** | Chapa, Telebirr settlements | [Ethiopian Bank] |
+| **Wallet Reserves** | Customer balances (segregated) | [Bank - Trust] |
+| **Treasury (Reserves)** | 6-month runway buffer | Money Market / T-Bills |
+
+**Signing Authority:** Dual (Founder + Finance Lead) for >$10K
+
+---
+
+## 10. Key Metrics Dashboard (Weekly Review)
+
+| Metric | Green | Yellow | Red |
+|--------|-------|--------|-----|
+| **Cash Runway** | >12 months | 6-12 months | <6 months |
+| **Monthly Burn** | <Budget | Budget-120% | >120% Budget |
+| **MRR Growth** | >15% MoM | 5-15% | <5% |
+| **Net Revenue Retention** | >110% | 100-110% | <100% |
+| **Gross Margin** | >80% | 70-80% | <70% |
+| **CAC Payback** | <12 months | 12-18 months | >18 months |
+| **LTV:CAC** | >18:1 | 10-18:1 | <10:1 |
+
+---
+
+*Confidential. For Nodbusiness Technologies internal use only.*

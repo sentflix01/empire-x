@@ -68,7 +68,7 @@ let PRODUCT_ID = null;
 let NOTIF_ID = null;
 
 // ── Pull OTP from backend stdout via DB query ─────────────────────────────────
-const pool = require('../db/pool');
+const pool = require('../dist/db/pool');
 
 async function getOtpFromDb(email) {
   const { rows } = await pool.query(

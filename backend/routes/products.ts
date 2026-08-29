@@ -12,6 +12,7 @@ import type { Request, Response } from 'express';
 import logger from '../lib/logger';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
+import { checkTierLimit } from '../middleware/tierLimit';
 import { getRecord, createRecord, updateRecord, deleteRecord } from '../utils/crud';
 import { emitNotification } from '../socket';
 import { sendPushToUser } from './push';
@@ -153,5 +154,210 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
     res.json({ success: true });
   } catch { res.status(500).json({ error: 'Failed to delete product' }); }
 });
+
+// ── POST /bulk-import — Bulk import products (Premium+ tier) ───────────────────
+router.post(
+  '/bulk-import',
+  requireAuth,
+  checkTierLimit('bulk_import'),
+  async (req: Request, res: Response) => {
+    try {
+      const businessId = (req as Request & { businessId?: string }).businessId!;
+      if (!businessId) {
+        res.status(404).json({ error: 'No business found for this user' });
+        return;
+      }
+
+      const products = req.body as Array<Record<string, unknown>>;
+      if (!Array.isArray(products) || products.length === 0) {
+        res.status(400).json({ error: 'Request body must be a non-empty array of products' });
+        return;
+      }
+
+      if (products.length > 1000) {
+        res.status(400).json({ error: 'Maximum 1000 products per bulk import' });
+        return;
+      }
+
+      const client = await pool.connect();
+      let created = 0;
+      const errors: Array<{ index: number; reason: string; data: Record<string, unknown> }> = [];
+
+      try {
+        await client.query('BEGIN');
+
+        for (let i = 0; i < products.length; i++) {
+          const product = products[i];
+          const { title, description, price, currency, stock, images, category, tags, status, sku, barcode, unit, cost_price, min_stock, max_stock, expiry_date, batch_number, manufacturer, supplier_id, weight_kg, dimensions_cm, tax_rate, is_prescription, controlled_substance, storage_condition, variant_of, is_bundle, bundle_components, attributes } = product as Record<string, unknown>;
+
+          // Validation
+          if (!title || typeof title !== 'string' || title.trim().length === 0) {
+            errors.push({ index: i, reason: 'title is required and must be a non-empty string', data: product });
+            continue;
+          }
+          if (price === undefined || price === null || price === '') {
+            errors.push({ index: i, reason: 'price is required', data: product });
+            continue;
+          }
+          const parsedPrice = parseFloat(String(price));
+          if (isNaN(parsedPrice) || parsedPrice < 0) {
+            errors.push({ index: i, reason: 'price must be a non-negative number', data: product });
+            continue;
+          }
+          const curr = currency ? String(currency).toUpperCase() : 'ETB';
+          if (curr.length !== 3) {
+            errors.push({ index: i, reason: 'currency must be a 3-letter ISO code (e.g., ETB, USD)', data: product });
+            continue;
+          }
+
+          const parsedStock = stock !== undefined && stock !== null && stock !== '' ? parseInt(String(stock), 10) : 0;
+          if (isNaN(parsedStock) || parsedStock < 0) {
+            errors.push({ index: i, reason: 'stock must be a non-negative integer', data: product });
+            continue;
+          }
+
+          const parsedCostPrice = cost_price !== undefined && cost_price !== null && cost_price !== '' ? parseFloat(String(cost_price)) : null;
+          if (cost_price !== undefined && cost_price !== null && cost_price !== '' && (isNaN(parsedCostPrice!) || parsedCostPrice! < 0)) {
+            errors.push({ index: i, reason: 'cost_price must be a non-negative number', data: product });
+            continue;
+          }
+
+          const parsedMinStock = min_stock !== undefined && min_stock !== null && min_stock !== '' ? parseInt(String(min_stock), 10) : 10;
+          if (min_stock !== undefined && min_stock !== null && min_stock !== '' && (isNaN(parsedMinStock) || parsedMinStock < 0)) {
+            errors.push({ index: i, reason: 'min_stock must be a non-negative integer', data: product });
+            continue;
+          }
+
+          const parsedMaxStock = max_stock !== undefined && max_stock !== null && max_stock !== '' ? parseInt(String(max_stock), 10) : null;
+          if (max_stock !== undefined && max_stock !== null && max_stock !== '' && (isNaN(parsedMaxStock!) || parsedMaxStock! < 0)) {
+            errors.push({ index: i, reason: 'max_stock must be a non-negative integer', data: product });
+            continue;
+          }
+
+          let parsedExpiryDate: string | null = null;
+          if (expiry_date !== undefined && expiry_date !== null && expiry_date !== '') {
+            const d = new Date(String(expiry_date));
+            if (isNaN(d.getTime())) {
+              errors.push({ index: i, reason: 'expiry_date must be a valid date (ISO 8601)', data: product });
+              continue;
+            }
+            parsedExpiryDate = d.toISOString().split('T')[0];
+          }
+
+          const parsedWeight = weight_kg !== undefined && weight_kg !== null && weight_kg !== '' ? parseFloat(String(weight_kg)) : null;
+          if (weight_kg !== undefined && weight_kg !== null && weight_kg !== '' && (isNaN(parsedWeight!) || parsedWeight! < 0)) {
+            errors.push({ index: i, reason: 'weight_kg must be a non-negative number', data: product });
+            continue;
+          }
+
+          let parsedDimensions: object | null = null;
+          if (dimensions_cm !== undefined && dimensions_cm !== null) {
+            try {
+              parsedDimensions = typeof dimensions_cm === 'string' ? JSON.parse(dimensions_cm) : dimensions_cm;
+            } catch {
+              errors.push({ index: i, reason: 'dimensions_cm must be a valid JSON object', data: product });
+              continue;
+            }
+          }
+
+          let parsedBundleComponents: object | null = null;
+          if (bundle_components !== undefined && bundle_components !== null) {
+            try {
+              parsedBundleComponents = typeof bundle_components === 'string' ? JSON.parse(bundle_components) : bundle_components;
+            } catch {
+              errors.push({ index: i, reason: 'bundle_components must be a valid JSON array', data: product });
+              continue;
+            }
+          }
+
+          let parsedAttributes: object | null = null;
+          if (attributes !== undefined && attributes !== null) {
+            try {
+              parsedAttributes = typeof attributes === 'string' ? JSON.parse(attributes) : attributes;
+            } catch {
+              errors.push({ index: i, reason: 'attributes must be a valid JSON object', data: product });
+              continue;
+            }
+          }
+
+          const parsedIsPrescription = is_prescription === true || is_prescription === 'true';
+          const parsedControlledSubstance = controlled_substance === true || controlled_substance === 'true';
+          const parsedIsBundle = is_bundle === true || is_bundle === 'true';
+          const parsedVariantOf = variant_of !== undefined && variant_of !== null && variant_of !== '' ? String(variant_of) : null;
+          const parsedSupplierId = supplier_id !== undefined && supplier_id !== null && supplier_id !== '' ? String(supplier_id) : null;
+          const parsedSku = sku !== undefined && sku !== null && sku !== '' ? String(sku).trim() : null;
+          const parsedBarcode = barcode !== undefined && barcode !== null && barcode !== '' ? String(barcode).trim() : null;
+          const parsedUnit = unit !== undefined && unit !== null && unit !== '' ? String(unit) : 'pcs';
+          const parsedManufacturer = manufacturer !== undefined && manufacturer !== null && manufacturer !== '' ? String(manufacturer) : null;
+          const parsedStorageCondition = storage_condition !== undefined && storage_condition !== null && storage_condition !== '' ? String(storage_condition) : null;
+
+          const prodStatus = status !== undefined && status !== null && status !== '' ? String(status) : 'active';
+          const validStatuses = ['active', 'sold_out', 'draft', 'archived'];
+          if (!validStatuses.includes(prodStatus)) {
+            errors.push({ index: i, reason: `status must be one of: ${validStatuses.join(', ')}`, data: product });
+            continue;
+          }
+
+          // Insert product
+          await client.query(
+            `INSERT INTO products
+               (seller_id, business_id, title, description, price, currency, stock, images, category, tags, status,
+                sku, barcode, unit, cost_price, min_stock, max_stock, expiry_date, batch_number, manufacturer,
+                supplier_id, weight_kg, dimensions_cm, is_prescription, controlled_substance,
+                storage_condition, variant_of, is_bundle, bundle_components, attributes)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30)`,
+            [
+              req.user!.id,
+              businessId,
+              title.trim(),
+              description !== undefined && description !== null ? String(description) : null,
+              parsedPrice,
+              curr,
+              parsedStock,
+              images !== undefined && images !== null && images !== '' ? String(images) : null,
+              category !== undefined && category !== null && category !== '' ? String(category) : null,
+              tags !== undefined && tags !== null && tags !== '' ? String(tags) : null,
+              prodStatus,
+              parsedSku,
+              parsedBarcode,
+              parsedUnit,
+              parsedCostPrice,
+              parsedMinStock,
+              parsedMaxStock,
+              parsedExpiryDate,
+              batch_number !== undefined && batch_number !== null && batch_number !== '' ? String(batch_number) : null,
+              parsedManufacturer,
+              parsedSupplierId,
+              parsedWeight,
+              parsedDimensions ? JSON.stringify(parsedDimensions) : null,
+              parsedIsPrescription,
+              parsedControlledSubstance,
+              parsedStorageCondition,
+              parsedVariantOf,
+              parsedIsBundle,
+              parsedBundleComponents ? JSON.stringify(parsedBundleComponents) : null,
+              parsedAttributes ? JSON.stringify(parsedAttributes) : null,
+            ],
+          );
+
+          created++;
+        }
+
+        await client.query('COMMIT');
+        await invalidateCache('products:list').catch(() => undefined);
+        res.json({ created, errors });
+      } catch (err) {
+        await client.query('ROLLBACK').catch(() => undefined);
+        logger.error({ err: (err as Error).message }, 'Bulk import failed');
+        res.status(500).json({ error: 'Failed to process bulk import' });
+      } finally {
+        client.release();
+      }
+    } catch (err) {
+      logger.error({ err: (err as Error).message }, 'Bulk import setup failed');
+      res.status(500).json({ error: 'Failed to process bulk import' });
+    }
+  }
+);
 
 module.exports = router;

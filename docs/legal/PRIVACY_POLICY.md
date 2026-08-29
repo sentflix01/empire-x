@@ -1,191 +1,262 @@
-# Nodbusiness — Privacy Policy (Draft)
+# Nodbusiness — Privacy Policy
 
-> **Status:** Internal draft — must be reviewed by a qualified data protection specialist before launch.
-> **Applicable laws:** GDPR (EU users), CCPA (California users), UK GDPR, and local data protection laws per market.
-> **Reference market:** Ethiopian Personal Data Protection framework (in development) — GDPR standards applied.
-> Last updated: August 2026
+> **Classification:** Confidential — Internal Use Only (Public when published)
+> **Version:** 1.0
+> **Effective Date:** [Date]
+> **Last Updated:** August 2026
 
 ---
 
-## Acronyms Used in This Document
+## Acronyms
 
 | Acronym | Full Form |
 |---------|-----------|
-| PII | Personally Identifiable Information |
-| GDPR | General Data Protection Regulation (EU) |
-| CCPA | California Consumer Privacy Act (US) |
+| API | Application Programming Interface |
 | DPA | Data Processing Agreement |
 | DPO | Data Protection Officer |
-| DSR | Data Subject Request |
-| JWT | JSON Web Token |
-| OTP | One-Time Password |
-| IP | Internet Protocol (address) |
-| GPS | Global Positioning System |
-| TLS | Transport Layer Security |
-| KYC | Know Your Customer |
+| GDPR | General Data Protection Regulation |
+| PII | Personally Identifiable Information |
+| SCC | Standard Contractual Clauses |
+| ToS | Terms of Service |
 
 ---
 
-## 1. What Data We Collect
+## 1. Overview
 
-### Account Data
-- Email address, full name, phone number (required to register)
-- Password (stored as bcrypt hash — never in plaintext)
-- Google OAuth ID (if using Google login)
-- Profile photo, bio, headline, location (optional, user-provided)
-- KYC identity documents (required for high-value seller accounts only)
+This Privacy Policy explains how Nodbusiness Technologies PLC ("Nodbusiness," "we," "us," "our") collects, uses, shares, and protects your personal information when you use the Nodbusiness Platform ("Platform").
 
-### Business Data
-- Business name, description, category, address, contact details
-- Product listings, prices, images
-- Order history and transaction records
-
-### Usage Data
-- Pages visited, features used, time spent (for product improvement)
-- Device type, browser, operating system
-- IP address (for security and fraud prevention — hashed for storage)
-
-### Location Data
-- GPS coordinates (only when you use the Nearby Map feature — with explicit consent per session)
-- We do not track location continuously or in the background
-
-### Payment Data
-- We do NOT store card numbers, CVV, or full payment details — Stripe and Chapa handle all payment processing
-- We store only: transaction reference IDs, amounts, currencies, and status
-- Wallet balance and transaction history are stored on our servers
-
-### Communications
-- Messages sent through the platform are stored for delivery and dispute resolution
-- We do not sell or share message content with third parties, except as required by law
+**Controller:** Nodbusiness Technologies PLC, [Address, Addis Ababa, Ethiopia]  
+**DPO:** dpo@nodbusiness.app  
+**Contact:** privacy@nodbusiness.app
 
 ---
 
-## 2. How We Use Your Data
+## 2. Information We Collect
 
-| Purpose | Legal Basis |
-|---------|------------|
-| Providing the service (account, orders, messages) | Contract performance |
-| Fraud detection and security | Legitimate interest |
-| Push notifications you opted into | Consent |
-| Improving the platform (analytics) | Legitimate interest |
-| Marketing emails (only with opt-in) | Consent |
-| Complying with applicable law | Legal obligation |
-| Tax reporting for platform transactions | Legal obligation |
-| Dispute resolution | Legitimate interest |
+### 2.1 Information You Provide
 
----
+| Category | Examples | Purpose |
+|----------|----------|---------|
+| **Account** | Name, email, phone, password hash, business name, registration docs | Account creation, verification, communication |
+| **Profile** | Bio, avatar, location, website, social links, preferences | Profile display, personalization |
+| **Business** | Business name, registration number, address, tax ID, bank details | Verification, payouts, compliance |
+| **Content** | Product listings, descriptions, images, posts, messages, reviews | Service delivery, marketplace |
+| **Payments** | Card tokens (via Stripe), bank details, wallet balance, transaction history | Payment processing, wallet, reconciliation |
+| **Communications** | Support tickets, chat with support, feedback | Customer support, improvement |
 
-## 3. Data Sharing
+### 2.2 Information Collected Automatically
 
-We share data with these parties:
+| Category | Examples | Purpose |
+|----------|----------|---------|
+| **Usage** | Pages visited, features used, time spent, clicks, searches | Analytics, product improvement |
+| **Device** | IP address, device ID, OS, browser, app version, push token | Security, fraud prevention, push notifications |
+| **Location** | Country, city (from IP), GPS (with consent) | Localization, nearby discovery, fraud |
+| **Cookies** | Session ID, preferences, analytics, marketing | Authentication, analytics, personalization |
 
-| Recipient | Data Shared | Purpose | DPA in Place |
-|-----------|------------|---------|-------------|
-| **Stripe** | Transaction amounts, buyer email | Payment processing | Yes |
-| **Chapa** | Transaction amounts, buyer email | Local payment processing (reference: Ethiopia) | Yes |
-| **Resend** | Your email address | Transactional emails | Yes |
-| **Sentry** | Error traces (anonymized, no PII) | Bug tracking | Yes |
-| **Railway** | All server data | Backend hosting | Yes |
-| **Vercel** | Request logs | Frontend hosting | Yes |
-| **Neon** | Database content | Database hosting | Yes |
-| **Law enforcement** | As legally required with valid legal process | Regulatory compliance | N/A |
+### 2.3 Information from Third Parties
 
-We do **not** sell your personal data to advertisers or data brokers. We never will.
-
----
-
-## 4. Data Retention
-
-| Data type | Retention period |
-|-----------|----------------|
-| Account data | Until you delete your account + 30-day buffer |
-| Order records | 7 years (financial/tax legal requirement) |
-| KYC documents | 5 years after account closure (AML legal requirement) |
-| Message history | 2 years, then deleted |
-| Server logs | 30 days |
-| Error logs (Sentry) | 90 days |
-| Deleted content | Purged from backups within 30 days |
+| Source | Data | Purpose |
+|--------|------|---------|
+| **Payment Providers** (Stripe, Chapa, Flutterwave) | Payment status, token, limited buyer info | Payment processing, reconciliation |
+| **Auth Providers** (Google, Apple) | Email, name, profile picture | Social login |
+| **Telecom/ID Verification** | Phone verification status, KYC result | Account verification, trust |
+| **Public Sources** | Business registry data, social profiles | Verification, enrichment |
 
 ---
 
-## 5. Your Rights
+## 3. How We Use Your Information
 
-Rights vary by jurisdiction. The following apply to all users; starred rights (*) apply specifically to EU/UK users under GDPR.
-
-| Right | What it means | How to exercise |
-|-------|--------------|----------------|
-| Access* | Get a copy of your personal data | Email privacy@nodbusiness.app |
-| Rectification* | Correct inaccurate data | Update in Settings, or email us |
-| Deletion ("right to be forgotten")* | Delete your account and associated data | Settings → Delete Account, or email us |
-| Portability* | Export your data in machine-readable format | Email privacy@nodbusiness.app |
-| Object to processing* | Stop certain uses of your data | Email privacy@nodbusiness.app |
-| Withdraw consent | Stop marketing emails | Unsubscribe link in any email |
-| CCPA opt-out | California users: opt out of sale of data | We don't sell data — document on request |
-| Lodge a complaint | Report to your local data protection authority | See regulator details below |
-
-**Response time:** We respond to all data subject requests within **30 days**.
+| Purpose | Legal Basis (GDPR) | Details |
+|---------|-------------------|---------|
+| **Service Delivery** | Contract | Account, showroom, orders, payments, messaging |
+| **Account Management** | Contract | Authentication, verification, security, support |
+| **Payments & Wallet** | Contract + Legal Obligation | Processing, reconciliation, AML/KYC, tax |
+| **Marketplace** | Contract | Listing, discovery, purchases, payouts |
+| **Communications** | Legitimate Interest / Consent | Transactional, marketing (opt-in), support |
+| **Personalization** | Legitimate Interest / Consent | Recommendations, discovery ranking, feed |
+| **Analytics & Improvement** | Legitimate Interest | Usage analysis, A/B testing, feature development |
+| **Security & Fraud** | Legitimate Interest / Legal Obligation | Fraud detection, abuse prevention, account security |
+| **Compliance** | Legal Obligation | Tax, AML, sanctions, law enforcement requests |
+| **Marketing** | Consent (opt-in) | Email, push, in-app (opt-out anytime) |
 
 ---
 
-## 6. International Data Transfers
+## 4. Information Sharing
 
-Your data may be stored and processed in:
-- **United States** — Railway (backend hosting), Vercel (frontend), Neon (database), Stripe
-- **European Union** — Resend (email), Sentry (error tracking)
-- **Reference (Ethiopia)** — Chapa processes transactions within Ethiopia
+### 4.1 We Do Not Sell Your Data
 
-For EU/UK users: We rely on Standard Contractual Clauses (SCCs) for transfers outside the EEA/UK.
+### 4.2 We Share With:
 
----
+| Recipient | Purpose | Safeguards |
+|-----------|---------|------------|
+| **Payment Processors** (Stripe, Chapa, Flutterwave, M-Pesa) | Payment processing | DPA, PCI DSS, encryption |
+| **Cloud Providers** (Neon, Upstash, Cloudflare, Vercel, Railway) | Hosting, infrastructure | DPA, SOC2, encryption |
+| **Communication** (SendGrid, Firebase FCM) | Email, push notifications | DPA, encryption |
+| **Analytics** (Metabase, Grafana, custom) | Product analytics | Aggregated/anonymized where possible |
+| **Legal/Regulatory** | Law enforcement, courts, regulators | Legal process, data minimization |
+| **Professional Advisors** | Legal, accounting, audit | Confidentiality agreements |
+| **Business Partners** (with consent) | Integrations, co-marketing | DPA, your control |
 
-## 7. Children's Privacy
+### 4.3 Marketplace
+- **Developers** see: Business name, order details (for fulfillment)
+- **Customers** see: Business name, public profile, public reviews
+- **Aggregated analytics** shared with developers (no PII)
 
-Nodbusiness is not intended for users under 18. We do not knowingly collect data from minors. If you believe a minor has registered, contact us immediately at privacy@nodbusiness.app and we will delete their account within 48 hours.
-
----
-
-## 8. Security Measures
-
-| Layer | Implementation |
-|-------|--------------|
-| Passwords | bcrypt hash (12+ rounds) — never stored in plaintext |
-| Access tokens | JWT (signed), short-lived (15 min), stored in memory only |
-| Refresh tokens | HttpOnly cookies — cannot be read by JavaScript |
-| Transport | HTTPS everywhere, TLS 1.2+ enforced |
-| Database | Encrypted at rest (Neon managed PostgreSQL) |
-| API | Parameterized queries, ALLOWED_TABLES injection prevention |
-| IP addresses | SHA-256 hashed before storage |
-| File uploads | UUID-named, MIME type validated, stored in Cloudflare R2 |
-| Admin access | `role = 'admin'` required + JWT validation on every request |
+### 4.4 Corporate Transactions
+- In merger, acquisition, asset sale: data transferred with same protections
+- You will be notified; choice to delete before transfer
 
 ---
 
-## 9. Cookies
+## 5. International Transfers
 
-| Cookie | Purpose | Duration | Required |
-|--------|---------|----------|---------|
-| `access_token` (cookie) | Authentication — HttpOnly | 15 minutes | Yes |
-| `refresh_token` (cookie) | Session renewal — HttpOnly | 7 days | Yes |
-| `_vercel_jwt` | Vercel preview deployments only | Session | No |
+| Destination | Mechanism | Countries |
+|-------------|-----------|-----------|
+| **EU/EEA** | Adequacy (where applicable) / SCCs | Germany, Netherlands, etc. |
+| **US** | SCCs + Supplementary Measures | California, Virginia, etc. |
+| **Africa** | Local adequacy / SCCs | South Africa, Kenya, Nigeria, Ghana |
+| **Other** | SCCs + Supplementary Measures | As needed |
 
-We use **no third-party tracking cookies**. We do not use Google Analytics cookies, Meta Pixel, or advertising cookies.
-
----
-
-## 10. Regulatory Contact Details
-
-**EU Data Protection Supervisory Authorities:** https://edpb.europa.eu/about-edpb/about-edpb/members_en
-
-**UK — Information Commissioner's Office (ICO):** https://ico.org.uk
-
-**California — California Privacy Protection Agency:** https://cppa.ca.gov
-
-**Reference (Ethiopia):** Ethiopian Communications Authority (ECA) — pending data protection framework
-
-**Nodbusiness Privacy Contact:**
-Email: privacy@nodbusiness.app
-DPO appointment: Required when EU user base exceeds threshold — under review
+**Supplementary Measures:** Encryption in transit/rest, access controls, no government access without legal process, transparency reports.
 
 ---
 
-> ⚠️ This is an internal draft. It must be reviewed and approved by a qualified data protection professional before publication. Requirements differ by jurisdiction.
+## 6. Your Rights
+
+| Right | Description | How to Exercise |
+|-------|-------------|-----------------|
+| **Access** | Confirm processing, get copy | Dashboard → Export or email privacy@ |
+| **Rectification** | Correct inaccurate data | Dashboard edit or email |
+| **Erasure** | Delete (anonymize financial/audit) | Dashboard → Delete Account or email |
+| **Portability** | Machine-readable export (JSON) | Dashboard → Export or email |
+| **Restriction** | Limit processing | Privacy settings or email |
+| **Objection** | Opt-out of marketing, profiling | Privacy settings (opt-out flags) |
+| **Automated Decisions** | Human review of significant decisions | Email privacy@ |
+| **Withdraw Consent** | For marketing, analytics | Privacy settings (opt-out) |
+
+**Response Time:** 30 days (extendable to 60 for complex requests)
+
+---
+
+## 6. Children's Privacy
+
+- **No one under 18** may create an Account
+- We **do not knowingly collect** data from children
+- If discovered: immediate deletion + account termination
+
+---
+
+## 7. Data Security
+
+| Measure | Implementation |
+|---------|----------------|
+| **Encryption in Transit** | TLS 1.2+ everywhere, HSTS, mTLS (services) |
+| **Encryption at Rest** | AES-256 (DB, object store, backups) |
+| **Field-Level Encryption** | AES-256-GCM for PII, credentials, financial |
+| **Access Controls** | RBAC, least privilege, MFA, audit logs |
+| **Network Security** | Private subnets, WAF, DDoS, private endpoints |
+| **Vulnerability Management** | SAST/DAST/SCA in CI, annual pen test |
+| **Incident Response** | 15-min SEV-1 response, 72h breach notification |
+| **Certifications** | SOC2 Type II (target Phase 2), ISO 27001 (target Phase 3) |
+
+---
+
+## 8. Data Retention
+
+| Data Category | Retention Period | Basis |
+|---------------|------------------|-------|
+| **Account/Profile** | Account lifetime + 90 days | Contract, legitimate interest |
+| **Financial/Transactions** | 7 years | Legal obligation (tax, AML) |
+| **Wallet/Transactions** | 7 years | Legal obligation |
+| **Messages/Chat** | Account lifetime + 1 year | Contract, legitimate interest |
+| **Audit Logs** | 7 years | Legal obligation, security |
+| **Analytics/Telemetry** | 2 years | Legitimate interest |
+| **Backups** | 30 days rolling | Operational resilience |
+| **Marketing Consent** | Until withdrawn | Consent |
+| **KYC/AML Records** | 5 years post-relationship | Legal obligation |
+
+**Anonymization:** After retention, PII removed; aggregated analytics retained indefinitely.
+
+---
+
+## 9. Cookies & Tracking
+
+### 9.1 Cookie Categories
+
+| Category | Purpose | Consent | Examples |
+|----------|---------|---------|----------|
+| **Essential** | Auth, security, cart, payments | No (strictly necessary) | `session_id`, `csrf_token`, `wallet_nonce` |
+| **Preferences** | Language, theme, timezone | Yes (opt-in) | `locale`, `theme`, `currency` |
+| **Analytics** | Usage, performance, funnels | Yes (opt-in) | `_ga`, `_gid`, custom events |
+| **Marketing** | Attribution, retargeting, personalization | Yes (opt-in) | `_fbp`, `_gcl_au`, custom |
+
+### 9.2 Cookie Management
+- **Banner:** First visit, granular toggles per category
+- **Settings:** Dashboard → Privacy → Cookies (change anytime)
+- **Reject All:** Only essential cookies set
+- **Duration:** Essential = session/1yr; Others = 13 months max
+
+### 9.3 Third-Party Cookies
+- **Stripe/Chapa:** Payment flow only (essential)
+- **Google/Google Maps:** Maps embed (preferences consent)
+- **Social Platforms:** Share buttons (marketing consent)
+
+---
+
+## 10. Automated Decision Making
+
+| System | Decision | Human Review | Opt-Out |
+|--------|----------|--------------|---------|
+| **Fraud Detection** | Block/challenge transaction | Yes (manual review queue) | N/A (security) |
+| **Discovery Ranking** | Showroom order in feed | N/A (algorithmic) | N/A (core service) |
+| **Template Pricing** | Suggested price | Developer sets final | Developer controls |
+| **Quality Score** | Revenue share % | Appeal process | N/A (contractual) |
+| **Fraud/Abuse** | Account suspension | Yes (appeal within 30d) | N/A (security) |
+
+**Right to Human Review:** Available for all significant automated decisions affecting you.
+
+---
+
+## 11. Data Protection Officer
+
+**DPO:** [Name]  
+**Email:** dpo@nodbusiness.app  
+**Phone:** +251-XXX-XXXX  
+
+**Responsibilities:** GDPR compliance, DPIAs, breach response, training, regulator liaison.
+
+---
+
+## 12. Complaints & Supervisory Authority
+
+**Internal:** privacy@nodbusiness.app (30-day response)
+
+**Supervisory Authorities:**
+- **Ethiopia:** Ethiopian Communications Authority / Personal Data Protection Office
+- **EU:** Lead supervisory authority (where applicable)
+- **UK:** Information Commissioner's Office (ICO)
+- **Kenya:** Office of the Data Protection Commissioner
+- **Nigeria:** Nigeria Data Protection Bureau
+
+---
+
+## 13. Changes to This Policy
+
+- **Material changes:** 30 days notice via email + dashboard banner
+- **Non-material:** Posted to this page with version/date
+- **Continued use** after effective date = acceptance
+- **Version history** maintained at bottom of this document
+
+---
+
+## 14. Contact
+
+**Nodbusiness Technologies PLC**  
+[Address, Addis Ababa, Ethiopia]  
+**Privacy Email:** privacy@nodbusiness.app  
+**DPO Email:** dpo@nodbusiness.app  
+**General:** legal@nodbusiness.app  
+
+---
+
+*Confidential. For Nodbusiness Technologies internal use only.*

@@ -1,149 +1,327 @@
-# Nodbusiness — Terms of Service (Draft)
+# Nodbusiness — Terms of Service
 
-> **Status:** Internal draft — must be reviewed by qualified legal counsel before public launch.
-> **Primary jurisdiction:** Delaware, USA (holding company) with local entity provisions per market.
-> **Reference market provision:** Ethiopian law references retained as an example for local entity compliance.
-> Last updated: August 2026
+> **Classification:** Confidential — Internal Use Only (Public when published)
+> **Version:** 1.0
+> **Effective Date:** [Date]
+> **Last Updated:** August 2026
 
 ---
 
-## Acronyms Used in This Document
+## Acronyms
 
 | Acronym | Full Form |
 |---------|-----------|
-| ToS | Terms of Service |
-| IP | Intellectual Property |
-| DMCA | Digital Millennium Copyright Act (US) |
-| GDPR | General Data Protection Regulation (EU) |
-| UGC | User-Generated Content |
-| GMT | Greenwich Mean Time |
 | API | Application Programming Interface |
+| DPA | Data Processing Agreement |
+| GDPR | General Data Protection Regulation |
+| IP | Intellectual Property |
 | SLA | Service Level Agreement |
+| SMB | Small and Medium Business |
+| ToS | Terms of Service |
 
 ---
 
-## 1. Acceptance of Terms
+## 1. Agreement Overview
 
-By registering an account or accessing Nodbusiness, you agree to these Terms of Service ("Terms"). If you do not agree, do not use the platform. These Terms form a binding agreement between you and Nodbusiness Technologies Inc. ("we," "our," "the platform").
+These Terms of Service ("ToS") govern your access to and use of the Nodbusiness platform ("Platform"), including all websites, applications, APIs, and services operated by Nodbusiness Technologies PLC ("Nodbusiness," "we," "us," or "our").
 
----
+By creating an account, accessing the Platform, or using any services, you agree to be bound by these ToS. If you do not agree, do not use the Platform.
 
-## 2. Eligibility
-
-- You must be **at least 18 years old** (or the age of digital majority in your jurisdiction) to create an account
-- Business accounts must be operated by a person with legal authority to bind that business
-- Accounts are personal and non-transferable
-- We may require identity verification (KYC) for seller accounts or large transactions
+**Entity:** Nodbusiness Technologies PLC, registered in Ethiopia (Registration No. [TBD])
+**Contact:** legal@nodbusiness.app
 
 ---
 
-## 3. Global Legal Compliance
+## 2. Definitions
 
-Users are responsible for complying with the laws of their own jurisdiction. Nodbusiness operates globally and does not guarantee that all platform features are legally available in every country.
-
-**Reference (Ethiopia):** Ethiopian users are additionally subject to:
-- Computer Crime Proclamation No. 958/2016 (online fraud, unauthorized access)
-- Mass Media and Freedom of Information Proclamation No. 590/2008 (user-generated content)
-- National Bank of Ethiopia (NBE) Directives (payment and wallet features)
-- Electronic Signature & E-Commerce Proclamation No. 1067/2018 (digital contracts)
-
----
-
-## 4. Prohibited Activities
-
-Users may not, in any jurisdiction:
-
-- Impersonate another person, business, or organization
-- Upload malware, spyware, or any harmful code
-- Use the platform for money laundering, fraud, or financing terrorism
-- Scrape, crawl, or automate requests without written permission from Nodbusiness
-- Sell counterfeit or prohibited goods (see Community Standards and Content Policy)
-- Harass, threaten, or target individuals based on protected characteristics
-- Post content involving minors in any sexual or exploitative context
-- Circumvent any technical protection measures
-- Use the platform to violate any applicable law in your jurisdiction
+| Term | Definition |
+|------|------------|
+| **"Account"** | Your registered user profile on the Platform |
+| **"Business"** | The entity you represent or operate through the Platform |
+| **"Customer"** | End users who discover, browse, or purchase from your Business |
+| **"Content"** | Text, images, data, code, templates, widgets, integrations you submit |
+| **"Marketplace"** | The template, widget, and integration marketplace within the Platform |
+| **"Services"** | All features: showroom builder, commerce, messaging, payments, marketplace |
+| **"Subscription"** | Paid plan (Starter, Pro, Business, Enterprise) |
+| **"Wallet"** | Your digital wallet for receiving, holding, withdrawing funds |
 
 ---
 
-## 5. Content Ownership & License
+## 3. Account & Eligibility
 
-- You retain ownership of all content you post ("User Content")
-- You grant Nodbusiness a **worldwide, royalty-free, sublicensable, non-exclusive license** to display, distribute, store, and promote your content within the platform
-- This license ends when you delete your content or account, except where we have already shared it with third parties before deletion
-- We may remove content that violates these Terms without prior notice
+### 3.1 Requirements
+- You must be **18+ years old** (or age of majority in your jurisdiction)
+- You must provide **accurate, complete, current** registration information
+- You are responsible for **all activity** under your Account
+- One person may not maintain **multiple free Accounts** to circumvent limits
+
+### 3.2 Business Accounts
+- You must have **authority to bind** the Business entity
+- You must provide **valid business registration** documents on request
+- Business Accounts may add **Team Members** with scoped roles
+
+### 3.3 Account Security
+- Keep credentials **confidential**
+- Enable **2FA** where available
+- Notify us **immediately** of unauthorized access
+- We may **suspend** Accounts suspected of compromise
 
 ---
 
-## 6. Commerce & Payments
+## 4. Subscriptions & Billing
 
-- Sellers are responsible for the accuracy of product listings, pricing, and delivery
-- Nodbusiness is a marketplace platform — we are not a direct party to buyer-seller transactions
-- Payment processing is handled by third-party providers (Stripe for international; local payment processors per market)
-- Platform commission applies to completed orders as published in the Seller Handbook
-- Disputes between buyers and sellers must first use the in-platform return/refund system
-- Nodbusiness reserves the right to withhold payment pending fraud investigation or disputes
+### 4.1 Plans
+
+| Plan | Monthly | Key Limits |
+|------|---------|------------|
+| **Free** | $0 | 1 showroom, 10 products, 20 orders/mo, 1 team member |
+| **Starter** | $19 | 1 showroom, 100 products, 200 orders, 2 team members, custom domain |
+| **Pro** | $49 | 3 showrooms, 1,000 products, 2,000 orders, 5 team members, API read |
+| **Business** | $99 | 10 showrooms, 10K products, 20K orders, 20 team members, API RW |
+| **Enterprise** | Custom | Unlimited, SSO, SLA, dedicated support, custom contracts |
+
+### 4.2 Billing Terms
+- **Monthly billing** in advance, auto-renew unless cancelled
+- **Prices in USD** (local currency options where available)
+- **Taxes** added where applicable (VAT, withholding)
+- **Failed payments** → 7-day grace → downgrade to Free
+- **Refunds** per Section 13 (Refund Policy)
+
+### 4.3 Upgrades/Downgrades
+- **Upgrades:** Immediate, prorated charge
+- **Downgrades:** Effective next billing cycle, data may be archived if over limits
+
+---
+
+## 5. Marketplace (Templates, Widgets, Integrations)
+
+### 5.1 For Developers (Sellers)
+- **Revenue Share:** 70% base, quality-adjusted up to 84% (see PATENT 2)
+- **Quality Score:** Ratings (30%), Accessibility (25%), Performance (25%), Retention (20%)
+- **Payouts:** Monthly, net 30, via Wallet → withdrawal
+- **IP Rights:** You retain ownership; grant Nodbusiness license to distribute
+- **Quality Gates:** Automated + manual review before publish
+
+### 5.2 For Businesses (Buyers)
+- **License:** Per-showroom, perpetual for purchased version
+- **Updates:** Minor updates included; major versions may require repurchase
+- **Support:** Developer-defined (documented on listing)
+- **Refunds:** Per Refund Policy (Section 13)
+
+### 5.3 Platform Rights
+- **Moderation:** We may remove content violating policies
+- **Analytics:** Aggregated usage data used for platform improvement
+- **Featured Placement:** Auction-based, separate from organic ranking
+
+---
+
+## 6. Payments & Wallet
+
+### 6.1 Supported Methods
+- **Global:** Stripe (cards, wallets, local methods)
+- **Ethiopia:** Chapa (Telebirr, CBE, BOA, Dashen, etc.)
+- **Kenya:** M-Pesa (via Flutterwave/Chapa)
+- **Nigeria/Ghana:** Flutterwave, Paystack
+- **Cash on Delivery (COD):** Platform-facilitated, 3% commission
+- **Wallet:** Internal ledger, multi-currency (ETB, USD, KES, NGN, GHS)
+
+### 6.2 Wallet Terms
+- **Not a bank account** — no interest, no deposit insurance
+- **Balances:** Held in segregated accounts per regulatory requirements
+- **Withdrawals:** 1-3 business days, KYC/AML checks apply
+- **Limits:** Configurable per jurisdiction and risk tier
+- **Disputes:** Handled per payment provider rules + our dispute process
+
+### 6.3 Commission
+- **Platform Commission:** 3% flat on COD orders
+- **Marketplace Commission:** 30% base (quality-adjusted for templates)
+- **Featured Placement:** 5% auction fee
+- **Integration Installs:** 15% platform share
 
 ---
 
 ## 7. Intellectual Property
 
-- The Nodbusiness name, logo, brand identity, and codebase are the proprietary property of Nodbusiness Technologies Inc.
-- Users may not reproduce, redistribute, or create derivative works without written permission
-- We respect third-party intellectual property
-- Copyright/DMCA takedown requests: legal@nodbusiness.app
-- We implement a repeat infringer termination policy
+### 7.1 Your Content
+- You **retain ownership** of all Content you submit
+- You grant Nodbusiness a **worldwide, non-exclusive, royalty-free, sublicensable** license to:
+  - Host, store, display, distribute your Content
+  - Modify for technical purposes (resize, transcode, optimize)
+  - Use in marketing (with attribution, opt-out available)
+
+### 7.2 Our IP
+- Platform code, design, algorithms, patents, trademarks = **Nodbusiness property**
+- **No license** granted except as expressly stated in these ToS
+- **Reverse engineering, scraping, copying** prohibited
+
+### 7.3 Marketplace Listings
+- Developer grants **end-user license** per listing terms
+- Nodbusiness gets **distribution license** (host, deliver, process payments)
+- **No exclusivity** unless separately agreed
 
 ---
 
-## 8. Privacy
+## 8. Acceptable Use
 
-Data collection and use is governed by our **Privacy Policy** (`docs/legal/PRIVACY_POLICY.md`). By using Nodbusiness you consent to the practices described there.
+### 8.1 Prohibited Activities
+- **Illegal:** Fraud, money laundering, sanctions evasion, counterfeit goods
+- **Harmful:** Hate speech, harassment, violence, self-harm promotion
+- **Deceptive:** Fake reviews, impersonation, misleading claims, bait-and-switch
+- **Technical:** Scraping (except API), brute force, DoS, vulnerability exploitation
+- **Spam:** Unsolicited messages, bulk invites, misleading promotions
+- **IP Infringement:** Unauthorized use of copyrights, trademarks, patents
 
----
+### 8.2 Business-Specific
+- **Accurate representations:** Products, prices, delivery times, capabilities
+- **Order fulfillment:** Ship/deliver within stated timeframes
+- **Customer communication:** Respond within 24 hours (business days)
+- **Data handling:** Comply with privacy laws, delete on request
 
-## 9. Limitation of Liability
-
-TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW:
-- Nodbusiness is not liable for user-generated content
-- We are not liable for losses arising from platform outages, bugs, or third-party service failures
-- Our maximum liability to any user for any claim shall not exceed the fees paid to us in the 12 months preceding the claim
-- Nothing in these Terms limits liability for death, personal injury, or fraud caused by our negligence
-
----
-
-## 10. Governing Law & Dispute Resolution
-
-**Primary jurisdiction:** These Terms are governed by the laws of the State of Delaware, United States.
-
-**Dispute resolution:**
-1. Good-faith negotiation (30 days)
-2. Mediation (if negotiation fails)
-3. Binding arbitration under AAA (American Arbitration Association) rules
-4. Exception: either party may seek injunctive relief in any court of competent jurisdiction
-
-**Reference (Ethiopia):** For users and transactions subject exclusively to Ethiopian law, disputes may be submitted to the courts of Addis Ababa, Ethiopia, where Ethiopian law requires local jurisdiction.
-
-**EU/UK users:** Your statutory consumer rights are not affected by these Terms.
+### 8.3 Enforcement
+- **Warnings** → **Temporary suspension** → **Permanent termination**
+- **Appeals:** Via support within 30 days
+- **No refund** for terminated paid Accounts (pro-rata at our discretion)
 
 ---
 
-## 11. Changes to Terms
+## 9. Data & Privacy
 
-We may update these Terms with 30 days' notice via in-app notification and email. Continued use after the effective date constitutes acceptance. Material changes will be highlighted clearly.
+### 9.1 Data Processing
+- We process data per **Privacy Policy** and **DPA**
+- You are **Controller** for your Business data; we are **Processor**
+- **DPA** incorporated by reference (see legal/DPA_TEMPLATE.md)
+
+### 9.2 Data Rights
+- **Access/Export:** Anytime via dashboard or API
+- **Rectification:** Edit in dashboard or request
+- **Erasure:** Anonymization (financial/audit logs retained per law)
+- **Portability:** Machine-readable JSON export
+- **Restriction/Objection:** Opt-out flags in dashboard
+
+### 9.3 Data Retention
+| Data Type | Retention |
+|-----------|-----------|
+| **Account/Profile** | Account lifetime + 90 days |
+| **Financial/Transactions** | 7 years (legal) |
+| **Messages/Chat** | Account lifetime + 1 year |
+| **Analytics/Logs** | 2 years |
+| **Backups** | 30 days rolling |
 
 ---
 
-## 12. Termination
+## 10. Service Levels & Availability
 
-We may suspend or terminate any account that violates these Terms, with or without notice. Users may delete their account at any time from Settings → Account → Delete Account. Deletion is subject to the data retention schedule in the Privacy Policy.
+### 10.1 Targets
+| Plan | Uptime SLA | Support SLA |
+|------|------------|-------------|
+| **Free** | Best effort | Community (48h) |
+| **Starter** | 99.5% | Email 48h |
+| **Pro** | 99.9% | Priority email 24h |
+| **Business** | 99.95% | Phone + Slack 4h |
+| **Enterprise** | 99.99% | Dedicated CSM, custom |
+
+### 10.2 Credits
+- **Below SLA:** Pro-rata service credits (max 1 month fees)
+- **Exclusions:** Scheduled maintenance, force majeure, your actions
+
+### 10.3 Maintenance
+- **Scheduled:** Sundays 02:00-04:00 UTC (advance notice)
+- **Emergency:** As needed, best effort notice
 
 ---
 
-## Contact
+## 11. Warranties & Disclaimers
 
-**Nodbusiness Legal**
-Email: legal@nodbusiness.app
+### 11.1 Our Warranties
+- Platform will **materially conform** to documentation
+- We use **commercially reasonable efforts** for security, uptime
+- Payments processed per **provider terms** (Stripe, Chapa, etc.)
+
+### 11.2 Disclaimers
+- **No warranty** of uninterrupted, error-free service
+- **No warranty** of specific business results (sales, traffic, revenue)
+- **Third-party services** (Stripe, Chapa, M-Pesa) governed by their terms
+- **User Content** not endorsed, verified, or guaranteed by us
+
+### 11.3 Limitation of Liability
+- **Max liability:** Fees paid in 12 months preceding claim
+- **No liability** for: indirect, consequential, punitive damages; lost profits/data
+- **Exceptions:** Fraud, gross negligence, IP infringement, data protection violations
 
 ---
 
-> ⚠️ **This is an internal draft.** It must be reviewed and finalized by qualified legal counsel before public user-facing publication. Different jurisdictions may require additional provisions.
+## 12. Indemnification
+
+You **indemnify and hold harmless** Nodbusiness from claims arising from:
+- Your Content, Business operations, products sold
+- Your violation of these ToS or applicable law
+- Your violation of third-party rights (IP, privacy, contract)
+- Payment disputes, chargebacks, fraud under your Account
+
+---
+
+## 13. Term & Termination
+
+### 13.1 Term
+- **Month-to-month** for paid plans; auto-renew unless cancelled
+- **Free plan** continues until termination
+
+### 13.2 Termination by You
+- **Anytime** via dashboard → Settings → Cancel Subscription
+- **Effective:** End of current billing period
+- **Data export:** Available 30 days post-termination
+
+### 13.3 Termination by Us
+- **Material breach** (uncured 30 days after notice)
+- **Non-payment** (7 days past due)
+- **Legal/regulatory requirement**
+- **Platform discontinuation** (90 days notice)
+
+### 13.4 Effect of Termination
+- **Access revoked** immediately (paid) or end of period (cancelled)
+- **Data export** available 30 days
+- **Wallet balances** refunded per withdrawal process
+- **Surviving clauses:** IP, indemnification, liability limits, confidentiality, governing law
+
+---
+
+## 14. Governing Law & Disputes
+
+### 14.1 Governing Law
+- **Ethiopia:** For users/entities in Ethiopia
+- **Kenya:** For users/entities in Kenya
+- **Nigeria:** For users/entities in Nigeria
+- **England & Wales:** For all other users (neutral venue)
+
+### 14.2 Dispute Resolution
+1. **Good faith negotiation** (30 days)
+2. **Mediation** (ICC Mediation Rules, [City] seat)
+3. **Arbitration** (ICC Rules, 1 arbitrator, English language)
+4. **Court:** Only for injunctive relief, IP enforcement
+
+---
+
+## 15. General Provisions
+
+| Provision | Detail |
+|-----------|--------|
+| **Entire Agreement** | These ToS + Privacy Policy + DPA + Policies = entire agreement |
+| **Amendments** | 30 days notice via email/dashboard; continued use = acceptance |
+| **Severability** | Invalid provision severed; remainder enforced |
+| **Waiver** | No waiver unless written; no course of dealing waiver |
+| **Assignment** | We may assign (affiliate, acquisition); you may not without consent |
+| **Force Majeure** | Excused for events beyond reasonable control |
+| **Notices** | Email to registered address; dashboard banner; 48h deemed received |
+
+---
+
+## 16. Contact
+
+**Nodbusiness Technologies PLC**  
+[Address, Addis Ababa, Ethiopia]  
+**Email:** legal@nodbusiness.app  
+**Support:** support@nodbusiness.app  
+
+---
+
+*Confidential. For Nodbusiness Technologies internal use only.*

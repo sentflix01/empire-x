@@ -38,3 +38,5 @@ export function disconnectSocket(): void {
   // This prevents stale tokens surviving logout → re-login.
   socket = null;
 }
+
+export const getIO = getSocket;
