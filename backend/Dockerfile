@@ -22,6 +22,9 @@ COPY --from=builder /app/package.json ./package.json
 # Copy JS migration scripts and seed (not compiled by tsc)
 COPY --from=builder /app/db ./db
 
+# Copy JS scheduler scripts into dist so require('./scripts/...') resolves
+COPY --from=builder /app/scripts ./dist/scripts
+
 # Create uploads directory with correct ownership BEFORE switching user
 RUN mkdir -p /app/uploads && chown -R expressjs:nodejs /app/uploads
 RUN mkdir -p /app/dist/uploads && chown -R expressjs:nodejs /app/dist/uploads
