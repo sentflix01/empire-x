@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-30 | Bugfix | fix: use /app/backups dir for backup script — fixes EACCES permission error on Render | [6ea237280](2026-08-30-6ea237280-use-app-backups-dir-for-backup-script-fixes-eacc.md) |
 | 2026-08-30 | Bugfix | fix: copy scripts/ into dist/scripts in Dockerfile — fixes Cannot find module backup-database and showroom-digests | [44bf60506](2026-08-30-44bf60506-copy-scripts-into-dist-scripts-in-dockerfile-fix.md) |
 | 2026-08-29 | Bugfix | fix: convert cleanupStories to TS so it compiles into dist — fixes Cannot find module crash on Render | [d0df8070e](2026-08-29-d0df8070e-convert-cleanupstories-to-ts-so-it-compiles-into.md) |
 | 2026-08-29 | Bugfix | fix: migrate30 SQL syntax error - split combined index query and remove duplicate | [8b2524f08](2026-08-29-8b2524f08-migrate30-sql-syntax-error-split-combined-index-.md) |
