@@ -30,8 +30,8 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   icons: {
-    icon: '/icons/icon-192.png',
-    shortcut: '/icons/icon-192.png',
+    icon: '/icons/nodbusiness-icon copy.svg',
+    shortcut: '/icons/nodbusiness-icon copy.svg',
     apple: '/apple-touch-icon.png',
   },
 };
