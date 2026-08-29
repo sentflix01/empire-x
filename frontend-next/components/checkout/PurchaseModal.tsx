@@ -51,7 +51,9 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
 
   // Use ref for onPurchased to avoid useEffect re-runs
   const onPurchasedRef = useRef(onPurchased);
-  onPurchasedRef.current = onPurchased;
+  useEffect(() => {
+    onPurchasedRef.current = onPurchased;
+  }, [onPurchased]);
 
   // Poll for Chapa payment confirmation after redirect back to app
   useEffect(() => {
