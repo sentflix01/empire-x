@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-30 | Feature | feat: add nodbusiness-icon SVG to public/icons | [dfca85e45](2026-08-30-dfca85e45-add-nodbusiness-icon-svg-to-public-icons.md) |
+| 2026-08-30 | Bugfix | fix: update favicon to nodbusiness-icon SVG | [15c154f3a](2026-08-30-15c154f3a-update-favicon-to-nodbusiness-icon-svg.md) |
 | 2026-08-30 | Bugfix | fix: use /app/backups dir for backup script — fixes EACCES permission error on Render | [6ea237280](2026-08-30-6ea237280-use-app-backups-dir-for-backup-script-fixes-eacc.md) |
 | 2026-08-30 | Bugfix | fix: copy scripts/ into dist/scripts in Dockerfile — fixes Cannot find module backup-database and showroom-digests | [44bf60506](2026-08-30-44bf60506-copy-scripts-into-dist-scripts-in-dockerfile-fix.md) |
 | 2026-08-29 | Bugfix | fix: convert cleanupStories to TS so it compiles into dist — fixes Cannot find module crash on Render | [d0df8070e](2026-08-29-d0df8070e-convert-cleanupstories-to-ts-so-it-compiles-into.md) |
