@@ -1,0 +1,59 @@
+<svg viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+  <!-- Nodbusiness icon — globe network only, no wordmark -->
+  <!-- Used for: favicon, PWA icon, app icon, avatar placeholder -->
+
+  <rect width="280" height="280" rx="56" fill="#0a0a0a"/>
+
+  <g transform="translate(140,140)" stroke="#cccccc" stroke-width="2" fill="none">
+    <circle cx="0" cy="0" r="100"/>
+    <!-- network lines -->
+    <line x1="0" y1="-100" x2="100" y2="0"/>
+    <line x1="0" y1="-100" x2="70.7" y2="70.7"/>
+    <line x1="0" y1="-100" x2="0" y2="100"/>
+    <line x1="0" y1="-100" x2="-70.7" y2="70.7"/>
+    <line x1="0" y1="-100" x2="-100" y2="0"/>
+    <line x1="70.7" y1="-70.7" x2="70.7" y2="70.7"/>
+    <line x1="70.7" y1="-70.7" x2="0" y2="100"/>
+    <line x1="70.7" y1="-70.7" x2="-70.7" y2="70.7"/>
+    <line x1="70.7" y1="-70.7" x2="-100" y2="0"/>
+    <line x1="70.7" y1="-70.7" x2="-70.7" y2="-70.7"/>
+    <line x1="100" y1="0" x2="0" y2="100"/>
+    <line x1="100" y1="0" x2="-70.7" y2="70.7"/>
+    <line x1="100" y1="0" x2="-100" y2="0"/>
+    <line x1="100" y1="0" x2="-70.7" y2="-70.7"/>
+    <line x1="70.7" y1="70.7" x2="-70.7" y2="70.7"/>
+    <line x1="70.7" y1="70.7" x2="-100" y2="0"/>
+    <line x1="70.7" y1="70.7" x2="-70.7" y2="-70.7"/>
+    <line x1="0" y1="100" x2="-100" y2="0"/>
+    <line x1="0" y1="100" x2="-70.7" y2="-70.7"/>
+    <line x1="-70.7" y1="70.7" x2="-70.7" y2="-70.7"/>
+  </g>
+
+  <!-- briefcase node icons at each vertex -->
+  <g>
+    <!-- top -->
+    <rect x="124" y="23" width="32" height="22" rx="4" fill="#ffffff"/>
+    <rect x="131" y="27" width="10" height="4" rx="1" fill="#0a0a0a"/>
+    <!-- top-right -->
+    <rect x="191" y="52" width="32" height="22" rx="4" fill="#ffffff"/>
+    <rect x="198" y="56" width="10" height="4" rx="1" fill="#0a0a0a"/>
+    <!-- right -->
+    <rect x="218" y="119" width="32" height="22" rx="4" fill="#ffffff"/>
+    <rect x="225" y="123" width="10" height="4" rx="1" fill="#0a0a0a"/>
+    <!-- bottom-right -->
+    <rect x="191" y="186" width="32" height="22" rx="4" fill="#ffffff"/>
+    <rect x="198" y="190" width="10" height="4" rx="1" fill="#0a0a0a"/>
+    <!-- bottom -->
+    <rect x="124" y="213" width="32" height="22" rx="4" fill="#ffffff"/>
+    <rect x="131" y="217" width="10" height="4" rx="1" fill="#0a0a0a"/>
+    <!-- bottom-left -->
+    <rect x="57" y="186" width="32" height="22" rx="4" fill="#ffffff"/>
+    <rect x="64" y="190" width="10" height="4" rx="1" fill="#0a0a0a"/>
+    <!-- left -->
+    <rect x="30" y="119" width="32" height="22" rx="4" fill="#ffffff"/>
+    <rect x="37" y="123" width="10" height="4" rx="1" fill="#0a0a0a"/>
+    <!-- top-left -->
+    <rect x="57" y="52" width="32" height="22" rx="4" fill="#ffffff"/>
+    <rect x="64" y="56" width="10" height="4" rx="1" fill="#0a0a0a"/>
+  </g>
+</svg>
