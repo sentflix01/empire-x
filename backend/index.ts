@@ -318,8 +318,7 @@ app.all('*', (_req: Request, res: Response) => {
 });
 
 // ── Start server ──────────────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { startStoriesCleanup } = require('./db/cleanupStories') as { startStoriesCleanup: () => void };
+import { startStoriesCleanup } from './db/cleanupStories';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { startBackupSchedule } = require('./scripts/backup-database') as { startBackupSchedule: () => void };
 // eslint-disable-next-line @typescript-eslint/no-require-imports
