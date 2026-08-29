@@ -5,6 +5,26 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-29 | Bugfix | fix: migrate30 SQL syntax error - split combined index query and remove duplicate | [8b2524f08](2026-08-29-8b2524f08-migrate30-sql-syntax-error-split-combined-index-.md) |
+| 2026-08-29 | Bugfix | fix: move ref assignment into useEffect in PurchaseModal | [8c8b466c1](2026-08-29-8c8b466c1-move-ref-assignment-into-useeffect-in-purchasemo.md) |
+| 2026-08-29 | Bugfix | fix: resolve uploads directory permission error on Render | [12570cfc3](2026-08-29-12570cfc3-resolve-uploads-directory-permission-error-on-re.md) |
+| 2026-08-29 | Bugfix | fix: update Dockerfile for TypeScript build on Render | [b0bed7051](2026-08-29-b0bed7051-update-dockerfile-for-typescript-build-on-render.md) |
+| 2026-08-29 | Bugfix | fix: comprehensive bug audit — 40 suites, 396 tests all green | [6ce536995](2026-08-29-6ce536995-comprehensive-bug-audit-40-suites-396-tests-all-.md) |
+| 2026-08-27 | Documentation | docs: TD-009 fully complete — SafeImage now uses next/image | [5076a2f79](2026-08-27-5076a2f79-td-009-fully-complete-safeimage-now-uses-next-im.md) |
+| 2026-08-27 | Feature | feat: SafeImage → next/image for full optimization (TD-009 complete) | [348c6e04c](2026-08-27-348c6e04c-safeimage-next-image-for-full-optimization-td-00.md) |
+| 2026-08-27 | Bugfix | fix: lint - unused imports + useEffect deps (no behavioral changes) | [39e93e987](2026-08-27-39e93e987-lint-unused-imports-useeffect-deps-no-behavioral.md) |
+| 2026-08-26 | Feature | feat: image optimization config — webp/avif + 30-day cache + responsive sizes (TD-009) | [c17a7da0d](2026-08-26-c17a7da0d-image-optimization-config-webp-avif-30-day-cache.md) |
+| 2026-08-26 | Feature | feat: wire Sentry init + close TD-003/TD-011 in TECHNICAL_DEBT | [684aa976b](2026-08-26-684aa976b-wire-sentry-init-close-td-003-td-011-in-technica.md) |
+| 2026-08-26 | Documentation | docs: TD-012 marked done in TECHNICAL_DEBT register | [b7a20e61b](2026-08-26-b7a20e61b-td-012-marked-done-in-technical-debt-register.md) |
+| 2026-08-26 | Feature | feat: financial audit logging — append-only audit_logs table (TD-012 closed) | [832df9b37](2026-08-26-832df9b37-financial-audit-logging-append-only-audit-logs-t.md) |
+| 2026-08-26 | Feature | feat: remove all @ts-nocheck directives — full strict type safety (TD-006 closed) | [d556ad50f](2026-08-26-d556ad50f-remove-all-ts-nocheck-directives-full-strict-typ.md) |
+| 2026-08-26 | Bugfix | fix: DISTINCT on trending/cache-warm queries + TD-007 closed + full E2E green | [8c5d5d45a](2026-08-26-8c5d5d45a-distinct-on-trending-cache-warm-queries-td-007-c.md) |
+| 2026-08-25 | Testing | test(e2e): checkout COD API test passing; UI tests marked fixme (need full product data) | [1ade27204](2026-08-25-1ade27204-checkout-cod-api-test-passing-ui-tests-marked-fi.md) |
+| 2026-08-24 | Bugfix | fix: systematic Array.isArray guards on all API-fed .map()/.reduce() calls | [395ab7bdb](2026-08-24-395ab7bdb-systematic-array-isarray-guards-on-all-api-fed-m.md) |
+| 2026-08-24 | Bugfix | fix: deduplicate explore lists + type-safe Map dedup + verify error capture | [4c86b987a](2026-08-24-4c86b987a-deduplicate-explore-lists-type-safe-map-dedup-ve.md) |
+| 2026-08-24 | Bugfix | fix(explore): deduplicate trending posts/products — eliminates React duplicate key warnings | [60d0722e7](2026-08-24-60d0722e7-deduplicate-trending-posts-products-eliminates-r.md) |
+| 2026-08-24 | Bugfix | fix(devops): fix undefined variable reference in error reporter send() | [ee94d0468](2026-08-24-ee94d0468-fix-undefined-variable-reference-in-error-report.md) |
+| 2026-08-24 | Bugfix | fix(devops): missing UNIQUE index on error_events.fingerprint — error capture was silently broken on ALL fresh deployments | [822df57b2](2026-08-24-822df57b2-missing-unique-index-on-error-events-fingerprint.md) |
 | 2026-08-24 | Bugfix | fix(devops): module-scope error interceptors — catch hydration + console errors | [e1344955f](2026-08-24-e1344955f-module-scope-error-interceptors-catch-hydration-.md) |
 | 2026-08-24 | Bugfix | fix(devops): fix remaining nested <button> hydration + capture console.error in Live Error Feed | [e2a8583ab](2026-08-24-e2a8583ab-fix-remaining-nested-button-hydration-capture-co.md) |
 | 2026-08-24 | Feature | feat(admin): Scorecard page + Implementation Log tab — live readiness in the console | [1d2903731](2026-08-24-1d2903731-scorecard-page-implementation-log-tab-live-readi.md) |

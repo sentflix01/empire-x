@@ -11,15 +11,16 @@ Marketplace catalog: product listing/detail/create/edit/archive by sellers, imag
 ## 3. What does it do?
 
 
-### Endpoints (5)
+### Endpoints (6)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/products/` | optional | 31 |
-| `GET` | `/api/products/:id` | optional | 64 |
-| `POST` | `/api/products/` | auth | 73 |
-| `PUT` | `/api/products/:id` | auth | 86 |
-| `DELETE` | `/api/products/:id` | auth | 146 |
+| `GET` | `/api/products/` | optional | 32 |
+| `GET` | `/api/products/:id` | optional | 65 |
+| `POST` | `/api/products/` | auth | 74 |
+| `PUT` | `/api/products/:id` | auth | 87 |
+| `DELETE` | `/api/products/:id` | auth | 147 |
+| `POST` | `/api/products/bulk-import` | auth | 159 |
 
 ## 4. What does it touch?
 
