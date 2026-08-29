@@ -195,8 +195,12 @@ export function activeStorageProvider(): 'supabase' | 'r2' | 'local' {
 
 // ── Local disk (dev fallback) ─────────────────────────────────────────────────
 
-const uploadDir = path.join(__dirname, '..', process.env.UPLOAD_DIR ?? 'uploads');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+// Use process.cwd() so the uploads folder is always at /app/uploads
+// regardless of where the compiled file lives (avoids /app/dist/uploads issue)
+const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR ?? 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  try { fs.mkdirSync(uploadDir, { recursive: true }); } catch { /* already exists or Supabase/R2 in use */ }
+}
 
 const diskStorage = multer.diskStorage({
   destination: (_req: Request, _file: Express.Multer.File, cb: (err: Error | null, dest: string) => void) => cb(null, uploadDir),

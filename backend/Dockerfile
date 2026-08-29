@@ -22,8 +22,9 @@ COPY --from=builder /app/package.json ./package.json
 # Copy JS migration scripts and seed (not compiled by tsc)
 COPY --from=builder /app/db ./db
 
-# Create uploads directory (used in dev; Supabase/R2 used in prod)
-RUN mkdir -p uploads && chown expressjs:nodejs uploads
+# Create uploads directory with correct ownership BEFORE switching user
+RUN mkdir -p /app/uploads && chown -R expressjs:nodejs /app/uploads
+RUN mkdir -p /app/dist/uploads && chown -R expressjs:nodejs /app/dist/uploads
 
 USER expressjs
 
