@@ -31,7 +31,7 @@ let recordEvent=null; try{recordEvent=require('../lib/telemetry').recordEvent;}c
 const pool = require('../db/pool');
 
 const RETENTION_DAYS = parseInt(process.env.BACKUP_RETENTION_DAYS ?? '14', 10);
-const LOCAL_DIR = path.join(__dirname, '..', 'backups');
+const LOCAL_DIR = path.join('/app', 'backups');
 
 function hasR2() {
   return !!(process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID &&

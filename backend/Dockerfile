@@ -28,6 +28,7 @@ COPY --from=builder /app/scripts ./dist/scripts
 # Create uploads directory with correct ownership BEFORE switching user
 RUN mkdir -p /app/uploads && chown -R expressjs:nodejs /app/uploads
 RUN mkdir -p /app/dist/uploads && chown -R expressjs:nodejs /app/dist/uploads
+RUN mkdir -p /app/backups && chown -R expressjs:nodejs /app/backups
 
 USER expressjs
 
