@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-30 | Bugfix | fix: health check no longer blocks deploy pipeline | [e6b17cffa](2026-08-30-e6b17cffa-health-check-no-longer-blocks-deploy-pipeline.md) |
 | 2026-08-30 | Bugfix | fix: deploy pipeline no longer blocked by Neon quota exhaustion | [d284d48bb](2026-08-30-d284d48bb-deploy-pipeline-no-longer-blocked-by-neon-quota-.md) |
 | 2026-08-30 | Feature | feat: add nodbusiness-icon SVG to public/icons | [dfca85e45](2026-08-30-dfca85e45-add-nodbusiness-icon-svg-to-public-icons.md) |
 | 2026-08-30 | Bugfix | fix: update favicon to nodbusiness-icon SVG | [15c154f3a](2026-08-30-15c154f3a-update-favicon-to-nodbusiness-icon-svg.md) |
