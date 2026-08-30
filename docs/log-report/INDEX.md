@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-31 | Bugfix | fix: redeploy with updated Supabase DATABASE_URL | [a9502dd32](2026-08-31-a9502dd32-redeploy-with-updated-supabase-database-url.md) |
+| 2026-08-31 | Bugfix | fix: update to correct Supabase DATABASE_URL | [6a7e31b40](2026-08-31-6a7e31b40-update-to-correct-supabase-database-url.md) |
 | 2026-08-31 | Testing | test: trigger deploy with all secrets configured | [131eb6f4e](2026-08-31-131eb6f4e-trigger-deploy-with-all-secrets-configured.md) |
 | 2026-08-30 | Documentation | docs: Add copy-paste guide for obtaining all 6 GitHub secrets | [6895e25d3](2026-08-30-6895e25d3-add-copy-paste-guide-for-obtaining-all-6-github-.md) |
 | 2026-08-30 | Documentation | docs: Add focused GitHub repository secrets setup guide | [2c22bc5c9](2026-08-30-2c22bc5c9-add-focused-github-repository-secrets-setup-guid.md) |
