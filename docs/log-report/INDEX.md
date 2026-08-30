@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-30 | Documentation | docs: Add copy-paste guide for obtaining all 6 GitHub secrets | [6895e25d3](2026-08-30-6895e25d3-add-copy-paste-guide-for-obtaining-all-6-github-.md) |
+| 2026-08-30 | Documentation | docs: Add focused GitHub repository secrets setup guide | [2c22bc5c9](2026-08-30-2c22bc5c9-add-focused-github-repository-secrets-setup-guid.md) |
 | 2026-08-30 | Documentation | docs: Add complete deployment variables checklist for Render + Supabase + Vercel | [78445ff65](2026-08-30-78445ff65-add-complete-deployment-variables-checklist-for-.md) |
 | 2026-08-30 | Maintenance | Refine Supabase pooler fix: use direct postgres endpoint with correct port | [8a4c2ac4c](2026-08-30-8a4c2ac4c-refine-supabase-pooler-fix-use-direct-postgres-e.md) |
 | 2026-08-30 | Maintenance | Fix Supabase pooler connection for pg_dump and certificate handling | [434c059be](2026-08-30-434c059be-fix-supabase-pooler-connection-for-pg-dump-and-c.md) |
