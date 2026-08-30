@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-30 | Maintenance | Fix Supabase pooler connection for pg_dump and certificate handling | [434c059be](2026-08-30-434c059be-fix-supabase-pooler-connection-for-pg-dump-and-c.md) |
 | 2026-08-30 | Maintenance | Normalize deployment config to Render + Supabase | [564834973](2026-08-30-564834973-normalize-deployment-config-to-render-supabase.md) |
 | 2026-08-30 | Maintenance | Fix TypeScript compiler config | [9d47360c5](2026-08-30-9d47360c5-fix-typescript-compiler-config.md) |
 | 2026-08-30 | Maintenance | Fix Render Neon backup and TLS issues | [6a1f62896](2026-08-30-6a1f62896-fix-render-neon-backup-and-tls-issues.md) |
