@@ -14,6 +14,9 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 expressjs
 
+# Install PostgreSQL client for pg_dump (backup script)
+RUN apk add --no-cache postgresql-client
+
 # Copy compiled JS from build stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
