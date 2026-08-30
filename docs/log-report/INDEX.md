@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-30 | Bugfix | fix: generate PWA icons from brand SVG | [a420c6943](2026-08-30-a420c6943-generate-pwa-icons-from-brand-svg.md) |
 | 2026-08-30 | Bugfix | fix: health check no longer blocks deploy pipeline | [e6b17cffa](2026-08-30-e6b17cffa-health-check-no-longer-blocks-deploy-pipeline.md) |
 | 2026-08-30 | Bugfix | fix: deploy pipeline no longer blocked by Neon quota exhaustion | [d284d48bb](2026-08-30-d284d48bb-deploy-pipeline-no-longer-blocked-by-neon-quota-.md) |
 | 2026-08-30 | Feature | feat: add nodbusiness-icon SVG to public/icons | [dfca85e45](2026-08-30-dfca85e45-add-nodbusiness-icon-svg-to-public-icons.md) |
