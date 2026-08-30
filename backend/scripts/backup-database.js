@@ -41,7 +41,11 @@ function stripPgbouncerParam(raw) {
   // Convert Supabase pooler to direct postgres endpoint for pg_dump compatibility
   // (pooler requires SNI/external_id that pg_dump doesn't support)
   if (cleaned.includes('pooler.supabase.com')) {
-    cleaned = cleaned.replace('pooler.supabase.com', 'postgres.supabase.com');
+    cleaned = cleaned.replace('pooler.supabase.com:6543', 'postgres.supabase.com:5432');
+    // Fallback if port is already specified elsewhere in the string
+    if (cleaned.includes('pooler.supabase.com')) {
+      cleaned = cleaned.replace('pooler.supabase.com', 'postgres.supabase.com');
+    }
   }
   return cleaned;
 }
