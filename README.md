@@ -110,7 +110,7 @@ Then open http://localhost:3000
 
 ## CI/CD
 
-Every push to GitHub runs tests, linting, and TypeScript checks via `.github/workflows/ci.yml`. Merging to `main` auto-deploys to Vercel + Railway via `.github/workflows/deploy.yml`.
+Every push to GitHub runs tests, linting, and TypeScript checks via `.github/workflows/ci.yml`. Merging to `main` deploys the frontend to Vercel and the backend to Render via `.github/workflows/deploy.yml`.
 
 ## Health Check
 

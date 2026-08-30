@@ -1,5 +1,10 @@
-# Railway deploys this repository from its root. The actual Node application is
-# isolated in /backend, so commands must explicitly target that package.
+# Deprecated: this project is deployed on Render, not Railway.
+# This file is intentionally left as a historical reference so older Railway
+# automation does not silently mislead operators.
+#
+# The actual Node application lives under /backend and is deployed from the
+# Render service configuration for the current production environment.
+
 [build]
 builder = "railpack"
 buildCommand = "npm --prefix backend ci"

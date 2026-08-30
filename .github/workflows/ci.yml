@@ -95,7 +95,7 @@ jobs:
       - name: Build (blocking)
         run: npm run build
         env:
-          NEXT_PUBLIC_API_BASE_URL: https://example-ci-build.railway.app
+          NEXT_PUBLIC_API_BASE_URL: https://example-ci-build.onrender.com
           NEXT_PUBLIC_APP_URL: https://example-ci-build.vercel.app
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ci-placeholder-google-client-id
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_placeholder

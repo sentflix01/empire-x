@@ -42,12 +42,12 @@ jobs:
           echo "✅ Green CI for this exact commit."
           echo "proceed=true" >> $GITHUB_OUTPUT
 
-  # ── Run DB Migrations on Neon ────────────────────────────────────────────────
-  # Non-blocking: if Neon is unreachable or quota-exhausted, deploy proceeds
+  # ── Run DB Migrations on Postgres ───────────────────────────────────────────
+  # Non-blocking: if the database is unreachable or quota-limited, deploy proceeds
   # anyway. The app works fine without new migrations if the schema is current.
-  # Migrations are idempotent — they'll catch up when Neon recovers.
+  # Migrations are idempotent — they'll catch up when the database recovers.
   migrate:
-    name: Run DB Migrations → Neon
+    name: Run DB Migrations → Postgres
     needs: gate
     if: needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
@@ -73,7 +73,7 @@ jobs:
         run: node db/migrate-all.js --if-pending
         working-directory: backend
         env:
-          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Migration status
         if: always()
@@ -84,16 +84,16 @@ jobs:
             echo "⚠️  Migration step failed or was skipped."
             echo "    This is non-blocking — the deploy will continue."
             echo "    The app works fine if the schema is already current."
-            echo "    Migrations will catch up when Neon recovers."
+            echo "    Migrations will catch up when the database recovers."
           fi
 
-  # ── Deploy Backend to Railway ─────────────────────────────────────────────────
-  # Railway auto-deploys from the connected GitHub repo on every push to main.
-  # This job provides a fallback explicit deploy via CLI when RAILWAY_TOKEN is valid.
-  # If the token is missing/expired the step is skipped gracefully — Railway's
-  # own git-integration still picks up the push independently.
+  # ── Deploy Backend to Render ─────────────────────────────────────────────────
+  # Render watches the connected GitHub repo for auto-deploys on push to main.
+  # This job provides an optional explicit deploy path via CLI when the Render
+  # API key is available. If the token is missing or invalid, the deploy simply
+  # waits for Render's git-integration to pick up the latest push.
   deploy-backend:
-    name: Deploy Backend → Railway
+    name: Deploy Backend → Render
     needs: [gate, migrate]
     if: always() && needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
@@ -102,50 +102,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check Railway token
+      - name: Check Render token
         id: token_check
         run: |
-          if [ -z "${{ secrets.RAILWAY_TOKEN }}" ]; then
+          if [ -z "${{ secrets.RENDER_API_KEY }}" ]; then
             echo "has_token=false" >> $GITHUB_OUTPUT
-            echo "⚠️  RAILWAY_TOKEN secret is not set. Railway will auto-deploy via git integration."
+            echo "⚠️  RENDER_API_KEY secret is not set. Render will auto-deploy via git integration."
           else
             echo "has_token=true" >> $GITHUB_OUTPUT
-            echo "✅ RAILWAY_TOKEN found — will attempt explicit deploy."
+            echo "✅ RENDER_API_KEY found — will attempt explicit deploy."
           fi
 
-      - name: Install Railway CLI
+      - name: Install Render CLI
         if: steps.token_check.outputs.has_token == 'true'
-        run: npm install -g @railway/cli --allow-scripts=@railway/cli
+        run: curl -fsSL https://render.com/install.sh | bash
 
-      - name: Validate Railway token
+      - name: Validate Render token
         if: steps.token_check.outputs.has_token == 'true'
         id: validate_token
         continue-on-error: true
         run: |
-          if railway whoami; then
+          if render auth whoami; then
             echo "token_valid=true" >> $GITHUB_OUTPUT
           else
             echo "token_valid=false" >> $GITHUB_OUTPUT
-            echo "⚠️  RAILWAY_TOKEN is set but invalid/expired."
-            echo "    To fix: railway.app → Account Settings → Tokens → New Token"
-            echo "    Then update: GitHub → Settings → Secrets → RAILWAY_TOKEN"
+            echo "⚠️  RENDER_API_KEY is set but invalid/expired."
+            echo "    To fix: Render → Account Settings → API Keys → Create Key"
+            echo "    Then update: GitHub → Settings → Secrets → RENDER_API_KEY"
           fi
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
 
-      - name: Deploy to Railway
+      - name: Deploy to Render
         if: steps.token_check.outputs.has_token == 'true' && steps.validate_token.outputs.token_valid == 'true'
-        run: railway up --service halehame-backend --detach
-        working-directory: backend
+        run: render deploy --service-id=${{ secrets.RENDER_SERVICE_ID }} --force
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
 
-      - name: Railway auto-deploy notice
+      - name: Render auto-deploy notice
         if: steps.token_check.outputs.has_token != 'true' || steps.validate_token.outputs.token_valid != 'true'
         run: |
-          echo "ℹ️  Explicit Railway CLI deploy skipped."
-          echo "    Railway will deploy automatically from the GitHub git integration within 1–2 minutes."
-          echo "    Check status at: https://railway.app/dashboard"
+          echo "ℹ️  Explicit Render CLI deploy skipped."
+          echo "    Render will deploy automatically from the GitHub git integration within 1–2 minutes."
+          echo "    Check status at: https://dashboard.render.com"
 
   # ── Deploy Frontend to Vercel ─────────────────────────────────────────────────
   deploy-frontend:
