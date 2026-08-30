@@ -98,6 +98,9 @@ function checkEnv(): void {
   if (!process.env.STRIPE_SECRET_KEY) {
     warnings.push('Stripe (STRIPE_SECRET_KEY) — payments will not work');
   }
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    warnings.push('Google OAuth (GOOGLE_CLIENT_ID) — Google sign-in disabled');
+  }
   const r2  = ['R2_ACCOUNT_ID','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','R2_BUCKET_NAME','R2_PUBLIC_URL'];
   const sup = ['SUPABASE_URL','SUPABASE_STORAGE_KEY','SUPABASE_BUCKET'];
   if (r2.some((k) => !process.env[k]) && sup.some((k) => !process.env[k])) {
@@ -229,7 +232,7 @@ app.get('/health', async (_req: Request, res: Response) => {
   try { await pool.query('SELECT 1'); databaseStatus = 'connected'; } catch { databaseStatus = 'error'; }
 
   const ok = databaseStatus === 'connected';
-  const pkg = require('./package.json') as { version: string };
+  const pkg = require('../package.json') as { version: string };
   res.status(ok ? 200 : 503).json({
     status: ok ? 'ok' : 'degraded',
     timestamp: new Date().toISOString(),

@@ -373,6 +373,12 @@ router.post('/google', async (req: Request, res: Response) => {
     return;
   }
 
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    logger.error('GOOGLE_CLIENT_ID env var not set — Google OAuth disabled');
+    res.status(503).json({ error: 'Google sign-in is not configured. Please use email/password.' });
+    return;
+  }
+
   try {
     const ticket = await googleClient.verifyIdToken({
       idToken: id_token,
