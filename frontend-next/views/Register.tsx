@@ -21,7 +21,7 @@ function Register() {
   const verificationEmail = searchParams.get("verify")?.trim().toLowerCase() || "";
   const { t } = useTranslation();
 
-  const [email, setEmail] = useState(verificationEmail);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
