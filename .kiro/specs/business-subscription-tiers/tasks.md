@@ -141,27 +141,27 @@ Implement the three-tier subscription system (freemium / premium / pro) across d
 - [x] 9. Checkpoint — ensure all backend tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. `builderSections.ts` extensions
+- [x] 10. `builderSections.ts` extensions
   - Add optional `tierLabel?: string` and `tierFeatures?: string[]` fields to the `SectionType` interface in `frontend-next/lib/builderSections.ts`
   - Add `tierLabel` and `tierFeatures` values to the existing premium and pro section entries where missing
   - Append the two new section types (`inventory_catalog` and `live_location_tracking`) to the `SECTION_TYPES` array exactly as specified in the design, both with `tier: 'pro'`
   - _Requirements: 2.5, 7.1_
 
-- [ ] 11. Frontend: `UpgradePromptModal` component
+- [x] 11. Frontend: `UpgradePromptModal` component
   - Create `frontend-next/components/subscription/UpgradePromptModal.tsx`
   - Accept props: `open: boolean`, `onClose: () => void`, `feature: string`, `currentTier: string`, `requiredTier: string`
   - Display the feature name, current tier, required tier, and a CTA button that navigates to `/business/subscription`
   - Use existing `Dialog` component from `components/ui/` if available
   - _Requirements: 2.4_
 
-- [ ] 12. Frontend: `TierGatedSection` wrapper component
+- [x] 12. Frontend: `TierGatedSection` wrapper component
   - Create `frontend-next/components/subscription/TierGatedSection.tsx`
   - Accept props: `feature: string`, `children: React.ReactNode`
   - On render, if the API call returns a 403 with `error === 'upgrade_required'`, intercept and render `UpgradePromptModal` instead of children
   - Provide a `useTierGate(feature)` hook inside the same file or a sibling file that returns `{ allowed: boolean, upgradeReason }` by calling `GET /api/subscriptions/my` and comparing against `FEATURE_MIN_TIER`
   - _Requirements: 2.4, 2.5_
 
-- [ ] 13. Frontend: `SubscriptionManagementPage`
+- [x] 13. Frontend: `SubscriptionManagementPage`
   - Create `frontend-next/app/(app)/business/subscription/page.tsx`
   - Fetch current subscription from `GET /api/subscriptions/my`
   - Display current tier, status, and billing period
@@ -170,21 +170,21 @@ Implement the three-tier subscription system (freemium / premium / pro) across d
   - Cancel button calls `POST /api/subscriptions/cancel` and updates UI to show `cancel_at_period_end` notice
   - _Requirements: 1.1, 1.2, 1.4_
 
-- [ ] 14. Frontend: `BusinessInventoryDashboard`
+- [x] 14. Frontend: `BusinessInventoryDashboard`
   - Create `frontend-next/app/(app)/business/inventory/page.tsx`
   - Display product list fetched from `GET /api/products` filtered to the current business
   - Add a "Bulk Import" button visible only to premium/pro users (wrap in `TierGatedSection feature="bulk_import"`)
   - Bulk import UI: textarea or file input accepting JSON array; POST to `/api/products/bulk-import`; display created count and per-row errors
   - _Requirements: 5.1, 5.2, 5.3_
 
-- [ ] 15. Frontend: `LiveLocationSection` showroom component
+- [x] 15. Frontend: `LiveLocationSection` showroom component
   - Create `frontend-next/components/showroom/LiveLocationSection.tsx`
   - Connect to the Socket.IO server and emit `join_business_tracking` with the business_id on mount
   - Listen for `location_update` events and render the lat/lng (use a static map embed or plain coordinate display — no external map library required if none is already installed)
   - Emit `leave_business_tracking` and disconnect on unmount
   - _Requirements: 3.3_
 
-- [ ] 16. Final checkpoint — ensure all tests pass
+- [x] 16. Final checkpoint — ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

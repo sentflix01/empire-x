@@ -1,9 +1,39 @@
 'use client';
-
+/**
+ * UpgradePromptModal — shown when a business owner tries to use a locked feature
+ *
+ * Displays: feature name, current tier, required tier, key features list,
+ * and a CTA button that navigates to /business/subscription.
+ *
+ * Usage:
+ *   <UpgradePromptModal
+ *     open={showModal}
+ *     onClose={() => setShowModal(false)}
+ *     feature="bulk_import"
+ *     currentTier="freemium"
+ *     requiredTier="premium"
+ *     tierFeatures={["CSV import", "10K products", "Analytics"]}
+ *   />
+ *
+ * Files touched: frontend-next/components/subscription/UpgradePromptModal.tsx
+ */
 import React from 'react';
-import { X, Crown, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Lock, CheckCircle2, ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+const TIER_LABELS: Record<string, string> = {
+  freemium: 'Free',
+  premium:  'Pro ($12/month)',
+  pro:      'Enterprise ($49/month)',
+};
+
+const TIER_COLOR: Record<string, string> = {
+  freemium: 'text-muted-foreground',
+  premium:  'text-amber-600',
+  pro:      'text-violet-600',
+};
 
 interface UpgradePromptModalProps {
   open: boolean;
@@ -12,108 +42,83 @@ interface UpgradePromptModalProps {
   currentTier: string;
   requiredTier: string;
   tierFeatures?: string[];
-  tierLabel?: string;
 }
 
-export function UpgradePromptModal({
+export default function UpgradePromptModal({
   open,
   onClose,
   feature,
   currentTier,
   requiredTier,
   tierFeatures = [],
-  tierLabel,
 }: UpgradePromptModalProps) {
-  if (!open) return null;
+  const router = useRouter();
 
-  const tierLabels: Record<string, string> = {
-    freemium: 'Free',
-    premium: 'Pro',
-    pro: 'Enterprise',
-  };
+  const featureLabel = feature
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 
-  const tierColors: Record<string, string> = {
-    freemium: 'bg-gray-100 text-gray-700',
-    premium: 'bg-amber-100 text-amber-700',
-    pro: 'bg-purple-100 text-purple-700',
-  };
+  const requiredLabel = TIER_LABELS[requiredTier] ?? requiredTier;
+  const currentLabel  = TIER_LABELS[currentTier]  ?? currentTier;
 
-  const tierIcons: Record<string, React.ReactNode> = {
-    freemium: <Lock className="w-5 h-5" />,
-    premium: <Crown className="w-5 h-5" />,
-    pro: <Crown className="w-5 h-5" />,
-  };
-
-  const formatFeature = (feature: string) => {
-    return feature
-      .replace(/_/g, ' ')
-      .replace(/\b\w/g, (c) => c.toUpperCase());
-  };
+  function handleUpgrade() {
+    onClose();
+    router.push('/business/subscription');
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <div className={`p-2 rounded-lg ${tierColors[requiredTier]} flex items-center justify-center`}>
-              {tierIcons[requiredTier]}
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
+              <Lock className="w-5 h-5 text-amber-600" />
             </div>
-            <span>Upgrade Required</span>
-          </DialogTitle>
-          <DialogDescription className="mt-2">
-            This feature requires <strong>{tierLabels[requiredTier]}</strong> plan or higher.
-            You are currently on <strong>{tierLabels[currentTier]}</strong>.
-          </DialogDescription>
+            <DialogTitle className="text-lg">{featureLabel}</DialogTitle>
+          </div>
         </DialogHeader>
 
-        <div className="mt-4 space-y-4">
-          <div className="p-4 bg-gray-50 rounded-lg space-y-2">
-            <h4 className="font-medium text-gray-900">Feature: {formatFeature(feature)}</h4>
-            {tierLabel && (
-              <p className="text-sm text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full inline-block">
-                {tierLabel}
-              </p>
-            )}
-            {tierFeatures.length > 0 && (
-              <div className="mt-3 space-y-1.5">
-                <p className="text-sm font-medium text-gray-700">Includes:</p>
-                <ul className="space-y-1 pl-4">
-                  {tierFeatures.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                      <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+        <div className="space-y-4">
+          {/* Tier requirement */}
+          <div className="rounded-xl bg-secondary/50 p-3 text-sm">
+            <p className="text-muted-foreground">
+              You're on the <span className="font-semibold text-foreground">{currentLabel}</span> plan.
+            </p>
+            <p className="mt-0.5">
+              This feature requires{' '}
+              <span className={`font-semibold ${TIER_COLOR[requiredTier] ?? ''}`}>
+                {requiredLabel}
+              </span>
+              .
+            </p>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <p className="text-sm text-gray-600">Current Plan</p>
-              <p className="font-semibold text-gray-900 flex items-center gap-2">
-                {tierIcons[currentTier]}
-                {tierLabels[currentTier]}
+          {/* Feature highlights */}
+          {tierFeatures.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                What you unlock:
               </p>
+              {tierFeatures.map((f) => (
+                <div key={f} className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>{f}</span>
+                </div>
+              ))}
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Required Plan</p>
-              <p className="font-semibold text-gray-900 flex items-center gap-2 justify-end">
-                {tierIcons[requiredTier]}
-                {tierLabels[requiredTier]}
-              </p>
-            </div>
-          </div>
+          )}
 
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              <X className="w-4 h-4 mr-2" />
-              Maybe Later
+          {/* Actions */}
+          <div className="flex gap-2 pt-1">
+            <Button
+              onClick={handleUpgrade}
+              className="flex-1 bg-amber-500 hover:bg-amber-600 text-white gap-2"
+            >
+              Upgrade to {requiredTier === 'pro' ? 'Enterprise' : 'Pro'}
+              <ArrowRight className="w-4 h-4" />
             </Button>
-            <Button onClick={() => { onClose(); window.location.href = '/business/subscription'; }} className="flex-1">
-              <ArrowRight className="w-4 h-4 mr-2" />
-              Upgrade Now
+            <Button variant="outline" onClick={onClose} className="px-3">
+              <X className="w-4 h-4" />
             </Button>
           </div>
         </div>

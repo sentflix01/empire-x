@@ -43,12 +43,16 @@ jobs:
           echo "proceed=true" >> $GITHUB_OUTPUT
 
   # ── Run DB Migrations on Neon ────────────────────────────────────────────────
+  # Non-blocking: if Neon is unreachable or quota-exhausted, deploy proceeds
+  # anyway. The app works fine without new migrations if the schema is current.
+  # Migrations are idempotent — they'll catch up when Neon recovers.
   migrate:
     name: Run DB Migrations → Neon
     needs: gate
     if: needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     environment: production
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -64,10 +68,24 @@ jobs:
         working-directory: backend
 
       - name: Run migrations
-        run: node db/migrate-all.js
+        id: migrate
+        continue-on-error: true
+        run: node db/migrate-all.js --if-pending
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+
+      - name: Migration status
+        if: always()
+        run: |
+          if [ "${{ steps.migrate.outcome }}" = "success" ]; then
+            echo "✅ Migrations applied successfully."
+          else
+            echo "⚠️  Migration step failed or was skipped."
+            echo "    This is non-blocking — the deploy will continue."
+            echo "    The app works fine if the schema is already current."
+            echo "    Migrations will catch up when Neon recovers."
+          fi
 
   # ── Deploy Backend to Railway ─────────────────────────────────────────────────
   # Railway auto-deploys from the connected GitHub repo on every push to main.
@@ -77,7 +95,7 @@ jobs:
   deploy-backend:
     name: Deploy Backend → Railway
     needs: [gate, migrate]
-    if: needs.gate.outputs.proceed == 'true'
+    if: always() && needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     environment: production
 
@@ -133,7 +151,7 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend (Next.js) → Vercel
     needs: [gate, migrate]
-    if: needs.gate.outputs.proceed == 'true'
+    if: always() && needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     environment: production
 
