@@ -20,13 +20,13 @@ Authentication and account lifecycle: register with OTP email verification, veri
 | `POST` | `/api/auth/resend-otp` | public | 256 |
 | `POST` | `/api/auth/login` | public | 299 |
 | `POST` | `/api/auth/google` | public | 369 |
-| `GET` | `/api/auth/me` | auth | 440 |
-| `POST` | `/api/auth/forgot-password` | public | 474 |
-| `POST` | `/api/auth/reset-password` | public | 509 |
-| `PUT` | `/api/auth/change-password` | auth | 548 |
-| `POST` | `/api/auth/refresh` | public | 582 |
-| `POST` | `/api/auth/logout` | public | 623 |
-| `POST` | `/api/auth/logout-all` | auth | 641 |
+| `GET` | `/api/auth/me` | auth | 446 |
+| `POST` | `/api/auth/forgot-password` | public | 480 |
+| `POST` | `/api/auth/reset-password` | public | 515 |
+| `PUT` | `/api/auth/change-password` | auth | 554 |
+| `POST` | `/api/auth/refresh` | public | 588 |
+| `POST` | `/api/auth/logout` | public | 629 |
+| `POST` | `/api/auth/logout-all` | auth | 647 |
 
 ## 4. What does it touch?
 
