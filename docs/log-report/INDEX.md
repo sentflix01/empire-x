@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-30 | Maintenance | Fix TypeScript compiler config | [9d47360c5](2026-08-30-9d47360c5-fix-typescript-compiler-config.md) |
+| 2026-08-30 | Maintenance | Fix Render Neon backup and TLS issues | [6a1f62896](2026-08-30-6a1f62896-fix-render-neon-backup-and-tls-issues.md) |
 | 2026-08-30 | Bugfix | fix: require('../package.json') in health endpoint + Google OAuth guard | [c16ca0670](2026-08-30-c16ca0670-require-package-json-in-health-endpoint-google-o.md) |
 | 2026-08-30 | Bugfix | fix: add production Vercel domain to CORS allowed origins | [db839dd9a](2026-08-30-db839dd9a-add-production-vercel-domain-to-cors-allowed-ori.md) |
 | 2026-08-30 | Bugfix | fix: install postgresql-client in Docker for pg_dump backups | [0fb4aa8ab](2026-08-30-0fb4aa8ab-install-postgresql-client-in-docker-for-pg-dump-.md) |
