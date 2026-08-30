@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-30 | Bugfix | fix: add production Vercel domain to CORS allowed origins | [db839dd9a](2026-08-30-db839dd9a-add-production-vercel-domain-to-cors-allowed-ori.md) |
+| 2026-08-30 | Bugfix | fix: install postgresql-client in Docker for pg_dump backups | [0fb4aa8ab](2026-08-30-0fb4aa8ab-install-postgresql-client-in-docker-for-pg-dump-.md) |
 | 2026-08-30 | Bugfix | fix: generate PWA icons from brand SVG | [a420c6943](2026-08-30-a420c6943-generate-pwa-icons-from-brand-svg.md) |
 | 2026-08-30 | Bugfix | fix: health check no longer blocks deploy pipeline | [e6b17cffa](2026-08-30-e6b17cffa-health-check-no-longer-blocks-deploy-pipeline.md) |
 | 2026-08-30 | Bugfix | fix: deploy pipeline no longer blocked by Neon quota exhaustion | [d284d48bb](2026-08-30-d284d48bb-deploy-pipeline-no-longer-blocked-by-neon-quota-.md) |
