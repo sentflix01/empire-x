@@ -31,7 +31,6 @@
     "tsBuildInfoFile": ".tsbuildinfo",
 
     // Path aliases for cleaner imports
-    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@lib/*":        ["lib/*"],
