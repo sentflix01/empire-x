@@ -1,5 +1,5 @@
 /** showroom-digests — pure helper tests (no DB / no email) */
-const { isDue, buildDigestHtml } = require('../scripts/showroom-digests');
+const { isDue, buildDigestHtml, isNeonQuotaError } = require('../scripts/showroom-digests');
 
 const report = {
   score: 62,
@@ -45,5 +45,20 @@ describe('buildDigestHtml', () => {
   test('positive case shows all-clear instead of findings', () => {
     const clean = buildDigestHtml({ ...report, findings: [] }, 'X', 'u');
     expect(clean).toContain('No issues found');
+  });
+});
+
+describe('Neon quota guards', () => {
+  test('detects Neon compute quota exhaustion in database errors', () => {
+    expect(isNeonQuotaError(new Error('Your account or project has exceeded the compute time quota. Upgrade your plan to increase limits.'))).toBe(true);
+    expect(isNeonQuotaError(new Error('connect ECONNREFUSED 127.0.0.1:5432'))).toBe(false);
+  });
+});
+
+describe('pg_dump URL sanitization', () => {
+  test('removes the pgbouncer parameter before invoking pg_dump', () => {
+    const { stripPgbouncerParam } = require('../scripts/backup-database');
+    const url = 'postgresql://user:pass@ep-foo.neon.tech/neondb?sslmode=require&pgbouncer=true';
+    expect(stripPgbouncerParam(url)).toBe('postgresql://user:pass@ep-foo.neon.tech/neondb?sslmode=require');
   });
 });

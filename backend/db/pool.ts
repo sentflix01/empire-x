@@ -5,8 +5,11 @@
  * (cuts connection overhead by 30-50%).
  * SSL forced in production and whenever the URL contains neon.tech.
  */
+import dns from 'node:dns';
 import { Pool } from 'pg';
 import logger from '../lib/logger';
+
+dns.setDefaultResultOrder('ipv4first');
 
 function buildConnectionString(raw: string | undefined): string | undefined {
   if (!raw) return raw;
@@ -22,9 +25,11 @@ const needsSsl =
   process.env.NODE_ENV === 'production' ||
   !!(connectionString && /neon\.tech|sslmode=require|ssl=true/i.test(connectionString));
 
+const rejectUnauthorized = process.env.DB_TLS_REJECT_UNAUTHORIZED === 'true';
+
 const pool = new Pool({
   connectionString,
-  ssl: needsSsl ? { rejectUnauthorized: process.env.DB_TLS_REJECT_UNAUTHORIZED === 'false' ? false : true } : false,
+  ssl: needsSsl ? { rejectUnauthorized } : false,
   max: parseInt(process.env.DB_POOL_MAX ?? '10', 10),
   min: 1,
   idleTimeoutMillis: 60_000,

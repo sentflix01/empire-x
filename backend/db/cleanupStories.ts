@@ -5,6 +5,20 @@
  */
 import pool from './pool';
 
+function isNeonQuotaError(err: unknown): boolean {
+  if (!err) return false;
+  const message = String((err as Error)?.message ?? err).toLowerCase();
+  const detail = String((err as { detail?: unknown })?.detail ?? '').toLowerCase();
+  const code = String((err as { code?: unknown })?.code ?? '').toLowerCase();
+  return (
+    message.includes('compute time quota') ||
+    message.includes('account or project has exceeded') ||
+    detail.includes('compute time quota') ||
+    (code.includes('57014') && message.includes('quota')) ||
+    (message.includes('quota') && message.includes('neon'))
+  );
+}
+
 async function deleteExpiredStories(): Promise<void> {
   try {
     const { rows } = await pool.query(
@@ -24,6 +38,10 @@ async function deleteExpiredStories(): Promise<void> {
   } catch (err: unknown) {
     if ((err as NodeJS.ErrnoException & { code?: string }).code === '42P01') {
       // relation "stories" does not exist — skip cleanup silently.
+      return;
+    }
+    if (isNeonQuotaError(err)) {
+      console.warn('[stories] Cleanup skipped: Neon compute quota exhausted');
       return;
     }
     console.error('[stories] Cleanup error:', (err as Error).message);

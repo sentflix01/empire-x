@@ -33,6 +33,26 @@ const pool = require('../db/pool');
 const RETENTION_DAYS = parseInt(process.env.BACKUP_RETENTION_DAYS ?? '14', 10);
 const LOCAL_DIR = path.join('/app', 'backups');
 
+function stripPgbouncerParam(raw) {
+  if (!raw) return raw;
+  const cleaned = raw.replace(/[?&]pgbouncer=true(?=&|$)/, '');
+  return cleaned.replace(/[?&]$/, '');
+}
+
+function isNeonQuotaError(err) {
+  if (!err) return false;
+  const message = String(err.message ?? err).toLowerCase();
+  const detail = String(err.detail ?? '').toLowerCase();
+  const code = String(err.code ?? '').toLowerCase();
+  return (
+    message.includes('compute time quota') ||
+    message.includes('account or project has exceeded') ||
+    detail.includes('compute time quota') ||
+    (code.includes('57014') && message.includes('quota')) ||
+    (message.includes('quota') && message.includes('neon'))
+  );
+}
+
 function hasR2() {
   return !!(process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID &&
             process.env.R2_SECRET_ACCESS_KEY && process.env.R2_BUCKET_NAME);
@@ -99,11 +119,23 @@ async function runBackup() {
     await recordOutcome('skipped', { reason: 'no_database_url' });
     return { ok: false, reason: 'no_database_url' };
   }
-  fs.mkdirSync(LOCAL_DIR, { recursive: true });
+
+  try {
+    fs.mkdirSync(LOCAL_DIR, { recursive: true });
+  } catch (err) {
+    if (isNeonQuotaError(err)) {
+      logger.warn({ err: err.message }, 'backup: skipped (Neon compute quota exhausted)');
+      await recordOutcome('skipped', { reason: 'neon_compute_quota' });
+      return { ok: false, reason: 'neon_compute_quota' };
+    }
+    throw err;
+  }
 
   // ── Dump (pg_dump custom format piped through gzip) ────────────────────────
+  const dumpUrl = stripPgbouncerParam(process.env.DATABASE_URL);
+
   await new Promise((resolve, reject) => {
-    const dump = spawn('pg_dump', ['--no-owner', '--format=custom', process.env.DATABASE_URL], {
+    const dump = spawn('pg_dump', ['--no-owner', '--format=custom', dumpUrl], {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     const gzip = zlib.createGzip();
@@ -153,7 +185,11 @@ async function backupDue() {
     const { rows } = await pool.query(`SELECT value FROM app_settings WHERE key='last_database_backup'`);
     const last = rows[0]?.value?.at ? Date.parse(rows[0].value.at) : 0;
     return Date.now() - last > 24 * 60 * 60 * 1000;
-  } catch {
+  } catch (err) {
+    if (isNeonQuotaError(err)) {
+      logger.warn({ err: err.message }, 'backup: skipped due to Neon compute quota exhaustion');
+      return false;
+    }
     return true; // settings table missing → attempt anyway
   }
 }
@@ -165,8 +201,17 @@ function startBackupSchedule() {
     return;
   }
   const tick = async () => {
-    try { if (await backupDue()) await runBackup(); }
+    try {
+      if (await backupDue()) {
+        const result = await runBackup();
+        if (result?.reason === 'neon_compute_quota') return;
+      }
+    }
     catch (err) {
+      if (isNeonQuotaError(err)) {
+        logger.warn({ err: err.message }, 'backup: skipped by schedule (Neon compute quota exhausted)');
+        return;
+      }
       logger.error({ err: err.message, hint: err.hint }, 'backup: FAILED');
       recordOutcome('failed', { error: String(err.message).slice(0, 300) });
     }
@@ -177,7 +222,7 @@ function startBackupSchedule() {
   logger.info('backup: daily schedule active (retention %s days)', RETENTION_DAYS);
 }
 
-module.exports = { runBackup, startBackupSchedule };
+module.exports = { runBackup, startBackupSchedule, stripPgbouncerParam };
 
 // CLI entry point
 if (require.main === module) {

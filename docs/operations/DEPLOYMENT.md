@@ -39,7 +39,7 @@ GitHub Actions CI
         │  all green
         ▼
 ┌───────────────────────────┐
-│  Deploy Backend → Railway │   ~2 min
+│  Deploy Backend → Render  │   ~2 min
 └───────────────────────────┘
         │
         │  success + health check passes
@@ -78,11 +78,11 @@ Minimum staging requirements:
 
 Public production requirements are stricter: use R2 for uploads, managed Redis if queues/presence matter, real monitoring, verified email domain, live payment keys only after business/legal review, and security debt from `TECHNICAL_DEBT.md` reviewed.
 
-### Backend (Railway)
+### Backend (Render)
 
 | Variable | Required | Description |
 |---|---|---|
-| `DATABASE_URL` | **Yes (enforced)** | Neon PostgreSQL connection string — app hard-exits without it |
+| `DATABASE_URL` | **Yes (enforced)** | PostgreSQL connection string from Supabase or Neon — app hard-exits without it |
 | `JWT_SECRET` | **Yes (enforced)** | 64+ char random string — app hard-exits without it |
 | `NODE_ENV` | Recommended | `production` enables Helmet CSP, prod rate limits, Secure cookies |
 | `PORT` | No | Default `3001` |
@@ -90,6 +90,9 @@ Public production requirements are stricter: use R2 for uploads, managed Redis i
 | `RESEND_API_KEY` | Recommended | Starts with `re_` |
 
 > Tip: `FRONTEND_URL` can contain multiple trusted origins separated by commas. The first valid URL is used for email/reset links and checkout redirects, while wildcard patterns are used for CORS origins.
+>
+> Recommended free-tier database: Supabase Postgres. Example connection string:
+> `postgresql://postgres:[YOUR-PASSWORD]@db.[project-ref].supabase.co:5432/postgres?sslmode=require`
 
 | Variable | Required | Description |
 |---|---|---|
@@ -152,6 +155,23 @@ git add .
 git commit -m "feat: add product variants"
 git push origin main
 # CI/CD handles the rest automatically
+```
+
+### Recommended free-tier database migration
+If you want to move off Neon because of quota limits, the current recommended configuration is:
+
+- Database: Supabase Postgres
+- Backend host: Render
+- Frontend host: Vercel
+- File storage: Cloudflare R2
+- Cache/queue: Upstash Redis
+
+Set this in Render:
+```env
+DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.[project-ref].supabase.co:5432/postgres?sslmode=require
+JWT_SECRET=replace_with_64_byte_hex_string
+FRONTEND_URL=https://your-vercel-app.vercel.app
+NODE_ENV=production
 ```
 
 ### Preview deploy (any other branch)

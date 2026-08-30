@@ -17,6 +17,20 @@ const pool = require('../db/pool');
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_PER_RUN = 200; // safety cap per hourly tick
 
+function isNeonQuotaError(err) {
+  if (!err) return false;
+  const message = String(err.message ?? err).toLowerCase();
+  const detail = String(err.detail ?? '').toLowerCase();
+  const code = String(err.code ?? '').toLowerCase();
+  return (
+    message.includes('compute time quota') ||
+    message.includes('account or project has exceeded') ||
+    detail.includes('compute time quota') ||
+    (code.includes('57014') && message.includes('quota')) ||
+    (message.includes('quota') && message.includes('neon'))
+  );
+}
+
 // ── Pure helpers (unit-tested) ───────────────────────────────────────────────
 function isDue(lastSentAt, now = Date.now()) {
   if (!lastSentAt) return true;
@@ -57,11 +71,21 @@ function buildDigestHtml(report, showroomTitle, builderUrl) {
 
 // ── Runner ───────────────────────────────────────────────────────────────────
 async function runDigests() {
-  const { rows: showrooms } = await pool.query(
-    `SELECT s.id, s.title, s.updated_at, u.email
-     FROM showrooms s JOIN users u ON u.id = s.owner_id
-     WHERE s.status = 'published' AND u.email IS NOT NULL
-     ORDER BY s.updated_at DESC LIMIT $1`, [MAX_PER_RUN]);
+  let showrooms;
+  try {
+    const result = await pool.query(
+      `SELECT s.id, s.title, s.updated_at, u.email
+       FROM showrooms s JOIN users u ON u.id = s.owner_id
+       WHERE s.status = 'published' AND u.email IS NOT NULL
+       ORDER BY s.updated_at DESC LIMIT $1`, [MAX_PER_RUN]);
+    showrooms = result.rows;
+  } catch (err) {
+    if (isNeonQuotaError(err)) {
+      logger.warn({ err: err.message }, 'digest: skipped (Neon compute quota exhausted)');
+      return { sent: 0, skipped: 0, quotaExceeded: true };
+    }
+    throw err;
+  }
 
   const { runDoctor } = await import('../lib/showroomDoctor');
   const { sendCustomEmail } = await import('../utils/mailer');
@@ -85,6 +109,10 @@ async function runDigests() {
       recordEvent('showroom_digest_sent', { showroomId: sh.id, score: result.report.score, email: sh.email });
       sent++;
     } catch (err) {
+      if (isNeonQuotaError(err)) {
+        logger.warn({ err: err.message, showroomId: sh.id }, 'digest: skipped for showroom (Neon compute quota exhausted)');
+        break;
+      }
       logger.warn({ err: err.message, showroomId: sh.id }, 'digest: failed for showroom');
     }
   }
@@ -105,7 +133,7 @@ function startDigestSchedule() {
   logger.info('digest: weekly schedule active');
 }
 
-module.exports = { runDigests, startDigestSchedule, isDue, buildDigestHtml };
+module.exports = { runDigests, startDigestSchedule, isDue, buildDigestHtml, isNeonQuotaError };
 
 if (require.main === module) {
   runDigests().then(() => process.exit(0)).catch(() => process.exit(1));

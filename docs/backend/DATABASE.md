@@ -171,12 +171,20 @@ WHERE state = 'active';
 
 ## Connection Pooling
 
-Neon uses PgBouncer for connection pooling automatically. The connection string uses a pooled endpoint:
+This app is provider-agnostic and works with PostgreSQL providers such as Supabase and Neon.
+
+For Supabase, use the standard Postgres connection string with SSL enabled:
+
+```
+postgresql://postgres:[PASSWORD]@db.[project-ref].supabase.co:5432/postgres?sslmode=require
+```
+
+For Neon, the project may use a pooled endpoint if needed:
 
 ```
 postgresql://user:pass@ep-xxx-pooler.neon.tech/nodbusiness?sslmode=require
 ```
 
-For direct connections (migrations, admin queries), use the non-pooled endpoint. For the app, always use the pooled endpoint.
+The app already detects Neon-specific pooling and keeps the existing behavior for Neon. For Supabase, no extra pooling flag is required.
 
-Max connections rule of thumb: set `connection_limit` in the URL to `10` per backend instance in production to avoid hitting Neon's connection limits.
+Max connections rule of thumb: keep `DB_POOL_MAX` low in production and use provider-specific connection limits; for free-tier providers, keep it to around 5–10 per app instance.
