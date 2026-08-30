@@ -173,20 +173,22 @@ function Register() {
     >
       <div ref={googleButtonRef} className="mb-6 flex min-h-11 w-full justify-center" aria-label={t('auth.continueWithGoogle')} />
       {!googleButtonReady && !googleUnavailable && (
-        <p className="mb-6 -mt-4 text-center text-xs text-muted-foreground">Loading Google Sign-In…</p>
+        <p className="mb-6 text-center text-xs text-muted-foreground">Setting up Google Sign-In…</p>
       )}
       {googleUnavailable && (
-        <p className="mb-6 -mt-4 text-center text-xs text-muted-foreground">
-          Google Sign-In is unavailable on this browser. You can still create an account with email and password below.
+        <p className="mb-6 text-center text-xs text-muted-foreground">
+          Google Sign-In unavailable. Use email and password below.
         </p>
       )}
-      <div className="relative mb-6">
-        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-3 text-muted-foreground">{t('auth.or')}</span>
+      {(googleButtonReady || googleUnavailable) && (
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border/50" /></div>
+          <div className="relative flex justify-center">
+            <span className="bg-card px-3 text-xs text-muted-foreground font-medium uppercase tracking-wide">{t('auth.or')}</span>
+          </div>
         </div>
-      </div>
-      {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
+      )}
+      {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm font-medium">{error}</div>}
       {refCode && (
         <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 flex items-center gap-2">
           <Gift className="w-4 h-4 text-amber-600 shrink-0" />
@@ -195,43 +197,58 @@ function Register() {
           </p>
         </div>
       )}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">{t('auth.email')}</Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="email" type="email" autoComplete="email" placeholder="you@example.com"
-              value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 h-12" required />
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="text-sm font-medium text-foreground">{t('auth.email')}</Label>
+          <Input 
+            id="email" 
+            type="email" 
+            autoComplete="email" 
+            placeholder="you@example.com"
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+            className="h-11 px-3 rounded-lg border border-input bg-background text-base focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            required 
+          />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">{t('auth.password')}</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="password" type="password" autoComplete="new-password" placeholder="••••••••"
-              value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 h-12" required />
-          </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="password" className="text-sm font-medium text-foreground">{t('auth.password')}</Label>
+          <Input 
+            id="password" 
+            type="password" 
+            autoComplete="new-password" 
+            placeholder="Enter a strong password"
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+            className="h-11 px-3 rounded-lg border border-input bg-background text-base focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            required 
+          />
+          <p className="text-xs text-muted-foreground">At least 8 characters with mix of letters, numbers, and symbols</p>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="confirm">{t('auth.confirmPassword')}</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="confirm" type="password" autoComplete="new-password" placeholder="••••••••"
-              value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="pl-10 h-12" required />
-          </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="confirm" className="text-sm font-medium text-foreground">{t('auth.confirmPassword')}</Label>
+          <Input 
+            id="confirm" 
+            type="password" 
+            autoComplete="new-password" 
+            placeholder="Confirm your password"
+            value={confirmPassword} 
+            onChange={(e) => setConfirmPassword(e.target.value)} 
+            className="h-11 px-3 rounded-lg border border-input bg-background text-base focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            required 
+          />
         </div>
-        {/* ── Agreement checkbox ── comes BEFORE submit so iOS keyboard "Go" triggers submit */}
         <div>
           <button
             type="button"
             onClick={() => setAgreed(v => !v)}
-            className={`w-full flex items-start gap-3 p-3 rounded-xl border transition-all text-left ${
+            className={`w-full flex items-start gap-3 p-4 rounded-lg border transition-all text-left ${
               agreed
-                ? 'border-primary/50 bg-primary/5'
-                : 'border-border/60 bg-secondary/30 hover:border-primary/30'
+                ? 'border-primary/40 bg-primary/5'
+                : 'border-border hover:border-primary/30 hover:bg-muted/30'
             }`}
           >
-            <div className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors ${agreed ? 'bg-primary' : 'border-2 border-muted-foreground/40'}`}>
+            <div className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors ${agreed ? 'bg-primary' : 'border-2 border-muted-foreground/50'}`}>
               {agreed && <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -241,7 +258,7 @@ function Register() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={e => e.stopPropagation()}
-                className="text-primary font-semibold hover:underline"
+                className="text-primary font-medium hover:underline"
               >
                 Terms of Service
               </Link>
@@ -251,17 +268,16 @@ function Register() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={e => e.stopPropagation()}
-                className="text-primary font-semibold hover:underline"
+                className="text-primary font-medium hover:underline"
               >
                 Privacy Policy
               </Link>
-              . I confirm I am at least 18 years old.
             </p>
           </button>
         </div>
 
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !agreed}>
-          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('auth.creatingAccount')}</> : t('auth.register')}
+        <Button type="submit" className="w-full h-11 font-medium text-base mt-6" disabled={loading || !agreed || !email || !password || !confirmPassword}>
+          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('auth.creatingAccount')}</> : t('auth.createAccount')}
         </Button>
       </form>
     </AuthLayout>

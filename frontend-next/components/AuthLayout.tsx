@@ -12,23 +12,32 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ title, subtitle, footer, children, icon: Icon }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-md">
-        <div className="text-center mb-10">
-          <div className="flex items-center justify-center mb-6">
+        {/* Header: Logo or Icon */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-8">
             {Icon
-              ? <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 shadow-sm"><Icon className="w-8 h-8 text-primary" /></div>
-              : <Image src="/brand/nodbusiness-logo.svg" alt="Nodbusiness" width={200} height={30} className="h-8 w-auto" priority />
+              ? <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10"><Icon className="w-7 h-7 text-primary" /></div>
+              : <Image src="/brand/nodbusiness-logo.svg" alt="Nodbusiness" width={200} height={30} className="h-7 w-auto" priority />
             }
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
-          {subtitle && <p className="text-muted-foreground mt-2">{subtitle}</p>}
+          
+          {/* Title */}
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-2">{title}</h1>
+          
+          {/* Subtitle */}
+          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </div>
-        <div className="bg-card rounded-2xl shadow-sm border border-border p-8">
+        
+        {/* Form Card */}
+        <div className="bg-card rounded-xl shadow-sm border border-border/40 p-8 mb-6">
           {children}
         </div>
+        
+        {/* Footer Link */}
         {footer && (
-          <p className="text-center text-sm text-muted-foreground mt-6">{footer}</p>
+          <p className="text-center text-sm text-muted-foreground">{footer}</p>
         )}
       </div>
     </div>
