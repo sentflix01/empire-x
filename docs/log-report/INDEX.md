@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-30 | Documentation | docs: Add complete deployment variables checklist for Render + Supabase + Vercel | [78445ff65](2026-08-30-78445ff65-add-complete-deployment-variables-checklist-for-.md) |
 | 2026-08-30 | Maintenance | Refine Supabase pooler fix: use direct postgres endpoint with correct port | [8a4c2ac4c](2026-08-30-8a4c2ac4c-refine-supabase-pooler-fix-use-direct-postgres-e.md) |
 | 2026-08-30 | Maintenance | Fix Supabase pooler connection for pg_dump and certificate handling | [434c059be](2026-08-30-434c059be-fix-supabase-pooler-connection-for-pg-dump-and-c.md) |
 | 2026-08-30 | Maintenance | Normalize deployment config to Render + Supabase | [564834973](2026-08-30-564834973-normalize-deployment-config-to-render-supabase.md) |
