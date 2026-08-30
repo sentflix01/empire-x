@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-31 | Bugfix | fix: Allow Google OAuth popup - add CSP frame-src and COOP headers | [7b3d23a2f](2026-08-31-7b3d23a2f-allow-google-oauth-popup-add-csp-frame-src-and-c.md) |
 | 2026-08-31 | Bugfix | fix: redeploy with updated Supabase DATABASE_URL | [a9502dd32](2026-08-31-a9502dd32-redeploy-with-updated-supabase-database-url.md) |
 | 2026-08-31 | Bugfix | fix: update to correct Supabase DATABASE_URL | [6a7e31b40](2026-08-31-6a7e31b40-update-to-correct-supabase-database-url.md) |
 | 2026-08-31 | Testing | test: trigger deploy with all secrets configured | [131eb6f4e](2026-08-31-131eb6f4e-trigger-deploy-with-all-secrets-configured.md) |
