@@ -35,8 +35,15 @@ const LOCAL_DIR = path.join('/app', 'backups');
 
 function stripPgbouncerParam(raw) {
   if (!raw) return raw;
-  const cleaned = raw.replace(/[?&]pgbouncer=true(?=&|$)/, '');
-  return cleaned.replace(/[?&]$/, '');
+  // Remove pgbouncer=true parameter
+  let cleaned = raw.replace(/[?&]pgbouncer=true(?=&|$)/, '');
+  cleaned = cleaned.replace(/[?&]$/, '');
+  // Convert Supabase pooler to direct postgres endpoint for pg_dump compatibility
+  // (pooler requires SNI/external_id that pg_dump doesn't support)
+  if (cleaned.includes('pooler.supabase.com')) {
+    cleaned = cleaned.replace('pooler.supabase.com', 'postgres.supabase.com');
+  }
+  return cleaned;
 }
 
 function isNeonQuotaError(err) {
