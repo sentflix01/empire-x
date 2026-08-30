@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-08-30 | Bugfix | fix: deploy pipeline no longer blocked by Neon quota exhaustion | [d284d48bb](2026-08-30-d284d48bb-deploy-pipeline-no-longer-blocked-by-neon-quota-.md) |
 | 2026-08-30 | Feature | feat: add nodbusiness-icon SVG to public/icons | [dfca85e45](2026-08-30-dfca85e45-add-nodbusiness-icon-svg-to-public-icons.md) |
 | 2026-08-30 | Bugfix | fix: update favicon to nodbusiness-icon SVG | [15c154f3a](2026-08-30-15c154f3a-update-favicon-to-nodbusiness-icon-svg.md) |
 | 2026-08-30 | Bugfix | fix: use /app/backups dir for backup script — fixes EACCES permission error on Render | [6ea237280](2026-08-30-6ea237280-use-app-backups-dir-for-backup-script-fixes-eacc.md) |
