@@ -80,8 +80,8 @@ const nextConfig: NextConfig = {
       `font-src 'self'`,
       // API calls, Sentry, Stripe, WebSocket (socket.io), Google auth
       `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.railway.app wss://*.railway.app wss://*.up.railway.app https://*.up.railway.app https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com`,
-      // Stripe Checkout/Elements renders in iframes
-      `frame-src https://js.stripe.com https://hooks.stripe.com`,
+      // Stripe Checkout/Elements + Google Sign-In renders in iframes
+      `frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com`,
       // No plugins, no base-uri override
       `object-src 'none'`,
       `base-uri 'self'`,
@@ -103,6 +103,7 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy",            value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy",         value: "camera=(), microphone=(), geolocation=(self)" },
           { key: "Content-Security-Policy",    value: csp },
+          { key: "Cross-Origin-Opener-Policy",   value: "same-origin-allow-popups" },
         ],
       },
     ];
