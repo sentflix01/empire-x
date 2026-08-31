@@ -5,23 +5,46 @@ on:
     branches: [main]
     paths-ignore:
       - 'docs/**'
-      - '*.md'
+      - '**/*.md'
+      - 'backend/db/**'
       - '.github/workflows/docs-sync.yml'
-      - '.github/workflows/db-migrate-to-neon.yml'
+      - '.github/workflows/db-migrate-to-supabase.yml'
   pull_request:
     branches: [main, develop]
     paths-ignore:
       - 'docs/**'
-      - '*.md'
+      - '**/*.md'
+  workflow_dispatch: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # ── Skip guard — exit early for bot commits or [skip ci] messages ────────────
+  check-skip:
+    name: Check skip conditions
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - id: check
+        run: |
+          actor="${{ github.actor }}"
+          msg="${{ github.event.head_commit.message || '' }}"
+          if [[ "$actor" == "github-actions[bot]" || "$actor" == "dependabot[bot]" ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          elif [[ "$msg" == *"[skip ci]"* || "$msg" == *"[ci skip]"* ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
   # ── Backend ──────────────────────────────────────────────────────────────────
   backend:
     name: Backend — Typecheck & Tests (blocking)
+    needs: check-skip
+    if: needs.check-skip.outputs.skip != 'true'
     runs-on: ubuntu-latest
 
     services:
@@ -75,6 +98,8 @@ jobs:
   # ── Next.js Frontend ─────────────────────────────────────────────────────────
   frontend:
     name: Frontend (Next.js) — Lint, Type-check & Build
+    needs: check-skip
+    if: needs.check-skip.outputs.skip != 'true'
     runs-on: ubuntu-latest
 
     defaults:
@@ -115,6 +140,8 @@ jobs:
   # Uses --package-lock-only so no npm ci needed — saves ~2 min per run.
   audit:
     name: Security Audit (advisory)
+    needs: check-skip
+    if: needs.check-skip.outputs.skip != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

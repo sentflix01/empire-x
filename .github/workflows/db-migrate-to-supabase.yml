@@ -1,0 +1,53 @@
+name: DB migrate -> Supabase (manual)
+
+# Runs all pending migrations against the Supabase production database.
+# Use this when you add a new migrate*.js file and want to apply it to Supabase
+# without waiting for a full Render deploy.
+#
+# Requires SUPABASE_DATABASE_URL secret (found in Supabase → Project Settings
+# → Database → Connection string → URI, use the "Transaction" pooler URL).
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    name: Run migrations on Supabase
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Validate secrets
+        run: |
+          if [ -z "${{ secrets.SUPABASE_DATABASE_URL }}" ]; then
+            echo "ERROR: SUPABASE_DATABASE_URL secret is not set."
+            echo "Go to: GitHub → Settings → Secrets and variables → Actions → New repository secret"
+            echo "Value: Supabase → Project Settings → Database → Connection string (Transaction pooler URI)"
+            exit 1
+          fi
+          echo "✅ SUPABASE_DATABASE_URL is set."
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run all migrations
+        run: node db/migrate-all.js
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+
+      - name: Verify tables
+        run: node db/check-supabase.js
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
