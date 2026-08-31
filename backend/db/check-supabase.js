@@ -7,7 +7,7 @@ async function check() {
   const tables = await pool.query(
     "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename"
   );
-  console.log('\n📊 Neon DB Status\n');
+  console.log('\n📊 Supabase DB Status\n');
   console.log('Tables (' + tables.rows.length + '):');
   tables.rows.forEach(r => console.log('  ✅', r.tablename));
 
