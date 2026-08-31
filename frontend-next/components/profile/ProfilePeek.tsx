@@ -76,14 +76,14 @@ function PersonalProfileEmbed({ profile, businesses, currentUser, isOwner }: any
       <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
         <div className="h-28 bg-gradient-to-r from-amber-400 to-orange-500">
           {profile?.cover_url && (
-            <img loading="lazy" src={profile.cover_url} alt="" className="w-full h-full object-cover" />
+            <img loading="lazy" src={profile.cover_url} alt={`${profile.display_name || 'User'}'s cover`} className="w-full h-full object-cover" />
           )}
         </div>
         <div className="px-5 pb-4">
           <div className="-mt-10 mb-3">
             <div className="w-20 h-20 rounded-2xl bg-card p-0.5 shadow-lg overflow-hidden">
               {profile?.avatar_url
-                ? <img loading="lazy" src={profile.avatar_url} alt="" className="w-full h-full object-cover rounded-xl" />
+                ? <img loading="lazy" src={profile.avatar_url} alt={`${profile.display_name || 'User'}'s avatar`} className="w-full h-full object-cover rounded-xl" />
                 : (
                   <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-bold">
                     {(profile?.display_name ?? "?").charAt(0)}
@@ -164,7 +164,7 @@ function PersonalProfileEmbed({ profile, businesses, currentUser, isOwner }: any
             {posts.map((p: any) => (
               <div key={p.id} className="bg-card rounded-2xl border border-border/50 p-4">
                 {p.image_url && (
-                  <img loading="lazy" src={p.image_url} alt="" className="w-full rounded-xl object-cover mb-3" style={{ maxHeight: 240 }} />
+                  <img loading="lazy" src={p.image_url} alt={p.content?.slice(0, 120) || 'Post image'} className="w-full rounded-xl object-cover mb-3" style={{ maxHeight: 240 }} />
                 )}
                 <p className="text-sm leading-relaxed">{p.content}</p>
                 <p className="text-xs text-muted-foreground mt-2">
@@ -199,14 +199,14 @@ function BusinessProfileEmbed({ profile, business, businesses, currentUser, isOw
           style={{ background: `linear-gradient(135deg, ${themeColor}cc, ${themeColor}66)` }}
         >
           {biz.business_cover_url && (
-            <img loading="lazy" src={biz.business_cover_url} alt="" className="w-full h-full object-cover" />
+            <img loading="lazy" src={biz.business_cover_url} alt={`${biz.business_name || 'Business'}'s cover`} className="w-full h-full object-cover" />
           )}
         </div>
         <div className="px-5 pb-4">
           <div className="-mt-10 mb-3">
             <div className="w-20 h-20 rounded-2xl bg-card p-0.5 shadow-lg overflow-hidden">
               {biz.business_logo_url
-                ? <img loading="lazy" src={biz.business_logo_url} alt="" className="w-full h-full object-cover rounded-xl" />
+                ? <img loading="lazy" src={biz.business_logo_url} alt={`${biz.business_name || 'Business'}'s logo`} className="w-full h-full object-cover rounded-xl" />
                 : (
                   <div
                     className="w-full h-full rounded-xl flex items-center justify-center text-white text-3xl font-bold"

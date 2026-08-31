@@ -174,7 +174,7 @@ function MarkerHoverCard({ data, onClose }: { data: HoverData; onClose: () => vo
           <div className="w-9 h-9 rounded-xl shrink-0 overflow-hidden flex items-center justify-center text-white font-bold text-sm"
             style={{ background: `linear-gradient(135deg, ${accentColor}cc, ${accentColor})` }}>
             {profile?.avatar_url
-              ? <img loading="lazy" src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+              ? <img loading="lazy" src={profile.avatar_url} alt={`${data.name || 'User'}'s avatar`} className="w-full h-full object-cover" />
               : (data.name?.charAt(0) ?? "?")}
           </div>
           <div className="min-w-0 flex-1">
@@ -193,7 +193,7 @@ function MarkerHoverCard({ data, onClose }: { data: HoverData; onClose: () => vo
               const imgs = (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })();
               return (
                 <div key={p.id} className="flex-1 bg-secondary/40 rounded-lg p-1.5 min-w-0">
-                  {imgs[0] && <img loading="lazy" src={imgs[0]} alt="" className="w-full h-8 object-cover rounded mb-1" />}
+                  {imgs[0] && <img loading="lazy" src={imgs[0]} alt={p.title || 'Product image'} className="w-full h-8 object-cover rounded mb-1" />}
                   <p className="text-[9px] font-medium truncate">{p.title}</p>
                   <p className="text-[9px] font-bold" style={{ color: accentColor }}>{p.price?.toLocaleString()} ETB</p>
                 </div>

@@ -694,7 +694,7 @@ export default function SectionRenderer({
         <h2 className="font-display text-lg font-bold mb-2">{s.newsTitle || s.title || "Stay Updated"}</h2>
         {(s.newsDesc || s.content) && <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">{s.newsDesc || s.content}</p>}
         <div className="flex items-center justify-center gap-2 flex-wrap">
-          <input type="email" placeholder="Enter your email" className="px-4 py-2 rounded-full border border-border/60 bg-card text-sm w-56 outline-none focus:border-amber-400" />
+          <input type="email" placeholder="Enter your email" aria-label="Email address" className="px-4 py-2 rounded-full border border-border/60 bg-card text-sm w-56 outline-none focus:border-amber-400" />
           <Button className="rounded-full text-white px-5" style={{ backgroundColor: themeColor }}>
             <Send className="w-3.5 h-3.5 mr-1" /> {s.newsBtn || "Subscribe"}
           </Button>

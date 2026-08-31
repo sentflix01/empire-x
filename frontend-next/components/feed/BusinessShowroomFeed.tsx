@@ -540,7 +540,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               {/* Cover */}
               <div className="relative h-24 overflow-hidden">
                 {coverUrl
-                  ? <NextImage src={coverUrl} alt="" fill className="object-cover" unoptimized />
+                  ? <NextImage src={coverUrl} alt={`${bizName}'s cover`} fill className="object-cover" unoptimized />
                   : <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${color}, ${color}99)` }}>
                       <div className="w-full h-full opacity-10" style={{
                         backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)',
@@ -560,7 +560,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                     <div className="w-14 h-14 rounded-xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
                       style={{ backgroundColor: color }}>
                       {logoUrl
-                        ? <NextImage src={logoUrl} alt="" width={40} height={40} className="w-full h-full object-cover" unoptimized />
+                        ? <NextImage src={logoUrl} alt={`${bizName}'s logo`} width={40} height={40} className="w-full h-full object-cover" unoptimized />
                         : <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
                             {bizName.charAt(0)}
                           </div>}
@@ -669,7 +669,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
       {/* Cover */}
       <div className="relative h-28 overflow-hidden">
         {coverUrl
-          ? <NextImage src={coverUrl} alt="" fill className="object-cover" unoptimized />
+          ? <NextImage src={coverUrl} alt={`${bizName}'s cover`} fill className="object-cover" unoptimized />
           : <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}99)` }}>
               <div className="w-full h-full opacity-10" style={{
                 backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)',
@@ -691,7 +691,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
             <div className="w-16 h-16 rounded-2xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
               style={{ backgroundColor: themeColor }}>
               {logoUrl
-                ? <NextImage src={logoUrl} alt="" width={48} height={48} className="w-full h-full object-cover" unoptimized />
+                ? <NextImage src={logoUrl} alt={`${bizName}'s logo`} width={48} height={48} className="w-full h-full object-cover" unoptimized />
                 : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">
                     {bizName.charAt(0)}
                   </div>}

@@ -679,6 +679,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
                           <div className="flex gap-1.5 mt-1.5 ml-2">
                             <input autoFocus
                               placeholder={t('feed.replyTo', { name: c.author_name })}
+                              aria-label={t('feed.replyTo', { name: c.author_name })}
                               className="flex-1 text-xs bg-secondary/50 rounded-full px-3 py-1.5 outline-none focus:ring-1 focus:ring-amber-500/30"
                               onKeyDown={async e => {
                                 if (e.key === 'Enter' && !e.shiftKey) {

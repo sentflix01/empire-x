@@ -138,7 +138,7 @@ function MarkerHoverCard({ data, onClose }) {
           <div className="w-9 h-9 rounded-xl shrink-0 overflow-hidden flex items-center justify-center text-white font-bold text-sm"
             style={{ background:`linear-gradient(135deg, ${accentColor}cc, ${accentColor})` }}>
             {profile?.avatar_url
-              ? <Image src={profile.avatar_url} alt="" width={40} height={40} className="w-full h-full object-cover" unoptimized />
+              ? <Image src={profile.avatar_url} alt={`${data.name || 'User'}'s avatar`} width={40} height={40} className="w-full h-full object-cover" unoptimized />
               : (data.name?.charAt(0) ?? "?")}
           </div>
           <div className="min-w-0 flex-1">

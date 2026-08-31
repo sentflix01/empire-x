@@ -522,7 +522,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               {/* Cover + avatar */}
               <div className="relative h-20 bg-gradient-to-r from-blue-700 to-violet-700">
                 {userProfile?.cover_url && (
-                  <Image src={userProfile.cover_url} alt="" fill className="object-cover" unoptimized />
+                  <Image src={userProfile.cover_url} alt={`${displayName}'s cover`} fill className="object-cover" unoptimized />
                 )}
                 <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent" />
                 {/* Avatar overlapping cover */}
@@ -718,7 +718,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 {/* ── Cover photo + avatar inside it — full width, no side padding ── */}
                 <div className="relative h-40 shrink-0 bg-nodbusiness-gradient">
                   {userProfile?.cover_url && (
-                    <Image src={userProfile.cover_url} alt="" fill className="object-cover" unoptimized />
+                    <Image src={userProfile.cover_url} alt={`${displayName}'s cover`} fill className="object-cover" unoptimized />
                   )}
                   {/* Dark gradient at bottom so avatar stands out */}
                   <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />

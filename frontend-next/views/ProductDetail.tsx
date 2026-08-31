@@ -168,7 +168,7 @@ function ProductDetail() {
           <div className="flex gap-2 p-3 overflow-x-auto">
             {images.map((img, i) => (
               <button key={i} onClick={() => setSelectedImage(i)} className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all relative ${i === selectedImage ? "border-amber-500" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                <Image src={img} alt="" fill className="object-cover" unoptimized />
+                <Image src={img} alt={`${product.title} thumbnail`} fill className="object-cover" unoptimized />
               </button>
             ))}
           </div>

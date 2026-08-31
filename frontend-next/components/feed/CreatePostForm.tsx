@@ -73,7 +73,7 @@ export default function CreatePostForm({ user, onPostCreated }) {
         {/* User avatar */}
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs shrink-0 overflow-hidden">
           {user?.avatar_url
-            ? <NextImage src={user.avatar_url} alt="" width={32} height={32} className="w-full h-full object-cover" unoptimized />
+            ? <NextImage src={user.avatar_url} alt={`${user.full_name || 'User'}'s avatar`} width={32} height={32} className="w-full h-full object-cover" unoptimized />
             : (user?.full_name?.charAt(0) || "E")}
         </div>
 

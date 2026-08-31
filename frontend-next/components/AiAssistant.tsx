@@ -386,6 +386,7 @@ export default function AiAssistant() {
             <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
               placeholder={online ? t('ai.placeholder') : t('ai.placeholderOffline')}
+              aria-label={online ? t('ai.placeholder') : t('ai.placeholderOffline')}
               disabled={loading}
               className="flex-1 bg-blue-50 border border-blue-200 rounded-full px-4 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:ring-1 focus:ring-blue-500/45 disabled:opacity-50 dark:bg-slate-900 dark:border-blue-500/30 dark:text-slate-100 dark:placeholder:text-slate-400"
             />
