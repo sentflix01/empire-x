@@ -33,7 +33,6 @@ const allowedMimeTypesByExtension = new Map<string, Set<string>>([
   ['.avif', new Set(['image/avif'])],
   ['.heic', new Set(['image/heic', 'image/heif'])],
   ['.heif', new Set(['image/heif', 'image/heic'])],
-  ['.',  new Set(['image/svg+xml'])],
   ['.pdf',  new Set(['application/pdf'])],
   ['.mp4',  new Set(['video/mp4'])],
   ['.webm', new Set(['video/webm'])],
@@ -42,7 +41,7 @@ const allowedMimeTypesByExtension = new Map<string, Set<string>>([
 
 function unsupportedFileTypeError(): Error & { code: string; statusCode: number } {
   const error = Object.assign(
-    new Error('File type not allowed. Accepted: JPEG, PNG, GIF, WebP, AVIF, HEIC, SVG, PDF, MP4, WebM, MOV'),
+    new Error('File type not allowed. Accepted: JPEG, PNG, GIF, WebP, AVIF, HEIC, PDF, MP4, WebM, MOV'),
     { code: 'UNSUPPORTED_FILE_TYPE', statusCode: 415 },
   );
   return error;

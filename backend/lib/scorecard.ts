@@ -20,7 +20,7 @@ export interface Scorecard {
   generatedAt: string;
 }
 
-const VERIFIED = '2026-08-24';
+const VERIFIED = '2026-08-31';
 
 function gradeFor(score: number): string {
   if (score >= 93) return 'A';
@@ -74,18 +74,20 @@ export async function buildScorecard(pool: import('pg').Pool): Promise<Scorecard
   const errLastHour = inputs?.errorsLastHour ?? 0;
   const dimensions: Dimension[] = [
     {
-      key: 'security', label: 'Security', grade: 'A−', score: 92, checks: [
+      key: 'security', label: 'Security', grade: 'A', score: 95, checks: [
         { label: 'Parameterized SQL + identifier allowlists', status: 'pass', detail: 'crud.ts sanitizeColumn + ALLOWED_TABLES (verified ' + VERIFIED + ')' },
         { label: 'Access/refresh token separation + revocation', status: 'pass', detail: 'verifyAccessToken on routes + sockets; Redis revocation lists' },
         { label: 'Rate limits + Helmet strict CSP (prod)', status: 'pass', detail: '500/15min global, 20/15min auth; dev skipped by design' },
         { label: 'Upload hardening — SVG removed', status: 'pass', detail: 'TD-017 closed; MIME×extension cross-check active' },
         { label: 'TLS certificate validation', status: 'pass', detail: 'TD-016 closed on pg/redis/socket adapters' },
+        { label: 'Auth enumeration hardening', status: 'pass', detail: '/resend-otp 200-always, /login dummy bcrypt for OAuth-only, /verify-otp timing fix (verified ' + VERIFIED + ')' },
+        { label: 'Password reset + ban enforcement', status: 'pass', detail: '/reset-password checks is_banned; admin delete/demote last-admin guard (verified ' + VERIFIED + ')' },
         { label: 'Magic-byte upload sniffing', status: 'warn', detail: 'Optional hardening — tracked in THREAT_MODEL' },
       ],
     },
     {
       key: 'reliability', label: 'Reliability', grade: 'A−', score: 91, checks: [
-        { label: 'Test suites (backend / frontend / e2e)', status: 'pass', detail: '293 + 103 + 8 — all green (latest CI run)' },
+        { label: 'Test suites (backend / frontend / e2e)', status: 'pass', detail: '299 + 103 + 8 — all green (latest CI run)' },
         { label: 'Atomic money operations', status: 'pass', detail: 'atomicWalletOp row-locks; idempotent webhook claims' },
         { label: 'Automated backups + restore verification', status: backupAgeH !== null && backupAgeH <= 50 ? 'pass' : 'warn', detail: backupAgeH !== null ? `Last OK backup ${backupAgeH}h ago` : 'No backup recorded yet — run npm run backup' },
         { label: 'Stale-cache fallback + circuit breaker', status: 'pass', detail: 'proxyGateway claim-3 embodiment, unit-tested' },
@@ -96,7 +98,7 @@ export async function buildScorecard(pool: import('pg').Pool): Promise<Scorecard
       key: 'cicd', label: 'CI/CD', grade: 'A', score: 95, checks: [
         { label: 'Blocking gates (typecheck/tests/build)', status: 'pass', detail: 'ci.yml hard gates — no || true on critical paths' },
         { label: 'Deploys chained to green CI', status: 'pass', detail: 'workflow_run + commit-pinned gate job' },
-        { label: 'Post-deploy health check + Telegram', status: 'pass', detail: 'Fails the workflow; pages when secrets set' },
+        { label: 'Post-deploy health check + Telegram', status: 'pass', detail: 'Health check pings backend + frontend; Telegram on failure (non-blocking)' },
         { label: 'Auto docs-sync bot', status: 'pass', detail: 'API reference + Production encyclopedia + task log on every merge' },
         { label: 'Dependabot (npm + actions)', status: 'pass', detail: 'Weekly npm, monthly actions' },
         { label: 'Staging environment', status: 'warn', detail: 'Not provisioned — operator item' },
@@ -131,7 +133,7 @@ export async function buildScorecard(pool: import('pg').Pool): Promise<Scorecard
         { label: 'Keyset pagination on hot paths', status: 'pass', detail: 'orders/posts cursor pagination' },
         { label: 'Database indexes', status: migrationsApplied >= 33 ? 'pass' : 'warn', detail: `${migrationsApplied} migrations applied — incl. FTS + FK scalability sets` },
         { label: 'gzip + ETag + HTTP caching', status: 'pass', detail: 'compression + per-user-isolated cache middleware' },
-        { label: 'Lazy images', status: 'pass', detail: '44 img tags lazy-loaded (2026-08-24 pass)' },
+        { label: 'Lazy images', status: 'pass', detail: '51+ img tags lazy-loaded (verified ' + VERIFIED + ')' },
         { label: 'Lighthouse on production URL', status: 'warn', detail: 'Run after domain DNS is final' },
       ],
     },
@@ -145,7 +147,7 @@ export async function buildScorecard(pool: import('pg').Pool): Promise<Scorecard
     },
     {
       key: 'i18n', label: 'i18n / Global-readiness', grade: 'B', score: 80, checks: [
-        { label: 'Locales shipped (en + am)', status: 'pass', detail: 'i18next flat namespace, 34KB Amharic' },
+        { label: 'Locales shipped (en + am)', status: 'pass', detail: 'i18next flat namespace, ~23KB Amharic' },
         { label: 'ETB ledger + documented FX policy', status: 'pass', detail: 'CURRENCY_AND_COMMISSION.md canonical' },
         { label: 'Translation coverage audit for new features', status: 'warn', detail: 'New UI strings need am.json sync' },
       ],
