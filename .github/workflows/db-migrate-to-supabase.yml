@@ -1,17 +1,18 @@
-name: DB migrate -> Neon (manual)
+name: DB migrate -> Supabase (manual)
 
-# Runs all pending migrations against the Neon production database.
-# Use this when you add a new migrate*.js file and want to apply it to Neon
-# without waiting for a full Railway deploy.
+# Runs all pending migrations against the Supabase production database.
+# Use this when you add a new migrate*.js file and want to apply it to Supabase
+# without waiting for a full Render deploy.
 #
-# It uses Node.js (same as the app) so SSL/channel_binding works correctly.
+# Requires SUPABASE_DATABASE_URL secret (found in Supabase → Project Settings
+# → Database → Connection string → URI, use the "Transaction" pooler URL).
 
 on:
   workflow_dispatch:
 
 jobs:
   migrate:
-    name: Run migrations on Neon
+    name: Run migrations on Supabase
     runs-on: ubuntu-latest
 
     steps:
@@ -27,12 +28,13 @@ jobs:
 
       - name: Validate secrets
         run: |
-          if [ -z "${{ secrets.NEON_DATABASE_URL }}" ]; then
-            echo "ERROR: NEON_DATABASE_URL secret is not set."
-            echo "Go to: GitHub -> Settings -> Secrets and variables -> Actions -> New repository secret"
+          if [ -z "${{ secrets.SUPABASE_DATABASE_URL }}" ]; then
+            echo "ERROR: SUPABASE_DATABASE_URL secret is not set."
+            echo "Go to: GitHub → Settings → Secrets and variables → Actions → New repository secret"
+            echo "Value: Supabase → Project Settings → Database → Connection string (Transaction pooler URI)"
             exit 1
           fi
-          echo "✅ NEON_DATABASE_URL is set."
+          echo "✅ SUPABASE_DATABASE_URL is set."
 
       - name: Install dependencies
         run: npm ci
@@ -42,7 +44,7 @@ jobs:
         run: node db/migrate-all.js
         working-directory: backend
         env:
-          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
 
       - name: Verify tables
         run: |
@@ -51,7 +53,7 @@ jobs:
           const pool = new Pool({ connectionString: process.env.DATABASE_URL });
           pool.query(\"SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename\")
             .then(r => {
-              console.log('✅ Tables in Neon (' + r.rows.length + '):');
+              console.log('✅ Tables in Supabase (' + r.rows.length + '):');
               r.rows.forEach(row => console.log('  -', row.tablename));
               return pool.query('SELECT COUNT(*) FROM users');
             })
@@ -60,4 +62,4 @@ jobs:
           "
         working-directory: backend
         env:
-          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}

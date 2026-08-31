@@ -42,12 +42,12 @@ jobs:
           echo "✅ Green CI for this exact commit."
           echo "proceed=true" >> $GITHUB_OUTPUT
 
-  # ── Run DB Migrations on Postgres ───────────────────────────────────────────
+  # ── Run DB Migrations on Supabase ───────────────────────────────────────────
   # Non-blocking: if the database is unreachable or quota-limited, deploy proceeds
   # anyway. The app works fine without new migrations if the schema is current.
   # Migrations are idempotent — they'll catch up when the database recovers.
   migrate:
-    name: Run DB Migrations → Postgres
+    name: Run DB Migrations → Supabase
     needs: gate
     if: needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
@@ -73,7 +73,7 @@ jobs:
         run: node db/migrate-all.js --if-pending
         working-directory: backend
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
 
       - name: Migration status
         if: always()
@@ -197,7 +197,7 @@ jobs:
 
   # ── Post-deploy health check ─────────────────────────────────────────────────
   # Non-blocking: a failed health check logs a warning but does NOT fail the
-  # workflow. The deploy itself (Backend → Railway, Frontend → Vercel) already
+  # workflow. The deploy itself (Backend → Render, Frontend → Vercel) already
   # succeeded. The health check is informational — it catches runtime issues
   # after deploy, but shouldn't block the pipeline.
   healthcheck:

@@ -7,7 +7,7 @@ on:
       - 'docs/**'
       - '**/*.md'
       - '.github/workflows/docs-sync.yml'
-      - '.github/workflows/db-migrate-to-neon.yml'
+      - '.github/workflows/db-migrate-to-supabase.yml'
   pull_request:
     branches: [main, develop]
     paths-ignore:
