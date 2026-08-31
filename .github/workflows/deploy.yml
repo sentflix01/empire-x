@@ -220,7 +220,7 @@ jobs:
             exit 0
           fi
           echo "Pinging $BACKEND_URL/health ..."
-          for i in 1 2 3 4 5 6; do
+          for i in 1 2 3; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 "$BACKEND_URL/health" 2>/dev/null || echo "000")
             if [ "$STATUS" = "200" ]; then
               echo "✅ Backend healthy (attempt $i)"
@@ -230,7 +230,7 @@ jobs:
             echo "⏳ Attempt $i — status $STATUS, waiting 15s..."
             sleep 15
           done
-          echo "⚠️  Backend returned non-200 after 6 attempts"
+          echo "⚠️  Backend returned non-200 after 3 attempts"
           echo "result=fail" >> $GITHUB_OUTPUT
           exit 0
         env:

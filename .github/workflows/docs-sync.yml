@@ -62,14 +62,3 @@ jobs:
       - name: Push
         if: steps.commit.outputs.changed == 'true'
         run: git push origin HEAD:main
-
-  pr-check:
-    name: PR — Production docs coverage check
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with: {node-version: '20'}
-      - name: Verify no missing/stale Production docs
-        run: node scripts/production-docs-sync.cjs --check

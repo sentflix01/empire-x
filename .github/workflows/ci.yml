@@ -112,18 +112,15 @@ jobs:
   # ── Security audit ───────────────────────────────────────────────────────────
   # Advisory until the dependency backlog is cleared; then flip
   # --audit-level=high into a hard gate.
+  # Uses --package-lock-only so no npm ci needed — saves ~2 min per run.
   audit:
     name: Security Audit (advisory)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '20'
-
       - name: Audit backend
-        run: npm audit --audit-level=high --prefix backend || true
+        run: npm audit --audit-level=high --prefix backend --package-lock-only || true
 
       - name: Audit frontend (Next.js)
-        run: npm audit --audit-level=high --prefix frontend-next --legacy-peer-deps || true
+        run: npm audit --audit-level=high --prefix frontend-next --package-lock-only --legacy-peer-deps || true
