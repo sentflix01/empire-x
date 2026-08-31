@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { auth } from "@/api/auth";
@@ -158,5 +158,5 @@ function Login() {
 }
 
 export default function LoginPage() {
-  return <ErrorBoundary><Login /></ErrorBoundary>;
+  return <ErrorBoundary><Suspense><Login /></Suspense></ErrorBoundary>;
 }

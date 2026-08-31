@@ -13,14 +13,27 @@ const AUTH_PAGES = new Set([
 ]);
 
 const PUBLIC_PATHS = new Set([
+  '/',
+  '/landing',
   '/login',
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/choose-account',
+  '/not-found',
+  '/sitemap',
+  '/robots',
   '/onboarding',
-  '/landing',
-  '/',
 ]);
+
+function isPublicPath(pathname: string): boolean {
+  if (PUBLIC_PATHS.has(pathname)) return true;
+  if (pathname.startsWith('/p/')) return true;
+  if (pathname.startsWith('/products/')) return true;
+  if (pathname.startsWith('/showroom/') && !SHOWROOM_BUILDER_PAGES.has(pathname)) return true;
+  if (pathname.startsWith('/showrooms/')) return true;
+  return false;
+}
 
 // Builder pages live under /showroom/* but remain auth-gated
 // (only the public /showroom/[slug] viewer is anonymous)
@@ -29,15 +42,6 @@ const SHOWROOM_BUILDER_PAGES = new Set([
   '/showroom/templates',
   '/showroom/samples',
 ]);
-
-function isPublicPath(pathname: string): boolean {
-  if (PUBLIC_PATHS.has(pathname)) return true;
-  if (pathname.startsWith('/showrooms/')) return true;
-  if (pathname.startsWith('/showroom/') && !SHOWROOM_BUILDER_PAGES.has(pathname)) return true;
-  if (pathname.startsWith('/products/')) return true;
-  if (pathname.startsWith('/p/')) return true;
-  return false;
-}
 
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -61,10 +65,10 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/feed', request.url));
   }
 
-  // Unauthenticated users on protected routes → login
+  // Unauthenticated users on protected routes → login with return URL
   if (!isLoggedIn && !isPublicPath(pathname)) {
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('from', pathname);
+    loginUrl.searchParams.set('return', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -73,6 +77,6 @@ export default function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|icons|images).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };
