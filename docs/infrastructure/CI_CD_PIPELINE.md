@@ -27,7 +27,7 @@
 |---|---|
 | "CI blocks merges" | ✅ **Now blocking**: backend typecheck + Jest suites, frontend lint + typecheck + build all fail the run. `npm audit` remains advisory until the dependency backlog clears. |
 | "Deploy waits for CI" | ✅ **Now gated**: deploy.yml triggers only via `workflow_run` after a successful CI run on main, for the exact same commit (`gate` job). A red build cannot reach production. |
-| "Health-check failure rolls back" | ⚠️ Health check now **fails the workflow** and sends a Telegram alert when secrets are set; rollback itself is still manual (`git revert` + push) per §Manual rollback. Automatic rollback is future work. |
+| "Health-check failure alerts" | ⚠️ Health check sends a Telegram alert when secrets are set; does **NOT** fail the workflow (`exit 0` regardless). Rollback is manual per §Manual rollback. Automatic rollback is future work. |
 | "Staging environment" | ❌ Does not exist. `main` is the only environment. |
 | Migrations on deploy | ✅ Real: `deploy.yml` runs `db/migrate-all.js` against Neon before services restart. |
 | Vercel build gate | ✅ Real: frontend is built in CI (`vercel build --prod`) and upload retries 3×; a failed build fails the workflow. |

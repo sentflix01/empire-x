@@ -123,10 +123,10 @@ Content-Security-Policy:
 
 | Component | Implementation |
 |-----------|----------------|
-| **Password Hash** | Argon2id (memory=64MB, iterations=3, parallelism=4) |
-| **Access Token** | JWT RS256, 15 min, JWKS rotation |
-| **Refresh Token** | Opaque, 7 days, HttpOnly Secure SameSite=Strict cookie, rotating |
-| **OTP** | TOTP (RFC 6238) + SMS/Email fallback, 6 digits, 5 min TTL |
+| **Password Hash** | bcrypt (cost factor 12) |
+| **Access Token** | JWT HS256, 15 min, JTI revocation via Redis |
+| **Refresh Token** | Opaque, 7 days, HttpOnly Secure SameSite=None (production) / SameSite=Lax (dev) cookie, rotating |
+| **OTP** | 6 digits, 15 min TTL, rate-limited |
 | **Session** | In-memory access token + HttpOnly refresh cookie |
 | **Password Reset** | Time-limited (1hr), single-use, hashed token in DB |
 | **Account Lockout** | 5 failed attempts → 15 min lockout + email alert |
@@ -142,7 +142,7 @@ Content-Security-Policy:
 | **developer** | Template marketplace, API keys, webhooks |
 | **customer** | Browse, purchase, chat, reviews, bookmarks |
 
-**Implementation:** `middleware/auth.ts` → `requireAuth`, `requireAdmin`, `requireRole(...)`
+**Implementation:** `middleware/auth.ts` → `requireAuth`, `requireAdmin`, `optionalAuth`
 
 ### 5.3 Input Validation
 

@@ -59,4 +59,4 @@
 - Backend: 23 suites / 293 tests ✅ · typecheck ✅
 - Frontend: 17 files / 103 tests ✅ · typecheck ✅ · lint 0 errors ✅
 - E2E: 8/8 ✅ (public, auth, realtime chat, persistence)
-- Live DB: local PostgreSQL 17, 35 migrations, seeded ✅
+- Live DB: local PostgreSQL 17, 36 migrations, seeded ✅

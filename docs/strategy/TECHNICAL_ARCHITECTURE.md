@@ -103,7 +103,7 @@ backend/
 │   ├── pool.ts                 # pg.Pool with Neon/pgbouncer config, SSL
 │   ├── migrate*.js             # 36 migrations (schema + seed + indexes)
 │   └── migrate-all.js          # Migration runner
-├── routes/                     # 40 route modules (REST endpoints)
+├── routes/                     # 48 route files (~44 registered route groups)
 │   ├── auth.ts                 # Auth: register, login, OTP, refresh, password reset
 │   ├── wallet.ts               # Wallet: balance, topup (Stripe/Chapa), withdraw, debit, refund
 │   ├── orders.ts               # Orders: CRUD, checkout (Chapa/Stripe/COD), webhooks
@@ -113,14 +113,12 @@ backend/
 │   ├── commission.ts           # Commission collection + quality-adjusted share
 │   ├── devops.ts               # Health, telemetry, copilot, error feed, scorecard
 │   ├── admin.ts                # Admin: users, flags, verification, platform metrics
-│   └── ... (30 more)
+│   └── ... (38 more)
 ├── lib/                        # Cross-cutting concerns
 │   ├── auditLogger.ts          # Immutable financial audit trail
 │   ├── copilot.ts              # Ops Copilot (11 intents)
-│   ├── credentialEncryption.ts # AES-256-GCM per-tenant key derivation
 │   ├── errorCollector.ts       # Global error capture + dedup
-│   ├── featureFlags.ts         # 20 flags (env > Redis > defaults)
-│   ├── proxyGateway.ts         # PATENT 4: SSRF-safe fetch, quota, cache, health
+│   ├── featureFlags.ts         # 18 flags (env > Redis > defaults)
 │   ├── rateLimiter.ts          # Redis fixed-window + fail-open
 │   ├── scorecard.ts            # 11-dimension readiness grader
 │   ├── showroomDoctor.ts       # Deterministic diagnosis engine (12 rules)
@@ -132,10 +130,11 @@ backend/
 │   ├── httpLogger.ts           # Structured request logging
 │   └── upload.ts               # Multer + magic-byte validation (no SVG)
 ├── services/
-│   ├── credentialEncryption.ts # Per-tenant key derivation (HKDF)
+│   ├── credentialEncryption.ts # AES-256-GCM per-tenant key derivation (HKDF)
+│   ├── proxyGateway.ts         # PATENT 4: SSRF-safe fetch, quota, cache, health
 │   ├── ssrfValidator.ts        # DNS resolve + IPv4/IPv6 private blocklist
 │   └── ...
-├── test/                       # 24 suites / 297 tests
+├── test/                       # 24 suites / 299 tests
 │   ├── integration/            # API contract tests
 │   ├── __tests__/              # Unit tests (auditLogger, etc.)
 │   └── helpers/                # Mock pools, test utilities
@@ -293,7 +292,7 @@ components/
 | `notifications` | In-app + push | `idx_notif_user`, `idx_notif_read` |
 | `telemetry_events` | DevOps event ledger | `idx_tel_type`, `idx_tel_time` |
 | `external_health_records` | PATENT 4: gateway health | `idx_ehr_source`, `idx_ehr_time` |
-| `feature_flags` | 20 runtime flags | `idx_ff_key` |
+| `feature_flags` | 18 runtime flags | `idx_ff_key` |
 
 ### 4.2 Redis Usage
 
