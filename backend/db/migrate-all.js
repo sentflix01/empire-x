@@ -36,7 +36,9 @@ const { Pool }      = require('pg');
 // We cannot use ./pool.js here because some legacy migrations call pool.end(),
 // which would close the shared pool. This pool is only used by migrate-all itself.
 function buildConnectionString(raw) {
-  if (!raw || !raw.includes('neon.tech')) return raw;
+  if (!raw) return raw;
+  // Append pgbouncer=true for Neon and Supabase transaction pooler URLs
+  if (!/neon\.tech|\.pooler\.supabase\.com/i.test(raw)) return raw;
   if (raw.includes('pgbouncer=true')) return raw;
   const sep = raw.includes('?') ? '&' : '?';
   return `${raw}${sep}pgbouncer=true`;
@@ -45,7 +47,7 @@ function buildConnectionString(raw) {
 const connectionString = buildConnectionString(process.env.DATABASE_URL);
 const needsSsl =
   process.env.NODE_ENV === 'production' ||
-  (connectionString && /neon\.tech|sslmode=require|ssl=true/i.test(connectionString));
+  (connectionString && /neon\.tech|supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
 
 const trackPool = new Pool({
   connectionString,
