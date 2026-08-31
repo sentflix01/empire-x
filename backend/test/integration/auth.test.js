@@ -75,14 +75,14 @@ describe('POST /api/auth/register', () => {
 
   it('resends an OTP and resumes signup when the existing account is unverified', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pending-id', is_verified: false }] }) // SELECT check
+      .mockResolvedValueOnce({ rows: [{ id: 'pending-id', is_verified: false, is_banned: false }] }) // SELECT check
       .mockResolvedValueOnce({ rows: [] }); // UPDATE OTP
     const app = buildApp();
     const res = await request(app).post('/api/auth/register').send({ email: ' Pending@b.com ', password: 'password123' });
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ userId: 'pending-id', pendingVerification: true });
+    expect(res.body).toMatchObject({ pendingVerification: true });
     expect(mockPool.query).toHaveBeenCalledWith(
-      'SELECT id, is_verified FROM users WHERE email = $1',
+      'SELECT id, is_verified, is_banned FROM users WHERE email = $1',
       ['pending@b.com']
     );
   });
