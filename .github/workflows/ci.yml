@@ -5,14 +5,14 @@ on:
     branches: [main]
     paths-ignore:
       - 'docs/**'
-      - '*.md'
+      - '**.md'
       - '.github/workflows/docs-sync.yml'
       - '.github/workflows/db-migrate-to-neon.yml'
   pull_request:
     branches: [main, develop]
     paths-ignore:
       - 'docs/**'
-      - '*.md'
+      - '**.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,6 +23,7 @@ jobs:
   backend:
     name: Backend — Typecheck & Tests (blocking)
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' && github.actor != 'dependabot[bot]' }}
 
     services:
       postgres:
