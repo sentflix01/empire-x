@@ -24,7 +24,8 @@ const AUTH_HINT_COOKIE = 'nb_auth';
 const HINT_MAX_AGE = 7 * 24 * 60 * 60; // 7 days — matches refresh-token lifetime
 
 function setHintCookie() {
-  document.cookie = `${AUTH_HINT_COOKIE}=1; path=/; max-age=${HINT_MAX_AGE}; SameSite=Lax`;
+  const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+  document.cookie = `${AUTH_HINT_COOKIE}=1; path=/; max-age=${HINT_MAX_AGE}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
 }
 
 function clearHintCookie() {

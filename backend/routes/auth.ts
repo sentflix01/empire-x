@@ -116,13 +116,20 @@ async function revokeToken(jti: string, expiresAt: number): Promise<void> {
   }
 }
 
-async function isRevoked(jti: string | undefined): Promise<boolean> {
-  if (!jti) return false;
+async function isRevoked(jti: string | undefined, userId?: string | undefined, iat?: number | undefined): Promise<boolean> {
+  if (!jti && !userId) return false;
   const redis = getRedis();
   if (redis.isNoOp) return false;
   try {
-    const val = await (redis as RedisClient).get(`revoked:${jti}`);
-    return val === '1';
+    if (jti) {
+      const val = await (redis as RedisClient).get(`revoked:${jti}`);
+      if (val === '1') return true;
+    }
+    if (userId && iat !== undefined) {
+      const revokeBefore = await (redis as RedisClient).get(`revoke_before:${userId}`);
+      if (revokeBefore && iat < parseInt(revokeBefore, 10)) return true;
+    }
+    return false;
   } catch {
     return false;
   }
@@ -147,15 +154,27 @@ router.post('/register', async (req: Request, res: Response) => {
     apiError.validationError(res, 'Password must be at least 8 characters');
     return;
   }
+  if (password.length > 128) {
+    apiError.validationError(res, 'Password must be at most 128 characters');
+    return;
+  }
+  if (full_name && full_name.length > 100) {
+    apiError.validationError(res, 'Name must be at most 100 characters');
+    return;
+  }
 
   try {
     const normalizedEmail = email.trim().toLowerCase();
-    const existing = await pool.query<{ id: string; is_verified: boolean }>(
-      'SELECT id, is_verified FROM users WHERE email = $1',
+    const existing = await pool.query<{ id: string; is_verified: boolean; is_banned: boolean }>(
+      'SELECT id, is_verified, is_banned FROM users WHERE email = $1',
       [normalizedEmail],
     );
 
     if (existing.rows.length) {
+      if (existing.rows[0].is_banned) {
+        res.status(403).json({ error: 'Account suspended. Contact support.' });
+        return;
+      }
       if (!existing.rows[0].is_verified) {
         const otp = generateOtp();
         const otpHash = hashOtp(otp);
@@ -171,7 +190,7 @@ router.post('/register', async (req: Request, res: Response) => {
           res.status(503).json({ error: 'We could not send a verification email. Please try again shortly.', code: 'OTP_DELIVERY_FAILED' });
           return;
         }
-        res.status(200).json({ message: 'Your account is awaiting verification. A new verification code has been sent.', userId: existing.rows[0].id, pendingVerification: true });
+        res.status(200).json({ message: 'Your account is awaiting verification. A new verification code has been sent.', pendingVerification: true });
         return;
       }
       res.status(409).json({ error: 'An account with this email already exists' });
@@ -183,9 +202,9 @@ router.post('/register', async (req: Request, res: Response) => {
     const otpHash = hashOtp(otp);
     const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
 
-    const { rows } = await pool.query<{ id: string; email: string }>(
+    const { rows } = await pool.query<{ id: string }>(
       `INSERT INTO users (email, password_hash, full_name, otp_code, otp_expires)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id, email`,
+       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
       [normalizedEmail, passwordHash, full_name ?? null, otpHash, otpExpires],
     );
 
@@ -197,7 +216,7 @@ router.post('/register', async (req: Request, res: Response) => {
       return;
     }
 
-    res.status(201).json({ message: 'Registration successful. Check your email for the verification code.', userId: rows[0].id });
+    res.status(201).json({ message: 'Registration successful. Check your email for the verification code.' });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Register error');
     apiError.serverError(res, 'Registration failed');
@@ -229,12 +248,22 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       return;
     }
 
+    // Check expiry before OTP to prevent timing side-channel
+    if (new Date() > new Date(user.otp_expires)) {
+      apiError.validationError(res, 'Verification code has expired');
+      return;
+    }
     if (!verifyOtp(otpCode, user.otp_code)) {
       apiError.validationError(res, 'Invalid verification code');
       return;
     }
-    if (new Date() > new Date(user.otp_expires)) {
-      apiError.validationError(res, 'Verification code has expired');
+
+    const { rows: banCheck } = await pool.query<{ is_banned: boolean }>(
+      'SELECT is_banned FROM users WHERE id = $1',
+      [user.id],
+    );
+    if (banCheck[0]?.is_banned) {
+      res.status(403).json({ error: 'Account suspended. Contact support.' });
       return;
     }
 
@@ -260,15 +289,16 @@ router.post('/resend-otp', async (req: Request, res: Response) => {
     return;
   }
 
+  // Always return 200 — prevents email enumeration (same pattern as /forgot-password)
+  res.json({ message: 'If an account exists, a new verification code has been sent.' });
+
   try {
-    const { rows } = await pool.query<{ id: string }>(
-      'SELECT id FROM users WHERE email = $1',
+    const { rows } = await pool.query<{ id: string; is_banned: boolean }>(
+      'SELECT id, is_banned FROM users WHERE email = $1',
       [email.toLowerCase()],
     );
-    if (!rows.length) {
-      apiError.notFound(res, 'User not found');
-      return;
-    }
+    if (!rows.length) return;
+    if (rows[0].is_banned) return;
 
     const otp = generateOtp();
     const otpHash = hashOtp(otp);
@@ -279,18 +309,11 @@ router.post('/resend-otp', async (req: Request, res: Response) => {
       [otpHash, otpExpires, rows[0].id],
     );
 
-    try {
-      await sendOtpEmail(email, otp);
-    } catch (err) {
-      logger.error({ err: (err as Error).message }, 'OTP email resend failed');
-      res.status(503).json({ error: 'We could not send a verification email. Please try again shortly.', code: 'OTP_DELIVERY_FAILED' });
-      return;
-    }
-
-    res.json({ message: 'New verification code sent' });
+    await sendOtpEmail(email, otp).catch((err) =>
+      logger.error({ err: (err as Error).message }, 'OTP email resend failed'),
+    );
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Resend OTP error');
-    apiError.serverError(res, 'Failed to resend code');
   }
 });
 
@@ -306,9 +329,9 @@ router.post('/login', async (req: Request, res: Response) => {
   try {
     const { rows } = await pool.query<{
       id: string; email: string; password_hash: string | null;
-      is_verified: boolean; role: string;
+      is_verified: boolean; role: string; is_banned: boolean;
     }>(
-      'SELECT id, email, password_hash, is_verified, role FROM users WHERE email = $1',
+      'SELECT id, email, password_hash, is_verified, role, is_banned FROM users WHERE email = $1',
       [email.toLowerCase()],
     );
     if (!rows.length) {
@@ -319,8 +342,14 @@ router.post('/login', async (req: Request, res: Response) => {
       return;
     }
     const user = rows[0];
+    if (user.is_banned) {
+      res.status(403).json({ error: 'Account suspended. Contact support.' });
+      return;
+    }
     if (!user.password_hash) {
-      res.status(401).json({ error: 'This account uses Google sign-in' });
+      // Generic error — never reveal that this email is Google-linked
+      await bcrypt.compare(password, DUMMY_BCRYPT_HASH);
+      res.status(401).json({ error: 'Invalid email or password' });
       return;
     }
     const match = await bcrypt.compare(password, user.password_hash);
@@ -433,6 +462,15 @@ router.post('/google', async (req: Request, res: Response) => {
       }
     }
 
+    const { rows: banCheck } = await pool.query<{ is_banned: boolean }>(
+      'SELECT is_banned FROM users WHERE id = $1',
+      [user.id],
+    );
+    if (banCheck[0]?.is_banned) {
+      res.status(403).json({ error: 'Account suspended. Contact support.' });
+      return;
+    }
+
     const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
@@ -522,6 +560,10 @@ router.post('/reset-password', async (req: Request, res: Response) => {
     apiError.validationError(res, 'Password must be at least 8 characters');
     return;
   }
+  if (password.length > 128) {
+    apiError.validationError(res, 'Password must be at most 128 characters');
+    return;
+  }
 
   try {
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
@@ -537,11 +579,30 @@ router.post('/reset-password', async (req: Request, res: Response) => {
       apiError.validationError(res, 'Reset link has expired');
       return;
     }
+    // Prevent banned users from resetting password
+    const { rows: banCheck } = await pool.query<{ is_banned: boolean }>(
+      'SELECT is_banned FROM users WHERE id = $1',
+      [rows[0].id],
+    );
+    if (banCheck[0]?.is_banned) {
+      res.status(403).json({ error: 'Account suspended. Contact support.' });
+      return;
+    }
     const hash = await bcrypt.hash(password, 12);
     await pool.query(
       'UPDATE users SET password_hash = $1, reset_token = NULL, reset_expires = NULL WHERE id = $2',
       [hash, rows[0].id],
     );
+    const redis = getRedis();
+    if (!redis.isNoOp) {
+      try {
+        await (redis as RedisClient).setex(
+          `revoke_before:${rows[0].id}`,
+          7 * 24 * 60 * 60,
+          Math.floor(Date.now() / 1000).toString(),
+        );
+      } catch { /* non-fatal */ }
+    }
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
     logger.error({ err }, 'Reset password error');
@@ -557,6 +618,14 @@ router.put('/change-password', requireAuth, async (req: Request, res: Response) 
   };
   if (!current_password || !new_password) {
     apiError.validationError(res, 'Both current and new password are required');
+    return;
+  }
+  if (new_password.length < 8) {
+    apiError.validationError(res, 'Password must be at least 8 characters');
+    return;
+  }
+  if (new_password.length > 128) {
+    apiError.validationError(res, 'Password must be at most 128 characters');
     return;
   }
 
@@ -576,6 +645,16 @@ router.put('/change-password', requireAuth, async (req: Request, res: Response) 
     }
     const hash = await bcrypt.hash(new_password, 12);
     await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, req.user!.id]);
+    const redis = getRedis();
+    if (!redis.isNoOp) {
+      try {
+        await (redis as RedisClient).setex(
+          `revoke_before:${req.user!.id}`,
+          7 * 24 * 60 * 60,
+          Math.floor(Date.now() / 1000).toString(),
+        );
+      } catch { /* non-fatal */ }
+    }
     res.json({ message: 'Password changed successfully' });
   } catch (err) {
     logger.error({ err }, 'Change password error');
@@ -605,17 +684,21 @@ router.post('/refresh', async (req: Request, res: Response) => {
     return;
   }
 
-  if (await isRevoked(payload.jti)) {
+  if (await isRevoked(payload.jti, payload.sub as string, payload.iat)) {
     res.status(401).json({ error: 'Token has been revoked' });
     return;
   }
 
-  const { rows } = await pool.query<{ id: string }>(
-    'SELECT id FROM users WHERE id = $1',
+  const { rows } = await pool.query<{ id: string; is_banned: boolean }>(
+    'SELECT id, is_banned FROM users WHERE id = $1',
     [payload.sub],
   );
   if (!rows.length) {
     res.status(401).json({ error: 'User not found' });
+    return;
+  }
+  if (rows[0].is_banned) {
+    res.status(403).json({ error: 'Your account has been suspended. Contact support.' });
     return;
   }
 
@@ -635,6 +718,7 @@ router.post('/logout', async (req: Request, res: Response) => {
     } catch { /* already expired */ }
   }
   res.clearCookie('refresh_token', {
+    httpOnly: true,
     path: '/api/auth',
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
@@ -665,6 +749,7 @@ router.post('/logout-all', requireAuth, async (req: Request, res: Response) => {
   }
 
   res.clearCookie('refresh_token', {
+    httpOnly: true,
     path: '/api/auth',
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',

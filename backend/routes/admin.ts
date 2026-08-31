@@ -1,12 +1,23 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
+import type { Redis as RedisClient } from 'ioredis';
 import logger from '../lib/logger';
 import pool from '../db/pool';
 import { requireAuth, requireAdmin, invalidateUserCache } from '../middleware/auth';
+import { getRedis } from '../lib/redis';
 import * as apiError from '../lib/apiError';
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+async function getAdminCount(): Promise<number> {
+  const { rows } = await pool.query<{ count: string }>(
+    "SELECT COUNT(*)::text AS count FROM users WHERE role = 'admin' AND is_banned = FALSE",
+  );
+  return parseInt(rows[0].count, 10);
+}
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
 router.get('/stats', async (_req: Request, res: Response) => {
@@ -56,6 +67,17 @@ router.put('/users/:id/role', async (req: Request, res: Response) => {
   const { role } = req.body as { role?: string };
   if (!['admin', 'user'].includes(role ?? '')) { res.status(400).json({ error: 'Invalid role' }); return; }
   try {
+    // Prevent demoting the last admin
+    if (role === 'user') {
+      const target = await pool.query<{ role: string }>('SELECT role FROM users WHERE id = $1', [req.params.id]);
+      if (target.rows[0]?.role === 'admin') {
+        const adminCount = await getAdminCount();
+        if (adminCount <= 1) {
+          res.status(400).json({ error: 'Cannot demote the last admin account' });
+          return;
+        }
+      }
+    }
     await pool.query('UPDATE users SET role = $1 WHERE id = $2', [role, req.params.id]);
     await invalidateUserCache(req.params.id);
     res.json({ success: true });
@@ -65,6 +87,25 @@ router.put('/users/:id/role', async (req: Request, res: Response) => {
 router.delete('/users/:id', async (req: Request, res: Response) => {
   if (req.params.id === req.user!.id) { res.status(400).json({ error: 'Cannot delete your own account' }); return; }
   try {
+    // Prevent deleting the last admin
+    const target = await pool.query<{ role: string }>('SELECT role FROM users WHERE id = $1', [req.params.id]);
+    if (target.rows[0]?.role === 'admin') {
+      const adminCount = await getAdminCount();
+      if (adminCount <= 1) {
+        res.status(400).json({ error: 'Cannot delete the last admin account' });
+        return;
+      }
+    }
+    const redis = getRedis();
+    if (!redis.isNoOp) {
+      try {
+        await (redis as RedisClient).setex(
+          `revoke_before:${req.params.id}`,
+          7 * 24 * 60 * 60,
+          Math.floor(Date.now() / 1000).toString(),
+        );
+      } catch { /* non-fatal */ }
+    }
     await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
     await invalidateUserCache(req.params.id);
     res.json({ success: true });
@@ -76,24 +117,34 @@ router.post('/users/:id/ban', async (req: Request, res: Response) => {
   const { reason } = req.body as { reason?: string };
   try {
     const { rows } = await pool.query(
-      `UPDATE users SET is_banned=TRUE, ban_reason=$1, banned_at=NOW() WHERE id=$2 RETURNING id,email,full_name,is_banned`,
+      `UPDATE users SET is_banned=TRUE, ban_reason=$1, banned_at=NOW() WHERE id=$2 RETURNING id`,
       [reason ?? null, req.params.id],
     );
     if (!rows.length) { res.status(404).json({ error: 'User not found' }); return; }
     await invalidateUserCache(req.params.id);
-    res.json({ success: true, user: rows[0] });
+    const redis = getRedis();
+    if (!redis.isNoOp) {
+      try {
+        await (redis as RedisClient).setex(
+          `revoke_before:${req.params.id}`,
+          7 * 24 * 60 * 60,
+          Math.floor(Date.now() / 1000).toString(),
+        );
+      } catch { /* non-fatal */ }
+    }
+    res.json({ success: true });
   } catch { res.status(500).json({ error: 'Failed to ban user' }); }
 });
 
 router.post('/users/:id/unban', async (req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(
-      `UPDATE users SET is_banned=FALSE, ban_reason=NULL, banned_at=NULL WHERE id=$1 RETURNING id,email,full_name,is_banned`,
+      `UPDATE users SET is_banned=FALSE, ban_reason=NULL, banned_at=NULL WHERE id=$1 RETURNING id`,
       [req.params.id],
     );
     if (!rows.length) { res.status(404).json({ error: 'User not found' }); return; }
     await invalidateUserCache(req.params.id);
-    res.json({ success: true, user: rows[0] });
+    res.json({ success: true });
   } catch { res.status(500).json({ error: 'Failed to unban user' }); }
 });
 

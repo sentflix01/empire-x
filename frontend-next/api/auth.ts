@@ -57,10 +57,6 @@ export const auth = {
     return res.data as Record<string, unknown>;
   },
 
-  setToken(token: string): void {
-    storeToken(token);
-  },
-
   async resetPasswordRequest(email: string): Promise<Record<string, unknown>> {
     const res = await client.post('/api/auth/forgot-password', { email });
     return res.data as Record<string, unknown>;

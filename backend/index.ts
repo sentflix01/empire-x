@@ -206,9 +206,18 @@ function buildRateLimitStore(): unknown {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-app.use('/api/', rateLimit({ windowMs: 15 * 60 * 1000, max: 500, skip: () => isDev, store: buildRateLimitStore() as any, standardHeaders: true, legacyHeaders: false }));
-app.use('/api/auth/login',    rateLimit({ windowMs: 15 * 60 * 1000, max: 20, skip: () => isDev, store: buildRateLimitStore() as any, message: { error: 'Too many requests, try again later' }, standardHeaders: true, legacyHeaders: false }));
-app.use('/api/auth/register', rateLimit({ windowMs: 15 * 60 * 1000, max: 20, skip: () => isDev, store: buildRateLimitStore() as any, message: { error: 'Too many requests, try again later' }, standardHeaders: true, legacyHeaders: false }));
+const rlOpts = (max: number) => ({ windowMs: 15 * 60 * 1000, max, skip: () => isDev, store: buildRateLimitStore() as any, message: { error: 'Too many requests, try again later' }, standardHeaders: true, legacyHeaders: false });
+
+app.use('/api/', rateLimit(rlOpts(500)));
+app.use('/api/auth/login',            rateLimit(rlOpts(20)));
+app.use('/api/auth/register',         rateLimit(rlOpts(20)));
+app.use('/api/auth/google',           rateLimit(rlOpts(20)));
+app.use('/api/auth/verify-otp',       rateLimit(rlOpts(10)));
+app.use('/api/auth/resend-otp',       rateLimit(rlOpts(5)));
+app.use('/api/auth/forgot-password',  rateLimit(rlOpts(5)));
+app.use('/api/auth/reset-password',   rateLimit(rlOpts(10)));
+app.use('/api/auth/change-password',  rateLimit(rlOpts(10)));
+app.use('/api/auth/refresh',          rateLimit(rlOpts(60)));
 
 // ── Body parsing ──────────────────────────────────────────────────────────────
 app.use('/api/orders/webhook',        express.raw({ type: 'application/json' }));

@@ -148,7 +148,13 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
   }
   try {
     const payload = verifyAccessToken(header.slice(7));
-    req.user = await getCachedUser(payload.sub as string);
+    if (await isTokenRevoked(payload.jti, payload.sub, payload.iat)) {
+      req.user = null;
+      next();
+      return;
+    }
+    const user = await getCachedUser(payload.sub as string);
+    req.user = user && !user.is_banned ? user : null;
   } catch {
     req.user = null;
   }

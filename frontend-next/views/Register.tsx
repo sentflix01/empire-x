@@ -7,7 +7,7 @@ import client, { storeToken } from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Lock, Loader2, Gift, CheckSquare, Square, Shield, FileText } from "lucide-react";
+import { UserPlus, Mail, Loader2, Gift } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
 import { toast } from "@/components/ui/use-toast";
@@ -27,11 +27,11 @@ function Register() {
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [googleButtonReady, setGoogleButtonReady] = useState(false);
   const [googleUnavailable, setGoogleUnavailable] = useState(false);
   const [showOtp, setShowOtp] = useState(Boolean(verificationEmail));
   const [otpCode, setOtpCode] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -46,7 +46,6 @@ function Register() {
           window.location.href = '/';
         },
         onError: () => {
-          setGoogleLoading(false);
           setError('Google Sign-In could not be completed. Please try again or register with email and password.');
         },
       });
@@ -70,6 +69,17 @@ function Register() {
       window.clearTimeout(timeoutTimer);
     };
   }, [googleButtonReady]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = window.setInterval(() => {
+      setResendCooldown(c => {
+        if (c <= 1) { window.clearInterval(timer); return 0; }
+        return c - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -124,9 +134,11 @@ function Register() {
   };
 
   const handleResend = async () => {
+    if (resendCooldown > 0) return;
     setError("");
     try {
       await client.post('/api/auth/resend-otp', { email });
+      setResendCooldown(30);
       toast({ title: t('auth.codeSentTitle'), description: t('auth.codeSentDesc') });
     } catch (err) {
       setError(err.error || err.message || t('auth.failedResend'));
@@ -153,7 +165,13 @@ function Register() {
         </Button>
         <p className="text-center text-sm text-muted-foreground mt-4">
           {t('auth.didntReceive')}{" "}
-          <button onClick={handleResend} className="text-primary font-medium hover:underline">{t('auth.resend')}</button>
+          <button
+            onClick={handleResend}
+            disabled={resendCooldown > 0}
+            className={`font-medium hover:underline ${resendCooldown > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-primary'}`}
+          >
+            {resendCooldown > 0 ? `${t('auth.resend')} (${resendCooldown}s)` : t('auth.resend')}
+          </button>
         </p>
       </AuthLayout>
     );

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from "react";
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { auth } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,8 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 
 function Login() {
   const { t } = useTranslation();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("return");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -25,10 +28,12 @@ function Login() {
     setLoading(true);
     try {
       await auth.loginViaEmailPassword(email.trim().toLowerCase(), password);
-      window.location.href = "/feed";
+      const dest = (returnTo && returnTo.startsWith('/')) ? returnTo : '/feed';
+      window.location.href = dest;
     } catch (err) {
       if (err?.code === 'email_not_verified') {
-        window.location.href = `/register?verify=${encodeURIComponent(email.trim().toLowerCase())}`;
+        const dest = `/register?verify=${encodeURIComponent(email.trim().toLowerCase())}`;
+        window.location.href = dest;
         return;
       }
       // ADMIN_ONLY_MODE: 404 from backend → redirect to 404 page
@@ -51,7 +56,8 @@ function Login() {
         throw new Error("Google Sign-In is not ready. Please wait a moment and try again, or use email/password below.");
       }
       await g();
-      window.location.href = "/feed";
+      const dest = (returnTo && returnTo.startsWith('/')) ? returnTo : '/feed';
+      window.location.href = dest;
     } catch (err: any) {
       // Show a helpful message instead of silently failing
       const msg = err?.message || "";
