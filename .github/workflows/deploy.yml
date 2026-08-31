@@ -208,8 +208,8 @@ jobs:
     continue-on-error: true
 
     steps:
-      - name: Wait for Railway to pick up the push
-        run: sleep 60
+      - name: Wait for services to stabilise
+        run: sleep 15
 
       - name: Check backend health
         id: backend_health
