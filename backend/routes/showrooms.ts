@@ -113,6 +113,16 @@ router.get('/:id/doctor', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+// ── Sitemap data (public) — returns all published showrooms for SEO ──────────
+router.get('/sitemap-data', async (_req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT slug, id, updated_at FROM showrooms WHERE status='published' ORDER BY updated_at DESC LIMIT 5000`
+    );
+    res.json(rows);
+  } catch { res.status(500).json({ error: 'Failed to fetch sitemap data' }); }
+});
+
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
     const showroom = await getRecord('showrooms', req.params.id);
