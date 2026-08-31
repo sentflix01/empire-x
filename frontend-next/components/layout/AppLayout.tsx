@@ -462,6 +462,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
                     <input name="mq" type="search" autoFocus enterKeyHint="search"
                       placeholder="Search people, products, tasks..."
+                      aria-label="Search"
                       onKeyDown={e => { if (e.key === 'Escape') setSearchOpen(false); }}
                       className="w-full pl-9 pr-4 h-10 rounded-full text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 border border-primary/30 transition-all"
                       style={{ backgroundColor: 'hsl(var(--secondary))' }} />
@@ -469,6 +470,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </form>
                 <button onClick={() => setSearchOpen(false)}
                   className="p-2 rounded-full transition-colors shrink-0 text-foreground"
+                  aria-label="Close search"
                   style={{ backgroundColor: 'hsl(var(--secondary))' }}>
                   <X className="w-5 h-5" />
                 </button>
