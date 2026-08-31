@@ -50,4 +50,21 @@ backend/backups/
 test-results/
 playwright-report/
 
+# QA screenshots — local test evidence, not source code
+qa-screenshots/
+
+# Temporary patch / scratch files
+frontend-next/tmp_patch.js
+frontend-next/tmp_patch.py
+frontend-next/tsc_out.txt
+
+# Binary archives in public folder
+frontend-next/public/brand/*.zip
+frontend-next/public/brand/*.tar
+frontend-next/public/brand/*.gz
+
+# Generated architecture / overview files
+overview.json
+overview_architecture.puml
+
 backend/db/dev-credentials.json
