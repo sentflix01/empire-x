@@ -25,9 +25,19 @@ jest.mock('bcryptjs', () => ({
   hash: jest.fn().mockResolvedValue('$2b$hashed'),
   compare: jest.fn().mockResolvedValue(true),
 }));
-jest.mock('../../lib/redis', () => ({
-  getRedis: () => ({ isNoOp: true, setex: jest.fn(), get: jest.fn() }),
-}));
+jest.mock('../../lib/redis', () => {
+  const store = {};
+  const mockRedis = {
+    get: jest.fn((key) => Promise.resolve(store[key] || null)),
+    set: jest.fn((key, val, _ex, ttl) => { store[key] = val; return Promise.resolve('OK'); }),
+    setex: jest.fn((key, _ttl, val) => { store[key] = val; return Promise.resolve('OK'); }),
+    incr: jest.fn((key) => { store[key] = String((parseInt(store[key] || '0') + 1)); return Promise.resolve(parseInt(store[key])); }),
+    expire: jest.fn((_key, _ttl) => Promise.resolve(1)),
+    del: jest.fn((key) => { delete store[key]; return Promise.resolve(1); }),
+    _store: store,
+  };
+  return { getRedis: () => mockRedis };
+});
 jest.mock('../../utils/mailer', () => ({
   sendOtpEmail: jest.fn().mockResolvedValue(undefined),
   sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
@@ -40,6 +50,7 @@ jest.mock('google-auth-library', () => ({
 
 const authRouter = require('../../routes/auth');
 const { sendOtpEmail } = require('../../utils/mailer');
+const { getRedis } = require('../../lib/redis');
 
 // Build a minimal Express app with only the auth router
 function buildApp() {
@@ -49,6 +60,18 @@ function buildApp() {
   app.use('/api/auth', authRouter);
   return app;
 }
+
+// Clear Redis store, reset bcrypt mock, and clear pool mock between tests
+beforeEach(() => {
+  const redis = getRedis();
+  Object.keys(redis._store).forEach((k) => delete redis._store[k]);
+  const bcrypt = require('bcryptjs');
+  bcrypt.compare.mockReset();
+  bcrypt.compare.mockResolvedValue(true);
+  bcrypt.hash.mockReset();
+  bcrypt.hash.mockResolvedValue('$2b$hashed');
+  mockPool.query.mockReset();
+});
 
 describe('POST /api/auth/register', () => {
   it('returns 422 when email or password is missing', async () => {
@@ -158,6 +181,55 @@ describe('POST /api/auth/login', () => {
     const res = await request(app).post('/api/auth/login').send({ email: 'pending@b.com', password: 'password123' });
     expect(res.status).toBe(503);
     expect(res.body).toHaveProperty('code', 'OTP_DELIVERY_FAILED');
+  });
+
+  it('locks account after 5 failed login attempts', async () => {
+    const bcrypt = require('bcryptjs');
+    bcrypt.compare.mockResolvedValueOnce(false); // 1st fail
+    mockPool.query.mockResolvedValueOnce({
+      rows: [{ id: 'lock-id', email: 'lock@test.com', password_hash: '$2b$hashed', is_verified: true, role: 'user', is_banned: false }],
+    });
+    const app = buildApp();
+
+    // Make 5 failed attempts
+    for (let i = 0; i < 5; i++) {
+      bcrypt.compare.mockResolvedValueOnce(false);
+      mockPool.query.mockResolvedValueOnce({
+        rows: [{ id: 'lock-id', email: 'lock@test.com', password_hash: '$2b$hashed', is_verified: true, role: 'user', is_banned: false }],
+      });
+      await request(app).post('/api/auth/login').send({ email: 'lock@test.com', password: 'wrong' });
+    }
+
+    // 6th attempt should be locked out
+    mockPool.query.mockResolvedValueOnce({
+      rows: [{ id: 'lock-id', email: 'lock@test.com', password_hash: '$2b$hashed', is_verified: true, role: 'user', is_banned: false }],
+    });
+    const res = await request(app).post('/api/auth/login').send({ email: 'lock@test.com', password: 'wrong' });
+    expect(res.status).toBe(429);
+    expect(res.body.error).toMatch(/Too many failed attempts/);
+  });
+
+  it('clears failed attempts on successful login', async () => {
+    const { getRedis } = require('../../lib/redis');
+    const redis = getRedis();
+
+    // Simulate 3 prior failed attempts
+    await redis.incr('failed_login:clear@test.com');
+    await redis.incr('failed_login:clear@test.com');
+    await redis.incr('failed_login:clear@test.com');
+
+    mockPool.query
+      .mockResolvedValueOnce({
+        rows: [{ id: 'clear-id', email: 'clear@test.com', password_hash: '$2b$hashed', is_verified: true, role: 'user', is_banned: false }],
+      });
+
+    const app = buildApp();
+    const res = await request(app).post('/api/auth/login').send({ email: 'clear@test.com', password: 'correct' });
+    expect(res.status).toBe(200);
+
+    // Verify failed counter was cleared
+    const remaining = await redis.get('failed_login:clear@test.com');
+    expect(remaining).toBeNull();
   });
 });
 

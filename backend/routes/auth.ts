@@ -319,6 +319,9 @@ router.post('/resend-otp', async (req: Request, res: Response) => {
 
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
 
+const LOCKOUT_THRESHOLD = 5;
+const LOCKOUT_TTL_SECONDS = 15 * 60; // 15 minutes
+
 router.post('/login', async (req: Request, res: Response) => {
   const { email, password } = req.body as { email?: string; password?: string };
   if (!email || !password) {
@@ -335,8 +338,6 @@ router.post('/login', async (req: Request, res: Response) => {
       [email.toLowerCase()],
     );
     if (!rows.length) {
-      // Equalize response time with the known-user path (bcrypt compare) so
-      // attackers cannot enumerate registered emails via latency.
       await bcrypt.compare(password, DUMMY_BCRYPT_HASH);
       res.status(401).json({ error: 'Invalid email or password' });
       return;
@@ -346,17 +347,53 @@ router.post('/login', async (req: Request, res: Response) => {
       res.status(403).json({ error: 'Account suspended. Contact support.' });
       return;
     }
+
+    // ── Account lockout check ────────────────────────────────────────────
+    const redis = getRedis();
+    const lockoutKey = `lockout:${user.email}`;
+    const failedKey = `failed_login:${user.email}`;
+
+    if (redis) {
+      const isLocked = await redis.get(lockoutKey);
+      if (isLocked) {
+        res.status(429).json({ error: 'Too many failed attempts. Please try again in 15 minutes.' });
+        return;
+      }
+    }
+
     if (!user.password_hash) {
-      // Generic error — never reveal that this email is Google-linked
       await bcrypt.compare(password, DUMMY_BCRYPT_HASH);
       res.status(401).json({ error: 'Invalid email or password' });
       return;
     }
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) {
+      // ── Increment failed login counter ───────────────────────────────
+      if (redis) {
+        const attempts = (await redis.incr(failedKey)) ?? 0;
+        if (attempts === 1) {
+          await redis.expire(failedKey, LOCKOUT_TTL_SECONDS);
+        }
+        if (attempts >= LOCKOUT_THRESHOLD) {
+          await redis.set(lockoutKey, '1', 'EX', LOCKOUT_TTL_SECONDS);
+          await redis.del(failedKey);
+          logger.warn({ userId: user.id, email: user.email }, 'Account locked after 5 failed login attempts');
+          try {
+            await sendPasswordResetEmail(user.email, 'lockout-alert');
+          } catch {
+            // Best-effort alert — don't fail the response
+          }
+        }
+      }
       res.status(401).json({ error: 'Invalid email or password' });
       return;
     }
+
+    // ── Successful login — clear failed attempts ─────────────────────────
+    if (redis) {
+      await redis.del(failedKey);
+    }
+
     if (!user.is_verified) {
       const otp = generateOtp();
       const otpHash = hashOtp(otp);
