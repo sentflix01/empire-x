@@ -5,6 +5,34 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-01 | Bugfix | fix: workflow loop, Supabase migration, gitignore cleanup | [1685c242e](2026-09-01-1685c242e-workflow-loop-supabase-migration-gitignore-clean.md) |
+| 2026-09-01 | Maintenance | chore: gitignore qa-screenshots, temp files, archives, generated files — reduce repo size | [c0fa51313](2026-09-01-c0fa51313-gitignore-qa-screenshots-temp-files-archives-gen.md) |
+| 2026-09-01 | Bugfix | fix(infra): broaden db ignore to backend/db/**, harden check-supabase exit codes, fix stale Neon/Railway labels in env examples | [ed7c782b1](2026-09-01-ed7c782b1-broaden-db-ignore-to-backend-db-harden-check-sup.md) |
+| 2026-09-01 | Bugfix | fix(infra): rename check-neon to check-supabase, add backend/db migrate paths-ignore | [884e2a41b](2026-09-01-884e2a41b-rename-check-neon-to-check-supabase-add-backend-.md) |
+| 2026-09-01 | Bugfix | fix(infra): replace Neon with Supabase, fix stale Railway comment in deploy | [fd0ea43ab](2026-09-01-fd0ea43ab-replace-neon-with-supabase-fix-stale-railway-com.md) |
+| 2026-09-01 | Bugfix | fix(actions): add check-skip job, fix glob to **/*.md, guard all CI jobs | [30aa9caa4](2026-09-01-30aa9caa4-add-check-skip-job-fix-glob-to-md-guard-all-ci-j.md) |
+| 2026-09-01 | Bugfix | fix: stop CI/docs-sync loop — glob depth, actor guards, docs-only path guard | [e60e70ce9](2026-09-01-e60e70ce9-stop-ci-docs-sync-loop-glob-depth-actor-guards-d.md) |
+| 2026-09-01 | Feature | feat: optimize CI/CD minute spend — audit without npm ci, reduce healthcheck retries, remove dead docs-sync job | [562ff8e96](2026-09-01-562ff8e96-optimize-ci-cd-minute-spend-audit-without-npm-ci.md) |
+| 2026-09-01 | CI/CD | ci: reduce GitHub Actions minute burn | [43c6ab53c](2026-09-01-43c6ab53c-reduce-github-actions-minute-burn.md) |
+| 2026-09-01 | Bugfix | fix(a11y): add alt text to 18 images + labels to 3 inputs | [6d6188dda](2026-09-01-6d6188dda-add-alt-text-to-18-images-labels-to-3-inputs.md) |
+| 2026-09-01 | Bugfix | fix(a11y): WCAG quick wins — skip link + aria-labels | [7b8de1357](2026-09-01-7b8de1357-wcag-quick-wins-skip-link-aria-labels.md) |
+| 2026-08-31 | Feature | feat: DB-driven sitemap for SEO | [fd25773c8](2026-08-31-fd25773c8-db-driven-sitemap-for-seo.md) |
+| 2026-08-31 | Feature | feat(auth): implement account lockout (5 fails → 15min) | [f704bc4fc](2026-08-31-f704bc4fc-implement-account-lockout-5-fails-15min.md) |
+| 2026-08-31 | Testing | test: fix auth test for is_banned query change | [09d2627c0](2026-08-31-09d2627c0-fix-auth-test-for-is-banned-query-change.md) |
+| 2026-08-31 | Bugfix | fix: Next.js 16.3 compatibility after Dependabot merges | [6eb2fbf85](2026-08-31-6eb2fbf85-next-js-16-3-compatibility-after-dependabot-merg.md) |
+| 2026-08-31 | Maintenance | merge: dependabot @types/node ^20→^26 (type definitions only) | [d62bbf7cf](2026-08-31-d62bbf7cf-dependabot-types-node-20-26-type-definitions-onl.md) |
+| 2026-08-31 | Maintenance | Merge remote-tracking branch 'origin/dependabot/npm_and_yarn/backend/multi-6d7db9f379' | [537c2115c](2026-08-31-537c2115c-merge-remote-tracking-branch-origin-dependabot-n.md) |
+| 2026-08-31 | Maintenance | merge: dependabot actions/setup-node v4→v7 | [2df7de7b0](2026-08-31-2df7de7b0-dependabot-actions-setup-node-v4-v7.md) |
+| 2026-08-31 | Maintenance | Merge remote-tracking branch 'origin/dependabot/github_actions/actions/checkout-7' | [38b13819e](2026-08-31-38b13819e-merge-remote-tracking-branch-origin-dependabot-g.md) |
+| 2026-08-31 | Maintenance | merge: dependabot frontend minor/patch (43 safe updates) | [babd5120d](2026-08-31-babd5120d-dependabot-frontend-minor-patch-43-safe-updates.md) |
+| 2026-08-31 | Documentation | docs: fix 15 inaccuracies found in deep audit | [1f79441d2](2026-08-31-1f79441d2-fix-15-inaccuracies-found-in-deep-audit.md) |
+| 2026-08-31 | Bugfix | fix: scorecard accuracy + remove SVG MIME residual | [e182ce618](2026-08-31-e182ce618-scorecard-accuracy-remove-svg-mime-residual.md) |
+| 2026-08-31 | Bugfix | fix: deep security audit of login and signup auth flows | [2612b4319](2026-08-31-2612b4319-deep-security-audit-of-login-and-signup-auth-flo.md) |
+| 2026-08-31 | Maintenance | chore(deps): bump bcryptjs and @types/bcryptjs in /backend | [97cc5bef1](2026-08-31-97cc5bef1-bump-bcryptjs-and-types-bcryptjs-in-backend.md) |
+| 2026-08-31 | Maintenance | Merge pull request #7 from sentflix01/dependabot/npm_and_yarn/backend/minor-and-patch-b846c7223c | [5b88778e8](2026-08-31-5b88778e8-merge-pull-request-7-from-sentflix01-dependabot-.md) |
+| 2026-08-31 | Maintenance | Merge pull request #15 from sentflix01/dependabot/npm_and_yarn/frontend-next/typescript-7.0.2 | [567ce4a0d](2026-08-31-567ce4a0d-merge-pull-request-15-from-sentflix01-dependabot.md) |
+| 2026-08-31 | Maintenance | Merge pull request #16 from sentflix01/dependabot/npm_and_yarn/frontend-next/framer-motion-13.1.0 | [0cc96863c](2026-08-31-0cc96863c-merge-pull-request-16-from-sentflix01-dependabot.md) |
+| 2026-08-31 | Maintenance | design: Redesign sign-up page to professional Google-style | [1d71c83d7](2026-08-31-1d71c83d7-redesign-sign-up-page-to-professional-google-sty.md) |
 | 2026-08-31 | Bugfix | fix: Remove email pre-fill on sign-up page | [b95762f5e](2026-08-31-b95762f5e-remove-email-pre-fill-on-sign-up-page.md) |
 | 2026-08-31 | Bugfix | fix: Allow Google OAuth popup - add CSP frame-src and COOP headers | [7b3d23a2f](2026-08-31-7b3d23a2f-allow-google-oauth-popup-add-csp-frame-src-and-c.md) |
 | 2026-08-31 | Bugfix | fix: redeploy with updated Supabase DATABASE_URL | [a9502dd32](2026-08-31-a9502dd32-redeploy-with-updated-supabase-database-url.md) |
@@ -15,6 +43,7 @@
 | 2026-08-30 | Documentation | docs: Add complete deployment variables checklist for Render + Supabase + Vercel | [78445ff65](2026-08-30-78445ff65-add-complete-deployment-variables-checklist-for-.md) |
 | 2026-08-30 | Maintenance | Refine Supabase pooler fix: use direct postgres endpoint with correct port | [8a4c2ac4c](2026-08-30-8a4c2ac4c-refine-supabase-pooler-fix-use-direct-postgres-e.md) |
 | 2026-08-30 | Maintenance | Fix Supabase pooler connection for pg_dump and certificate handling | [434c059be](2026-08-30-434c059be-fix-supabase-pooler-connection-for-pg-dump-and-c.md) |
+| 2026-08-30 | Maintenance | chore(deps): bump actions/checkout from 4 to 7 | [bfb6b50ff](2026-08-30-bfb6b50ff-bump-actions-checkout-from-4-to-7.md) |
 | 2026-08-30 | Maintenance | Normalize deployment config to Render + Supabase | [564834973](2026-08-30-564834973-normalize-deployment-config-to-render-supabase.md) |
 | 2026-08-30 | Maintenance | Fix TypeScript compiler config | [9d47360c5](2026-08-30-9d47360c5-fix-typescript-compiler-config.md) |
 | 2026-08-30 | Maintenance | Fix Render Neon backup and TLS issues | [6a1f62896](2026-08-30-6a1f62896-fix-render-neon-backup-and-tls-issues.md) |
@@ -23,6 +52,7 @@
 | 2026-08-30 | Bugfix | fix: install postgresql-client in Docker for pg_dump backups | [0fb4aa8ab](2026-08-30-0fb4aa8ab-install-postgresql-client-in-docker-for-pg-dump-.md) |
 | 2026-08-30 | Bugfix | fix: generate PWA icons from brand SVG | [a420c6943](2026-08-30-a420c6943-generate-pwa-icons-from-brand-svg.md) |
 | 2026-08-30 | Bugfix | fix: health check no longer blocks deploy pipeline | [e6b17cffa](2026-08-30-e6b17cffa-health-check-no-longer-blocks-deploy-pipeline.md) |
+| 2026-08-30 | Maintenance | chore(deps): bump actions/setup-node from 4 to 7 | [111382da7](2026-08-30-111382da7-bump-actions-setup-node-from-4-to-7.md) |
 | 2026-08-30 | Bugfix | fix: deploy pipeline no longer blocked by Neon quota exhaustion | [d284d48bb](2026-08-30-d284d48bb-deploy-pipeline-no-longer-blocked-by-neon-quota-.md) |
 | 2026-08-30 | Feature | feat: add nodbusiness-icon SVG to public/icons | [dfca85e45](2026-08-30-dfca85e45-add-nodbusiness-icon-svg-to-public-icons.md) |
 | 2026-08-30 | Bugfix | fix: update favicon to nodbusiness-icon SVG | [15c154f3a](2026-08-30-15c154f3a-update-favicon-to-nodbusiness-icon-svg.md) |
@@ -33,6 +63,8 @@
 | 2026-08-29 | Bugfix | fix: move ref assignment into useEffect in PurchaseModal | [8c8b466c1](2026-08-29-8c8b466c1-move-ref-assignment-into-useeffect-in-purchasemo.md) |
 | 2026-08-29 | Bugfix | fix: resolve uploads directory permission error on Render | [12570cfc3](2026-08-29-12570cfc3-resolve-uploads-directory-permission-error-on-re.md) |
 | 2026-08-29 | Bugfix | fix: update Dockerfile for TypeScript build on Render | [b0bed7051](2026-08-29-b0bed7051-update-dockerfile-for-typescript-build-on-render.md) |
+| 2026-08-29 | Maintenance | chore(deps): bump the minor-and-patch group across 1 directory with 13 updates | [c26e62588](2026-08-29-c26e62588-bump-the-minor-and-patch-group-across-1-director.md) |
+| 2026-08-29 | Maintenance | chore(deps): bump the minor-and-patch group across 1 directory with 43 updates | [59e4ef0d9](2026-08-29-59e4ef0d9-bump-the-minor-and-patch-group-across-1-director.md) |
 | 2026-08-29 | Bugfix | fix: comprehensive bug audit — 40 suites, 396 tests all green | [6ce536995](2026-08-29-6ce536995-comprehensive-bug-audit-40-suites-396-tests-all-.md) |
 | 2026-08-27 | Documentation | docs: TD-009 fully complete — SafeImage now uses next/image | [5076a2f79](2026-08-27-5076a2f79-td-009-fully-complete-safeimage-now-uses-next-im.md) |
 | 2026-08-27 | Feature | feat: SafeImage → next/image for full optimization (TD-009 complete) | [348c6e04c](2026-08-27-348c6e04c-safeimage-next-image-for-full-optimization-td-00.md) |
@@ -77,6 +109,9 @@
 | 2026-08-23 | Feature | feat(builder): live-preview field mapping editor (final Patent 4 embodiment) | [a9d7e7603](2026-08-23-a9d7e7603-live-preview-field-mapping-editor-final-patent-4.md) |
 | 2026-08-23 | Feature | feat(proxy): implement Patent 4 claim embodiments — stale-cache fallback, circuit breaker, per-tenant key derivation | [debf1cf8e](2026-08-23-debf1cf8e-implement-patent-4-claim-embodiments-stale-cache.md) |
 | 2026-08-23 | Documentation | docs(patent): add Patent 4 draft (flagship builder feature), real prior art, disclosure-risk section | [042aa76c2](2026-08-23-042aa76c2-add-patent-4-draft-flagship-builder-feature-real.md) |
+| 2026-08-23 | Maintenance | chore(deps): bump framer-motion from 12.42.2 to 13.1.0 in /frontend-next | [93623a133](2026-08-23-93623a133-bump-framer-motion-from-12-42-2-to-13-1-0-in-fro.md) |
+| 2026-08-23 | Maintenance | chore(deps-dev): bump typescript from 5.9.3 to 7.0.2 in /frontend-next | [9c0980a8d](2026-08-23-9c0980a8d-bump-typescript-from-5-9-3-to-7-0-2-in-frontend-.md) |
+| 2026-08-23 | Maintenance | chore(deps-dev): bump @types/node in /frontend-next | [6ed441874](2026-08-23-6ed441874-bump-types-node-in-frontend-next.md) |
 | 2026-08-23 | Testing | test(e2e): Playwright smoke suite (TD-003) + fix prototype pollution in bookmarks store (TD-021) | [ceb560eff](2026-08-23-ceb560eff-playwright-smoke-suite-td-003-fix-prototype-poll.md) |
 | 2026-08-23 | Feature | feat(docs): auto-generated API reference — 255 endpoints, zero drift | [bbe623ed4](2026-08-23-bbe623ed4-auto-generated-api-reference-255-endpoints-zero-.md) |
 | 2026-08-23 | Feature | feat(ops): automated database backups + restorability verification (TD-020) | [9bd299762](2026-08-23-9bd299762-automated-database-backups-restorability-verific.md) |

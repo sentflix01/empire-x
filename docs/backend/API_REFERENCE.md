@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **279** across **48** mounted modules · Generated: 2026-08-30
+> Endpoints: **280** across **48** mounted modules · Generated: 2026-08-31
 
 | Legend | Meaning |
 |---|---|
@@ -52,7 +52,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`reviews`](#reviews) (4)
 - [`saves`](#saves) (3)
 - [`search`](#search) (1)
-- [`showrooms`](#showrooms) (8)
+- [`showrooms`](#showrooms) (9)
 - [`stories`](#stories) (8)
 - [`subscriptions`](#subscriptions) (5)
 - [`suggestions`](#suggestions) (2)
@@ -70,25 +70,25 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/admin/stats` | 🌐 public | routes/admin.ts:12 |
-| `GET` | `/api/admin/users` | 🌐 public | routes/admin.ts:42 |
-| `PUT` | `/api/admin/users/:id/role` | 🌐 public | routes/admin.ts:55 |
-| `DELETE` | `/api/admin/users/:id` | 🌐 public | routes/admin.ts:65 |
-| `POST` | `/api/admin/users/:id/ban` | 🌐 public | routes/admin.ts:74 |
-| `POST` | `/api/admin/users/:id/unban` | 🌐 public | routes/admin.ts:88 |
-| `GET` | `/api/admin/verifications` | 🌐 public | routes/admin.ts:101 |
-| `POST` | `/api/admin/verifications/:userId` | 🌐 public | routes/admin.ts:116 |
-| `DELETE` | `/api/admin/verifications/:userId` | 🌐 public | routes/admin.ts:135 |
-| `GET` | `/api/admin/posts` | 🌐 public | routes/admin.ts:147 |
-| `DELETE` | `/api/admin/posts/:id` | 🌐 public | routes/admin.ts:155 |
-| `GET` | `/api/admin/products` | 🌐 public | routes/admin.ts:168 |
-| `DELETE` | `/api/admin/products/:id` | 🌐 public | routes/admin.ts:176 |
-| `GET` | `/api/admin/orders` | 🌐 public | routes/admin.ts:182 |
-| `GET` | `/api/admin/reports` | 🌐 public | routes/admin.ts:191 |
-| `PUT` | `/api/admin/reports/:id` | 🌐 public | routes/admin.ts:200 |
-| `PUT` | `/api/admin/users/:id/verify` | 🌐 public | routes/admin.ts:208 |
-| `GET` | `/api/admin/stats/revenue` | 🌐 public | routes/admin.ts:216 |
-| `GET` | `/api/admin/audit-logs` | 🌐 public | routes/admin.ts:236 |
+| `GET` | `/api/admin/stats` | 🌐 public | routes/admin.ts:23 |
+| `GET` | `/api/admin/users` | 🌐 public | routes/admin.ts:53 |
+| `PUT` | `/api/admin/users/:id/role` | 🌐 public | routes/admin.ts:66 |
+| `DELETE` | `/api/admin/users/:id` | 🌐 public | routes/admin.ts:87 |
+| `POST` | `/api/admin/users/:id/ban` | 🌐 public | routes/admin.ts:115 |
+| `POST` | `/api/admin/users/:id/unban` | 🌐 public | routes/admin.ts:139 |
+| `GET` | `/api/admin/verifications` | 🌐 public | routes/admin.ts:152 |
+| `POST` | `/api/admin/verifications/:userId` | 🌐 public | routes/admin.ts:167 |
+| `DELETE` | `/api/admin/verifications/:userId` | 🌐 public | routes/admin.ts:186 |
+| `GET` | `/api/admin/posts` | 🌐 public | routes/admin.ts:198 |
+| `DELETE` | `/api/admin/posts/:id` | 🌐 public | routes/admin.ts:206 |
+| `GET` | `/api/admin/products` | 🌐 public | routes/admin.ts:219 |
+| `DELETE` | `/api/admin/products/:id` | 🌐 public | routes/admin.ts:227 |
+| `GET` | `/api/admin/orders` | 🌐 public | routes/admin.ts:233 |
+| `GET` | `/api/admin/reports` | 🌐 public | routes/admin.ts:242 |
+| `PUT` | `/api/admin/reports/:id` | 🌐 public | routes/admin.ts:251 |
+| `PUT` | `/api/admin/users/:id/verify` | 🌐 public | routes/admin.ts:259 |
+| `GET` | `/api/admin/stats/revenue` | 🌐 public | routes/admin.ts:267 |
+| `GET` | `/api/admin/audit-logs` | 🌐 public | routes/admin.ts:287 |
 
 ## ai — ai
 
@@ -102,18 +102,18 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:133 |
-| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:209 |
-| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:256 |
-| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:299 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:369 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:446 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:480 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:515 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:554 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:588 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:629 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:647 |
+| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:140 |
+| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:228 |
+| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:285 |
+| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:325 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:435 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:521 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:555 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:590 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:652 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:704 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:749 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:768 |
 
 ## businessApiKeys — Business API key management
 
@@ -463,10 +463,11 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `GET` | `/api/showrooms/slug/:slug` | ⚪ optional | routes/showrooms.ts:24 |
 | `POST` | `/api/showrooms/:id/recheck/:sectionKey` | 🔒 auth | routes/showrooms.ts:35 |
 | `GET` | `/api/showrooms/:id/doctor` | 🔒 auth | routes/showrooms.ts:60 |
-| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:116 |
-| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:124 |
-| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:140 |
-| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:149 |
+| `GET` | `/api/showrooms/sitemap-data` | 🌐 public | routes/showrooms.ts:117 |
+| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:126 |
+| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:134 |
+| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:150 |
+| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:159 |
 
 ## stories — stories
 

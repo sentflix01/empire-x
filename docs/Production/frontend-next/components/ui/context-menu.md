@@ -1,3 +1,5 @@
+> ⚠️ **HISTORICAL** — corresponding source file was removed from the codebase on 2026-08-31. Kept for reference.
+
 # frontend-next/components/ui/context-menu
 
 <!-- AUTO-STUB  2026-08-23 — curate narrative below -->
