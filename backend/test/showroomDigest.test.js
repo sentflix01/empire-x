@@ -61,4 +61,11 @@ describe('pg_dump URL sanitization', () => {
     const url = 'postgresql://user:pass@ep-foo.neon.tech/neondb?sslmode=require&pgbouncer=true';
     expect(stripPgbouncerParam(url)).toBe('postgresql://user:pass@ep-foo.neon.tech/neondb?sslmode=require');
   });
+
+  test('converts Supabase pooler URL to direct connection for pg_dump', () => {
+    const { stripPgbouncerParam } = require('../scripts/backup-database');
+    const url = 'postgresql://postgres.tpgzlokgnjxcerexxoda:password@aws-0-eu-west-1.pooler.supabase.com:6543/postgres';
+    const result = stripPgbouncerParam(url);
+    expect(result).toBe('postgresql://postgres:password@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres');
+  });
 });
