@@ -6,7 +6,7 @@ on:
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
-      - 'backend/db/migrate*.js'
+      - 'backend/db/**'
       - '.github/workflows/docs-sync.yml'
       - '.github/workflows/db-migrate-to-supabase.yml'
   pull_request:
