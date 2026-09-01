@@ -367,10 +367,10 @@ describe('Preservation: Existing ProductDetail Interactions Unchanged', () => {
     expect(mainImg.src).toBe(IMAGES[0]);
 
     // Find thumbnail buttons in the thumbnail strip
-    // Thumbnails are buttons wrapping images with no alt text
+    // Thumbnails are buttons wrapping images with alt="* thumbnail"
     const thumbButtons = screen
       .getAllByRole('button')
-      .filter(btn => btn.querySelector('img[alt=""]'));
+      .filter(btn => btn.querySelector('img[alt$=" thumbnail"]'));
     expect(thumbButtons.length).toBeGreaterThanOrEqual(2);
 
     // Click thumbnail at index 1

@@ -23,9 +23,8 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-// Mock next/link and next/navigation
+// Mock next/link
 vi.mock('next/link', () => ({ default: ({ children, href }: any) => <a href={href}>{children}</a> }));
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 import Login from '@/views/Login';
 import { auth } from '@/api/auth';

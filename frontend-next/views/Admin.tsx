@@ -908,7 +908,7 @@ function Admin() {
           <div className="bg-card rounded-2xl w-full max-w-md p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display text-lg font-bold">Grant Verification</h3>
-              <button onClick={() => setVerifyModal(null)} className="p-1.5 rounded-full hover:bg-secondary"><X className="w-4 h-4" /></button>
+              <button onClick={() => setVerifyModal(null)} className="p-1.5 rounded-full hover:bg-secondary" aria-label="Close verification modal"><X className="w-4 h-4" /></button>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 mb-4">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shrink-0">

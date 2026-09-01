@@ -142,7 +142,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
           <h2 className="font-display text-base font-bold">
             {step === "success" ? "Order Placed!" : "Checkout"}
           </h2>
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-secondary"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-secondary" aria-label="Close modal"><X className="w-4 h-4" /></button>
         </div>
 
         {/* Product Details Step */}

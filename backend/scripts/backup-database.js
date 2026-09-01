@@ -40,11 +40,11 @@ function stripPgbouncerParam(raw) {
   cleaned = cleaned.replace(/[?&]$/, '');
   // pg_dump cannot use the Supabase transaction pooler (it requires SNI/session mode).
   // Convert pooler URL back to the direct Supabase connection string.
-  // Pooler format:  postgres.PROJECT_REF.pooler.supabase.com:6543
-  // Direct format:  db.PROJECT_REF.supabase.co:5432
+  // Pooler format:  postgres.PROJECT_REF:password@pooler-host:6543
+  // Direct format:  postgres:password@db.PROJECT_REF.supabase.co:5432
   if (cleaned.includes('pooler.supabase.com')) {
     // Extract project ref from username (postgres.PROJECT_REF) or hostname
-    const refMatch = cleaned.match(/postgres\.([a-z0-9]+)@/) ||
+    const refMatch = cleaned.match(/postgres\.([a-z0-9]+)(?::|@)/) ||
                      cleaned.match(/\/\/[^@]+@[^.]+\.([a-z0-9]+)\.pooler/);
     const projectRef = refMatch?.[1];
     if (projectRef) {
@@ -53,7 +53,7 @@ function stripPgbouncerParam(raw) {
         /[^@]+\.pooler\.supabase\.com:\d+/,
         `db.${projectRef}.supabase.co:5432`
       );
-      // Fix username: postgres.PROJECT_REF → postgres
+      // Fix username: postgres.PROJECT_REF:password → postgres:password
       cleaned = cleaned.replace(`postgres.${projectRef}:`, 'postgres:');
     }
   }
