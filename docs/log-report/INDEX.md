@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-02 | Bugfix | fix: add missing auth.createAccount translation key | [70fe0d10d](2026-09-02-70fe0d10d-add-missing-auth-createaccount-translation-key.md) |
 | 2026-09-01 | Bugfix | fix: resolve test failures + WCAG accessibility fixes | [d413f7445](2026-09-01-d413f7445-resolve-test-failures-wcag-accessibility-fixes.md) |
 | 2026-09-01 | Maintenance | Merge pull request #11 from sentflix01/dependabot/npm_and_yarn/backend/bullmq-6.1.2 | [d18de0c9c](2026-09-01-d18de0c9c-merge-pull-request-11-from-sentflix01-dependabot.md) |
 | 2026-09-01 | Maintenance | Merge pull request #10 from sentflix01/dependabot/npm_and_yarn/backend/ioredis-6.0.0 | [e782e36c4](2026-09-01-e782e36c4-merge-pull-request-10-from-sentflix01-dependabot.md) |
