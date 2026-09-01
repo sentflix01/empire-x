@@ -41,12 +41,8 @@ function getBackupConnectionString() {
   const raw = process.env.DATABASE_URL;
   if (!raw) return raw;
 
-  // Only strip pgbouncer param for Neon (pg_dump needs direct connection for Neon)
-  // For Supabase pooler, keep pgbouncer=true — pg_dump works with pooler via pgbouncer
-  if (/neon\.tech/i.test(raw)) {
-    return raw.replace(/[?&]pgbouncer=true(?=&|$)/, '').replace(/[?&]$/, '');
-  }
-  return raw;
+  // pg_dump does NOT support pgbouncer=true parameter — strip it for all DBs
+  return raw.replace(/[?&]pgbouncer=true(?=&|$)/, '').replace(/[?&]$/, '');
 }
 
 function stripPgbouncerParam(raw) {

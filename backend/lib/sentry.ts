@@ -3,13 +3,26 @@
  *
  * Set SENTRY_DSN in .env to enable.
  * Falls back silently when not configured.
+ *
+ * Usage:
+ *   // At TOP of index.ts (before ANY other imports):
+ *   import { initSentryCore } from './lib/sentry';
+ *   initSentryCore();
+ *
+ *   // After creating express app:
+ *   import { attachSentryToApp } from './lib/sentry';
+ *   attachSentryToApp(app);
  */
 import type { Application, RequestHandler, ErrorRequestHandler } from 'express';
 import logger from './logger';
 
-export function initSentry(app: Application): void {
+let _sentryInitialized = false;
+
+export function initSentryCore(): void {
+  if (_sentryInitialized) return;
   if (!process.env.SENTRY_DSN) {
     logger.debug('Sentry not configured — skipping (add SENTRY_DSN to enable)');
+    _sentryInitialized = true;
     return;
   }
 
@@ -26,15 +39,30 @@ export function initSentry(app: Application): void {
       ignoreErrors: ['TokenExpiredError', 'JsonWebTokenError', 'NotFoundError'],
     });
 
+    _sentryInitialized = true;
+    logger.info('Sentry core initialized');
+  } catch (err) {
+    logger.warn({ err: (err as Error).message }, 'Failed to initialise Sentry core');
+  }
+}
+
+export function attachSentryToApp(app: Application): void {
+  if (!process.env.SENTRY_DSN) return;
+  if (!_sentryInitialized) initSentryCore();
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
+    const Sentry = require('@sentry/node') as any;
+
     // @sentry/node v7 uses Handlers; v8+ uses different APIs — try both
     if (Sentry.Handlers?.requestHandler) {
       app.use(Sentry.Handlers.requestHandler() as RequestHandler);
     } else if (typeof Sentry.setupExpressErrorHandler === 'function') {
       Sentry.setupExpressErrorHandler(app);
     }
-    logger.info('Sentry error tracking enabled');
+    logger.info('Sentry attached to Express app');
   } catch (err) {
-    logger.warn({ err: (err as Error).message }, 'Failed to initialise Sentry');
+    logger.warn({ err: (err as Error).message }, 'Failed to attach Sentry to app');
   }
 }
 
@@ -50,4 +78,4 @@ export function getSentryErrorHandler(): ErrorRequestHandler | null {
   }
 }
 
-module.exports = { initSentry, getSentryErrorHandler };
+module.exports = { initSentryCore, attachSentryToApp, getSentryErrorHandler };

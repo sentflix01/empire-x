@@ -21,6 +21,11 @@
  *   17. 404 catch-all
  */
 import 'dotenv/config';
+
+// ── Sentry core (MUST be before ANY other imports, especially express) ──────────
+import { initSentryCore } from './lib/sentry';
+initSentryCore();
+
 import express, { type Request, type Response, type NextFunction } from 'express';
 import http from 'http';
 import cors from 'cors';
@@ -34,7 +39,7 @@ import type { Redis as RedisClient } from 'ioredis';
 import { initSocket } from './socket';
 import logger from './lib/logger';
 import { startWorkers, closeQueues } from './lib/queue';
-import { initSentry, getSentryErrorHandler } from './lib/sentry';
+import { attachSentryToApp, getSentryErrorHandler } from './lib/sentry';
 import { errorMiddleware, installProcessHandlers } from './lib/errorCollector';
 import { getRedis, cached } from './lib/redis';
 import { parseFrontendUrls } from './lib/frontendUrl';
@@ -56,8 +61,8 @@ app.set('trust proxy', 1); // trust Railway / Render load-balancer → req.ip = 
 const server = http.createServer(app);
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
 
-// ── Sentry (must be first) ────────────────────────────────────────────────────
-initSentry(app);
+// ── Sentry (attach to Express app) ──────────────────────────────────────────────
+attachSentryToApp(app);
 
 // ── Compression ───────────────────────────────────────────────────────────────
 app.use(compression());
