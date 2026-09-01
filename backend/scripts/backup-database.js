@@ -33,6 +33,22 @@ const pool = require('../db/pool');
 const RETENTION_DAYS = parseInt(process.env.BACKUP_RETENTION_DAYS ?? '14', 10);
 const LOCAL_DIR = path.join('/app', 'backups');
 
+function getBackupConnectionString() {
+  // Allow explicit override for backup (e.g., use pooler on Render to avoid IPv6)
+  if (process.env.BACKUP_DATABASE_URL) {
+    return process.env.BACKUP_DATABASE_URL;
+  }
+  const raw = process.env.DATABASE_URL;
+  if (!raw) return raw;
+
+  // Only strip pgbouncer param for Neon (pg_dump needs direct connection for Neon)
+  // For Supabase pooler, keep pgbouncer=true — pg_dump works with pooler via pgbouncer
+  if (/neon\.tech/i.test(raw)) {
+    return raw.replace(/[?&]pgbouncer=true(?=&|$)/, '').replace(/[?&]$/, '');
+  }
+  return raw;
+}
+
 function stripPgbouncerParam(raw) {
   if (!raw) return raw;
   // Remove pgbouncer=true parameter
@@ -153,7 +169,7 @@ async function runBackup() {
   }
 
   // ── Dump (pg_dump custom format piped through gzip) ────────────────────────
-  const dumpUrl = stripPgbouncerParam(process.env.DATABASE_URL);
+  const dumpUrl = getBackupConnectionString();
 
   await new Promise((resolve, reject) => {
     const dump = spawn('pg_dump', ['--no-owner', '--format=custom', dumpUrl], {
