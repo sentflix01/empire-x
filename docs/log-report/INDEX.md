@@ -5,6 +5,13 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-01 | Bugfix | fix: resolve test failures + WCAG accessibility fixes | [d413f7445](2026-09-01-d413f7445-resolve-test-failures-wcag-accessibility-fixes.md) |
+| 2026-09-01 | Maintenance | Merge pull request #11 from sentflix01/dependabot/npm_and_yarn/backend/bullmq-6.1.2 | [d18de0c9c](2026-09-01-d18de0c9c-merge-pull-request-11-from-sentflix01-dependabot.md) |
+| 2026-09-01 | Maintenance | Merge pull request #10 from sentflix01/dependabot/npm_and_yarn/backend/ioredis-6.0.0 | [e782e36c4](2026-09-01-e782e36c4-merge-pull-request-10-from-sentflix01-dependabot.md) |
+| 2026-09-01 | Maintenance | Merge pull request #9 from sentflix01/dependabot/npm_and_yarn/backend/stripe-22.5.0 | [573ad6df1](2026-09-01-573ad6df1-merge-pull-request-9-from-sentflix01-dependabot-.md) |
+| 2026-09-01 | Maintenance | Merge pull request #18 from sentflix01/dependabot/npm_and_yarn/frontend-next/minor-and-patch-6532b6660c | [9cb386801](2026-09-01-9cb386801-merge-pull-request-18-from-sentflix01-dependabot.md) |
+| 2026-09-01 | Bugfix | fix(backup): correct Supabase pooler → direct URL conversion for pg_dump | [26cd5a069](2026-09-01-26cd5a069-correct-supabase-pooler-direct-url-conversion-fo.md) |
+| 2026-09-01 | Bugfix | fix(db): force IPv4, detect Supabase pooler for pgbouncer and SSL — fixes Render IPv6 ENETUNREACH | [ecccc5e71](2026-09-01-ecccc5e71-force-ipv4-detect-supabase-pooler-for-pgbouncer-.md) |
 | 2026-09-01 | Bugfix | fix: workflow loop, Supabase migration, gitignore cleanup | [1685c242e](2026-09-01-1685c242e-workflow-loop-supabase-migration-gitignore-clean.md) |
 | 2026-09-01 | Maintenance | chore: gitignore qa-screenshots, temp files, archives, generated files — reduce repo size | [c0fa51313](2026-09-01-c0fa51313-gitignore-qa-screenshots-temp-files-archives-gen.md) |
 | 2026-09-01 | Bugfix | fix(infra): broaden db ignore to backend/db/**, harden check-supabase exit codes, fix stale Neon/Railway labels in env examples | [ed7c782b1](2026-09-01-ed7c782b1-broaden-db-ignore-to-backend-db-harden-check-sup.md) |
@@ -20,6 +27,8 @@
 | 2026-08-31 | Feature | feat(auth): implement account lockout (5 fails → 15min) | [f704bc4fc](2026-08-31-f704bc4fc-implement-account-lockout-5-fails-15min.md) |
 | 2026-08-31 | Testing | test: fix auth test for is_banned query change | [09d2627c0](2026-08-31-09d2627c0-fix-auth-test-for-is-banned-query-change.md) |
 | 2026-08-31 | Bugfix | fix: Next.js 16.3 compatibility after Dependabot merges | [6eb2fbf85](2026-08-31-6eb2fbf85-next-js-16-3-compatibility-after-dependabot-merg.md) |
+| 2026-08-31 | Maintenance | chore(deps): bump the minor-and-patch group across 1 directory with 46 updates | [bd6aab8d0](2026-08-31-bd6aab8d0-bump-the-minor-and-patch-group-across-1-director.md) |
+| 2026-08-31 | Maintenance | chore(deps): bump bullmq from 5.79.2 to 6.3.1 in /backend | [3d2ea39c7](2026-08-31-3d2ea39c7-bump-bullmq-from-5-79-2-to-6-3-1-in-backend.md) |
 | 2026-08-31 | Maintenance | merge: dependabot @types/node ^20→^26 (type definitions only) | [d62bbf7cf](2026-08-31-d62bbf7cf-dependabot-types-node-20-26-type-definitions-onl.md) |
 | 2026-08-31 | Maintenance | Merge remote-tracking branch 'origin/dependabot/npm_and_yarn/backend/multi-6d7db9f379' | [537c2115c](2026-08-31-537c2115c-merge-remote-tracking-branch-origin-dependabot-n.md) |
 | 2026-08-31 | Maintenance | merge: dependabot actions/setup-node v4→v7 | [2df7de7b0](2026-08-31-2df7de7b0-dependabot-actions-setup-node-v4-v7.md) |
@@ -29,6 +38,8 @@
 | 2026-08-31 | Bugfix | fix: scorecard accuracy + remove SVG MIME residual | [e182ce618](2026-08-31-e182ce618-scorecard-accuracy-remove-svg-mime-residual.md) |
 | 2026-08-31 | Bugfix | fix: deep security audit of login and signup auth flows | [2612b4319](2026-08-31-2612b4319-deep-security-audit-of-login-and-signup-auth-flo.md) |
 | 2026-08-31 | Maintenance | chore(deps): bump bcryptjs and @types/bcryptjs in /backend | [97cc5bef1](2026-08-31-97cc5bef1-bump-bcryptjs-and-types-bcryptjs-in-backend.md) |
+| 2026-08-31 | Maintenance | chore(deps): bump stripe from 14.21.0 to 22.6.0 in /backend | [b2e7adc33](2026-08-31-b2e7adc33-bump-stripe-from-14-21-0-to-22-6-0-in-backend.md) |
+| 2026-08-31 | Maintenance | chore(deps): bump ioredis from 5.11.1 to 6.0.0 in /backend | [3a9cb2234](2026-08-31-3a9cb2234-bump-ioredis-from-5-11-1-to-6-0-0-in-backend.md) |
 | 2026-08-31 | Maintenance | Merge pull request #7 from sentflix01/dependabot/npm_and_yarn/backend/minor-and-patch-b846c7223c | [5b88778e8](2026-08-31-5b88778e8-merge-pull-request-7-from-sentflix01-dependabot-.md) |
 | 2026-08-31 | Maintenance | Merge pull request #15 from sentflix01/dependabot/npm_and_yarn/frontend-next/typescript-7.0.2 | [567ce4a0d](2026-08-31-567ce4a0d-merge-pull-request-15-from-sentflix01-dependabot.md) |
 | 2026-08-31 | Maintenance | Merge pull request #16 from sentflix01/dependabot/npm_and_yarn/frontend-next/framer-motion-13.1.0 | [0cc96863c](2026-08-31-0cc96863c-merge-pull-request-16-from-sentflix01-dependabot.md) |
