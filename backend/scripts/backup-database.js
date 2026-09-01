@@ -90,6 +90,16 @@ function isNeonQuotaError(err) {
   );
 }
 
+function isAuthError(err) {
+  if (!err) return false;
+  const message = String(err.message ?? err).toLowerCase();
+  return (
+    message.includes('password authentication failed') ||
+    message.includes('authentication failed') ||
+    message.includes('auth failed')
+  );
+}
+
 function hasR2() {
   return !!(process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID &&
             process.env.R2_SECRET_ACCESS_KEY && process.env.R2_BUCKET_NAME);
@@ -190,9 +200,25 @@ async function runBackup() {
     out.on('finish', resolve);
     dump.stdout.pipe(gzip).pipe(out);
     dump.on('close', (code) => {
-      if (code !== 0) reject(new Error(`pg_dump exited ${code}: ${stderr.slice(0, 500)}`));
+      if (code !== 0) {
+        const err = new Error(`pg_dump exited ${code}: ${stderr.slice(0, 500)}`);
+        // Detect auth failure — don't retry, skip to avoid triggering circuit breaker
+        if (isAuthError(err)) {
+          logger.warn({ err: err.message }, 'backup: auth failure — skipping to avoid circuit breaker');
+          resolve({ skipped: true, reason: 'auth_failure' });
+        } else {
+          reject(err);
+        }
+      }
     });
   });
+
+  // Check if backup was skipped (auth failure)
+  if (!fs.existsSync(gzPath)) {
+    logger.warn('backup: dump skipped (likely auth failure)');
+    await recordOutcome('skipped', { reason: 'auth_failure' });
+    return { ok: false, reason: 'auth_failure' };
+  }
 
   const size = fs.statSync(gzPath).size;
   if (size === 0) throw new Error('Backup file is empty');
