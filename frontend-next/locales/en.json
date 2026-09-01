@@ -42,6 +42,7 @@
     "resend": "Resend",
     "didntReceive": "Didn't receive the code?",
     "createOne": "Create one",
+    "createAccount": "Create account",
     "backToLogin": "Back to log in",
     "loggingIn": "Logging in...",
     "creatingAccount": "Creating account...",
