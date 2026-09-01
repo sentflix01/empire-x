@@ -75,6 +75,16 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
+// ── COOP relaxation for Google OAuth popup communication ───────────────────────
+// Google Identity Services needs cross-origin popup communication.
+// COOP: same-origin-allow-popups allows the popup to communicate with opener.
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.path.startsWith('/api/auth/google') || req.path.startsWith('/api/auth/refresh')) {
+    res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  }
+  next();
+});
+
 // ── Real-mode filter ──────────────────────────────────────────────────────────
 app.use(realModeMiddleware);
 

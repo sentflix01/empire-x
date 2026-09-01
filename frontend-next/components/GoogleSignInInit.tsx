@@ -1,6 +1,8 @@
 'use client';
 import { useEffect } from 'react';
 
+let isGoogleInitialized = false;
+
 /**
  * Loads the Google Identity Services script and wires up window.__googleSignIn.
  * This manually appends the external script to avoid Next.js inline loader scripts
@@ -8,6 +10,9 @@ import { useEffect } from 'react';
  */
 export default function GoogleSignInInit() {
   useEffect(() => {
+    if (isGoogleInitialized) return;
+    isGoogleInitialized = true;
+
     let intervalId: number | undefined;
     let scriptElement: HTMLScriptElement | null = null;
 
