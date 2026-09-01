@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-02 | Bugfix | fix: Google Sign-In init guard + COOP relaxation for OAuth popup | [58917ab40](2026-09-02-58917ab40-google-sign-in-init-guard-coop-relaxation-for-oa.md) |
 | 2026-09-02 | Bugfix | fix: pg_dump pgbouncer param + Sentry init order + migrations reminder | [9ce816ab9](2026-09-02-9ce816ab9-pg-dump-pgbouncer-param-sentry-init-order-migrat.md) |
 | 2026-09-02 | Bugfix | fix: Sentry init + backup auth resilience | [3f07f6f5a](2026-09-02-3f07f6f5a-sentry-init-backup-auth-resilience.md) |
 | 2026-09-02 | Bugfix | fix: backup script uses pooler URL (IPv4) on Render, not direct (IPv6) | [9dfdec01d](2026-09-02-9dfdec01d-backup-script-uses-pooler-url-ipv4-on-render-not.md) |
