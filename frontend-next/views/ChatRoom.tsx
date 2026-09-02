@@ -10,7 +10,8 @@ import {
   CornerUpLeft, Check, CheckCheck, ShieldOff, History, ImagePlus, Forward,
   Copy, UserCircle, Settings, Pin, Bookmark, Languages, RotateCcw,
 } from "lucide-react";
-import moment from "moment";
+import { fmtTime, fmtLongDate } from "@/lib/date";
+import { parseISO, isToday, isYesterday, format as fmtDate } from "date-fns";
 import { toast } from "sonner";
 import { formatLastSeen, isUserOnline } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
@@ -524,20 +525,20 @@ function ChatRoom() {
 
   // Group messages by date
   const grouped = (() => {
-    const groups = {};
+    const groups: Record<string, unknown[]> = {};
     messages.forEach(msg => {
-      const key = moment(msg.created_at).format('YYYY-MM-DD');
+      const key = fmtDate(parseISO(msg.created_at), 'yyyy-MM-dd');
       if (!groups[key]) groups[key] = [];
       groups[key].push(msg);
     });
     return Object.entries(groups);
   })();
 
-  const dateLabel = (key) => {
-    const d = moment(key);
-    if (d.isSame(moment(), 'day')) return 'Today';
-    if (d.isSame(moment().subtract(1, 'day'), 'day')) return 'Yesterday';
-    return d.format('MMMM D');
+  const dateLabel = (key: string) => {
+    const d = parseISO(key);
+    if (isToday(d)) return 'Today';
+    if (isYesterday(d)) return 'Yesterday';
+    return fmtLongDate(d);
   };
 
   const avatarLetter = getDisplayName().charAt(0).toUpperCase();
@@ -651,7 +652,7 @@ function ChatRoom() {
 
             {(msgs as any[]).map((msg, idx) => {
               const isMe = msg.sender_id === user?.id;
-              const prev = msgs[idx - 1];
+              const prev = msgs[idx - 1] as any;
               const showSender = (isGroup || isChannel) && !isMe && (!prev || prev.sender_id !== msg.sender_id);
               const isHovered  = hoveredMsg === msg.id;
               const isConfirming = deletingMsg?.id === msg.id;
@@ -741,7 +742,7 @@ function ChatRoom() {
                         <span className="text-[10px] text-muted-foreground italic">edited</span>
                       )}
                       <span className="text-[10px] text-muted-foreground">
-                        {moment(msg.created_at).format('HH:mm')}
+                        {fmtTime(msg.created_at)}
                       </span>
                       {isMe && (
                         msg._temp

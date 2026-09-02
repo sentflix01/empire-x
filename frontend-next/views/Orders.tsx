@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import moment from "moment";
+import { fromNow } from "@/lib/date";
 import { useTranslation } from 'react-i18next';
 import { generateInvoice } from "@/lib/generateInvoice";
 import { AnimatePresence, motion } from "framer-motion";
@@ -112,7 +112,7 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold">{u.status}</span>
-                  <span className="text-[10px] text-muted-foreground shrink-0">{moment(u.created_at).fromNow()}</span>
+                  <span className="text-[10px] text-muted-foreground shrink-0">{fromNow(u.created_at)}</span>
                 </div>
                 {u.note && <p className="text-[11px] text-muted-foreground">{u.note}</p>}
                 {u.location && (
@@ -457,7 +457,7 @@ function Orders() {
                             ? `Buyer: ${order.buyer_name || nameMap[order.buyer_id] || "Unknown"}`
                             : `Seller: ${nameMap[order.seller_id] || order.seller_name || order.seller_id?.slice(0, 8) + '…'}`}
                         </p>
-                        <p className="text-xs text-muted-foreground">{moment(order.created_at).fromNow()}</p>
+                        <p className="text-xs text-muted-foreground">{fromNow(order.created_at)}</p>
                       </div>
                     </div>
                     <div className="text-right ml-2 shrink-0">

@@ -225,6 +225,12 @@ router.post('/register', async (req: Request, res: Response) => {
 
 // ── POST /api/auth/verify-otp ─────────────────────────────────────────────────
 
+// Per-email OTP attempt counter — max 10 wrong guesses before the code is
+// invalidated and a new one must be requested. Prevents brute-forcing the
+// 900,000-value space within the 15-minute OTP window.
+const OTP_ATTEMPT_MAX = 10;
+const OTP_ATTEMPT_TTL = 15 * 60; // matches OTP expiry
+
 router.post('/verify-otp', async (req: Request, res: Response) => {
   const { email, otpCode } = req.body as { email?: string; otpCode?: string };
   if (!email || !otpCode) {
@@ -253,9 +259,41 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       apiError.validationError(res, 'Verification code has expired');
       return;
     }
+
+    // ── Brute-force protection: per-email attempt counter ─────────────────
+    const redis = getRedis();
+    const attemptKey = `otp_attempts:${email.toLowerCase()}`;
+    if (!redis.isNoOp) {
+      try {
+        const attempts = await (redis as RedisClient).incr(attemptKey);
+        if (attempts === 1) {
+          // Set TTL only on first increment — Redis INCR creates the key
+          await (redis as RedisClient).expire(attemptKey, OTP_ATTEMPT_TTL);
+        }
+        if (attempts > OTP_ATTEMPT_MAX) {
+          // Invalidate the OTP so the user must request a fresh code
+          await pool.query(
+            'UPDATE users SET otp_code = NULL, otp_expires = NULL WHERE id = $1',
+            [user.id],
+          );
+          await (redis as RedisClient).del(attemptKey);
+          apiError.validationError(res, 'Too many failed attempts. Please request a new verification code.');
+          return;
+        }
+      } catch (redisErr) {
+        logger.warn({ err: (redisErr as Error).message }, 'OTP attempt counter Redis error — continuing');
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     if (!verifyOtp(otpCode, user.otp_code)) {
       apiError.validationError(res, 'Invalid verification code');
       return;
+    }
+
+    // Correct OTP — clear the attempt counter
+    if (!redis.isNoOp) {
+      (redis as RedisClient).del(attemptKey).catch(() => undefined);
     }
 
     const { rows: banCheck } = await pool.query<{ is_banned: boolean }>(

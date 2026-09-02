@@ -1,5 +1,5 @@
 'use client';
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useState, useEffect, useRef } from "react";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { auth } from "@/api/auth";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
-import GoogleIcon from "@/components/GoogleIcon";
+import { renderGoogleSignInButton } from "@/lib/googleAuth";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -21,8 +21,56 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [googleButtonReady, setGoogleButtonReady] = useState(false);
+  const [googleUnavailable, setGoogleUnavailable] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement | null>(null);
 
-  const handleSubmit = async (e) => {
+  // Render the real GIS button with retry + 5-second timeout.
+  // Identical pattern to Register.tsx — no window.__googleSignIn coupling.
+  useEffect(() => {
+    let disposed = false;
+
+    const renderButton = () => {
+      if (disposed || !googleButtonRef.current || googleButtonReady) return false;
+      const dest = (returnTo && returnTo.startsWith('/')) ? returnTo : '/feed';
+      const rendered = renderGoogleSignInButton(googleButtonRef.current, {
+        width: Math.min(384, Math.max(280, (googleButtonRef.current?.clientWidth || window.innerWidth - 64) || 384)),
+        onSuccess: () => { window.location.href = dest; },
+        onError: (err) => {
+          const msg = err?.message ?? '';
+          if (msg.includes('could not be verified') || msg.includes('not configured')) {
+            setError(msg);
+          } else if (msg.includes('popup') || msg.includes('closed')) {
+            setError('Sign-in popup was closed. Please try again.');
+          } else if (msg.includes('network') || msg.includes('Network')) {
+            setError('Network error during Google sign-in. Please check your connection.');
+          } else {
+            setError('Google sign-in failed. Please try again or use email/password below.');
+          }
+        },
+      });
+      if (rendered) {
+        setGoogleButtonReady(true);
+        setGoogleUnavailable(false);
+      }
+      return rendered;
+    };
+
+    if (renderButton()) return;
+    const retryTimer = window.setInterval(renderButton, 100);
+    const timeoutTimer = window.setTimeout(() => {
+      window.clearInterval(retryTimer);
+      if (!disposed && !googleButtonReady) setGoogleUnavailable(true);
+    }, 5000);
+
+    return () => {
+      disposed = true;
+      window.clearInterval(retryTimer);
+      window.clearTimeout(timeoutTimer);
+    };
+  }, [googleButtonReady, returnTo]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -30,49 +78,16 @@ function Login() {
       await auth.loginViaEmailPassword(email.trim().toLowerCase(), password);
       const dest = (returnTo && returnTo.startsWith('/')) ? returnTo : '/feed';
       window.location.href = dest;
-    } catch (err) {
+    } catch (err: any) {
       if (err?.code === 'email_not_verified') {
-        const dest = `/register?verify=${encodeURIComponent(email.trim().toLowerCase())}`;
-        window.location.href = dest;
+        window.location.href = `/register?verify=${encodeURIComponent(email.trim().toLowerCase())}`;
         return;
       }
-      // ADMIN_ONLY_MODE: 404 from backend → redirect to 404 page
       if (err?.status === 404 || err?.response?.status === 404) {
         window.location.href = '/404';
         return;
       }
       setError(err.error || err.message || t('auth.invalidCredentials'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogle = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      const g = (window as any).__googleSignIn;
-      if (!g) {
-        throw new Error("Google Sign-In is not ready. Please wait a moment and try again, or use email/password below.");
-      }
-      await g();
-      const dest = (returnTo && returnTo.startsWith('/')) ? returnTo : '/feed';
-      window.location.href = dest;
-    } catch (err: any) {
-      // Show a helpful message instead of silently failing
-      const serverMessage = err?.response?.data?.error || err?.error;
-      const msg = serverMessage || err?.message || "";
-      if (msg.includes("not available") || msg.includes("not ready")) {
-        setError(msg);
-      } else if (msg.includes("could not be verified") || msg.includes("not configured")) {
-        setError(msg);
-      } else if (msg.includes("popup") || msg.includes("closed")) {
-        setError("Sign-in popup was closed. Please try again.");
-      } else if (msg.includes("network") || msg.includes("Network")) {
-        setError("Network error during Google sign-in. Please check your connection.");
-      } else {
-        setError("Google sign-in failed. Please try again or use email/password below.");
-      }
     } finally {
       setLoading(false);
     }
@@ -92,13 +107,20 @@ function Login() {
         </>
       }
     >
-      <Button variant="outline" className="w-full h-12 text-sm font-medium mb-6" onClick={handleGoogle} disabled={loading}>
-        {loading ? (
-          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in with Google...</>
-        ) : (
-          <><GoogleIcon className="w-5 h-5 mr-2" />{t('auth.continueWithGoogle')}</>
-        )}
-      </Button>
+      {/* GIS-rendered button — same pattern as Register.tsx */}
+      <div
+        ref={googleButtonRef}
+        className="mb-2 flex min-h-11 w-full justify-center"
+        aria-label={t('auth.continueWithGoogle')}
+      />
+      {!googleButtonReady && !googleUnavailable && (
+        <p className="mb-4 text-center text-xs text-muted-foreground">Setting up Google Sign-In…</p>
+      )}
+      {googleUnavailable && (
+        <p className="mb-4 text-center text-xs text-muted-foreground">
+          Google Sign-In unavailable. Use email and password below.
+        </p>
+      )}
 
       <div className="relative mb-6">
         <div className="absolute inset-0 flex items-center">
@@ -125,8 +147,17 @@ function Login() {
           <Label htmlFor="email">{t('auth.email')}</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="email" type="email" autoComplete="email" placeholder="you@example.com"
-              value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 h-12" required />
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="pl-10 h-12"
+              required
+              maxLength={254}
+            />
           </div>
         </div>
         <div className="space-y-2">
@@ -138,8 +169,17 @@ function Login() {
           </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="password" type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="••••••••"
-              value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10 h-12" required />
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pl-10 pr-10 h-12"
+              required
+              maxLength={128}
+            />
             <button
               type="button"
               onClick={() => setShowPassword(v => !v)}
@@ -151,9 +191,9 @@ function Login() {
           </div>
         </div>
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
-          {loading ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('auth.loggingIn')}</>
-          ) : t('auth.login')}
+          {loading
+            ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('auth.loggingIn')}</>
+            : t('auth.login')}
         </Button>
       </form>
     </AuthLayout>

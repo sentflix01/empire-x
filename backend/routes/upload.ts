@@ -2,7 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import logger from '../lib/logger';
 import { requireAuth } from '../middleware/auth';
-import upload, { uploadFile, isCloudStorageConfigured } from '../middleware/upload';
+import upload, { uploadFile, isCloudStorageConfigured, validateFileBytes } from '../middleware/upload';
 
 const router = Router();
 
@@ -10,6 +10,32 @@ router.post('/', requireAuth, upload.single('file'), async (req: Request, res: R
   try {
     const file = req.file;
     if (!file) { res.status(400).json({ error: 'No file uploaded. Use multipart/form-data with field name "file".' }); return; }
+
+    // ── Magic-byte validation (SEC-005) ───────────────────────────────────────
+    // For cloud storage (memoryStorage) the buffer is always available.
+    // For local disk storage, read the first 12 bytes for the check.
+    let bufferForCheck: Buffer | null = null;
+    if (file.buffer) {
+      bufferForCheck = file.buffer;
+    } else if (file.path) {
+      try {
+        const fs = require('fs') as typeof import('fs');
+        const fd = fs.openSync(file.path, 'r');
+        const head = Buffer.alloc(12);
+        fs.readSync(fd, head, 0, 12, 0);
+        fs.closeSync(fd);
+        bufferForCheck = head;
+      } catch { /* non-fatal — skip magic-byte check for disk files */ }
+    }
+
+    if (bufferForCheck) {
+      const magicError = await validateFileBytes(bufferForCheck, file.mimetype);
+      if (magicError) {
+        res.status(415).json({ error: magicError, code: 'MAGIC_BYTE_MISMATCH' });
+        return;
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     let url: string;
     if (isCloudStorageConfigured() && file.buffer) {

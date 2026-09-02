@@ -15,7 +15,8 @@ import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid,
   LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, Legend
 } from "recharts";
-import moment from "moment";
+import { fromNow, fmtISO } from "@/lib/date";
+import { subDays, isSameDay, format as dfFormat } from "date-fns";
 import { useTranslation } from 'react-i18next';
 import BusinessSwitcher from "@/components/analytics/BusinessSwitcher";
 import StatCard from "@/components/analytics/StatCard";
@@ -117,10 +118,10 @@ function BusinessAnalytics() {
   // Sales by day (last 7 days)
   const salesData = [];
   for (let i = 6; i >= 0; i--) {
-    const day = moment().subtract(i, "days");
-    const dayOrders = filteredOrders.filter(o => moment(o.created_at).isSame(day, "day"));
+    const day = subDays(new Date(), i);
+    const dayOrders = filteredOrders.filter(o => isSameDay(new Date(o.created_at), day));
     salesData.push({
-      day: day.format("ddd"),
+      day: dfFormat(day, 'EEE'),
       sales: dayOrders.reduce((sum, o) => sum + (o.total_price || 0), 0),
       orders: dayOrders.length,
     });
@@ -129,14 +130,14 @@ function BusinessAnalytics() {
   // Engagement trend (last 7 days) — views + likes + orders by day
   const engagementData = [];
   for (let i = 6; i >= 0; i--) {
-    const day = moment().subtract(i, "days");
+    const day = subDays(new Date(), i);
     const dayLikes = likes.filter(l => {
       if (bizProductIds && !bizProductIds.includes(l.target_id)) return false;
-      return moment(l.created_at).isSame(day, "day");
+      return isSameDay(new Date(l.created_at), day);
     }).length;
-    const dayOrders = filteredOrders.filter(o => moment(o.created_at).isSame(day, "day")).length;
+    const dayOrders = filteredOrders.filter(o => isSameDay(new Date(o.created_at), day)).length;
     engagementData.push({
-      day: day.format("ddd"),
+      day: dfFormat(day, 'EEE'),
       engagement: dayLikes + dayOrders,
       likes: dayLikes,
       orders: dayOrders,
@@ -188,7 +189,7 @@ function BusinessAnalytics() {
                   bizName, stats: { totalSales, totalOrders: filteredOrders.length, totalViews, totalLikes, totalEngagement },
                   salesData, engagementData, products, likes, orders: filteredOrders, conversionRate
                 });
-                downloadCSV(`${bizName.replace(/\s+/g, "_")}_analytics_${moment().format("YYYYMMDD")}.csv`, report);
+                downloadCSV(`${bizName.replace(/\s+/g, "_")}_analytics_${dfFormat(new Date(), "yyyyMMdd")}.csv`, report);
               }}
             >
               <Download className="w-4 h-4 mr-1" /> Export CSV
@@ -391,7 +392,7 @@ function BusinessAnalytics() {
                 <div key={o.id} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{o.product_title}</p>
-                    <p className="text-xs text-muted-foreground">{o.buyer_name} • {moment(o.created_at).fromNow()}</p>
+                    <p className="text-xs text-muted-foreground">{o.buyer_name} • {fromNow(o.created_at)}</p>
                   </div>
                   <div className="text-right ml-2 shrink-0">
                     <p className="text-sm font-bold text-amber-600">{(o.total_price || 0).toLocaleString()}</p>

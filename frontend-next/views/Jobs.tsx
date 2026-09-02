@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import moment from "moment";
+import { fromNow } from "@/lib/date";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -102,7 +102,7 @@ function Jobs() {
                   {job.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location}</span>}
                   {job.is_remote && <span className="flex items-center gap-1"><span>🌐</span> Remote</span>}
                   {job.salary_min && <span className="flex items-center gap-1 text-amber-600 font-semibold"><DollarSign className="w-3 h-3" />{job.salary_min.toLocaleString()}{job.salary_max ? `–${job.salary_max.toLocaleString()}` : "+"} {job.currency}</span>}
-                  {job.deadline && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />Deadline: {moment(job.deadline).fromNow()}</span>}
+                  {job.deadline && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />Deadline: {fromNow(job.deadline)}</span>}
                 </div>
                 {user && job.poster_id !== user.id && (
                   <Button size="sm" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600"

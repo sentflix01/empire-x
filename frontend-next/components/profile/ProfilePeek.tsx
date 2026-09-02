@@ -17,7 +17,7 @@ import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
 
 import { motion, AnimatePresence } from "framer-motion";
-import moment from "moment";
+import { fromNow } from "@/lib/date";
 import {
   Minimize2, X, UserIcon, Store, MapPin,
 } from "lucide-react";
@@ -168,7 +168,7 @@ function PersonalProfileEmbed({ profile, businesses, currentUser, isOwner }: any
                 )}
                 <p className="text-sm leading-relaxed">{p.content}</p>
                 <p className="text-xs text-muted-foreground mt-2">
-                  ❤️ {p.like_count ?? 0} · 💬 {p.comment_count ?? 0} · {moment(p.created_at).fromNow()}
+                  ❤️ {p.like_count ?? 0} · 💬 {p.comment_count ?? 0} · {fromNow(p.created_at)}
                 </p>
               </div>
             ))}

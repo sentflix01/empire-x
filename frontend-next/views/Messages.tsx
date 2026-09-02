@@ -8,7 +8,8 @@ import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 import { useRealMode } from "@/lib/RealModeContext";
 import { Search, Users, Radio, User as UserIcon, MessageCircle, Check, CheckCheck, Edit } from "lucide-react";
-import moment from "moment";
+import { fmtTime, fmtISO } from "@/lib/date";
+import { parseISO, isToday, isYesterday, isAfter, subDays, format as dfFormat } from "date-fns";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
 import { formatLastSeen, isUserOnline } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
@@ -175,12 +176,11 @@ function Messages() {
 
   const formatTime = (ts: string) => {
     if (!ts) return '';
-    const d = moment(ts);
-    const now = moment();
-    if (d.isSame(now, 'day')) return d.format('HH:mm');
-    if (d.isSame(now.clone().subtract(1, 'day'), 'day')) return 'Yesterday';
-    if (d.isAfter(now.clone().subtract(7, 'days'))) return d.format('ddd');
-    return d.format('DD/MM/YY');
+    const d = parseISO(ts);
+    if (isToday(d)) return fmtTime(d);
+    if (isYesterday(d)) return 'Yesterday';
+    if (isAfter(d, subDays(new Date(), 7))) return dfFormat(d, 'EEE');
+    return dfFormat(d, 'dd/MM/yy');
   };
 
   // ── Filter ────────────────────────────────────────────────────────────────

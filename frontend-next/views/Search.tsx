@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/use-debounce";
 import { toast } from "sonner";
 import { DemoBadge } from "@/components/profile/DemoBadge";
-import moment from "moment";
+import { fromNow, fmtDate } from "@/lib/date";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -431,7 +431,7 @@ function Search() {
                     {p.author_avatar ? <Image src={p.author_avatar} alt={p.author_name || ''} width={24} height={24} className="w-full h-full object-cover rounded-full" unoptimized /> : p.author_name?.charAt(0)}
                   </div>
                   <p className="text-xs font-medium">{p.author_name}</p>
-                  <p className="text-[10px] text-muted-foreground ml-auto">{moment(p.created_at).fromNow()}</p>
+                  <p className="text-[10px] text-muted-foreground ml-auto">{fromNow(p.created_at)}</p>
                 </div>
                 <p className="text-sm line-clamp-2">{p.content}</p>
                 <p className="text-xs text-muted-foreground mt-1">❤️ {p.like_count} · 💬 {p.comment_count}</p>
@@ -483,7 +483,7 @@ function Search() {
                     <DistanceBadge km={e.distance_km} />
                   </div>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <p className="text-xs text-muted-foreground">{moment(e.start_at).format("MMM D, YYYY")}</p>
+                    <p className="text-xs text-muted-foreground">{fmtDate(e.start_at)}</p>
                     {e.is_online ? <Badge variant="outline" className="text-[10px] py-0 text-blue-600">{t('search.online')}</Badge>
                       : e.location && <p className="text-xs text-muted-foreground flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{e.location}</p>}
                   </div>

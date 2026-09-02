@@ -30,8 +30,9 @@ const needsSsl =
   process.env.NODE_ENV === 'production' ||
   !!(connectionString && /neon\.tech|supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
 
-// Default to false for Supabase/self-signed certs; only strict if explicitly requested
-const rejectUnauthorized = process.env.DB_TLS_REJECT_UNAUTHORIZED === 'true' ? true : false;
+// Default to true for proper certificate validation on cloud databases (Supabase, Neon).
+// Override with DB_TLS_REJECT_UNAUTHORIZED=false ONLY for self-signed certs in dev/staging.
+const rejectUnauthorized = process.env.DB_TLS_REJECT_UNAUTHORIZED === 'false' ? false : true;
 
 const pool = new Pool({
   connectionString,
