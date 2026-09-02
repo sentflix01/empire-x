@@ -35,14 +35,10 @@ const LOCAL_DIR = path.join('/app', 'backups');
 
 function getBackupConnectionString() {
   // Allow explicit override for backup (e.g., use pooler on Render to avoid IPv6)
-  if (process.env.BACKUP_DATABASE_URL) {
-    return process.env.BACKUP_DATABASE_URL;
-  }
-  const raw = process.env.DATABASE_URL;
-  if (!raw) return raw;
-
-  // pg_dump does NOT support pgbouncer=true parameter — strip it for all DBs
-  return raw.replace(/[?&]pgbouncer=true(?=&|$)/, '').replace(/[?&]$/, '');
+  const raw = process.env.BACKUP_DATABASE_URL || process.env.DATABASE_URL;
+  // pg_dump rejects the driver's `pgbouncer=true` parameter and cannot dump
+  // through the Supabase transaction pooler. Always use the sanitized URL.
+  return stripPgbouncerParam(raw);
 }
 
 function stripPgbouncerParam(raw) {
