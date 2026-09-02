@@ -60,8 +60,11 @@ function Login() {
       window.location.href = dest;
     } catch (err: any) {
       // Show a helpful message instead of silently failing
-      const msg = err?.message || "";
+      const serverMessage = err?.response?.data?.error || err?.error;
+      const msg = serverMessage || err?.message || "";
       if (msg.includes("not available") || msg.includes("not ready")) {
+        setError(msg);
+      } else if (msg.includes("could not be verified") || msg.includes("not configured")) {
         setError(msg);
       } else if (msg.includes("popup") || msg.includes("closed")) {
         setError("Sign-in popup was closed. Please try again.");
