@@ -136,6 +136,19 @@ requests a Render deployment.
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | For push | Same as backend VAPID_PUBLIC_KEY |
 | `NEXT_PUBLIC_SENTRY_DSN` | Recommended | From Sentry project |
 
+#### Vercel Git previews and private repositories
+
+The Vercel Git integration may block a preview when the commit author does not
+have contributor access to the Vercel project. On the Hobby plan, private
+repositories do not support collaborator access. This is a Vercel account
+policy, not a Next.js build failure.
+
+For a private repository, either upgrade/add the author to the Vercel project,
+or disable/disconnect the Vercel Git integration if GitHub Actions is the
+chosen deploy path. The production workflow uses the project owner's
+`VERCEL_TOKEN`, so that explicit CLI deployment is authenticated as the token
+owner rather than as the Git commit author.
+
 ---
 
 ## GitHub Actions Secrets
@@ -144,11 +157,10 @@ The repository uses GitHub Actions to deploy the backend and frontend. Set these
 
 | Secret | Required | Description |
 |---|---|---|
-| `RAILWAY_TOKEN` | Yes | Railway CLI token for backend deployment |
+| `RENDER_API_KEY` | Optional | Render API key for the explicit backend deploy; without it, Render's Git integration deploys the commit |
 | `VERCEL_TOKEN` | Yes | Vercel CLI token for frontend deployment |
 | `BACKEND_URL` | Yes | Public backend URL used by the post-deploy health check |
-| `SOURCE_DATABASE_URL` | Optional | Local or staging DB URL for Neon migration workflow |
-| `NEON_DATABASE_URL` | Optional | Neon connection string for migration workflow |
+| `SUPABASE_DATABASE_URL` | Yes | Production database URL used by the blocking migration job |
 
 > If your source database is only accessible from your laptop, use `scripts/export_and_restore_to_neon.ps1` instead of the GitHub Actions migration workflow.
 >
