@@ -29,8 +29,8 @@
 | "Deploy waits for CI" | ✅ **Now gated**: deploy.yml triggers only via `workflow_run` after a successful CI run on main, for the exact same commit (`gate` job). A red build cannot reach production. |
 | "Health-check failure alerts" | ⚠️ Health check sends a Telegram alert when secrets are set; does **NOT** fail the workflow (`exit 0` regardless). Rollback is manual per §Manual rollback. Automatic rollback is future work. |
 | "Staging environment" | ❌ Does not exist. `main` is the only environment. |
-| Migrations on deploy | ✅ Real: `deploy.yml` runs `db/migrate-all.js` against Neon before services restart. |
-| Vercel build gate | ✅ Real: frontend is built in CI (`vercel build --prod`) and upload retries 3×; a failed build fails the workflow. |
+| Migrations on deploy | ✅ Real: `deploy.yml` runs `db/migrate-all.js` against Supabase before services restart. |
+| Vercel build gate | ✅ Real: frontend is built in CI; production deploys are submitted with a bounded two-attempt prebuilt upload and Vercel readiness is checked asynchronously. |
 
 Optional deploy secrets to configure: `BACKEND_URL`, `FRONTEND_URL`, `TELEGRAM_BOT_TOKEN`,
 `TELEGRAM_CHAT_ID` (health checks skip gracefully when unset, but the backend URL one is
@@ -56,10 +56,11 @@ Nodbusiness CI (ci.yml)  ── blocking jobs:
           ▼
 workflow_run event → Nodbusiness Deploy (deploy.yml)
   ├── gate: CI conclusion == success AND commit matches
-  ├── migrate: node db/migrate-all.js → Neon
-  ├── deploy-backend: railway up (skips if no token; git-integration deploys anyway)
-  ├── deploy-frontend: vercel pull → vercel build --prod → deploy (3 retries)
-  └── healthcheck: /health + frontend (BLOCKING; Telegram alert on failure)
+  ├── migrate: node db/migrate-all.js → Supabase
+  ├── deploy-backend: render deploy (uses Git integration if no valid API key)
+  ├── detect deploy scope: skips Vercel when frontend files did not change
+  ├── deploy-frontend: vercel pull → vercel build --prod → async prebuilt deploy
+  └── healthcheck: /health + frontend (informational; Telegram alert on failure)
 ```
 
 ---
@@ -68,12 +69,12 @@ workflow_run event → Nodbusiness Deploy (deploy.yml)
 
 | Job | What it does | Failure behavior |
 |-----|--------------|------------------|
-| `migrate` | `npm ci` then `node db/migrate-all.js` with `NEON_DATABASE_URL`. Migrations are idempotent and tracked in `schema_migrations`. | Fails the workflow; backend/frontend jobs still run (they are parallel, no `needs`). |
-| `deploy-backend` | Explicit `railway up --service halehame-backend` when `RAILWAY_TOKEN` is set+valid. Otherwise skipped — Railway's git integration deploys the same commit within ~1–2 min anyway. | Skips gracefully on missing/expired token. |
-| `deploy-frontend` | `vercel pull` → `vercel build --prod` → `vercel deploy --prebuilt --archive=tgz` with 3 retry loop. | Fails the workflow after 3 attempts. |
-| `healthcheck` | Waits 30 s, polls `$BACKEND_URL/health` up to 6×15 s, checks frontend URL (default `https://halehame-eosin.vercel.app`). | **Never fails the workflow** (`exit 0` regardless). Treat output as informational only. |
+| `migrate` | `npm ci` then `node db/migrate-all.js` with `SUPABASE_DATABASE_URL`. Migrations are idempotent and tracked in `schema_migrations`. | **Hard gate:** a migration failure skips both deploy jobs. |
+| `deploy-backend` | Explicit `render deploy` when a valid `RENDER_API_KEY` is configured. Otherwise the Render Git integration deploys the same commit. | Skips the explicit CLI path gracefully on missing/invalid token. |
+| `deploy-frontend` | Runs only when `frontend-next/**` changed. Uses `vercel pull` → `vercel build --prod` → `vercel deploy --prebuilt --archive=tgz --no-wait`, with two short submission retries and a 15-minute job limit. | Fails after two unsuccessful submissions; Vercel finishes readiness asynchronously and the health-check job verifies availability. |
+| `healthcheck` | Runs after every successful backend deployment; waits 15 s, then polls `$BACKEND_URL/health` up to 3×15 s. It checks the frontend only when it was redeployed. | **Never fails the workflow** (`exit 0` regardless), but sends Telegram when an explicit health result is `fail`. |
 
-Concurrency: one deploy at a time (`concurrency: deploy-production`, queue instead of cancel).
+Concurrency: only the newest production deploy is retained (`concurrency: deploy-production`, obsolete queued or running deploys are cancelled).
 Environments: all jobs target the GitHub `production` environment for secrets scoping.
 
 ### Manual rollback
