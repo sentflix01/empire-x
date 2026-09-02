@@ -20,13 +20,14 @@ const PUBLIC_PATHS = new Set([
   '/forgot-password',
   '/reset-password',
   '/choose-account',
+  '/service-agreement',
   '/not-found',
   '/sitemap',
   '/robots',
   '/onboarding',
 ]);
 
-function isPublicPath(pathname: string): boolean {
+export function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.has(pathname)) return true;
   if (pathname.startsWith('/p/')) return true;
   if (pathname.startsWith('/products/')) return true;

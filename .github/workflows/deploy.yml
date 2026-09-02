@@ -43,16 +43,14 @@ jobs:
           echo "proceed=true" >> $GITHUB_OUTPUT
 
   # ── Run DB Migrations on Supabase ───────────────────────────────────────────
-  # Non-blocking: if the database is unreachable or quota-limited, deploy proceeds
-  # anyway. The app works fine without new migrations if the schema is current.
-  # Migrations are idempotent — they'll catch up when the database recovers.
+  # The application must never deploy against an older schema. The migration
+  # runner is idempotent, so an already-current database exits cleanly.
   migrate:
     name: Run DB Migrations → Supabase
     needs: gate
     if: needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     environment: production
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v7
@@ -68,24 +66,10 @@ jobs:
         working-directory: backend
 
       - name: Run migrations
-        id: migrate
-        continue-on-error: true
-        run: node db/migrate-all.js --if-pending
+        run: node db/migrate-all.js
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
-
-      - name: Migration status
-        if: always()
-        run: |
-          if [ "${{ steps.migrate.outcome }}" = "success" ]; then
-            echo "✅ Migrations applied successfully."
-          else
-            echo "⚠️  Migration step failed or was skipped."
-            echo "    This is non-blocking — the deploy will continue."
-            echo "    The app works fine if the schema is already current."
-            echo "    Migrations will catch up when the database recovers."
-          fi
 
   # ── Deploy Backend to Render ─────────────────────────────────────────────────
   # Render watches the connected GitHub repo for auto-deploys on push to main.

@@ -80,6 +80,15 @@ Public production requirements are stricter: use R2 for uploads, managed Redis i
 
 ### Backend (Render)
 
+Configure the Render service health-check path as `/health`. Do not use `/`:
+the backend is an API and intentionally has no root-page route. Render must
+receive a `200` response from `/health` before it accepts a deployment.
+
+Database migrations are a blocking deployment gate. Set the
+`SUPABASE_DATABASE_URL` GitHub Actions secret to the production database URL;
+the deployment workflow applies all pending idempotent migrations before it
+requests a Render deployment.
+
 | Variable | Required | Description |
 |---|---|---|
 | `DATABASE_URL` | **Yes (enforced)** | PostgreSQL connection string from Supabase or Neon — app hard-exits without it |

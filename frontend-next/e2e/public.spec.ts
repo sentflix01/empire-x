@@ -28,6 +28,6 @@ test.describe('Public pages', () => {
 
   test('protected routes redirect anonymous visitors to login with a return path', async ({ page }) => {
     await page.goto('/wallet', { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/\/login\?from=%2Fwallet/);
+    await expect(page).toHaveURL(/\/login\?return=%2Fwallet/);
   });
 });
