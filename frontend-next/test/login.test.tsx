@@ -81,4 +81,17 @@ describe('Login form', () => {
       expect(screen.getByText('Invalid email or password')).toBeTruthy();
     });
   });
+
+  it('shows the safe Google verification error returned by the backend', async () => {
+    (window as any).__googleSignIn = vi.fn().mockRejectedValue({
+      error: 'Google sign-in could not be verified. Ensure the frontend and backend use the same Google OAuth client ID.',
+    });
+
+    render(<Login />);
+    fireEvent.click(screen.getByRole('button', { name: /auth\.continueWithGoogle/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/frontend and backend use the same Google OAuth client ID/i)).toBeTruthy();
+    });
+  });
 });

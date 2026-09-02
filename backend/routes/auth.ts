@@ -445,16 +445,29 @@ router.post('/google', async (req: Request, res: Response) => {
     return;
   }
 
+  let payload;
   try {
     const ticket = await googleClient.verifyIdToken({
       idToken: id_token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
-    const payload = ticket.getPayload();
-    if (!payload) {
-      res.status(401).json({ error: 'Google authentication failed' });
-      return;
-    }
+    payload = ticket.getPayload();
+  } catch (err) {
+    // Do not expose the token or detailed verifier response, but distinguish
+    // this common deployment misconfiguration from an application failure.
+    logger.warn({ err: (err as Error).message }, 'Google ID token verification failed');
+    res.status(401).json({
+      error: 'Google sign-in could not be verified. Ensure the frontend and backend use the same Google OAuth client ID.',
+    });
+    return;
+  }
+
+  if (!payload) {
+    res.status(401).json({ error: 'Google sign-in could not be verified.' });
+    return;
+  }
+
+  try {
     const { sub: googleId, email, name } = payload;
     if (!email) {
       res.status(401).json({ error: 'Google account has no email' });
@@ -512,7 +525,7 @@ router.post('/google', async (req: Request, res: Response) => {
     res.json({ access_token: token });
   } catch (err) {
     logger.error({ err }, 'Google auth error');
-    res.status(401).json({ error: 'Google authentication failed' });
+    apiError.serverError(res, 'Google sign-in is temporarily unavailable. Please try again.');
   }
 });
 

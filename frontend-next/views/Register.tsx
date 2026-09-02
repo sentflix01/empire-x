@@ -190,6 +190,9 @@ function Register() {
       }
     >
       <div ref={googleButtonRef} className="mb-6 flex min-h-11 w-full justify-center" aria-label={t('auth.continueWithGoogle')} />
+      <p className="-mt-4 mb-6 text-center text-xs text-muted-foreground">
+        Google may show the account currently signed in to this browser. You can choose another account in the Google prompt.
+      </p>
       {!googleButtonReady && !googleUnavailable && (
         <p className="mb-6 text-center text-xs text-muted-foreground">Setting up Google Sign-In…</p>
       )}

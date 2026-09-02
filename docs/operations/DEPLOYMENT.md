@@ -136,6 +136,12 @@ requests a Render deployment.
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | For push | Same as backend VAPID_PUBLIC_KEY |
 | `NEXT_PUBLIC_SENTRY_DSN` | Recommended | From Sentry project |
 
+`NEXT_PUBLIC_GOOGLE_CLIENT_ID` in Vercel and `GOOGLE_CLIENT_ID` in Render must
+contain the **same Google OAuth Web client ID**. In Google Cloud Console, add
+`https://nodbusiness.vercel.app` (and each deliberate preview/custom domain) to
+that client’s Authorized JavaScript origins. Do not put a Google client secret
+in Vercel or prefix it with `NEXT_PUBLIC_`.
+
 #### Vercel Git previews and private repositories
 
 The Vercel Git integration may block a preview when the commit author does not
