@@ -29,6 +29,13 @@ declare global {
 }
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+let hasInitializedGoogleIdentity = false;
+
+// GIS has one global credential callback. Keep that callback stable for the
+// lifetime of the page and switch the consumer instead of calling
+// google.accounts.id.initialize() again. Re-initialising is noisy in the
+// console and, more importantly, causes GIS to discard the earlier callback.
+let credentialHandler: ((response: { credential?: string }) => void) | null = null;
 
 /**
  * Initialise Google Identity Services.
@@ -39,12 +46,15 @@ export function initGoogleSignIn() {
     console.warn('NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set. Google Sign-In will not work.');
     return;
   }
-  if (!window.google?.accounts?.id) return; // GSI not loaded yet — safe to ignore
+  if (!window.google?.accounts?.id || hasInitializedGoogleIdentity) return;
 
   window.google.accounts.id.initialize({
     client_id: GOOGLE_CLIENT_ID,
-    callback: handleCredentialResponse,
+    callback: (response: { credential?: string }) => {
+      credentialHandler?.(response);
+    },
   });
+  hasInitializedGoogleIdentity = true;
 }
 
 let _resolve = null;
@@ -80,21 +90,18 @@ export function renderGoogleSignInButton(
 ) {
   if (!GOOGLE_CLIENT_ID || !window.google?.accounts?.id || !element) return false;
 
-  window.google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: async (response: { credential?: string }) => {
-      if (!response.credential) {
-        options.onError(new Error('Google did not return a sign-in credential.'));
-        return;
-      }
-      try {
-        const result = await sendIdTokenToBackend(response.credential);
-        options.onSuccess(result);
-      } catch (error) {
-        options.onError(error instanceof Error ? error : new Error('Google Sign-In failed.'));
-      }
-    },
-  });
+  credentialHandler = async (response) => {
+    if (!response.credential) {
+      options.onError(new Error('Google did not return a sign-in credential.'));
+      return;
+    }
+    try {
+      const result = await sendIdTokenToBackend(response.credential);
+      options.onSuccess(result);
+    } catch (error) {
+      options.onError(error instanceof Error ? error : new Error('Google Sign-In failed.'));
+    }
+  };
 
   element.replaceChildren();
   window.google.accounts.id.renderButton(element, {
@@ -119,6 +126,7 @@ export function signInWithGoogle() {
     }
     _resolve = resolve;
     _reject = reject;
+    credentialHandler = handleCredentialResponse;
     window.google.accounts.id.prompt((notification) => {
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
         // Fallback: open the popup directly
@@ -131,5 +139,4 @@ export function signInWithGoogle() {
     });
   });
 }
-
 
