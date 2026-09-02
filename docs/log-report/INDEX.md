@@ -5,6 +5,9 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-03 | Maintenance | Merge pull request #23 from sentflix01/fix/vercel-deploy-latency | [f19a4a672](2026-09-03-f19a4a672-merge-pull-request-23-from-sentflix01-fix-vercel.md) |
+| 2026-09-02 | Bugfix | fix: sanitize backup database URLs | [7a529f26a](2026-09-02-7a529f26a-sanitize-backup-database-urls.md) |
+| 2026-09-02 | Bugfix | fix: clarify Google sign-in failures | [cabc43284](2026-09-02-cabc43284-clarify-google-sign-in-failures.md) |
 | 2026-09-02 | Maintenance | Merge pull request #22 from sentflix01/fix/vercel-deploy-latency | [dccfe44f3](2026-09-02-dccfe44f3-merge-pull-request-22-from-sentflix01-fix-vercel.md) |
 | 2026-09-02 | Bugfix | fix: bound Vercel deployment latency | [bced354ae](2026-09-02-bced354ae-bound-vercel-deployment-latency.md) |
 | 2026-09-02 | Maintenance | Merge pull request #21 from sentflix01/fix/google-gis-single-initialization | [9da838d4f](2026-09-02-9da838d4f-merge-pull-request-21-from-sentflix01-fix-google.md) |

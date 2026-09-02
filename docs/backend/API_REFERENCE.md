@@ -107,13 +107,13 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:285 |
 | `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:325 |
 | `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:435 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:521 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:555 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:590 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:652 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:704 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:749 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:768 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:534 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:568 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:603 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:665 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:717 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:762 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:781 |
 
 ## businessApiKeys — Business API key management
 
