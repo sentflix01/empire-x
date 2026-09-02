@@ -5,6 +5,10 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-02 | Maintenance | Merge pull request #21 from sentflix01/fix/google-gis-single-initialization | [9da838d4f](2026-09-02-9da838d4f-merge-pull-request-21-from-sentflix01-fix-google.md) |
+| 2026-09-02 | Maintenance | Merge branch 'main' into fix/google-gis-single-initialization | [f1b441d23](2026-09-02-f1b441d23-merge-branch-main-into-fix-google-gis-single-ini.md) |
+| 2026-09-02 | Bugfix | fix: prevent legal page redirect loop | [67e6c5f41](2026-09-02-67e6c5f41-prevent-legal-page-redirect-loop.md) |
+| 2026-09-02 | Bugfix | fix: block deploys when migrations fail | [c5f65afd8](2026-09-02-c5f65afd8-block-deploys-when-migrations-fail.md) |
 | 2026-09-02 | Maintenance | Merge pull request #20 from sentflix01/fix/google-gis-single-initialization | [e2f70f24c](2026-09-02-e2f70f24c-merge-pull-request-20-from-sentflix01-fix-google.md) |
 | 2026-09-02 | Bugfix | fix: prevent duplicate Google GIS initialization | [8e1f73df6](2026-09-02-8e1f73df6-prevent-duplicate-google-gis-initialization.md) |
 | 2026-09-02 | Bugfix | fix: Google Sign-In init guard + COOP relaxation for OAuth popup | [58917ab40](2026-09-02-58917ab40-google-sign-in-init-guard-coop-relaxation-for-oa.md) |
