@@ -114,6 +114,14 @@ function checkEnv(): void {
     warnings.push('Stripe (STRIPE_SECRET_KEY) — payments will not work');
   }
   if (!process.env.GOOGLE_CLIENT_ID) {
+    if (process.env.NODE_ENV === 'production') {
+      // Hard error in production: Google Sign-In will silently return 503 for
+      // every login attempt without this. Fail loudly at startup instead.
+      logger.error('\n❌  GOOGLE_CLIENT_ID is not set in production.');
+      logger.error('   Google Sign-In will not work. Set it in your Render environment variables.');
+      logger.error('   Google Cloud Console → APIs & Credentials → OAuth 2.0 Client IDs → copy the Web client ID.\n');
+      process.exit(1);
+    }
     warnings.push('Google OAuth (GOOGLE_CLIENT_ID) — Google sign-in disabled');
   }
   // OTP_SALT is strongly recommended in production. Without it, stored OTP

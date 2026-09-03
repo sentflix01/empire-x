@@ -93,7 +93,17 @@ jobs:
         working-directory: backend
 
       - name: Run migrations
-        run: node db/migrate-all.js
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "⚠️  SUPABASE_DATABASE_URL secret is not set in the 'production' GitHub environment."
+            echo "    Migrations cannot run without a database URL."
+            echo "    → Go to: GitHub repo → Settings → Environments → production → Add secret"
+            echo "    → Secret name: SUPABASE_DATABASE_URL"
+            echo "    → Value: your Supabase connection string (Settings → Database → URI)"
+            echo "    Re-run this workflow after adding the secret."
+            exit 1
+          fi
+          node db/migrate-all.js
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}

@@ -491,12 +491,38 @@ router.post('/google', async (req: Request, res: Response) => {
     });
     payload = ticket.getPayload();
   } catch (err) {
-    // Do not expose the token or detailed verifier response, but distinguish
-    // this common deployment misconfiguration from an application failure.
-    logger.warn({ err: (err as Error).message }, 'Google ID token verification failed');
-    res.status(401).json({
-      error: 'Google sign-in could not be verified. Ensure the frontend and backend use the same Google OAuth client ID.',
-    });
+    const msg = (err as Error).message ?? '';
+    // Classify the error so the frontend can show an actionable message:
+    //   - Audience mismatch / invalid token → 401 (misconfiguration, client can retry after fix)
+    //   - Network failure reaching Google → 503 (transient, client should retry)
+    //   - Anything else → 401 (default safe response)
+    const isNetworkError =
+      msg.includes('ENOTFOUND') ||
+      msg.includes('ECONNREFUSED') ||
+      msg.includes('ETIMEDOUT') ||
+      msg.includes('network') ||
+      msg.includes('fetch');
+    const isAudienceMismatch =
+      msg.includes('audience') ||
+      msg.includes('client_id') ||
+      msg.includes('aud');
+
+    if (isNetworkError) {
+      logger.error({ err: msg }, 'Google ID token verification failed — network error reaching Google');
+      res.status(503).json({
+        error: 'Google sign-in is temporarily unavailable. Please try again in a moment.',
+      });
+    } else if (isAudienceMismatch) {
+      logger.error({ err: msg }, 'Google ID token audience mismatch — NEXT_PUBLIC_GOOGLE_CLIENT_ID and GOOGLE_CLIENT_ID are different');
+      res.status(401).json({
+        error: 'Google sign-in could not be verified. Ensure the frontend and backend use the same Google OAuth client ID.',
+      });
+    } else {
+      logger.warn({ err: msg }, 'Google ID token verification failed');
+      res.status(401).json({
+        error: 'Google sign-in could not be verified. Ensure the frontend and backend use the same Google OAuth client ID.',
+      });
+    }
     return;
   }
 
@@ -562,7 +588,7 @@ router.post('/google', async (req: Request, res: Response) => {
     const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
-    logger.error({ err }, 'Google auth error');
+    logger.error({ err }, 'Google auth error — DB or unexpected failure');
     apiError.serverError(res, 'Google sign-in is temporarily unavailable. Please try again.');
   }
 });
