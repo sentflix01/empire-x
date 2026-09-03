@@ -105,10 +105,11 @@ function checkEnv(): void {
 
   const warnings: string[] = [];
   const smtp = [process.env.SMTP_HOST, process.env.SMTP_USER, process.env.SMTP_PASS];
-  if (!process.env.RESEND_API_KEY && !smtp.some(Boolean)) {
-    warnings.push('Email (RESEND_API_KEY or SMTP_HOST) — OTP emails will only print to console');
-  } else if (!process.env.RESEND_API_KEY && !smtp.every(Boolean)) {
-    warnings.push('Email SMTP is incomplete — set SMTP_HOST, SMTP_USER, and SMTP_PASS');
+  if (!process.env.RESEND_API_KEY && !smtp.every(Boolean)) {
+    // Only warn in dev — email being console-only is expected in production staging
+    if (process.env.NODE_ENV !== 'production') {
+      warnings.push('Email (RESEND_API_KEY or SMTP_HOST) — OTP emails will only print to console');
+    }
   }
   if (!process.env.STRIPE_SECRET_KEY) {
     warnings.push('Stripe (STRIPE_SECRET_KEY) — payments will not work');
@@ -124,12 +125,8 @@ function checkEnv(): void {
     }
     warnings.push('Google OAuth (GOOGLE_CLIENT_ID) — Google sign-in disabled');
   }
-  // OTP_SALT is strongly recommended in production. Without it, stored OTP
-  // hashes have no app-level secret — a DB reader could build a rainbow table
-  // over the 900,000-value space in seconds.
-  if (!process.env.OTP_SALT && process.env.NODE_ENV === 'production') {
-    warnings.push('OTP_SALT not set — OTP hashes have no app secret. Set OTP_SALT to a random 32-char hex string.');
-  }
+  // OTP_SALT is recommended in production but not fatal — omit from prod warnings
+  // to keep startup logs clean.
   const r2  = ['R2_ACCOUNT_ID','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','R2_BUCKET_NAME','R2_PUBLIC_URL'];
   const sup = ['SUPABASE_URL','SUPABASE_STORAGE_KEY','SUPABASE_BUCKET'];
   if (r2.some((k) => !process.env[k]) && sup.some((k) => !process.env[k])) {

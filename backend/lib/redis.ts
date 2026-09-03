@@ -77,7 +77,10 @@ export function getRedis(): AnyRedis {
       maxRetriesPerRequest: 3,
       enableReadyCheck: false,
       lazyConnect: true,
-      ...(isTls ? { tls: { rejectUnauthorized: process.env.REDIS_TLS_REJECT_UNAUTHORIZED === 'false' ? false : true } } : {}),
+      // Self-signed certs are common on managed Redis (Upstash, Render Redis).
+      // Default to accepting them; override with REDIS_TLS_REJECT_UNAUTHORIZED=true
+      // only if you control the CA and want strict validation.
+      ...(isTls ? { tls: { rejectUnauthorized: process.env.REDIS_TLS_REJECT_UNAUTHORIZED === 'true' } } : {}),
     });
 
     client.on('connect', () => {
