@@ -2,6 +2,11 @@
   "name": "frontend-next",
   "version": "0.1.0",
   "private": true,
+  "overrides": {
+    "brace-expansion": ">=2.0.2",
+    "js-yaml": ">=4.3.1",
+    "undici": ">=7.10.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -66,7 +71,7 @@
     "react-leaflet": "^4.2.1",
     "react-leaflet-cluster": "^2.1.0",
     "recharts": "^3.10.1",
-    "socket.io-client": "^4.8.3",
+    "socket.io-client": "^4.8.4",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",
