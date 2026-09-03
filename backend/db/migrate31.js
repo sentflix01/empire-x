@@ -33,9 +33,11 @@
  * Auto-run:       node db/migrate-all.js  (exports async function)
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
 
-async function migrate31() {
+async function migrate31(trackPool) {
+  // When called by migrate-all.js, use the injected pool.
+  // When run standalone, load pool directly via tsx.
+  const pool = trackPool ?? require('./pool');
   const client = await pool.connect();
   try {
     console.log('migrate31: creating conversation_participants junction table...');
@@ -135,8 +137,8 @@ module.exports = migrate31;
 
 // Allow standalone run: node db/migrate31.js
 if (require.main === module) {
-  // Need a fresh pool for standalone runs (pool.js is shared module)
-  migrate31()
-    .then(() => { pool.end(); process.exit(0); })
-    .catch(err => { console.error(err); pool.end(); process.exit(1); });
+  const standalonePool = require('./pool');
+  migrate31(standalonePool)
+    .then(() => { standalonePool.end(); process.exit(0); })
+    .catch(err => { console.error(err); standalonePool.end(); process.exit(1); });
 }
