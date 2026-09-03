@@ -31,11 +31,11 @@
  * Auto-run:       node db/migrate-all.js  (exports async function)
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
 
-async function migrate32() {
-  // CONCURRENT index builds cannot run inside BEGIN/COMMIT — each runs solo.
-  // We use pool.query directly (auto-commit mode) for every index creation.
+async function migrate32(trackPool) {
+  // When called by migrate-all.js, use the injected pool.
+  // When run standalone, load pool directly.
+  const pool = trackPool ?? require('./pool');
   const client = await pool.connect();
 
   try {
@@ -198,7 +198,8 @@ module.exports = migrate32;
 
 // Allow standalone run: node db/migrate32.js
 if (require.main === module) {
-  migrate32()
-    .then(() => { pool.end(); process.exit(0); })
-    .catch(err => { console.error(err); pool.end(); process.exit(1); });
+  const standalonePool = require('./pool');
+  migrate32(standalonePool)
+    .then(() => { standalonePool.end(); process.exit(0); })
+    .catch(err => { console.error(err); standalonePool.end(); process.exit(1); });
 }

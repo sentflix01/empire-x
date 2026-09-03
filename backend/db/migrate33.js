@@ -31,9 +31,9 @@
  * Auto-run:       node db/migrate-all.js
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
 
-async function migrate33() {
+async function migrate33(trackPool) {
+  const pool = trackPool ?? require('./pool');
   console.log('migrate33: adding scalability indexes for FK columns...');
 
   // CONCURRENT indexes cannot run inside a transaction
@@ -123,7 +123,8 @@ async function migrate33() {
 module.exports = migrate33;
 
 if (require.main === module) {
-  migrate33()
-    .then(() => { pool.end(); process.exit(0); })
-    .catch(err => { console.error(err.message); pool.end(); process.exit(1); });
+  const standalonePool = require('./pool');
+  migrate33(standalonePool)
+    .then(() => { standalonePool.end(); process.exit(0); })
+    .catch(err => { console.error(err.message); standalonePool.end(); process.exit(1); });
 }
