@@ -56,9 +56,9 @@ test.beforeAll(async () => {
   console.log('[chat-e2e] tokenA:', Boolean(tokenA), '· tokenB:', Boolean(tokenB));
   seeded = Boolean(tokenA && tokenB);
   if (!seeded) {
-    // Distinguish "no seed data" from "backend/DB unreachable" (e.g. Neon
-    // compute-quota exhaustion returns 500 on every query).
-    skipReason = 'Backend unreachable or DB quota exhausted — login returned an error. Check DATABASE_URL / Neon plan.';
+    // Distinguish "no seed data" from "backend/DB unreachable"
+    // (cold start or connection timeout returning 500 on login).
+    skipReason = 'Backend unreachable or DB error — login returned an error. Check DATABASE_URL and Render logs.';
     return;
   }
   const me = await fetch(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${tokenB}` } });

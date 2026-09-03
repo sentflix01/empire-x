@@ -37,9 +37,8 @@ const { Pool }      = require('pg');
 // which would close the shared pool. This pool is only used by migrate-all itself.
 function buildConnectionString(raw) {
   if (!raw) return raw;
-  // Append pgbouncer=true only for transaction-pooler endpoints. Direct Neon
-  // URLs are recommended for schema migrations and must remain direct.
-  if (!/-pooler(?:\.|:|\/)|\.pooler\.supabase\.com/i.test(raw)) return raw;
+  // Append pgbouncer=true only for Supabase transaction-pooler endpoints.
+  if (!(/\.pooler\.supabase\.com/i.test(raw))) return raw;
   if (raw.includes('pgbouncer=true')) return raw;
   const sep = raw.includes('?') ? '&' : '?';
   return `${raw}${sep}pgbouncer=true`;
@@ -48,7 +47,7 @@ function buildConnectionString(raw) {
 const connectionString = buildConnectionString(process.env.DATABASE_URL);
 const needsSsl =
   process.env.NODE_ENV === 'production' ||
-  (connectionString && /neon\.tech|supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
+  (connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
 
 const trackPool = new Pool({
   connectionString,
