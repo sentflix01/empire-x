@@ -98,7 +98,7 @@ Then open http://localhost:3000
 | Frontend | **Next.js 16** (App Router), TypeScript, TailwindCSS, shadcn/ui |
 | State | TanStack Query, React context |
 | Backend | Node.js, Express 4 |
-| Database | PostgreSQL 14+ (Supabase Postgres preferred free tier; Neon supported as alternative) |
+| Database | PostgreSQL 14+ (Supabase Postgres) |
 | Cache / Queue | Redis (Upstash) + BullMQ |
 | Real-time | Socket.IO |
 | File storage | Cloudflare R2 (local disk fallback in dev) |

@@ -4,18 +4,18 @@ jest.unmock('../db/pool');
 const pool = require('../db/pool');
 
 describe('database connection string normalization', () => {
-  test('leaves a direct Neon endpoint unchanged', () => {
-    const url = 'postgresql://user:password@ep-blue-water-123.us-east-1.aws.neon.tech/neondb?sslmode=require';
+  test('leaves a direct Supabase URL unchanged', () => {
+    const url = 'postgresql://postgres:password@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres?sslmode=require';
     expect(pool.buildConnectionString(url)).toBe(url);
   });
 
-  test('marks a Neon pooler endpoint as transaction pooled', () => {
-    const url = 'postgresql://user:password@ep-blue-water-123-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require';
-    expect(pool.buildConnectionString(url)).toBe(`${url}&pgbouncer=true`);
+  test('marks a Supabase transaction pooler endpoint as transaction pooled', () => {
+    const url = 'postgresql://postgres.tpgzlokgnjxcerexxoda:password@aws-0-eu-west-1.pooler.supabase.com:6543/postgres';
+    expect(pool.buildConnectionString(url)).toBe(`${url}?pgbouncer=true`);
   });
 
-  test('marks a Supabase transaction pooler endpoint as transaction pooled', () => {
-    const url = 'postgresql://user:password@aws-0-us-east-1.pooler.supabase.com:6543/postgres';
-    expect(pool.buildConnectionString(url)).toBe(`${url}?pgbouncer=true`);
+  test('does not double-add pgbouncer=true', () => {
+    const url = 'postgresql://postgres.ref:password@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true';
+    expect(pool.buildConnectionString(url)).toBe(url);
   });
 });

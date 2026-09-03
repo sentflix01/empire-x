@@ -1,8 +1,7 @@
 /**
  * db/pool.ts — PostgreSQL connection pool
  *
- * Auto-detects Supabase and Neon pooler URLs, and marks only those URLs as
- * transaction-pooled. A direct Neon endpoint must not be treated as PgBouncer.
+ * Auto-detects Supabase pooler URLs and marks only those as transaction-pooled.
  * SSL forced in production and whenever the URL contains a known cloud DB host.
  */
 import dns from 'node:dns';
@@ -13,9 +12,9 @@ import logger from '../lib/logger';
 // Supabase direct connections resolve to IPv6; the pooler resolves to IPv4.
 dns.setDefaultResultOrder('ipv4first');
 
-// Neon pooled endpoint IDs include "-pooler"; Supabase poolers use a distinct
-// hostname. Direct Neon endpoints deliberately do not match this expression.
-const POOLER_HOSTS = /-pooler(?:\.|:|\/)|\.pooler\.supabase\.com/i;
+// Supabase pooler endpoints use *.pooler.supabase.com.
+// Direct endpoints (Supabase or any other provider) must remain direct.
+const POOLER_HOSTS = /\.pooler\.supabase\.com/i;
 
 export function buildConnectionString(raw: string | undefined): string | undefined {
   if (!raw) return raw;
@@ -27,9 +26,10 @@ export function buildConnectionString(raw: string | undefined): string | undefin
 
 const connectionString = buildConnectionString(process.env.DATABASE_URL);
 
+  // needsSsl also triggers for 'sslmode=require' in the URL
 const needsSsl =
   process.env.NODE_ENV === 'production' ||
-  !!(connectionString && /neon\.tech|supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
+  !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
 
 // Supabase pooler uses valid certs, but Render's outbound TLS stack can surface
 // self-signed cert errors on certain paths. Default to false to avoid blocking
