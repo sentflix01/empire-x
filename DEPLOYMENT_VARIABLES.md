@@ -12,7 +12,7 @@ Set these in: **GitHub → Settings → Secrets and variables → Actions**
 
 | Secret Name | Value | Where to Get It |
 |---|---|---|
-| `DATABASE_URL` | `postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?sslmode=require` | Supabase → Project Settings → Database → Connection string (URI) |
+| `SUPABASE_DATABASE_URL` | `postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?sslmode=require` | Supabase → Project Settings → Database → Connection string (URI); used by GitHub migration jobs |
 | `VERCEL_TOKEN` | Personal access token starting with `vercel_` | Vercel → Settings → Tokens → Create token |
 | `RENDER_API_KEY` | API key from Render account | Render → Account Settings → API Keys → Create Key |
 | `RENDER_SERVICE_ID` | Service ID from Render dashboard | Render → Backend service → Settings → Service ID |
@@ -37,7 +37,7 @@ Set these in: **Render → Backend Service → Environment → Environment Varia
 
 | Variable | Value | Notes |
 |---|---|---|
-| `DATABASE_URL` | `postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?sslmode=require` | **Must match GitHub secret** — Supabase connection |
+| `DATABASE_URL` | `postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?sslmode=require` | Supabase connection; use the same database as GitHub's `SUPABASE_DATABASE_URL` |
 | `JWT_SECRET` | 64+ character random hex string | Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `NODE_ENV` | `production` | Enables security headers, prod rate limits |
 | `FRONTEND_URL` | `https://halehame-eosin.vercel.app` | Can be comma-separated for multiple origins |
@@ -157,7 +157,7 @@ Set these in: **Vercel → Project → Settings → Environment Variables**
 
 1. Go to https://github.com/sentflix01/empire-x → Settings → Secrets and variables → Actions
 2. Add each **Critical Secret** from Section 1 above:
-   - `DATABASE_URL` (from Supabase)
+   - `SUPABASE_DATABASE_URL` (from Supabase)
    - `VERCEL_TOKEN` (create new Vercel token)
    - `RENDER_API_KEY` (create in Render)
    - `RENDER_SERVICE_ID` (copy from Render backend service)

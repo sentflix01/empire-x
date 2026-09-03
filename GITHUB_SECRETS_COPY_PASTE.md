@@ -4,7 +4,7 @@
 
 ---
 
-## Secret #1: `DATABASE_URL`
+## Secret #1: `SUPABASE_DATABASE_URL`
 
 **Where to get it:**
 1. Go to: https://app.supabase.com/
@@ -21,7 +21,7 @@
 **Where to put it in GitHub:**
 - Go to: https://github.com/sentflix01/empire-x/settings/secrets/actions
 - Click **"New repository secret"**
-- Name: `DATABASE_URL`
+- Name: `SUPABASE_DATABASE_URL`
 - Paste the value
 - Click **Save**
 

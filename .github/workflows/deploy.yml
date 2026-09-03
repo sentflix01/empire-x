@@ -35,13 +35,10 @@ jobs:
             echo "proceed=false" >> $GITHUB_OUTPUT
             exit 0
           fi
-          if [ -n "${{ github.event.workflow_run.head_commit.id }}" ] && \
-             [ "${{ github.event.workflow_run.head_commit.id }}" != "${{ github.sha }}" ]; then
-            echo "ℹ️ A newer commit is queued — letting its own deploy handle this."
-            echo "proceed=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          echo "✅ Green CI for this exact commit."
+          # workflow_run jobs run from the default branch, so github.sha is
+          # not reliably the commit that CI tested. All downstream jobs check
+          # out workflow_run.head_sha explicitly.
+          echo "✅ Green CI run accepted for its tested commit."
           echo "proceed=true" >> $GITHUB_OUTPUT
 
   # ── Detect whether the frontend actually changed ───────────────────────────
@@ -81,6 +78,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: actions/setup-node@v7
         with:
@@ -122,6 +121,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Check Render token
         id: token_check
@@ -180,6 +181,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: actions/setup-node@v7
         with:
