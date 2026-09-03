@@ -3,6 +3,19 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
 const eslintConfig = defineConfig([
+  // Ignore non-source directories first — prevents the pathMatches crash
+  // that occurs when ESLint tries to process node_modules or build output.
+  globalIgnores([
+    "node_modules/**",
+    ".next/**",
+    "out/**",
+    "build/**",
+    "public/**",
+    "coverage/**",
+    "test-results/**",
+    "next-env.d.ts",
+    "**/__mocks__/**",
+  ]),
   ...nextVitals,
   ...nextTs,
   {
@@ -18,14 +31,6 @@ const eslintConfig = defineConfig([
       "react/no-unescaped-entities": "off",
     },
   },
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
 ]);
 
 export default eslintConfig;
