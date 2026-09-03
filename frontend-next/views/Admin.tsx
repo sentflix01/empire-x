@@ -402,16 +402,18 @@ function Admin() {
     try {
       const [s, u, v, po, pr, o, r, rc] = await Promise.all([
         client.get('/api/admin/stats').then(r => r.data).catch(() => ({})),
-        client.get('/api/admin/users').then(r => r.data).catch(() => []),
+        // BE-002: admin users route now returns { users: [...], next_cursor }
+        client.get('/api/admin/users').then(r => Array.isArray(r.data) ? r.data : (r.data?.users ?? [])).catch(() => []),
         client.get('/api/admin/verifications').then(r => r.data).catch(() => []),
-        client.get('/api/admin/posts').then(r => r.data).catch(() => []),
-        client.get('/api/admin/products').then(r => r.data).catch(() => []),
-        client.get('/api/admin/orders').then(r => r.data).catch(() => []),
+        // BE-003: admin posts/products/orders also return paginated objects now
+        client.get('/api/admin/posts').then(r => Array.isArray(r.data) ? r.data : (r.data?.posts ?? [])).catch(() => []),
+        client.get('/api/admin/products').then(r => Array.isArray(r.data) ? r.data : (r.data?.products ?? [])).catch(() => []),
+        client.get('/api/admin/orders').then(r => Array.isArray(r.data) ? r.data : (r.data?.orders ?? [])).catch(() => []),
         client.get('/api/admin/reports').then(r => r.data).catch(() => []),
         client.get('/api/admin/stats/revenue').then(r => r.data).catch(() => ({ daily: [], order_stats: [], top_sellers: [] })),
       ]);
-      setStats(s); setUsers(u); setVerifications(v);
-      setPosts(po); setProducts(pr); setOrders(Array.isArray(o) ? o : []); setReports(r);
+      setStats(s); setUsers(Array.isArray(u) ? u : []); setVerifications(v);
+      setPosts(Array.isArray(po) ? po : []); setProducts(Array.isArray(pr) ? pr : []); setOrders(Array.isArray(o) ? o : []); setReports(r);
       setRevenueChart(rc.daily || []);
       setOrderStats(rc.order_stats || []);
       setTopSellers(rc.top_sellers || []);
