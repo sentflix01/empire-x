@@ -8,7 +8,7 @@ Add these secrets to: **GitHub → Settings → Secrets and variables → Action
 
 | # | Secret Name | Value Format | Example | Where to Get It |
 |---|---|---|---|---|
-| 1 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://postgres:password@db.xxxx.supabase.co:5432/postgres?sslmode=require` | Supabase → Project Settings → Database → Connection string (URI) |
+| 1 | `SUPABASE_DATABASE_URL` | PostgreSQL connection string used by the migration workflow | `postgresql://postgres:password@db.xxxx.supabase.co:5432/postgres?sslmode=require` | Supabase → Project Settings → Database → Connection string (URI) |
 | 2 | `RENDER_API_KEY` | API key from Render | `rnd_xxxxxxxxxxxxxxxxxxxxxxxxxxxx` | Render → Account Settings → API Keys → Create Key |
 | 3 | `RENDER_SERVICE_ID` | Service ID from Render backend | `srv_xxxxxxxxxxxxxxxxxxxxxxxxxxxx` | Render Dashboard → Backend service → Settings → Service ID |
 | 4 | `VERCEL_TOKEN` | Personal access token | `vercel_xxxxxxxxxxxxxxxxxxxxxxxxxxxx` | Vercel → Settings → Tokens → Create token |
@@ -33,7 +33,7 @@ Copy this table and fill in your values:
 ```
 Slot | Secret Name           | Your Value
 -----|----------------------|---------------------
-1    | DATABASE_URL         | [Supabase connection string]
+1    | SUPABASE_DATABASE_URL | [Supabase connection string]
 2    | RENDER_API_KEY       | [From Render account]
 3    | RENDER_SERVICE_ID    | [From Render backend service]
 4    | VERCEL_TOKEN         | [From Vercel account]
@@ -59,9 +59,9 @@ For each secret below, click **"New repository secret"** button and fill in:
 
 ---
 
-### Secret #1: DATABASE_URL
+### Secret #1: SUPABASE_DATABASE_URL
 
-**Name:** `DATABASE_URL`
+**Name:** `SUPABASE_DATABASE_URL`
 
 **Value:** (Your Supabase connection string)
 ```
@@ -76,7 +76,7 @@ postgresql://postgres:[YOUR_PASSWORD]@db.[YOUR_PROJECT_REF].supabase.co:5432/pos
 
 **Paste example:**
 ```
-postgresql://postgres:AbC123xYz789@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres?sslmode=require
+postgresql://postgres:[YOUR_PASSWORD]@db.[YOUR_PROJECT_REF].supabase.co:5432/postgres?sslmode=require
 ```
 
 ---
@@ -215,7 +215,7 @@ https://halehame-eosin.vercel.app
 
 After adding all secrets:
 
-- [ ] `DATABASE_URL` — Added ✓
+- [ ] `SUPABASE_DATABASE_URL` — Added ✓
 - [ ] `RENDER_API_KEY` — Added ✓
 - [ ] `RENDER_SERVICE_ID` — Added ✓
 - [ ] `VERCEL_TOKEN` — Added ✓
@@ -254,7 +254,7 @@ After adding all secrets:
 
 | Error | Cause | Fix |
 |---|---|---|
-| `DATABASE_URL not set` | Secret not added or wrong name | Check secret name is exactly `DATABASE_URL` |
+| `SUPABASE_DATABASE_URL not set` | Secret not added or wrong name | Check secret name is exactly `SUPABASE_DATABASE_URL` |
 | `Invalid RENDER_API_KEY` | Key is expired or wrong | Generate new key in Render account |
 | `Service not found` | Wrong `RENDER_SERVICE_ID` | Copy correct ID from Render service settings |
 | `Deploy doesn't start` | Missing secrets | Make sure all 6 critical secrets are added |

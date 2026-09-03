@@ -92,6 +92,19 @@ function isAuthError(err) {
   );
 }
 
+function isSkippableNetworkError(err) {
+  if (!err) return false;
+  const message = String(err.message ?? err).toLowerCase();
+  return (
+    message.includes('network unreachable') ||
+    message.includes('enetunreach') ||
+    message.includes('self-signed certificate') ||
+    message.includes('certificate') ||
+    message.includes('name does not resolve') ||
+    message.includes('enotfound')
+  );
+}
+
 function hasR2() {
   return !!(process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID &&
             process.env.R2_SECRET_ACCESS_KEY && process.env.R2_BUCKET_NAME);
@@ -193,15 +206,15 @@ async function runBackup() {
     dump.stdout.pipe(gzip).pipe(out);
     dump.on('close', (code) => {
       if (code !== 0) {
-        const err = new Error(`pg_dump exited ${code}: ${stderr.slice(0, 500)}`);
-        // Detect auth failure — don't retry, skip to avoid triggering circuit breaker
-        if (isAuthError(err)) {
-          logger.warn({ err: err.message }, 'backup: auth failure — skipping to avoid circuit breaker');
-          resolve({ skipped: true, reason: 'auth_failure' });
-        } else {
-          reject(err);
+          const err = new Error(`pg_dump exited ${code}: ${stderr.slice(0, 500)}`);
+          // Detect auth/network failure — skip to avoid circuit breaker
+          if (isAuthError(err) || isSkippableNetworkError(err)) {
+            logger.warn({ err: err.message }, 'backup: skipped (auth/network issue — check DATABASE_URL and connectivity)');
+            resolve({ skipped: true, reason: 'skipped' });
+          } else {
+            reject(err);
+          }
         }
-      }
     });
   });
 

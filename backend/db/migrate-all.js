@@ -99,13 +99,10 @@ function discoverMigrationFiles() {
 // ── Determine whether a file exports a function or is a self-executing script ─
 // New migrations (migrate31.js onward) export `module.exports = async function`.
 // Legacy migrations (migrate.js – migrate30.js) are self-executing and call pool.end().
+// Do not use require() here: importing a legacy migration invokes its top-level
+// migrate() call before the runner records it, then causes a second execution.
 function isExportedFunction(filePath) {
-  try {
-    const mod = require(filePath);
-    return typeof mod === 'function';
-  } catch {
-    return false;
-  }
+  return /\bmodule\.exports\s*=/.test(fs.readFileSync(filePath, 'utf8'));
 }
 
 // ── Run a single legacy migration via spawnSync ───────────────────────────────
@@ -243,7 +240,11 @@ async function main() {
   await trackPool.end();
 }
 
-main().catch(err => {
-  console.error('Migration runner error:', err.message);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch(err => {
+    console.error('Migration runner error:', err.message);
+    process.exit(1);
+  });
+}
+
+module.exports = { discoverMigrationFiles, isExportedFunction };
