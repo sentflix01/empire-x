@@ -277,7 +277,7 @@ function Register() {
                 : 'border-border hover:border-primary/30 hover:bg-muted/30'
             }`}
           >
-            <div className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors ${agreed ? 'bg-primary' : 'border-2 border-muted-foreground/50'}`}>
+            <div className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors ${agreed ? 'bg-primary' : 'border-2 border-input bg-background'}`}>
               {agreed && <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
