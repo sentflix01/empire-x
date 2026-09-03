@@ -3,10 +3,11 @@ import type { NextRequest } from 'next/server';
 import { isPublicPath } from '@/lib/publicPaths';
 
 /**
- * middleware.ts — Auth routing for Next.js 16+
+ * proxy.ts — Auth routing for Next.js 16+
  *
- * NOTE: This file MUST be named middleware.ts (not proxy.ts or anything else)
- * for Next.js to auto-invoke it as edge middleware on every request.
+ * NOTE: In Next.js 16, this file MUST be named proxy.ts (not middleware.ts).
+ * The convention was reversed — middleware.ts is deprecated, proxy.ts is the
+ * active name that Next.js auto-invokes as edge middleware on every request.
  */
 
 const AUTH_PAGES = new Set([
