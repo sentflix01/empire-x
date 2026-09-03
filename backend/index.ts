@@ -114,12 +114,34 @@ function checkEnv(): void {
     warnings.push('Stripe (STRIPE_SECRET_KEY) — payments will not work');
   }
   if (!process.env.GOOGLE_CLIENT_ID) {
+    if (process.env.NODE_ENV === 'production') {
+      // Hard error in production: Google Sign-In will silently return 503 for
+      // every login attempt without this. Fail loudly at startup instead.
+      logger.error('\n❌  GOOGLE_CLIENT_ID is not set in production.');
+      logger.error('   Google Sign-In will not work. Set it in your Render environment variables.');
+      logger.error('   Google Cloud Console → APIs & Credentials → OAuth 2.0 Client IDs → copy the Web client ID.\n');
+      process.exit(1);
+    }
     warnings.push('Google OAuth (GOOGLE_CLIENT_ID) — Google sign-in disabled');
+  }
+  // OTP_SALT is strongly recommended in production. Without it, stored OTP
+  // hashes have no app-level secret — a DB reader could build a rainbow table
+  // over the 900,000-value space in seconds.
+  if (!process.env.OTP_SALT && process.env.NODE_ENV === 'production') {
+    warnings.push('OTP_SALT not set — OTP hashes have no app secret. Set OTP_SALT to a random 32-char hex string.');
   }
   const r2  = ['R2_ACCOUNT_ID','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','R2_BUCKET_NAME','R2_PUBLIC_URL'];
   const sup = ['SUPABASE_URL','SUPABASE_STORAGE_KEY','SUPABASE_BUCKET'];
   if (r2.some((k) => !process.env[k]) && sup.some((k) => !process.env[k])) {
-    warnings.push('File storage — set Supabase or R2 env vars. Files currently saved to local disk and will be lost on redeploy.');
+    const storageMsg = 'File storage — set Supabase or R2 env vars. Files currently saved to local disk and will be lost on redeploy.';
+    if (process.env.NODE_ENV === 'production') {
+      // Hard error in production: local disk uploads are silently lost on
+      // every redeploy. Operators must configure cloud storage before launch.
+      logger.error(`\n❌  ${storageMsg}`);
+      logger.error('   Set R2_* (Cloudflare) or SUPABASE_URL + SUPABASE_STORAGE_KEY + SUPABASE_BUCKET.\n');
+      process.exit(1);
+    }
+    warnings.push(storageMsg);
   }
   if (warnings.length && process.env.NODE_ENV === 'production') {
     logger.warn('\n⚠️  Production warnings:');

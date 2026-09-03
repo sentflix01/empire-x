@@ -390,6 +390,22 @@ export function emitNotification(userId: string, notification: Record<string, un
   ioInstance?.to(`user:${userId}`).emit('new_notification', notification);
 }
 
+/**
+ * Forcefully disconnect all active sockets for a user.
+ *
+ * Called immediately after a ban so the user loses their socket session
+ * without waiting for the 5-minute in-memory socket-user-cache TTL to expire.
+ * The `user:{userId}` room is joined by every socket belonging to that user on
+ * connect, so emitting `force_disconnect` there reaches all their tabs/devices.
+ */
+export function forceDisconnectUser(userId: string): void {
+  if (!ioInstance) return;
+  ioInstance.to(`user:${userId}`).emit('force_disconnect', { reason: 'account_suspended' });
+  // Also evict the in-memory socket user cache entry so any socket that
+  // processes an event before disconnecting re-fetches the banned state.
+  socketUserCache.delete(userId);
+}
+
 module.exports = {
   initSocket,
   getIO,
@@ -398,6 +414,7 @@ module.exports = {
   emitMessageDeleted,
   emitPresenceUpdated,
   emitNotification,
+  forceDisconnectUser,
   invalidateFollowerCache,
   getAuthorizedConversation,
   getConversationParticipantIds,

@@ -7,6 +7,11 @@
  *   3. Local disk       — dev fallback, lost on redeploy
  *
  * Uses @aws-sdk/client-s3 for both Supabase and R2.
+ *
+ * SEC-005: Magic-byte validation via sharp for images and header check for PDF.
+ * Both the declared MIME/extension and the actual file bytes must agree before
+ * the file is accepted. This prevents content-type spoofing (e.g. a ZIP with a
+ * .jpg extension and image/jpeg MIME type).
  */
 import multer from 'multer';
 import type { FileFilterCallback } from 'multer';
@@ -61,6 +66,57 @@ export const fileFilter: multer.Options['fileFilter'] = (
   }
   cb(null, true);
 };
+
+// ── Magic-byte validator (SEC-005) ────────────────────────────────────────────
+// Called AFTER multer writes the buffer (memoryStorage) or disk file so the
+// actual file bytes are available. The fileFilter above only checks the
+// client-declared MIME type + extension; this function checks the real content.
+//
+// Strategy per format:
+//   Images (JPEG/PNG/GIF/WebP/AVIF/HEIC) — attempt a sharp metadata decode.
+//     sharp is already a dependency and reads just enough bytes to identify
+//     the format without decoding the full image.
+//   PDF — check the 4-byte magic header (%PDF).
+//   Videos (MP4/WebM/MOV) — skip content check; video containers are complex
+//     and sharp cannot read them. The MIME/extension gate is sufficient for
+//     the current threat model.
+//
+// Returns null on success, or an error message string on failure.
+
+export async function validateFileBytes(
+  buffer: Buffer,
+  mimeType: string,
+): Promise<string | null> {
+  const mime = mimeType.toLowerCase();
+
+  // PDF: must start with %PDF
+  if (mime === 'application/pdf') {
+    if (buffer.length < 4 || buffer.slice(0, 4).toString('ascii') !== '%PDF') {
+      return 'File content does not match PDF format';
+    }
+    return null;
+  }
+
+  // Videos: skip magic-byte check — complex container formats
+  if (mime.startsWith('video/')) return null;
+
+  // Images: use sharp to attempt metadata extraction
+  if (mime.startsWith('image/')) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sharpLib = require('sharp') as any;
+      // sharp's default export is the callable constructor
+      const sharpFn = typeof sharpLib === 'function' ? sharpLib : sharpLib.default;
+      await sharpFn(buffer).metadata();
+      return null; // sharp decoded it successfully — it's a real image
+    } catch {
+      return 'File content does not match the declared image format';
+    }
+  }
+
+  // Unknown category — pass through (fileFilter already whitelisted the type)
+  return null;
+}
 
 // ── Supabase Storage ──────────────────────────────────────────────────────────
 
@@ -228,4 +284,5 @@ module.exports.isSupabaseConfigured     = isSupabaseConfigured;
 module.exports.isCloudStorageConfigured = isCloudStorageConfigured;
 module.exports.activeStorageProvider    = activeStorageProvider;
 module.exports.fileFilter               = fileFilter;
+module.exports.validateFileBytes        = validateFileBytes;
 module.exports.allowedMimeTypesByExtension = allowedMimeTypesByExtension;

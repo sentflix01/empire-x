@@ -57,18 +57,23 @@ export function initGoogleSignIn() {
   hasInitializedGoogleIdentity = true;
 }
 
-let _resolve = null;
-let _reject = null;
+let _resolve: ((value: unknown) => void) | null = null;
+let _reject: ((reason?: unknown) => void) | null = null;
 
-function handleCredentialResponse(response) {
+function handleCredentialResponse(response: { credential?: string }) {
   if (!_resolve) return;
+  if (!response.credential) {
+    _reject?.(new Error('Google did not return a sign-in credential.'));
+    _resolve = null; _reject = null;
+    return;
+  }
   sendIdTokenToBackend(response.credential)
     .then(_resolve)
     .catch(_reject)
     .finally(() => { _resolve = null; _reject = null; });
 }
 
-async function sendIdTokenToBackend(idToken) {
+async function sendIdTokenToBackend(idToken: string) {
   const res = await client.post('/api/auth/google', { id_token: idToken });
   const { access_token } = res.data;
   storeToken(access_token);
@@ -116,25 +121,58 @@ export function renderGoogleSignInButton(
 }
 
 /**
- * Trigger the Google One Tap / sign-in popup.
+ * Trigger the Google One Tap / FedCM sign-in flow.
  * Returns a promise that resolves with { access_token } on success.
+ *
+ * Mobile Safari + browsers that block third-party cookies cannot display One
+ * Tap. In those cases the prompt fires isNotDisplayed() / isSkippedMoment()
+ * almost immediately. Rather than trying to render a button on a detached
+ * element (which is invisible and never clicked), we reject with a clear error
+ * so the caller can fall back to a visible rendered button or email/password.
+ *
+ * The Login view now uses renderGoogleSignInButton() directly (same as
+ * Register), so this function is only called by legacy paths.
  */
-export function signInWithGoogle() {
+export function signInWithGoogle(): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (!window.google?.accounts?.id) {
-      return reject(new Error('Google Sign-In is not available'));
+      return reject(new Error('Google Sign-In is not available. Please try again or use email/password.'));
     }
+
     _resolve = resolve;
     _reject = reject;
     credentialHandler = handleCredentialResponse;
-    window.google.accounts.id.prompt((notification) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        // Fallback: open the popup directly
-        window.google.accounts.id.renderButton(
-          document.createElement('div'),
-          { theme: 'outline', size: 'large' }
-        );
-        window.google.accounts.id.prompt();
+
+    window.google.accounts.id.prompt((notification: {
+      isNotDisplayed: () => boolean;
+      isSkippedMoment: () => boolean;
+      isDismissedMoment: () => boolean;
+      getDismissedReason: () => string;
+    }) => {
+      if (notification.isNotDisplayed()) {
+        // One Tap cannot display — browser blocks third-party cookies (Safari,
+        // Firefox strict mode) or the feature is suppressed by Google.
+        // Reject cleanly so the UI can surface an actionable error.
+        _resolve = null; _reject = null;
+        reject(new Error(
+          'Google Sign-In popup could not be shown. ' +
+          'Please use the Google button at the top of the page or sign in with email and password.',
+        ));
+        return;
+      }
+      if (notification.isSkippedMoment()) {
+        // User previously dismissed — tap was skipped silently.
+        _resolve = null; _reject = null;
+        reject(new Error(
+          'Google Sign-In was skipped. Please use the Google button to try again.',
+        ));
+        return;
+      }
+      if (notification.isDismissedMoment?.()) {
+        const reason = notification.getDismissedReason?.();
+        if (reason === 'credential_returned') return; // handled by credential callback
+        _resolve = null; _reject = null;
+        reject(new Error('Sign-in popup was closed. Please try again.'));
       }
     });
   });

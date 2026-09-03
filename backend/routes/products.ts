@@ -29,7 +29,9 @@ function normalizeProduct(p: Record<string,unknown>): Record<string,unknown> {
 }
 
 // ── GET /api/products — keyset cursor pagination ──────────────────────────────
-router.get('/', optionalAuth, cacheMiddleware('products:list', 90), async (req: Request, res: Response) => {
+// varyByQuery ensures every distinct filter combo (seller_id, status, sort…)
+// gets its own cache slot. varyByUser isolates realOnly/seed-filtered responses.
+router.get('/', optionalAuth, cacheMiddleware('products:list', 90, { varyByQuery: true, varyByUser: true }), async (req: Request, res: Response) => {
   try {
     const { seller_id, business_id, showroom_id, status, sort='-created_at', limit='24', cursor } = req.query as Record<string,string>;
     const lim = Math.min(parseInt(limit)||24, 100);

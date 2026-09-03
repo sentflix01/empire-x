@@ -43,7 +43,10 @@ function Register() {
         width: Math.min(384, Math.max(280, (googleButtonRef.current?.clientWidth || window.innerWidth - 64) || 384)),
         onSuccess: (result) => {
           if (result?.access_token) storeToken(result.access_token);
-          window.location.href = '/';
+          // New Google users have no profile yet — send to onboarding,
+          // consistent with email registration. AppLayout also enforces this,
+          // but going direct avoids the double-redirect.
+          window.location.href = '/onboarding';
         },
         onError: () => {
           setError('Google Sign-In could not be completed. Please try again or register with email and password.');
@@ -229,7 +232,8 @@ function Register() {
             value={email} 
             onChange={(e) => setEmail(e.target.value)} 
             className="h-11 px-3 rounded-lg border border-input bg-background text-base focus:ring-2 focus:ring-primary/30 focus:border-primary"
-            required 
+            required
+            maxLength={254}
           />
         </div>
         <div className="space-y-1.5">
@@ -242,7 +246,9 @@ function Register() {
             value={password} 
             onChange={(e) => setPassword(e.target.value)} 
             className="h-11 px-3 rounded-lg border border-input bg-background text-base focus:ring-2 focus:ring-primary/30 focus:border-primary"
-            required 
+            required
+            minLength={8}
+            maxLength={128}
           />
           <p className="text-xs text-muted-foreground">At least 8 characters with mix of letters, numbers, and symbols</p>
         </div>
@@ -256,7 +262,9 @@ function Register() {
             value={confirmPassword} 
             onChange={(e) => setConfirmPassword(e.target.value)} 
             className="h-11 px-3 rounded-lg border border-input bg-background text-base focus:ring-2 focus:ring-primary/30 focus:border-primary"
-            required 
+            required
+            minLength={8}
+            maxLength={128}
           />
         </div>
         <div>

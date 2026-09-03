@@ -7,7 +7,7 @@ import { Bell, Heart, MessageCircle, UserPlus, ShoppingBag, ClipboardList, Check
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { connectSocket, getSocket } from "@/lib/socket";
-import moment from "moment";
+import { fromNow } from "@/lib/date";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -178,7 +178,7 @@ function NotificationsView() {
                   {n.body && (
                     <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>
                   )}
-                  <p className="text-xs text-muted-foreground mt-1">{moment(n.created_at).fromNow()}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{fromNow(n.created_at)}</p>
                 </div>
                 {/* Unread dot */}
                 {!n.is_read && (

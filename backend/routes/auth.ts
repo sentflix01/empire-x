@@ -225,6 +225,12 @@ router.post('/register', async (req: Request, res: Response) => {
 
 // ── POST /api/auth/verify-otp ─────────────────────────────────────────────────
 
+// Per-email OTP attempt counter — max 10 wrong guesses before the code is
+// invalidated and a new one must be requested. Prevents brute-forcing the
+// 900,000-value space within the 15-minute OTP window.
+const OTP_ATTEMPT_MAX = 10;
+const OTP_ATTEMPT_TTL = 15 * 60; // matches OTP expiry
+
 router.post('/verify-otp', async (req: Request, res: Response) => {
   const { email, otpCode } = req.body as { email?: string; otpCode?: string };
   if (!email || !otpCode) {
@@ -253,9 +259,41 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       apiError.validationError(res, 'Verification code has expired');
       return;
     }
+
+    // ── Brute-force protection: per-email attempt counter ─────────────────
+    const redis = getRedis();
+    const attemptKey = `otp_attempts:${email.toLowerCase()}`;
+    if (!redis.isNoOp) {
+      try {
+        const attempts = await (redis as RedisClient).incr(attemptKey);
+        if (attempts === 1) {
+          // Set TTL only on first increment — Redis INCR creates the key
+          await (redis as RedisClient).expire(attemptKey, OTP_ATTEMPT_TTL);
+        }
+        if (attempts > OTP_ATTEMPT_MAX) {
+          // Invalidate the OTP so the user must request a fresh code
+          await pool.query(
+            'UPDATE users SET otp_code = NULL, otp_expires = NULL WHERE id = $1',
+            [user.id],
+          );
+          await (redis as RedisClient).del(attemptKey);
+          apiError.validationError(res, 'Too many failed attempts. Please request a new verification code.');
+          return;
+        }
+      } catch (redisErr) {
+        logger.warn({ err: (redisErr as Error).message }, 'OTP attempt counter Redis error — continuing');
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     if (!verifyOtp(otpCode, user.otp_code)) {
       apiError.validationError(res, 'Invalid verification code');
       return;
+    }
+
+    // Correct OTP — clear the attempt counter
+    if (!redis.isNoOp) {
+      (redis as RedisClient).del(attemptKey).catch(() => undefined);
     }
 
     const { rows: banCheck } = await pool.query<{ is_banned: boolean }>(
@@ -453,12 +491,38 @@ router.post('/google', async (req: Request, res: Response) => {
     });
     payload = ticket.getPayload();
   } catch (err) {
-    // Do not expose the token or detailed verifier response, but distinguish
-    // this common deployment misconfiguration from an application failure.
-    logger.warn({ err: (err as Error).message }, 'Google ID token verification failed');
-    res.status(401).json({
-      error: 'Google sign-in could not be verified. Ensure the frontend and backend use the same Google OAuth client ID.',
-    });
+    const msg = (err as Error).message ?? '';
+    // Classify the error so the frontend can show an actionable message:
+    //   - Audience mismatch / invalid token → 401 (misconfiguration, client can retry after fix)
+    //   - Network failure reaching Google → 503 (transient, client should retry)
+    //   - Anything else → 401 (default safe response)
+    const isNetworkError =
+      msg.includes('ENOTFOUND') ||
+      msg.includes('ECONNREFUSED') ||
+      msg.includes('ETIMEDOUT') ||
+      msg.includes('network') ||
+      msg.includes('fetch');
+    const isAudienceMismatch =
+      msg.includes('audience') ||
+      msg.includes('client_id') ||
+      msg.includes('aud');
+
+    if (isNetworkError) {
+      logger.error({ err: msg }, 'Google ID token verification failed — network error reaching Google');
+      res.status(503).json({
+        error: 'Google sign-in is temporarily unavailable. Please try again in a moment.',
+      });
+    } else if (isAudienceMismatch) {
+      logger.error({ err: msg }, 'Google ID token audience mismatch — NEXT_PUBLIC_GOOGLE_CLIENT_ID and GOOGLE_CLIENT_ID are different');
+      res.status(401).json({
+        error: 'Google sign-in could not be verified. Ensure the frontend and backend use the same Google OAuth client ID.',
+      });
+    } else {
+      logger.warn({ err: msg }, 'Google ID token verification failed');
+      res.status(401).json({
+        error: 'Google sign-in could not be verified. Ensure the frontend and backend use the same Google OAuth client ID.',
+      });
+    }
     return;
   }
 
@@ -524,7 +588,7 @@ router.post('/google', async (req: Request, res: Response) => {
     const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
-    logger.error({ err }, 'Google auth error');
+    logger.error({ err }, 'Google auth error — DB or unexpected failure');
     apiError.serverError(res, 'Google sign-in is temporarily unavailable. Please try again.');
   }
 });

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import moment from "moment";
+import { fromNow } from "@/lib/date";
 import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -221,7 +221,7 @@ function CouponsManage() {
                       </p>
                       <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
                         <span>Used: {c.usage_count}{c.usage_limit ? `/${c.usage_limit}` : ""}</span>
-                        {c.expires_at && <span>Expires: {moment(c.expires_at).fromNow()}</span>}
+                        {c.expires_at && <span>Expires: {fromNow(c.expires_at)}</span>}
                       </div>
                     </div>
                     <button onClick={() => handleDelete(c.id)} className="p-2 rounded-full hover:bg-red-50 hover:text-red-500 text-muted-foreground transition-colors ml-2">

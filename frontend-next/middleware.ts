@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { isPublicPath } from '@/lib/publicPaths';
 
 /**
- * proxy.ts — Auth routing for Next.js 16+
+ * middleware.ts — Auth routing for Next.js 16+
+ *
+ * NOTE: This file MUST be named middleware.ts (not proxy.ts or anything else)
+ * for Next.js to auto-invoke it as edge middleware on every request.
  */
 
 const AUTH_PAGES = new Set([
@@ -10,38 +14,6 @@ const AUTH_PAGES = new Set([
   '/register',
   '/forgot-password',
   '/reset-password',
-]);
-
-const PUBLIC_PATHS = new Set([
-  '/',
-  '/landing',
-  '/login',
-  '/register',
-  '/forgot-password',
-  '/reset-password',
-  '/choose-account',
-  '/service-agreement',
-  '/not-found',
-  '/sitemap',
-  '/robots',
-  '/onboarding',
-]);
-
-export function isPublicPath(pathname: string): boolean {
-  if (PUBLIC_PATHS.has(pathname)) return true;
-  if (pathname.startsWith('/p/')) return true;
-  if (pathname.startsWith('/products/')) return true;
-  if (pathname.startsWith('/showroom/') && !SHOWROOM_BUILDER_PAGES.has(pathname)) return true;
-  if (pathname.startsWith('/showrooms/')) return true;
-  return false;
-}
-
-// Builder pages live under /showroom/* but remain auth-gated
-// (only the public /showroom/[slug] viewer is anonymous)
-const SHOWROOM_BUILDER_PAGES = new Set([
-  '/showroom/create',
-  '/showroom/templates',
-  '/showroom/samples',
 ]);
 
 export default function proxy(request: NextRequest) {

@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { Plus, MapPin, Clock, Banknote, ClipboardList, Gavel, Users, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import moment from "moment";
+import { fromNow } from "@/lib/date";
 import BidModal from "@/components/tasks/BidModal";
 import TaskBidsDialog from "@/components/tasks/TaskBidsDialog";
 import { useTranslation } from "react-i18next";
@@ -131,7 +131,7 @@ function Tasks() {
                     <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{task.location}</span>
                   )}
                   {task.deadline && (
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{moment(task.deadline).fromNow()}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{fromNow(task.deadline)}</span>
                   )}
                   <span className="flex items-center gap-1 text-amber-600 font-semibold">
                     <Banknote className="w-3 h-3" />{task.offered_payment?.toLocaleString()} {task.currency || 'USD'}

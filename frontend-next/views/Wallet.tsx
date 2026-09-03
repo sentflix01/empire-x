@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import moment from "moment";
+import { fromNow } from "@/lib/date";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -165,7 +165,7 @@ function Wallet() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{tx.description || tx.type}</p>
-                    <p className="text-xs text-muted-foreground">{moment(tx.created_at).fromNow()}</p>
+                    <p className="text-xs text-muted-foreground">{fromNow(tx.created_at)}</p>
                   </div>
                   <p className={`text-sm font-bold shrink-0 ${tx.type==="credit"||tx.type==="refund" ? "text-green-600" : "text-red-600"}`}>
                     {tx.type==="credit"||tx.type==="refund" ? "+" : "-"}{tx.amount?.toLocaleString()} ETB

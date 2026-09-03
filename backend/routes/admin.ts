@@ -6,6 +6,7 @@ import pool from '../db/pool';
 import { requireAuth, requireAdmin, invalidateUserCache } from '../middleware/auth';
 import { getRedis } from '../lib/redis';
 import * as apiError from '../lib/apiError';
+import { forceDisconnectUser } from '../socket';
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
@@ -52,14 +53,34 @@ router.get('/stats', async (_req: Request, res: Response) => {
 // ── Users ─────────────────────────────────────────────────────────────────────
 router.get('/users', async (req: Request, res: Response) => {
   try {
-    const { search, limit = '50', offset = '0' } = req.query as Record<string, string>;
-    const values: unknown[] = [];
-    let query = 'SELECT id, email, full_name, role, is_verified, provider, created_at FROM users';
-    if (search) { values.push(`%${search}%`); query += ' WHERE email ILIKE $1 OR full_name ILIKE $1'; }
-    query += ` ORDER BY created_at DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
-    values.push(parseInt(limit), parseInt(offset));
-    const { rows } = await pool.query(query, values);
-    res.json(rows);
+    const { search, limit = '50', cursor } = req.query as Record<string, string>;
+    const lim = Math.min(parseInt(limit) || 50, 200);
+    const cursorTs = cursor ? new Date(cursor) : new Date();
+    if (isNaN(cursorTs.getTime())) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
+
+    const conditions: string[] = ['u.created_at < $1'];
+    const values: unknown[] = [cursorTs];
+
+    if (search) {
+      // Cap search length to prevent expensive wildcard patterns
+      const term = search.slice(0, 100);
+      values.push(`%${term}%`);
+      conditions.push(`(u.email ILIKE $${values.length} OR u.full_name ILIKE $${values.length})`);
+    }
+
+    values.push(lim);
+    const { rows } = await pool.query(
+      `SELECT u.id, u.email, u.full_name, u.role, u.is_verified, u.provider, u.created_at
+       FROM users u
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY u.created_at DESC
+       LIMIT $${values.length}`,
+      values,
+    );
+    res.json({
+      users: rows,
+      next_cursor: rows.length === lim ? rows[rows.length - 1].created_at : null,
+    });
   } catch { res.status(500).json({ error: 'Failed to fetch users' }); }
 });
 
@@ -132,6 +153,8 @@ router.post('/users/:id/ban', async (req: Request, res: Response) => {
         );
       } catch { /* non-fatal */ }
     }
+    // Immediately kick any active sockets — don't wait for the 5-min cache TTL.
+    forceDisconnectUser(req.params.id);
     res.json({ success: true });
   } catch { res.status(500).json({ error: 'Failed to ban user' }); }
 });
@@ -197,9 +220,15 @@ router.delete('/verifications/:userId', async (req: Request, res: Response) => {
 // ── Posts ─────────────────────────────────────────────────────────────────────
 router.get('/posts', async (req: Request, res: Response) => {
   try {
-    const { limit = '50', offset = '0' } = req.query as Record<string, string>;
-    const { rows } = await pool.query('SELECT * FROM posts ORDER BY created_at DESC LIMIT $1 OFFSET $2', [parseInt(limit), parseInt(offset)]);
-    res.json(rows);
+    const { limit = '50', cursor } = req.query as Record<string, string>;
+    const lim = Math.min(parseInt(limit) || 50, 200);
+    const cursorTs = cursor ? new Date(cursor) : new Date();
+    if (isNaN(cursorTs.getTime())) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
+    const { rows } = await pool.query(
+      'SELECT * FROM posts WHERE created_at < $1 ORDER BY created_at DESC LIMIT $2',
+      [cursorTs, lim],
+    );
+    res.json({ posts: rows, next_cursor: rows.length === lim ? rows[rows.length - 1].created_at : null });
   } catch { res.status(500).json({ error: 'Failed to fetch posts' }); }
 });
 
@@ -218,9 +247,15 @@ function normalizeProduct(p: Record<string, unknown>): Record<string, unknown> {
 
 router.get('/products', async (req: Request, res: Response) => {
   try {
-    const { limit = '50', offset = '0' } = req.query as Record<string, string>;
-    const { rows } = await pool.query('SELECT * FROM products ORDER BY created_at DESC LIMIT $1 OFFSET $2', [parseInt(limit), parseInt(offset)]);
-    res.json(rows.map(normalizeProduct));
+    const { limit = '50', cursor } = req.query as Record<string, string>;
+    const lim = Math.min(parseInt(limit) || 50, 200);
+    const cursorTs = cursor ? new Date(cursor) : new Date();
+    if (isNaN(cursorTs.getTime())) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
+    const { rows } = await pool.query(
+      'SELECT * FROM products WHERE created_at < $1 ORDER BY created_at DESC LIMIT $2',
+      [cursorTs, lim],
+    );
+    res.json({ products: rows.map(normalizeProduct), next_cursor: rows.length === lim ? rows[rows.length - 1].created_at : null });
   } catch { res.status(500).json({ error: 'Failed to fetch products' }); }
 });
 
@@ -232,9 +267,15 @@ router.delete('/products/:id', async (req: Request, res: Response) => {
 // ── Orders ────────────────────────────────────────────────────────────────────
 router.get('/orders', async (req: Request, res: Response) => {
   try {
-    const { limit = '50', offset = '0' } = req.query as Record<string, string>;
-    const { rows } = await pool.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT $1 OFFSET $2', [parseInt(limit), parseInt(offset)]);
-    res.json(rows);
+    const { limit = '50', cursor } = req.query as Record<string, string>;
+    const lim = Math.min(parseInt(limit) || 50, 200);
+    const cursorTs = cursor ? new Date(cursor) : new Date();
+    if (isNaN(cursorTs.getTime())) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
+    const { rows } = await pool.query(
+      'SELECT * FROM orders WHERE created_at < $1 ORDER BY created_at DESC LIMIT $2',
+      [cursorTs, lim],
+    );
+    res.json({ orders: rows, next_cursor: rows.length === lim ? rows[rows.length - 1].created_at : null });
   } catch { res.status(500).json({ error: 'Failed to fetch orders' }); }
 });
 

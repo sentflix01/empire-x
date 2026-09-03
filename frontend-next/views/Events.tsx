@@ -10,7 +10,7 @@ import { CalendarDays, MapPin, Ticket, Plus, Globe, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import moment from "moment";
+import { fromNow, fmtDateTime } from "@/lib/date";
 import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -90,7 +90,7 @@ function Events() {
                   </div>
                   {event.description && <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{event.description}</p>}
                   <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-3">
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{moment(event.start_at).format("MMM D, YYYY • h:mm A")}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{fmtDateTime(event.start_at)}</span>
                     {event.is_online ? (
                       <span className="flex items-center gap-1"><Globe className="w-3 h-3" />Online</span>
                     ) : event.location && (

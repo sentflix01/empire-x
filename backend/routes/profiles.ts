@@ -90,7 +90,10 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const lim = Math.min(parseInt(String(limit), 10) || 50, 500);
     const sortDir = sort.startsWith('-') ? 'DESC' : 'ASC';
-    const sortCol = sort.replace(/^-/, '').replace(/[^a-z0-9_]/gi, '') || 'created_at';
+    // Explicit allowlist — never interpolate unsanitized user input as a column name
+    const SORT_ALLOWLIST = new Set(['created_at', 'updated_at', 'follower_count', 'following_count', 'display_name']);
+    const rawCol = sort.replace(/^-/, '');
+    const sortCol = SORT_ALLOWLIST.has(rawCol) ? rawCol : 'created_at';
     values.push(lim);
     const { rows } = await pool.query(
       `SELECT up.*, u.is_seed FROM user_profiles up JOIN users u ON u.id = up.user_id

@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import PostCard from "@/components/feed/PostCard";
 import { useAuth } from "@/lib/AuthContext";
-import moment from "moment";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 

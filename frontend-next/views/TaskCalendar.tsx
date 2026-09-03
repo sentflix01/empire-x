@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Plus, CalendarDays, Clock, Gavel, MapPin, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import moment from "moment";
+import { fromNow, fmtTime } from "@/lib/date";
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addDays, addMonths, isSameMonth, isSameDay, format
@@ -224,7 +224,7 @@ function TaskCalendar() {
                         <Badge variant="outline" className={`text-[10px] shrink-0 ${STATUS_STYLES[item.task.status]}`}>{item.task.status}</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {TASK_TYPES[item.task.task_type]?.split(" ").slice(1).join(" ")} • Due {moment(item.task.deadline).format("h:mm A")}
+                        {TASK_TYPES[item.task.task_type]?.split(" ").slice(1).join(" ")} • Due {fmtTime(item.task.deadline)}
                       </p>
                       <div className="flex flex-wrap gap-3 mt-1.5 text-xs">
                         {item.task.location && (
@@ -266,7 +266,7 @@ function TaskCalendar() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{item.task.title}</p>
-                      <p className="text-xs text-muted-foreground">{moment(item.date).fromNow()}</p>
+                      <p className="text-xs text-muted-foreground">{fromNow(item.date)}</p>
                     </div>
                     <Badge variant="outline" className={`text-[10px] shrink-0 ${STATUS_STYLES[item.task.status]}`}>{item.task.status}</Badge>
                   </div>

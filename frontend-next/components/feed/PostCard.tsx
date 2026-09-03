@@ -11,7 +11,7 @@ import {
   Maximize2, X, Reply, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
-import moment from 'moment';
+import { fromNow } from '@/lib/date';
 import TickerBar from './TickerBar';
 import PostCardMenu from './PostCardMenu';
 import BusinessShowroomFeed from './BusinessShowroomFeed';
@@ -287,7 +287,7 @@ function PollPost({ post }: { post: Post }) {
       </div>
       <p className="text-xs text-muted-foreground mt-2">
         {total} vote{total !== 1 ? 's' : ''}
-        {isEnded ? ' · Poll ended' : post.poll_ends_at ? ` · Ends ${moment(post.poll_ends_at).fromNow()}` : ''}
+        {isEnded ? ' · Poll ended' : post.poll_ends_at ? ` · Ends ${fromNow(post.poll_ends_at)}` : ''}
       </p>
     </div>
   );
@@ -528,7 +528,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            {viewMode === 'business' ? t('feed.businessShowroom') : moment(post.created_at).fromNow()}
+            {viewMode === 'business' ? t('feed.businessShowroom') : fromNow(post.created_at)}
           </p>
         </div>
         {/* Profile Peek button */}

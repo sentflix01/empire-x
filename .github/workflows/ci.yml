@@ -135,11 +135,12 @@ jobs:
           NEXT_PUBLIC_SENTRY_DSN: ""
 
   # ── Security audit ───────────────────────────────────────────────────────────
-  # Advisory until the dependency backlog is cleared; then flip
-  # --audit-level=high into a hard gate.
+  # Hard gate at --audit-level=high for both packages.
+  # "high" catches CVSS ≥7.0. Critical and high severity vulnerabilities
+  # must be resolved before a merge to main can land.
   # Uses --package-lock-only so no npm ci needed — saves ~2 min per run.
   audit:
-    name: Security Audit (advisory)
+    name: Security Audit (blocking — high+)
     needs: check-skip
     if: needs.check-skip.outputs.skip != 'true'
     runs-on: ubuntu-latest
@@ -147,7 +148,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Audit backend
-        run: npm audit --audit-level=high --prefix backend --package-lock-only || true
+        run: npm audit --audit-level=high --prefix backend --package-lock-only
 
       - name: Audit frontend (Next.js)
-        run: npm audit --audit-level=high --prefix frontend-next --package-lock-only --legacy-peer-deps || true
+        run: npm audit --audit-level=high --prefix frontend-next --package-lock-only --legacy-peer-deps

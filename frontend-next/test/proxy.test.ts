@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isPublicPath } from '@/proxy';
+import { isPublicPath } from '@/lib/publicPaths';
 
 describe('public route policy', () => {
   it.each([

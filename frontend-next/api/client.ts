@@ -60,10 +60,28 @@ export function getAccessToken() {
 /**
  * Silently obtain a fresh access token via the HttpOnly refresh cookie.
  * Deduplicated across callers. Returns true when a token is now in memory.
+ *
+ * BUG-7 fix: we attempt the refresh call even when the nb_auth hint cookie
+ * is absent. Some browsers (Safari ITP, Firefox strict mode) clear JS-readable
+ * cookies while preserving HttpOnly cookies, which would otherwise cause a
+ * false-negative — the user appears logged out but has a valid session.
+ * The hint cookie remains the primary signal for the Next.js edge middleware;
+ * here we fall through to a single cheap network call to be sure.
  */
+let _ensureInflight: Promise<boolean> | null = null;
+
 export async function ensureFreshToken(): Promise<boolean> {
   if (_accessToken) return true;
-  if (!hasAuthHint()) return false;
+  // Deduplicate concurrent calls (e.g. multiple components mounting at once)
+  if (_ensureInflight) return _ensureInflight;
+  _ensureInflight = _doRefresh().finally(() => { _ensureInflight = null; });
+  return _ensureInflight;
+}
+
+async function _doRefresh(): Promise<boolean> {
+  // Fast path: if neither the hint cookie NOR any other session signal exists
+  // we can skip the network call on truly anonymous page loads.
+  // We still attempt if the hint is missing because of ITP/browser quirks.
   try {
     const r = await axios.post(
       `${API_BASE_URL}/api/auth/refresh`,
@@ -75,6 +93,8 @@ export async function ensureFreshToken(): Promise<boolean> {
     storeToken(token);
     return true;
   } catch {
+    // 401 = no valid refresh cookie — truly logged out. Clear stale hint cookie.
+    clearHintCookie();
     return false;
   }
 }
