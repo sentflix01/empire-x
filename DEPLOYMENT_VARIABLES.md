@@ -1,6 +1,6 @@
 # Complete Deployment Variables Checklist
 
-This document lists **ALL** environment variables and secrets needed for a complete Render + Supabase + Vercel deployment from scratch.
+This document lists **ALL** environment variables and secrets needed for a complete Render + PostgreSQL + Vercel deployment from scratch. The current production target is Neon.
 
 ---
 
@@ -12,7 +12,7 @@ Set these in: **GitHub → Settings → Secrets and variables → Actions**
 
 | Secret Name | Value | Where to Get It |
 |---|---|---|
-| `SUPABASE_DATABASE_URL` | `postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?sslmode=require` | Supabase → Project Settings → Database → Connection string (URI); used by GitHub migration jobs |
+| `DATABASE_URL` | Neon direct connection URI with `sslmode=require&channel_binding=require` | Neon Console → Connect → disable Connection pooling → copy URI; used by GitHub migration jobs |
 | `VERCEL_TOKEN` | Personal access token starting with `vercel_` | Vercel → Settings → Tokens → Create token |
 | `RENDER_API_KEY` | API key from Render account | Render → Account Settings → API Keys → Create Key |
 | `RENDER_SERVICE_ID` | Service ID from Render dashboard | Render → Backend service → Settings → Service ID |
@@ -37,7 +37,7 @@ Set these in: **Render → Backend Service → Environment → Environment Varia
 
 | Variable | Value | Notes |
 |---|---|---|
-| `DATABASE_URL` | `postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?sslmode=require` | Supabase connection; use the same database as GitHub's `SUPABASE_DATABASE_URL` |
+| `DATABASE_URL` | Neon direct connection URI with `sslmode=require&channel_binding=require` | Use the same direct Neon database as GitHub's `DATABASE_URL` secret |
 | `JWT_SECRET` | 64+ character random hex string | Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `NODE_ENV` | `production` | Enables security headers, prod rate limits |
 | `FRONTEND_URL` | `https://halehame-eosin.vercel.app` | Can be comma-separated for multiple origins |
@@ -144,20 +144,18 @@ Set these in: **Vercel → Project → Settings → Environment Variables**
 
 ## Step-by-Step Setup Instructions
 
-### Step 1: Create Supabase Database
+### Step 1: Connect the Neon Database
 
-1. Go to https://supabase.com → Sign up
-2. Create new project
-3. Wait for project to initialize
-4. Go to **Project Settings → Database → Connection Pooling**
-   - Copy the **Connection string (URI)** — this is your `DATABASE_URL`
-5. Keep this browser tab open; you'll need it for Step 4
+1. Open the Neon project → **Connect**.
+2. Select the **production** branch.
+3. Turn **Connection pooling** off and copy the direct connection URI. This is required for migrations and backups.
+4. Keep the URI private; it is your `DATABASE_URL` and must never be committed.
 
 ### Step 2: Set GitHub Secrets
 
 1. Go to https://github.com/sentflix01/empire-x → Settings → Secrets and variables → Actions
 2. Add each **Critical Secret** from Section 1 above:
-   - `SUPABASE_DATABASE_URL` (from Supabase)
+   - `DATABASE_URL` (the direct Neon URI from Step 1)
    - `VERCEL_TOKEN` (create new Vercel token)
    - `RENDER_API_KEY` (create in Render)
    - `RENDER_SERVICE_ID` (copy from Render backend service)

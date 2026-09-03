@@ -1,18 +1,18 @@
-name: DB migrate -> Supabase (manual)
+name: DB migrate -> PostgreSQL (manual)
 
-# Runs all pending migrations against the Supabase production database.
-# Use this when you add a new migrate*.js file and want to apply it to Supabase
+# Runs all pending migrations against the production PostgreSQL database.
+# Use this when you add a new migrate*.js file and want to apply it to production
 # without waiting for a full Render deploy.
 #
-# Requires SUPABASE_DATABASE_URL secret (found in Supabase → Project Settings
-# → Database → Connection string → URI, use the "Transaction" pooler URL).
+# Requires the DATABASE_URL secret. For Neon, use the direct (non-pooled)
+# connection string from the Console for migrations.
 
 on:
   workflow_dispatch:
 
 jobs:
   migrate:
-    name: Run migrations on Supabase
+    name: Run migrations on PostgreSQL
     runs-on: ubuntu-latest
 
     steps:
@@ -28,13 +28,13 @@ jobs:
 
       - name: Validate secrets
         run: |
-          if [ -z "${{ secrets.SUPABASE_DATABASE_URL }}" ]; then
-            echo "ERROR: SUPABASE_DATABASE_URL secret is not set."
+          if [ -z "${{ secrets.DATABASE_URL }}" ]; then
+            echo "ERROR: DATABASE_URL secret is not set."
             echo "Go to: GitHub → Settings → Secrets and variables → Actions → New repository secret"
-            echo "Value: Supabase → Project Settings → Database → Connection string (Transaction pooler URI)"
+            echo "Value: production PostgreSQL connection string (Neon: use the direct URI)"
             exit 1
           fi
-          echo "✅ SUPABASE_DATABASE_URL is set."
+          echo "✅ DATABASE_URL is set."
 
       - name: Install dependencies
         run: npm ci
@@ -44,10 +44,10 @@ jobs:
         run: node db/migrate-all.js
         working-directory: backend
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Verify tables
         run: node db/check-supabase.js
         working-directory: backend
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

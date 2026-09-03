@@ -41,29 +41,21 @@ let seeded = false;
 
 test.beforeAll(async () => {
   token = await apiLogin(A.email, A.password);
-  if (!token) return;
+  const adminToken = await apiLogin('admin@nodbusiness.app', 'Admin1234!');
+  if (!token || !adminToken) return;
 
-  // Get our user id
-  const me = await fetch(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
-  const meBody = await me.json() as { id?: string };
-  if (!meBody.id) return;
+  const adminMe = await fetch(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${adminToken}` } });
+  const adminBody = await adminMe.json() as { id?: string };
+  if (!adminBody.id) return;
 
-  // Check for an existing active product; if none, create one
-  const listRes = await fetch(`${API}/api/products?limit=1&status=active`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (listRes.ok) {
-    const body = await listRes.json() as { products?: Array<{ id: string }>; data?: Array<{ id: string }> };
-    const list = body.products ?? body.data ?? [];
-    if (list.length) { productId = list[0].id; seeded = true; return; }
-  }
-
-  // No products exist — create one (the test user becomes the seller)
+  // Use a fresh admin-owned product for every run. The buyer must not be the
+  // seller, otherwise ProductDetail correctly hides Buy Now and the UI flow is
+  // never exercised.
   const createRes = await fetch(`${API}/api/products`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
     body: JSON.stringify({
-      title: 'E2E Test Product',
+      title: `E2E Test Product ${Date.now()}`,
       description: 'Product created by checkout E2E test',
       price: 250,
       category: 'electronics',
@@ -75,27 +67,15 @@ test.beforeAll(async () => {
   if (createRes.ok) {
     const created = await createRes.json() as { id?: string; seller_id?: string };
     productId = created.id ?? null;
-    sellerId = created.seller_id ?? meBody.id;
+    sellerId = created.seller_id ?? adminBody.id;
     seeded = Boolean(productId);
-
-    // Create a second user as the buyer (can't buy from yourself)
-    // For simplicity, use the admin account as the buyer
-    const adminToken = await apiLogin('admin@nodbusiness.app', 'Admin1234!');
-    if (adminToken) {
-      // Use admin token for purchase tests
-      token = adminToken;
-    }
   }
 });
 
 test.describe('Checkout flow', () => {
   test.beforeEach(() => { test.skip(!seeded, 'No seeded products available — run backend seed first'); });
 
-  test.fixme('product page renders Buy Now and opens the purchase modal', async ({ page }) => {
-    // FIXME: requires a fully populated product (images, seller profile, etc.)
-    // The API-created product lacks these, so ProductDetail doesn't render
-    // the Buy Now button. Fix: seed complete product data or use the
-    // marketplace to find a fully seeded product.
+  test('product page renders Buy Now and opens the purchase modal', async ({ page }) => {
     await loginViaUi(page, A.email, A.password);
     await page.goto(`/products/${productId}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
@@ -108,8 +88,7 @@ test.describe('Checkout flow', () => {
     await expect(page.locator('text=Checkout').or(page.locator('text=Order')).first()).toBeVisible({ timeout: 10_000 });
   });
 
-  test.fixme('purchase modal delivery form accepts input and advances to checkout', async ({ page }) => {
-    // FIXME: same as above — needs fully populated product data
+  test('buyer can complete a COD order from the purchase modal', async ({ page }) => {
     await loginViaUi(page, A.email, A.password);
     await page.goto(`/products/${productId}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
@@ -126,21 +105,18 @@ test.describe('Checkout flow', () => {
     if (await addressInput.isVisible()) await addressInput.fill('Bole Road, Addis Ababa');
 
     // Advance to checkout
-    const continueBtn = page.locator('button:has-text("Continue"), button:has-text("Checkout"), button:has-text("Next")').first();
-    if (await continueBtn.isVisible()) {
-      await continueBtn.click();
-      // Checkout step should show payment options or place-order button
-      await expect(page.locator('text=Stripe').or(page.locator('text=Chapa')).or(page.locator('text=Place Order')).or(page.locator('text=Payment')).first()).toBeVisible({ timeout: 15_000 });
-    }
+    const continueBtn = page.getByRole('button', { name: /continue to checkout/i });
+    await expect(continueBtn).toBeVisible();
+    await continueBtn.click();
+
+    const codButton = page.getByRole('button', { name: /place order \(cod\)/i });
+    await expect(codButton).toBeVisible({ timeout: 15_000 });
+    await codButton.click();
+    await expect(page.getByText(/order placed successfully/i)).toBeVisible({ timeout: 15_000 });
   });
 
-  test('COD order via API creates an order (seller = self for testing)', async ({ request }) => {
-    // Use the admin user as seller (the test user is the buyer)
-    const adminToken = await apiLogin('admin@nodbusiness.app', 'Admin1234!');
-    expect(adminToken).toBeTruthy();
-    const meRes = await fetch(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${adminToken}` } });
-    const meBody = await meRes.json() as { id?: string };
-    const sellerId = meBody.id!;
+  test('COD order via API creates an order', async () => {
+    expect(sellerId).toBeTruthy();
 
     const res = await fetch(`${API}/api/orders`, {
       method: 'POST',

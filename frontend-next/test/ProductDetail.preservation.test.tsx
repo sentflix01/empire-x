@@ -288,6 +288,15 @@ describe('Preservation: Existing ProductDetail Interactions Unchanged', () => {
     );
   }, 30000);
 
+  it('renders a product with null images without crashing', async () => {
+    setupMocks({ ...BASE_PRODUCT, images: null });
+
+    await renderAndWait();
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(BASE_PRODUCT.title);
+    expect(screen.queryByRole('img', { name: BASE_PRODUCT.title })).not.toBeInTheDocument();
+  });
+
   // ─── Cart interaction ────────────────────────────────────────────────────────
 
   /**

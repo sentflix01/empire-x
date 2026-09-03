@@ -133,7 +133,15 @@ function ProductDetail() {
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
   if (!product) return <div className="text-center py-20"><p>Product not found</p></div>;
 
-  const images = (() => { try { return JSON.parse(product.images); } catch { return product.images ? [product.images] : []; } })();
+  const images: string[] = (() => {
+    try {
+      const parsed = typeof product.images === "string" ? JSON.parse(product.images) : product.images;
+      if (Array.isArray(parsed)) return parsed.filter((image): image is string => typeof image === "string" && image.length > 0);
+      return typeof parsed === "string" && parsed.length > 0 ? [parsed] : [];
+    } catch {
+      return typeof product.images === "string" && product.images.length > 0 ? [product.images] : [];
+    }
+  })();
   const inStock = product.stock === null || product.stock > 0;
 
   return (

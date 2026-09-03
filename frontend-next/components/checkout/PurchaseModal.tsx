@@ -105,33 +105,45 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
 
   const handleCheckout = async () => {
     setProcessing(true);
-    await entities.Order.create({
-      buyer_id: buyer?.id || "",
-      seller_id: seller.user_id,
-      product_id: item.id || "",
-      product_title: item.title,
-      product_type: item.product_type || "product",
-      quantity,
-      unit_price: unitPrice,
-      total_price: totalPrice,
-      currency: item.currency || "USD",
-      status: "pending",
-      buyer_name: orderInfo.name || buyer?.full_name || "",
-      buyer_phone: orderInfo.phone,
-      buyer_email: orderInfo.email,
-      delivery_address: orderInfo.address,
-      notes: orderInfo.notes,
-    });
-    await createNotification(
-      seller.user_id,
-      "order",
-      `New order: ${item.title}`,
-      `${orderInfo.name || buyer?.full_name || "A buyer"} ordered ${quantity}× ${item.title} for ${totalPrice.toLocaleString()} ${item.currency || "USD"}.`,
-      "/profile"
-    );
-    setProcessing(false);
-    setStep("success");
-    onPurchased?.();
+    try {
+      await entities.Order.create({
+        buyer_id: buyer?.id || "",
+        seller_id: seller.user_id,
+        product_id: item.id || "",
+        product_title: item.title,
+        product_type: item.product_type || "product",
+        quantity,
+        unit_price: unitPrice,
+        total_price: totalPrice,
+        currency: item.currency || "USD",
+        status: "pending",
+        buyer_name: orderInfo.name || buyer?.full_name || "",
+        buyer_phone: orderInfo.phone,
+        buyer_email: orderInfo.email,
+        delivery_address: orderInfo.address,
+        notes: orderInfo.notes,
+      });
+      // The order is already durable. A notification outage must not make a
+      // successful purchase look like it failed to the buyer.
+      try {
+        await createNotification(
+          seller.user_id,
+          "order",
+          `New order: ${item.title}`,
+          `${orderInfo.name || buyer?.full_name || "A buyer"} ordered ${quantity}× ${item.title} for ${totalPrice.toLocaleString()} ${item.currency || "USD"}.`,
+          "/profile"
+        );
+      } catch {
+        // Notifications are best-effort; the seller can still see the order.
+      }
+      setStep("success");
+      onPurchased?.();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not place the order. Please try again.";
+      toast.error(message);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   return (

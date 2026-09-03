@@ -1,8 +1,8 @@
 /**
  * db/pool.ts — PostgreSQL connection pool
  *
- * Auto-detects Supabase pooler and Neon URLs, appends pgbouncer=true for
- * transaction-mode pooling (cuts connection overhead by 30-50%).
+ * Auto-detects Supabase and Neon pooler URLs, and marks only those URLs as
+ * transaction-pooled. A direct Neon endpoint must not be treated as PgBouncer.
  * SSL forced in production and whenever the URL contains a known cloud DB host.
  */
 import dns from 'node:dns';
@@ -13,10 +13,11 @@ import logger from '../lib/logger';
 // Supabase direct connections resolve to IPv6; the pooler resolves to IPv4.
 dns.setDefaultResultOrder('ipv4first');
 
-// Supabase pooler hostnames: *.pooler.supabase.com
-const POOLER_HOSTS = /neon\.tech|\.pooler\.supabase\.com/i;
+// Neon pooled endpoint IDs include "-pooler"; Supabase poolers use a distinct
+// hostname. Direct Neon endpoints deliberately do not match this expression.
+const POOLER_HOSTS = /-pooler(?:\.|:|\/)|\.pooler\.supabase\.com/i;
 
-function buildConnectionString(raw: string | undefined): string | undefined {
+export function buildConnectionString(raw: string | undefined): string | undefined {
   if (!raw) return raw;
   if (!POOLER_HOSTS.test(raw)) return raw;
   if (raw.includes('pgbouncer=true')) return raw;
@@ -38,10 +39,14 @@ const rejectUnauthorized = process.env.DB_TLS_REJECT_UNAUTHORIZED === 'true' ? t
 const pool = new Pool({
   connectionString,
   ssl: needsSsl ? { rejectUnauthorized } : false,
-  max: parseInt(process.env.DB_POOL_MAX ?? '10', 10),
-  min: 1,
+  max: parseInt(process.env.DB_POOL_MAX ?? '5', 10),
+  // Keeping an idle connection open prevents a Neon free-plan compute from
+  // suspending. New connections are created on demand by pg.Pool.
+  min: parseInt(process.env.DB_POOL_MIN ?? '0', 10),
   idleTimeoutMillis: 60_000,
-  connectionTimeoutMillis: 8_000,
+  // A suspended Neon compute can need longer than a conventional LAN database
+  // to resume. This remains configurable for hosts with tighter SLAs.
+  connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT_MS ?? '15000', 10),
   allowExitOnIdle: false,
   statement_timeout: 10_000,
   application_name: 'nodbusiness-backend',
@@ -53,3 +58,4 @@ pool.on('error', (err: Error) => {
 
 export default pool;
 module.exports = pool;
+module.exports.buildConnectionString = buildConnectionString;
