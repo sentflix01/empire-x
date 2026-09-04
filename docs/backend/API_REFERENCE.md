@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **280** across **48** mounted modules · Generated: 2026-09-02
+> Endpoints: **280** across **48** mounted modules · Generated: 2026-09-04
 
 | Legend | Meaning |
 |---|---|
@@ -70,50 +70,50 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/admin/stats` | 🌐 public | routes/admin.ts:23 |
-| `GET` | `/api/admin/users` | 🌐 public | routes/admin.ts:53 |
-| `PUT` | `/api/admin/users/:id/role` | 🌐 public | routes/admin.ts:66 |
-| `DELETE` | `/api/admin/users/:id` | 🌐 public | routes/admin.ts:87 |
-| `POST` | `/api/admin/users/:id/ban` | 🌐 public | routes/admin.ts:115 |
-| `POST` | `/api/admin/users/:id/unban` | 🌐 public | routes/admin.ts:139 |
-| `GET` | `/api/admin/verifications` | 🌐 public | routes/admin.ts:152 |
-| `POST` | `/api/admin/verifications/:userId` | 🌐 public | routes/admin.ts:167 |
-| `DELETE` | `/api/admin/verifications/:userId` | 🌐 public | routes/admin.ts:186 |
-| `GET` | `/api/admin/posts` | 🌐 public | routes/admin.ts:198 |
-| `DELETE` | `/api/admin/posts/:id` | 🌐 public | routes/admin.ts:206 |
-| `GET` | `/api/admin/products` | 🌐 public | routes/admin.ts:219 |
-| `DELETE` | `/api/admin/products/:id` | 🌐 public | routes/admin.ts:227 |
-| `GET` | `/api/admin/orders` | 🌐 public | routes/admin.ts:233 |
-| `GET` | `/api/admin/reports` | 🌐 public | routes/admin.ts:242 |
-| `PUT` | `/api/admin/reports/:id` | 🌐 public | routes/admin.ts:251 |
-| `PUT` | `/api/admin/users/:id/verify` | 🌐 public | routes/admin.ts:259 |
-| `GET` | `/api/admin/stats/revenue` | 🌐 public | routes/admin.ts:267 |
-| `GET` | `/api/admin/audit-logs` | 🌐 public | routes/admin.ts:287 |
+| `GET` | `/api/admin/stats` | 🌐 public | routes/admin.ts:24 |
+| `GET` | `/api/admin/users` | 🌐 public | routes/admin.ts:54 |
+| `PUT` | `/api/admin/users/:id/role` | 🌐 public | routes/admin.ts:87 |
+| `DELETE` | `/api/admin/users/:id` | 🌐 public | routes/admin.ts:108 |
+| `POST` | `/api/admin/users/:id/ban` | 🌐 public | routes/admin.ts:136 |
+| `POST` | `/api/admin/users/:id/unban` | 🌐 public | routes/admin.ts:162 |
+| `GET` | `/api/admin/verifications` | 🌐 public | routes/admin.ts:175 |
+| `POST` | `/api/admin/verifications/:userId` | 🌐 public | routes/admin.ts:190 |
+| `DELETE` | `/api/admin/verifications/:userId` | 🌐 public | routes/admin.ts:209 |
+| `GET` | `/api/admin/posts` | 🌐 public | routes/admin.ts:221 |
+| `DELETE` | `/api/admin/posts/:id` | 🌐 public | routes/admin.ts:235 |
+| `GET` | `/api/admin/products` | 🌐 public | routes/admin.ts:248 |
+| `DELETE` | `/api/admin/products/:id` | 🌐 public | routes/admin.ts:262 |
+| `GET` | `/api/admin/orders` | 🌐 public | routes/admin.ts:268 |
+| `GET` | `/api/admin/reports` | 🌐 public | routes/admin.ts:283 |
+| `PUT` | `/api/admin/reports/:id` | 🌐 public | routes/admin.ts:292 |
+| `PUT` | `/api/admin/users/:id/verify` | 🌐 public | routes/admin.ts:300 |
+| `GET` | `/api/admin/stats/revenue` | 🌐 public | routes/admin.ts:308 |
+| `GET` | `/api/admin/audit-logs` | 🌐 public | routes/admin.ts:328 |
 
 ## ai — ai
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/ai/status` | 🌐 public | routes/ai.ts:11 |
-| `POST` | `/api/ai/generate` | 🔒 auth | routes/ai.ts:15 |
-| `POST` | `/api/ai/chat` | 🔒 auth | routes/ai.ts:31 |
+| `GET` | `/api/ai/status` | 🌐 public | routes/ai.ts:49 |
+| `POST` | `/api/ai/generate` | 🔒 auth | routes/ai.ts:53 |
+| `POST` | `/api/ai/chat` | 🔒 auth | routes/ai.ts:70 |
 
 ## auth — Authentication endpoints
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
 | `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:140 |
-| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:228 |
-| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:285 |
-| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:325 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:435 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:534 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:568 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:603 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:665 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:717 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:762 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:781 |
+| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:234 |
+| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:323 |
+| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:363 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:473 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:598 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:632 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:667 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:729 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:781 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:826 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:845 |
 
 ## businessApiKeys — Business API key management
 
@@ -378,12 +378,12 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/products/` | ⚪ optional | routes/products.ts:32 |
-| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:65 |
-| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:74 |
-| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:87 |
-| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:147 |
-| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:159 |
+| `GET` | `/api/products/` | ⚪ optional | routes/products.ts:34 |
+| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:67 |
+| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:76 |
+| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:89 |
+| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:149 |
+| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:161 |
 
 ## profiles — profiles
 
@@ -395,11 +395,11 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `GET` | `/api/profiles/follows` | 🔒 auth | routes/profiles.ts:56 |
 | `GET` | `/api/profiles/:id` | ⚪ optional | routes/profiles.ts:63 |
 | `GET` | `/api/profiles/` | ⚪ optional | routes/profiles.ts:74 |
-| `POST` | `/api/profiles/` | 🔒 auth | routes/profiles.ts:106 |
-| `PUT` | `/api/profiles/me/upsert` | 🔒 auth | routes/profiles.ts:119 |
-| `PUT` | `/api/profiles/:id` | 🔒 auth | routes/profiles.ts:137 |
-| `PATCH` | `/api/profiles/me/ticker` | 🔒 auth | routes/profiles.ts:151 |
-| `POST` | `/api/profiles/follow/:targetUserId` | 🔒 auth | routes/profiles.ts:177 |
+| `POST` | `/api/profiles/` | 🔒 auth | routes/profiles.ts:109 |
+| `PUT` | `/api/profiles/me/upsert` | 🔒 auth | routes/profiles.ts:122 |
+| `PUT` | `/api/profiles/:id` | 🔒 auth | routes/profiles.ts:140 |
+| `PATCH` | `/api/profiles/me/ticker` | 🔒 auth | routes/profiles.ts:154 |
+| `POST` | `/api/profiles/follow/:targetUserId` | 🔒 auth | routes/profiles.ts:180 |
 
 ## proxy — Public Proxy Route
 

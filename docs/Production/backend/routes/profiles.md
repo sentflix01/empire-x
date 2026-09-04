@@ -21,11 +21,11 @@ User profile system: fetch/upsert profile rows, follow/unfollow toggle inside a 
 | `GET` | `/api/profiles/follows` | auth | 56 |
 | `GET` | `/api/profiles/:id` | optional | 63 |
 | `GET` | `/api/profiles/` | optional | 74 |
-| `POST` | `/api/profiles/` | auth | 106 |
-| `PUT` | `/api/profiles/me/upsert` | auth | 119 |
-| `PUT` | `/api/profiles/:id` | auth | 137 |
-| `PATCH` | `/api/profiles/me/ticker` | auth | 151 |
-| `POST` | `/api/profiles/follow/:targetUserId` | auth | 177 |
+| `POST` | `/api/profiles/` | auth | 109 |
+| `PUT` | `/api/profiles/me/upsert` | auth | 122 |
+| `PUT` | `/api/profiles/:id` | auth | 140 |
+| `PATCH` | `/api/profiles/me/ticker` | auth | 154 |
+| `POST` | `/api/profiles/follow/:targetUserId` | auth | 180 |
 
 ## 4. What does it touch?
 

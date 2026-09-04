@@ -15,9 +15,9 @@ AI endpoints: product description generation and AI chat assistant, gated by fea
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/ai/status` | public | 11 |
-| `POST` | `/api/ai/generate` | auth | 15 |
-| `POST` | `/api/ai/chat` | auth | 31 |
+| `GET` | `/api/ai/status` | public | 49 |
+| `POST` | `/api/ai/generate` | auth | 53 |
+| `POST` | `/api/ai/chat` | auth | 70 |
 
 ## 4. What does it touch?
 

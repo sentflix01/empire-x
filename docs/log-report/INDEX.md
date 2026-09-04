@@ -5,6 +5,36 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-04 | CI/CD | ci: safer skip-guard — whitelist docs-bot by author, remove broad actor check | [fbf0b7b68](2026-09-04-fbf0b7b68-safer-skip-guard-whitelist-docs-bot-by-author-re.md) |
+| 2026-09-04 | CI/CD | ci: safer skip-guard — whitelist docs-bot by author, remove broad actor check | [0af283096](2026-09-04-0af283096-safer-skip-guard-whitelist-docs-bot-by-author-re.md) |
+| 2026-09-04 | Feature | feat: Google-only login and register pages — remove email/password forms | [7bf14a586](2026-09-04-7bf14a586-google-only-login-and-register-pages-remove-emai.md) |
+| 2026-09-04 | Bugfix | fix(lint): allow unlimited warnings so lint exits 0 with no errors | [bf69dd1e3](2026-09-04-bf69dd1e3-allow-unlimited-warnings-so-lint-exits-0-with-no.md) |
+| 2026-09-04 | Maintenance | Merge pull request #27 from sentflix01/fix/eslint-no-empty-errors | [dfd5eeec4](2026-09-04-dfd5eeec4-merge-pull-request-27-from-sentflix01-fix-eslint.md) |
+| 2026-09-04 | Bugfix | fix(lint): disable no-empty rule — empty catch blocks are intentional | [f4b6439e5](2026-09-04-f4b6439e5-disable-no-empty-rule-empty-catch-blocks-are-int.md) |
+| 2026-09-04 | Bugfix | fix(lint): drop eslint-config-next spread, use direct plugins | [c5b265942](2026-09-04-c5b265942-drop-eslint-config-next-spread-use-direct-plugin.md) |
+| 2026-09-04 | Bugfix | fix(lint): drop eslint-config-next spread, use direct plugins — eliminates pathMatches crash | [4edf6b6a1](2026-09-04-4edf6b6a1-drop-eslint-config-next-spread-use-direct-plugin.md) |
+| 2026-09-04 | Bugfix | fix: migrate32/33 accept trackPool param, switch lint to next lint | [64c912d49](2026-09-04-64c912d49-migrate32-33-accept-trackpool-param-switch-lint-.md) |
+| 2026-09-04 | Bugfix | fix: migrate32/33 accept trackPool param, switch lint to next lint | [9bd35dfc9](2026-09-04-9bd35dfc9-migrate32-33-accept-trackpool-param-switch-lint-.md) |
+| 2026-09-04 | Bugfix | fix: migrate31 standalone pool undefined, remove public/** from eslint ignores | [45167738e](2026-09-04-45167738e-migrate31-standalone-pool-undefined-remove-publi.md) |
+| 2026-09-04 | Bugfix | fix: migrate31 standalone pool undefined, remove public/** from eslint ignores | [59fbc0900](2026-09-04-59fbc0900-migrate31-standalone-pool-undefined-remove-publi.md) |
+| 2026-09-04 | Maintenance | chore: remove Neon, use Supabase as sole DB provider | [690d2f69d](2026-09-04-690d2f69d-remove-neon-use-supabase-as-sole-db-provider.md) |
+| 2026-09-04 | Maintenance | chore: remove Neon, use Supabase as sole DB provider | [9e869c322](2026-09-04-9e869c322-remove-neon-use-supabase-as-sole-db-provider.md) |
+| 2026-09-03 | Bugfix | fix: harden Neon configuration and checkout | [192b5c264](2026-09-03-192b5c264-harden-neon-configuration-and-checkout.md) |
+| 2026-09-03 | Maintenance | Merge pull request #26 from sentflix01/codex/fix-production-ci-and-migrations | [9969983c2](2026-09-03-9969983c2-merge-pull-request-26-from-sentflix01-codex-fix-.md) |
+| 2026-09-03 | Bugfix | fix: stabilize production CI and migrations | [216667b2e](2026-09-03-216667b2e-stabilize-production-ci-and-migrations.md) |
+| 2026-09-03 | Bugfix | fix(ci): eslint pathMatches crash — explicit target, pre-hoist globalIgnores | [ea8fb387d](2026-09-03-ea8fb387d-eslint-pathmatches-crash-explicit-target-pre-hoi.md) |
+| 2026-09-03 | Bugfix | fix(ci): eslint pathMatches crash — add explicit target and pre-hoist globalIgnores | [47233fa52](2026-09-03-47233fa52-eslint-pathmatches-crash-add-explicit-target-and.md) |
+| 2026-09-03 | Bugfix | fix: accept self-signed TLS certs for Redis/DB on Render, clean startup logs | [70f72d8cb](2026-09-03-70f72d8cb-accept-self-signed-tls-certs-for-redis-db-on-ren.md) |
+| 2026-09-03 | Bugfix | fix: accept self-signed TLS certs for Redis/DB on Render, clean startup logs | [5e5fc11e8](2026-09-03-5e5fc11e8-accept-self-signed-tls-certs-for-redis-db-on-ren.md) |
+| 2026-09-03 | Bugfix | fix: socket.io 4.8.1, checkbox visibility, register UI | [4813ac261](2026-09-03-4813ac261-socket-io-4-8-1-checkbox-visibility-register-ui.md) |
+| 2026-09-03 | Bugfix | fix: downgrade socket.io to 4.8.1 (4.8.4 doesn't exist), fix checkbox border visibility | [c77e7b5ee](2026-09-03-c77e7b5ee-downgrade-socket-io-to-4-8-1-4-8-4-doesn-t-exist.md) |
+| 2026-09-03 | Maintenance | Merge pull request #25 from sentflix01/fix/security-audit-dependencies | [803725d24](2026-09-03-803725d24-merge-pull-request-25-from-sentflix01-fix-securi.md) |
+| 2026-09-03 | Bugfix | fix: rename middleware.ts back to proxy.ts + unwrap paginated admin responses | [42835ed3e](2026-09-03-42835ed3e-rename-middleware-ts-back-to-proxy-ts-unwrap-pag.md) |
+| 2026-09-03 | Bugfix | fix: resolve high-severity npm audit vulnerabilities | [39baecbb2](2026-09-03-39baecbb2-resolve-high-severity-npm-audit-vulnerabilities.md) |
+| 2026-09-03 | Maintenance | Merge pull request #24 from sentflix01/fix/auth-google-deep-audit | [efe6de67f](2026-09-03-efe6de67f-merge-pull-request-24-from-sentflix01-fix-auth-g.md) |
+| 2026-09-03 | Bugfix | fix: production issues — DB migration secret, Google Sign-In 500, startup checks | [63a4c076a](2026-09-03-63a4c076a-production-issues-db-migration-secret-google-sig.md) |
+| 2026-09-03 | Testing | test: deep auth unit + E2E test suite (Google Sign-In + token lifecycle) | [d94b0b225](2026-09-03-d94b0b225-deep-auth-unit-e2e-test-suite-google-sign-in-tok.md) |
+| 2026-09-03 | Bugfix | fix: security audit + auth hardening across backend and frontend | [1f4fbe4e2](2026-09-03-1f4fbe4e2-security-audit-auth-hardening-across-backend-and.md) |
 | 2026-09-03 | Maintenance | Merge pull request #23 from sentflix01/fix/vercel-deploy-latency | [f19a4a672](2026-09-03-f19a4a672-merge-pull-request-23-from-sentflix01-fix-vercel.md) |
 | 2026-09-02 | Bugfix | fix: sanitize backup database URLs | [7a529f26a](2026-09-02-7a529f26a-sanitize-backup-database-urls.md) |
 | 2026-09-02 | Bugfix | fix: clarify Google sign-in failures | [cabc43284](2026-09-02-cabc43284-clarify-google-sign-in-failures.md) |

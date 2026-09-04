@@ -16,17 +16,17 @@ Authentication and account lifecycle: register with OTP email verification, veri
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `POST` | `/api/auth/register` | public | 140 |
-| `POST` | `/api/auth/verify-otp` | public | 228 |
-| `POST` | `/api/auth/resend-otp` | public | 285 |
-| `POST` | `/api/auth/login` | public | 325 |
-| `POST` | `/api/auth/google` | public | 435 |
-| `GET` | `/api/auth/me` | auth | 534 |
-| `POST` | `/api/auth/forgot-password` | public | 568 |
-| `POST` | `/api/auth/reset-password` | public | 603 |
-| `PUT` | `/api/auth/change-password` | auth | 665 |
-| `POST` | `/api/auth/refresh` | public | 717 |
-| `POST` | `/api/auth/logout` | public | 762 |
-| `POST` | `/api/auth/logout-all` | auth | 781 |
+| `POST` | `/api/auth/verify-otp` | public | 234 |
+| `POST` | `/api/auth/resend-otp` | public | 323 |
+| `POST` | `/api/auth/login` | public | 363 |
+| `POST` | `/api/auth/google` | public | 473 |
+| `GET` | `/api/auth/me` | auth | 598 |
+| `POST` | `/api/auth/forgot-password` | public | 632 |
+| `POST` | `/api/auth/reset-password` | public | 667 |
+| `PUT` | `/api/auth/change-password` | auth | 729 |
+| `POST` | `/api/auth/refresh` | public | 781 |
+| `POST` | `/api/auth/logout` | public | 826 |
+| `POST` | `/api/auth/logout-all` | auth | 845 |
 
 ## 4. What does it touch?
 

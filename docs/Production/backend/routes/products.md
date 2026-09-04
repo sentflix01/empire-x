@@ -15,12 +15,12 @@ Marketplace catalog: product listing/detail/create/edit/archive by sellers, imag
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/products/` | optional | 32 |
-| `GET` | `/api/products/:id` | optional | 65 |
-| `POST` | `/api/products/` | auth | 74 |
-| `PUT` | `/api/products/:id` | auth | 87 |
-| `DELETE` | `/api/products/:id` | auth | 147 |
-| `POST` | `/api/products/bulk-import` | auth | 159 |
+| `GET` | `/api/products/` | optional | 34 |
+| `GET` | `/api/products/:id` | optional | 67 |
+| `POST` | `/api/products/` | auth | 76 |
+| `PUT` | `/api/products/:id` | auth | 89 |
+| `DELETE` | `/api/products/:id` | auth | 149 |
+| `POST` | `/api/products/bulk-import` | auth | 161 |
 
 ## 4. What does it touch?
 
