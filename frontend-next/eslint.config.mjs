@@ -48,6 +48,8 @@ export default [
       "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+      // Empty catch blocks are intentional in many places (swallowed errors)
+      "no-empty": "off",
     },
   },
 ];
