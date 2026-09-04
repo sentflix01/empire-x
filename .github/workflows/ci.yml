@@ -30,11 +30,14 @@ jobs:
     steps:
       - id: check
         run: |
-          actor="${{ github.actor }}"
+          author_name="${{ github.event.head_commit.author.name || '' }}"
+          author_email="${{ github.event.head_commit.author.email || '' }}"
           msg="${{ github.event.head_commit.message || '' }}"
-          if [[ "$actor" == "github-actions[bot]" || "$actor" == "dependabot[bot]" ]]; then
+          # 1) Explicit skip markers in the commit message always skip.
+          if [[ "${msg}" == *"[skip ci]"* || "${msg}" == *"[ci skip]"* ]]; then
             echo "skip=true" >> $GITHUB_OUTPUT
-          elif [[ "$msg" == *"[skip ci]"* || "$msg" == *"[ci skip]"* ]]; then
+          # 2) Skip if the commit author is the known docs bot.
+          elif [[ "${author_name}" == "nodbusiness-docs-bot" || "${author_email}" == "docs-bot@nodbusiness.app" ]]; then
             echo "skip=true" >> $GITHUB_OUTPUT
           else
             echo "skip=false" >> $GITHUB_OUTPUT

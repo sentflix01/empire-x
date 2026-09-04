@@ -2,313 +2,106 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-
-import client, { storeToken } from "@/api/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Loader2, Gift } from "lucide-react";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Loader2 } from "lucide-react";
+import { storeToken } from "@/api/client";
 import AuthLayout from "@/components/AuthLayout";
-import { toast } from "@/components/ui/use-toast";
-import { useTranslation } from "react-i18next";
 import { renderGoogleSignInButton } from "@/lib/googleAuth";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function Register() {
   const searchParams = useSearchParams();
   const refCode = searchParams.get("ref") || "";
-  const verificationEmail = searchParams.get("verify")?.trim().toLowerCase() || "";
-  const { t } = useTranslation();
-
-  const [email, setEmail] = useState(verificationEmail);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [googleButtonReady, setGoogleButtonReady] = useState(false);
   const [googleUnavailable, setGoogleUnavailable] = useState(false);
-  const [showOtp, setShowOtp] = useState(Boolean(verificationEmail));
-  const [otpCode, setOtpCode] = useState("");
-  const [resendCooldown, setResendCooldown] = useState(0);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let disposed = false;
 
-    const renderGoogleButton = () => {
+    const renderButton = () => {
       if (disposed || !googleButtonRef.current || googleButtonReady) return false;
       const rendered = renderGoogleSignInButton(googleButtonRef.current, {
-        width: Math.min(384, Math.max(280, (googleButtonRef.current?.clientWidth || window.innerWidth - 64) || 384)),
+        width: Math.min(400, Math.max(280, googleButtonRef.current?.clientWidth || window.innerWidth - 64)),
         onSuccess: (result) => {
           if (result?.access_token) storeToken(result.access_token);
-          // New Google users have no profile yet — send to onboarding,
-          // consistent with email registration. AppLayout also enforces this,
-          // but going direct avoids the double-redirect.
           window.location.href = '/onboarding';
         },
-        onError: () => {
-          setError('Google Sign-In could not be completed. Please try again or register with email and password.');
+        onError: (err) => {
+          const msg = err?.message ?? '';
+          if (msg.includes('popup') || msg.includes('closed')) {
+            setError('Sign-in popup was closed. Please try again.');
+          } else if (msg.includes('network') || msg.includes('Network')) {
+            setError('Network error. Please check your connection and try again.');
+          } else {
+            setError('Google sign-in failed. Please try again.');
+          }
         },
       });
-      if (rendered) {
-        setGoogleButtonReady(true);
-        setGoogleUnavailable(false);
-      }
+      if (rendered) { setGoogleButtonReady(true); setGoogleUnavailable(false); }
       return rendered;
     };
 
-    if (renderGoogleButton()) return;
-    const retryTimer = window.setInterval(renderGoogleButton, 100);
-    const timeoutTimer = window.setTimeout(() => {
-      window.clearInterval(retryTimer);
+    if (renderButton()) return;
+    const retry = window.setInterval(renderButton, 100);
+    const timeout = window.setTimeout(() => {
+      window.clearInterval(retry);
       if (!disposed && !googleButtonReady) setGoogleUnavailable(true);
     }, 5000);
 
-    return () => {
-      disposed = true;
-      window.clearInterval(retryTimer);
-      window.clearTimeout(timeoutTimer);
-    };
+    return () => { disposed = true; window.clearInterval(retry); window.clearTimeout(timeout); };
   }, [googleButtonReady]);
-
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = window.setInterval(() => {
-      setResendCooldown(c => {
-        if (c <= 1) { window.clearInterval(timer); return 0; }
-        return c - 1;
-      });
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [resendCooldown]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-    if (!agreed) {
-      setError("You must agree to the Terms of Service and Privacy Policy to create an account.");
-      return;
-    }
-    setLoading(true);
-    try {
-      const normalizedEmail = email.trim().toLowerCase();
-      await client.post('/api/auth/register', { email: normalizedEmail, password });
-      setEmail(normalizedEmail);
-      setShowOtp(true);
-    } catch (err) {
-      // ADMIN_ONLY_MODE: 404 from backend → redirect to 404 page silently
-      if (err?.status === 404 || err?.response?.status === 404) {
-        window.location.href = '/404';
-        return;
-      }
-      setError(err.error || err.message || t('auth.registrationFailed'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerify = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      const result = await client.post('/api/auth/verify-otp', { email, otpCode });
-      if (result?.data?.access_token) {
-        storeToken(result.data.access_token);
-      }
-      if (refCode) {
-        try {
-          await client.post('/api/referral/apply', { code: refCode });
-        } catch {
-          // Silently ignore — referral errors shouldn't block registration
-        }
-      }
-      window.location.href = "/onboarding";
-    } catch (err) {
-      setError(err.error || err.message || t('auth.invalidCode'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    if (resendCooldown > 0) return;
-    setError("");
-    try {
-      await client.post('/api/auth/resend-otp', { email });
-      setResendCooldown(30);
-      toast({ title: t('auth.codeSentTitle'), description: t('auth.codeSentDesc') });
-    } catch (err) {
-      setError(err.error || err.message || t('auth.failedResend'));
-    }
-  };
-
-  if (showOtp) {
-    return (
-      <AuthLayout icon={Mail} title={t('auth.verifyEmail')} subtitle={`${t('auth.otpSent')} ${email}`}>
-        {error && (
-          <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>
-        )}
-        <div className="flex flex-col items-center gap-2 mb-6">
-          <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoComplete="one-time-code">
-            <InputOTPGroup>
-              <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-              <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
-            </InputOTPGroup>
-          </InputOTP>
-          <p className="text-xs text-muted-foreground md:hidden">Tap to enter code</p>
-        </div>
-        <Button className="w-full h-12 font-medium" onClick={handleVerify} disabled={loading || otpCode.length < 6}>
-          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('auth.verifying')}</> : t('auth.verify')}
-        </Button>
-        <p className="text-center text-sm text-muted-foreground mt-4">
-          {t('auth.didntReceive')}{" "}
-          <button
-            onClick={handleResend}
-            disabled={resendCooldown > 0}
-            className={`font-medium hover:underline ${resendCooldown > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-primary'}`}
-          >
-            {resendCooldown > 0 ? `${t('auth.resend')} (${resendCooldown}s)` : t('auth.resend')}
-          </button>
-        </p>
-      </AuthLayout>
-    );
-  }
 
   return (
     <AuthLayout
-      icon={UserPlus}
-      title={t('auth.registerTitle')}
-      subtitle={t('auth.registerSubtitle')}
+      icon={undefined}
+      title="Create your account"
+      subtitle="Join Nodbusiness — the global superapp"
       footer={
         <>
-          {t('auth.hasAccount')}{" "}
-          <Link href="/login" className="text-primary font-medium hover:underline">{t('auth.login')}</Link>
+          Already have an account?{" "}
+          <Link href="/login" className="text-primary font-medium hover:underline">Sign in</Link>
         </>
       }
     >
-      <div ref={googleButtonRef} className="mb-6 flex min-h-11 w-full justify-center" aria-label={t('auth.continueWithGoogle')} />
-      <p className="-mt-4 mb-6 text-center text-xs text-muted-foreground">
-        Google may show the account currently signed in to this browser. You can choose another account in the Google prompt.
-      </p>
-      {!googleButtonReady && !googleUnavailable && (
-        <p className="mb-6 text-center text-xs text-muted-foreground">Setting up Google Sign-In…</p>
-      )}
-      {googleUnavailable && (
-        <p className="mb-6 text-center text-xs text-muted-foreground">
-          Google Sign-In unavailable. Use email and password below.
-        </p>
-      )}
-      {(googleButtonReady || googleUnavailable) && (
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border/50" /></div>
-          <div className="relative flex justify-center">
-            <span className="bg-card px-3 text-xs text-muted-foreground font-medium uppercase tracking-wide">{t('auth.or')}</span>
-          </div>
-        </div>
-      )}
-      {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm font-medium">{error}</div>}
       {refCode && (
-        <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 flex items-center gap-2">
-          <Gift className="w-4 h-4 text-amber-600 shrink-0" />
+        <div className="mb-6 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-center">
           <p className="text-sm text-amber-700 dark:text-amber-400">
-            {t('auth.referralApplied', { code: refCode })}
+            🎁 Referral code <strong>{refCode}</strong> will be applied automatically.
           </p>
         </div>
       )}
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-1.5">
-          <Label htmlFor="email" className="text-sm font-medium text-foreground">{t('auth.email')}</Label>
-          <Input 
-            id="email" 
-            type="email" 
-            autoComplete="email" 
-            placeholder="you@example.com"
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            className="h-11 px-3 rounded-lg border border-input bg-background text-base focus:ring-2 focus:ring-primary/30 focus:border-primary"
-            required
-            maxLength={254}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="password" className="text-sm font-medium text-foreground">{t('auth.password')}</Label>
-          <Input 
-            id="password" 
-            type="password" 
-            autoComplete="new-password" 
-            placeholder="Enter a strong password"
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            className="h-11 px-3 rounded-lg border border-input bg-background text-base focus:ring-2 focus:ring-primary/30 focus:border-primary"
-            required
-            minLength={8}
-            maxLength={128}
-          />
-          <p className="text-xs text-muted-foreground">At least 8 characters with mix of letters, numbers, and symbols</p>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="confirm" className="text-sm font-medium text-foreground">{t('auth.confirmPassword')}</Label>
-          <Input 
-            id="confirm" 
-            type="password" 
-            autoComplete="new-password" 
-            placeholder="Confirm your password"
-            value={confirmPassword} 
-            onChange={(e) => setConfirmPassword(e.target.value)} 
-            className="h-11 px-3 rounded-lg border border-input bg-background text-base focus:ring-2 focus:ring-primary/30 focus:border-primary"
-            required
-            minLength={8}
-            maxLength={128}
-          />
-        </div>
-        <div>
-          <button
-            type="button"
-            onClick={() => setAgreed(v => !v)}
-            className={`w-full flex items-start gap-3 p-4 rounded-lg border transition-all text-left ${
-              agreed
-                ? 'border-primary/40 bg-primary/5'
-                : 'border-border hover:border-primary/30 hover:bg-muted/30'
-            }`}
-          >
-            <div className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors ${agreed ? 'bg-primary' : 'border-2 border-input bg-background'}`}>
-              {agreed && <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              I agree to Nodbusiness's{' '}
-              <Link
-                href="/service-agreement?tab=terms"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={e => e.stopPropagation()}
-                className="text-primary font-medium hover:underline"
-              >
-                Terms of Service
-              </Link>
-              {' '}and{' '}
-              <Link
-                href="/service-agreement?tab=privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={e => e.stopPropagation()}
-                className="text-primary font-medium hover:underline"
-              >
-                Privacy Policy
-              </Link>
-            </p>
-          </button>
-        </div>
 
-        <Button type="submit" className="w-full h-11 font-medium text-base mt-6" disabled={loading || !agreed || !email || !password || !confirmPassword}>
-          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('auth.creatingAccount')}</> : t('auth.createAccount')}
-        </Button>
-      </form>
+      {!googleButtonReady && !googleUnavailable && (
+        <div className="flex justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {googleUnavailable && (
+        <div className="py-6 text-center text-sm text-muted-foreground">
+          Google Sign-In is currently unavailable. Please try again later.
+        </div>
+      )}
+
+      <div
+        ref={googleButtonRef}
+        className="flex min-h-12 w-full justify-center"
+        aria-label="Sign up with Google"
+      />
+
+      {error && (
+        <div className="mt-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">
+          {error}
+        </div>
+      )}
+
+      <p className="mt-6 text-center text-xs text-muted-foreground">
+        By continuing, you agree to our{' '}
+        <Link href="/service-agreement?tab=terms" className="underline hover:text-foreground">Terms of Service</Link>
+        {' '}and{' '}
+        <Link href="/service-agreement?tab=privacy" className="underline hover:text-foreground">Privacy Policy</Link>.
+      </p>
     </AuthLayout>
   );
 }
