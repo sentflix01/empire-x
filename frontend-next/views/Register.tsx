@@ -1,9 +1,13 @@
 'use client';
-import React, { useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Loader2 } from "lucide-react";
-import { storeToken } from "@/api/client";
+import { Eye, EyeOff, Loader2, Mail } from "lucide-react";
+import client, { storeToken } from "@/api/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
 import { renderGoogleSignInButton } from "@/lib/googleAuth";
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -11,101 +15,297 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 function Register() {
   const searchParams = useSearchParams();
   const refCode = searchParams.get("ref") || "";
+  const verifyEmail = searchParams.get("verify")?.trim().toLowerCase() || "";
+
+  const [email, setEmail] = useState(verifyEmail);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [googleButtonReady, setGoogleButtonReady] = useState(false);
+  const [showOtp, setShowOtp] = useState(Boolean(verifyEmail));
+  const [otpCode, setOtpCode] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [googleReady, setGoogleReady] = useState(false);
   const [googleUnavailable, setGoogleUnavailable] = useState(false);
-  const googleButtonRef = useRef<HTMLDivElement | null>(null);
+  const googleRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let disposed = false;
-
-    const renderButton = () => {
-      if (disposed || !googleButtonRef.current || googleButtonReady) return false;
-      const rendered = renderGoogleSignInButton(googleButtonRef.current, {
-        width: Math.min(400, Math.max(280, googleButtonRef.current?.clientWidth || window.innerWidth - 64)),
+    const tryRender = () => {
+      if (disposed || !googleRef.current || googleReady) return false;
+      const ok = renderGoogleSignInButton(googleRef.current, {
+        width: Math.min(400, Math.max(280, googleRef.current.clientWidth || window.innerWidth - 64)),
         onSuccess: (result) => {
           if (result?.access_token) storeToken(result.access_token);
           window.location.href = '/onboarding';
         },
-        onError: (err) => {
-          const msg = err?.message ?? '';
-          if (msg.includes('popup') || msg.includes('closed')) {
-            setError('Sign-in popup was closed. Please try again.');
-          } else if (msg.includes('network') || msg.includes('Network')) {
-            setError('Network error. Please check your connection and try again.');
-          } else {
-            setError('Google sign-in failed. Please try again.');
-          }
-        },
+        onError: () => setError('Google sign-in failed. Please try email and password below.'),
       });
-      if (rendered) { setGoogleButtonReady(true); setGoogleUnavailable(false); }
-      return rendered;
+      if (ok) { setGoogleReady(true); setGoogleUnavailable(false); }
+      return ok;
     };
-
-    if (renderButton()) return;
-    const retry = window.setInterval(renderButton, 100);
-    const timeout = window.setTimeout(() => {
-      window.clearInterval(retry);
-      if (!disposed && !googleButtonReady) setGoogleUnavailable(true);
+    if (tryRender()) return;
+    const t = window.setInterval(tryRender, 100);
+    const to = window.setTimeout(() => {
+      window.clearInterval(t);
+      if (!disposed && !googleReady) setGoogleUnavailable(true);
     }, 5000);
+    return () => { disposed = true; window.clearInterval(t); window.clearTimeout(to); };
+  }, [googleReady]);
 
-    return () => { disposed = true; window.clearInterval(retry); window.clearTimeout(timeout); };
-  }, [googleButtonReady]);
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = window.setInterval(() => setResendCooldown(c => c <= 1 ? 0 : c - 1), 1000);
+    return () => window.clearInterval(t);
+  }, [resendCooldown]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (password !== confirmPassword) { setError("Passwords do not match."); return; }
+    if (!agreed) { setError("You must agree to the Terms of Service to create an account."); return; }
+    setLoading(true);
+    try {
+      const normalizedEmail = email.trim().toLowerCase();
+      await client.post('/api/auth/register', { email: normalizedEmail, password });
+      setEmail(normalizedEmail);
+      setShowOtp(true);
+    } catch (err: unknown) {
+      const e = err as { status?: number; response?: { status?: number }; error?: string; message?: string };
+      if (e?.status === 404 || e?.response?.status === 404) { window.location.href = '/404'; return; }
+      setError(e?.error || e?.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const result = await client.post('/api/auth/verify-otp', { email, otpCode });
+      if (result?.data?.access_token) storeToken(result.data.access_token);
+      if (refCode) {
+        await client.post('/api/referral/apply', { code: refCode }).catch(() => {});
+      }
+      window.location.href = "/onboarding";
+    } catch (err: unknown) {
+      const e = err as { error?: string; message?: string };
+      setError(e?.error || e?.message || 'Invalid code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (resendCooldown > 0) return;
+    try {
+      await client.post('/api/auth/resend-otp', { email });
+      setResendCooldown(30);
+    } catch (err: unknown) {
+      const e = err as { error?: string; message?: string };
+      setError(e?.error || e?.message || 'Failed to resend code.');
+    }
+  };
+
+  // OTP verification screen
+  if (showOtp) {
+    return (
+      <AuthLayout
+        icon={Mail}
+        title="Check your email"
+        subtitle={`We sent a 6-digit code to ${email}`}
+        footer={
+          <>
+            Wrong email?{' '}
+            <button onClick={() => setShowOtp(false)} className="font-medium text-primary hover:underline">
+              Go back
+            </button>
+          </>
+        }
+      >
+        {error && (
+          <div className="mb-4 rounded-lg bg-destructive/10 px-3 py-2.5 text-sm text-destructive">{error}</div>
+        )}
+        <div className="flex flex-col items-center gap-4 mb-6">
+          <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoComplete="one-time-code">
+            <InputOTPGroup>
+              {[0,1,2,3,4,5].map(i => <InputOTPSlot key={i} index={i} />)}
+            </InputOTPGroup>
+          </InputOTP>
+        </div>
+        <Button
+          className="w-full h-10 font-medium"
+          onClick={handleVerify}
+          disabled={loading || otpCode.length < 6}
+        >
+          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying…</> : 'Verify email'}
+        </Button>
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Didn&apos;t receive it?{' '}
+          <button
+            onClick={handleResend}
+            disabled={resendCooldown > 0}
+            className={`font-medium hover:underline ${resendCooldown > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-primary'}`}
+          >
+            {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
+          </button>
+        </p>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout
-      icon={undefined}
-      title="Create your account"
-      subtitle="Join Nodbusiness — the global superapp"
+      title="Create account"
+      subtitle="Start your Nodbusiness journey"
       footer={
         <>
-          Already have an account?{" "}
-          <Link href="/login" className="text-primary font-medium hover:underline">Sign in</Link>
+          Already have an account?{' '}
+          <Link href="/login" className="font-medium text-primary hover:underline">Sign in</Link>
         </>
       }
     >
       {refCode && (
-        <div className="mb-6 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-center">
-          <p className="text-sm text-amber-700 dark:text-amber-400">
-            🎁 Referral code <strong>{refCode}</strong> will be applied automatically.
-          </p>
+        <div className="mb-5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 px-3 py-2.5 text-sm text-amber-700 dark:text-amber-400">
+          🎁 Referral code <strong>{refCode}</strong> will be applied automatically.
         </div>
       )}
 
-      {!googleButtonReady && !googleUnavailable && (
-        <div className="flex justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      {/* Google button */}
+      <div className="mb-6">
+        {!googleReady && !googleUnavailable && (
+          <div className="flex h-10 items-center justify-center rounded-lg border border-input">
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+          </div>
+        )}
+        {googleUnavailable && (
+          <div className="flex h-10 items-center justify-center rounded-lg border border-input text-sm text-muted-foreground">
+            Google Sign-Up unavailable
+          </div>
+        )}
+        <div ref={googleRef} className="flex min-h-10 w-full justify-center" aria-label="Sign up with Google" />
+      </div>
+
+      {/* Divider */}
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-border" />
         </div>
-      )}
-
-      {googleUnavailable && (
-        <div className="py-6 text-center text-sm text-muted-foreground">
-          Google Sign-In is currently unavailable. Please try again later.
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-card px-3 text-muted-foreground uppercase tracking-wider">or</span>
         </div>
-      )}
+      </div>
 
-      <div
-        ref={googleButtonRef}
-        className="flex min-h-12 w-full justify-center"
-        aria-label="Sign up with Google"
-      />
-
+      {/* Error */}
       {error && (
-        <div className="mt-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">
-          {error}
-        </div>
+        <div className="mb-4 rounded-lg bg-destructive/10 px-3 py-2.5 text-sm text-destructive">{error}</div>
       )}
 
-      <p className="mt-6 text-center text-xs text-muted-foreground">
-        By continuing, you agree to our{' '}
-        <Link href="/service-agreement?tab=terms" className="underline hover:text-foreground">Terms of Service</Link>
-        {' '}and{' '}
-        <Link href="/service-agreement?tab=privacy" className="underline hover:text-foreground">Privacy Policy</Link>.
-      </p>
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            className="h-10"
+            required
+            maxLength={254}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              placeholder="At least 8 characters"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="h-10 pr-10"
+              required
+              minLength={8}
+              maxLength={128}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="confirm" className="text-sm font-medium">Confirm password</Label>
+          <Input
+            id="confirm"
+            type="password"
+            autoComplete="new-password"
+            placeholder="Repeat your password"
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            className="h-10"
+            required
+            minLength={8}
+            maxLength={128}
+          />
+        </div>
+
+        {/* Terms checkbox */}
+        <label className="flex items-start gap-3 cursor-pointer select-none">
+          <div className="relative mt-0.5 flex-shrink-0">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={e => setAgreed(e.target.checked)}
+              className="sr-only"
+            />
+            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+              agreed ? 'bg-primary border-primary' : 'border-input bg-background'
+            }`}>
+              {agreed && (
+                <svg className="w-2.5 h-2.5 text-primary-foreground" viewBox="0 0 10 10" fill="none">
+                  <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </div>
+          </div>
+          <span className="text-xs text-muted-foreground leading-relaxed">
+            I agree to the{' '}
+            <Link href="/service-agreement?tab=terms" target="_blank" rel="noopener" onClick={e => e.stopPropagation()} className="text-primary underline hover:no-underline">
+              Terms of Service
+            </Link>
+            {' '}and{' '}
+            <Link href="/service-agreement?tab=privacy" target="_blank" rel="noopener" onClick={e => e.stopPropagation()} className="text-primary underline hover:no-underline">
+              Privacy Policy
+            </Link>
+          </span>
+        </label>
+
+        <Button
+          type="submit"
+          className="w-full h-10 font-medium"
+          disabled={loading || !agreed || !email || !password || !confirmPassword}
+        >
+          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating account…</> : 'Create account'}
+        </Button>
+      </form>
     </AuthLayout>
   );
 }
 
 export default function RegisterPage() {
-  return <ErrorBoundary><Register /></ErrorBoundary>;
+  return <ErrorBoundary><Suspense><Register /></Suspense></ErrorBoundary>;
 }
