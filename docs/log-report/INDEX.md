@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-04 | Feature | feat: professional sign-in and sign-up pages with Google + email/password | [0151e4716](2026-09-04-0151e4716-professional-sign-in-and-sign-up-pages-with-goog.md) |
 | 2026-09-04 | Bugfix | fix(deploy): non-blocking migrations, verify-db script, clear error messages | [a0c5f5c54](2026-09-04-a0c5f5c54-non-blocking-migrations-verify-db-script-clear-e.md) |
 | 2026-09-04 | CI/CD | ci: safer skip-guard — whitelist docs-bot by author, remove broad actor check | [fbf0b7b68](2026-09-04-fbf0b7b68-safer-skip-guard-whitelist-docs-bot-by-author-re.md) |
 | 2026-09-04 | CI/CD | ci: safer skip-guard — whitelist docs-bot by author, remove broad actor check | [0af283096](2026-09-04-0af283096-safer-skip-guard-whitelist-docs-bot-by-author-re.md) |
