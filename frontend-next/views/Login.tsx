@@ -31,6 +31,7 @@ function Login() {
       if (disposed || !googleRef.current || googleReady) return false;
       const ok = renderGoogleSignInButton(googleRef.current, {
         width: Math.min(400, Math.max(280, googleRef.current.clientWidth || window.innerWidth - 64)),
+        buttonText: 'signin_with',
         onSuccess: () => { window.location.href = dest; },
         onError: () => setError('Google sign-in failed. Please try email and password below.'),
       });

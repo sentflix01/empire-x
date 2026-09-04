@@ -37,6 +37,7 @@ function Register() {
       if (disposed || !googleRef.current || googleReady) return false;
       const ok = renderGoogleSignInButton(googleRef.current, {
         width: Math.min(400, Math.max(280, googleRef.current.clientWidth || window.innerWidth - 64)),
+        buttonText: 'signup_with',
         onSuccess: (result) => {
           if (result?.access_token) storeToken(result.access_token);
           window.location.href = '/onboarding';
