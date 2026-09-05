@@ -47,6 +47,12 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
       { protocol: "https", hostname: "unpkg.com" },
       { protocol: "https", hostname: "raw.githubusercontent.com" },
+      // Seeded story media (db/seed.js) and showroom gallery fallback images
+      // (components/showroom/SectionRenderer.tsx) use picsum.photos.
+      { protocol: "https", hostname: "picsum.photos" },
+      { protocol: "https", hostname: "fastly.picsum.photos" },
+      // Showroom BuilderPreview fallbacks use placehold.co.
+      { protocol: "https", hostname: "placehold.co" },
     ],
   },
 

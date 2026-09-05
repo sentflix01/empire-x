@@ -87,10 +87,10 @@ function HexStory({ group, onClick, isAdd = false, uploading = false }: HexStory
                     : <Plus className="w-6 h-6 text-amber-500" />}
                 </div>
               ) : thumbUrl && !thumbnailFailed ? (
-                <SafeImage src={thumbUrl} alt={name} className="absolute inset-0 h-full w-full object-cover" onError={() => setThumbnailFailed(true)}
-                  fallback={<SafeImage src={group?.avatar_url} alt={name} className="absolute inset-0 h-full w-full object-cover" fallback={<StoryInitial name={name} />} />} />
+                <SafeImage src={thumbUrl} alt={name} sizes="64px" className="absolute inset-0 h-full w-full object-cover" onError={() => setThumbnailFailed(true)}
+                  fallback={<SafeImage src={group?.avatar_url} alt={name} sizes="64px" className="absolute inset-0 h-full w-full object-cover" fallback={<StoryInitial name={name} />} />} />
               ) : group?.avatar_url && !thumbnailFailed ? (
-                <SafeImage src={group.avatar_url} alt={name} className="absolute inset-0 h-full w-full object-cover" onError={() => setThumbnailFailed(true)} fallback={<StoryInitial name={name} />} />
+                <SafeImage src={group.avatar_url} alt={name} sizes="64px" className="absolute inset-0 h-full w-full object-cover" onError={() => setThumbnailFailed(true)} fallback={<StoryInitial name={name} />} />
               ) : (
                 <StoryInitial name={name} />
               )}
@@ -359,6 +359,7 @@ function Stories() {
                 key={active.id}
                 src={active.media_url}
                 alt=""
+                sizes="(max-width: 768px) 100vw, 480px"
                 className="w-full h-full object-cover rounded-2xl"
                 onError={() => setMediaFailed(true)}
               />
