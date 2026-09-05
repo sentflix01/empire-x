@@ -47,6 +47,31 @@ export function getAccessToken() {
   return _accessToken;
 }
 
+// ── ensureFreshToken — used by authSlice to hydrate token on page load ────────
+// Returns true if a valid token is available (from memory or refresh cookie).
+// Returns false if the user has no valid session at all.
+let _ensureRefreshing: Promise<boolean> | null = null;
+
+export async function ensureFreshToken(): Promise<boolean> {
+  // Already have a token in memory — nothing to do
+  if (_accessToken) return true;
+
+  // Deduplicate concurrent calls
+  if (_ensureRefreshing) return _ensureRefreshing;
+
+  _ensureRefreshing = axios
+    .post(`${API_BASE_URL}/api/auth/refresh`, {}, { withCredentials: true })
+    .then(r => {
+      const newToken: string = r.data.access_token;
+      storeToken(newToken);
+      return true;
+    })
+    .catch(() => false)
+    .finally(() => { _ensureRefreshing = null; });
+
+  return _ensureRefreshing;
+}
+
 // ── Axios instance ────────────────────────────────────────────────────────────
 const client = axios.create({
   baseURL: API_BASE_URL,
