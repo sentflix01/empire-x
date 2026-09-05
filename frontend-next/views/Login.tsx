@@ -81,8 +81,9 @@ function Login() {
       {/* Google button */}
       <div className="mb-6">
         {!googleReady && !googleUnavailable && (
-          <div className="flex h-10 items-center justify-center rounded-lg border border-input">
-            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+          <div className="flex h-10 items-center justify-center gap-2 rounded-lg border border-input text-sm text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Setting up Google Sign-In…</span>
           </div>
         )}
         {googleUnavailable && (

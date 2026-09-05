@@ -144,8 +144,8 @@ test.describe('Section A — Google Sign-In UI', () => {
     // Immediately after load: either "Setting up" text is visible (script loading)
     // or the GIS container already has content (script was cached/fast).
     // Either state is valid — we assert the page does NOT show a broken UI.
-    const setupText     = page.getByText(/setting up google sign.?in/i);
-    const unavailText   = page.getByText(/google sign.?in unavailable/i);
+    const setupText     = page.getByText(/setting up google sign[ -](?:in|up)/i);
+    const unavailText   = page.getByText(/google sign[ -](?:in|up) unavailable/i);
     const gisContainer  = page.locator('div[aria-label*="Google"]');
 
     // At least one of: setup text, unavailable text, or GIS container must exist
@@ -171,8 +171,9 @@ test.describe('Section A — Google Sign-In UI', () => {
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
 
     // With script blocked, setup text or unavailable text must appear
+    // (either "Setting up Google Sign-Up…" or "Google Sign-Up unavailable")
     const setupOrUnavailable = page.getByText(
-      /setting up google sign.?in|google sign.?in unavailable/i,
+      /setting up google sign[ -](?:in|up)|google sign[ -](?:in|up) unavailable/i,
     );
     await expect(setupOrUnavailable).toBeVisible({ timeout: 8_000 });
   });
@@ -184,7 +185,7 @@ test.describe('Section A — Google Sign-In UI', () => {
 
     // Wait up to 7s for the 5-second timeout in the component to fire
     await expect(
-      page.getByText(/google sign.?in unavailable/i),
+      page.getByText(/google sign[ -](?:in|up) unavailable/i),
     ).toBeVisible({ timeout: 7_000 });
   });
 
@@ -434,3 +435,5 @@ test.describe('Section C — Email auth lifecycle', () => {
   });
 
 });
+
+
