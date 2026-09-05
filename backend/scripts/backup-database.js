@@ -41,6 +41,20 @@ function getBackupConnectionString() {
   return stripPgbouncerParam(raw);
 }
 
+// Build pg_dump arguments with optional IPv4 forcing
+function getPgDumpArgs(dumpUrl) {
+  const args = ['--no-owner', '--format=custom', dumpUrl];
+  // Force IPv4 connection if requested (helps on Render where IPv6 to Supabase fails)
+  if (process.env.BACKUP_FORCE_IPV4 === 'true') {
+    // Extract host from URL for -h flag
+    const hostMatch = dumpUrl.match(/@([^:]+):(\d+)/);
+    if (hostMatch) {
+      args.unshift('-h', hostMatch[1]);
+    }
+  }
+  return args;
+}
+
 function stripPgbouncerParam(raw) {
   if (!raw) return raw;
   // Remove pgbouncer=true parameter
@@ -186,8 +200,8 @@ async function runBackup() {
   // ── Dump (pg_dump custom format piped through gzip) ────────────────────────
   const dumpUrl = getBackupConnectionString();
 
-  await new Promise((resolve, reject) => {
-    const dump = spawn('pg_dump', ['--no-owner', '--format=custom', dumpUrl], {
+  const result = await new Promise((resolve, reject) => {
+    const dump = spawn('pg_dump', getPgDumpArgs(dumpUrl), {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     const gzip = zlib.createGzip();
@@ -202,7 +216,7 @@ async function runBackup() {
     });
     gzip.on('error', reject);
     out.on('error', reject);
-    out.on('finish', resolve);
+    out.on('finish', () => resolve({ skipped: false }));
     dump.stdout.pipe(gzip).pipe(out);
     dump.on('close', (code) => {
       if (code !== 0) {
@@ -210,19 +224,21 @@ async function runBackup() {
           // Detect auth/network failure — skip to avoid circuit breaker
           if (isAuthError(err) || isSkippableNetworkError(err)) {
             logger.warn({ err: err.message }, 'backup: skipped (auth/network issue — check DATABASE_URL and connectivity)');
-            resolve({ skipped: true, reason: 'skipped' });
+            // Clean up partial file if it exists
+            try { fs.unlinkSync(gzPath); } catch {}
+            resolve({ skipped: true, reason: isAuthError(err) ? 'auth_failure' : 'network_failure' });
           } else {
+            try { fs.unlinkSync(gzPath); } catch {}
             reject(err);
           }
         }
     });
   });
 
-  // Check if backup was skipped (auth failure)
-  if (!fs.existsSync(gzPath)) {
-    logger.warn('backup: dump skipped (likely auth failure)');
-    await recordOutcome('skipped', { reason: 'auth_failure' });
-    return { ok: false, reason: 'auth_failure' };
+  // Check if backup was skipped (auth/network failure)
+  if (result.skipped) {
+    await recordOutcome('skipped', { reason: result.reason });
+    return { ok: false, reason: result.reason };
   }
 
   const size = fs.statSync(gzPath).size;
