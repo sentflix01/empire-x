@@ -1,45 +1,93 @@
 /**
- * Migration 26 — Performance indexes for messages and conversations.
- *
- * The messages table is queried heavily on conversation_id (chat room load)
- * and the conversations table is queried on participant_ids (JSONB containment).
- * These indexes were missing and caused sequential scans on every chat open.
- *
- * Also adds an index on notifications(user_id, created_at) to speed up the
- * unread-first notification feed query.
+ * migrate26.js — Mewacho group money collection tables
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./pool');
 
-const schema = `
--- ── Messages ──────────────────────────────────────────────────────────────────
--- Main access pattern: load all messages in a conversation ordered by time
-CREATE INDEX IF NOT EXISTS idx_messages_conv_created
-  ON messages(conversation_id, created_at ASC);
-
--- ── Conversations ─────────────────────────────────────────────────────────────
--- JSONB containment: participant_ids::jsonb @> $1::jsonb (used in list & find-or-create)
--- Note: use CAST() form for GIN index on text column storing JSON
-CREATE INDEX IF NOT EXISTS idx_conversations_participant_ids
-  ON conversations USING gin(CAST(participant_ids AS jsonb));
-
--- updated_at sort: conversation list ordered by most-recent message
-CREATE INDEX IF NOT EXISTS idx_conversations_updated_at
-  ON conversations(updated_at DESC);
-
--- ── Notifications ─────────────────────────────────────────────────────────────
--- Unread-first feed: WHERE user_id = $1 ORDER BY is_read ASC, created_at DESC
-CREATE INDEX IF NOT EXISTS idx_notifications_user_unread_created
-  ON notifications(user_id, is_read, created_at DESC);
-`;
-
-async function migrate() {
+async function run() {
   const client = await pool.connect();
   try {
-    console.log('Running migration 26 — chat & notification performance indexes...');
-    await client.query(schema);
-    console.log('✅ Migration 26 complete.');
+    await client.query('BEGIN');
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS mewacho_groups (
+        id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name          TEXT NOT NULL,
+        description   TEXT,
+        purpose       TEXT NOT NULL DEFAULT 'general',
+        target_amount NUMERIC(14,2),
+        cover_photo   TEXT,
+        invite_code   TEXT UNIQUE NOT NULL DEFAULT substr(md5(random()::text), 1, 10),
+        status        TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','closed')),
+        created_by    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS mewacho_members (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        group_id   UUID NOT NULL REFERENCES mewacho_groups(id) ON DELETE CASCADE,
+        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        role       TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('admin','moderator','member')),
+        joined_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (group_id, user_id)
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS mewacho_contributions (
+        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        group_id        UUID NOT NULL REFERENCES mewacho_groups(id) ON DELETE CASCADE,
+        user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        amount          NUMERIC(14,2) NOT NULL CHECK (amount > 0),
+        payment_method  TEXT NOT NULL DEFAULT 'stripe',
+        stripe_session_id TEXT,
+        status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','confirmed','failed')),
+        is_anonymous    BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS mewacho_withdrawals (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        group_id         UUID NOT NULL REFERENCES mewacho_groups(id) ON DELETE CASCADE,
+        requested_by     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        amount           NUMERIC(14,2) NOT NULL CHECK (amount > 0),
+        destination_type TEXT NOT NULL DEFAULT 'bank',
+        destination_ref  TEXT NOT NULL,
+        status           TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected','completed')),
+        requires_approval BOOLEAN NOT NULL DEFAULT FALSE,
+        approved_by      UUID[],
+        note             TEXT,
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS mewacho_activity (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        group_id   UUID NOT NULL REFERENCES mewacho_groups(id) ON DELETE CASCADE,
+        user_id    UUID REFERENCES users(id) ON DELETE SET NULL,
+        type       TEXT NOT NULL CHECK (type IN ('contribution','message','withdrawal','system')),
+        content    TEXT,
+        metadata   JSONB DEFAULT '{}',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_mewacho_members_group ON mewacho_members(group_id)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_mewacho_members_user  ON mewacho_members(user_id)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_mewacho_contrib_group ON mewacho_contributions(group_id)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_mewacho_activity_group ON mewacho_activity(group_id, created_at DESC)`);
+
+    await client.query('COMMIT');
+    console.log('✅ Migration 26 complete — Mewacho tables created.');
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('❌ Migration 26 failed:', err.message);
     process.exit(1);
   } finally {
@@ -48,4 +96,4 @@ async function migrate() {
   }
 }
 
-migrate();
+run();

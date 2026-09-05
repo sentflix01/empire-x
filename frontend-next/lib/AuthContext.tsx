@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode } from 'react';
-import client, { storeToken, clearToken, ensureFreshToken } from '@/api/client';
+import client, { storeToken, clearToken } from '@/api/client';
 
 export interface AuthUser {
   id?: string;
@@ -25,7 +25,7 @@ interface AuthContextValue {
   refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+const AuthContext = createContext<AuthContextValue>({} as AuthContextValue);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser]                   = useState<AuthUser | null>(null);
@@ -36,36 +36,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkUserAuth = useCallback(async () => {
     if (typeof window === 'undefined') return; // SSR guard
-    // Re-hydrate the in-memory token via the HttpOnly refresh cookie (TD-014:
-    // nothing is persisted to localStorage anymore).
-    const hydrated = await ensureFreshToken();
-    if (!hydrated) {
+
+    const token = localStorage.getItem('access_token');
+
+    // No stored token — no point hitting /me, definitely logged out.
+    if (!token) {
       setIsAuth(false);
       setIsLoadingAuth(false);
       setAuthChecked(true);
       return;
     }
+
+    // Hydrate in-memory token so the axios interceptor sends the Authorization
+    // header. If the token is expired the interceptor will silently call
+    // POST /api/auth/refresh (using the HttpOnly cookie) and retry /me.
+    // We must NOT mark authChecked=true until that full round-trip is done,
+    // otherwise AppLayout will redirect to /login before the retry resolves.
+    storeToken(token);
+    setIsLoadingAuth(true);
+
     try {
-      setIsLoadingAuth(true);
+      // This await covers the full chain: original request + any silent refresh
+      // + retry. The interceptor only rejects after refresh also fails.
       const res = await client.get('/api/auth/me');
       setUser(res.data as AuthUser);
       setIsAuth(true);
       setAuthError(null);
     } catch (error: any) {
-      clearToken();
-      setUser(null);
-      setIsAuth(false);
-      const status = error?.status || error?.response?.status;
-      if (status === 404) {
-        // ADMIN_ONLY_MODE: non-admin user — redirect to 404 so it looks
-        // like the app doesn't exist for them
-        if (typeof window !== 'undefined') window.location.href = '/404';
-        return;
-      }
-      if (status === 401 || error?.response?.status === 401) {
+      // Reaching here means both the original request AND the silent refresh
+      // failed — the user genuinely has no valid session.
+      const status = error?.status ?? error?.response?.status;
+      if (status === 401) {
+        clearToken();
+        setUser(null);
+        setIsAuth(false);
         setAuthError({ type: 'auth_required', message: 'Session expired. Please log in again.' });
       }
+      // Non-401 (network error, 5xx): keep existing auth state — don't evict
+      // the user just because the server had a momentary hiccup.
     } finally {
+      // Only now is the full auth check truly complete.
       setIsLoadingAuth(false);
       setAuthChecked(true);
     }
@@ -116,3 +126,4 @@ export const useAuth = () => {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 };
+

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { usePathname, useRouter } from "next/navigation";
@@ -7,11 +7,11 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   Home, Search, MessageCircle, ShoppingBag, ClipboardList, Bell, User,
-  Crown, TrendingUp, Briefcase, GraduationCap, CalendarDays,
-  Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, Tag,
+  Plus, Crown, TrendingUp, Briefcase, GraduationCap, CalendarDays,
+  Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, MapPin, Tag,
   Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
-  PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock,
-  ArrowLeft, KanbanSquare, Settings, FileText, ClipboardCheck,
+  PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield,
+  ArrowLeft, Coins,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -23,15 +23,7 @@ import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import { toast } from "sonner";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { useRealMode } from "@/lib/RealModeContext";
-import { useProfileView } from "@/lib/ProfileViewContext";
-import { BUILDER_CATEGORY_META, BUILDER_TEMPLATES } from "@/lib/builderSections";
-import { PeopleYouMayKnow } from "@/components/suggestions/PeopleYouMayKnow";
 // AccountSettings popup replaced by /settings navigation
-
-const STUDIO_CATEGORY_COUNT = BUILDER_CATEGORY_META.length;
-const STUDIO_TEMPLATE_COUNT = BUILDER_CATEGORY_META.reduce(
-  (sum, meta) => sum + (BUILDER_TEMPLATES[meta.cat]?.length || 0), 0
-);
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
 function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string } | null }) {
@@ -48,9 +40,6 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
 
   return (
     <>
-      {/* People You May Know — only for authenticated users */}
-      {user && <PeopleYouMayKnow />}
-
       {/* Quick links */}
       <div className="bg-card dark:bg-card rounded-2xl border border-border/50 p-4">
         <div className="flex items-center gap-2 mb-3">
@@ -82,8 +71,8 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
           <span className="text-xs font-bold text-primary uppercase tracking-wide">Sponsored</span>
           <span className="text-[10px] text-muted-foreground">Ad</span>
         </div>
-        <div className="rounded-xl bg-nodbusiness-gradient p-3 mb-3 shadow-md shadow-primary/20">
-          <p className="text-white font-bold text-sm">Nodbusiness Pro</p>
+        <div className="rounded-xl bg-empire-gradient p-3 mb-3 shadow-md shadow-primary/20">
+          <p className="text-white font-bold text-sm">Empire X Pro</p>
           <p className="text-white/85 text-xs mt-1 leading-relaxed">Boost your business visibility to 10,000+ users.</p>
         </div>
         <Link href="/analytics" className="block text-center py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold shadow-sm shadow-primary/20 transition-colors">
@@ -101,7 +90,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
             </div>
             <div>
               <p className="text-white font-bold text-sm leading-tight">Showroom Studio</p>
-              <p className="text-white/75 text-[10px]">{STUDIO_TEMPLATE_COUNT} templates · {STUDIO_CATEGORY_COUNT} categories</p>
+              <p className="text-white/75 text-[10px]">27 templates · 9 categories</p>
             </div>
           </div>
         </div>
@@ -125,11 +114,11 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
         </div>
         <div className="px-3 pb-3">
           <Link
-            href="/showroom/create"
+            href="/showroom/templates"
             className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-semibold transition-all"
           >
             <Crown className="w-3.5 h-3.5" />
-            Open Studio
+            Browse Templates
           </Link>
         </div>
       </div>
@@ -141,7 +130,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
           <span className="text-sm font-semibold">Trending</span>
         </div>
         <div className="space-y-2">
-          {["#GlobalBusiness","#Nodbusiness","#Entrepreneur","#SmallBusiness","#StartupLife"].map((tag, i) => (
+          {["#AddisAbaba","#EthiopianBusiness","#EmpireX","#HabeshaLife","#EthioTech"].map((tag, i) => (
             <Link key={tag} href={`/hashtag/${tag.slice(1)}`} className="flex items-center justify-between hover:bg-secondary px-2 py-1.5 rounded-lg transition-all group">
               <div>
                 <p className="text-xs font-semibold group-hover:text-amber-600 transition-colors">{tag}</p>
@@ -159,9 +148,9 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
       {/* Footer links */}
       <div className="px-2">
         <p className="text-[10px] text-muted-foreground leading-relaxed">
-          Nodbusiness · Privacy · Terms · About · Advertising
+          Empire X · Privacy · Terms · About · Advertising
         </p>
-        <p className="text-[10px] text-muted-foreground mt-1">© 2025 Nodbusiness. All rights reserved.</p>
+        <p className="text-[10px] text-muted-foreground mt-1">© 2025 Empire X. All rights reserved.</p>
       </div>
     </>
   );
@@ -175,22 +164,17 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const router = useRouter();
   const { user, isAuthenticated, authChecked, isLoadingAuth, logout } = useAuth();
   const { realMode, toggleRealMode } = useRealMode();
-  const { activeView, setActiveView, accentTokens, isPersonal } = useProfileView();
   const tr = (key: string) => String(t(key));
   const displayName = typeof user?.full_name === 'string' ? user.full_name : 'User';
   const userEmail = typeof user?.email === 'string' ? user.email : '';
   const userInitial = displayName.charAt(0) || 'E';
   const [unreadCount, setUnreadCount] = useState(0);
-  const [unreadMessages, setUnreadMessages] = useState(0);
-  const [unreadTasks, setUnreadTasks] = useState(0);
-  const [unreadFollows, setUnreadFollows] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(true);
   const [accountOpen, setAccountOpen] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [homeTabsOpen, setHomeTabsOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userProfile, setUserProfile] = useState<{ avatar_url?: string; cover_url?: string } | null>(null);
   const { cart } = useCart();
@@ -233,23 +217,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       loadUnreadCount(user);
       connectSocket();
       const s = getSocket();
-      s.on("new_notification", (notif: any) => {
-        if (notif.type === 'message') {
-          // Don't badge if already on the messages page
-          if (!window.location.pathname.startsWith('/messages')) {
-            setUnreadMessages(c => c + 1);
-          }
-        } else if (notif.type === 'task' || notif.type === 'task_assigned' || notif.type === 'task_completed') {
-          if (!window.location.pathname.startsWith('/tasks')) {
-            setUnreadTasks(c => c + 1);
-          }
-        } else if (notif.type === 'follow' || notif.type === 'friend_request' || notif.type === 'connection') {
-          if (!window.location.pathname.startsWith('/friends')) {
-            setUnreadFollows(c => c + 1);
-          }
-        } else {
-          setUnreadCount(c => c + 1);
-        }
+      s.on("new_notification", (notif) => {
+        setUnreadCount(c => c + 1);
         toast(notif.title, {
           description: notif.body || undefined,
           duration: 5000,
@@ -289,45 +258,22 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   const loadUnreadCount = async (_u?: any) => {
     try {
-      const { data } = await client.get('/api/notifications?limit=100');
+      // Use direct client call — backend uses req.user.id from JWT, not a query param
+      const { data } = await client.get('/api/notifications?limit=60');
       const notifications = Array.isArray(data) ? data : [];
-      const unread = notifications.filter((notif: any) => !notif.is_read);
-      setUnreadMessages(unread.filter((n: any) => n.type === 'message').length);
-      setUnreadTasks(unread.filter((n: any) => ['task', 'task_assigned', 'task_completed'].includes(n.type)).length);
-      setUnreadFollows(unread.filter((n: any) => ['follow', 'friend_request', 'connection'].includes(n.type)).length);
-      setUnreadCount(unread.filter((n: any) =>
-        !['message', 'task', 'task_assigned', 'task_completed', 'follow', 'friend_request', 'connection'].includes(n.type)
-      ).length);
+      setUnreadCount(notifications.filter((notif: any) => !notif.is_read).length);
     } catch {}
   };
-
-  // Clear badge + mark notifications read when user navigates to relevant section
-  useEffect(() => {
-    if (pathname.startsWith('/messages')) {
-      setUnreadMessages(0);
-      client.post('/api/notifications/mark-read', { type: 'message' }).catch(() => {});
-    }
-    if (pathname.startsWith('/tasks')) {
-      setUnreadTasks(0);
-      client.post('/api/notifications/mark-read', { type: 'task' }).catch(() => {});
-    }
-    if (pathname.startsWith('/friends')) {
-      setUnreadFollows(0);
-      client.post('/api/notifications/mark-read', { type: 'follow' }).catch(() => {});
-    }
-    if (pathname.startsWith('/notifications')) {
-      setUnreadCount(0);
-    }
-  }, [pathname]);
 
   const mainNavItems = [
     { path: "/feed", icon: Home, label: tr('nav.home') },
     { path: "/explore", icon: TrendingUp, label: tr('nav.explore') },
-    { path: "/friends", icon: Users, label: tr('nav.friends'), badge: unreadFollows > 0 ? unreadFollows : null },
+    { path: "/friends", icon: Users, label: tr('nav.friends') },
     { path: "/businesses", icon: Store, label: tr('nav.businesses') },
     { path: "/marketplace", icon: ShoppingBag, label: tr('nav.marketplace') },
-    { path: "/tasks", icon: ClipboardList, label: tr('nav.tasks'), badge: unreadTasks > 0 ? unreadTasks : null },
-    { path: "/messages", icon: MessageCircle, label: tr('nav.messages'), badge: unreadMessages > 0 ? unreadMessages : null },
+    { path: "/tasks", icon: ClipboardList, label: tr('nav.tasks') },
+    { path: "/mewacho", icon: Coins, label: 'Mewacho' },
+    { path: "/messages", icon: MessageCircle, label: tr('nav.messages') },
     { path: "/profile", icon: User, label: tr('nav.profile') },
   ];
 
@@ -345,6 +291,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     { path: "/referral", icon: Gift, label: "Referral" },
     { path: "/coupons", icon: Tag, label: "My Coupons" },
     { path: "/analytics", icon: BarChart3, label: "Analytics" },
+    { path: "/account", icon: Lock, label: "Account Settings" },
+    { path: "/privacy", icon: Shield, label: "Privacy" },
   ];
 
   const isActive = (path: string) => {
@@ -359,21 +307,19 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       className={`flex items-center gap-3 rounded-xl transition-all text-sm font-medium group relative
         ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}
         ${isActive(path)
-          ? accentTokens.activeNavClass
+          ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
           : "text-muted-foreground hover:bg-secondary hover:text-foreground"
         }`}
     >
       <Icon className="w-4 h-4 shrink-0" />
       {!sidebarCollapsed && <span className="truncate">{label}</span>}
       {!sidebarCollapsed && badge ? (
-        <span className="ml-auto min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 px-1">
+        <span className="ml-auto w-5 h-5 bg-[#f59e0b] text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
           {badge > 9 ? "9+" : badge}
         </span>
       ) : null}
       {sidebarCollapsed && badge ? (
-        <span className="absolute top-1 right-1 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-          {badge > 9 ? "9+" : badge}
-        </span>
+        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#f59e0b] rounded-full" />
       ) : null}
       {sidebarCollapsed && (
         <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
@@ -385,8 +331,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* ── Header — fixed so it never scrolls away on any device/browser ── */}
-      <header className="fixed top-0 inset-x-0 z-50 bg-background border-b border-border shrink-0 h-14">
+      {/* ── Header ── */}
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="w-full px-4 h-14 flex items-center gap-3">
           {/* Sidebar toggle button — desktop only */}
           <button
@@ -402,56 +348,65 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           </button>
 
           {/* Logo */}
-          <Link href="/" className={`flex items-center shrink-0 transition-all ${sidebarCollapsed ? "md:w-8" : "md:w-44"}`}>
-            {sidebarCollapsed ? (
-              <Image
-                src="/brand/nodbusiness-icon.svg"
-                alt="Nodbusiness"
-                width={32}
-                height={32}
-                className="w-8 h-8 rounded-xl object-cover shadow-sm"
-                priority
-              />
-            ) : (
-              <Image
-                src="/brand/nodbusiness-logo.svg"
-                alt="Nodbusiness"
-                width={176}
-                height={27}
-                className="h-7 w-auto"
-                priority
-              />
+          <Link href="/" className={`flex items-center gap-2 shrink-0 transition-all w-8 ${sidebarCollapsed ? "md:w-8" : "md:w-44"}`}>
+            <Image
+              src="/brand/empire-x-logo.png"
+              alt="Empire X"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-xl object-cover shadow-sm"
+              priority
+            />
+            {!sidebarCollapsed && (
+              <span className="hidden md:inline font-display text-lg font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
+                Empire X
+              </span>
             )}
           </Link>
 
-          {/* Desktop Search — inline expand, pushes icons right. NO overlay popup */}
-          <div className={`hidden md:flex items-center transition-all duration-200 ${searchOpen ? 'flex-1 max-w-lg' : 'flex-1 max-w-sm'}`}>
-            <form
-              className="relative w-full"
-              onSubmit={e => {
-                e.preventDefault();
-                const q = (e.currentTarget.elements.namedItem('q') as HTMLInputElement)?.value?.trim();
-                if (q) { setSearchOpen(false); router.push(`/search?q=${encodeURIComponent(q)}`); }
-              }}
-            >
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <input
-                name="q"
-                type="search"
-                placeholder={tr('common.searchPlaceholder')}
-                onFocus={() => setSearchOpen(true)}
-                onBlur={() => setSearchOpen(false)}
-                onKeyDown={e => { if (e.key === 'Escape') { setSearchOpen(false); (e.target as HTMLInputElement).blur(); } }}
-                className="w-full pl-9 pr-4 bg-secondary border border-border rounded-full h-9 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 focus:bg-background transition-all"
-              />
-            </form>
+          {/* Desktop Search — expands overlay on focus */}
+          <div className="hidden md:flex flex-1 max-w-sm relative">
+            {searchOpen ? (
+              /* Expanded overlay mode — covers right icons */
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 z-50" style={{ width: 'calc(100% + 280px)' }}>
+                <form
+                  onSubmit={e => {
+                    e.preventDefault();
+                    const q = (e.currentTarget.elements.namedItem('q') as HTMLInputElement)?.value?.trim();
+                    if (q) { setSearchOpen(false); router.push(`/search?q=${encodeURIComponent(q)}`); }
+                  }}
+                  className="relative"
+                >
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
+                  <input
+                    name="q"
+                    type="search"
+                    autoFocus
+                    enterKeyHint="search"
+                    placeholder={tr('common.searchPlaceholder')}
+                    className="w-full pl-9 pr-10 bg-background border border-border rounded-full h-9 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 shadow-md transition-all"
+                    onKeyDown={e => { if (e.key === 'Escape') setSearchOpen(false); }}
+                  />
+                  <button type="button" onClick={() => setSearchOpen(false)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="w-4 h-4" />
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="flex items-center gap-2 w-full pl-9 pr-4 bg-secondary border border-border rounded-full h-9 text-sm text-muted-foreground hover:bg-secondary/80 hover:border-border/80 transition-all relative"
+              >
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
+                {tr('common.searchPlaceholder')}
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-1 ml-auto">
-            {/* Mobile search — solid full-width overlay covering entire top bar */}
+            {/* Mobile search — full-width overlay when open */}
             {searchOpen && (
-              <div className="md:hidden fixed inset-x-0 top-0 z-[200] h-14 flex items-center px-3 gap-2 shadow-xl"
-                style={{ backgroundColor: 'hsl(var(--background))' }}>
+              <div className="fixed inset-x-0 top-0 z-[200] h-14 bg-background border-b border-border flex items-center px-3 gap-2 shadow-lg">
                 <form className="flex-1"
                   onSubmit={e => {
                     e.preventDefault();
@@ -462,29 +417,29 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
                     <input name="mq" type="search" autoFocus enterKeyHint="search"
                       placeholder="Search people, products, tasks..."
-                      aria-label="Search"
                       onKeyDown={e => { if (e.key === 'Escape') setSearchOpen(false); }}
-                      className="w-full pl-9 pr-4 h-10 rounded-full text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 border border-primary/30 transition-all"
-                      style={{ backgroundColor: 'hsl(var(--secondary))' }} />
+                      className="w-full pl-9 pr-4 h-10 bg-secondary border border-border rounded-full text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all" />
                   </div>
                 </form>
-                <button onClick={() => setSearchOpen(false)}
-                  className="p-2 rounded-full transition-colors shrink-0 text-foreground"
-                  aria-label="Close search"
-                  style={{ backgroundColor: 'hsl(var(--secondary))' }}>
+                <button onClick={() => setSearchOpen(false)} className="p-2 rounded-full hover:bg-secondary transition-colors shrink-0 text-foreground">
                   <X className="w-5 h-5" />
                 </button>
               </div>
             )}
-            {/* Mobile search icon */}
+            {/* Mobile search icon (hidden when overlay is open) */}
             {!searchOpen && (
               <button onClick={() => setSearchOpen(true)} className="md:hidden p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Search">
                 <Search className="w-5 h-5 text-muted-foreground" />
               </button>
             )}
-            {/* Bookmarks */}
-            <Link href="/bookmarks" className="relative p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Bookmarks">
-              <Bookmark className="w-5 h-5 text-muted-foreground" />
+            {/* Cart */}
+            <Link href="/cart" className="relative p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Cart">
+              <ShoppingCart className="w-5 h-5 text-muted-foreground" />
+              {cart.count > 0 && (
+                <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {cart.count > 9 ? "9+" : cart.count}
+                </span>
+              )}
             </Link>
             {/* Notifications */}
             <Link href="/notifications" className="relative p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Notifications">
@@ -495,11 +450,35 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </span>
               )}
             </Link>
-            {/* Real/Demo mode toggle — MOVED TO SETTINGS */}
-            {/* Dark mode — MOVED TO SETTINGS */}
-            {/* Language — MOVED TO SETTINGS */}
+            {/* Real/Demo mode toggle — visible on all sizes */}
+            <button
+              onClick={toggleRealMode}
+              title={realMode ? 'Real users only — click to show all' : 'Showing all (demo+real) — click for real only'}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border transition-all ${
+                realMode
+                  ? 'bg-green-500 text-white border-green-500 shadow-sm shadow-green-500/30'
+                  : 'bg-secondary text-muted-foreground border-border/50 hover:bg-secondary/80'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full shrink-0 ${realMode ? 'bg-white' : 'bg-amber-500'}`} />
+              {realMode ? 'Real' : 'Demo'}
+            </button>
+            {/* Dark mode */}
+            <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Toggle dark mode">
+              {!mounted ? (
+                <span className="block w-5 h-5 rounded-full bg-muted-foreground/20" aria-hidden />
+              ) : theme === "dark" ? (
+                <Sun className="w-5 h-5 text-amber-400" />
+              ) : (
+                <Moon className="w-5 h-5 text-muted-foreground" />
+              )}
+            </button>
+            {/* Language */}
+            <button onClick={toggleLanguage} className="p-2 rounded-full hover:bg-secondary transition-colors flex items-center justify-center" aria-label="Toggle language" title="Switch English / አማርኛ">
+              <Languages className="w-5 h-5 text-muted-foreground" />
+            </button>
             {/* Avatar */}
-            <Link href="/profile" className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
+            <Link href="/profile" className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
               {userProfile?.avatar_url
                 ? <Image src={userProfile.avatar_url} alt={displayName} width={32} height={32} className="w-full h-full object-cover" unoptimized />
                 : (user?.full_name?.charAt(0) || "E")}
@@ -509,8 +488,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
       </header>
 
-      {/* ── Body: sidebar + main + right panel (pt-14 offsets the fixed header) ── */}
-      <div className="flex flex-1 w-full pt-14">
+      {/* ── Body: sidebar + main + right panel ── */}
+      <div className="flex flex-1 w-full">
 
         {/* ── Left Sidebar (desktop only) ── */}
         <nav className={`hidden md:flex fixed left-0 top-14 bottom-0 bg-card border-r border-border flex-col z-40 transition-all duration-200
@@ -520,14 +499,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           {!sidebarCollapsed && (
             <div className="shrink-0">
               {/* Cover + avatar */}
-              <div className="relative h-20 bg-gradient-to-r from-blue-700 to-violet-700">
+              <div className="relative h-20 bg-empire-gradient">
                 {userProfile?.cover_url && (
-                  <Image src={userProfile.cover_url} alt={`${displayName}'s cover`} fill className="object-cover" unoptimized />
+                  <Image src={userProfile.cover_url} alt="" fill className="object-cover" unoptimized />
                 )}
                 <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent" />
                 {/* Avatar overlapping cover */}
                 <Link href="/profile"
-                  className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shrink-0">
+                  className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shrink-0">
                   {userProfile?.avatar_url
                     ? <Image src={userProfile.avatar_url} alt={displayName} width={40} height={40} className="w-full h-full object-cover" unoptimized />
                     : userInitial}
@@ -545,7 +524,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           {sidebarCollapsed && (
             <div className="shrink-0 flex justify-center pt-3 pb-2 border-b border-border/40">
               <Link href="/profile" className="relative group">
-                <div className="w-9 h-9 rounded-xl ring-2 ring-border overflow-hidden bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-9 h-9 rounded-xl ring-2 ring-border overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm">
                   {userProfile?.avatar_url
                     ? <Image src={userProfile.avatar_url} alt={displayName} width={36} height={36} className="w-full h-full object-cover" unoptimized />
                     : userInitial}
@@ -559,63 +538,35 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
           {/* ── Nav links ── */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-0.5 scrollbar-thin">
-            {mainNavItems.map((item, idx) => (
-              <React.Fragment key={item.path}>
-                <NavLink {...item} />
-                {/* Personal / Business toggle — sits right below Home nav item */}
-                {item.path === "/feed" && !sidebarCollapsed && (
-                  <div className="flex items-center gap-1 px-3 py-1">
-                    <button
-                      onClick={() => { setActiveView('personal'); }}
-                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                      style={{
-                        backgroundColor: isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
-                        color: isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
-                      }}
-                    >
-                      <User className="w-3 h-3" /> Personal
-                    </button>
-                    <button
-                      onClick={() => { setActiveView('business'); }}
-                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                      style={{
-                        backgroundColor: !isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
-                        color: !isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
-                      }}
-                    >
-                      <Store className="w-3 h-3" /> Business
-                    </button>
-                  </div>
-                )}
-                {item.path === "/feed" && sidebarCollapsed && (
-                  <button
-                    onClick={() => setActiveView(activeView === 'personal' ? 'business' : 'personal')}
-                    title={`Switch to ${activeView === 'personal' ? 'Business' : 'Personal'}`}
-                    className="flex justify-center w-full py-1.5 mx-1 rounded-lg transition-colors relative group"
-                    style={{ backgroundColor: 'hsl(var(--secondary))' }}
-                  >
-                    {isPersonal
-                      ? <User className="w-4 h-4" style={{ color: accentTokens.primary }} />
-                      : <Store className="w-4 h-4" style={{ color: accentTokens.primary }} />}
-                    <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                      {activeView === 'personal' ? 'Switch to Business' : 'Switch to Personal'}
-                    </span>
-                  </button>
-                )}
-              </React.Fragment>
-            ))}
+            {mainNavItems.map(item => <NavLink key={item.path} {...item} />)}
 
             <div className="my-2 border-t border-border/40" />
 
-            {/* Showroom Studio — single gold entry into the unified wizard */}
+            {/* Create Showroom */}
             <Link
               href="/showroom/create"
-              title={sidebarCollapsed ? t('common.showroomStudio') : undefined}
-              className={`relative flex items-center gap-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-sm font-semibold transition-all shadow-sm group
-                ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}
-                ${isActive('/showroom/create') ? 'ring-2 ring-amber-400/70 ring-offset-1 ring-offset-background' : ''}`}
+              title={sidebarCollapsed ? t('common.createShowroom') : undefined}
+              className={`relative flex items-center gap-3 rounded-xl bg-empire-gradient text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm group
+                ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}`}
             >
-              <Crown className="w-4 h-4 shrink-0" />
+              <Plus className="w-4 h-4 shrink-0" />
+              {!sidebarCollapsed && <span>{t('common.createShowroom')}</span>}
+              {sidebarCollapsed && (
+                <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                  {t('common.createShowroom')}
+                </span>
+              )}
+            </Link>
+
+            {/* Showroom Studio */}
+            <Link
+              href="/showroom/templates"
+              title={sidebarCollapsed ? t('common.showroomStudio') : undefined}
+              className={`relative flex items-center gap-3 rounded-xl transition-all text-sm font-medium group
+                ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}
+                ${isActive('/showroom/templates') ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
+            >
+              <Crown className="w-4 h-4 shrink-0 text-amber-500" />
               {!sidebarCollapsed && <span>{t('common.showroomStudio')}</span>}
               {sidebarCollapsed && (
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
@@ -658,23 +609,21 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <>
                 <div className="my-2 border-t border-border/40" />
                 <NavLink path="/admin" icon={ShieldAlert} label={tr('common.adminPanel')} />
-                <NavLink path="/admin/devops" icon={KanbanSquare} label="Dev Ops" />
-            <NavLink path="/scorecard" icon={ClipboardCheck} label="Scorecard" />
               </>
             )}
             <div className="h-4" />
           </div>
 
-          {/* ── Sidebar footer — Settings ── */}
+          {/* ── Sidebar footer — logout ── */}
           <div className="border-t border-border px-2 py-2 shrink-0">
             <button
-              onClick={() => setSettingsOpen(true)}
-              title={sidebarCollapsed ? "Settings" : undefined}
-              className={`w-full flex items-center gap-2.5 rounded-xl hover:bg-secondary transition-colors text-muted-foreground text-sm font-medium
+              onClick={() => logout()}
+              title={sidebarCollapsed ? "Log out" : undefined}
+              className={`w-full flex items-center gap-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium
                 ${sidebarCollapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"}`}
             >
-              <Settings className="w-4 h-4 shrink-0" />
-              {!sidebarCollapsed && <span>Settings</span>}
+              <LogOut className="w-4 h-4 shrink-0" />
+              {!sidebarCollapsed && <span>Log out</span>}
             </button>
           </div>
         </nav>
@@ -716,9 +665,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <div className="fixed inset-y-0 left-0 z-[80] md:hidden bg-white dark:bg-card w-[84vw] max-w-sm flex flex-col shadow-2xl">
 
                 {/* ── Cover photo + avatar inside it — full width, no side padding ── */}
-                <div className="relative h-40 shrink-0 bg-nodbusiness-gradient">
+                <div className="relative h-40 shrink-0 bg-empire-gradient">
                   {userProfile?.cover_url && (
-                    <Image src={userProfile.cover_url} alt={`${displayName}'s cover`} fill className="object-cover" unoptimized />
+                    <Image src={userProfile.cover_url} alt="" fill className="object-cover" unoptimized />
                   )}
                   {/* Dark gradient at bottom so avatar stands out */}
                   <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
@@ -734,7 +683,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
                   {/* Avatar — bottom-left, INSIDE the cover area */}
                   <Link href="/profile" onClick={() => setDrawerOpen(false)}
-                    className="absolute bottom-3 left-4 w-16 h-16 rounded-2xl ring-3 ring-white/70 overflow-hidden bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-xl">
+                    className="absolute bottom-3 left-4 w-16 h-16 rounded-2xl ring-3 ring-white/70 overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-bold shadow-xl">
                     {userProfile?.avatar_url
                       ? <Image src={userProfile.avatar_url} alt={displayName} width={64} height={64} className="w-full h-full object-cover" unoptimized />
                       : userInitial}
@@ -758,62 +707,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
                 {/* ── Scrollable nav list — solid white ── */}
                 <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5 bg-white dark:bg-card">
-                  {/* Mobile drawer nav links — with red badges */}
-                  {mainNavItems.map(({ path, icon: Icon, label, badge }) => (
-                    <React.Fragment key={path}>
-                      <Link href={path} onClick={() => setDrawerOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
-                        <Icon className="w-4 h-4 shrink-0" />
-                        <span className="flex-1">{label}</span>
-                        {badge ? (
-                          <span className="min-w-[20px] h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shrink-0">
-                            {badge > 9 ? '9+' : badge}
-                          </span>
-                        ) : null}
-                      </Link>
-                      {/* Personal / Business toggle — right below Home nav item */}
-                      {path === "/feed" && (
-                        <div className="flex items-center gap-2 px-3 py-1">
-                          <button
-                            onClick={() => { setActiveView('personal'); setDrawerOpen(false); }}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all"
-                            style={{
-                              backgroundColor: isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
-                              color: isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
-                            }}
-                          >
-                            <User className="w-3 h-3" /> Personal
-                          </button>
-                          <button
-                            onClick={() => { setActiveView('business'); setDrawerOpen(false); }}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all"
-                            style={{
-                              backgroundColor: !isPersonal ? accentTokens.primary : 'hsl(var(--secondary))',
-                              color: !isPersonal ? '#fff' : 'hsl(var(--muted-foreground))',
-                            }}
-                          >
-                            <Store className="w-3 h-3" /> Business
-                          </button>
-                        </div>
-                      )}
-                    </React.Fragment>
-                  ))}
-
-                  <div className="my-2 border-t border-gray-100 dark:border-border" />
-                  <Link href="/showroom/create" onClick={() => setDrawerOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-semibold shadow-sm">
-                    <Crown className="w-4 h-4 shrink-0" /><span>{tr('common.showroomStudio')}</span>
-                  </Link>
-
-                  <div className="my-2 border-t border-gray-100 dark:border-border" />
-                  <button
-                    onClick={() => setDiscoverOpen(v => !v)}
-                    className="w-full flex items-center justify-between px-3 pt-1 pb-0.5 group"
-                  >
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.discover')}</p>
-                    <ChevronDown className={`w-3 h-3 text-gray-400 dark:text-muted-foreground transition-transform duration-200 ${discoverOpen ? 'rotate-0' : '-rotate-90'}`} />
-                  </button>
-                  {discoverOpen && extraNavItems.map(({ path, icon: Icon, label }) => (
+                  {mainNavItems.map(({ path, icon: Icon, label }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
@@ -821,14 +715,27 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   ))}
 
                   <div className="my-2 border-t border-gray-100 dark:border-border" />
-                  <button
-                    onClick={() => setAccountOpen(v => !v)}
-                    className="w-full flex items-center justify-between px-3 pt-1 pb-0.5 group"
-                  >
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.myAccount')}</p>
-                    <ChevronDown className={`w-3 h-3 text-gray-400 dark:text-muted-foreground transition-transform duration-200 ${accountOpen ? 'rotate-0' : '-rotate-90'}`} />
-                  </button>
-                  {accountOpen && accountItems.filter(i => i.path !== '/account').map(({ path, icon: Icon, label, badge }) => (
+                  <Link href="/showroom/create" onClick={() => setDrawerOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold shadow-sm">
+                    <Plus className="w-4 h-4 shrink-0" /><span>{tr('common.createShowroom')}</span>
+                  </Link>
+                  <Link href="/showroom/templates" onClick={() => setDrawerOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/showroom/templates') ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                    <Crown className="w-4 h-4 shrink-0 text-amber-500" /><span>{tr('common.showroomStudio')}</span>
+                  </Link>
+
+                  <div className="my-2 border-t border-gray-100 dark:border-border" />
+                  <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider px-3 pt-1 pb-0.5">{tr('common.discover')}</p>
+                  {extraNavItems.map(({ path, icon: Icon, label }) => (
+                    <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                      <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
+                    </Link>
+                  ))}
+
+                  <div className="my-2 border-t border-gray-100 dark:border-border" />
+                  <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider px-3 pt-1 pb-0.5">{tr('common.myAccount')}</p>
+                  {accountItems.filter(i => i.path !== '/account').map(({ path, icon: Icon, label, badge }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" />
@@ -848,16 +755,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                       <ShieldAlert className="w-4 h-4 shrink-0" /><span>Admin</span>
                     </Link>
                   )}
-                  {user?.role === 'admin' && (
-                    <Link href="/admin/devops" onClick={() => setDrawerOpen(false)}
-                      className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground transition-colors text-sm font-medium">
-                      <KanbanSquare className="w-4 h-4 shrink-0" /><span>Dev Ops</span>
-                    </Link>
-                  )}
-                  {/* Settings — opens popup (logout is inside settings) */}
-                  <button onClick={() => { setDrawerOpen(false); setSettingsOpen(true); }}
-                    className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-secondary transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium">
-                    <Settings className="w-4 h-4 shrink-0" /><span>Settings</span>
+                  <button onClick={() => { setDrawerOpen(false); logout(); }}
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium ${user?.role === 'admin' ? '' : 'flex-1'}`}>
+                    <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
                   </button>
                 </div>
               </div>
@@ -866,42 +766,25 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
           {/* Home sub-tabs tray — REMOVED as per user request */}
 
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border z-50"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom)', backgroundColor: 'hsl(var(--background))' }}>
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="flex items-center h-16 px-1">
               {/* More — LEFT */}
               <button onClick={() => { setDrawerOpen(v => !v); }}
-                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${drawerOpen ? 'text-primary' : 'text-muted-foreground'}`}>
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${drawerOpen ? 'text-amber-600' : 'text-muted-foreground'}`}>
                 <Menu className="w-5 h-5" /><span className="text-[10px] font-medium">More</span>
               </button>
-              <Link href="/explore" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/explore') ? 'text-primary' : 'text-muted-foreground'}`}>
+              <Link href="/explore" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/explore') ? 'text-amber-600' : 'text-muted-foreground'}`}>
                 <TrendingUp className={`w-5 h-5 ${isActive('/explore') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Explore</span>
               </Link>
-              {/* Messages with unread badge */}
-              <Link href="/messages" className={`relative flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/messages') ? 'text-primary' : 'text-muted-foreground'}`}>
-                <span className="relative">
-                  <MessageCircle className={`w-5 h-5 ${isActive('/messages') ? 'stroke-[2.5]' : ''}`} />
-                  {unreadMessages > 0 && (
-                    <span className="absolute -top-1 -right-1.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                      {unreadMessages > 9 ? '9+' : unreadMessages}
-                    </span>
-                  )}
-                </span>
-                <span className="text-[10px] font-medium">Messages</span>
+              <Link href="/friends" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/friends') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Friends</span>
               </Link>
-              <Link href="/friends" className={`relative flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/friends') ? 'text-primary' : 'text-muted-foreground'}`}>
-                <span className="relative">
-                  <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} />
-                  {unreadFollows > 0 && (
-                    <span className="absolute -top-1 -right-1.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                      {unreadFollows > 9 ? '9+' : unreadFollows}
-                    </span>
-                  )}
-                </span>
-                <span className="text-[10px] font-medium">Friends</span>
+              <Link href="/businesses" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/businesses') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                <Store className={`w-5 h-5 ${isActive('/businesses') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Businesses</span>
               </Link>
-              {/* Home — RIGHT */}
-              <Link href="/feed" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/feed') ? 'text-primary' : 'text-muted-foreground'}`}>
+              {/* Home — RIGHT, plain link, no chevron */}
+              <Link href="/feed" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/feed') ? 'text-amber-600' : 'text-muted-foreground'}`}>
                 <Home className={`w-5 h-5 ${isActive('/feed') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Home</span>
               </Link>
             </div>
@@ -911,65 +794,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
       {/* Push notification permission banner */}
       <PushPermissionBanner />
-
-      {/* ── Settings Popup Menu (VS Code style) ── */}
-      {settingsOpen && (
-        <>
-          {/* Invisible backdrop to close on outside click */}
-          <div className="fixed inset-0 z-[90]" onClick={() => setSettingsOpen(false)} />
-          {/* Popup — anchors above the Settings button in the sidebar footer */}
-          <div
-            className="fixed z-[100] bottom-14 left-2 w-64 rounded-xl shadow-2xl overflow-hidden border border-border"
-            style={{ backgroundColor: 'hsl(var(--card))', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}
-          >
-
-            {/* Section divider label */}
-            <div className="px-4 pt-3 pb-1">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Settings</p>
-            </div>
-
-            {/* Theme */}
-            <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground text-left hover:bg-secondary">
-              {theme === 'dark'
-                ? <Sun className="w-4 h-4 text-amber-400 shrink-0" />
-                : <Moon className="w-4 h-4 text-muted-foreground shrink-0" />}
-              <span className="font-medium flex-1">Theme</span>
-              <span className="text-xs text-muted-foreground">{theme === 'dark' ? 'Dark' : 'Light'}</span>
-            </button>
-
-            {/* Language */}
-            <button onClick={() => { toggleLanguage(); }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground text-left hover:bg-secondary">
-              <Languages className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="font-medium flex-1">Language</span>
-              <span className="text-xs font-bold text-muted-foreground">{i18n.language === 'am' ? 'አማ' : 'EN'}</span>
-            </button>
-
-            {/* Real / Demo toggle */}
-            <button onClick={toggleRealMode}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground text-left hover:bg-secondary">
-              <span className={`w-4 h-4 rounded-full shrink-0 border-2 ${realMode ? 'bg-green-500 border-green-500' : 'bg-amber-500 border-amber-500'}`} />
-              <span className="font-medium flex-1">{realMode ? 'Real Users' : 'Demo Mode'}</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${realMode ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                {realMode ? 'ON' : 'OFF'}
-              </span>
-            </button>
-
-            {/* Divider */}
-            <div className="border-t border-border my-1" />
-
-            {/* Log out */}
-            <button onClick={() => { setSettingsOpen(false); logout(); }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-destructive/10 text-red-500 transition-colors text-left">
-              <LogOut className="w-4 h-4 shrink-0" />
-              <span className="font-medium">Log out</span>
-            </button>
-
-            <div className="pb-1" />
-          </div>
-        </>
-      )}
 
     </div>
   );

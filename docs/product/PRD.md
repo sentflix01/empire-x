@@ -3,27 +3,8 @@
 > A PRD defines what to build and why, before writing any code.
 > Engineers, designers, and product managers all work from the same specification.
 > Use this template for every new major feature.
-> Last updated: August 2026
 
 ---
-
-## Acronyms Used in This Document
-
-| Acronym | Full Form |
-|---------|-----------|
-| PRD | Product Requirements Document |
-| API | Application Programming Interface |
-| UI | User Interface |
-| UX | User Experience |
-| KPI | Key Performance Indicator |
-| MAU | Monthly Active Users |
-| GMV | Gross Merchandise Value |
-| ETB | Ethiopian Birr — reference market currency |
-| USD | United States Dollar |
-| MVP | Minimum Viable Product |
-| A/B | A/B Testing — comparing two variants |
-
-------
 
 ## PRD Template
 
@@ -74,7 +55,7 @@ What still needs to be decided?
 **Target phase:** Phase 1
 
 ### Problem
-Users can't easily discover products, businesses, and services that are physically nearby. They have to search by text and have no sense of proximity.
+Users in Addis Ababa can't easily discover products, businesses, and services that are physically nearby. They have to search by text and have no sense of proximity.
 
 ### Goals
 - Users can find products and businesses within a configurable radius of their location
@@ -108,7 +89,7 @@ Users can't easily discover products, businesses, and services that are physical
 **Target phase:** Phase 1
 
 ### Problem
-Small businesses worldwide have no affordable, easy way to build a professional online presence. Setting up a website requires technical skills most don't have.
+Small businesses in Ethiopia have no affordable, easy way to build a professional online presence. Setting up a website requires technical skills most don't have.
 
 ### Goals
 - A business owner can build a professional showroom in under 30 minutes
@@ -156,34 +137,67 @@ Buyers and sellers need to communicate. Without real-time chat, negotiations hap
 
 ---
 
-## PRD-004: Chapa Payment Integration (Planned)
+## PRD-004: Chapa Payment Integration
 
-**Status:** Approved  
+**Status:** Planned (Phase 2)
 **Target phase:** Phase 2
 
 ### Problem
-Stripe requires international cards in some regions. Many users pay with local mobile money or bank transfers. Without local payment options, conversion is low.
+Stripe requires international cards. Most Ethiopian users pay with Telebirr, CBE Birr, or local bank transfers. Without local payment options, conversion is low.
 
 ### Goals
-- Users can pay with local payment methods (Telebirr, CBE Birr, mobile money)
-- Payment success rate for local users increases significantly
+- Ethiopian users can pay with Telebirr and local bank cards
+- Payment success rate for Ethiopian users increases from ~30% to >80%
 
 ### Non-Goals
-- Replace Stripe (keep for international buyers)
-
-### User Stories
-- As a local buyer, I want to pay with my mobile wallet, so I don't need an international card
-- As a seller, I want to receive payments in local currency directly to my bank account
+- Replace Stripe (keep for international buyers and Mewacho contributions)
 
 ### Technical Notes
 - Chapa API: https://developer.chapa.co
-- Add `POST /api/orders/checkout/chapa` route
-- Add `POST /api/orders/chapa-webhook` for payment verification
+- Route already scaffolded in `backend/routes/orders.js` (`POST /api/orders/checkout/chapa`)
 - Feature flag: `chapa_payments`
 - New env vars: `CHAPA_SECRET_KEY`
 
+---
+
+## PRD-006: Mewacho — Group Money Collection
+
+**Status:** Shipped (September 2026)
+**Target phase:** Phase 1 (shipped as part of MVP+)
+
+### Problem
+Ethiopians regularly collect money together for birthdays, weddings, trips, and charity — but manage it over WhatsApp with no transparency, no payment integration, and no audit trail. Money gets lost, contributions are disputed, and there's no easy way to see the running total.
+
+### Goals
+- Group admins can collect contributions from members via Stripe
+- All members can see exactly who contributed how much in real time
+- Admins can request withdrawals with a clear approval workflow
+
+### Non-Goals (Phase 1)
+- Chapa / Telebirr integration (Phase 2)
+- Recurring contribution reminders
+- Equb-style rotation (Phase 2)
+- Multi-currency for diaspora (Phase 3)
+
+### User Stories
+- As a group creator, I want to set a target amount and invite members via link or QR, so people can join easily
+- As a member, I want to contribute money via Stripe and see my contribution appear instantly in the feed
+- As any member, I want to see the running total and who has paid, so there's full transparency
+- As an admin, I want to request a withdrawal with a destination account, so collected money reaches its purpose
+- As any member, I want to download a PDF summary of all contributions and withdrawals
+
+### Technical Notes
+- 5 new tables: `mewacho_groups`, `mewacho_members`, `mewacho_contributions`, `mewacho_withdrawals`, `mewacho_activity`
+- `migrate26.js` — run on all environments
+- Backend: `backend/routes/mewacho.js` — 9 endpoints + Stripe webhook
+- Frontend: `views/Mewacho.tsx` (list), `views/MewachoGroup.tsx` (detail), pages at `/mewacho`, `/mewacho/[id]`, `/mewacho/join/[code]`
+- Sidebar nav: Coins icon between Tasks and Messages
+- Libraries used: `jspdf` (PDF export), `qrcode.react` (QR invite), `@stripe/stripe-js` (payments)
+- Stripe webhook: `STRIPE_MEWACHO_WEBHOOK_SECRET` env var, endpoint: `/api/mewacho/webhook`
+
 ### Success Metrics
-- Chapa payment volume > 50% of total GMV within 60 days of launch
+- Mewacho groups created within 30 days of launch > 50
+- Total ETB collected via Mewacho > 100,000 ETB within 60 days
 
 ---
 
