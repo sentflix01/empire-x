@@ -19,16 +19,21 @@ function generateTestEmail(): string {
 const TEST_PASSWORD = 'Test1234!';
 
 async function fillRegisterForm(page: any, email: string, password: string, confirmPassword: string, agreeToTerms: boolean) {
+  // Dev-mode lazy compilation: wait for hydration to settle before interacting,
+  // otherwise clicks land before React attaches onChange and state never updates.
+  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
   await page.locator('input[type="email"], input[name="email"]').first().fill(email);
   await page.locator('input[type="password"]').first().fill(password);
   await page.locator('input[id="confirm"], input[name="confirm"]').first().fill(confirmPassword);
   if (agreeToTerms) {
-    // Use keyboard navigation to reach checkbox and press Space
-    // Tab order: email -> password -> confirm -> checkbox
-    await page.locator('input[id="confirm"], input[name="confirm"]').first().press('Tab');
-    await page.keyboard.press('Space');
-    // Small wait for React state
-    await page.waitForTimeout(500);
+    // The input is sr-only — the styled div intercepts pointer events, so a
+    // plain click can never land on it. check({ force }) bypasses the
+    // hit-target check while still dispatching a real click → React onChange.
+    const checkbox = page.getByRole('checkbox', { name: /agree to the/i });
+    await checkbox.check({ force: true });
+    await expect(checkbox).toBeChecked();
+    // Prove React state actually updated (button enables only when agreed=true)
+    await page.locator('button[type="submit"]:not([disabled])').first().waitFor({ state: 'visible', timeout: 10_000 });
   }
 }
 

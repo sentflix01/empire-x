@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode } from 'react';
-import client, { storeToken, clearToken } from '@/api/client';
+import client, { clearToken, ensureFreshToken } from '@/api/client';
 
 export interface AuthUser {
   id?: string;
@@ -37,25 +37,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkUserAuth = useCallback(async () => {
     if (typeof window === 'undefined') return; // SSR guard
 
-    const token = localStorage.getItem('access_token');
-
-    // No stored token — no point hitting /me, definitely logged out.
-    if (!token) {
-      setIsAuth(false);
-      setIsLoadingAuth(false);
-      setAuthChecked(true);
-      return;
-    }
-
-    // Hydrate in-memory token so the axios interceptor sends the Authorization
-    // header. If the token is expired the interceptor will silently call
-    // POST /api/auth/refresh (using the HttpOnly cookie) and retry /me.
-    // We must NOT mark authChecked=true until that full round-trip is done,
-    // otherwise AppLayout will redirect to /login before the retry resolves.
-    storeToken(token);
+    // TD-014: the JWT never touches localStorage. A session can only be
+    // re-hydrated through the silent refresh (HttpOnly refresh cookie).
+    // ensureFreshToken() covers the "token already in memory" case too.
     setIsLoadingAuth(true);
 
     try {
+      const hasSession = await ensureFreshToken();
+      if (!hasSession) {
+        // No valid session (and silent refresh failed) — genuinely logged out.
+        setUser(null);
+        setIsAuth(false);
+        setAuthError(null);
+        return;
+      }
+
       // This await covers the full chain: original request + any silent refresh
       // + retry. The interceptor only rejects after refresh also fails.
       const res = await client.get('/api/auth/me');
