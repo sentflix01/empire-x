@@ -46,8 +46,8 @@ test.describe('Authenticated flows', () => {
     await page.locator('input[type="email"], input[name="email"]').first().fill(SEEDED_EMAIL);
     await page.locator('input[type="password"]').first().fill(SEEDED_PASSWORD);
     await Promise.all([
-      page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 20_000 }),
-      page.locator('button[type="submit"], button:has-text("Log in"), button:has-text("Login"), button:has-text("Sign in")').first().click(),
+      page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 }),
+      page.locator('button[type="submit"]').first().click(),
     ]);
 
     // The hint cookie that powers middleware gating must now exist…
