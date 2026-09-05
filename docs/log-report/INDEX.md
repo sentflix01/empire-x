@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-05 | Maintenance | Merge branch 'main' of https://github.com/sentflix01/empire-x | [60227bfcd](2026-09-05-60227bfcd-merge-branch-main-of-https-github-com-sentflix01.md) |
+| 2026-09-05 | Testing | test: add signup e2e tests and fix login test navigation | [8d1d54f23](2026-09-05-8d1d54f23-add-signup-e2e-tests-and-fix-login-test-navigati.md) |
 | 2026-09-05 | Bugfix | fix: custom Google button removes name/email personalization | [5cbe3a0c4](2026-09-05-5cbe3a0c4-custom-google-button-removes-name-email-personal.md) |
 | 2026-09-05 | Bugfix | fix: custom Google button removes name/email personalization | [e728f081d](2026-09-05-e728f081d-custom-google-button-removes-name-email-personal.md) |
 | 2026-09-04 | Feature | feat: professional sign-in and sign-up pages with Google + email/password | [0151e4716](2026-09-04-0151e4716-professional-sign-in-and-sign-up-pages-with-goog.md) |
