@@ -2,23 +2,6 @@
 
 > Database conventions and useful queries live in `docs/backend/DATABASE.md`.
 > This file focuses on the relationships between major entities.
-> Last updated: August 2026
-
----
-
-## Acronyms Used in This Document
-
-| Acronym | Full Form |
-|---------|-----------|
-| ERD | Entity Relationship Diagram |
-| UUID | Universally Unique Identifier — primary key type |
-| FK | Foreign Key |
-| PK | Primary Key |
-| JSONB | JSON Binary — PostgreSQL JSON storage type |
-| FTS | Full-Text Search |
-| UTC | Coordinated Universal Time |
-| N | One-to-N relationship |
-| M:N | Many-to-Many relationship |
 
 ---
 
@@ -98,6 +81,14 @@ users (1) ───────────────────────�
   │ 1:N  point_transactions     earn/spend/expire                              │
   │ 1:N  reports                target_id, target_type, reason                 │
   │ M:N  blocks                 blocker_id ↔ blocked_id                        │
+  │                                                                             │
+  │ 1:N  mewacho_groups         created_by → mewacho_groups                    │
+  │        │                                                                    │
+  │        │ M:N  mewacho_members      role (admin/moderator/member)           │
+  │        │ 1:N  mewacho_contributions amount, stripe_session_id, status      │
+  │        │ 1:N  mewacho_withdrawals   amount, destination, approval workflow │
+  │        │ 1:N  mewacho_activity      type (contribution/message/withdrawal/ │
+  │        │                            system), content, metadata JSONB       │
 ```
 
 ---
@@ -117,6 +108,11 @@ users (1) ───────────────────────�
 | user → follows (as followed) | 1:N | Your followers |
 | user → conversations | M:N | `participant_ids` JSON array |
 | user → wallet | 1:1 | One wallet per user, auto-created |
+| user → mewacho_groups (as creator) | 1:N | Groups the user created |
+| user → mewacho_members | M:N | Groups the user belongs to (via mewacho_members) |
+| mewacho_group → contributions | 1:N | All contributions to a group |
+| mewacho_group → withdrawals | 1:N | All withdrawal requests |
+| mewacho_group → activity | 1:N | Ordered chat + event feed |
 
 ---
 

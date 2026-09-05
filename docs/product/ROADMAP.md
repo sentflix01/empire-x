@@ -1,28 +1,7 @@
 # Nodbusiness — Product Roadmap
 
 > Milestones from MVP to global platform. Updated quarterly.
-> Each phase builds on the previous — we never migrate everything at once.
-> Last updated: August 2026
-
----
-
-## Acronyms Used in This Document
-
-| Acronym | Full Form |
-|---------|-----------|
-| MVP | Minimum Viable Product |
-| MAU | Monthly Active Users |
-| DAU | Daily Active Users |
-| GMV | Gross Merchandise Value |
-| API | Application Programming Interface |
-| PWA | Progressive Web App |
-| CI/CD | Continuous Integration / Continuous Delivery |
-| ETB | Ethiopian Birr — reference market currency |
-| USD | United States Dollar |
-| SDK | Software Development Kit |
-| CDN | Content Delivery Network |
-| SSO | Single Sign-On |
-| B2B | Business to Business |
+> Last updated: September 2026
 
 ---
 
@@ -35,12 +14,12 @@
 ## Phase 1 — MVP Launch (2026 Q1–Q2)
 **Goal: First 1,000 paying users**
 
-### Must Ship
+### Shipped ✅
 - [x] User registration + OTP verification
 - [x] Social feed (posts, images, likes, comments)
 - [x] Stories (24hr)
 - [x] Marketplace (list, buy, sell products)
-- [x] Stripe payments
+- [x] Stripe payments (orders + wallet topup)
 - [x] Showroom Studio (27 templates)
 - [x] Real-time chat (DM + groups)
 - [x] Tasks marketplace (post, bid, complete)
@@ -50,9 +29,20 @@
 - [x] Basic admin panel
 - [x] AI product description generator
 - [x] Google OAuth
+- [x] HttpOnly refresh token cookie (TD-001)
+- [x] JWT revocation blocklist via Redis (TD-005)
+- [x] Silent token refresh on page load — logout loop fixed (September 2026)
+- [x] **Mewacho** — group money collection module (September 2026)
+  - Group creation, invite via link + QR code
+  - Stripe payment integration with webhook confirmation
+  - Chat-style activity feed (contributions + messages)
+  - Contribution ledger + progress bar
+  - Withdrawal requests with multi-admin approval workflow
+  - Push notifications to all group members on contribution
+  - PDF export of group summary
 
 ### Infrastructure
-- [x] Vercel (Next.js) + Railway (backend) + Neon (database)
+- [x] Vercel (Next.js) + Render (backend) + Neon (database)
 - [x] Cloudflare R2 (file storage)
 - [x] Resend (email)
 - [x] Sentry + Pino (observability)
@@ -64,28 +54,26 @@
 **Goal: 10,000 active users, first significant GMV**
 
 ### Product
-- [ ] Local payment methods beyond Chapa (mobile money, regional gateways)
-- [x] Product variants (size, color, stock per variant) — `product_variants`, variant-aware cart
-- [x] Return requests + refunds — `returns.ts` (approve/reject; refunds executed by admin via wallet)
-- [x] Delivery tracking timeline — `delivery.ts`
-- [x] Order confirmation emails — Resend/SMTP on order completion
-- [x] Price drop alerts (wishlist) — price_alerts table
-- [x] Coupon codes — seller coupon CRUD + checkout redemption
-- [ ] Business analytics dashboard (basic version shipped in Admin; seller-facing analytics next)
-- [x] Referral program — `referral.ts`
-- [x] Events ticketing — events + event_tickets
-- [x] Jobs board — jobs + job_applications
-- [x] Courses marketplace — courses + lessons + enrollments
-
-> Statuses verified against `backend/routes/` and feature-flag defaults 2026-08-23.
-> This file is the **single source of truth for shipped status** — other docs must not mark
-> features built/shipped except by reference to this roadmap.
+- [ ] Chapa payments (Ethiopian Birr, Telebirr, CBE Birr)
+- [ ] Product variants (size, color, stock per variant) *(migrate5.js done — UI pending)*
+- [ ] Return requests + refunds *(backend done — UI pending)*
+- [ ] Delivery tracking timeline *(backend done — UI pending)*
+- [ ] Order confirmation emails
+- [ ] Price drop alerts (wishlist) *(backend done — UI pending)*
+- [ ] Coupon codes *(backend done — UI pending)*
+- [ ] Business analytics dashboard
+- [ ] Referral program *(backend done — UI pending)*
+- [ ] Events ticketing *(backend done — UI pending)*
+- [ ] Jobs board *(backend done — UI pending)*
+- [ ] Courses marketplace *(backend done — UI pending)*
+- [ ] Mewacho: Equb-style rotation mode
+- [ ] Mewacho: diaspora multi-currency support (USD/EUR → ETB)
 
 ### Engineering
-- [ ] Redis + BullMQ fully activated in production paths (`REDIS_URL` configured)
-- [x] Performance indexes (`migrate8.js` + migrate11/16/26/32/33 run in production)
-- [ ] Uptime monitoring with alerting wired to the severity matrix (`operations/MONITORING.md`)
+- [ ] Redis + BullMQ activated (`REDIS_URL` configured in production)
+- [ ] Better Uptime monitoring
 - [ ] Vercel Analytics enabled
+- [ ] Playwright E2E tests for critical flows (TD-003)
 
 ---
 
@@ -93,22 +81,22 @@
 **Goal: 100,000 users, expand to Kenya and Nigeria**
 
 ### Product
-- [ ] Multi-language (Swahili + French alongside Amharic + English; sequence per `product/LOCALIZATION.md`)
-- [ ] Multi-currency display (KES, NGN — ledger stays ETB per `architecture/CURRENCY_AND_COMMISSION.md`)
+- [ ] Multi-language (Swahili, Hausa, Yoruba alongside Amharic + English)
+- [ ] Multi-currency (KES, NGN alongside ETB)
 - [ ] Community groups
 - [ ] Live streaming (feature flag: `live_streaming`)
 - [ ] Video posts (feature flag: `video_posts`)
 - [ ] Personalized feed algorithm (feature flag: `personalized_feed`)
-- [ ] 2FA authentication (feature flag: `two_factor_auth`)
+- [ ] 2FA authentication
 - [ ] Virtual gifts
 - [ ] Promoted posts / ads system
+- [ ] Mewacho: recurring contribution reminders
+- [ ] Mewacho: social share of group progress
 
 ### Engineering
-- [ ] Meilisearch for full-text product/profile search
-- [x] TypeScript migration (backend) — complete since August 2026
-- [ ] Prisma ORM (evaluate again post-TypeScript; pg + typed helpers currently sufficient)
-- [x] HttpOnly cookie refresh tokens (shipped July 2026) + access-token type enforcement (Aug 2026); remaining work: remove localStorage mirror of access token (TD-014)
-- [x] JWT revocation via Redis blocklist (`revoked:{jti}` + `revoke_before:{userId}`)
+- [ ] TypeScript migration (backend) — TD-004
+- [ ] Prisma ORM — TD-008
+- [ ] Meilisearch for full-text search
 - [ ] Read replicas (Neon Scale plan)
 - [ ] Separate BullMQ worker containers
 
@@ -117,43 +105,22 @@
 ## Phase 4 — Platform (2028–2029)
 **Goal: 1,000,000 users, public API platform**
 
-### Product
-- [ ] Public REST API with API keys
+- [ ] Public REST API with API keys + developer portal
 - [ ] Webhooks (OrderCreated, PaymentCompleted, etc.)
-- [ ] Developer portal + documentation
-- [ ] SDK (JavaScript/TypeScript)
 - [ ] Partner integrations (logistics, payments, identity)
-- [ ] Business intelligence dashboard for merchants
-
-### Engineering
 - [ ] API versioning (`/api/v2/`)
 - [ ] AWS ECS auto-scaling containers
-- [ ] AWS RDS PostgreSQL with read replicas
-- [ ] AWS ElastiCache Redis cluster
-- [ ] Cloudflare WAF Pro
-- [ ] OpenSearch for advanced search
-- [ ] Kafka for high-volume event streaming
 
 ---
 
 ## Phase 5 — Global Superapp (2030+)
 **Goal: 10,000,000+ users, multi-continent**
 
-### Product
 - [ ] Android + iOS native apps (React Native)
 - [ ] Offline mode (PWA + cached data)
 - [ ] Financial services (lending, insurance)
 - [ ] Nodbusiness Pay (proprietary payment network)
-- [ ] Creator economy (subscriptions, tips, paid content)
-- [ ] B2B marketplace
-- [ ] Nodbusiness for Teams (business accounts)
-
-### Engineering
-- [ ] Multi-region deployment (Africa, Europe, Asia)
-- [ ] Edge computing (Cloudflare Workers for compute-at-edge)
-- [ ] PostGIS for advanced geospatial queries
-- [ ] ML pipeline for recommendations and fraud detection
-- [ ] Kubernetes for orchestration
+- [ ] Multi-region deployment
 
 ---
 
@@ -165,33 +132,9 @@
 | Monthly Active Users (MAU) | Growing |
 | New registrations | Trending up |
 | GMV (marketplace volume) | +10% month-over-month |
+| Mewacho groups created | Trending up |
+| Mewacho total collected (ETB) | Trending up |
 | Payment success rate | >95% |
 | API uptime | >99.9% |
 | Avg API response time | <200ms |
 | Error rate (Sentry) | <0.1% of requests |
-| Support tickets | Trending down relative to users |
-| Feature adoption | New features used by >20% in 30 days |
-
----
-
-## Technical Debt (Living List)
-
-Canonical register: **`operations/TECHNICAL_DEBT.md`** — this list mirrors its highlights.
-
-### High Priority
-- [x] HttpOnly cookie refresh tokens (replace localStorage JWT) — shipped; residual: remove access-token localStorage mirror (TD-014 ✅ 2026-08-23)
-- [x] JWT revocation via Redis blocklist — shipped July 2026
-- [x] End-to-end test suite — Playwright smoke suite shipped 2026-08-23 (TD-003); checkout/chat coverage next
-- [x] CI made blocking + deploys gated on CI (TD-019 — shipped 2026-08-23)
-- [x] TLS certificate validation on Neon/Upstash (TD-016 — shipped 2026-08-23)
-
-### Medium Priority
-- [x] TypeScript on backend — complete
-- [ ] Prisma ORM migration (re-evaluate)
-- [ ] Optimize notification polling (replace with socket-only)
-- [ ] Image optimization pipeline (Cloudflare Workers)
-- [ ] Audit logging for financial/admin actions (TD-012)
-
-### Low Priority
-- [x] Refactor `AppLayout.tsx` — no `@ts-nocheck` remains
-- [ ] Replace polling interval in entities.ts subscribe()

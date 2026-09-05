@@ -1,76 +1,164 @@
-# Nodbusiness — Documentation Hub
+# Nodbusiness — Engineering Handbook
 
-> **Classification:** Confidential — Internal Use Only
-> **Last Updated:** August 2026
-> **Version:** 1.0
-
----
-
-## Quick Navigation
-
-| Category | Description | Key Documents |
-|----------|-------------|---------------|
-| **[Strategy](./strategy/)** | Vision, architecture, GTM, competitive, AI/ML, scaling | [Manifesto](./strategy/PRODUCT_MANIFESTO.md) • [Architecture](./strategy/TECHNICAL_ARCHITECTURE.md) • [GTM](./strategy/GO_TO_MARKET_STRATEGY.md) • [Competitive](./strategy/COMPETITIVE_ANALYSIS.md) • [AI/ML](./strategy/AI_ML_STRATEGY.md) • [Scaling](./strategy/SCALING_STRATEGY.md) • [Security](./strategy/SECURITY_ARCHITECTURE.md) • [Data](./strategy/DATA_STRATEGY.md) • [API Design](./strategy/API_DESIGN_GUIDELINES.md) • [Developer Platform](./strategy/DEVELOPER_PLATFORM_STRATEGY.md) • [Ops](./strategy/OPERATIONAL_EXCELLENCE.md) |
-| **[Investor](./investor/)** | Pitch, financials, legal, equity, communications | [Executive Summary](./investor/pitch/EXECUTIVE_SUMMARY.md) • [Financial Projections](./investor/pitch/FINANCIAL_PROJECTIONS.md) • [Pitch Deck](./investor/pitch/DECK.md) • [Fundraising Strategy](./investor/FUNDRAISING_STRATEGY.md) • [Valuation Model](./investor/VALUATION_MODEL.md) • [Equity & Cap Table](./investor/EQUITY_AND_CAP_TABLE.md) • [Term Sheet Guide](./investor/legal/TERM_SHEET_GUIDE.md) • [SAFE Guide](./investor/legal/SAFE_AGREEMENT_GUIDE.md) • [Convertible Note](./investor/legal/CONVERTIBLE_NOTE_GUIDE.md) • [Due Diligence](./investor/legal/DUE_DILIGENCE_CHECKLIST.md) • [Shareholder Agreement](./investor/legal/SHAREHOLDER_AGREEMENT.md) • [Investor FAQ](./investor/communications/INVESTOR_FAQ.md) • [Update Template](./investor/communications/INVESTOR_UPDATE_TEMPLATE.md) |
-| **[Patent](./patent/)** | Strategy, provisional drafts, prior art, filings | [Strategy](./patent/PATENT_STRATEGY.md) • [PATENT 1: AI Pricing](./patent/provisional/PATENT_1_AI_PRICING.md) • [PATENT 2: Revenue Share](./patent/provisional/PATENT_2_REVENUE_SHARE.md) • [PATENT 3: Discovery](./patent/provisional/PATENT_3_DISCOVERY.md) • [PATENT 4: External Data](./patent/provisional/PATENT_4_SECTION_DATA_BINDING.md) • [Prior Art Search](./patent/prior_art/PRIOR_ART_SEARCH.md) • [Competitive Analysis](./patent/COMPETITIVE_PATENT_ANALYSIS.md) • [Filing Tracker](./patent/filings/FILING_TRACKER.md) • [Trade Secrets](./patent/TRADE_SECRET_REGISTER.md) |
-| **[Legal](./legal/)** | Terms, Privacy, DPA, compliance, policies | [Terms of Service](./legal/TERMS_OF_SERVICE.md) • [Privacy Policy](./legal/PRIVACY_POLICY.md) • [DPA Template](./legal/DPA_TEMPLATE.md) • [Cookie Policy](./legal/COOKIE_POLICY.md) • [Refund Policy](./legal/REFUND_POLICY.md) |
-| **[Compliance](./compliance/)** | SOC2, GDPR, PCI, audit evidence | [SOC2 Roadmap](./compliance/SOC2_ROADMAP.md) • [GDPR Audit](./compliance/GDPR_AUDIT.md) • [PCI SAQ-A Evidence](./compliance/PCI_SAQ_A_EVIDENCE.md) • [Ethiopia Data Protection](./compliance/ETHIOPIA_DATA_PROTECTION.md) |
-| **[Brand](./brand/)** | Guidelines, voice, design system, assets | [Brand Guidelines](./brand/BRAND_GUIDELINES.md) • [Voice & Tone](./brand/VOICE_TONE.md) • [Design System](./brand/DESIGN_SYSTEM.md) • [Logo Usage](./brand/LOGO_USAGE.md) |
-| **[Finance](./finance/)** | Cap table, financial model, unit economics | [Cap Table](./finance/CAP_TABLE.md) • [Financial Model](./finance/FINANCIAL_MODEL.md) • [Unit Economics Calculator](./finance/UNIT_ECONOMICS_CALCULATOR.md) • [Budget Tracker](./finance/BUDGET_TRACKER.md) |
-| **[People](./people/)** | Org, hiring, compensation, equity | [Org Chart](./people/ORG_CHART.md) • [Hiring Plan](./people/HIRING_PLAN.md) • [Compensation Bands](./people/COMPENSATION_BANDS.md) • [Equity Plan](./people/EQUITY_PLAN.md) • [Culture Deck](./people/CULTURE_DECK.md) |
-| **[Trust & Safety](./trust-safety/)** | Moderation, abuse, spam, content policy | [Moderation Policy](./trust-safety/MODERATION_POLICY.md) • [Abuse Reporting](./trust-safety/ABUSE_REPORTING.md) • [Spam Prevention](./trust-safety/SPAM_PREVENTION.md) • [Content Policy](./trust-safety/CONTENT_POLICY.md) |
-| **[Operations](./operations/)** | Technical debt, backups, runbooks, audit | [Technical Debt](./operations/TECHNICAL_DEBT.md) • [Backups](./operations/BACKUPS.md) • [Runbooks Index](./operations/RUNBOOKS_INDEX.md) • [Implementation Logs](./operations/log-report/) |
-| **[Production](./Production/)** | Auto-generated encyclopedia, API reference, task logs | [Backend](./Production/backend/) • [Frontend](./Production/frontend-next/) • [API Reference](./Production/api-reference.md) • [Encyclopedia Index](./Production/ENCYCLOPEDIA_INDEX.md) |
-| **[Infrastructure](./infrastructure/)** | Network, DB, CI/CD, monitoring, secrets | [Network Diagram](./infrastructure/NETWORK_DIAGRAM.md) • [Database Schema](./infrastructure/DATABASE_SCHEMA.md) • [CI/CD Pipeline](./infrastructure/CI_CD_PIPELINE.md) • [Monitoring Stack](./infrastructure/MONITORING_STACK.md) • [Secrets Management](./infrastructure/SECRETS_MANAGEMENT.md) |
-| **[Architecture](./architecture/)** | System design, decisions, patterns | [ADR Index](./architecture/ADR_INDEX.md) • [System Context](./architecture/SYSTEM_CONTEXT.md) • [Data Flow](./architecture/DATA_FLOW.md) |
+> This is the operating manual for Nodbusiness. Treat it as seriously as the source code.
+> Every important decision, system design, and operational procedure lives here.
+> Last updated: September 2026
 
 ---
 
-## Document Standards
+## Start Here
 
-| Standard | Rule |
-|----------|------|
-| **Classification** | Every doc starts with `> Classification: Confidential — Internal Use Only` |
-| **Acronyms Table** | Every doc includes acronyms table at top |
-| **Version Header** | `> Version: X.Y` • `> Last Updated: YYYY-MM` |
-| **Acronyms** | Defined on first use, collected in table |
-| **Cross-References** | Use relative paths: `./strategy/PRODUCT_MANIFESTO.md` |
-| **Code Blocks** | Language-tagged: ```typescript, ```sql, ```json |
-| **Tables** | Markdown, header row, aligned pipes |
-| **Diagrams** | Mermaid (```mermaid) or ASCII |
-| **Confidentiality Footer** | `*Confidential. For Nodbusiness Technologies internal use only.*` |
+New to the project? Read in this order:
+
+1. `docs/product/NORTH_STAR.md` — Why Nodbusiness exists
+2. `docs/ONBOARDING.md` — Get your dev environment running in 30 minutes
+3. `docs/architecture/C4.md` — Understand the full system
+4. `docs/architecture/ADR.md` — Understand why decisions were made
+5. `docs/ENGINEERING_STANDARDS.md` — Rules everyone follows
 
 ---
 
-## Maintenance
+## Folder Structure
 
-| Task | Frequency | Owner |
-|------|-----------|-------|
-| **Index Update** | Every new doc | Doc author |
-| **Link Check** | Monthly | Docs owner |
-| **Classification Review** | Quarterly | Legal |
-| **Archive Old Versions** | Per release | Docs owner |
-| **Search Index Rebuild** | Weekly | CI/CD |
+```
+docs/
+├── README.md                         ← You are here
+├── ONBOARDING.md                     ← New developer setup guide
+├── ENGINEERING_STANDARDS.md          ← Git, naming, API, testing standards
+│
+├── architecture/
+│   ├── ADR.md                        Architecture Decision Records
+│   ├── C4.md                         C4 diagrams (Context → Container → Component → Code)
+│   ├── SEQUENCE_DIAGRAMS.md          How key flows work end-to-end
+│   ├── ERD.md                        Database entity relationships
+│   └── THREAT_MODEL.md               Security threats and mitigations
+│
+├── backend/
+│   ├── API.md                        Every endpoint documented
+│   ├── DATABASE.md                   Schema, migrations, conventions
+│   └── SECURITY.md                   Auth, validation, rate limiting
+│
+├── frontend/
+│   ├── COMPONENTS.md                 Component standards and patterns
+│   └── STATE_MANAGEMENT.md          Auth, cart, TanStack Query patterns
+│
+├── product/
+│   ├── NORTH_STAR.md                 Why Nodbusiness exists and what it will never be
+│   ├── PRD.md                        Product Requirement Documents
+│   └── ROADMAP.md                    2026 → 2030 milestones + tech debt
+│
+└── operations/
+    ├── DEPLOYMENT.md                 Deploy architecture + env vars reference
+    ├── MONITORING.md                 Sentry, Pino, uptime, dashboards
+    ├── RUNBOOKS.md                   Step-by-step incident response (8 runbooks)
+    ├── BACKUPS.md                    Database backup and recovery procedures
+    └── TECHNICAL_DEBT.md             Known issues, prioritized
+```
 
 ---
 
-## Contributing
+## The Five Operating Systems of Empire X
 
-1. Create new doc in correct folder
-2. Follow standards above
-3. Update this README index
-4. PR with `docs:` prefix
-5. Review by area owner
+Nodbusiness is not just an app — it is five operating systems working together.
+
+### 1. Product OS — How ideas become features
+
+```
+Idea → Research → PRD → Design → Development → Testing → Deployment → Analytics → Improvement
+```
+
+### 2. Engineering OS — How code moves to production
+
+```
+Task → Code → Pull Request → Code Review → Tests → Deployment → Monitoring → Feedback
+```
+
+### 3. Business OS — How money flows
+
+```
+User → Purchase → Payment → Revenue → Taxes → Profit → Reinvestment
+```
+
+### 4. People OS — How teammates become productive
+
+```
+Hire → Onboard (this handbook) → First task → Code review → Ownership → Leadership
+```
+
+### 5. Learning OS — How the company improves
+
+```
+Metrics → Problems → Experiments → Results → Knowledge → Better decisions
+```
 
 ---
 
-## Search Tips
+## Definition of Done
 
-- **By acronym:** Search acronym table in any doc
-- **By feature:** Check `strategy/` for product/tech, `investor/` for raise, `legal/` for compliance
-- **By component:** `Production/` has auto-generated per-file docs
-- **By audit:** `operations/log-report/` has implementation history
+A feature is not done until all of these are true:
+
+- [ ] Code written and reviewed
+- [ ] Tests passing (unit + integration)
+- [ ] Security reviewed (auth check, input validation, ownership check)
+- [ ] Performance checked (no N+1 queries, no blocking operations)
+- [ ] Accessibility verified (keyboard, ARIA, color contrast)
+- [ ] Documentation updated (API docs if new endpoint, ADR if architectural change)
+- [ ] Monitoring added (errors tracked in Sentry)
+- [ ] Feature flag configured (if gradual rollout)
+- [ ] Product approved
 
 ---
 
-*Confidential. For Nodbusiness Technologies internal use only.*
+## Engineering Principles
+
+1. **Simplicity over cleverness** — Write code the next developer can understand
+2. **Security by default** — Auth checks, input validation, parameterized queries on every endpoint
+3. **Automate repetitive work** — If you do it twice, automate it
+4. **Measure before optimizing** — Use data, not assumptions
+5. **Document important decisions** — ADR for every major technical choice
+6. **Build for users, not trends** — Technology serves the product
+7. **Every feature behind a flag** — Gradual rollout reduces risk
+8. **Every deployment is reversible** — Migrations must be backwards-compatible
+9. **No secrets in Git** — Environment variables only
+10. **APIs are versioned** — Never break existing integrations silently
+
+---
+
+## Architecture Review Questions
+
+Before implementing a major feature, answer these:
+
+- Does it fit the product vision (see North Star)?
+- Is it secure?
+- Is it scalable?
+- Is it maintainable?
+- Can it be tested?
+- Can it be monitored?
+- Does it introduce unnecessary complexity?
+- Does it need an ADR?
+
+---
+
+## Quick Reference
+
+| I want to... | Go to |
+|---|---|
+| Get started as a new developer | `ONBOARDING.md` |
+| Understand why a decision was made | `architecture/ADR.md` |
+| See the system architecture | `architecture/C4.md` |
+| See how login/payment/chat works | `architecture/SEQUENCE_DIAGRAMS.md` |
+| Understand the database | `architecture/ERD.md` |
+| Know the security model | `architecture/THREAT_MODEL.md` |
+| Look up an API endpoint | `backend/API.md` |
+| Add a new migration | `backend/DATABASE.md` |
+| Know the frontend patterns | `frontend/COMPONENTS.md` |
+| Understand state management | `frontend/STATE_MANAGEMENT.md` |
+| Know why Nodbusiness exists | `product/NORTH_STAR.md` |
+| Know what to build next | `product/ROADMAP.md` |
+| Write a feature spec | `product/PRD.md` |
+| Deploy to production | `operations/DEPLOYMENT.md` |
+| Set up monitoring | `operations/MONITORING.md` |
+| Respond to an incident | `operations/RUNBOOKS.md` |
+| Set up backups | `operations/BACKUPS.md` |
+| Understand known issues | `operations/TECHNICAL_DEBT.md` |
+| Know coding standards | `ENGINEERING_STANDARDS.md` |

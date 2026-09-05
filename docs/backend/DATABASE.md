@@ -1,52 +1,27 @@
 # Nodbusiness — Database Reference
 
 > Full ERD: `docs/architecture/ERD.md`
-> Schema details are maintained here and in `docs/architecture/ERD.md`.
 > Migration files: `backend/db/migrate*.js`
-> Last updated: August 2026
-
----
-
-## Acronyms Used in This Document
-
-| Acronym | Full Form |
-|---------|-----------|
-| DB | Database |
-| SQL | Structured Query Language |
-| DDL | Data Definition Language — CREATE, ALTER, DROP |
-| DML | Data Manipulation Language — INSERT, UPDATE, DELETE |
-| UUID | Universally Unique Identifier |
-| FTS | Full-Text Search |
-| JSONB | JSON Binary — PostgreSQL binary JSON storage |
-| PITR | Point-In-Time Recovery |
-| ORM | Object-Relational Mapping |
-| PK | Primary Key |
-| FK | Foreign Key |
-| ETB | Ethiopian Birr — reference market currency |
+> Current migration count: **26**
 
 ---
 
 ## Running Migrations
 
 ```bash
-# Run all pending migrations in order (tracked, idempotent)
+# Run all migrations in order (fresh database)
 cd backend && npm run migrate
 
-# Check what is applied / pending
-psql $DATABASE_URL -c "SELECT * FROM schema_migrations ORDER BY applied_at"
+# Run a specific migration
+node db/migrate7.js
 
-# List all tables
-psql $DATABASE_URL -c "\dt"
+# Check migration status (no built-in tracker — each migration uses IF NOT EXISTS)
+psql $DATABASE_URL -c "\dt"  # list all tables
 ```
-
-`db/migrate-all.js` auto-discovers `migrate*.js` files and records each applied migration in the
-**`schema_migrations`** tracking table (name, checksum, applied_at). Re-running is safe: already
-applied migrations are skipped. Legacy scripts are spawned as subprocesses; newer ones export a
-function.
 
 ---
 
-## Migration Files (complete registry — 34 files)
+## Migration Files
 
 | File | Contents |
 |---|---|
@@ -55,34 +30,27 @@ function.
 | `migrate3.js` | Hashtags, polls, coupons, Telegram columns, location (lat/lng), commission table |
 | `migrate4.js` | Cart items, wishlists |
 | `migrate5.js` | Product variants, return requests, delivery updates, price alerts, cart variant support |
-| `migrate6.js` | Adds 'poll' to posts post_type constraint |
-| `migrate7.js` | Adds ticker_type column, sets default to 'none', backfills existing profiles |
+| `migrate6.js` | Adds `poll` to posts post_type constraint |
+| `migrate7.js` | Adds `ticker_type` column, sets default to `none`, backfills existing profiles |
 | `migrate8.js` | 30+ performance indexes for queries, geo, FTS, notifications |
-| `migrate9.js` | Chapa support: `orders.chapa_tx_ref` column |
-| `migrate10.js` | Showroom External API: external_data_sources, external_health_records, field_mappings |
-| `migrate11.js` | Composite indexes (notifications unread count, feed, chat) |
-| `migrate12.js` | `users.is_seed` flag + dismissed_suggestions table |
-| `migrate13.js` | verification_requests table (selfie + ID document review) — ⚠️ see TECHNICAL_DEBT: routes/verification.ts writes columns that don't exist here yet |
-| `migrate14.js` | messages: edited + reply_to_id columns |
-| `migrate15.js` | users.last_seen (presence) |
-| `migrate16.js` | Missing performance indexes on hot query paths |
-| `migrate17.js` | user_profiles social/website/phone/languages/certifications columns (ProfileEdit) |
-| `migrate18.js` | user_profiles verification_type / verified_at / verification_note |
-| `migrate19.js` | user_profiles cover position columns (drag-to-position editor) |
-| `migrate20.js` | Stripe schema support; orders.status CHECK extended with payment_failed/refunded |
-| `migrate21.js` | devops_items table (admin Developer Ops board) |
-| `migrate22.js` | Repair of migrate20's broad constraint drops on orders |
-| `migrate23.js` | Data cleanup/repair pass |
-| `migrate24.js` | Repair posts.comment_count drift from seed data |
-| `migrate25.js` | Backfill users.full_name from profile display_name |
-| `migrate26.js` | Performance indexes for messages/conversations |
-| `migrate27.js` | comments.parent_id for threaded replies |
-| `migrate28.js` | users.is_banned + ban_reason (moderation) |
-| `migrate29.js` | app_settings key-value store (version board, feature toggles) |
-| `migrate30.js` | error_events table (DevOps live error feed, fingerprint dedupe) |
-| `migrate31.js` | conversation_participants junction table (replaces JSON-array-only lookup) |
-| `migrate32.js` | Full-text search tsvector columns (posts/products/profiles) + indexes |
-| `migrate33.js` | Scalability indexes: FK columns + high-traffic query paths |
+| `migrate9.js` | Chapa `tx_ref` column on orders |
+| `migrate10.js` | External API integration tables: `external_data_sources`, `field_mappings`, `external_health_records` |
+| `migrate11.js` | Composite indexes for performance |
+| `migrate12.js` | `is_seed` column backfill, `dismissed_suggestions` table |
+| `migrate13.js` | `verification_requests` table |
+| `migrate14.js` | `edited` and `reply_to_id` columns on messages |
+| `migrate15.js` | `last_seen` column on users |
+| `migrate16.js` | Additional performance indexes |
+| `migrate17.js` | Missing profile columns added |
+| `migrate18.js` | Verification columns on user_profiles |
+| `migrate19.js` | Cover position columns on user_profiles |
+| `migrate20.js` | Stripe payments schema: orders/wallet_transactions CHECK extensions, Stripe columns, webhook_events table |
+| `migrate21.js` | `devops_items` table + indexes |
+| `migrate22.js` | Idempotent CHECK constraint repair for orders.status and wallet_transactions.type |
+| `migrate23.js` | Friends / suggestions support |
+| `migrate24.js` | `comment_count` recomputed on posts |
+| `migrate25.js` | `full_name` backfilled for existing users |
+| `migrate26.js` | **Mewacho tables**: `mewacho_groups`, `mewacho_members`, `mewacho_contributions`, `mewacho_withdrawals`, `mewacho_activity` |
 
 ---
 
@@ -134,7 +102,7 @@ migrate();
 | `IF NOT EXISTS` on all migrations | Idempotent — safe to re-run |
 | No soft deletes | Hard delete; `reports` table handles abuse tracking |
 | Parameterized queries only | SQL injection prevention |
-| ALLOWED_TABLES allowlist | `crud.ts` validates table names |
+| ALLOWED_TABLES allowlist | `crud.js` validates table names |
 
 ---
 
@@ -171,20 +139,12 @@ WHERE state = 'active';
 
 ## Connection Pooling
 
-This app is provider-agnostic and works with PostgreSQL providers such as Supabase and Neon.
-
-For Supabase, use the standard Postgres connection string with SSL enabled:
+Neon uses PgBouncer for connection pooling automatically. The connection string uses a pooled endpoint:
 
 ```
-postgresql://postgres:[PASSWORD]@db.[project-ref].supabase.co:5432/postgres?sslmode=require
+postgresql://user:pass@ep-xxx-pooler.neon.tech/empirex?sslmode=require
 ```
 
-For Neon, the project may use a pooled endpoint if needed:
+For direct connections (migrations, admin queries), use the non-pooled endpoint. For the app, always use the pooled endpoint.
 
-```
-postgresql://user:pass@ep-xxx-pooler.neon.tech/nodbusiness?sslmode=require
-```
-
-The app already detects Neon-specific pooling and keeps the existing behavior for Neon. For Supabase, no extra pooling flag is required.
-
-Max connections rule of thumb: keep `DB_POOL_MAX` low in production and use provider-specific connection limits; for free-tier providers, keep it to around 5–10 per app instance.
+Max connections rule of thumb: set `connection_limit` in the URL to `10` per backend instance in production to avoid hitting Neon's connection limits.

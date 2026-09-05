@@ -5,27 +5,6 @@
 
 ---
 
-## Acronyms Used in This Document
-
-| Acronym | Full Form |
-|---------|-----------|
-| ADR | Architecture Decision Record |
-| PR | Pull Request |
-| CI/CD | Continuous Integration / Continuous Delivery |
-| API | Application Programming Interface |
-| JWT | JSON Web Token |
-| SQL | Structured Query Language |
-| XSS | Cross-Site Scripting |
-| CORS | Cross-Origin Resource Sharing |
-| HTTPS | HyperText Transfer Protocol Secure |
-| TLS | Transport Layer Security |
-| MFA | Multi-Factor Authentication |
-| UUID | Universally Unique Identifier |
-| MIME | Multipurpose Internet Mail Extensions |
-| DRY | Don't Repeat Yourself — avoid duplicating code/logic |
-
----
-
 ## Git Workflow
 
 ### Branching Strategy
@@ -75,13 +54,13 @@ perf(feed): rewrite feed query to sort by feed_rank using CTE
 
 Before opening a PR:
 - [ ] Branch is up-to-date with main
-- [ ] `npx jest --runInBand` passes (backend)
+- [ ] `npm test` passes (backend)
 - [ ] `npm run build` passes (frontend-next)
 - [ ] `npm run lint` passes (frontend-next)
 - [ ] No secrets or credentials in the diff
 - [ ] Feature has a feature flag if gradual rollout is needed
 - [ ] ADR added if this is a significant architectural change
-- [ ] **API changed?** Run `cd backend && npm run docs:api` and commit the regenerated `docs/backend/API_REFERENCE.md`
+- [ ] API docs updated if new endpoints were added
 
 PR title follows conventional commits format.
 PR description explains: what changed, why, how to test.
@@ -107,7 +86,7 @@ PR description explains: what changed, why, how to test.
 
 | Thing | Convention | Example |
 |---|---|---|
-| Files | camelCase | `featureFlags.ts`, `crud.ts` |
+| Files | camelCase | `featureFlags.js`, `crud.js` |
 | Route files | plural nouns | `products.js`, `orders.js` |
 | Functions | camelCase | `getOrCreateWallet()` |
 | Constants | UPPER_SNAKE | `LOW_STOCK_THRESHOLD`, `ALLOWED_TABLES` |
@@ -177,7 +156,7 @@ router.put('/:id', requireAuth, async (req, res) => {
 | UUID primary keys | All tables — `gen_random_uuid()` |
 | Timestamps on all tables | `created_at` always; `updated_at` on mutable tables |
 | Parameterized queries | Never string-concatenate SQL with user input |
-| ALLOWED_TABLES validation | `crud.ts` — validated before every query |
+| ALLOWED_TABLES validation | `crud.js` — validated before every query |
 | Migrations are idempotent | Always use `IF NOT EXISTS` |
 | No hardcoded IDs in migrations | Use SELECT to find related records |
 | Backwards-compatible migrations | Add columns, don't drop them mid-flight |
@@ -259,7 +238,7 @@ console.log('Order created:', order);
 
 Every new feature that's not a bug fix should be behind a feature flag:
 
-1. Add the flag to `DEFAULT_FLAGS` in `backend/lib/featureFlags.ts`
+1. Add the flag to `DEFAULT_FLAGS` in `backend/lib/featureFlags.js`
 2. Check the flag in the route or component
 3. Default to `false` (disabled) for new features
 4. Enable gradually: 1% → 10% → 50% → 100%
