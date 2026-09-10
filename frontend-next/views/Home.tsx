@@ -91,15 +91,23 @@ function CompanyAnnouncementTicker() {
 function Home() {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { accentTokens, isPersonal, activeView } = useProfileView();
+  const { accentTokens, isPersonal, activeView, setActiveView } = useProfileView();
   const feedMode = activeView; // driven by shared context — no local state needed
+  const [feedFlipping, setFeedFlipping] = useState(false);
+
+  const handleFeedFlip = () => {
+    setFeedFlipping(true);
+    setTimeout(() => {
+      setActiveView(feedMode === 'personal' ? 'business' : 'personal');
+      setFeedFlipping(false);
+    }, 150);
+  };
   const [posts, setPosts]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore]     = useState(true);
   const [feedError, setFeedError] = useState('');
   const [filter, setFilter]       = useState("all");
-  const [feedFlipping, setFeedFlipping] = useState(false);
   const [highlightPostId, setHighlightPostId] = useState<string|null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const highlightRef = useRef<HTMLDivElement>(null);
@@ -312,6 +320,12 @@ function Home() {
 
       {/* Filter Bar */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide items-center">
+        {/* Personal / Business feed toggle */}
+        <ProfileToggle
+          view={feedMode}
+          onFlip={handleFeedFlip}
+          flipping={feedFlipping}
+        />
         {FILTERS.map(f => {
           const Icon = f.icon;
           return (

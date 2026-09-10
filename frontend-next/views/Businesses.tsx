@@ -52,7 +52,7 @@ function BusinessCard({
   const initial = biz.business_name.charAt(0).toUpperCase();
 
   return (
-    <div className="bg-card rounded-2xl border border-border/50 p-3 flex items-start gap-3 hover:border-amber-200 transition-colors">
+    <Link href={`/profile/${biz.owner_id}?view=business`} className="bg-card rounded-2xl border border-border/50 p-3 flex items-start gap-3 hover:border-amber-200 transition-colors block">
       {/* Logo / initial */}
       <div className="w-11 h-11 rounded-xl shrink-0 overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
         {biz.business_logo_url ? (
@@ -116,14 +116,14 @@ function BusinessCard({
             </div>
           )}
           <Link
-            href="/showrooms"
+            href={`/profile/${biz.owner_id}?view=business`}
             className="text-[11px] font-semibold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full px-2.5 py-1 transition-colors shrink-0 ml-auto"
           >
-            View Showroom
+            View Business
           </Link>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
