@@ -1,5 +1,5 @@
 /**
- * mailer.js — Email sending for Empire X
+ * mailer.js — Email sending for Nodbusiness
  *
  * Supports two providers (checked in order):
  *   1. Resend (recommended) — set RESEND_API_KEY in .env
@@ -22,7 +22,7 @@ async function sendViaResend(to, subject, html) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM || 'Empire X <onboarding@resend.dev>',
+      from: process.env.EMAIL_FROM || 'Nodbusiness <onboarding@resend.dev>',
       to,
       subject,
       html,
@@ -47,7 +47,7 @@ async function sendViaSMTP(to, subject, html) {
     },
   });
   await transporter.sendMail({
-    from: process.env.EMAIL_FROM || 'Empire X <noreply@empirex.app>',
+    from: process.env.EMAIL_FROM || 'Nodbusiness <noreply@nodbusiness.app>',
     to,
     subject,
     html,
@@ -90,8 +90,8 @@ async function sendOtpEmail(to, otp) {
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#fff;">
       <div style="text-align:center;margin-bottom:24px;">
-        <h1 style="color:#d97706;font-size:28px;margin:0;">👑 Empire X</h1>
-        <p style="color:#6b7280;margin:4px 0 0;">Africa's Superapp</p>
+        <h1 style="color:#d97706;font-size:28px;margin:0;">👑 Nodbusiness</h1>
+        <p style="color:#6b7280;margin:4px 0 0;">The Global Superapp</p>
       </div>
       <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:24px;text-align:center;">
         <p style="color:#374151;font-size:16px;margin:0 0 16px;">Your verification code is:</p>
@@ -101,11 +101,11 @@ async function sendOtpEmail(to, otp) {
         <p style="color:#6b7280;font-size:13px;margin:16px 0 0;">Expires in <strong>15 minutes</strong></p>
       </div>
       <p style="color:#9ca3af;font-size:12px;text-align:center;margin-top:24px;">
-        If you didn't create an Empire X account, you can safely ignore this email.
+        If you didn't create a Nodbusiness account, you can safely ignore this email.
       </p>
     </div>`;
 
-  await sendEmail(to, 'Your Empire X verification code', html);
+  await sendEmail(to, 'Your Nodbusiness verification code', html);
 
   // Always print to console in dev so you can test without email
   if (process.env.NODE_ENV !== 'production') {
@@ -121,7 +121,7 @@ async function sendPasswordResetEmail(to, token) {
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#fff;">
       <div style="text-align:center;margin-bottom:24px;">
-        <h1 style="color:#d97706;font-size:28px;margin:0;">👑 Empire X</h1>
+        <h1 style="color:#d97706;font-size:28px;margin:0;">👑 Nodbusiness</h1>
         <p style="color:#6b7280;margin:4px 0 0;">Password Reset</p>
       </div>
       <p style="color:#374151;font-size:16px;">We received a request to reset your password.</p>
@@ -138,11 +138,11 @@ async function sendPasswordResetEmail(to, token) {
       </p>
       <hr style="border:none;border-top:1px solid #f3f4f6;margin:24px 0;" />
       <p style="color:#9ca3af;font-size:11px;text-align:center;">
-        © 2025 Empire X · Africa's Superapp
+        © 2026 Nodbusiness
       </p>
     </div>`;
 
-  await sendEmail(to, 'Reset your Empire X password', html);
+  await sendEmail(to, 'Reset your Nodbusiness password', html);
 }
 
 /* ── Order confirmation email ────────────────────────────────────────────── */
@@ -150,7 +150,7 @@ async function sendOrderConfirmation(to, order) {
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#fff;">
       <div style="text-align:center;margin-bottom:24px;">
-        <h1 style="color:#d97706;font-size:28px;margin:0;">👑 Empire X</h1>
+        <h1 style="color:#d97706;font-size:28px;margin:0;">👑 Nodbusiness</h1>
       </div>
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;">
         <h2 style="color:#166534;margin:0 0 12px;">✅ Order Confirmed!</h2>
@@ -161,7 +161,7 @@ async function sendOrderConfirmation(to, order) {
         Your order has been placed successfully. The seller will process it shortly.
       </p>
       <p style="color:#9ca3af;font-size:11px;text-align:center;margin-top:32px;">
-        © 2025 Empire X · Africa's Superapp
+        © 2026 Nodbusiness
       </p>
     </div>`;
 

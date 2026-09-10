@@ -72,7 +72,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
           <span className="text-[10px] text-muted-foreground">Ad</span>
         </div>
         <div className="rounded-xl bg-empire-gradient p-3 mb-3 shadow-md shadow-primary/20">
-          <p className="text-white font-bold text-sm">Empire X Pro</p>
+          <p className="text-white font-bold text-sm">Nodbusiness Pro</p>
           <p className="text-white/85 text-xs mt-1 leading-relaxed">Boost your business visibility to 10,000+ users.</p>
         </div>
         <Link href="/analytics" className="block text-center py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold shadow-sm shadow-primary/20 transition-colors">
@@ -130,7 +130,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
           <span className="text-sm font-semibold">Trending</span>
         </div>
         <div className="space-y-2">
-          {["#AddisAbaba","#EthiopianBusiness","#EmpireX","#HabeshaLife","#EthioTech"].map((tag, i) => (
+          {["#AddisAbaba","#EthiopianBusiness","#Nodbusiness","#HabeshaLife","#EthioTech"].map((tag, i) => (
             <Link key={tag} href={`/hashtag/${tag.slice(1)}`} className="flex items-center justify-between hover:bg-secondary px-2 py-1.5 rounded-lg transition-all group">
               <div>
                 <p className="text-xs font-semibold group-hover:text-amber-600 transition-colors">{tag}</p>
@@ -148,9 +148,9 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
       {/* Footer links */}
       <div className="px-2">
         <p className="text-[10px] text-muted-foreground leading-relaxed">
-          Empire X · Privacy · Terms · About · Advertising
+          Nodbusiness · Privacy · Terms · About · Advertising
         </p>
-        <p className="text-[10px] text-muted-foreground mt-1">© 2025 Empire X. All rights reserved.</p>
+        <p className="text-[10px] text-muted-foreground mt-1">© 2026 Nodbusiness. All rights reserved.</p>
       </div>
     </>
   );
@@ -350,8 +350,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           {/* Logo */}
           <Link href="/" className={`flex items-center gap-2 shrink-0 transition-all w-8 ${sidebarCollapsed ? "md:w-8" : "md:w-44"}`}>
             <Image
-              src="/brand/empire-x-logo.png"
-              alt="Empire X"
+              src="/brand/nodbusiness-icon.svg"
+              alt="Nodbusiness"
               width={32}
               height={32}
               className="w-8 h-8 rounded-xl object-cover shadow-sm"
@@ -359,7 +359,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             />
             {!sidebarCollapsed && (
               <span className="hidden md:inline font-display text-lg font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
-                Empire X
+                Nodbusiness
               </span>
             )}
           </Link>

@@ -163,7 +163,8 @@ function Home() {
     setFeedError('');
     try {
       const res = await client.get("/api/posts", { params: { feed: "true", limit: PAGE_SIZE, offset: reset ? 0 : offsetRef.current } });
-      const data = Array.isArray(res.data) ? res.data : [];
+      const payload = res.data;
+      const data = Array.isArray(payload) ? payload : (payload?.posts ?? []);
       setPosts(reset ? data : prev => [...prev, ...data]);
       offsetRef.current = (reset ? 0 : offsetRef.current) + data.length;
       if (data.length < PAGE_SIZE) setHasMore(false);
@@ -179,7 +180,8 @@ function Home() {
     setLoadingMore(true);
     try {
       const res = await client.get("/api/posts", { params: { feed: "true", limit: PAGE_SIZE, offset: offsetRef.current } });
-      const data = Array.isArray(res.data) ? res.data : [];
+      const payload = res.data;
+      const data = Array.isArray(payload) ? payload : (payload?.posts ?? []);
       setPosts(prev => {
         const existingIds = new Set(prev.map(p => p.id));
         return [...prev, ...data.filter(p => !existingIds.has(p.id))];
@@ -217,7 +219,8 @@ function Home() {
         params.feed = "true";
       }
       const res = await client.get("/api/posts", { params });
-      const data = Array.isArray(res.data) ? res.data : [];
+      const payload = res.data;
+      const data = Array.isArray(payload) ? payload : (payload?.posts ?? []);
       setPosts(key === "trending" ? [...data].sort((a, b) => (b.like_count || 0) - (a.like_count || 0)) : data);
       offsetRef.current = data.length;
       if (data.length < 30) setHasMore(false);

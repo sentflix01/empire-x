@@ -214,7 +214,7 @@ function InviteModal({ group, onClose }: { group: any; onClose: () => void }) {
         <div className="flex justify-center mb-4">
           <div className="p-3 bg-white rounded-2xl shadow-sm">
             <QRCodeSVG value={inviteUrl} size={180} level="M"
-              imageSettings={{ src: '/brand/empire-x-logo.png', height: 28, width: 28, excavate: true }} />
+              imageSettings={{ src: '/brand/nodbusiness-icon.svg', height: 28, width: 28, excavate: true }} />
           </div>
         </div>
         <div className="flex gap-2">
