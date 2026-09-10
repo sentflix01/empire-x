@@ -318,7 +318,8 @@ function Home() {
       {/* Company-owned announcements. This is intentionally separate from user profile/post tickers. */}
       <CompanyAnnouncementTicker />
 
-      {/* Filter Bar */}
+      {/* Filter Bar — only shown in personal feed mode */}
+      {feedMode === "personal" && (
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide items-center">
         {/* Personal / Business feed toggle */}
         <ProfileToggle
@@ -346,6 +347,19 @@ function Home() {
           </button>
         )}
       </div>
+      )}
+
+      {/* Business mode toggle row — shown when in business feed */}
+      {feedMode === "business" && (
+        <div className="flex items-center gap-2">
+          <ProfileToggle
+            view={feedMode}
+            onFlip={handleFeedFlip}
+            flipping={feedFlipping}
+          />
+          <span className="text-sm text-muted-foreground">Business Showrooms</span>
+        </div>
+      )}
 
       {/* Nearby / Map Tab */}
       {isNearbyActive && (
@@ -355,10 +369,10 @@ function Home() {
       {/* Feed content */}
       {!isNearbyActive && (
         <>
-          {/* Stories */}
+          {/* Stories — always visible */}
           <Stories />
 
-          {/* Create Post */}
+          {/* Create Post — always visible */}
           {user && (
             <CreatePostForm user={user} onPostCreated={handlePostCreated} />
           )}
@@ -368,7 +382,7 @@ function Home() {
             <BusinessShowroomFeed />
           )}
 
-          {/* Posts */}
+          {/* Personal Posts Feed */}
           {feedMode === "personal" && (
             <>
               {loading ? (
