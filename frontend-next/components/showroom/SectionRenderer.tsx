@@ -91,7 +91,7 @@ export default function SectionRenderer({
           {s.cta && ctaTarget && (
             <a href={ctaTarget}>
               {hasCustomBg ? (
-                <Button className="rounded-full px-6 bg-white" style={{ color: s.heroBg }}>{s.cta}</Button>
+                <Button className="rounded-full px-6 bg-white/90 hover:bg-white" style={{ color: s.heroBg }}>{s.cta}</Button>
               ) : (
                 <Button className="rounded-full text-white px-6" style={{ backgroundColor: themeColor }}>{s.cta}</Button>
               )}
@@ -391,10 +391,8 @@ export default function SectionRenderer({
   }
 
   if (s.type === "contact") {
-    // Index-based id on the wrapper; the semantic `section-contact` anchor is
-    // emitted as a hidden span so #section-contact links keep working.
     return (
-      <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-gradient-to-br from-gray-50 to-white border-t border-border/30">
+      <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/30 border-t border-border/30">
         <span id="section-contact" className="sr-only" aria-hidden="true" />
         <div className="max-w-md mx-auto text-center">
           <h2 className="font-display text-xl font-bold mb-4">{s.title || "Get in Touch"}</h2>
@@ -543,7 +541,7 @@ export default function SectionRenderer({
         {(s.ctaDesc || s.content) && <p className="text-sm text-white/85 mb-4">{s.ctaDesc || s.content}</p>}
         {(s.ctaBtn || s.cta) && (
           <a href="#section-contact">
-            <Button className="rounded-full px-6 bg-white" style={{ color: s.ctaBg || themeColor }}>{s.ctaBtn || s.cta}</Button>
+            <Button className="rounded-full px-6 bg-white/90 hover:bg-white" style={{ color: s.ctaBg || themeColor }}>{s.ctaBtn || s.cta}</Button>
           </a>
         )}
       </div>
