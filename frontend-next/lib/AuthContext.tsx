@@ -37,6 +37,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkUserAuth = useCallback(async () => {
     if (typeof window === 'undefined') return; // SSR guard
 
+    // Skip the refresh attempt on auth pages — there is never a session there
+    // and the guaranteed 401 pollutes the console with misleading errors.
+    const AUTH_PAGE_PREFIXES = ['/login', '/register', '/forgot-password', '/reset-password', '/verify', '/auth/google/callback'];
+    const onAuthPage = AUTH_PAGE_PREFIXES.some(p => window.location.pathname.startsWith(p));
+    if (onAuthPage) {
+      setUser(null);
+      setIsAuth(false);
+      setIsLoadingAuth(false);
+      setAuthChecked(true);
+      return;
+    }
+
     // TD-014: the JWT never touches localStorage. A session can only be
     // re-hydrated through the silent refresh (HttpOnly refresh cookie).
     // ensureFreshToken() covers the "token already in memory" case too.

@@ -116,9 +116,9 @@ async function run() {
     process.exit(1);
   }
 
-  const corsNext = await request('GET', '/health', { origin: 'http://localhost:3000' });
-  assert('CORS: Next.js origin (3000) accepted',
-    corsNext.headers['access-control-allow-origin'] === 'http://localhost:3000',
+  const corsNext = await request('GET', '/health', { origin: 'http://localhost:3002' });
+  assert('CORS: Next.js origin (3002) accepted',
+    corsNext.headers['access-control-allow-origin'] === 'http://localhost:3002',
     `got: ${corsNext.headers['access-control-allow-origin']}`);
 
   const corsOldVite = await request('GET', '/health', { origin: 'http://localhost:5173' });

@@ -187,7 +187,7 @@ export async function getConversationParticipantIds(conversationId: string): Pro
 
 export function initSocket(httpServer: HttpServer, corsOrigin: string | string[]): IOServer {
   const { Server } = require('socket.io') as typeof import('socket.io');
-  const origins = Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin ?? 'http://localhost:3000'];
+  const origins = Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin ?? 'http://localhost:3002'];
 
   ioInstance = new Server(httpServer, {
     cors: { origin: origins, credentials: true },

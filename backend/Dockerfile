@@ -5,6 +5,9 @@ COPY package*.json tsconfig.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
+# Verify critical compiled files exist — fail fast if the TypeScript build missed them
+RUN test -f dist/lib/showroomDoctor.js || (echo "ERROR: dist/lib/showroomDoctor.js missing after build" && exit 1)
+RUN test -f dist/lib/telemetry.js      || (echo "ERROR: dist/lib/telemetry.js missing after build" && exit 1)
 
 # ── Stage 2: Production image ─────────────────────────────────────────────────
 FROM node:20-alpine AS runner

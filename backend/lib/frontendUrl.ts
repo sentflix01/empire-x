@@ -5,7 +5,7 @@
  * typed helpers used by CORS config, email templates, and redirect URLs.
  */
 
-const DEFAULT_FRONTEND_URL = 'http://localhost:3000';
+const DEFAULT_FRONTEND_URL = 'http://localhost:3002';
 
 export function parseFrontendUrls(): string[] {
   const raw = process.env.FRONTEND_URL ?? DEFAULT_FRONTEND_URL;

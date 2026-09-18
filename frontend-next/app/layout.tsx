@@ -4,7 +4,7 @@ import Providers from './providers';
 import GoogleSignInInit from '@/components/GoogleSignInInit';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'),
   title: {
     default: 'Nodbusiness 👑',
     template: '%s | Nodbusiness',

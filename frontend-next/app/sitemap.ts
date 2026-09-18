@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const BASE = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 
 interface SitemapShowroom { slug: string | null; id: string; updated_at: string }

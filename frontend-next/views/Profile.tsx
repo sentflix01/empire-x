@@ -34,7 +34,7 @@ function Profile() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { activeView: view, setActiveView, accentTokens } = useProfileView();
+  const { profileViewMode: view, setProfileViewMode, profileViewTokens: accentTokens } = useProfileView();
   const [flipping, setFlipping] = useState(false);
   const [businesses, setBusinesses] = useState([]);
   const [selectedBizId, setSelectedBizId] = useState(null);
@@ -47,6 +47,18 @@ function Profile() {
     loadProfile();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user?.id]);
+
+  // Honour ?view= URL param on initial entry only — read once on mount.
+  // The sidebar pill sets profileViewMode via context before navigating,
+  // so this only handles deep-link / direct URL entry cases.
+  const viewParamRef = React.useRef(viewParam);
+  useEffect(() => {
+    const param = viewParamRef.current;
+    if (param === 'business' || param === 'personal') {
+      setProfileViewMode(param);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadProfile = async () => {
     setLoading(true);
@@ -64,11 +76,9 @@ function Profile() {
         // Default ticker ON if not explicitly set to 'none'
         const tickerType = profiles[0].ticker_type;
         setTickerOn(tickerType !== 'none'); // on by default unless user turned it off
-        // Only set view on initial load, not on every re-render
-        if (viewParam === "business" || viewParam === "personal") {
-          setActiveView(viewParam);
-        } else {
-          setActiveView(profiles[0].profile_type === "business" ? "business" : "personal");
+        // Only set view from profile_type if no ?view= param was in the URL on entry
+        if (!viewParamRef.current) {
+          setProfileViewMode(profiles[0].profile_type === "business" ? "business" : "personal");
         }
       }
       setBusinesses(bizList);
@@ -84,9 +94,10 @@ function Profile() {
 
   const handleFlip = () => {
     if (businesses.length === 0 && !profile?.has_business_profile) return;
+    const next = view === "personal" ? "business" : "personal";
     setFlipping(true);
     setTimeout(() => {
-      setActiveView(view === "personal" ? "business" : "personal");
+      setProfileViewMode(next);
       setFlipping(false);
     }, 200);
   };

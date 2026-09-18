@@ -23,6 +23,7 @@ import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import { toast } from "sonner";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { useRealMode } from "@/lib/RealModeContext";
+import { useProfileView } from "@/lib/ProfileViewContext";
 // AccountSettings popup replaced by /settings navigation
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
@@ -156,6 +157,42 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
   );
 }
 
+/* ── ViewTogglePill — Personal | Business sub-row pill ── */
+function ViewTogglePill({
+  value,
+  onChange,
+}: {
+  value: 'personal' | 'business';
+  onChange: (v: 'personal' | 'business') => void;
+}) {
+  return (
+    <div className="mx-2 mt-0.5 mb-1 flex items-center bg-secondary/60 rounded-full p-0.5 ring-1 ring-border/40">
+      <button
+        onClick={() => onChange('personal')}
+        aria-pressed={value === 'personal'}
+        className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all"
+        style={value === 'personal'
+          ? { background: 'linear-gradient(135deg,#3B82F6,#2563EB)', color: 'white', boxShadow: '0 1px 8px rgba(59,130,246,0.35)' }
+          : {}}
+      >
+        <User className="w-2.5 h-2.5 shrink-0" />
+        <span className={value === 'personal' ? 'text-white' : 'text-muted-foreground'}>Personal</span>
+      </button>
+      <button
+        onClick={() => onChange('business')}
+        aria-pressed={value === 'business'}
+        className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all"
+        style={value === 'business'
+          ? { background: 'linear-gradient(135deg,#F59E0B,#D97706)', color: 'white', boxShadow: '0 1px 8px rgba(245,158,11,0.35)' }
+          : {}}
+      >
+        <Store className="w-2.5 h-2.5 shrink-0" />
+        <span className={value === 'business' ? 'text-white' : 'text-muted-foreground'}>Business</span>
+      </button>
+    </div>
+  );
+}
+
 export default function AppLayout({ children }: { children?: React.ReactNode }) {
   const { theme, setTheme } = useTheme();
   const { t, i18n } = useTranslation();
@@ -164,6 +201,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const router = useRouter();
   const { user, isAuthenticated, authChecked, isLoadingAuth, logout } = useAuth();
   const { realMode, toggleRealMode } = useRealMode();
+  const { homeFeedMode, setHomeFeedMode, profileViewMode, setProfileViewMode } = useProfileView();
+
   const tr = (key: string) => String(t(key));
   const displayName = typeof user?.full_name === 'string' ? user.full_name : 'User';
   const userEmail = typeof user?.email === 'string' ? user.email : '';
@@ -538,7 +577,32 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
           {/* ── Nav links ── */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-0.5 scrollbar-thin">
-            {mainNavItems.map(item => <NavLink key={item.path} {...item} />)}
+            {mainNavItems.map(item => (
+              <React.Fragment key={item.path}>
+                <NavLink {...item} />
+                {/* Personal | Business pill — under Home, only when Home is active */}
+                {item.path === '/feed' && !sidebarCollapsed && isActive('/feed') && (
+                  <ViewTogglePill
+                    value={homeFeedMode}
+                    onChange={(v) => { if (v !== homeFeedMode) setHomeFeedMode(v); }}
+                  />
+                )}
+                {/* Personal | Business pill — under Profile, only when Profile is active */}
+                {item.path === '/profile' && !sidebarCollapsed && isActive('/profile') && (
+                  <ViewTogglePill
+                    value={profileViewMode}
+                    onChange={(v) => {
+                      if (v === profileViewMode) return;
+                      setProfileViewMode(v);
+                      // Only push if not already on profile — avoids re-triggering useSearchParams
+                      if (!pathname.startsWith('/profile')) {
+                        router.push(`/profile?view=${v}`);
+                      }
+                    }}
+                  />
+                )}
+              </React.Fragment>
+            ))}
 
             <div className="my-2 border-t border-border/40" />
 
@@ -708,10 +772,33 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 {/* ── Scrollable nav list — solid white ── */}
                 <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5 bg-white dark:bg-card">
                   {mainNavItems.map(({ path, icon: Icon, label }) => (
-                    <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
-                      <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
-                    </Link>
+                    <React.Fragment key={path}>
+                      <Link href={path} onClick={() => setDrawerOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                        <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
+                      </Link>
+                      {/* Personal | Business pill — under Home in drawer, only when Home is active */}
+                      {path === '/feed' && isActive('/feed') && (
+                        <ViewTogglePill
+                          value={homeFeedMode}
+                          onChange={(v) => { if (v !== homeFeedMode) setHomeFeedMode(v); }}
+                        />
+                      )}
+                      {/* Personal | Business pill — under Profile in drawer, only when Profile is active */}
+                      {path === '/profile' && isActive('/profile') && (
+                        <ViewTogglePill
+                          value={profileViewMode}
+                          onChange={(v) => {
+                            if (v === profileViewMode) return;
+                            setProfileViewMode(v);
+                            setDrawerOpen(false);
+                            if (!pathname.startsWith('/profile')) {
+                              router.push(`/profile?view=${v}`);
+                            }
+                          }}
+                        />
+                      )}
+                    </React.Fragment>
                   ))}
 
                   <div className="my-2 border-t border-gray-100 dark:border-border" />

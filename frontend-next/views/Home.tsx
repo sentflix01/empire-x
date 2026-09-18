@@ -6,7 +6,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { HomeMapTabDynamic as HomeMapTab } from "@/components/map/DynamicMap";
 import PostCard from "@/components/feed/PostCard";
 import CreatePostForm from "@/components/feed/CreatePostForm";
-import ProfileToggle from "@/components/profile/ProfileToggle";
 import Stories from "@/views/Stories";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -91,17 +90,9 @@ function CompanyAnnouncementTicker() {
 function Home() {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { accentTokens, isPersonal, activeView, setActiveView } = useProfileView();
-  const feedMode = activeView; // driven by shared context — no local state needed
-  const [feedFlipping, setFeedFlipping] = useState(false);
-
-  const handleFeedFlip = () => {
-    setFeedFlipping(true);
-    setTimeout(() => {
-      setActiveView(feedMode === 'personal' ? 'business' : 'personal');
-      setFeedFlipping(false);
-    }, 150);
-  };
+  const { homeFeedTokens: accentTokens, homeFeedMode, setHomeFeedMode } = useProfileView();
+  const feedMode = homeFeedMode;
+  const isPersonal = homeFeedMode === 'personal';
   const [posts, setPosts]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -318,46 +309,28 @@ function Home() {
       {/* Company-owned announcements. This is intentionally separate from user profile/post tickers. */}
       <CompanyAnnouncementTicker />
 
-      {/* Filter Bar — only shown in personal feed mode */}
+      {/* Filter Bar — feed filter chips */}
       {feedMode === "personal" && (
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide items-center">
-        {/* Personal / Business feed toggle */}
-        <ProfileToggle
-          view={feedMode}
-          onFlip={handleFeedFlip}
-          flipping={feedFlipping}
-        />
-        {FILTERS.map(f => {
-          const Icon = f.icon;
-          return (
-            <button key={f.key} onClick={() => handleFilterChange(f.key)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                filter === f.key ? accentTokens.activeTabClass : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
-              }`}>
-              <Icon className="w-3.5 h-3.5" />
-              {t(f.label)}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide items-center">
+          {FILTERS.map(f => {
+            const Icon = f.icon;
+            return (
+              <button key={f.key} onClick={() => handleFilterChange(f.key)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                  filter === f.key ? accentTokens.activeTabClass : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
+                }`}>
+                <Icon className="w-3.5 h-3.5" />
+                {t(f.label)}
+              </button>
+            );
+          })}
+          {!isNearbyActive && (
+            <button onClick={() => loadPosts(true)} disabled={loading}
+              className="ml-auto shrink-0 p-2 rounded-full bg-card border border-border/50 text-muted-foreground hover:bg-secondary transition-all"
+              title={t('feed.refreshFeed')}>
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
-          );
-        })}
-        {!isNearbyActive && (
-          <button onClick={() => loadPosts(true)} disabled={loading}
-            className="ml-auto shrink-0 p-2 rounded-full bg-card border border-border/50 text-muted-foreground hover:bg-secondary transition-all"
-            title={t('feed.refreshFeed')}>
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          </button>
-        )}
-      </div>
-      )}
-
-      {/* Business mode toggle row — shown when in business feed */}
-      {feedMode === "business" && (
-        <div className="flex items-center gap-2">
-          <ProfileToggle
-            view={feedMode}
-            onFlip={handleFeedFlip}
-            flipping={feedFlipping}
-          />
-          <span className="text-sm text-muted-foreground">Business Showrooms</span>
+          )}
         </div>
       )}
 

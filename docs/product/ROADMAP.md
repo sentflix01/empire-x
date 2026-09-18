@@ -28,7 +28,7 @@
 - [x] Wallet (balance, topup, withdraw)
 - [x] Basic admin panel
 - [x] AI product description generator
-- [x] Google OAuth
+- [x] Google OAuth (popup flow — no GIS script, COOP-safe, works in incognito)
 - [x] HttpOnly refresh token cookie (TD-001)
 - [x] JWT revocation blocklist via Redis (TD-005)
 - [x] Silent token refresh on page load — logout loop fixed (September 2026)
@@ -40,6 +40,13 @@
   - Withdrawal requests with multi-admin approval workflow
   - Push notifications to all group members on contribution
   - PDF export of group summary
+- [x] **Personal / Business feed toggle** (September 2026)
+  - Independent `homeFeedMode` (feed) and `profileViewMode` (profile) states
+  - Personal/Business pills in sidebar under Home tab (feed mode) and Profile tab (profile mode)
+  - Pills show only when their parent tab is active (accordion behaviour)
+  - Business feed shows live showroom cards; Personal feed shows social posts
+- [x] **Port migration** — frontend moved from 3000 → 3002 (September 2026)
+- [x] **Redis quota resilience** — graceful no-op fallback when Upstash free-tier limit hit
 
 ### Infrastructure
 - [x] Vercel (Next.js) + Render (backend) + Neon (database)

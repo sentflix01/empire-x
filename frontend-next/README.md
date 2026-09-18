@@ -10,7 +10,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3002.
 
 ## Environment
 
@@ -18,7 +18,7 @@ Required for local development:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=http://localhost:3002
 ```
 
 Required for production on Vercel:
@@ -44,7 +44,7 @@ For a free pilot or local testing, keep the frontend and backend on localhost an
 
 - Frontend env:
   - `NEXT_PUBLIC_API_BASE_URL=http://localhost:3001`
-  - `NEXT_PUBLIC_APP_URL=http://localhost:3000`
+  - `NEXT_PUBLIC_APP_URL=http://localhost:3002`
   - `NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com`
 - Backend can continue using local disk uploads by leaving R2 env vars unset.
 - This is fine for development and a small closed beta, but not for large public production.

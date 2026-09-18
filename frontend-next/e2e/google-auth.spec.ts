@@ -436,4 +436,121 @@ test.describe('Section C — Email auth lifecycle', () => {
 
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// Section D — Google OAuth popup handoff (mocked Google, mocked backend)
+// ═════════════════════════════════════════════ accounts.google.com is blocked ═
+
+test.describe('Section D — Google OAuth popup handoff', () => {
+
+  const GoogleAuthHost = 'https://accounts.google.com';
+
+  interface PageMockCounters {
+    google: number;
+    exchange: number;
+    refresh: number;
+    me: number;
+  }
+
+  function baseMocks(context: BrowserContext): PageMockCounters {
+    const counters: PageMockCounters = { google: 0, exchange: 0, refresh: 0, me: 0 };
+    context.route(`${GoogleAuthHost}/**`, route => route.abort());
+    return counters;
+  }
+
+  test('D1: normal popup handoff', async ({ page, context }) => {
+    const counters = baseMocks(context);
+    const state = 'd1state';
+    await context.route(`${GoogleAuthHost}/o/oauth2/v2/auth*`, async route => {
+      counters.google++;
+      const reqUrl = new URL(route.request().url());
+      const redirectUri = reqUrl.searchParams.get('redirect_uri') ?? '';
+      const returnedState = reqUrl.searchParams.get('state') ?? '';
+      await route.fulfill({
+        status:      200,
+        contentType: 'text/html',
+        headers:     {
+          'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+          'Cache-Control':              'no-store',
+        },
+        body: `
+          <!doctype html>
+          <html><body>
+          <script>
+            const redirectUri = ${JSON.stringify(redirectUri)};
+            const state       = ${JSON.stringify(returnedState)};
+            const fragment    = '#state=' + encodeURIComponent(state) +
+                                '&id_token=test-id-token&token_type=id_token&expires_in=3599';
+            setTimeout(() => {
+              location.replace(redirectUri + fragment);
+            }, 50);
+          </script>
+          </body></html>
+        `,
+      });
+    });
+
+    await context.route('**/api/auth/google', async route => {
+      counters.exchange++;
+      await route.fulfill({
+        status:      200,
+        contentType: 'application/json',
+        body:        JSON.stringify({ access_token: 'e2e-access-token' }),
+      });
+    });
+
+    await context.route('**/api/auth/refresh', async route => {
+      counters.refresh++;
+      await route.fulfill({
+        status:      200,
+        contentType: 'application/json',
+        body:        JSON.stringify({ access_token: 'e2e-access-token' }),
+      });
+    });
+
+    await context.route('**/api/auth/me', async route => {
+      counters.me++;
+      await route.fulfill({
+        status:      200,
+        contentType: 'application/json',
+        body:        JSON.stringify({
+          id:        'e2e-user',
+          full_name: 'E2E User',
+          email:     'e2e@google.test',
+          role:      'user',
+        }),
+      });
+    });
+
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+
+    const gisButton = page.locator('div[aria-label*="Google"] button').first();
+    await expect(gisButton).toBeVisible({ timeout: 20_000 });
+    await gisButton.click();
+
+    const popupPromise = context.waitForEvent('page', { timeout: 20_000 });
+    const popup = await popupPromise;
+
+    await popup.waitForLoadState('load', { timeout: 20_000 });
+
+    await page.waitForURL(u => u.pathname === '/feed', { timeout: 20_000 });
+
+    await expect
+      .poll(() => counters.exchange, { timeout: 10_000, intervals: [100, 250, 500, 1_000] })
+      .toBe(1);
+
+    expect(counters.refresh).toBe(0);
+
+    await popup.close();
+
+    await page.goto('/feed', { waitUntil: 'domcontentloaded' });
+    await expect(page).not.toHaveURL(/\/login/, { timeout: 10_000 });
+  });
+
+  test('D2: popup closed without handoff — parent stays on /login', async ({ page }) => {
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  });
+
+});
+
 

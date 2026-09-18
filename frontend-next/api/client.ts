@@ -35,8 +35,9 @@ function clearHintCookie() {
 function clearLegacyTokenArtifacts() {
   // Pre-TD-014 builds persisted the JWT in localStorage / a JS cookie.
   // Remove them so a stale token can never be resurrected.
-  localStorage.removeItem('access_token');
-  document.cookie = 'access_token=; path=/; max-age=0';
+  // Wrapped in try/catch — localStorage throws in incognito on some browsers.
+  try { localStorage.removeItem('access_token'); } catch { /* incognito — ignore */ }
+  try { document.cookie = 'access_token=; path=/; max-age=0'; } catch { /* ignore */ }
 }
 
 export function storeToken(token: string) {
@@ -114,13 +115,19 @@ client.interceptors.response.use(
       !originalRequest._retried &&
       typeof window !== 'undefined'
     ) {
-  // Fix #10: Only skip refresh for /refresh and /login endpoints, not all /api/auth/ routes.
+      // Never attempt refresh on auth pages — there is no session there.
+      // Attempting it causes noisy 401s in the console and wastes a round-trip.
+      const AUTH_PAGE_PREFIXES = ['/login', '/register', '/forgot-password', '/reset-password', '/verify', '/auth/google/callback'];
+      const onAuthPage = AUTH_PAGE_PREFIXES.some(p => window.location.pathname.startsWith(p));
+
+      // Only skip refresh for /refresh and /login endpoints, not all /api/auth/ routes.
       // This allows /api/auth/me to trigger a silent refresh when the access token expires.
       const isAuthEndpoint =
         originalRequest.url?.includes('/api/auth/refresh') ||
         originalRequest.url?.includes('/api/auth/login') ||
         originalRequest.url?.includes('/api/auth/logout');
-      if (!isAuthEndpoint) {
+
+      if (!isAuthEndpoint && !onAuthPage) {
         originalRequest._retried = true;
 
         try {

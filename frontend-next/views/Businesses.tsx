@@ -115,12 +115,11 @@ function BusinessCard({
               </span>
             </div>
           )}
-          <Link
-            href={`/profile/${biz.owner_id}?view=business`}
-            className="text-[11px] font-semibold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full px-2.5 py-1 transition-colors shrink-0 ml-auto"
+          <span
+            className="text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1 shrink-0 ml-auto"
           >
             View Business
-          </Link>
+          </span>
         </div>
       </div>
     </Link>

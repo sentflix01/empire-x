@@ -32,7 +32,12 @@ import * as apiError from '../lib/apiError';
 import logger from '../lib/logger';
 
 const router = Router();
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Read at request time so a restart picks up env changes without recompiling.
+// Do NOT cache at module level — the env var may not be set during test imports.
+function getGoogleClient(): OAuth2Client {
+  return new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+}
 
 // Pre-computed bcrypt digest of a random string — used only to burn an
 // identical amount of CPU when the email does not exist (anti-enumeration).
@@ -485,7 +490,7 @@ router.post('/google', async (req: Request, res: Response) => {
 
   let payload;
   try {
-    const ticket = await googleClient.verifyIdToken({
+    const ticket = await getGoogleClient().verifyIdToken({
       idToken: id_token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });

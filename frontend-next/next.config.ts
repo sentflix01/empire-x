@@ -81,7 +81,7 @@ const nextConfig: NextConfig = {
       // We cannot predict all storage domains (Render, Supabase, R2, CDN, user avatars)
       // at build time, so we use 'https:' wildcard which allows any HTTPS image source.
       // This is safe for a pure-API backend (no cross-site form actions, no scripts).
-      `img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3000`,
+      `img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3002`,
       // Fonts: self + Google Fonts (if used)
       `font-src 'self'`,
       // API calls, Sentry, Stripe, WebSocket (socket.io), Google auth
@@ -101,15 +101,27 @@ const nextConfig: NextConfig = {
 
     return [
       {
+        // Global security headers for all pages
         source: "/(.*)",
         headers: [
-          { key: "X-Content-Type-Options",    value: "nosniff" },
-          { key: "X-Frame-Options",            value: "DENY" },
-          { key: "X-XSS-Protection",           value: "1; mode=block" },
-          { key: "Referrer-Policy",            value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy",         value: "camera=(), microphone=(), geolocation=(self)" },
-          { key: "Content-Security-Policy",    value: csp },
+          { key: "X-Content-Type-Options",      value: "nosniff" },
+          { key: "X-Frame-Options",              value: "DENY" },
+          { key: "X-XSS-Protection",             value: "1; mode=block" },
+          { key: "Referrer-Policy",              value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy",           value: "camera=(), microphone=(), geolocation=(self)" },
+          { key: "Content-Security-Policy",      value: csp },
           { key: "Cross-Origin-Opener-Policy",   value: "same-origin-allow-popups" },
+        ],
+      },
+      {
+        // OAuth2 callback page — must have COOP: unsafe-none so the popup can
+        // access window.opener and send postMessage back to the Login page.
+        // When COOP is same-origin-allow-popups the popup context gets isolated
+        // after navigating through Google's cross-origin domain, making
+        // window.opener null and window.closed unreadable.
+        source: "/auth/google/callback",
+        headers: [
+          { key: "Cross-Origin-Opener-Policy", value: "unsafe-none" },
         ],
       },
     ];

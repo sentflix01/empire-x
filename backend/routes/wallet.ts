@@ -198,7 +198,7 @@ router.get('/topup/chapa/verify/:tx_ref', async (req: Request, res: Response) =>
   const CHAPA_SECRET = process.env.CHAPA_SECRET_KEY ?? null;
   const SANDBOX = CHAPA_SECRET === 'SANDBOX';
   const { tx_ref } = req.params;
-  const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+  const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3002';
   if (!CHAPA_SECRET) { res.status(503).json({ error: 'Chapa not configured' }); return; }
   try {
     let paidAmount: number | null = null;
