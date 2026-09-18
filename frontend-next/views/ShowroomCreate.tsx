@@ -68,14 +68,14 @@ const SECTION_GROUPS = [
     keys: [
       "about", "features", "items", "gallery", "testimonials", "team", "faq", "pricing",
       "services", "portfolio", "stats", "process", "caseStudies", "partners", "awards",
-      "resources", "careers", "booking", "industries",
+      "resources", "careers", "booking", "industries", "inventory_catalog", "live_location_tracking",
     ],
   },
   {
     title: "Footer",
     desc: "Contact, location, social links, and signup",
     icon: "fa-shoe-prints",
-    keys: ["map", "contact", "social", "newsletter"],
+    keys: ["map", "contact", "social", "newsletter", "save_showroom"],
   },
 ];
 

@@ -169,7 +169,7 @@ function Bookmarks() {
                         </Link>
                       )}
                       {target_type === "showroom" && (
-                        <Link href={`/showrooms/${target_id}`} className="hover:underline">
+                        <Link href={`/businesses`} className="hover:underline">
                           <p className="text-sm font-medium">{title || t('bookmarks.untitled')}</p>
                         </Link>
                       )}

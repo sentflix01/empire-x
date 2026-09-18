@@ -179,35 +179,9 @@ function Profile() {
               <SafeImage src={profile.cover_url} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: profile.cover_position || 'center' }} />
             )}
-            {/* Personal / Business toggle — top-right of cover, visible to all when business exists */}
-            {hasBusinessView && (
-              <div className="absolute top-3 right-3 z-10 flex items-center rounded-full p-0.5 gap-0.5 shadow-lg"
-                style={{ backgroundColor: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}>
-                <button
-                  onClick={() => view !== 'personal' && handleFlip()}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
-                  style={{
-                    backgroundColor: view === 'personal' ? '#fff' : 'transparent',
-                    color: view === 'personal' ? '#1d4ed8' : 'rgba(255,255,255,0.8)',
-                  }}
-                >
-                  <User className="w-3 h-3" /> Personal
-                </button>
-                <button
-                  onClick={() => view !== 'business' && handleFlip()}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
-                  style={{
-                    backgroundColor: view === 'business' ? '#fff' : 'transparent',
-                    color: view === 'business' ? '#b45309' : 'rgba(255,255,255,0.8)',
-                  }}
-                >
-                  <Store className="w-3 h-3" /> Business
-                </button>
-              </div>
-            )}
           </div>
           <div className="px-5 pb-4">
-            {/* Row 1: Avatar (left) + Edit/Logout buttons (right) */}
+            {/* Row 1: Avatar (left) + Toggle + Edit/Logout buttons (right) */}
             <div className="flex items-end justify-between -mt-12">
               <div className="relative">
                 <div className="w-24 h-24 rounded-2xl bg-card p-0.5 shadow-lg">
@@ -228,16 +202,40 @@ function Profile() {
                 </div>
               </div>
 
-              {isOwner && (
-                <div className="mb-2 flex gap-2 items-end">
-                  <Link href="/profile/edit">
-                    <Button variant="outline" size="sm" className="rounded-full h-8"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button>
-                  </Link>
-                  <Button variant="ghost" size="sm" className="rounded-full h-8 text-muted-foreground" onClick={() => auth.logout("/")}>
-                    <LogOut className="w-3 h-3" />
-                  </Button>
-                </div>
-              )}
+              {/* Personal / Business toggle — between avatar and edit buttons */}
+              <div className="flex items-center gap-2 mb-2">
+                {hasBusinessView && (
+                  <div className="flex items-center bg-secondary/60 rounded-full p-0.5 ring-1 ring-border/40 gap-0">
+                    <button
+                      onClick={() => view !== 'personal' && handleFlip()}
+                      aria-pressed={view === 'personal'}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
+                      style={view === 'personal' ? { background: 'linear-gradient(135deg,#3B82F6,#2563EB)', color: 'white', boxShadow: '0 1px 6px rgba(59,130,246,0.4)' } : { color: 'var(--muted-foreground)' }}
+                    >
+                      <User className="w-3 h-3" /> Personal
+                    </button>
+                    <button
+                      onClick={() => view !== 'business' && handleFlip()}
+                      aria-pressed={view === 'business'}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
+                      style={view === 'business' ? { background: 'linear-gradient(135deg,#F59E0B,#D97706)', color: 'white', boxShadow: '0 1px 6px rgba(245,158,11,0.4)' } : { color: 'var(--muted-foreground)' }}
+                    >
+                      <Store className="w-3 h-3" /> Business
+                    </button>
+                  </div>
+                )}
+
+                {isOwner && (
+                  <div className="flex gap-2 items-center">
+                    <Link href="/profile/edit">
+                      <Button variant="outline" size="sm" className="rounded-full h-8"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button>
+                    </Link>
+                    <Button variant="ghost" size="sm" className="rounded-full h-8 text-muted-foreground" onClick={() => auth.logout("/")}>
+                      <LogOut className="w-3 h-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Name + Info */}

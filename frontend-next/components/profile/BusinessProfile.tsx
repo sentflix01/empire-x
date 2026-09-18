@@ -75,8 +75,8 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
     <div className="space-y-0">
       {/* Mini-Website Container */}
       <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
-        {/* Website Navbar — sticky on desktop, static on mobile to prevent overlay */}
-        <div className="md:sticky top-14 z-30 bg-background/95 backdrop-blur-md border-b border-border/50 px-4 py-2.5 flex items-center justify-between gap-2 flex-wrap">
+        {/* Website Navbar — static, not sticky (sticky causes z-index overlap with contact section) */}
+        <div className="bg-background/95 backdrop-blur-md border-b border-border/50 px-4 py-2.5 flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 min-w-0">
             {biz.business_logo_url ? (
               <SafeImage src={biz.business_logo_url} alt={biz.business_name || 'Business logo'} className="w-7 h-7 rounded-lg object-cover shrink-0"

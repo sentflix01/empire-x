@@ -6,9 +6,10 @@ import Link from 'next/link';
 
 import {
   Clock, ShoppingBag, Star, Mail, Phone, MapPin, PlayCircle, CalendarCheck,
-  Medal, Send, Share2,
+  Medal, Send, Share2, Bookmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import BookmarkButton from "@/components/ui/BookmarkButton";
 
 const parseImages = (img?: string | string[] | null) => { try { return JSON.parse(String(img || "[]")); } catch { return img ? [img].flat() : []; } };
 
@@ -698,6 +699,33 @@ export default function SectionRenderer({
           <Button className="rounded-full text-white px-5" style={{ backgroundColor: themeColor }}>
             <Send className="w-3.5 h-3.5 mr-1" /> {s.newsBtn || "Subscribe"}
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (s.type === "save_showroom") {
+    // The showroom/business ID to bookmark — use profile.id (business entity id)
+    const showroomId = biz.id as string | undefined;
+    const showroomName = (biz.business_name || biz.title || 'this showroom') as string;
+    const title = s.saveTitle || s.title || 'Save this showroom';
+    const desc = s.saveDesc || s.content || 'Bookmark us and find us again easily';
+
+    if (!showroomId) return null;
+
+    return (
+      <div id={`section-${sectionIndex}`} className="px-5 py-10 text-center bg-secondary/10 border-t border-border/30">
+        <Bookmark className="w-8 h-8 mx-auto mb-3" style={{ color: themeColor }} />
+        <h2 className="font-display text-lg font-bold mb-1">{title}</h2>
+        {desc && <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">{desc}</p>}
+        <div className="flex items-center justify-center">
+          <BookmarkButton
+            targetId={showroomId}
+            targetType="showroom"
+            itemData={{ title: showroomName }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 text-sm font-semibold transition-all"
+          />
+          <span className="ml-2 text-sm text-muted-foreground">Double-click to save</span>
         </div>
       </div>
     );

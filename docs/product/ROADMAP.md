@@ -47,6 +47,14 @@
   - Business feed shows live showroom cards; Personal feed shows social posts
 - [x] **Port migration** — frontend moved from 3000 → 3002 (September 2026)
 - [x] **Redis quota resilience** — graceful no-op fallback when Upstash free-tier limit hit
+- [x] **Bookmark system** — end-to-end (September 2026)
+  - Double-click to save, double-click again to remove — fully independent per card
+  - `GET /api/saves` enriched with JOIN to return title + thumbnail
+  - Business showroom cards correctly save as `target_type='showroom'`
+  - Bookmarks page shows real titles and thumbnails
+  - Store hydrated on app boot so bookmark state is pre-loaded
+- [x] **Settings popup** — sidebar footer consolidates Language, Theme, Demo/Real, Account Settings, Analytics, Admin Panel (September 2026)
+- [x] **Showroom builder** — "Save / Bookmark Button" Pro section added; `inventory_catalog` and `live_location_tracking` sections now visible in builder UI (September 2026)
 
 ### Infrastructure
 - [x] Vercel (Next.js) + Render (backend) + Neon (database)

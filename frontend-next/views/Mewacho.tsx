@@ -52,8 +52,8 @@ function CreateGroupModal({ onClose, onCreated }: { onClose: () => void; onCreat
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-card rounded-2xl w-full max-w-md shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="rounded-2xl w-full max-w-md shadow-2xl border border-border" style={{ backgroundColor: 'hsl(var(--card))', isolation: 'isolate' }}>
         <div className="flex items-center justify-between p-5 border-b border-border">
           <h2 className="font-bold text-lg">Create Mewacho Group</h2>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-secondary">
@@ -170,8 +170,8 @@ function JoinModal({ onClose, onJoined }: { onClose: () => void; onJoined: (grou
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-card rounded-2xl w-full max-w-sm shadow-xl p-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="rounded-2xl w-full max-w-sm shadow-2xl border border-border p-5" style={{ backgroundColor: 'hsl(var(--card))', isolation: 'isolate' }}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-lg">Join a Group</h2>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-secondary"><X className="w-5 h-5" /></button>

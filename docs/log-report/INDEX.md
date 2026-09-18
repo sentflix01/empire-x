@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-18 | Feature | feat: bookmarks end-to-end, settings popup, UI fixes | [see report](2026-09-18-feat-bookmarks-settings-popup-ui-fixes.md) |
 | 2026-09-17 | Feature | feat: personal/business toggle, Google OAuth popup, port 3002, Redis resilience | [9aa9ae1](2026-09-17-9aa9ae1-feat-personal-business-toggle-google-oauth-popup-port-3002-redis-resilience.md) |
 | 2026-09-05 | Maintenance | Merge branch 'main' of https://github.com/sentflix01/empire-x | [cd23a9f14](2026-09-05-cd23a9f14-merge-branch-main-of-https-github-com-sentflix01.md) |
 | 2026-09-05 | Bugfix | fix: backup script IPv6 connectivity and skipped handling | [e1311caa5](2026-09-05-e1311caa5-backup-script-ipv6-connectivity-and-skipped-hand.md) |

@@ -66,6 +66,8 @@ export const createBookmarksSlice: StateCreator<BookmarksSlice, [], [], Bookmark
         savedIds = withKey(savedIds, record.target_id, {
           target_id: record.target_id,
           target_type: record.target_type,
+          title: record.title ?? undefined,
+          thumbnailUrl: record.thumbnail_url ?? undefined,
         });
       }
       set({ savedIds, isHydrating: false });

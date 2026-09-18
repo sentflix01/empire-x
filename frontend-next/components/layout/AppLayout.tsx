@@ -11,7 +11,7 @@ import {
   Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, MapPin, Tag,
   Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
   PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield,
-  ArrowLeft, Coins,
+  ArrowLeft, Coins, Settings,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { useRealMode } from "@/lib/RealModeContext";
 import { useProfileView } from "@/lib/ProfileViewContext";
+import { useAppStore } from "@/store";
 // AccountSettings popup replaced by /settings navigation
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
@@ -213,6 +214,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [accountOpen, setAccountOpen] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [homeTabsOpen, setHomeTabsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userProfile, setUserProfile] = useState<{ avatar_url?: string; cover_url?: string } | null>(null);
@@ -245,9 +247,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     }
   }, [authChecked, isAuthenticated, router]);
 
-  // Once user is available: check profile, set up socket, load unread count
+  // Once user is available: check profile, set up socket, load unread count, hydrate bookmarks
+  const hydrateBookmarks = useAppStore(s => s.hydrate);
   useEffect(() => {
     if (!user) return;
+    // Hydrate bookmark state so bookmark buttons show correct saved state immediately
+    hydrateBookmarks();
     entities.UserProfile.filter({ user_id: user.id }).then(profiles => {
       if (profiles.length === 0 && pathname !== "/onboarding") {
         router.push("/onboarding");
@@ -489,33 +494,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </span>
               )}
             </Link>
-            {/* Real/Demo mode toggle — visible on all sizes */}
-            <button
-              onClick={toggleRealMode}
-              title={realMode ? 'Real users only — click to show all' : 'Showing all (demo+real) — click for real only'}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border transition-all ${
-                realMode
-                  ? 'bg-green-500 text-white border-green-500 shadow-sm shadow-green-500/30'
-                  : 'bg-secondary text-muted-foreground border-border/50 hover:bg-secondary/80'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full shrink-0 ${realMode ? 'bg-white' : 'bg-amber-500'}`} />
-              {realMode ? 'Real' : 'Demo'}
-            </button>
-            {/* Dark mode */}
-            <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Toggle dark mode">
-              {!mounted ? (
-                <span className="block w-5 h-5 rounded-full bg-muted-foreground/20" aria-hidden />
-              ) : theme === "dark" ? (
-                <Sun className="w-5 h-5 text-amber-400" />
-              ) : (
-                <Moon className="w-5 h-5 text-muted-foreground" />
-              )}
-            </button>
-            {/* Language */}
-            <button onClick={toggleLanguage} className="p-2 rounded-full hover:bg-secondary transition-colors flex items-center justify-center" aria-label="Toggle language" title="Switch English / አማርኛ">
-              <Languages className="w-5 h-5 text-muted-foreground" />
-            </button>
+            {/* Bookmarks */}
+            <Link href="/bookmarks" className="p-2 rounded-full hover:bg-secondary transition-colors flex items-center justify-center" aria-label="Bookmarks">
+              <Bookmark className="w-5 h-5 text-muted-foreground" />
+            </Link>
             {/* Avatar */}
             <Link href="/profile" className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
               {userProfile?.avatar_url
@@ -678,17 +660,134 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <div className="h-4" />
           </div>
 
-          {/* ── Sidebar footer — logout ── */}
-          <div className="border-t border-border px-2 py-2 shrink-0">
-            <button
-              onClick={() => logout()}
-              title={sidebarCollapsed ? "Log out" : undefined}
-              className={`w-full flex items-center gap-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium
-                ${sidebarCollapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"}`}
-            >
-              <LogOut className="w-4 h-4 shrink-0" />
-              {!sidebarCollapsed && <span>Log out</span>}
-            </button>
+          {/* ── Sidebar footer — settings + logout ── */}
+          <div className="border-t border-border px-2 py-2 shrink-0 relative">
+            {/* Settings popup panel — appears above footer */}
+            {settingsOpen && !sidebarCollapsed && (
+              <>
+                {/* Backdrop */}
+                <div className="fixed inset-0 z-40" onClick={() => setSettingsOpen(false)} />
+                <div className="absolute bottom-full left-2 right-2 mb-2 z-50 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden" style={{ backgroundColor: 'hsl(var(--card))', backdropFilter: 'none' }}>
+                  <div className="px-3 pt-3 pb-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Settings</p>
+                  </div>
+
+                  {/* Language */}
+                  <button
+                    onClick={toggleLanguage}
+                    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm"
+                  >
+                    <div className="flex items-center gap-2.5 text-muted-foreground">
+                      <Languages className="w-4 h-4 shrink-0" />
+                      <span>Language</span>
+                    </div>
+                    <span className="text-xs font-semibold text-foreground bg-secondary border border-border rounded-full px-2 py-0.5">
+                      {i18n.language === 'am' ? 'አማ' : 'EN'}
+                    </span>
+                  </button>
+
+                  {/* Theme */}
+                  <button
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm"
+                  >
+                    <div className="flex items-center gap-2.5 text-muted-foreground">
+                      {mounted && theme === 'dark'
+                        ? <Sun className="w-4 h-4 shrink-0 text-amber-400" />
+                        : <Moon className="w-4 h-4 shrink-0" />}
+                      <span>Theme</span>
+                    </div>
+                    <span className="text-xs font-semibold text-foreground bg-secondary border border-border rounded-full px-2 py-0.5">
+                      {mounted ? (theme === 'dark' ? 'Dark' : 'Light') : '…'}
+                    </span>
+                  </button>
+
+                  {/* Demo / Real */}
+                  <button
+                    onClick={toggleRealMode}
+                    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm"
+                  >
+                    <div className="flex items-center gap-2.5 text-muted-foreground">
+                      <span className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${realMode ? 'border-green-500 bg-green-500' : 'border-amber-500 bg-amber-500'}`}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                      </span>
+                      <span>Data Mode</span>
+                    </div>
+                    <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${realMode ? 'bg-green-500/10 text-green-600 border border-green-500/30' : 'bg-amber-500/10 text-amber-600 border border-amber-500/30'}`}>
+                      {realMode ? 'Real' : 'Demo'}
+                    </span>
+                  </button>
+
+                  <div className="mx-3 my-1 border-t border-border/40" />
+
+                  {/* Account Settings */}
+                  <Link
+                    href="/account"
+                    onClick={() => setSettingsOpen(false)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-secondary transition-colors text-sm text-muted-foreground"
+                  >
+                    <Lock className="w-4 h-4 shrink-0" />
+                    <span>Account Settings</span>
+                  </Link>
+
+                  {/* Analytics */}
+                  <Link
+                    href="/analytics"
+                    onClick={() => setSettingsOpen(false)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-secondary transition-colors text-sm text-muted-foreground"
+                  >
+                    <BarChart3 className="w-4 h-4 shrink-0" />
+                    <span>Analytics</span>
+                  </Link>
+
+                  {/* Admin Panel — admin only */}
+                  {user?.role === 'admin' && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setSettingsOpen(false)}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-secondary transition-colors text-sm text-muted-foreground"
+                    >
+                      <ShieldAlert className="w-4 h-4 shrink-0" />
+                      <span>Admin Panel</span>
+                    </Link>
+                  )}
+
+                  <div className="h-1" />
+                </div>
+              </>
+            )}
+
+            <div className={`flex items-center ${sidebarCollapsed ? 'flex-col gap-1' : 'gap-1'}`}>
+              {/* Settings button */}
+              <button
+                onClick={() => setSettingsOpen(v => !v)}
+                title={sidebarCollapsed ? "Settings" : undefined}
+                aria-label="Settings"
+                className={`relative flex items-center gap-2.5 rounded-xl transition-colors text-sm font-medium group
+                  ${settingsOpen ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}
+                  ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'}`}
+              >
+                <Settings className="w-4 h-4 shrink-0" />
+                {!sidebarCollapsed && <span>Settings</span>}
+                {sidebarCollapsed && (
+                  <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                    Settings
+                  </span>
+                )}
+              </button>
+
+              {/* Log out button */}
+              <button
+                onClick={() => logout()}
+                title={sidebarCollapsed ? "Log out" : undefined}
+                aria-label="Log out"
+                className={`flex items-center gap-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium
+                  ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'}`}
+              >
+                <LogOut className="w-4 h-4 shrink-0" />
+                {!sidebarCollapsed && <span>Log out</span>}
+              </button>
+            </div>
           </div>
         </nav>
 

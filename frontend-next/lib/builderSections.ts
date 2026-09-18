@@ -383,6 +383,22 @@ export const SECTION_TYPES: SectionType[] = [
       { key: "locationTitle", label: "Section Title", type: "text", placeholder: "Find us live" },
     ],
   },
+  {
+    key: "save_showroom",
+    label: "Save / Bookmark Button",
+    icon: "Bookmark",
+    tier: "pro",
+    tierLabel: "Pro feature",
+    tierFeatures: [
+      "Let visitors bookmark your showroom",
+      "Appears on their Bookmarks page",
+      "Drives repeat visits",
+    ],
+    fields: [
+      { key: "saveTitle", label: "Section Title", type: "text", placeholder: "Save this showroom" },
+      { key: "saveDesc",  label: "Description",   type: "text", placeholder: "Bookmark us and find us again easily" },
+    ],
+  },
 ];
 
 // Default sections per category
