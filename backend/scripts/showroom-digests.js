@@ -87,9 +87,15 @@ async function runDigests() {
     throw err;
   }
 
-  const { runDoctor } = await import('../lib/showroomDoctor');
-  const { sendCustomEmail } = await import('../utils/mailer');
-  const { recordEvent } = await import('../lib/telemetry');
+  let runDoctor, sendCustomEmail, recordEvent;
+  try {
+    ({ runDoctor }      = await import('../lib/showroomDoctor'));
+    ({ sendCustomEmail } = await import('../utils/mailer'));
+    ({ recordEvent }    = await import('../lib/telemetry'));
+  } catch (importErr) {
+    logger.error({ err: importErr?.message ?? String(importErr) }, 'digest: failed to import dependencies — skipping run');
+    return { sent: 0, skipped: 0, importError: true };
+  }
 
   let sent = 0; let skipped = 0;
   for (const sh of showrooms) {

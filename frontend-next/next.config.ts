@@ -37,22 +37,22 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       { protocol: "http",  hostname: "localhost" },
-      { protocol: "https", hostname: "*.railway.app" },
-      { protocol: "https", hostname: "*.up.railway.app" },
+      { protocol: "https", hostname: "*.onrender.com" },
       { protocol: "https", hostname: "*.r2.dev" },
       { protocol: "https", hostname: "pub-*.r2.dev" },
       { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "*.supabase.in" },
       { protocol: "https", hostname: "storage.googleapis.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
       { protocol: "https", hostname: "unpkg.com" },
       { protocol: "https", hostname: "raw.githubusercontent.com" },
-      // Seeded story media (db/seed.js) and showroom gallery fallback images
-      // (components/showroom/SectionRenderer.tsx) use picsum.photos.
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "fastly.picsum.photos" },
-      // Showroom BuilderPreview fallbacks use placehold.co.
       { protocol: "https", hostname: "placehold.co" },
+      // Allow any HTTPS hostname for user-uploaded media URLs
+      // (storage domains cannot all be predicted at build time)
+      { protocol: "https", hostname: "**" },
     ],
   },
 
@@ -78,14 +78,14 @@ const nextConfig: NextConfig = {
         ? `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${googleScriptSrc}`
         : `script-src 'self' 'unsafe-inline' ${googleScriptSrc}`,
       // Images: allow all HTTPS sources + self + data + blob.
-      // We cannot predict all storage domains (Railway, Supabase, R2, CDN, user avatars)
+      // We cannot predict all storage domains (Render, Supabase, R2, CDN, user avatars)
       // at build time, so we use 'https:' wildcard which allows any HTTPS image source.
       // This is safe for a pure-API backend (no cross-site form actions, no scripts).
-      `img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3000`,
+      `img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3002`,
       // Fonts: self + Google Fonts (if used)
       `font-src 'self'`,
       // API calls, Sentry, Stripe, WebSocket (socket.io), Google auth
-      `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.railway.app wss://*.railway.app wss://*.up.railway.app https://*.up.railway.app https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com`,
+      `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.onrender.com wss://*.onrender.com https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in`,
       // Stripe Checkout/Elements + Google Sign-In renders in iframes
       `frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com`,
       // No plugins, no base-uri override
@@ -101,15 +101,27 @@ const nextConfig: NextConfig = {
 
     return [
       {
+        // Global security headers for all pages
         source: "/(.*)",
         headers: [
-          { key: "X-Content-Type-Options",    value: "nosniff" },
-          { key: "X-Frame-Options",            value: "DENY" },
-          { key: "X-XSS-Protection",           value: "1; mode=block" },
-          { key: "Referrer-Policy",            value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy",         value: "camera=(), microphone=(), geolocation=(self)" },
-          { key: "Content-Security-Policy",    value: csp },
+          { key: "X-Content-Type-Options",      value: "nosniff" },
+          { key: "X-Frame-Options",              value: "DENY" },
+          { key: "X-XSS-Protection",             value: "1; mode=block" },
+          { key: "Referrer-Policy",              value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy",           value: "camera=(), microphone=(), geolocation=(self)" },
+          { key: "Content-Security-Policy",      value: csp },
           { key: "Cross-Origin-Opener-Policy",   value: "same-origin-allow-popups" },
+        ],
+      },
+      {
+        // OAuth2 callback page — must have COOP: unsafe-none so the popup can
+        // access window.opener and send postMessage back to the Login page.
+        // When COOP is same-origin-allow-popups the popup context gets isolated
+        // after navigating through Google's cross-origin domain, making
+        // window.opener null and window.closed unreadable.
+        source: "/auth/google/callback",
+        headers: [
+          { key: "Cross-Origin-Opener-Policy", value: "unsafe-none" },
         ],
       },
     ];

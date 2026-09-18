@@ -19,9 +19,18 @@ export default function ProfileToggle({
   view,
   onFlip,
   flipping,
-  theme,
-  onTheme,
+  theme = undefined,
+  onTheme = undefined,
   showBusiness = true,
+  layoutId = "profile-pill",
+}: {
+  view: string;
+  onFlip: () => void;
+  flipping: boolean;
+  theme?: string;
+  onTheme?: (t: string) => void;
+  showBusiness?: boolean;
+  layoutId?: string;
 }) {
   const [mounted, setMounted] = useState(false);
   const isPersonal = view === "personal";
@@ -46,7 +55,7 @@ export default function ProfileToggle({
           {/* Sliding background */}
           {isPersonal && (
             <motion.span
-              layoutId="profile-pill"
+              layoutId={`${layoutId}-personal`}
               className="absolute inset-0 rounded-full"
               style={{
                 background: "linear-gradient(135deg,#3B82F6,#2563EB)",
@@ -74,7 +83,7 @@ export default function ProfileToggle({
         >
           {!isPersonal && (
             <motion.span
-              layoutId="profile-pill"
+              layoutId={`${layoutId}-business`}
               className="absolute inset-0 rounded-full"
               style={{
                 background: "linear-gradient(135deg,#F59E0B,#D97706)",

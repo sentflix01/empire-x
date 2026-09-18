@@ -96,7 +96,7 @@ function PrivacyContent() {
         </ul>
       </Accordion>
       <Accordion title="3. Data Sharing">
-        <p>We share data with: Stripe (payments), Chapa (payments), Resend (emails), Sentry (error tracking, no PII), Railway/Vercel/Neon (hosting). We <strong>do not sell</strong> your personal data to advertisers or data brokers.</p>
+        <p>We share data with: Stripe (payments), Chapa (payments), Resend (emails), Sentry (error tracking, no PII), Render/Vercel/Neon (hosting). We <strong>do not sell</strong> your personal data to advertisers or data brokers.</p>
       </Accordion>
       <Accordion title="4. Data Retention">
         <ul className="list-disc list-inside space-y-1">

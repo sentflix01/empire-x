@@ -75,8 +75,8 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
     <div className="space-y-0">
       {/* Mini-Website Container */}
       <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
-        {/* Website Navbar — sticky on desktop, static on mobile to prevent overlay */}
-        <div className="md:sticky top-14 z-30 bg-background/95 backdrop-blur-md border-b border-border/50 px-4 py-2.5 flex items-center justify-between gap-2 flex-wrap">
+        {/* Website Navbar — static, not sticky (sticky causes z-index overlap with contact section) */}
+        <div className="bg-background/95 backdrop-blur-md border-b border-border/50 px-4 py-2.5 flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 min-w-0">
             {biz.business_logo_url ? (
               <SafeImage src={biz.business_logo_url} alt={biz.business_name || 'Business logo'} className="w-7 h-7 rounded-lg object-cover shrink-0"
@@ -131,7 +131,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
           })}
 
           {/* Contact Section */}
-          <div id="section-contact" className="px-5 py-10 bg-gradient-to-br from-gray-50 to-white border-t border-border/30">
+          <div id="section-contact" className="px-5 py-10 bg-secondary/30 border-t border-border/30">
             <div className="max-w-md mx-auto text-center">
               <h2 className="font-display text-xl font-bold mb-4">Get in Touch</h2>
               <div className="space-y-2 text-sm">
@@ -155,8 +155,8 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
           </div>
 
           {/* Footer */}
-          <div className="px-5 py-6 bg-gray-900 text-center">
-            <p className="text-xs text-white/60">© 2024 {biz.business_name}. Powered by Nodbusiness 👑</p>
+          <div className="px-5 py-6 bg-muted text-center">
+            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {biz.business_name}. Powered by Nodbusiness 👑</p>
           </div>
         </div>
       </div>

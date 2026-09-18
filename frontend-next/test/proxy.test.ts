@@ -6,6 +6,7 @@ describe('public route policy', () => {
     '/',
     '/landing',
     '/login',
+    '/auth/google/callback',
     '/register',
     '/forgot-password',
     '/reset-password',
@@ -19,7 +20,13 @@ describe('public route policy', () => {
     expect(isPublicPath(pathname)).toBe(true);
   });
 
-  it.each(['/feed', '/wallet', '/service-agreement/manage'])(
+  it.each([
+    '/feed',
+    '/wallet',
+    '/service-agreement/manage',
+    '/auth/google',
+    '/auth/google/callback/manage',
+  ])(
     'keeps %s protected',
     (pathname) => {
       expect(isPublicPath(pathname)).toBe(false);

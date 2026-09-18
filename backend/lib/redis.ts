@@ -87,7 +87,16 @@ export function getRedis(): AnyRedis {
       logger.info('Redis connected');
     });
     client.on('error', (err: Error) => {
-      logger.error({ err: err.message }, 'Redis error');
+      const msg = err.message ?? '';
+      // Upstash free-tier request limit hit — fall back to no-op so the app
+      // keeps running without Redis rather than flooding logs with rejections.
+      if (msg.includes('max requests limit exceeded')) {
+        logger.warn('Upstash Redis free-tier request limit reached — switching to no-op stub. Upgrade plan or reset quota to restore Redis functionality.');
+        redisInstance = createNoOpRedis();
+        try { (client as unknown as { disconnect: () => void }).disconnect(); } catch { /* ignore */ }
+        return;
+      }
+      logger.error({ err: msg }, 'Redis error');
     });
     client.on('close', () => {
       logger.debug('Redis connection closed');
@@ -127,7 +136,14 @@ export async function cached<T>(key: string, ttl: number, fn: () => Promise<T>):
     }
     return value;
   } catch (err) {
-    logger.warn({ err: (err as Error).message, key }, 'Cache error — falling back to DB');
+    const msg = (err as Error).message ?? '';
+    if (msg.includes('max requests limit exceeded')) {
+      // Quota hit — degrade to no-op for all future calls
+      redisInstance = createNoOpRedis();
+      logger.warn('Upstash Redis request limit reached inside cached() — switched to no-op');
+    } else {
+      logger.warn({ err: msg, key }, 'Cache error — falling back to DB');
+    }
     return fn();
   }
 }

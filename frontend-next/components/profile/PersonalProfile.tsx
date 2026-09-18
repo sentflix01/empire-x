@@ -12,7 +12,7 @@ import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 
 export default function PersonalProfile({ profile, user, isOwner, businesses }) {
-  const { accentTokens } = useProfileView();
+  const { profileViewTokens: accentTokens } = useProfileView();
   const [posts, setPosts] = useState([]);
   const [tab, setTab] = useState("posts");
   const [loading, setLoading] = useState(true);

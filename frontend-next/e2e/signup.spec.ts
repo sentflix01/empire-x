@@ -8,7 +8,7 @@ import { test, expect } from '@playwright/test';
  */
 
 const API = process.env.E2E_BACKEND_URL ?? 'http://localhost:3001';
-const FRONTEND_URL = process.env.E2E_FRONTEND_URL ?? 'http://localhost:3000';
+const FRONTEND_URL = process.env.E2E_FRONTEND_URL ?? 'http://localhost:3002';
 
 function generateTestEmail(): string {
   const timestamp = Date.now();

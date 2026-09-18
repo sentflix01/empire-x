@@ -472,7 +472,7 @@ router.get('/chapa/status/:tx_ref', async (req: Request, res: Response) => {
 router.get('/chapa/verify/:tx_ref', async (req: Request, res: Response) => {
   if (!CHAPA_SECRET) { res.status(503).json({ error:'Chapa not configured' }); return; }
   const { tx_ref } = req.params;
-  const frontendUrl = process.env.FRONTEND_URL??'http://localhost:3000';
+  const frontendUrl = process.env.FRONTEND_URL??'http://localhost:3002';
   try {
     const chapaRes = await chapaGet(`/transaction/verify/${tx_ref}`);
     const ok = chapaRes.status==='success' && (chapaRes.data as Record<string,string>)?.status==='success';

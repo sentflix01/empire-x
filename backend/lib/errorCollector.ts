@@ -174,7 +174,16 @@ export function installProcessHandlers(): void {
 
   process.on('unhandledRejection', (reason: unknown) => {
     const err = reason instanceof Error ? reason : new Error(String(reason));
-    logger.error({ err: err.message, stack: err.stack }, 'UNHANDLED REJECTION');
+    const msg = err.message ?? '';
+
+    // Upstash free-tier quota exhausted — demote to warn, do NOT capture to DB.
+    // The redis.ts error handler will switch to no-op; these are expected cascades.
+    if (msg.includes('max requests limit exceeded')) {
+      logger.warn({ err: msg }, 'Redis quota limit — degraded to no-op (unhandled rejection suppressed)');
+      return;
+    }
+
+    logger.error({ err: msg, stack: err.stack }, 'UNHANDLED REJECTION');
     captureError(err, { source: 'server', level: 'error' }).catch(() => undefined);
   });
 

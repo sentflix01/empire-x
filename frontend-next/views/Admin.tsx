@@ -162,7 +162,7 @@ function PlatformPanel() {
         <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
       ) : !health ? (
         <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 text-sm text-red-500 flex items-center gap-2">
-          <XCircle className="w-4 h-4" /> Cannot reach backend. Check Railway deployment.
+          <XCircle className="w-4 h-4" /> Cannot reach backend. Check Render deployment.
         </div>
       ) : (
         <>

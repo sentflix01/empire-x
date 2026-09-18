@@ -206,14 +206,28 @@ interface EntityApi<T extends AnyRecord = AnyRecord> {
 }
 
 function buildEntityApi<T extends AnyRecord = AnyRecord>(path: string): EntityApi<T> {
+  // Normalise response: some endpoints (e.g. /api/posts) return a paginated
+  // envelope { posts/items: T[], next_cursor } instead of a plain array.
+  // We unwrap it so all callers get a consistent T[].
+  function unwrap(data: unknown): T[] {
+    if (Array.isArray(data)) return data as T[];
+    if (data && typeof data === 'object') {
+      // Try common envelope keys in order
+      for (const key of ['posts', 'items', 'data', 'results']) {
+        const v = (data as Record<string, unknown>)[key];
+        if (Array.isArray(v)) return v as T[];
+      }
+    }
+    return [];
+  }
   return {
     async list(sort = '-created_at', limit = 50) {
       const res = await client.get<T[]>(`/api/${path}`, { params: { sort, limit } });
-      return res.data;
+      return unwrap(res.data);
     },
     async filter(filterObj: FilterObj = {}, sort = '-created_at', limit = 50) {
       const res = await client.get<T[]>(`/api/${path}`, { params: { ...filterObj, sort, limit } });
-      return res.data;
+      return unwrap(res.data);
     },
     async get(id: string) {
       const res = await client.get<T>(`/api/${path}/${id}`);

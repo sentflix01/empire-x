@@ -2,7 +2,7 @@
 
 Global superapp — social networking, business showrooms, marketplace, messaging, and task services. Built for everyone, everywhere.
 
-> **Status (August 2026):** Production-ready. 75+ features built, 252 backend tests passing, TypeScript 0 errors, full Stripe + Chapa payment integration, real-time chat, admin panel.
+> **Status (September 2026):** Production-ready. 75+ features built, TypeScript 0 errors, full Stripe + Chapa payment integration, real-time chat, admin panel, Personal/Business feed toggle, Google OAuth popup flow.
 
 ## Project Structure
 
@@ -50,16 +50,16 @@ Open **two terminals**:
 cd backend
 npm run dev
 
-# Terminal 2 — Next.js Frontend (http://localhost:3000)
+# Terminal 2 — Next.js Frontend (http://localhost:3002)
 cd frontend-next
 npm run dev
 ```
 
-Then open http://localhost:3000
+Then open http://localhost:3002
 
 ### 4. Register your first account
 
-- Go to http://localhost:3000/register
+- Go to http://localhost:3002/register
 - Enter email + password
 - The 6-digit OTP code prints to the **backend terminal** (yellow) during local dev
 - Enter the code → onboarding → you're in
@@ -102,7 +102,7 @@ Then open http://localhost:3000
 | Cache / Queue | Redis (Upstash) + BullMQ |
 | Real-time | Socket.IO |
 | File storage | Cloudflare R2 (local disk fallback in dev) |
-| Auth | JWT + Google OAuth |
+| Auth | JWT + Google OAuth (popup flow, no GIS script, incognito-safe) |
 | Payments | Stripe + Chapa (Ethiopia) |
 | Email | Resend (SMTP fallback) |
 | AI | OpenAI / Gemini / Anthropic (switchable via env) |

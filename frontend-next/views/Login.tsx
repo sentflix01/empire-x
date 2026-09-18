@@ -26,26 +26,22 @@ function Login() {
   const googleRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    let disposed = false;
-    const tryRender = () => {
-      if (disposed || !googleRef.current || googleReady) return false;
-      const ok = renderGoogleSignInButton(googleRef.current, {
-        width: Math.min(400, Math.max(280, googleRef.current.clientWidth || window.innerWidth - 64)),
-        buttonText: 'signin_with',
-        onSuccess: () => { window.location.href = dest; },
-        onError: () => setError('Google sign-in failed. Please try email and password below.'),
-      });
-      if (ok) { setGoogleReady(true); setGoogleUnavailable(false); }
-      return ok;
-    };
-    if (tryRender()) return;
-    const t = window.setInterval(tryRender, 100);
-    const to = window.setTimeout(() => {
-      window.clearInterval(t);
-      if (!disposed && !googleReady) setGoogleUnavailable(true);
-    }, 5000);
-    return () => { disposed = true; window.clearInterval(t); window.clearTimeout(to); };
-  }, [googleReady, dest]);
+    // renderGoogleSignInButton is synchronous — no GIS script dependency.
+    // Render once on mount; no polling needed.
+    if (!googleRef.current || googleReady) return;
+    const ok = renderGoogleSignInButton(googleRef.current, {
+      buttonText: 'signin_with',
+      onSuccess: () => { window.location.href = dest; },
+      onError: (err) => setError(
+        err.message === 'Sign-in was cancelled.'
+          ? ''
+          : 'Google sign-in failed. Please try email and password below.'
+      ),
+    });
+    if (ok) setGoogleReady(true);
+    else setGoogleUnavailable(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dest]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

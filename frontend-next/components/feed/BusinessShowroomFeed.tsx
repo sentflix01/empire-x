@@ -18,59 +18,7 @@ import { findOrCreateConversation } from '@/lib/messaging';
 import { getCategoryByValue } from '@/lib/businessTemplates';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
 import PurchaseModal from '@/components/checkout/PurchaseModal';
-
-/* ── Bookmark button component ───────────────────────────────────── */
-function BookmarkButton({ businessId, businessName, themeColor }: {
-  businessId: string;
-  businessName: string;
-  themeColor: string;
-}) {
-  const [saved, setSaved] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    client.get(`/api/saves/check/${businessId}`)
-      .then(r => setSaved(Boolean(r.data?.saved)))
-      .catch(() => {});
-  }, [businessId]);
-
-  const handleToggle = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (loading) return;
-    setLoading(true);
-    const prev = saved;
-    setSaved(!prev); // optimistic
-    try {
-      const { data } = await client.post('/api/saves/toggle', {
-        target_id: businessId,
-        target_type: 'business',
-      });
-      setSaved(Boolean(data?.saved));
-      toast.success(data?.saved ? `${businessName} saved to bookmarks` : 'Removed from bookmarks');
-    } catch {
-      setSaved(prev); // revert
-      toast.error('Could not update bookmark');
-    }
-    setLoading(false);
-  };
-
-  return (
-    <button
-      onClick={handleToggle}
-      disabled={loading}
-      aria-label={saved ? 'Remove bookmark' : 'Save to bookmarks'}
-      className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 border border-border/40 bg-card/80 backdrop-blur-sm shadow-sm"
-      style={saved ? { backgroundColor: themeColor + '20', borderColor: themeColor + '60' } : {}}
-    >
-      <Bookmark
-        className="w-4 h-4 transition-colors"
-        style={{ color: saved ? themeColor : undefined }}
-        fill={saved ? themeColor : 'none'}
-      />
-    </button>
-  );
-}
+import SharedBookmarkButton from '@/components/ui/BookmarkButton';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface SectionItem {
@@ -565,7 +513,12 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                             {bizName.charAt(0)}
                           </div>}
                     </div>
-                    <BookmarkButton businessId={biz.id} businessName={bizName} themeColor={color} />
+                    <SharedBookmarkButton
+                      targetId={biz.id}
+                      targetType="showroom"
+                      itemData={{ title: bizName }}
+                      className="w-8 h-8 rounded-full border border-border/40 bg-card/80 backdrop-blur-sm shadow-sm hover:scale-110 active:scale-95 transition-all"
+                    />
                   </div>
                   <div className="flex gap-2 mb-1">
                     {currentUser && ownerId && ownerId !== currentUser.id && (
@@ -697,7 +650,12 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                   </div>}
             </div>
             {business?.id && (
-              <BookmarkButton businessId={business.id} businessName={bizName} themeColor={themeColor} />
+              <SharedBookmarkButton
+                targetId={business.id}
+                targetType="showroom"
+                itemData={{ title: bizName }}
+                className="w-8 h-8 rounded-full border border-border/40 bg-card/80 backdrop-blur-sm shadow-sm hover:scale-110 active:scale-95 transition-all"
+              />
             )}
           </div>
           <div className="flex gap-2 mb-1">

@@ -60,6 +60,13 @@ const app = express();
 app.set('trust proxy', 1); // trust Railway / Render load-balancer → req.ip = real end-user IP
 const server = http.createServer(app);
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
+// Warn if PORT=3002 in production — that's the frontend port and means Render's
+// PORT env var was manually overridden. Render provides its own PORT dynamically;
+// do not set PORT in the Render environment variables.
+if (PORT === 3002 && process.env.NODE_ENV === 'production') {
+  // eslint-disable-next-line no-console
+  console.warn('[WARN] PORT=3002 in production — this conflicts with the frontend. Remove PORT from Render env vars so Render assigns the port dynamically.');
+}
 
 // ── Sentry (attach to Express app) ──────────────────────────────────────────────
 attachSentryToApp(app);
@@ -201,7 +208,7 @@ const allowedOrigins = parseFrontendUrls();
 const PROD_FRONTEND = 'https://nodbusiness.vercel.app';
 if (!allowedOrigins.includes(PROD_FRONTEND)) allowedOrigins.push(PROD_FRONTEND);
 if (process.env.NODE_ENV !== 'production') {
-  if (!allowedOrigins.includes('http://localhost:3000')) allowedOrigins.push('http://localhost:3000');
+  if (!allowedOrigins.includes('http://localhost:3002')) allowedOrigins.push('http://localhost:3002');
 }
 
 const wildcardOrigins = allowedOrigins

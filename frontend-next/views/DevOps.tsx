@@ -166,7 +166,7 @@ const COMPLETED_DATA = [
   { category: 'AI',             feature: 'AI Assistant (3 providers)',   description: 'OpenAI / Gemini / Anthropic — switchable via env var' },
   { category: 'AI',             feature: 'AI Description Generator',    description: 'Auto-generate product/job/showroom descriptions' },
   { category: 'Maps',           feature: 'Nearby Map (Leaflet)',         description: 'Pin clustering, profile peek, product/task map view' },
-  { category: 'DevOps',         feature: 'CI/CD (GitHub Actions)',       description: 'Lint, typecheck, test, deploy to Vercel + Railway on push to main' },
+  { category: 'DevOps', feature: 'CI/CD (GitHub Actions)', description: 'Lint, typecheck, test, deploy to Vercel + Render on push to main' },
   { category: 'DevOps',         feature: 'Feature Flag System',         description: 'Env vars + Redis real-time updates + % rollout per user' },
   { category: 'UI/UX',          feature: 'Dark / Light Mode',           description: 'Full theme support with system preference detection' },
   { category: 'UI/UX',          feature: 'i18n (English + Amharic)',    description: 'react-i18next — language detection + user preference' },
@@ -306,7 +306,7 @@ function SystemHealth() {
             <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
           ) : !health ? (
             <div className="flex items-center gap-2 text-sm text-red-500 py-2">
-              <WifiOff className="w-4 h-4" /> Cannot reach backend — check Railway deployment
+              <WifiOff className="w-4 h-4" /> Cannot reach backend — check Render deployment
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">

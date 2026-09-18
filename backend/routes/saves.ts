@@ -9,12 +9,58 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const { target_type } = req.query as Record<string, string>;
     const values: unknown[] = [req.user!.id];
-    let query = 'SELECT * FROM saves WHERE user_id=$1';
-    if (target_type) { values.push(target_type); query += ` AND target_type=$${values.length}`; }
-    query += ' ORDER BY created_at DESC';
-    const { rows } = await pool.query(query, values);
-    res.json(rows);
-  } catch { res.status(500).json({ error: 'Failed to fetch saves' }); }
+    let filter = '';
+    if (target_type) { values.push(target_type); filter = ` AND s.target_type=$${values.length}`; }
+
+    // Enrich each save with title + thumbnail from its source table so the
+    // Bookmarks page can render meaningful labels without extra API calls.
+    const { rows } = await pool.query(
+      `SELECT
+         s.id,
+         s.user_id,
+         s.target_id,
+         s.target_type,
+         s.created_at,
+         CASE s.target_type
+           WHEN 'post'     THEN p.content
+           WHEN 'product'  THEN pr.title
+           WHEN 'showroom' THEN sr.title
+           WHEN 'task'     THEN t.title
+           ELSE NULL
+         END AS title,
+         CASE s.target_type
+           WHEN 'product'  THEN pr.images
+           WHEN 'showroom' THEN sr.cover_image
+           ELSE NULL
+         END AS thumbnail_url
+       FROM saves s
+       LEFT JOIN posts     p  ON p.id  = s.target_id AND s.target_type = 'post'
+       LEFT JOIN products  pr ON pr.id = s.target_id AND s.target_type = 'product'
+       LEFT JOIN showrooms sr ON sr.id = s.target_id AND s.target_type = 'showroom'
+       LEFT JOIN tasks     t  ON t.id  = s.target_id AND s.target_type = 'task'
+       WHERE s.user_id=$1${filter}
+       ORDER BY s.created_at DESC`,
+      values,
+    );
+
+    // Normalise: for products the images column is a JSON array — extract first element
+    const enriched = rows.map(r => ({
+      ...r,
+      thumbnail_url: (() => {
+        if (!r.thumbnail_url) return null;
+        try {
+          const parsed = JSON.parse(r.thumbnail_url);
+          return Array.isArray(parsed) ? (parsed[0] ?? null) : r.thumbnail_url;
+        } catch {
+          return r.thumbnail_url;
+        }
+      })(),
+    }));
+
+    res.json(enriched);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch saves' });
+  }
 });
 
 router.post('/toggle', requireAuth, async (req: Request, res: Response) => {

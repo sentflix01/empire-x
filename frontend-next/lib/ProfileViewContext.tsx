@@ -1,20 +1,21 @@
 'use client';
 /**
- * ProfileViewContext — global toggle between "personal" and "business" profile view.
+ * ProfileViewContext — two independent mode toggles:
  *
- * When activeView = "personal":
- *   - All accent colors render in Blue throughout the UI
- *   - NavLink highlights, tab indicators, cover gradients all use blue tokens
+ *  homeFeedMode     ('personal' | 'business')
+ *    Controls the Home/Feed page: personal posts vs business showrooms.
+ *    Persisted to sessionStorage under STORAGE_KEY_HOME.
  *
- * When activeView = "business":
- *   - All accent colors shift to Gold/Amber throughout the UI
- *   - NavLink highlights, tab indicators, cover gradients all use amber tokens
+ *  profileViewMode  ('personal' | 'business')
+ *    Controls the Profile page: personal profile vs business profile.
+ *    Persisted to sessionStorage under STORAGE_KEY_PROFILE.
  *
- * The selection is persisted to sessionStorage so it survives in-tab navigation.
+ * The two states are completely independent — changing one never touches the other.
  */
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-const STORAGE_KEY = 'nodbusiness_profile_view';
+const STORAGE_KEY_HOME    = 'nodbusiness_home_feed_mode';
+const STORAGE_KEY_PROFILE = 'nodbusiness_profile_view_mode';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -44,8 +45,25 @@ export interface AccentTokens {
 }
 
 export interface ProfileViewContextValue {
+  /** Feed page mode — personal posts vs business showrooms */
+  homeFeedMode: ActiveView;
+  setHomeFeedMode: (view: ActiveView) => void;
+
+  /** Profile page mode — personal profile vs business profile */
+  profileViewMode: ActiveView;
+  setProfileViewMode: (view: ActiveView) => void;
+
+  /** Colour tokens derived from homeFeedMode — for Home.tsx */
+  homeFeedTokens: AccentTokens;
+  /** Colour tokens derived from profileViewMode — for Profile.tsx */
+  profileViewTokens: AccentTokens;
+
+  // ── Legacy aliases ── kept so existing call-sites don't break at once ──
+  /** @deprecated Use homeFeedMode or profileViewMode instead */
   activeView: ActiveView;
+  /** @deprecated Use setHomeFeedMode or setProfileViewMode instead */
   setActiveView: (view: ActiveView) => void;
+  /** @deprecated Use homeFeedTokens or profileViewTokens instead */
   accentTokens: AccentTokens;
   isPersonal: boolean;
   isBusiness: boolean;
@@ -54,10 +72,8 @@ export interface ProfileViewContextValue {
 // ── Pure utility ───────────────────────────────────────────────────────────────
 
 /**
- * Returns the full accent color token set for the given profile view.
- * This is a pure function — same input always yields the same token object.
- *
- * Satisfies Requirements 7.1, 7.2, 7.3, 7.4
+ * Returns the full accent colour token set for the given view.
+ * Pure function — same input always yields the same token object.
  */
 export function getAccentTokens(view: ActiveView): AccentTokens {
   if (view === 'personal') {
@@ -75,7 +91,7 @@ export function getAccentTokens(view: ActiveView): AccentTokens {
     };
   }
 
-  // "business"
+  // 'business'
   return {
     primary: '#D97706',
     gradientStart: '#F59E0B',
@@ -90,16 +106,32 @@ export function getAccentTokens(view: ActiveView): AccentTokens {
   };
 }
 
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function readStorage(key: string): ActiveView {
+  try {
+    const val = sessionStorage.getItem(key);
+    if (val === 'personal' || val === 'business') return val;
+  } catch { /* sessionStorage unavailable */ }
+  return 'personal';
+}
+
+function writeStorage(key: string, val: ActiveView) {
+  try { sessionStorage.setItem(key, val); } catch { /* ignore */ }
+}
+
 // ── Context ────────────────────────────────────────────────────────────────────
 
-/**
- * Default context value uses "personal" tokens so any component that consumes
- * this context without a mounted provider will never throw — it just renders
- * in blue mode. (Requirement 1.7)
- */
 const defaultTokens = getAccentTokens('personal');
 
 const ProfileViewContext = createContext<ProfileViewContextValue>({
+  homeFeedMode: 'personal',
+  setHomeFeedMode: () => {},
+  profileViewMode: 'personal',
+  setProfileViewMode: () => {},
+  homeFeedTokens: defaultTokens,
+  profileViewTokens: defaultTokens,
+  // legacy
   activeView: 'personal',
   setActiveView: () => {},
   accentTokens: defaultTokens,
@@ -110,37 +142,44 @@ const ProfileViewContext = createContext<ProfileViewContextValue>({
 // ── Provider ───────────────────────────────────────────────────────────────────
 
 export function ProfileViewProvider({ children }: { children: ReactNode }) {
-  const [activeView, setActiveViewState] = useState<ActiveView>('personal');
+  const [homeFeedMode,    setHomeFeedModeState]    = useState<ActiveView>('personal');
+  const [profileViewMode, setProfileViewModeState] = useState<ActiveView>('personal');
 
-  // Initialise from sessionStorage on mount (Requirement 1.6)
+  // Restore from sessionStorage on mount
   useEffect(() => {
-    try {
-      const saved = sessionStorage.getItem(STORAGE_KEY);
-      if (saved === 'personal' || saved === 'business') {
-        setActiveViewState(saved);
-      }
-    } catch {
-      // sessionStorage may be unavailable in some environments — silently ignore
-    }
+    setHomeFeedModeState(readStorage(STORAGE_KEY_HOME));
+    setProfileViewModeState(readStorage(STORAGE_KEY_PROFILE));
   }, []);
 
-  // Persist to sessionStorage on every setActiveView call (Requirement 1.6)
-  const setActiveView = (view: ActiveView) => {
-    setActiveViewState(view);
-    try {
-      sessionStorage.setItem(STORAGE_KEY, view);
-    } catch {
-      // silently ignore if sessionStorage is unavailable
-    }
+  const setHomeFeedMode = (view: ActiveView) => {
+    setHomeFeedModeState(view);
+    writeStorage(STORAGE_KEY_HOME, view);
   };
 
-  const accentTokens = getAccentTokens(activeView);
-  const isPersonal = activeView === 'personal';
-  const isBusiness = activeView === 'business';
+  const setProfileViewMode = (view: ActiveView) => {
+    setProfileViewModeState(view);
+    writeStorage(STORAGE_KEY_PROFILE, view);
+  };
+
+  const homeFeedTokens    = getAccentTokens(homeFeedMode);
+  const profileViewTokens = getAccentTokens(profileViewMode);
 
   return (
     <ProfileViewContext.Provider
-      value={{ activeView, setActiveView, accentTokens, isPersonal, isBusiness }}
+      value={{
+        homeFeedMode,
+        setHomeFeedMode,
+        profileViewMode,
+        setProfileViewMode,
+        homeFeedTokens,
+        profileViewTokens,
+        // legacy aliases — point at homeFeedMode so existing callers are not broken
+        activeView: homeFeedMode,
+        setActiveView: setHomeFeedMode,
+        accentTokens: homeFeedTokens,
+        isPersonal: homeFeedMode === 'personal',
+        isBusiness: homeFeedMode === 'business',
+      }}
     >
       {children}
     </ProfileViewContext.Provider>

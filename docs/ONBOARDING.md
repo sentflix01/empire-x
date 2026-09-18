@@ -70,10 +70,10 @@ cp .env.local.example .env.local
 # NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 npm install
 npm run dev
-# → http://localhost:3000
+# → http://localhost:3002
 
 # 7. Register your first account
-# Go to http://localhost:3000/register
+# Go to http://localhost:3002/register
 # OTP prints to the backend terminal in yellow (dev mode — no email provider needed)
 ```
 
@@ -81,7 +81,7 @@ npm run dev
 
 ```bash
 docker compose up
-# Frontend: http://localhost:3000
+# Frontend: http://localhost:3002
 # Backend:  http://localhost:3001
 # Health:   http://localhost:3001/health
 ```
@@ -100,12 +100,15 @@ docker compose up
 | `backend/middleware/auth.js` | JWT auth — `requireAuth`, `optionalAuth`, `requireAdmin` |
 | `backend/routes/mewacho.js` | Mewacho group money collection — all endpoints + Stripe webhook |
 | `backend/utils/mailer.js` | Email sender — Resend / SMTP / console fallback in dev |
-| `frontend-next/lib/AuthContext.tsx` | Auth state — single source of truth; handles silent refresh |
+| `frontend-next/lib/AuthContext.tsx` | Auth state — single source of truth; handles silent refresh; skips refresh on auth pages |
+| `frontend-next/lib/ProfileViewContext.tsx` | Independent Personal/Business mode for feed (`homeFeedMode`) and profile (`profileViewMode`) |
 | `frontend-next/lib/CartContext.tsx` | Cart state — syncs with backend |
 | `frontend-next/api/entities.ts` | Typed API layer for all entities |
-| `frontend-next/api/client.ts` | Axios client — auto-attaches JWT, handles 401 + silent refresh |
+| `frontend-next/api/client.ts` | Axios client — auto-attaches JWT, handles 401 + silent refresh, incognito-safe |
 | `frontend-next/api/mewacho.ts` | Typed Mewacho API client |
-| `frontend-next/components/layout/AppLayout.tsx` | Main authenticated layout + sidebar nav |
+| `frontend-next/lib/googleAuth.ts` | Google Sign-In — pure OAuth2 popup flow (no GIS script, COOP-safe) |
+| `frontend-next/components/layout/AppLayout.tsx` | Main authenticated layout + sidebar nav with Personal/Business pills |
+| `frontend-next/app/(auth)/auth/google/callback/page.tsx` | OAuth2 popup callback — receives id_token, posts to opener via BroadcastChannel |
 | `frontend-next/views/Mewacho.tsx` | Mewacho groups list + create/join modals |
 | `frontend-next/views/MewachoGroup.tsx` | Group detail — feed, ledger, withdrawals, QR invite, PDF export |
 
@@ -168,7 +171,7 @@ npm run seed         # Seed test data
 npm test             # Run backend tests
 
 # Frontend
-npm run dev          # Start Next.js dev server (port 3000)
+npm run dev          # Start Next.js dev server (port 3002)
 npm run build        # Build for production
 npm run lint         # Run ESLint
 npx tsc --noEmit     # TypeScript type check

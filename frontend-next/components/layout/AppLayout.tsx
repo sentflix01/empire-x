@@ -11,7 +11,7 @@ import {
   Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, MapPin, Tag,
   Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
   PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield,
-  ArrowLeft, Coins,
+  ArrowLeft, Coins, Settings,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -23,6 +23,8 @@ import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import { toast } from "sonner";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { useRealMode } from "@/lib/RealModeContext";
+import { useProfileView } from "@/lib/ProfileViewContext";
+import { useAppStore } from "@/store";
 // AccountSettings popup replaced by /settings navigation
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
@@ -72,7 +74,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
           <span className="text-[10px] text-muted-foreground">Ad</span>
         </div>
         <div className="rounded-xl bg-empire-gradient p-3 mb-3 shadow-md shadow-primary/20">
-          <p className="text-white font-bold text-sm">Empire X Pro</p>
+          <p className="text-white font-bold text-sm">Nodbusiness Pro</p>
           <p className="text-white/85 text-xs mt-1 leading-relaxed">Boost your business visibility to 10,000+ users.</p>
         </div>
         <Link href="/analytics" className="block text-center py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold shadow-sm shadow-primary/20 transition-colors">
@@ -130,7 +132,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
           <span className="text-sm font-semibold">Trending</span>
         </div>
         <div className="space-y-2">
-          {["#AddisAbaba","#EthiopianBusiness","#EmpireX","#HabeshaLife","#EthioTech"].map((tag, i) => (
+          {["#AddisAbaba","#EthiopianBusiness","#Nodbusiness","#HabeshaLife","#EthioTech"].map((tag, i) => (
             <Link key={tag} href={`/hashtag/${tag.slice(1)}`} className="flex items-center justify-between hover:bg-secondary px-2 py-1.5 rounded-lg transition-all group">
               <div>
                 <p className="text-xs font-semibold group-hover:text-amber-600 transition-colors">{tag}</p>
@@ -148,11 +150,47 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
       {/* Footer links */}
       <div className="px-2">
         <p className="text-[10px] text-muted-foreground leading-relaxed">
-          Empire X · Privacy · Terms · About · Advertising
+          Nodbusiness · Privacy · Terms · About · Advertising
         </p>
-        <p className="text-[10px] text-muted-foreground mt-1">© 2025 Empire X. All rights reserved.</p>
+        <p className="text-[10px] text-muted-foreground mt-1">© 2026 Nodbusiness. All rights reserved.</p>
       </div>
     </>
+  );
+}
+
+/* ── ViewTogglePill — Personal | Business sub-row pill ── */
+function ViewTogglePill({
+  value,
+  onChange,
+}: {
+  value: 'personal' | 'business';
+  onChange: (v: 'personal' | 'business') => void;
+}) {
+  return (
+    <div className="mx-2 mt-0.5 mb-1 flex items-center bg-secondary/60 rounded-full p-0.5 ring-1 ring-border/40">
+      <button
+        onClick={() => onChange('personal')}
+        aria-pressed={value === 'personal'}
+        className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all"
+        style={value === 'personal'
+          ? { background: 'linear-gradient(135deg,#3B82F6,#2563EB)', color: 'white', boxShadow: '0 1px 8px rgba(59,130,246,0.35)' }
+          : {}}
+      >
+        <User className="w-2.5 h-2.5 shrink-0" />
+        <span className={value === 'personal' ? 'text-white' : 'text-muted-foreground'}>Personal</span>
+      </button>
+      <button
+        onClick={() => onChange('business')}
+        aria-pressed={value === 'business'}
+        className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all"
+        style={value === 'business'
+          ? { background: 'linear-gradient(135deg,#F59E0B,#D97706)', color: 'white', boxShadow: '0 1px 8px rgba(245,158,11,0.35)' }
+          : {}}
+      >
+        <Store className="w-2.5 h-2.5 shrink-0" />
+        <span className={value === 'business' ? 'text-white' : 'text-muted-foreground'}>Business</span>
+      </button>
+    </div>
   );
 }
 
@@ -164,6 +202,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const router = useRouter();
   const { user, isAuthenticated, authChecked, isLoadingAuth, logout } = useAuth();
   const { realMode, toggleRealMode } = useRealMode();
+  const { homeFeedMode, setHomeFeedMode, profileViewMode, setProfileViewMode } = useProfileView();
+
   const tr = (key: string) => String(t(key));
   const displayName = typeof user?.full_name === 'string' ? user.full_name : 'User';
   const userEmail = typeof user?.email === 'string' ? user.email : '';
@@ -174,6 +214,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [accountOpen, setAccountOpen] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [homeTabsOpen, setHomeTabsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userProfile, setUserProfile] = useState<{ avatar_url?: string; cover_url?: string } | null>(null);
@@ -206,9 +247,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     }
   }, [authChecked, isAuthenticated, router]);
 
-  // Once user is available: check profile, set up socket, load unread count
+  // Once user is available: check profile, set up socket, load unread count, hydrate bookmarks
+  const hydrateBookmarks = useAppStore(s => s.hydrate);
   useEffect(() => {
     if (!user) return;
+    // Hydrate bookmark state so bookmark buttons show correct saved state immediately
+    hydrateBookmarks();
     entities.UserProfile.filter({ user_id: user.id }).then(profiles => {
       if (profiles.length === 0 && pathname !== "/onboarding") {
         router.push("/onboarding");
@@ -350,8 +394,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           {/* Logo */}
           <Link href="/" className={`flex items-center gap-2 shrink-0 transition-all w-8 ${sidebarCollapsed ? "md:w-8" : "md:w-44"}`}>
             <Image
-              src="/brand/empire-x-logo.png"
-              alt="Empire X"
+              src="/brand/nodbusiness-icon.svg"
+              alt="Nodbusiness"
               width={32}
               height={32}
               className="w-8 h-8 rounded-xl object-cover shadow-sm"
@@ -359,7 +403,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             />
             {!sidebarCollapsed && (
               <span className="hidden md:inline font-display text-lg font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
-                Empire X
+                Nodbusiness
               </span>
             )}
           </Link>
@@ -450,33 +494,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </span>
               )}
             </Link>
-            {/* Real/Demo mode toggle — visible on all sizes */}
-            <button
-              onClick={toggleRealMode}
-              title={realMode ? 'Real users only — click to show all' : 'Showing all (demo+real) — click for real only'}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border transition-all ${
-                realMode
-                  ? 'bg-green-500 text-white border-green-500 shadow-sm shadow-green-500/30'
-                  : 'bg-secondary text-muted-foreground border-border/50 hover:bg-secondary/80'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full shrink-0 ${realMode ? 'bg-white' : 'bg-amber-500'}`} />
-              {realMode ? 'Real' : 'Demo'}
-            </button>
-            {/* Dark mode */}
-            <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Toggle dark mode">
-              {!mounted ? (
-                <span className="block w-5 h-5 rounded-full bg-muted-foreground/20" aria-hidden />
-              ) : theme === "dark" ? (
-                <Sun className="w-5 h-5 text-amber-400" />
-              ) : (
-                <Moon className="w-5 h-5 text-muted-foreground" />
-              )}
-            </button>
-            {/* Language */}
-            <button onClick={toggleLanguage} className="p-2 rounded-full hover:bg-secondary transition-colors flex items-center justify-center" aria-label="Toggle language" title="Switch English / አማርኛ">
-              <Languages className="w-5 h-5 text-muted-foreground" />
-            </button>
+            {/* Bookmarks */}
+            <Link href="/bookmarks" className="p-2 rounded-full hover:bg-secondary transition-colors flex items-center justify-center" aria-label="Bookmarks">
+              <Bookmark className="w-5 h-5 text-muted-foreground" />
+            </Link>
             {/* Avatar */}
             <Link href="/profile" className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
               {userProfile?.avatar_url
@@ -538,7 +559,32 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
           {/* ── Nav links ── */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-0.5 scrollbar-thin">
-            {mainNavItems.map(item => <NavLink key={item.path} {...item} />)}
+            {mainNavItems.map(item => (
+              <React.Fragment key={item.path}>
+                <NavLink {...item} />
+                {/* Personal | Business pill — under Home, only when Home is active */}
+                {item.path === '/feed' && !sidebarCollapsed && isActive('/feed') && (
+                  <ViewTogglePill
+                    value={homeFeedMode}
+                    onChange={(v) => { if (v !== homeFeedMode) setHomeFeedMode(v); }}
+                  />
+                )}
+                {/* Personal | Business pill — under Profile, only when Profile is active */}
+                {item.path === '/profile' && !sidebarCollapsed && isActive('/profile') && (
+                  <ViewTogglePill
+                    value={profileViewMode}
+                    onChange={(v) => {
+                      if (v === profileViewMode) return;
+                      setProfileViewMode(v);
+                      // Only push if not already on profile — avoids re-triggering useSearchParams
+                      if (!pathname.startsWith('/profile')) {
+                        router.push(`/profile?view=${v}`);
+                      }
+                    }}
+                  />
+                )}
+              </React.Fragment>
+            ))}
 
             <div className="my-2 border-t border-border/40" />
 
@@ -614,17 +660,134 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <div className="h-4" />
           </div>
 
-          {/* ── Sidebar footer — logout ── */}
-          <div className="border-t border-border px-2 py-2 shrink-0">
-            <button
-              onClick={() => logout()}
-              title={sidebarCollapsed ? "Log out" : undefined}
-              className={`w-full flex items-center gap-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium
-                ${sidebarCollapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"}`}
-            >
-              <LogOut className="w-4 h-4 shrink-0" />
-              {!sidebarCollapsed && <span>Log out</span>}
-            </button>
+          {/* ── Sidebar footer — settings + logout ── */}
+          <div className="border-t border-border px-2 py-2 shrink-0 relative">
+            {/* Settings popup panel — appears above footer */}
+            {settingsOpen && !sidebarCollapsed && (
+              <>
+                {/* Backdrop */}
+                <div className="fixed inset-0 z-40" onClick={() => setSettingsOpen(false)} />
+                <div className="absolute bottom-full left-2 right-2 mb-2 z-50 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden" style={{ backgroundColor: 'hsl(var(--card))', backdropFilter: 'none' }}>
+                  <div className="px-3 pt-3 pb-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Settings</p>
+                  </div>
+
+                  {/* Language */}
+                  <button
+                    onClick={toggleLanguage}
+                    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm"
+                  >
+                    <div className="flex items-center gap-2.5 text-muted-foreground">
+                      <Languages className="w-4 h-4 shrink-0" />
+                      <span>Language</span>
+                    </div>
+                    <span className="text-xs font-semibold text-foreground bg-secondary border border-border rounded-full px-2 py-0.5">
+                      {i18n.language === 'am' ? 'አማ' : 'EN'}
+                    </span>
+                  </button>
+
+                  {/* Theme */}
+                  <button
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm"
+                  >
+                    <div className="flex items-center gap-2.5 text-muted-foreground">
+                      {mounted && theme === 'dark'
+                        ? <Sun className="w-4 h-4 shrink-0 text-amber-400" />
+                        : <Moon className="w-4 h-4 shrink-0" />}
+                      <span>Theme</span>
+                    </div>
+                    <span className="text-xs font-semibold text-foreground bg-secondary border border-border rounded-full px-2 py-0.5">
+                      {mounted ? (theme === 'dark' ? 'Dark' : 'Light') : '…'}
+                    </span>
+                  </button>
+
+                  {/* Demo / Real */}
+                  <button
+                    onClick={toggleRealMode}
+                    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm"
+                  >
+                    <div className="flex items-center gap-2.5 text-muted-foreground">
+                      <span className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${realMode ? 'border-green-500 bg-green-500' : 'border-amber-500 bg-amber-500'}`}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                      </span>
+                      <span>Data Mode</span>
+                    </div>
+                    <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${realMode ? 'bg-green-500/10 text-green-600 border border-green-500/30' : 'bg-amber-500/10 text-amber-600 border border-amber-500/30'}`}>
+                      {realMode ? 'Real' : 'Demo'}
+                    </span>
+                  </button>
+
+                  <div className="mx-3 my-1 border-t border-border/40" />
+
+                  {/* Account Settings */}
+                  <Link
+                    href="/account"
+                    onClick={() => setSettingsOpen(false)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-secondary transition-colors text-sm text-muted-foreground"
+                  >
+                    <Lock className="w-4 h-4 shrink-0" />
+                    <span>Account Settings</span>
+                  </Link>
+
+                  {/* Analytics */}
+                  <Link
+                    href="/analytics"
+                    onClick={() => setSettingsOpen(false)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-secondary transition-colors text-sm text-muted-foreground"
+                  >
+                    <BarChart3 className="w-4 h-4 shrink-0" />
+                    <span>Analytics</span>
+                  </Link>
+
+                  {/* Admin Panel — admin only */}
+                  {user?.role === 'admin' && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setSettingsOpen(false)}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-secondary transition-colors text-sm text-muted-foreground"
+                    >
+                      <ShieldAlert className="w-4 h-4 shrink-0" />
+                      <span>Admin Panel</span>
+                    </Link>
+                  )}
+
+                  <div className="h-1" />
+                </div>
+              </>
+            )}
+
+            <div className={`flex items-center ${sidebarCollapsed ? 'flex-col gap-1' : 'gap-1'}`}>
+              {/* Settings button */}
+              <button
+                onClick={() => setSettingsOpen(v => !v)}
+                title={sidebarCollapsed ? "Settings" : undefined}
+                aria-label="Settings"
+                className={`relative flex items-center gap-2.5 rounded-xl transition-colors text-sm font-medium group
+                  ${settingsOpen ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}
+                  ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'}`}
+              >
+                <Settings className="w-4 h-4 shrink-0" />
+                {!sidebarCollapsed && <span>Settings</span>}
+                {sidebarCollapsed && (
+                  <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                    Settings
+                  </span>
+                )}
+              </button>
+
+              {/* Log out button */}
+              <button
+                onClick={() => logout()}
+                title={sidebarCollapsed ? "Log out" : undefined}
+                aria-label="Log out"
+                className={`flex items-center gap-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium
+                  ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'}`}
+              >
+                <LogOut className="w-4 h-4 shrink-0" />
+                {!sidebarCollapsed && <span>Log out</span>}
+              </button>
+            </div>
           </div>
         </nav>
 
@@ -708,10 +871,33 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 {/* ── Scrollable nav list — solid white ── */}
                 <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5 bg-white dark:bg-card">
                   {mainNavItems.map(({ path, icon: Icon, label }) => (
-                    <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
-                      <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
-                    </Link>
+                    <React.Fragment key={path}>
+                      <Link href={path} onClick={() => setDrawerOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                        <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
+                      </Link>
+                      {/* Personal | Business pill — under Home in drawer, only when Home is active */}
+                      {path === '/feed' && isActive('/feed') && (
+                        <ViewTogglePill
+                          value={homeFeedMode}
+                          onChange={(v) => { if (v !== homeFeedMode) setHomeFeedMode(v); }}
+                        />
+                      )}
+                      {/* Personal | Business pill — under Profile in drawer, only when Profile is active */}
+                      {path === '/profile' && isActive('/profile') && (
+                        <ViewTogglePill
+                          value={profileViewMode}
+                          onChange={(v) => {
+                            if (v === profileViewMode) return;
+                            setProfileViewMode(v);
+                            setDrawerOpen(false);
+                            if (!pathname.startsWith('/profile')) {
+                              router.push(`/profile?view=${v}`);
+                            }
+                          }}
+                        />
+                      )}
+                    </React.Fragment>
                   ))}
 
                   <div className="my-2 border-t border-gray-100 dark:border-border" />

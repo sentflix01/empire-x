@@ -11,6 +11,7 @@ const PUBLIC_PATHS = new Set([
   '/',
   '/landing',
   '/login',
+  '/auth/google/callback',
   '/register',
   '/forgot-password',
   '/reset-password',

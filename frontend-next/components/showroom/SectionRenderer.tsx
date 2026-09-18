@@ -6,9 +6,10 @@ import Link from 'next/link';
 
 import {
   Clock, ShoppingBag, Star, Mail, Phone, MapPin, PlayCircle, CalendarCheck,
-  Medal, Send, Share2,
+  Medal, Send, Share2, Bookmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import BookmarkButton from "@/components/ui/BookmarkButton";
 
 const parseImages = (img?: string | string[] | null) => { try { return JSON.parse(String(img || "[]")); } catch { return img ? [img].flat() : []; } };
 
@@ -90,7 +91,7 @@ export default function SectionRenderer({
           {s.cta && ctaTarget && (
             <a href={ctaTarget}>
               {hasCustomBg ? (
-                <Button className="rounded-full px-6 bg-white" style={{ color: s.heroBg }}>{s.cta}</Button>
+                <Button className="rounded-full px-6 bg-white/90 hover:bg-white" style={{ color: s.heroBg }}>{s.cta}</Button>
               ) : (
                 <Button className="rounded-full text-white px-6" style={{ backgroundColor: themeColor }}>{s.cta}</Button>
               )}
@@ -390,10 +391,8 @@ export default function SectionRenderer({
   }
 
   if (s.type === "contact") {
-    // Index-based id on the wrapper; the semantic `section-contact` anchor is
-    // emitted as a hidden span so #section-contact links keep working.
     return (
-      <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-gradient-to-br from-gray-50 to-white border-t border-border/30">
+      <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/30 border-t border-border/30">
         <span id="section-contact" className="sr-only" aria-hidden="true" />
         <div className="max-w-md mx-auto text-center">
           <h2 className="font-display text-xl font-bold mb-4">{s.title || "Get in Touch"}</h2>
@@ -542,7 +541,7 @@ export default function SectionRenderer({
         {(s.ctaDesc || s.content) && <p className="text-sm text-white/85 mb-4">{s.ctaDesc || s.content}</p>}
         {(s.ctaBtn || s.cta) && (
           <a href="#section-contact">
-            <Button className="rounded-full px-6 bg-white" style={{ color: s.ctaBg || themeColor }}>{s.ctaBtn || s.cta}</Button>
+            <Button className="rounded-full px-6 bg-white/90 hover:bg-white" style={{ color: s.ctaBg || themeColor }}>{s.ctaBtn || s.cta}</Button>
           </a>
         )}
       </div>
@@ -698,6 +697,33 @@ export default function SectionRenderer({
           <Button className="rounded-full text-white px-5" style={{ backgroundColor: themeColor }}>
             <Send className="w-3.5 h-3.5 mr-1" /> {s.newsBtn || "Subscribe"}
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (s.type === "save_showroom") {
+    // The showroom/business ID to bookmark — use profile.id (business entity id)
+    const showroomId = biz.id as string | undefined;
+    const showroomName = (biz.business_name || biz.title || 'this showroom') as string;
+    const title = s.saveTitle || s.title || 'Save this showroom';
+    const desc = s.saveDesc || s.content || 'Bookmark us and find us again easily';
+
+    if (!showroomId) return null;
+
+    return (
+      <div id={`section-${sectionIndex}`} className="px-5 py-10 text-center bg-secondary/10 border-t border-border/30">
+        <Bookmark className="w-8 h-8 mx-auto mb-3" style={{ color: themeColor }} />
+        <h2 className="font-display text-lg font-bold mb-1">{title}</h2>
+        {desc && <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">{desc}</p>}
+        <div className="flex items-center justify-center">
+          <BookmarkButton
+            targetId={showroomId}
+            targetType="showroom"
+            itemData={{ title: showroomName }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 text-sm font-semibold transition-all"
+          />
+          <span className="ml-2 text-sm text-muted-foreground">Double-click to save</span>
         </div>
       </div>
     );
