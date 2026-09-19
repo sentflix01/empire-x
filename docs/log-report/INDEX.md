@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-19 | Bugfix | fix: vercel rootDirectory, Redis quota crash, Render cold-start keepalive | [see report](2026-09-19a-fix-vercel-redis-render-issues.md) |
 | 2026-09-19 | Maintenance | Merge pull request #46 from sentflix01/feat/personal-business-toggle-auth-port-fixes | [ebae815b5](2026-09-19-ebae815b5-merge-pull-request-46-from-sentflix01-feat-perso.md) |
 | 2026-09-19 | Bugfix | fix: socket HMR spam + CI rate-limit peer dep + audit job | [1edc828c6](2026-09-19-1edc828c6-socket-hmr-spam-ci-rate-limit-peer-dep-audit-job.md) |
 | 2026-09-19 | Maintenance | Merge pull request #45 from sentflix01/feat/personal-business-toggle-auth-port-fixes | [5d1ebc6c8](2026-09-19-5d1ebc6c8-merge-pull-request-45-from-sentflix01-feat-perso.md) |
