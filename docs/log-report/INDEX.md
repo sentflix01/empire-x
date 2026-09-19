@@ -5,6 +5,13 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-18 | Bugfix | fix: remove duplicate Account Settings + Analytics from MY ACCOUNT nav | [see report](2026-09-18i-fix-account-analytics-duplicates.md) |
+| 2026-09-18 | Bugfix | fix: remove priority from logo Image in AppLayout — eliminates preload warning | [see report](2026-09-18h-fix-logo-preload-warning.md) |
+| 2026-09-18 | Bugfix | fix: remove duplicate Admin Panel from desktop + mobile nav lists | [see report](2026-09-18g-fix-admin-panel-duplicate.md) |
+| 2026-09-18 | Feature | feat: mobile drawer — Settings popup above footer (matches desktop) | [see report](2026-09-18f-feat-mobile-settings-popup.md) |
+| 2026-09-18 | Feature | feat: mobile drawer — full desktop parity, Settings beside Log out in footer | [see report](2026-09-18e-feat-mobile-drawer-desktop-parity.md) |
+| 2026-09-18 | Feature | feat: settings mobile drawer — flat section matching desktop sidebar style | [see report](2026-09-18d-feat-settings-drawer-flat-section.md) |
+| 2026-09-18 | Feature | feat: settings mobile parity — full feature parity desktop/tablet/mobile | [see report](2026-09-18c-feat-settings-mobile-parity.md) |
 | 2026-09-18 | Bugfix | fix: dark mode — remove hardcoded white/gray backgrounds | [see report](2026-09-18b-fix-dark-mode-hardcoded-light-backgrounds.md) |
 | 2026-09-18 | Feature | feat: bookmarks end-to-end, settings popup, UI fixes | [see report](2026-09-18-feat-bookmarks-settings-popup-ui-fixes.md) |
 | 2026-09-17 | Feature | feat: personal/business toggle, Google OAuth popup, port 3002, Redis resilience | [9aa9ae1](2026-09-17-9aa9ae1-feat-personal-business-toggle-google-oauth-popup-port-3002-redis-resilience.md) |

@@ -215,6 +215,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [drawerSettingsOpen, setDrawerSettingsOpen] = useState(false);
   const [homeTabsOpen, setHomeTabsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userProfile, setUserProfile] = useState<{ avatar_url?: string; cover_url?: string } | null>(null);
@@ -237,6 +238,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   // Close drawer and home tabs on route change
   useEffect(() => {
     setDrawerOpen(false);
+    setDrawerSettingsOpen(false);
     setHomeTabsOpen(false);
   }, [pathname]);
 
@@ -329,14 +331,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   ];
 
   const accountItems = [
-    { path: "/orders", icon: Package, label: tr('nav.orders') },
-    { path: "/cart", icon: ShoppingCart, label: "Cart", badge: cart.count > 0 ? cart.count : null },
-    { path: "/wallet", icon: Wallet, label: tr('nav.wallet') },
-    { path: "/referral", icon: Gift, label: "Referral" },
-    { path: "/coupons", icon: Tag, label: "My Coupons" },
-    { path: "/analytics", icon: BarChart3, label: "Analytics" },
-    { path: "/account", icon: Lock, label: "Account Settings" },
-    { path: "/privacy", icon: Shield, label: "Privacy" },
+    { path: "/orders",   icon: Package,     label: tr('nav.orders') },
+    { path: "/cart",     icon: ShoppingCart, label: "Cart", badge: cart.count > 0 ? cart.count : null },
+    { path: "/wallet",   icon: Wallet,       label: tr('nav.wallet') },
+    { path: "/referral", icon: Gift,         label: "Referral" },
+    { path: "/coupons",  icon: Tag,          label: "My Coupons" },
+    { path: "/privacy",  icon: Shield,       label: "Privacy" },
   ];
 
   const isActive = (path: string) => {
@@ -399,7 +399,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               width={32}
               height={32}
               className="w-8 h-8 rounded-xl object-cover shadow-sm"
-              priority
             />
             {!sidebarCollapsed && (
               <span className="hidden md:inline font-display text-lg font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
@@ -651,23 +650,25 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             )}
             {(sidebarCollapsed || accountOpen) && accountItems.map(item => <NavLink key={item.path} {...item} />)}
 
-            {user?.role === "admin" && (
-              <>
-                <div className="my-2 border-t border-border/40" />
-                <NavLink path="/admin" icon={ShieldAlert} label={tr('common.adminPanel')} />
-              </>
-            )}
             <div className="h-4" />
           </div>
 
           {/* ── Sidebar footer — settings + logout ── */}
           <div className="border-t border-border px-2 py-2 shrink-0 relative">
-            {/* Settings popup panel — appears above footer */}
-            {settingsOpen && !sidebarCollapsed && (
+            {/* Settings popup panel — appears above footer (or to the right when collapsed) */}
+            {settingsOpen && (
               <>
                 {/* Backdrop */}
                 <div className="fixed inset-0 z-40" onClick={() => setSettingsOpen(false)} />
-                <div className="absolute bottom-full left-2 right-2 mb-2 z-50 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden" style={{ backgroundColor: 'hsl(var(--card))', backdropFilter: 'none' }}>
+                <div
+                  className="absolute z-50 border border-border rounded-2xl shadow-2xl overflow-hidden"
+                  style={{
+                    backgroundColor: 'hsl(var(--card))',
+                    ...(sidebarCollapsed
+                      ? { bottom: 0, left: '100%', marginLeft: '8px', width: '220px' }
+                      : { bottom: '100%', left: '8px', right: '8px', marginBottom: '8px' }),
+                  }}
+                >
                   <div className="px-3 pt-3 pb-1">
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Settings</p>
                   </div>
@@ -859,31 +860,24 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   </div>
                 </div>
 
-                {/* Account Settings — pinned below cover, white bg */}
-                <div className="px-3 pt-2 pb-1 bg-white dark:bg-card shrink-0">
-                  <Link href="/account" onClick={() => setDrawerOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/account') ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-foreground'}`}>
-                    <Lock className="w-4 h-4 shrink-0" /><span>Account Settings</span>
-                  </Link>
-                  <div className="mt-1 border-t border-gray-100 dark:border-border" />
-                </div>
-
-                {/* ── Scrollable nav list — solid white ── */}
+                {/* ── Scrollable nav list ── */}
                 <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5 bg-white dark:bg-card">
+
+                  {/* Main nav items */}
                   {mainNavItems.map(({ path, icon: Icon, label }) => (
                     <React.Fragment key={path}>
                       <Link href={path} onClick={() => setDrawerOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
                         <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
                       </Link>
-                      {/* Personal | Business pill — under Home in drawer, only when Home is active */}
+                      {/* Personal | Business pill — under Home in drawer */}
                       {path === '/feed' && isActive('/feed') && (
                         <ViewTogglePill
                           value={homeFeedMode}
                           onChange={(v) => { if (v !== homeFeedMode) setHomeFeedMode(v); }}
                         />
                       )}
-                      {/* Personal | Business pill — under Profile in drawer, only when Profile is active */}
+                      {/* Personal | Business pill — under Profile in drawer */}
                       {path === '/profile' && isActive('/profile') && (
                         <ViewTogglePill
                           value={profileViewMode}
@@ -900,6 +894,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     </React.Fragment>
                   ))}
 
+                  {/* Create Showroom + Studio */}
                   <div className="my-2 border-t border-gray-100 dark:border-border" />
                   <Link href="/showroom/create" onClick={() => setDrawerOpen(false)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold shadow-sm">
@@ -910,18 +905,32 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     <Crown className="w-4 h-4 shrink-0 text-amber-500" /><span>{tr('common.showroomStudio')}</span>
                   </Link>
 
+                  {/* DISCOVER — collapsible, matches desktop */}
                   <div className="my-2 border-t border-gray-100 dark:border-border" />
-                  <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider px-3 pt-1 pb-0.5">{tr('common.discover')}</p>
-                  {extraNavItems.map(({ path, icon: Icon, label }) => (
+                  <button
+                    onClick={() => setDiscoverOpen(v => !v)}
+                    className="w-full flex items-center justify-between px-3 py-1 group"
+                  >
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.discover')}</p>
+                    <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${discoverOpen ? 'rotate-0' : '-rotate-90'}`} />
+                  </button>
+                  {discoverOpen && extraNavItems.map(({ path, icon: Icon, label }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
                     </Link>
                   ))}
 
+                  {/* MY ACCOUNT — collapsible, matches desktop */}
                   <div className="my-2 border-t border-gray-100 dark:border-border" />
-                  <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider px-3 pt-1 pb-0.5">{tr('common.myAccount')}</p>
-                  {accountItems.filter(i => i.path !== '/account').map(({ path, icon: Icon, label, badge }) => (
+                  <button
+                    onClick={() => setAccountOpen(v => !v)}
+                    className="w-full flex items-center justify-between px-3 py-1 group"
+                  >
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.myAccount')}</p>
+                    <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${accountOpen ? 'rotate-0' : '-rotate-90'}`} />
+                  </button>
+                  {accountOpen && accountItems.map(({ path, icon: Icon, label, badge }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" />
@@ -929,20 +938,102 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                       {badge && <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span>}
                     </Link>
                   ))}
+
+                  {/* SETTINGS inline section removed — now in popup above footer */}
+
                   <div className="h-4" />
                 </div>
 
-                {/* ── Footer: admin panel (if admin) + logout side by side — solid white ── */}
-                <div className="border-t border-gray-100 dark:border-border px-3 py-3 shrink-0 flex items-center gap-2 bg-white dark:bg-card"
+                {/* ── Footer: Settings popup + Log out side by side ── */}
+                <div className="border-t border-gray-100 dark:border-border px-3 py-3 shrink-0 flex items-center gap-1 bg-white dark:bg-card relative"
                   style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-                  {user?.role === 'admin' && (
-                    <Link href="/admin" onClick={() => setDrawerOpen(false)}
-                      className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground transition-colors text-sm font-medium">
-                      <ShieldAlert className="w-4 h-4 shrink-0" /><span>Admin</span>
-                    </Link>
+
+                  {/* Settings popup — appears above footer, same style as desktop */}
+                  {drawerSettingsOpen && (
+                    <>
+                      {/* Backdrop */}
+                      <div className="fixed inset-0 z-40" onClick={() => setDrawerSettingsOpen(false)} />
+                      <div
+                        className="absolute bottom-full left-3 right-3 mb-2 z-50 rounded-2xl shadow-2xl border border-border overflow-hidden"
+                        style={{ backgroundColor: 'hsl(var(--card))', isolation: 'isolate' }}
+                      >
+                        <div className="px-3 pt-3 pb-1">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Settings</p>
+                        </div>
+
+                        {/* Language */}
+                        <button onClick={toggleLanguage}
+                          className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm">
+                          <div className="flex items-center gap-2.5 text-muted-foreground">
+                            <Languages className="w-4 h-4 shrink-0" /><span>Language</span>
+                          </div>
+                          <span className="text-xs font-semibold text-foreground bg-secondary border border-border rounded-full px-2 py-0.5">
+                            {i18n.language === 'am' ? 'አማ' : 'EN'}
+                          </span>
+                        </button>
+
+                        {/* Theme */}
+                        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                          className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm">
+                          <div className="flex items-center gap-2.5 text-muted-foreground">
+                            {mounted && theme === 'dark'
+                              ? <Sun className="w-4 h-4 shrink-0 text-amber-400" />
+                              : <Moon className="w-4 h-4 shrink-0" />}
+                            <span>Theme</span>
+                          </div>
+                          <span className="text-xs font-semibold text-foreground bg-secondary border border-border rounded-full px-2 py-0.5">
+                            {mounted ? (theme === 'dark' ? 'Dark' : 'Light') : '…'}
+                          </span>
+                        </button>
+
+                        {/* Data Mode */}
+                        <button onClick={toggleRealMode}
+                          className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm">
+                          <div className="flex items-center gap-2.5 text-muted-foreground">
+                            <span className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${realMode ? 'border-green-500 bg-green-500' : 'border-amber-500 bg-amber-500'}`}>
+                              <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                            </span>
+                            <span>Data Mode</span>
+                          </div>
+                          <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${realMode ? 'bg-green-500/10 text-green-600 border border-green-500/30' : 'bg-amber-500/10 text-amber-600 border border-amber-500/30'}`}>
+                            {realMode ? 'Real' : 'Demo'}
+                          </span>
+                        </button>
+
+                        <div className="mx-3 my-1 border-t border-border/40" />
+
+                        {/* Account Settings */}
+                        <Link href="/account" onClick={() => setDrawerSettingsOpen(false)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-secondary transition-colors text-sm text-muted-foreground">
+                          <Lock className="w-4 h-4 shrink-0" /><span>Account Settings</span>
+                        </Link>
+
+                        {/* Analytics */}
+                        <Link href="/analytics" onClick={() => setDrawerSettingsOpen(false)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-secondary transition-colors text-sm text-muted-foreground">
+                          <BarChart3 className="w-4 h-4 shrink-0" /><span>Analytics</span>
+                        </Link>
+
+                        {/* Admin Panel — admin only */}
+                        {user?.role === 'admin' && (
+                          <Link href="/admin" onClick={() => setDrawerSettingsOpen(false)}
+                            className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-secondary transition-colors text-sm text-muted-foreground">
+                            <ShieldAlert className="w-4 h-4 shrink-0" /><span>Admin Panel</span>
+                          </Link>
+                        )}
+
+                        <div className="h-1" />
+                      </div>
+                    </>
                   )}
+
+                  <button
+                    onClick={() => setDrawerSettingsOpen(v => !v)}
+                    className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl transition-colors text-sm font-medium ${drawerSettingsOpen ? 'bg-secondary text-foreground' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                    <Settings className="w-4 h-4 shrink-0" /><span>Settings</span>
+                  </button>
                   <button onClick={() => { setDrawerOpen(false); logout(); }}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium ${user?.role === 'admin' ? '' : 'flex-1'}`}>
+                    className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium">
                     <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
                   </button>
                 </div>
