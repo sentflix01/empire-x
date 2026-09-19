@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-20 | Bugfix | fix(deploy): detect frontend changes through merge commits for Vercel deploy | [e2f4f1fb1](2026-09-20-e2f4f1fb1-detect-frontend-changes-through-merge-commits-fo.md) |
 | 2026-09-20 | Maintenance | merge: feat/personal-business-toggle-auth-port-fixes into main | [44822a539](2026-09-20-44822a539-feat-personal-business-toggle-auth-port-fixes-in.md) |
 | 2026-09-20 | Bugfix | fix: remove rootDirectory from vercel.json on main | [5109bf6aa](2026-09-20-5109bf6aa-remove-rootdirectory-from-vercel-json-on-main.md) |
 | 2026-09-19 | Bugfix | fix: vercel rootDirectory, Redis quota crash, Render cold-start keepalive | [bd7aa50f0](2026-09-19-bd7aa50f0-vercel-rootdirectory-redis-quota-crash-render-co.md) |
