@@ -215,6 +215,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [drawerSettingsOpen, setDrawerSettingsOpen] = useState(false);
   const [homeTabsOpen, setHomeTabsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userProfile, setUserProfile] = useState<{ avatar_url?: string; cover_url?: string } | null>(null);
@@ -237,6 +238,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   // Close drawer and home tabs on route change
   useEffect(() => {
     setDrawerOpen(false);
+    setDrawerSettingsOpen(false);
     setHomeTabsOpen(false);
   }, [pathname]);
 
@@ -662,12 +664,20 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
           {/* ── Sidebar footer — settings + logout ── */}
           <div className="border-t border-border px-2 py-2 shrink-0 relative">
-            {/* Settings popup panel — appears above footer */}
-            {settingsOpen && !sidebarCollapsed && (
+            {/* Settings popup panel — appears above footer (or to the right when collapsed) */}
+            {settingsOpen && (
               <>
                 {/* Backdrop */}
                 <div className="fixed inset-0 z-40" onClick={() => setSettingsOpen(false)} />
-                <div className="absolute bottom-full left-2 right-2 mb-2 z-50 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden" style={{ backgroundColor: 'hsl(var(--card))', backdropFilter: 'none' }}>
+                <div
+                  className="absolute z-50 border border-border rounded-2xl shadow-2xl overflow-hidden"
+                  style={{
+                    backgroundColor: 'hsl(var(--card))',
+                    ...(sidebarCollapsed
+                      ? { bottom: 0, left: '100%', marginLeft: '8px', width: '220px' }
+                      : { bottom: '100%', left: '8px', right: '8px', marginBottom: '8px' }),
+                  }}
+                >
                   <div className="px-3 pt-3 pb-1">
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Settings</p>
                   </div>
@@ -929,20 +939,73 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                       {badge && <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span>}
                     </Link>
                   ))}
-                  <div className="h-4" />
+                {/* ── Settings section — inline accordion in drawer ── */}
+                <div className="my-2 border-t border-gray-100 dark:border-border" />
+                <button
+                  onClick={() => setDrawerSettingsOpen(v => !v)}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm font-medium text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary"
+                >
+                  <div className="flex items-center gap-3">
+                    <Settings className="w-4 h-4 shrink-0" />
+                    <span>Settings</span>
+                  </div>
+                  <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${drawerSettingsOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {drawerSettingsOpen && (
+                  <div className="mx-2 mb-1 rounded-xl border border-border/50 overflow-hidden bg-secondary/30">
+                    {/* Language */}
+                    <button onClick={toggleLanguage}
+                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm border-b border-border/30">
+                      <div className="flex items-center gap-2.5 text-muted-foreground">
+                        <Languages className="w-4 h-4 shrink-0" />
+                        <span>Language</span>
+                      </div>
+                      <span className="text-xs font-semibold bg-card border border-border rounded-full px-2 py-0.5">
+                        {i18n.language === 'am' ? 'አማ' : 'EN'}
+                      </span>
+                    </button>
+                    {/* Theme */}
+                    <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm border-b border-border/30">
+                      <div className="flex items-center gap-2.5 text-muted-foreground">
+                        {mounted && theme === 'dark'
+                          ? <Sun className="w-4 h-4 shrink-0 text-amber-400" />
+                          : <Moon className="w-4 h-4 shrink-0" />}
+                        <span>Theme</span>
+                      </div>
+                      <span className="text-xs font-semibold bg-card border border-border rounded-full px-2 py-0.5">
+                        {mounted ? (theme === 'dark' ? 'Dark' : 'Light') : '…'}
+                      </span>
+                    </button>
+                    {/* Data Mode */}
+                    <button onClick={toggleRealMode}
+                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm">
+                      <div className="flex items-center gap-2.5 text-muted-foreground">
+                        <span className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${realMode ? 'border-green-500 bg-green-500' : 'border-amber-500 bg-amber-500'}`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                        </span>
+                        <span>Data Mode</span>
+                      </div>
+                      <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${realMode ? 'bg-green-500/10 text-green-600 border border-green-500/30' : 'bg-amber-500/10 text-amber-600 border border-amber-500/30'}`}>
+                        {realMode ? 'Real' : 'Demo'}
+                      </span>
+                    </button>
+                  </div>
+                )}
+                <div className="h-4" />
                 </div>
 
-                {/* ── Footer: admin panel (if admin) + logout side by side — solid white ── */}
+                {/* ── Footer: settings + admin (if admin) + logout ── */}
                 <div className="border-t border-gray-100 dark:border-border px-3 py-3 shrink-0 flex items-center gap-2 bg-white dark:bg-card"
                   style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
                   {user?.role === 'admin' && (
                     <Link href="/admin" onClick={() => setDrawerOpen(false)}
-                      className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground transition-colors text-sm font-medium">
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground transition-colors text-sm font-medium">
                       <ShieldAlert className="w-4 h-4 shrink-0" /><span>Admin</span>
                     </Link>
                   )}
                   <button onClick={() => { setDrawerOpen(false); logout(); }}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium ${user?.role === 'admin' ? '' : 'flex-1'}`}>
+                    className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium">
                     <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
                   </button>
                 </div>
