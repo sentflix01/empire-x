@@ -19,7 +19,7 @@ import { toggleLanguage, getCurrentLang } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/lib/CartContext";
 import { useAuth } from "@/lib/AuthContext";
-import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
+import { connectSocket, disconnectSocket, resetSocket, getSocket } from "@/lib/socket";
 import { toast } from "sonner";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { useRealMode } from "@/lib/RealModeContext";
@@ -779,7 +779,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
               {/* Log out button */}
               <button
-                onClick={() => logout()}
+                onClick={() => { resetSocket(); logout(); }}
                 title={sidebarCollapsed ? "Log out" : undefined}
                 aria-label="Log out"
                 className={`flex items-center gap-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium
@@ -1032,7 +1032,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl transition-colors text-sm font-medium ${drawerSettingsOpen ? 'bg-secondary text-foreground' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
                     <Settings className="w-4 h-4 shrink-0" /><span>Settings</span>
                   </button>
-                  <button onClick={() => { setDrawerOpen(false); logout(); }}
+                  <button onClick={() => { setDrawerOpen(false); resetSocket(); logout(); }}
                     className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium">
                     <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
                   </button>
