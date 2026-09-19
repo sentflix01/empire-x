@@ -58,12 +58,26 @@ jobs:
       - id: changed
         name: Check frontend files
         run: |
-          if git diff --quiet HEAD^ HEAD -- frontend-next; then
+          # For merge commits, HEAD^ is one parent only — the diff can miss
+          # changes brought in from the other parent. Use HEAD^1..HEAD^2 to
+          # also check what the merged branch contributed, and fall back to
+          # HEAD^ if there is no second parent (fast-forward / regular commit).
+          IS_MERGE=$(git rev-parse --verify HEAD^2 2>/dev/null && echo "true" || echo "false")
+          if [ "$IS_MERGE" = "true" ]; then
+            # Check both: changes in the merge commit itself AND what the
+            # feature branch added relative to the merge base.
+            MERGE_BASE=$(git merge-base HEAD^1 HEAD^2)
+            CHANGED=$(git diff --name-only "$MERGE_BASE" HEAD -- frontend-next)
+          else
+            CHANGED=$(git diff --name-only HEAD^ HEAD -- frontend-next)
+          fi
+          if [ -z "$CHANGED" ]; then
             echo "frontend=false" >> "$GITHUB_OUTPUT"
             echo "ℹ️ No frontend changes — skipping Vercel deployment."
           else
             echo "frontend=true" >> "$GITHUB_OUTPUT"
             echo "✅ Frontend changes detected — Vercel deployment required."
+            echo "$CHANGED"
           fi
 
   # ── Run DB Migrations on Supabase ───────────────────────────────────────────
