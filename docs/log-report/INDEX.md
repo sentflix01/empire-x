@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-18 | Feature | feat: mobile drawer — full desktop parity, Settings beside Log out in footer | [see report](2026-09-18e-feat-mobile-drawer-desktop-parity.md) |
 | 2026-09-18 | Feature | feat: settings mobile drawer — flat section matching desktop sidebar style | [see report](2026-09-18d-feat-settings-drawer-flat-section.md) |
 | 2026-09-18 | Feature | feat: settings mobile parity — full feature parity desktop/tablet/mobile | [see report](2026-09-18c-feat-settings-mobile-parity.md) |
 | 2026-09-18 | Bugfix | fix: dark mode — remove hardcoded white/gray backgrounds | [see report](2026-09-18b-fix-dark-mode-hardcoded-light-backgrounds.md) |
