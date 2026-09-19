@@ -14,17 +14,21 @@ Newly introduced as part of recent development; see source and git history for t
 
 ## 3. What does it do?
 
-Extracted facts (auto):
-- Lines: ~582
-- API references:
-  - `/api/mewacho/groups`
-  - `/api/mewacho/groups/join/:invite_code`
-  - `/api/mewacho/groups/:id`
-  - `/api/mewacho/groups/:id/contribute`
-  - `/api/mewacho/groups/:id/message`
-  - `/api/mewacho/groups/:id/withdraw`
-  - `/api/mewacho/withdrawals/:wid/approve`
-  - `/api/mewacho/withdrawals/:wid/reject`
+
+### Endpoints (10)
+
+| Method | Path | Auth | Line |
+|---|---|---|---|
+| `GET` | `/api/mewacho/groups` | auth | 98 |
+| `POST` | `/api/mewacho/groups` | auth | 121 |
+| `GET` | `/api/mewacho/groups/join/:invite_code` | auth | 159 |
+| `GET` | `/api/mewacho/groups/:id` | auth | 191 |
+| `POST` | `/api/mewacho/groups/:id/contribute` | auth | 265 |
+| `POST` | `/api/mewacho/groups/:id/message` | auth | 347 |
+| `POST` | `/api/mewacho/groups/:id/withdraw` | auth | 370 |
+| `PUT` | `/api/mewacho/withdrawals/:wid/approve` | auth | 448 |
+| `PUT` | `/api/mewacho/withdrawals/:wid/reject` | auth | 484 |
+| `POST` | `/api/mewacho/webhook` | public | 510 |
 
 ## 4. What does it touch?
 
