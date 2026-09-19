@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **280** across **48** mounted modules · Generated: 2026-09-05
+> Endpoints: **290** across **49** mounted modules · Generated: 2026-09-19
 
 | Legend | Meaning |
 |---|---|
@@ -38,6 +38,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`locations`](#locations) (2)
 - [`maps`](#maps) (1)
 - [`messages`](#messages) (22)
+- [`mewacho`](#mewacho) (10)
 - [`moderation`](#moderation) (3)
 - [`notifications`](#notifications) (6)
 - [`orders`](#orders) (11)
@@ -102,18 +103,18 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:140 |
-| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:234 |
-| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:323 |
-| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:363 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:473 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:598 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:632 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:667 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:729 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:781 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:826 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:845 |
+| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:145 |
+| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:239 |
+| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:328 |
+| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:368 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:478 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:603 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:637 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:672 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:734 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:786 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:831 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:850 |
 
 ## businessApiKeys — Business API key management
 
@@ -317,6 +318,21 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `POST` | `/api/messages/messages/:id/forward` | 🔒 auth | routes/messages.ts:392 |
 | `POST` | `/api/messages/inquiry` | 🔒 auth | routes/messages.ts:411 |
 
+## mewacho — Mewacho (ምውጮ) group money collection
+
+| Method | Path | Auth | Source |
+|---|---|---|---|
+| `GET` | `/api/mewacho/groups` | 🔒 auth | routes/mewacho.ts:98 |
+| `POST` | `/api/mewacho/groups` | 🔒 auth | routes/mewacho.ts:121 |
+| `GET` | `/api/mewacho/groups/join/:invite_code` | 🔒 auth | routes/mewacho.ts:159 |
+| `GET` | `/api/mewacho/groups/:id` | 🔒 auth | routes/mewacho.ts:191 |
+| `POST` | `/api/mewacho/groups/:id/contribute` | 🔒 auth | routes/mewacho.ts:265 |
+| `POST` | `/api/mewacho/groups/:id/message` | 🔒 auth | routes/mewacho.ts:347 |
+| `POST` | `/api/mewacho/groups/:id/withdraw` | 🔒 auth | routes/mewacho.ts:370 |
+| `PUT` | `/api/mewacho/withdrawals/:wid/approve` | 🔒 auth | routes/mewacho.ts:448 |
+| `PUT` | `/api/mewacho/withdrawals/:wid/reject` | 🔒 auth | routes/mewacho.ts:484 |
+| `POST` | `/api/mewacho/webhook` | 🌐 public | routes/mewacho.ts:510 |
+
 ## moderation — moderation
 
 | Method | Path | Auth | Source |
@@ -446,8 +462,8 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | Method | Path | Auth | Source |
 |---|---|---|---|
 | `GET` | `/api/saves/` | 🔒 auth | routes/saves.ts:8 |
-| `POST` | `/api/saves/toggle` | 🔒 auth | routes/saves.ts:20 |
-| `GET` | `/api/saves/check/:targetId` | 🔒 auth | routes/saves.ts:34 |
+| `POST` | `/api/saves/toggle` | 🔒 auth | routes/saves.ts:66 |
+| `GET` | `/api/saves/check/:targetId` | 🔒 auth | routes/saves.ts:80 |
 
 ## search — Cross-entity full-text search
 

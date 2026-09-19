@@ -16,8 +16,8 @@ Bookmark service powering the bookmarks store: toggle save/unsave for any target
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/saves/` | auth | 8 |
-| `POST` | `/api/saves/toggle` | auth | 20 |
-| `GET` | `/api/saves/check/:targetId` | auth | 34 |
+| `POST` | `/api/saves/toggle` | auth | 66 |
+| `GET` | `/api/saves/check/:targetId` | auth | 80 |
 
 ## 4. What does it touch?
 

@@ -5,18 +5,57 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
-| 2026-09-18 | Bugfix | fix: socket HMR spam — guard against Strict Mode remount churn | [see report](2026-09-18k-fix-socket-hmr-spam.md) |
-| 2026-09-18 | Bugfix | fix: upgrade express-rate-limit to v8, fix CI audit job | [see report](2026-09-18j-fix-ci-rate-limit-audit.md) |
-| 2026-09-18 | Bugfix | fix: remove duplicate Account Settings + Analytics from MY ACCOUNT nav | [see report](2026-09-18i-fix-account-analytics-duplicates.md) |
-| 2026-09-18 | Bugfix | fix: remove priority from logo Image in AppLayout — eliminates preload warning | [see report](2026-09-18h-fix-logo-preload-warning.md) |
-| 2026-09-18 | Bugfix | fix: remove duplicate Admin Panel from desktop + mobile nav lists | [see report](2026-09-18g-fix-admin-panel-duplicate.md) |
-| 2026-09-18 | Feature | feat: mobile drawer — Settings popup above footer (matches desktop) | [see report](2026-09-18f-feat-mobile-settings-popup.md) |
-| 2026-09-18 | Feature | feat: mobile drawer — full desktop parity, Settings beside Log out in footer | [see report](2026-09-18e-feat-mobile-drawer-desktop-parity.md) |
-| 2026-09-18 | Feature | feat: settings mobile drawer — flat section matching desktop sidebar style | [see report](2026-09-18d-feat-settings-drawer-flat-section.md) |
-| 2026-09-18 | Feature | feat: settings mobile parity — full feature parity desktop/tablet/mobile | [see report](2026-09-18c-feat-settings-mobile-parity.md) |
-| 2026-09-18 | Bugfix | fix: dark mode — remove hardcoded white/gray backgrounds | [see report](2026-09-18b-fix-dark-mode-hardcoded-light-backgrounds.md) |
-| 2026-09-18 | Feature | feat: bookmarks end-to-end, settings popup, UI fixes | [see report](2026-09-18-feat-bookmarks-settings-popup-ui-fixes.md) |
-| 2026-09-17 | Feature | feat: personal/business toggle, Google OAuth popup, port 3002, Redis resilience | [9aa9ae1](2026-09-17-9aa9ae1-feat-personal-business-toggle-google-oauth-popup-port-3002-redis-resilience.md) |
+| 2026-09-19 | Maintenance | Merge pull request #46 from sentflix01/feat/personal-business-toggle-auth-port-fixes | [ebae815b5](2026-09-19-ebae815b5-merge-pull-request-46-from-sentflix01-feat-perso.md) |
+| 2026-09-19 | Bugfix | fix: socket HMR spam + CI rate-limit peer dep + audit job | [1edc828c6](2026-09-19-1edc828c6-socket-hmr-spam-ci-rate-limit-peer-dep-audit-job.md) |
+| 2026-09-19 | Maintenance | Merge pull request #45 from sentflix01/feat/personal-business-toggle-auth-port-fixes | [5d1ebc6c8](2026-09-19-5d1ebc6c8-merge-pull-request-45-from-sentflix01-feat-perso.md) |
+| 2026-09-19 | Bugfix | fix: remove duplicate Account Settings + Analytics from MY ACCOUNT nav | [12c1fea4b](2026-09-19-12c1fea4b-remove-duplicate-account-settings-analytics-from.md) |
+| 2026-09-19 | Bugfix | fix: remove priority from logo Image — eliminates preload warning | [1ab47a2eb](2026-09-19-1ab47a2eb-remove-priority-from-logo-image-eliminates-prelo.md) |
+| 2026-09-19 | Bugfix | fix: remove duplicate Admin Panel from desktop + mobile nav lists | [70fc853a9](2026-09-19-70fc853a9-remove-duplicate-admin-panel-from-desktop-mobile.md) |
+| 2026-09-19 | Feature | feat: mobile drawer — Settings popup above footer (matches desktop) | [5b9d8f176](2026-09-19-5b9d8f176-mobile-drawer-settings-popup-above-footer-matche.md) |
+| 2026-09-19 | Feature | feat: mobile drawer — full desktop parity, Settings beside Log out in footer | [8a24a100e](2026-09-19-8a24a100e-mobile-drawer-full-desktop-parity-settings-besid.md) |
+| 2026-09-19 | Feature | feat: settings mobile drawer — flat section matching desktop sidebar style | [e49912899](2026-09-19-e49912899-settings-mobile-drawer-flat-section-matching-des.md) |
+| 2026-09-19 | Feature | feat: settings mobile parity — full feature parity desktop/tablet/mobile | [ee35e288f](2026-09-19-ee35e288f-settings-mobile-parity-full-feature-parity-deskt.md) |
+| 2026-09-19 | Maintenance | Merge pull request #37 from sentflix01/dependabot/npm_and_yarn/backend/jest-30.5.1 | [901f77cc8](2026-09-19-901f77cc8-merge-pull-request-37-from-sentflix01-dependabot.md) |
+| 2026-09-18 | Maintenance | chore(deps-dev): bump jest from 29.7.0 to 30.5.1 in /backend | [47f4c4a69](2026-09-18-47f4c4a69-bump-jest-from-29-7-0-to-30-5-1-in-backend.md) |
+| 2026-09-19 | Maintenance | Merge pull request #36 from sentflix01/dependabot/npm_and_yarn/frontend-next/vitest-5.0.0 | [f14a81188](2026-09-19-f14a81188-merge-pull-request-36-from-sentflix01-dependabot.md) |
+| 2026-09-19 | Maintenance | Merge pull request #35 from sentflix01/dependabot/npm_and_yarn/frontend-next/jsdom-30.0.1 | [02f2c48fc](2026-09-19-02f2c48fc-merge-pull-request-35-from-sentflix01-dependabot.md) |
+| 2026-09-19 | Maintenance | Merge pull request #38 from sentflix01/dependabot/npm_and_yarn/frontend-next/framer-motion-13.2.0 | [a9ceda28d](2026-09-19-a9ceda28d-merge-pull-request-38-from-sentflix01-dependabot.md) |
+| 2026-09-19 | Maintenance | Merge pull request #39 from sentflix01/dependabot/npm_and_yarn/backend/helmet-8.3.0 | [647f2e368](2026-09-19-647f2e368-merge-pull-request-39-from-sentflix01-dependabot.md) |
+| 2026-09-19 | Maintenance | Merge pull request #34 from sentflix01/dependabot/npm_and_yarn/backend/multi-e44b58dc3c | [d3e8c1fc2](2026-09-19-d3e8c1fc2-merge-pull-request-34-from-sentflix01-dependabot.md) |
+| 2026-09-18 | Maintenance | chore(deps-dev): bump vitest from 4.1.11 to 5.0.1 in /frontend-next | [9cb54925e](2026-09-18-9cb54925e-bump-vitest-from-4-1-11-to-5-0-1-in-frontend-nex.md) |
+| 2026-09-18 | Maintenance | chore(deps-dev): bump jsdom from 29.1.1 to 30.0.1 in /frontend-next | [cd82a7030](2026-09-18-cd82a7030-bump-jsdom-from-29-1-1-to-30-0-1-in-frontend-nex.md) |
+| 2026-09-18 | Maintenance | chore(deps): bump framer-motion from 12.42.2 to 13.3.0 in /frontend-next | [4d7f55b95](2026-09-18-4d7f55b95-bump-framer-motion-from-12-42-2-to-13-3-0-in-fro.md) |
+| 2026-09-19 | Maintenance | Merge pull request #32 from sentflix01/dependabot/npm_and_yarn/backend/rate-limit-redis-6.0.1 | [dd997dc27](2026-09-19-dd997dc27-merge-pull-request-32-from-sentflix01-dependabot.md) |
+| 2026-09-19 | Maintenance | Merge pull request #40 from sentflix01/dependabot/npm_and_yarn/frontend-next/testing-library/jest-dom-7.0.1 | [c7f3558e6](2026-09-19-c7f3558e6-merge-pull-request-40-from-sentflix01-dependabot.md) |
+| 2026-09-19 | Maintenance | Merge pull request #41 from sentflix01/dependabot/npm_and_yarn/backend/minor-and-patch-396732e3b9 | [f0795978e](2026-09-19-f0795978e-merge-pull-request-41-from-sentflix01-dependabot.md) |
+| 2026-09-19 | Maintenance | Merge pull request #42 from sentflix01/dependabot/npm_and_yarn/frontend-next/minor-and-patch-e46e0875a1 | [abb24f1c7](2026-09-19-abb24f1c7-merge-pull-request-42-from-sentflix01-dependabot.md) |
+| 2026-09-19 | Maintenance | Merge pull request #43 from sentflix01/feat/personal-business-toggle-auth-port-fixes | [177d37462](2026-09-19-177d37462-merge-pull-request-43-from-sentflix01-feat-perso.md) |
+| 2026-09-19 | Bugfix | fix: dark mode — remove hardcoded white/gray backgrounds | [1c45a698e](2026-09-19-1c45a698e-dark-mode-remove-hardcoded-white-gray-background.md) |
+| 2026-09-19 | Feature | feat: bookmarks end-to-end, settings popup, UI fixes | [798a5f3ba](2026-09-19-798a5f3ba-bookmarks-end-to-end-settings-popup-ui-fixes.md) |
+| 2026-09-18 | Feature | feat: personal/business toggle, Google OAuth popup, port 3002, Redis resilience | [ffd5a67de](2026-09-18-ffd5a67de-personal-business-toggle-google-oauth-popup-port.md) |
+| 2026-09-14 | Maintenance | chore(deps): bump the minor-and-patch group across 1 directory with 14 updates | [a1e364885](2026-09-14-a1e364885-bump-the-minor-and-patch-group-across-1-director.md) |
+| 2026-09-14 | Maintenance | chore(deps): bump the minor-and-patch group across 1 directory with 7 updates | [8fbd81b3c](2026-09-14-8fbd81b3c-bump-the-minor-and-patch-group-across-1-director.md) |
+| 2026-09-11 | Bugfix | fix: business/personal feed toggle UX | [82aba4bb1](2026-09-11-82aba4bb1-business-personal-feed-toggle-ux.md) |
+| 2026-09-10 | Bugfix | fix: business feed toggle, businesses page CTA, brand cleanup, feed shape | [1a5f3fa97](2026-09-10-1a5f3fa97-business-feed-toggle-businesses-page-cta-brand-c.md) |
+| 2026-09-10 | Bugfix | fix: remove Railway, fix Nodbusiness branding, fix feed response shape | [afed5010c](2026-09-10-afed5010c-remove-railway-fix-nodbusiness-branding-fix-feed.md) |
+| 2026-09-10 | Bugfix | fix: e2e test suite — 88/88 passing | [fae8a29e9](2026-09-10-fae8a29e9-e2e-test-suite-88-88-passing.md) |
+| 2026-09-07 | Maintenance | chore(deps-dev): bump @testing-library/jest-dom in /frontend-next | [67c8b7dbe](2026-09-07-67c8b7dbe-bump-testing-library-jest-dom-in-frontend-next.md) |
+| 2026-09-07 | Maintenance | chore(deps): bump helmet from 7.1.0 to 8.3.0 in /backend | [85e32dc04](2026-09-07-85e32dc04-bump-helmet-from-7-1-0-to-8-3-0-in-backend.md) |
+| 2026-09-07 | Maintenance | chore(deps): bump multer and @types/multer in /backend | [00f63677c](2026-09-07-00f63677c-bump-multer-and-types-multer-in-backend.md) |
+| 2026-09-07 | Maintenance | chore(deps): bump rate-limit-redis from 4.3.1 to 6.0.1 in /backend | [012b5c1f6](2026-09-07-012b5c1f6-bump-rate-limit-redis-from-4-3-1-to-6-0-1-in-bac.md) |
+| 2026-09-06 | Bugfix | fix(backend): export discoverMigrationFiles + isExportedFunction from migrate-all | [321b60c8a](2026-09-06-321b60c8a-export-discovermigrationfiles-isexportedfunction.md) |
+| 2026-09-06 | Maintenance | docs+config: add vercel.json + VERCEL_SETUP.md to fix two-project confusion | [1d4e02b92](2026-09-06-1d4e02b92-docs-config-add-vercel-json-vercel-setup-md-to-f.md) |
+| 2026-09-06 | Bugfix | fix: show 'Setting up Google Sign-In/Up…' during GIS load | [8046db361](2026-09-06-8046db361-show-setting-up-google-sign-in-up-during-gis-loa.md) |
+| 2026-09-06 | Bugfix | fix: allow picsum/placehold in next/image + add sizes to Stories | [0e6123995](2026-09-06-0e6123995-allow-picsum-placehold-in-next-image-add-sizes-t.md) |
+| 2026-09-06 | Bugfix | fix: restore TD-014 memory-only token + nb_auth hint cookie | [7a5b29b4b](2026-09-06-7a5b29b4b-restore-td-014-memory-only-token-nb-auth-hint-co.md) |
+| 2026-09-05 | Bugfix | fix: add pool.js shim for migration scripts | [0bcd8e573](2026-09-05-0bcd8e573-add-pool-js-shim-for-migration-scripts.md) |
+| 2026-09-05 | Maintenance | Merge pull request #29 from sentflix01/feature/mewacho-auth-fix-docs | [7f2bb72b5](2026-09-05-7f2bb72b5-merge-pull-request-29-from-sentflix01-feature-me.md) |
+| 2026-09-05 | Maintenance | chore: update package-lock.json with moment dependency | [a015c9a1b](2026-09-05-a015c9a1b-update-package-lock-json-with-moment-dependency.md) |
+| 2026-09-05 | Bugfix | fix: resolve CI failures on feature/mewacho-auth-fix-docs PR | [5eb5e5e76](2026-09-05-5eb5e5e76-resolve-ci-failures-on-feature-mewacho-auth-fix-.md) |
+| 2026-09-05 | Maintenance | Merge pull request #28 from sentflix01/feature/mewacho-auth-fix-docs | [da2914541](2026-09-05-da2914541-merge-pull-request-28-from-sentflix01-feature-me.md) |
+| 2026-09-05 | Documentation | docs: update engineering docs to reflect current app state | [a436468fc](2026-09-05-a436468fc-update-engineering-docs-to-reflect-current-app-s.md) |
+| 2026-09-05 | Feature | feat: add Mewacho group money collection module | [fe3f53db8](2026-09-05-fe3f53db8-add-mewacho-group-money-collection-module.md) |
+| 2026-09-05 | Bugfix | fix: resolve auth logout loop and mailer placeholder key issue | [dc7097322](2026-09-05-dc7097322-resolve-auth-logout-loop-and-mailer-placeholder-.md) |
 | 2026-09-05 | Maintenance | Merge branch 'main' of https://github.com/sentflix01/empire-x | [cd23a9f14](2026-09-05-cd23a9f14-merge-branch-main-of-https-github-com-sentflix01.md) |
 | 2026-09-05 | Bugfix | fix: backup script IPv6 connectivity and skipped handling | [e1311caa5](2026-09-05-e1311caa5-backup-script-ipv6-connectivity-and-skipped-hand.md) |
 | 2026-09-05 | Maintenance | Merge branch 'main' of https://github.com/sentflix01/empire-x | [60227bfcd](2026-09-05-60227bfcd-merge-branch-main-of-https-github-com-sentflix01.md) |
