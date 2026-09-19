@@ -401,7 +401,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               width={32}
               height={32}
               className="w-8 h-8 rounded-xl object-cover shadow-sm"
-              priority
             />
             {!sidebarCollapsed && (
               <span className="hidden md:inline font-display text-lg font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
