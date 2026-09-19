@@ -939,73 +939,78 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                       {badge && <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span>}
                     </Link>
                   ))}
-                {/* ── Settings section — inline accordion in drawer ── */}
+                {/* ── Settings section — always visible, matches desktop sidebar style ── */}
                 <div className="my-2 border-t border-gray-100 dark:border-border" />
-                <button
-                  onClick={() => setDrawerSettingsOpen(v => !v)}
-                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm font-medium text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary"
-                >
+                <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider px-3 pt-1 pb-0.5">Settings</p>
+
+                {/* Language */}
+                <button onClick={toggleLanguage}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm font-medium text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary">
                   <div className="flex items-center gap-3">
-                    <Settings className="w-4 h-4 shrink-0" />
-                    <span>Settings</span>
+                    <Languages className="w-4 h-4 shrink-0" />
+                    <span>Language</span>
                   </div>
-                  <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${drawerSettingsOpen ? 'rotate-180' : ''}`} />
+                  <span className="text-xs font-semibold bg-secondary border border-border rounded-full px-2 py-0.5 text-foreground">
+                    {i18n.language === 'am' ? 'አማ' : 'EN'}
+                  </span>
                 </button>
-                {drawerSettingsOpen && (
-                  <div className="mx-2 mb-1 rounded-xl border border-border/50 overflow-hidden bg-secondary/30">
-                    {/* Language */}
-                    <button onClick={toggleLanguage}
-                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm border-b border-border/30">
-                      <div className="flex items-center gap-2.5 text-muted-foreground">
-                        <Languages className="w-4 h-4 shrink-0" />
-                        <span>Language</span>
-                      </div>
-                      <span className="text-xs font-semibold bg-card border border-border rounded-full px-2 py-0.5">
-                        {i18n.language === 'am' ? 'አማ' : 'EN'}
-                      </span>
-                    </button>
-                    {/* Theme */}
-                    <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm border-b border-border/30">
-                      <div className="flex items-center gap-2.5 text-muted-foreground">
-                        {mounted && theme === 'dark'
-                          ? <Sun className="w-4 h-4 shrink-0 text-amber-400" />
-                          : <Moon className="w-4 h-4 shrink-0" />}
-                        <span>Theme</span>
-                      </div>
-                      <span className="text-xs font-semibold bg-card border border-border rounded-full px-2 py-0.5">
-                        {mounted ? (theme === 'dark' ? 'Dark' : 'Light') : '…'}
-                      </span>
-                    </button>
-                    {/* Data Mode */}
-                    <button onClick={toggleRealMode}
-                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm">
-                      <div className="flex items-center gap-2.5 text-muted-foreground">
-                        <span className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${realMode ? 'border-green-500 bg-green-500' : 'border-amber-500 bg-amber-500'}`}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                        </span>
-                        <span>Data Mode</span>
-                      </div>
-                      <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${realMode ? 'bg-green-500/10 text-green-600 border border-green-500/30' : 'bg-amber-500/10 text-amber-600 border border-amber-500/30'}`}>
-                        {realMode ? 'Real' : 'Demo'}
-                      </span>
-                    </button>
+
+                {/* Theme */}
+                <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm font-medium text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary">
+                  <div className="flex items-center gap-3">
+                    {mounted && theme === 'dark'
+                      ? <Sun className="w-4 h-4 shrink-0 text-amber-400" />
+                      : <Moon className="w-4 h-4 shrink-0" />}
+                    <span>Theme</span>
                   </div>
+                  <span className="text-xs font-semibold bg-secondary border border-border rounded-full px-2 py-0.5 text-foreground">
+                    {mounted ? (theme === 'dark' ? 'Dark' : 'Light') : '…'}
+                  </span>
+                </button>
+
+                {/* Data Mode */}
+                <button onClick={toggleRealMode}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm font-medium text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary">
+                  <div className="flex items-center gap-3">
+                    <span className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${realMode ? 'border-green-500 bg-green-500' : 'border-amber-500 bg-amber-500'}`}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                    </span>
+                    <span>Data Mode</span>
+                  </div>
+                  <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${realMode ? 'bg-green-500/10 text-green-600 border border-green-500/30' : 'bg-amber-500/10 text-amber-600 border border-amber-500/30'}`}>
+                    {realMode ? 'Real' : 'Demo'}
+                  </span>
+                </button>
+
+                {/* Account Settings */}
+                <Link href="/account" onClick={() => setDrawerOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/account') ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                  <Lock className="w-4 h-4 shrink-0" /><span>Account Settings</span>
+                </Link>
+
+                {/* Analytics */}
+                <Link href="/analytics" onClick={() => setDrawerOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/analytics') ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                  <BarChart3 className="w-4 h-4 shrink-0" /><span>Analytics</span>
+                </Link>
+
+                {/* Admin Panel — admin only */}
+                {user?.role === 'admin' && (
+                  <Link href="/admin" onClick={() => setDrawerOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/admin') ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                    <ShieldAlert className="w-4 h-4 shrink-0" /><span>Admin Panel</span>
+                  </Link>
                 )}
+
                 <div className="h-4" />
                 </div>
 
-                {/* ── Footer: settings + admin (if admin) + logout ── */}
-                <div className="border-t border-gray-100 dark:border-border px-3 py-3 shrink-0 flex items-center gap-2 bg-white dark:bg-card"
+                {/* ── Footer: logout only ── */}
+                <div className="border-t border-gray-100 dark:border-border px-3 py-3 shrink-0 bg-white dark:bg-card"
                   style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-                  {user?.role === 'admin' && (
-                    <Link href="/admin" onClick={() => setDrawerOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground transition-colors text-sm font-medium">
-                      <ShieldAlert className="w-4 h-4 shrink-0" /><span>Admin</span>
-                    </Link>
-                  )}
                   <button onClick={() => { setDrawerOpen(false); logout(); }}
-                    className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium">
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium">
                     <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
                   </button>
                 </div>
