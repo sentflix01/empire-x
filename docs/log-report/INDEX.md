@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-18 | Bugfix | fix: remove duplicate Admin Panel from desktop + mobile nav lists | [see report](2026-09-18g-fix-admin-panel-duplicate.md) |
 | 2026-09-18 | Feature | feat: mobile drawer — Settings popup above footer (matches desktop) | [see report](2026-09-18f-feat-mobile-settings-popup.md) |
 | 2026-09-18 | Feature | feat: mobile drawer — full desktop parity, Settings beside Log out in footer | [see report](2026-09-18e-feat-mobile-drawer-desktop-parity.md) |
 | 2026-09-18 | Feature | feat: settings mobile drawer — flat section matching desktop sidebar style | [see report](2026-09-18d-feat-settings-drawer-flat-section.md) |

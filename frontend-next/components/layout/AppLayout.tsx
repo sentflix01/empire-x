@@ -653,12 +653,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             )}
             {(sidebarCollapsed || accountOpen) && accountItems.map(item => <NavLink key={item.path} {...item} />)}
 
-            {user?.role === "admin" && (
-              <>
-                <div className="my-2 border-t border-border/40" />
-                <NavLink path="/admin" icon={ShieldAlert} label={tr('common.adminPanel')} />
-              </>
-            )}
             <div className="h-4" />
           </div>
 
@@ -956,17 +950,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                       {badge && <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span>}
                     </Link>
                   ))}
-
-                  {/* Admin Panel — admin only */}
-                  {user?.role === 'admin' && (
-                    <>
-                      <div className="my-2 border-t border-gray-100 dark:border-border" />
-                      <Link href="/admin" onClick={() => setDrawerOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/admin') ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
-                        <ShieldAlert className="w-4 h-4 shrink-0" /><span>{tr('common.adminPanel')}</span>
-                      </Link>
-                    </>
-                  )}
 
                   {/* SETTINGS inline section removed — now in popup above footer */}
 
