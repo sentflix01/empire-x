@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-18 | Bugfix | fix: remove duplicate Account Settings + Analytics from MY ACCOUNT nav | [see report](2026-09-18i-fix-account-analytics-duplicates.md) |
 | 2026-09-18 | Bugfix | fix: remove priority from logo Image in AppLayout — eliminates preload warning | [see report](2026-09-18h-fix-logo-preload-warning.md) |
 | 2026-09-18 | Bugfix | fix: remove duplicate Admin Panel from desktop + mobile nav lists | [see report](2026-09-18g-fix-admin-panel-duplicate.md) |
 | 2026-09-18 | Feature | feat: mobile drawer — Settings popup above footer (matches desktop) | [see report](2026-09-18f-feat-mobile-settings-popup.md) |

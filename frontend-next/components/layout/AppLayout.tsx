@@ -331,14 +331,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   ];
 
   const accountItems = [
-    { path: "/orders", icon: Package, label: tr('nav.orders') },
-    { path: "/cart", icon: ShoppingCart, label: "Cart", badge: cart.count > 0 ? cart.count : null },
-    { path: "/wallet", icon: Wallet, label: tr('nav.wallet') },
-    { path: "/referral", icon: Gift, label: "Referral" },
-    { path: "/coupons", icon: Tag, label: "My Coupons" },
-    { path: "/analytics", icon: BarChart3, label: "Analytics" },
-    { path: "/account", icon: Lock, label: "Account Settings" },
-    { path: "/privacy", icon: Shield, label: "Privacy" },
+    { path: "/orders",   icon: Package,     label: tr('nav.orders') },
+    { path: "/cart",     icon: ShoppingCart, label: "Cart", badge: cart.count > 0 ? cart.count : null },
+    { path: "/wallet",   icon: Wallet,       label: tr('nav.wallet') },
+    { path: "/referral", icon: Gift,         label: "Referral" },
+    { path: "/coupons",  icon: Tag,          label: "My Coupons" },
+    { path: "/privacy",  icon: Shield,       label: "Privacy" },
   ];
 
   const isActive = (path: string) => {
@@ -860,15 +858,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     <p className="text-sm font-bold text-white truncate leading-tight drop-shadow-sm">{displayName}</p>
                     <p className="text-[11px] text-white/80 truncate drop-shadow-sm">{userEmail}</p>
                   </div>
-                </div>
-
-                {/* Account Settings — pinned below cover */}
-                <div className="px-3 pt-2 pb-1 bg-white dark:bg-card shrink-0">
-                  <Link href="/account" onClick={() => setDrawerOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/account') ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-foreground'}`}>
-                    <Lock className="w-4 h-4 shrink-0" /><span>Account Settings</span>
-                  </Link>
-                  <div className="mt-1 border-t border-gray-100 dark:border-border" />
                 </div>
 
                 {/* ── Scrollable nav list ── */}
