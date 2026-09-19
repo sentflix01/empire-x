@@ -4,7 +4,6 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
-  "rootDirectory": "frontend-next",
   "trailingSlash": false,
   "cleanUrls": true
 }

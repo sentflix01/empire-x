@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-19 | Bugfix | fix: vercel rootDirectory, Redis quota crash, Render cold-start keepalive | [see report](2026-09-19a-fix-vercel-redis-render-issues.md) |
 | 2026-09-18 | Bugfix | fix: socket HMR spam — guard against Strict Mode remount churn | [see report](2026-09-18k-fix-socket-hmr-spam.md) |
 | 2026-09-18 | Bugfix | fix: upgrade express-rate-limit to v8, fix CI audit job | [see report](2026-09-18j-fix-ci-rate-limit-audit.md) |
 | 2026-09-18 | Bugfix | fix: remove duplicate Account Settings + Analytics from MY ACCOUNT nav | [see report](2026-09-18i-fix-account-analytics-duplicates.md) |

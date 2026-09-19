@@ -236,10 +236,26 @@ function buildRateLimitStore(): unknown {
     const { RedisStore } = require('rate-limit-redis') as { RedisStore: new (opts: object) => object };
     const redisClient = getRedis();
     if (redisClient.isNoOp) return undefined;
-    return new RedisStore({
-      sendCommand: (...args: unknown[]) => (redisClient as RedisClient).call(...(args as [string, ...string[]])),
+
+    // rate-limit-redis v6 runs SCRIPT LOAD during construction — if the Redis
+    // quota is exceeded this throws an unhandled async error. Suppress it with
+    // a no-op error handler and fall back to in-memory limiting gracefully.
+    const store = new RedisStore({
+      sendCommand: (...args: unknown[]) => {
+        const cmd = (redisClient as RedisClient).call(...(args as [string, ...string[]]));
+        // Attach a catch so the rejected Promise doesn't become an unhandled rejection
+        if (cmd && typeof (cmd as Promise<unknown>).catch === 'function') {
+          (cmd as Promise<unknown>).catch((err: Error) => {
+            if (err?.message?.includes('max requests limit exceeded')) {
+              logger.warn('Redis quota exceeded — rate-limit store falling back to in-memory');
+            }
+          });
+        }
+        return cmd;
+      },
       prefix: 'rl:',
     }) as unknown;
+    return store;
   } catch (err) {
     logger.warn({ err: (err as Error).message }, 'rate-limit-redis unavailable — using in-memory store');
     return undefined;
@@ -443,6 +459,16 @@ server.listen(PORT, () => {
       try { await pool.query('SELECT 1'); logger.debug('Keep-alive ping OK'); }
       catch (err) { logger.warn({ err: (err as Error).message }, 'Keep-alive ping failed'); }
     }, 4 * 60 * 1_000);
+
+    // Self-ping the health endpoint every 10 minutes to prevent Render free
+    // tier from spinning down the instance (which causes 50s+ cold-start delay).
+    const selfUrl = process.env.API_URL ?? process.env.BACKEND_URL ?? `http://localhost:${PORT}`;
+    setInterval(async () => {
+      try {
+        const res = await fetch(`${selfUrl}/health`);
+        if (!res.ok) logger.debug(`Self-ping /health returned ${res.status}`);
+      } catch { /* ignore — network not required */ }
+    }, 10 * 60 * 1_000);
   }
 });
 
