@@ -49,6 +49,7 @@ jobs:
     needs: check-skip
     if: needs.check-skip.outputs.skip != 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     services:
       postgres:
@@ -96,7 +97,7 @@ jobs:
       # Jest unit/integration suites — the proven green gate (257 tests).
       # The live-server e2e script stays out of the blocking path.
       - name: Run tests (blocking)
-        run: npx jest --runInBand
+        run: npx jest --runInBand --forceExit --testTimeout=10000
 
   # ── Next.js Frontend ─────────────────────────────────────────────────────────
   frontend:
