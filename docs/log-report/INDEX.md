@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-22 | Maintenance | chore: commit all doc updates, render.yaml, workflow fixes, and cleanup from session | [7763a2b76](2026-09-22-7763a2b76-commit-all-doc-updates-render-yaml-workflow-fixe.md) |
+| 2026-09-22 | Bugfix | fix: add .js extension to dynamic imports in showroom-digests for Node ESM resolution in Docker | [641a3eb7f](2026-09-22-641a3eb7f-add-js-extension-to-dynamic-imports-in-showroom-.md) |
 | 2026-09-20 | Bugfix | fix(deploy): detect frontend changes through merge commits for Vercel deploy | [e2f4f1fb1](2026-09-20-e2f4f1fb1-detect-frontend-changes-through-merge-commits-fo.md) |
 | 2026-09-20 | Maintenance | merge: feat/personal-business-toggle-auth-port-fixes into main | [44822a539](2026-09-20-44822a539-feat-personal-business-toggle-auth-port-fixes-in.md) |
 | 2026-09-20 | Bugfix | fix: remove rootDirectory from vercel.json on main | [5109bf6aa](2026-09-20-5109bf6aa-remove-rootdirectory-from-vercel-json-on-main.md) |
