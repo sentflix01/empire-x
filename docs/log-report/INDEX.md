@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-23 | Maintenance | chore(deps): upgrade express to 4.22.3, resolve moderate audit vulns | [304248c51](2026-09-23-304248c51-upgrade-express-to-4-22-3-resolve-moderate-audit.md) |
+| 2026-09-22 | Documentation | docs: full update to reflect live Render+Vercel stack as of September 22 2026 | [2c3789fd2](2026-09-22-2c3789fd2-full-update-to-reflect-live-render-vercel-stack-.md) |
 | 2026-09-22 | Bugfix | fix(ci): move isolatedModules into tsconfig block to silence ts-jest deprecation warning | [d8cc5e5da](2026-09-22-d8cc5e5da-move-isolatedmodules-into-tsconfig-block-to-sile.md) |
 | 2026-09-22 | Bugfix | fix(ci): add --forceExit to jest and 15min job timeout to prevent hung CI | [7ee55a11b](2026-09-22-7ee55a11b-add-forceexit-to-jest-and-15min-job-timeout-to-p.md) |
 | 2026-09-22 | Testing | test: verify full CI/CD pipeline with corrected GitHub secrets | [9e86ad461](2026-09-22-9e86ad461-verify-full-ci-cd-pipeline-with-corrected-github.md) |
