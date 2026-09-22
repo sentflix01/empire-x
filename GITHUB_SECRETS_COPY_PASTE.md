@@ -68,7 +68,7 @@ postgresql://postgres.[REF]:[PASSWORD]@db.[REF].supabase.co:5432/postgres?sslmod
 
 **Example value:**
 ```
-https://nodbusiness-backend.onrender.com
+https://nodbusiness-backend-9psf.onrender.com
 ```
 
 ---
@@ -118,7 +118,7 @@ After adding all secrets:
 - [ ] `DATABASE_URL` — Supabase direct URI (port 5432, sslmode=require) ✓
 - [ ] `RENDER_DEPLOY_HOOK_URL` — from Render → service → Settings → Deploy Hook ✓
 - [ ] `VERCEL_TOKEN` — from Vercel → Account Settings → Tokens ✓
-- [ ] `BACKEND_URL` — `https://nodbusiness-backend.onrender.com` ✓
+- [ ] `BACKEND_URL` — `https://nodbusiness-backend-9psf.onrender.com` ✓
 - [ ] `FRONTEND_URL` — `https://nodbusiness.vercel.app` ✓
 - [ ] `TELEGRAM_BOT_TOKEN` — optional ✓
 - [ ] `TELEGRAM_CHAT_ID` — optional ✓
@@ -148,6 +148,6 @@ Watch GitHub Actions → Actions tab. Expected flow:
 
 Verify:
 ```bash
-curl https://nodbusiness-backend.onrender.com/health
+curl https://nodbusiness-backend-9psf.onrender.com/health
 # Expected: { "status": "ok", "services": { "database": "connected", ... } }
 ```

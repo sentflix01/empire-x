@@ -213,7 +213,7 @@ Expected output: `Tables created: 50` (or higher)
 | **Instance type** | Free |
 
 4. Click **Create Web Service**
-5. Copy the service URL (e.g. `https://nodbusiness-backend.onrender.com`) → save as `BACKEND_URL`
+5. Copy the service URL (e.g. `https://nodbusiness-backend-9psf.onrender.com`) → save as `BACKEND_URL`
 
 ### Step 7.3 — Add environment variables
 
@@ -262,12 +262,12 @@ FF_CHAPA_PAYMENTS  = true
 ## PART 9 — Stripe Webhooks (10 minutes)
 
 1. Go to https://dashboard.stripe.com → **Developers** → **Webhooks** → **+ Add endpoint**
-2. Endpoint URL: `https://nodbusiness-backend.onrender.com/api/orders/webhook`
+2. Endpoint URL: `https://nodbusiness-backend-9psf.onrender.com/api/orders/webhook`
 3. Events: `checkout.session.completed`, `checkout.session.expired`, `payment_intent.payment_failed`, `charge.refunded`
 4. Click **Add endpoint** → copy signing secret → add to Render: `STRIPE_WEBHOOK_SECRET = whsec_...`
 
 5. Add a second webhook for Mewacho:
-   - URL: `https://nodbusiness-backend.onrender.com/api/mewacho/webhook`
+   - URL: `https://nodbusiness-backend-9psf.onrender.com/api/mewacho/webhook`
    - Event: `checkout.session.completed` only
    - Copy signing secret → add to Render: `STRIPE_MEWACHO_WEBHOOK_SECRET = whsec_...`
 
@@ -294,7 +294,7 @@ Go to https://vercel.com → **Sign up** → **Continue with GitHub**
 ### Step 10.3 — Add environment variables
 
 ```
-NEXT_PUBLIC_API_BASE_URL         = https://nodbusiness-backend.onrender.com
+NEXT_PUBLIC_API_BASE_URL         = https://nodbusiness-backend-9psf.onrender.com
 NEXT_PUBLIC_APP_URL              = https://nodbusiness.vercel.app
 NEXT_PUBLIC_GOOGLE_CLIENT_ID     = <same as backend GOOGLE_CLIENT_ID>
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = pk_test_...
@@ -320,7 +320,7 @@ Go to: **GitHub → repo → Settings → Secrets and variables → Actions → 
 | `DATABASE_URL` | Supabase direct URI (port 5432) — for migrations |
 | `RENDER_DEPLOY_HOOK_URL` | From Part 7.4 |
 | `VERCEL_TOKEN` | From Part 10.4 |
-| `BACKEND_URL` | `https://nodbusiness-backend.onrender.com` |
+| `BACKEND_URL` | `https://nodbusiness-backend-9psf.onrender.com` |
 | `FRONTEND_URL` | `https://nodbusiness.vercel.app` |
 | `TELEGRAM_BOT_TOKEN` | Optional |
 | `TELEGRAM_CHAT_ID` | Optional |
@@ -330,7 +330,7 @@ Go to: **GitHub → repo → Settings → Secrets and variables → Actions → 
 ## PART 12 — Smoke Test (5 minutes)
 
 ```bash
-node scripts/smoke-test.js https://nodbusiness-backend.onrender.com --verbose
+node scripts/smoke-test.js https://nodbusiness-backend-9psf.onrender.com --verbose
 ```
 
 > **Note on Render free tier:** The first health check may show a slow response (30–60s) if the service is waking from sleep. This is normal on the free tier. Run the test again after the service is fully awake.
@@ -354,7 +354,7 @@ Work through this flow to confirm everything works:
 ## Quick Reference — All Your Values
 
 ```
-RENDER_BACKEND_URL       = https://nodbusiness-backend.onrender.com
+RENDER_BACKEND_URL       = https://nodbusiness-backend-9psf.onrender.com
 VERCEL_FRONTEND_URL      = https://nodbusiness.vercel.app
 DATABASE_DIRECT_URL      = postgresql://postgres:[PASS]@db.XXX.supabase.co:5432/postgres?sslmode=require
 DATABASE_URL             = postgresql://postgres.XXX:[PASS]@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require

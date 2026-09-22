@@ -14,7 +14,7 @@ Add these secrets to: **GitHub → Settings → Secrets and variables → Action
 | 1 | `DATABASE_URL` | PostgreSQL direct connection URI with `sslmode=require` | Supabase → Project Settings → Database → URI (pooling OFF) |
 | 2 | `RENDER_DEPLOY_HOOK_URL` | Full deploy hook URL from Render | Render → your service → Settings → Deploy Hook → Copy URL |
 | 3 | `VERCEL_TOKEN` | Vercel personal access token | Vercel → Account Settings → Tokens → Create Token |
-| 4 | `BACKEND_URL` | Public Render backend URL | e.g. `https://nodbusiness-backend.onrender.com` |
+| 4 | `BACKEND_URL` | Public Render backend URL | e.g. `https://nodbusiness-backend-9psf.onrender.com` |
 | 5 | `FRONTEND_URL` | Public Vercel frontend URL | e.g. `https://nodbusiness.vercel.app` |
 
 ---
@@ -127,11 +127,11 @@ postgresql://postgres:[YOUR_PASSWORD]@db.[YOUR_PROJECT_REF].supabase.co:5432/pos
 **How to get it:**
 1. Go to https://dashboard.render.com
 2. Click your backend service
-3. Copy the URL shown at the top (e.g. `https://nodbusiness-backend.onrender.com`)
+3. Copy the URL shown at the top (e.g. `https://nodbusiness-backend-9psf.onrender.com`)
 
 **Example:**
 ```
-https://nodbusiness-backend.onrender.com
+https://nodbusiness-backend-9psf.onrender.com
 ```
 
 ---
@@ -205,7 +205,7 @@ Expected flow:
 
 Verify backend:
 ```bash
-curl https://nodbusiness-backend.onrender.com/health
+curl https://nodbusiness-backend-9psf.onrender.com/health
 # Expected: { "status": "ok", "services": { "database": "connected", ... } }
 ```
 

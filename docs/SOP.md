@@ -1,6 +1,6 @@
 # Nodbusiness — Standard Operating Procedure (SOP)
 
-> **Version:** 1.0 | **Status:** Active | **Last Updated:** August 2026
+> **Version:** 1.0 | **Status:** Active | **Last Updated:** September 22, 2026
 >
 > This document governs every single decision, change, and addition made to the
 > Nodbusiness platform — from a one-line bug fix to a full feature version. Nothing
@@ -827,7 +827,7 @@ Create a new product listing.
 1. Push to main branch
 2. GitHub Actions runs CI (lint, typecheck, tests, build)
 3. On CI success: Render deploy hook triggers backend; Vercel CLI deploys frontend
-4. Verify health: GET https://nodbusiness-backend.onrender.com/health → { status: "ok" }
+4. Verify health: GET https://nodbusiness-backend-9psf.onrender.com/health → { status: "ok" }
 5. Smoke test: log in, create a post, check feed
 6. Monitor Sentry for 30 minutes after deployment
 ```

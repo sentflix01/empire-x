@@ -19,7 +19,7 @@ Set these in: **GitHub → Settings → Secrets and variables → Actions**
 | `DATABASE_URL` | Supabase direct connection URI with `sslmode=require` | Supabase → Project Settings → Database → URI (pooling OFF) |
 | `RENDER_DEPLOY_HOOK_URL` | Render deploy hook URL for the backend service | Render → your service → Settings → Deploy Hook → Copy URL |
 | `VERCEL_TOKEN` | Vercel personal access token | Vercel → Account Settings → Tokens → Create Token |
-| `BACKEND_URL` | `https://nodbusiness-backend.onrender.com` | Render Dashboard → Backend service → Public URL |
+| `BACKEND_URL` | `https://nodbusiness-backend-9psf.onrender.com` | Render Dashboard → Backend service → Public URL |
 | `FRONTEND_URL` | `https://nodbusiness.vercel.app` | Vercel → Project → Settings → Domains |
 
 ### Optional Secrets (Recommended for Alerts)
@@ -84,7 +84,7 @@ Set these in: **Render → your backend service → Environment → Environment 
 | Variable | Value | Where to Get It |
 |---|---|---|
 | `CHAPA_SECRET_KEY` | `CHASECK_test_...` (dev) or `CHASECK_live_...` (prod) | Chapa Dashboard → Settings → API Keys |
-| `API_URL` | `https://nodbusiness-backend.onrender.com` | Your backend's public URL — used for Chapa callback |
+| `API_URL` | `https://nodbusiness-backend-9psf.onrender.com` | Your backend's public URL — used for Chapa callback |
 
 ### Caching (Upstash Redis)
 
@@ -161,7 +161,7 @@ Apply to both **Production** and **Preview** environments.
 
 | Variable | Value | Notes |
 |---|---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | `https://nodbusiness-backend.onrender.com` | Must match your Render backend URL exactly |
+| `NEXT_PUBLIC_API_BASE_URL` | `https://nodbusiness-backend-9psf.onrender.com` | Must match your Render backend URL exactly |
 | `NEXT_PUBLIC_APP_URL` | `https://nodbusiness.vercel.app` | Your Vercel deployment URL |
 
 ### Social Auth & Payments
@@ -221,7 +221,7 @@ The `supabase-keepalive.yml` workflow runs every 5 days and pings the database t
    - **Start command:** `node dist/index.js`
    - **Instance type:** Free (spins down after 15 min inactivity — acceptable for development)
 4. Add all environment variables from Section 2 above
-5. Deploy → copy the **Public URL** (e.g. `https://nodbusiness-backend.onrender.com`)
+5. Deploy → copy the **Public URL** (e.g. `https://nodbusiness-backend-9psf.onrender.com`)
 6. Go to **Settings → Deploy Hook** → copy the URL → add to GitHub Secrets as `RENDER_DEPLOY_HOOK_URL`
 
 ### Step 2: Connect GitHub to Vercel
