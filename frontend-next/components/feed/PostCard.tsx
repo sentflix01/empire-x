@@ -591,7 +591,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
           <ShareButton
             title={`${post.author_name ?? 'Nodbusiness'} on Nodbusiness`}
             text={(post.content ?? '').slice(0, 100)}
-            url={`${typeof window !== 'undefined' ? window.location.origin : 'https://nodbusiness.vercel.app'}/profile/${post.author_id}`}
+            url={`${typeof window !== 'undefined' ? window.location.origin : 'https://nodbusiness.app'}/profile/${post.author_id}`}
             label=""
           />
           <BookmarkButton

@@ -1,231 +1,102 @@
 # Nodbusiness — Cloud Provider Decisions
 
 > Why we chose each provider, alternatives considered, and when to switch.
-> Last updated: August 2026
+> **Last updated:** September 2026
+> **Stack:** Render (backend) · Vercel (frontend) · Supabase · Upstash Redis · Cloudflare R2 · Resend
 
 ---
 
-## Acronyms Used in This Document
-
-| Acronym | Full Form |
-|---------|-----------|
-| API | Application Programming Interface |
-| CDN | Content Delivery Network |
-| R2 | Cloudflare R2 — S3-compatible zero-egress object storage |
-| S3 | Amazon Simple Storage Service |
-| DB | Database |
-| SLA | Service Level Agreement |
-| PITR | Point-In-Time Recovery |
-| WAF | Web Application Firewall |
-| DDoS | Distributed Denial of Service |
-| CPU | Central Processing Unit |
-| RAM | Random Access Memory |
-| PoP | Point of Presence — edge network location |
-| CI/CD | Continuous Integration / Continuous Delivery |
-| USD | United States Dollar |
-| MAU | Monthly Active Users |
-
----
 ## Current Provider Stack
 
 | Layer | Provider | Why chosen | Switch when |
 |---|---|---|---|
-| Backend hosting | Railway | Developer-friendly, Git-deploy, affordable | Cost > $1,000/month |
-| Frontend hosting | Vercel | Best Next.js platform (same company) | Almost never |
-| Database | Neon | Serverless PostgreSQL, free tier, branching | Volume pricing better elsewhere |
-| Cache | Upstash Redis | Serverless, free tier, low latency | High command volume |
-| File storage | Cloudflare R2 | 0 egress fees, fast globally | Almost never |
-| Email | Resend | Simple API, free tier, reliable | Price at scale |
+| Backend hosting | Render (free tier) | No card required, Git-deploy, Node.js native, deploy hooks | Cold starts become unacceptable → Render Starter $7/mo |
+| Frontend hosting | Vercel | Built for Next.js, best DX, free Hobby plan, preview deploys on every PR | Revenue from real users → Vercel Pro $20/mo |
+| Database | Supabase | Free tier, PostgreSQL 16, built-in Supavisor pooler, already in use | Storage > 400MB → Supabase Pro $25/mo |
+| Cache / Queues | Upstash Redis | Serverless, free 500K cmd/month, TLS always-on, no card required | High command volume → PAYG $0.20/100K |
+| File storage | Cloudflare R2 | Zero egress fees, 10 GB free, S3-compatible, already integrated | Almost never |
+| Email | Resend | Simple API, 3K/month free, 100/day, reliable | Volume > 100/day → Brevo (300/day free) |
 | Error tracking | Sentry | Industry standard, free tier | Almost never |
-| DNS/CDN/SSL | Cloudflare | Free, fast, DDoS protection | Almost never |
-| Payments | Stripe + Chapa | Stripe = global; Chapa = ETB native | Add more, not replace |
+| Payments | Stripe + Chapa | Stripe = global; Chapa = ETB native Ethiopian market | Add more, not replace |
 
 ---
 
-## Backend Hosting: Railway vs Alternatives
+## Backend Hosting: Render
 
-### Why Railway
-- One-command deploy from GitHub
-- Automatic SSL on all services
-- Built-in secrets management
-- PostgreSQL, Redis, MySQL available as plugins
-- Railway CLI for local → production parity
-- Generous free tier ($5 monthly credit)
-- Railway is growing fast (Series A funded)
+### Why Render (for development)
+- **No credit card required** for signup — GitHub login only
+- **Git-deploy** — push to main and Render auto-deploys
+- **Deploy hooks** — can be triggered from GitHub Actions for synchronised migrations + deploy
+- **Node.js detection** — auto-detects Node.js from `package.json`, no Dockerfile needed
+- **Free tier** includes 750 hours/month (enough for one always-on service)
 
-### Alternatives Considered
-
-| Provider | Pros | Cons | Cost (comparable) |
-|---|---|---|---|
-| **Render** | Similar to Railway, good free tier | Slower cold starts | $7–25/month |
-| **Fly.io** | Global edge deployment, fast | More complex config, Dockerfile required | $10–30/month |
-| **Heroku** | Mature, well-documented | Expensive, removed free tier in 2022 | $50–100/month |
-| **AWS Elastic Beanstalk** | AWS ecosystem, powerful | Complex setup, higher minimum cost | $30–100/month |
-| **Google Cloud Run** | Serverless containers, great scaling | Google billing complexity | Pay-per-use |
-| **DigitalOcean App Platform** | Simple, affordable | Less mature than Railway | $12–50/month |
-| **Hetzner** | Very cheap, good performance | German data centers (latency for Ethiopia) | $5–15/month |
-
-### When to switch from Railway
-
-Switch to **AWS ECS/EKS** when:
-- Monthly Railway bill exceeds $1,000 (AWS will be ~40% cheaper at that scale)
-- Need more control over networking (VPC, security groups)
-- Compliance requires data residency in specific regions
-- Need GPU instances (ML workloads)
-
-Switch to **Fly.io** when:
-- Need deployment closer to East Africa (Fly has Johannesburg PoP)
-- Need ultra-low latency for Ethiopian users
-
----
-
-## Frontend: Vercel vs Alternatives
-
-### Why Vercel (Almost Permanent Decision)
-- Built Next.js — deepest integration, fastest builds
-- Global Edge Network with 35+ PoPs
-- Image optimization built-in
-- Free SSL, custom domains
-- Preview deployments on every PR (invaluable for code review)
-- Vercel Analytics for Core Web Vitals
+### The one limitation
+Render free tier **spins down after 15 minutes of inactivity**. First request after sleep takes 30–60 seconds to wake up. This is acceptable for development and demos. For production launch, upgrade to Render Starter ($7/month) for always-on service.
 
 ### Alternatives
 
 | Provider | Pros | Cons |
 |---|---|---|
-| **Netlify** | Good free tier, similar to Vercel | Slower builds, less Next.js optimization |
-| **Cloudflare Pages** | Free, global, fast | Less mature Next.js support |
-| **AWS Amplify** | AWS ecosystem | Complex, expensive |
-| **Self-hosted (nginx)** | Full control, cheapest | Requires DevOps expertise, no edge network |
-
-**Decision:** Stay on Vercel. The Next.js integration is worth the price.
+| **Railway** | Better DX, no sleep | 30-day trial then $1/mo free credit (too small for always-on) |
+| **Fly.io** | Global edge | Card required even for free tier |
+| **Koyeb** | Free instance, no sleep | Website/service instability issues |
+| **Oracle + Coolify** | Free forever, powerful | Requires credit card for identity verification |
 
 ---
 
-## Database: Neon vs Alternatives
+## Frontend Hosting: Vercel
 
-### Why Neon
-- Serverless PostgreSQL (scales to zero when idle = free dev environments)
-- Database branching (create a branch for staging, PRs, testing)
-- Continuous WAL archiving (point-in-time recovery)
-- Built-in connection pooling (PgBouncer)
-- Compatible with all PostgreSQL tools and ORMs
-- Free tier is genuinely useful (0.5 CU, 3GB)
-- Acquired by Cloudflare — deep integration likely
+### Why Vercel
+- **Built by the Next.js team** — deepest integration, fastest builds
+- **Free Hobby plan** — no card, no expiry
+- **Preview deployments** on every PR — invaluable for review
+- **Vercel CLI** — integrates cleanly into GitHub Actions pipeline
 
-### Alternatives
-
-| Provider | Pros | Cons | Cost |
-|---|---|---|---|
-| **Supabase** | PostgreSQL + storage + auth | Auth we don't need, more expensive | $25–100/month |
-| **PlanetScale** | MySQL, great branching | MySQL not PostgreSQL, deprecated free tier | $39/month |
-| **CockroachDB** | Distributed, globally consistent | More complex, expensive | $0–500/month |
-| **AWS RDS** | Full-featured, many instance sizes | No free tier, complex setup | $30–200/month |
-| **AWS Aurora Serverless** | Auto-scaling, PostgreSQL-compatible | Higher latency, complex | Pay-per-use |
-| **DigitalOcean Managed DB** | Simple, affordable | Less features than Neon | $15/month |
-
-### When to switch from Neon
-
-- **To AWS RDS:** When needing > 1TB storage, compliance requirements, or cost optimization at scale
-- **To CockroachDB:** When needing multi-region write availability (East Africa + Europe simultaneously)
-- **Stay on Neon:** For the foreseeable future — excellent product improving rapidly
+### The limitation
+Vercel Hobby plan terms say "personal non-commercial use only." Nodbusiness has Stripe payments and subscriptions. This is technically a ToS concern for production. **Acceptable for development/demo phase.** Upgrade to Vercel Pro ($20/month) before real users and real revenue.
 
 ---
 
-## File Storage: Cloudflare R2 vs Alternatives
+## Database: Supabase
 
-### Why Cloudflare R2
-- **Zero egress fees** — the single most important advantage
-- S3-compatible API (drop-in replacement)
-- Already integrated via `@aws-sdk/client-s3`
+### Why Supabase
+- Already in use — 28+ migrations applied, schema stable
+- PostgreSQL 16 with built-in Supavisor connection pooler (free)
+- 7-day PITR on free tier
+- Pause risk mitigated by `supabase-keepalive.yml` cron
+
+---
+
+## File Storage: Cloudflare R2
+
+### Why R2
+- **Zero egress fees** — the single most important advantage at scale
+- S3-compatible — `@aws-sdk/client-s3` already integrated
 - 10 GB free + 1M Class A operations free
-- Cloudflare's global network = fast downloads worldwide
-- No bandwidth charges between R2 and Cloudflare Workers
-
-### Cost Comparison (at 100GB stored, 1M downloads/month)
-
-| Provider | Storage | Egress | Total/month |
-|---|---|---|---|
-| **Cloudflare R2** | $1.50 | **$0** | **$1.50** |
-| AWS S3 | $2.30 | $9.00 | $11.30 |
-| Google Cloud Storage | $2.00 | $8.50 | $10.50 |
-| Backblaze B2 | $1.00 | $1.00 | $2.00 |
-| DigitalOcean Spaces | $5.00 (included) | $5.00 (included) | $5.00 |
-| Supabase Storage | $0.021/GB | $0.09/GB | $12+ |
-
-**R2 wins on cost at every scale.** The only reason to switch: if Cloudflare has an outage that affects your storage AND your CDN simultaneously (unlikely).
+- No card needed for signup
 
 ---
 
-## Email: Resend vs Alternatives
+## Redis: Upstash
 
-### Why Resend
-- Clean API (POST body → email delivered)
-- React Email integration (build emails with React components)
-- 3,000 free emails/month (generous)
-- 98%+ deliverability rate
-- Built-in analytics (opens, clicks, bounces)
-- Good documentation
-
-### Alternatives
-
-| Provider | Free tier | 50K emails/month | Notes |
-|---|---|---|---|
-| **Resend** | 3K/month | $89 | Best DX, modern |
-| **SendGrid** | 100/day | $89.95 | Reliable but complex |
-| **Postmark** | 100/month | $74 | Best deliverability |
-| **Mailgun** | 1K/month (3 months) | $35–80 | Good, but complex |
-| **AWS SES** | 62K/month (from EC2) | $5 | Cheapest at scale, complex setup |
-| **Brevo (Sendinblue)** | 300/day | $65 | Good EU deliverability |
-
-**Switch to AWS SES** when email volume > 200K/month (dramatically cheaper).
-**Switch to Postmark** if email deliverability becomes critical issue.
+### Why Upstash
+- **500K commands/month free** (updated March 2026)
+- **No card required** for free tier
+- TLS always-on (`rediss://`)
+- Serverless — no VM or server needed
 
 ---
 
-## CDN/DNS: Cloudflare vs Alternatives
+## Future Stack (when revenue allows)
 
-### Why Cloudflare (Almost Permanent)
-- Free tier includes: DDoS protection, SSL, DNS, CDN, analytics
-- Cloudflare Tunnel (expose local dev to internet for testing)
-- R2 storage (no egress when accessed via Cloudflare)
-- Workers (edge computing for future use)
-- Fastest DNS resolver on Earth (1.1.1.1)
-- 20% of the internet runs through Cloudflare
+When you have paying users:
 
-### Alternatives
-- **AWS CloudFront:** More expensive, complex. Use when already on AWS.
-- **Fastly:** Enterprise-grade, expensive.
-- **BunnyCDN:** Cheapest CDN, good for small sites.
-- **Azure CDN:** Use when on Azure.
-
-**Decision:** Cloudflare is the right choice until AWS migration (if it ever happens).
-
----
-
-## Africa-Specific Infrastructure Considerations
-
-### Latency to Ethiopia
-
-| Provider | Region | Latency to Addis Ababa |
+| Upgrade | Cost | When |
 |---|---|---|
-| Railway (US-West) | Dallas, TX | ~250–350ms |
-| Railway (EU-West) | Amsterdam | ~180–250ms |
-| Fly.io (Johannesburg) | South Africa | ~80–120ms |
-| AWS (eu-west-1) | Ireland | ~200–280ms |
-| AWS (af-south-1) | Cape Town | ~60–100ms |
-| AWS (Middle East) | UAE | ~80–130ms |
+| Render Starter (always-on) | $7/month | When cold starts hurt UX |
+| Vercel Pro | $20/month | Before real users + payments go live |
+| Supabase Pro | $25/month | When DB > 400MB |
+| Upstash PAYG | $0.20/100K | When commands > 400K/month |
 
-**Optimal regions for Ethiopian users:**
-1. **AWS af-south-1 (Cape Town)** — lowest latency
-2. **Fly.io Johannesburg** — similar latency, easier to use
-3. **AWS me-south-1 (Bahrain)** — good for diaspora in Middle East
+---
 
-**Current issue:** Railway US-West means ~300ms latency for Ethiopian users.
-**Plan:** Add Railway EU instance (Amsterdam) at Stage 2 → adds Kenya/Uganda later.
-
-### When AWS Africa opens Nairobi region
-AWS has announced an East Africa region (Nairobi). When live, deploy there:
-- Database: Neon or RDS in Nairobi region
-- Backend: ECS in Nairobi
-- Result: Sub-50ms latency for Ethiopian users

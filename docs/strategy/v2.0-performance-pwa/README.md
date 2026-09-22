@@ -59,4 +59,4 @@ PWA gives users an app icon on their home screen, offline access, and push notif
 
 - Frontend: Next.js Image, dynamic imports, next-pwa or custom SW
 - Backend: Cache-Control headers, ETag (already implemented)
-- Infrastructure: Vercel edge network (handles CDN)
+- Infrastructure: Vercel edge network (handles CDN globally)

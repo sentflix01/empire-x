@@ -157,7 +157,7 @@ The boot-time check in `index.ts` enforces **only these two** — the app hard-e
 
 | Variable | Description | Example |
 |---|---|---|
-| `FRONTEND_URL` | Comma-separated frontend URLs (CORS) | `https://nodbusiness.vercel.app,https://nodbusiness.vercel.app` |
+| `FRONTEND_URL` | Comma-separated frontend URLs (CORS) | `https://nodbusiness.app,https://nodbusiness.pages.dev` |
 
 ---
 
@@ -177,7 +177,7 @@ The boot-time check in `index.ts` enforces **only these two** — the app hard-e
 | Variable | Description | Example |
 |---|---|---|
 | `NEXT_PUBLIC_API_BASE_URL` | Backend API base URL | `http://localhost:3001` (dev) \| `https://api.nodbusiness.app` (prod) |
-| `NEXT_PUBLIC_APP_URL` | Frontend app URL | `http://localhost:3000` (dev) \| `https://nodbusiness.vercel.app` (prod) |
+| `NEXT_PUBLIC_APP_URL` | Frontend app URL | `http://localhost:3000` (dev) \| `https://nodbusiness.app` (prod) |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth client ID | `xxx.apps.googleusercontent.com` |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (for Stripe.js/Elements if used) | `pk_live_...` or `pk_test_...` |
 | `NEXT_PUBLIC_SENTRY_DSN` | Sentry frontend DSN | `https://xxx@o123.ingest.sentry.io/456` |
@@ -188,13 +188,13 @@ The boot-time check in `index.ts` enforces **only these two** — the app hard-e
 
 ## Railway Production Environment
 
-Add these in Railway → Project → Variables:
+Add these in Coolify → nodbusiness-backend → Environment Variables:
 
 ```
-DATABASE_URL=postgresql://...  (auto-set by Railway PostgreSQL plugin)
+DATABASE_URL=postgresql://postgres.REF:[PASS]@aws-0-REGION.pooler.supabase.com:6543/postgres?sslmode=require
 JWT_SECRET=<generated>
 NODE_ENV=production
-FRONTEND_URL=https://nodbusiness.vercel.app
+FRONTEND_URL=https://nodbusiness.app
 RESEND_API_KEY=re_...
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
@@ -212,13 +212,13 @@ VAPID_EMAIL=mailto:admin@nodbusiness.app
 SENTRY_DSN=https://...
 ```
 
-## Vercel Production Environment
+## Cloudflare Pages Production Environment
 
-Add these in Vercel → Project → Settings → Environment Variables:
+Add these in Cloudflare → Pages → nodbusiness → Settings → Environment Variables:
 
 ```
 NEXT_PUBLIC_API_BASE_URL=https://api.nodbusiness.app
-NEXT_PUBLIC_APP_URL=https://nodbusiness.vercel.app
+NEXT_PUBLIC_APP_URL=https://nodbusiness.app
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 NEXT_PUBLIC_SENTRY_DSN=https://...

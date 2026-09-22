@@ -204,8 +204,8 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const allowedOrigins = parseFrontendUrls();
-// Always include the production Vercel domain as a fallback
-const PROD_FRONTEND = 'https://nodbusiness.vercel.app';
+// Always include the production domain as a fallback when FRONTEND_URL is not set
+const PROD_FRONTEND = 'https://nodbusiness.app';
 if (!allowedOrigins.includes(PROD_FRONTEND)) allowedOrigins.push(PROD_FRONTEND);
 if (process.env.NODE_ENV !== 'production') {
   if (!allowedOrigins.includes('http://localhost:3002')) allowedOrigins.push('http://localhost:3002');

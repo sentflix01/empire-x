@@ -7,7 +7,7 @@
 ## What It Is
 
 A dedicated section of Nodbusiness where developers manage their integrations.
-Single URL: `nodbusiness.vercel.app/developers`
+Single URL: `nodbusiness.app/developers`
 
 Think: Stripe Dashboard, Twilio Console, GitHub Developer Settings.
 

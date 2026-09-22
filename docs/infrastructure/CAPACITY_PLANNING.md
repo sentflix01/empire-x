@@ -1,7 +1,8 @@
 # Nodbusiness — Capacity Planning
 
 > How much infrastructure we need at each user count, and when to add more.
-> Last updated: August 2026
+> **Last updated:** September 2026
+> **Stack:** Oracle Cloud Johannesburg (2 OCPU / 12 GB ARM) + Coolify v4 · Cloudflare Pages · Supabase · Upstash Redis · Cloudflare R2
 
 ---
 
@@ -10,6 +11,7 @@
 | Acronym | Full Form |
 |---------|-----------|
 | CPU | Central Processing Unit |
+| OCPU | Oracle Compute Unit — roughly equivalent to 1 physical CPU core (ARM Ampere) |
 | RAM | Random Access Memory |
 | DB | Database |
 | CDN | Content Delivery Network |
@@ -23,12 +25,7 @@
 | GB | Gigabyte |
 | TB | Terabyte |
 | MB | Megabyte |
-
----
-## How to Read This Document
-
-Each section answers: "At X users, what does the infrastructure need to be?"
-It gives specific numbers for: database size, API throughput, storage, and cost.
+| VM | Virtual Machine |
 
 ---
 
@@ -37,13 +34,36 @@ It gives specific numbers for: database size, API throughput, storage, and cost.
 | Metric | Value | Source |
 |---|---|---|
 | Average session length | 10 minutes | Industry benchmark for social apps |
-| Pages/API calls per session | 50 requests | Measured via Railway logs |
+| Pages/API calls per session | 50 requests | Measured via backend logs |
 | Daily Active Users (DAU) / MAU ratio | 30% | Target (industry: 20–40%) |
-| Average product image size | 150 KB compressed | After sharp compression |
-| Average post image size | 250 KB compressed | After sharp compression |
+| Average product image size | 150 KB (after sharp compression) | Upload middleware |
+| Average post image size | 250 KB (after sharp compression) | Upload middleware |
 | Average messages per DAU per day | 20 messages | Social app benchmark |
 | Average orders per seller per day | 2 orders | Conservative estimate |
 | Database row growth rate | 100 rows/user/month | Posts, messages, notifications |
+
+---
+
+## Oracle Cloud VM Capacity (Current: 2 OCPU / 12 GB ARM)
+
+```
+Container memory budget (12 GB total):
+  Coolify panel:                 ~350 MB
+  Backend container (Node.js):   ~200–400 MB at 500 DAU
+  Uptime Kuma container:         ~100 MB
+  OS + Docker overhead:          ~800 MB
+  Reserved headroom (30%):       ~3 GB
+  ─────────────────────────────────────
+  Used at 500 DAU:               ~1.5–1.7 GB
+  Available buffer:              ~10 GB
+
+CPU budget (2 OCPU — ARM Ampere A1):
+  At 500 DAU (peak ~5 req/sec):  ~20–30% CPU
+  At 2,000 DAU (peak ~20 req/sec): ~70–80% CPU ← upgrade trigger
+  At 5,000 DAU:                  Needs second instance
+```
+
+**Scale-up trigger:** CPU > 60% sustained for 30 minutes → add Hetzner CAX21 (€8/month)
 
 ---
 
@@ -51,50 +71,75 @@ It gives specific numbers for: database size, API throughput, storage, and cost.
 
 **DAU:** ~300 | **Peak concurrent users:** ~50
 
-### API Server
-```
-Requests/day:    300 DAU × 50 req/session = 15,000/day
-Requests/hour:   ~2,000 at peak (8–10 PM Addis time)
-Requests/second: ~0.5 req/sec at peak
+### API Server (Oracle VM + Coolify)
 
-→ Single Railway Hobby instance (512 MB RAM, 0.25 vCPU) handles easily
-→ CPU utilization: ~5% at peak
+```
+Requests/day:    300 × 50 = 15,000/day
+Requests/second: ~0.5 req/sec at peak
+Memory used:     ~350 MB backend container
+
+→ Oracle VM 2 OCPU / 12 GB handles this trivially
+→ CPU utilization: ~3–5% at peak
 → No scaling needed
 ```
 
-### Database
+### Database (Supabase)
+
 ```
 Row counts (estimated):
   users:         1,000
-  posts:         5,000  (5 posts/user average)
-  products:      2,000  (2 products/seller, ~50 sellers)
-  orders:        300    (10% of users placed 1 order)
-  messages:      10,000 (10 messages/user average)
+  posts:         5,000
+  products:      2,000
+  orders:        300
+  messages:      10,000
   notifications: 15,000
 
-Total database size: ~50 MB
-Neon free tier (3 GB): ✅ Fine for 18+ months at this rate
+Database size: ~30–50 MB
+Supabase free tier (500 MB): ✅ Fine for 6+ months at this rate
+Egress: ~500 MB/month — well within 5 GB free
 ```
 
 ### Storage (Cloudflare R2)
+
 ```
-Profile photos:   1,000 users × 50 KB = 50 MB
-Product images:   2,000 products × 3 images × 150 KB = 900 MB
-Post images:      1,000 posts × 250 KB = 250 MB
+Profile photos:   1,000 × 50 KB = 50 MB
+Product images:   2,000 × 3 × 150 KB = 900 MB
+Post images:      1,000 × 250 KB = 250 MB
 Total: ~1.2 GB
 
-Cloudflare R2 free tier (10 GB): ✅ Fine
+R2 free tier (10 GB): ✅ Fine
+```
+
+### Upstash Redis
+
+```
+Commands/day:
+  BullMQ (email/notif/webhook):  ~500 jobs × 10 cmds = 5,000
+  Rate limit checks:             ~15,000 req × 2 = 30,000
+  Cache gets/sets:               ~5,000
+  Feature flag reads:            ~2,000
+  Total: ~42,000 commands/day = ~1.3M/month
+
+⚠️  Exceeds 500K free limit if sustained at this rate.
+    In practice, most commands are lightweight and the pattern
+    varies heavily. Monitor Upstash dashboard.
+    At true 1K MAU with 300 DAU: ~40K commands/day = 1.2M/month
+    → Switch to Upstash PAYG ($0.20/100K) at ~$0.50/month overage
 ```
 
 ### Cost
+
 ```
-Railway:    $5/month
-Vercel:     $0
-Neon:       $0
-R2:         $0
-Redis:      $0
-Resend:     $0 (< 3K emails)
-Total:      $5/month
+Oracle VM:    $0
+Coolify:      $0
+CF Pages:     $0
+Supabase:     $0
+Upstash:      $0–1 (possible slight overage)
+R2:           $0
+Resend:       $0 (< 3K emails)
+Sentry:       $0
+Domain:       ~$1.50
+Total:        ~$1.50–2.50/month
 ```
 
 ---
@@ -104,71 +149,58 @@ Total:      $5/month
 **DAU:** ~3,000 | **Peak concurrent:** ~500
 
 ### API Server
+
 ```
 Requests/day:    150,000/day
 Requests/second: ~5 req/sec at peak
-Memory needed:   ~300–400 MB active
+Memory used:     ~400–600 MB backend container
 
-→ Railway Starter ($20/month) 
-→ 1 GB RAM, 1 vCPU
-→ CPU utilization: ~30–40% at peak
-→ Monitor: If CPU > 60% sustained → scale up
+→ Oracle VM 2 OCPU / 12 GB handles this
+→ CPU utilization: ~25–40% at peak
+→ Monitor: If CPU > 60% sustained → provision Hetzner CAX21
 ```
 
-### Database
+### Database (Supabase)
+
 ```
 Row counts:
-  users:         10,000
-  posts:         100,000
-  products:      20,000
-  orders:        5,000
-  messages:      200,000
-  notifications: 300,000
-  Total rows:    ~635,000
+  Total rows: ~635,000
+Database size: ~400–480 MB  ← approaching 500 MB free limit
+Egress: ~3–5 GB/month       ← approaching 5 GB free limit
 
-Database size: ~500 MB
-Connection usage: ~15–20 concurrent connections (enable pooler!)
-Neon free (3 GB): ✅ Fine, but upgrade soon
-Neon Launch ($19/month): Plan ahead
+→ Plan to upgrade Supabase to Pro ($25/month) at this stage
+   Trigger: size > 400 MB OR egress > 4 GB/month
 ```
 
 ### Storage
-```
-Profile photos:   10,000 × 50 KB = 500 MB
-Product images:   20,000 × 3 × 150 KB = 9 GB
-Post images:      50,000 × 250 KB = 12.5 GB
-Total: ~22 GB
 
-R2 free (10 GB): ❌ Exceeded
-R2 paid: 22 GB × $0.015 = $0.33/month ← trivially cheap
+```
+Total uploads: ~22 GB
+R2 paid: 22 GB × $0.015 = $0.33/month (trivial)
+Egress: FREE on R2 (zero egress fees)
 ```
 
-### Redis Usage
-```
-Commands/day:
-  - Feed cache: 3,000 DAU × 5 feed loads = 15,000 GET
-  - Trending: 3,000 × 2 page views = 6,000 GET
-  - Presence: 3,000 × 20 messages × 2 (set+get) = 120,000 operations
-  
-Total: ~150,000 commands/day
+### Upstash Redis
 
-Upstash free (10,000/day): ❌ Exceeded
-Upstash Pay-as-you-go ($0.2 per 100K commands): 150K × $0.002 = $0.30/day = $9/month
+```
+Commands/month: ~10–15M
+Upstash PAYG:  ~$20–30/month at $0.20/100K
+Or: Upstash Fixed $10/month plan
 ```
 
 ### Cost
-```
-Railway:    $20/month
-Vercel:     $0 (upgrade to Pro at ~5K users: $20/month)
-Neon:       $19/month (Launch)
-Redis:      $9/month (Upstash PAYG)
-R2:         $0.50/month
-Resend:     $0 (< 3K emails, upgrade at ~2K users to $20/month)
-Total:      ~$70/month
 
-Revenue (assuming 1,000 orders/month × ETB 500 × 3%):
-→ ETB 15,000/month commission = ~$120/month
-→ Infrastructure is 58% of revenue → acceptable at launch; subscriptions/other revenue close the gap
+```
+Oracle VM:          $0
+Coolify:            $0
+CF Pages:           $0
+Supabase Pro:       $25
+Upstash PAYG:       $20–30
+R2 storage:         $0.50
+Resend Starter:     $20 (if email volume requires)
+Sentry:             $0
+Domain:             $1.50
+Total:              ~$70–80/month
 ```
 
 ---
@@ -178,65 +210,55 @@ Revenue (assuming 1,000 orders/month × ETB 500 × 3%):
 **DAU:** ~15,000 | **Peak concurrent:** ~2,500
 
 ### API Server
+
 ```
 Requests/second: ~25 req/sec at peak
 Memory needed:   ~600–800 MB
 
-→ Railway Team ($20/month base) + 2 instances
-→ Each instance: 1 GB RAM, 1 vCPU
-→ Socket.IO Redis adapter required (rooms shared across instances)
-→ CPU per instance: ~40% at peak
-→ Total Railway cost: ~$60–80/month
+→ Oracle VM 2 OCPU approaching CPU saturation at peak
+→ Add Hetzner CAX21 (4 vCPU ARM / 8 GB / €8/month) as second instance
+→ Cloudflare Load Balancer ($5/month) to distribute traffic
+→ Socket.IO Redis adapter REQUIRED (Upstash pub/sub for shared rooms)
+→ CPU per instance: ~40% at peak (with 2 instances)
 ```
 
-### Database
-```
-Row counts:
-  Total rows: ~5,000,000
+### Background Jobs (BullMQ)
 
-Database size: ~3–5 GB
-Connections: 40–50 concurrent (pooler essential!)
-Neon Scale ($69/month): Upgrade from Launch
-Read replica: Evaluate — reads likely 70%+ of queries
-Query performance: Add missing indexes (run pg_stat_statements weekly)
-```
-
-### BullMQ Background Jobs
 ```
 Jobs/day:
-  - Order confirmation emails: 500
-  - Push notifications: 30,000 (20 per DAU)
-  - Commission collection: 500
-  - Feed cache warm: 288 (every 5 min)
-  - Trending warm: 288
+  Order confirmation emails:    500
+  Push notifications:           30,000
+  Commission collection:        500
+  Cache warm:                   288
+  Webhook deliveries:           1,000
 
-→ Deploy dedicated BullMQ worker on Railway ($15/month extra instance)
-→ Reduces API latency by moving heavy work off request path
+→ Workers run in-process (same container) — sufficient at this scale
+→ Consider dedicated worker container in Coolify if API latency suffers
+→ Cost: $0 (same Oracle VM or Hetzner instance)
 ```
 
 ### Storage
+
 ```
 Total uploads: ~120 GB
-R2: 120 GB × $0.015 = $1.80/month
-Egress: 50K users × 100 images/day × 50 KB = ~250 GB/day
-R2 egress: $0 (zero egress fees — this is why we chose R2)
-AWS S3 equivalent egress cost: $22.50/day = $675/month ← R2 saves this
+R2: 120 × $0.015 = $1.80/month
+Egress: $0 (R2 zero egress) vs AWS S3 equivalent: ~$675/month
 ```
 
 ### Cost
-```
-Railway (2 instances + worker): $80/month
-Vercel Pro:                      $20/month
-Neon Scale:                      $69/month
-Redis (Upstash):                 $30/month
-R2 storage:                      $2/month
-Resend Growth:                   $89/month (50K emails)
-Sentry Team:                     $26/month
-Total:                           ~$316/month
 
-Revenue (5,000 orders/month × ETB 800 × 3%):
-→ ETB 120,000 commission ≈ $960/month
-→ Infrastructure is 33% of revenue → acceptable; monitor as order value grows
+```
+Oracle VM:              $0
+Hetzner CAX21 (2nd):   $9
+CF Load Balancer:       $5
+CF Pages:               $0
+Supabase Pro:           $25–50
+Upstash PAYG/Fixed:     $30
+R2 storage:             $2
+Resend Growth:          $89 (50K emails)
+Sentry Team:            $26
+Domain + misc:          $2
+Total:                  ~$190–215/month
 ```
 
 ---
@@ -246,52 +268,52 @@ Revenue (5,000 orders/month × ETB 800 × 3%):
 **DAU:** ~60,000 | **Peak concurrent:** ~10,000
 
 ### API Server
+
 ```
 Requests/second: ~100 req/sec at peak
-→ Railway Team, 5 instances across 2 regions (US + EU)
-→ Socket.IO Redis Cluster adapter
-→ Each instance: 2 GB RAM, 2 vCPU
-→ Cost: ~$200–400/month
+→ 3–4 Hetzner CAX21 instances (€8/month each)
+→ Coolify on each VM managing the backend container
+→ Socket.IO Redis adapter (Upstash handles pub/sub)
+→ Each instance: ~40% CPU at peak
+→ Cost: ~$35/month for 4 Hetzner VMs + Oracle VM
 ```
 
 ### Database
+
 ```
 Total rows: ~30,000,000
 Database size: ~20–30 GB
-Connections: 150–200 concurrent
-→ Neon Scale (multiple compute units)
-→ 1 primary (writes) + 2 read replicas (different regions)
+Connections: ~150–200 concurrent
+
+→ Supabase Scale tier ($599/month) or evaluate self-hosted PostgreSQL
+→ Enable read replicas for feed/products/profiles queries
 → Consider migration to AWS RDS for cost optimization
-→ Cost: ~$200–500/month
 ```
 
 ### Search
+
 ```
-PostgreSQL ILIKE becomes too slow at this scale
-→ Deploy Meilisearch on Railway or Meilisearch Cloud
-→ Index: products (20M rows), users (200K), showrooms (50K), posts (1M)
-→ Search latency: < 50ms vs 500ms+ on PostgreSQL
-→ Cost: $50–150/month
+PostgreSQL ILIKE too slow at this scale for product search
+→ Deploy Meilisearch on Hetzner VM via Coolify
+→ BullMQ job syncs writes → index updates < 1 minute
+→ Cost: $0 (on existing Hetzner VM)
 ```
 
 ### Cost
-```
-Railway (5 instances + workers + EU):  $300/month
-Vercel Pro:                             $20/month
-Neon (multi-region):                    $400/month
-Redis Cluster (Upstash):               $100/month
-R2 storage (500 GB):                    $7.50/month
-Email (SendGrid/AWS SES):              $200/month
-Sentry Business:                        $80/month
-Meilisearch:                            $100/month
-Cloudflare Pro:                         $20/month
-PagerDuty:                              $100/month
-DataDog/Grafana:                        $200/month
-Total:                                  ~$1,530/month
 
-Revenue (20,000 orders/month × ETB 1,000 × 3% + 1,000 subscriptions × ETB 299):
-→ ETB 600K commission + ETB 299K subs = ETB 0.9M/month ≈ $7,000/month
-→ Infrastructure is 22% of revenue → Healthy
+```
+Oracle VM:              $0
+Hetzner (3 VMs):        $27
+CF Load Balancer:       $5
+CF Pages:               $0
+Supabase Scale:         $599
+Upstash Fixed:          $50
+R2 storage (500 GB):    $7.50
+Email (Resend Business): $249
+Sentry Business:         $80
+Cloudflare Pro:          $20
+Meilisearch:             $0 (self-hosted)
+Total:                   ~$1,040/month
 ```
 
 ---
@@ -301,38 +323,36 @@ Revenue (20,000 orders/month × ETB 1,000 × 3% + 1,000 subscriptions × ETB 299
 **DAU:** ~300,000 | **Peak concurrent:** ~50,000
 
 ```
-At this scale, move from Railway to AWS:
-  - AWS ECS (Elastic Container Service): 10–20 containers, auto-scaling
-  - AWS RDS Aurora PostgreSQL: Multi-AZ, read replicas, ~$2,000/month
-  - AWS ElastiCache Redis: Cluster mode, ~$500/month
-  - Cloudflare Enterprise: Custom SLA, dedicated support
-  - Elasticsearch: Full-text search at billion-record scale
-  - ClickHouse: Analytics database for business intelligence
-  
-Total cost: ~$20,000–50,000/month
+At this scale, migrate from Coolify/Hetzner to AWS:
+  - AWS ECS (Fargate): 10–20 containers, auto-scaling — ~$1,500/month
+  - AWS RDS Aurora PostgreSQL: multi-AZ, read replicas — ~$2,000/month
+  - AWS ElastiCache Redis: Cluster mode — ~$500/month
+  - Cloudflare Enterprise: custom SLA — negotiated pricing
+  - Elasticsearch: full-text search at billion-record scale — ~$300/month
+  - ClickHouse: analytics database — ~$200/month
 
-Revenue (100,000 orders/month × ETB 1,500 × 3% + 10,000 subs × ETB 299):
-→ ETB 4.5M commission + ETB 3M subs = ETB 7.5M/month ≈ $60,000/month
-→ Infrastructure is 33–83% of revenue → Must optimize before this stage
+Total cost: ~$15,000–40,000/month
+
+Revenue (100K orders/month × ETB 1,500 × 3% + 10K subs × ETB 299):
+→ ETB 4.5M + ETB 3M = ETB 7.5M/month ≈ $60,000/month
+→ Infrastructure is ~25–65% of revenue — must optimize before this stage
 ```
 
 ---
 
-## Capacity Planning Triggers
-
-Set these alerts and act when triggered:
+## Capacity Alerts to Configure
 
 | Metric | Alert threshold | Action |
 |---|---|---|
-| Railway CPU | > 60% sustained for 30 min | Add another instance |
-| Railway RAM | > 80% | Upgrade to larger instance size |
-| DB connection pool | > 80% utilized | Enable/tune PgBouncer |
-| Neon storage | > 80% of plan limit | Upgrade plan |
-| Redis commands | > 80% of daily limit | Upgrade to paid tier |
-| R2 storage | > 80% of 10GB free | Switch to paid (trivially cheap) |
-| API p95 latency | > 1000ms | Performance audit |
-| Error rate | > 1% | Engineering incident |
-| Email send failure | > 5% | Check Resend limits |
+| Oracle VM CPU | > 60% sustained for 30 min | Add Hetzner CAX21 instance |
+| Oracle VM RAM | > 10 GB (83%) | Investigate memory leak or scale |
+| Supabase DB size | > 400 MB | Plan upgrade to Pro |
+| Supabase egress | > 4 GB/month | Plan upgrade to Pro |
+| Upstash commands | > 400K/month | Switch to PAYG or Fixed plan |
+| R2 storage | > 8 GB free | Confirm storage costs (trivial: $0.015/GB) |
+| API p95 latency | > 1,000ms | Performance audit |
+| Backend error rate | > 1% | Engineering incident |
+| Resend daily emails | > 80/day | Monitor daily cap (100/day) |
 
 ---
 
@@ -342,7 +362,6 @@ Before every major launch milestone:
 
 ```bash
 # Install k6: https://k6.io/docs/get-started/installation/
-npm install -g k6
 
 # Test 1: Feed load (most common action)
 k6 run --vus 100 --duration 5m scripts/load-test-feed.js
@@ -358,4 +377,5 @@ k6 run --vus 500 --duration 10m scripts/load-test-messages.js
 # - p95 response time < 500ms
 # - No database connection pool exhaustion
 # - No memory leaks (RSS stays flat over 10 minutes)
+# - Socket.IO maintains connections during load
 ```

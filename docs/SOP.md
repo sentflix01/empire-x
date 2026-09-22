@@ -817,7 +817,7 @@ Create a new product listing.
 ✅ TypeScript errors: 0 (npx tsc --noEmit)
 ✅ Lint errors: 0 (npm run lint)
 ✅ Build succeeds (npm run build)
-✅ New environment variables are set in Railway/Vercel
+✅ New environment variables are set in Render (backend) and Vercel (frontend)
 ✅ New migrations have been run (node db/migrate-all.js)
 ✅ No .env files in the commit
 ```
@@ -826,8 +826,8 @@ Create a new product listing.
 ```
 1. Push to main branch
 2. GitHub Actions runs CI (lint, typecheck, tests, build)
-3. On success: Railway auto-deploys backend, Vercel auto-deploys frontend
-4. Verify health: GET https://api.nodbusiness.app/health → { status: "ok" }
+3. On CI success: Render deploy hook triggers backend; Vercel CLI deploys frontend
+4. Verify health: GET https://nodbusiness-backend.onrender.com/health → { status: "ok" }
 5. Smoke test: log in, create a post, check feed
 6. Monitor Sentry for 30 minutes after deployment
 ```
@@ -835,9 +835,18 @@ Create a new product listing.
 ### 14.3 Rollback
 ```
 If something breaks after deployment:
-1. Revert the commit: git revert [commit-hash]
-2. Push the revert commit to main
-3. Railway/Vercel auto-deploys the revert
+
+Option A — Render dashboard (fastest, no code change needed):
+  Render → your service → Deploys → last working → Rollback (~2-3 min)
+
+Option B — Vercel dashboard:
+  Vercel → Project → Deployments → last successful → Promote to Production (~30s)
+
+Option C — Git revert (triggers full CI + deploy pipeline):
+  1. Revert the commit: git revert [commit-hash]
+  2. Push the revert commit to main
+  3. Render + Vercel auto-deploys the revert
+```
 4. Investigate the issue before re-deploying
 ```
 
