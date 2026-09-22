@@ -601,7 +601,7 @@ router.post('/google', async (req: Request, res: Response) => {
     const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
-    logger.error({ err }, 'Google auth error — DB or unexpected failure');
+    logger.error({ err: (err as Error).message, stack: (err as Error).stack?.split('\n').slice(0,3).join(' | ') }, 'Google auth error — DB or unexpected failure');
     apiError.serverError(res, 'Google sign-in is temporarily unavailable. Please try again.');
   }
 });
