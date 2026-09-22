@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-23 | Bugfix | fix: replace BullMQ health-check queue with single PING to eliminate bull:health-checkmeta key spam | [d52883e40](2026-09-23-d52883e40-replace-bullmq-health-check-queue-with-single-pi.md) |
 | 2026-09-23 | Bugfix | fix: eliminate 1440 Redis commands/day from health pings + fix rate-limiter quota crash | [55cc48edb](2026-09-23-55cc48edb-eliminate-1440-redis-commands-day-from-health-pi.md) |
 | 2026-09-23 | Bugfix | fix: improve Google auth error logging to show exact error message and stack | [4a8bab3a6](2026-09-23-4a8bab3a6-improve-google-auth-error-logging-to-show-exact-.md) |
 | 2026-09-23 | Bugfix | fix: trigger fresh Render rebuild for Google OAuth 500 | [656dd198a](2026-09-23-656dd198a-trigger-fresh-render-rebuild-for-google-oauth-50.md) |
