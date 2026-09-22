@@ -242,13 +242,18 @@ function buildRateLimitStore(): unknown {
     // a no-op error handler and fall back to in-memory limiting gracefully.
     const store = new RedisStore({
       sendCommand: (...args: unknown[]) => {
-        const cmd = (redisClient as RedisClient).call(...(args as [string, ...string[]]));
-        // Attach a catch so the rejected Promise doesn't become an unhandled rejection
+        const redisNow = getRedis();
+        // If Redis already degraded to no-op, return null immediately
+        if (redisNow.isNoOp) return Promise.resolve(null);
+        const cmd = (redisNow as RedisClient).call(...(args as [string, ...string[]]));
+        // Return null on quota exceeded so rate-limit-redis falls back to
+        // in-memory limiting rather than propagating the error into the route
         if (cmd && typeof (cmd as Promise<unknown>).catch === 'function') {
-          (cmd as Promise<unknown>).catch((err: Error) => {
+          return (cmd as Promise<unknown>).catch((err: Error) => {
             if (err?.message?.includes('max requests limit exceeded')) {
               logger.warn('Redis quota exceeded — rate-limit store falling back to in-memory');
             }
+            return null;
           });
         }
         return cmd;
@@ -290,10 +295,12 @@ app.use('/uploads', express.static(path.join(__dirname, process.env.UPLOAD_DIR ?
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/health', async (_req: Request, res: Response) => {
   const redis = getRedis();
+  // Use connection status only — avoids a live Redis command on every ping.
+  // A live GET would consume 1,440 commands/day from the keep-alive pings alone.
   let redisStatus = 'not configured';
   if (!redis.isNoOp) {
-    try { await (redis as RedisClient).get('health-check'); redisStatus = 'connected'; }
-    catch { redisStatus = 'error'; }
+    const status = (redis as RedisClient).status;
+    redisStatus = (status === 'ready' || status === 'connect') ? 'connected' : status ?? 'unknown';
   }
   let databaseStatus = 'disconnected';
   try { await pool.query('SELECT 1'); databaseStatus = 'connected'; } catch { databaseStatus = 'error'; }
