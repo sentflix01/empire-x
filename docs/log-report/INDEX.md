@@ -5,6 +5,11 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-22 | Bugfix | fix(ci): move isolatedModules into tsconfig block to silence ts-jest deprecation warning | [d8cc5e5da](2026-09-22-d8cc5e5da-move-isolatedmodules-into-tsconfig-block-to-sile.md) |
+| 2026-09-22 | Bugfix | fix(ci): add --forceExit to jest and 15min job timeout to prevent hung CI | [7ee55a11b](2026-09-22-7ee55a11b-add-forceexit-to-jest-and-15min-job-timeout-to-p.md) |
+| 2026-09-22 | Testing | test: verify full CI/CD pipeline with corrected GitHub secrets | [9e86ad461](2026-09-22-9e86ad461-verify-full-ci-cd-pipeline-with-corrected-github.md) |
+| 2026-09-22 | Bugfix | fix: wrap Redis calls in auth login/refresh routes with try/catch to prevent 500 on quota exceeded | [a59d53d20](2026-09-22-a59d53d20-wrap-redis-calls-in-auth-login-refresh-routes-wi.md) |
+| 2026-09-22 | Maintenance | chore: trigger Vercel redeploy with updated env vars | [403690250](2026-09-22-403690250-trigger-vercel-redeploy-with-updated-env-vars.md) |
 | 2026-09-22 | Maintenance | chore: commit all doc updates, render.yaml, workflow fixes, and cleanup from session | [7763a2b76](2026-09-22-7763a2b76-commit-all-doc-updates-render-yaml-workflow-fixe.md) |
 | 2026-09-22 | Bugfix | fix: add .js extension to dynamic imports in showroom-digests for Node ESM resolution in Docker | [641a3eb7f](2026-09-22-641a3eb7f-add-js-extension-to-dynamic-imports-in-showroom-.md) |
 | 2026-09-20 | Bugfix | fix(deploy): detect frontend changes through merge commits for Vercel deploy | [e2f4f1fb1](2026-09-20-e2f4f1fb1-detect-frontend-changes-through-merge-commits-fo.md) |
