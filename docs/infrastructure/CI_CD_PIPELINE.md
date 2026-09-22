@@ -1,174 +1,216 @@
 # Nodbusiness — CI/CD Pipeline
 
-> How code goes from developer laptop to production — what actually runs today, what it does
-> and does not guarantee, and the roadmap to make every step a hard gate.
-> **Verified against `.github/workflows/ci.yml` and `deploy.yml` on September 2026.**
-> **Stack:** Oracle Cloud Johannesburg + Coolify v4 · Cloudflare Pages · Supabase
-
----
-
-## Acronyms Used in This Document
-
-| Acronym | Full Form |
-|---------|-----------|
-| CI/CD | Continuous Integration / Continuous Delivery |
-| PR | Pull Request |
-| API | Application Programming Interface |
-| DB | Database |
-| SAST | Static Application Security Testing |
-| ENV | Environment Variable |
-| SHA | Commit hash (Git) |
-| YAML | CI/CD config format |
-
----
-
-## Current-state summary (updated September 2026)
-
-| Claim | Reality today |
-|---|---|
-| "CI blocks merges" | ✅ **Blocking**: backend typecheck + Jest suites, frontend lint + typecheck + build all fail the run. `npm audit` at `--audit-level=high` (both packages). |
-| "Deploy waits for CI" | ✅ **Gated**: `deploy.yml` triggers only via `workflow_run` after a successful CI run on main, for the exact same commit (`gate` job). A red build cannot reach production. |
-| "Backend deploys to Coolify" | ✅ Explicit Coolify webhook (`POST` with `Authorization: Bearer`) triggered after migrations pass. Falls back to Coolify Git integration if webhook secret is missing. |
-| "Frontend deploys to Cloudflare Pages" | ✅ Cloudflare Pages connects directly to the GitHub repo and deploys automatically on every push to main. No CI step needed — the `deploy-frontend` job logs status only. |
-| "Health-check failure alerts" | ⚠️ Health check sends a Telegram alert when secrets are set; does **NOT** fail the workflow (`exit 0` regardless). Rollback is manual per §Manual rollback. |
-| "Staging environment" | ❌ Does not exist. `main` is the only environment. Cloudflare Pages creates preview deployments for every PR automatically. |
-| Migrations on deploy | ✅ Real: `deploy.yml` runs `db/migrate-all.js` against Supabase (direct connection, port 5432) before the Coolify webhook fires. |
-| Zero-downtime deploys | ✅ Coolify reads the backend Dockerfile `HEALTHCHECK`. New container must pass `/health` before the old container is stopped. |
+> **Last updated:** September 22, 2026
+> **Platform:** GitHub Actions
+> **Stack:** Render (backend) + Vercel (frontend) + Supabase
 
 ---
 
 ## Pipeline Overview
 
 ```
-Developer pushes to GitHub
-          │
-          ▼
-Nodbusiness CI (ci.yml)  ── blocking jobs:
-  ├── Backend:  tsc --noEmit → migrate (local postgres) → jest --runInBand
-  ├── Frontend: lint → tsc --noEmit → next build
-  └── Audit:    npm audit --audit-level=high (both packages)
-          │
-     All pass? ──❌──▶ deploy never triggers
-          │ ✅ (push to main only)
-          ▼
-workflow_run event → Nodbusiness Deploy (deploy.yml)
-  ├── gate:            CI conclusion == success AND commit matches
-  ├── changes:         detect if frontend-next/** changed
-  ├── migrate:         node db/migrate-all.js → Supabase (direct, port 5432)
-  ├── deploy-backend:  POST Coolify webhook (--retry 3) → rolling container swap
-  ├── deploy-frontend: log note only — Cloudflare Pages deploys automatically
-  └── healthcheck:     GET /health (3 attempts) + frontend ping → Telegram on fail
+Push to main branch
+        │
+        ▼
+┌─────────────────────────────────────────┐
+│          Nodbusiness CI                 │
+│  (ci.yml — must pass before deploy)     │
+│                                         │
+│  ├── check-skip                         │
+│  ├── backend (typecheck + tests)        │
+│  ├── frontend (lint + typecheck + build)│
+│  └── audit (npm audit --level=high)     │
+└─────────────────────┬───────────────────┘
+                      │ on: CI success
+                      ▼
+┌─────────────────────────────────────────┐
+│          Nodbusiness Deploy             │
+│  (deploy.yml — triggered by CI)         │
+│                                         │
+│  ├── gate (verify CI passed)            │
+│  ├── changes (detect frontend changes)  │
+│  ├── migrate (run DB migrations)        │
+│  ├── deploy-backend (Render hook)       │
+│  ├── deploy-frontend (Vercel CLI)*      │
+│  └── healthcheck                        │
+└─────────────────────────────────────────┘
+
+* only if frontend-next/ files changed
 ```
 
 ---
 
-## Deploy Pipeline (`.github/workflows/deploy.yml`)
+## GitHub Secrets Required
 
-| Job | What it does | Failure behavior |
-|-----|--------------|------------------|
-| `gate` | Checks CI conclusion == `success` and commit SHA matches. | **Hard gate:** if CI failed or SHA mismatch, all downstream jobs are skipped. |
-| `changes` | `git diff` detects if `frontend-next/**` changed in this commit. | Informational only — Cloudflare Pages deploys regardless. |
-| `migrate` | `npm ci` then `node db/migrate-all.js` with `DATABASE_URL`. Migrations are idempotent and tracked in `schema_migrations`. | **Hard gate:** migration failure skips `deploy-backend`. |
-| `deploy-backend` | Fires `COOLIFY_WEBHOOK_URL` with `Authorization: Bearer COOLIFY_TOKEN`. Retries 3×. If webhook secrets are missing, prints notice and exits 0 (Coolify Git integration picks up the push). | Fails workflow on non-2xx HTTP status from Coolify. |
-| `deploy-frontend` | Logs that Cloudflare Pages is deploying automatically. No action taken. | Never fails — informational only. |
-| `healthcheck` | Waits 30s, polls `BACKEND_URL/health` up to 3×15s. Checks frontend URL. | **Never fails the workflow** (`exit 0`), but sends Telegram alert when a result is `fail`. |
+| Secret | Used by | Value |
+|---|---|---|
+| `DATABASE_URL` | `deploy.yml` migrate job | Supabase pooler URL (port 6543) |
+| `RENDER_DEPLOY_HOOK_URL` | `deploy.yml` deploy-backend job | `https://api.render.com/deploy/srv-...?key=...` |
+| `VERCEL_TOKEN` | `deploy.yml` deploy-frontend job | Vercel personal access token |
+| `BACKEND_URL` | `deploy.yml` healthcheck job | `https://nodbusiness-backend-9psf.onrender.com` |
+| `FRONTEND_URL` | `deploy.yml` healthcheck job | `https://nodbusiness.vercel.app` |
 
-Concurrency: only the newest production deploy is retained (`concurrency: deploy-production`, obsolete queued or running deploys are cancelled).
-Environments: `migrate` and `deploy-backend` jobs target the GitHub `production` environment for secrets scoping.
+Set at: `https://github.com/sentflix01/empire-x/settings/secrets/actions`
 
 ---
 
-## Cloudflare Pages — Frontend Deploy (Automatic)
+## CI Workflow (`ci.yml`)
 
-Cloudflare Pages connects to the GitHub repository directly. On every push to `main`:
+**Trigger:** Push to `main`, PR to `main` or `develop`
 
-1. Cloudflare detects the push automatically (no webhook or CI step needed)
-2. Builds `frontend-next/` using `npm run build`
-3. Deploys the static output to 335+ edge PoPs globally
-4. Preview deployments are created automatically for every PR
+**Jobs:**
 
-**Build settings in Cloudflare Pages dashboard:**
-```
-Root directory:      frontend-next
-Build command:       npm run build
-Build output dir:    out
-Node.js version:     20
+### 1. check-skip
+Skips CI if commit message contains `[skip ci]` or author is `nodbusiness-docs-bot`.
+
+### 2. backend (timeout: 15 min)
+Runs against a local PostgreSQL 16 container.
+
+```yaml
+env:
+  DATABASE_URL: postgresql://nodbusiness:testpassword@localhost:5432/nodbusiness_test
+  JWT_SECRET: ci-test-secret-do-not-use-in-production-at-all
+  NODE_ENV: test
 ```
 
-**Environment variables to set in Cloudflare Pages dashboard:**
+Steps:
+- `npm ci` — install dependencies
+- `npx tsc --noEmit` — TypeScript typecheck (blocking)
+- `npm run migrate` — run all 38 migrations against test DB
+- `npx jest --runInBand --forceExit --testTimeout=10000` — 308 tests (blocking)
+
+### 3. frontend (Next.js)
+Steps:
+- `npm ci --legacy-peer-deps`
+- `npm run lint` — ESLint (blocking)
+- `npx tsc --noEmit` — TypeScript typecheck (blocking)
+- `npm run build` — Next.js build (blocking)
+
+Build env vars used in CI:
 ```
-NEXT_PUBLIC_API_BASE_URL   = https://api.yourdomain.com
-NEXT_PUBLIC_APP_URL        = https://nodbusiness.pages.dev
-NEXT_PUBLIC_GOOGLE_CLIENT_ID = ...googleusercontent.com
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = pk_live_...
-NEXT_PUBLIC_VAPID_PUBLIC_KEY = BN...
-NEXT_PUBLIC_SENTRY_DSN     = https://...@sentry.io/...
+NEXT_PUBLIC_API_BASE_URL: https://example-ci-build.nodbusiness.app
+NEXT_PUBLIC_APP_URL: https://example-ci-build.pages.dev
+NEXT_PUBLIC_GOOGLE_CLIENT_ID: ci-placeholder-google-client-id
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_placeholder
+NEXT_PUBLIC_SENTRY_DSN: ""
 ```
+
+### 4. audit
+- `npm audit --audit-level=high --package-lock-only` for both backend and frontend
+- Blocks on high (CVSS ≥7.0) or critical vulnerabilities
 
 ---
 
-## Coolify — Backend Deploy (Webhook-Triggered)
+## Deploy Workflow (`deploy.yml`)
 
-Coolify runs on the Oracle Cloud Johannesburg ARM VM. It manages the backend Docker container.
+**Trigger:** `workflow_run` — fires when `Nodbusiness CI` completes on `main`
 
-**Deploy flow:**
-1. GitHub Actions fires `POST COOLIFY_WEBHOOK_URL` with `Authorization: Bearer COOLIFY_TOKEN`
-2. Coolify pulls the latest code from the connected GitHub repo
-3. Coolify builds the Docker image using `backend/Dockerfile`
-4. Coolify starts the new container
-5. The Dockerfile `HEALTHCHECK` runs: `wget -qO- http://localhost:10000/health || exit 1`
-6. Once the health check passes, Coolify stops the old container → **zero downtime**
-7. If the health check never passes within the timeout, Coolify keeps the old container running and marks the deploy as failed
+**Jobs:**
 
-**Required GitHub Secrets:**
-```
-COOLIFY_WEBHOOK_URL   — from Coolify → Application → Webhooks
-COOLIFY_TOKEN         — from Coolify → Settings → API Tokens
-```
+### 1. gate
+Checks that CI concluded with `success`. Blocks deploy if CI failed or was cancelled.
+
+### 2. changes
+Detects whether `frontend-next/` files changed using `git diff`. Sets output `frontend=true/false` to skip unnecessary Vercel deploys.
+
+### 3. migrate
+Runs `node db/migrate-all.js` against the production Supabase database.
+- Uses `secrets.DATABASE_URL` (pooler URL, port 6543)
+- Skips gracefully if `DATABASE_URL` is not set (prints warning)
+- Idempotent — safe to run on every deploy
+
+### 4. deploy-backend
+Fires the Render deploy hook via HTTP POST.
+- Uses `secrets.RENDER_DEPLOY_HOOK_URL`
+- If hook URL not set: prints notice, Render's Git integration will auto-deploy anyway
+- Waits for HTTP 2xx response from Render
+
+### 5. deploy-frontend
+Only runs if `changes.outputs.frontend == 'true'`.
+- Installs Vercel CLI: `npm install -g vercel`
+- `vercel pull --yes --environment=production --token=...`
+- `vercel build --prod --token=...`
+- `vercel deploy --prebuilt --prod --yes --no-wait --token=...`
+- Up to 2 retry attempts
+
+### 6. healthcheck (non-blocking)
+- Waits 30 seconds for services to stabilize
+- Checks backend `/health` (3 attempts, 15s apart)
+- Checks frontend URL (3 attempts, 15s apart)
+- Sends Telegram alert if either fails (requires `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`)
+- `continue-on-error: true` — never blocks the deploy
 
 ---
 
-## Manual Rollback
+## Other Workflows
+
+### DB Migrate → PostgreSQL (manual)
+File: `.github/workflows/db-migrate-to-supabase.yml`
+
+Manual trigger only. Runs migrations against production Supabase.
+Useful for emergency migration runs outside the normal deploy cycle.
+
+**Trigger:** GitHub Actions → "DB migrate → PostgreSQL (manual)" → Run workflow
+
+### Supabase Keep-Alive
+File: `.github/workflows/supabase-keepalive.yml`
+
+Runs every 6 hours via cron. Pings Supabase with `SELECT 1` to prevent the free tier project from pausing due to inactivity (Supabase pauses free projects after 1 week of no queries).
+
+### Nodbusiness Docs Sync
+File: `.github/workflows/docs-sync.yml`
+
+Automatically keeps documentation in sync. Runs on doc changes.
+
+---
+
+## Concurrency
+
+```yaml
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+```
+
+Only one deploy runs at a time. If a new deploy starts while one is running, the old one is cancelled.
+
+---
+
+## Skipping CI
+
+Add `[skip ci]` or `[ci skip]` to the commit message:
 
 ```bash
-# Option 1: Git revert (re-runs full pipeline)
-git revert HEAD
-git push origin main
-# Runs: CI → migrate (idempotent) → Coolify deploy → health check
-
-# Option 2: Coolify dashboard (instant, no code change)
-# Coolify → Application → Deployments → select previous deployment → Redeploy
-# Time: ~60 seconds (Coolify re-deploys from cached image)
-
-# Option 3: Force specific commit via webhook
-# Update COOLIFY_WEBHOOK_URL to point to a specific deployment UUID
+git commit -m "docs: update README [skip ci]"
 ```
 
-Migrations are additive-first by standard (`docs/backend/DATABASE.md`). A rollback deploy must not depend on dropped columns. If a migration was destructive, restore per `operations/BACKUPS.md` — there is no automatic DB rollback.
+---
+
+## Typical Timeline
+
+| Stage | Duration |
+|---|---|
+| CI — check-skip | <5s |
+| CI — backend typecheck + 308 tests | ~3 min |
+| CI — frontend lint + typecheck + build | ~2 min |
+| CI — security audit | ~30s |
+| Deploy — gate | <5s |
+| Deploy — migrations | ~30s |
+| Deploy — Render build + deploy | ~3-5 min |
+| Deploy — Vercel build + deploy | ~2-3 min |
+| Deploy — health check | ~1 min |
+| **Total: push to live** | **~8-12 min** |
 
 ---
 
-## Supabase Keep-Alive (`.github/workflows/supabase-keepalive.yml`)
+## Troubleshooting
 
-Runs on a `cron: '0 8 */5 * *'` schedule (every 5 days at 08:00 UTC). Executes `psql "$DATABASE_URL" -c "SELECT 1"` to reset the Supabase free-tier 7-day inactivity pause clock. The backend's own keep-alive ping (every 4 minutes in `index.ts`) covers active deployment periods.
-
----
-
-## Gap Plan — Remaining (in priority order)
-
-1. ~~Make CI blocking~~ ✅ Done 2026-08-23.
-2. ~~Gate deploys on CI~~ ✅ Done 2026-08-23 (`workflow_run` + gate job).
-3. ~~Migrate deploy target to Coolify~~ ✅ Done September 2026.
-4. ~~Move frontend to Cloudflare Pages~~ ✅ Done September 2026.
-5. **Automatic rollback on health regression** — keep the previous Coolify deployment warm; on healthcheck failure, trigger redeploy of the last known-good image instead of only alerting.
-6. **Tag releases.** `vX.Y.Z` git tags on deploy.
-7. **Staging tier:** `develop` branch → separate Coolify application + Supabase branch before promoting to main.
-8. **Pre-commit hooks (husky + lint-staged):** eslint + tsc --noEmit on staged files only.
-9. **Post-deploy canary check:** replay a small set of read endpoints and compare error rate vs baseline for 10 minutes.
-
-## Related docs
-
-- `DEPLOYMENT_VARIABLES.md` — all environment variables for every service
-- `infrastructure/CLOUD_PROVIDERS.md` — Oracle/Coolify/Supabase/CF Pages provider decisions
-- `infrastructure/CURRENT_STATE.md` — live stack snapshot
-- `operations/SEVERITY_LEVELS.md` — what happens when a bad deploy reaches prod
+| Problem | Cause | Fix |
+|---|---|---|
+| CI backend job hangs > 15 min | Open handles in tests | `--forceExit` is set — job will be killed at 15 min timeout |
+| Deploy skipped after CI | CI concluded with `failure` or `cancelled` | Fix failing tests/typecheck, push again |
+| Migrations skipped | `DATABASE_URL` secret missing | Add `DATABASE_URL` to GitHub Secrets |
+| Render deploy not triggered | `RENDER_DEPLOY_HOOK_URL` missing | Get from Render → service → Settings → Deploy Hook |
+| Vercel deploy fails | `VERCEL_TOKEN` expired | Regenerate in Vercel → Account Settings → Tokens |
+| Health check fails | Render cold start taking >45s | Expected on free tier — health check is non-blocking |
+| `npm audit` blocks deploy | High/critical vulnerability | Run `npm audit fix` locally, commit, push |

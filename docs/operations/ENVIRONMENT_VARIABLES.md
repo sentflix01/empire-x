@@ -1,236 +1,248 @@
 # Nodbusiness — Environment Variables Reference
 
-> The complete guide to every environment variable used by the platform.
-> Last updated: August 2026
+> **Last updated:** September 22, 2026
+> All variables listed here are set in **Render** (backend) or **Vercel** (frontend).
+> Never commit real secret values to git. This file documents keys and formats only.
 
 ---
 
-## Acronyms Used in This Document
+## Backend Environment Variables (Render)
 
-| Acronym | Full Form |
-|---------|-----------|
-| ENV | Environment Variable |
-| JWT | JSON Web Token |
-| API | Application Programming Interface |
-| DB | Database |
-| SMTP | Simple Mail Transfer Protocol |
-| CDN | Content Delivery Network |
-| R2 | Cloudflare R2 — object storage |
-| VAPID | Voluntary Application Server Identification — Web Push keys |
-| TLS | Transport Layer Security |
-| OTP | One-Time Password |
-| ETB | Ethiopian Birr — reference market currency |
-| URL | Uniform Resource Locator |
+Set at: Render → nodbusiness-backend → Environment
 
----
+### Server
 
-## Backend (`backend/.env`)
+| Variable | Value | Required | Notes |
+|---|---|---|---|
+| `NODE_ENV` | `production` | ✅ Yes | Enables production mode, strict checks |
+| `PORT` | *(not set — Render assigns dynamically)* | ❌ Don't set | Render injects PORT automatically. Do NOT set manually. |
+| `LOG_LEVEL` | `info` | No | Options: `trace`, `debug`, `info`, `warn`, `error` |
 
-### Required (App will not start without these)
+### Database
 
-The boot-time check in `index.ts` enforces **only these two** — the app hard-exits if either is missing:
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `DATABASE_URL` | `postgresql://postgres.REF:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require` | ✅ Yes | Supabase **pooler** URL (port 6543, transaction mode). App will not start without this. |
+| `BACKUP_DATABASE_URL` | Same pooler URL | No | Used by backup script for `pg_dump`. Script converts pooler → direct automatically. |
+| `DB_POOL_MAX` | `5` | No | Max DB connections in pool. Default 5. |
+| `DB_POOL_MIN` | `0` | No | Min idle connections. Default 0. |
+| `DB_CONNECTION_TIMEOUT_MS` | `15000` | No | Connection timeout in ms. Default 15000. |
+| `DB_TLS_REJECT_UNAUTHORIZED` | `false` | No | Set `true` only if using a CA-signed cert. Default false (Supabase uses valid certs). |
+| `BACKUP_FORCE_IPV4` | `true` | No | Forces IPv4 for backup connections. Required on Render free tier. |
 
-| Variable | Description | Example |
-|---|---|---|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/nodbusiness?sslmode=require` |
-| `JWT_SECRET` | Secret for signing JWTs. Generate: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` | `a8f3...` (64+ chars) |
+### Authentication
 
-### Strongly recommended (features degrade or misroute without them)
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `JWT_SECRET` | 128-char hex string | ✅ Yes | Generate: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`. App exits if missing. |
+| `OTP_SALT` | 64-char hex string | No (recommended) | Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Prevents rainbow-table attacks on OTP hashes. |
+| `JWT_EXPIRES_IN` | `7d` | No | Refresh token lifetime. Access token is always 15 min (hardcoded). |
 
-| Variable | Description | Default behavior without it |
-|---|---|---|
-| `PORT` | HTTP server port | `3001` |
-| `NODE_ENV` | `production` enables Helmet CSP, prod rate limits, secure cookies, Redis-backed limiter store | dev mode (rate limits skipped, cookies not Secure) |
-| `FRONTEND_URL` | Comma-separated frontend URLs (CORS allowlist, email links) | localhost fallbacks |
+### Google OAuth
 
----
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `GOOGLE_CLIENT_ID` | `793690330854-...apps.googleusercontent.com` | ✅ Yes (production) | App **exits with process.exit(1)** in production if missing. Get from Google Cloud Console. |
+| `GOOGLE_CLIENT_SECRET` | `GOCSPX-...` | No | Not used by this backend for token verification — only Client ID needed. |
 
-### Email (At least one required for OTP + order emails)
+### CORS / Frontend
 
-| Variable | Description | Example |
-|---|---|---|
-| `RESEND_API_KEY` | Resend.com API key (recommended) | `re_xxxxx` |
-| `EMAIL_FROM` | Sender name + address | `Nodbusiness <noreply@nodbusiness.app>` |
-| `SMTP_HOST` | SMTP server (alternative to Resend) | `smtp.gmail.com` |
-| `SMTP_PORT` | SMTP port | `587` |
-| `SMTP_SECURE` | Use TLS | `false` |
-| `SMTP_USER` | SMTP username | `your@gmail.com` |
-| `SMTP_PASS` | SMTP password / app password | `xxxx xxxx xxxx xxxx` |
+| Variable | Value | Required | Notes |
+|---|---|---|---|
+| `FRONTEND_URL` | `https://nodbusiness.vercel.app` | ✅ Yes | Used for CORS allowed origins. Separate multiple URLs with comma. |
+| `API_URL` | `https://nodbusiness-backend-9psf.onrender.com` | No | Used as self-reference in Chapa callback URLs and self-ping. |
+| `BACKEND_URL` | `https://nodbusiness-backend-9psf.onrender.com` | No | Alias for API_URL. Used in health check self-ping. |
 
----
+### Email (Resend)
 
-### Payments
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `RESEND_API_KEY` | `re_...` | No* | *Recommended. Without it, OTP emails print to console only — users can't verify. |
+| `EMAIL_FROM` | `Nodbusiness <onboarding@resend.dev>` | No | Sender address. Change to `noreply@nodbusiness.app` when custom domain is added. |
 
-| Variable | Description | Example |
-|---|---|---|
-| `STRIPE_SECRET_KEY` | Stripe API key. Blank = Stripe disabled (503 on checkout) | `sk_live_...` or `sk_test_...` |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret. Register at dashboard.stripe.com → Webhooks | `whsec_...` |
-| `STRIPE_CURRENCY` | Charge currency (`usd` or `etb`) | `usd` |
-| `STRIPE_ETB_TO_USD_RATE` | ETB → USD conversion rate | `0.008` |
-| `CHAPA_SECRET_KEY` | Chapa API key. `SANDBOX` for local testing | `CHASECK_test_...` or `SANDBOX` |
-| `API_URL` | Your backend URL (used for Chapa callback_url) | `https://api.nodbusiness.app` |
+### Email (SMTP — backup, not currently used)
 
----
+| Variable | Value | Required | Notes |
+|---|---|---|---|
+| `SMTP_HOST` | `smtp.gmail.com` | No | Only used if `RESEND_API_KEY` is not set. |
+| `SMTP_PORT` | `587` | No | |
+| `SMTP_SECURE` | `false` | No | `true` for port 465 |
+| `SMTP_USER` | Gmail address | No | Gmail App Password required (not regular password) |
+| `SMTP_PASS` | Gmail App Password | No | |
+
+### Redis
+
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `REDIS_URL` | `rediss://default:TOKEN@stirring-squid-289591.upstash.io:6379` | No* | *Highly recommended. Without Redis: no rate limiting, no JWT revocation, no queues, no Socket.IO scaling. App still works but degraded. |
+| `REDIS_TLS_REJECT_UNAUTHORIZED` | `true` or `false` | No | Default `false` for Redis lib, `true` for Socket.IO adapter. Upstash uses valid certs — both work. |
+| `UPSTASH_REDIS_REST_URL` | `https://stirring-squid-289591.upstash.io` | No | Upstash REST API URL. Not used by the backend directly (only used if you use Upstash REST client). |
+| `UPSTASH_REDIS_REST_TOKEN` | Token string | No | Not used by backend directly. |
 
 ### File Storage
 
-| Variable | Description | Example |
-|---|---|---|
-| `UPLOAD_DIR` | Local upload directory (dev fallback) | `uploads` |
-| `MAX_FILE_SIZE_MB` | Max upload size in MB | `10` |
-| `R2_ACCOUNT_ID` | Cloudflare R2 account ID | `abc123` |
-| `R2_ACCESS_KEY_ID` | R2 access key | `xxxxx` |
-| `R2_SECRET_ACCESS_KEY` | R2 secret key | `xxxxx` |
-| `R2_BUCKET_NAME` | R2 bucket name | `nodbusiness-uploads` |
-| `R2_PUBLIC_URL` | Public CDN URL for R2 | `https://pub-xxx.r2.dev` |
-| `SUPABASE_URL` | Supabase project URL (alternative to R2) | `https://xxx.supabase.co` |
-| `SUPABASE_STORAGE_KEY` | Supabase storage API key | `eyJ...` |
-| `SUPABASE_BUCKET` | Supabase storage bucket name | `nodbusiness` |
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `SUPABASE_URL` | `https://tpgzlokgnjxcerexxoda.supabase.co` | ✅ Yes* | *Required for cloud storage. App **exits with process.exit(1)** in production if neither Supabase nor R2 is configured. |
+| `SUPABASE_API_URL` | Same as `SUPABASE_URL` | No | Alias. |
+| `STORAGE_SUPABASE_URL` | Same as `SUPABASE_URL` | No | Another alias used internally. |
+| `SUPABASE_STORAGE_KEY` | `eyJ...` (service_role JWT) | ✅ Yes* | Must be the **service_role** key, not the anon key. Get from Supabase → Settings → API. |
+| `SUPABASE_BUCKET` | `uploads` | ✅ Yes* | Storage bucket name. Auto-created at startup if missing. |
+| `UPLOAD_DIR` | `uploads` | No | Local disk fallback directory. Default `uploads`. |
+| `MAX_FILE_SIZE_MB` | `10` | No | Max upload size in MB. Default 10. |
 
----
+**Cloudflare R2 (alternative to Supabase Storage — not currently configured):**
 
-### Caching & Queues
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `R2_ACCOUNT_ID` | Cloudflare account ID | No | Only needed if using R2 instead of Supabase Storage |
+| `R2_ACCESS_KEY_ID` | R2 access key | No | |
+| `R2_SECRET_ACCESS_KEY` | R2 secret key | No | |
+| `R2_BUCKET_NAME` | `nodbusiness-uploads` | No | |
+| `R2_PUBLIC_URL` | `https://pub-xxx.r2.dev` | No | |
 
-| Variable | Description | Example |
-|---|---|---|
-| `REDIS_URL` | Redis connection URL. No Redis = no-op stub (dev fallback) | `rediss://default:token@host.upstash.io:6380` |
+### AI
 
----
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `AI_PROVIDER` | `gemini` | No | Options: `openai`, `gemini`, `anthropic`. Default `openai`. |
+| `GEMINI_API_KEY` | `AIza...` | No* | Required if `AI_PROVIDER=gemini`. |
+| `GEMINI_MODEL` | `gemini-1.5-flash` | No | Default `gemini-1.5-flash`. |
+| `OPENAI_API_KEY` | `sk-...` | No | Required if `AI_PROVIDER=openai`. |
+| `OPENAI_MODEL` | `gpt-3.5-turbo` | No | |
+| `ANTHROPIC_API_KEY` | `sk-ant-...` | No | Required if `AI_PROVIDER=anthropic`. |
+| `ANTHROPIC_MODEL` | `claude-3-haiku-20240307` | No | |
 
-### AI Features
+### Payments
 
-| Variable | Description | Example |
-|---|---|---|
-| `AI_PROVIDER` | AI provider selection | `openai` \| `gemini` \| `anthropic` |
-| `OPENAI_API_KEY` | OpenAI API key | `sk-...` |
-| `DB_POOL_MAX` | PostgreSQL pool size (`db/pool.ts`) | `10` — raise under load; Neon pooled connections recommended |
-| `COMMISSION_RATE` | Platform commission as decimal (`services/commission.ts`) | `0.03` (flat 3%) |
-| `BACKUP_RETENTION_DAYS` | Local backup retention (`scripts/backup-database.js`) | `14` |
-| `BACKUP_SCHEDULE_ENABLED` | Force the daily backup schedule outside production | unset (auto-enables in production) |
-| `OPENAI_MODEL` | Model to use | match `.env.example`; verify against your OpenAI account before relying on a specific model |
-| `GEMINI_API_KEY` | Google Gemini API key | `AIza...` |
-| `GEMINI_MODEL` | Gemini model | `gemini-1.5-flash` |
-| `ANTHROPIC_API_KEY` | Anthropic API key | `sk-ant-...` |
-| `ANTHROPIC_MODEL` | Claude model | `claude-3-haiku-20240307` |
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `CHAPA_SECRET_KEY` | `CHASECK_test_...` or `CHASECK_live_...` | No | Ethiopian payment gateway. Feature flag `FF_CHAPA_PAYMENTS=true`. |
+| `STRIPE_SECRET_KEY` | `sk_test_...` or `sk_live_...` | No | Currently set to `FF_STRIPE_PAYMENTS=false`. Add key when ready. |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | No | Required to verify Stripe webhook signatures. |
+| `STRIPE_CURRENCY` | `usd` | No | Default `usd`. Set `etb` for Ethiopian Birr (falls back to USD if rejected). |
+| `STRIPE_ETB_TO_USD_RATE` | `0.008` | No | ETB to USD conversion rate for display. |
+| `STRIPE_PRICE_PREMIUM_MONTHLY` | `price_...` | No | Stripe price ID for Premium ($12/mo) plan. |
+| `STRIPE_PRICE_PRO_MONTHLY` | `price_...` | No | Stripe price ID for Pro ($49/mo) plan. |
+| `COMMISSION_RATE` | e.g. `0.05` | No | Platform commission rate (decimal). |
 
----
+### Web Push Notifications
 
-### Push Notifications
-
-| Variable | Description | How to generate |
-|---|---|---|
-| `VAPID_PUBLIC_KEY` | Web Push VAPID public key | `node -e "const wp=require('web-push');const k=wp.generateVAPIDKeys();console.log(k)"` |
-| `VAPID_PRIVATE_KEY` | Web Push VAPID private key | (same command as above) |
-| `VAPID_EMAIL` | Contact email for VAPID | `mailto:admin@nodbusiness.app` |
-
----
-
-### Authentication & Google OAuth
-
-| Variable | Description | Where to get |
-|---|---|---|
-| `JWT_EXPIRES_IN` | JWT token expiry | `7d` |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | console.cloud.google.com → APIs → Credentials |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | (same as above) |
-
----
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `VAPID_PUBLIC_KEY` | `BKe52mPRC_...` (base64url, no `=`) | No | VAPID public key for web push. Generate once and keep forever. |
+| `VAPID_PRIVATE_KEY` | `F7tNIcaoas...` | No | Keep secret. Never expose to frontend. |
+| `VAPID_EMAIL` | `mailto:admin@empirex.app` | No | Contact email for push service providers. |
 
 ### Observability
 
-| Variable | Description | Example |
-|---|---|---|
-| `SENTRY_DSN` | Sentry backend DSN | `https://xxx@o123.ingest.sentry.io/456` |
-| `LOG_LEVEL` | Pino log level | `debug` (dev) \| `info` (prod) |
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `SENTRY_DSN` | `https://xxx@o123.ingest.sentry.io/456` | No | Sentry error tracking DSN. |
+
+### Feature Flags
+
+| Variable | Value | Default | Notes |
+|---|---|---|---|
+| `FF_CHAPA_PAYMENTS` | `true` / `false` | `false` | Enable Chapa Ethiopian payments |
+| `FF_STRIPE_PAYMENTS` | `true` / `false` | `true` | Enable Stripe payments — **set to `false` until keys are added** |
+| `FF_PERSONALIZED_FEED` | `true` / `false` | `false` | Ranked feed algorithm |
+| `FF_VIDEO_POSTS` | `true` / `false` | `false` | Allow video uploads |
+| `FF_COMMUNITY_GROUPS` | `true` / `false` | `false` | Community groups feature |
+| `FF_LIVE_STREAMING` | `true` / `false` | `false` | Live streaming |
+
+### Encryption
+
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `EXTERNAL_API_ENCRYPTION_KEY` | 64 hex chars (32 bytes) | No | AES-256-GCM key for encrypting external API credentials at rest. Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+
+### Backup
+
+| Variable | Value | Required | Notes |
+|---|---|---|---|
+| `BACKUP_RETENTION_DAYS` | `14` | No | How many daily backups to keep. Default 14. |
+| `BACKUP_SCHEDULE_ENABLED` | `true` | No | Force-enable backup schedule outside production. |
+
+### Telegram (Optional)
+
+| Variable | Value format | Required | Notes |
+|---|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | `123456789:ABC...` | No | For deploy failure alerts and admin notifications. |
+| `TELEGRAM_CHAT_ID` | Numeric ID | No | Your Telegram chat ID. |
 
 ---
 
-### Integrations
+## Frontend Environment Variables (Vercel)
 
-| Variable | Description | Example |
-|---|---|---|
-| `TELEGRAM_BOT_TOKEN` | Telegram bot token from @BotFather | `1234567890:ABCdef...` |
-| `EXTERNAL_API_ENCRYPTION_KEY` | AES-256 key for encrypting external API credentials | 64 hex chars |
+Set at: Vercel → nodbusiness project → Settings → Environment Variables
 
----
-
-### Frontend URL
-
-| Variable | Description | Example |
-|---|---|---|
-| `FRONTEND_URL` | Comma-separated frontend URLs (CORS) | `https://nodbusiness.app,https://nodbusiness.pages.dev` |
-
----
-
-### Feature Flags (Override defaults)
-
-| Variable | Default | Description |
-|---|---|---|
-| `FF_CHAPA_PAYMENTS` | `false` | Enable Chapa payment option (code default is **off** — `featureFlags.ts`) |
-| `FF_STRIPE_PAYMENTS` | `true` | Enable Stripe payment option |
-| `FF_PERSONALIZED_FEED` | `false` | Enable ML feed ranking |
-| `FF_VIDEO_POSTS` | `false` | Enable video post upload |
+| Variable | Value | Environment | Required | Notes |
+|---|---|---|---|---|
+| `NEXT_PUBLIC_API_BASE_URL` | `https://nodbusiness-backend-9psf.onrender.com` | All | ✅ Yes | Backend API URL. Baked into JS bundle at build time. Must redeploy after changing. |
+| `NEXT_PUBLIC_APP_URL` | `https://nodbusiness.vercel.app` | Production | ✅ Yes | Public app URL for SEO metadata. |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | `793690330854-...apps.googleusercontent.com` | All | ✅ Yes | Same client ID as backend. Used to initialize Google Identity Services. |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `BKe52mPRC_...` | All | No | Web push subscription public key. |
+| `NEXT_PUBLIC_SENTRY_DSN` | `https://xxx@sentry.io/...` | All | No | Frontend Sentry DSN. |
+| `NEXT_PUBLIC_APP_VERSION` | `1.0.0` | All | No | Shown in Sentry releases. |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | `pk_test_...` or `pk_live_...` | All | No | Required when `FF_STRIPE_PAYMENTS=true`. |
+| `NEXT_PUBLIC_CHAPA_PUBLIC_KEY` | `CHAPUBK_...` | All | No | Chapa public key for frontend. |
 
 ---
 
-## Frontend (`frontend-next/.env.local`)
+## GitHub Actions Secrets
 
-| Variable | Description | Example |
-|---|---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | Backend API base URL | `http://localhost:3001` (dev) \| `https://api.nodbusiness.app` (prod) |
-| `NEXT_PUBLIC_APP_URL` | Frontend app URL | `http://localhost:3000` (dev) \| `https://nodbusiness.app` (prod) |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth client ID | `xxx.apps.googleusercontent.com` |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (for Stripe.js/Elements if used) | `pk_live_...` or `pk_test_...` |
-| `NEXT_PUBLIC_SENTRY_DSN` | Sentry frontend DSN | `https://xxx@o123.ingest.sentry.io/456` |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | VAPID public key (must match backend) | `BNxxx...` |
-| `NEXT_PUBLIC_CHAPA_PUBLIC_KEY` | Chapa public key (for inline Chapa.js if used) | `CHAPUBK_test_...` |
+Set at: GitHub → sentflix01/empire-x → Settings → Secrets and variables → Actions
+
+| Secret | Value format | Required | Notes |
+|---|---|---|---|
+| `DATABASE_URL` | Supabase pooler URL (port 6543) | ✅ Yes | Used by CI to run migrations. Same as Render `DATABASE_URL`. |
+| `RENDER_DEPLOY_HOOK_URL` | `https://api.render.com/deploy/srv-...?key=...` | ✅ Yes | Triggers Render deploy after migrations. Get from Render → service → Settings → Deploy Hook. |
+| `VERCEL_TOKEN` | Vercel personal access token | ✅ Yes | Used by `vercel` CLI in CI to deploy frontend. |
+| `BACKEND_URL` | `https://nodbusiness-backend-9psf.onrender.com` | ✅ Yes | Used by health check job in deploy workflow. |
+| `FRONTEND_URL` | `https://nodbusiness.vercel.app` | ✅ Yes | Used by health check job in deploy workflow. |
 
 ---
 
-## Railway Production Environment
+## Local Development (.env)
 
-Add these in Coolify → nodbusiness-backend → Environment Variables:
+Copy `backend/.env.example` to `backend/.env` and fill in:
 
+```bash
+# Minimum required for local dev
+NODE_ENV=development
+PORT=3001
+DATABASE_URL=postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require
+JWT_SECRET=any-long-random-string-for-local-dev-only
+FRONTEND_URL=http://localhost:3002
+
+# Run migrations locally
+NODE_TLS_REJECT_UNAUTHORIZED=0  # Only for local dev, not production
 ```
-DATABASE_URL=postgresql://postgres.REF:[PASS]@aws-0-REGION.pooler.supabase.com:6543/postgres?sslmode=require
-JWT_SECRET=<generated>
-NODE_ENV=production
-FRONTEND_URL=https://nodbusiness.app
-RESEND_API_KEY=re_...
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-CHAPA_SECRET_KEY=CHASECK_live_...
-API_URL=https://api.nodbusiness.app
-R2_ACCOUNT_ID=...
-R2_ACCESS_KEY_ID=...
-R2_SECRET_ACCESS_KEY=...
-R2_BUCKET_NAME=nodbusiness-uploads
-R2_PUBLIC_URL=https://pub-xxx.r2.dev
-REDIS_URL=rediss://...  (Upstash)
-VAPID_PUBLIC_KEY=BN...
-VAPID_PRIVATE_KEY=...
-VAPID_EMAIL=mailto:admin@nodbusiness.app
-SENTRY_DSN=https://...
+
+For the frontend, copy `frontend-next/.env.local.example` to `frontend-next/.env.local`:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=793690330854-...apps.googleusercontent.com
+NEXT_PUBLIC_APP_URL=http://localhost:3002
 ```
 
-## Cloudflare Pages Production Environment
+---
 
-Add these in Cloudflare → Pages → nodbusiness → Settings → Environment Variables:
+## Environment Variable Priority
 
-```
-NEXT_PUBLIC_API_BASE_URL=https://api.nodbusiness.app
-NEXT_PUBLIC_APP_URL=https://nodbusiness.app
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
-NEXT_PUBLIC_SENTRY_DSN=https://...
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=BN...
-```
+For feature flags, priority order is:
+1. Env var (`FF_FLAG_NAME=true`) — highest, overrides everything
+2. Redis key (`ff:flag_name`) — real-time admin updates without redeploy
+3. Hardcoded defaults in `lib/featureFlags.ts` — lowest
 
 ---
 
 ## Security Notes
 
-- **Never commit `.env` files** — they are in `.gitignore` ✅
-- **Rotate `JWT_SECRET` immediately** if you suspect it's compromised (invalidates all sessions)
-- **Rotate `STRIPE_WEBHOOK_SECRET`** after any suspected webhook endpoint exposure
-- **Never log env var values** — only log their presence/absence
-- **Use Railway's built-in secret encryption** — don't store secrets in `railway.toml`
+- `JWT_SECRET` must be at least 64 random bytes (128 hex chars). A guessable secret breaks all authentication.
+- `SUPABASE_STORAGE_KEY` must be the `service_role` key, not the `anon` key. The anon key cannot create storage objects.
+- Never put `STRIPE_SECRET_KEY`, `JWT_SECRET`, or `SUPABASE_STORAGE_KEY` in `NEXT_PUBLIC_*` variables — those are baked into the public JavaScript bundle.
+- `GOOGLE_CLIENT_SECRET` is NOT used by this backend. The backend verifies Google ID tokens using only the Client ID.
+- Rotating `JWT_SECRET` instantly invalidates ALL active sessions for all users.

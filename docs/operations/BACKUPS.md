@@ -1,209 +1,207 @@
-# Nodbusiness — Backup & Recovery
+# Nodbusiness — Backup Strategy
 
-> Data loss is unrecoverable. Set this up before going to production.
-> **Implemented 2026-08-23:** automated daily `pg_dump` backups (`scripts/backup-database.js`)
-> + restorability verification (`scripts/verify-backup.js`).
-> **Last updated:** September 2026
-> **Stack:** Oracle Cloud Johannesburg + Coolify v4 · Supabase · Cloudflare R2
+> **Last updated:** September 22, 2026
+> **Database:** Supabase PostgreSQL (project `tpgzlokgnjxcerexxoda`)
+> **Backup tool:** pg_dump (built into backend Docker image via `postgresql-client`)
 
 ---
 
-## Acronyms Used in This Document
+## Backup Overview
 
-| Acronym | Full Form |
-|---------|-----------|
-| DB | Database |
-| PITR | Point-In-Time Recovery — restoring a database to an earlier state |
-| WAL | Write-Ahead Log — PostgreSQL transaction log used for PITR |
-| R2 | Cloudflare R2 — object storage |
-| CDN | Content Delivery Network |
-| RPO | Recovery Point Objective — maximum acceptable data loss in time |
-| RTO | Recovery Time Objective — maximum acceptable downtime |
-| SQL | Structured Query Language |
-| VM | Virtual Machine |
+| Type | Method | Frequency | Retention | Storage |
+|---|---|---|---|---|
+| Automated daily backup | `scripts/backup-database.js` | Daily (checked hourly) | 14 days | Supabase R2 or local |
+| Manual backup | `npm run backup` | On demand | Manual cleanup | Local `backend/backups/` |
+| Supabase managed | Supabase internal snapshots | Continuous (Pro) / Weekly (Free) | 7 days (Pro) | Supabase infrastructure |
 
 ---
 
-## What Needs Backing Up
+## How Automated Backups Work
 
-| Data | Storage | Backup Method |
-|---|---|---|
-| PostgreSQL database | Supabase (managed) | Automatic — Supabase handles WAL + PITR |
-| PostgreSQL database | Supabase (independent) | Daily `pg_dump` → Cloudflare R2 (in-process scheduler) |
-| User-uploaded files | Cloudflare R2 | R2 versioning (enable in bucket settings) |
-| Environment variables | Coolify + Cloudflare Pages | Export manually to secure location (1Password/Bitwarden) |
-| Source code | GitHub | Git history |
+The backup script runs inside the Render container at server startup:
 
----
+```typescript
+// index.ts
+startBackupSchedule();  // Checks hourly, runs once per day
+```
 
-## Database Backups (Supabase — Automatic)
+**Script:** `backend/scripts/backup-database.js`
 
-Supabase automatically manages WAL archiving and PITR for all projects.
+**What it does:**
+1. Runs `pg_dump` against the database
+2. Compresses the output with gzip (`.sql.gz`)
+3. Uploads to Cloudflare R2 if configured, or saves to `backend/backups/` locally
+4. Deletes backups older than `BACKUP_RETENTION_DAYS` (default 14 days)
+5. Records success/failure in `telemetry_events` table
 
-| Plan | PITR Window |
-|---|---|
-| Free | 7 days |
-| Pro ($25/month) | 30 days |
-| Team | 30 days |
-
-### How to Restore via Supabase PITR
-
-1. Open https://supabase.com → your project
-2. Go to **Database** → **Backups** → **Point in time restore**
-3. Select a timestamp before the incident
-4. Click **Restore** — Supabase creates a new branch with restored data
-5. Verify data on the branch: `SELECT COUNT(*) FROM users`
-6. Update `DATABASE_URL` in Coolify to the restored branch connection string
-7. Trigger Coolify redeploy
-8. After confirming everything works, promote the restored branch to replace main
-
-**Test this before an incident, not during one.**
+**Schedule:** Runs once per day. Checked hourly — fires when `now() - last_backup > 24h`.
 
 ---
 
-## Independent Backups (Application-Level — Daily pg_dump)
+## Database Connection for Backups
 
-Supabase PITR protects against *accidents inside the database*, but an independent dump also protects against losing access to Supabase itself (account compromise, project deletion, billing lockout, or Supabase outage).
+`pg_dump` cannot use the Supabase transaction pooler (port 6543). It requires a **direct connection** (port 5432). The backup script automatically converts pooler URLs to direct connections.
 
-`backend/scripts/backup-database.js` runs a daily `pg_dump` pipeline:
+**Automatic conversion (in `stripPgbouncerParam`):**
+```
+postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres
+              ↓ automatically converted to ↓
+postgresql://postgres:PASS@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres
+```
 
-| Piece | Detail |
-|---|---|
-| Dump format | `pg_dump --format=custom` piped through gzip |
-| Schedule | Daily (checked hourly in-process via `startBackupSchedule()` from `index.ts`) |
-| Destination | Cloudflare R2 `backups/` prefix when R2 env vars are set; otherwise local `backend/backups/` (⚠️ not durable — configure R2 before launch) |
-| Retention | `BACKUP_RETENTION_DAYS` env var (default: 14 days) |
-| Telemetry | Outcome recorded in `app_settings.key='last_database_backup'` |
-| Manual run | `cd backend && npm run backup` |
-| Requirement | `postgresql-client` installed in the Docker image — already in `backend/Dockerfile` (`apk add --no-cache postgresql-client`) |
-| Connection | Uses **direct** Supabase URL (port 5432) — not the Supavisor pooler |
+**Render env var `BACKUP_DATABASE_URL`:** Set to the same pooler URL as `DATABASE_URL`. The script handles conversion automatically.
 
-### Restorability Verification
+**`BACKUP_FORCE_IPV4=true`:** Required on Render free tier which has no IPv6 outbound. Forces IPv4 DNS resolution for backup connections.
 
-A backup nobody has restored is a hope, not a plan. Verify weekly:
+---
+
+## Current Backup Status
+
+On Render free tier, `pg_dump` is installed via the Dockerfile:
+```dockerfile
+RUN apk add --no-cache postgresql-client
+```
+
+**Current backup storage:** Local disk (`/app/backups/`) — these are **lost on every Render redeploy** since Render free tier has no persistent disk.
+
+**Fix:** Configure Cloudflare R2 for persistent backup storage:
+```
+R2_ACCOUNT_ID=your_cloudflare_account_id
+R2_ACCESS_KEY_ID=your_r2_access_key
+R2_SECRET_ACCESS_KEY=your_r2_secret_key
+R2_BUCKET_NAME=nodbusiness-backups
+R2_PUBLIC_URL=https://pub-xxx.r2.dev
+```
+
+Until R2 is configured, use **manual backups** for important data preservation.
+
+---
+
+## Manual Backup (From Local Machine)
 
 ```bash
-BACKUP_VERIFY_DATABASE_URL=postgres://<scratch-db> npm run backup:verify
+cd backend
+
+# Create backup to local file
+NODE_TLS_REJECT_UNAUTHORIZED=0 npm run backup
+
+# Or run pg_dump directly
+PGPASSWORD=your_password pg_dump \
+  "postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres?sslmode=require" \
+  --no-owner \
+  --format=custom \
+  | gzip > backup-$(date +%Y%m%d-%H%M%S).sql.gz
 ```
 
-Drops/recreates the scratch schema, restores the newest dump with `pg_restore`, then asserts table/user counts. Exit code 0 = proven restorable. **Never point it at production.**
-
-### Operator Setup Checklist
-
-- [ ] R2 env vars configured in Coolify (so dumps upload to R2, not local container disk)
-- [ ] `postgresql-client` confirmed in Docker image (it is — check `backend/Dockerfile`)
-- [ ] Scratch Supabase project created for weekly verify runs
-- [ ] Weekly `npm run backup:verify` scheduled (Coolify cron job, or GitHub Actions cron)
-- [ ] Alert configured: page when `last_database_backup.at` is stale or `status != 'ok'`
+Backup files are saved to `backend/backups/`.
 
 ---
 
-## File Storage Backups (Cloudflare R2)
+## Restore From Backup
 
-R2 stores files redundantly across Cloudflare's network (11 nines durability — same as AWS S3). For additional protection:
+**Restore a `.sql.gz` backup:**
 
-1. Enable **Object Versioning** in R2 bucket settings — keeps previous versions of overwritten files for 30 days
-2. Enable R2 versioning on day 1, before users upload anything
-
----
-
-## Environment Variable Backup
-
-Coolify and Cloudflare Pages env vars are not automatically backed up. If your account is compromised or you accidentally delete variables, you need to restore from notes.
-
-**Action:** Once per month, export all env vars to a secure, encrypted location:
-- 1Password or Bitwarden vault
-- Encrypted note (never plain text file in Git)
-- `.env.production` file stored offline, never committed
-
-All variable names and descriptions are documented in `DEPLOYMENT_VARIABLES.md`.
-
----
-
-## Disaster Recovery Scenarios
-
-### Scenario 1: Accidental data deletion
-
-Someone runs `DELETE FROM products` without a WHERE clause.
-
-**Recovery:**
-1. Supabase → Database → Backups → Point in time restore → pick timestamp before deletion
-2. Supabase creates a restored branch
-3. Verify the data: `SELECT COUNT(*) FROM products`
-4. Update `DATABASE_URL` in Coolify → trigger redeploy
-5. Monitor for a few hours, then clean up the temporary branch
-
-**Expected recovery time:** 15–30 minutes
-
----
-
-### Scenario 2: Backend container crash loop
-
-A bad deploy causes a restart loop.
-
-**Recovery:**
-```
-Coolify → Application → Deployments → find last working deploy → Redeploy
-Takes ~60 seconds (uses cached Docker image)
+```bash
+# Decompress and restore
+gunzip -c backup-file.sql.gz | pg_restore \
+  --no-owner \
+  --dbname="postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres?sslmode=require"
 ```
 
+**Or use the export/restore script:**
+
+```powershell
+# Windows PowerShell
+.\scripts\export_and_restore_to_supabase.ps1
+```
+
+**Warning:** Restore overwrites existing data. Always backup the target database before restoring.
+
 ---
 
-### Scenario 3: Cloudflare Pages build fails
+## Supabase Built-in Backups (Free Tier)
 
-A Next.js build error blocks the frontend from deploying.
+Supabase free tier does **not** include automated daily backups or Point-in-Time Recovery. It has:
+- Daily snapshots (kept for a limited period — not guaranteed)
+- No PITR (Point-in-Time Recovery)
 
-**Recovery:**
+**Supabase Pro ($25/mo) adds:**
+- Daily backups with 7-day retention
+- Point-in-Time Recovery (PITR)
+- Manual backup downloads from dashboard
+
+For a production app with real users, upgrade to Supabase Pro before launch.
+
+---
+
+## Backup Verification
+
+To verify a backup is valid:
+
+```bash
+# List contents without restoring
+pg_restore --list backup-file.sql.gz | head -50
+
+# Test restore to a temporary database
+createdb nodbusiness_restore_test
+pg_restore --dbname=nodbusiness_restore_test backup-file.sql.gz
+psql nodbusiness_restore_test -c "SELECT COUNT(*) FROM users;"
+dropdb nodbusiness_restore_test
 ```
-Cloudflare → Pages → nodbusiness → Deployments
-→ Find last successful deploy → three-dot menu → "Rollback to this deployment"
-Fix the build error → push a new commit → verify the build passes
+
+Or use the automated verification script:
+```bash
+npm run backup:verify
 ```
 
 ---
 
-### Scenario 4: R2 bucket deleted or corrupted
+## Backup Files in Repository
 
-All user uploads are lost.
+The `backend/backups/` directory contains some historical backup files:
+```
+backend/backups/
+  nodbusiness-2026-08-23-06-36-26.sql.gz
+  nodbusiness-2026-08-23-06-37-35.sql.gz
+  nodbusiness-2026-08-23-06-37-48.sql.gz
+  nodbusiness-2026-08-23-06-38-56.sql.gz
+```
 
-**Prevention:** Enable versioning before this happens.
-**Recovery:** Restore from versioned objects in R2 dashboard. If versioning wasn't enabled — the files are gone.
-
-**Lesson:** Enable R2 versioning on day 1.
-
----
-
-### Scenario 5: Oracle VM failure or complete account compromise
-
-**Oracle VM failure (most likely):**
-- All application data is external (Supabase, R2, Upstash) — zero data loss
-- Provision Hetzner CAX11 (€4.29/month), install Coolify, redeploy from GitHub
-- Update Cloudflare DNS A record — propagates in <1 minute (TTL 60s)
-- Total recovery: ~25–30 minutes
-
-**Supabase account compromised:**
-1. Change database password in Supabase → update `DATABASE_URL` in Coolify → redeploy
-2. Rotate `JWT_SECRET` in Coolify → all user sessions invalidated → users re-login
-
-**Cloudflare account compromised:**
-1. Contact Cloudflare support immediately
-2. R2 files are safe — Cloudflare infrastructure-level durability
-3. DNS records can be recreated from notes
+These are from the development phase and contain seed/test data only.
 
 ---
 
-## Monthly Backup Checklist
+## What's Backed Up
 
-Run these monthly:
+The `pg_dump` backup includes:
+- All 38 migration tables (users, posts, products, orders, showrooms, etc.)
+- All user data, business data, order history
+- Schema definitions (tables, indexes, constraints)
 
-- [ ] Verify Supabase PITR is showing recent activity in the Backups tab
-- [ ] Run manual `npm run backup` in the backend container and verify it uploads to R2
-- [ ] Check R2 `backups/` prefix — confirm recent `.sql.gz` files are there
-- [ ] Verify R2 bucket versioning is enabled for `nodbusiness-uploads`
-- [ ] Export current Coolify + CF Pages env vars to secure storage (1Password/Bitwarden)
-- [ ] Run restorability check: `BACKUP_VERIFY_DATABASE_URL=<scratch> npm run backup:verify`
-- [ ] Check Sentry for any recurring errors that could indicate data integrity issues
-- [ ] Verify `last_database_backup` in `app_settings` table is not stale:
-  ```sql
-  SELECT value FROM app_settings WHERE key = 'last_database_backup';
-  ```
+**Not included in pg_dump:**
+- Supabase Storage files (uploaded images/documents) — backed up separately via Supabase
+- Redis data — ephemeral by design, not backed up
+- Environment variables — documented in `ENVIRONMENT_VARIABLES.md`
+
+---
+
+## Backup Checklist
+
+Before going live with real users:
+
+- [ ] Configure R2 or Supabase Storage for persistent backup storage (not local disk)
+- [ ] Verify backup script runs successfully: check `telemetry_events` table for `type='backup_completed'`
+- [ ] Test restore from a backup to confirm integrity
+- [ ] Consider upgrading to Supabase Pro for daily automated backups + PITR
+- [ ] Set `BACKUP_RETENTION_DAYS` appropriately (default 14 is fine for dev)
+
+---
+
+## Retention Policy
+
+| Backup type | Retention |
+|---|---|
+| Automated daily backups | 14 days (configurable via `BACKUP_RETENTION_DAYS`) |
+| Manual backups | Until manually deleted |
+| Supabase snapshots (free) | Best-effort, not guaranteed |
+| Supabase daily backups (Pro) | 7 days |

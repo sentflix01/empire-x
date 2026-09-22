@@ -1,182 +1,246 @@
-# Nodbusiness — Monitoring & Observability
+# Nodbusiness — Monitoring
 
-> Everything needed to monitor Nodbusiness in production.
-> Full observability reference lives in `docs/infrastructure/MONITORING_STACK.md`.
-> This document covers the operational runbook: how to set up, check, and respond to monitoring alerts.
-> **Last updated:** September 2026
-> **Stack:** Oracle Cloud Johannesburg + Coolify v4 · Cloudflare Pages · Supabase · Uptime Kuma
+> **Last updated:** September 22, 2026
+> **Current monitoring stack:** cron-job.org + UptimeRobot + Sentry + Render Logs
 
 ---
 
-## Acronyms Used in This Document
+## Monitoring Stack Overview
 
-| Acronym | Full Form |
-|---------|-----------|
-| API | Application Programming Interface |
-| P0/P1/P2/P3 | Priority 0/1/2/3 — incident severity |
-| RCA | Root Cause Analysis |
-| SLA | Service Level Agreement |
-| DSN | Data Source Name — Sentry project identifier |
-| CPU | Central Processing Unit |
-| RAM | Random Access Memory |
-| MAU | Monthly Active Users |
-| DAU | Daily Active Users |
-| GMV | Gross Merchandise Value |
-| UTC | Coordinated Universal Time |
+| Tool | Purpose | Where |
+|---|---|---|
+| **cron-job.org** | Keep-alive ping (prevent Render sleep) | https://cron-job.org |
+| **UptimeRobot** | Uptime monitoring + email alerts | https://uptimerobot.com |
+| **Sentry** | Error tracking + stack traces | https://sentry.io |
+| **Render Logs** | Live server logs, deploys | Render → nodbusiness-backend → Logs |
+| **Vercel Logs** | Frontend function logs | Vercel → nodbusiness → Logs |
+| **GitHub Actions** | CI/CD pipeline status | https://github.com/sentflix01/empire-x/actions |
+| **Backend `/health`** | Self-health endpoint | https://nodbusiness-backend-9psf.onrender.com/health |
 
 ---
 
-## Tools In Use
+## 1. cron-job.org — Keep-Alive
 
-| Tool | What it monitors | Status | Where to check |
-|------|-----------------|--------|---------------|
-| **Sentry** | Frontend + backend errors and crashes | Needs `SENTRY_DSN` set | sentry.io |
-| **Pino** | Structured backend logs (JSON) | ✅ Active automatically | Coolify → Application → Logs |
-| **DevOps Live Error Feed** | Real-time errors from all sources | ✅ Active | /devops → Live Errors |
-| **Coolify Metrics** | CPU, RAM, network, container health | ✅ Active | Coolify → Application → Metrics |
-| **Uptime Kuma** | Site availability, 1-min checks, Telegram alerts | Setup needed (self-hosted on Oracle VM) | Coolify → Uptime Kuma service |
-| **Cloudflare Analytics** | Edge traffic, cached vs uncached requests | ✅ Available free | Cloudflare → Analytics |
+**Purpose:** Render free tier spins down after 15 minutes of inactivity. This monitor pings the health endpoint every minute to prevent that.
 
-> **Why Uptime Kuma instead of UptimeRobot:** UptimeRobot updated its Terms of Service in December 2024 to prohibit commercial use on the free plan. Nodbusiness is a commercial product. Uptime Kuma is self-hosted on the same Oracle VM via Coolify, fully free, has 1-minute checks (vs UptimeRobot's 5-minute), and integrates with the Telegram bot already configured.
+| Setting | Value |
+|---|---|
+| URL | `https://nodbusiness-backend-9psf.onrender.com/health` |
+| Interval | Every 1 minute |
+| Method | GET |
+| Expected status | 200 |
 
-For the full observability stack (PostHog, Grafana, DataDog), see `docs/infrastructure/MONITORING_STACK.md`.
+**Dashboard:** https://cron-job.org → Jobs
+
+**What to do if job fails:**
+- Check Render logs for startup errors
+- Verify `DATABASE_URL` is correct in Render environment
 
 ---
 
-## Minimum Setup (Do Before Launch)
+## 2. UptimeRobot — Uptime Monitoring
 
-### 1. Set Sentry DSN
+**Purpose:** Sends email alerts when the backend goes down or comes back up.
 
-```bash
-# Sign up at sentry.io — create two projects:
-# 1. "nodbusiness-backend" (Node.js)
-# 2. "nodbusiness-frontend" (Next.js)
+| Setting | Value |
+|---|---|
+| Monitor name | `Nodbusiness Backend` |
+| URL | `https://nodbusiness-backend-9psf.onrender.com/health` |
+| Type | HTTP(s) |
+| Interval | Every 5 minutes |
+| Alert | Email on down + email on recovery |
 
-# Add to Coolify env vars:
-SENTRY_DSN=https://xxx@o123.ingest.sentry.io/456
+**Dashboard:** https://uptimerobot.com → Dashboard
 
-# Add to Cloudflare Pages env vars:
-NEXT_PUBLIC_SENTRY_DSN=https://xxx@o123.ingest.sentry.io/789
+**Alert email:** Sent to the account email on down/up events.
+
+**Add more monitors when ready:**
+- Frontend: `https://nodbusiness.vercel.app`
+- API docs: `https://nodbusiness-backend-9psf.onrender.com/api/docs`
+
+---
+
+## 3. Backend Health Endpoint
+
+**URL:** `https://nodbusiness-backend-9psf.onrender.com/health`
+
+**Response format:**
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-09-22T02:19:07.734Z",
+  "version": "1.0.0",
+  "services": {
+    "database": "connected",
+    "redis": "connected",
+    "ai": "gemini",
+    "email": "resend",
+    "storage": "supabase"
+  }
+}
 ```
 
-`backend/lib/sentry.ts` is already wired — just set `SENTRY_DSN`.
+**Status values:**
 
-### 2. Deploy and Configure Uptime Kuma
+| Field | Possible values | Meaning |
+|---|---|---|
+| `status` | `ok` / `degraded` | `ok` = DB connected. `degraded` = DB error |
+| `database` | `connected` / `error` / `disconnected` | PostgreSQL pool status |
+| `redis` | `connected` / `error` / `not configured` | Upstash Redis status |
+| `ai` | `gemini` / `openai` / `not configured` | Active AI provider |
+| `email` | `resend` / `smtp` / `misconfigured` / `console` | Email delivery method |
+| `storage` | `supabase` / `r2` / `local` | File storage provider |
 
-```
-In Coolify → your Oracle VM server:
-1. New Service → search "Uptime Kuma" → Deploy
-2. Access at: http://<oracle-vm-ip>:3001 (or set a custom domain like status.nodbusiness.app)
-3. Create an admin account
-
-Add these monitors (1-minute interval):
-  Monitor 1: GET https://api.nodbusiness.app/health
-             Type: HTTP keyword   Keyword: "ok"   → expects "status":"ok" in response
-  Monitor 2: GET https://nodbusiness.app
-             Type: HTTP           Expected: 200
-  Monitor 3: GET https://status.supabase.com
-             Type: HTTP           Expected: 200
-  Monitor 4: GET https://status.upstash.com
-             Type: HTTP           Expected: 200
-  Monitor 5: GET https://api.nodbusiness.app/api/products
-             Type: HTTP           Expected: 200
-
-Alert contacts:
-  Settings → Notifications → Add → Telegram
-  Bot Token: <TELEGRAM_BOT_TOKEN>
-  Chat ID: <TELEGRAM_CHAT_ID>
-```
-
-### 3. Verify DevOps Live Error Feed
-
-Navigate to `/devops` → Live Errors tab. This is your real-time error dashboard — no extra setup needed.
+**HTTP status codes:**
+- `200` — database connected (even if Redis/AI/email degraded)
+- `503` — database error (app cannot serve requests)
 
 ---
 
-## Daily Morning Check (5 minutes)
+## 4. Sentry — Error Tracking
 
-Run this every morning before starting work:
+**Backend DSN:** Set in Render env var `SENTRY_DSN`
+**Frontend DSN:** Set in Vercel env var `NEXT_PUBLIC_SENTRY_DSN`
 
-```
-1. Open DevOps → Live Errors
-   → Any critical or unresolved errors from overnight?
+**Dashboard:** https://sentry.io → your organization
 
-2. Check /health endpoint
-   curl https://api.nodbusiness.app/health
-   → All services should show "connected"
+**What Sentry captures:**
+- Unhandled exceptions in Express routes
+- Unhandled Promise rejections
+- TypeScript/JavaScript errors in the Next.js frontend
+- Performance traces (API response times)
 
-3. Check Coolify dashboard
-   → Container CPU + RAM within normal range?
-   → No failed deployments?
-
-4. Check Sentry (if configured)
-   → Any new error types appeared overnight?
-
-5. Check Uptime Kuma
-   → All monitors green? Any incidents in the past 24h?
-
-6. Check Supabase storage (weekly)
-   SELECT pg_size_pretty(pg_database_size(current_database())) AS db_size;
-   → Under 400 MB? (500 MB free tier limit)
-```
+**Alert configuration:** Set up in Sentry → Alerts → Create Alert Rule
+- Recommend: alert on >10 new errors in 1 hour
 
 ---
 
-## Key Metrics (Weekly Review)
+## 5. Render Logs
 
-Run these queries on the database for weekly review:
+**Access:** Render → nodbusiness-backend → Logs
 
-```sql
--- New registrations this week
-SELECT DATE_TRUNC('day', created_at) AS day, COUNT(*)
-FROM users
-WHERE created_at > NOW() - INTERVAL '7 days'
-GROUP BY day ORDER BY day;
+**Log format:** JSON (Pino logger)
 
--- Orders and GMV this week
-SELECT
-  COUNT(*) AS orders,
-  SUM(total) AS gmv,
-  ROUND(100.0 * COUNT(*) FILTER (WHERE status = 'paid') / NULLIF(COUNT(*),0), 1) AS payment_success_rate
-FROM orders
-WHERE created_at > NOW() - INTERVAL '7 days';
-
--- Active users (posted or ordered this week)
-SELECT COUNT(DISTINCT author_id) AS active_users
-FROM posts
-WHERE created_at > NOW() - INTERVAL '7 days';
-
--- Error counts by level (from DevOps)
-SELECT level, COUNT(*), MAX(last_seen_at) AS last_seen
-FROM error_events
-WHERE resolved = false
-GROUP BY level ORDER BY COUNT(*) DESC;
+```json
+{
+  "level": 30,
+  "time": 1790039607058,
+  "service": "nodbusiness-backend",
+  "env": "production",
+  "method": "GET",
+  "url": "/health",
+  "statusCode": 200,
+  "responseTimeMs": 245,
+  "requestId": "abc-123",
+  "msg": "http"
+}
 ```
 
+**Log levels:**
+- `10` = trace
+- `20` = debug
+- `30` = info
+- `40` = warn
+- `50` = error
+- `60` = fatal
+
+**Key log patterns to watch:**
+
+| Log message | Meaning | Action |
+|---|---|---|
+| `Redis connected` | Redis working | Good ✅ |
+| `Redis quota exceeded` | Upstash 500K/day limit hit | Reset Upstash stats or wait for midnight UTC reset |
+| `ioredis unavailable — using no-op stub` | REDIS_URL wrong or Redis down | Check REDIS_URL env var |
+| `☁️ Supabase Storage bucket "uploads" ready` | Storage working | Good ✅ |
+| `backup: FAILED` | pg_dump failed | Check BACKUP_DATABASE_URL (needs direct connection, not pooler) |
+| `Database connected` | DB working | Good ✅ |
+| `Startup cache warm complete` | App fully ready | Good ✅ |
+
+**Filter logs by level in Render:**
+- Use the search box in Render Logs tab
+- Filter: `"level":50` for errors only
+- Filter: `"msg":"http"` for HTTP requests only
+
 ---
 
-## Alert Thresholds
+## 6. Vercel Logs
 
-| Metric | Warning | Critical | Action |
-|--------|---------|---------|--------|
-| API error rate | > 1% | > 5% | Check Sentry + Coolify logs |
-| P95 response time | > 1s | > 3s | Check slow queries, scale if needed |
-| Supabase DB connections | > 15 direct | > 18 | Enable/check Supavisor pooler (port 6543) |
-| Oracle VM RAM | > 70% of 12 GB | > 90% | Investigate memory leak; consider Hetzner upgrade |
-| Oracle VM CPU | > 60% sustained | > 90% sustained | Add Hetzner instance + CF Load Balancer |
-| Upstash commands | > 400K/month | > 480K/month | Upgrade to Upstash PAYG |
-| Supabase DB size | > 400 MB | > 480 MB | Plan upgrade to Supabase Pro |
-| Payment success rate | < 97% | < 95% | Check Stripe/Chapa status pages |
-| Uptime | < 99.9% | < 99% | Investigate immediately via Uptime Kuma |
+**Access:** Vercel → nodbusiness → Logs
+
+Shows:
+- Next.js server-side rendering errors
+- API route errors (if any Next.js API routes exist — currently none)
+- Build errors
 
 ---
 
-## When Alerts Fire
+## 7. GitHub Actions — CI/CD Status
 
-See `docs/operations/RUNBOOKS.md` for step-by-step response procedures.
-See `docs/operations/INCIDENT_RESPONSE.md` for the full incident response playbook.
-See `docs/operations/ON_CALL.md` for on-call rotation and escalation.
+**Access:** https://github.com/sentflix01/empire-x/actions
+
+**Workflows:**
+- `Nodbusiness CI` — runs on every push to `main`
+- `Nodbusiness Deploy` — runs after CI passes
+- `DB migrate → PostgreSQL (manual)` — manual trigger only
+- `Supabase Keep-Alive` — runs every 6 hours to prevent Supabase free tier pausing
+
+**Expected CI duration:** ~3-4 minutes
+**Expected Deploy duration:** ~5-8 minutes
+
+**If CI fails:**
+1. Click the failed workflow run
+2. Expand the failed job
+3. Read the error — usually typecheck, test failure, or lint error
 
 ---
 
-*For the full observability architecture (PostHog analytics, Grafana dashboards, advanced tracing), see `docs/infrastructure/MONITORING_STACK.md`.*
+## 8. Admin DevOps Panel
+
+The app has a built-in admin operations board accessible to `admin` role users.
+
+**Route:** `/admin` (after logging in as admin)
+
+Features:
+- Error event tracking (`error_events` table)
+- Feature flag management
+- System health summary
+- Recent deploy history
+
+---
+
+## Metrics Endpoint (Admin Only)
+
+```
+GET /metrics
+Authorization: Bearer <admin-token>
+```
+
+Returns:
+```json
+{
+  "db": {
+    "totalCount": 3,
+    "idleCount": 2,
+    "waitingCount": 0
+  }
+}
+```
+
+---
+
+## Alerting Checklist
+
+Set these up before real users arrive:
+
+- [ ] UptimeRobot email alert configured ✅
+- [ ] Sentry alert rule: >10 new errors/hour
+- [ ] Telegram bot set up (`TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`) for deploy failure alerts
+- [ ] cron-job.org keep-alive job running ✅
+
+---
+
+## Production Readiness Notes
+
+- **No structured log aggregation yet** — logs live in Render's built-in log viewer (7 day retention on free tier). When ready for production, add Render Log Drain → Papertrail or Logtail.
+- **No APM yet** — Sentry performance monitoring is configured but not fully instrumented. Add `@sentry/profiling-node` for production APM.
+- **Upstash free tier quota** — at 500K commands/day, a busy day can hit the limit. The app degrades gracefully (falls back to in-memory) but Redis features are lost. Monitor the Upstash dashboard and upgrade if needed.

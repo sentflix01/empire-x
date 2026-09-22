@@ -3,7 +3,7 @@
 > Every item that must be checked before real users and real money flow through the platform.
 > Work through this list top-to-bottom before announcing public launch.
 > **Last updated:** September 2026
-> **Stack:** Oracle Cloud Johannesburg + Coolify v4 · Cloudflare Pages · Supabase · Upstash Redis · Cloudflare R2 · Resend
+> **Stack:** Render (backend) · Vercel (frontend) · Supabase · Upstash Redis · Supabase Storage · Resend
 
 ---
 

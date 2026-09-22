@@ -1,102 +1,266 @@
-# Nodbusiness — Cloud Provider Decisions
+# Nodbusiness — Cloud Providers
 
-> Why we chose each provider, alternatives considered, and when to switch.
-> **Last updated:** September 2026
-> **Stack:** Render (backend) · Vercel (frontend) · Supabase · Upstash Redis · Cloudflare R2 · Resend
+> **Last updated:** September 22, 2026
+> **Stack decision:** ADR-016 — Render + Vercel (zero-cost dev stack)
+> **Monthly cost:** $0
 
 ---
 
-## Current Provider Stack
+## Active Services
 
-| Layer | Provider | Why chosen | Switch when |
+### 1. Render — Backend Hosting
+
+| Field | Value |
+|---|---|
+| **Website** | https://dashboard.render.com |
+| **Account email** | empirexapp@gmail.com |
+| **Service name** | `nodbusiness-backend` |
+| **Service ID** | `srv-daosiimk1f9s738jl2hg` |
+| **Live URL** | https://nodbusiness-backend-9psf.onrender.com |
+| **Health check** | https://nodbusiness-backend-9psf.onrender.com/health |
+| **Plan** | Free |
+| **Region** | Frankfurt (EU Central) |
+| **Runtime** | Docker |
+| **Dockerfile** | `backend/Dockerfile` |
+| **Auto-deploy** | On push to `main` |
+| **Deploy hook** | Configured (used by GitHub Actions `RENDER_DEPLOY_HOOK_URL`) |
+
+**Free tier limits:**
+- 0.1 CPU, 512MB RAM
+- Spins down after 15 min inactivity (mitigated by cron-job.org keep-alive)
+- 750 free instance hours/month
+- No credit card required
+
+**Upgrade path:** Render Starter ($7/mo) — always-on, no cold starts, SSH access
+
+---
+
+### 2. Vercel — Frontend Hosting
+
+| Field | Value |
+|---|---|
+| **Website** | https://vercel.com |
+| **Account** | sentflix01 (GitHub login) |
+| **Project name** | `nodbusiness` |
+| **Live URL** | https://nodbusiness.vercel.app |
+| **Plan** | Hobby (Free) |
+| **Framework** | Next.js 16 (SSR) |
+| **Repository** | `sentflix01/empire-x` → root dir `frontend-next/` |
+| **Production branch** | `main` |
+| **Deploy trigger** | GitHub push + Vercel CLI via GitHub Actions |
+
+**Free tier limits:**
+- 100GB bandwidth/month
+- Unlimited deployments
+- Preview URLs for every PR
+- No credit card required
+
+**ToS note:** Hobby plan is for non-commercial use. Upgrade to Pro ($20/mo) before real payments go live.
+
+**Upgrade path:** Vercel Pro ($20/mo) — commercial use allowed, team features, custom domains
+
+---
+
+### 3. Supabase — PostgreSQL Database + File Storage
+
+| Field | Value |
+|---|---|
+| **Website** | https://supabase.com |
+| **Account** | sentflix01 (GitHub login) |
+| **Project name** | `empire-x's Project` |
+| **Project ref** | `tpgzlokgnjxcerexxoda` |
+| **Project URL** | https://tpgzlokgnjxcerexxoda.supabase.co |
+| **API URL** | https://tpgzlokgnjxcerexxoda.supabase.co |
+| **Region** | AWS eu-west-1 (Ireland) |
+| **PostgreSQL version** | 15 |
+| **Plan** | Free |
+| **Migrations applied** | 38 (migrate.js → migrate38.js) |
+
+**Connection strings:**
+| Purpose | URL format | Port |
+|---|---|---|
+| App (live server) | `postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require` | 6543 |
+| Migrations (CI) | Same pooler URL (port 6543) | 6543 |
+| Backups (`pg_dump`) | `postgresql://postgres:PASS@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres?sslmode=require` | 5432 |
+
+**Storage:**
+- Bucket name: `uploads`
+- Visibility: Public
+- Auto-created at startup via `index.ts`
+
+**Free tier limits:**
+- 500MB database
+- 1GB file storage
+- 50MB file uploads
+- 2 projects max
+
+**GitHub integration:** Connected (`sentflix01/empire-x`, deploy to production on `main` push)
+
+---
+
+### 4. Upstash — Redis
+
+| Field | Value |
+|---|---|
+| **Website** | https://console.upstash.com |
+| **Account** | Personal (same login) |
+| **Database name** | `nodbusiness` |
+| **Endpoint** | `stirring-squid-289591.upstash.io` |
+| **Port** | 6379 |
+| **Region** | AWS eu-central-1 (Frankfurt) |
+| **TLS** | Enabled (`rediss://` protocol) |
+| **Plan** | Free |
+
+**Used for:**
+- JWT token revocation (per-token and per-user)
+- User auth cache (60s TTL)
+- Rate limiting (Redis-backed in production)
+- BullMQ job queues (email, notifications, webhooks, usage recalc)
+- Socket.IO Redis adapter (multi-instance pub/sub)
+- Feature flag overrides
+- Presence/follower cache
+
+**Free tier limits:**
+- 500K commands/day (resets midnight UTC)
+- 256MB storage
+- 10K commands/second
+
+---
+
+### 5. Resend — Transactional Email
+
+| Field | Value |
+|---|---|
+| **Website** | https://resend.com |
+| **Plan** | Free |
+| **From address** | `Nodbusiness <onboarding@resend.dev>` |
+| **API key** | Configured in Render env vars (`RESEND_API_KEY`) |
+
+**Used for:**
+- OTP verification emails (registration + login)
+- Password reset emails
+- Order confirmation emails
+- Weekly showroom digest emails
+- Account lockout alert emails
+
+**Free tier limits:**
+- 3,000 emails/month
+- 100 emails/day
+- 1 custom domain (not yet configured)
+
+**Upgrade path:** When sending more than 3K/month — Resend Pro ($20/mo for 50K emails)
+
+---
+
+### 6. Google Cloud — OAuth 2.0
+
+| Field | Value |
+|---|---|
+| **Console** | https://console.cloud.google.com |
+| **Project** | `empirex-502916` |
+| **OAuth client name** | `Nodbusiness` |
+| **Client ID** | `793690330854-lbngg...apps.googleusercontent.com` |
+| **Plan** | Free |
+
+**Authorized JavaScript origins:**
+- `http://localhost:3002`
+- `https://nodbusiness.vercel.app`
+
+**Authorized redirect URIs:**
+- `http://localhost:3002`
+- `https://nodbusiness-backend-9psf.onrender.com/api/auth/google/callback`
+
+**Used for:** "Sign in with Google" button on the login/register pages.
+
+---
+
+### 7. Sentry — Error Tracking
+
+| Field | Value |
+|---|---|
+| **Website** | https://sentry.io |
+| **Plan** | Free |
+| **Backend DSN** | Configured in Render env vars (`SENTRY_DSN`) |
+| **Frontend DSN** | Configured in Vercel env vars (`NEXT_PUBLIC_SENTRY_DSN`) |
+
+**Used for:** Automatic error capture, stack traces, performance monitoring.
+
+---
+
+### 8. Google Gemini — AI
+
+| Field | Value |
+|---|---|
+| **Console** | https://ai.google.dev |
+| **Model** | `gemini-1.5-flash` |
+| **API key** | Configured in Render env vars (`GEMINI_API_KEY`) |
+| **Plan** | Free tier |
+
+**Used for:** AI product description generator, AI chat assistant.
+
+---
+
+### 9. GitHub Actions — CI/CD
+
+| Field | Value |
+|---|---|
+| **Repository** | https://github.com/sentflix01/empire-x |
+| **CI workflow** | `.github/workflows/ci.yml` |
+| **Deploy workflow** | `.github/workflows/deploy.yml` |
+| **Plan** | Free (public repo) |
+
+---
+
+### 10. cron-job.org — Keep-Alive Pings
+
+| Field | Value |
+|---|---|
+| **Website** | https://cron-job.org |
+| **Job name** | `Nodbusiness Keep-Alive` |
+| **URL** | `https://nodbusiness-backend-9psf.onrender.com/health` |
+| **Interval** | Every 1 minute |
+| **Plan** | Free |
+
+---
+
+### 11. UptimeRobot — Uptime Monitoring + Alerts
+
+| Field | Value |
+|---|---|
+| **Website** | https://uptimerobot.com |
+| **Monitor name** | `Nodbusiness Backend` |
+| **URL** | `https://nodbusiness-backend-9psf.onrender.com/health` |
+| **Interval** | Every 5 minutes |
+| **Alert** | Email on down/up |
+| **Plan** | Free |
+
+---
+
+## Services NOT Yet Configured
+
+| Service | Purpose | When to add |
+|---|---|---|
+| Stripe | USD payments | Before launch with real users |
+| Chapa (live keys) | ETB payments | Before launch in Ethiopia |
+| Cloudflare R2 | File storage (alternative to Supabase) | If Supabase storage limits hit |
+| Custom domain | `nodbusiness.app` | When purchased |
+| VAPID push notifications | Web push | Keys configured, service worker needed |
+
+---
+
+## Cost Summary
+
+| Provider | Current cost | Free limit | Upgrade triggers |
 |---|---|---|---|
-| Backend hosting | Render (free tier) | No card required, Git-deploy, Node.js native, deploy hooks | Cold starts become unacceptable → Render Starter $7/mo |
-| Frontend hosting | Vercel | Built for Next.js, best DX, free Hobby plan, preview deploys on every PR | Revenue from real users → Vercel Pro $20/mo |
-| Database | Supabase | Free tier, PostgreSQL 16, built-in Supavisor pooler, already in use | Storage > 400MB → Supabase Pro $25/mo |
-| Cache / Queues | Upstash Redis | Serverless, free 500K cmd/month, TLS always-on, no card required | High command volume → PAYG $0.20/100K |
-| File storage | Cloudflare R2 | Zero egress fees, 10 GB free, S3-compatible, already integrated | Almost never |
-| Email | Resend | Simple API, 3K/month free, 100/day, reliable | Volume > 100/day → Brevo (300/day free) |
-| Error tracking | Sentry | Industry standard, free tier | Almost never |
-| Payments | Stripe + Chapa | Stripe = global; Chapa = ETB native Ethiopian market | Add more, not replace |
-
----
-
-## Backend Hosting: Render
-
-### Why Render (for development)
-- **No credit card required** for signup — GitHub login only
-- **Git-deploy** — push to main and Render auto-deploys
-- **Deploy hooks** — can be triggered from GitHub Actions for synchronised migrations + deploy
-- **Node.js detection** — auto-detects Node.js from `package.json`, no Dockerfile needed
-- **Free tier** includes 750 hours/month (enough for one always-on service)
-
-### The one limitation
-Render free tier **spins down after 15 minutes of inactivity**. First request after sleep takes 30–60 seconds to wake up. This is acceptable for development and demos. For production launch, upgrade to Render Starter ($7/month) for always-on service.
-
-### Alternatives
-
-| Provider | Pros | Cons |
-|---|---|---|
-| **Railway** | Better DX, no sleep | 30-day trial then $1/mo free credit (too small for always-on) |
-| **Fly.io** | Global edge | Card required even for free tier |
-| **Koyeb** | Free instance, no sleep | Website/service instability issues |
-| **Oracle + Coolify** | Free forever, powerful | Requires credit card for identity verification |
-
----
-
-## Frontend Hosting: Vercel
-
-### Why Vercel
-- **Built by the Next.js team** — deepest integration, fastest builds
-- **Free Hobby plan** — no card, no expiry
-- **Preview deployments** on every PR — invaluable for review
-- **Vercel CLI** — integrates cleanly into GitHub Actions pipeline
-
-### The limitation
-Vercel Hobby plan terms say "personal non-commercial use only." Nodbusiness has Stripe payments and subscriptions. This is technically a ToS concern for production. **Acceptable for development/demo phase.** Upgrade to Vercel Pro ($20/month) before real users and real revenue.
-
----
-
-## Database: Supabase
-
-### Why Supabase
-- Already in use — 28+ migrations applied, schema stable
-- PostgreSQL 16 with built-in Supavisor connection pooler (free)
-- 7-day PITR on free tier
-- Pause risk mitigated by `supabase-keepalive.yml` cron
-
----
-
-## File Storage: Cloudflare R2
-
-### Why R2
-- **Zero egress fees** — the single most important advantage at scale
-- S3-compatible — `@aws-sdk/client-s3` already integrated
-- 10 GB free + 1M Class A operations free
-- No card needed for signup
-
----
-
-## Redis: Upstash
-
-### Why Upstash
-- **500K commands/month free** (updated March 2026)
-- **No card required** for free tier
-- TLS always-on (`rediss://`)
-- Serverless — no VM or server needed
-
----
-
-## Future Stack (when revenue allows)
-
-When you have paying users:
-
-| Upgrade | Cost | When |
-|---|---|---|
-| Render Starter (always-on) | $7/month | When cold starts hurt UX |
-| Vercel Pro | $20/month | Before real users + payments go live |
-| Supabase Pro | $25/month | When DB > 400MB |
-| Upstash PAYG | $0.20/100K | When commands > 400K/month |
-
----
-
+| Render | $0 | 750h/mo | Cold starts unacceptable → $7/mo |
+| Vercel | $0 | 100GB bandwidth | Commercial use → $20/mo |
+| Supabase | $0 | 500MB DB, 1GB storage | Data growth → $25/mo |
+| Upstash | $0 | 500K cmd/day | High traffic → $0.2/100K |
+| Resend | $0 | 3K emails/mo | Volume → $20/mo |
+| Google OAuth | $0 | Unlimited | Never |
+| Sentry | $0 | 5K errors/mo | Volume → $26/mo |
+| Gemini AI | $0 | Generous free tier | Volume → pay-as-you-go |
+| GitHub Actions | $0 | Public repo | Private repo → $4/mo |
+| cron-job.org | $0 | Unlimited | Never |
+| UptimeRobot | $0 | 50 monitors | Never (for this scale) |
+| **TOTAL** | **$0/mo** | | |

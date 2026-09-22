@@ -1,142 +1,115 @@
 # Nodbusiness — Vercel Setup Guide
 
-> The frontend is deployed on **Vercel Hobby** (free, no card required).
-> Current live URL: `nodbusiness.vercel.app`
-> **Last updated:** September 2026
+> **Last updated:** September 22, 2026
+> **Current live URL:** https://nodbusiness.vercel.app
+> **Project:** `nodbusiness` on Vercel Hobby (free)
 
 ---
 
-## Why Vercel
+## Current Setup
 
-- No credit card required on the Hobby plan
-- Already working at `nodbusiness.vercel.app` — zero migration effort
-- Native Next.js support (same team builds both)
-- Automatic preview deployments for every PR
-- GitHub Actions integration via Vercel CLI + `VERCEL_TOKEN`
-
-> **ToS note:** Vercel Hobby is for non-commercial, personal projects.
-> Upgrade to Vercel Pro ($20/mo) before accepting real payments from real users.
-> During dev/demo phase, Hobby is fine.
-
-See ADR-016 in `docs/architecture/ADR.md` for the full decision record.
-
----
-
-## One-Time Setup
-
-### Step 1: Connect Vercel to GitHub
-
-1. Go to https://vercel.com → **Add New Project**
-2. Import your GitHub repository (`sentflix01/empire-x` or your fork)
-3. Set **Root Directory** to `frontend-next`
-4. Click **Deploy**
-
-### Step 2: Configure Build Settings
-
-| Setting | Value |
+| Field | Value |
 |---|---|
-| **Framework Preset** | Next.js |
-| **Root Directory** | `frontend-next` |
-| **Build Command** | `npm run build` |
-| **Output Directory** | `.next` (Vercel auto-detects) |
-| **Node.js version** | `20.x` |
+| Project name | `nodbusiness` |
+| Account | sentflix01 (GitHub login) |
+| Plan | Hobby (Free) |
+| Repository | `sentflix01/empire-x` |
+| Root directory | `frontend-next` |
+| Framework | Next.js 16 (SSR — not static export) |
+| Production URL | https://nodbusiness.vercel.app |
+| Branch | `main` |
+| Node.js version | 20.x |
 
-> Setting the root directory to `frontend-next` is the most common setup mistake. Double-check this.
+---
 
-### Step 3: Set Environment Variables
+## Environment Variables (Currently Set)
 
-In Vercel → your project → **Settings** → **Environment Variables**, add:
-
-| Variable | Value | Environment |
+| Variable | Environment | Notes |
 |---|---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | `https://your-app.onrender.com` | Production, Preview, Development |
-| `NEXT_PUBLIC_APP_URL` | `https://nodbusiness.vercel.app` | Production |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Your Google OAuth client ID | All |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | `pk_live_...` or `pk_test_...` | All |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Your VAPID public key | All |
-| `NEXT_PUBLIC_SENTRY_DSN` | Your Sentry frontend DSN | All |
-
-> `NEXT_PUBLIC_*` variables are baked into the JavaScript bundle at build time.
-> Never put server-side secrets in `NEXT_PUBLIC_*` variables.
-
-### Step 4: Get Your Vercel Token (for CI/CD)
-
-1. Vercel → **Account Settings** → **Tokens** → **Create Token**
-2. Name it `github-actions`, scope: Full Account
-3. Copy the token and add it to GitHub Secrets as `VERCEL_TOKEN`
-
-The `deploy.yml` GitHub Actions workflow uses this token to deploy automatically on every push to `main`.
+| `NEXT_PUBLIC_API_BASE_URL` | Production | `https://nodbusiness-backend-9psf.onrender.com` |
+| `NEXT_PUBLIC_APP_URL` | Production | `https://nodbusiness.vercel.app` |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | All | Google OAuth client ID |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | All | Web push VAPID public key |
+| `NEXT_PUBLIC_SENTRY_DSN` | All | Sentry frontend DSN |
+| `NEXT_PUBLIC_APP_VERSION` | All | `1.0.0` |
+| `NEXT_PUBLIC_CHAPA_PUBLIC_KEY` | All | Chapa public key |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | All | Stripe publishable key (Stripe off — `FF_STRIPE_PAYMENTS=false`) |
 
 ---
 
 ## How Deploys Work
 
-```
-Push to main
-     │
-     ▼
-GitHub Actions: deploy-frontend job
-     │
-     ▼
-vercel --prod (uses VERCEL_TOKEN from GitHub Secrets)
-     │
-     ▼
-Vercel builds frontend-next/ and deploys globally
-     │
-     ▼
-Live at nodbusiness.vercel.app
+**Automatic:** Vercel is connected to GitHub. Every push to `main` that changes files in `frontend-next/` triggers a deploy via Vercel CLI in the GitHub Actions deploy workflow.
+
+**Preview deployments:** Every PR automatically gets a preview URL at `nodbusiness-git-BRANCH-sentflixs-projects.vercel.app`.
+
+**Deployment trigger in CI:**
+```yaml
+- name: Deploy to Vercel
+  run: vercel deploy --prebuilt --prod --yes --no-wait --token=${{ secrets.VERCEL_TOKEN }}
+  working-directory: frontend-next
 ```
 
-Every PR also gets an automatic preview URL from Vercel (no config needed).
+---
+
+## Multiple Domains Explained
+
+Every deployment gets 3 URLs — all are normal Vercel behavior:
+
+| URL | What it is |
+|---|---|
+| `nodbusiness.vercel.app` | Permanent production URL — always use this |
+| `nodbusiness-git-main-sentflixs-projects.vercel.app` | Auto-generated branch URL — follows latest main |
+| `nodbusiness-HASH-sentflixs-projects.vercel.app` | Unique URL for a specific deployment — frozen in time |
+
+Only `nodbusiness.vercel.app` matters for users.
 
 ---
 
 ## Rollback
 
-```
-Vercel → your project → Deployments
-→ Find the last working deployment
-→ Click the three-dot menu → "Promote to Production"
-→ Takes ~10 seconds
-```
+1. Vercel → nodbusiness → **Deployments**
+2. Find last green **Ready** deployment
+3. Click three-dot menu → **"Promote to Production"**
+4. Takes ~10 seconds
 
 ---
 
-## Where Secrets Go
+## Adding a Custom Domain (When Ready)
 
-| Secret type | Location |
-|---|---|
-| Backend API keys (`JWT_SECRET`, `DATABASE_URL`, `STRIPE_SECRET_KEY`, etc.) | **Render** env vars — never in Vercel |
-| Frontend public vars (`NEXT_PUBLIC_*`) | **Vercel** environment variables |
-| CI/CD deploy token | **GitHub** repository secrets (`VERCEL_TOKEN`) |
-
----
-
-## Google OAuth Setup
-
-Your Google Cloud Console **Authorized redirect URIs** must include:
-
-```
-https://your-app.onrender.com/api/auth/google/callback
-```
-
-And **Authorized JavaScript origins**:
-
-```
-https://nodbusiness.vercel.app
-```
-
-If you add a custom domain later, add that domain to both lists.
+1. Purchase domain (e.g., `nodbusiness.app`)
+2. Vercel → nodbusiness → **Settings** → **Domains** → Add domain
+3. Follow DNS instructions (add CNAME or A record at registrar)
+4. SSL is auto-provisioned within minutes
+5. Update env vars:
+   - Vercel: `NEXT_PUBLIC_APP_URL` → `https://nodbusiness.app`
+   - Render: `FRONTEND_URL` → `https://nodbusiness.app`
+   - Google OAuth: Add `https://nodbusiness.app` to authorized origins
 
 ---
 
-## Adding a Custom Domain (when ready)
+## Build Settings
 
-1. Vercel → your project → **Settings** → **Domains** → Add domain
-2. Add DNS records at your registrar as shown by Vercel
-3. SSL is provisioned automatically within minutes
-4. Update `NEXT_PUBLIC_APP_URL` env var to the new domain
-5. Update Google OAuth authorized origins to include the new domain
+The frontend uses **SSR mode** (not static export). This is important:
+- No `output: 'export'` in `next.config.ts`
+- Vercel handles SSR natively — no special config needed
+- `next build` produces a `.next/` directory (not `out/`)
+
+**Build command:** `next build` (via `npm run build`)
+**Output directory:** `.next` (Vercel auto-detects)
+
+---
+
+## Important: Vercel Hobby ToS
+
+Vercel Hobby is for **non-commercial, personal use only**. This means:
+- ✅ OK for development, testing, demos
+- ✅ OK for beta testing with invited users
+- ❌ Not OK for accepting real payments from real users
+
+**Upgrade to Vercel Pro ($20/mo) before:**
+- Going live with Stripe/Chapa payments
+- Accepting paying subscribers
 
 ---
 
@@ -144,31 +117,9 @@ If you add a custom domain later, add that domain to both lists.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Build fails immediately | Wrong root directory | Set root directory to `frontend-next` in Vercel project settings |
-| `Module not found` build error | Dependency issue | Run `npm ci --legacy-peer-deps` locally, fix the error, push again |
-| `Environment variable not defined` | Missing `NEXT_PUBLIC_*` var | Add the missing variable in Vercel env vars, redeploy |
-| App loads but API calls fail | Wrong `NEXT_PUBLIC_API_BASE_URL` | Check it points to your Render backend URL (no trailing slash) |
-| WebSocket (chat) not connecting | CSP `connect-src` missing wss:// host | `wsHost` in `next.config.ts` derives it automatically from `NEXT_PUBLIC_API_BASE_URL` |
-| OAuth login fails / state mismatch | Render backend was sleeping on first request | Render wakes in ~30s on free tier — retry, or set up keep-alive ping |
-| CI deploy fails | `VERCEL_TOKEN` missing or expired | Regenerate token in Vercel account settings, update GitHub Secret |
-
----
-
-## Keep-Alive for Render Free Tier
-
-Render free tier sleeps after 15 minutes of inactivity. This breaks the first request (including OAuth callbacks). The backend has a self-ping configured in `index.ts`. You can also use a free external service:
-
-- **UptimeRobot** (free) — monitor `https://your-app.onrender.com/health` every 5 minutes
-- This keeps the backend awake during active development and demo sessions
-
----
-
-## Previous Setup (Removed)
-
-This file was previously named `CLOUDFLARE_PAGES_SETUP.md` and described:
-- **Frontend:** Cloudflare Pages
-- **Backend:** Oracle Cloud Johannesburg + Coolify v4
-
-That setup required a credit card for Oracle identity verification, which is not available at this stage. It has been replaced by the zero-card Render + Vercel development stack documented here.
-
-The `nodbusiness.vercel.app` URL is the current active frontend deployment.
+| Build fails with "Module not found" | Dependency issue | Run `npm ci --legacy-peer-deps` locally, fix error |
+| "Git information retrieval failed" | Redeploying an old commit that lost its ref | Trigger a fresh deploy via git push instead of clicking "Redeploy" |
+| API calls fail with CORS error | `NEXT_PUBLIC_API_BASE_URL` wrong | Update to current Render URL, redeploy |
+| OAuth login fails | Render backend sleeping on first request | cron-job.org keep-alive prevents this — ensure it's running |
+| Env var not taking effect | `NEXT_PUBLIC_*` baked at build time | Must redeploy frontend after changing any `NEXT_PUBLIC_*` var |
+| Two deployments per push | Old duplicate project still connected | Was resolved — only `nodbusiness` project is now active |

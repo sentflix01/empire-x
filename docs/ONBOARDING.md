@@ -35,33 +35,68 @@
 ## Local Development Setup
 
 ### Prerequisites
-- Node.js 18+
-- PostgreSQL 14+ (or use Docker Compose)
+- Node.js 20+
 - Git
+- Access to Supabase project (or local PostgreSQL 15+)
 
-### Quick start
+### Quick start with Supabase (recommended — matches production)
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/your-org/nodbusiness.git
-cd nodbusiness
+git clone https://github.com/sentflix01/empire-x.git
+cd empire-x
 
 # 2. Backend setup
 cp backend/.env.example backend/.env
 # Edit backend/.env — minimum required:
-#   DATABASE_URL=postgresql://nodbusiness:nodbusiness_dev@localhost:5432/nodbusiness
+#   DATABASE_URL=postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require
 #   JWT_SECRET=any-long-random-string-for-local-dev
+#   NODE_ENV=development
 
-# 3. Create database and run migrations
-psql -U postgres -c "CREATE USER nodbusiness WITH PASSWORD 'nodbusiness_dev';"
-psql -U postgres -c "CREATE DATABASE nodbusiness OWNER nodbusiness;"
-cd backend && npm install && npm run migrate
+# 3. Run migrations against Supabase
+cd backend
+npm install
+NODE_TLS_REJECT_UNAUTHORIZED=0 node db/migrate-all.js
 
-# 4. Seed test data (optional)
-npm run seed
+# 4. Create admin + test accounts
+NODE_TLS_REJECT_UNAUTHORIZED=0 node db/create-admin.js
+# → admin@nodbusiness.app / Admin1234!
+# → test@nodbusiness.app / Test1234!
 
 # 5. Start backend
-node index.js
+npm run dev
+# → http://localhost:3001
+
+# 6. Frontend setup (new terminal)
+cd ../frontend-next
+cp .env.local.example .env.local
+# Set NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
+npm install --legacy-peer-deps
+npm run dev
+# → http://localhost:3002
+```
+
+### Quick start with local PostgreSQL (alternative)
+
+```bash
+# Create local database
+psql -U postgres -c "CREATE USER nodbusiness WITH PASSWORD 'nodbusiness_dev';"
+psql -U postgres -c "CREATE DATABASE nodbusiness OWNER nodbusiness;"
+
+# Set DATABASE_URL in backend/.env
+DATABASE_URL=postgresql://nodbusiness:nodbusiness_dev@localhost:5432/nodbusiness
+
+# Run migrations
+cd backend && npm install && npm run migrate
+```
+
+### Live URLs (production — for reference)
+- Backend: https://nodbusiness-backend-9psf.onrender.com
+- Frontend: https://nodbusiness.vercel.app
+- Health: https://nodbusiness-backend-9psf.onrender.com/health
+```bash
+# 4. Start backend (uses Supabase via DATABASE_URL)
+npm run dev
 # → http://localhost:3001
 
 # 6. Frontend setup (new terminal)

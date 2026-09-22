@@ -1,218 +1,116 @@
-# Nodbusiness — Cost Breakdown by Growth Stage
+# Nodbusiness — Cost Breakdown
 
-> Realistic monthly infrastructure costs at every milestone.
-> All costs in USD. Reference market (ETB) conversion: ~130 ETB/USD (adjust for current rate).
-> **Last updated:** September 2026
-> **Stack:** Oracle Cloud Johannesburg + Coolify v4 · Cloudflare Pages · Supabase · Upstash Redis · Cloudflare R2 · Resend
+> **Last updated:** September 22, 2026
+> **Current monthly cost: $0**
 
 ---
 
-## Acronyms Used in This Document
+## Current Stack — Zero Cost
 
-| Acronym | Full Form |
-|---------|-----------|
-| USD | United States Dollar |
-| ETB | Ethiopian Birr — reference market currency |
-| MAU | Monthly Active Users |
-| DAU | Daily Active Users |
-| CDN | Content Delivery Network |
-| R2 | Cloudflare R2 — object storage |
-| DB | Database |
-| API | Application Programming Interface |
-| RAM | Random Access Memory |
-| CPU | Central Processing Unit |
-| MRR | Monthly Recurring Revenue |
-| GMV | Gross Merchandise Value |
-| COGS | Cost of Goods Sold |
+| Service | Provider | Plan | Monthly Cost | Free Tier Limits |
+|---|---|---|---|---|
+| Backend hosting | Render | Free | $0 | 750h/mo, 0.1 CPU, 512MB RAM, sleeps after 15 min |
+| Frontend hosting | Vercel | Hobby | $0 | 100GB bandwidth, unlimited deploys |
+| Database | Supabase | Free | $0 | 500MB DB, 1GB storage, 2 projects |
+| Redis | Upstash | Free | $0 | 500K commands/day, 256MB storage |
+| Email | Resend | Free | $0 | 3,000 emails/month, 100/day |
+| AI | Google Gemini | Free | $0 | Generous free tier (rate limited) |
+| Google OAuth | Google Cloud | Free | $0 | Unlimited |
+| Error tracking | Sentry | Free | $0 | 5K errors/month |
+| CI/CD | GitHub Actions | Free | $0 | Public repository = unlimited |
+| Keep-alive | cron-job.org | Free | $0 | Unlimited jobs |
+| Uptime monitor | UptimeRobot | Free | $0 | 50 monitors, 5 min interval |
+| **TOTAL** | | | **$0/mo** | |
 
 ---
 
-## Stage 0: Development / Pre-Launch
-**Users:** 0–100 (team + beta testers)
-**Monthly cost:** **$0/month**
+## Upgrade Triggers and Costs
 
-| Service | Plan | Cost/month | Notes |
+When the app grows, these are the first services that will need upgrading:
+
+### Priority 1 — Before real users pay money
+
+| Service | Upgrade reason | Cost |
+|---|---|---|
+| Vercel → Pro | Hobby ToS prohibits commercial use | $20/mo |
+| Render → Starter | Eliminate cold starts, always-on | $7/mo |
+| **Subtotal** | | **$27/mo** |
+
+### Priority 2 — When traffic grows
+
+| Service | Upgrade trigger | Cost |
+|---|---|---|
+| Supabase → Pro | >500MB data or >1GB storage | $25/mo |
+| Upstash → Pay-as-you-go | >500K Redis commands/day | $0.20 per 100K commands |
+| Resend → Pro | >3K emails/month | $20/mo for 50K emails |
+| **Subtotal** | | **~$45/mo** |
+
+### Priority 3 — Scale
+
+| Service | Upgrade trigger | Cost |
+|---|---|---|
+| Render → Standard | >512MB RAM or need horizontal scaling | $25/mo |
+| Sentry → Team | >5K errors/month | $26/mo |
+| Cloudflare R2 | Supabase storage too slow/expensive | $0.015/GB storage + $0.36/M reads |
+| **Subtotal** | | **~$50/mo** |
+
+---
+
+## Cost Projections
+
+| Phase | Users | Monthly cost | Notes |
 |---|---|---|---|
-| Oracle Cloud (backend VM) | Always Free — 2 OCPU / 12 GB ARM | $0 | Johannesburg region |
-| Coolify v4 (PaaS manager) | Self-hosted, open source | $0 | Runs on Oracle VM |
-| Cloudflare Pages (frontend) | Free — unlimited bandwidth | $0 | Auto-deploys from GitHub |
-| Supabase (PostgreSQL) | Free — 500 MB / 5 GB egress | $0 | Keep-alive cron prevents pause |
-| Upstash Redis | Free — 500K cmd/month | $0 | Updated March 2026 |
-| Cloudflare R2 (storage) | Free — 10 GB / 1M ops | $0 | Must activate before launch |
-| Resend (email) | Free — 3K/month / 100/day | $0 | Already configured |
-| Uptime Kuma (monitoring) | Self-hosted on Oracle VM | $0 | 1-minute checks, Telegram alerts |
-| Cloudflare (DNS/CDN/DDoS) | Free | $0 | Always-on DDoS protection |
-| Sentry (error tracking) | Free — 5K errors/month | $0 | |
-| Domain (yourdomain.com) | Annual ÷ 12 | ~$1.50 | Cloudflare Registrar ~$12/year |
-| **Total** | | **~$1.50/month** | Domain is the only cost |
-
-**ETB equivalent:** ~ETB 195/month
-
-> Previous stack (Railway + Vercel Hobby): $5–6/month. New stack saves $5/month and eliminates the Render sleep problem and Vercel commercial-use ToS violation.
+| Development | 0-10 (internal) | **$0** | Current state |
+| Beta | 10-100 | **$27** | Upgrade Vercel + Render before launch |
+| Early growth | 100-1,000 | **$72** | Add Supabase Pro, Resend Pro |
+| Growth | 1,000-10,000 | **~$150** | Scale Redis, Render Standard |
+| Scale | 10,000+ | **~$500+** | Depends on usage patterns |
 
 ---
 
-## Stage 1: Soft Launch
-**Users:** 100–1,000 MAU
-**Monthly cost:** ~$0–5/month
+## What Each Service Actually Costs at Scale
 
-| Service | Plan | Cost/month | Notes |
+### Database (Supabase)
+- Free: 500MB storage, 2 active projects
+- Pro ($25/mo): 8GB storage, unlimited projects, daily backups, point-in-time recovery
+- Scale requirement: >500MB data or needing PITR backups
+
+### Redis (Upstash)
+- Free: 500K cmd/day
+- Pay-as-you-go: $0.20/100K commands — at 5M commands/day = $10/day = $300/mo
+- Alternative: Switch to Redis on Render ($10/mo) for predictable cost at high traffic
+
+### Email (Resend)
+- Free: 3K emails/month
+- Pro ($20/mo): 50K emails/month
+- At 10K users receiving weekly digests = ~43K emails/month → Pro plan needed
+
+### File Storage (Supabase Storage)
+- Free: 1GB
+- Pro ($25/mo): 100GB included
+- Overflow: $0.021/GB additional
+- R2 alternative (when needed): $0.015/GB storage + $0.36/M requests — cheaper at scale
+
+---
+
+## Cost Optimization Notes
+
+- **Render free tier cold starts** are mitigated by cron-job.org pings (free). The $7/mo Starter upgrade buys always-on — worth it when real users arrive.
+- **Upstash 500K/day limit** resets at midnight UTC. If the app hits this limit regularly, consider switching to Redis with a fixed monthly cost instead of pay-as-you-go.
+- **Supabase free tier** pauses after 1 week of no DB queries. The `supabase-keepalive.yml` GitHub Actions workflow pings it every 6 hours to prevent this.
+- **Vercel Hobby** is permanently free for non-commercial projects. The $20/mo Pro upgrade is only triggered by commercial use (real payments). Beta testing and demos are fine on Hobby.
+- **GitHub Actions** is free for public repositories. If the repo is made private, the free tier allows 2,000 minutes/month — the current CI pipeline uses ~6 min/push, giving ~333 free pushes/month.
+
+---
+
+## Comparison: Current Stack vs Previous Plan
+
+| Stack | Monthly cost | Always-on | Notes |
 |---|---|---|---|
-| Oracle Cloud (backend VM) | Always Free | $0 | Same VM — no upgrade needed |
-| Coolify v4 | Self-hosted | $0 | |
-| Cloudflare Pages | Free | $0 | |
-| Supabase PostgreSQL | Free → Pro ($25) | $0 | Upgrade when > 400 MB data |
-| Upstash Redis | Free → PAYG | $0 | ~$0.20/100K cmds over 500K |
-| Cloudflare R2 | Free | $0 | Well within 10 GB free |
-| Resend | Free → $20 | $0 | Upgrade when >100 emails/day |
-| Sentry | Free → Team ($26) | $0 | Upgrade at 5K errors/month |
-| Stripe | 2.9% + $0.30/txn | Variable | Only on live payments |
-| Chapa | 1.5–2%/txn | Variable | Only on live payments |
-| **Total fixed** | | **~$0–5/month** | |
+| **Current (Render+Vercel)** | **$0** | No (free tier) | Zero card required |
+| Previous plan (Oracle+Coolify) | $0* | Yes | *Requires $1 card verification (blocked) |
+| Koyeb | $0* | Yes | *Requires $29 card hold (blocked) |
+| Railway | $0 (30 days) then $5/mo | Yes | Trial only, card eventually required |
+| Self-hosted (VPS) | $3-6/mo | Yes | Requires card + server management |
 
-**ETB equivalent:** ~ETB 0–650/month
-
----
-
-## Stage 2: Early Growth
-**Users:** 1,000–10,000 MAU
-**Monthly cost:** ~$30–80/month
-
-| Service | Plan | Cost/month | Notes |
-|---|---|---|---|
-| Oracle Cloud VM | Always Free | $0 | 2 OCPU / 12 GB still handles load |
-| Coolify v4 | Self-hosted | $0 | |
-| Cloudflare Pages | Free | $0 | Unlimited bandwidth — no upgrade |
-| Supabase PostgreSQL | Pro ($25) | $25 | Upgrade when > 400 MB or 5 GB egress |
-| Upstash Redis | Pay-as-you-go | $5–15 | ~$0.20/100K cmds |
-| Cloudflare R2 | Pay-as-you-go | $0.50 | ~22 GB × $0.015 |
-| Resend | Starter ($20) | $20 | 50K emails/month when volume grows |
-| Sentry | Free → Team ($26) | $0–26 | Upgrade at 5K errors/month |
-| Domain + SSL | Annual ÷ 12 | $1.50 | |
-| **Total** | | **~$30–70/month** | |
-
-**ETB equivalent:** ~ETB 3,900–9,100/month
-
-**Revenue to cover costs (at 3% commission, ETB 500 avg order):**
-→ Need ~250 orders/month to cover infra = ~8 orders/day
-
----
-
-## Stage 3: Growth
-**Users:** 10,000–100,000 MAU
-**Monthly cost:** ~$150–400/month
-
-| Service | Plan | Cost/month | Notes |
-|---|---|---|---|
-| Oracle Cloud VM | Always Free | $0 | May need Hetzner upgrade at ~50K MAU |
-| Coolify v4 | Self-hosted | $0 | |
-| Cloudflare Pages | Free | $0 | |
-| Supabase PostgreSQL | Pro ($25) → Team ($599) | $25–100 | Scale up compute units |
-| Upstash Redis | Pay-as-you-go | $20–60 | Higher command volume |
-| Cloudflare R2 | Pay-as-you-go | $2–10 | 100–500 GB storage |
-| Cloudflare Pro | Pro ($20) | $20 | WAF + better analytics |
-| Resend | Growth ($89) | $89 | 50K emails/month |
-| Sentry | Team ($26) | $26 | 50K errors |
-| Uptime Kuma | Self-hosted | $0 | |
-| **Total** | | **~$160–305/month** | |
-
-**ETB equivalent:** ~ETB 21,000–40,000/month
-
-**Note on Oracle VM at this scale:** The 2 OCPU / 12 GB ARM instance handles ~500–2,000 concurrent users before saturation. At ~50K MAU and heavy real-time usage, consider adding a second Hetzner CAX21 instance (€8/month) behind Cloudflare Load Balancer, with Socket.IO Redis adapter to share WebSocket state.
-
----
-
-## Stage 4: Scale
-**Users:** 100,000–1,000,000 MAU
-**Monthly cost:** ~$500–2,000/month
-
-| Service | Plan | Cost/month | Notes |
-|---|---|---|---|
-| Hetzner CAX21 × 2 (backend) | 4 vCPU / 8 GB each | $20 | Replace Oracle VM for predictability |
-| Coolify v4 | Self-hosted | $0 | |
-| Cloudflare Pages | Free | $0 | |
-| Supabase Team | $599/month | $599 | Dedicated compute, no pause risk, read replicas |
-| Upstash Redis | Fixed plan ($10/month) | $10–50 | Consistent traffic |
-| Cloudflare R2 | Pay-as-you-go | $15–50 | 1–3 TB storage |
-| Cloudflare Business | Business ($200) | $200 | Advanced WAF, DDoS SLA |
-| Resend Business | $249/month | $249 | 200K emails/month |
-| Sentry Business | $80/month | $80 | 100K errors |
-| Meilisearch Cloud | Start ($30) | $30 | When PostgreSQL search is too slow |
-| **Total** | | **~$1,200–1,300/month** | |
-
-**ETB equivalent:** ~ETB 156,000–169,000/month
-
-**Revenue to cover costs (at 3% commission + subscriptions):**
-→ At 100K users, revenue should be ETB 1–5M/month
-→ Infrastructure is ~5–15% of revenue (healthy ratio)
-
----
-
-## Stage 5: Enterprise
-**Users:** 1,000,000+ MAU
-**Monthly cost:** $10,000–50,000+/month
-
-At this scale:
-- Move backend to **AWS ECS** (Fargate) or **GCP Cloud Run** with proper auto-scaling
-- Move database to **AWS RDS Aurora PostgreSQL** (multi-AZ read replicas)
-- Full-time SRE team (10–30 engineers)
-- SOC 2 Type II compliance ($30–100K one-time)
-- Custom Cloudflare Enterprise contract
-- This is not a concern today. Build for this when at 200K+ MAU.
-
----
-
-## Cost Optimization Rules
-
-### 1. Free tiers available right now (September 2026)
-
-| Service | Free allowance |
-|---|---|
-| Oracle Cloud (VM) | 2 OCPU / 12 GB RAM / 200 GB storage — always free |
-| Coolify v4 | Fully free — no feature paywalls |
-| Cloudflare Pages | Unlimited bandwidth, 500 builds/month |
-| Supabase | 500 MB DB, 5 GB egress, 50K MAU |
-| Upstash Redis | 500K commands/month |
-| Cloudflare R2 | 10 GB storage, 1M Class A ops, zero egress |
-| Resend | 3K emails/month, 100/day |
-| Sentry | 5K errors/month |
-| Uptime Kuma | Free, self-hosted |
-| Cloudflare DNS/DDoS | Always free |
-
-**Combined value of free tier services: ~$400+/month equivalent**
-
-### 2. Cost-per-user benchmarks
-
-| Stage | Cost/month | Users | Cost per user |
-|---|---|---|---|
-| Stage 0 | $1.50 | 100 | $0.015 |
-| Stage 1 | $5 | 1,000 | $0.005 |
-| Stage 2 | $50 | 10,000 | $0.005 |
-| Stage 3 | $250 | 100,000 | $0.0025 |
-| Stage 4 | $1,300 | 500,000 | $0.0026 |
-
-As users grow, cost-per-user **decreases** — economies of scale.
-
-### 3. The biggest cost risk to watch
-
-| Risk | Prevention |
-|---|---|
-| Supabase egress overage | Enable Supavisor pooling; add `Cache-Control` headers to read endpoints |
-| Upstash command burst | Monitor Upstash dashboard; PAYG is cheap if occasional |
-| R2 storage overage | Run `sharp` compression on every upload; limit video uploads |
-| Resend daily cap | Rate-limit OTP emails; monitor bounce rates |
-| Oracle VM capacity (Oracle cuts again) | Contingency: Hetzner CAX11 at €4.29/month — migrate in 2 hours |
-
-### 4. Cost Monitoring Setup
-
-```bash
-# Set billing alerts on each platform:
-
-# Supabase: Project Settings → Billing → Usage Alerts → alert at 80% of plan
-# Upstash: Dashboard → Budget Alerts → alert at $5/month
-# Cloudflare: Notifications → Billing Alerts → set $1 threshold
-# R2: Cloudflare → Notifications → R2 Storage alert at 80% of 10GB
-# Resend: Settings → Email volume → daily alert at 80 emails
-```
-
-Check costs **weekly** at Stage 0–2, **daily** at Stage 3+.
+The Render+Vercel stack is the only genuinely zero-cost option that works without a valid card. See ADR-016 for the full decision record.
