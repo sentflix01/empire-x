@@ -5,6 +5,9 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-23 | Bugfix | fix: improve Google auth error logging to show exact error message and stack | [4a8bab3a6](2026-09-23-4a8bab3a6-improve-google-auth-error-logging-to-show-exact-.md) |
+| 2026-09-23 | Bugfix | fix: trigger fresh Render rebuild for Google OAuth 500 | [656dd198a](2026-09-23-656dd198a-trigger-fresh-render-rebuild-for-google-oauth-50.md) |
+| 2026-09-23 | Documentation | docs: update technical debt register + fix stale backend URLs to nodbusiness-backend-9psf | [832ee7e43](2026-09-23-832ee7e43-update-technical-debt-register-fix-stale-backend.md) |
 | 2026-09-23 | Maintenance | chore(deps): upgrade express to 4.22.3, resolve moderate audit vulns | [304248c51](2026-09-23-304248c51-upgrade-express-to-4-22-3-resolve-moderate-audit.md) |
 | 2026-09-22 | Documentation | docs: full update to reflect live Render+Vercel stack as of September 22 2026 | [2c3789fd2](2026-09-22-2c3789fd2-full-update-to-reflect-live-render-vercel-stack-.md) |
 | 2026-09-22 | Bugfix | fix(ci): move isolatedModules into tsconfig block to silence ts-jest deprecation warning | [d8cc5e5da](2026-09-22-d8cc5e5da-move-isolatedmodules-into-tsconfig-block-to-sile.md) |
