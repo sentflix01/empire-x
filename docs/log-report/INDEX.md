@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-23 | Bugfix | fix: seed media patch + sitemap localhost port | [a8b7b69c8](2026-09-23-a8b7b69c8-seed-media-patch-sitemap-localhost-port.md) |
 | 2026-09-23 | Feature | feat(seed): add seed-showrooms.js and seed-mewacho.js | [02b02c2eb](2026-09-23-02b02c2eb-add-seed-showrooms-js-and-seed-mewacho-js.md) |
 | 2026-09-23 | Maintenance | chore: force Vercel redeploy to bake corrected NEXT_PUBLIC_GOOGLE_CLIENT_ID | [a90b38e4e](2026-09-23-a90b38e4e-force-vercel-redeploy-to-bake-corrected-next-pub.md) |
 | 2026-09-23 | Bugfix | fix: use in-memory rate limiting only — Redis-backed limiters burn 50+ commands per startup | [cd5a69012](2026-09-23-cd5a69012-use-in-memory-rate-limiting-only-redis-backed-li.md) |
