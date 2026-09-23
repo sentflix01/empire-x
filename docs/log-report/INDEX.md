@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-23 | Bugfix | fix: use in-memory rate limiting only — Redis-backed limiters burn 50+ commands per startup | [cd5a69012](2026-09-23-cd5a69012-use-in-memory-rate-limiting-only-redis-backed-li.md) |
 | 2026-09-23 | Bugfix | fix: give each rate limiter its own RedisStore with unique prefix to fix ERR_ERL_STORE_REUSE | [9a2d2a632](2026-09-23-9a2d2a632-give-each-rate-limiter-its-own-redisstore-with-u.md) |
 | 2026-09-23 | Bugfix | fix: remove duplicate catch block left by previous str_replace (TS build error) | [93c5c53a8](2026-09-23-93c5c53a8-remove-duplicate-catch-block-left-by-previous-st.md) |
 | 2026-09-23 | Bugfix | fix: fix ERR_ERL_DOUBLE_COUNT by returning 0 instead of null from rate-limit sendCommand + cache store instance to prevent 18 Redis connections at startup | [b34c4463c](2026-09-23-b34c4463c-fix-err-erl-double-count-by-returning-0-instead-.md) |
