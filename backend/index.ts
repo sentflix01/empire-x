@@ -229,19 +229,17 @@ app.use(cors({
 // ── Rate limiting (Redis-backed in production) ────────────────────────────────
 const isDev = process.env.NODE_ENV !== 'production';
 
-function buildRateLimitStore(): unknown {
+function buildRateLimitStore(prefix: string): unknown {
   if (isDev) return undefined;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { RedisStore } = require('rate-limit-redis') as { RedisStore: new (opts: object) => object };
     const redisClient = getRedis();
-    // Use in-memory store if Redis is unavailable or already in no-op mode
     if (redisClient.isNoOp) return undefined;
 
-    const store = new RedisStore({
+    return new RedisStore({
       sendCommand: (...args: unknown[]) => {
         const redisNow = getRedis();
-        // If Redis degraded to no-op since startup, skip silently
         if (redisNow.isNoOp) return Promise.resolve(0);
         try {
           return (redisNow as RedisClient).call(...(args as [string, ...string[]]));
@@ -249,31 +247,28 @@ function buildRateLimitStore(): unknown {
           return Promise.resolve(0);
         }
       },
-      prefix: 'rl:',
+      prefix,
     }) as unknown;
-    return store;
   } catch (err) {
     logger.warn({ err: (err as Error).message }, 'rate-limit-redis unavailable — using in-memory store');
     return undefined;
   }
 }
 
-// Build store once and reuse — avoids creating 18 separate Redis connections at startup
+// Each rate limiter needs its own store instance with a unique prefix
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const _rateLimitStore = buildRateLimitStore() as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rlOpts = (max: number) => ({ windowMs: 15 * 60 * 1000, max, skip: () => isDev, store: _rateLimitStore, message: { error: 'Too many requests, try again later' }, standardHeaders: true, legacyHeaders: false });
+const rlOpts = (max: number, prefix: string) => ({ windowMs: 15 * 60 * 1000, max, skip: () => isDev, store: buildRateLimitStore(prefix) as any, message: { error: 'Too many requests, try again later' }, standardHeaders: true, legacyHeaders: false });
 
-app.use('/api/', rateLimit(rlOpts(500)));
-app.use('/api/auth/login',            rateLimit(rlOpts(20)));
-app.use('/api/auth/register',         rateLimit(rlOpts(20)));
-app.use('/api/auth/google',           rateLimit(rlOpts(20)));
-app.use('/api/auth/verify-otp',       rateLimit(rlOpts(10)));
-app.use('/api/auth/resend-otp',       rateLimit(rlOpts(5)));
-app.use('/api/auth/forgot-password',  rateLimit(rlOpts(5)));
-app.use('/api/auth/reset-password',   rateLimit(rlOpts(10)));
-app.use('/api/auth/change-password',  rateLimit(rlOpts(10)));
-app.use('/api/auth/refresh',          rateLimit(rlOpts(60)));
+app.use('/api/', rateLimit(rlOpts(500, 'rl:global:')));
+app.use('/api/auth/login',            rateLimit(rlOpts(20,  'rl:login:')));
+app.use('/api/auth/register',         rateLimit(rlOpts(20,  'rl:register:')));
+app.use('/api/auth/google',           rateLimit(rlOpts(20,  'rl:google:')));
+app.use('/api/auth/verify-otp',       rateLimit(rlOpts(10,  'rl:verify-otp:')));
+app.use('/api/auth/resend-otp',       rateLimit(rlOpts(5,   'rl:resend-otp:')));
+app.use('/api/auth/forgot-password',  rateLimit(rlOpts(5,   'rl:forgot-pw:')));
+app.use('/api/auth/reset-password',   rateLimit(rlOpts(10,  'rl:reset-pw:')));
+app.use('/api/auth/change-password',  rateLimit(rlOpts(10,  'rl:change-pw:')));
+app.use('/api/auth/refresh',          rateLimit(rlOpts(60,  'rl:refresh:')));
 
 // ── Body parsing ──────────────────────────────────────────────────────────────
 app.use('/api/orders/webhook',        express.raw({ type: 'application/json' }));
