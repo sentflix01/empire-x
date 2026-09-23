@@ -257,12 +257,6 @@ function buildRateLimitStore(): unknown {
     return undefined;
   }
 }
-    return store;
-  } catch (err) {
-    logger.warn({ err: (err as Error).message }, 'rate-limit-redis unavailable — using in-memory store');
-    return undefined;
-  }
-}
 
 // Build store once and reuse — avoids creating 18 separate Redis connections at startup
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
