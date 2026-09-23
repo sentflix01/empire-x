@@ -235,28 +235,19 @@ function buildRateLimitStore(): unknown {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { RedisStore } = require('rate-limit-redis') as { RedisStore: new (opts: object) => object };
     const redisClient = getRedis();
+    // Use in-memory store if Redis is unavailable or already in no-op mode
     if (redisClient.isNoOp) return undefined;
 
-    // rate-limit-redis v6 runs SCRIPT LOAD during construction — if the Redis
-    // quota is exceeded this throws an unhandled async error. Suppress it with
-    // a no-op error handler and fall back to in-memory limiting gracefully.
     const store = new RedisStore({
       sendCommand: (...args: unknown[]) => {
         const redisNow = getRedis();
-        // If Redis already degraded to no-op, return null immediately
-        if (redisNow.isNoOp) return Promise.resolve(null);
-        const cmd = (redisNow as RedisClient).call(...(args as [string, ...string[]]));
-        // Return null on quota exceeded so rate-limit-redis falls back to
-        // in-memory limiting rather than propagating the error into the route
-        if (cmd && typeof (cmd as Promise<unknown>).catch === 'function') {
-          return (cmd as Promise<unknown>).catch((err: Error) => {
-            if (err?.message?.includes('max requests limit exceeded')) {
-              logger.warn('Redis quota exceeded — rate-limit store falling back to in-memory');
-            }
-            return null;
-          });
+        // If Redis degraded to no-op since startup, skip silently
+        if (redisNow.isNoOp) return Promise.resolve(0);
+        try {
+          return (redisNow as RedisClient).call(...(args as [string, ...string[]]));
+        } catch {
+          return Promise.resolve(0);
         }
-        return cmd;
       },
       prefix: 'rl:',
     }) as unknown;
@@ -266,9 +257,18 @@ function buildRateLimitStore(): unknown {
     return undefined;
   }
 }
+    return store;
+  } catch (err) {
+    logger.warn({ err: (err as Error).message }, 'rate-limit-redis unavailable — using in-memory store');
+    return undefined;
+  }
+}
 
+// Build store once and reuse — avoids creating 18 separate Redis connections at startup
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rlOpts = (max: number) => ({ windowMs: 15 * 60 * 1000, max, skip: () => isDev, store: buildRateLimitStore() as any, message: { error: 'Too many requests, try again later' }, standardHeaders: true, legacyHeaders: false });
+const _rateLimitStore = buildRateLimitStore() as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rlOpts = (max: number) => ({ windowMs: 15 * 60 * 1000, max, skip: () => isDev, store: _rateLimitStore, message: { error: 'Too many requests, try again later' }, standardHeaders: true, legacyHeaders: false });
 
 app.use('/api/', rateLimit(rlOpts(500)));
 app.use('/api/auth/login',            rateLimit(rlOpts(20)));
