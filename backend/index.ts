@@ -229,33 +229,14 @@ app.use(cors({
 // ── Rate limiting (Redis-backed in production) ────────────────────────────────
 const isDev = process.env.NODE_ENV !== 'production';
 
-function buildRateLimitStore(prefix: string): unknown {
-  if (isDev) return undefined;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { RedisStore } = require('rate-limit-redis') as { RedisStore: new (opts: object) => object };
-    const redisClient = getRedis();
-    if (redisClient.isNoOp) return undefined;
-
-    return new RedisStore({
-      sendCommand: (...args: unknown[]) => {
-        const redisNow = getRedis();
-        if (redisNow.isNoOp) return Promise.resolve(0);
-        try {
-          return (redisNow as RedisClient).call(...(args as [string, ...string[]]));
-        } catch {
-          return Promise.resolve(0);
-        }
-      },
-      prefix,
-    }) as unknown;
-  } catch (err) {
-    logger.warn({ err: (err as Error).message }, 'rate-limit-redis unavailable — using in-memory store');
-    return undefined;
-  }
+function buildRateLimitStore(_prefix: string): unknown {
+  // Always use in-memory store — Redis-backed rate limiting fires SCRIPT LOAD
+  // on every store instance creation, burning ~50+ Redis commands at startup
+  // for 10 limiters. On Upstash free tier (500K/month) this is unacceptable.
+  // In-memory is correct for single-instance deployments (Render free tier).
+  return undefined;
 }
 
-// Each rate limiter needs its own store instance with a unique prefix
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rlOpts = (max: number, prefix: string) => ({ windowMs: 15 * 60 * 1000, max, skip: () => isDev, store: buildRateLimitStore(prefix) as any, message: { error: 'Too many requests, try again later' }, standardHeaders: true, legacyHeaders: false });
 
