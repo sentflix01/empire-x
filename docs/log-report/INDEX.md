@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-23 | Bugfix | fix: give each rate limiter its own RedisStore with unique prefix to fix ERR_ERL_STORE_REUSE | [9a2d2a632](2026-09-23-9a2d2a632-give-each-rate-limiter-its-own-redisstore-with-u.md) |
 | 2026-09-23 | Bugfix | fix: remove duplicate catch block left by previous str_replace (TS build error) | [93c5c53a8](2026-09-23-93c5c53a8-remove-duplicate-catch-block-left-by-previous-st.md) |
 | 2026-09-23 | Bugfix | fix: fix ERR_ERL_DOUBLE_COUNT by returning 0 instead of null from rate-limit sendCommand + cache store instance to prevent 18 Redis connections at startup | [b34c4463c](2026-09-23-b34c4463c-fix-err-erl-double-count-by-returning-0-instead-.md) |
 | 2026-09-23 | Bugfix | fix: replace BullMQ health-check queue with single PING to eliminate bull:health-checkmeta key spam | [d52883e40](2026-09-23-d52883e40-replace-bullmq-health-check-queue-with-single-pi.md) |
