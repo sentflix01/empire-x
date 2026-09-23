@@ -114,11 +114,14 @@ function ImagePost({ post }: { post: Post }) {
   }
   return (
     <div className="pb-3">
-      <div className="relative flex justify-center overflow-hidden bg-secondary/20">
+      <div className="relative overflow-hidden bg-secondary/20" style={{ maxHeight: '22rem', minHeight: '12rem' }}>
         <SafeImage
           src={post.image_url}
           alt={post.content ? post.content.slice(0, 120) : 'Post image'}
-          className="block h-auto w-full max-h-[min(72svh,36rem)] object-contain"
+          fill={false}
+          width={800}
+          height={450}
+          className="w-full h-auto object-cover"
           loading="lazy"
           decoding="async"
           onError={() => setErr(true)}

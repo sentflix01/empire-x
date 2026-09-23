@@ -24,6 +24,7 @@
     "seed:showrooms": "node db/seed-showrooms.js",
     "seed:mewacho": "node db/seed-mewacho.js",
     "seed:patch-media": "node db/seed-patch-media.js",
+    "seed:patch-business-feed": "node db/seed-patch-business-feed.js",
     "clean": "node db/cleanup-seed-data.js",
     "backup": "tsx scripts/backup-database.js",
     "backup:verify": "tsx scripts/verify-backup.js",
