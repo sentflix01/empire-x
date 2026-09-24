@@ -515,54 +515,87 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                             {bizName.charAt(0)}
                           </div>}
                     </div>
-                    {/* QR code button — shows popup with scannable QR */}
+                    {/* QR code button — same size as logo square (w-14 h-14 rounded-xl) */}
                     <div className="relative">
                       <button
                         type="button"
                         onClick={() => setQrOpenId(qrOpenId === biz.id ? null : biz.id)}
-                        className="w-8 h-8 rounded-lg border-2 border-border/60 bg-white flex items-center justify-center hover:border-amber-400 transition-all shadow-sm"
+                        className="w-14 h-14 rounded-xl border-4 border-white bg-white flex items-center justify-center hover:border-amber-400/60 transition-all shadow-sm overflow-hidden"
                         aria-label={`Show QR code for ${bizName}`}
                         title="Scan to open this business profile"
                       >
-                        {/* Mini QR grid icon */}
-                        <svg viewBox="0 0 20 20" className="w-5 h-5" fill="currentColor">
-                          <rect x="2" y="2" width="7" height="7" rx="1" opacity="0.9"/>
-                          <rect x="11" y="2" width="7" height="7" rx="1" opacity="0.9"/>
-                          <rect x="2" y="11" width="7" height="7" rx="1" opacity="0.9"/>
-                          <rect x="4" y="4" width="3" height="3" fill="white"/>
-                          <rect x="13" y="4" width="3" height="3" fill="white"/>
-                          <rect x="4" y="13" width="3" height="3" fill="white"/>
-                          <rect x="12" y="12" width="2" height="2" opacity="0.9"/>
-                          <rect x="15" y="12" width="2" height="2" opacity="0.9"/>
-                          <rect x="12" y="15" width="2" height="2" opacity="0.9"/>
-                          <rect x="15" y="15" width="2" height="2" opacity="0.9"/>
-                        </svg>
+                        {/* Preview QR at button size — actual scannable QR in popup */}
+                        <QRCodeSVG
+                          value={`${process.env.NEXT_PUBLIC_APP_URL || 'https://nodbusiness.vercel.app'}/profile/${ownerId}?view=business`}
+                          size={46}
+                          level="L"
+                          includeMargin={false}
+                          style={{ display: 'block' }}
+                        />
                       </button>
-                      {/* QR popup */}
+                      {/* Full-screen centered modal QR popup */}
                       {qrOpenId === biz.id && (
                         <>
+                          {/* Backdrop */}
                           <div
-                            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+                            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-6"
                             onClick={() => setQrOpenId(null)}
-                          />
-                          <div className="absolute left-0 bottom-10 z-50 bg-white rounded-2xl shadow-2xl p-4 min-w-[200px] animate-in fade-in slide-in-from-bottom-2 duration-200">
-                            <p className="text-xs font-bold text-center text-slate-700 mb-2 truncate max-w-[160px] mx-auto">{bizName}</p>
-                            <div className="flex justify-center">
-                              <QRCodeSVG
-                                value={`${process.env.NEXT_PUBLIC_APP_URL || 'https://nodbusiness.vercel.app'}/profile/${ownerId}?view=business`}
-                                size={160}
-                                level="M"
-                                includeMargin
-                                style={{ borderRadius: 8 }}
-                              />
-                            </div>
-                            <p className="text-[10px] text-center text-slate-400 mt-2">Scan to view full business profile</p>
-                            <button
-                              onClick={() => setQrOpenId(null)}
-                              className="mt-2 w-full text-xs font-semibold text-center text-slate-500 hover:text-slate-700 py-1"
+                          >
+                            {/* Modal — stopPropagation so clicking inside doesn't close */}
+                            <div
+                              className="relative bg-white rounded-3xl shadow-2xl p-6 max-w-xs w-full animate-in fade-in zoom-in-95 duration-200"
+                              onClick={e => e.stopPropagation()}
                             >
-                              Close
-                            </button>
+                              {/* Close button */}
+                              <button
+                                onClick={() => setQrOpenId(null)}
+                                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
+                                type="button"
+                                aria-label="Close QR code"
+                              >
+                                ✕
+                              </button>
+                              {/* Business logo + name */}
+                              <div className="flex flex-col items-center mb-4">
+                                <div className="w-14 h-14 rounded-xl border-2 overflow-hidden mb-2 shadow-sm" style={{ borderColor: color, backgroundColor: color }}>
+                                  {logoUrl
+                                    ? <NextImage src={logoUrl} alt={bizName} width={56} height={56} className="w-full h-full object-cover" unoptimized />
+                                    : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">{bizName.charAt(0)}</div>}
+                                </div>
+                                <h3 className="font-bold text-sm text-center text-slate-800 leading-tight px-2">{bizName}</h3>
+                                {biz.business_address && (
+                                  <p className="text-xs text-slate-400 text-center mt-0.5">{biz.business_address as string}</p>
+                                )}
+                              </div>
+                              {/* Large scannable QR */}
+                              <div className="flex justify-center">
+                                <div className="p-3 bg-white rounded-2xl border border-slate-100 shadow-inner">
+                                  <QRCodeSVG
+                                    value={`${process.env.NEXT_PUBLIC_APP_URL || 'https://nodbusiness.vercel.app'}/profile/${ownerId}?view=business`}
+                                    size={220}
+                                    level="H"
+                                    includeMargin
+                                    imageSettings={{
+                                      src: '/brand/nodbusiness-icon.svg',
+                                      height: 36,
+                                      width: 36,
+                                      excavate: true,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <p className="text-xs text-center text-slate-400 mt-3 px-4">
+                                Scan with your phone camera to view the full business profile
+                              </p>
+                              <Link
+                                href={`/profile/${ownerId}?view=business`}
+                                className="mt-3 flex items-center justify-center gap-2 w-full h-9 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90"
+                                style={{ backgroundColor: color }}
+                                onClick={() => setQrOpenId(null)}
+                              >
+                                Visit Business Profile
+                              </Link>
+                            </div>
                           </div>
                         </>
                       )}
