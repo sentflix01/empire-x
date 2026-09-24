@@ -114,14 +114,13 @@ function ImagePost({ post }: { post: Post }) {
   }
   return (
     <div className="pb-3">
-      <div className="relative overflow-hidden bg-secondary/20" style={{ maxHeight: '22rem', minHeight: '12rem' }}>
+      <div className="relative overflow-hidden bg-secondary/20" style={{ height: '22rem' }}>
         <SafeImage
           src={post.image_url}
           alt={post.content ? post.content.slice(0, 120) : 'Post image'}
-          fill={false}
-          width={800}
-          height={450}
-          className="w-full h-auto object-cover"
+          fill
+          sizes="(max-width: 640px) 100vw, 600px"
+          className="object-cover"
           loading="lazy"
           decoding="async"
           onError={() => setErr(true)}
@@ -143,8 +142,17 @@ function PromoPost({ post, themeColor, primaryBiz }: { post: Post; themeColor: s
   return (
     <div>
       {post.image_url && !err && (
-        <div className="relative overflow-hidden bg-secondary/20" style={{ maxHeight: 220 }}>
-          <SafeImage src={post.image_url} alt="Promo" className="block h-auto w-full max-h-[220px] object-cover" loading="lazy" decoding="async" onError={() => setErr(true)} />
+        <div className="relative overflow-hidden bg-secondary/20" style={{ height: 220 }}>
+          <SafeImage
+            src={post.image_url}
+            alt="Promo"
+            fill
+            sizes="(max-width: 640px) 100vw, 600px"
+            className="object-cover"
+            loading="lazy"
+            decoding="async"
+            onError={() => setErr(true)}
+          />
           <div className="absolute inset-0 bg-black/25" />
           <div className="absolute top-3 left-3">
             <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-500 text-white shadow">
@@ -168,8 +176,17 @@ function EventPost({ post }: { post: Post }) {
   return (
     <div>
       {post.image_url && !err && (
-        <div className="relative overflow-hidden mx-4 mb-3 rounded-xl bg-secondary/20" style={{ maxHeight: 200 }}>
-          <SafeImage src={post.image_url} alt="Event" className="block h-auto w-full max-h-[200px] rounded-xl object-cover" loading="lazy" decoding="async" onError={() => setErr(true)} />
+        <div className="relative overflow-hidden mx-4 mb-3 rounded-xl bg-secondary/20" style={{ height: 200 }}>
+          <SafeImage
+            src={post.image_url}
+            alt="Event"
+            fill
+            sizes="(max-width: 640px) 100vw, 600px"
+            className="object-cover rounded-xl"
+            loading="lazy"
+            decoding="async"
+            onError={() => setErr(true)}
+          />
           <div className="absolute top-3 right-3">
             <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
               <CalendarDays className="w-3 h-3" /> Event
@@ -321,6 +338,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
   const [peekOpen, setPeekOpen] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null); // comment id
   const [showAllComments, setShowAllComments] = useState(false);
+  const [commentMenuId, setCommentMenuId] = useState<string | null>(null); // emoji+action popup
   const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
 
   useEffect(() => { if (feedMode) setViewMode(feedMode); }, [feedMode]);
@@ -661,10 +679,50 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="bg-secondary/50 rounded-xl px-3 py-2">
+                        <div
+                          className="bg-secondary/50 rounded-xl px-3 py-2 cursor-pointer select-none"
+                          onContextMenu={e => { e.preventDefault(); setCommentMenuId(commentMenuId === c.id ? null : c.id); }}
+                          onClick={() => {}}
+                        >
                           <p className="text-xs font-semibold">{c.author_name ?? 'Unknown'}</p>
                           <p className="text-sm">{c.content}</p>
                         </div>
+                        {/* Emoji + action popup */}
+                        {commentMenuId === c.id && (
+                          <div className="relative z-50">
+                            <div className="absolute left-0 mt-1 w-56 rounded-2xl bg-card border border-border shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                              {/* Emoji row */}
+                              <div className="flex items-center justify-between px-3 py-2 border-b border-border/50">
+                                {['❤️','👏','👍','👎','🔥','🤩','😂'].map(emoji => (
+                                  <button key={emoji} onClick={() => setCommentMenuId(null)}
+                                    className="text-lg hover:scale-125 transition-transform p-0.5" type="button">
+                                    {emoji}
+                                  </button>
+                                ))}
+                              </div>
+                              {/* Action list */}
+                              <div className="py-1">
+                                {[
+                                  { label: 'Reply',    icon: '↩️', action: () => { setReplyingTo(c.id); setCommentMenuId(null); } },
+                                  { label: 'Copy',     icon: '📋', action: () => { navigator.clipboard?.writeText(c.content ?? ''); setCommentMenuId(null); } },
+                                  { label: 'Copy Link',icon: '🔗', action: () => { navigator.clipboard?.writeText(`${window.location.href}#comment-${c.id}`); setCommentMenuId(null); } },
+                                  { label: 'Translate',icon: '🌐', action: () => setCommentMenuId(null) },
+                                  ...((c as any).author_id === currentUserId || (currentUser as any)?.role === 'admin'
+                                    ? [{ label: 'Delete', icon: '🗑️', action: () => { handleDeleteComment(c.id, null); setCommentMenuId(null); }, danger: true }]
+                                    : []),
+                                ].map(item => (
+                                  <button key={item.label} onClick={item.action} type="button"
+                                    className={`flex w-full items-center gap-3 px-4 py-2 text-sm hover:bg-secondary/60 transition-colors ${(item as any).danger ? 'text-destructive' : ''}`}>
+                                    <span className="text-base w-5">{item.icon}</span>
+                                    {item.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            {/* Backdrop */}
+                            <div className="fixed inset-0 z-40" onClick={() => setCommentMenuId(null)} />
+                          </div>
+                        )}
                         <div className="flex items-center gap-3 mt-0.5 ml-2">
                           <button onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
                             className="text-[11px] text-muted-foreground hover:text-amber-600 flex items-center gap-0.5 transition-colors">
