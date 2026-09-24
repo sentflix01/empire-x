@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-24 | Bugfix | fix: resolve fill=true parent position errors on avatars | [0e6cb2230](2026-09-24-0e6cb2230-resolve-fill-true-parent-position-errors-on-avat.md) |
 | 2026-09-24 | Bugfix | fix: post images, comment emoji popup, business sections, local login | [ebd4c5c6c](2026-09-24-ebd4c5c6c-post-images-comment-emoji-popup-business-section.md) |
 | 2026-09-24 | Bugfix | fix: business feed sections + post image rendering | [5d6f85a1e](2026-09-24-5d6f85a1e-business-feed-sections-post-image-rendering.md) |
 | 2026-09-23 | Bugfix | fix: seed media patch + sitemap localhost port | [a8b7b69c8](2026-09-23-a8b7b69c8-seed-media-patch-sitemap-localhost-port.md) |
