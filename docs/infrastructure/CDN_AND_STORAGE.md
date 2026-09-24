@@ -22,12 +22,14 @@
 | LCP | Largest Contentful Paint — Core Web Vital for image load speed |
 
 ---
-## Current State: Local Disk (Broken for Production)
+## Current State: Must Activate R2 Before First User
 
 ```
-⚠️  CRITICAL: User uploads currently saved to local Railway disk.
-    Files are LOST on every Railway redeploy.
-    Must migrate to Cloudflare R2 before public launch.
+⚠️  CRITICAL: Upload middleware falls back to local Coolify container disk
+    if R2_* env vars are not set in Coolify.
+    Files saved to local disk are LOST on every Coolify redeploy.
+    Must set all R2_* env vars in Coolify before accepting any user uploads.
+    See LAUNCH_CHECKLIST.md § File Storage for step-by-step setup.
 ```
 
 ---
@@ -73,13 +75,14 @@ Cloudflare CDN serves from edge (300+ locations)
 4. Copy: Account ID, Access Key ID, Secret Access Key
 ```
 
-### Step 2: Set environment variables
+### Step 2: Set environment variables in Coolify
 ```bash
+# Coolify → nodbusiness-backend → Environment Variables:
 R2_ACCOUNT_ID=your_cloudflare_account_id
 R2_ACCESS_KEY_ID=your_r2_access_key
 R2_SECRET_ACCESS_KEY=your_r2_secret
 R2_BUCKET_NAME=nodbusiness-uploads
-R2_PUBLIC_URL=https://pub-xxxx.r2.dev  # from R2 bucket settings → Public Access
+R2_PUBLIC_URL=https://pub-xxxx.r2.dev  # from R2 bucket Settings → Public URL
 ```
 
 ### Step 3: Enable public access
@@ -92,11 +95,12 @@ Set as R2_PUBLIC_URL
 ### Step 4: Verify (no code changes needed)
 ```bash
 # The upload middleware already checks for R2 env vars
-# If set → uses R2; if not → falls back to local disk
-curl -X POST https://your-api.railway.app/api/upload \
+# If R2_* vars set in Coolify → uses R2; if not → falls back to local disk
+curl -X POST https://api.yourdomain.com/api/upload \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@test-image.jpg"
-# Should return: { url: "https://pub-xxx.r2.dev/uploads/..." }
+# Should return: { "url": "https://pub-xxx.r2.dev/uploads/..." }
+# If you see a /uploads/ local path instead of pub-xxx.r2.dev, R2 is not active
 ```
 
 ---
@@ -180,11 +184,11 @@ await s3Client.send(new PutObjectCommand({
 
 ## Cloudflare Cache Configuration
 
-**Apply to R2 bucket via Cloudflare Transform Rules:**
+**Apply to R2 bucket via Cloudflare Transform Rules (optional — R2 already serves fast):**
 
 ```
-# Cache images for 1 year (images are immutable — content-hashed filenames)
-Rule: URI path matches /uploads/*
+# Cache product images for 1 year (content-hashed filenames)
+Rule: URI path matches /uploads/products/*
 Action: Cache TTL = 31536000 (1 year)
 
 # Cache avatars for 1 day (users change avatars occasionally)
@@ -192,12 +196,14 @@ Rule: URI path matches /uploads/avatars/*
 Action: Cache TTL = 86400 (1 day)
 ```
 
-**Cache headers set on upload:**
+**Cache headers set on upload (already in upload middleware):**
 ```javascript
 CacheControl: 'public, max-age=31536000, immutable'
 // "immutable" tells browsers: don't revalidate this URL
 // Use content-hashed filenames so new uploads = new URL
 ```
+
+**Performance:** With Cloudflare's Nairobi PoP serving R2 content, Ethiopian users get image load times under 50ms for cached assets.
 
 ---
 

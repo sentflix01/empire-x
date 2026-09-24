@@ -19,14 +19,14 @@ Authentication and account lifecycle: register with OTP email verification, veri
 | `POST` | `/api/auth/verify-otp` | public | 239 |
 | `POST` | `/api/auth/resend-otp` | public | 328 |
 | `POST` | `/api/auth/login` | public | 368 |
-| `POST` | `/api/auth/google` | public | 478 |
-| `GET` | `/api/auth/me` | auth | 603 |
-| `POST` | `/api/auth/forgot-password` | public | 637 |
-| `POST` | `/api/auth/reset-password` | public | 672 |
-| `PUT` | `/api/auth/change-password` | auth | 734 |
-| `POST` | `/api/auth/refresh` | public | 786 |
-| `POST` | `/api/auth/logout` | public | 831 |
-| `POST` | `/api/auth/logout-all` | auth | 850 |
+| `POST` | `/api/auth/google` | public | 486 |
+| `GET` | `/api/auth/me` | auth | 611 |
+| `POST` | `/api/auth/forgot-password` | public | 645 |
+| `POST` | `/api/auth/reset-password` | public | 680 |
+| `PUT` | `/api/auth/change-password` | auth | 742 |
+| `POST` | `/api/auth/refresh` | public | 794 |
+| `POST` | `/api/auth/logout` | public | 839 |
+| `POST` | `/api/auth/logout-all` | auth | 858 |
 
 ## 4. What does it touch?
 

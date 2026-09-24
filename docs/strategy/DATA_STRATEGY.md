@@ -155,11 +155,10 @@ sla:
 
 | Processor | Purpose | DPA Status |
 |-----------|---------|------------|
-| **Neon (PostgreSQL)** | Primary database | ✅ Signed |
-| **Upstash (Redis)** | Cache, sessions, queues | ✅ Signed |
-| **Cloudflare (R2, CDN, WAF)** | Object storage, edge, security | ✅ Signed |
+| **Supabase (PostgreSQL)** | Primary database | ✅ Signed |
 | **Vercel** | Frontend hosting | ✅ Signed |
-| **Railway** | Backend hosting | ✅ Signed |
+| **Render** | Backend compute | ✅ Signed |
+| **Cloudflare (R2, CDN, WAF)** | Object storage, edge, security | ✅ Signed |
 | **SendGrid** | Transactional email | ✅ Signed |
 | **Firebase (FCM)** | Push notifications | ✅ Signed |
 | **Stripe** | Payments (card) | ✅ Signed |

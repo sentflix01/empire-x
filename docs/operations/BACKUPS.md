@@ -1,201 +1,207 @@
-# Nodbusiness — Backup & Recovery
+# Nodbusiness — Backup Strategy
 
-> Data loss is unrecoverable. Set this up before going to production.
-> **Implemented 2026-08-23:** automated daily `pg_dump` backups (`scripts/backup-database.js`)
-> + restorability verification (`scripts/verify-backup.js`). See "Independent Backups" below.
-> Last updated: 2026-08-23
-
----
-
-## Acronyms Used in This Document
-
-| Acronym | Full Form |
-|---------|-----------|
-| DB | Database |
-| PITR | Point-In-Time Recovery — restoring a database to an earlier state |
-| WAL | Write-Ahead Log — PostgreSQL transaction log used for PITR |
-| R2 | Cloudflare R2 — object storage |
-| CDN | Content Delivery Network |
-| RPO | Recovery Point Objective — maximum acceptable data loss in time |
-| RTO | Recovery Time Objective — maximum acceptable downtime |
-| SQL | Structured Query Language |
+> **Last updated:** September 22, 2026
+> **Database:** Supabase PostgreSQL (project `tpgzlokgnjxcerexxoda`)
+> **Backup tool:** pg_dump (built into backend Docker image via `postgresql-client`)
 
 ---
 
-## What Needs Backing Up
+## Backup Overview
 
-| Data | Storage | Backup Method |
-|---|---|---|
-| PostgreSQL database | Neon (managed) | Automatic — Neon handles this |
-| User-uploaded files | Cloudflare R2 | R2 versioning + replication |
-| Environment variables | Railway + Vercel | Export manually to secure location |
-| Source code | GitHub | Git history |
+| Type | Method | Frequency | Retention | Storage |
+|---|---|---|---|---|
+| Automated daily backup | `scripts/backup-database.js` | Daily (checked hourly) | 14 days | Supabase R2 or local |
+| Manual backup | `npm run backup` | On demand | Manual cleanup | Local `backend/backups/` |
+| Supabase managed | Supabase internal snapshots | Continuous (Pro) / Weekly (Free) | 7 days (Pro) | Supabase infrastructure |
 
 ---
 
-## Database Backups (Neon)
+## How Automated Backups Work
 
-Neon automatically backs up your database. No manual setup required.
+The backup script runs inside the Render container at server startup:
 
-**Free tier:** 7-day history with point-in-time restore  
-**Launch plan ($19/month):** 7-day PITR + branching for staging  
-**Scale plan:** 30-day PITR + read replicas
+```typescript
+// index.ts
+startBackupSchedule();  // Checks hourly, runs once per day
+```
 
-### How to Restore
+**Script:** `backend/scripts/backup-database.js`
 
-1. Open https://neon.tech → your project
-2. Click **Restore** tab
-3. Select a point in time (e.g., "yesterday 3pm")
-4. Restore to: new branch (test first), then switch production connection string
+**What it does:**
+1. Runs `pg_dump` against the database
+2. Compresses the output with gzip (`.sql.gz`)
+3. Uploads to Cloudflare R2 if configured, or saves to `backend/backups/` locally
+4. Deletes backups older than `BACKUP_RETENTION_DAYS` (default 14 days)
+5. Records success/failure in `telemetry_events` table
 
-**Test this before an incident, not during one.**
+**Schedule:** Runs once per day. Checked hourly — fires when `now() - last_backup > 24h`.
 
-### Manual Backup (extra safety)
+---
+
+## Database Connection for Backups
+
+`pg_dump` cannot use the Supabase transaction pooler (port 6543). It requires a **direct connection** (port 5432). The backup script automatically converts pooler URLs to direct connections.
+
+**Automatic conversion (in `stripPgbouncerParam`):**
+```
+postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres
+              ↓ automatically converted to ↓
+postgresql://postgres:PASS@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres
+```
+
+**Render env var `BACKUP_DATABASE_URL`:** Set to the same pooler URL as `DATABASE_URL`. The script handles conversion automatically.
+
+**`BACKUP_FORCE_IPV4=true`:** Required on Render free tier which has no IPv6 outbound. Forces IPv4 DNS resolution for backup connections.
+
+---
+
+## Current Backup Status
+
+On Render free tier, `pg_dump` is installed via the Dockerfile:
+```dockerfile
+RUN apk add --no-cache postgresql-client
+```
+
+**Current backup storage:** Local disk (`/app/backups/`) — these are **lost on every Render redeploy** since Render free tier has no persistent disk.
+
+**Fix:** Configure Cloudflare R2 for persistent backup storage:
+```
+R2_ACCOUNT_ID=your_cloudflare_account_id
+R2_ACCESS_KEY_ID=your_r2_access_key
+R2_SECRET_ACCESS_KEY=your_r2_secret_key
+R2_BUCKET_NAME=nodbusiness-backups
+R2_PUBLIC_URL=https://pub-xxx.r2.dev
+```
+
+Until R2 is configured, use **manual backups** for important data preservation.
+
+---
+
+## Manual Backup (From Local Machine)
 
 ```bash
-# Run this weekly and store the file securely (not in Git)
-pg_dump $DATABASE_URL --no-owner --no-acl > backup-$(date +%Y%m%d).sql
+cd backend
 
-# Store in: encrypted cloud storage, password manager notes, or offline drive
+# Create backup to local file
+NODE_TLS_REJECT_UNAUTHORIZED=0 npm run backup
+
+# Or run pg_dump directly
+PGPASSWORD=your_password pg_dump \
+  "postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres?sslmode=require" \
+  --no-owner \
+  --format=custom \
+  | gzip > backup-$(date +%Y%m%d-%H%M%S).sql.gz
+```
+
+Backup files are saved to `backend/backups/`.
+
+---
+
+## Restore From Backup
+
+**Restore a `.sql.gz` backup:**
+
+```bash
+# Decompress and restore
+gunzip -c backup-file.sql.gz | pg_restore \
+  --no-owner \
+  --dbname="postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres?sslmode=require"
+```
+
+**Or use the export/restore script:**
+
+```powershell
+# Windows PowerShell
+.\scripts\export_and_restore_to_supabase.ps1
+```
+
+**Warning:** Restore overwrites existing data. Always backup the target database before restoring.
+
+---
+
+## Supabase Built-in Backups (Free Tier)
+
+Supabase free tier does **not** include automated daily backups or Point-in-Time Recovery. It has:
+- Daily snapshots (kept for a limited period — not guaranteed)
+- No PITR (Point-in-Time Recovery)
+
+**Supabase Pro ($25/mo) adds:**
+- Daily backups with 7-day retention
+- Point-in-Time Recovery (PITR)
+- Manual backup downloads from dashboard
+
+For a production app with real users, upgrade to Supabase Pro before launch.
+
+---
+
+## Backup Verification
+
+To verify a backup is valid:
+
+```bash
+# List contents without restoring
+pg_restore --list backup-file.sql.gz | head -50
+
+# Test restore to a temporary database
+createdb nodbusiness_restore_test
+pg_restore --dbname=nodbusiness_restore_test backup-file.sql.gz
+psql nodbusiness_restore_test -c "SELECT COUNT(*) FROM users;"
+dropdb nodbusiness_restore_test
+```
+
+Or use the automated verification script:
+```bash
+npm run backup:verify
 ```
 
 ---
 
-## Independent Backups (implemented 2026-08-23)
+## Backup Files in Repository
 
-Neon PITR protects against *accidents*, but an independent dump also protects against losing
-access to Neon itself (account compromise, accidental project deletion, billing lockout).
-The platform now runs its own backup pipeline:
+The `backend/backups/` directory contains some historical backup files:
+```
+backend/backups/
+  nodbusiness-2026-08-23-06-36-26.sql.gz
+  nodbusiness-2026-08-23-06-37-35.sql.gz
+  nodbusiness-2026-08-23-06-37-48.sql.gz
+  nodbusiness-2026-08-23-06-38-56.sql.gz
+```
 
-| Piece | Detail |
+These are from the development phase and contain seed/test data only.
+
+---
+
+## What's Backed Up
+
+The `pg_dump` backup includes:
+- All 38 migration tables (users, posts, products, orders, showrooms, etc.)
+- All user data, business data, order history
+- Schema definitions (tables, indexes, constraints)
+
+**Not included in pg_dump:**
+- Supabase Storage files (uploaded images/documents) — backed up separately via Supabase
+- Redis data — ephemeral by design, not backed up
+- Environment variables — documented in `ENVIRONMENT_VARIABLES.md`
+
+---
+
+## Backup Checklist
+
+Before going live with real users:
+
+- [ ] Configure R2 or Supabase Storage for persistent backup storage (not local disk)
+- [ ] Verify backup script runs successfully: check `telemetry_events` table for `type='backup_completed'`
+- [ ] Test restore from a backup to confirm integrity
+- [ ] Consider upgrading to Supabase Pro for daily automated backups + PITR
+- [ ] Set `BACKUP_RETENTION_DAYS` appropriately (default 14 is fine for dev)
+
+---
+
+## Retention Policy
+
+| Backup type | Retention |
 |---|---|
-| Dump | `pg_dump --format=custom` piped through gzip — `backend/scripts/backup-database.js` |
-| Schedule | Daily (checked hourly in-process via `startBackupSchedule()` from `index.ts`); production-only unless `BACKUP_SCHEDULE_ENABLED=true` |
-| Destination | Cloudflare R2 `backups/` prefix when R2 env vars are set; otherwise local `backend/backups/` (⚠️ not durable — configure R2 before launch) |
-| Retention | `BACKUP_RETENTION_DAYS` local-file retention (default 14) |
-| Telemetry | Outcome recorded in `app_settings.key='last_database_backup'` — alert when older than ~26 h or status ≠ ok |
-| Manual run | `cd backend && npm run backup` |
-| Requirement | `pg_dump` on PATH (postgresql-client) — ensure it exists in the Railway image |
-
-### Restorability verification
-
-A backup nobody has restored is a hope, not a plan. Verify weekly:
-
-```bash
-BACKUP_VERIFY_DATABASE_URL=postgres://<scratch-db> npm run backup:verify
-```
-
-Drops/recreates the scratch schema, restores the newest dump with `pg_restore`, then asserts
-table/user counts. Exit code 0 = proven restorable. **Never point it at production.**
-
-### Operator setup checklist
-
-- [ ] R2 env vars configured in production (so dumps leave the box)
-- [ ] `postgresql-client` present in the Railway deploy image
-- [ ] Scratch verify target created (a Neon branch works well)
-- [ ] Weekly `npm run backup:verify` scheduled (cron / Railway scheduled job)
-- [ ] Alert wired: page when `last_database_backup.at` is stale or `status != 'ok'`
-
----
-
-## File Storage Backups (Cloudflare R2)
-
-R2 stores files redundantly across Cloudflare's network. For additional protection:
-
-1. Enable **Object Versioning** in R2 bucket settings — keeps previous versions of overwritten files
-2. Consider cross-region replication for critical media (R2 supports this in the dashboard)
-
----
-
-## Environment Variable Backup
-
-Railway and Vercel env vars are not backed up automatically. If your account is compromised or you accidentally delete variables, you need to restore them.
-
-**Action:** Once per month, export all env vars to a secure, encrypted location:
-- 1Password or Bitwarden vault
-- Encrypted note (never plain text file)
-- `.env.production` file stored offline, never in Git
-
-```bash
-# Check what's currently set in Railway
-railway variables --service nodbusiness-backend
-```
-
----
-
-## Disaster Recovery Scenarios
-
-### Scenario 1: Accidental data deletion
-
-Someone runs `DELETE FROM products` without a WHERE clause.
-
-**Recovery:**
-1. Open Neon → Restore → pick a time 5 minutes before the incident
-2. Restore to a new branch
-3. Verify the data is there: `SELECT COUNT(*) FROM products`
-4. Switch `DATABASE_URL` in Railway to point to the restored branch
-5. Redeploy backend
-6. Monitor for a few hours, then clean up the broken branch
-
-**Expected recovery time:** 15–30 minutes
-
----
-
-### Scenario 2: Backend crashes and won't start
-
-A bad deploy causes a crash loop.
-
-**Recovery:**
-1. Railway → Deployments → find the last working deploy → **Rollback**
-2. Takes ~2 minutes
-
----
-
-### Scenario 3: Vercel build fails
-
-A Next.js build error blocks the frontend from deploying.
-
-**Recovery:**
-1. Vercel → Deployments → find last successful deploy → **Promote to Production**
-2. Fix the build error → push a new commit → verify the build passes
-
----
-
-### Scenario 4: R2 bucket deleted or corrupted
-
-All user uploads are lost.
-
-**Prevention:** Enable versioning before this happens.  
-**Recovery:** Restore from versioned objects in R2 dashboard. If versioning wasn't enabled — the files are gone.
-
-**Lesson:** Enable R2 versioning on day 1.
-
----
-
-### Scenario 5: Complete account compromise
-
-Railway, Vercel, or Neon account is taken over.
-
-**Prevention:**
-- Enable 2FA on all service accounts
-- Use strong unique passwords (password manager)
-- Limit who has access to production credentials
-
-**Recovery:**
-1. Contact provider support immediately
-2. Restore from manual database backup (`backup-YYYYMMDD.sql`)
-3. Recreate services from scratch using backup env vars
-4. Redeploy from GitHub
-
----
-
-## Monthly Backup Checklist
-
-Run these monthly:
-
-- [ ] Verify Neon automatic backups are enabled and recent
-- [ ] Run manual `pg_dump` and store securely
-- [ ] Verify R2 versioning is enabled
-- [ ] Export current Railway + Vercel env vars to secure storage
-- [ ] Test restore: restore Neon to a test branch, run `SELECT COUNT(*) FROM users`, verify number makes sense
-- [ ] Check Sentry for any recurring errors that could indicate data integrity issues
+| Automated daily backups | 14 days (configurable via `BACKUP_RETENTION_DAYS`) |
+| Manual backups | Until manually deleted |
+| Supabase snapshots (free) | Best-effort, not guaranteed |
+| Supabase daily backups (Pro) | 7 days |

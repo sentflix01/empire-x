@@ -8,7 +8,7 @@ This feature adds two interconnected capabilities to Nodbusiness, the global sup
 
 2. **AI-User Distinction** — formally separates AI-generated seed/demo accounts from real registered users at the data-model level and exposes that distinction in every API response and UI surface that displays user identity, so real users always know when they are looking at a demo account.
 
-The backend is Node.js/Express with PostgreSQL (Neon). The frontend is Next.js 16 with TailwindCSS/shadcn/ui. Existing relevant tables: `users`, `user_profiles`, `follows`. Seed accounts currently carry `@nodbusiness.test` email addresses.
+The backend is Node.js/Express with PostgreSQL (Supabase). The frontend is Next.js 16 with TailwindCSS/shadcn/ui. Existing relevant tables: `users`, `user_profiles`, `follows`. Seed accounts currently carry `@nodbusiness.test` email addresses.
 
 ---
 

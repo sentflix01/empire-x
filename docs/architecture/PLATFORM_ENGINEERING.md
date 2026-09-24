@@ -140,7 +140,7 @@ No team needs another team's permission to ship.
 2. Their scale exceeded what existing tools could handle
 3. Chinese government requirements demanded domestic infrastructure
 
-Nodbusiness should use existing global tools (Railway, Vercel, Neon, Stripe, Redis) instead
+Nodbusiness should use existing global tools (Oracle Cloud + Coolify, Cloudflare Pages, Supabase, Stripe, Upstash) instead
 of building infrastructure. Alibaba's path was forced by geopolitics and extreme scale.
 
 ---
@@ -175,7 +175,7 @@ Never deploy directly to 100% of traffic. Always:
 - Gradually shift more traffic
 - Roll back instantly if errors spike
 
-**Nodbusiness equivalent:** Railway supports this with health checks + zero-downtime deploys.
+**Nodbusiness equivalent:** Coolify provides this with health checks + zero-downtime rolling deploys (HEALTHCHECK-driven container swap).
 
 ### 3. Experimentation Culture (Universal)
 
@@ -194,10 +194,10 @@ Every request is traced. Every error is captured. Every metric is dashboarded.
 | What | Facebook | LinkedIn | Amazon | Nodbusiness |
 |---|---|---|---|---|
 | Error tracking | Scuba | Internal | CloudWatch | **Sentry** |
-| Log aggregation | ODS | Kafka | CloudWatch Logs | **Pino → Railway logs** |
-| Metrics | ODS | Pinot | CloudWatch Metrics | **Railway metrics** |
+| Log aggregation | ODS | Kafka | CloudWatch Logs | **Pino → Coolify logs** |
+| Metrics | ODS | Pinot | CloudWatch Metrics | **Coolify metrics** |
 | Distributed tracing | Internal | OpenTelemetry | X-Ray | **Sentry traces** |
-| Alerts | Internal | PagerDuty | CloudWatch Alarms | **PagerDuty / UptimeRobot** |
+| Alerts | Internal | PagerDuty | CloudWatch Alarms | **Uptime Kuma + Telegram** |
 
 ### 5. On-Call Culture (Universal)
 
@@ -237,8 +237,8 @@ Every service has:
 - Basic dashboard for North Star metrics
 
 ### Month 6–12 (50K–200K users): Reliability
-- Blue-green deployments (Railway)
-- Database read replicas (Neon)
+- Blue-green deployments (Coolify rolling deploys via HEALTHCHECK)
+- Database read replicas (Supabase Pro plan)
 - CDN for API responses (Cloudflare Workers)
 - Load testing before peak events
 - Chaos engineering (randomly kill services in staging to test resilience)
@@ -247,7 +247,7 @@ Every service has:
 - Microservice extraction (start with notification-service and search-service)
 - Elasticsearch/Meilisearch for search
 - Redis Cluster for cache
-- Multiple Railway regions (US + EU + Africa)
+- Multiple Hetzner VM regions (Johannesburg + EU + Africa when available)
 - Dedicated security audit
 
 ---

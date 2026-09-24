@@ -1,218 +1,116 @@
-# Nodbusiness — Cost Breakdown by Growth Stage
+# Nodbusiness — Cost Breakdown
 
-> Realistic monthly infrastructure costs at every milestone.
-> All costs in USD. Reference market (ETB) conversion: ~130 ETB/USD (adjust for current rate).
-> Last updated: August 2026
+> **Last updated:** September 22, 2026
+> **Current monthly cost: $0**
+
+---
+
+## Current Stack — Zero Cost
+
+| Service | Provider | Plan | Monthly Cost | Free Tier Limits |
+|---|---|---|---|---|
+| Backend hosting | Render | Free | $0 | 750h/mo, 0.1 CPU, 512MB RAM, sleeps after 15 min |
+| Frontend hosting | Vercel | Hobby | $0 | 100GB bandwidth, unlimited deploys |
+| Database | Supabase | Free | $0 | 500MB DB, 1GB storage, 2 projects |
+| Redis | Upstash | Free | $0 | 500K commands/day, 256MB storage |
+| Email | Resend | Free | $0 | 3,000 emails/month, 100/day |
+| AI | Google Gemini | Free | $0 | Generous free tier (rate limited) |
+| Google OAuth | Google Cloud | Free | $0 | Unlimited |
+| Error tracking | Sentry | Free | $0 | 5K errors/month |
+| CI/CD | GitHub Actions | Free | $0 | Public repository = unlimited |
+| Keep-alive | cron-job.org | Free | $0 | Unlimited jobs |
+| Uptime monitor | UptimeRobot | Free | $0 | 50 monitors, 5 min interval |
+| **TOTAL** | | | **$0/mo** | |
 
 ---
 
-## Acronyms Used in This Document
+## Upgrade Triggers and Costs
 
-| Acronym | Full Form |
-|---------|-----------|
-| USD | United States Dollar |
-| ETB | Ethiopian Birr — reference market currency |
-| MAU | Monthly Active Users |
-| CDN | Content Delivery Network |
-| R2 | Cloudflare R2 — object storage |
-| DB | Database |
-| API | Application Programming Interface |
-| RAM | Random Access Memory |
-| CPU | Central Processing Unit |
-| MRR | Monthly Recurring Revenue |
-| GMV | Gross Merchandise Value |
-| COGS | Cost of Goods Sold |
+When the app grows, these are the first services that will need upgrading:
 
----
----
+### Priority 1 — Before real users pay money
 
-## Stage 0: Development / Pre-Launch
-**Users:** 0–100 (team + beta testers)
-**Monthly cost:** ~$5–15/month
-
-| Service | Plan | Cost/month |
+| Service | Upgrade reason | Cost |
 |---|---|---|
-| Railway (backend) | Hobby | $5 |
-| Vercel (frontend) | Hobby (free) | $0 |
-| Neon PostgreSQL | Free (0.5 CU, 3GB) | $0 |
-| Redis (Upstash) | Free (10K cmds/day) | $0 |
-| Cloudflare R2 | Free (10GB, 1M ops) | $0 |
-| Resend (email) | Free (3K/month) | $0 |
-| Sentry | Free (5K errors/month) | $0 |
-| Domain (nodbusiness.vercel.app) | Annual ÷ 12 | ~$1.50 |
-| **Total** | | **~$6.50/month** |
+| Vercel → Pro | Hobby ToS prohibits commercial use | $20/mo |
+| Render → Starter | Eliminate cold starts, always-on | $7/mo |
+| **Subtotal** | | **$27/mo** |
 
-**ETB equivalent:** ~ETB 812/month
+### Priority 2 — When traffic grows
+
+| Service | Upgrade trigger | Cost |
+|---|---|---|
+| Supabase → Pro | >500MB data or >1GB storage | $25/mo |
+| Upstash → Pay-as-you-go | >500K Redis commands/day | $0.20 per 100K commands |
+| Resend → Pro | >3K emails/month | $20/mo for 50K emails |
+| **Subtotal** | | **~$45/mo** |
+
+### Priority 3 — Scale
+
+| Service | Upgrade trigger | Cost |
+|---|---|---|
+| Render → Standard | >512MB RAM or need horizontal scaling | $25/mo |
+| Sentry → Team | >5K errors/month | $26/mo |
+| Cloudflare R2 | Supabase storage too slow/expensive | $0.015/GB storage + $0.36/M reads |
+| **Subtotal** | | **~$50/mo** |
 
 ---
 
-## Stage 1: Soft Launch
-**Users:** 100–1,000 MAU
-**Monthly cost:** ~$30–60/month
+## Cost Projections
 
-| Service | Plan | Cost/month | Notes |
+| Phase | Users | Monthly cost | Notes |
 |---|---|---|---|
-| Railway (backend) | Starter ($10 credit included) | $10–20 | More RAM as traffic grows |
-| Vercel (frontend) | Hobby (free) | $0 | Still within free tier |
-| Neon PostgreSQL | Free → Launch ($19) | $0–19 | Upgrade when > 3GB data |
-| Redis (Upstash) | Free → Pay-as-you-go | $0–5 | ~$0.2 per 100K commands |
-| Cloudflare R2 | Free | $0 | Well within 10GB free |
-| Resend (email) | Free → Starter ($20) | $0–20 | Upgrade at ~3K emails/month |
-| Sentry | Free → Team ($26) | $0 | Upgrade at 5K errors/month |
-| Stripe | 2.9% + $0.30/txn | Variable | Only when processing live payments |
-| Chapa | 1.5–2% per txn | Variable | Only on live payments |
-| **Total fixed** | | **~$30–65/month** |
-
-**ETB equivalent:** ~ETB 3,750–8,125/month
+| Development | 0-10 (internal) | **$0** | Current state |
+| Beta | 10-100 | **$27** | Upgrade Vercel + Render before launch |
+| Early growth | 100-1,000 | **$72** | Add Supabase Pro, Resend Pro |
+| Growth | 1,000-10,000 | **~$150** | Scale Redis, Render Standard |
+| Scale | 10,000+ | **~$500+** | Depends on usage patterns |
 
 ---
 
-## Stage 2: Early Growth
-**Users:** 1,000–10,000 MAU
-**Monthly cost:** ~$150–300/month
+## What Each Service Actually Costs at Scale
 
-| Service | Plan | Cost/month | Notes |
+### Database (Supabase)
+- Free: 500MB storage, 2 active projects
+- Pro ($25/mo): 8GB storage, unlimited projects, daily backups, point-in-time recovery
+- Scale requirement: >500MB data or needing PITR backups
+
+### Redis (Upstash)
+- Free: 500K cmd/day
+- Pay-as-you-go: $0.20/100K commands — at 5M commands/day = $10/day = $300/mo
+- Alternative: Switch to Redis on Render ($10/mo) for predictable cost at high traffic
+
+### Email (Resend)
+- Free: 3K emails/month
+- Pro ($20/mo): 50K emails/month
+- At 10K users receiving weekly digests = ~43K emails/month → Pro plan needed
+
+### File Storage (Supabase Storage)
+- Free: 1GB
+- Pro ($25/mo): 100GB included
+- Overflow: $0.021/GB additional
+- R2 alternative (when needed): $0.015/GB storage + $0.36/M requests — cheaper at scale
+
+---
+
+## Cost Optimization Notes
+
+- **Render free tier cold starts** are mitigated by cron-job.org pings (free). The $7/mo Starter upgrade buys always-on — worth it when real users arrive.
+- **Upstash 500K/day limit** resets at midnight UTC. If the app hits this limit regularly, consider switching to Redis with a fixed monthly cost instead of pay-as-you-go.
+- **Supabase free tier** pauses after 1 week of no DB queries. The `supabase-keepalive.yml` GitHub Actions workflow pings it every 6 hours to prevent this.
+- **Vercel Hobby** is permanently free for non-commercial projects. The $20/mo Pro upgrade is only triggered by commercial use (real payments). Beta testing and demos are fine on Hobby.
+- **GitHub Actions** is free for public repositories. If the repo is made private, the free tier allows 2,000 minutes/month — the current CI pipeline uses ~6 min/push, giving ~333 free pushes/month.
+
+---
+
+## Comparison: Current Stack vs Previous Plan
+
+| Stack | Monthly cost | Always-on | Notes |
 |---|---|---|---|
-| Railway (backend) | Team ($20) + usage | $40–80 | More CPU/RAM |
-| Vercel (frontend) | Pro ($20) | $20 | Team features, analytics |
-| Neon PostgreSQL | Launch ($19) | $19 | 10GB storage |
-| Redis (Upstash) | Pay-as-you-go | $10–30 | ~50M commands/month |
-| Cloudflare R2 | Pay-as-you-go | $0–5 | ~20–50 GB storage |
-| Resend (email) | Growth ($89) | $89 | 50K emails/month |
-| Sentry | Team ($26) | $26 | 50K errors |
-| UptimeRobot | Pro ($8) | $8 | Uptime monitoring + alerts |
-| Domain + SSL | Annual ÷ 12 | $2 | Cloudflare (free SSL) |
-| **Total** | | **~$215–260/month** |
+| **Current (Render+Vercel)** | **$0** | No (free tier) | Zero card required |
+| Previous plan (Oracle+Coolify) | $0* | Yes | *Requires $1 card verification (blocked) |
+| Koyeb | $0* | Yes | *Requires $29 card hold (blocked) |
+| Railway | $0 (30 days) then $5/mo | Yes | Trial only, card eventually required |
+| Self-hosted (VPS) | $3-6/mo | Yes | Requires card + server management |
 
-**ETB equivalent:** ~ETB 27,000–33,000/month
-
-**Revenue to cover costs (at 3% commission — the current platform rate, ETB 500 avg order):**
-→ Need ~1,800 orders/month to cover infrastructure = ~60 orders/day
-
----
-
-## Stage 3: Growth
-**Users:** 10,000–100,000 MAU
-**Monthly cost:** ~$500–1,500/month
-
-| Service | Plan | Cost/month | Notes |
-|---|---|---|---|
-| Railway (backend) | Team + 2 instances | $80–200 | Horizontal scaling starts |
-| Vercel (frontend) | Pro | $20 | |
-| Neon PostgreSQL | Scale ($69–199) | $69–199 | 50–200GB, connection pooler |
-| Redis (Upstash) | Pay-as-you-go | $30–100 | High throughput |
-| Cloudflare R2 | Pay-as-you-go | $5–25 | 100–500 GB storage |
-| Cloudflare CDN | Free–Pro ($20) | $0–20 | DDoS protection, analytics |
-| Resend (email) | Business ($249) | $249 | 200K emails/month |
-| Sentry | Business ($80) | $80 | 100K errors |
-| PagerDuty (on-call) | Free | $0 | |
-| BullMQ (background jobs) | Self-hosted on Railway | $10–20 | Dedicated worker |
-| Meilisearch (search) | Cloud Start ($30) | $30 | When PostgreSQL search is too slow |
-| **Total** | | **~$575–900/month** |
-
-**ETB equivalent:** ~ETB 72,000–113,000/month
-
-**Revenue to cover costs (at 3% commission, ETB 800 avg order):**
-→ Need ~4,700 orders/month = ~160 orders/day (achievable at 10K+ users)
-
----
-
-## Stage 4: Scale
-**Users:** 100,000–1,000,000 MAU
-**Monthly cost:** ~$3,000–10,000/month
-
-| Service | Plan | Cost/month | Notes |
-|---|---|---|---|
-| Railway (backend) | Team + 5 instances | $300–800 | Multiple regions |
-| Vercel (frontend) | Enterprise ($500+) | $500 | |
-| Neon PostgreSQL | Enterprise | $300–800 | Read replicas, multiple regions |
-| Redis (Upstash) | Enterprise | $100–500 | Redis Cluster |
-| Cloudflare R2 | Pay-as-you-go | $50–200 | 1–5 TB storage |
-| Cloudflare CDN | Business ($200) | $200 | WAF, rate limiting |
-| Email | SendGrid Pro / AWS SES | $200–500 | 1M+ emails/month |
-| Sentry | Business / Enterprise | $200–500 | |
-| Meilisearch | Cloud Scale | $100–300 | |
-| PagerDuty | Team ($21/user/mo) | $100–300 | 5–15 on-call engineers |
-| DataDog / Grafana Cloud | Professional | $100–500 | Full observability stack |
-| Legal / Compliance | Recurring | $200–500 | Data protection, legal reviews |
-| **Total** | | **~$2,350–5,100/month** |
-
-**ETB equivalent:** ~ETB 294,000–638,000/month
-
-**Revenue to cover costs (at 3% commission + subscriptions):**
-→ At 100K users, revenue should be ETB 1–5M/month
-→ Infrastructure is ~10–20% of revenue (healthy ratio)
-
----
-
-## Stage 5: Enterprise
-**Users:** 1,000,000+ MAU
-**Monthly cost:** $20,000–100,000+/month
-
-At this scale, most companies move to:
-- **AWS, GCP, or Azure** direct (not Railway/Vercel) for better pricing at volume
-- **Dedicated database servers** (RDS PostgreSQL or Aurora)
-- **Full-time SRE (Site Reliability Engineering) team** of 10–30 engineers
-- **Custom CDN configuration** with Cloudflare Enterprise
-- **SOC 2 Type II certification** ($30–100K one-time)
-
-This is not a concern today. Build for this scale when you're at 200K+ users.
-
----
-
-## Cost Optimization Rules
-
-### 1. Start on free tiers
-Every service has a generous free tier. Don't pay until you hit the limit.
-Railway Hobby ($5) → Starter ($20) → Team ($50) — only upgrade when needed.
-
-### 2. Free tiers available right now
-| Service | Free allowance |
-|---|---|
-| Vercel | Unlimited personal projects |
-| Neon | 0.5 CU compute, 3 GB storage |
-| Upstash Redis | 10,000 commands/day |
-| Cloudflare R2 | 10 GB storage, 1M Class A ops |
-| Resend | 3,000 emails/month |
-| Sentry | 5,000 errors/month |
-| PagerDuty | 1 user free |
-| UptimeRobot | 50 monitors, 5-min checks |
-
-**Combined value of free tier services: ~$300/month equivalent**
-
-### 3. Cost-per-user benchmarks
-| Stage | Cost/month | Users | Cost per user |
-|---|---|---|---|
-| Stage 0 | $7 | 100 | $0.07 |
-| Stage 1 | $50 | 1,000 | $0.05 |
-| Stage 2 | $250 | 10,000 | $0.025 |
-| Stage 3 | $750 | 100,000 | $0.0075 |
-| Stage 4 | $4,000 | 500,000 | $0.008 |
-
-As users grow, cost-per-user **decreases** — economies of scale.
-
-### 4. The biggest cost killers to watch
-| Risk | Prevention |
-|---|---|
-| Runaway database queries | Connection pooling, query optimization, `EXPLAIN ANALYZE` |
-| Unbounded Redis memory | Set `maxmemory` and eviction policy |
-| Large image uploads | Compress before storing, limit to 10MB |
-| Email spam from bugs | Rate limit OTP emails; monitor bounce rates |
-| Unused Railway instances | Auto-sleep on Hobby tier when idle |
-
----
-
-## Cost Monitoring Setup
-
-```bash
-# Set billing alerts on each platform:
-
-# Railway: Settings → Billing → Usage Alerts → Alert at $50, $100, $200
-# Vercel: Settings → Billing → Spend Management → Set limit
-# Neon: Project Settings → Usage → Set alert at 80% of plan
-# Upstash: Budget Alerts → Alert at 80% of daily limit
-# Cloudflare: Notifications → Billing alerts
-# Resend: Settings → Billing → Usage threshold alerts
-```
-
-Check costs **weekly** at Stage 0–2, **daily** at Stage 3+.
+The Render+Vercel stack is the only genuinely zero-cost option that works without a valid card. See ADR-016 for the full decision record.

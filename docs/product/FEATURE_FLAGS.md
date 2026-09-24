@@ -36,7 +36,7 @@ API: `isEnabled(flagName, userId?)`. There is no PostgreSQL table and no fronten
 the frontend consumes flags through `/api/flags` when needed.
 
 **Emergency kill switch:** set the Redis key via `setFlag(name, false)` (or `redis-cli SET ff:<name> '<{"enabled":false,"rollout":0}>' EX 3600`). This takes effect immediately with no redeploy.
-Changing an `FF_*` env var on Railway triggers a redeploy — it is *not* the fast path.
+Changing an `FF_*` env var in Render triggers a redeploy — it is *not* the fast path.
 
 ---
 

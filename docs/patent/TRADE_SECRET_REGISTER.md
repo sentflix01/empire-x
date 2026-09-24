@@ -146,7 +146,7 @@ the same user behavior dataset.
 
 **Date of Creation:** Ongoing from launch
 **Creator:** Nodbusiness Technologies (aggregated from user activity)
-**Location:** Neon PostgreSQL database (encrypted)
+**Location:** Supabase PostgreSQL database (encrypted at rest by Supabase)
 **Access Level:** System only + CEO with admin credentials
 
 **Description:**
@@ -163,7 +163,7 @@ A competitor launching today cannot replicate this dataset without operating
 the same platform for the same duration. It is a compounding data moat.
 
 **Protection Measures in Place:**
-- [ ] Database encrypted at rest (Neon PostgreSQL)
+- [ ] Database encrypted at rest (Supabase PostgreSQL)
 - [ ] All data access requires authentication
 - [ ] No raw dataset export available via API
 - [ ] Data retention and security policy documented in Privacy Policy

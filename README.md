@@ -106,11 +106,11 @@ Then open http://localhost:3002
 | Payments | Stripe + Chapa (Ethiopia) |
 | Email | Resend (SMTP fallback) |
 | AI | OpenAI / Gemini / Anthropic (switchable via env) |
-| Hosting | Vercel (frontend) + Render (backend) + Supabase Postgres (database) |
+| Hosting | **Render** (backend) · **Vercel** (frontend) · Supabase (database) |
 
 ## CI/CD
 
-Every push to GitHub runs tests, linting, and TypeScript checks via `.github/workflows/ci.yml`. Merging to `main` deploys the frontend to Vercel and the backend to Render via `.github/workflows/deploy.yml`.
+Every push to GitHub runs tests, linting, and TypeScript checks via `.github/workflows/ci.yml`. Merging to `main` triggers `.github/workflows/deploy.yml` which runs migrations against Supabase, then deploys the backend via a Render deploy hook and the frontend via Vercel CLI.
 
 ## Health Check
 

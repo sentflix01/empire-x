@@ -121,10 +121,10 @@ Any website can add a "Continue with Nodbusiness" button.
 
 **Flow:**
 ```
-1. Developer registers their app at nodbusiness.vercel.app/developers
+1. Developer registers their app at nodbusiness.app/developers
 2. Gets client_id + client_secret
 3. User clicks "Login with Nodbusiness" on their site
-4. Redirected to nodbusiness.vercel.app/oauth/authorize?client_id=xxx
+4. Redirected to nodbusiness.app/oauth/authorize?client_id=xxx
 5. User approves → redirected back with auth_code
 6. Developer exchanges code for access_token
 7. Developer calls GET /api/auth/me with token → gets user profile
@@ -138,7 +138,7 @@ Nodbusiness becomes identity infrastructure for African businesses.
 One line of code embeds a full showroom on any website:
 
 ```html
-<script src="https://nodbusiness.vercel.app/embed.js"></script>
+<script src="https://nodbusiness.app/embed.js"></script>
 <div data-nodbusiness-showroom="my-business-slug"></div>
 ```
 

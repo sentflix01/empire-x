@@ -1,6 +1,10 @@
 # Complete Deployment Variables Checklist
 
-This document lists **ALL** environment variables and secrets needed for a complete Render + PostgreSQL + Vercel deployment from scratch. The current production target is Neon.
+This document lists **ALL** environment variables and secrets needed for a complete
+Render + Vercel + Supabase deployment from scratch.
+
+> **Stack:** Render (backend) · Vercel (frontend) · Supabase · Upstash Redis · Cloudflare R2 · Resend
+> **Last updated:** September 2026
 
 ---
 
@@ -12,111 +16,138 @@ Set these in: **GitHub → Settings → Secrets and variables → Actions**
 
 | Secret Name | Value | Where to Get It |
 |---|---|---|
-| `DATABASE_URL` | Neon direct connection URI with `sslmode=require&channel_binding=require` | Neon Console → Connect → disable Connection pooling → copy URI; used by GitHub migration jobs |
-| `VERCEL_TOKEN` | Personal access token starting with `vercel_` | Vercel → Settings → Tokens → Create token |
-| `RENDER_API_KEY` | API key from Render account | Render → Account Settings → API Keys → Create Key |
-| `RENDER_SERVICE_ID` | Service ID from Render dashboard | Render → Backend service → Settings → Service ID |
-| `BACKEND_URL` | `https://nodbusiness-backend.onrender.com` | Render → Backend service → URL |
-| `FRONTEND_URL` | `https://halehame-eosin.vercel.app` or your Vercel domain | Vercel → Project → Settings → Domains |
+| `DATABASE_URL` | Supabase direct connection URI with `sslmode=require` | Supabase → Project Settings → Database → URI (pooling OFF) |
+| `RENDER_DEPLOY_HOOK_URL` | Render deploy hook URL for the backend service | Render → your service → Settings → Deploy Hook → Copy URL |
+| `VERCEL_TOKEN` | Vercel personal access token | Vercel → Account Settings → Tokens → Create Token |
+| `BACKEND_URL` | `https://nodbusiness-backend-9psf.onrender.com` | Render Dashboard → Backend service → Public URL |
+| `FRONTEND_URL` | `https://nodbusiness.vercel.app` | Vercel → Project → Settings → Domains |
 
-### Optional Secrets (Recommended)
+### Optional Secrets (Recommended for Alerts)
 
 | Secret Name | Value | Notes |
 |---|---|---|
 | `TELEGRAM_BOT_TOKEN` | Token from @BotFather | For deployment failure notifications |
 | `TELEGRAM_CHAT_ID` | Your Telegram chat ID | For deployment failure notifications |
-| `SOURCE_DATABASE_URL` | Local or staging DB URL | For manual migration scripts |
+
+### Secrets to Remove (Old Stack — No Longer Used)
+
+If these exist from a previous setup, delete them:
+`COOLIFY_WEBHOOK_URL` · `COOLIFY_TOKEN` · `SUPABASE_DATABASE_URL` · `SOURCE_DATABASE_URL`
 
 ---
 
 ## 2. Render Backend Environment Variables
 
-Set these in: **Render → Backend Service → Environment → Environment Variables**
+Set these in: **Render → your backend service → Environment → Environment Variables**
 
 ### Critical Variables (App Won't Boot Without These)
 
 | Variable | Value | Notes |
 |---|---|---|
-| `DATABASE_URL` | Neon direct connection URI with `sslmode=require&channel_binding=require` | Use the same direct Neon database as GitHub's `DATABASE_URL` secret |
-| `JWT_SECRET` | 64+ character random hex string | Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `DATABASE_URL` | Supabase pooler URI, port 6543, `?sslmode=require` | Use Supabase Supavisor pooler for live app |
+| `JWT_SECRET` | 64+ character random hex string | Generate: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
 | `NODE_ENV` | `production` | Enables security headers, prod rate limits |
-| `FRONTEND_URL` | `https://halehame-eosin.vercel.app` | Can be comma-separated for multiple origins |
+| `FRONTEND_URL` | `https://nodbusiness.vercel.app` | Must match your Vercel domain for CORS |
 
-### File Storage (Uploads)
+> **PORT:** Do not set — Render assigns `PORT=10000` automatically. The backend binds to `process.env.PORT ?? 10000`.
 
-If using **Cloudflare R2**:
+### File Storage (Cloudflare R2 — Required in Production)
 
 | Variable | Value | Where to Get It |
 |---|---|---|
-| `R2_ACCOUNT_ID` | Your Cloudflare Account ID | Cloudflare Dashboard → Workers & Pages → R2 → Settings |
-| `R2_ACCESS_KEY_ID` | R2 API Token (access key) | Cloudflare Dashboard → R2 → Settings → API Tokens → Create Token |
+| `R2_ACCOUNT_ID` | Your Cloudflare Account ID | Cloudflare Dashboard → R2 → Overview → Account ID |
+| `R2_ACCESS_KEY_ID` | R2 API Token (access key) | Cloudflare → R2 → Manage R2 API Tokens → Create Token |
 | `R2_SECRET_ACCESS_KEY` | R2 API Secret | Same as above |
-| `R2_BUCKET_NAME` | `nodbusiness-uploads` | Or your bucket name |
-| `R2_PUBLIC_URL` | `https://pub-[hash].r2.dev` | R2 bucket → Settings → Domain/URL |
+| `R2_BUCKET_NAME` | `nodbusiness-uploads` | Or your chosen bucket name |
+| `R2_PUBLIC_URL` | `https://pub-[hash].r2.dev` | R2 bucket → Settings → Public URL |
 
-If using **Supabase Storage**:
-
-| Variable | Value | Where to Get It |
-|---|---|---|
-| `SUPABASE_URL` | `https://[PROJECT_REF].supabase.co` | Supabase → Project Settings → Project URL |
-| `SUPABASE_STORAGE_KEY` | Service role key (JWT token starting with `eyJhbGc...`) | Supabase → Project Settings → API → Service role key |
-| `SUPABASE_BUCKET` | `uploads` | Or your bucket name |
-
-### Email (Passwords & OTP Delivery)
+### Email (Resend)
 
 | Variable | Value | Where to Get It |
 |---|---|---|
 | `RESEND_API_KEY` | API key starting with `re_` | Resend → API Keys → Create Key |
-| `EMAIL_FROM` | `Nodbusiness <noreply@nodbusiness.app>` | Your verified sender email |
+| `EMAIL_FROM` | `Nodbusiness <noreply@yourdomain.com>` | Your verified sender email in Resend |
 
 ### Payments (Stripe)
 
 | Variable | Value | Where to Get It |
 |---|---|---|
-| `STRIPE_SECRET_KEY` | `sk_live_...` (not `sk_test_`) for production | Stripe → Dashboard → Settings → API Keys → Secret Key |
-| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Stripe → Developers → Webhooks → Select endpoint → Signing secret |
+| `STRIPE_SECRET_KEY` | `sk_test_...` (dev) or `sk_live_...` (prod) | Stripe → Dashboard → Settings → API Keys |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Stripe → Developers → Webhooks → Signing secret |
+| `STRIPE_MEWACHO_WEBHOOK_SECRET` | `whsec_...` | Separate Stripe webhook endpoint for Mewacho |
+| `STRIPE_CURRENCY` | `usd` (default) | Currency for Stripe Checkout |
+| `STRIPE_PRICE_PREMIUM_MONTHLY` | `price_...` | Stripe → Products → Premium plan → Price ID |
+| `STRIPE_PRICE_PRO_MONTHLY` | `price_...` | Stripe → Products → Pro plan → Price ID |
 
-### Caching & Real-time (Redis - Phase 2)
+### Payments (Chapa — Ethiopian Market)
 
 | Variable | Value | Where to Get It |
 |---|---|---|
-| `REDIS_URL` | `rediss://default:[PASSWORD]@[HOST]:[PORT]` | Upstash → Redis database → REST API → Connection string (or use `redis://`) |
+| `CHAPA_SECRET_KEY` | `CHASECK_test_...` (dev) or `CHASECK_live_...` (prod) | Chapa Dashboard → Settings → API Keys |
+| `API_URL` | `https://nodbusiness-backend-9psf.onrender.com` | Your backend's public URL — used for Chapa callback |
 
-### AI Models
+### Caching (Upstash Redis)
 
 | Variable | Value | Where to Get It |
+|---|---|---|
+| `REDIS_URL` | `rediss://default:[TOKEN]@[HOST]:[PORT]` | Upstash → Redis database → Connect → ioredis URL |
+
+### AI Models (Optional — enables AI features)
+
+| Variable | Value | Notes |
 |---|---|---|
 | `AI_PROVIDER` | `openai` or `gemini` or `anthropic` | Pick one provider |
-| `OPENAI_API_KEY` | `sk-...` | OpenAI → API Keys → Create key |
-| `GEMINI_API_KEY` | `AIza...` | Google Cloud Console → APIs & Services → Credentials |
+| `OPENAI_API_KEY` | `sk-...` | OpenAI → API Keys |
+| `GEMINI_API_KEY` | `AIza...` | Google Cloud Console → APIs → Credentials |
+| `ANTHROPIC_API_KEY` | `sk-ant-...` | Anthropic Console → API Keys |
 
-### Monitoring & Error Tracking
-
-| Variable | Value | Where to Get It |
-|---|---|---|
-| `SENTRY_DSN` | URL starting with `https://...@sentry.io/...` | Sentry → Projects → Your project → Settings → Client Keys (DSN) |
-
-### Push Notifications & OAuth
+### Error Tracking (Sentry)
 
 | Variable | Value | Where to Get It |
 |---|---|---|
-| `GOOGLE_CLIENT_ID` | `...googleusercontent.com` | Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client ID |
-| `VAPID_PUBLIC_KEY` | Base64-encoded VAPID public key | Generate: `npm run generate-vapid` in backend/ |
-| `VAPID_PRIVATE_KEY` | Base64-encoded VAPID private key | Same as above |
-| `VAPID_EMAIL` | `mailto:admin@nodbusiness.app` | Your email for push notifications |
+| `SENTRY_DSN` | `https://xxx@o123.ingest.sentry.io/456` | Sentry → Projects → Backend project → Client Keys |
+
+### Push Notifications (VAPID)
+
+| Variable | Value | Notes |
+|---|---|---|
+| `VAPID_PUBLIC_KEY` | `BM8ikr0zBzT2pspi3x6VjMq0w10aEyTHCsIf9ruakLWPr8CWp8Gu61iYe5SIOfMctwxEKa3yd8-VKbDhoNoy1SE` | Pre-generated |
+| `VAPID_PRIVATE_KEY` | `oCgwCPXk6M8ZESO8-kQt-5IWU_NwVbk7MATn0O5X0pA` | Pre-generated |
+| `VAPID_EMAIL` | `mailto:admin@yourdomain.com` | Your contact email for VAPID |
+
+### Google OAuth
+
+| Variable | Value | Where to Get It |
+|---|---|---|
+| `GOOGLE_CLIENT_ID` | `...googleusercontent.com` | Google Cloud Console → APIs → Credentials → OAuth 2.0 Client |
+
+### Security
+
+| Variable | Value | Notes |
+|---|---|---|
+| `EXTERNAL_API_ENCRYPTION_KEY` | `2bbd4f62b50487f0ca6b4601e21142ac317ffb661601c9cafacaa32bf1ad5cf4` | Pre-generated (64 hex chars) |
+| `OTP_SALT` | `22d2b7e82027da77f6f6cd41d74bbf229b37a9ae2a415666d36c271476c10f59` | Pre-generated (64 hex chars) |
+| `JWT_SECRET` | `ab675f38b720f9280d6f16c3107c845c7c412f0c3ceab25b465370f8ca751ecf788702d596642be9ce36a7710fac0e76ba2633d6eb7651317c29f714bf0975c1` | Pre-generated (128 hex chars) |
 
 ### Database Backups
 
 | Variable | Value | Default |
 |---|---|---|
-| `BACKUP_RETENTION_DAYS` | Number of days to keep backups | `14` |
-| `BACKUP_SCHEDULE_ENABLED` | `true` or `false` | `false` in non-production |
+| `BACKUP_RETENTION_DAYS` | `14` | Days to keep pg_dump backups in R2 |
+| `BACKUP_SCHEDULE_ENABLED` | `true` | Set to `true` in production |
 
-### Optional: TLS Certificate Handling
+### Telegram Bot (Optional — DevOps Alerts)
 
-| Variable | Value | Default | Notes |
-|---|---|---|---|
-| `DB_TLS_REJECT_UNAUTHORIZED` | `true` or `false` | `false` | Set to `true` for strict cert verification (requires CA cert) |
+| Variable | Value | Where to Get It |
+|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | Token from @BotFather | For DevOps copilot + deploy alerts |
+
+### Feature Flags (Override Defaults)
+
+| Variable | Value | Notes |
+|---|---|---|
+| `FF_CHAPA_PAYMENTS` | `true` | Enable Ethiopian payment gateway |
+| `FF_STRIPE_PAYMENTS` | `true` | Enable Stripe checkout |
 
 ---
 
@@ -124,116 +155,119 @@ If using **Supabase Storage**:
 
 Set these in: **Vercel → Project → Settings → Environment Variables**
 
-### Critical Variables (Build Will Fail Without These)
+Apply to both **Production** and **Preview** environments.
+
+### Critical Variables
+
+| Variable | Value | Notes |
+|---|---|---|
+| `NEXT_PUBLIC_API_BASE_URL` | `https://nodbusiness-backend-9psf.onrender.com` | Must match your Render backend URL exactly |
+| `NEXT_PUBLIC_APP_URL` | `https://nodbusiness.vercel.app` | Your Vercel deployment URL |
+
+### Social Auth & Payments
 
 | Variable | Value | Where to Get It |
 |---|---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | `https://nodbusiness-backend.onrender.com` | Render backend URL — must match GitHub secret `BACKEND_URL` |
-| `NEXT_PUBLIC_APP_URL` | `https://halehame-eosin.vercel.app` | Your Vercel deployment URL |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | `...googleusercontent.com` | Same value as backend `GOOGLE_CLIENT_ID` |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | `pk_test_...` or `pk_live_...` | Stripe → Dashboard → API Keys → Publishable Key |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `BM8ikr0zBzT2pspi3x6VjMq0w10aEyTHCsIf9ruakLWPr8CWp8Gu61iYe5SIOfMctwxEKa3yd8-VKbDhoNoy1SE` | Pre-generated |
+| `NEXT_PUBLIC_SENTRY_DSN` | Your Sentry frontend DSN | Sentry → Projects → Frontend project → DSN |
 
-### Optional: Social Auth & Payments
+### Vercel Project Settings
 
-| Variable | Value | Where to Get It |
-|---|---|---|
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | `...googleusercontent.com` | Google Cloud Console → APIs & Services → Credentials |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | `pk_live_...` or `pk_test_...` | Stripe → Dashboard → Settings → API Keys → Publishable Key |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Same as backend `VAPID_PUBLIC_KEY` | From backend setup |
-| `NEXT_PUBLIC_SENTRY_DSN` | Same as backend `SENTRY_DSN` (if using Sentry) | Sentry → Projects → Your project → DSN |
+Set these in the Vercel dashboard when connecting the repository:
+
+| Setting | Value |
+|---|---|
+| **Framework preset** | Next.js |
+| **Root directory** | `frontend-next` |
+| **Build command** | `npm run build` (Vercel auto-detects) |
+| **Output directory** | `.next` (Vercel manages this automatically) |
+| **Node.js version** | `20.x` |
 
 ---
 
-## Step-by-Step Setup Instructions
+## 4. Supabase Configuration
 
-### Step 1: Connect the Neon Database
+### Connection URL Strategy
 
-1. Open the Neon project → **Connect**.
-2. Select the **production** branch.
-3. Turn **Connection pooling** off and copy the direct connection URI. This is required for migrations and backups.
-4. Keep the URI private; it is your `DATABASE_URL` and must never be committed.
+Use the correct URL for each context:
 
-### Step 2: Set GitHub Secrets
+| Context | URL to Use | Port | Notes |
+|---|---|---|---|
+| **Live app** (Render env var) | Pooler URL | 6543 | Transaction mode — efficient |
+| **Migrations** (GitHub Actions) | Direct URL | 5432 | DDL requires direct connection |
+| **pg_dump backups** | Direct URL | 5432 | Backup tools require direct |
 
-1. Go to https://github.com/sentflix01/empire-x → Settings → Secrets and variables → Actions
-2. Add each **Critical Secret** from Section 1 above:
-   - `DATABASE_URL` (the direct Neon URI from Step 1)
-   - `VERCEL_TOKEN` (create new Vercel token)
-   - `RENDER_API_KEY` (create in Render)
-   - `RENDER_SERVICE_ID` (copy from Render backend service)
-   - `BACKEND_URL` (will be like `https://[name].onrender.com`)
-   - `FRONTEND_URL` (will be your Vercel URL)
+Both URLs: **Supabase → Project Settings → Database → Connection string**
 
-### Step 3: Generate JWT_SECRET
+### Keep-Alive
 
-In your terminal, run:
+The `supabase-keepalive.yml` workflow runs every 5 days and pings the database to prevent the free-tier 7-day inactivity pause.
+
+---
+
+## Step-by-Step Setup
+
+### Step 1: Connect GitHub to Render
+
+1. Sign up at https://render.com (free, no card required for free tier)
+2. **New → Web Service** → **Connect GitHub repo** → select `sentflix01/empire-x`
+3. Settings:
+   - **Name:** `nodbusiness-backend`
+   - **Root directory:** `backend`
+   - **Environment:** `Node`
+   - **Build command:** `npm ci && npm run build`
+   - **Start command:** `node dist/index.js`
+   - **Instance type:** Free (spins down after 15 min inactivity — acceptable for development)
+4. Add all environment variables from Section 2 above
+5. Deploy → copy the **Public URL** (e.g. `https://nodbusiness-backend-9psf.onrender.com`)
+6. Go to **Settings → Deploy Hook** → copy the URL → add to GitHub Secrets as `RENDER_DEPLOY_HOOK_URL`
+
+### Step 2: Connect GitHub to Vercel
+
+1. Sign up / log in at https://vercel.com
+2. **New Project** → **Import Git Repository** → select `sentflix01/empire-x`
+3. Settings:
+   - **Root directory:** `frontend-next`
+   - **Framework preset:** Next.js (auto-detected)
+4. Add environment variables from Section 3 above
+5. Deploy → your app is live at `https://nodbusiness.vercel.app`
+
+### Step 3: Set GitHub Secrets
+
+Set all secrets from Section 1 above in:
+**GitHub → Settings → Secrets and variables → Actions → Repository secrets**
+
+### Step 4: Run Migrations
+
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+cd backend
+DATABASE_URL="postgresql://postgres.[REF]:[PASS]@db.[REF].supabase.co:5432/postgres?sslmode=require&channel_binding=require" \
+  node db/migrate-all.js
 ```
 
-Copy the output — use this for Render's `JWT_SECRET`.
+### Step 5: Test Deploy
 
-### Step 4: Configure Render Backend
+```bash
+git commit --allow-empty -m "test: trigger deploy"
+git push origin main
+```
 
-1. Go to Render dashboard → Backend service
-2. Click **Environment** tab
-3. Add all variables from **Section 2** above
-4. **Critical ones (must have):**
-   - `DATABASE_URL` (from Supabase, Step 1)
-   - `JWT_SECRET` (from Step 3)
-   - `NODE_ENV` = `production`
-   - `FRONTEND_URL` = your Vercel app URL
-5. Click **Save** — service will auto-redeploy
+Watch: GitHub → Actions → Nodbusiness Deploy pipeline
 
-### Step 5: Configure Vercel Frontend
+---
 
-1. Go to Vercel → Your project → Settings → Environment Variables
-2. Add each variable from **Section 3** above
-3. **Critical ones (must have):**
-   - `NEXT_PUBLIC_API_BASE_URL` = `https://[render-backend-url]`
-   - `NEXT_PUBLIC_APP_URL` = `https://[vercel-url]`
-4. Click **Save**
+## Verification Checklist
 
-### Step 6: Optional — Add File Storage (Cloudflare R2)
-
-If you want persistent file uploads:
-
-1. Go to Cloudflare → R2 (create bucket if needed)
-2. Create R2 API token (not your account API token)
-3. Add to Render environment:
-   - `R2_ACCOUNT_ID`
-   - `R2_ACCESS_KEY_ID`
-   - `R2_SECRET_ACCESS_KEY`
-   - `R2_BUCKET_NAME`
-   - `R2_PUBLIC_URL`
-
-### Step 7: Optional — Add Email (Resend)
-
-1. Go to https://resend.com → Create account
-2. Create API key
-3. Add to Render:
-   - `RESEND_API_KEY` = your API key
-   - `EMAIL_FROM` = your verified sender email
-
-### Step 8: Test Deploy
-
-1. Make a test commit to `main`:
-   ```bash
-   git commit --allow-empty -m "test: trigger deploy"
-   git push origin main
-   ```
-
-2. Watch the deploy:
-   - GitHub Actions → Deploy workflow
-   - Should run: Migrate → Deploy Backend → Deploy Frontend → Health Check
-
-3. Check if backend is healthy:
-   ```bash
-   curl https://[render-url]/health
-   ```
-
-4. Check if frontend loads:
-   ```bash
-   curl https://[vercel-url]
-   ```
+- [ ] GitHub Secrets: `DATABASE_URL`, `RENDER_DEPLOY_HOOK_URL`, `VERCEL_TOKEN`, `BACKEND_URL`, `FRONTEND_URL` all set
+- [ ] Render: `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV=production`, `FRONTEND_URL` set
+- [ ] Render: R2 variables set — uploads go to R2, not local disk
+- [ ] Render: `REDIS_URL` set — `/health` shows `"redis": "connected"`
+- [ ] Vercel: `NEXT_PUBLIC_API_BASE_URL` and `NEXT_PUBLIC_APP_URL` set
+- [ ] Backend `/health` returns `200 OK`
+- [ ] Frontend loads at Vercel URL
+- [ ] Sign-up → OTP → Feed works end-to-end
 
 ---
 
@@ -241,29 +275,16 @@ If you want persistent file uploads:
 
 | Issue | Solution |
 |---|---|
-| Backend won't start: `Missing DATABASE_URL` | Add `DATABASE_URL` to Render environment |
-| Backend won't start: `Missing JWT_SECRET` | Generate new JWT_SECRET, add to Render |
-| `pg_dump` fails with `ENOIDENTIFIER` | Make sure using Supabase **direct** connection, not pooler |
-| Uploads fail: `No cloud storage configured` | Add R2 or Supabase Storage env vars |
-| Vercel build fails: `Cannot find module` | Make sure `NEXT_PUBLIC_*` vars match exactly |
-| Health check fails after deploy | Wait 2–3 minutes for service to start, then check backend logs in Render |
-| `self-signed certificate in certificate chain` | Already fixed in latest code; ensure `DB_TLS_REJECT_UNAUTHORIZED` is not set to `true` |
+| `Missing DATABASE_URL` at startup | Add `DATABASE_URL` to Render env vars; redeploy |
+| `Missing JWT_SECRET` at startup | Add pre-generated value to Render env vars |
+| Uploads fail: `No cloud storage configured` | Add all `R2_*` vars to Render |
+| Redis shows `not configured` on /health | Add `REDIS_URL` (must start with `rediss://`) to Render |
+| Render service sleeps (free tier) | Expected on free tier — first request wakes it in 30–60s |
+| Vercel build fails | Check `NEXT_PUBLIC_API_BASE_URL` is set in Vercel env vars |
+| CORS error from frontend | Ensure `FRONTEND_URL` in Render matches your Vercel domain exactly |
+| Google OAuth fails | Add `GOOGLE_CLIENT_ID` to both Render AND Vercel env vars |
 
 ---
 
-## Verification Checklist
-
-- [ ] All GitHub Actions secrets are set
-- [ ] Render backend has `DATABASE_URL` and `JWT_SECRET`
-- [ ] Render backend has `FRONTEND_URL` pointing to Vercel
-- [ ] Vercel frontend has `NEXT_PUBLIC_API_BASE_URL` pointing to Render
-- [ ] Supabase database connection is working (test: `psql $DATABASE_URL -c "SELECT 1"`)
-- [ ] First git push to `main` triggers CI/CD workflow
-- [ ] Backend `/health` check returns `200 OK`
-- [ ] Frontend homepage loads without errors
-- [ ] Sign-up flow works (if email is configured)
-
----
-
-**Last Updated:** 2026-08-30  
-**Deploy Stack:** Render (backend) + Vercel (frontend) + Supabase (database) + R2 (file storage, optional)
+**Last Updated:** September 2026
+**Deploy Stack:** Render (backend) · Vercel (frontend) · Supabase (database) · Upstash Redis · Cloudflare R2 (file storage)

@@ -235,7 +235,7 @@ Seed Round • $500K • $4M Cap SAFE
 ```
 [Founder Name] — CEO & Founder
 [email@nodbusiness.app] | [Phone] | [LinkedIn]
-nodbusiness.vercel.app
+nodbusiness.app
 
 Confidential. For qualified investors only.
 ```

@@ -34,7 +34,7 @@
         title: showroom.title,
         description: showroom.description?.slice(0, 155),
         images: [showroom.cover_image || showroom.logo_url],
-        url: `https://nodbusiness.vercel.app/showroom/${showroom.slug}`,
+        url: `https://nodbusiness.app/showroom/${showroom.slug}`,
         type: 'website',
       },
       twitter: { card: 'summary_large_image' },

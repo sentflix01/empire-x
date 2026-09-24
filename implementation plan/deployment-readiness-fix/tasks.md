@@ -90,15 +90,19 @@ Fix eight deployment-blocking bugs found across the Nodbusiness frontend and bac
 
   - [x] 3.6 Fix CSP WebSocket hosts in `next.config.ts`
     - File: `frontend-next/next.config.ts`
-    - Update the `connect-src` line to dynamically derive the WebSocket URL from `apiHost`:
+    - The `wsHost` variable is already derived dynamically from `apiHost`:
       ```typescript
       const wsHost = apiHost.replace(/^https?:/, 'wss:').replace(/^http:/, 'ws:');
       ```
-    - Replace the hardcoded `ws://localhost:3001 wss://localhost:3001` entries with:
+    - Replace the hardcoded `ws://localhost:3001 wss://localhost:3001` only entries in `connect-src` with:
       ```
-      `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 wss://*.railway.app wss://*.up.railway.app https://*.sentry.io https://api.stripe.com https://api.chapa.co`
+      `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.onrender.com wss://*.onrender.com https://*.sentry.io https://api.stripe.com https://api.chapa.co`
       ```
-    - This ensures production WebSocket connections to Railway are allowed while dev connections still work
+    - **Note (September 2026 — post Railway migration):** The backend now runs on a custom domain behind Cloudflare (e.g. `https://api.nodbusiness.app`), set via `NEXT_PUBLIC_API_BASE_URL` in Cloudflare Pages. The `wsHost` derivation (`wss://api.nodbusiness.app`) covers production WebSocket connections automatically. No `wss://*.railway.app` or `wss://*.up.railway.app` patterns are needed. Remove the `wss://*.onrender.com` pattern too — it is also no longer relevant. The correct `connect-src` for the new stack is:
+      ```typescript
+      `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in`
+      ```
+    - This ensures production WebSocket connections to the Coolify-managed backend are allowed while dev connections still work
     - _Requirements: 2.8, 3.7_
 
   - [x] 3.7 Verify bug condition exploration test now passes

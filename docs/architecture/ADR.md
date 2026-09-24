@@ -176,3 +176,83 @@ When making a significant architectural decision, add a new ADR here following t
 
 **Consequences:** [What are the trade-offs? What gets better? What gets harder?]
 ```
+
+---
+
+## ADR-015: Infrastructure migration — Oracle Cloud Johannesburg + Coolify v4 + Cloudflare Pages
+
+**Status:** Accepted | **Date:** September 2026
+
+**Context:** The previous stack (Railway backend + Vercel Hobby frontend + Neon database) had four critical problems:
+1. **Render/Railway free tier sleeps** after 15 minutes of inactivity — breaks Socket.IO (chat disconnects), BullMQ (queued jobs stop), and causes 30–60s cold starts.
+2. **Vercel Hobby prohibits commercial use** — Nodbusiness has Stripe payments, Chapa payments, and subscription billing. Using Vercel Hobby was a ToS violation that could result in immediate project termination.
+3. **Neon was not actually in use** — The database was already Supabase per `.env.production.example` and `DEPLOYMENT_VARIABLES.md`, yet all infrastructure docs referenced Neon. Documentation was inconsistent with reality.
+4. **No monitoring** — Zero uptime alerting. Downtime was discovered from user complaints, not automated detection.
+
+Additionally, Oracle Cloud **silently halved** the Always Free ARM allocation (4 OCPU/24GB → 2 OCPU/12GB) in June 2026, enforced August 18, 2026, with no public announcement — a trust issue worth acknowledging but not a blocker.
+
+**Options considered:**
+
+| Option | Cost | Sleep? | Commercial OK? | Latency to ET |
+|---|---|---|---|---|
+| Railway (current) | $5/mo | No (paid) | Yes | ~300ms |
+| Render free | $0 | Yes (15 min) | Yes | ~300ms |
+| Oracle + Coolify | $0 | **Never** | Yes | **~80ms** |
+| Fly.io | $5+/mo | Limited free | Yes | ~80ms |
+| Google Cloud Run | PAYG | Scales to zero | Yes | PAYG |
+
+**Decision:** Migrate to **Oracle Cloud Johannesburg (Always Free ARM A1) + Coolify v4** for the backend, and **Cloudflare Pages** for the frontend.
+
+Specific choices:
+- **Oracle Cloud Johannesburg** — only always-free compute option with adequate RAM (12 GB) in a region close to Ethiopia (~80–120ms latency vs ~300ms from US regions)
+- **Coolify v4** — stable release (April 2026), open source (Apache 2.0), zero-downtime deploys via Docker HEALTHCHECK, zero features behind paywall, webhook API integrates cleanly with existing GitHub Actions pipeline
+- **Cloudflare Pages** — no commercial use restriction (unlike Vercel Hobby), 335+ PoPs with Nairobi PoP nearest to Ethiopia, unlimited bandwidth, auto-deploys via GitHub integration (no CI step or token needed)
+- **Supabase** (confirmed, not changed) — already in use, free tier is sufficient for early stage, Supavisor pooler is free and built-in
+- **Upstash Redis** (updated) — free tier updated March 2026 from 10K commands/day to 500K commands/month, making it viable for early-stage BullMQ + caching
+- **Uptime Kuma** (self-hosted) — replaces UptimeRobot (which updated ToS in December 2024 to prohibit commercial use on free plan), 1-minute checks, runs free on the same Oracle VM
+
+**Consequences:**
+- Monthly cost drops from $5–6/month to ~$1.50/month (domain only) at Stage 0
+- Socket.IO chat is always-on — no disconnections from sleep
+- BullMQ workers process jobs continuously — no job loss from sleep
+- Cloudflare Pages with Nairobi PoP gives Ethiopian users ~20ms static asset latency vs ~80ms from Vercel Johannesburg PoP
+- Oracle VM IP is hidden behind Cloudflare proxy — DDoS protection is always-on
+- Supabase pause risk is eliminated by two layers: backend keep-alive ping every 4 minutes + `supabase-keepalive.yml` GitHub Actions cron every 5 days
+- GitHub Actions pipeline changes are minimal: Render CLI (~40 lines) replaced with a 5-line Coolify webhook curl; Vercel job replaced with an informational log (CF Pages auto-deploys via GitHub integration)
+- Contingency: if Oracle cuts the free tier again, Hetzner CAX11 (€4.29/month ARM, Germany) is the fallback — migration takes ~2 hours with zero data loss (all data is external: Supabase, R2, Upstash)
+
+---
+
+## ADR-016: Development stack migration — Render (backend) + Vercel (frontend)
+
+**Status:** Accepted | **Date:** September 2026
+
+**Context:** ADR-015 decided on Oracle Cloud Johannesburg + Coolify v4 + Cloudflare Pages. That stack required a credit card for Oracle identity verification. The developer has a Grey virtual card with $0.00 balance and no way to add funds from Ethiopia through local banking at this stage. The project is in active development — not yet launched with real users or real payments.
+
+**Problem:** Cannot provision Oracle Cloud VM without a valid card for identity verification. All alternatives that require a card (Koyeb, Fly.io) are also blocked. The project needs a working deployment to demo features and test Google OAuth with a real public URL.
+
+**Options considered:**
+
+| Option | Card needed? | Always-on? | Verdict |
+|---|---|---|---|
+| Oracle + Coolify | ✅ Yes ($1 hold) | Yes | ❌ Blocked |
+| Koyeb free | ✅ Yes ($29 hold) | Yes | ❌ Blocked |
+| Railway trial | ❌ No | Yes ($1/mo after 30 days) | ⚠️ Limited |
+| **Render free** | **❌ No** | **No (15min sleep)** | **✅ Chosen** |
+| **Vercel Hobby** | **❌ No** | **N/A (frontend)** | **✅ Chosen** |
+
+**Decision:** Use **Render free tier** for the backend and **Vercel Hobby** for the frontend during the development/demo phase.
+
+**Rationale:**
+
+- **Render:** No card, no credit required. GitHub login only. Render free tier sleeps after 15 minutes of inactivity — acceptable for demos and testing. The backend already has a self-ping in `index.ts` (every 10 min) which keeps it awake during active use. Deploy hooks integrate cleanly with the existing GitHub Actions pipeline.
+- **Vercel:** Already working at `nodbusiness.vercel.app`. No card. The app was deployed here before and the configuration is intact. The Hobby ToS (non-commercial only) is acceptable at zero-revenue development stage — upgrade to Pro ($20/mo) before real payments go live.
+
+**Consequences:**
+- Monthly cost: $0
+- No credit card required for either service
+- Render free tier will sleep after idle periods — acceptable for dev/demo, not for production
+- Google OAuth works with `nodbusiness.vercel.app` as the authorized redirect URI
+- GitHub Actions pipeline: `deploy-backend` fires Render deploy hook, `deploy-frontend` uses Vercel CLI
+- When developer gets $1 on Grey card: upgrade to Oracle + Coolify (ADR-015) for always-on production
+- All data (Supabase, R2, Upstash) is external — zero migration effort when upgrading compute

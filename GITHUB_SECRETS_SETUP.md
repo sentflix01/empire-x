@@ -2,18 +2,20 @@
 
 Add these secrets to: **GitHub → Settings → Secrets and variables → Actions → Repository secrets**
 
+> **Stack:** Render (backend) · Vercel (frontend) · Supabase · Upstash Redis · Cloudflare R2 · Resend
+> **Last updated:** September 2026
+
 ---
 
 ## ✅ CRITICAL SECRETS (Must Have)
 
-| # | Secret Name | Value Format | Example | Where to Get It |
-|---|---|---|---|---|
-| 1 | `SUPABASE_DATABASE_URL` | PostgreSQL connection string used by the migration workflow | `postgresql://postgres:password@db.xxxx.supabase.co:5432/postgres?sslmode=require` | Supabase → Project Settings → Database → Connection string (URI) |
-| 2 | `RENDER_API_KEY` | API key from Render | `rnd_xxxxxxxxxxxxxxxxxxxxxxxxxxxx` | Render → Account Settings → API Keys → Create Key |
-| 3 | `RENDER_SERVICE_ID` | Service ID from Render backend | `srv_xxxxxxxxxxxxxxxxxxxxxxxxxxxx` | Render Dashboard → Backend service → Settings → Service ID |
-| 4 | `VERCEL_TOKEN` | Personal access token | `vercel_xxxxxxxxxxxxxxxxxxxxxxxxxxxx` | Vercel → Settings → Tokens → Create token |
-| 5 | `BACKEND_URL` | Public backend URL | `https://nodbusiness-backend.onrender.com` | Render Dashboard → Backend service → Public URL |
-| 6 | `FRONTEND_URL` | Public frontend URL | `https://halehame-eosin.vercel.app` | Vercel → Project → Settings → Domains → Primary domain |
+| # | Secret Name | Value Format | Where to Get It |
+|---|---|---|---|
+| 1 | `DATABASE_URL` | PostgreSQL direct connection URI with `sslmode=require` | Supabase → Project Settings → Database → URI (pooling OFF) |
+| 2 | `RENDER_DEPLOY_HOOK_URL` | Full deploy hook URL from Render | Render → your service → Settings → Deploy Hook → Copy URL |
+| 3 | `VERCEL_TOKEN` | Vercel personal access token | Vercel → Account Settings → Tokens → Create Token |
+| 4 | `BACKEND_URL` | Public Render backend URL | e.g. `https://nodbusiness-backend-9psf.onrender.com` |
+| 5 | `FRONTEND_URL` | Public Vercel frontend URL | e.g. `https://nodbusiness.vercel.app` |
 
 ---
 
@@ -21,26 +23,36 @@ Add these secrets to: **GitHub → Settings → Secrets and variables → Action
 
 | # | Secret Name | Value Format | Where to Get It |
 |---|---|---|---|
-| 7 | `TELEGRAM_BOT_TOKEN` | Telegram bot token | Telegram → @BotFather → Create bot → Copy token |
-| 8 | `TELEGRAM_CHAT_ID` | Your Telegram chat ID | Telegram → Forward any message to @userinfobot → Copy chat ID |
+| 6 | `TELEGRAM_BOT_TOKEN` | Telegram bot token | Telegram → @BotFather → Create bot → Copy token |
+| 7 | `TELEGRAM_CHAT_ID` | Your Telegram chat ID | Telegram → Forward any message to @userinfobot → Copy ID |
+
+---
+
+## 🗑️ SECRETS TO REMOVE (Old Stack — No Longer Used)
+
+If you previously had these secrets configured, remove them:
+
+| Old Secret | Was Used For |
+|---|---|
+| `COOLIFY_WEBHOOK_URL` | Coolify backend deploy webhook |
+| `COOLIFY_TOKEN` | Coolify API token |
+| `SUPABASE_DATABASE_URL` | Old name — replaced by `DATABASE_URL` |
+| `SOURCE_DATABASE_URL` | Old migration script |
 
 ---
 
 ## 📋 Quick Reference Table for Copy-Paste
 
-Copy this table and fill in your values:
-
 ```
-Slot | Secret Name           | Your Value
------|----------------------|---------------------
-1    | SUPABASE_DATABASE_URL | [Supabase connection string]
-2    | RENDER_API_KEY       | [From Render account]
-3    | RENDER_SERVICE_ID    | [From Render backend service]
-4    | VERCEL_TOKEN         | [From Vercel account]
-5    | BACKEND_URL          | [Render backend public URL]
-6    | FRONTEND_URL         | [Vercel domain]
-7    | TELEGRAM_BOT_TOKEN   | [Optional - from @BotFather]
-8    | TELEGRAM_CHAT_ID     | [Optional - from @userinfobot]
+Slot | Secret Name              | Your Value
+-----|--------------------------|---------------------
+1    | DATABASE_URL             | [Supabase direct connection URI]
+2    | RENDER_DEPLOY_HOOK_URL   | [From Render → service → Settings → Deploy Hook]
+3    | VERCEL_TOKEN             | [From Vercel → Account Settings → Tokens]
+4    | BACKEND_URL              | [Your Render backend public URL]
+5    | FRONTEND_URL             | [Your Vercel deployment URL]
+6    | TELEGRAM_BOT_TOKEN       | [Optional - from @BotFather]
+7    | TELEGRAM_CHAT_ID         | [Optional - from @userinfobot]
 ```
 
 ---
@@ -48,166 +60,115 @@ Slot | Secret Name           | Your Value
 ## 🚀 Step-by-Step: How to Add Each Secret
 
 ### Step 1: Go to GitHub Secrets Page
-1. Open https://github.com/sentflix01/empire-x
+1. Open your GitHub repository
 2. Click **Settings** tab
 3. Left sidebar → **Secrets and variables** → **Actions**
-4. You should see the page with "Repository secrets" section
-
-### Step 2: Add Each Secret One by One
-
-For each secret below, click **"New repository secret"** button and fill in:
+4. You should see the "Repository secrets" section
 
 ---
 
-### Secret #1: SUPABASE_DATABASE_URL
+### Secret #1: DATABASE_URL
 
-**Name:** `SUPABASE_DATABASE_URL`
+**Name:** `DATABASE_URL`
 
-**Value:** (Your Supabase connection string)
-```
-postgresql://postgres:[YOUR_PASSWORD]@db.[YOUR_PROJECT_REF].supabase.co:5432/postgres?sslmode=require
-```
+**Value:** Your Supabase **direct** connection URI (not the pooler — migrations require direct connection)
 
 **How to get it:**
 1. Go to https://supabase.com → Your project
-2. **Project Settings** → **Database** → **Connection string (URI)**
-3. Copy the entire string
-4. Paste into GitHub secret
+2. **Project Settings** → **Database** → **Connection string** tab → select **URI**
+3. Make sure **Connection pooling** toggle is **OFF**
+4. Copy the URI — it ends with `?sslmode=require`
 
-**Paste example:**
+**Format:**
 ```
 postgresql://postgres:[YOUR_PASSWORD]@db.[YOUR_PROJECT_REF].supabase.co:5432/postgres?sslmode=require
 ```
 
 ---
 
-### Secret #2: RENDER_API_KEY
+### Secret #2: RENDER_DEPLOY_HOOK_URL
 
-**Name:** `RENDER_API_KEY`
+**Name:** `RENDER_DEPLOY_HOOK_URL`
 
-**Value:** (Your Render API key)
+**Value:** The deploy hook URL from your Render backend service
 
 **How to get it:**
-1. Go to https://dashboard.render.com
-2. Click your **Account icon** (top-right) → **Account**
-3. Scroll down to **API Keys**
-4. Click **Create API Key**
-5. Copy the key and paste into GitHub secret
-
-**Will look like:**
-```
-rnd_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
+1. Log in to https://dashboard.render.com
+2. Click your **nodbusiness-backend** service
+3. Go to **Settings** tab
+4. Scroll to **Deploy Hook** section
+5. Copy the URL — looks like:
+   ```
+   https://api.render.com/deploy/srv-XXXXXXXXXXXX?key=YYYYYYYYYYYY
+   ```
 
 ---
 
-### Secret #3: RENDER_SERVICE_ID
-
-**Name:** `RENDER_SERVICE_ID`
-
-**Value:** (Your Render backend service ID)
-
-**How to get it:**
-1. Go to https://dashboard.render.com
-2. Click your **Backend service** (e.g., "nodbusiness-backend")
-3. Click **Settings** tab
-4. Scroll down to **Service ID**
-5. Copy and paste into GitHub secret
-
-**Will look like:**
-```
-srv_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
----
-
-### Secret #4: VERCEL_TOKEN
+### Secret #3: VERCEL_TOKEN
 
 **Name:** `VERCEL_TOKEN`
 
-**Value:** (Your Vercel personal access token)
+**Value:** A Vercel personal access token
 
 **How to get it:**
-1. Go to https://vercel.com/account/tokens
-2. Click **Create Token**
-3. Give it a name (e.g., "GitHub Deploy")
-4. Copy and paste into GitHub secret
-
-**Will look like:**
-```
-vercel_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
+1. Go to https://vercel.com → click your profile (top right) → **Account Settings**
+2. Click **Tokens** in the left sidebar
+3. Click **Create** → name it `github-actions`
+4. Copy the token
 
 ---
 
-### Secret #5: BACKEND_URL
+### Secret #4: BACKEND_URL
 
 **Name:** `BACKEND_URL`
 
-**Value:** (Your Render backend public URL)
+**Value:** Your Render backend public URL
 
 **How to get it:**
 1. Go to https://dashboard.render.com
-2. Click your **Backend service**
-3. Copy the **Public URL** from the top of the page
-4. Paste into GitHub secret
+2. Click your backend service
+3. Copy the URL shown at the top (e.g. `https://nodbusiness-backend-9psf.onrender.com`)
 
-**Will look like:**
+**Example:**
 ```
-https://nodbusiness-backend.onrender.com
+https://nodbusiness-backend-9psf.onrender.com
 ```
 
 ---
 
-### Secret #6: FRONTEND_URL
+### Secret #5: FRONTEND_URL
 
 **Name:** `FRONTEND_URL`
 
-**Value:** (Your Vercel frontend URL)
+**Value:** Your Vercel frontend URL
 
 **How to get it:**
-1. Go to https://vercel.com → Your project
+1. Go to https://vercel.com → your project
 2. Click **Settings** → **Domains**
-3. Copy your primary domain (usually the .vercel.app one)
-4. Paste into GitHub secret
+3. Copy your primary deployment URL
 
-**Will look like:**
+**Example:**
 ```
-https://halehame-eosin.vercel.app
+https://nodbusiness.vercel.app
 ```
 
 ---
 
-### Secret #7 (Optional): TELEGRAM_BOT_TOKEN
-
-**Name:** `TELEGRAM_BOT_TOKEN`
-
-**Value:** (Your Telegram bot token)
+### Secret #6 (Optional): TELEGRAM_BOT_TOKEN
 
 **How to get it:**
-1. Open Telegram → Search for **@BotFather**
-2. Send `/newbot`
-3. Follow instructions to create a bot
-4. Copy the bot token that looks like: `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`
-5. Paste into GitHub secret
-
-**Note:** This is optional. If you skip it, deployment failures won't be sent to Telegram.
+1. Open Telegram → Search **@BotFather**
+2. Send `/newbot` and follow instructions
+3. Copy the token — format: `123456789:ABCDEFabcdef-xxxxx`
 
 ---
 
-### Secret #8 (Optional): TELEGRAM_CHAT_ID
-
-**Name:** `TELEGRAM_CHAT_ID`
-
-**Value:** (Your Telegram chat/group ID)
+### Secret #7 (Optional): TELEGRAM_CHAT_ID
 
 **How to get it:**
-1. Open Telegram → Search for **@userinfobot**
+1. Open Telegram → Search **@userinfobot**
 2. Send any message
-3. The bot replies with your ID (usually a long number like `123456789`)
-4. Paste into GitHub secret
-
-**Note:** This is optional. Only needed if you're using Telegram notifications.
+3. Copy the `id` number from the reply
 
 ---
 
@@ -215,38 +176,38 @@ https://halehame-eosin.vercel.app
 
 After adding all secrets:
 
-- [ ] `SUPABASE_DATABASE_URL` — Added ✓
-- [ ] `RENDER_API_KEY` — Added ✓
-- [ ] `RENDER_SERVICE_ID` — Added ✓
-- [ ] `VERCEL_TOKEN` — Added ✓
-- [ ] `BACKEND_URL` — Added ✓
-- [ ] `FRONTEND_URL` — Added ✓
-- [ ] `TELEGRAM_BOT_TOKEN` — Added (optional) ✓
-- [ ] `TELEGRAM_CHAT_ID` — Added (optional) ✓
+- [ ] `DATABASE_URL` — Supabase direct URI (port 5432, sslmode=require) ✓
+- [ ] `RENDER_DEPLOY_HOOK_URL` — from Render → service → Settings → Deploy Hook ✓
+- [ ] `VERCEL_TOKEN` — from Vercel → Account Settings → Tokens ✓
+- [ ] `BACKEND_URL` — your Render backend URL ✓
+- [ ] `FRONTEND_URL` — your Vercel deployment URL ✓
+- [ ] `TELEGRAM_BOT_TOKEN` — optional, for deploy failure alerts ✓
+- [ ] `TELEGRAM_CHAT_ID` — optional, for deploy failure alerts ✓
 
 ---
 
 ## 🧪 Test the Setup
 
-After adding all secrets:
+```bash
+git commit --allow-empty -m "test: trigger deploy with secrets"
+git push origin main
+```
 
-1. Make a test commit:
-   ```bash
-   git commit --allow-empty -m "test: trigger deploy with new secrets"
-   git push origin main
-   ```
+Watch: **GitHub → Actions** tab
 
-2. Watch GitHub Actions:
-   - Go to your repo → **Actions** tab
-   - You should see **"Nodbusiness CI"** workflow running
-   - After CI passes, **"Nodbusiness Deploy"** should start
-   - Check that migrations run successfully
-   - Check that backend deploys to Render
-   - Check that frontend deploys to Vercel
+Expected flow:
+1. **Nodbusiness CI** runs (lint, typecheck, tests, audit)
+2. On CI success → **Nodbusiness Deploy** starts
+3. `migrate` job runs migrations against Supabase
+4. `deploy-backend` job fires Render deploy hook
+5. `deploy-frontend` job deploys to Vercel
+6. `healthcheck` job pings `/health`
 
-3. Verify health:
-   - Backend: `curl https://[your-backend-url]/health` → should return `200`
-   - Frontend: `https://[your-frontend-url]` → should load
+Verify backend:
+```bash
+curl https://nodbusiness-backend-9psf.onrender.com/health
+# Expected: { "status": "ok", "services": { "database": "connected", ... } }
+```
 
 ---
 
@@ -254,12 +215,14 @@ After adding all secrets:
 
 | Error | Cause | Fix |
 |---|---|---|
-| `SUPABASE_DATABASE_URL not set` | Secret not added or wrong name | Check secret name is exactly `SUPABASE_DATABASE_URL` |
-| `Invalid RENDER_API_KEY` | Key is expired or wrong | Generate new key in Render account |
-| `Service not found` | Wrong `RENDER_SERVICE_ID` | Copy correct ID from Render service settings |
-| `Deploy doesn't start` | Missing secrets | Make sure all 6 critical secrets are added |
-| `Backend won't connect to DB` | Wrong DATABASE_URL format | Use **Connection string (URI)** from Supabase, not connection pooler |
+| `DATABASE_URL not set` | Secret missing or wrong name | Check name is exactly `DATABASE_URL` |
+| Render deploy hook returns 400/404 | Wrong hook URL | Re-copy URL from Render → service → Settings → Deploy Hook |
+| Vercel deploy fails | Missing `VERCEL_TOKEN` or expired | Regenerate token in Vercel → Account Settings → Tokens |
+| Backend health check fails | Render service still starting (free tier takes 30–60s) | Wait 60s after deploy, check Render logs |
+| Frontend not updating | Vercel not connected to repo | Vercel → Project → Settings → Git → confirm repo connected |
+| CORS error | `FRONTEND_URL` in Render mismatch | Ensure `FRONTEND_URL` in Render env vars matches your Vercel URL exactly |
 
 ---
 
-**Last Updated:** 2026-08-30
+**Last Updated:** September 2026
+**Deploy Stack:** Render (backend) · Vercel (frontend) · Supabase (database) · Upstash Redis · Cloudflare R2 (storage)

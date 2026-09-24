@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **290** across **49** mounted modules · Generated: 2026-09-19
+> Endpoints: **290** across **49** mounted modules · Generated: 2026-09-24
 
 | Legend | Meaning |
 |---|---|
@@ -107,14 +107,14 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:239 |
 | `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:328 |
 | `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:368 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:478 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:603 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:637 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:672 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:734 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:786 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:831 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:850 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:486 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:611 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:645 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:680 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:742 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:794 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:839 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:858 |
 
 ## businessApiKeys — Business API key management
 

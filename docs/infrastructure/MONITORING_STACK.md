@@ -1,7 +1,8 @@
 # Nodbusiness — Monitoring Stack
 
 > Full observability: metrics, logs, traces, alerts — at every scale.
-> **Last updated:** August 2026
+> **Last updated:** September 2026
+> **Stack:** Oracle Cloud Johannesburg + Coolify v4 · Cloudflare Pages · Supabase · Uptime Kuma
 
 ---
 
@@ -20,63 +21,96 @@
 
 | Pillar | Tool | Status | Coverage |
 |---|---|---|---|
-| Metrics | Railway built-in | ✅ Active | CPU, RAM, requests/sec |
-| Logs | Pino → Railway logs | ✅ Active | All backend events |
+| Metrics | Coolify built-in | ✅ Active | CPU, RAM, network — container level |
+| Logs | Pino → Coolify log viewer | ✅ Active | All backend events, structured JSON |
 | Traces | Sentry (needs DSN) | ❌ Not configured | Nothing yet |
-| Alerts | UptimeRobot | ❌ Not configured | Nothing yet |
+| Uptime / Alerts | Uptime Kuma (self-hosted) | ⚠️ Needs setup | Add monitors after Coolify install |
 
-**Gap:** Zero visibility into errors or downtime right now. Fix immediately.
+**Gap:** Sentry DSN not yet set. No alert fires on downtime. Fix both before launch.
 
 ---
 
 ## Stage 0: Minimum Viable Monitoring (This Week)
 
-### 1. Sentry — Error Tracking
+### 1. Uptime Kuma — Availability Monitoring (Self-Hosted, Free)
+
+Uptime Kuma runs as a Docker container on the same Oracle VM. Add it as a one-click service in Coolify.
+
+```bash
+# In Coolify: New Service → search "Uptime Kuma" → deploy
+# Or manually:
+docker run -d --name uptime-kuma \
+  -p 3001:3001 \
+  -v uptime-kuma:/app/data \
+  --restart=always \
+  louislam/uptime-kuma:1
+```
+
+**Monitors to add immediately (1-minute check interval):**
+
+| Monitor | URL | Check type | Expected |
+|---|---|---|---|
+| Backend health | `https://api.yourdomain.com/health` | HTTP keyword | keyword: `"ok"` |
+| Frontend | `https://nodbusiness.app` | HTTP | Status 200 |
+| Supabase | `https://status.supabase.com/api/v2/summary.json` | HTTP keyword | keyword: `"operational"` |
+| Upstash | `https://status.upstash.com` | HTTP | Status 200 |
+| Stripe | `https://status.stripe.com/api/v2/summary.json` | HTTP keyword | keyword: `"operational"` |
+
+**Alert channel: Telegram (already configured via `TELEGRAM_BOT_TOKEN`)**
+
+```
+Uptime Kuma → Settings → Notifications → Add Notification
+Type: Telegram
+Bot Token: <your TELEGRAM_BOT_TOKEN>
+Chat ID: <your TELEGRAM_CHAT_ID>
+```
+
+> Why Uptime Kuma instead of UptimeRobot: UptimeRobot updated its ToS in December 2024 to prohibit commercial use on the free plan. Nodbusiness is a commercial product. Uptime Kuma is self-hosted, fully free, has 1-minute checks (vs UptimeRobot's 5-minute), and is already on the Oracle VM with no extra cost.
+
+### 2. Sentry — Error Tracking
 
 ```bash
 # Sign up at sentry.io (free: 5K errors/month)
 # Create project: Nodbusiness Backend (Node.js)
 # Create project: Nodbusiness Frontend (Next.js)
-# Copy DSNs to env vars
+# Set DSNs:
+#   SENTRY_DSN → Coolify env vars
+#   NEXT_PUBLIC_SENTRY_DSN → Cloudflare Pages env vars
 ```
 
-```javascript
-// backend/lib/sentry.ts — already built, just needs SENTRY_DSN set
-// Frontend: next.config.ts already includes Sentry CSP headers
+**What Sentry captures automatically (already integrated in `lib/sentry.ts`):**
+- Unhandled exceptions
+- Unhandled promise rejections
+- Express route errors
+- Next.js rendering errors
+- Slow API responses (performance monitoring)
 
-// What Sentry captures automatically:
-// - Unhandled exceptions
-// - Unhandled promise rejections
-// - Express route errors
-// - Next.js rendering errors
-// - Slow API responses (performance monitoring)
-```
-
-**Set up alerts in Sentry:**
+**Set up Sentry alerts:**
 - New error (first time seen): → Telegram/email immediately
 - Error rate spike (> 10 errors in 5 minutes): → Immediate alert
 - P95 response time > 2000ms: → Warning
 
-### 2. UptimeRobot — Availability Monitoring
+### 3. Coolify Built-In Metrics
 
-```bash
-# Sign up at uptimerobot.com (free: 50 monitors, 5-minute checks)
-# Add monitor: https://api.nodbusiness.app/health → HTTP(S) → GET → 200 OK
-# Add monitor: https://nodbusiness.vercel.app → HTTP(S) → GET → 200 OK
-# Set alert: Telegram + email when down
+Coolify provides real-time container metrics at no extra cost:
+```
+Coolify Dashboard → Application → Metrics
+  ├── CPU usage (%)
+  ├── Memory usage (MB / GB)
+  ├── Network in/out (bytes/sec)
+  └── Container restart count
 ```
 
-**Also monitor these critical endpoints:**
-- `POST /api/auth/login` (auth working)
-- `GET /api/products` (marketplace working)
-- Stripe webhook endpoint accessibility
+Check these **after every deploy** to confirm the new container is healthy.
 
-### 3. Custom Health Dashboard
+### 4. Custom Health Dashboard
 
 ```javascript
 // GET /health already returns comprehensive status:
 {
   "status": "ok",
+  "timestamp": "2026-09-20T08:00:00Z",
+  "version": "1.0.0",
   "services": {
     "database": "connected",
     "redis": "connected | not configured",
@@ -101,12 +135,9 @@
 logger.info({ userId: req.user.id, orderId: order.id }, 'Order created');
 logger.error({ err: err.message, route: '/api/orders' }, 'Order creation failed');
 logger.warn({ userId, attempts }, 'Login attempt limit approaching');
-
-// Bad (never do this):
-console.log('Error:', err); // No structure, no context
 ```
 
-**Log levels to use:**
+**Log levels:**
 | Level | When | Example |
 |---|---|---|
 | `debug` | Dev-only detail | SQL query text |
@@ -114,29 +145,27 @@ console.log('Error:', err); // No structure, no context
 | `warn` | Degraded but working | Redis miss, email retry |
 | `error` | Something broke | Payment failed, DB error |
 
-**Railway log retention:** 30 days on paid plan. Export important logs to R2 for longer retention.
+**Coolify log retention:** Coolify stores container logs in the VM. For longer retention, configure a log drain to an external service (Logtail, Grafana Loki, or simply R2).
 
-### Key Metrics to Track
+### Key Metrics to Track (Weekly SQL Queries)
 
-```javascript
-// Add these to a weekly dashboard review:
-
-// 1. Request volume
+```sql
+-- 1. Request volume
 SELECT count(*) FROM orders WHERE created_at > NOW() - INTERVAL '7 days';
 
-// 2. Payment success rate  
-SELECT 
+-- 2. Payment success rate
+SELECT
   COUNT(*) FILTER (WHERE status = 'paid') AS paid,
   COUNT(*) AS total,
-  ROUND(100.0 * COUNT(*) FILTER (WHERE status = 'paid') / COUNT(*), 1) AS success_rate
+  ROUND(100.0 * COUNT(*) FILTER (WHERE status = 'paid') / NULLIF(COUNT(*), 0), 1) AS success_rate
 FROM orders WHERE created_at > NOW() - INTERVAL '7 days';
 
-// 3. New user registrations
-SELECT date_trunc('day', created_at) AS day, COUNT(*) 
+-- 3. New user registrations
+SELECT date_trunc('day', created_at) AS day, COUNT(*)
 FROM users GROUP BY day ORDER BY day DESC LIMIT 7;
 
-// 4. Active users (proxy: recent posts or orders)
-SELECT COUNT(DISTINCT author_id) FROM posts 
+-- 4. Active users (proxy: recent posts or orders)
+SELECT COUNT(DISTINCT author_id) FROM posts
 WHERE created_at > NOW() - INTERVAL '7 days';
 ```
 
@@ -152,10 +181,8 @@ WHERE created_at > NOW() - INTERVAL '7 days';
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
-  tracesSampleRate: 0.1,     // Sample 10% of transactions
-  profilesSampleRate: 0.1,   // Profile 10% of sampled transactions
-  
-  // Define which routes to monitor most closely:
+  tracesSampleRate: 0.1,       // Sample 10% of transactions
+  profilesSampleRate: 0.1,     // Profile 10% of sampled transactions
   integrations: [
     new Sentry.Integrations.Http({ tracing: true }),
     new Sentry.Integrations.Express({ app }),
@@ -170,30 +197,14 @@ Sentry.init({
 - Error rate > 1% → Warning
 - Error rate > 5% → Critical (page on-call)
 
-### PostHog — Product Analytics (Free self-hosted)
+### PostHog — Product Analytics (Free self-hosted or 1M events/month free cloud)
 
 ```bash
 # Option 1: PostHog Cloud (free up to 1M events/month)
-# Option 2: Self-host on Railway (free, full control)
-
-# Add to frontend:
-npm install posthog-js
-
-# frontend-next/lib/analytics.ts
-import posthog from 'posthog-js';
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-  api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
-  capture_pageview: true,
-  capture_pageleave: true,
-});
-
-// Track key events:
-posthog.capture('product_added_to_cart', { product_id, price, category });
-posthog.capture('checkout_completed', { amount, provider: 'stripe' });
-posthog.capture('seller_onboarding_completed', { category });
+# Option 2: Self-host on Oracle VM via Coolify one-click service
 ```
 
-**Key funnels to set up in PostHog:**
+**Key funnels to set up:**
 
 ```
 Buyer funnel:
@@ -220,35 +231,20 @@ Grafana Cloud free tier:
 └── 14-day retention
 ```
 
-```javascript
-// Add OpenTelemetry to backend:
-const { NodeSDK } = require('@opentelemetry/sdk-node');
-const { OTLPTraceExporter } = require('@opentelemetry/exporter-otlp-http');
+Deploy Grafana Agent on the Oracle VM (or on Hetzner by that point) to ship metrics and logs to Grafana Cloud.
 
-const sdk = new NodeSDK({
-  traceExporter: new OTLPTraceExporter({
-    url: 'https://tempo-prod-xxx.grafana.net/tempo',
-    headers: {
-      Authorization: `Basic ${Buffer.from(`${instanceId}:${apiKey}`).toString('base64')}`,
-    },
-  }),
-  // Auto-instrument: Express, PostgreSQL, Redis, HTTP
-});
-sdk.start();
-```
+### Option B: Self-hosted on Oracle VM
 
-### Option B: DataDog ($15/host/month)
+Install via Coolify one-click services:
+- **Prometheus** — metrics scraping
+- **Grafana** — dashboards
+- **Loki** — log aggregation
 
-Better alerting, ML-based anomaly detection.
-```
-Pros: Industry standard, great dashboards, AI-powered alerts
-Cons: $200-500/month at scale
-```
+Runs free on the same VM until the 12 GB RAM limit is approached.
 
-### Custom Business Metrics Dashboard
+### Weekly Business Metrics Report (BullMQ cron — already wired in `scripts/showroom-digests.js` pattern)
 
 ```javascript
-// Weekly metrics email/Telegram report (BullMQ weekly cron):
 const report = {
   week: `${weekStart} → ${weekEnd}`,
   users: {
@@ -267,7 +263,6 @@ const report = {
     messages: await countNew('messages', '7 days'),
   },
 };
-
 await sendTelegramReport(report);
 ```
 
@@ -277,16 +272,18 @@ await sendTelegramReport(report);
 
 | Condition | Severity | Response | Who |
 |---|---|---|---|
-| API health check fails | P0 | Immediate page | On-call |
-| Database connection fails | P0 | Immediate page | On-call |
-| Payment webhook failing | P0 | Immediate page | On-call |
+| API health check fails | P0 | Immediate (Uptime Kuma → Telegram) | On-call |
+| Database connection fails | P0 | Immediate | On-call |
+| Payment webhook failing | P0 | Immediate | On-call |
+| Oracle VM unreachable | P0 | Immediate → provision Hetzner | On-call |
 | Error rate > 5% | P1 | Alert within 15 min | On-call |
 | P95 response > 3s | P1 | Alert within 15 min | On-call |
-| Redis down (fallback working) | P2 | Alert within 1 hour | On-call |
+| Upstash Redis limit hit (no-op fallback) | P2 | Alert within 1 hour | On-call |
 | Push notifications failing | P2 | Alert within 1 hour | On-call |
-| Disk/storage > 80% | P2 | Alert within 4 hours | On-call |
+| Disk/storage > 80% on Oracle VM | P2 | Alert within 4 hours | On-call |
+| Supabase approaching 400 MB storage | P3 | Alert same day | Team |
+| Resend daily cap approaching (80 emails) | P3 | Alert same day | Team |
 | Email delivery rate < 95% | P3 | Alert same day | Team |
-| Search latency > 1s | P3 | Alert same day | Team |
 
 ---
 
@@ -294,17 +291,14 @@ await sendTelegramReport(report);
 
 ### Stage 0–1 (Single person)
 - One person monitors everything
-- Telegram alerts → phone
+- Uptime Kuma → Telegram → phone
 - Response time: best effort (personal project stage)
 
 ### Stage 2+ (Growing team)
-- Weekly rotation: Person A (Mon–Sun) → Person B next week
-- PagerDuty free tier: 1 responder
+- Weekly rotation
 - Escalation: if no response in 15 min → call backup
 
 ### Stage 3+ (Full team)
-- PagerDuty Team ($21/person/month)
-- 24/7 coverage with rotation
 - Follow-the-sun: Ethiopia → Europe → US coverage
 - Post-mortem required for every P0 incident
 
@@ -314,32 +308,22 @@ await sendTelegramReport(report);
 
 ### Daily Health Dashboard (check every morning)
 ```
-├── Current error rate (last 1 hour)
-├── P95 API response time (last 1 hour)
-├── Active users (last 24 hours)
-├── New registrations (last 24 hours)
-├── Orders placed (last 24 hours)
-├── Payment success rate (last 24 hours)
-└── Database connection pool usage
-```
-
-### Weekly Business Dashboard
-```
-├── MAU / DAU / DAU:MAU ratio trend
-├── GMV by day (bar chart)
-├── New vs returning users
-├── Conversion funnel (registration → first order)
-├── Top 10 selling products
-├── Top 10 active sellers
-└── Infrastructure costs vs revenue
+├── Coolify container: CPU, RAM, restart count
+├── Uptime Kuma: all monitors green?
+├── Current error rate (last 1 hour) — Sentry
+├── P95 API response time (last 1 hour) — Sentry
+├── Active users (last 24 hours) — SQL
+├── New registrations (last 24 hours) — SQL
+├── Orders placed (last 24 hours) — SQL
+├── Payment success rate (last 24 hours) — SQL
+└── Supabase storage usage (%) — Supabase dashboard
 ```
 
 ### Incident Dashboard (available during incidents)
 ```
-├── Error rate by endpoint (last 30 min)
-├── Slow query log (last 30 min)
-├── Railway CPU/RAM (real-time)
-├── Database active connections
-├── Redis memory usage
-└── Recent deployments
+├── Error rate by endpoint (last 30 min) — Sentry
+├── Slow query log (last 30 min) — Supabase → Query Performance
+├── Coolify container CPU/RAM (real-time)
+├── Upstash Redis command count (real-time)
+└── Recent Coolify deploys
 ```
