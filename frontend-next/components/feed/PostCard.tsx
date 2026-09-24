@@ -66,7 +66,9 @@ interface Comment {
 type Variant = 'image' | 'promo' | 'event' | 'location' | 'poll' | 'text';
 
 function SafeAvatar({ src, alt, fallback, className = '' }: { src?: string | null; alt: string; fallback: React.ReactNode; className?: string }) {
-  return <SafeImage src={src} alt={alt} className={className} fallback={fallback} />;
+  // Avatars are always small fixed-size — use fill=false with explicit dimensions
+  // fill=true requires parent to have position:relative which breaks in many containers
+  return <SafeImage src={src} alt={alt} fill={false} width={40} height={40} className={className} fallback={fallback} />;
 }
 
 /* ── Detect post visual variant ─────────────────────── */
@@ -501,7 +503,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <Link
           href={`/profile/${post.author_id}`}
-          className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden ${viewMode === 'business' ? 'bg-gradient-to-br from-amber-400 to-amber-600' : 'bg-primary'}`}
+          className={`relative w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden ${viewMode === 'business' ? 'bg-gradient-to-br from-amber-400 to-amber-600' : 'bg-primary'}`}
           aria-label={`View ${post.author_name ?? 'user'}'s profile`}
         >
           <SafeAvatar
@@ -670,7 +672,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
                 {(showAllComments ? rootComments : rootComments.slice(0, 3)).map(c => (
                   <div key={c.id} className="space-y-1.5">
                     <div className="flex gap-2 group">
-                      <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden">
+                      <div className="relative w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden">
                         <SafeAvatar
                           src={(c as any).author_avatar}
                           alt={`${c.author_name ?? 'User'} avatar`}
@@ -781,7 +783,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
                           <div className="mt-2 space-y-2 border-l-2 border-amber-200 pl-3">
                             {(repliesByParent[c.id] ?? []).map(reply => (
                               <div key={reply.id} className="flex gap-2 group">
-                                <div className="w-6 h-6 rounded-full bg-secondary shrink-0 overflow-hidden text-[10px] font-semibold flex items-center justify-center">
+                                <div className="relative w-6 h-6 rounded-full bg-secondary shrink-0 overflow-hidden text-[10px] font-semibold flex items-center justify-center">
                                   <SafeAvatar src={(reply as any).author_avatar} alt={`${reply.author_name ?? 'User'} avatar`} className="w-full h-full object-cover" fallback={reply.author_name?.charAt(0) ?? '?'} />
                                 </div>
                                 <div className="flex-1 min-w-0">
