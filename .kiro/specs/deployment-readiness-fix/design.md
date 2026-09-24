@@ -187,7 +187,7 @@ Also fix the JSDoc comment in `auth.ts` that says "stores in both localStorage a
 
 Add directly after `const app = express()`:
 ```javascript
-app.set('trust proxy', 1); // trust the first proxy hop (Railway, Render, Nginx)
+app.set('trust proxy', 1); // trust the first proxy hop (Coolify/Cloudflare load-balancer → req.ip = real end-user IP)
 ```
 
 **Fix 5 — `backend/db/migrate.js`: Add `chapa_tx_ref` to orders table**
@@ -205,11 +205,18 @@ The cleanest fix is to ensure `commissions` table has `status TEXT NOT NULL DEFA
 
 **Fix 8 — `frontend-next/next.config.ts`: Add production WebSocket hosts to CSP `connect-src`**
 
-Update the `connect-src` directive to include `wss://*.railway.app` and `wss://*.up.railway.app` (and allow the configured `NEXT_PUBLIC_API_BASE_URL` as a `wss://` origin):
+Update the `connect-src` directive. The `wsHost` variable is already derived dynamically from `apiHost`. Because the backend now runs on a custom domain behind Cloudflare (not a Railway subdomain), no hardcoded provider patterns are needed:
 
-```
-// AFTER
-`connect-src 'self' ${apiHost} ${apiHost.replace(/^https?:/, 'wss:')} ws://localhost:3001 wss://localhost:3001 wss://*.railway.app wss://*.up.railway.app https://*.sentry.io https://api.stripe.com https://api.chapa.co`,
+```typescript
+// wsHost is already derived in next.config.ts:
+const wsHost = apiHost.replace(/^https?:/, 'wss:').replace(/^http:/, 'ws:');
+
+// connect-src AFTER fix (e.g. NEXT_PUBLIC_API_BASE_URL=https://api.nodbusiness.app):
+// wsHost = wss://api.nodbusiness.app — covers production WebSocket automatically
+`connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in`
+
+// No wss://*.railway.app or wss://*.up.railway.app patterns needed.
+// NEXT_PUBLIC_API_BASE_URL is set as an env var in Cloudflare Pages.
 ```
 
 ---

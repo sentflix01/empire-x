@@ -102,7 +102,7 @@
 | Proxy quota bypass | Client rotates fake `X-Forwarded-For` values | Rate-limit key derived from validated `req.ip` (trust-proxy), never raw headers | ✅ Done |
 | SSRF via outbound proxy fetch | Showroom external-source URLs reach internal networks | HTTPS-only; DNS resolution blocks loopback/private/link-local (IPv4 + IPv6 incl. ULA/multicast/NAT64); redirects rejected (`redirect: 'error'`); fail-closed on unknown formats | ✅ Done |
 | Large file upload DoS | Attacker uploads 1GB files repeatedly | `MAX_FILE_SIZE_MB` env var enforced by Multer; MIME type allowlist | ✅ Done |
-| DDoS | Volumetric attack on infrastructure | Vercel/Railway edge protection; Cloudflare integration is a roadmap item | ⚠️ Partial |
+| DDoS | Volumetric attack on infrastructure | Cloudflare always-on DDoS (L3/L4/L7, 335+ PoPs); Oracle VM IP hidden behind Cloudflare proxy; Oracle security group restricts 443/80 to Cloudflare IPs only | ✅ Done |
 | ReDoS (regex DoS) | Crafted input causes catastrophic backtracking | No complex regex on user input | ✅ Done |
 
 ---

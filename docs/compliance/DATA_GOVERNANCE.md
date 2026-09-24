@@ -85,17 +85,17 @@ Highest sensitivity — legal, financial, and identity data:
 
 | Data Type | Classification | Storage Location | Retention |
 |-----------|---------------|-----------------|-----------|
-| User accounts (email, name, DOB) | Tier 2–3 | Neon PostgreSQL (primary DB) | Until deletion request + 30 days |
-| User passwords | Tier 3 | Neon DB (bcrypt hash only) | Until account deletion |
-| Showroom / product data | Tier 1–2 | Neon DB | Until deleted by user |
-| Orders and transactions | Tier 3 | Neon DB | 7 years (legal/tax requirement) |
+| User accounts (email, name, DOB) | Tier 2–3 | Supabase PostgreSQL (primary DB) | Until deletion request + 30 days |
+| User passwords | Tier 3 | Supabase DB (bcrypt hash only) | Until account deletion |
+| Showroom / product data | Tier 1–2 | Supabase DB | Until deleted by user |
+| Orders and transactions | Tier 3 | Supabase DB | 7 years (legal/tax requirement) |
 | KYC documents | Tier 4 | S3 encrypted bucket | 5 years after account closure |
-| Chat messages | Tier 2 | Neon DB + Redis cache | 2 years (then archived/deleted) |
+| Chat messages | Tier 2 | Supabase DB + Redis cache | 2 years (then archived/deleted) |
 | File uploads (images) | Tier 2 | S3 / CDN | Until deleted by user |
 | Analytics events | Tier 3 (aggregated) | Analytics DB | 2 years |
 | Session tokens | Tier 3 | Redis (TTL 24h) | Auto-expiry |
 | Error logs | Tier 3 | Sentry | 90 days |
-| Server logs | Tier 3 | Railway/Cloud | 30 days |
+| Server logs | Tier 3 | Coolify container logs | 30 days |
 | Payment tokens | Tier 4 | Stripe (never in Nodbusiness DB) | Managed by Stripe |
 | IP addresses | Tier 3 | Server logs | 30 days |
 
@@ -109,7 +109,7 @@ User submits signup form
   → HTTPS (TLS) in transit
   → Backend validates input (sanitization)
   → Password hashed with bcrypt (12 rounds minimum)
-  → User record written to Neon PostgreSQL
+  → User record written to Supabase PostgreSQL
   → Verification email sent via Resend
   → Session token created in Redis (TTL 24h)
   → Analytics event fired (anonymized user ID, no PII)
@@ -236,9 +236,9 @@ Nodbusiness shares data with these processors:
 
 | Processor | Data Shared | Purpose | DPA in Place |
 |-----------|------------|---------|-------------|
-| Neon (PostgreSQL) | All structured data | Database hosting | Yes (standard terms) |
-| Vercel | Request logs, session data | Frontend hosting | Yes |
-| Railway | Server logs | Backend hosting | Yes |
+| Supabase (PostgreSQL) | All structured data | Database hosting | Yes (standard terms) |
+| Cloudflare Pages | Request logs, session data | Frontend hosting | Yes |
+| Oracle Cloud | Server logs | Backend compute | Yes (Oracle standard) |
 | Stripe | Payment data, identity for KYC | Payment processing | Yes (Stripe standard) |
 | Chapa | Payment data (Africa) | Local payment processing | Review required |
 | Resend | Email addresses | Transactional email | Yes |

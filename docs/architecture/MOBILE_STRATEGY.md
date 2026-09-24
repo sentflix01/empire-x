@@ -65,7 +65,7 @@ Nodbusiness is currently a **PWA** — a web app that behaves like a native app 
 npm install -g @bubblewrap/cli
 
 # Initialize TWA project
-bubblewrap init --manifest https://nodbusiness.vercel.app/manifest.json
+bubblewrap init --manifest https://nodbusiness.app/manifest.json
 
 # Build APK
 bubblewrap build

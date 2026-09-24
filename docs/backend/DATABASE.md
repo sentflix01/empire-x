@@ -139,12 +139,20 @@ WHERE state = 'active';
 
 ## Connection Pooling
 
-Neon uses PgBouncer for connection pooling automatically. The connection string uses a pooled endpoint:
+Supabase uses Supavisor for connection pooling. Two connection strings are available:
 
 ```
-postgresql://user:pass@ep-xxx-pooler.neon.tech/empirex?sslmode=require
+# Pooler URL — for the live application (Coolify env var DATABASE_URL)
+# Transaction mode, port 6543 — efficient connection reuse
+postgresql://postgres.REF:[PASS]@aws-0-REGION.pooler.supabase.com:6543/postgres?sslmode=require
+
+# Direct URL — for migrations, pg_dump, admin queries
+# Port 5432 — required for DDL (ALTER TABLE, CREATE INDEX CONCURRENTLY)
+postgresql://postgres.REF:[PASS]@db.REF.supabase.co:5432/postgres?sslmode=require&channel_binding=require
 ```
 
-For direct connections (migrations, admin queries), use the non-pooled endpoint. For the app, always use the pooled endpoint.
+Both are available at: **Supabase → Project Settings → Database → Connection string**
 
-Max connections rule of thumb: set `connection_limit` in the URL to `10` per backend instance in production to avoid hitting Neon's connection limits.
+**Rule:** Use the pooler URL (port 6543) for the backend application. Use the direct URL (port 5432) for all migration scripts and `pg_dump` backups — DDL statements do not work through the pooler.
+
+Set `DB_POOL_MAX=5` in Coolify env vars (Supabase free tier connection limit is ~20 direct connections; the Supavisor pooler handles multiplexing transparently).

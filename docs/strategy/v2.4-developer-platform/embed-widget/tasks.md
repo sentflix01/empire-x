@@ -12,7 +12,7 @@ showroom appears there instantly. Updates automatically.
 
 ```html
 <!-- Paste anywhere -->
-<script src="https://nodbusiness.vercel.app/embed.js"
+<script src="https://nodbusiness.app/embed.js"
         data-showroom="kategna-kitchen-bole">
 </script>
 ```
@@ -34,7 +34,7 @@ showroom appears there instantly. Updates automatically.
 
       // Create iframe
       var iframe = document.createElement('iframe');
-      iframe.src = 'https://nodbusiness.vercel.app/embed/showroom/' + slug
+      iframe.src = 'https://nodbusiness.app/embed/showroom/' + slug
         + '?theme=' + theme + '&sections=' + sections;
       iframe.width = '100%';
       iframe.height = height;

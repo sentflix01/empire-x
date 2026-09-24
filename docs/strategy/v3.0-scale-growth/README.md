@@ -60,5 +60,5 @@
 
 - All previous versions (v1.0 through v2.3) completed
 - Mobile: Expo or bare React Native, shared API layer
-- Infrastructure: Railway Pro / AWS / GCP for production scale
+- Infrastructure: Render + Vercel + Supabase / AWS / GCP for production scale
 - Legal: entity registration in target countries

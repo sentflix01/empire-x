@@ -374,10 +374,13 @@ export async function startWorkers(): Promise<void> {
     return;
   }
   try {
-    const { Queue } = require('bullmq') as typeof import('bullmq');
-    const testQ = new Queue('health-check', { connection: { url: REDIS_URL } });
-    await testQ.getJobCounts();
-    await testQ.close();
+    // Verify Redis is reachable with a single PING — avoids creating a
+    // bull:health-checkmeta key that wastes Redis commands on every startup.
+    const { Redis: IORedis } = require('ioredis') as typeof import('ioredis');
+    const testClient = new IORedis(REDIS_URL, { maxRetriesPerRequest: 1, lazyConnect: true });
+    await testClient.connect();
+    await testClient.ping();
+    await testClient.quit();
   } catch (err) {
     logger.warn({ err: (err as Error).message }, 'Redis not healthy — BullMQ workers not started, using sync fallback');
     return;

@@ -80,4 +80,4 @@ if ($psql) {
   Write-Host "psql not found — verify data manually in Supabase Table Editor." -ForegroundColor Yellow
 }
 
-Write-Host "All done. Your DATABASE_URL in Render should point to the Supabase pooler URL." -ForegroundColor Green
+Write-Host "All done. Set DATABASE_URL in Render to the Supabase pooler URL (port 6543)." -ForegroundColor Green

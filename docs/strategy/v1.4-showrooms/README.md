@@ -23,7 +23,7 @@
 - [ ] Builder has live preview — changes visible instantly without save
 - [ ] Drag-and-drop section reordering works on desktop AND a simple up/down on mobile
 - [ ] All 25+ section types render correctly across devices
-- [ ] Custom slug URL works: `nodbusiness.vercel.app/showroom/my-business`
+- [ ] Custom slug URL works: `nodbusiness.app/showroom/my-business`
 - [ ] Public showroom page loads in < 2s (Next.js SSR or ISR)
 - [ ] Open Graph image generated automatically for each showroom
 - [ ] Share button generates correct preview on WhatsApp, Telegram, Twitter

@@ -37,7 +37,7 @@ apply, take the higher one.
 | Event | Severity | Notes |
 |-------|----------|-------|
 | Redis unavailable | **SEV-3** | Auth revocation checks and rate limiting fail open; platform stays up. Watch for abuse spikes. |
-| Neon primary degraded (auto-failover) | **SEV-2** during event, SEV-4 after | Verify zero data loss post-event (RPO check) before downgrading. |
+| Supabase primary degraded (auto-failover) | **SEV-2** during event, SEV-4 after | Verify zero data loss post-event (RPO check) before downgrading. |
 | Stripe webhook deliveries failing | **SEV-2** | Orders stuck `pending`; Stripe retries for up to 3 days — fix before retries exhaust. |
 | Security vulnerability reported | **SEV-2 minimum** | SEV-1 if actively exploited or if it exposes money/data. See root `SECURITY.md`. |
 | CSAM / imminent-harm report | **T&S Critical — 15 min SLA** | Governed by `trust-safety/CONTENT_MODERATION_OPS.md`, not this matrix. |

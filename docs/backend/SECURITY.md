@@ -77,7 +77,7 @@ Socket.IO handshakes run the same access-type check plus revocation and ban chec
 ## Helmet Security Headers
 
 Production additionally enforces a **strict CSP** (`default-src 'none'; script-src 'none'; …`)
-because the API serves JSON only — pages live on Vercel with their own CSP.
+because the API serves JSON only — pages live on Cloudflare Pages with their own CSP.
 
 ```
 x-powered-by: removed (no Express fingerprint)
@@ -199,12 +199,12 @@ Details: `docs/backend/PAYMENT_INTEGRATION.md`.
 
 | Secret | Location | Never in |
 |---|---|---|
-| `JWT_SECRET` | Railway env vars | Git, logs, client bundle |
-| `DATABASE_URL` | Railway env vars | Git, logs, client bundle |
-| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Railway env vars | Git, logs, client bundle |
-| `CHAPA_SECRET_KEY` | Railway env vars | Git, logs, client bundle |
-| `RESEND_API_KEY` / SMTP creds | Railway env vars | Git, logs, client bundle |
-| `NEXT_PUBLIC_*` | Vercel env vars | Server-only code |
+| `JWT_SECRET` | Coolify env vars | Git, logs, client bundle |
+| `DATABASE_URL` | Coolify env vars | Git, logs, client bundle |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Coolify env vars | Git, logs, client bundle |
+| `CHAPA_SECRET_KEY` | Coolify env vars | Git, logs, client bundle |
+| `RESEND_API_KEY` / SMTP creds | Coolify env vars | Git, logs, client bundle |
+| `NEXT_PUBLIC_*` | Cloudflare Pages env vars | Server-only code |
 
 `.env` is gitignored; `.env.example` contains placeholders only.
 ⚠️ Known debt: `backend/db/dev-credentials.json` (dev seed passwords) is currently tracked —

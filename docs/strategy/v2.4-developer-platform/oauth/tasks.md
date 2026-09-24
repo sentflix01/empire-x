@@ -123,7 +123,7 @@ This is exactly how "Login with Google" / "Login with Apple" works.
 - [ ] Create a copy-paste button code snippet in the docs:
   ```html
   <!-- Add to your website -->
-  <a href="https://nodbusiness.vercel.app/oauth/authorize
+  <a href="https://nodbusiness.app/oauth/authorize
     ?client_id=YOUR_CLIENT_ID
     &redirect_uri=https://yoursite.com/callback
     &scope=profile

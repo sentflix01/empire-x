@@ -1,7 +1,7 @@
 # Nodbusiness — API Documentation
 
-> Base URL: `http://localhost:3001` (dev) · `https://nodbusiness-backend.onrender.com` (production)
-> Frontend: `https://nodbusiness.vercel.app`
+> Base URL: `http://localhost:3001` (dev) · `https://api.nodbusiness.app` (production)
+> Frontend: `https://nodbusiness.app`
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.
 > Errors follow `{ "error": "message" }` format.
 
@@ -570,4 +570,4 @@ On payment confirmation:
 - Activity feed entry created: `"Abebe contributed 500 ETB via Stripe"`
 - Push notification sent to all group members
 
-> Set `STRIPE_MEWACHO_WEBHOOK_SECRET` in Render env vars. Create a separate Stripe webhook endpoint pointing to `https://your-backend.onrender.com/api/mewacho/webhook` with the `checkout.session.completed` event selected.
+> Set `STRIPE_MEWACHO_WEBHOOK_SECRET` in Render env vars. Create a separate Stripe webhook endpoint pointing to `https://nodbusiness-backend.onrender.com/api/mewacho/webhook` with the `checkout.session.completed` event selected.

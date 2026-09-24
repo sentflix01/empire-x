@@ -63,16 +63,20 @@ When a 28-day error budget is exhausted (>100% burned):
 
 ## 5. Measurement wiring (to implement)
 
-Current state: Sentry captures errors; Pino logs are visible only in Railway's console;
-there is no metric store. To make these SLOs real:
+Current state: Sentry captures errors when DSN is configured; Pino logs are visible in Coolify's
+log viewer; there is no metric store yet. To make these SLOs real:
 
-1. **Log drain:** Railway log drain → Loki/Grafana Cloud free tier or Datadog (Phase 4 plan).
-2. **Synthetic checks:** UptimeRobot (or Better Stack) on `/health` every 60 s from 3 regions.
-3. **Payment success counter:** emit a structured log line (`event=payment_result`) from
+1. **Uptime monitoring:** Uptime Kuma (self-hosted on Oracle VM via Coolify) checks `/health` every
+   60 seconds from the VM itself. Add a second monitor from an external location (BetterStack free
+   tier, or a Cloudflare Worker cron) for true external availability measurement.
+2. **Log drain:** Coolify log drain → Loki/Grafana Cloud free tier (10K series, 50 GB logs) for
+   persistent log storage and query capability beyond Coolify's ephemeral container logs.
+3. **Payment success counter:** emit a structured Pino log line (`event=payment_result`) from
    `orders.ts` webhook + Chapa verify; compute S3 from the log store.
-4. **Latency:** pino-http timing already logged per request (`x-response-time` middleware);
-   aggregate percentiles in the log store.
+4. **Latency:** `x-response-time` middleware already logs per-request timing; aggregate
+   percentiles in Grafana Cloud or Sentry performance monitoring.
 5. **Budget dashboard:** one Grafana board per SLI with burn-rate panels wired to §4 alerts.
+   Start with the Sentry dashboard for error rate and Uptime Kuma for availability.
 
 ## 6. Review cadence
 
