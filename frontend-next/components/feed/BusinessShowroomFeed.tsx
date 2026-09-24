@@ -526,7 +526,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                       >
                         {/* Preview QR at button size — actual scannable QR in popup */}
                         <QRCodeSVG
-                          value={`${process.env.NEXT_PUBLIC_APP_URL || 'https://nodbusiness.vercel.app'}/profile/${ownerId}?view=business`}
+                          value={`${typeof window !== 'undefined' ? window.location.origin : 'https://nodbusiness.vercel.app'}/profile/${ownerId}?view=business`}
                           size={46}
                           level="L"
                           includeMargin={false}
@@ -571,7 +571,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                               <div className="flex justify-center">
                                 <div className="p-3 bg-white rounded-2xl border border-slate-100 shadow-inner">
                                   <QRCodeSVG
-                                    value={`${process.env.NEXT_PUBLIC_APP_URL || 'https://nodbusiness.vercel.app'}/profile/${ownerId}?view=business`}
+                                    value={`${typeof window !== 'undefined' ? window.location.origin : 'https://nodbusiness.vercel.app'}/profile/${ownerId}?view=business`}
                                     size={220}
                                     level="H"
                                     includeMargin
