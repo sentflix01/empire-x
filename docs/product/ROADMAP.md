@@ -57,7 +57,7 @@
 - [x] **Showroom builder** — "Save / Bookmark Button" Pro section added; `inventory_catalog` and `live_location_tracking` sections now visible in builder UI (September 2026)
 
 ### Infrastructure
-- [x] Vercel (Next.js) + Render (backend) + Neon (database)
+- [x] Render (backend) + Vercel (frontend) + Supabase (database)
 - [x] Cloudflare R2 (file storage)
 - [x] Resend (email)
 - [x] Sentry + Pino (observability)
@@ -87,8 +87,7 @@
 ### Engineering
 - [ ] Redis + BullMQ activated (`REDIS_URL` configured in production)
 - [ ] Better Uptime monitoring
-- [ ] Vercel Analytics enabled
-- [ ] Playwright E2E tests for critical flows (TD-003)
+- [ ] Cloudflare Web Analytics enabled (free, edge-based, no JS perf impact)- [ ] Playwright E2E tests for critical flows (TD-003)
 
 ---
 
@@ -112,7 +111,7 @@
 - [ ] TypeScript migration (backend) — TD-004
 - [ ] Prisma ORM — TD-008
 - [ ] Meilisearch for full-text search
-- [ ] Read replicas (Neon Scale plan)
+- [ ] Read replicas (Supabase Pro plan)
 - [ ] Separate BullMQ worker containers
 
 ---

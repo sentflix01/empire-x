@@ -34,7 +34,7 @@ The demo database is completely separate from the production database. The front
 
 #### Acceptance Criteria
 
-1. The system SHALL support a `DEMO_DATABASE_URL` environment variable pointing to a separate PostgreSQL database (e.g., a Neon branch).
+1. The system SHALL support a `DEMO_DATABASE_URL` environment variable pointing to a separate PostgreSQL database (e.g., a Supabase branch or a dedicated Supabase project for demo data).
 2. When a user is in demo mode, ALL database queries (reads and writes) SHALL use the demo database connection, not the production database.
 3. The demo database connection SHALL be selected per-request based on a `demo_session` cookie, not per-server (both connections are available simultaneously on the same running server).
 4. User authentication in demo mode SHALL use the demo database — demo users are stored in the demo database, not in production.

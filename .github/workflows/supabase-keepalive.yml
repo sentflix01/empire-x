@@ -1,0 +1,48 @@
+name: Supabase Keep-Alive
+
+# Supabase free-tier projects pause after 7 days of zero database activity.
+# This workflow fires a real SQL query every 5 days to reset the inactivity
+# clock and prevent the pause.
+#
+# The backend's own keep-alive ping (SELECT 1 every 4 minutes in index.ts)
+# keeps the database active while the backend is running. This workflow closes
+# the gap during development periods when no backend is deployed.
+#
+# To disable: comment out the schedule trigger below.
+
+on:
+  schedule:
+    # Every 5 days at 08:00 UTC (well within the 7-day pause window)
+    - cron: '0 8 */5 * *'
+  # Allow manual trigger from the Actions tab
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    name: Ping Supabase database
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check DATABASE_URL is set
+        run: |
+          if [ -z "${{ secrets.DATABASE_URL }}" ]; then
+            echo "⚠️  DATABASE_URL secret not set — cannot ping Supabase."
+            echo "    Add DATABASE_URL to GitHub → Settings → Secrets and variables → Actions"
+            exit 0
+          fi
+          echo "✅ DATABASE_URL found — pinging database."
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get install -y postgresql-client --quiet
+
+      - name: Ping Supabase (keep-alive query)
+        run: |
+          psql "${{ secrets.DATABASE_URL }}" \
+            --command="SELECT 'keep-alive' AS ping, now() AS pinged_at;" \
+            --no-password \
+            --quiet \
+          && echo "✅ Supabase keep-alive ping successful — inactivity clock reset." \
+          || echo "⚠️  Keep-alive ping failed — check DATABASE_URL secret and Supabase project status."
+        # Failures are soft — don't fail the whole workflow, just log a warning.
+        # If Supabase is already paused the restore happens automatically on next API request.
+        continue-on-error: true

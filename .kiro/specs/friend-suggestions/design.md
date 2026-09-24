@@ -7,7 +7,7 @@ This document describes the technical design for two interconnected features in 
 1. **AI-User Distinction** — a data-model flag (`is_seed`) that permanently marks demo/seed accounts, exposed through every API surface and rendered as a "Demo" badge in the UI.
 2. **Friend Suggestion System** — a scored, ranked API that surfaces up to 20 users a requester may want to follow, computed from mutual connections, shared location, and activity recency, with a dismiss mechanism and a frontend widget.
 
-The stack is Node.js/Express (backend) + PostgreSQL/Neon (database) + Next.js 16 / TypeScript (frontend). Both features share the same migration and are wired together at the scoring and rendering layer.
+The stack is Node.js/Express (backend) + PostgreSQL/Supabase (database) + Next.js 16 / TypeScript (frontend). Both features share the same migration and are wired together at the scoring and rendering layer.
 
 ---
 
@@ -17,7 +17,7 @@ The stack is Node.js/Express (backend) + PostgreSQL/Neon (database) + Next.js 16
 graph TD
     Client["Next.js Frontend"]
     API["Express Backend (index.js)"]
-    DB["PostgreSQL / Neon"]
+    DB["PostgreSQL / Supabase"]
     Redis["Redis (optional, exists)"]
 
     Client -->|"GET /api/suggestions/people"| API

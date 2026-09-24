@@ -49,10 +49,10 @@ Every architectural decision must satisfy: *"Does this work at 100x current load
 ### Phase 0: Foundation (0–3 months) — **COMPLETE**
 | Component | Status | Capacity |
 |-----------|--------|----------|
-| API | 2 workers (Railway) | 100 QPS |
-| DB | Neon (single) + PgBouncer | 500 conn |
+| API | Render (free tier) | 100 QPS |
+| DB | Supabase (single) + Supavisor | 500 conn |
 | Redis | Upstash (single) | 10K ops/s |
-| FE | Vercel Edge | Global |
+| FE | Vercel | Global |
 | Socket | 1 worker + Redis adapter | 10K concurrent |
 | Observability | Built-in DevOps console | Full |
 
@@ -64,11 +64,11 @@ Every architectural decision must satisfy: *"Does this work at 100x current load
 
 | Layer | Scaling Action | Trigger |
 |-------|----------------|---------|
-| **API** | Horizontal to 6–10 workers (Railway) | p99 > 300ms sustained |
-| **DB** | Neon read replicas (2) for analytics/feed | CPU > 60% or p95 > 100ms |
+| **API** | Add Render Standard + Cloudflare Load Balancer | p99 > 300ms sustained |
+| **DB** | Supabase Pro read replicas (2) for analytics/feed | CPU > 60% or p95 > 100ms |
 | **Redis** | Upstash auto-tiering (pay-per-request) | Memory > 70% |
 | **Socket** | 3 workers + Redis Cluster | 50K concurrent |
-| **CDN** | Vercel ISR + Cloudflare R2 | Image bandwidth > 1TB/mo |
+| **CDN** | Cloudflare R2 + Pages edge cache | Image bandwidth > 1TB/mo |
 | **Search** | Add Meilisearch (self-hosted) | Filter latency > 200ms |
 | **Workers** | Background job queue (BullMQ/Redis) | Webhook backlog > 1000 |
 
@@ -82,9 +82,9 @@ Every architectural decision must satisfy: *"Does this work at 100x current load
 
 | Layer | Scaling Action | Trigger |
 |-------|----------------|---------|
-| **API** | 20–30 workers (K8s / Railway) | p99 > 300ms |
+| **API** | 20–30 workers (K8s / AWS ECS) | p99 > 300ms |
 | **DB** | **Sharding by `showroom_id`** (tenant isolation) | Write QPS > 1,000 |
-| **DB** | Multi-region (Neon + read replicas) | Cross-region latency > 150ms |
+| **DB** | Multi-region (Supabase + read replicas) | Cross-region latency > 150ms |
 | **Redis** | Redis Cluster (6 shards) | Ops > 100K/s |
 | **Socket** | 10+ workers, sticky sessions | 200K concurrent |
 | **Search** | Meilisearch cluster (3 nodes) | Index > 50M docs |
@@ -175,7 +175,7 @@ CREATE INDEX idx_orders_showroom ON orders (showroom_id, created_at DESC);
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ LAYER 1: CDN (Cloudflare / Vercel Edge)                         │
+│ LAYER 1: CDN (Cloudflare — 335+ PoPs)                          │
 │ • Static assets: 1 year (content hash)                          │
 │ • Images (R2): 30 days                                          │
 │ • HTML (ISR): 60s (stale-while-revalidate: 300s)               │
@@ -279,7 +279,7 @@ Examples:
 
 ## 5. Frontend Scaling (Next.js)
 
-### 5.1 Vercel / Edge Scaling
+### 5.1 Vercel Edge Scaling
 
 | Feature | Configuration |
 |---------|---------------|
@@ -302,7 +302,7 @@ Examples:
 
 | Tool | Purpose |
 |------|---------|
-| **Vercel Analytics** | Core Web Vitals (RUM) |
+| **Cloudflare Analytics** | Core Web Vitals (RUM) |
 | **Grafana k6** | Synthetic load testing (CI + scheduled) |
 | **Lighthouse CI** | PR regression detection |
 | **WebPageTest** | Deep-dive on critical pages |
@@ -326,11 +326,11 @@ Examples:
 
 | Lever | Savings | Effort |
 |-------|---------|--------|
-| **Reserved Instances** (Railway/Neon) | 30–40% | Low (commit 1yr) |
+| **Reserved Instances** (Oracle/Supabase) | 30–40% | Low (commit 1yr) |
 | **Spot/Preemptible** (workers) | 60–70% | Medium (graceful shutdown) |
 | **R2 vs S3** | 80% egress savings | Done |
 | **Upstash pay-per-request** | 50% vs provisioned | Done |
-| **Vercel Edge vs Lambda** | 10x cheaper for middleware | Done |
+| **Vercel vs Lambda** | 10x cheaper for middleware | Done |
 | **Image compression (AVIF)** | 50% bandwidth | Done |
 | **Query optimization** | 30% DB CPU | Ongoing |
 | **Cache hit rate >90%** | 50% DB load | Ongoing |
@@ -373,7 +373,7 @@ Example: 200K sessions * 2KB = 400MB + 10M cache * 1KB = 10GB + 2GB = 12.5GB
 |------------|------------|--------------|
 | Kill 1 API worker | Auto-recovery < 30s | 1/10 workers |
 | Redis primary failover | <5s failover, 0 data loss | Cache miss spike |
-| DB primary failover | Neon auto-failover < 30s | 30s read errors |
+| DB primary failover | Supabase auto-failover < 30s | 30s read errors |
 | Region network partition | Cross-region reads work | Cross-region latency |
 | Socket worker crash | Clients reconnect < 10s | 1/10 socket workers |
 | Dependency outage (Stripe) | Graceful degradation, queue | Payment flow only |
@@ -407,7 +407,7 @@ Example: 200K sessions * 2KB = 400MB + 10M cache * 1KB = 10GB + 2GB = 12.5GB
 
 ### 8.1 DB Read Replicas (Phase 1)
 
-- [ ] Enable Neon read replica
+- [ ] Enable Supabase read replica (Pro plan feature)
 - [ ] Update `pool.ts` — `readPool` for SELECT, `writePool` for mutations
 - [ ] Add `READ_REPLICA_URL` env
 - [ ] Test failover (kill primary)

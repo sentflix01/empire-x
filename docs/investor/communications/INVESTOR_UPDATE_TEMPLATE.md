@@ -112,7 +112,7 @@ Hiding problems destroys trust when they eventually surface.)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Product update: [nodbusiness.vercel.app]
+Product update: [nodbusiness.app]
 Questions or feedback: reply to this email
 
 Thank you for your support.
@@ -166,9 +166,9 @@ Runway remaining:     14 months (at current burn)
    $500K in Q1 2027 and want to start conversations now
 2. Anyone who knows a strong React developer available for part-time contract work?
 3. If you use Nodbusiness yourself (or know businesses who should): share
-   nodbusiness.vercel.app — word of mouth is our only growth channel right now
+   nodbusiness.app — word of mouth is our only growth channel right now
 
-Try the latest build: nodbusiness.vercel.app
+Try the latest build: nodbusiness.app
 Feedback welcome — reply directly to this email.
 
 Sintayehu

@@ -28,9 +28,9 @@ multiple language examples, interactive playground.
       Integrate your tools, automate workflows, or build entirely new products.
     contact:
       email: developers@nodbusiness.app
-      url: https://nodbusiness.vercel.app/developers
+      url: https://nodbusiness.app/developers
   servers:
-    - url: https://nodbusiness.vercel.app/api
+    - url: https://nodbusiness.app/api
       description: Production
     - url: http://localhost:3001/api
       description: Local development
@@ -99,7 +99,7 @@ The most important page in the entire docs:
 
   ## 2. Make your first request
   ```bash
-  curl https://nodbusiness.vercel.app/api/posts \
+  curl https://nodbusiness.app/api/posts \
     -H "Authorization: Bearer hale_live_YOUR_KEY"
   ```
 
@@ -125,7 +125,7 @@ Create a new product listing.
 
 **Request:**
 \`\`\`bash
-curl -X POST https://nodbusiness.vercel.app/api/products \
+curl -X POST https://nodbusiness.app/api/products \
   -H "Authorization: Bearer hale_live_xxx" \
   -H "Content-Type: application/json" \
   -d '{

@@ -21,6 +21,10 @@
     "typecheck": "tsc --noEmit",
     "migrate": "node db/migrate-all.js",
     "seed": "node db/seed.js",
+    "seed:showrooms": "node db/seed-showrooms.js",
+    "seed:mewacho": "node db/seed-mewacho.js",
+    "seed:patch-media": "node db/seed-patch-media.js",
+    "seed:patch-business-feed": "node db/seed-patch-business-feed.js",
     "clean": "node db/cleanup-seed-data.js",
     "backup": "tsx scripts/backup-database.js",
     "backup:verify": "tsx scripts/verify-backup.js",
@@ -37,11 +41,11 @@
       "^.+\\.(t|j)s$": [
         "ts-jest",
         {
-          "isolatedModules": true,
           "tsconfig": {
             "esModuleInterop": true,
             "allowJs": true,
-            "resolveJsonModule": true
+            "resolveJsonModule": true,
+            "isolatedModules": true
           }
         }
       ]
@@ -59,27 +63,27 @@
     ]
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1130.0",
-    "@aws-sdk/s3-request-presigner": "^3.1130.0",
-    "@sentry/node": "^10.74.0",
+    "@aws-sdk/client-s3": "^3.1135.0",
+    "@aws-sdk/s3-request-presigner": "^3.1135.0",
+    "@sentry/node": "^10.75.0",
     "@socket.io/redis-adapter": "^8.3.0",
     "bcryptjs": "3.0.3",
-    "bullmq": "^6.3.4",
+    "bullmq": "^6.3.7",
     "chapa-nodejs": "^2.1.1",
     "compression": "^1.8.2",
     "cookie-parser": "^1.4.7",
     "cors": "2.8.6",
     "dotenv": "16.4.5",
-    "express": "4.22.2",
+    "express": "5.2.1",
     "express-rate-limit": "^8.7.0",
     "express-validator": "7.3.2",
     "google-auth-library": "9.6.3",
     "helmet": "8.3.0",
     "ioredis": "^6.0.0",
     "jsonwebtoken": "9.0.3",
-    "multer": "2.3.0",
+    "multer": "2.4.0",
     "node-fetch": "^3.3.2",
-    "nodemailer": "9.1.1",
+    "nodemailer": "10.0.10",
     "pg": "8.23.0",
     "pino": "^10.3.1",
     "pino-pretty": "^13.1.3",
@@ -96,7 +100,7 @@
     "@types/compression": "^1.8.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
-    "@types/express": "^4.17.25",
+    "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.2.0",
     "@types/node": "^20.19.43",
@@ -111,6 +115,6 @@
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.12",
     "tsx": "^4.23.13",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   }
 }
