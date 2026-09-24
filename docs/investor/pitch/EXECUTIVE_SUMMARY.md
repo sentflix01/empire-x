@@ -130,7 +130,7 @@ Milestones: 10,000 MAU → 500 paying businesses → $25,000 MRR → Series A re
 ### Contact
 
 [Founder Name] | [email@nodbusiness.app] | [Phone]
-[LinkedIn URL] | nodbusiness.vercel.app
+[LinkedIn URL] | nodbusiness.app
 
 ---
 

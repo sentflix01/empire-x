@@ -216,8 +216,8 @@
 | Redis Caching | 🟡 At 5K+ users | `ioredis` installed, Redis URL needed |
 | BullMQ Background Jobs | 🟡 Before heavy traffic | `bullmq` installed |
 | CDN (Cloudflare) | 🟡 Before production | Free tier |
-| Database Read Replicas | 🟢 At 10K+ concurrent | Neon supports this |
-| Horizontal Scaling | 🟢 At 50K+ users | Railway auto-scaling |
+| Database Read Replicas | 🟢 At 10K+ concurrent | Supabase Pro supports this |
+| Horizontal Scaling | 🟢 At 50K+ users | Add second Render instance + Cloudflare Load Balancer |
 
 ---
 

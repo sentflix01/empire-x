@@ -1,3 +1,5 @@
+> ⚠️ **HISTORICAL** — corresponding source file was removed from the codebase on 2026-09-22. Kept for reference.
+
 # backend/tmp_api_test
 
 <!-- AUTO-STUB  2026-08-23 — curate narrative below -->

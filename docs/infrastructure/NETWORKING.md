@@ -1,7 +1,8 @@
 # Nodbusiness — Networking, Domains & Security
 
 > DNS, SSL, load balancing, DDoS protection, and domain strategy.
-> Last updated: August 2026
+> **Last updated:** September 2026
+> **Stack:** Oracle Cloud Johannesburg + Coolify v4 · Cloudflare Pages · Supabase
 
 ---
 
@@ -23,171 +24,196 @@
 | TTL | Time to Live — DNS record expiry |
 | API | Application Programming Interface |
 | URL | Uniform Resource Locator |
-| VPN | Virtual Private Network |
 | CNAME | Canonical Name — DNS record type |
 | A Record | Address Record — DNS record mapping domain to IP |
+| PoP | Point of Presence |
+| VM | Virtual Machine |
 
 ---
+
 ## Domain Strategy
 
 ### Primary Domains (Register Now)
 
-| Domain | Purpose | Register at |
+| Domain | Purpose | Points to |
 |---|---|---|
-| `nodbusiness.vercel.app` | Main user-facing app | Cloudflare Registrar (~$12/year) |
-| `api.nodbusiness.app` | Backend API | Subdomain (free via Cloudflare DNS) |
-| `status.nodbusiness.app` | Status page | Subdomain → UptimeRobot/Statuspage.io |
-| `cdn.nodbusiness.app` | R2 CDN custom domain | Subdomain → Cloudflare R2 |
+| `nodbusiness.app` | Main user-facing app | Cloudflare Pages |
+| `api.nodbusiness.app` | Backend API | Oracle VM via Cloudflare proxy |
+| `status.nodbusiness.app` | Status page (Uptime Kuma) | Oracle VM (Uptime Kuma on Coolify) |
+| `cdn.nodbusiness.app` | R2 CDN custom domain | Cloudflare R2 bucket |
 
 ### Future Domains
 
 | Domain | When | Purpose |
 |---|---|---|
-| `nodbusiness.et` | Ethiopia-specific launch | Ethiopian ccTLD, trust signal |
+| `nodbusiness.et` | Ethiopia-specific launch | Ethiopian ccTLD, local trust signal |
 | `nodbusiness.co.ke` | Kenya launch | Kenya ccTLD |
-| `nodbusiness.co.tz` | Tanzania launch | Tanzania ccTLD |
-| `business.nodbusiness.app` | Business portal | White-label for enterprise |
+| `business.nodbusiness.app` | Business portal | White-label for enterprise tier |
 | `api.v2.nodbusiness.app` | API v2 | When versioning needed |
-
-**Why `.app` domain:**
-- HTTPS required by browser (.app is HSTS preloaded)
-- International recognition
-- Short and memorable
-- Google-backed (trustworthy)
 
 ---
 
 ## DNS Architecture (Cloudflare)
 
 ```
-nodbusiness.vercel.app (Cloudflare DNS)
+nodbusiness.app (Cloudflare authoritative DNS)
 │
-├── A/CNAME nodbusiness.vercel.app → Vercel (frontend)
-│         TTL: 1 minute (auto-updated by Vercel)
-│         Proxy: ✅ (Cloudflare CDN + SSL)
+├── A     @          → <Oracle VM public IP>    TTL: auto    Proxy: ✅
+│         (Cloudflare Pages also works via CNAME — see below)
 │
-├── CNAME api.nodbusiness.app → nodbusiness.railway.app
-│         TTL: 1 minute
-│         Proxy: ✅ (Cloudflare CDN + WAF)
+├── CNAME www        → nodbusiness.pages.dev    TTL: auto    Proxy: ✅
+│         (or configure Cloudflare Pages custom domain directly)
 │
-├── CNAME status.nodbusiness.app → stats.uptimerobot.com
-│         TTL: 5 minutes
-│         Proxy: ❌ (status page needs direct access)
+├── A     api        → <Oracle VM public IP>    TTL: 60s     Proxy: ✅
+│         (proxied through Cloudflare — Oracle IP stays hidden)
 │
-├── CNAME cdn.nodbusiness.app → pub-xxxx.r2.dev
-│         TTL: 5 minutes
-│         Proxy: ✅ (R2 + Cloudflare CDN)
+├── CNAME status     → <Oracle VM IP or Coolify subdomain>
+│                      TTL: 300s   Proxy: ❌ (Uptime Kuma needs direct access for monitors)
 │
-├── TXT @ → v=spf1 include:_spf.resend.com ~all
+├── CNAME cdn        → pub-xxxx.r2.dev          TTL: 300s    Proxy: ✅
+│         (R2 bucket public URL → served via Cloudflare CDN globally)
+│
+├── TXT   @          → v=spf1 include:_spf.resend.com ~all
 │         (Email SPF record for Resend)
 │
-├── TXT resend._domainkey → {Resend DKIM key}
+├── TXT   resend._domainkey → {Resend DKIM key}
 │         (Email DKIM for deliverability)
 │
-└── MX @ → {email provider MX records}
-          (For contact@nodbusiness.app mailbox)
+└── TXT   _dmarc     → v=DMARC1; p=quarantine; rua=mailto:dmarc@nodbusiness.app; pct=100
+```
+
+### Cloudflare Pages Custom Domain
+
+For the frontend, add the custom domain directly in Cloudflare Pages:
+```
+Cloudflare → Pages → nodbusiness → Custom domains → Add domain
+Enter: nodbusiness.app
+Cloudflare Pages automatically creates the DNS record.
 ```
 
 ### DNS TTL Strategy
 
 | Record type | TTL | Reason |
 |---|---|---|
-| API endpoint | 60 seconds | Fast failover if Railway changes IP |
-| Frontend | Auto (Vercel managed) | Vercel updates automatically |
+| API endpoint (Oracle VM IP) | 60 seconds | Fast cutover if migrating to Hetzner |
+| Frontend (Cloudflare Pages) | Auto (CF managed) | Cloudflare updates automatically |
 | Status page | 300 seconds | Rarely changes |
-| CDN | 300 seconds | R2 URL rarely changes |
+| CDN (R2) | 300 seconds | R2 URL rarely changes |
 | Email (MX/TXT) | 3600 seconds | Email records are stable |
+
+**Failover DNS change time:** With 60s TTL on the API record, switching from Oracle VM to Hetzner means the new IP propagates globally in under 1 minute (Cloudflare is authoritative and bypasses ISP caching).
 
 ---
 
 ## SSL/TLS Configuration
 
-### All traffic is HTTPS (enforced automatically)
+### Cloudflare SSL Mode: Full (Strict) — Required
 
 ```
-Cloudflare → Origin: Full (Strict)
-  - Cloudflare generates certificate for visitors
-  - Railway/Vercel generates certificate for Cloudflare → origin
-  - Never: "Flexible" mode (passes plaintext to origin — insecure)
+Cloudflare → SSL/TLS → Overview → Full (Strict)
+
+DO NOT use "Flexible" mode:
+  - Flexible = Cloudflare → origin over plain HTTP = data exposed in transit
+  - Full (Strict) = Cloudflare → origin over HTTPS with valid cert
+  
+Coolify provides Let's Encrypt certificates automatically for your domain.
+The Oracle VM has a valid cert; Cloudflare verifies it in Strict mode.
 ```
 
 ### HSTS (HTTP Strict Transport Security)
 
-```
-Already set in backend/index.ts:
-  hsts: { maxAge: 31536000, includeSubDomains: true }
-  
-This tells browsers: "Never connect to this domain over HTTP"
-After 1 year, even direct HTTP URLs redirect to HTTPS automatically.
+```javascript
+// Already set in backend/index.ts (Helmet.js):
+hsts: { maxAge: 31536000, includeSubDomains: true }
+
+// Also set in Cloudflare:
+// SSL/TLS → Edge Certificates → HTTP Strict Transport Security (HSTS)
+// Max Age: 12 months, Include subdomains: ON
 ```
 
 ### TLS Minimum Version
 
 ```
-Cloudflare SSL/TLS → Edge Certificates → Minimum TLS Version: TLS 1.2
-TLS 1.0 and 1.1 are deprecated (broken by POODLE/BEAST attacks)
-TLS 1.3: Fastest, most secure — enabled by default on Cloudflare
+Cloudflare → SSL/TLS → Edge Certificates → Minimum TLS Version → TLS 1.2
+TLS 1.0 and 1.1 are deprecated.
+TLS 1.3 is enabled by default and used when the client supports it.
 ```
 
 ---
 
 ## Cloudflare Configuration
 
-### Free Plan (Recommended for Stages 0–2)
+### Free Plan Settings (Enable Immediately)
 
-Enable these immediately:
 ```
 Security:
-  ✅ DDoS Protection (always on, even free plan)
+  ✅ DDoS Protection — always on (L3/L4/L7 — cannot be disabled)
   ✅ Bot Fight Mode → ON
   ✅ Browser Integrity Check → ON
-  ✅ Hotlink Protection → ON (prevents others embedding your images)
+  ✅ Hotlink Protection → ON
 
 Performance:
   ✅ Auto Minify → JavaScript, CSS, HTML
   ✅ Brotli compression → ON
-  ✅ Early Hints → ON (preloads resources)
-  ✅ Rocket Loader → OFF (can break Next.js scripts)
+  ✅ Early Hints → ON
+  ✅ Rocket Loader → OFF (breaks Next.js hydration)
 
 Caching:
   ✅ Cache Level → Standard
-  ✅ Browser Cache TTL → 4 hours (for static assets)
-  
+  ✅ Browser Cache TTL → 4 hours (static assets)
+
 SSL:
+  ✅ Mode → Full (Strict)
   ✅ Always HTTPS → ON
   ✅ HSTS → 12 months, Include subdomains
   ✅ Minimum TLS → 1.2
 ```
 
-### Cloudflare Pro ($20/month) — When to upgrade
+### Oracle VM IP Allowlist (Critical Security Step)
+
+**Block all direct HTTP/HTTPS to the Oracle VM — only Cloudflare IPs allowed:**
+
+```
+Oracle Cloud → Networking → Virtual Cloud Networks → Security Lists → Ingress Rules
+
+ALLOW TCP 443 from: (Cloudflare IPv4 ranges — get current from cloudflare.com/ips-v4)
+ALLOW TCP 80  from: (Cloudflare IPv4 ranges)
+ALLOW TCP 8000 from: <your home/office IP> only  (Coolify dashboard)
+ALLOW TCP 22   from: <your home/office IP> only  (SSH)
+DENY all other inbound on 443, 80
+
+This ensures:
+1. Attackers cannot bypass Cloudflare by hitting the Oracle IP directly
+2. All traffic goes through Cloudflare's DDoS scrubbing and WAF
+3. Your Oracle VM's real IP is never exposed in DNS or HTTP responses
+```
+
+### Cloudflare Pro ($20/month) — When to Upgrade
 
 Upgrade when:
-- Need Web Application Firewall (WAF) — blocks SQLi, XSS, common attacks
-- Getting bot traffic > 10% of requests
+- Getting significant bot traffic (> 10% of requests)
+- Need WAF managed ruleset (SQLi, XSS blocking at Cloudflare level)
 - Need image optimization via Cloudflare Polish
-- Need Cloudflare Pages for the status page
+- Need more detailed analytics
 
-### Cloudflare WAF Rules (Pro plan)
+### Cloudflare WAF Rules (Pro plan — future)
 
 ```
 Rule 1: Block SQL injection attempts
-  Expression: cf.threat_score > 10 AND (http.request.uri.query contains "' OR" OR http.request.uri.query contains "UNION SELECT")
+  Expression: http.request.uri contains "' OR" OR http.request.uri contains "UNION SELECT"
   Action: Block
 
-Rule 2: Rate limit login endpoint
+Rule 2: Rate limit login endpoint (Cloudflare level)
   Expression: http.request.uri.path == "/api/auth/login" AND rate > 20/minute/ip
   Action: Challenge
 
-Rule 3: Block known bad bots
-  Expression: cf.client.bot
-  Action: Challenge
-
-Rule 4: Block requests without User-Agent
+Rule 3: Block empty User-Agent (bots)
   Expression: http.user_agent == ""
   Action: Block
 
-Rule 5: Allow Stripe webhooks from Stripe IPs
-  Expression: http.request.uri.path == "/api/orders/webhook" AND not ip.src in {stripe_ip_ranges}
+Rule 4: Allow Stripe webhooks from Stripe IPs only
+  Expression: http.request.uri.path == "/api/orders/webhook"
+              AND NOT ip.src in {stripe_ip_ranges}
   Action: Block
 ```
 
@@ -198,31 +224,23 @@ Rule 5: Allow Stripe webhooks from Stripe IPs
 ### Single Instance (Now)
 
 ```
-nodbusiness.vercel.app → Vercel (edge)
-api.nodbusiness.app → Railway (single instance)
+nodbusiness.app    → Cloudflare Pages (automatic edge — 335+ PoPs)
+api.nodbusiness.app → Oracle VM (single Coolify container, Johannesburg)
 ```
 
-### Multi-Instance (Stage 2: 10K+ users)
+### Multi-Instance (Stage 2: 50K+ users)
 
 ```
 api.nodbusiness.app → Cloudflare Load Balancer ($5/month)
-                        ├── Railway US-West (primary)
-                        ├── Railway US-East (secondary)
+                        ├── Oracle VM Johannesburg (primary)
+                        ├── Hetzner CAX21 Falkenstein (secondary)
                         └── Health check: GET /health every 30s
-                        
-Failover: If US-West fails, Cloudflare routes to US-East automatically
-```
 
-### Multi-Region (Stage 3: 100K+ users)
-
-```
-api.nodbusiness.app → Cloudflare Load Balancer (Geographic routing)
-                        ├── US-West → Africa users (lowest latency via Dallas)
-                        ├── EU-West → European diaspora
-                        └── Middle East → UAE/Saudi diaspora
-                        
-Note: This requires Railway instances in each region
-      + Socket.IO Redis adapter to share WebSocket state
+Requires Socket.IO Redis adapter (share WebSocket state across instances):
+// backend/socket.ts — already commented pattern:
+const { createAdapter } = require('@socket.io/redis-adapter');
+io.adapter(createAdapter(pubClient, subClient));
+// Uses Upstash Redis — no additional infrastructure needed
 ```
 
 ---
@@ -231,49 +249,47 @@ Note: This requires Railway instances in each region
 
 | Stage | Protection | Cost |
 |---|---|---|
-| Now | Cloudflare Free (L3/L4 DDoS always-on) | $0 |
-| Stage 2 | Cloudflare Pro (L7 WAF, bot management) | $20/month |
-| Stage 3 | Cloudflare Business (custom WAF rules, advanced analytics) | $200/month |
-| Stage 4 | Cloudflare Enterprise (unlimited rules, DDoS SLA, 24/7 support) | $5,000+/month |
+| Now | Cloudflare Free (L3/L4/L7 always-on + Oracle IP hidden) | $0 |
+| Stage 2 | Cloudflare Pro (WAF, bot management, detailed analytics) | $20/month |
+| Stage 3 | Cloudflare Business (custom WAF rules, DDoS SLA) | $200/month |
+| Stage 4 | Cloudflare Enterprise | $5,000+/month |
 
-**Current risk assessment:**
-- Competitors attacking: Low (we're small)
-- Script kiddies: Low-Medium (Cloudflare free blocks most)
-- Government-level attack: N/A at current scale
+**Current risk assessment:** Cloudflare's always-on DDoS at the free tier, combined with the Oracle VM IP being hidden behind Cloudflare's proxy, provides strong protection. The only vulnerability is a direct attack on the Oracle VM IP — mitigated by the Cloudflare IP allowlist security group rule.
 
 ---
 
 ## Network Security Rules
 
-### Allowed Traffic
+### Allowed Traffic (Current Stack)
 
 ```
-Frontend (Vercel) → Backend (Railway):
-  ✅ All API calls (CORS configured with FRONTEND_URL)
-  ✅ WebSocket upgrade (Socket.IO)
+Internet → Cloudflare:
+  ✅ HTTPS (port 443) from anywhere
+  ✅ HTTP (port 80) from anywhere — Cloudflare redirects to HTTPS
 
-External → Backend:
-  ✅ HTTPS only (HTTP redirected by Cloudflare)
-  ✅ Stripe webhook IPs → /api/orders/webhook
-  ✅ Chapa webhook IPs → /api/orders/chapa/webhook
+Cloudflare → Oracle VM (backend):
+  ✅ HTTPS (port 443) — proxied, Oracle sees Cloudflare IP
+  ✅ HTTP (port 80) — only if Cloudflare proxying; forced HTTPS by backend
 
-Backend → External:
-  ✅ Neon database (PostgreSQL over SSL)
-  ✅ Upstash Redis (Redis over TLS)
+Oracle VM → External:
+  ✅ Supabase (PostgreSQL over TLS, ports 5432/6543)
+  ✅ Upstash Redis (TLS, rediss://)
   ✅ Cloudflare R2 (HTTPS)
   ✅ Resend email API (HTTPS)
   ✅ Stripe API (HTTPS)
   ✅ Chapa API (HTTPS)
-  ✅ Firebase/APNS (when mobile app built)
+  ✅ Google OAuth (HTTPS)
+  ✅ AI providers (HTTPS)
+  ✅ Telegram Bot API (HTTPS)
 ```
 
 ### Blocked Traffic
 
 ```
-❌ Direct database access from internet (Neon only accessible via app)
-❌ SSH access to Railway instances (not supported — use Railway CLI)
-❌ HTTP (all traffic forces HTTPS)
-❌ Non-standard ports (only 80/443 exposed via Cloudflare)
+❌ Direct HTTPS/HTTP to Oracle VM IP (blocked by security group — Cloudflare IPs only)
+❌ Direct database access from internet (Supabase only accessible via TLS from backend)
+❌ SSH from non-allowlisted IPs (Oracle security group)
+❌ Coolify dashboard (port 8000) from non-allowlisted IPs
 ```
 
 ---
@@ -283,19 +299,19 @@ Backend → External:
 ### SPF / DKIM / DMARC (Required for email delivery)
 
 ```dns
-# SPF — who can send email for nodbusiness.vercel.app
+# SPF — who can send email for nodbusiness.app
 TXT @ v=spf1 include:_spf.resend.com ~all
 
-# DKIM — cryptographic signature (get from Resend dashboard)
+# DKIM — cryptographic signature (get record from Resend dashboard → Domains)
 TXT resend._domainkey CNAME {resend_dkim_record}
 
 # DMARC — what to do with failed emails
 TXT _dmarc v=DMARC1; p=quarantine; rua=mailto:dmarc@nodbusiness.app; pct=100
 ```
 
-Without SPF/DKIM/DMARC:
+Without all three:
 - Emails land in spam (bad for OTP, order confirmations)
-- Google/Microsoft may reject emails entirely
+- Gmail/Microsoft may reject emails entirely
 - Deliverability < 50%
 
 With all three configured:
@@ -304,30 +320,16 @@ With all three configured:
 
 ---
 
-## IPv6 Support
+## API Rate Limiting (Application Level)
 
-Cloudflare proxies all traffic — users with IPv6 connect to Cloudflare over IPv6,
-Cloudflare connects to Railway over IPv4. No IPv6 configuration needed on Railway.
-
----
-
-## API Rate Limiting (Network Level)
-
-Currently: Express rate-limiter middleware (application level)
+Currently: Express rate-limiter middleware backed by Upstash Redis in production.
 
 ```javascript
 // backend/index.ts — already configured
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500, skip: () => isDev });
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, skip: () => isDev });
+// General: 500 req/15min/IP
+// Auth: 20 req/15min/IP
+// OTP: 5 req/15min/IP
 ```
 
-**At Stage 2:** Add Cloudflare Rate Limiting ($5/month)
-- Blocks at the network level (before request hits Railway)
-- Better DDoS protection
-- Rate limit by: IP, country, user agent
-
-```
-Rule: Rate limit /api/auth/* to 20 requests/minute/IP
-Rule: Rate limit all /api/* to 500 requests/minute/IP
-Rule: Block if request from known malicious IP (Cloudflare Threat Score > 25)
-```
+**Redis-backed (production with REDIS_URL set):** rate limit state is shared across container restarts and future multi-instance setups.
+**In-memory fallback (no REDIS_URL):** per-process only — resets on restart.

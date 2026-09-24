@@ -1,171 +1,253 @@
 # Nodbusiness — Deployment Guide
 
-> Backend: Render · Frontend: Vercel · Database: Neon (PostgreSQL) · Storage: Cloudflare R2
+> **Last updated:** September 22, 2026
+> **Stack:** Render (backend) + Vercel (frontend) + Supabase + Upstash + Resend
 
 ---
 
-## Deploy Architecture
+## Overview
+
+Every push to `main` triggers the full deploy pipeline automatically:
 
 ```
-GitHub (source of truth)
-        │
-        │  push to main
-        ▼
-GitHub Actions CI
-  ├── Backend tests pass?
-  ├── Next.js build passes?
-  └── Security audit clean?
-        │
-        │  all green
-        ▼
-┌───────────────────────────┐
-│  Deploy Backend → Render  │   ~3 min
-└───────────────────────────┘
-        │
-        │  success + health check passes
-        ▼
-┌───────────────────────────┐
-│  Deploy Frontend → Vercel │   ~3 min
-└───────────────────────────┘
-        │
-        ▼
-┌───────────────────────────┐
-│  Health check: GET /health│   verifies backend is alive
-└───────────────────────────┘
+Push to main
+    │
+    ▼
+GitHub Actions: Nodbusiness CI
+    ├── Typecheck (tsc --noEmit)
+    ├── Tests (308 unit + integration tests)
+    ├── Lint (ESLint)
+    ├── Build (next build)
+    └── Security audit (npm audit --audit-level=high)
+    │
+    ▼ (only if CI passes)
+GitHub Actions: Nodbusiness Deploy
+    ├── Run DB migrations → Supabase
+    ├── Deploy backend → Render (via deploy hook)
+    ├── Deploy frontend → Vercel (only if frontend-next/ changed)
+    └── Health check (GET /health + frontend URL)
 ```
 
 ---
 
-## Environment Variables Reference
+## Automatic Deploy (Normal Flow)
 
-### Staging Simulation vs Public Production
+**You don't need to do anything.** Just push to `main`:
 
-For a development/staging simulation, you can deploy with test services and incomplete optional integrations. The goal is to review the product experience before public launch.
-
-Minimum staging requirements:
-
-| Area | Requirement |
-|---|---|
-| Frontend build | `cd frontend-next && npm run build` passes |
-| Backend boot | `DATABASE_URL`, `JWT_SECRET`, and `FRONTEND_URL` set |
-| Database | Separate staging database; seeded/test data only |
-| Payments | Stripe test keys only |
-| Uploads | Local disk is acceptable for short-lived simulation; R2 is better if you need persistent uploaded images |
-| Email | Resend test sender, SMTP, or console OTP flow |
-| AI / Redis / Push / Sentry | Optional for staging unless you are specifically testing those features |
-
-> Free beta expectations: this repo can support a small closed beta on free infrastructure, but it is not designed for a full 1000-user / 150-business production launch on free resources. Expect only a small pilot of around 20–100 active users and a handful of businesses if you keep uploads, email, and database usage light.
-
-Public production requirements are stricter: use R2 for uploads, managed Redis if queues/presence matter, real monitoring, verified email domain, live payment keys only after business/legal review, and security debt from `TECHNICAL_DEBT.md` reviewed.
-
-### Backend (Render)
-
-| Variable | Required | Description |
-|---|---|---|
-| `NODE_ENV` | Yes | `production` |
-| `PORT` | Yes | `3001` (Render sets this automatically) |
-| `DATABASE_URL` | Yes | Neon PostgreSQL connection string |
-| `JWT_SECRET` | Yes | 64+ char random string |
-| `JWT_EXPIRES_IN` | No | Default `7d` |
-| `FRONTEND_URL` | Yes | `https://nodbusiness.vercel.app` — must match Vercel domain exactly for CORS + refresh cookie to work. Comma-separated for multiple origins. Wildcard patterns (`https://*.vercel.app`) supported for preview deployments. |
-| `RESEND_API_KEY` | Recommended | Starts with `re_` — do NOT use placeholder values like `re_test_disabled` or the mailer falls back to console (dev only) |
-| `EMAIL_FROM` | No | `Nodbusiness <noreply@nodbusiness.app>` |
-| `STRIPE_SECRET_KEY` | For payments | `sk_live_...` |
-| `STRIPE_WEBHOOK_SECRET` | For orders webhook | `whsec_...` — from Stripe Dashboard → Webhooks → `/api/orders/webhook` |
-| `STRIPE_MEWACHO_WEBHOOK_SECRET` | For Mewacho | `whsec_...` — separate endpoint → `/api/mewacho/webhook`, event: `checkout.session.completed` |
-| `STRIPE_CURRENCY` | No | Default `usd`. Set `etb` only if your Stripe account supports it. |
-| `STRIPE_ETB_TO_USD_RATE` | No | Default `0.008` (1 ETB ≈ 0.008 USD) |
-| `R2_ACCOUNT_ID` | For uploads | Cloudflare account ID |
-| `R2_ACCESS_KEY_ID` | For uploads | R2 API token |
-| `R2_SECRET_ACCESS_KEY` | For uploads | R2 API secret |
-| `R2_BUCKET_NAME` | For uploads | e.g. `nodbusiness-uploads` |
-| `R2_PUBLIC_URL` | For uploads | `https://pub-xxx.r2.dev` |
-| `REDIS_URL` | For queues/presence | `rediss://...upstash.io` — optional, app works without it |
-| `AI_PROVIDER` | No | `openai` \| `gemini` \| `anthropic` |
-| `OPENAI_API_KEY` | For AI | `sk-...` |
-| `SENTRY_DSN` | Recommended | From Sentry project settings |
-| `VAPID_PUBLIC_KEY` | For push | Generated VAPID key |
-| `VAPID_PRIVATE_KEY` | For push | Generated VAPID key |
-| `VAPID_EMAIL` | For push | `mailto:admin@nodbusiness.app` |
-| `GOOGLE_CLIENT_ID` | For OAuth | Google Cloud Console |
-| `GOOGLE_CLIENT_SECRET` | For OAuth | Google Cloud Console |
-
-### Frontend (Vercel)
-
-| Variable | Required | Description |
-|---|---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | Yes | `https://nodbusiness-backend.onrender.com` |
-| `NEXT_PUBLIC_APP_URL` | Yes | `https://nodbusiness.vercel.app` |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | For OAuth | Google Cloud Console |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | For push | Same as backend `VAPID_PUBLIC_KEY` |
-| `NEXT_PUBLIC_SENTRY_DSN` | Recommended | From Sentry project |
-
----
-
-## GitHub Actions Secrets
-
-The repository uses GitHub Actions to deploy the backend and frontend. Set these secrets in the repository settings before you push to `main`.
-
-| Secret | Required | Description |
-|---|---|---|
-| `RAILWAY_TOKEN` | Yes | Railway CLI token for backend deployment |
-| `VERCEL_TOKEN` | Yes | Vercel CLI token for frontend deployment |
-| `BACKEND_URL` | Yes | Public backend URL used by the post-deploy health check |
-| `SOURCE_DATABASE_URL` | Optional | Local or staging DB URL for Neon migration workflow |
-| `NEON_DATABASE_URL` | Optional | Neon connection string for migration workflow |
-
-> If your source database is only accessible from your laptop, use `scripts/export_and_restore_to_neon.ps1` instead of the GitHub Actions migration workflow.
->
-> If you use Vercel preview deployments and Google login, include `https://*.vercel.app` in `FRONTEND_URL` and add your preview URLs as authorized JavaScript origins in your Google Cloud OAuth client.
-
----
-
-## Day-to-Day Deployment
-
-### Normal deploy (push to main)
 ```bash
 git add .
-git commit -m "feat: add product variants"
+git commit -m "your commit message"
 git push origin main
-# CI/CD handles the rest automatically
 ```
 
-### Preview deploy (any other branch)
-```bash
-git push origin feature/my-feature
-# Vercel creates a preview URL automatically
-# Railway does NOT deploy non-main branches by default
-```
+Watch progress: `https://github.com/sentflix01/empire-x/actions`
 
-### Emergency rollback
-```bash
-# Backend — Railway dashboard
-# Railway → Deployments → last working deploy → Rollback
+Expected times:
+- CI: ~3-4 minutes
+- Deploy: ~5-8 minutes (Render Docker build + Vercel build)
+- Total push to live: ~8-12 minutes
 
-# Frontend — Vercel dashboard
-# Vercel → Deployments → last successful → Promote to Production
-```
+---
 
-### Manual database migration
+## Manual Deploy — Backend Only
+
+**Via Render dashboard:**
+1. Go to https://dashboard.render.com
+2. Click `nodbusiness-backend`
+3. Click **"Manual Deploy"** → **"Deploy latest commit"**
+
+**Via deploy hook (curl):**
 ```bash
-# If a migration wasn't run automatically
-DATABASE_URL=postgresql://...neon.tech/empirex node backend/db/migrate-all.js
+curl -X POST "https://api.render.com/deploy/srv-daosiimk1f9s738jl2hg?key=YOUR_KEY"
 ```
 
 ---
 
-## First-Time Setup Summary
+## Manual Deploy — Frontend Only
 
-1. Push code to GitHub
-2. Set up Neon → run `node backend/db/migrate-all.js` (26 migrations)
-3. Set up Render → add env vars → deploy backend
-4. Set up Vercel → add env vars → deploy `frontend-next`
-5. Update `FRONTEND_URL` in Render to your Vercel URL (critical for refresh cookie + CORS)
-6. Set up Cloudflare R2 → add R2 env vars to Render
-7. Set up Resend → add real `RESEND_API_KEY` to Render (not a placeholder)
-8. Set up Stripe → add two webhook endpoints:
-   - `/api/orders/webhook` → `STRIPE_WEBHOOK_SECRET`
-   - `/api/mewacho/webhook` → `STRIPE_MEWACHO_WEBHOOK_SECRET` (event: `checkout.session.completed`)
-9. Set up Better Uptime → monitor `/health`
-10. Set up Sentry → add `SENTRY_DSN` to both Render and Vercel
-11. Register a user, place a test order, create a Mewacho group, contribute — verify everything works
+```bash
+cd frontend-next
+vercel --prod --token=$VERCEL_TOKEN
+```
+
+Or via Vercel dashboard:
+1. Go to https://vercel.com → nodbusiness project
+2. Deployments → latest → three-dot menu → **Redeploy**
+
+---
+
+## Run Migrations Manually
+
+**From local machine (requires `backend/.env` with `DATABASE_URL`):**
+
+```bash
+cd backend
+NODE_TLS_REJECT_UNAUTHORIZED=0 node db/migrate-all.js
+```
+
+**From GitHub Actions (manual trigger):**
+1. Go to https://github.com/sentflix01/empire-x/actions
+2. Click **"DB migrate → PostgreSQL (manual)"** workflow
+3. Click **"Run workflow"** → **Run**
+
+---
+
+## Create/Reset Admin Account
+
+```bash
+cd backend
+NODE_TLS_REJECT_UNAUTHORIZED=0 node db/create-admin.js
+```
+
+Creates (or resets) two accounts:
+- `admin@nodbusiness.app` / `Admin1234!` — role: admin
+- `test@nodbusiness.app` / `Test1234!` — role: user
+
+> Change the admin password immediately after running this in production.
+
+---
+
+## Rollback — Backend
+
+**Option A: Render dashboard (fastest — ~60 seconds)**
+1. Render → nodbusiness-backend → **Deploys**
+2. Find last known-good deployment
+3. Click three-dot menu → **"Redeploy"**
+
+**Option B: Git revert (re-runs full pipeline)**
+```bash
+git revert HEAD
+git push origin main
+```
+
+---
+
+## Rollback — Frontend
+
+**Option A: Vercel dashboard (fastest — ~10 seconds)**
+1. Vercel → nodbusiness → **Deployments**
+2. Find last known-good deployment (green "Ready")
+3. Click three-dot menu → **"Promote to Production"**
+
+**Option B: Git revert**
+```bash
+git revert HEAD
+git push origin main
+```
+
+---
+
+## First-Time Setup (New Environment)
+
+If you need to set up a completely fresh deployment from scratch:
+
+### Step 1 — Render (Backend)
+
+1. Go to https://dashboard.render.com → New → Web Service
+2. Connect GitHub repo `sentflix01/empire-x`
+3. Settings:
+   - Name: `nodbusiness-backend`
+   - Runtime: Docker
+   - Dockerfile: `./backend/Dockerfile`
+   - Docker context: `./backend`
+   - Region: Frankfurt (EU Central)
+   - Plan: Free
+4. Add all environment variables (see `docs/operations/ENVIRONMENT_VARIABLES.md`)
+5. Deploy
+
+### Step 2 — Supabase (Database)
+
+1. Create project at https://supabase.com
+2. Note the project URL and service_role key
+3. Run migrations: `node db/migrate-all.js`
+4. Run admin creation: `node db/create-admin.js`
+
+### Step 3 — Upstash (Redis)
+
+1. Create database at https://console.upstash.com
+2. Region: eu-central-1 (Frankfurt)
+3. Copy `rediss://` URL → add as `REDIS_URL` in Render
+
+### Step 4 — Vercel (Frontend)
+
+1. Go to https://vercel.com → New Project
+2. Import `sentflix01/empire-x`, root directory `frontend-next`
+3. Add environment variables (see `ENVIRONMENT_VARIABLES.md`)
+4. Deploy
+
+### Step 5 — GitHub Secrets
+
+Add to `sentflix01/empire-x` → Settings → Secrets → Actions:
+- `DATABASE_URL` — Supabase pooler URL
+- `RENDER_DEPLOY_HOOK_URL` — from Render → service → Settings → Deploy Hook
+- `VERCEL_TOKEN` — from Vercel → Account Settings → Tokens
+- `BACKEND_URL` — your Render service URL
+- `FRONTEND_URL` — your Vercel URL
+
+### Step 6 — Google OAuth
+
+In Google Cloud Console → your OAuth 2.0 client:
+- Add Render callback URL to **Authorized redirect URIs**
+- Add Vercel URL to **Authorized JavaScript origins**
+
+### Step 7 — Keep-alive
+
+- cron-job.org: ping `/health` every 1 minute
+- UptimeRobot: monitor `/health` every 5 minutes
+
+---
+
+## Environment Variable Changes
+
+**Backend env var change (Render):**
+1. Render → nodbusiness-backend → Environment
+2. Edit variable
+3. Click **"Save, rebuild, and deploy"** (if variable is baked into the image — most are not)
+   OR just **"Save changes"** (Render hot-reloads env vars without rebuild for most cases)
+
+> `NEXT_PUBLIC_*` variables in Vercel require a **frontend redeploy** because they are baked into the JavaScript bundle at build time.
+
+---
+
+## Health Check
+
+After any deploy:
+
+```bash
+curl https://nodbusiness-backend-9psf.onrender.com/health
+```
+
+Expected response:
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-09-22T...",
+  "version": "1.0.0",
+  "services": {
+    "database": "connected",
+    "redis": "connected",
+    "ai": "gemini",
+    "email": "resend",
+    "storage": "supabase"
+  }
+}
+```
+
+If `database` is not `connected` — check `DATABASE_URL` in Render env vars.
+If `redis` is not `connected` — check `REDIS_URL` (may be Upstash daily quota exceeded).
+If `storage` is `local` — Supabase storage vars are missing or wrong.
+
+---
+
+## Deployment Checklist
+
+Before every production deploy to real users:
+
+- [ ] All tests passing (`npx jest --runInBand --forceExit`)
+- [ ] TypeScript clean (`npx tsc --noEmit`)
+- [ ] No high/critical npm vulnerabilities (`npm audit --audit-level=high`)
+- [ ] Health check returns `status: ok` after deploy
+- [ ] No errors in Render logs for first 2 minutes after deploy
+- [ ] Admin password changed from default
+- [ ] Feature flags set correctly (Stripe off until keys added)
+- [ ] Google OAuth redirect URIs match the live URLs

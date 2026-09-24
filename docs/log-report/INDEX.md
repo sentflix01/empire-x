@@ -5,6 +5,37 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-24 | Maintenance | Merge pull request #49 from sentflix01/dependabot/npm_and_yarn/backend/nodemailer-10.0.10 | [ab00ef8f6](2026-09-24-ab00ef8f6-merge-pull-request-49-from-sentflix01-dependabot.md) |
+| 2026-09-24 | Maintenance | Merge pull request #48 from sentflix01/dependabot/npm_and_yarn/backend/minor-and-patch-baa0d3440d | [d28050110](2026-09-24-d28050110-merge-pull-request-48-from-sentflix01-dependabot.md) |
+| 2026-09-24 | Bugfix | fix: QR code uses window.location.origin instead of NEXT_PUBLIC_APP_URL | [95fa50a6f](2026-09-24-95fa50a6f-qr-code-uses-window-location-origin-instead-of-n.md) |
+| 2026-09-24 | Feature | feat: QR button same size as logo square + full-screen scannable QR modal | [1931f7948](2026-09-24-1931f7948-qr-button-same-size-as-logo-square-full-screen-s.md) |
+| 2026-09-24 | Feature | feat: QR code on business feed cards + restore 80 image posts | [a1541ada5](2026-09-24-a1541ada5-qr-code-on-business-feed-cards-restore-80-image-.md) |
+| 2026-09-24 | Bugfix | fix: resolve fill=true parent position errors on avatars | [0e6cb2230](2026-09-24-0e6cb2230-resolve-fill-true-parent-position-errors-on-avat.md) |
+| 2026-09-24 | Bugfix | fix: post images, comment emoji popup, business sections, local login | [ebd4c5c6c](2026-09-24-ebd4c5c6c-post-images-comment-emoji-popup-business-section.md) |
+| 2026-09-24 | Bugfix | fix: business feed sections + post image rendering | [5d6f85a1e](2026-09-24-5d6f85a1e-business-feed-sections-post-image-rendering.md) |
+| 2026-09-23 | Bugfix | fix: seed media patch + sitemap localhost port | [a8b7b69c8](2026-09-23-a8b7b69c8-seed-media-patch-sitemap-localhost-port.md) |
+| 2026-09-23 | Feature | feat(seed): add seed-showrooms.js and seed-mewacho.js | [02b02c2eb](2026-09-23-02b02c2eb-add-seed-showrooms-js-and-seed-mewacho-js.md) |
+| 2026-09-23 | Maintenance | chore: force Vercel redeploy to bake corrected NEXT_PUBLIC_GOOGLE_CLIENT_ID | [a90b38e4e](2026-09-23-a90b38e4e-force-vercel-redeploy-to-bake-corrected-next-pub.md) |
+| 2026-09-23 | Bugfix | fix: use in-memory rate limiting only — Redis-backed limiters burn 50+ commands per startup | [cd5a69012](2026-09-23-cd5a69012-use-in-memory-rate-limiting-only-redis-backed-li.md) |
+| 2026-09-23 | Bugfix | fix: give each rate limiter its own RedisStore with unique prefix to fix ERR_ERL_STORE_REUSE | [9a2d2a632](2026-09-23-9a2d2a632-give-each-rate-limiter-its-own-redisstore-with-u.md) |
+| 2026-09-23 | Bugfix | fix: remove duplicate catch block left by previous str_replace (TS build error) | [93c5c53a8](2026-09-23-93c5c53a8-remove-duplicate-catch-block-left-by-previous-st.md) |
+| 2026-09-23 | Bugfix | fix: fix ERR_ERL_DOUBLE_COUNT by returning 0 instead of null from rate-limit sendCommand + cache store instance to prevent 18 Redis connections at startup | [b34c4463c](2026-09-23-b34c4463c-fix-err-erl-double-count-by-returning-0-instead-.md) |
+| 2026-09-23 | Bugfix | fix: replace BullMQ health-check queue with single PING to eliminate bull:health-checkmeta key spam | [d52883e40](2026-09-23-d52883e40-replace-bullmq-health-check-queue-with-single-pi.md) |
+| 2026-09-23 | Bugfix | fix: eliminate 1440 Redis commands/day from health pings + fix rate-limiter quota crash | [55cc48edb](2026-09-23-55cc48edb-eliminate-1440-redis-commands-day-from-health-pi.md) |
+| 2026-09-23 | Bugfix | fix: improve Google auth error logging to show exact error message and stack | [4a8bab3a6](2026-09-23-4a8bab3a6-improve-google-auth-error-logging-to-show-exact-.md) |
+| 2026-09-23 | Bugfix | fix: trigger fresh Render rebuild for Google OAuth 500 | [656dd198a](2026-09-23-656dd198a-trigger-fresh-render-rebuild-for-google-oauth-50.md) |
+| 2026-09-23 | Documentation | docs: update technical debt register + fix stale backend URLs to nodbusiness-backend-9psf | [832ee7e43](2026-09-23-832ee7e43-update-technical-debt-register-fix-stale-backend.md) |
+| 2026-09-23 | Maintenance | chore(deps): upgrade express to 4.22.3, resolve moderate audit vulns | [304248c51](2026-09-23-304248c51-upgrade-express-to-4-22-3-resolve-moderate-audit.md) |
+| 2026-09-22 | Documentation | docs: full update to reflect live Render+Vercel stack as of September 22 2026 | [2c3789fd2](2026-09-22-2c3789fd2-full-update-to-reflect-live-render-vercel-stack-.md) |
+| 2026-09-22 | Bugfix | fix(ci): move isolatedModules into tsconfig block to silence ts-jest deprecation warning | [d8cc5e5da](2026-09-22-d8cc5e5da-move-isolatedmodules-into-tsconfig-block-to-sile.md) |
+| 2026-09-22 | Bugfix | fix(ci): add --forceExit to jest and 15min job timeout to prevent hung CI | [7ee55a11b](2026-09-22-7ee55a11b-add-forceexit-to-jest-and-15min-job-timeout-to-p.md) |
+| 2026-09-22 | Testing | test: verify full CI/CD pipeline with corrected GitHub secrets | [9e86ad461](2026-09-22-9e86ad461-verify-full-ci-cd-pipeline-with-corrected-github.md) |
+| 2026-09-22 | Bugfix | fix: wrap Redis calls in auth login/refresh routes with try/catch to prevent 500 on quota exceeded | [a59d53d20](2026-09-22-a59d53d20-wrap-redis-calls-in-auth-login-refresh-routes-wi.md) |
+| 2026-09-22 | Maintenance | chore: trigger Vercel redeploy with updated env vars | [403690250](2026-09-22-403690250-trigger-vercel-redeploy-with-updated-env-vars.md) |
+| 2026-09-22 | Maintenance | chore: commit all doc updates, render.yaml, workflow fixes, and cleanup from session | [7763a2b76](2026-09-22-7763a2b76-commit-all-doc-updates-render-yaml-workflow-fixe.md) |
+| 2026-09-22 | Bugfix | fix: add .js extension to dynamic imports in showroom-digests for Node ESM resolution in Docker | [641a3eb7f](2026-09-22-641a3eb7f-add-js-extension-to-dynamic-imports-in-showroom-.md) |
+| 2026-09-21 | Maintenance | chore(deps): bump nodemailer from 9.1.1 to 10.0.10 in /backend | [925f2f37f](2026-09-21-925f2f37f-bump-nodemailer-from-9-1-1-to-10-0-10-in-backend.md) |
+| 2026-09-21 | Maintenance | chore(deps): bump the minor-and-patch group in /backend with 5 updates | [03666ec23](2026-09-21-03666ec23-bump-the-minor-and-patch-group-in-backend-with-5.md) |
 | 2026-09-20 | Bugfix | fix(deploy): detect frontend changes through merge commits for Vercel deploy | [e2f4f1fb1](2026-09-20-e2f4f1fb1-detect-frontend-changes-through-merge-commits-fo.md) |
 | 2026-09-20 | Maintenance | merge: feat/personal-business-toggle-auth-port-fixes into main | [44822a539](2026-09-20-44822a539-feat-personal-business-toggle-auth-port-fixes-in.md) |
 | 2026-09-20 | Bugfix | fix: remove rootDirectory from vercel.json on main | [5109bf6aa](2026-09-20-5109bf6aa-remove-rootdirectory-from-vercel-json-on-main.md) |

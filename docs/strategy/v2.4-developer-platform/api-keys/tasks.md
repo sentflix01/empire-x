@@ -122,7 +122,7 @@
 
 ## Step 7 — Verify
 
-- [ ] Create a key, copy it, make an API call: `curl -H "Authorization: Bearer nodb_live_xxx" https://nodbusiness.vercel.app/api/posts`
+- [ ] Create a key, copy it, make an API call: `curl -H "Authorization: Bearer nodb_live_xxx" https://nodbusiness.app/api/posts`
 - [ ] Verify 401 on invalid key
 - [ ] Verify 429 when rate limit exceeded
 - [ ] Verify key shows as prefix-only in dashboard after creation

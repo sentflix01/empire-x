@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_APP_URL || 'https://nodbusiness.vercel.app',
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://nodbusiness.app',
     siteName: 'Nodbusiness',
     title: 'Nodbusiness 👑 — Africa\'s Superapp',
     description: 'Social networking, business showrooms, marketplace, messaging, and task services.',

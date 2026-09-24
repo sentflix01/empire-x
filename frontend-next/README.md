@@ -21,11 +21,11 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 NEXT_PUBLIC_APP_URL=http://localhost:3002
 ```
 
-Required for production on Vercel:
+Required for production on Cloudflare Pages:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=https://your-backend-hostname.example.com
-NEXT_PUBLIC_APP_URL=https://your-frontend-hostname.vercel.app
+NEXT_PUBLIC_APP_URL=https://nodbusiness.app
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
 ```
 
@@ -64,4 +64,4 @@ The app intentionally uses local/system font fallbacks in `app/globals.css` so b
 
 ## Deploy
 
-Deploy this folder (`frontend-next`) to Vercel. Set `NEXT_PUBLIC_API_BASE_URL` to the deployed backend URL and `NEXT_PUBLIC_APP_URL` to the Vercel frontend URL.
+Deploy this folder (`frontend-next`) to **Cloudflare Pages**. Connect your GitHub repo in the Cloudflare Pages dashboard, set the root directory to `frontend-next`, the build command to `npm run build`, and the output directory to `out`. Set `NEXT_PUBLIC_API_BASE_URL` to your Coolify backend domain and `NEXT_PUBLIC_APP_URL` to your Cloudflare Pages domain. Cloudflare Pages deploys automatically on every push to `main` — no CI token needed. See `docs/operations/CLOUDFLARE_PAGES_SETUP.md` for the full setup guide.

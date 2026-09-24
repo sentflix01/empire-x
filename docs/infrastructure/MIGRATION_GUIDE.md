@@ -31,11 +31,13 @@ backend/db/migrate.js        ← Core schema (initial)
 backend/db/migrate2.js       ← Second migration
 backend/db/migrate3.js       ← Third migration
 ...
-backend/db/migrate33.js      ← Current latest
+backend/db/migrate28.js      ← Current latest (September 2026)
 backend/db/migrate-all.js    ← Runs all migrations in order
 ```
 
 **Rule:** Always increment the number. Never reuse a number. Never edit a migration that has already been run in production.
+
+**Important for Supabase:** Always use the direct connection URL (port 5432) when running migrations — never the Supavisor pooler (port 6543). The pooler's transaction mode blocks DDL statements like `ALTER TABLE` and `CREATE INDEX CONCURRENTLY`.
 
 ### File Template
 ```javascript
@@ -110,16 +112,20 @@ psql $DATABASE_URL -c "\dt"
 psql $DATABASE_URL -c "\d table_name"
 ```
 
-### Production (Railway)
+### Production (Coolify + Supabase)
 ```bash
-# Option 1: Via Railway CLI
-railway run node backend/db/migrate30.js
+# Option 1: Via GitHub Actions (automatic on every deploy to main)
+# migrations run automatically in the 'migrate' job of deploy.yml
+# Uses DATABASE_URL secret (direct connection, port 5432 — NOT the pooler)
 
-# Option 2: Connect directly to Neon via psql
-psql $DATABASE_URL -f migration.sql
+# Option 2: Connect directly to Supabase via psql (direct connection)
+psql "$DATABASE_DIRECT_URL" -f migration.sql
+# Note: use the direct connection URL (port 5432), not the Supavisor pooler (port 6543)
+# DDL statements (ALTER TABLE, CREATE INDEX) do not work through the pooler
 
-# Option 3: Run via GitHub Actions CI/CD
-# (migrations run automatically on deploy — see .github/workflows)
+# Option 3: Run from your local machine against production
+DATABASE_URL="postgresql://postgres.REF:[PASS]@db.REF.supabase.co:5432/postgres?sslmode=require&channel_binding=require" \
+  node backend/db/migrate30.js
 ```
 
 ---
@@ -132,14 +138,14 @@ Before running a migration in production:
 Pre-migration:
 □ Migration is idempotent (safe to run twice)
 □ Migration tested locally on a fresh database
-□ Migration tested on a Neon branch (staging)
-□ Neon PITR backup confirmed (check Neon console)
+□ Supabase PITR backup confirmed (check Supabase console → Database → Backups)
 □ Migration takes less than 30 seconds (else use zero-downtime pattern)
 □ No breaking changes to active API endpoints
 □ Code that depends on new columns is deployed AFTER migration runs
+□ Using direct connection URL (port 5432), NOT the Supavisor pooler (port 6543)
 
 During migration:
-□ Monitor Railway logs for errors
+□ Monitor Coolify container logs for errors
 □ Verify with psql that schema looks correct after
 
 Post-migration:
@@ -219,15 +225,17 @@ Step 4: Remove old column (deploy)
 
 ## 7. Rollback Procedures
 
-Neon supports Point-In-Time Recovery (PITR):
+Supabase supports Point-In-Time Recovery (PITR):
 
 ```
-1. Open https://neon.tech → your project
-2. Click Branches → Create branch from point in time
+1. Open https://supabase.com → your project
+2. Click Database → Backups → Point in time restore
 3. Select: [timestamp before the migration ran]
-4. Test the branch to confirm data is intact
-5. If good: update DATABASE_URL in Railway to point to the recovery branch
-6. After verification: promote the branch to main
+4. Supabase creates a new branch/project with data restored to that point
+5. Test the restored data to confirm it is intact
+6. If good: update DATABASE_URL in Coolify env vars to point to the restored instance
+7. Trigger Coolify redeploy
+8. After verification: promote the branch to replace main
 ```
 
 **Note:** Only schema changes need PITR rollback. Data migrations (backfills) should have a reverse script prepared before running.

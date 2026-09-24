@@ -1,151 +1,153 @@
 # GitHub Secrets — Copy-Paste Values
 
 > Open these in order. For each secret, find the value, copy it, and paste into GitHub.
+> **Stack:** Render (backend) · Vercel (frontend) · Supabase
+> **Last updated:** September 2026
 
 ---
 
-## Secret #1: `SUPABASE_DATABASE_URL`
+## How to Add Secrets
 
-**Where to get it:**
-1. Go to: https://app.supabase.com/
-2. Click your project → **Settings** → **Database**
-3. Under "Connection string", click **URI** tab
-4. Under "Use the pool", click copy button
-
-**What to paste:**
-- Copy the full connection string that looks like:
-  ```
-  postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?sslmode=require
-  ```
-
-**Where to put it in GitHub:**
-- Go to: https://github.com/sentflix01/empire-x/settings/secrets/actions
-- Click **"New repository secret"**
-- Name: `SUPABASE_DATABASE_URL`
-- Paste the value
-- Click **Save**
+1. Go to: https://github.com/sentflix01/empire-x/settings/secrets/actions
+2. For each secret below: click **"New repository secret"**, enter the Name and Value, click **Save**
 
 ---
 
-## Secret #2: `RENDER_API_KEY`
+## Secret #1: `DATABASE_URL`
+
+**What it's for:** Running database migrations in CI/CD. Must be the **direct** Supabase connection (port 5432).
 
 **Where to get it:**
-1. Go to: https://dashboard.render.com/
-2. Click your profile (bottom left) → **Account Settings**
-3. Scroll to **API Keys** section
-4. Click **"Create Key"**
-5. Copy the key (starts with `rnd_...`)
+1. Go to https://supabase.com → Your project
+2. **Project Settings** → **Database** → **Connection string** tab
+3. Make sure **Connection pooling** toggle is **OFF**
+4. Copy the URI — ends with `?sslmode=require`
 
-**What to paste:**
-- Your Render API key (example: `rnd_aBcDeFg123...`)
-
-**Where to put it in GitHub:**
-- Go to: https://github.com/sentflix01/empire-x/settings/secrets/actions
-- Click **"New repository secret"**
-- Name: `RENDER_API_KEY`
-- Paste the key
-- Click **Save**
+**Format:**
+```
+postgresql://postgres.[REF]:[PASSWORD]@db.[REF].supabase.co:5432/postgres?sslmode=require&channel_binding=require
+```
 
 ---
 
-## Secret #3: `RENDER_SERVICE_ID`
+## Secret #2: `RENDER_DEPLOY_HOOK_URL`
+
+**What it's for:** Triggering an explicit backend deploy from GitHub Actions after migrations pass.
 
 **Where to get it:**
-1. Go to: https://dashboard.render.com/
-2. Click your **backend service** (the Node.js service, not web)
-3. Click **Settings** tab (right side)
-4. Find **Service ID** in the settings
-5. Copy it (looks like: `srv_...`)
-
-**What to paste:**
-- Your Render service ID
-
-**Where to put it in GitHub:**
-- Go to: https://github.com/sentflix01/empire-x/settings/secrets/actions
-- Click **"New repository secret"**
-- Name: `RENDER_SERVICE_ID`
-- Paste the ID
-- Click **Save**
+1. Log in to https://dashboard.render.com
+2. Click your **nodbusiness-backend** service
+3. Click **Settings** tab
+4. Scroll to **Deploy Hook** section
+5. Copy the URL — looks like:
+   ```
+   https://api.render.com/deploy/srv-XXXXXXXXXXXX?key=YYYYYYYYYYYY
+   ```
 
 ---
 
-## Secret #4: `VERCEL_TOKEN`
+## Secret #3: `VERCEL_TOKEN`
+
+**What it's for:** Authorising the Vercel CLI to deploy the frontend from GitHub Actions.
 
 **Where to get it:**
-1. Go to: https://vercel.com/account/tokens
-2. Click **"Create New Token"**
-3. Name: `github-deploy` (or anything)
-4. Copy the token (starts with `vercel_...`)
-
-**What to paste:**
-- Your Vercel token (example: `vercel_aBcDeFg123...`)
-
-**Where to put it in GitHub:**
-- Go to: https://github.com/sentflix01/empire-x/settings/secrets/actions
-- Click **"New repository secret"**
-- Name: `VERCEL_TOKEN`
-- Paste the token
-- Click **Save**
+1. Go to https://vercel.com → click your profile picture (top right) → **Account Settings**
+2. Click **Tokens** in the left sidebar
+3. Click **Create** → name: `github-actions` → copy the token
 
 ---
 
-## Secret #5: `BACKEND_URL`
+## Secret #4: `BACKEND_URL`
+
+**What it's for:** The post-deploy health check pings `BACKEND_URL/health`.
 
 **Where to get it:**
-1. Go to: https://dashboard.render.com/
+1. Go to https://dashboard.render.com
 2. Click your backend service
-3. Copy the URL at the top (example: `https://nodbusiness-backend.onrender.com`)
+3. Copy the public URL shown at the top
 
-**What to paste:**
-- Your full backend URL (no trailing slash)
-- Example: `https://nodbusiness-backend.onrender.com`
-
-**Where to put it in GitHub:**
-- Go to: https://github.com/sentflix01/empire-x/settings/secrets/actions
-- Click **"New repository secret"**
-- Name: `BACKEND_URL`
-- Paste the URL
-- Click **Save**
+**Example value:**
+```
+https://nodbusiness-backend-9psf.onrender.com
+```
 
 ---
 
-## Secret #6: `FRONTEND_URL`
+## Secret #5: `FRONTEND_URL`
+
+**What it's for:** The post-deploy health check pings the frontend homepage.
 
 **Where to get it:**
-1. Go to: https://vercel.com/
-2. Click your project
-3. Go to **Settings** → **Domains**
-4. Copy your main domain (example: `halehame-eosin.vercel.app`)
+1. Go to https://vercel.com → your project
+2. Go to **Settings** → **Domains**
+3. Copy your primary domain
 
-**What to paste:**
-- Your Vercel domain (no `https://`, no trailing slash)
-- Example: `halehame-eosin.vercel.app`
-
-**Where to put it in GitHub:**
-- Go to: https://github.com/sentflix01/empire-x/settings/secrets/actions
-- Click **"New repository secret"**
-- Name: `FRONTEND_URL`
-- Paste the domain
-- Click **Save**
+**Example value:**
+```
+https://nodbusiness.vercel.app
+```
 
 ---
 
-## ✅ Verify All 6 Are Added
+## Secret #6 (Optional): `TELEGRAM_BOT_TOKEN`
 
-After adding all 6, check: https://github.com/sentflix01/empire-x/settings/secrets/actions
+**What it's for:** Sends a Telegram message if the post-deploy health check fails.
 
-You should see all 6 secrets listed.
+**Where to get it:**
+1. Open Telegram → Search **@BotFather**
+2. Send `/newbot` → follow the steps
+3. Copy the token — format: `123456789:ABCDEFabcdef-xxxxx`
 
 ---
 
-## 🚀 Next Step
+## Secret #7 (Optional): `TELEGRAM_CHAT_ID`
 
-Make a commit to trigger deploy:
+**What it's for:** Which Telegram chat to send alerts to.
+
+**Where to get it:**
+1. Open Telegram → Search **@userinfobot**
+2. Send any message
+3. Copy the `id` number from the reply
+
+---
+
+## ✅ Checklist
+
+After adding all secrets:
+
+- [ ] `DATABASE_URL` — Supabase direct URI (port 5432, sslmode=require) ✓
+- [ ] `RENDER_DEPLOY_HOOK_URL` — from Render → service → Settings → Deploy Hook ✓
+- [ ] `VERCEL_TOKEN` — from Vercel → Account Settings → Tokens ✓
+- [ ] `BACKEND_URL` — `https://nodbusiness-backend-9psf.onrender.com` ✓
+- [ ] `FRONTEND_URL` — `https://nodbusiness.vercel.app` ✓
+- [ ] `TELEGRAM_BOT_TOKEN` — optional ✓
+- [ ] `TELEGRAM_CHAT_ID` — optional ✓
+
+**Secrets to remove** (old stack — no longer used):
+- `COOLIFY_WEBHOOK_URL` → Coolify no longer used
+- `COOLIFY_TOKEN` → Coolify no longer used
+- `SUPABASE_DATABASE_URL` → replaced by `DATABASE_URL`
+- `SOURCE_DATABASE_URL` → no longer referenced
+
+---
+
+## 🚀 Test the Setup
+
 ```bash
-git commit --allow-empty -m "test: trigger deploy with all secrets"
+git commit --allow-empty -m "test: trigger deploy with new secrets"
 git push origin main
 ```
 
-Then watch GitHub Actions: https://github.com/sentflix01/empire-x/actions
+Watch GitHub Actions → Actions tab. Expected flow:
+1. **Nodbusiness CI** — lint, typecheck, tests, audit
+2. **Nodbusiness Deploy** starts on CI success
+3. `migrate` — runs against Supabase (direct URL)
+4. `deploy-backend` — fires Render deploy hook
+5. `deploy-frontend` — Vercel CLI builds and deploys
+6. `healthcheck` — pings `/health` on both services
 
-It should: **CI → Deploy → Migrate → Backend Deploy → Frontend Deploy**
+Verify:
+```bash
+curl https://nodbusiness-backend-9psf.onrender.com/health
+# Expected: { "status": "ok", "services": { "database": "connected", ... } }
+```

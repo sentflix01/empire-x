@@ -3,7 +3,7 @@
 > Step-by-step procedures for when things go wrong.
 > The goal is consistent, calm, fast recovery — not heroics.
 > Severity definitions, SLAs, and escalation live in **`operations/SEVERITY_LEVELS.md`** (canonical).
-> Last updated: 2026-08-23
+> Last updated: September 2026
 
 ---
 
@@ -26,7 +26,7 @@
 
 ### Step 1: Detect (< 5 min)
 - **Sentry** — error spike alert
-- **Railway health check** — `GET /health` returns non-200
+- **UptimeRobot** — `GET /health` returns non-200 → email/Telegram alert fires within 1 minute
 - **User reports** — Telegram/WhatsApp from users
 
 ### Step 2: Communicate (< 10 min)
@@ -38,14 +38,14 @@ Investigating. Will update in 30 min."
 
 ### Step 3: Diagnose (< 15 min)
 ```bash
-# Check Railway logs
-railway logs --service halehame-backend
+# Check Render service logs
+# Render → your backend service → Logs tab (live tail available)
 
 # Check database
-psql $DATABASE_URL -c "SELECT 1"
+psql "$DATABASE_URL" -c "SELECT 1"
 
 # Check health endpoint
-curl -s https://your-api.railway.app/health | jq
+curl -s https://your-app.onrender.com/health | jq
 
 # Check recent deployments
 git log --oneline -10
@@ -54,15 +54,18 @@ git log --oneline -10
 ### Step 4: Mitigate
 **If bad deployment:**
 ```bash
-# Roll back to last good commit
+# Option A: Render dashboard rollback (fastest — 60 seconds, no code change)
+# Render → your backend service → Deploys → find last working → "Redeploy"
+
+# Option B: Git revert (triggers full pipeline)
 git revert HEAD
 git push origin main
-# Railway auto-deploys
 ```
 
 **If database issue:**
-- Neon console → check connection limits, active queries
-- Kill long-running queries (queries have a 10 s statement timeout server-side, but stuck idle sessions can still pile up):
+- Supabase console → check if project is paused → Resume
+- Check Supabase status: https://status.supabase.com
+- Kill long-running queries:
 
 ```sql
 -- Longest-running queries right now
@@ -81,9 +84,10 @@ WHERE state = 'idle'
   AND state_change < NOW() - INTERVAL '10 minutes';
 ```
 
-**If memory/CPU spike:**
-- Railway dashboard → restart service
-- Check for N+1 queries, connection pool exhaustion (`GET /metrics`, admin-only)
+**If Render service is unreachable (worst case):**
+- See DISASTER_RECOVERY.md — redeploy from GitHub, all data is in external services (Supabase, R2, Upstash)
+- Zero data loss — all storage is external
+- Expected recovery: push to `main` → Render auto-deploys in ~3–5 minutes
 
 ### Step 5: Resolve & Document
 ```
@@ -104,8 +108,8 @@ Postmortem within 72h using operations/POSTMORTEM_TEMPLATE.md."
 1. **Invalidate every session globally:** rotating `JWT_SECRET` invalidates all access *and* refresh tokens at once (both are signed with it). Restart the backend after changing the value. Per-user revocation (`revoke_before:{userId}` in Redis) exists but must be set per user — there is no global key.
 2. **Force password reset for affected accounts:** clear `password_hash` or mark accounts and trigger the forgot-password flow.
 3. **Rotate provider secrets**: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CHAPA_SECRET_KEY`, database credentials.
-4. **Preserve evidence first where possible:** download Railway logs before they rotate (retention is short) and snapshot suspicious rows.
-5. **Block attacker infrastructure:** Railway → Settings → Networking (IP rules), plus WAF/proxy if configured.
+4. **Preserve evidence first where possible:** download Render logs before they rotate (retention is limited on free tier) and snapshot suspicious rows.
+5. **Block attacker infrastructure:** Render → Settings → IP Allow List (paid feature) or place Cloudflare WAF in front of the backend if configured.
 
 ### Investigation
 There is no dedicated audit-log table yet (tracked as TD-012 in
@@ -122,7 +126,7 @@ ORDER BY hits DESC
 LIMIT 50;
 ```
 
-- **Railway logs** (JSON/Pino): grep for `auth`, `/api/admin`, `login`, `reset-password`.
+- **Render logs** (JSON/Pino): grep for `auth`, `/api/admin`, `login`, `reset-password` in the Render → Logs tab.
 - **Stripe/Chapa dashboards**: unexpected transfers, webhook failures, new bank accounts.
 - Application data: check `orders`, `wallet_transactions`, and `commissions` for rows created outside normal patterns.
 
@@ -148,7 +152,7 @@ curl https://status.stripe.com/api/v2/status.json
 # If Stripe webhook failing:
 # Check STRIPE_WEBHOOK_SECRET is correct
 # Verify webhook endpoint is accessible
-# Check Railway logs for webhook route errors
+# Check Render logs for webhook route errors in Render → service → Logs tab
 ```
 
 **Mitigation — disable a payment rail instantly (no redeploy):**
@@ -158,7 +162,7 @@ curl https://status.stripe.com/api/v2/status.json
 node -e "require('ioredis'); /* from an env with REDIS_URL */"
 # or via the admin flow that calls setFlag('stripe_payments', false)
 
-# Slower path: FF_STRIPE_PAYMENTS=false env var — NOTE this triggers a Railway redeploy.
+# Slower path: FF_STRIPE_PAYMENTS=false env var — NOTE this triggers a Render redeploy.
 ```
 Buyers on the disabled rail fall back to COD/Chapa per checkout logic.
 
@@ -182,7 +186,7 @@ FROM pg_stat_activity
 WHERE state = 'idle' AND state_change < NOW() - INTERVAL '10 minutes';
 ```
 
-**Fix:** Increase `DB_POOL_MAX` env var (default 10), or enable Neon connection pooling.
+**Fix:** Increase `DB_POOL_MAX` env var in Render → your service → Environment (default 5), or ensure Supavisor pooler URL (port 6543) is used for the app connection instead of the direct connection (port 5432).
 
 ---
 
@@ -198,9 +202,6 @@ Use **`operations/POSTMORTEM_TEMPLATE.md`** — required for every SEV-1/SEV-2, 
 
 ## Status Page
 
-A public status page should be set up at `status.nodbusiness.app` (canonical host) using:
-- **Statuspage.io** (free tier), or
-- **UptimeRobot** + a simple HTML page, or
-- A public endpoint built on the Railway health check
+A public status page should be set up at `status.nodbusiness.app` using **UptimeRobot** (free, no card required). Create monitors for `/health` on the Render backend and the Vercel frontend URL. UptimeRobot provides a hosted status page — point DNS to it or use the UptimeRobot subdomain.
 
 Update the status page within 5 minutes of detecting a SEV-1 or SEV-2 incident.

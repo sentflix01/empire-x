@@ -397,10 +397,14 @@ router.post('/login', async (req: Request, res: Response) => {
     const failedKey = `failed_login:${user.email}`;
 
     if (redis) {
-      const isLocked = await redis.get(lockoutKey);
-      if (isLocked) {
-        res.status(429).json({ error: 'Too many failed attempts. Please try again in 15 minutes.' });
-        return;
+      try {
+        const isLocked = await redis.get(lockoutKey);
+        if (isLocked) {
+          res.status(429).json({ error: 'Too many failed attempts. Please try again in 15 minutes.' });
+          return;
+        }
+      } catch {
+        // Redis unavailable — skip lockout check, continue with login
       }
     }
 
@@ -413,19 +417,23 @@ router.post('/login', async (req: Request, res: Response) => {
     if (!match) {
       // ── Increment failed login counter ───────────────────────────────
       if (redis) {
-        const attempts = (await redis.incr(failedKey)) ?? 0;
-        if (attempts === 1) {
-          await redis.expire(failedKey, LOCKOUT_TTL_SECONDS);
-        }
-        if (attempts >= LOCKOUT_THRESHOLD) {
-          await redis.set(lockoutKey, '1', 'EX', LOCKOUT_TTL_SECONDS);
-          await redis.del(failedKey);
-          logger.warn({ userId: user.id, email: user.email }, 'Account locked after 5 failed login attempts');
-          try {
-            await sendPasswordResetEmail(user.email, 'lockout-alert');
-          } catch {
-            // Best-effort alert — don't fail the response
+        try {
+          const attempts = (await redis.incr(failedKey)) ?? 0;
+          if (attempts === 1) {
+            await redis.expire(failedKey, LOCKOUT_TTL_SECONDS);
           }
+          if (attempts >= LOCKOUT_THRESHOLD) {
+            await redis.set(lockoutKey, '1', 'EX', LOCKOUT_TTL_SECONDS);
+            await redis.del(failedKey);
+            logger.warn({ userId: user.id, email: user.email }, 'Account locked after 5 failed login attempts');
+            try {
+              await sendPasswordResetEmail(user.email, 'lockout-alert');
+            } catch {
+              // Best-effort alert — don't fail the response
+            }
+          }
+        } catch {
+          // Redis unavailable — skip attempt tracking, continue with login
         }
       }
       res.status(401).json({ error: 'Invalid email or password' });
@@ -434,7 +442,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     // ── Successful login — clear failed attempts ─────────────────────────
     if (redis) {
-      await redis.del(failedKey);
+      redis.del(failedKey).catch(() => undefined);
     }
 
     if (!user.is_verified) {
@@ -593,7 +601,7 @@ router.post('/google', async (req: Request, res: Response) => {
     const token = signToken(user.id, res);
     res.json({ access_token: token });
   } catch (err) {
-    logger.error({ err }, 'Google auth error — DB or unexpected failure');
+    logger.error({ err: (err as Error).message, stack: (err as Error).stack?.split('\n').slice(0,3).join(' | ') }, 'Google auth error — DB or unexpected failure');
     apiError.serverError(res, 'Google sign-in is temporarily unavailable. Please try again.');
   }
 });
@@ -821,7 +829,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
     return;
   }
 
-  await revokeToken(payload.jti as string, payload.exp as number);
+  await revokeToken(payload.jti as string, payload.exp as number).catch(() => undefined);
   const accessToken = signToken(payload.sub as string, res);
   res.json({ access_token: accessToken });
 });

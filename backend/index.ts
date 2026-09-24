@@ -204,8 +204,8 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const allowedOrigins = parseFrontendUrls();
-// Always include the production Vercel domain as a fallback
-const PROD_FRONTEND = 'https://nodbusiness.vercel.app';
+// Always include the production domain as a fallback when FRONTEND_URL is not set
+const PROD_FRONTEND = 'https://nodbusiness.app';
 if (!allowedOrigins.includes(PROD_FRONTEND)) allowedOrigins.push(PROD_FRONTEND);
 if (process.env.NODE_ENV !== 'production') {
   if (!allowedOrigins.includes('http://localhost:3002')) allowedOrigins.push('http://localhost:3002');
@@ -229,52 +229,27 @@ app.use(cors({
 // ── Rate limiting (Redis-backed in production) ────────────────────────────────
 const isDev = process.env.NODE_ENV !== 'production';
 
-function buildRateLimitStore(): unknown {
-  if (isDev) return undefined;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { RedisStore } = require('rate-limit-redis') as { RedisStore: new (opts: object) => object };
-    const redisClient = getRedis();
-    if (redisClient.isNoOp) return undefined;
-
-    // rate-limit-redis v6 runs SCRIPT LOAD during construction — if the Redis
-    // quota is exceeded this throws an unhandled async error. Suppress it with
-    // a no-op error handler and fall back to in-memory limiting gracefully.
-    const store = new RedisStore({
-      sendCommand: (...args: unknown[]) => {
-        const cmd = (redisClient as RedisClient).call(...(args as [string, ...string[]]));
-        // Attach a catch so the rejected Promise doesn't become an unhandled rejection
-        if (cmd && typeof (cmd as Promise<unknown>).catch === 'function') {
-          (cmd as Promise<unknown>).catch((err: Error) => {
-            if (err?.message?.includes('max requests limit exceeded')) {
-              logger.warn('Redis quota exceeded — rate-limit store falling back to in-memory');
-            }
-          });
-        }
-        return cmd;
-      },
-      prefix: 'rl:',
-    }) as unknown;
-    return store;
-  } catch (err) {
-    logger.warn({ err: (err as Error).message }, 'rate-limit-redis unavailable — using in-memory store');
-    return undefined;
-  }
+function buildRateLimitStore(_prefix: string): unknown {
+  // Always use in-memory store — Redis-backed rate limiting fires SCRIPT LOAD
+  // on every store instance creation, burning ~50+ Redis commands at startup
+  // for 10 limiters. On Upstash free tier (500K/month) this is unacceptable.
+  // In-memory is correct for single-instance deployments (Render free tier).
+  return undefined;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rlOpts = (max: number) => ({ windowMs: 15 * 60 * 1000, max, skip: () => isDev, store: buildRateLimitStore() as any, message: { error: 'Too many requests, try again later' }, standardHeaders: true, legacyHeaders: false });
+const rlOpts = (max: number, prefix: string) => ({ windowMs: 15 * 60 * 1000, max, skip: () => isDev, store: buildRateLimitStore(prefix) as any, message: { error: 'Too many requests, try again later' }, standardHeaders: true, legacyHeaders: false });
 
-app.use('/api/', rateLimit(rlOpts(500)));
-app.use('/api/auth/login',            rateLimit(rlOpts(20)));
-app.use('/api/auth/register',         rateLimit(rlOpts(20)));
-app.use('/api/auth/google',           rateLimit(rlOpts(20)));
-app.use('/api/auth/verify-otp',       rateLimit(rlOpts(10)));
-app.use('/api/auth/resend-otp',       rateLimit(rlOpts(5)));
-app.use('/api/auth/forgot-password',  rateLimit(rlOpts(5)));
-app.use('/api/auth/reset-password',   rateLimit(rlOpts(10)));
-app.use('/api/auth/change-password',  rateLimit(rlOpts(10)));
-app.use('/api/auth/refresh',          rateLimit(rlOpts(60)));
+app.use('/api/', rateLimit(rlOpts(500, 'rl:global:')));
+app.use('/api/auth/login',            rateLimit(rlOpts(20,  'rl:login:')));
+app.use('/api/auth/register',         rateLimit(rlOpts(20,  'rl:register:')));
+app.use('/api/auth/google',           rateLimit(rlOpts(20,  'rl:google:')));
+app.use('/api/auth/verify-otp',       rateLimit(rlOpts(10,  'rl:verify-otp:')));
+app.use('/api/auth/resend-otp',       rateLimit(rlOpts(5,   'rl:resend-otp:')));
+app.use('/api/auth/forgot-password',  rateLimit(rlOpts(5,   'rl:forgot-pw:')));
+app.use('/api/auth/reset-password',   rateLimit(rlOpts(10,  'rl:reset-pw:')));
+app.use('/api/auth/change-password',  rateLimit(rlOpts(10,  'rl:change-pw:')));
+app.use('/api/auth/refresh',          rateLimit(rlOpts(60,  'rl:refresh:')));
 
 // ── Body parsing ──────────────────────────────────────────────────────────────
 app.use('/api/orders/webhook',        express.raw({ type: 'application/json' }));
@@ -290,10 +265,12 @@ app.use('/uploads', express.static(path.join(__dirname, process.env.UPLOAD_DIR ?
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/health', async (_req: Request, res: Response) => {
   const redis = getRedis();
+  // Use connection status only — avoids a live Redis command on every ping.
+  // A live GET would consume 1,440 commands/day from the keep-alive pings alone.
   let redisStatus = 'not configured';
   if (!redis.isNoOp) {
-    try { await (redis as RedisClient).get('health-check'); redisStatus = 'connected'; }
-    catch { redisStatus = 'error'; }
+    const status = (redis as RedisClient).status;
+    redisStatus = (status === 'ready' || status === 'connect') ? 'connected' : status ?? 'unknown';
   }
   let databaseStatus = 'disconnected';
   try { await pool.query('SELECT 1'); databaseStatus = 'connected'; } catch { databaseStatus = 'error'; }

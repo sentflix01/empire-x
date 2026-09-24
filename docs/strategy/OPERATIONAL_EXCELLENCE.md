@@ -170,7 +170,7 @@ PRE-DEPLOY GATE
 ```
 1. Merge to main → CI runs (blocking)
 2. CI green → workflow_run triggers deploy
-3. Railway (BE) + Vercel (FE) deploy in parallel
+3. Render deploy hook (BE) + Vercel CLI deploy (FE)
 4. Health check runs (5 min timeout)
    • GET /health → 200
    • DB connectivity
@@ -185,8 +185,8 @@ PRE-DEPLOY GATE
 
 | Scenario | Action | Time |
 |----------|--------|------|
-| Auto-rollback (health check fail) | Railway/Vercel auto-revert | <2 min |
-| Manual rollback (bug detected) | `git revert` + push OR Railway "Rollback" button | <5 min |
+| Auto-rollback (health check fail) | Render rollback (BE) / Vercel rollback (FE) | <2 min |
+| Manual rollback (bug detected) | `git revert` + push OR Render "Rollback" button | <5 min |
 | DB migration issue | `migrate-down` + deploy previous | <15 min |
 | Full rollback (catastrophic) | DNS failover to previous + DB restore | <30 min |
 
@@ -198,11 +198,11 @@ PRE-DEPLOY GATE
 
 | Task | Frequency | Command | Owner |
 |------|-----------|---------|-------|
-| Vacuum/Analyze | Daily (auto) | `pg_cron: vacuumdb -z` | Neon auto |
+| Vacuum/Analyze | Daily (auto) | `pg_cron: vacuumdb -z` | Supabase auto |
 | Index Review | Weekly | `pg_stat_user_indexes` | Backend Lead |
 | Slow Query Review | Weekly | `pg_stat_statements` | Backend Lead |
 | Connection Pool | Daily | PgBouncer stats | SRE |
-| Replication Lag | Continuous | `<1s` alert | Neon auto |
+| Replication Lag | Continuous | `<1s` alert | Supabase auto |
 | Backup Verify | Weekly | `scripts/verify-backup.js` | SRE |
 
 ### 5.2 Migration Safety
@@ -222,7 +222,7 @@ PRE-DEPLOY GATE
 | Connection Exhaustion | Increase PgBouncer pool, kill idle, scale read replicas |
 | Runaway Query | `pg_cancel_backend(pid)` → analyze → add index |
 | Disk Full | `pg_repack`, drop unused indexes, increase storage |
-| Corruption | Neon PITR (point-in-time recovery) to pre-corruption |
+| Corruption | Supabase PITR (point-in-time recovery) to pre-corruption |
 | Replica Lag > 30s | Pause writes, investigate, scale replica |
 
 ---
@@ -301,7 +301,7 @@ PRE-DEPLOY GATE
 | Redis | N/A (ephemeral) | N/A | N/A | N/A |
 | Object Store (R2) | Versioning enabled | Infinite | R2 (multi-region) | N/A |
 | Code | Git (GitHub) | Infinite | GitHub + mirrors | N/A |
-| Config/Secrets | 1Password / Railway/Vercel env | Infinite | Encrypted | Quarterly audit |
+| Config/Secrets | 1Password / Render + Vercel env | Infinite | Encrypted | Quarterly audit |
 
 ### 8.2 Recovery Procedures
 
@@ -309,9 +309,9 @@ PRE-DEPLOY GATE
 |----------|-----|-----|-----------|
 | Single Table Corruption | <1 hour | <30 min | `pg_restore -t table` from latest backup |
 | Full DB Loss | <24 hours | <4 hours | `pg_restore` from R2 → verify → cutover |
-| Region Outage | <5 min | <15 min | DNS failover → secondary region (Neon) |
+| Region Outage | <5 min | <15 min | DNS failover → Render secondary region |
 | Ransomware | 24 hours | <4 hours | Isolate → restore from clean backup → rotate all secrets |
-| Accidental DROP | 0 (PITR) | <30 min | Neon PITR to pre-DROP timestamp |
+| Accidental DROP | 0 (PITR) | <30 min | Supabase PITR to pre-DROP timestamp |
 
 ### 8.3 DR Testing Schedule
 
@@ -331,7 +331,7 @@ PRE-DEPLOY GATE
 | Resource | Scale Up Trigger | Scale Down Trigger |
 |----------|------------------|-------------------|
 | API Workers | CPU > 70% 5min | CPU < 30% 30min |
-| DB (Neon) | CPU > 70% or storage > 80% | CPU < 30% 24h |
+| DB (Supabase) | CPU > 70% or storage > 80% | CPU < 30% 24h |
 | Redis | Memory > 80% | Memory < 50% 24h |
 | Socket Workers | Connections/worker > 5000 | Connections/worker < 2000 |
 | CDN | Auto (Cloudflare) | Auto |
@@ -378,9 +378,9 @@ PRE-DEPLOY GATE
 | Backend Lead | [Name] | @backend-lead | +251-XXX-XXXX | Tertiary |
 | Frontend Lead | [Name] | @frontend-lead | +251-XXX-XXXX | Tertiary |
 | Legal | [Name] | @legal | +251-XXX-XXXX | SEV-1 only |
-| Neon Support | - | - | - | Enterprise tier |
-| Railway Support | - | - | - | Enterprise tier |
-| Vercel Support | - | - | - | Enterprise tier |
+| Supabase Support | - | - | - | Pro tier |
+| Render Support | - | dashboard.render.com/support | - | Paid plans |
+| Vercel Support | - | vercel.com/help | - | Paid plans |
 | Cloudflare Support | - | - | - | Enterprise tier |
 | Upstash Support | - | - | - | Pro tier |
 

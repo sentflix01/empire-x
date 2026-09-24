@@ -92,8 +92,8 @@
 | Endpoint | TLS Version | Cipher Suites | Certificate |
 |----------|-------------|---------------|-------------|
 | **Frontend (Vercel)** | TLS 1.3 only | TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256 | Vercel-managed (auto-renew) |
-| **API (Railway)** | TLS 1.2+ | ECDHE+AES-GCM, ECDHE+CHACHA20 | Railway-managed (Let's Encrypt) |
-| **Database (Neon)** | TLS 1.2+ | Server default | Neon-managed |
+| **API (Render)** | TLS 1.2+ | ECDHE+AES-GCM, ECDHE+CHACHA20 | Render-managed (Let's Encrypt) |
+| **Database (Supabase PostgreSQL)** | TLS 1.2+ | Server default | Supabase-managed |
 | **Redis (Upstash)** | TLS 1.2+ | Server default | Upstash-managed |
 | **Service-to-Service** | TLS 1.3 | mTLS (Phase 3) | SPIFFE/SPIRE |
 
@@ -246,7 +246,7 @@ Tenant Request
 
 | State | Algorithm | Key Management |
 |-------|-----------|----------------|
-| **At Rest (DB)** | AES-256-GCM (Neon-managed) | Neon-managed |
+| **At Rest (DB)** | AES-256-GCM (Supabase-managed) | Supabase-managed |
 | **At Rest (Object Store)** | SSE-S3 (R2) | Cloudflare-managed |
 | **At Rest (Credentials)** | AES-256-GCM (per-tenant key) | HKDF from master |
 | **In Transit** | TLS 1.2+ | See Section 4 |
