@@ -7,6 +7,7 @@ import { entities } from '@/api/entities';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import client from '@/api/client';
+import { QRCodeSVG } from 'qrcode.react';
 
 import {
   Store, ShoppingBag, MapPin, MessageSquare, ArrowRight, Clock,
@@ -382,6 +383,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [messaging, setMessaging] = useState(false);
+  const [qrOpenId, setQrOpenId] = useState<string | null>(null); // QR popup
   const router = useRouter();
 
   // ── Purchase modal state ───────────────────────────────────────────
@@ -512,6 +514,58 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                         : <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
                             {bizName.charAt(0)}
                           </div>}
+                    </div>
+                    {/* QR code button — shows popup with scannable QR */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setQrOpenId(qrOpenId === biz.id ? null : biz.id)}
+                        className="w-8 h-8 rounded-lg border-2 border-border/60 bg-white flex items-center justify-center hover:border-amber-400 transition-all shadow-sm"
+                        aria-label={`Show QR code for ${bizName}`}
+                        title="Scan to open this business profile"
+                      >
+                        {/* Mini QR grid icon */}
+                        <svg viewBox="0 0 20 20" className="w-5 h-5" fill="currentColor">
+                          <rect x="2" y="2" width="7" height="7" rx="1" opacity="0.9"/>
+                          <rect x="11" y="2" width="7" height="7" rx="1" opacity="0.9"/>
+                          <rect x="2" y="11" width="7" height="7" rx="1" opacity="0.9"/>
+                          <rect x="4" y="4" width="3" height="3" fill="white"/>
+                          <rect x="13" y="4" width="3" height="3" fill="white"/>
+                          <rect x="4" y="13" width="3" height="3" fill="white"/>
+                          <rect x="12" y="12" width="2" height="2" opacity="0.9"/>
+                          <rect x="15" y="12" width="2" height="2" opacity="0.9"/>
+                          <rect x="12" y="15" width="2" height="2" opacity="0.9"/>
+                          <rect x="15" y="15" width="2" height="2" opacity="0.9"/>
+                        </svg>
+                      </button>
+                      {/* QR popup */}
+                      {qrOpenId === biz.id && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+                            onClick={() => setQrOpenId(null)}
+                          />
+                          <div className="absolute left-0 bottom-10 z-50 bg-white rounded-2xl shadow-2xl p-4 min-w-[200px] animate-in fade-in slide-in-from-bottom-2 duration-200">
+                            <p className="text-xs font-bold text-center text-slate-700 mb-2 truncate max-w-[160px] mx-auto">{bizName}</p>
+                            <div className="flex justify-center">
+                              <QRCodeSVG
+                                value={`${process.env.NEXT_PUBLIC_APP_URL || 'https://nodbusiness.vercel.app'}/profile/${ownerId}?view=business`}
+                                size={160}
+                                level="M"
+                                includeMargin
+                                style={{ borderRadius: 8 }}
+                              />
+                            </div>
+                            <p className="text-[10px] text-center text-slate-400 mt-2">Scan to view full business profile</p>
+                            <button
+                              onClick={() => setQrOpenId(null)}
+                              className="mt-2 w-full text-xs font-semibold text-center text-slate-500 hover:text-slate-700 py-1"
+                            >
+                              Close
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                     <SharedBookmarkButton
                       targetId={biz.id}
