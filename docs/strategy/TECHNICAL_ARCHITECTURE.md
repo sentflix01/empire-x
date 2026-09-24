@@ -49,13 +49,13 @@
        │             │             │             │             │            │
        ▼             ▼             ▼             ▼             ▼            ▼
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           EDGE / CDN (Cloudflare / Vercel Edge)                 │
+│                           EDGE / CDN (Cloudflare — 335+ PoPs)              │
 │  • WAF + DDoS protection  • CSP headers  • Bot mitigation  • Geo-routing       │
 └─────────────────────────────────────┬───────────────────────────────────────────┘
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                          NEXT.JS FRONTEND (Vercel / Railway)                    │
+│                          NEXT.JS FRONTEND (Vercel)                             │
 │  • App Router (RSC + Client Components)  • Middleware (auth, i18n, CSP)        │
 │  • TanStack Query (server state)  • Redux Toolkit (client state)               │
 │  • Socket.IO client  • next/image (AVIF/WebP)  • PWA (Workbox)                 │
@@ -65,7 +65,7 @@
                     ▼                 ▼                 ▼
 ┌─────────────────────────┐ ┌─────────────────┐ ┌─────────────────┐
 │   EXPRESS API           │ │  SOCKET.IO      │ │  EXTERNAL       │
-│  (Railway / K8s)        │ │  (Redis Adapter)│ │  DATA GATEWAY   │
+│  (Render)                          │ │  (Redis Adapter)│ │  DATA GATEWAY   │
 │                         │ │                 │ │  (SSRF-Safe)    │
 │  • REST + OpenAPI       │ │  • Real-time    │ │  • AES-256-GCM  │
 │  • JWT (HttpOnly)       │ │  • Presence     │ │  • SSRF Block   │
@@ -100,7 +100,7 @@ backend/
 ├── index.ts                    # App entry, middleware chain, route registration
 ├── socket.ts                   # Socket.IO server, Redis adapter, namespaces
 ├── db/
-│   ├── pool.ts                 # pg.Pool with Neon/pgbouncer config, SSL
+│   ├── pool.ts                 # pg.Pool with Supabase/Supavisor config, SSL
 │   ├── migrate*.js             # 36 migrations (schema + seed + indexes)
 │   └── migrate-all.js          # Migration runner
 ├── routes/                     # 48 route files (~44 registered route groups)
@@ -399,8 +399,8 @@ components/
 | Env | Purpose | Infra | Data |
 |-----|---------|-------|------|
 | **Local** | Development | Docker Compose | Local PG 17, Redis |
-| **Staging** | Integration testing | Railway (preview) | Neon branch DB |
-| **Production** | Live traffic | Railway (primary) + Vercel (FE) | Neon PG + Upstash Redis + R2 |
+| **Staging** | Integration testing | Render (preview service) | Supabase branch DB |
+| **Production** | Live traffic | Render (BE) + Vercel (FE) | Supabase PG + Upstash Redis + R2 |
 
 ### 7.2 CI/CD Pipeline
 
@@ -422,8 +422,8 @@ components/
 │     • npx playwright test (9 specs)                         │
 │                                                             │
 │  4. DEPLOY (workflow_run, only after green CI)              │
-│     • Railway deploy (BE)                                   │
-│     • Vercel deploy (FE)                                    │
+│     • Render deploy hook (BE)                                │
+│     • Vercel CLI deploy (FE)                                 │
 │     • Health check + Telegram alert on failure              │
 │                                                             │
 │  5. DOCS SYNC (scheduled + on deploy)                       │
@@ -437,7 +437,7 @@ components/
 
 | Trigger | Action |
 |---------|--------|
-| Health check fails post-deploy | Auto-rollback (Railway/Vercel) |
+| Health check fails post-deploy | Render rollback (BE) / Vercel rollback (FE) |
 | Error rate > 1% for 5min | Alert → manual rollback |
 | Database migration failure | `migrate-down` + deploy previous |
 | Critical security issue | Immediate revert + patch |
@@ -450,9 +450,9 @@ components/
 
 | Component | Current | Year 1 | Year 3 | Scaling Approach |
 |-----------|---------|--------|--------|------------------|
-| API Workers | 2 | 6 | 20+ | Stateless, Railway horizontal |
+| API Workers | 2 | 6 | 20+ | Stateless, Render horizontal scaling |
 | Socket.IO | 1 (Redis adapter) | 3 | 10+ | Redis pub/sub + sticky sessions |
-| PostgreSQL | Single (Neon) | Read replicas | Multi-region + read replicas | Neon autoscaling + PgBouncer |
+| PostgreSQL | Single (Supabase) | Read replicas | Multi-region + read replicas | Supabase autoscaling + Supavisor |
 | Redis | Single (Upstash) | Cluster | Cluster + replicas | Upstash auto-tiering |
 | Object Storage | R2 | R2 | R2 + multi-region | Cloudflare R2 global |
 
@@ -460,17 +460,17 @@ components/
 
 | Phase | Strategy |
 |-------|----------|
-| **0–10K MAU** | Single Neon instance, PgBouncer, connection pooling |
+| **0–10K MAU** | Single Supabase instance, Supavisor pooler, connection pooling |
 | **10K–100K MAU** | Read replicas for analytics/feed queries, write primary |
 | **100K–1M MAU** | Sharding by `showroom_id` (tenant isolation), Vitess/pg_shard |
-| **1M+ MAU** | Multi-region active-active (CockroachDB/Yugabyte) or Neon multi-region |
+| **1M+ MAU** | Multi-region active-active (CockroachDB/Yugabyte) or Supabase multi-region |
 
 ### 8.3 Caching Strategy
 
 | Layer | What | TTL | Invalidation |
 |-------|------|-----|--------------|
 | **CDN** | Static assets, images | 1y / 30d | Content hash / deploy |
-| **Edge (Vercel)** | HTML (ISR) | 60s | `revalidate` tag |
+| **Edge (Vercel)** | HTML (SSG/ISR) | 60s | `revalidate` tag |
 | **Redis** | API responses, sessions | 60–300s | Event-driven (pub/sub) |
 | **Application** | TanStack Query | 5min stale | Mutation invalidation |
 
@@ -480,10 +480,10 @@ components/
 
 | Scenario | RPO | RTO | Procedure |
 |----------|-----|-----|-----------|
-| **DB primary failure** | <1s (sync replica) | <30s | Neon auto-failover |
+| **DB primary failure** | <1s (sync replica) | <30s | Supabase auto-failover |
 | **Region outage** | <5min (async replica) | <15min | DNS failover → secondary region |
 | **Ransomware / corruption** | 24h (daily backup) | <4h | `pg_restore` from R2 → verify → cutover |
-| **Accidental `DROP TABLE`** | 0 (point-in-time) | <30min | Neon PITR (point-in-time recovery) |
+| **Accidental `DROP TABLE`** | 0 (point-in-time) | <30min | Supabase PITR (point-in-time recovery) |
 | **Credential leak** | 0 | <15min | Rotate master key → re-encrypt all vault entries |
 
 ---
@@ -492,10 +492,10 @@ components/
 
 | Component | Year 1 (10K MAU) | Year 3 (200K MAU) | Notes |
 |-----------|------------------|-------------------|-------|
-| Compute (Railway) | $200/mo | $2,000/mo | Horizontal scaling |
-| Database (Neon) | $100/mo | $800/mo | Autoscaling + read replicas |
+| Compute (Render) | $0–7/mo | $50–200/mo | Render Starter → Standard |
+| Database (Supabase) | $0–25/mo | $200–600/mo | Supabase Pro → Scale |
 | Redis (Upstash) | $50/mo | $300/mo | Pay-per-request |
-| CDN/Edge (Vercel) | $20/mo | $200/mo | Bandwidth + ISR |
+| CDN/Edge (Vercel) | $0/mo | $20/mo | Vercel Pro for production |
 | Object Storage (R2) | $10/mo | $150/mo | Images + backups |
 | Email (SendGrid) | $30/mo | $200/mo | Transactional + marketing |
 | Push (Firebase) | Free | $50/mo | FCM |

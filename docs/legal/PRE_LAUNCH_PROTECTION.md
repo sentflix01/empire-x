@@ -549,7 +549,7 @@ The AI pricing algorithm is your most valuable technical asset:
 ### 8.4 Data Protection
 
 ```
-✅ User data stored in private Neon PostgreSQL instance
+✅ User data stored in private Supabase PostgreSQL instance
 ✅ Encryption at rest (database level)
 ✅ Encryption in transit (HTTPS/TLS everywhere)
 ✅ JWT secrets never in code (in .env only)
@@ -737,7 +737,7 @@ Step 3: User Data Rights Implementation (technical)
 
 Step 4: Data Processing Agreement (DPA) with vendors
   → Stripe: already provides DPA — accept it in dashboard
-  → Neon/Supabase: accept their DPA
+  → Supabase: accept their DPA
   → Sentry: accept their DPA
   → Any vendor processing EU user data needs a DPA signed
 

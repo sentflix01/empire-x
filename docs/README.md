@@ -2,7 +2,8 @@
 
 > This is the operating manual for Nodbusiness. Treat it as seriously as the source code.
 > Every important decision, system design, and operational procedure lives here.
-> Last updated: September 2026
+> **Last updated:** September 22, 2026
+> **Live stack:** Render (backend) · Vercel (frontend) · Supabase · Upstash Redis · Resend · Gemini AI
 
 ---
 
@@ -157,8 +158,14 @@ Before implementing a major feature, answer these:
 | Know what to build next | `product/ROADMAP.md` |
 | Write a feature spec | `product/PRD.md` |
 | Deploy to production | `operations/DEPLOYMENT.md` |
+| See current live state | `infrastructure/CURRENT_STATE.md` |
+| See all cloud providers | `infrastructure/CLOUD_PROVIDERS.md` |
+| See all env variables | `operations/ENVIRONMENT_VARIABLES.md` |
 | Set up monitoring | `operations/MONITORING.md` |
 | Respond to an incident | `operations/RUNBOOKS.md` |
+| Disaster recovery | `infrastructure/DISASTER_RECOVERY.md` |
 | Set up backups | `operations/BACKUPS.md` |
+| See CI/CD pipeline | `infrastructure/CI_CD_PIPELINE.md` |
+| See cost breakdown | `infrastructure/COST_BREAKDOWN.md` |
 | Understand known issues | `operations/TECHNICAL_DEBT.md` |
 | Know coding standards | `ENGINEERING_STANDARDS.md` |

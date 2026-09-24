@@ -111,7 +111,7 @@ About Nodbusiness Technologies:
 Nodbusiness is the global superapp connecting businesses and customers through
 showrooms, a social feed, a marketplace, messaging, and task services.
 Founded in [year], Nodbusiness serves [X] businesses in [Y countries].
-Learn more at nodbusiness.vercel.app.
+Learn more at nodbusiness.app.
 
 Media Contact:
 [Name]

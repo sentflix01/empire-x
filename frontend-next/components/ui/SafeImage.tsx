@@ -8,6 +8,8 @@ type SafeImageProps = Omit<React.ComponentPropsWithoutRef<'img'>, 'src' | 'onErr
   src?: unknown;
   fallback?: React.ReactNode;
   fill?: boolean;
+  width?: number;
+  height?: number;
   sizes?: string;
   priority?: boolean;
   onError?: () => void;
@@ -22,6 +24,8 @@ export default function SafeImage({
   src,
   fallback = null,
   fill = true,
+  width,
+  height,
   sizes,
   priority = false,
   onError,
@@ -41,6 +45,26 @@ export default function SafeImage({
     setFailed(true);
     onError?.();
   };
+
+  // When fill=false, use width/height for intrinsic sizing
+  if (!fill) {
+    return (
+      <Image
+        src={resolvedSrc}
+        alt={alt || ''}
+        width={width ?? 800}
+        height={height ?? 450}
+        sizes={sizes}
+        priority={priority}
+        loading={priority ? 'eager' : 'lazy'}
+        onError={handleError}
+        className={className}
+        style={style}
+        unoptimized
+        {...props}
+      />
+    );
+  }
 
   return (
     <Image

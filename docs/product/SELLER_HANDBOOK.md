@@ -34,7 +34,7 @@ Nodbusiness is the global superapp for business. In 30 minutes, you can have:
 ## Getting Started: Your First 30 Minutes
 
 ### 1. Create your account (5 minutes)
-1. Go to nodbusiness.vercel.app → Register
+1. Go to nodbusiness.app → Register
 2. Enter your email or phone number
 3. Enter the 6-digit OTP code sent to you
 4. Choose "Business Account" on the next screen
@@ -255,7 +255,7 @@ Nodbusiness after completion rather than automatically at payment time.
 
 - **In-app chat:** Message the Nodbusiness Support account from any page
 - **Email:** sellers@nodbusiness.app
-- **Help Center:** nodbusiness.vercel.app/help (coming soon)
+- **Help Center:** nodbusiness.app/help (coming soon)
 - **Community:** Join the Seller Community group in-app for tips from experienced sellers
 - **Workshops:** Free monthly seller onboarding workshops — register in-app
 

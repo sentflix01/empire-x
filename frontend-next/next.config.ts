@@ -37,7 +37,6 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       { protocol: "http",  hostname: "localhost" },
-      { protocol: "https", hostname: "*.onrender.com" },
       { protocol: "https", hostname: "*.r2.dev" },
       { protocol: "https", hostname: "pub-*.r2.dev" },
       { protocol: "https", hostname: "*.supabase.co" },
@@ -66,10 +65,10 @@ const nextConfig: NextConfig = {
     // Adjust NEXT_PUBLIC_API_BASE_URL as needed for your deployment.
     const apiHost = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
     const wsHost = apiHost.replace(/^https?:/, 'wss:').replace(/^http:/, 'ws:');
-    const googleScriptSrc = `https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com https://vercel.live`;
+    const googleScriptSrc = `https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com`;
 
     const csp = [
-      `default-src 'self' https://vercel.com https://vercel.live`,
+      `default-src 'self'`,
       // Styles: self + unsafe-inline (required for Tailwind/CSS-in-JS) + Google GSI + Leaflet/FontAwesome CDN
       `style-src 'self' 'unsafe-inline' https://accounts.google.com https://unpkg.com https://cdnjs.cloudflare.com`,
       // Scripts: Next.js requires 'unsafe-inline' for its inline bootstrap scripts (__NEXT_DATA__ etc.)
@@ -85,7 +84,7 @@ const nextConfig: NextConfig = {
       // Fonts: self + Google Fonts (if used)
       `font-src 'self'`,
       // API calls, Sentry, Stripe, WebSocket (socket.io), Google auth
-      `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.onrender.com wss://*.onrender.com https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in`,
+      `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in`,
       // Stripe Checkout/Elements + Google Sign-In renders in iframes
       `frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com`,
       // No plugins, no base-uri override
@@ -93,8 +92,7 @@ const nextConfig: NextConfig = {
       `base-uri 'self'`,
       `form-action 'self'`,
       `frame-ancestors 'none'`,
-      // Allow Vercel live feedback manifest and worker scripts
-      `manifest-src 'self' https://vercel.live https://vercel.com`,
+      `manifest-src 'self'`,
       `worker-src 'self' blob:`,
       `upgrade-insecure-requests`,
     ].filter(Boolean).join('; ');

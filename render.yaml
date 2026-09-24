@@ -1,0 +1,154 @@
+# render.yaml — Render Infrastructure as Code
+# Docs: https://render.com/docs/infrastructure-as-code
+#
+# This file tells Render how to build and run the backend service.
+# Commit this file to your repo. Render detects it automatically when
+# you connect the repo in the Render dashboard.
+#
+# Usage:
+#   1. Push this file to main
+#   2. Render → New → Blueprint → connect your repo → Render reads this file
+#   OR:
+#   1. Render → New → Web Service → connect repo → Render auto-detects render.yaml
+#
+# The frontend (Next.js) is deployed on Vercel — not configured here.
+# See docs/operations/VERCEL_SETUP.md for frontend deployment.
+
+services:
+  - type: web
+    name: nodbusiness-backend
+    runtime: docker
+    # Render builds using the Dockerfile inside the backend/ directory.
+    # The Dockerfile compiles TypeScript → dist/ then runs node dist/index.js
+    # which is the correct production start path (not tsx index.ts).
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+
+    # Render assigns PORT dynamically — the Dockerfile sets ENV PORT=10000
+    # and EXPOSEs 10000. Do NOT set PORT manually in the Render dashboard
+    # env vars — let Render inject it. See backend/index.ts warning at line ~66.
+    # Render routes external HTTPS traffic → container port 10000 automatically.
+
+    # Auto-deploy every push to main (after CI passes via GitHub integration).
+    # If you add RENDER_DEPLOY_HOOK_URL to GitHub Secrets, the GitHub Actions
+    # deploy.yml also triggers an explicit deploy after migrations complete.
+    autoDeploy: true
+    branch: main
+
+    # Health check — Render marks the deploy failed if this returns non-200.
+    # Gives the server 120s to start (cold start + DB connection pool warmup).
+    healthCheckPath: /health
+
+    plan: free   # No credit card required. Sleeps after 15 min of inactivity.
+                 # Upgrade to "starter" ($7/mo) for always-on when ready.
+
+    # ── Environment Variables ────────────────────────────────────────────────
+    # Variables marked sync: false are placeholders — fill them in the
+    # Render dashboard (Environment tab) after creating the service.
+    # NEVER commit real secret values here — this file is in git.
+    #
+    # How to set them:
+    #   Render → your service → Environment → Add Environment Variable
+    #
+    envVars:
+      # Required — app will not start without these
+      - key: NODE_ENV
+        value: production
+
+      - key: DATABASE_URL
+        sync: false   # Supabase pooler URL (port 6543, transaction mode)
+                      # Format: postgresql://postgres.REF:PASS@aws-0-REGION.pooler.supabase.com:6543/postgres?sslmode=require
+                      # Get it: Supabase → Settings → Database → Connection string → Transaction mode
+
+      - key: JWT_SECRET
+        generateValue: true   # Render generates a secure random value automatically
+
+      - key: OTP_SALT
+        generateValue: true   # Render generates a secure random value automatically
+
+      - key: FRONTEND_URL
+        value: https://nodbusiness.vercel.app   # Update if you add a custom domain
+
+      # Email — Resend (free, 3K/month, no card)
+      # Sign up at https://resend.com then add the key in Render dashboard
+      - key: RESEND_API_KEY
+        sync: false
+
+      - key: EMAIL_FROM
+        value: "Nodbusiness <onboarding@resend.dev>"   # Change to your domain email when ready
+
+      # Google OAuth
+      # Get from: https://console.cloud.google.com → APIs → Credentials → OAuth 2.0 Client
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+      # Logging
+      - key: LOG_LEVEL
+        value: info
+
+      # Feature flags — Stripe off until you have keys, Chapa on
+      - key: FF_CHAPA_PAYMENTS
+        value: "true"
+
+      - key: FF_STRIPE_PAYMENTS
+        value: "false"   # Set to "true" and add STRIPE_* keys when ready
+
+      # Optional — add in Render dashboard when you have these services set up:
+      #
+      # Redis (Upstash free tier — https://upstash.com):
+      # - key: REDIS_URL
+      #   sync: false
+      #
+      # Stripe:
+      # - key: STRIPE_SECRET_KEY
+      #   sync: false
+      # - key: STRIPE_WEBHOOK_SECRET
+      #   sync: false
+      # - key: STRIPE_CURRENCY
+      #   value: usd
+      # - key: STRIPE_ETB_TO_USD_RATE
+      #   value: "0.008"
+      #
+      # Chapa:
+      # - key: CHAPA_SECRET_KEY
+      #   sync: false
+      #
+      # Cloudflare R2 file storage:
+      # - key: R2_ACCOUNT_ID
+      #   sync: false
+      # - key: R2_ACCESS_KEY_ID
+      #   sync: false
+      # - key: R2_SECRET_ACCESS_KEY
+      #   sync: false
+      # - key: R2_BUCKET_NAME
+      #   value: nodbusiness-uploads
+      # - key: R2_PUBLIC_URL
+      #   sync: false
+      #
+      # Sentry error tracking:
+      # - key: SENTRY_DSN
+      #   sync: false
+      #
+      # Web Push notifications:
+      # - key: VAPID_PUBLIC_KEY
+      #   sync: false
+      # - key: VAPID_PRIVATE_KEY
+      #   sync: false
+      # - key: VAPID_EMAIL
+      #   value: mailto:admin@nodbusiness.app
+      #
+      # Telegram alerts:
+      # - key: TELEGRAM_BOT_TOKEN
+      #   sync: false
+      # - key: TELEGRAM_CHAT_ID
+      #   sync: false
+      #
+      # External API encryption:
+      # - key: EXTERNAL_API_ENCRYPTION_KEY
+      #   sync: false
+      #
+      # AI (any one provider):
+      # - key: OPENAI_API_KEY
+      #   sync: false
+      # - key: GEMINI_API_KEY
+      #   sync: false

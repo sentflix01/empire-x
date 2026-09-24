@@ -158,7 +158,7 @@ Nodbusiness Data Room/
 - [ ] Technical architecture document (high-level diagram)
 - [ ] Security documentation:
   - Authentication method (JWT + HttpOnly cookies ✅)
-  - Data encryption at rest (Neon PostgreSQL ✅)
+  - Data encryption at rest (Supabase PostgreSQL ✅)
   - Data encryption in transit (HTTPS/TLS ✅)
   - Penetration testing (if done)
 - [ ] Uptime/reliability record (if live)
@@ -222,8 +222,8 @@ A: Network effects: Each business brings customers. Each customer discovers busi
    Developer ecosystem: 50+ developers will be invested in our success by Phase 2.
 
 Q: What's the biggest technical risk?
-A: Scale — we're on Railway/Vercel/Neon which may need upgrading at 100K+ users.
-   Mitigation: Architecture is cloud-agnostic. We can migrate to AWS/GCP if needed.
+A: Scale — we're on Oracle Cloud + Coolify + Supabase which may need upgrading at 100K+ users.
+   Mitigation: Architecture is cloud-agnostic. All data is external (Supabase, R2, Upstash) so we can migrate compute (Oracle → AWS/GCP) with zero data loss.
 ```
 
 ### About the Team

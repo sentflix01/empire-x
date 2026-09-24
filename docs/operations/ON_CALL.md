@@ -59,7 +59,7 @@
 
 You will be paged from:
 - **Sentry** — uncaught errors in backend or frontend
-- **Uptime monitoring** (Railway/Vercel health checks)
+- **Uptime monitoring** (Uptime Kuma — self-hosted on Oracle VM, 1-min checks)
 - **DevOps Live Error Feed** — `/devops` panel shows real-time errors
 - **User reports** — support@nodbusiness.com, social media
 - **Manual escalation** — teammate or CEO messages you
@@ -80,7 +80,7 @@ You will be paged from:
 - How many users affected?
 - Which feature/endpoint is failing?
 - When did it start? (Sentry first-seen timestamp)
-- Was there a recent deployment? (Check Railway/Vercel deploy log)
+- Was there a recent deployment? (Check Coolify Deployments tab)
 - Check DevOps Live Error Feed for error pattern
 ```
 
@@ -95,8 +95,8 @@ All: Keep status page updated every 30 min during active incident
 ### Step 4: Resolve
 ```
 Option A: Roll back (if caused by a recent deploy)
-  → Railway: deploy → redeploy previous version
-  → Vercel: deployments → promote previous build
+  → Backend: Coolify → Application → Deployments → select previous → Redeploy (~60s)
+  → Frontend: Cloudflare → Pages → nodbusiness → Deployments → Rollback (~30s)
 
 Option B: Hotfix
   → Fix code on a branch
@@ -123,23 +123,24 @@ Option C: Disable feature
 
 ### Check backend health
 ```bash
-curl https://api.nodbusiness.com/health
+curl https://api.nodbusiness.app/health
 ```
 
 ### View recent errors
 Navigate to DevOps → Live Errors tab (real-time error feed)
 
 ### Check database
-Railway dashboard → PostgreSQL → Connect → run queries
+Supabase → Dashboard → Table Editor → run queries
+Or: `psql "$DATABASE_URL" -c "SELECT 1"`
 
 ### Check Redis
-Railway dashboard → Redis → CLI
+Upstash → console.upstash.com → your database → CLI
 
 ### Roll back backend
-Railway dashboard → Deployments → Select previous → Redeploy
+Coolify → Application → Deployments → Select previous → Redeploy
 
 ### Roll back frontend
-Vercel dashboard → Deployments → Select previous → Promote to Production
+Cloudflare → Pages → nodbusiness → Deployments → Select previous → Rollback
 
 ---
 
@@ -147,12 +148,13 @@ Vercel dashboard → Deployments → Select previous → Promote to Production
 
 | Scenario | Who to call |
 |---------|------------|
-| Database unreachable | CTO → Railway support |
+| Database unreachable | CTO → Supabase status (status.supabase.com) |
 | Payment system down | CTO → Stripe/Chapa status page |
 | Security incident / breach | CEO + Legal counsel immediately |
-| All API calls 500 | CTO → check Railway logs |
+| All API calls 500 | CTO → check Coolify container logs |
 | High fraud rate detected | CEO → freeze affected accounts |
 | Media escalation | CEO → PR response |
+| Oracle VM unreachable | CTO → provision Hetzner CAX11 (see DISASTER_RECOVERY.md Scenario 2) |
 
 ---
 
