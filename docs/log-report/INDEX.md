@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-24 | Bugfix | fix: QR code uses window.location.origin instead of NEXT_PUBLIC_APP_URL | [95fa50a6f](2026-09-24-95fa50a6f-qr-code-uses-window-location-origin-instead-of-n.md) |
 | 2026-09-24 | Feature | feat: QR button same size as logo square + full-screen scannable QR modal | [1931f7948](2026-09-24-1931f7948-qr-button-same-size-as-logo-square-full-screen-s.md) |
 | 2026-09-24 | Feature | feat: QR code on business feed cards + restore 80 image posts | [a1541ada5](2026-09-24-a1541ada5-qr-code-on-business-feed-cards-restore-80-image-.md) |
 | 2026-09-24 | Bugfix | fix: resolve fill=true parent position errors on avatars | [0e6cb2230](2026-09-24-0e6cb2230-resolve-fill-true-parent-position-errors-on-avat.md) |
