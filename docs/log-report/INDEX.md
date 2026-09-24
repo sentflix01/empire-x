@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-09-24 | Maintenance | Merge pull request #49 from sentflix01/dependabot/npm_and_yarn/backend/nodemailer-10.0.10 | [ab00ef8f6](2026-09-24-ab00ef8f6-merge-pull-request-49-from-sentflix01-dependabot.md) |
+| 2026-09-24 | Maintenance | Merge pull request #48 from sentflix01/dependabot/npm_and_yarn/backend/minor-and-patch-baa0d3440d | [d28050110](2026-09-24-d28050110-merge-pull-request-48-from-sentflix01-dependabot.md) |
 | 2026-09-24 | Bugfix | fix: QR code uses window.location.origin instead of NEXT_PUBLIC_APP_URL | [95fa50a6f](2026-09-24-95fa50a6f-qr-code-uses-window-location-origin-instead-of-n.md) |
 | 2026-09-24 | Feature | feat: QR button same size as logo square + full-screen scannable QR modal | [1931f7948](2026-09-24-1931f7948-qr-button-same-size-as-logo-square-full-screen-s.md) |
 | 2026-09-24 | Feature | feat: QR code on business feed cards + restore 80 image posts | [a1541ada5](2026-09-24-a1541ada5-qr-code-on-business-feed-cards-restore-80-image-.md) |
@@ -32,6 +34,8 @@
 | 2026-09-22 | Maintenance | chore: trigger Vercel redeploy with updated env vars | [403690250](2026-09-22-403690250-trigger-vercel-redeploy-with-updated-env-vars.md) |
 | 2026-09-22 | Maintenance | chore: commit all doc updates, render.yaml, workflow fixes, and cleanup from session | [7763a2b76](2026-09-22-7763a2b76-commit-all-doc-updates-render-yaml-workflow-fixe.md) |
 | 2026-09-22 | Bugfix | fix: add .js extension to dynamic imports in showroom-digests for Node ESM resolution in Docker | [641a3eb7f](2026-09-22-641a3eb7f-add-js-extension-to-dynamic-imports-in-showroom-.md) |
+| 2026-09-21 | Maintenance | chore(deps): bump nodemailer from 9.1.1 to 10.0.10 in /backend | [925f2f37f](2026-09-21-925f2f37f-bump-nodemailer-from-9-1-1-to-10-0-10-in-backend.md) |
+| 2026-09-21 | Maintenance | chore(deps): bump the minor-and-patch group in /backend with 5 updates | [03666ec23](2026-09-21-03666ec23-bump-the-minor-and-patch-group-in-backend-with-5.md) |
 | 2026-09-20 | Bugfix | fix(deploy): detect frontend changes through merge commits for Vercel deploy | [e2f4f1fb1](2026-09-20-e2f4f1fb1-detect-frontend-changes-through-merge-commits-fo.md) |
 | 2026-09-20 | Maintenance | merge: feat/personal-business-toggle-auth-port-fixes into main | [44822a539](2026-09-20-44822a539-feat-personal-business-toggle-auth-port-fixes-in.md) |
 | 2026-09-20 | Bugfix | fix: remove rootDirectory from vercel.json on main | [5109bf6aa](2026-09-20-5109bf6aa-remove-rootdirectory-from-vercel-json-on-main.md) |
