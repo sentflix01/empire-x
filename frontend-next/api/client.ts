@@ -89,7 +89,7 @@ export async function ensureFreshToken(): Promise<boolean> {
 // ── Axios instance ────────────────────────────────────────────────────────────
 const client = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30s — matches design requirement 2.7
+  timeout: 60000, // 60s — Render free tier cold starts can take 30-50s
   withCredentials: true, // send HttpOnly refresh_token cookie on every request
 });
 

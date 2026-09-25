@@ -25,6 +25,15 @@ function Login() {
   const [googleUnavailable, setGoogleUnavailable] = useState(false);
   const googleRef = useRef<HTMLDivElement | null>(null);
 
+  // Pre-warm the backend on login page load to prevent cold-start timeout
+  // Render free tier sleeps after 15 min — this silent ping wakes it up
+  // so the actual login call succeeds quickly instead of timing out
+  useEffect(() => {
+    const API = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+    fetch(`${API}/health`, { method: 'GET', signal: AbortSignal.timeout(55000) })
+      .catch(() => {}); // fire-and-forget, ignore errors
+  }, []);
+
   useEffect(() => {
     // renderGoogleSignInButton is synchronous — no GIS script dependency.
     // Render once on mount; no polling needed.
@@ -47,16 +56,27 @@ function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    // Show a "waking up" hint after 5s if backend is slow (cold start)
+    const slowTimer = setTimeout(() => {
+      setError('Server is waking up… this takes up to 30 seconds on first load. Please wait.');
+    }, 5000);
     try {
       await auth.loginViaEmailPassword(email.trim().toLowerCase(), password);
+      clearTimeout(slowTimer);
+      setError('');
       window.location.href = dest;
     } catch (err: unknown) {
-      const e = err as { code?: string; status?: number; response?: { status?: number }; error?: string; message?: string };
+      clearTimeout(slowTimer);
+      const e = err as { code?: string; status?: number; response?: { status?: number }; error?: string; message?: string; isTimeout?: boolean };
       if (e?.code === 'email_not_verified') {
         window.location.href = `/register?verify=${encodeURIComponent(email.trim().toLowerCase())}`;
         return;
       }
       if (e?.status === 404 || e?.response?.status === 404) { window.location.href = '/404'; return; }
+      if (e?.isTimeout) {
+        setError('Server is taking too long to respond. Please try again in a few seconds.');
+        return;
+      }
       setError(e?.error || e?.message || 'Invalid email or password.');
     } finally {
       setLoading(false);
@@ -100,10 +120,14 @@ function Login() {
         </div>
       </div>
 
-      {/* Error */}
+      {/* Error / Info */}
       {error && (
-        <div className="mb-4 rounded-lg bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
-          {error}
+        <div className={`mb-4 rounded-lg px-3 py-2.5 text-sm ${
+          error.includes('waking') || error.includes('taking too long')
+            ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200'
+            : 'bg-destructive/10 text-destructive'
+        }`}>
+          {error.includes('waking') && '⏳ '}{error}
         </div>
       )}
 
@@ -155,7 +179,7 @@ function Login() {
         </div>
 
         <Button type="submit" className="w-full h-10 font-medium" disabled={loading}>
-          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in…</> : 'Sign in'}
+          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{error.includes('waking') ? 'Waking server…' : 'Signing in…'}</> : 'Sign in'}
         </Button>
       </form>
 
