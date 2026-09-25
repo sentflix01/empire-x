@@ -10,10 +10,11 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { getRedis } from '../lib/redis';
+import { optionalAuth } from '../middleware/auth';
 
 const router = Router();
 
-router.get('/:showroomId/:sectionKey', async (req: Request, res: Response) => {
+router.get('/:showroomId/:sectionKey', optionalAuth, async (req: Request, res: Response) => {
   const { showroomId, sectionKey } = req.params;
   // Rate-limit key MUST come from req.ip (Express applies `trust proxy` and
   // validates the socket peer). Trusting a raw x-forwarded-for header lets

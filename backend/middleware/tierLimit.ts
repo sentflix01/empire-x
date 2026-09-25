@@ -32,7 +32,8 @@ import {
   tierMeetsRequirement,
 } from '../lib/subscriptionPlans';
 
-const CACHE_TTL = 300; // 5 minutes
+const CACHE_TTL = 300; // Redis TTL in seconds (5 minutes)
+const LOCAL_TTL = 120_000; // In-process TTL in ms (2 minutes)
 
 interface CachedSub {
   tier: Tier;
@@ -40,29 +41,66 @@ interface CachedSub {
   expiresAt: string | null;
 }
 
+// ── In-process tier cache (per pod, zero Redis commands on hit) ───────────────
+// Subscription tier changes very rarely (upgrade/cancel/webhook).
+// A 2-minute in-process cache means at most 1 Redis GET per businessId per
+// 2 minutes instead of 1 per authenticated request.
+
+const localSubCache = new Map<string, { value: CachedSub; expiresAt: number }>();
+
+function localSubGet(businessId: string): CachedSub | undefined {
+  const entry = localSubCache.get(businessId);
+  if (!entry) return undefined;
+  if (Date.now() > entry.expiresAt) { localSubCache.delete(businessId); return undefined; }
+  return entry.value;
+}
+
+function localSubSet(businessId: string, value: CachedSub): void {
+  localSubCache.set(businessId, { value, expiresAt: Date.now() + LOCAL_TTL });
+}
+
+// ── Business-id lookup cache (avoids repeated DB SELECTs for the same user) ──
+// owner_id → business_id mapping never changes once a business is created.
+
+const localBizCache = new Map<string, { id: string | null; expiresAt: number }>();
+const BIZ_LOCAL_TTL = 300_000; // 5 minutes
+
 async function getBusinessId(userId: string): Promise<string | null> {
+  const cached = localBizCache.get(userId);
+  if (cached && Date.now() < cached.expiresAt) return cached.id;
+
   const { rows } = await pool.query(
     'SELECT id FROM businesses WHERE owner_id = $1 LIMIT 1',
     [userId],
   );
-  return rows[0]?.id ?? null;
+  const id = rows[0]?.id ?? null;
+  localBizCache.set(userId, { id, expiresAt: Date.now() + BIZ_LOCAL_TTL });
+  return id;
 }
 
 async function getTierForBusiness(businessId: string): Promise<CachedSub> {
+  // 1. In-process cache (zero Redis commands)
+  const localHit = localSubGet(businessId);
+  if (localHit) return localHit;
+
   const redis = getRedis();
   const key = `sub:${businessId}`;
 
-  // Try Redis cache first
+  // 2. Redis cache
   if (!redis.isNoOp) {
     try {
       const cached = await (redis as RedisClient).get(key);
-      if (cached) return JSON.parse(cached) as CachedSub;
+      if (cached) {
+        const result = JSON.parse(cached) as CachedSub;
+        localSubSet(businessId, result);
+        return result;
+      }
     } catch {
       // fall through to DB
     }
   }
 
-  // Query DB
+  // 3. Database
   const { rows } = await pool.query(
     `SELECT tier, status, current_period_end
      FROM business_subscriptions
@@ -78,6 +116,8 @@ async function getTierForBusiness(businessId: string): Promise<CachedSub> {
         expiresAt: rows[0].current_period_end ?? null,
       }
     : { tier: 'freemium', status: 'active', expiresAt: null };
+
+  localSubSet(businessId, result);
 
   // Write to Redis cache
   if (!redis.isNoOp) {
@@ -96,6 +136,9 @@ async function getTierForBusiness(businessId: string): Promise<CachedSub> {
  * Call this after any subscription change (upgrade, cancel, webhook).
  */
 export async function invalidateSubCache(businessId: string): Promise<void> {
+  // Always bust in-process cache immediately so the next request gets fresh data
+  localSubCache.delete(businessId);
+
   const redis = getRedis();
   if (redis.isNoOp) return;
   try {

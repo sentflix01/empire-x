@@ -81,25 +81,25 @@ function verifyOtp(submitted: string, storedHash: string | null | undefined): bo
 
 // ── Token helpers ─────────────────────────────────────────────────────────────
 
-function signAccessToken(userId: string): string {
+function signAccessToken(userId: string, isDemo = false): string {
   return jwt.sign(
-    { sub: userId, type: 'access' },
+    { sub: userId, type: 'access', demo: isDemo },
     process.env.JWT_SECRET as string,
     { expiresIn: '15m', jwtid: uuidv4() },
   );
 }
 
-function signRefreshToken(userId: string): string {
+function signRefreshToken(userId: string, isDemo = false): string {
   return jwt.sign(
-    { sub: userId, type: 'refresh' },
+    { sub: userId, type: 'refresh', demo: isDemo },
     process.env.JWT_SECRET as string,
     { expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ?? '7d') as '7d', jwtid: uuidv4() },
   );
 }
 
-function signToken(userId: string, res: Response): string {
-  const accessToken = signAccessToken(userId);
-  const refreshToken = signRefreshToken(userId);
+function signToken(userId: string, res: Response, isDemo = false): string {
+  const accessToken = signAccessToken(userId, isDemo);
+  const refreshToken = signRefreshToken(userId, isDemo);
   res.cookie('refresh_token', refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -121,8 +121,9 @@ async function revokeToken(jti: string, expiresAt: number): Promise<void> {
   }
 }
 
-async function isRevoked(jti: string | undefined, userId?: string | undefined, iat?: number | undefined): Promise<boolean> {
+async function isRevoked(jti: string | undefined, userId?: string | undefined, iat?: number | undefined, isDemo = false): Promise<boolean> {
   if (!jti && !userId) return false;
+  if (isDemo) return false;
   const redis = getRedis();
   if (redis.isNoOp) return false;
   try {
@@ -246,7 +247,8 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
   try {
     const { rows } = await pool.query<{
       id: string; otp_code: string | null; otp_expires: Date | null;
-    }>('SELECT id, otp_code, otp_expires FROM users WHERE email = $1', [email.toLowerCase()]);
+      is_demo: boolean; is_seed: boolean;
+    }>('SELECT id, otp_code, otp_expires, is_demo, is_seed FROM users WHERE email = $1', [email.toLowerCase()]);
 
     if (!rows.length) {
       apiError.notFound(res, 'User not found');
@@ -266,9 +268,9 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
     }
 
     // ── Brute-force protection: per-email attempt counter ─────────────────
-    const redis = getRedis();
+    const redis = user.is_demo || user.is_seed ? null : getRedis();
     const attemptKey = `otp_attempts:${email.toLowerCase()}`;
-    if (!redis.isNoOp) {
+    if (redis && !redis.isNoOp) {
       try {
         const attempts = await (redis as RedisClient).incr(attemptKey);
         if (attempts === 1) {
@@ -297,12 +299,12 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
     }
 
     // Correct OTP — clear the attempt counter
-    if (!redis.isNoOp) {
+    if (redis && !redis.isNoOp) {
       (redis as RedisClient).del(attemptKey).catch(() => undefined);
     }
 
-    const { rows: banCheck } = await pool.query<{ is_banned: boolean }>(
-      'SELECT is_banned FROM users WHERE id = $1',
+    const { rows: banCheck } = await pool.query<{ is_banned: boolean; is_demo: boolean; is_seed: boolean }>(
+      'SELECT is_banned, is_demo, is_seed FROM users WHERE id = $1',
       [user.id],
     );
     if (banCheck[0]?.is_banned) {
@@ -315,7 +317,7 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       [user.id],
     );
 
-    const token = signToken(user.id, res);
+    const token = signToken(user.id, res, user.is_demo || user.is_seed);
     res.json({ access_token: token });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Verify OTP error');
@@ -376,8 +378,9 @@ router.post('/login', async (req: Request, res: Response) => {
     const { rows } = await pool.query<{
       id: string; email: string; password_hash: string | null;
       is_verified: boolean; role: string; is_banned: boolean;
+      is_demo: boolean; is_seed: boolean;
     }>(
-      'SELECT id, email, password_hash, is_verified, role, is_banned FROM users WHERE email = $1',
+      'SELECT id, email, password_hash, is_verified, role, is_banned, is_demo, is_seed FROM users WHERE email = $1',
       [email.toLowerCase()],
     );
     if (!rows.length) {
@@ -392,7 +395,7 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // ── Account lockout check ────────────────────────────────────────────
-    const redis = getRedis();
+    const redis = user.is_demo || user.is_seed ? null : getRedis();
     const lockoutKey = `lockout:${user.email}`;
     const failedKey = `failed_login:${user.email}`;
 
@@ -473,7 +476,7 @@ router.post('/login', async (req: Request, res: Response) => {
       return;
     }
 
-    const token = signToken(user.id, res);
+    const token = signToken(user.id, res, user.is_demo || user.is_seed);
     res.json({ access_token: token });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Login error');
@@ -589,8 +592,8 @@ router.post('/google', async (req: Request, res: Response) => {
       }
     }
 
-    const { rows: banCheck } = await pool.query<{ is_banned: boolean }>(
-      'SELECT is_banned FROM users WHERE id = $1',
+    const { rows: banCheck } = await pool.query<{ is_banned: boolean; is_demo: boolean; is_seed: boolean }>(
+      'SELECT is_banned, is_demo, is_seed FROM users WHERE id = $1',
       [user.id],
     );
     if (banCheck[0]?.is_banned) {
@@ -598,7 +601,7 @@ router.post('/google', async (req: Request, res: Response) => {
       return;
     }
 
-    const token = signToken(user.id, res);
+    const token = signToken(user.id, res, Boolean(banCheck[0]?.is_demo || banCheck[0]?.is_seed));
     res.json({ access_token: token });
   } catch (err) {
     logger.error({ err: (err as Error).message, stack: (err as Error).stack?.split('\n').slice(0,3).join(' | ') }, 'Google auth error — DB or unexpected failure');
@@ -707,8 +710,8 @@ router.post('/reset-password', async (req: Request, res: Response) => {
       return;
     }
     // Prevent banned users from resetting password
-    const { rows: banCheck } = await pool.query<{ is_banned: boolean }>(
-      'SELECT is_banned FROM users WHERE id = $1',
+    const { rows: banCheck } = await pool.query<{ is_banned: boolean; is_demo: boolean; is_seed: boolean }>(
+      'SELECT is_banned, is_demo, is_seed FROM users WHERE id = $1',
       [rows[0].id],
     );
     if (banCheck[0]?.is_banned) {
@@ -720,8 +723,9 @@ router.post('/reset-password', async (req: Request, res: Response) => {
       'UPDATE users SET password_hash = $1, reset_token = NULL, reset_expires = NULL WHERE id = $2',
       [hash, rows[0].id],
     );
-    const redis = getRedis();
-    if (!redis.isNoOp) {
+    const isDemo = Boolean(banCheck[0]?.is_demo || banCheck[0]?.is_seed);
+    const redis = isDemo ? null : getRedis();
+    if (redis && !redis.isNoOp) {
       try {
         await (redis as RedisClient).setex(
           `revoke_before:${rows[0].id}`,
@@ -811,13 +815,8 @@ router.post('/refresh', async (req: Request, res: Response) => {
     return;
   }
 
-  if (await isRevoked(payload.jti, payload.sub as string, payload.iat)) {
-    res.status(401).json({ error: 'Token has been revoked' });
-    return;
-  }
-
-  const { rows } = await pool.query<{ id: string; is_banned: boolean }>(
-    'SELECT id, is_banned FROM users WHERE id = $1',
+  const { rows } = await pool.query<{ id: string; is_banned: boolean; is_demo: boolean; is_seed: boolean }>(
+    'SELECT id, is_banned, is_demo, is_seed FROM users WHERE id = $1',
     [payload.sub],
   );
   if (!rows.length) {
@@ -829,8 +828,14 @@ router.post('/refresh', async (req: Request, res: Response) => {
     return;
   }
 
-  await revokeToken(payload.jti as string, payload.exp as number).catch(() => undefined);
-  const accessToken = signToken(payload.sub as string, res);
+  const isDemo = Boolean(payload.demo === true || rows[0].is_demo || rows[0].is_seed);
+  if (!isDemo && await isRevoked(payload.jti, payload.sub as string, payload.iat)) {
+    res.status(401).json({ error: 'Token has been revoked' });
+    return;
+  }
+
+  if (!isDemo) await revokeToken(payload.jti as string, payload.exp as number).catch(() => undefined);
+  const accessToken = signToken(payload.sub as string, res, isDemo);
   res.json({ access_token: accessToken });
 });
 
@@ -841,7 +846,14 @@ router.post('/logout', async (req: Request, res: Response) => {
   if (refreshToken) {
     try {
       const payload = jwt.verify(refreshToken, process.env.JWT_SECRET as string) as jwt.JwtPayload;
-      if (payload.jti) await revokeToken(payload.jti, payload.exp as number);
+      if (payload.jti) {
+        const { rows } = await pool.query<{ is_demo: boolean; is_seed: boolean }>(
+          'SELECT is_demo, is_seed FROM users WHERE id = $1', [payload.sub],
+        );
+        if (!(payload.demo === true || rows[0]?.is_demo || rows[0]?.is_seed)) {
+          await revokeToken(payload.jti, payload.exp as number);
+        }
+      }
     } catch { /* already expired */ }
   }
   res.clearCookie('refresh_token', {

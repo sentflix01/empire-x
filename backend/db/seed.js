@@ -149,7 +149,7 @@ async function seed() {
     const pwHash    = await bcrypt.hash(TEST_PASSWORD, 10);
     const adminHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
 
-    // ── Dev accounts (is_seed = FALSE — never touched by cleanup) ──────────
+    // ── Built-in demo accounts (not generated seed content; kept by cleanup) ──
     console.log('🔑 Ensuring dev accounts...');
     const devAccounts = [
       { email: 'admin@nodbusiness.app', hash: adminHash, name: 'Admin User', role: 'admin', bal: 50000 },
@@ -157,9 +157,9 @@ async function seed() {
     ];
     for (const acc of devAccounts) {
       const { rows } = await client.query(
-        `INSERT INTO users (email, password_hash, full_name, role, is_verified, is_seed, provider)
-         VALUES ($1,$2,$3,$4,TRUE,FALSE,'local')
-         ON CONFLICT (email) DO UPDATE SET full_name = EXCLUDED.full_name RETURNING id`,
+        `INSERT INTO users (email, password_hash, full_name, role, is_verified, is_seed, is_demo, provider)
+         VALUES ($1,$2,$3,$4,TRUE,FALSE,TRUE,'local')
+         ON CONFLICT (email) DO UPDATE SET full_name = EXCLUDED.full_name, is_seed = FALSE, is_demo = TRUE RETURNING id`,
         [acc.email, acc.hash, acc.name, acc.role]
       );
       const uid = rows[0].id;

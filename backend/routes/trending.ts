@@ -60,7 +60,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
   }
 });
 
-router.get('/warm', async (_req: Request, res: Response) => {
+router.get('/warm', optionalAuth, async (_req: Request, res: Response) => {
   try {
     await cached('trending:global', 300, async () => {
       const [posts, products, showrooms, tasks, users] = await Promise.all([

@@ -355,6 +355,8 @@ export interface AuthUser {
   email: string;
   role: 'user' | 'admin' | 'moderator';
   is_banned: boolean;
+  /** True for the built-in demo accounts and generated seed personas. */
+  is_demo: boolean;
 }
 
 // ── Express namespace augmentation ───────────────────────────────────────────

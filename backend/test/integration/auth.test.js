@@ -157,6 +157,26 @@ describe('POST /api/auth/login', () => {
     expect(res.body).toHaveProperty('access_token');
   });
 
+  it('does not issue Redis commands for a built-in demo account', async () => {
+    const redis = getRedis();
+    for (const method of ['get', 'set', 'setex', 'del', 'incr', 'expire']) redis[method].mockClear();
+    mockPool.query.mockResolvedValueOnce({
+      rows: [{
+        id: 'demo-id', email: 'test@nodbusiness.app', password_hash: '$2b$hashed',
+        is_verified: true, role: 'user', is_banned: false, is_demo: true, is_seed: false,
+      }],
+    });
+
+    const app = buildApp();
+    const res = await request(app).post('/api/auth/login').send({ email: 'test@nodbusiness.app', password: 'password123' });
+
+    expect(res.status).toBe(200);
+    expect(require('jsonwebtoken').decode(res.body.access_token)).toMatchObject({ demo: true });
+    for (const method of ['get', 'set', 'setex', 'del', 'incr', 'expire']) {
+      expect(redis[method]).not.toHaveBeenCalled();
+    }
+  });
+
   it('sends a fresh OTP when an unverified user tries to log in', async () => {
     mockPool.query
       .mockResolvedValueOnce({

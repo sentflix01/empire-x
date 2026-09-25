@@ -55,6 +55,25 @@ const DEFAULT_FLAGS = {
   live_streaming:        { enabled: false, rollout: 0,   description: 'Live streaming via Agora/LiveKit' },
 } as const satisfies Record<string, FlagDefinition>;
 
+// ── In-process flag cache ─────────────────────────────────────────────────────
+// Flag definitions change very rarely (only via setFlag() or a redeploy).
+// Cache them in-process for 60s to avoid a Redis GET on every isEnabled() call.
+// setFlag() busts this cache so real-time admin updates still propagate quickly.
+
+const FLAG_LOCAL_TTL = 60_000; // ms
+const localFlagCache = new Map<string, { flag: FlagDefinition; expiresAt: number }>();
+
+function localFlagGet(flagName: string): FlagDefinition | undefined {
+  const entry = localFlagCache.get(flagName);
+  if (!entry) return undefined;
+  if (Date.now() > entry.expiresAt) { localFlagCache.delete(flagName); return undefined; }
+  return entry.flag;
+}
+
+function localFlagSet(flagName: string, flag: FlagDefinition): void {
+  localFlagCache.set(flagName, { flag, expiresAt: Date.now() + FLAG_LOCAL_TTL });
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function simpleHash(str: string): number {
@@ -79,34 +98,49 @@ function evaluateFlag(flag: FlagDefinition, userId: string | null): boolean {
 /**
  * Check if a feature flag is enabled for the given user.
  * userId is used for percentage rollouts — pass null for anonymous checks.
+ *
+ * Priority:
+ *   1. Env var  FF_<FLAG_NAME>=true|false   (zero Redis commands)
+ *   2. In-process cache (60s TTL)           (zero Redis commands on cache hit)
+ *   3. Redis    ff:<flag_name>              (real-time admin updates)
+ *   4. Hardcoded defaults
  */
 export async function isEnabled(flagName: string, userId: string | null = null): Promise<boolean> {
-  // 1. Env var override (highest priority)
+  // 1. Env var override (highest priority, zero Redis)
   const envKey = `FF_${flagName.toUpperCase()}`;
   if (process.env[envKey] !== undefined) {
     return process.env[envKey] === 'true' || process.env[envKey] === '1';
   }
 
-  // 2. Redis override (real-time)
+  // 2. In-process cache (avoids a Redis round-trip on every call)
+  const localFlag = localFlagGet(flagName);
+  if (localFlag !== undefined) {
+    return evaluateFlag(localFlag, userId);
+  }
+
+  // 3. Redis override (real-time; only reached on cache miss ~once per 60s)
   const redis = getRedis();
   if (!redis.isNoOp) {
     try {
-      // ioredis method — safe to call
       const cached = await (redis as import('ioredis').default).get(`ff:${flagName}`);
       if (cached !== null) {
-        return evaluateFlag(JSON.parse(cached) as FlagDefinition, userId);
+        const flag = JSON.parse(cached) as FlagDefinition;
+        localFlagSet(flagName, flag);
+        return evaluateFlag(flag, userId);
       }
     } catch (err) {
       logger.warn({ err: (err as Error).message }, 'Feature flag Redis read failed');
     }
   }
 
-  // 3. Hardcoded defaults
+  // 4. Hardcoded defaults
   const flag = (DEFAULT_FLAGS as Record<string, FlagDefinition>)[flagName];
   if (!flag) {
     logger.warn({ flagName }, 'Unknown feature flag — defaulting to false');
     return false;
   }
+  // Cache the hardcoded default too so repeated calls don't fall through every time
+  localFlagSet(flagName, flag);
   return evaluateFlag(flag, userId);
 }
 
@@ -144,6 +178,8 @@ export async function setFlag(
     description: (current as FlagDefinition).description ?? '',
   };
   await (redis as import('ioredis').default).setex(`ff:${flagName}`, 3600, JSON.stringify(updated));
+  // Bust the in-process cache so the new value takes effect immediately on this pod
+  localFlagCache.delete(flagName);
   logger.info({ flagName, enabled, rollout }, 'Feature flag updated');
   return true;
 }

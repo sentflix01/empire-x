@@ -27,6 +27,7 @@ interface SocketUser {
   full_name: string | null;
   role: string;
   is_banned?: boolean;
+  is_demo: boolean;
 }
 
 interface AuthenticatedSocket extends Socket {
@@ -58,7 +59,7 @@ async function getSocketUser(userId: string): Promise<SocketUser | null> {
   if (cached && Date.now() < cached.expiresAt) return cached.user;
 
   const { rows } = await pool.query<SocketUser>(
-    'SELECT id, email, full_name, role, is_banned FROM users WHERE id = $1',
+    'SELECT id, email, full_name, role, is_banned, (is_demo OR is_seed) AS is_demo FROM users WHERE id = $1',
     [userId],
   );
   if (!rows.length) return null;
@@ -77,7 +78,9 @@ async function isSocketTokenRevoked(
   jti: string | undefined,
   userId: string | undefined,
   iat: number | undefined,
+  isDemo = false,
 ): Promise<boolean> {
+  if (isDemo) return false;
   const redis = getRedis();
   if (redis.isNoOp) return false;
   try {
@@ -198,9 +201,13 @@ export function initSocket(httpServer: HttpServer, corsOrigin: string | string[]
   });
 
   // ── Redis adapter (multi-instance horizontal scaling) ─────────────────────
-  const redis = getRedis();
-  if (!redis.isNoOp) {
-    try {
+  // Enable explicitly only when this deployment has multiple backend instances.
+  if (process.env.ENABLE_SOCKET_REDIS_ADAPTER === 'true') {
+    const redis = getRedis();
+    if (redis.isNoOp) {
+      logger.info('Socket.IO running without Redis adapter — Redis unavailable');
+    } else {
+      try {
       const { createAdapter } = require('@socket.io/redis-adapter') as typeof import('@socket.io/redis-adapter');
       const IORedis = require('ioredis') as typeof import('ioredis').default;
       const isTls = (process.env.REDIS_URL ?? '').startsWith('rediss://');
@@ -222,11 +229,12 @@ export function initSocket(httpServer: HttpServer, corsOrigin: string | string[]
         .catch((err: Error) => {
           logger.warn({ err: err.message }, 'Socket.IO Redis adapter failed — single-instance mode');
         });
-    } catch (err) {
-      logger.warn({ err: (err as Error).message }, 'Socket.IO Redis adapter unavailable');
+      } catch (err) {
+        logger.warn({ err: (err as Error).message }, 'Socket.IO Redis adapter unavailable');
+      }
     }
   } else {
-    logger.info('Socket.IO running without Redis adapter — single-instance only');
+    logger.info('Socket.IO running without Redis adapter — single-instance mode');
   }
 
   // ── JWT auth middleware ───────────────────────────────────────────────────
@@ -240,7 +248,7 @@ export function initSocket(httpServer: HttpServer, corsOrigin: string | string[]
 
       // Enforce ACCESS tokens — refresh tokens must never open a socket.
       const payload = verifyAccessToken(token);
-      if (await isSocketTokenRevoked(payload.jti, payload.sub, payload.iat)) {
+      if (await isSocketTokenRevoked(payload.jti, payload.sub, payload.iat, payload.demo === true)) {
         return next(new Error('Token has been revoked'));
       }
 
@@ -260,7 +268,7 @@ export function initSocket(httpServer: HttpServer, corsOrigin: string | string[]
     const s = socket as AuthenticatedSocket;
 
     socket.join(`user:${s.user.id}`);
-    cacheFollowerIds(s.user.id, redis).catch(() => undefined);
+    if (!s.user.is_demo) cacheFollowerIds(s.user.id, getRedis()).catch(() => undefined);
 
     socket.on('join_conversation', async (conversationId: unknown) => {
       if (!conversationId || typeof conversationId !== 'string') return;
