@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { QRCodeSVG } from "qrcode.react";
 import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
+import QRLandingModal from "@/components/showroom/QRLandingModal";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { toast } from "sonner";
 
@@ -188,18 +189,28 @@ function ShowroomView() {
 
   // Handler called by SectionRenderer when a priced service or product is clicked
   const handleBuy = (item) => {
-    if (!user) { router.push('/login'); return; }
+    // Guests can buy — they'll enter name/phone at checkout
     setPurchaseItem(item);
   };
 
   // Handler for "Get Quote" service items
   const handleGetQuote = (serviceName: string, serviceDesc?: string) => {
-    if (!user) { router.push('/login'); return; }
+    // Guests can request quotes — they'll enter contact info in the modal
     setQuoteItem({ name: serviceName, desc: serviceDesc });
   };
 
   return (
     <div className="max-w-2xl mx-auto">
+      {/* QR Landing Modal — shown to first-time unauthenticated visitors */}
+      {!user && (
+        <QRLandingModal
+          businessName={showroom.title}
+          businessCategory={showroom.category}
+          logoUrl={showroom.logo_url}
+          currentPath={typeof window !== 'undefined' ? window.location.pathname : ''}
+          themeColor={themeColor}
+        />
+      )}
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4" /> Back
@@ -272,6 +283,33 @@ function ShowroomView() {
             ownerId={showroom.owner_id}
             onClose={() => setQuoteItem(null)}
           />
+        )}
+
+        {/* Guest sticky bottom bar — shown after modal is dismissed */}
+        {!user && (
+          <div className="sticky bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-card/95 backdrop-blur-xl px-4 py-3">
+            <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold">Like what you see?</p>
+                <p className="text-[11px] text-muted-foreground">Join Nodbusiness to buy, follow, and sell.</p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <Link
+                  href={`/login?return=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}`}
+                  className="h-8 px-3 rounded-xl border border-border text-xs font-semibold hover:bg-secondary/50 transition-colors flex items-center"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  className="h-8 px-3 rounded-xl text-white text-xs font-semibold flex items-center transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: themeColor }}
+                >
+                  Join Free
+                </Link>
+              </div>
+            </div>
+          </div>
         )}
       </div>
   );

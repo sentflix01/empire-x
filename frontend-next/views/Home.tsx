@@ -88,7 +88,7 @@ function CompanyAnnouncementTicker() {
 }
 
 function Home() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, authChecked } = useAuth();
   const { t } = useTranslation();
   const { homeFeedTokens: accentTokens, homeFeedMode, setHomeFeedMode } = useProfileView();
   const feedMode = homeFeedMode;
@@ -235,8 +235,8 @@ function Home() {
 
   return (
     <div className="max-w-xl mx-auto space-y-4">
-      {/* Guest read-only banner */}
-      {!isAuthenticated && (
+      {/* Guest read-only banner — only shown after auth fully resolves to unauthenticated */}
+      {authChecked && !isAuthenticated && (
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/80 px-4 py-3 dark:border-amber-500/25 dark:bg-amber-950/30">
           <p className="text-xs font-medium text-amber-900 dark:text-amber-200">👋 Browsing as guest. Sign up to post, like, and follow.</p>
           <Link href="/register" className="shrink-0 rounded-xl bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600 transition-colors">Join Free</Link>
