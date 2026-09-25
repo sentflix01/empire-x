@@ -380,6 +380,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
   const [selectedBizId, setSelectedBizId] = useState<string | null>(null);
   const [feedBusinesses, setFeedBusinesses] = useState<Business[]>([]); // global feed mode
+  const [showroomSlugs, setShowroomSlugs] = useState<Record<string, string>>({}); // ownerId → slug
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [messaging, setMessaging] = useState(false);
@@ -416,6 +417,29 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
       // Load up to 20 businesses for the feed
       const data = await entities.Business.filter({}, '-created_at', 20) as Business[];
       setFeedBusinesses(data ?? []);
+
+      // Fetch showroom slugs for each business owner (for QR codes)
+      // Each QR must link to that business's specific showroom page
+      if (data?.length) {
+        const ownerIds = [...new Set(data.map(b => b.owner_id).filter(Boolean))];
+        try {
+          const showroomData = await Promise.all(
+            ownerIds.map(id =>
+              entities.Showroom.filter({ owner_id: id, status: 'published' }, '-created_at', 1)
+                .then((rows: unknown[]) => {
+                  const s = rows?.[0] as { owner_id?: string; slug?: string } | undefined;
+                  return s?.slug ? { ownerId: id, slug: s.slug } : null;
+                })
+                .catch(() => null)
+            )
+          );
+          const slugMap: Record<string, string> = {};
+          showroomData.forEach(item => {
+            if (item) slugMap[item.ownerId as string] = item.slug;
+          });
+          setShowroomSlugs(slugMap);
+        } catch { /* non-critical — QR falls back to profile URL */ }
+      }
     } catch { setFeedBusinesses([]); }
     setLoading(false);
   };
@@ -484,6 +508,15 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           const logoUrl    = biz.business_logo_url as string | undefined;
           const coverUrl   = biz.business_cover_url as string | undefined;
           const ownerId    = biz.owner_id as string || '';
+          // Use showroom slug for QR — each business has its own unique public showroom URL
+          const showroomSlug = showroomSlugs[ownerId];
+          const qrUrl = typeof window !== 'undefined'
+            ? showroomSlug
+              ? `${window.location.origin}/showroom/${showroomSlug}`
+              : `${window.location.origin}/profile/${ownerId}?view=business`
+            : showroomSlug
+              ? `https://nodbusiness.vercel.app/showroom/${showroomSlug}`
+              : `https://nodbusiness.vercel.app/profile/${ownerId}?view=business`;
 
           return (
             <div key={biz.id} className="rounded-2xl border border-border/50 overflow-hidden bg-card shadow-sm">
@@ -526,7 +559,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                       >
                         {/* Preview QR at button size — actual scannable QR in popup */}
                         <QRCodeSVG
-                          value={`${typeof window !== 'undefined' ? window.location.origin : 'https://nodbusiness.vercel.app'}/profile/${ownerId}?view=business`}
+                          value={qrUrl}
                           size={46}
                           level="L"
                           includeMargin={false}
@@ -571,7 +604,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                               <div className="flex justify-center">
                                 <div className="p-3 bg-white rounded-2xl border border-slate-100 shadow-inner">
                                   <QRCodeSVG
-                                    value={`${typeof window !== 'undefined' ? window.location.origin : 'https://nodbusiness.vercel.app'}/profile/${ownerId}?view=business`}
+                                    value={qrUrl}
                                     size={220}
                                     level="H"
                                     includeMargin
@@ -585,10 +618,10 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                                 </div>
                               </div>
                               <p className="text-xs text-center text-slate-400 mt-3 px-4">
-                                Scan with your phone camera to view the full business profile
+                                Scan with your phone camera to open this business showroom — no account needed
                               </p>
                               <Link
-                                href={`/profile/${ownerId}?view=business`}
+                                href={showroomSlug ? `/showroom/${showroomSlug}` : `/profile/${ownerId}?view=business`}
                                 className="mt-3 flex items-center justify-center gap-2 w-full h-9 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90"
                                 style={{ backgroundColor: color }}
                                 onClick={() => setQrOpenId(null)}

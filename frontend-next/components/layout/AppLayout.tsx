@@ -25,6 +25,7 @@ import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { useRealMode } from "@/lib/RealModeContext";
 import { useProfileView } from "@/lib/ProfileViewContext";
 import { useAppStore } from "@/store";
+import { isGuestBrowsablePath } from "@/lib/publicPaths";
 // AccountSettings popup replaced by /settings navigation
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
@@ -242,12 +243,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     setHomeTabsOpen(false);
   }, [pathname]);
 
-  // Redirect to /login when auth has resolved and user is not authenticated
+  // Redirect to /login when auth has resolved and user is not authenticated.
+  // Guest-browsable paths (feed, marketplace, showrooms, etc.) are exempt —
+  // guests see content read-only with sign-up prompts on write actions.
   useEffect(() => {
-    if (authChecked && !isAuthenticated) {
+    if (authChecked && !isAuthenticated && !isGuestBrowsablePath(pathname)) {
       router.push("/login");
     }
-  }, [authChecked, isAuthenticated, router]);
+  }, [authChecked, isAuthenticated, router, pathname]);
 
   // Once user is available: check profile, set up socket, load unread count, hydrate bookmarks
   const hydrateBookmarks = useAppStore(s => s.hydrate);

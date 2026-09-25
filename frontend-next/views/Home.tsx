@@ -88,7 +88,7 @@ function CompanyAnnouncementTicker() {
 }
 
 function Home() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const { homeFeedTokens: accentTokens, homeFeedMode, setHomeFeedMode } = useProfileView();
   const feedMode = homeFeedMode;
@@ -235,6 +235,13 @@ function Home() {
 
   return (
     <div className="max-w-xl mx-auto space-y-4">
+      {/* Guest read-only banner */}
+      {!isAuthenticated && (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/80 px-4 py-3 dark:border-amber-500/25 dark:bg-amber-950/30">
+          <p className="text-xs font-medium text-amber-900 dark:text-amber-200">👋 Browsing as guest. Sign up to post, like, and follow.</p>
+          <Link href="/register" className="shrink-0 rounded-xl bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600 transition-colors">Join Free</Link>
+        </div>
+      )}
       {/* Mini Website Banner — brand blue-to-purple gradient */}
       <section className="relative overflow-hidden rounded-2xl text-white shadow-lg shadow-blue-600/25 min-h-[132px]" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.18),transparent_28%),radial-gradient(circle_at_15%_90%,rgba(124,58,237,0.22),transparent_26%)]" />
@@ -249,9 +256,9 @@ function Home() {
               {t('feed.buildMiniWebsite')}
             </h1>
             <p className="mt-2 text-sm font-medium leading-snug text-white/82">{t('feed.shareEmpire')}</p>
-            <Link href="/showroom/create"
+            <Link href={isAuthenticated ? "/showroom/create" : "/register"}
               className="mt-4 inline-flex h-10 items-center rounded-xl bg-white px-5 text-sm font-bold text-blue-700 shadow-md shadow-black/10 transition-all duration-200 hover:bg-blue-50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
-              {t('feed.getStarted')}
+              {isAuthenticated ? t('feed.getStarted') : 'Join Free'}
             </Link>
           </div>
 
