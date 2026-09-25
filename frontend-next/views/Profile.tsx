@@ -31,7 +31,7 @@ function Profile() {
   const searchParams = useSearchParams();
   const viewParam = searchParams.get("view");
   const { theme, setTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, authChecked } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const { profileViewMode: view, setProfileViewMode, profileViewTokens: accentTokens } = useProfileView();
@@ -43,10 +43,14 @@ function Profile() {
   const [tickerToggling, setTickerToggling] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      // Auth resolved with no user — stop showing skeleton, show not-found
+      if (authChecked) setLoading(false);
+      return;
+    }
     loadProfile();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, user?.id]);
+  }, [id, user?.id, authChecked]);
 
   // Honour ?view= URL param on initial entry only — read once on mount.
   // The sidebar pill sets profileViewMode via context before navigating,
@@ -143,10 +147,26 @@ function Profile() {
 
   if (!profile) return (
     <div className="max-w-xl mx-auto text-center py-20">
-      <Crown className="w-12 h-12 text-amber-400 mx-auto mb-3" />
-      <h2 className="font-display text-xl font-bold">Profile not found</h2>
-      <p className="text-sm text-muted-foreground mt-1">This user hasn't set up their profile yet.</p>
-      <Link href="/"><Button variant="outline" className="mt-4 rounded-full">Go Home</Button></Link>
+      {!user ? (
+        <>
+          <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+            <Crown className="w-7 h-7 text-amber-600" />
+          </div>
+          <h2 className="font-display text-xl font-bold">Sign in to view profiles</h2>
+          <p className="text-sm text-muted-foreground mt-1 mb-6">Create an account to see profiles, posts, and businesses.</p>
+          <div className="flex gap-3 justify-center">
+            <Link href="/login"><Button className="rounded-xl">Sign In</Button></Link>
+            <Link href="/register"><Button variant="outline" className="rounded-xl">Join Free</Button></Link>
+          </div>
+        </>
+      ) : (
+        <>
+          <Crown className="w-12 h-12 text-amber-400 mx-auto mb-3" />
+          <h2 className="font-display text-xl font-bold">Profile not found</h2>
+          <p className="text-sm text-muted-foreground mt-1">This user hasn't set up their profile yet.</p>
+          <Link href="/"><Button variant="outline" className="mt-4 rounded-full">Go Home</Button></Link>
+        </>
+      )}
     </div>
   );
 

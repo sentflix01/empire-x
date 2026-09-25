@@ -10,6 +10,7 @@ import ErrorState from "@/components/ui/ErrorState";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { useAppStore } from "@/store";
+import { useAuth } from "@/lib/AuthContext";
 
 function Bookmarks() {
   const { t } = useTranslation();
@@ -26,6 +27,7 @@ function Bookmarks() {
   const hydrate  = useAppStore(s => s.hydrate);
   const storeError = useAppStore(s => s.error);
   const isHydrating = useAppStore(s => s.isHydrating);
+  const { user, authChecked } = useAuth();
 
   const [tab, setTab] = useState("all");
   const [alerts, setAlerts] = useState([]);
@@ -141,8 +143,11 @@ function Bookmarks() {
         {tab !== "alerts" && (
           isHydrating ? (
             <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"/></div>
-          ) : storeError && filtered.length === 0 ? (
-            <ErrorState message={storeError} onRetry={() => hydrate()} />
+          ) : (storeError || (!user && authChecked)) && filtered.length === 0 ? (
+            <ErrorState
+              message={!user ? 'Sign in to see your bookmarks' : storeError}
+              onRetry={!user ? () => { window.location.href = '/login?return=/bookmarks'; } : () => hydrate()}
+            />
           ) : filtered.length === 0 ? (
             <div className="text-center py-16">
               <Bookmark className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3"/>

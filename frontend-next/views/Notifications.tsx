@@ -35,14 +35,19 @@ function NotificationsView() {
   const { t } = useTranslation();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, authChecked } = useAuth();
   const [markingAll, setMarkingAll] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    if (user) loadNotifications(user);
+    if (user) {
+      loadNotifications(user);
+    } else if (authChecked && !user) {
+      // Auth resolved but no user — clear the infinite spinner
+      setLoading(false);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, authChecked]);
 
   // Live updates via socket — prepend new notifications as they arrive
   useEffect(() => {
@@ -141,6 +146,17 @@ function NotificationsView() {
       </div>
       {loading ? (
         <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>
+      ) : !user ? (
+        <div className="flex flex-col items-center justify-center py-16 gap-4 text-center px-6">
+          <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
+            <Bell className="w-6 h-6 text-amber-600" />
+          </div>
+          <div>
+            <p className="font-bold text-base">Sign in to see notifications</p>
+            <p className="text-sm text-muted-foreground mt-1">Your notifications will appear here.</p>
+          </div>
+          <a href="/login" className="h-10 px-6 rounded-xl bg-amber-500 text-white font-semibold text-sm flex items-center hover:bg-amber-600 transition-colors">Sign In</a>
+        </div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-16">
           <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
