@@ -8,6 +8,7 @@ import { Suggestion, suggestionsApi } from '@/api/suggestions';
 import { useCollapse } from '@/hooks/useCollapse';
 import { UserCard } from '@/components/friends/UserCard';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useAuth } from '@/lib/AuthContext';
 
 // ── Skeleton card placeholder ─────────────────────────────────────────────────
 function SkeletonCard() {
@@ -134,6 +135,7 @@ function FriendsSection({
 
 // ── Main Friends view ─────────────────────────────────────────────────────────
 function Friends() {
+  const { user, authChecked } = useAuth();
   // Follow state — single source of truth for all sections
   const [followsSet, setFollowsSet] = useState<Set<string>>(new Set());
   const [loadingFollows, setLoadingFollows] = useState(true);
@@ -159,6 +161,7 @@ function Friends() {
     let cancelled = false;
 
     async function loadAll() {
+      if (!user) return;
       // 1. Follows list (needed to initialize button states)
       const followsPromise = client
         .get<string[]>('/api/profiles/me/follows')
@@ -258,7 +261,7 @@ function Friends() {
 
     loadAll();
     return () => { cancelled = true; };
-  }, []);
+  }, [user, authChecked]);
 
   // Shared follow/unfollow handler
   const toggleFollow = useCallback(
