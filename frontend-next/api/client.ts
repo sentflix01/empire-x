@@ -140,7 +140,17 @@ client.interceptors.response.use(
                 storeToken(newToken); // updates memory + nb_auth hint cookie
                 return newToken;
               })
-              .catch(() => null)
+              .catch((refreshErr) => {
+                // Refresh token is stale/invalid (JWT_SECRET changed or expired).
+                // Clear the nb_auth hint cookie so middleware stops treating this
+                // browser as authenticated and stops the infinite 401 cascade.
+                clearToken();
+                // If the refresh 401'd, clear the hint cookie immediately
+                if (typeof document !== 'undefined') {
+                  document.cookie = 'nb_auth=; path=/; max-age=0';
+                }
+                return null;
+              })
               .finally(() => { _refreshing = null; });
           }
 

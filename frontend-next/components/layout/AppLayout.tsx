@@ -248,7 +248,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   // guests see content read-only with sign-up prompts on write actions.
   useEffect(() => {
     if (authChecked && !isAuthenticated && !isGuestBrowsablePath(pathname)) {
-      router.push("/login");
+      // Preserve return URL so user lands back after login
+      const returnUrl = pathname !== '/login' ? pathname : '/feed';
+      router.push(`/login?return=${encodeURIComponent(returnUrl)}`);
     }
   }, [authChecked, isAuthenticated, router, pathname]);
 

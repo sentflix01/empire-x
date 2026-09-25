@@ -58,6 +58,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const hasSession = await ensureFreshToken();
       if (!hasSession) {
         // No valid session (and silent refresh failed) — genuinely logged out.
+        // Clear nb_auth hint cookie so middleware redirects cleanly.
+        if (typeof document !== 'undefined') {
+          document.cookie = 'nb_auth=; path=/; max-age=0';
+        }
         setUser(null);
         setIsAuth(false);
         setAuthError(null);
