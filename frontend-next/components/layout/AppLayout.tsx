@@ -253,9 +253,15 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   // Redirect to /login when auth has resolved and user is not authenticated.
   // Guest-browsable paths (feed, marketplace, showrooms, etc.) are exempt —
   // guests see content read-only with sign-up prompts on write actions.
+  // /choose-mode is also exempt here — that page handles its own auth check
+  // and redirects to /login cleanly with a non-nested return URL.
   useEffect(() => {
-    if (authChecked && !isAuthenticated && !isGuestBrowsablePath(pathname)) {
-      // Preserve return URL so user lands back after login
+    if (
+      authChecked &&
+      !isAuthenticated &&
+      !isGuestBrowsablePath(pathname) &&
+      !pathname.startsWith('/choose-mode')
+    ) {
       const returnUrl = pathname !== '/login' ? pathname : '/feed';
       router.push(`/login?return=${encodeURIComponent(returnUrl)}`);
     }
@@ -263,8 +269,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   // First-login mode selection: redirect authenticated users who have not yet
   // chosen between demo and real mode to /choose-mode.
-  // Exempt: demo accounts (is_demo=true share the test account — no mode choice
-  // needed), the choose-mode page itself, and the onboarding page.
+  // Always use /feed as the return URL so the return param never nests.
   const CHOOSE_MODE_EXEMPT = ['/choose-mode', '/onboarding', '/login', '/register'];
   useEffect(() => {
     if (
@@ -275,7 +280,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       (user.onboarding_mode === null || user.onboarding_mode === undefined) &&
       !CHOOSE_MODE_EXEMPT.some(p => pathname.startsWith(p))
     ) {
-      router.push(`/choose-mode?return=${encodeURIComponent(pathname)}`);
+      router.push('/choose-mode?return=%2Ffeed');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authChecked, isAuthenticated, user?.id, user?.is_demo, user?.onboarding_mode, pathname]);
