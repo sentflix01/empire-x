@@ -226,7 +226,7 @@ app.use(cors({
   credentials: true,
 }));
 
-// ── Rate limiting (Redis-backed in production) ────────────────────────────────
+// ── In-memory rate limiting ───────────────────────────────────────────────────
 const isDev = process.env.NODE_ENV !== 'production';
 
 function buildRateLimitStore(_prefix: string): unknown {
@@ -416,7 +416,7 @@ server.listen(PORT, () => {
 
   // ── Production startup: cache warm + keep-alive ping ─────────────────────
   if (process.env.NODE_ENV === 'production') {
-    setTimeout(async () => {
+    if (process.env.ENABLE_STARTUP_CACHE_WARM === 'true') setTimeout(async () => {
       try {
         await cached('trending:global', 300, async () => {
           const [posts, products, showrooms, tasks, users] = await Promise.all([
@@ -431,6 +431,7 @@ server.listen(PORT, () => {
         logger.info('Startup cache warm complete');
       } catch { logger.warn('Startup cache warm failed'); }
     }, 3_000);
+    else logger.info('Startup Redis cache warm skipped — enable explicitly if needed');
 
     setInterval(async () => {
       try { await pool.query('SELECT 1'); logger.debug('Keep-alive ping OK'); }

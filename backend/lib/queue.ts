@@ -11,8 +11,13 @@
  *   await queueEmail('otp', { to: 'user@example.com', otp: '123456' });
  */
 import logger from './logger';
+import { isRedisBypassed } from './redis';
 
 const REDIS_URL = process.env.REDIS_URL;
+// Producers and workers are separate roles so web instances can enqueue without
+// each starting pollers. Both default off for a single-instance demo.
+const QUEUE_PRODUCERS_ENABLED = process.env.ENABLE_QUEUE_PRODUCERS === 'true';
+const QUEUE_WORKERS_ENABLED = process.env.ENABLE_QUEUE_WORKERS === 'true';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -93,7 +98,7 @@ const syncHandlers = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createQueue(name: string): any {
-  if (!REDIS_URL) return null;
+  if (!REDIS_URL || !QUEUE_PRODUCERS_ENABLED) return null;
   try {
     const { Queue } = require('bullmq') as typeof import('bullmq');
     return new Queue(name, {
@@ -101,8 +106,10 @@ function createQueue(name: string): any {
       defaultJobOptions: {
         attempts: 3,
         backoff: { type: 'exponential', delay: 2000 },
-        removeOnComplete: 100,
-        removeOnFail: 50,
+        // Keep fewer completed/failed records in Redis — each stored record is
+        // a Redis hash that also triggers housekeeping commands on add/complete.
+        removeOnComplete: 20,
+        removeOnFail: 10,
       },
     });
   } catch (err) {
@@ -113,14 +120,22 @@ function createQueue(name: string): any {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createWorker(name: string, processor: (job: any) => Promise<void>): any {
-  if (!REDIS_URL) return null;
+  if (!REDIS_URL || !QUEUE_WORKERS_ENABLED) return null;
   try {
     const { Worker } = require('bullmq') as typeof import('bullmq');
     const worker = new Worker(name, processor, {
       connection: { url: REDIS_URL },
       concurrency: 1,
-      stalledInterval: 60_000,
+      // How often workers check for stalled jobs. Default 30s generates a
+      // steady stream of Redis commands even when queues are empty.
+      // 5 minutes is safe: jobs only stall when a worker crashes mid-job,
+      // and a 5-minute detection window is fine for background tasks.
+      stalledInterval: 300_000,
       maxStalledCount: 1,
+      // How long an idle worker waits between polling for new jobs (ms).
+      // Default is 5s, meaning ~12 Redis polls/minute per worker just for
+      // "is there anything to do?". 30s cuts that to 2 polls/minute.
+      drainDelay: 30,
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     worker.on('completed', (job: any) => logger.debug({ jobId: job.id, queue: name }, 'Job completed'));
@@ -149,7 +164,7 @@ function getUsageRecalcQueue(): any { return usageRecalcQueue ??= createQueue('u
 // ── Email ─────────────────────────────────────────────────────────────────────
 
 export async function queueEmail(type: EmailJobType, data: Omit<EmailJobData, 'type'>): Promise<void> {
-  const q = getEmailQueue();
+  const q = isRedisBypassed() ? null : getEmailQueue();
   const payload: EmailJobData = { type, ...data };
   if (q) {
     try {
@@ -168,7 +183,7 @@ export async function queueEmail(type: EmailJobType, data: Omit<EmailJobData, 't
 // ── Notification ──────────────────────────────────────────────────────────────
 
 export async function queueNotification(data: NotificationJobData): Promise<void> {
-  const q = getNotifQueue();
+  const q = isRedisBypassed() ? null : getNotifQueue();
 
   const send = async (): Promise<void> => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -202,7 +217,7 @@ export async function queueNotification(data: NotificationJobData): Promise<void
 // ── AI ────────────────────────────────────────────────────────────────────────
 
 export async function queueAiJob(data: AiJobData): Promise<string | null> {
-  const q = getAiQueue();
+  const q = isRedisBypassed() ? null : getAiQueue();
   if (q) {
     try {
       await q.add('generate', data);
@@ -236,7 +251,7 @@ export async function queueWebhookDelivery(
   event: string,
   payload: Record<string, unknown>,
 ): Promise<void> {
-  const q = getWebhookDeliveryQueue();
+  const q = isRedisBypassed() ? null : getWebhookDeliveryQueue();
   const jobData: WebhookDeliveryJobData = {
     webhookId,
     businessId,
@@ -327,7 +342,7 @@ export async function queueUsageRecalc(
   businessId: string,
   triggerEvent: 'subscription_activated' | 'subscription_cancelled' | 'tier_changed',
 ): Promise<void> {
-  const q = getUsageRecalcQueue();
+  const q = isRedisBypassed() ? null : getUsageRecalcQueue();
   const jobData: UsageRecalcJobData = { businessId, triggerEvent };
   if (q) {
     try {
@@ -369,10 +384,16 @@ async function recalcUsage(businessId: string): Promise<void> {
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 export async function startWorkers(): Promise<void> {
+  if (!QUEUE_WORKERS_ENABLED) {
+    logger.info('Queue workers disabled — this process will not poll Redis');
+    return;
+  }
+
   if (!REDIS_URL) {
     logger.debug('Queue workers not started — no REDIS_URL');
     return;
   }
+
   try {
     // Verify Redis is reachable with a single PING — avoids creating a
     // bull:health-checkmeta key that wastes Redis commands on every startup.

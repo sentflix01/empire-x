@@ -8,6 +8,9 @@ export interface AuthUser {
   full_name?: string;
   email?: string;
   role?: string;
+  is_demo?: boolean;
+  /** Set after first-login mode selection. null = user has not yet chosen. */
+  onboarding_mode?: 'demo' | 'real' | null;
   [key: string]: unknown;
 }
 
@@ -26,6 +29,7 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue>({} as AuthContextValue);
+const AUTH_LOADING_UI_TIMEOUT_MS = 8_000;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser]                   = useState<AuthUser | null>(null);
@@ -93,7 +97,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  useEffect(() => { checkUserAuth(); }, [checkUserAuth]);
+  useEffect(() => {
+    // Public pages must remain usable while a slow refresh endpoint is waking
+    // up. Keep the auth check running in the background so an existing session
+    // can still be restored, but stop blocking the whole app shell after a
+    // short grace period.
+    const loadingTimer = window.setTimeout(
+      () => setIsLoadingAuth(false),
+      AUTH_LOADING_UI_TIMEOUT_MS,
+    );
+    void checkUserAuth().finally(() => window.clearTimeout(loadingTimer));
+    return () => window.clearTimeout(loadingTimer);
+  }, [checkUserAuth]);
 
   const logout = (redirectTo?: string) => {
     // Revoke refresh token server-side before clearing local state
@@ -138,4 +153,3 @@ export const useAuth = () => {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 };
-

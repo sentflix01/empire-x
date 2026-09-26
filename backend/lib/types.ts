@@ -355,6 +355,8 @@ export interface AuthUser {
   email: string;
   role: 'user' | 'admin' | 'moderator';
   is_banned: boolean;
+  /** True for the built-in demo accounts and generated seed personas. */
+  is_demo: boolean;
 }
 
 // ── Express namespace augmentation ───────────────────────────────────────────
@@ -370,6 +372,8 @@ declare global {
       requestId: string;
       /** Set by middleware/realMode.js when X-Real-Only: 1 header is present. */
       realOnly: boolean;
+      /** Set only after the demo cookie has been validated against the demo database. */
+      demoSession?: { id: string; userId: string; expiresAt: Date };
     }
   }
 }

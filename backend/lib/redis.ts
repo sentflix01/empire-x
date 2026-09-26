@@ -9,6 +9,7 @@
  * the app runs fully without Redis in development.
  */
 import type { Redis as RedisClient } from 'ioredis';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import logger from './logger';
 
 // ── No-op stub type ───────────────────────────────────────────────────────────
@@ -40,6 +41,25 @@ type NoOpRedis = {
 export type AnyRedis = (RedisClient & { isNoOp?: false }) | NoOpRedis;
 
 let redisInstance: AnyRedis | null = null;
+let redisRecoveryTimer: NodeJS.Timeout | null = null;
+const redisBypassContext = new AsyncLocalStorage<boolean>();
+
+/** Fall back while Upstash is over quota, then retry automatically. */
+function useNoOpUntilRetry(client?: RedisClient): void {
+  const noOp = createNoOpRedis();
+  redisInstance = noOp;
+  if (redisRecoveryTimer) clearTimeout(redisRecoveryTimer);
+  redisRecoveryTimer = setTimeout(() => {
+    if (redisInstance === noOp) {
+      // Recreate the connection after quota renewal without requiring a deploy.
+      redisInstance = null;
+      logger.info('Retrying Redis connection after quota cooldown');
+    }
+    redisRecoveryTimer = null;
+  }, 5 * 60 * 1000);
+  redisRecoveryTimer.unref();
+  try { client?.disconnect(); } catch { /* ignore */ }
+}
 
 function createNoOpRedis(): NoOpRedis {
   const noop = async (): Promise<null> => null;
@@ -55,7 +75,18 @@ function createNoOpRedis(): NoOpRedis {
   };
 }
 
+/** Run a request path without issuing Redis commands (demo/guest traffic). */
+export function withoutRedis<T>(callback: () => T): T {
+  return redisBypassContext.run(true, callback);
+}
+
+/** Used by BullMQ producers, which connect directly instead of calling getRedis(). */
+export function isRedisBypassed(): boolean {
+  return redisBypassContext.getStore() === true;
+}
+
 export function getRedis(): AnyRedis {
+  if (isRedisBypassed()) return createNoOpRedis();
   if (redisInstance) return redisInstance;
 
   const redisUrl = process.env.REDIS_URL;
@@ -88,12 +119,11 @@ export function getRedis(): AnyRedis {
     });
     client.on('error', (err: Error) => {
       const msg = err.message ?? '';
-      // Upstash free-tier request limit hit — fall back to no-op so the app
-      // keeps running without Redis rather than flooding logs with rejections.
+      // Upstash request limit hit — fall back to no-op, then retry periodically
+      // so Redis recovers after quota renewal without requiring a deploy.
       if (msg.includes('max requests limit exceeded')) {
-        logger.warn('Upstash Redis free-tier request limit reached — switching to no-op stub. Upgrade plan or reset quota to restore Redis functionality.');
-        redisInstance = createNoOpRedis();
-        try { (client as unknown as { disconnect: () => void }).disconnect(); } catch { /* ignore */ }
+        logger.warn('Upstash Redis request limit reached — using no-op fallback and retrying in 5 minutes');
+        useNoOpUntilRetry(client);
         return;
       }
       logger.error({ err: msg }, 'Redis error');
@@ -138,9 +168,9 @@ export async function cached<T>(key: string, ttl: number, fn: () => Promise<T>):
   } catch (err) {
     const msg = (err as Error).message ?? '';
     if (msg.includes('max requests limit exceeded')) {
-      // Quota hit — degrade to no-op for all future calls
-      redisInstance = createNoOpRedis();
-      logger.warn('Upstash Redis request limit reached inside cached() — switched to no-op');
+      // Quota hit — degrade temporarily, then retry without requiring a deploy.
+      useNoOpUntilRetry(client as RedisClient);
+      logger.warn('Upstash Redis request limit reached inside cached() — using no-op fallback temporarily');
     } else {
       logger.warn({ err: msg, key }, 'Cache error — falling back to DB');
     }

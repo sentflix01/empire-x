@@ -1,4 +1,14 @@
 {
+  "landing": {
+    "preferences": "የመነሻ ገጽ ምርጫዎች",
+    "theme": "ገጽታ",
+    "dark": "ጨለማ",
+    "light": "ብርሃን",
+    "changeLanguage": "ቋንቋ ቀይር",
+    "tryDemo": "ሙከራውን ይሞክሩ",
+    "openingDemo": "ሙከራው በመክፈት ላይ…",
+    "demoUnavailable": "የሙከራ መዳረሻ ለጊዜው አይገኝም። እባክዎ ቆይተው ይሞክሩ።"
+  },
   "nav": {
     "home": "መነሻ",
     "explore": "ያስሱ",
