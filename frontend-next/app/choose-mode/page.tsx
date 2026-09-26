@@ -9,13 +9,16 @@ function ChooseMode() {
   const [pending, setPending] = useState<'demo' | 'real' | null>(null);
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
+  // True for the shared test@/admin@ accounts — they can only use demo mode.
+  // "Real Account" for them means "register your own account".
+  const [isDemo, setIsDemo] = useState(false);
 
   useEffect(() => {
-    // Confirm the user is authenticated. If not, send to login.
-    // Do NOT redirect away if they already have an onboarding_mode —
-    // they are always shown this screen after every login/signup.
     auth.me()
-      .then(() => setReady(true))
+      .then((user) => {
+        setIsDemo(Boolean(user.is_demo));
+        setReady(true);
+      })
       .catch(() => window.location.replace('/login?return=%2Fchoose-mode'));
   }, []);
 
@@ -23,9 +26,22 @@ function ChooseMode() {
     setPending(mode);
     setError('');
     try {
-      await auth.setOnboardingMode(mode);
-      if (mode === 'demo') await auth.loginDemo();
-      window.location.assign('/feed');
+      if (mode === 'demo') {
+        // is_demo accounts are already the demo account — go straight to feed.
+        // Real accounts need loginDemo() to switch to the test account session.
+        if (!isDemo) await auth.loginDemo();
+        window.location.assign('/feed');
+      } else {
+        // mode === 'real'
+        if (isDemo) {
+          // Shared demo account cannot become a real account.
+          // Send to register so the user creates their own.
+          window.location.assign('/register');
+        } else {
+          await auth.setOnboardingMode('real');
+          window.location.assign('/feed');
+        }
+      }
     } catch (err) {
       const e = err as { response?: { data?: { error?: string } }; message?: string };
       setError(e.response?.data?.error || e.message || 'Could not set up this mode. Please try again.');
@@ -88,9 +104,9 @@ function ChooseMode() {
             <ShieldCheck className="h-8 w-8 text-emerald-300" />
             <h2 className="mt-4 text-xl font-semibold">Real Account</h2>
             <p className="mt-2 flex-1 text-sm leading-6 text-white/65">
-              Start with your own blank account. Everything you create is real —
-              your profile, your businesses, your products, and your transactions.
-              No seed data.
+              {isDemo
+                ? 'You\'re on the shared demo account. To use the real platform, create your own account — your profile, businesses, and transactions will be permanent.'
+                : 'Start with your own blank account. Everything you create is real — your profile, your businesses, your products, and your transactions. No seed data.'}
             </p>
             <Button
               variant="outline"
@@ -99,7 +115,7 @@ function ChooseMode() {
               onClick={() => choose('real')}
             >
               {pending === 'real' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Use Real Account
+              {isDemo ? 'Create My Account' : 'Use Real Account'}
             </Button>
           </article>
 

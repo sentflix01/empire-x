@@ -40,14 +40,9 @@ function Login() {
     if (!googleRef.current || googleReady) return;
     const ok = renderGoogleSignInButton(googleRef.current, {
       buttonText: 'signin_with',
-      onSuccess: async (result) => {
-        const r = result as { is_demo?: boolean };
-        // is_demo accounts go straight to feed; all real accounts go to /choose-mode.
-        if (r.is_demo) {
-          window.location.href = '/feed';
-        } else {
-          window.location.href = '/choose-mode';
-        }
+      onSuccess: async (_result) => {
+        // Every account always goes to /choose-mode.
+        window.location.href = '/choose-mode';
       },
       onError: (err) => setError(
         err.message === 'Sign-in was cancelled.'
@@ -72,16 +67,8 @@ function Login() {
       const loginResult = await auth.loginViaEmailPassword(email.trim().toLowerCase(), password);
       clearTimeout(slowTimer);
       setError('');
-
-      const lr = loginResult as { is_demo?: boolean };
-
-      // is_demo accounts (test@, admin@) are already the demo account — go straight to feed.
-      // Every other real account always goes to /choose-mode to pick Demo or Real Account.
-      if (lr.is_demo) {
-        window.location.href = '/feed';
-      } else {
-        window.location.href = '/choose-mode';
-      }
+      // Every account — including is_demo — always goes to /choose-mode.
+      window.location.href = '/choose-mode';
     } catch (err: unknown) {
       clearTimeout(slowTimer);
       const e = err as { code?: string; status?: number; response?: { status?: number }; error?: string; message?: string; isTimeout?: boolean };
