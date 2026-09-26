@@ -628,7 +628,7 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     const token = signToken(user.id, res);
-    res.json({ access_token: token, onboarding_mode: user.onboarding_mode ?? null });
+    res.json({ access_token: token, onboarding_mode: user.onboarding_mode ?? null, is_demo: user.is_demo ?? false });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Login error');
     apiError.serverError(res, 'Login failed');
