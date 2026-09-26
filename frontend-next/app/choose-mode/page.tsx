@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 
 function ChooseMode() {
   const params = useSearchParams();
-  // Sanitise the return URL — only accept simple paths, never a nested choose-mode
+  // Sanitise return URL — never encode choose-mode into itself
   const rawReturn = params.get('return') || '/feed';
   const returnTo =
     rawReturn.startsWith('/') &&
@@ -23,14 +23,14 @@ function ChooseMode() {
 
   useEffect(() => {
     auth.me().then((user) => {
-      // Already chose — go straight to feed
+      // Already chose — skip this screen
       if (user.is_demo === true || user.onboarding_mode === 'demo' || user.onboarding_mode === 'real') {
         window.location.replace('/feed');
         return;
       }
       setReady(true);
     }).catch(() => {
-      // Not logged in — send to login with a clean, non-nested return URL
+      // Not logged in — send to login with a clean return URL
       window.location.replace('/login?return=%2Fchoose-mode');
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -50,59 +50,76 @@ function ChooseMode() {
     }
   }
 
-  if (!ready && !error) {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-white/50" />
-      </main>
-    );
-  }
+  const spinner = (
+    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-white/50" />
+    </main>
+  );
+
+  if (!ready && !error) return spinner;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 px-5 py-12 text-white">
       <section className="mx-auto max-w-3xl">
-        <p className="text-sm font-semibold uppercase tracking-[.18em] text-blue-300">Welcome to Nodbusiness</p>
-        <h1 className="mt-3 text-3xl font-bold sm:text-4xl">How would you like to get started?</h1>
-        <p className="mt-3 max-w-2xl text-white/65">
-          Choose a private practice environment or continue with your real account. You can switch later.
+
+        <p className="text-sm font-semibold uppercase tracking-[.18em] text-blue-300">
+          Welcome to Nodbusiness
         </p>
+        <h1 className="mt-3 text-3xl font-bold sm:text-4xl">
+          How would you like to get started?
+        </h1>
+        <p className="mt-3 max-w-2xl text-white/65">
+          Explore with seed data in demo mode, or go straight to your real account.
+          You can switch any time from Settings.
+        </p>
+
         {error && (
-          <p role="alert" className="mt-5 rounded-xl bg-red-500/15 p-3 text-sm text-red-200">{error}</p>
+          <p role="alert" className="mt-5 rounded-xl bg-red-500/15 p-3 text-sm text-red-200">
+            {error}
+          </p>
         )}
+
         <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <article className="rounded-2xl border border-blue-300/30 bg-blue-400/10 p-6">
-            <FlaskConical className="h-8 w-8 text-blue-300" />
-            <h2 className="mt-4 text-xl font-semibold">Explore the demo sandbox</h2>
-            <p className="mt-2 min-h-16 text-sm leading-6 text-white/65">
-              Try building and publishing with temporary data in a demo account.
-              Demo changes do not alter your real account.
+
+          {/* ── Try Demo ───────────────────────────────────────────────── */}
+          <article className="flex flex-col rounded-2xl border border-amber-400/30 bg-amber-400/10 p-6">
+            <FlaskConical className="h-8 w-8 text-amber-300" />
+            <h2 className="mt-4 text-xl font-semibold">Try Demo</h2>
+            <p className="mt-2 flex-1 text-sm leading-6 text-white/65">
+              Browse and build with pre-loaded seed data. Full access to every
+              feature — feed, showroom builder, marketplace, AI, and more.
+              Nothing affects your real account.
             </p>
             <Button
-              className="mt-5 w-full"
+              className="mt-6 w-full bg-amber-500 text-white hover:bg-amber-400"
               disabled={!ready || pending !== null}
               onClick={() => choose('demo')}
             >
               {pending === 'demo' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Start demo
+              Try Demo
             </Button>
           </article>
-          <article className="rounded-2xl border border-white/15 bg-white/5 p-6">
+
+          {/* ── Real Account ───────────────────────────────────────────── */}
+          <article className="flex flex-col rounded-2xl border border-white/15 bg-white/5 p-6">
             <ShieldCheck className="h-8 w-8 text-emerald-300" />
-            <h2 className="mt-4 text-xl font-semibold">Use my real account</h2>
-            <p className="mt-2 min-h-16 text-sm leading-6 text-white/65">
-              Go to your regular account and keep your real profile, businesses,
-              and activity separate from practice data.
+            <h2 className="mt-4 text-xl font-semibold">Real Account</h2>
+            <p className="mt-2 flex-1 text-sm leading-6 text-white/65">
+              Start with your own blank account. Everything you create is real —
+              your profile, your businesses, your products, and your transactions.
+              No seed data.
             </p>
             <Button
               variant="outline"
-              className="mt-5 w-full border-white/20 bg-transparent text-white hover:bg-white/10"
+              className="mt-6 w-full border-white/20 bg-transparent text-white hover:bg-white/10"
               disabled={!ready || pending !== null}
               onClick={() => choose('real')}
             >
               {pending === 'real' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Continue to real account
+              Use Real Account
             </Button>
           </article>
+
         </div>
       </section>
     </main>
@@ -110,9 +127,13 @@ function ChooseMode() {
 }
 
 export default function ChooseModePage() {
-  return <Suspense fallback={
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-white/50" />
-    </main>
-  }><ChooseMode /></Suspense>;
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-white/50" />
+      </main>
+    }>
+      <ChooseMode />
+    </Suspense>
+  );
 }

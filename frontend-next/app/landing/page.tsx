@@ -18,7 +18,7 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
-import { DemoEntryButton, LandingPreferences } from '@/components/landing/LandingControls';
+import { LandingPreferences } from '@/components/landing/LandingControls';
 
 // Force dynamic rendering so Next.js serves this page from the server on
 // every request. This ensures the Content-Security-Policy header set in
@@ -146,9 +146,19 @@ export default function LandingPage() {
             One trusted platform where people connect, businesses sell, customers pay, teams chat, tasks move, and AI helps the whole ecosystem grow.
           </p>
           <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
-            <DemoEntryButton />
-            <Link href="/feed" className="inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/30 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 sm:w-auto">
-              Explore as guest
+            {/* Primary: create or sign in */}
+            <Link
+              href="/register"
+              className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700 shadow-lg hover:bg-blue-50 transition sm:w-auto"
+            >
+              Create Account
+            </Link>
+            {/* Secondary: read-only browse, no account needed */}
+            <Link
+              href="/feed"
+              className="inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/30 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 sm:w-auto"
+            >
+              Explore as Guest
             </Link>
           </div>
         </div>
@@ -274,14 +284,20 @@ export default function LandingPage() {
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-4xl font-black tracking-normal sm:text-5xl">One account. Endless possibilities.</h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-white/65">
-            Join Nodbusiness, test the superapp experience, and build a business presence that customers everywhere can discover, trust, message, and pay.
+            Join Nodbusiness and build a business presence that customers everywhere can discover, trust, message, and pay.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link href="/register" className="inline-flex h-12 items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700">
-              Create Your Account
+            <Link
+              href="/register"
+              className="inline-flex h-12 items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700 shadow-lg hover:bg-blue-50 transition-all"
+            >
+              Create Account
             </Link>
-            <Link href="/showroom/create" className="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 px-7 text-sm font-extrabold text-white shadow-lg shadow-amber-950/30 ring-1 ring-white/15 hover:from-amber-400 hover:to-amber-500">
-              View Showroom Templates
+            <Link
+              href="/login"
+              className="inline-flex h-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur-xl hover:bg-white/20 transition-all"
+            >
+              Sign In
             </Link>
           </div>
         </div>
