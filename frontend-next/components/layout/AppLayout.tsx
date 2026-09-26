@@ -269,6 +269,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   // First-login mode selection: redirect authenticated users who have not yet
   // chosen between demo and real mode to /choose-mode.
+  // Only fires when auth is fully resolved (authChecked=true) AND
+  // onboarding_mode is explicitly null — not undefined (still loading).
   // Always use /feed as the return URL so the return param never nests.
   const CHOOSE_MODE_EXEMPT = ['/choose-mode', '/onboarding', '/login', '/register'];
   useEffect(() => {
@@ -277,7 +279,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       isAuthenticated &&
       user &&
       !user.is_demo &&
-      (user.onboarding_mode === null || user.onboarding_mode === undefined) &&
+      user.onboarding_mode === null &&   // explicit null only — not undefined (loading)
       !CHOOSE_MODE_EXEMPT.some(p => pathname.startsWith(p))
     ) {
       router.push('/choose-mode?return=%2Ffeed');

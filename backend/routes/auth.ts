@@ -28,7 +28,7 @@ import pool from '../db/pool';
 import { runWithDatabaseEnvironment } from '../db/pool';
 import { clearDemoSessionCookie, setDemoSessionCookie, signDemoAccessToken, signDemoSessionCookie } from '../middleware/demoEnvironment';
 import { sendOtpEmail, sendPasswordResetEmail } from '../utils/mailer';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, invalidateUserCache } from '../middleware/auth';
 import { getRedis } from '../lib/redis';
 import * as apiError from '../lib/apiError';
 import logger from '../lib/logger';
@@ -498,6 +498,11 @@ router.post('/onboarding-mode', requireAuth, async (req: Request, res: Response)
   if (req.demoSession || req.user?.is_demo) { res.status(403).json({ error: 'Demo sessions cannot change account mode' }); return; }
   try {
     await pool.query('UPDATE users SET onboarding_mode = $1 WHERE id = $2', [mode, req.user!.id]);
+    // Bust the in-process and Redis user cache so the very next /api/auth/me
+    // call returns the updated onboarding_mode, not the 30-second stale value.
+    // Without this, AppLayout re-reads onboarding_mode = null and sends the
+    // user back to /choose-mode immediately after they just chose.
+    await invalidateUserCache(req.user!.id);
     res.json({ onboarding_mode: mode });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Could not save onboarding mode');
