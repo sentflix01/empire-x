@@ -28,6 +28,38 @@ export const auth = {
     return res.data as Record<string, unknown>;
   },
 
+  async loginDemo(): Promise<Record<string, unknown>> {
+    const res = await client.post('/api/auth/demo');
+    const { access_token } = res.data as { access_token: string };
+    storeToken(access_token);
+    return res.data as Record<string, unknown>;
+  },
+
+  async setOnboardingMode(mode: 'demo' | 'real'): Promise<Record<string, unknown>> {
+    const res = await client.post('/api/auth/onboarding-mode', { mode });
+    return res.data as Record<string, unknown>;
+  },
+
+  async exitDemo(): Promise<{ return_to_real: boolean }> {
+    const res = await client.post('/api/auth/demo/exit');
+    clearToken();
+    const result = res.data as { return_to_real: boolean };
+    if (result.return_to_real) {
+      const refreshed = await client.post('/api/auth/refresh');
+      const { access_token } = refreshed.data as { access_token: string };
+      storeToken(access_token);
+      await client.post('/api/auth/onboarding-mode', { mode: 'real' });
+    }
+    return result;
+  },
+
+  async resetDemo(): Promise<Record<string, unknown>> {
+    const res = await client.post('/api/auth/demo/reset');
+    const { access_token } = res.data as { access_token: string };
+    storeToken(access_token);
+    return res.data as Record<string, unknown>;
+  },
+
   loginWithProvider(provider: string, redirectPath?: string): void {
     if (provider === 'google') {
       const g = (window as Window & { __googleSignIn?: () => Promise<void> }).__googleSignIn;

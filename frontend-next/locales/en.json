@@ -1,4 +1,14 @@
 {
+  "landing": {
+    "preferences": "Landing page preferences",
+    "theme": "Theme",
+    "dark": "Dark",
+    "light": "Light",
+    "changeLanguage": "Change language",
+    "tryDemo": "Try the demo",
+    "openingDemo": "Opening demo…",
+    "demoUnavailable": "Demo access is temporarily unavailable. Please try again later."
+  },
   "nav": {
     "home": "Home",
     "explore": "Explore",
