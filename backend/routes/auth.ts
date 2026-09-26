@@ -584,10 +584,12 @@ router.post('/login', async (req: Request, res: Response) => {
       return;
     }
 
-    // `is_demo` accounts in the real database are legacy seed identities. New
-    // demo access must be created through /demo, which provisions a temporary
-    // user in the isolated demo database and issues a separate session cookie.
-    if (user.is_demo || user.is_seed) {
+    // `is_demo` accounts are the built-in demo/seed personas.
+    // Track 2 (separate demo DB): block direct login and force users through
+    // POST /api/auth/demo which provisions a session in the isolated database.
+    // Track 1 (bridge, no separate DB): allow normal login so the test account
+    // works directly. Track 1 is active when DEMO_ENABLED !== 'true'.
+    if ((user.is_demo || user.is_seed) && process.env.DEMO_ENABLED === 'true') {
       res.status(403).json({ error: 'Use Explore Demo to start an isolated demo session.', code: 'DEMO_SESSION_REQUIRED' });
       return;
     }
@@ -749,7 +751,9 @@ router.post('/google', async (req: Request, res: Response) => {
       res.status(403).json({ error: 'Account suspended. Contact support.' });
       return;
     }
-    if (banCheck[0]?.is_demo || banCheck[0]?.is_seed) {
+    // Track 2 only: block demo accounts from Google auth path, force through /demo endpoint.
+    // Track 1 (DEMO_ENABLED !== 'true'): allow normal Google sign-in for is_demo accounts.
+    if ((banCheck[0]?.is_demo || banCheck[0]?.is_seed) && process.env.DEMO_ENABLED === 'true') {
       res.status(403).json({ error: 'Use Explore Demo to start an isolated demo session.', code: 'DEMO_SESSION_REQUIRED' });
       return;
     }
