@@ -1,39 +1,22 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { FlaskConical, ShieldCheck, Loader2 } from 'lucide-react';
 import { auth } from '@/api/auth';
 import { Button } from '@/components/ui/button';
 
 function ChooseMode() {
-  const params = useSearchParams();
-  // Sanitise return URL — never encode choose-mode into itself
-  const rawReturn = params.get('return') || '/feed';
-  const returnTo =
-    rawReturn.startsWith('/') &&
-    !rawReturn.startsWith('//') &&
-    !rawReturn.startsWith('/choose-mode')
-      ? rawReturn
-      : '/feed';
-
   const [pending, setPending] = useState<'demo' | 'real' | null>(null);
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    auth.me().then((user) => {
-      // Already chose — skip this screen
-      if (user.is_demo === true || user.onboarding_mode === 'demo' || user.onboarding_mode === 'real') {
-        window.location.replace('/feed');
-        return;
-      }
-      setReady(true);
-    }).catch(() => {
-      // Not logged in — send to login with a clean return URL
-      window.location.replace('/login?return=%2Fchoose-mode');
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Confirm the user is authenticated. If not, send to login.
+    // Do NOT redirect away if they already have an onboarding_mode —
+    // they are always shown this screen after every login/signup.
+    auth.me()
+      .then(() => setReady(true))
+      .catch(() => window.location.replace('/login?return=%2Fchoose-mode'));
   }, []);
 
   async function choose(mode: 'demo' | 'real') {
@@ -42,7 +25,7 @@ function ChooseMode() {
     try {
       await auth.setOnboardingMode(mode);
       if (mode === 'demo') await auth.loginDemo();
-      window.location.assign(mode === 'demo' ? '/feed' : returnTo);
+      window.location.assign('/feed');
     } catch (err) {
       const e = err as { response?: { data?: { error?: string } }; message?: string };
       setError(e.response?.data?.error || e.message || 'Could not set up this mode. Please try again.');
@@ -66,11 +49,11 @@ function ChooseMode() {
           Welcome to Nodbusiness
         </p>
         <h1 className="mt-3 text-3xl font-bold sm:text-4xl">
-          How would you like to get started?
+          How would you like to continue?
         </h1>
         <p className="mt-3 max-w-2xl text-white/65">
-          Explore with seed data in demo mode, or go straight to your real account.
-          You can switch any time from Settings.
+          Choose every time you sign in. Demo uses pre-loaded seed data with full
+          access. Real Account is your own blank slate — everything you do is permanent.
         </p>
 
         {error && (
@@ -81,7 +64,7 @@ function ChooseMode() {
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
 
-          {/* ── Try Demo ───────────────────────────────────────────────── */}
+          {/* ── Try Demo ─────────────────────────────────────────────── */}
           <article className="flex flex-col rounded-2xl border border-amber-400/30 bg-amber-400/10 p-6">
             <FlaskConical className="h-8 w-8 text-amber-300" />
             <h2 className="mt-4 text-xl font-semibold">Try Demo</h2>
@@ -100,7 +83,7 @@ function ChooseMode() {
             </Button>
           </article>
 
-          {/* ── Real Account ───────────────────────────────────────────── */}
+          {/* ── Real Account ─────────────────────────────────────────── */}
           <article className="flex flex-col rounded-2xl border border-white/15 bg-white/5 p-6">
             <ShieldCheck className="h-8 w-8 text-emerald-300" />
             <h2 className="mt-4 text-xl font-semibold">Real Account</h2>

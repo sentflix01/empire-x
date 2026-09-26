@@ -41,17 +41,12 @@ function Login() {
     const ok = renderGoogleSignInButton(googleRef.current, {
       buttonText: 'signin_with',
       onSuccess: async (result) => {
-        const r = result as { onboarding_mode?: 'demo' | 'real' | null; is_demo?: boolean };
-        const safeDest = dest.startsWith('/choose-mode') ? '/feed' : dest;
+        const r = result as { is_demo?: boolean };
+        // is_demo accounts go straight to feed; all real accounts go to /choose-mode.
         if (r.is_demo) {
           window.location.href = '/feed';
-        } else if (!r.onboarding_mode) {
-          window.location.href = `/choose-mode?return=${encodeURIComponent(safeDest)}`;
-        } else if (r.onboarding_mode === 'demo') {
-          await auth.loginDemo();
-          window.location.href = '/feed';
         } else {
-          window.location.href = safeDest;
+          window.location.href = '/choose-mode';
         }
       },
       onError: (err) => setError(
@@ -78,24 +73,14 @@ function Login() {
       clearTimeout(slowTimer);
       setError('');
 
-      // Cast to known login response shape
-      const lr = loginResult as { onboarding_mode?: 'demo' | 'real' | null; is_demo?: boolean };
+      const lr = loginResult as { is_demo?: boolean };
 
-      // is_demo accounts (built-in test/admin) skip choose-mode — go straight to feed.
-      // dest must never be /choose-mode itself — that would create a redirect loop.
-      const safeDest = dest.startsWith('/choose-mode') ? '/feed' : dest;
-
+      // is_demo accounts (test@, admin@) are already the demo account — go straight to feed.
+      // Every other real account always goes to /choose-mode to pick Demo or Real Account.
       if (lr.is_demo) {
-        // Demo account — no mode selection needed, seed data already visible.
-        window.location.href = '/feed';
-      } else if (!lr.onboarding_mode) {
-        // Real user who hasn't chosen yet — send to choose-mode with a safe return.
-        window.location.href = `/choose-mode?return=${encodeURIComponent(safeDest)}`;
-      } else if (lr.onboarding_mode === 'demo') {
-        await auth.loginDemo();
         window.location.href = '/feed';
       } else {
-        window.location.href = safeDest;
+        window.location.href = '/choose-mode';
       }
     } catch (err: unknown) {
       clearTimeout(slowTimer);

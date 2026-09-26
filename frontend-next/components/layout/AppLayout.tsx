@@ -253,8 +253,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   // Redirect to /login when auth has resolved and user is not authenticated.
   // Guest-browsable paths (feed, marketplace, showrooms, etc.) are exempt —
   // guests see content read-only with sign-up prompts on write actions.
-  // /choose-mode is also exempt here — that page handles its own auth check
-  // and redirects to /login cleanly with a non-nested return URL.
+  // /choose-mode is also exempt — that page handles its own auth check.
   useEffect(() => {
     if (
       authChecked &&
@@ -266,26 +265,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       router.push(`/login?return=${encodeURIComponent(returnUrl)}`);
     }
   }, [authChecked, isAuthenticated, router, pathname]);
-
-  // First-login mode selection: redirect authenticated users who have not yet
-  // chosen between demo and real mode to /choose-mode.
-  // Only fires when auth is fully resolved (authChecked=true) AND
-  // onboarding_mode is explicitly null — not undefined (still loading).
-  // Always use /feed as the return URL so the return param never nests.
-  const CHOOSE_MODE_EXEMPT = ['/choose-mode', '/onboarding', '/login', '/register'];
-  useEffect(() => {
-    if (
-      authChecked &&
-      isAuthenticated &&
-      user &&
-      !user.is_demo &&
-      user.onboarding_mode === null &&   // explicit null only — not undefined (loading)
-      !CHOOSE_MODE_EXEMPT.some(p => pathname.startsWith(p))
-    ) {
-      router.push('/choose-mode?return=%2Ffeed');
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authChecked, isAuthenticated, user?.id, user?.is_demo, user?.onboarding_mode, pathname]);
 
   // Once user is available: check profile, set up socket, load unread count, hydrate bookmarks
   const hydrateBookmarks = useAppStore(s => s.hydrate);
