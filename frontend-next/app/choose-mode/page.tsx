@@ -4,38 +4,34 @@ import { Suspense, useEffect, useState } from 'react';
 import { FlaskConical, ShieldCheck, Loader2 } from 'lucide-react';
 import { auth } from '@/api/auth';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/AuthContext';
 
 function ChooseMode() {
+  const { user, isAuthenticated, authChecked } = useAuth();
   const [pending, setPending] = useState<'demo' | 'real' | null>(null);
   const [error, setError] = useState('');
-  const [ready, setReady] = useState(false);
-  // True for the shared test@/admin@ accounts — they can only use demo mode.
-  // "Real Account" for them means "register your own account".
-  const [isDemo, setIsDemo] = useState(false);
 
+  // AuthContext handles token refresh automatically (ensureFreshToken + /api/auth/me).
+  // Wait for it to resolve — no separate auth.me() call needed.
   useEffect(() => {
-    auth.me()
-      .then((user) => {
-        setIsDemo(Boolean(user.is_demo));
-        setReady(true);
-      })
-      .catch(() => window.location.replace('/login?return=%2Fchoose-mode'));
-  }, []);
+    if (!authChecked) return;
+    if (!isAuthenticated) {
+      window.location.replace('/login?return=%2Fchoose-mode');
+    }
+  }, [authChecked, isAuthenticated]);
+
+  const ready = authChecked && isAuthenticated;
+  const isDemo = Boolean(user?.is_demo);
 
   async function choose(mode: 'demo' | 'real') {
     setPending(mode);
     setError('');
     try {
       if (mode === 'demo') {
-        // is_demo accounts are already the demo account — go straight to feed.
-        // Real accounts need loginDemo() to switch to the test account session.
         if (!isDemo) await auth.loginDemo();
         window.location.assign('/feed');
       } else {
-        // mode === 'real'
         if (isDemo) {
-          // Shared demo account cannot become a real account.
-          // Send to register so the user creates their own.
           window.location.assign('/register');
         } else {
           await auth.setOnboardingMode('real');
@@ -55,7 +51,8 @@ function ChooseMode() {
     </main>
   );
 
-  if (!ready && !error) return spinner;
+  if (!authChecked) return spinner;
+  if (!isAuthenticated) return spinner;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 px-5 py-12 text-white">
@@ -105,7 +102,7 @@ function ChooseMode() {
             <h2 className="mt-4 text-xl font-semibold">Real Account</h2>
             <p className="mt-2 flex-1 text-sm leading-6 text-white/65">
               {isDemo
-                ? 'You\'re on the shared demo account. To use the real platform, create your own account — your profile, businesses, and transactions will be permanent.'
+                ? "You're on the shared demo account. To use the real platform, create your own account — your profile, businesses, and transactions will be permanent."
                 : 'Start with your own blank account. Everything you create is real — your profile, your businesses, your products, and your transactions. No seed data.'}
             </p>
             <Button
