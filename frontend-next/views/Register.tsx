@@ -38,7 +38,8 @@ function Register() {
       buttonText: 'signup_with',
       onSuccess: (result) => {
         if (result?.access_token) storeToken(result.access_token);
-        window.location.href = '/onboarding';
+        // Always go to /choose-mode — every session requires an explicit choice.
+        window.location.href = '/choose-mode';
       },
       onError: (err) => setError(
         err.message === 'Sign-in was cancelled.'
@@ -86,7 +87,8 @@ function Register() {
       if (refCode) {
         await client.post('/api/referral/apply', { code: refCode }).catch(() => {});
       }
-      window.location.href = "/onboarding";
+      // Always go to /choose-mode — every session requires an explicit choice.
+      window.location.href = '/choose-mode';
     } catch (err: unknown) {
       const e = err as { error?: string; message?: string };
       setError(e?.error || e?.message || 'Invalid code. Please try again.');

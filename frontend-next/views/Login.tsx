@@ -14,7 +14,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 function Login() {
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("return");
-  const dest = (returnTo && returnTo.startsWith('/')) ? returnTo : '/feed';
+  const dest = (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) ? returnTo : '/feed';
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,7 +40,10 @@ function Login() {
     if (!googleRef.current || googleReady) return;
     const ok = renderGoogleSignInButton(googleRef.current, {
       buttonText: 'signin_with',
-      onSuccess: () => { window.location.href = dest; },
+      onSuccess: async (_result) => {
+        // Every account always goes to /choose-mode.
+        window.location.href = '/choose-mode';
+      },
       onError: (err) => setError(
         err.message === 'Sign-in was cancelled.'
           ? ''
@@ -61,10 +64,11 @@ function Login() {
       setError('Server is waking up… this takes up to 30 seconds on first load. Please wait.');
     }, 5000);
     try {
-      await auth.loginViaEmailPassword(email.trim().toLowerCase(), password);
+      const loginResult = await auth.loginViaEmailPassword(email.trim().toLowerCase(), password);
       clearTimeout(slowTimer);
       setError('');
-      window.location.href = dest;
+      // Every account — including is_demo — always goes to /choose-mode.
+      window.location.href = '/choose-mode';
     } catch (err: unknown) {
       clearTimeout(slowTimer);
       const e = err as { code?: string; status?: number; response?: { status?: number }; error?: string; message?: string; isTimeout?: boolean };

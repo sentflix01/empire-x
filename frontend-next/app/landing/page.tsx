@@ -18,6 +18,7 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
+import { LandingPreferences } from '@/components/landing/LandingControls';
 
 // Force dynamic rendering so Next.js serves this page from the server on
 // every request. This ensures the Content-Security-Policy header set in
@@ -65,11 +66,12 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
       {/* ── Top navigation bar ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/8">
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/8 sm:px-6">
         <div className="flex items-center gap-2">
-          <Image src="/brand/nodbusiness-logo-white.svg" alt="Nodbusiness" width={180} height={27} className="h-7 w-auto" priority />
+          <Image src="/brand/nodbusiness-logo-white.svg" alt="Nodbusiness" width={180} height={27} className="h-6 w-auto sm:h-7" priority />
         </div>
         <div className="flex items-center gap-2">
+          <LandingPreferences />
           <Link href="/register" className="hidden sm:inline-flex h-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-xl hover:bg-white/20 transition-all">
             Create Account
           </Link>
@@ -143,6 +145,22 @@ export default function LandingPage() {
           <p className="mt-6 max-w-[21rem] text-sm font-medium leading-7 text-white/76 sm:max-w-2xl sm:text-xl">
             One trusted platform where people connect, businesses sell, customers pay, teams chat, tasks move, and AI helps the whole ecosystem grow.
           </p>
+          <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
+            {/* Primary: create or sign in */}
+            <Link
+              href="/register"
+              className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700 shadow-lg hover:bg-blue-50 transition sm:w-auto"
+            >
+              Create Account
+            </Link>
+            {/* Secondary: read-only browse, no account needed */}
+            <Link
+              href="/feed"
+              className="inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/30 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 sm:w-auto"
+            >
+              Explore as Guest
+            </Link>
+          </div>
         </div>
 
         <div className="relative z-10 mx-auto hidden w-[min(82vw,860px)] grid-cols-3 gap-3 px-6 pb-16 opacity-95 md:grid">
@@ -266,14 +284,20 @@ export default function LandingPage() {
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-4xl font-black tracking-normal sm:text-5xl">One account. Endless possibilities.</h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-white/65">
-            Join Nodbusiness, test the superapp experience, and build a business presence that customers everywhere can discover, trust, message, and pay.
+            Join Nodbusiness and build a business presence that customers everywhere can discover, trust, message, and pay.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link href="/register" className="inline-flex h-12 items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700">
-              Create Your Account
+            <Link
+              href="/register"
+              className="inline-flex h-12 items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700 shadow-lg hover:bg-blue-50 transition-all"
+            >
+              Create Account
             </Link>
-            <Link href="/showroom/create" className="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 px-7 text-sm font-extrabold text-white shadow-lg shadow-amber-950/30 ring-1 ring-white/15 hover:from-amber-400 hover:to-amber-500">
-              View Showroom Templates
+            <Link
+              href="/login"
+              className="inline-flex h-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur-xl hover:bg-white/20 transition-all"
+            >
+              Sign In
             </Link>
           </div>
         </div>

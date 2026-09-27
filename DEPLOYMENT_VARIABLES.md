@@ -91,6 +91,14 @@ Set these in: **Render → your backend service → Environment → Environment 
 | Variable | Value | Where to Get It |
 |---|---|---|
 | `REDIS_URL` | `rediss://default:[TOKEN]@[HOST]:[PORT]` | Upstash → Redis database → Connect → ioredis URL |
+| `ENABLE_QUEUE_PRODUCERS` | `false` on the demo web service; `true` if the web service should enqueue jobs to a worker | Defaults off; with false, jobs run synchronously and do not enter Redis |
+| `ENABLE_QUEUE_WORKERS` | `false` on web service; `true` only on a dedicated worker service | Defaults off; prevents idle BullMQ workers on the demo web service |
+| `ENABLE_SOCKET_REDIS_ADAPTER` | `false` for a single backend instance; `true` only for multiple instances | Defaults off; single-instance Socket.IO works without it |
+| `ENABLE_STARTUP_CACHE_WARM` | `false` for demo; `true` only when you intentionally want a warm trending cache at each deploy | When enabled, uses 1 `GET` plus 1 `SETEX` on a cache miss per backend restart |
+
+These switches are independent of `NODE_ENV`. For the single-instance demo, leave all four false. To scale later, run a dedicated worker with `ENABLE_QUEUE_WORKERS=true`; set `ENABLE_QUEUE_PRODUCERS=true` on the web service only when that worker is running. Enable the Socket.IO adapter only when requests can reach multiple backend instances. Google sign-in uses Google OAuth plus Postgres and does not require these switches.
+
+Migration 39 adds `users.is_demo` and marks the built-in demo accounts plus existing `is_seed` Faker users. Run the normal backend migrations before deploying this code; do not mark newly registered Google users as demo.
 
 ### AI Models (Optional — enables AI features)
 
