@@ -11,8 +11,6 @@ function ChooseMode() {
   const [pending, setPending] = useState<'demo' | 'real' | null>(null);
   const [error, setError] = useState('');
 
-  // AuthContext handles token refresh automatically (ensureFreshToken + /api/auth/me).
-  // Wait for it to resolve — no separate auth.me() call needed.
   useEffect(() => {
     if (!authChecked) return;
     if (!isAuthenticated) {
@@ -28,19 +26,39 @@ function ChooseMode() {
     setError('');
     try {
       if (mode === 'demo') {
+        // is_demo accounts are already the demo identity — go straight to feed.
+        // Real accounts need loginDemo() to log in as the test account.
         if (!isDemo) await auth.loginDemo();
         window.location.assign('/feed');
-      } else {
-        if (isDemo) {
-          window.location.assign('/register');
-        } else {
-          await auth.setOnboardingMode('real');
-          window.location.assign('/feed');
-        }
+        return;
       }
+
+      // Real Account:
+      if (isDemo) {
+        // Shared demo account can't become a real account — send to register.
+        window.location.assign('/register');
+        return;
+      }
+
+      // Save preference in background — but do NOT block navigation on it.
+      // If the backend endpoint doesn't exist yet (old deploy), we still go
+      // to /feed. The preference will be saved on next load via /api/auth/me.
+      auth.setOnboardingMode('real').catch(() => undefined);
+      window.location.assign('/feed');
+
     } catch (err) {
-      const e = err as { response?: { data?: { error?: string } }; message?: string };
-      setError(e.response?.data?.error || e.message || 'Could not set up this mode. Please try again.');
+      // Show the real error — HTTP status + message — not just the fallback.
+      const e = err as {
+        response?: { status?: number; data?: { error?: string; code?: string } };
+        message?: string;
+        status?: number;
+      };
+      const status = e.response?.status ?? e.status;
+      const msg = e.response?.data?.error ?? e.response?.data?.code ?? e.message;
+      const display = msg
+        ? `${msg}${status ? ` (${status})` : ''}`
+        : `Could not set up this mode${status ? ` (HTTP ${status})` : ''}. Please try again.`;
+      setError(display);
       setPending(null);
     }
   }
@@ -70,7 +88,7 @@ function ChooseMode() {
         </p>
 
         {error && (
-          <p role="alert" className="mt-5 rounded-xl bg-red-500/15 p-3 text-sm text-red-200">
+          <p role="alert" className="mt-5 rounded-xl bg-red-500/15 p-3 text-sm font-mono text-red-200 break-all">
             {error}
           </p>
         )}
