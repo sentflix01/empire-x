@@ -16,6 +16,7 @@ const PUBLIC_PATHS = new Set([
   '/forgot-password',
   '/reset-password',
   '/choose-account',
+  '/choose-mode',   // always accessible — handles own auth check via AuthContext
   '/service-agreement',
   '/not-found',
   '/sitemap',

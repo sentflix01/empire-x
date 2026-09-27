@@ -24,30 +24,54 @@ function ChooseMode() {
   async function choose(mode: 'demo' | 'real') {
     setPending(mode);
     setError('');
+
+    // The STORAGE_KEY used by RealModeContext — we write it directly here
+    // so the correct filter is active the moment /feed loads.
+    const REAL_MODE_KEY = 'nodbusiness_real_mode';
+
     try {
       if (mode === 'demo') {
-        // is_demo accounts are already the demo identity — go straight to feed.
-        // Real accounts need loginDemo() to log in as the test account.
-        if (!isDemo) await auth.loginDemo();
+        // Demo mode: show seed data — disable the real-only filter.
+        localStorage.setItem(REAL_MODE_KEY, 'false');
+
+        if (isDemo) {
+          // Already logged in as the shared demo account — go straight to feed.
+          window.location.assign('/feed');
+          return;
+        }
+
+        // Real account choosing demo: log in as the test account.
+        // Fall back to just going to feed with seed data visible if the
+        // /api/auth/demo endpoint isn't available yet on this deployment.
+        try {
+          await auth.loginDemo();
+        } catch (demoErr) {
+          const e = demoErr as { response?: { status?: number } };
+          if (e.response?.status === 404) {
+            // Backend not yet deployed with the demo route — seed data is
+            // still visible since realMode=false, just without switching accounts.
+            window.location.assign('/feed');
+            return;
+          }
+          throw demoErr; // re-throw other errors
+        }
         window.location.assign('/feed');
         return;
       }
 
-      // Real Account:
+      // Real Account mode: filter out ALL seed/demo data via X-Real-Only: 1.
+      // This is what makes the feed blank until real users post content.
       if (isDemo) {
-        // Shared demo account can't become a real account — send to register.
+        // Shared demo account can't switch to real — send to register.
         window.location.assign('/register');
         return;
       }
 
-      // Save preference in background — but do NOT block navigation on it.
-      // If the backend endpoint doesn't exist yet (old deploy), we still go
-      // to /feed. The preference will be saved on next load via /api/auth/me.
+      localStorage.setItem(REAL_MODE_KEY, 'true');
       auth.setOnboardingMode('real').catch(() => undefined);
       window.location.assign('/feed');
 
     } catch (err) {
-      // Show the real error — HTTP status + message — not just the fallback.
       const e = err as {
         response?: { status?: number; data?: { error?: string; code?: string } };
         message?: string;

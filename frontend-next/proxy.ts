@@ -34,9 +34,10 @@ export default function proxy(request: NextRequest) {
   // via the HttpOnly refresh cookie against the API.
   const isLoggedIn = request.cookies.get('nb_auth')?.value === '1';
 
-  // Authenticated users on auth pages → feed
+  // Authenticated users on auth pages → choose-mode (not /feed directly —
+  // user must explicitly pick Demo or Real Account on every session)
   if (isLoggedIn && AUTH_PAGES.has(pathname)) {
-    return NextResponse.redirect(new URL('/feed', request.url));
+    return NextResponse.redirect(new URL('/choose-mode', request.url));
   }
 
   // Unauthenticated users on protected routes → login with return URL
