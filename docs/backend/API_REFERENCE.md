@@ -103,22 +103,22 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:181 |
-| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:275 |
-| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:366 |
-| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:431 |
-| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:501 |
-| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:521 |
-| `POST` | `/api/auth/onboarding-mode` | 🔒 auth | routes/auth.ts:538 |
-| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:559 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:688 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:822 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:863 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:898 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:961 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1013 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1098 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1138 |
+| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:187 |
+| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:281 |
+| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:372 |
+| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:437 |
+| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:507 |
+| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:527 |
+| `POST` | `/api/auth/onboarding-mode` | 🔒 auth | routes/auth.ts:544 |
+| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:565 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:694 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:828 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:869 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:904 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:967 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1019 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1104 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1144 |
 
 ## businessApiKeys — Business API key management
 
