@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-02 | Bugfix | fix: sendCustomEmail missing from module.exports — digest: failed for showroom | [1373f42e9](2026-10-02-1373f42e9-sendcustomemail-missing-from-module-exports-dige.md) |
 | 2026-10-02 | Bugfix | fix: add NODE_ENV=production guard to BullMQ workers and queue producers | [ce63e985e](2026-10-02-ce63e985e-add-node-env-production-guard-to-bullmq-workers-.md) |
 | 2026-10-02 | Maintenance | merge: full audit, Coolify removal, CI fixes, package updates | [8cfd37023](2026-10-02-8cfd37023-full-audit-coolify-removal-ci-fixes-package-upda.md) |
 | 2026-10-02 | Maintenance | chore: full audit, remove Coolify, fix CI, update packages and docs | [f4cdbfd95](2026-10-02-f4cdbfd95-full-audit-remove-coolify-fix-ci-update-packages.md) |
