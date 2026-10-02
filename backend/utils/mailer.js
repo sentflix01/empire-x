@@ -170,4 +170,18 @@ async function sendOrderConfirmation(to, order) {
   });
 }
 
-module.exports = { sendOtpEmail, sendPasswordResetEmail, sendOrderConfirmation };
+async function sendCustomEmail(to, subject, html) {
+  if (process.env.RESEND_API_KEY) {
+    return sendViaResend(to, subject, html);
+  }
+  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    return sendViaSMTP(to, subject, html);
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(`\n📧 DEV sendCustomEmail to: ${to} | Subject: ${subject}\n`);
+    return;
+  }
+  throw new Error('Email provider not configured. Set RESEND_API_KEY or SMTP_HOST/USER/PASS');
+}
+
+module.exports = { sendOtpEmail, sendPasswordResetEmail, sendOrderConfirmation, sendCustomEmail };

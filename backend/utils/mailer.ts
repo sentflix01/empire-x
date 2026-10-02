@@ -155,8 +155,6 @@ export async function sendOrderConfirmation(to: string, order: OrderLike): Promi
   });
 }
 
-module.exports = { sendOtpEmail, sendPasswordResetEmail, sendOrderConfirmation };
-
 /**
  * sendCustomEmail - generic transactional send (Resend first, SMTP fallback).
  * Used by operational features (e.g. weekly Showroom Doctor digests).
@@ -169,3 +167,5 @@ export async function sendCustomEmail(to: string, subject: string, html: string)
     await sendViaSMTP(to, subject, html);
   }
 }
+
+module.exports = { sendOtpEmail, sendPasswordResetEmail, sendOrderConfirmation, sendCustomEmail };
