@@ -86,6 +86,39 @@ export async function ensureFreshToken(): Promise<boolean> {
   return _ensureRefreshing;
 }
 
+/**
+ * Fetch helper for components that use native fetch instead of the Axios
+ * client. Keep auth and the Real-only content boundary identical across both
+ * request paths.
+ */
+export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  if (!_accessToken) await ensureFreshToken();
+
+  const headers = new Headers(
+    typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined,
+  );
+  new Headers(init.headers).forEach((value, name) => headers.set(name, value));
+
+  if (_accessToken && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${_accessToken}`);
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      if (localStorage.getItem('nodbusiness_real_mode') === 'true') {
+        headers.set('X-Real-Only', '1');
+      } else {
+        headers.delete('X-Real-Only');
+      }
+    } catch { /* storage may be disabled; preserve the caller's request state */ }
+  }
+
+  return fetch(input, {
+    ...init,
+    headers,
+    credentials: init.credentials ?? 'include',
+  });
+}
+
 // ── Axios instance ────────────────────────────────────────────────────────────
 const client = axios.create({
   baseURL: API_BASE_URL,
@@ -140,7 +173,7 @@ client.interceptors.response.use(
                 storeToken(newToken); // updates memory + nb_auth hint cookie
                 return newToken;
               })
-              .catch((refreshErr) => {
+              .catch(() => {
                 // Refresh token is stale/invalid (JWT_SECRET changed or expired).
                 // Clear the nb_auth hint cookie so middleware stops treating this
                 // browser as authenticated and stops the infinite 401 cascade.

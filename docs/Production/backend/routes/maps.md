@@ -11,11 +11,12 @@ Map data: nearby products/businesses/tasks within radius via Haversine SQL (no P
 ## 3. What does it do?
 
 
-### Endpoints (1)
+### Endpoints (2)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/maps/nearby` | optional | 25 |
+| `GET` | `/api/maps/nearby/product-search` | optional | 25 |
+| `GET` | `/api/maps/nearby` | optional | 102 |
 
 ## 4. What does it touch?
 

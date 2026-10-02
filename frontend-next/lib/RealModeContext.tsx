@@ -10,7 +10,7 @@
  * When realMode = false (default):
  *   - Normal mode — seed users and real users are mixed together
  */
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import client from '@/api/client';
 
 const STORAGE_KEY = 'nodbusiness_real_mode';
@@ -27,45 +27,51 @@ const RealModeContext = createContext<RealModeContextValue>({
   setRealMode: () => {},
 });
 
-// Axios interceptor ID — stored so we can eject when the provider unmounts
-let _interceptorId: number | null = null;
-
 export function RealModeProvider({ children }: { children: ReactNode }) {
   const [realMode, setRealModeState] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+  const interceptorId = useRef<number | null>(null);
 
-  // Initialise from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'true') {
-      setRealModeState(true);
+  const syncInterceptor = (enabled: boolean) => {
+    if (interceptorId.current !== null) {
+      client.interceptors.request.eject(interceptorId.current);
+      interceptorId.current = null;
     }
-  }, []);
-
-  // Sync Axios interceptor whenever realMode changes
-  useEffect(() => {
-    // Remove old interceptor
-    if (_interceptorId !== null) {
-      client.interceptors.request.eject(_interceptorId);
-      _interceptorId = null;
-    }
-
-    if (realMode) {
-      _interceptorId = client.interceptors.request.use(config => {
+    if (enabled) {
+      interceptorId.current = client.interceptors.request.use(config => {
         config.headers['X-Real-Only'] = '1';
         return config;
       });
     }
+  };
 
-    // Persist to localStorage
-    localStorage.setItem(STORAGE_KEY, String(realMode));
-  }, [realMode]);
+  // Install the request policy before mounting any page that can fetch data.
+  useEffect(() => {
+    let saved = false;
+    try { saved = localStorage.getItem(STORAGE_KEY) === 'true'; } catch { /* storage may be disabled */ }
+    syncInterceptor(saved);
+    setRealModeState(saved);
+    setInitialized(true);
+    return () => {
+      if (interceptorId.current !== null) client.interceptors.request.eject(interceptorId.current);
+      interceptorId.current = null;
+    };
+  }, []);
 
-  const setRealMode = (v: boolean) => setRealModeState(v);
-  const toggleRealMode = () => setRealModeState(v => !v);
+  const setRealMode = (enabled: boolean) => {
+    // Update Axios synchronously so a query started by the same interaction
+    // cannot escape before a passive effect installs the filter header.
+    syncInterceptor(enabled);
+    try { localStorage.setItem(STORAGE_KEY, String(enabled)); } catch { /* state still works for this page */ }
+    setRealModeState(enabled);
+  };
+  const toggleRealMode = () => setRealMode(!realMode);
 
   return (
     <RealModeContext.Provider value={{ realMode, toggleRealMode, setRealMode }}>
-      {children}
+      {initialized
+        ? <React.Fragment key={realMode ? 'real-users' : 'all-users'}>{children}</React.Fragment>
+        : <div className="min-h-screen" aria-busy="true" />}
     </RealModeContext.Provider>
   );
 }

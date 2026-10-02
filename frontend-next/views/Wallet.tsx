@@ -2,11 +2,10 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
-import { Wallet as WalletIcon, Plus, ArrowUpRight, ArrowDownLeft, TrendingUp } from "lucide-react";
+import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { fromNow } from "@/lib/date";
 import { useTranslation } from "react-i18next";

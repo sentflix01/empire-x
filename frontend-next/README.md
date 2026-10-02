@@ -64,4 +64,4 @@ The app intentionally uses local/system font fallbacks in `app/globals.css` so b
 
 ## Deploy
 
-Deploy this folder (`frontend-next`) to **Cloudflare Pages**. Connect your GitHub repo in the Cloudflare Pages dashboard, set the root directory to `frontend-next`, the build command to `npm run build`, and the output directory to `out`. Set `NEXT_PUBLIC_API_BASE_URL` to your Coolify backend domain and `NEXT_PUBLIC_APP_URL` to your Cloudflare Pages domain. Cloudflare Pages deploys automatically on every push to `main` — no CI token needed. See `docs/operations/CLOUDFLARE_PAGES_SETUP.md` for the full setup guide.
+Deploy this folder (`frontend-next`) to **Vercel**. Connect your GitHub repo in the Vercel dashboard, set the root directory to `frontend-next`. Set `NEXT_PUBLIC_API_BASE_URL` to your Render backend URL (e.g. `https://nodbusiness-backend-9psf.onrender.com`) and `NEXT_PUBLIC_APP_URL` to your Vercel domain. Vercel deploys automatically on every push to `main`. See `DEPLOYMENT_VARIABLES.md` for the full environment variable list.

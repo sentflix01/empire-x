@@ -3,7 +3,9 @@
 > Exactly what changes to infrastructure at each user milestone.
 > Each stage builds on the previous — don't skip stages.
 > **Last updated:** September 2026
-> **Stack:** Oracle Cloud Johannesburg + Coolify v4 · Cloudflare Pages · Supabase · Upstash Redis · Cloudflare R2
+> **Stack:** Render (backend) · Vercel (frontend) · Supabase · Upstash Redis · Cloudflare R2
+>
+> **Note:** This scaling plan was originally written for Oracle Cloud + Coolify. The current stack is Render + Vercel. References to Oracle VM, Coolify, and Hetzner in later stages describe future migration paths when Render's capacity is exceeded — not the current setup.
 
 ---
 
@@ -42,7 +44,7 @@
 Priority: 🔴 CRITICAL
 
 [ ] 1. Activate Cloudflare R2 file storage
-        Set in Coolify env vars: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID,
+        Set in Render env vars: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID,
         R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL
         Time: 1 hour | Cost: Free (10GB free tier)
 
@@ -54,13 +56,13 @@ Priority: 🔴 CRITICAL
 
 [ ] 3. Set VAPID keys for push notifications
         Run: cd backend && node -e "const wp=require('web-push');const k=wp.generateVAPIDKeys();console.log(JSON.stringify(k))"
-        Set in Coolify: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_EMAIL
+        Set in Render: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_EMAIL
         Set in CF Pages: NEXT_PUBLIC_VAPID_PUBLIC_KEY
         Time: 30 minutes | Cost: Free
 
 [ ] 4. Configure Sentry error tracking
         Create project at sentry.io → Node.js + Next.js
-        Set: SENTRY_DSN (Coolify) and NEXT_PUBLIC_SENTRY_DSN (CF Pages)
+        Set: SENTRY_DSN (Render) and NEXT_PUBLIC_SENTRY_DSN (Vercel)
         Time: 30 minutes | Cost: Free (5K errors/month)
 
 [ ] 5. Register domain + configure Cloudflare DNS
@@ -70,8 +72,8 @@ Priority: 🔴 CRITICAL
         Configure Oracle VM security group: allow 443/80 from Cloudflare IPs only
         Time: 2 hours | Cost: ~$12/year
 
-[ ] 6. Set Coolify webhook in GitHub Secrets
-        COOLIFY_WEBHOOK_URL and COOLIFY_TOKEN
+[ ] 6. Confirm Render deploy hook is set in GitHub Secrets
+        RENDER_DEPLOY_HOOK_URL in GitHub → Settings → Secrets
         Time: 15 minutes | Cost: Free
 ```
 
@@ -82,7 +84,7 @@ Priority: 🟡 HIGH
 
 [ ] 7. Enable Upstash Redis
         Create at upstash.com → copy rediss:// URL
-        Set: REDIS_URL in Coolify env vars
+        Set: REDIS_URL in Render environment variables
         Activates: BullMQ queues, feed cache, rate-limit store, feature flags
         Time: 20 minutes | Cost: Free (500K cmd/month)
 
@@ -92,7 +94,7 @@ Priority: 🟡 HIGH
         Time: 15 minutes | Cost: Included in Supabase
 
 [ ] 9. Set up Uptime Kuma monitoring
-        Deploy via Coolify one-click service on Oracle VM
+        Set up uptime monitoring (BetterStack free tier or Uptime Kuma)
         Add monitors: /health, frontend, Supabase status
         Add alert: Telegram notification on downtime (1-minute checks)
         Time: 20 minutes | Cost: Free (self-hosted)
@@ -140,17 +142,16 @@ Priority: 🟡 HIGH
 ### Backend (Oracle VM)
 
 ```
-[ ] Monitor Coolify container CPU and RAM
-    Threshold: CPU > 60% sustained for 30 min → add Hetzner instance
-    Threshold: RAM > 80% of 12 GB → investigate memory leak or scale up
+[ ] Monitor Render service memory and CPU
+    Threshold: p95 response > 500ms sustained → upgrade Render plan
 
 [ ] Confirm BullMQ workers running correctly
-    Check Coolify logs for: "BullMQ workers started"
+    Check Render logs for: "BullMQ workers started"
     If Redis is configured and workers are not starting, check REDIS_URL TLS format
 
 [ ] Tune rate limiting if legitimate users are being blocked
     Current: 500 req/15min general, 20 req/15min auth
-    Monitor: Coolify logs for HTTP 429 responses
+    Monitor: Render logs for HTTP 429 responses
 ```
 
 ### Upstash Redis
@@ -186,9 +187,8 @@ Priority: 🟡 HIGH
 ### Backend — Adding a Second Instance
 
 ```
-[ ] Provision Hetzner CAX21 (€8/month, 4 vCPU ARM, 8 GB RAM)
-    Install Coolify on Hetzner VM
-    Deploy backend to Hetzner Coolify (same GitHub repo, same env vars)
+[ ] Provision Hetzner CAX21 (€8/month, 4 vCPU ARM, 8 GB RAM) — for scale beyond Render
+    Deploy backend to Hetzner (same GitHub repo, same env vars)
 
 [ ] Configure Socket.IO Redis adapter (REQUIRED before running 2+ instances)
     backend/socket.ts — already has the commented pattern:
@@ -231,7 +231,7 @@ Priority: 🟡 HIGH
 [ ] Evaluate replacing PostgreSQL ILIKE with Meilisearch
     Trigger: Search p95 > 500ms
 
-    Deploy via Coolify one-click service on Hetzner VM:
+    Deploy via Hetzner VM (self-hosted):
     Image: getmeili/meilisearch:latest
     Env: MEILI_MASTER_KEY=your_key
     Cost: $0 (self-hosted on existing Hetzner VM)
@@ -286,7 +286,7 @@ Priority: 🟡 HIGH
 
 ```
 [ ] Add Grafana Cloud (free tier: 10K series, 50GB logs, 14-day retention)
-    Or: self-host Prometheus + Grafana stack on Hetzner via Coolify
+    Or: self-host Prometheus + Grafana stack on Hetzner
     
 [ ] Implement OpenTelemetry distributed tracing
     Trace each request across frontend → backend → DB → Redis
@@ -300,7 +300,7 @@ Priority: 🟡 HIGH
 
 ```
 Infrastructure team (5–10 engineers):
-├── Migrate backend from Coolify/Hetzner to AWS ECS (Fargate)
+├── Migrate backend from Render to AWS ECS (Fargate)
 │   Better pricing at volume, SLA guarantees, VPC networking
 │
 ├── Database: AWS RDS Aurora PostgreSQL (multi-AZ, read replicas)
@@ -334,6 +334,6 @@ Infrastructure team (5–10 engineers):
 | Meilisearch (search at scale) | Search p95 > 500ms | Month 6–12 |
 | External security audit | Before 50K users | Month 8–12 |
 | Multi-region deploy | Users complaining in EU/Middle East | Month 12–18 |
-| AWS migration | Coolify/Hetzner cost > $1,000/month | Month 18–24 |
+| AWS migration | Render cost > $1,000/month | Month 18–24 |
 | SOC 2 Type II | Enterprise clients | Month 24+ |
 | React Native mobile app | 50K+ active users | Month 18–24 |

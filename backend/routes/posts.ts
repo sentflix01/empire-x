@@ -41,7 +41,7 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: tr
     const lim = Math.min(parseInt(limit)||15, 50);
     const cursorTs = cursor ? new Date(cursor) : new Date();
     if (isNaN(cursorTs.getTime())) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
-    const realFilter = req.realOnly ? `AND p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE)` : '';
+    const realFilter = req.realOnly ? `AND p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)` : '';
 
     // Smart feed mode
     if (feed==='true' && !author_id && !post_type) {
@@ -77,7 +77,7 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: tr
     const params: unknown[] = [cursorTs];
     if (author_id) { params.push(author_id); conditions.push(`p.author_id=$${params.length}`); }
     if (post_type) { params.push(post_type); conditions.push(`p.post_type=$${params.length}`); }
-    if (req.realOnly) conditions.push(`p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE)`);
+    if (req.realOnly) conditions.push(`p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)`);
     if (req.query.following==='true' && req.user?.id) {
       params.push(req.user.id);
       conditions.push(`p.author_id IN (SELECT followed_id FROM follows WHERE follower_id=$${params.length})`);
@@ -101,7 +101,7 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: tr
 
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
-    const post = await getRecord('posts', req.params.id);
+    const post = await getRecord('posts', req.params.id, { realOnly: req.realOnly });
     if (!post) { res.status(404).json({ error: 'Post not found' }); return; }
     await attachLikedByMe(req.user?.id, [post as unknown as Record<string,unknown>]);
     res.json(post);
@@ -110,7 +110,10 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
 
 router.post('/', requireAuth, async (req: Request, res: Response) => {
   const { content, image_url, post_type, poll_options, poll_ends_at } = req.body as Record<string,unknown>;
-  if (!content) { res.status(400).json({ error: 'Content is required' }); return; }
+  if (typeof content !== 'string' || !content.trim()) { res.status(400).json({ error: 'Content is required' }); return; }
+  if (post_type !== undefined && !['text', 'image', 'product', 'task', 'event', 'poll'].includes(String(post_type))) {
+    res.status(422).json({ error: 'Invalid post_type' }); return;
+  }
   try {
     const { rows: profiles } = await pool.query('SELECT display_name, avatar_url FROM user_profiles WHERE user_id=$1', [req.user!.id]);
     const profile = (profiles[0] ?? {}) as Record<string,string>;
@@ -142,7 +145,19 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     const existing = await getRecord<{author_id:string}>('posts', req.params.id);
     if (!existing) { res.status(404).json({ error: 'Post not found' }); return; }
     if (existing.author_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
-    res.json(await updateRecord('posts', req.params.id, req.body as Record<string,unknown>));
+    const body = req.body as Record<string, unknown>;
+    const allowed = ['content', 'image_url', 'post_type'] as const;
+    const updates = Object.fromEntries(allowed.filter(key => body[key] !== undefined).map(key => [key, body[key]]));
+    if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable post fields provided' }); return; }
+    if (updates.content !== undefined && (typeof updates.content !== 'string' || !updates.content.trim())) {
+      res.status(422).json({ error: 'content must be a non-empty string' }); return;
+    }
+    if (updates.post_type !== undefined && !['text', 'image', 'product', 'task', 'event', 'poll'].includes(String(updates.post_type))) {
+      res.status(422).json({ error: 'Invalid post_type' }); return;
+    }
+    const updated = await updateRecord('posts', req.params.id, updates);
+    invalidateCache('posts:list').catch(() => undefined);
+    res.json(updated);
   } catch { res.status(500).json({ error: 'Failed to update post' }); }
 });
 
@@ -198,9 +213,11 @@ router.post('/:id/like', requireAuth, async (req: Request, res: Response) => {
 // Comments
 router.get('/:id/comments', optionalAuth, async (req: Request, res: Response) => {
   try {
+    const realFilter = req.realOnly ? 'AND comment_author.is_seed=FALSE AND comment_author.is_demo=FALSE' : '';
+    const realReplyFilter = req.realOnly ? 'AND reply_author.is_seed=FALSE AND reply_author.is_demo=FALSE' : '';
     const { rows } = await pool.query(
-      `SELECT c.*,(SELECT COUNT(*)::int FROM comments r WHERE r.parent_id=c.id) AS reply_count
-       FROM comments c WHERE c.post_id=$1
+      `SELECT c.*,(SELECT COUNT(*)::int FROM comments r JOIN users reply_author ON reply_author.id=r.author_id WHERE r.parent_id=c.id ${realReplyFilter}) AS reply_count
+       FROM comments c JOIN users comment_author ON comment_author.id=c.author_id WHERE c.post_id=$1 ${realFilter}
        ORDER BY COALESCE(c.parent_id,c.id) ASC, c.parent_id IS NOT NULL ASC, c.created_at ASC`,
       [req.params.id],
     );

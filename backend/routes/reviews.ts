@@ -13,12 +13,17 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     const params: unknown[] = [];
     if (product_id)  { params.push(product_id);  conditions.push(`r.product_id=$${params.length}`); }
     if (reviewer_id) { params.push(reviewer_id); conditions.push(`r.reviewer_id=$${params.length}`); }
+    if (req.realOnly) conditions.push('reviewer.is_seed=FALSE AND reviewer.is_demo=FALSE AND seller.is_seed=FALSE AND seller.is_demo=FALSE');
     const where    = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const sortDesc = sort.startsWith('-');
     const sortRaw  = sort.replace(/^-/, '').replace(/[^a-z0-9_]/gi, '') || 'created_at';
     params.push(Math.min(parseInt(limit) || 50, 200));
     const { rows } = await pool.query(
-      `SELECT r.*, up.display_name, up.avatar_url FROM reviews r LEFT JOIN user_profiles up ON up.user_id=r.reviewer_id
+      `SELECT r.*, up.display_name, up.avatar_url FROM reviews r
+       LEFT JOIN users reviewer ON reviewer.id=r.reviewer_id
+       LEFT JOIN products product ON product.id=r.product_id
+       LEFT JOIN users seller ON seller.id=product.seller_id
+       LEFT JOIN user_profiles up ON up.user_id=r.reviewer_id
        ${where} ORDER BY r.${sortRaw} ${sortDesc ? 'DESC' : 'ASC'} LIMIT $${params.length}`,
       params,
     );
@@ -28,8 +33,14 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
 
 router.get('/product/:productId', optionalAuth, async (req: Request, res: Response) => {
   try {
+    const realFilter = req.realOnly ? 'AND reviewer.is_seed=FALSE AND reviewer.is_demo=FALSE AND seller.is_seed=FALSE AND seller.is_demo=FALSE' : '';
     const { rows } = await pool.query(
-      `SELECT r.*, up.display_name, up.avatar_url FROM reviews r LEFT JOIN user_profiles up ON up.user_id=r.reviewer_id WHERE r.product_id=$1 ORDER BY r.created_at DESC`,
+      `SELECT r.*, up.display_name, up.avatar_url FROM reviews r
+       LEFT JOIN users reviewer ON reviewer.id=r.reviewer_id
+       LEFT JOIN products product ON product.id=r.product_id
+       LEFT JOIN users seller ON seller.id=product.seller_id
+       LEFT JOIN user_profiles up ON up.user_id=r.reviewer_id
+       WHERE r.product_id=$1 ${realFilter} ORDER BY r.created_at DESC`,
       [req.params.productId],
     );
     res.json(rows);

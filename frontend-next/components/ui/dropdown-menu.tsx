@@ -92,7 +92,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<any, any>(({ className, childr
 DropdownMenuCheckboxItem.displayName =
   DropdownMenuPrimitive.CheckboxItem.displayName
 
-const DropdownMenuRadioItem = React.forwardRef<any, any>(({ className, children, value, ...props }: any & { value?: string }, ref) => (
+const DropdownMenuRadioItem = React.forwardRef<any, any>(({ className, children, value: _value, ...props }: any & { value?: string }, ref) => (
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
@@ -155,4 +155,3 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuRadioGroup,
 }
-

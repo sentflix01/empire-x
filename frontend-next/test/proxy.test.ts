@@ -12,6 +12,7 @@ describe('public route policy', () => {
     '/reset-password',
     '/choose-account',
     '/service-agreement',
+    '/feed',
     '/p/public-profile',
     '/products/public-product',
     '/showroom/public-showroom',
@@ -21,7 +22,6 @@ describe('public route policy', () => {
   });
 
   it.each([
-    '/feed',
     '/wallet',
     '/service-agreement/manage',
     '/auth/google',

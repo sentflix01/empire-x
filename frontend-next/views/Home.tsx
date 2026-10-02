@@ -90,9 +90,8 @@ function CompanyAnnouncementTicker() {
 function Home() {
   const { user, isAuthenticated, authChecked } = useAuth();
   const { t } = useTranslation();
-  const { homeFeedTokens: accentTokens, homeFeedMode, setHomeFeedMode } = useProfileView();
+  const { homeFeedTokens: accentTokens, homeFeedMode } = useProfileView();
   const feedMode = homeFeedMode;
-  const isPersonal = homeFeedMode === 'personal';
   const [posts, setPosts]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -101,7 +100,6 @@ function Home() {
   const [filter, setFilter]       = useState("all");
   const [highlightPostId, setHighlightPostId] = useState<string|null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const highlightRef = useRef<HTMLDivElement>(null);
   const offsetRef   = useRef(0);
   const PAGE_SIZE   = 15;
 
@@ -140,22 +138,11 @@ function Home() {
           }
         }).catch(() => {});
     }
-  }, [highlightPostId, loading, posts.length]);
+  }, [highlightPostId, loading, posts]);
 
   useEffect(() => {
     loadPosts(true);
   }, []);
-
-  // Intersection Observer — fires when sentinel enters viewport
-  useEffect(() => {
-    if (!sentinelRef.current) return;
-    const obs = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) loadMore(); },
-      { rootMargin: '300px' }
-    );
-    obs.observe(sentinelRef.current);
-    return () => obs.disconnect();
-  }, [hasMore, loadingMore, loading]);
 
   const loadPosts = async (reset = false) => {
     if (reset) { setLoading(true); offsetRef.current = 0; setHasMore(true); }
@@ -187,9 +174,20 @@ function Home() {
       });
       offsetRef.current += data.length;
       if (data.length < PAGE_SIZE) setHasMore(false);
-    } catch (err) { /* silenced */ }
+    } catch { /* silenced */ }
     setLoadingMore(false);
   }, [loadingMore, hasMore]);
+
+  // Intersection Observer — fires when sentinel enters viewport.
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) loadMore(); },
+      { rootMargin: '300px' }
+    );
+    obs.observe(sentinelRef.current);
+    return () => obs.disconnect();
+  }, [hasMore, loadingMore, loading, loadMore]);
 
   const handlePostCreated = (post) => {
     setPosts(prev => [post, ...prev]);

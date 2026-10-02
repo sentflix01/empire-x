@@ -1,6 +1,7 @@
 'use client'
 import React, { useCallback, useEffect, useState } from 'react';
 import { HealthRecord } from '../../types/externalApi';
+import { apiFetch } from '@/api/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -101,7 +102,7 @@ export default function DataSourceStatusPanel({ showroomId }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/showrooms/${showroomId}/external-sources/health`, {
+      const res = await apiFetch(`/api/showrooms/${showroomId}/external-sources/health`, {
         credentials: 'include',
       });
       if (!res.ok) {
@@ -128,7 +129,7 @@ export default function DataSourceStatusPanel({ showroomId }: Props) {
 
     setRefreshingIds(prev => new Set(prev).add(sourceId));
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/showrooms/${showroomId}/external-sources/${sourceId}/refresh`,
         { method: 'POST', credentials: 'include' }
       );

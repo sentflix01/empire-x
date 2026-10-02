@@ -187,7 +187,7 @@ Also fix the JSDoc comment in `auth.ts` that says "stores in both localStorage a
 
 Add directly after `const app = express()`:
 ```javascript
-app.set('trust proxy', 1); // trust the first proxy hop (Coolify/Cloudflare load-balancer → req.ip = real end-user IP)
+app.set('trust proxy', 1); // trust the first proxy hop (Render/Cloudflare load-balancer → req.ip = real end-user IP)
 ```
 
 **Fix 5 — `backend/db/migrate.js`: Add `chapa_tx_ref` to orders table**

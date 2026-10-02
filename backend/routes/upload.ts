@@ -31,6 +31,10 @@ router.post('/', requireAuth, upload.single('file'), async (req: Request, res: R
     if (bufferForCheck) {
       const magicError = await validateFileBytes(bufferForCheck, file.mimetype);
       if (magicError) {
+        if (file.path) {
+          const fs = require('fs/promises') as typeof import('fs/promises');
+          await fs.rm(file.path, { force: true }).catch(() => undefined);
+        }
         res.status(415).json({ error: magicError, code: 'MAGIC_BYTE_MISMATCH' });
         return;
       }
@@ -39,11 +43,15 @@ router.post('/', requireAuth, upload.single('file'), async (req: Request, res: R
 
     let url: string;
     if (isCloudStorageConfigured() && file.buffer) {
-      url = await uploadFile(file.buffer, file.originalname, file.mimetype);
+      url = await uploadFile(file.buffer, file.originalname, file.mimetype, req.demoSession?.id);
     } else if (file.path) {
       // Local disk fallback
-      const filename = require('path').basename(file.path) as string;
-      url = `${process.env.API_URL ?? 'http://localhost:3001'}/uploads/${filename}`;
+      const path = require('path') as typeof import('path');
+      const relativePath = path.relative(path.join(process.cwd(), process.env.UPLOAD_DIR ?? 'uploads'), file.path)
+        .split(path.sep)
+        .map(encodeURIComponent)
+        .join('/');
+      url = `${process.env.API_URL ?? 'http://localhost:3001'}/uploads/${relativePath}`;
     } else {
       res.status(500).json({ error: 'Upload failed — no storage configured' }); return;
     }

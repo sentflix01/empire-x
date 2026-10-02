@@ -1,4 +1,5 @@
 'use client';
+import SafeImage from '@/components/ui/SafeImage';
 /**
  * AccountSettings — clean single-tab account settings.
  * Removed Notifications and Privacy tabs (clutter).
@@ -100,7 +101,6 @@ function AccountSettingsView() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [pushPerm, setPushPerm] = useState(() => getPushPermission());
   const [pushLoading, setPushLoading] = useState(false);
-  const [presenceVisibility, setPresenceVisibility] = useState<'everyone' | 'nobody'>('everyone');
 
   const displayName = typeof user?.full_name === 'string' ? user.full_name : 'User';
   const userEmail   = typeof user?.email    === 'string' ? user.email    : '';
@@ -113,18 +113,6 @@ function AccountSettingsView() {
       if (profiles.length > 0) setProfile(profiles[0] as UserProfile);
     }).catch(() => {});
   }, [user?.id]);
-
-  const updatePresenceVisibility = async (visibility: 'everyone' | 'nobody') => {
-    const previous = presenceVisibility;
-    setPresenceVisibility(visibility);
-    try {
-      await client.put('/api/messages/presence/settings', { visibility });
-      toast.success(visibility === 'everyone' ? 'Online status is visible' : 'Online status is hidden');
-    } catch {
-      setPresenceVisibility(previous);
-      toast.error('Could not update last-seen privacy');
-    }
-  };
 
   const handlePushToggle = async () => {
     setPushLoading(true);
@@ -153,7 +141,7 @@ function AccountSettingsView() {
             <div className="relative">
               <div className="w-20 h-20 rounded-2xl ring-4 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                 {avatarUrl
-                  ? <img loading="lazy" src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
                   : initial}
               </div>
               <Link href="/profile/edit"

@@ -25,7 +25,6 @@ import {
   differenceInDays,
   differenceInWeeks,
   differenceInMonths,
-  differenceInYears,
   isToday,
   isYesterday,
   format,
@@ -96,7 +95,6 @@ export function getPresenceCategory(data: PresenceData | null): PresenceCategory
 
   const now = new Date();
   const diffSec  = differenceInSeconds(now, d);
-  const diffMin  = differenceInMinutes(now, d);
 
   if (diffSec < 300)    return 'recent';     // < 5 min — still "effectively online"
   if (isToday(d))       return 'today';

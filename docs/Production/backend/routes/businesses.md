@@ -18,8 +18,8 @@ Business entity pages: create/manage business profiles linked to owners, busines
 | `GET` | `/api/businesses/` | optional | 10 |
 | `GET` | `/api/businesses/:id` | optional | 19 |
 | `POST` | `/api/businesses/` | auth | 27 |
-| `PUT` | `/api/businesses/:id` | auth | 41 |
-| `DELETE` | `/api/businesses/:id` | auth | 50 |
+| `PUT` | `/api/businesses/:id` | auth | 42 |
+| `DELETE` | `/api/businesses/:id` | auth | 53 |
 
 ## 4. What does it touch?
 

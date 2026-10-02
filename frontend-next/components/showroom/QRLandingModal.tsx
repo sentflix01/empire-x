@@ -1,4 +1,5 @@
 'use client';
+import SafeImage from '@/components/ui/SafeImage';
 /**
  * QRLandingModal — shown when a first-time visitor lands on a showroom
  * via a QR code scan. Presents three options:
@@ -83,7 +84,7 @@ export default function QRLandingModal({
             style={{ backgroundColor: themeColor }}
           >
             {logoUrl
-              ? <img src={logoUrl} alt={businessName} className="w-full h-full object-cover" />
+              ? <SafeImage fill={false} width={800} height={600} src={logoUrl} alt={businessName} className="w-full h-full object-cover" />
               : <Store className="w-8 h-8 text-white" />}
           </div>
 

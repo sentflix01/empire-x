@@ -51,7 +51,7 @@ Supabase provides two connection strings. Use the correct one for each context:
 
 | Context | URL Type | Port | Notes |
 |---|---|---|---|
-| **Live application** (Coolify env var `DATABASE_URL`) | Supavisor pooler | **6543** | Transaction mode — efficient connection reuse |
+| **Live application** (Render env var `DATABASE_URL`) | Supavisor pooler | **6543** | Transaction mode — efficient connection reuse |
 | **Migrations** (`db/migrate-all.js`) | Direct connection | **5432** | DDL requires direct — pooler blocks schema changes |
 | **pg_dump backups** (`scripts/backup-database.js`) | Direct connection | **5432** | Backup tools require direct connection |
 
@@ -93,7 +93,7 @@ DATABASE_DIRECT_URL=postgresql://postgres.REF:[PASS]@db.REF.supabase.co:5432/pos
 
 ```sql
 -- All traffic on one connection string (Supavisor pooler for app)
--- DB_POOL_MAX=5 in Coolify env vars (safe for Supabase free tier)
+-- DB_POOL_MAX=5 in Render environment variables (safe for Supabase free tier)
 
 -- Immediate optimizations:
 -- Check for missing indexes:
@@ -151,7 +151,7 @@ const readPool = new Pool({
 
 ## Stage 3: Caching Layer (Reduces DB Load 60–80%)
 
-**Already built — just needs `REDIS_URL` activated in Coolify.**
+**Already built — just needs `REDIS_URL` activated in Render environment variables.**
 
 ```javascript
 // backend/lib/redis.ts — already integrated
@@ -179,7 +179,7 @@ const data = await cached('trending:global', 300, async () => {
 
 **Trigger:** Search response time p95 > 500ms consistently
 
-PostgreSQL `ILIKE` doesn't scale past ~1M rows. Switch to **Meilisearch** (self-hosted on Oracle/Hetzner VM via Coolify one-click).
+PostgreSQL `ILIKE` doesn't scale past ~1M rows. Switch to **Meilisearch** (self-hosted on a Hetzner VM).
 
 ```javascript
 // backend/lib/search.ts (new file when needed)

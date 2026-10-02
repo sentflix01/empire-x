@@ -4,7 +4,7 @@ import logger from '../lib/logger';
 import { cacheMiddleware } from '../middleware/cache';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
-import { listRecords, getRecord, createRecord, updateRecord, deleteRecord } from '../utils/crud';
+import { listRecords, getRecord, createRecord, updateRecord, deleteRecord, withoutProtectedFields } from '../utils/crud';
 import { runDoctor } from '../lib/showroomDoctor';
 import { recordEvent } from '../lib/telemetry';
 
@@ -17,13 +17,14 @@ router.get('/', optionalAuth, cacheMiddleware('showrooms:list', 30), async (req:
     if (owner_id) filter.owner_id = owner_id;
     if (status)   filter.status   = status;
     if (category) filter.category = category;
-    res.json(await listRecords('showrooms', { filter, sort, limit }));
+    res.json(await listRecords('showrooms', { filter, sort, limit, realOnly: req.realOnly }));
   } catch { res.status(500).json({ error: 'Failed to fetch showrooms' }); }
 });
 
 router.get('/slug/:slug', optionalAuth, async (req: Request, res: Response) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM showrooms WHERE slug=$1', [req.params.slug]);
+    const realFilter = req.realOnly ? 'AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '';
+    const { rows } = await pool.query(`SELECT * FROM showrooms WHERE slug=$1 ${realFilter}`, [req.params.slug]);
     if (!rows.length) { res.status(404).json({ error: 'Showroom not found' }); return; }
     await pool.query('UPDATE showrooms SET view_count=view_count+1 WHERE id=$1', [rows[0].id]);
     res.json({ ...rows[0], view_count: rows[0].view_count + 1 });
@@ -114,10 +115,11 @@ router.get('/:id/doctor', requireAuth, async (req: Request, res: Response) => {
 });
 
 // ── Sitemap data (public) — returns all published showrooms for SEO ──────────
-router.get('/sitemap-data', async (_req: Request, res: Response) => {
+router.get('/sitemap-data', async (req: Request, res: Response) => {
   try {
+    const realFilter = req.realOnly ? 'AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '';
     const { rows } = await pool.query(
-      `SELECT slug, id, updated_at FROM showrooms WHERE status='published' ORDER BY updated_at DESC LIMIT 5000`
+      `SELECT slug, id, updated_at FROM showrooms WHERE status='published' ${realFilter} ORDER BY updated_at DESC LIMIT 5000`
     );
     res.json(rows);
   } catch { res.status(500).json({ error: 'Failed to fetch sitemap data' }); }
@@ -125,7 +127,7 @@ router.get('/sitemap-data', async (_req: Request, res: Response) => {
 
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
-    const showroom = await getRecord('showrooms', req.params.id);
+    const showroom = await getRecord('showrooms', req.params.id, { realOnly: req.realOnly });
     if (!showroom) { res.status(404).json({ error: 'Showroom not found' }); return; }
     res.json(showroom);
   } catch { res.status(500).json({ error: 'Failed to fetch showroom' }); }
@@ -139,7 +141,8 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     const slug = (req.body as Record<string, string>).slug ?? `${base}-${Date.now()}`;
     const { rows: existing } = await pool.query('SELECT id FROM showrooms WHERE slug=$1', [slug]);
     const finalSlug = existing.length ? `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}` : slug;
-    const showroom = await createRecord('showrooms', { ...(req.body as Record<string, unknown>), slug: finalSlug, owner_id: req.user!.id });
+    const fields = withoutProtectedFields(req.body as Record<string, unknown>, 'owner_id');
+    const showroom = await createRecord('showrooms', { ...fields, slug: finalSlug, owner_id: req.user!.id });
     res.status(201).json(showroom);
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Create showroom error');
@@ -152,7 +155,9 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     const existing = await getRecord<{ owner_id: string }>('showrooms', req.params.id);
     if (!existing) { res.status(404).json({ error: 'Showroom not found' }); return; }
     if (existing.owner_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
-    res.json(await updateRecord('showrooms', req.params.id, req.body as Record<string, unknown>));
+    const updates = withoutProtectedFields(req.body as Record<string, unknown>, 'owner_id');
+    if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable showroom fields provided' }); return; }
+    res.json(await updateRecord('showrooms', req.params.id, updates));
   } catch { res.status(500).json({ error: 'Failed to update showroom' }); }
 });
 

@@ -63,14 +63,14 @@ When a 28-day error budget is exhausted (>100% burned):
 
 ## 5. Measurement wiring (to implement)
 
-Current state: Sentry captures errors when DSN is configured; Pino logs are visible in Coolify's
+Current state: Sentry captures errors when DSN is configured; Pino logs are visible in Render's
 log viewer; there is no metric store yet. To make these SLOs real:
 
-1. **Uptime monitoring:** Uptime Kuma (self-hosted on Oracle VM via Coolify) checks `/health` every
-   60 seconds from the VM itself. Add a second monitor from an external location (BetterStack free
+1. **Uptime monitoring:** Uptime Kuma (or Better Uptime free tier) checks `/health` every
+   60 seconds. Add a second monitor from an external location (BetterStack free
    tier, or a Cloudflare Worker cron) for true external availability measurement.
-2. **Log drain:** Coolify log drain → Loki/Grafana Cloud free tier (10K series, 50 GB logs) for
-   persistent log storage and query capability beyond Coolify's ephemeral container logs.
+2. **Log drain:** Render log drain → Loki/Grafana Cloud free tier (10K series, 50 GB logs) for
+   persistent log storage and query capability beyond Render's ephemeral container logs.
 3. **Payment success counter:** emit a structured Pino log line (`event=payment_result`) from
    `orders.ts` webhook + Chapa verify; compute S3 from the log store.
 4. **Latency:** `x-response-time` middleware already logs per-request timing; aggregate

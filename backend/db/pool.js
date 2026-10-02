@@ -28,21 +28,28 @@ function buildConnectionString(raw) {
   return `${raw}${sep}pgbouncer=true`;
 }
 
-const connectionString = buildConnectionString(process.env.DATABASE_URL);
+function poolOptions(rawUrl, env = process.env) {
+  const connectionString = buildConnectionString(rawUrl);
+  const tlsOverride = env.DATABASE_URL_REQUIRE_TLS;
+  const needsSsl = tlsOverride === 'true' || (tlsOverride !== 'false' && (
+    env.NODE_ENV === 'production' ||
+    !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString))
+  ));
+  // Verify server certificates by default, matching pool.ts. Operators using
+  // private/self-signed certificates can explicitly opt out per environment.
+  const rejectUnauthorized = env.DB_TLS_REJECT_UNAUTHORIZED !== 'false';
 
-const needsSsl =
-  process.env.NODE_ENV === 'production' ||
-  !!(connectionString &&
-    /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
+  return {
+    connectionString,
+    ssl: needsSsl ? { rejectUnauthorized } : false,
+    max: parseInt(env.DB_POOL_MAX || '5', 10),
+    idleTimeoutMillis: 60000,
+    connectionTimeoutMillis: parseInt(env.DB_CONNECTION_TIMEOUT_MS || '15000', 10),
+    allowExitOnIdle: false,
+  };
+}
 
-const pool = new Pool({
-  connectionString,
-  ssl: needsSsl ? { rejectUnauthorized: false } : false,
-  max: parseInt(process.env.DB_POOL_MAX || '5', 10),
-  idleTimeoutMillis: 60000,
-  connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT_MS || '15000', 10),
-  allowExitOnIdle: false,
-});
+const pool = new Pool(poolOptions(process.env.DATABASE_URL));
 
 pool.on('error', (err) => {
   console.error('Unexpected PostgreSQL pool error:', err.message);
@@ -50,3 +57,4 @@ pool.on('error', (err) => {
 
 module.exports = pool;
 module.exports.buildConnectionString = buildConnectionString;
+module.exports.poolOptions = poolOptions;

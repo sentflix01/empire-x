@@ -2,7 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
-import { listRecords, getRecord, createRecord, updateRecord } from '../utils/crud';
+import { listRecords, getRecord, createRecord, updateRecord, withoutProtectedFields } from '../utils/crud';
 
 const router = Router();
 
@@ -11,13 +11,13 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     const { category, sort = '-created_at', limit = '50' } = req.query as Record<string, string>;
     const filter: Record<string, string | boolean | null> = { is_published: true };
     if (category) filter.category = category;
-    res.json(await listRecords('courses', { filter, sort, limit }));
+    res.json(await listRecords('courses', { filter, sort, limit, realOnly: req.realOnly }));
   } catch { res.status(500).json({ error: 'Failed to fetch courses' }); }
 });
 
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
-    const course = await getRecord('courses', req.params.id);
+    const course = await getRecord('courses', req.params.id, { realOnly: req.realOnly });
     if (!course) { res.status(404).json({ error: 'Course not found' }); return; }
     const { rows: lessons } = await pool.query('SELECT * FROM course_lessons WHERE course_id=$1 ORDER BY position ASC', [req.params.id]);
     res.json({ ...course, lessons });
@@ -28,7 +28,8 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const { title } = req.body as Record<string, string>;
     if (!title) { res.status(400).json({ error: 'title is required' }); return; }
-    res.status(201).json(await createRecord('courses', { ...(req.body as Record<string, unknown>), creator_id: req.user!.id }));
+    const fields = withoutProtectedFields(req.body as Record<string, unknown>, 'creator_id');
+    res.status(201).json(await createRecord('courses', { ...fields, creator_id: req.user!.id }));
   } catch { res.status(500).json({ error: 'Failed to create course' }); }
 });
 
@@ -37,7 +38,9 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     const existing = await getRecord<{ creator_id: string }>('courses', req.params.id);
     if (!existing) { res.status(404).json({ error: 'Course not found' }); return; }
     if (existing.creator_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
-    res.json(await updateRecord('courses', req.params.id, req.body as Record<string, unknown>));
+    const updates = withoutProtectedFields(req.body as Record<string, unknown>, 'creator_id');
+    if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable course fields provided' }); return; }
+    res.json(await updateRecord('courses', req.params.id, updates));
   } catch { res.status(500).json({ error: 'Failed to update course' }); }
 });
 

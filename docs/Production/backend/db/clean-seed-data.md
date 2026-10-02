@@ -1,22 +1,7 @@
-# backend/db/clean-seed-data
+# backend/db/clean-seed-data.js
 
-<!-- AUTO-STUB  2026-08-23 — curate narrative below -->
+Safely removes accounts marked `is_seed = TRUE` and rows that the database schema cascades from those accounts. It never truncates content tables or deletes an account merely because of its email domain.
 
-## 1. What is this?
+Dry-run (the default): `node db/clean-seed-data.js`
 
-**Database layer module.** Newly added module — narrative pending curation.
-
-Size: roughly 103 lines of source.
-
-## 2. Why does it exist?
-
-Newly introduced as part of recent development; see source and git history for the introducing commit.
-
-## 3. What does it do?
-
-Extracted facts (auto):
-- Lines: ~103
-
-## 4. What does it touch?
-
-**Source:** `backend/db/clean-seed-data.js`
+Destructive execution requires a non-production `NODE_ENV`, `ALLOW_SEED_CLEANUP=1`, and both `--execute` and `--database=<exact database name>`. The database name is printed with host and port, but credentials and customer row data are not printed. Before deletion the script nulls `devops_items.created_by` for seed accounts because that nullable FK has no delete action. Deletion is transactional; FK errors roll the transaction back.

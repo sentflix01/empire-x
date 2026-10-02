@@ -12,6 +12,19 @@
 import pool from '../db/pool';
 import type { FilterObject, WhereResult, SortResult, ListOptions } from '../lib/types';
 
+type ReadScope = { realOnly?: boolean };
+const REAL_MODE_OWNER_COLUMNS: Record<string, string> = {
+  businesses: 'owner_id', courses: 'creator_id', events: 'organizer_id', jobs: 'poster_id',
+  posts: 'author_id', products: 'seller_id', showrooms: 'owner_id', tasks: 'requester_id',
+};
+
+function realModeClause(table: string, enabled: boolean): string {
+  const ownerColumn = REAL_MODE_OWNER_COLUMNS[table];
+  return enabled && ownerColumn
+    ? ` AND ${table}.${ownerColumn} IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)`
+    : '';
+}
+
 // ── Table allowlist ───────────────────────────────────────────────────────────
 // Prevents SQL injection via dynamic table name arguments.
 // Every table used by crud helpers must be listed here.
@@ -45,6 +58,16 @@ export function validateTable(table: string): void {
  */
 export function sanitizeColumn(col: string): string {
   return col.replace(/[^a-z0-9_]/gi, '');
+}
+
+/** Strip record identity, creation time, and ownership fields from user edits. */
+export function withoutProtectedFields(
+  data: Record<string, unknown>,
+  ownerColumn: 'owner_id' | 'organizer_id' | 'creator_id' | 'poster_id' | 'author_id' | 'requester_id' | 'bidder_id' | 'user_id',
+): Record<string, unknown> {
+  const out = { ...data };
+  for (const key of ['id', 'created_at', 'updated_at', ownerColumn]) delete out[key];
+  return out;
 }
 
 // ── WHERE clause builder ──────────────────────────────────────────────────────
@@ -98,15 +121,15 @@ export function parseSort(sort = '-created_at'): SortResult {
  */
 export async function listRecords<T extends Record<string, unknown>>(
   table: string,
-  options: ListOptions = {}
+  options: ListOptions & ReadScope = {}
 ): Promise<T[]> {
-  const { filter = {}, sort = '-created_at', limit = 50 } = options;
+  const { filter = {}, sort = '-created_at', limit = 50, realOnly = false } = options;
   validateTable(table);
   const { clause, values } = buildWhere(filter);
   const { col, dir } = parseSort(sort as string);
   const lim = Math.min(parseInt(String(limit), 10) || 50, 500);
   const { rows } = await pool.query(
-    `SELECT * FROM ${table} ${clause} ORDER BY ${col} ${dir} LIMIT $${values.length + 1}`,
+    `SELECT * FROM ${table} ${clause}${clause ? '' : 'WHERE TRUE'}${realModeClause(table, realOnly)} ORDER BY ${col} ${dir} LIMIT $${values.length + 1}`,
     [...values, lim]
   );
   return rows as T[];
@@ -118,11 +141,12 @@ export async function listRecords<T extends Record<string, unknown>>(
  */
 export async function getRecord<T extends Record<string, unknown>>(
   table: string,
-  id: string
+  id: string,
+  options: ReadScope = {},
 ): Promise<T | null> {
   validateTable(table);
   const { rows } = await pool.query(
-    `SELECT * FROM ${table} WHERE id = $1`,
+    `SELECT * FROM ${table} WHERE id = $1${realModeClause(table, !!options.realOnly)}`,
     [id]
   );
   return (rows[0] as T) ?? null;
@@ -195,5 +219,6 @@ module.exports = {
   parseSort,
   validateTable,
   sanitizeColumn,
+  withoutProtectedFields,
   ALLOWED_TABLES,
 };

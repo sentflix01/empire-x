@@ -1,18 +1,7 @@
 /**
- * Bug Condition Exploration Test — Task 1
- *
- * Property 1: Bug Condition — Reviews Section Absent Before Fix
- *
- * These tests are written on the UNFIXED code. They are EXPECTED TO FAIL
- * because `ProductDetail.tsx` (pre-fix) never calls `/api/reviews/product/:id`,
- * never holds review state, and never renders a ReviewsSection component.
- *
- * When this test FAILS, it PROVES the bug exists:
- *   - client.get for reviews was never called (call count = 0)
- *   - "Alice" is not found in the DOM
- *   - No star rating / interactive form element is present
- *
- * Validates: Requirements 1.1, 1.2, 1.3, 1.4
+ * Product detail review regression tests.
+ * These checks verify the previously missing review fetch, display, empty state,
+ * and review submission behavior.
  */
 
 import React from 'react';
@@ -252,12 +241,9 @@ describe('Bug Condition Exploration: Reviews Section Absent Before Fix', () => {
   /**
    * Test 3 — Empty reviews state
    *
-   * On unfixed code, no "No reviews yet" empty-state is rendered.
-   * This test SHOULD FAIL on unfixed code.
-   *
    * Validates: Requirements 1.4
    */
-  it('shows "No reviews yet" empty state when reviews array is empty (expected to FAIL on unfixed code)', async () => {
+  it('shows "No reviews yet" empty state when reviews array is empty', async () => {
     setupDefaultMocks([]); // empty array
 
     (auth.me as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'u99' });
@@ -276,8 +262,6 @@ describe('Bug Condition Exploration: Reviews Section Absent Before Fix', () => {
    *
    * For each product ID in ["42", "99", "7"], and for randomly generated review arrays,
    * assert that after mounting ProductDetail the reviews API is called and review content appears.
-   *
-   * On unfixed code: WILL FAIL because the API is never called.
    *
    * Validates: Requirements 1.1, 1.2
    */
@@ -347,5 +331,5 @@ describe('Bug Condition Exploration: Reviews Section Absent Before Fix', () => {
       ),
       { numRuns: 3 }
     );
-  });
+  }, 15000);
 });

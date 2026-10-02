@@ -106,7 +106,7 @@ Supabase Pro includes Point-in-Time Recovery. On free tier:
 1. Go to Supabase → Storage → Backups (if any)
 2. Or restore from backup file in backend/backups/ (if local backup ran)
 3. Re-run migrations: node db/migrate-all.js
-4. Re-seed if needed: node db/create-admin.js
+4. Restore only from a verified backup. Provision administrator access through the hosting provider's secure procedure; never run local account bootstrap scripts against the recovered hosted database.
 ```
 
 ---
@@ -237,11 +237,11 @@ Step 1 (5 min): Create new Render service
    → Add all env vars from ENVIRONMENT_VARIABLES.md
 
 Step 2 (5 min): Run migrations
-   → Local: cd backend && NODE_TLS_REJECT_UNAUTHORIZED=0 node db/migrate-all.js
+   → Local: cd backend && node db/migrate-all.js (keep TLS certificate verification enabled)
    → Creates all 38 tables
 
-Step 3 (2 min): Create admin account
-   → node db/create-admin.js
+Step 3: Provision admin account securely
+   → Use the hosting provider's secure procedure; do not run local dev bootstrap on hosted data.
 
 Step 4 (3 min): Create new Upstash Redis
    → console.upstash.com → Create Database → eu-central-1

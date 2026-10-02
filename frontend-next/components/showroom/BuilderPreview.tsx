@@ -1,3 +1,4 @@
+import SafeImage from '@/components/ui/SafeImage';
 /**
  * BuilderPreview — ported from use 1.html LivePreview + getExportHTML
  * Renders all 25 section types with full fidelity.
@@ -14,11 +15,6 @@ interface Props {
 
 const brandPrimary = "#2563EB";
 const brandSurface = "#F8FAFC";
-
-function esc(s: any): string {
-  if (!s) return "";
-  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
 
 const sec = (extra: React.CSSProperties = {}): React.CSSProperties =>
   ({ padding: "20px 16px", ...extra });
@@ -79,7 +75,7 @@ function renderSection(key: string, d: any): React.ReactNode {
             <div style={grid}>
               {(d.galleryImages||[]).map((img:any,i:number) => (
                 <div key={i} style={card}>
-                  <img loading="lazy" src={img.url||"https://placehold.co/200x150/eee/999?text=Photo"} alt={img.caption} style={{ width:"100%",height:64,objectFit:"cover",borderRadius:4 }} />
+                  <SafeImage fill={false} width={800} height={600} loading="lazy" src={img.url||"https://placehold.co/200x150/eee/999?text=Photo"} alt={img.caption} style={{ width:"100%",height:64,objectFit:"cover",borderRadius:4 }} />
                   {img.caption && <small style={{ fontSize:10 }}>{img.caption}</small>}
                 </div>
               ))}
@@ -110,7 +106,7 @@ function renderSection(key: string, d: any): React.ReactNode {
           <div style={grid}>
             {(d.members||[]).map((m:any,i:number) => (
               <div key={i} style={card}>
-                <img loading="lazy" src={m.image||"https://placehold.co/80/eee/999?text=T"} alt={m.name} style={{ width:48,height:48,borderRadius:"50%",objectFit:"cover",marginBottom:6 }} />
+                <SafeImage fill={false} width={800} height={600} loading="lazy" src={m.image||"https://placehold.co/80/eee/999?text=T"} alt={m.name} style={{ width:48,height:48,borderRadius:"50%",objectFit:"cover",marginBottom:6 }} />
                 <strong style={{ display:"block", fontSize:11 }}>{m.name}</strong>
                 <small style={{ color:brandPrimary, fontSize:10 }}>{m.role}</small>
               </div>
@@ -192,7 +188,7 @@ function renderSection(key: string, d: any): React.ReactNode {
           <div style={grid}>
             {(d.portfolio||[]).map((p:any,i:number) => (
               <div key={i} style={card}>
-                <img loading="lazy" src={p.image||"https://placehold.co/200x150/eee/999?text=Project"} alt={p.title} style={{ width:"100%",height:64,objectFit:"cover",borderRadius:4,marginBottom:6 }} />
+                <SafeImage fill={false} width={800} height={600} loading="lazy" src={p.image||"https://placehold.co/200x150/eee/999?text=Project"} alt={p.title} style={{ width:"100%",height:64,objectFit:"cover",borderRadius:4,marginBottom:6 }} />
                 <strong style={{ fontSize:11 }}>{p.title}</strong>
                 <small style={{ color:brandPrimary, fontSize:10, display:"block" }}>{p.client}</small>
               </div>
@@ -303,7 +299,7 @@ function renderSection(key: string, d: any): React.ReactNode {
           <div style={grid}>
             {(d.partners||[]).map((p:any,i:number) => (
               <div key={i} style={card}>
-                <img loading="lazy" src={p.logo||"https://placehold.co/120x60/eee/999?text=Partner"} alt={p.name} style={{ maxWidth:"100%",height:40,objectFit:"contain",marginBottom:6 }} />
+                <SafeImage fill={false} width={800} height={600} loading="lazy" src={p.logo||"https://placehold.co/120x60/eee/999?text=Partner"} alt={p.name} style={{ maxWidth:"100%",height:40,objectFit:"contain",marginBottom:6 }} />
                 <strong style={{ fontSize:11 }}>{p.name}</strong>
                 <small style={{ color:"#888",fontSize:10,display:"block" }}>{p.note}</small>
               </div>

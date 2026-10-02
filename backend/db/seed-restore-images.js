@@ -14,6 +14,7 @@
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./pool');
+const { assertSafeDevSeed } = require('./operationSafety');
 
 const pick  = arr => arr[Math.floor(Math.random() * arr.length)];
 const rand  = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -74,6 +75,7 @@ const PROMO_POST_CONTENTS = [
 ];
 
 async function restore() {
+  assertSafeDevSeed();
   const client = await pool.connect();
   console.log('\n🖼️  Restoring image posts with appropriate photos\n');
 

@@ -10,10 +10,19 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   if (!code || !discount_type || discount_value == null) {
     res.status(400).json({ error: 'code, discount_type, and discount_value are required' }); return;
   }
+  const normalizedCode = typeof code === 'string' ? code.trim().toUpperCase() : '';
+  const value = Number(discount_value);
+  const minimum = min_order == null ? 0 : Number(min_order);
+  const limit = usage_limit == null ? null : Number(usage_limit);
+  if (!/^[A-Z0-9_-]{2,40}$/.test(normalizedCode) || !['percentage', 'fixed'].includes(String(discount_type)) ||
+      !Number.isFinite(value) || value <= 0 || (discount_type === 'percentage' && value > 100) ||
+      !Number.isFinite(minimum) || minimum < 0 || (limit !== null && (!Number.isInteger(limit) || limit < 1))) {
+    res.status(400).json({ error: 'Invalid coupon code, discount, minimum order, or usage limit' }); return;
+  }
   try {
     const { rows } = await pool.query(
       `INSERT INTO coupons (seller_id,code,discount_type,discount_value,min_order,usage_limit,expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [req.user!.id, (code as string).toUpperCase(), discount_type, discount_value, min_order ?? 0, usage_limit ?? null, expires_at ?? null],
+      [req.user!.id, normalizedCode, discount_type, value, minimum, limit, expires_at ?? null],
     );
     res.status(201).json(rows[0]);
   } catch (err: unknown) {
@@ -50,11 +59,9 @@ router.post('/validate', async (req: Request, res: Response) => {
 });
 
 router.post('/use', requireAuth, async (req: Request, res: Response) => {
-  const { coupon_id } = req.body as { coupon_id: string };
-  try {
-    await pool.query('UPDATE coupons SET usage_count=usage_count+1 WHERE id=$1', [coupon_id]);
-    res.json({ success: true });
-  } catch { res.status(500).json({ error: 'Failed to record coupon use' }); }
+  // Usage is recorded only after a verified payment webhook. A client-side
+  // endpoint cannot prove an order was paid and allowed arbitrary counter bumps.
+  res.status(410).json({ error: 'Coupon usage is recorded automatically after payment confirmation' });
 });
 
 router.patch('/:id/toggle', requireAuth, async (req: Request, res: Response) => {

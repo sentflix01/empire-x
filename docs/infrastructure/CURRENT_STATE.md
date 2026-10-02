@@ -142,20 +142,13 @@
 
 ---
 
-## Admin Account
+## Admin and Demo Accounts
 
-| Field | Value |
-|---|---|
-| Email | `admin@nodbusiness.app` |
-| Password | `Admin1234!` |
-| Role | `admin` |
-| Created | September 22, 2026 (via `node db/create-admin.js`) |
-
-> ⚠️ Change this password before real users are added.
-
-**Test account:**
-| Email | `test@nodbusiness.app` |
-| Password | `Test1234!` |
+Account existence and credentials are environment-specific and are not recorded
+in this repository. The local account bootstrap requires unique passwords via
+environment variables, creates only missing accounts on a local database, and
+never prints passwords. Production account provisioning belongs in the hosting
+provider's secure procedure.
 
 ---
 

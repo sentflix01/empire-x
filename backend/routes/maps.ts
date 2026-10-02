@@ -22,6 +22,83 @@ function attachDistances<T extends { latitude?: unknown; longitude?: unknown }>(
   }));
 }
 
+router.get('/nearby/product-search', optionalAuth, async (req: Request, res: Response) => {
+  const { q = '', lat, lon, radius_km = '10', category = '' } = req.query as Record<string, string>;
+  const query = q.trim();
+  const latitude = Number(lat);
+  const longitude = Number(lon);
+  const radiusKm = Number(radius_km);
+
+  if (query.length < 2 || query.length > 120) {
+    res.status(400).json({ error: 'Search query must be between 2 and 120 characters' });
+    return;
+  }
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    res.status(400).json({ error: 'Valid latitude and longitude are required' });
+    return;
+  }
+  if (!Number.isFinite(radiusKm) || radiusKm <= 0 || radiusKm > 100) {
+    res.status(400).json({ error: 'radius_km must be greater than 0 and at most 100' });
+    return;
+  }
+
+  const realOnlyProductFilter = req.realOnly
+    ? 'AND seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)'
+    : '';
+  const realOnlyBusinessFilter = req.realOnly
+    ? 'AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)'
+    : '';
+  const pattern = `%${query}%`;
+
+  try {
+    const { rows: productRows } = await pool.query(
+      `SELECT id,seller_id,title,description,price,currency,images,category,latitude,longitude
+       FROM products
+       WHERE status='active'
+         AND latitude IS NOT NULL AND longitude IS NOT NULL
+         AND (title ILIKE $1 OR COALESCE(description,'') ILIKE $1 OR COALESCE(category,'') ILIKE $1)
+         AND ($4 = '' OR COALESCE(category,'') ILIKE $4)
+         ${realOnlyProductFilter}
+       ORDER BY ABS(latitude - $2::float) + ABS(longitude - $3::float)
+       LIMIT 500`,
+      [pattern, latitude, longitude, category],
+    );
+
+    const products = attachDistances(productRows, latitude, longitude)
+      .filter((product) => product.distance_km <= radiusKm)
+      .slice(0, 100);
+    const ownerIds = [...new Set(products.map((product) => product.seller_id).filter(Boolean))];
+
+    let businesses: Array<Record<string, unknown>> = [];
+    if (ownerIds.length) {
+      const { rows: businessRows } = await pool.query(
+        `SELECT id,owner_id,name AS business_name,category AS business_category,logo_url,address,latitude,longitude
+         FROM businesses
+         WHERE owner_id = ANY($1::uuid[])
+           AND latitude IS NOT NULL AND longitude IS NOT NULL
+           ${realOnlyBusinessFilter}
+         LIMIT 200`,
+        [ownerIds],
+      );
+      businesses = attachDistances(businessRows, latitude, longitude)
+        .filter((business) => business.distance_km <= radiusKm)
+        .map((business) => ({
+          ...business,
+          matched_products: products.filter((product) => product.seller_id === business.owner_id),
+        }));
+    }
+
+    res.json({
+      businesses,
+      geo_products: products,
+      products_matched: products,
+      total_matches: products.length,
+    });
+  } catch {
+    res.status(500).json({ error: 'Failed to search nearby products' });
+  }
+});
+
 router.get('/nearby', optionalAuth, async (req: Request, res: Response) => {
   const { lat, lon, type = 'all', radius = '10', limit = '50' } = req.query as Record<string, string>;
   if (!lat || !lon) { res.status(400).json({ error: 'lat and lon are required' }); return; }
@@ -30,32 +107,36 @@ router.get('/nearby', optionalAuth, async (req: Request, res: Response) => {
   const radiusKm = parseFloat(radius) || 10;
   const lim = Math.min(parseInt(limit) || 50, 200);
   const results: Record<string, unknown[]> = {};
+  const realProductFilter = req.realOnly ? 'AND seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '';
+  const realBusinessFilter = req.realOnly ? 'AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '';
+  const realTaskFilter = req.realOnly ? 'AND requester_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '';
+  const realPeopleJoin = req.realOnly ? 'JOIN users u ON u.id=up.user_id AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
 
   try {
     if (type === 'all' || type === 'products') {
       const { rows } = await pool.query(
-        `SELECT id,seller_id,title,price,currency,images,category,latitude,longitude FROM products WHERE status='active' AND latitude IS NOT NULL AND longitude IS NOT NULL LIMIT $1`,
+        `SELECT id,seller_id,title,price,currency,images,category,latitude,longitude FROM products WHERE status='active' AND latitude IS NOT NULL AND longitude IS NOT NULL ${realProductFilter} LIMIT $1`,
         [lim * 3],
       );
       results.products = attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim);
     }
     if (type === 'all' || type === 'businesses') {
       const { rows } = await pool.query(
-        `SELECT id,owner_id,name,category,logo_url,address,latitude,longitude FROM businesses WHERE latitude IS NOT NULL AND longitude IS NOT NULL LIMIT $1`,
+        `SELECT id,owner_id,name,category,logo_url,address,latitude,longitude FROM businesses WHERE latitude IS NOT NULL AND longitude IS NOT NULL ${realBusinessFilter} LIMIT $1`,
         [lim * 3],
       );
       results.businesses = attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim);
     }
     if (type === 'all' || type === 'tasks') {
       const { rows } = await pool.query(
-        `SELECT id,requester_id,title,task_type,offered_payment,currency,location,latitude,longitude FROM tasks WHERE status='open' AND latitude IS NOT NULL AND longitude IS NOT NULL LIMIT $1`,
+        `SELECT id,requester_id,title,task_type,offered_payment,currency,location,latitude,longitude FROM tasks WHERE status='open' AND latitude IS NOT NULL AND longitude IS NOT NULL ${realTaskFilter} LIMIT $1`,
         [lim * 3],
       );
       results.tasks = attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim);
     }
     if (type === 'all' || type === 'people') {
       const { rows } = await pool.query(
-        `SELECT up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.latitude,up.longitude FROM user_profiles up WHERE up.latitude IS NOT NULL AND up.longitude IS NOT NULL LIMIT $1`,
+        `SELECT up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.latitude,up.longitude FROM user_profiles up ${realPeopleJoin} WHERE up.latitude IS NOT NULL AND up.longitude IS NOT NULL LIMIT $1`,
         [lim * 3],
       );
       results.people = attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim);

@@ -142,7 +142,7 @@ WHERE state = 'active';
 Supabase uses Supavisor for connection pooling. Two connection strings are available:
 
 ```
-# Pooler URL — for the live application (Coolify env var DATABASE_URL)
+# Pooler URL — for the live application (Render env var DATABASE_URL)
 # Transaction mode, port 6543 — efficient connection reuse
 postgresql://postgres.REF:[PASS]@aws-0-REGION.pooler.supabase.com:6543/postgres?sslmode=require
 
@@ -155,4 +155,4 @@ Both are available at: **Supabase → Project Settings → Database → Connecti
 
 **Rule:** Use the pooler URL (port 6543) for the backend application. Use the direct URL (port 5432) for all migration scripts and `pg_dump` backups — DDL statements do not work through the pooler.
 
-Set `DB_POOL_MAX=5` in Coolify env vars (Supabase free tier connection limit is ~20 direct connections; the Supavisor pooler handles multiplexing transparently).
+Set `DB_POOL_MAX=5` in Render environment variables (Supabase free tier connection limit is ~20 direct connections; the Supavisor pooler handles multiplexing transparently).

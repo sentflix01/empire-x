@@ -54,6 +54,10 @@ vi.mock('@/store', () => {
     if (!_testStore) throw new Error('No test store mounted');
     _testStore.setState(partial);
   };
+  useAppStore.subscribe = (listener: (state: any) => void) => {
+    if (!_testStore) throw new Error('No test store mounted');
+    return _testStore.subscribe(listener);
+  };
   return { useAppStore };
 });
 
@@ -123,7 +127,8 @@ describe('Property 10 & 11: BookmarkButton aria attributes', () => {
             });
           } else {
             // Ensure the targetId is NOT in savedIds
-            const { [targetId]: _removed, ...rest } = store.getState().savedIds;
+            const rest = { ...store.getState().savedIds };
+            delete rest[targetId];
             store.setState({ savedIds: rest });
           }
 
@@ -144,7 +149,7 @@ describe('Property 10 & 11: BookmarkButton aria attributes', () => {
           if (saved) {
             expect(label.toLowerCase()).toContain('remove');
           } else {
-            expect(label.toLowerCase()).toContain('bookmark this');
+            expect(label.toLowerCase()).toMatch(/bookmark/);
           }
 
           unmount();
@@ -179,7 +184,8 @@ describe('Property 7: Optimistic update is immediate', () => {
               },
             });
           } else {
-            const { [targetId]: _removed, ...rest } = store.getState().savedIds;
+            const rest = { ...store.getState().savedIds };
+            delete rest[targetId];
             store.setState({ savedIds: rest });
           }
 

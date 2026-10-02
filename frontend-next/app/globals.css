@@ -189,6 +189,10 @@
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 .safe-left   { padding-left:   env(safe-area-inset-left); }
 .safe-right  { padding-right:  env(safe-area-inset-right); }
+.app-main-safe-padding { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 768px) {
+  .app-main-safe-padding { padding-bottom: 1rem; }
+}
 
 /* Tablet-friendly touch targets — WCAG 2.5.5 minimum 44×44px */
 @media (max-width: 1024px) {

@@ -1,14 +1,13 @@
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import ReviewsSection from "@/components/product/ReviewsSection";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
-import { useTranslation } from 'react-i18next';
 
-import { ArrowLeft, Heart, Share2, ShoppingCart, MapPin, Star, Truck, Shield, MessageCircle, Bell, BellOff, Check, Zap } from "lucide-react";
+import { ArrowLeft, Heart, ShoppingCart, MapPin, Star, Truck, Shield, MessageCircle, Bell, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/lib/CartContext";
@@ -18,13 +17,13 @@ import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function ProductDetail() {
-  const { t } = useTranslation();
   const params = useParams();
   const idParam = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const id = typeof idParam === 'string' ? idParam : '';
   const router = useRouter();
   const { addItem } = useCart();
   const { user } = useAuth();
+  const userId = user?.id;
   const [product, setProduct] = useState<any>(null);
   const [seller, setSeller] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -37,14 +36,55 @@ function ProductDetail() {
   const [showAlertForm, setShowAlertForm] = useState(false);
   const [alertSaving, setAlertSaving] = useState(false);
   const [purchaseItem, setPurchaseItem] = useState<any>(null);
+  const productRequestId = useRef(0);
+
+  const loadProduct = useCallback(async () => {
+    const requestId = ++productRequestId.current;
+    setLoading(true);
+    setProduct(null);
+    setSeller(null);
+    setWishlisted(false);
+    setAlertActive(false);
+    setAlertTarget("");
+    try {
+      const p = await client.get(`/api/products/${id}`).then(r => r.data).catch(() => null)
+        || await import("@/api/entities").then(m => m.entities.Product.get(id));
+      if (requestId !== productRequestId.current) return;
+      setProduct(p);
+      // Check wishlist for authenticated users
+      try {
+        const { data } = await client.get(`/api/wishlists/check/${id}`);
+        if (requestId !== productRequestId.current) return;
+        setWishlisted(data.wishlisted);
+        try {
+          const { data: alerts } = await client.get("/api/wishlists/price-alerts");
+          if (requestId !== productRequestId.current) return;
+          const existing = alerts.find((a: any) => a.product_id === id);
+          if (existing) { setAlertActive(true); setAlertTarget(String(existing.target_price)); }
+        } catch { /* reviews and alerts are non-critical */ }
+      } catch { /* guests have no private wishlist state */ }
+      if (p?.seller_id) {
+        try {
+          const { entities: entitiesApi } = await import("@/api/entities");
+          const profiles = await entitiesApi.UserProfile.filter({ user_id: p.seller_id });
+          if (requestId !== productRequestId.current) return;
+          if (profiles.length) setSeller(profiles[0]);
+        } catch { /* seller details can be retried by reloading the product */ }
+      }
+      if (p?.id) {
+        import("@/api/entities").then(m => m.entities.Product.update(p.id, { view_count: (p.view_count || 0) + 1 })).catch(() => {});
+      }
+    } catch { /* surfaced by the empty product state */ }
+    if (requestId === productRequestId.current) setLoading(false);
+  }, [id]);
 
   useEffect(() => {
     loadProduct();
-  }, [id]);
+  }, [loadProduct]);
 
   // Re-check wishlist when user logs in
   useEffect(() => {
-    if (!user || !id) return;
+    if (!userId || !id) return;
     client.get(`/api/wishlists/check/${id}`)
       .then(r => setWishlisted(r.data.wishlisted))
       .catch(() => {});
@@ -54,39 +94,7 @@ function ProductDetail() {
         if (existing) { setAlertActive(true); setAlertTarget(String(existing.target_price)); }
       })
       .catch(() => {});
-  }, [id, user?.id]);
-
-  const loadProduct = async () => {
-    try {
-      const p = await client.get(`/api/products/${id}`).then(r => r.data).catch(() => null)
-        || await import("@/api/entities").then(m => m.entities.Product.get(id));
-      setProduct(p);
-      // Check wishlist for authenticated users
-      try {
-        const { data } = await client.get(`/api/wishlists/check/${id}`);
-        setWishlisted(data.wishlisted);
-        // Check existing price alert
-        try {
-          const { data: alerts } = await client.get("/api/wishlists/price-alerts");
-          const existing = alerts.find((a: any) => a.product_id === id);
-          if (existing) { setAlertActive(true); setAlertTarget(String(existing.target_price)); }
-        } catch (err) { /* silenced */ }
-      } catch (err) { /* silenced */ }
-      // Load seller profile
-      if (p?.seller_id) {
-        try {
-          const { entities: entitiesApi } = await import("@/api/entities");
-          const profiles = await entitiesApi.UserProfile.filter({ user_id: p.seller_id });
-          if (profiles.length) setSeller(profiles[0]);
-        } catch (err) { /* silenced */ }
-      }
-      // Increment view count
-      if (p?.id) {
-        import("@/api/entities").then(m => m.entities.Product.update(p.id, { view_count: (p.view_count || 0) + 1 })).catch(() => {});
-      }
-    } catch (err) { /* silenced */ }
-    setLoading(false);
-  };
+  }, [id, userId]);
 
   const handleWishlist = async () => {    setWishlistLoading(true);
     try {

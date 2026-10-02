@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
-  Shield, Lock, Eye, EyeOff, Globe, Smartphone, Bell, Users,
+   Lock, Eye,
   ChevronRight, CheckCircle, AlertTriangle, FileText, Mail,
-  Database, Trash2, Download, UserX, ShieldCheck,
+  Database, UserX, ShieldCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import client from '@/api/client';
@@ -110,15 +110,13 @@ function PrivacyAndSecurityView() {
   const [searchable, setSearchable] = useState(true);
   const [dataAnalytics, setDataAnalytics] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [loadingPresence, setLoadingPresence] = useState(false);
+  const [twoFactorEnabled] = useState(false);
   const [loadingExport, setLoadingExport] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
 
   const updatePresence = async (val: 'everyone' | 'contacts' | 'nobody') => {
     const prev = lastSeen;
     setLastSeen(val);
-    setLoadingPresence(true);
     try {
       await client.put('/api/messages/presence/settings', { visibility: val });
       toast.success('Last seen setting updated');
@@ -126,7 +124,6 @@ function PrivacyAndSecurityView() {
       setLastSeen(prev);
       toast.error('Could not update setting');
     }
-    setLoadingPresence(false);
   };
 
   const handleExportData = async () => {

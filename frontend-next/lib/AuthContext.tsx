@@ -9,6 +9,10 @@ export interface AuthUser {
   email?: string;
   role?: string;
   is_demo?: boolean;
+  /** Active data environment: 2 means an isolated, cookie-bound sandbox. */
+  demo_track?: 1 | 2 | null;
+  demo_session_active?: boolean;
+  demo_expires_at?: string | null;
   /** Set after first-login mode selection. null = user has not yet chosen. */
   onboarding_mode?: 'demo' | 'real' | null;
   [key: string]: unknown;

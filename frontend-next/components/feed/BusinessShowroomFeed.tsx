@@ -1,18 +1,15 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useRouter } from 'next/navigation';
 import { entities } from '@/api/entities';
-import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
-import client from '@/api/client';
 import { QRCodeSVG } from 'qrcode.react';
 
 import {
   Store, ShoppingBag, MapPin, MessageSquare, ArrowRight, Clock,
   UtensilsCrossed, Briefcase, HeartPulse, Palette, CalendarDays,
-  Home as HomeIcon, GraduationCap, LucideProps, Bookmark, ShoppingCart,
+  Home as HomeIcon, GraduationCap, LucideProps, ShoppingCart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { findOrCreateConversation } from '@/lib/messaging';
@@ -396,22 +393,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   // ── Global feed mode (no profile prop) ────────────────────────────
   const isFeedMode = !profile;
 
-  useEffect(() => {
-    if (isFeedMode) {
-      loadFeedBusinesses();
-      return;
-    }
-    if (!profile?.user_id) return;
-    if (propBusinesses !== undefined) {
-      setAllBusinesses(propBusinesses ?? []);
-      if ((propBusinesses?.length ?? 0) > 0) setSelectedBizId(propBusinesses![0].id);
-      setLoading(false);
-    } else {
-      loadData();
-    }
-  }, [profile?.user_id, propBusinesses]);
-
-  const loadFeedBusinesses = async () => {
+  const loadFeedBusinesses = useCallback(async () => {
     setLoading(true);
     try {
       // Load up to 20 businesses for the feed
@@ -442,17 +424,34 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
       }
     } catch { setFeedBusinesses([]); }
     setLoading(false);
-  };
+  }, []);
 
-  const loadData = async () => {
+  const ownerId = profile?.user_id;
+  const loadData = useCallback(async () => {
+    if (!ownerId) return;
     setLoading(true);
     try {
-      const businesses: Business[] = (await entities.Business.filter({ owner_id: profile!.user_id })) as Business[];
+      const businesses: Business[] = (await entities.Business.filter({ owner_id: ownerId })) as Business[];
       setAllBusinesses(businesses ?? []);
       if (businesses.length > 0) setSelectedBizId(businesses[0].id);
     } catch { /* ignore */ }
     setLoading(false);
-  };
+  }, [ownerId]);
+
+  useEffect(() => {
+    if (isFeedMode) {
+      loadFeedBusinesses();
+      return;
+    }
+    if (!profile?.user_id) return;
+    if (propBusinesses !== undefined) {
+      setAllBusinesses(propBusinesses ?? []);
+      if ((propBusinesses?.length ?? 0) > 0) setSelectedBizId(propBusinesses![0].id);
+      setLoading(false);
+    } else {
+      loadData();
+    }
+  }, [isFeedMode, profile?.user_id, propBusinesses, loadData, loadFeedBusinesses]);
 
   useEffect(() => {
     if (isFeedMode || !selectedBizId) return;
@@ -885,4 +884,3 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     </div>
   );
 }
-

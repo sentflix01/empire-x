@@ -17,36 +17,15 @@ const pool = require('./pool');
 
 const schema = `
 -- ── 1. orders.status CHECK — add 'payment_failed' + 'refunded' ───────────────
--- Drop whichever CHECK constraint covers the status column (name-agnostic).
-DO $$
-DECLARE r RECORD;
-BEGIN
-  FOR r IN
-    SELECT conname FROM pg_constraint
-    WHERE conrelid = 'orders'::regclass
-      AND contype = 'c'
-      AND pg_get_constraintdef(oid) ILIKE '%status%'
-  LOOP
-    EXECUTE format('ALTER TABLE orders DROP CONSTRAINT %I', r.conname);
-  END LOOP;
-END $$;
+-- Replace only the constraint owned by this migration. Never drop unrelated
+-- CHECK constraints that happen to mention the status column.
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;
 
 ALTER TABLE orders ADD CONSTRAINT orders_status_check
   CHECK (status IN ('pending','paid','processing','completed','cancelled','payment_failed','refunded'));
 
 -- ── 2. wallet_transactions.type CHECK — add pending/failed topup ────────────
-DO $$
-DECLARE r RECORD;
-BEGIN
-  FOR r IN
-    SELECT conname FROM pg_constraint
-    WHERE conrelid = 'wallet_transactions'::regclass
-      AND contype = 'c'
-      AND pg_get_constraintdef(oid) ILIKE '%type%'
-  LOOP
-    EXECUTE format('ALTER TABLE wallet_transactions DROP CONSTRAINT %I', r.conname);
-  END LOOP;
-END $$;
+ALTER TABLE wallet_transactions DROP CONSTRAINT IF EXISTS wallet_transactions_type_check;
 
 ALTER TABLE wallet_transactions ADD CONSTRAINT wallet_transactions_type_check
   CHECK (type IN ('credit','debit','withdrawal','refund','pending_topup','failed_topup'));

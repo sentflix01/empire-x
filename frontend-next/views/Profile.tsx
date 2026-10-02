@@ -5,12 +5,10 @@ import Link from 'next/link';
 import { useAuth } from "@/lib/AuthContext";
 import { auth } from "@/api/auth";
 import { entities } from "@/api/entities";
-import client from "@/api/client";
 import SafeImage from "@/components/ui/SafeImage";
-import { useTranslation } from 'react-i18next';
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit2, LogOut, MapPin, Crown, Store, Settings, Plus, ShoppingBag, ClipboardList, ChevronDown, Pencil, ArrowLeft, Radio, ToggleLeft, ToggleRight, User } from "lucide-react";
+import { Edit2, LogOut, MapPin, Crown, Store, Plus, ArrowLeft, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,28 +17,21 @@ import BusinessProfile from "@/components/profile/BusinessProfile";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import TickerBar from "@/components/feed/TickerBar";
 import { DemoBadge } from "@/components/profile/DemoBadge";
-import { toast } from "sonner";
-import { useTheme } from "next-themes";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useProfileView } from '@/lib/ProfileViewContext';
 
 function Profile() {
-  const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
   const viewParam = searchParams.get("view");
-  const { theme, setTheme } = useTheme();
   const { user, authChecked } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { profileViewMode: view, setProfileViewMode, profileViewTokens: accentTokens } = useProfileView();
-  const [flipping, setFlipping] = useState(false);
+  const { profileViewMode: view, setProfileViewMode } = useProfileView();
   const [businesses, setBusinesses] = useState([]);
   const [selectedBizId, setSelectedBizId] = useState(null);
-  const [bizSelectorOpen, setBizSelectorOpen] = useState(false);
   const [tickerOn, setTickerOn] = useState(false);
-  const [tickerToggling, setTickerToggling] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -99,26 +90,7 @@ function Profile() {
   const handleFlip = () => {
     if (businesses.length === 0 && !profile?.has_business_profile) return;
     const next = view === "personal" ? "business" : "personal";
-    setFlipping(true);
-    setTimeout(() => {
-      setProfileViewMode(next);
-      setFlipping(false);
-    }, 200);
-  };
-
-  const handleTickerQuickToggle = async () => {
-    if (!profile || tickerToggling) return;
-    setTickerToggling(true);
-    const newType = tickerOn ? 'none' : (profile.ticker_type && profile.ticker_type !== 'none' ? profile.ticker_type : 'auto');
-    try {
-      await client.patch('/api/profiles/me/ticker', { ticker_type: newType });
-      setTickerOn(!tickerOn);
-      setProfile(p => ({ ...p, ticker_type: newType }));
-      toast.success(newType === 'none' ? 'Ticker turned off' : 'Ticker turned on');
-    } catch {
-      toast.error('Failed to update ticker');
-    }
-    setTickerToggling(false);
+    setProfileViewMode(next);
   };
 
   const isOwner = user?.id === profile?.user_id;

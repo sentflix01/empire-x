@@ -6,8 +6,10 @@
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./pool');
+const { assertSafeDevSeed } = require('./operationSafety');
 
 async function clean() {
+  assertSafeDevSeed();
   const client = await pool.connect();
   console.log('\n🧹 Cleaning picsum image posts from seed users...\n');
   try {

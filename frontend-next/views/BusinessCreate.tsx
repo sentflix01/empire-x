@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { entities } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
-import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,7 +35,6 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function BusinessCreate() {
-  const { t } = useTranslation();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();

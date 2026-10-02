@@ -3,7 +3,6 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from "react";
 import { entities } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
-import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,6 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function EventCreate() {
-  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);

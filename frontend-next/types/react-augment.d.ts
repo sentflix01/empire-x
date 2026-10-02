@@ -12,11 +12,14 @@
 import 'react';
 
 declare module 'react' {
+  // These generic parameters must remain to match React's original declarations.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface HTMLAttributes<T> {
     children?: ReactNode | undefined;
   }
 
   // Allow children on all forwardRef components
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface RefAttributes<T> {
     children?: ReactNode | undefined;
   }

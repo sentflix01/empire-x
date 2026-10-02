@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react';
 import { ExternalDataSource } from '../../types/externalApi';
+import { apiFetch } from '@/api/client';
 
 interface Props {
   showroomId: string;
@@ -175,7 +176,7 @@ export default function ExternalDataSourcePanel({
 
     setIsSaving(true);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         existingSource ? `${apiBase}/${existingSource.id}` : apiBase,
         {
           method: existingSource ? 'PUT' : 'POST',
@@ -211,7 +212,7 @@ export default function ExternalDataSourcePanel({
     if (!existingSource) return;
     setIsTogglingEnabled(true);
     try {
-      const res = await fetch(`${apiBase}/${existingSource.id}`, {
+      const res = await apiFetch(`${apiBase}/${existingSource.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_enabled: !isEnabled }),
@@ -231,7 +232,7 @@ export default function ExternalDataSourcePanel({
     setShowDeleteConfirm(false);
     setIsDeleting(true);
     try {
-      const res = await fetch(`${apiBase}/${existingSource.id}`, {
+      const res = await apiFetch(`${apiBase}/${existingSource.id}`, {
         method: 'DELETE',
       });
       if (res.ok) {

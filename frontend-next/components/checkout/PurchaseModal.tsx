@@ -1,8 +1,8 @@
 'use client'
+import SafeImage from '@/components/ui/SafeImage';
 import React, { useState, useEffect, useRef } from "react";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
-import { createNotification } from "@/lib/notifications";
 import { X, ShoppingBag, Check, Loader2, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,19 +123,6 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
         delivery_address: orderInfo.address,
         notes: orderInfo.notes,
       });
-      // The order is already durable. A notification outage must not make a
-      // successful purchase look like it failed to the buyer.
-      try {
-        await createNotification(
-          seller.user_id,
-          "order",
-          `New order: ${item.title}`,
-          `${orderInfo.name || buyer?.full_name || "A buyer"} ordered ${quantity}× ${item.title} for ${totalPrice.toLocaleString()} ${item.currency || "USD"}.`,
-          "/profile"
-        );
-      } catch {
-        // Notifications are best-effort; the seller can still see the order.
-      }
       setStep("success");
       onPurchased?.();
     } catch (error) {
@@ -163,7 +150,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
             {/* Product */}
             <div className="flex gap-3">
               <div className="w-20 h-20 rounded-xl bg-secondary/20 overflow-hidden shrink-0">
-                {images[0] ? <img loading="lazy" src={images[0]} alt={item.title || 'Product image'} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-muted-foreground/30"><ShoppingBag className="w-6 h-6" /></div>}
+                {images[0] ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={images[0]} alt={item.title || 'Product image'} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-muted-foreground/30"><ShoppingBag className="w-6 h-6" /></div>}
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm">{item.title}</h3>
@@ -199,7 +186,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
           <div className="p-5 space-y-4">
             <div className="flex gap-3 p-3 rounded-xl bg-secondary/20">
               <div className="w-12 h-12 rounded-lg bg-secondary/30 overflow-hidden shrink-0">
-                {images[0] ? <img loading="lazy" src={images[0]} alt={item.title || 'Product image'} className="w-full h-full object-cover" /> : <ShoppingBag className="w-5 h-5 text-muted-foreground/30 m-auto mt-3" />}
+                {images[0] ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={images[0]} alt={item.title || 'Product image'} className="w-full h-full object-cover" /> : <ShoppingBag className="w-5 h-5 text-muted-foreground/30 m-auto mt-3" />}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{item.title}</p>

@@ -20,18 +20,40 @@ import { sendPushToUser } from './push';
 import { sendOrderConfirmation } from '../utils/mailer';
 import * as apiError from '../lib/apiError';
 import { getPrimaryFrontendUrl } from '../lib/frontendUrl';
-import { isEnabled } from '../lib/featureFlags';
 import { recordEvent } from '../lib/telemetry';
 import { auditLog } from '../lib/auditLogger';
+import { isStripeConfigured, stripeClientFacade, withVerifiedStripeWebhook } from '../lib/stripeClient';
+import { requireIsolatedPaymentEnvironment } from '../middleware/demoEnvironment';
+import { requireFeatureFlag } from '../middleware/featureFlag';
+import {
+  InventoryUnavailableError, reserveOrderInventory, commitOrderInventory,
+  releaseOrderInventory, transitionPaymentOrders, cancelOrderAndReleaseInventory,
+} from '../services/orderInventory';
 
 const router = Router();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const stripe: any = process.env.STRIPE_SECRET_KEY ? require('stripe')(process.env.STRIPE_SECRET_KEY) : null;
+const stripe: any = stripeClientFacade();
 const STRIPE_CURRENCY = (process.env.STRIPE_CURRENCY ?? 'usd').toLowerCase();
 const STRIPE_ETB_TO_USD_RATE = (() => { const r = parseFloat(process.env.STRIPE_ETB_TO_USD_RATE ?? '0.008'); return Number.isFinite(r) && r > 0 ? r : 0.008; })();
 const CHAPA_SECRET  = process.env.CHAPA_SECRET_KEY ?? null;
 const CHAPA_SANDBOX = CHAPA_SECRET === 'SANDBOX';
+
+async function reserveInventoryForOrders(reservations: Array<{ orderId: string; lines: Array<{ productId: string; quantity: number }> }>): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    for (const reservation of reservations) {
+      await reserveOrderInventory(client, reservation.orderId, reservation.lines);
+    }
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => undefined);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
 
 function toChargeCents(etb: number, currency: string): number {
   return Math.round((currency === 'usd' ? etb * STRIPE_ETB_TO_USD_RATE : etb) * 100);
@@ -108,21 +130,27 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
 // Clients must never be able to write payment state, money columns, or
 // ownership columns directly (mass assignment).
 
-/** Columns a client may set when creating a cash-on-delivery order. */
-const COD_CREATE_FIELDS = [
-  'seller_id', 'product_id', 'business_id', 'product_title', 'quantity',
-  'unit_price', 'total_price', 'buyer_name', 'buyer_email', 'buyer_phone',
-  'delivery_address', 'notes',
-] as const;
-
 /** Columns order parties may update on an existing order. */
 const ORDER_UPDATE_FIELDS = new Set([
   'status', 'buyer_name', 'buyer_email', 'buyer_phone', 'delivery_address', 'notes',
 ]);
 
-/** Order statuses a non-admin party may transition to. */
-const BUYER_STATUSES = new Set(['cancelled', 'disputed', 'completed']);
-const SELLER_STATUSES = new Set(['confirmed', 'processing', 'shipped', 'delivered', 'cancelled']);
+/** State transitions allowed for each order party, indexed by current state. */
+const BUYER_TRANSITIONS: Record<string, Set<string>> = {
+  pending: new Set(['cancelled']),
+  paid: new Set(['disputed']),
+  confirmed: new Set(['disputed']),
+  processing: new Set(['disputed']),
+  shipped: new Set(['disputed']),
+  delivered: new Set(['completed', 'disputed']),
+};
+const SELLER_TRANSITIONS: Record<string, Set<string>> = {
+  pending: new Set(['confirmed', 'cancelled']),
+  paid: new Set(['confirmed', 'processing', 'cancelled']),
+  confirmed: new Set(['processing', 'cancelled']),
+  processing: new Set(['shipped', 'cancelled']),
+  shipped: new Set(['delivered']),
+};
 
 function pickAllowed(body: Record<string, unknown>, allowed: readonly string[]): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -134,27 +162,70 @@ function pickAllowed(body: Record<string, unknown>, allowed: readonly string[]):
 
 // Create COD order
 router.post('/', requireAuth, async (req: Request, res: Response) => {
+  let createdOrderId: string | null = null;
   try {
-    const data = pickAllowed(req.body as Record<string, unknown>, COD_CREATE_FIELDS);
-    const { seller_id, product_title, total_price } = data as Record<string, unknown>;
-    if (!seller_id || !product_title || total_price == null) { apiError.validationError(res, 'seller_id, product_title, and total_price are required'); return; }
-    const price = parseFloat(String(total_price));
-    if (!Number.isFinite(price) || price <= 0 || price > 10_000_000) { apiError.validationError(res, 'total_price must be a positive amount'); return; }
+    const body = req.body as Record<string, unknown>;
+    const productId = typeof body.product_id === 'string' ? body.product_id : '';
+    const quantity = body.quantity === undefined ? 1 : Number(body.quantity);
+    if (!productId || !Number.isInteger(quantity) || quantity < 1 || quantity > 10_000) {
+      apiError.validationError(res, 'product_id and a valid quantity are required'); return;
+    }
+    const { rows: products } = await pool.query(
+      `SELECT id,seller_id,business_id,title,price,stock,status FROM products WHERE id=$1`,
+      [productId],
+    );
+    if (!products.length) { apiError.notFound(res, 'Product not found'); return; }
+    const product = products[0] as Record<string, unknown>;
+    if (product.seller_id === req.user!.id) { apiError.validationError(res, 'You cannot purchase your own product'); return; }
+    if (product.status !== 'active') { apiError.validationError(res, 'This product is not available'); return; }
+    if (product.stock !== null && product.stock !== undefined && Number(product.stock) < quantity) {
+      apiError.validationError(res, `Only ${product.stock} of this product are in stock`); return;
+    }
+    const unitPrice = Number(product.price);
+    const totalPrice = Math.round(unitPrice * quantity * 100) / 100;
+    if (!Number.isFinite(unitPrice) || unitPrice <= 0 || !Number.isFinite(totalPrice) || totalPrice <= 0 || totalPrice > 10_000_000) {
+      apiError.validationError(res, 'Product price is invalid'); return;
+    }
     // Server-owned columns — client values are ignored.
     const order = await createRecord('orders', {
-      ...data,
-      total_price: price,
+      product_id: product.id,
+      seller_id: product.seller_id,
+      business_id: product.business_id ?? null,
+      product_title: product.title,
+      quantity,
+      unit_price: unitPrice,
+      total_price: totalPrice,
+      buyer_name: typeof body.buyer_name === 'string' ? body.buyer_name.slice(0, 200) : '',
+      buyer_email: typeof body.buyer_email === 'string' ? body.buyer_email.slice(0, 320) : String(req.user!.email ?? ''),
+      buyer_phone: typeof body.buyer_phone === 'string' ? body.buyer_phone.slice(0, 50) : '',
+      delivery_address: typeof body.delivery_address === 'string' ? body.delivery_address.slice(0, 2000) : '',
+      notes: typeof body.notes === 'string' ? body.notes.slice(0, 2000) : '',
       buyer_id: req.user!.id,
       status: 'pending',
       currency: 'ETB',
       payment_provider: 'cod',
     });
+    createdOrderId = String(order.id);
+    await reserveInventoryForOrders([{ orderId: createdOrderId, lines: [{ productId: String(product.id), quantity }] }]);
     res.status(201).json(order);
+    try {
+      const { rows: [notification] } = await pool.query(
+        `INSERT INTO notifications (user_id,type,title,body,link,is_read)
+         VALUES ($1,'order',$2,$3,'/orders',false) RETURNING *`,
+        [order.seller_id, `New order: ${order.product_title}`, `${order.buyer_name || 'A buyer'} ordered ${order.quantity}× ${order.product_title}.`],
+      );
+      if (notification) {
+        emitNotification(String(order.seller_id), notification as Record<string, unknown>);
+        sendPushToUser(String(order.seller_id), String(notification.title), String(notification.body), '/orders').catch(() => undefined);
+      }
+    } catch { /* order creation must not depend on notification delivery */ }
     try {
       const { rows: buyers } = await pool.query('SELECT email FROM users WHERE id=$1', [req.user!.id]);
       if (buyers[0]?.email) sendOrderConfirmation(buyers[0].email as string, order as unknown as Parameters<typeof sendOrderConfirmation>[1]).catch(()=>undefined);
     } catch { /* non-fatal */ }
   } catch (err) {
+    if (createdOrderId) await pool.query(`UPDATE orders SET status='cancelled',updated_at=NOW() WHERE id=$1 AND status='pending'`, [createdOrderId]).catch(() => undefined);
+    if (err instanceof InventoryUnavailableError) { res.status(409).json({ error: 'Product inventory changed; please review your cart and try again' }); return; }
     logger.error({ err }, 'Failed to create order');
     apiError.serverError(res, 'Failed to create order');
   }
@@ -177,17 +248,25 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       updates = pickAllowed(body, [...ORDER_UPDATE_FIELDS]);
       if (updates.status !== undefined) {
         const isBuyer = existing.buyer_id === req.user!.id;
-        const allowed = isBuyer ? BUYER_STATUSES : SELLER_STATUSES;
-        if (!allowed.has(String(updates.status))) {
+        const transitions = isBuyer ? BUYER_TRANSITIONS : SELLER_TRANSITIONS;
+        if (!transitions[String(existing.status)]?.has(String(updates.status))) {
           apiError.forbidden(res, `You cannot set this order to "${String(updates.status)}"`);
+          return;
+        }
+        if (updates.status === 'cancelled' && existing.payment_provider !== 'cod' && existing.payment_provider !== null) {
+          apiError.forbidden(res, 'Online orders cannot be cancelled here; use the provider refund or return process');
           return;
         }
       }
     }
     if (!Object.keys(updates).length) { apiError.validationError(res, 'No updatable fields provided'); return; }
 
-    const updated = await updateRecord('orders', req.params.id, updates);
+    const updated = (updates as {status?:string}).status === 'cancelled'
+      ? await cancelOrderAndReleaseInventory(pool, req.params.id, String(existing.status))
+      : await updateRecord('orders', req.params.id, updates);
+    if (!updated) { res.status(409).json({ error: 'Order changed; refresh and try again' }); return; }
     if ((updates as {status?:string}).status==='completed' && existing.status!=='completed') {
+      await commitOrderInventory(pool, [req.params.id]).catch(err => logger.error({ err }, 'Failed to commit inventory for completed COD order'));
       collectCommission(existing.id as string, existing.seller_id as string, parseFloat(String(existing.total_price))).catch(err => logger.error({err},'Commission failed'));
       notifyUser(existing.seller_id as string, `✅ <b>Order Completed</b>\n${existing.product_title}\nAmount: ${existing.total_price} ${existing.currency}`).catch(()=>undefined);
       notifyUser(existing.buyer_id as string, `📦 <b>Your order is complete!</b>\n${existing.product_title}\nThank you for shopping on Nodbusiness 👑`).catch(()=>undefined);
@@ -210,27 +289,42 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
 });
 
 // ── Stripe Checkout ───────────────────────────────────────────────────────────
-router.post('/checkout/session', requireAuth, async (req: Request, res: Response) => {
-  if (!stripe) { res.status(503).json({ error: 'Stripe not configured' }); return; }
-  try { if (!(await isEnabled('stripe_payments'))) { res.status(503).json({ error: 'Stripe payments temporarily disabled' }); return; } } catch { /* fall through */ }
+router.post('/checkout/session', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('stripe_payments', 'Stripe payments temporarily disabled'), async (req: Request, res: Response) => {
+  if (!isStripeConfigured()) { res.status(503).json({ error: 'Stripe is not configured for this environment' }); return; }
   const createdOrderIds: string[] = [];
   try {
     const frontendUrl = getPrimaryFrontendUrl();
     const body = req.body as Record<string,unknown>;
-    const rawItems = Array.isArray(body.items) && (body.items as unknown[]).length ? body.items as Array<Record<string,unknown>> : [{ product_id: body.product_id, quantity: body.quantity }];
-    const requested = (rawItems as Array<Record<string,unknown>>).map(i=>({ product_id: i?.product_id as string, quantity: Math.max(1, parseInt(String(i?.quantity||1), 10)) })).filter(i=>i.product_id);
-    if (!requested.length) { apiError.validationError(res, 'product_id or items is required'); return; }
+    const rawItems = Array.isArray(body.items) && (body.items as unknown[]).length
+      ? body.items as Array<Record<string,unknown>>
+      : [{ product_id: body.product_id, quantity: body.quantity }];
+    if (rawItems.length > 100) { apiError.validationError(res, 'A checkout can contain at most 100 cart lines'); return; }
+    const requestedQuantities = new Map<string, number>();
+    for (const item of rawItems) {
+      const productId = typeof item?.product_id === 'string' ? item.product_id.trim() : '';
+      const quantity = item?.quantity === undefined ? 1 : Number(item.quantity);
+      if (!productId || !Number.isInteger(quantity) || quantity < 1 || quantity > 1000) {
+        apiError.validationError(res, 'Each item requires a product_id and an integer quantity between 1 and 1000'); return;
+      }
+      const combinedQuantity = (requestedQuantities.get(productId) ?? 0) + quantity;
+      if (combinedQuantity > 1000) { apiError.validationError(res, 'Combined quantity for a product cannot exceed 1000'); return; }
+      requestedQuantities.set(productId, combinedQuantity);
+    }
+    const requested = [...requestedQuantities].map(([product_id, quantity]) => ({ product_id, quantity }));
     const { rows: products } = await pool.query('SELECT * FROM products WHERE id=ANY($1::uuid[])', [requested.map(i=>i.product_id)]);
     const productById = new Map(products.map((p: Record<string,unknown>) => [p.id as string, p]));
     for (const item of requested) { if (!productById.has(item.product_id)) { apiError.notFound(res, 'One or more products not found'); return; } }
-    const groups = new Map<string,{seller_id:string;items:Array<{product:Record<string,unknown>;quantity:number}>;subtotal:number}>();
+    const groups = new Map<string,{seller_id:string;items:Array<{product:Record<string,unknown>;quantity:number}>;subtotal:number;orderId?:string}>();
     for (const item of requested) {
       const product = productById.get(item.product_id)!;
-      if (product.status==='draft') { apiError.validationError(res, `"${product.title}" is not available`); return; }
+      if (product.status!=='active') { apiError.validationError(res, `"${product.title}" is not available`); return; }
+      if (product.seller_id === req.user!.id) { apiError.validationError(res, 'You cannot purchase your own product'); return; }
       if (product.stock!==null && Number(product.stock)<item.quantity) { apiError.validationError(res, `Only ${product.stock} of "${product.title}" in stock`); return; }
+      const productPrice = Number(product.price);
+      if (!Number.isFinite(productPrice) || productPrice <= 0) { apiError.validationError(res, `"${product.title}" has an invalid price`); return; }
       const g = groups.get(product.seller_id as string) ?? { seller_id: product.seller_id as string, items:[], subtotal:0 };
       g.items.push({ product, quantity: item.quantity });
-      g.subtotal += parseFloat(String(product.price)) * item.quantity;
+      g.subtotal += productPrice * item.quantity;
       groups.set(product.seller_id as string, g);
     }
     type CouponInfo = { id:string; seller_id:string; code:string; discount:number }|null;
@@ -265,32 +359,43 @@ router.post('/checkout/session', requireAuth, async (req: Request, res: Response
         buyer_phone:String(body.buyer_phone||''), delivery_address:String(body.delivery_address||''), notes:String(body.notes||''),
       });
       createdOrderIds.push(order.id as string);
+      group.orderId = String(order.id);
       group.subtotal=subtotal; (group as unknown as Record<string,unknown>).discount=discount; (group as unknown as Record<string,unknown>).total=total;
       grandSubtotal+=subtotal; grandDiscount+=discount; grandTotal+=total;
     }
     grandSubtotal=Math.round(grandSubtotal*100)/100; grandDiscount=Math.round(grandDiscount*100)/100; grandTotal=Math.max(0,Math.round(grandTotal*100)/100);
-    const buildLineItems = (cur: string) => {
-      const items: unknown[] = [];
-      for (const group of groups.values()) {
-        for (const i of group.items) {
-          items.push({ price_data:{ currency:cur, product_data:{name:i.product.title}, unit_amount:toChargeCents(parseFloat(String(i.product.price)),cur) }, quantity:i.quantity });
-        }
+    await reserveInventoryForOrders([...groups.values()].map(group => ({
+      orderId: group.orderId!,
+      lines: group.items.map(item => ({ productId: String(item.product.id), quantity: item.quantity })),
+    })));
+    const cartLabel = [...groups.values()].flatMap(g => g.items.map(i => `${i.quantity}× ${i.product.title}`)).join(', ').slice(0, 450) || 'Nodbusiness order';
+    const createCheckoutSession = async (currency: string): Promise<Record<string,unknown>> => {
+      const subtotalCents = toChargeCents(grandSubtotal, currency);
+      const totalCents = toChargeCents(grandTotal, currency);
+      if (subtotalCents <= 0 || totalCents <= 0 || totalCents > subtotalCents) {
+        throw new Error('Order total cannot be represented in the selected Stripe currency');
       }
-      if (grandDiscount>0) items.push({ price_data:{ currency:cur, product_data:{name:`Coupon (${couponInfo!.code})`}, unit_amount:-toChargeCents(grandDiscount,cur) }, quantity:1 });
-      const expected=toChargeCents(grandTotal,cur); const sum=(items as Array<{price_data:{unit_amount:number};quantity:number}>).reduce((s,it)=>s+it.price_data.unit_amount*it.quantity,0);
-      const drift=expected-sum; if(drift!==0) items.push({ price_data:{ currency:cur, product_data:{name:'Rounding adjustment'}, unit_amount:drift }, quantity:1 });
-      return items;
-    };
-    const sessionParams = {
-      mode:'payment', line_items:buildLineItems(chargeCurrency),
-      success_url:`${frontendUrl}/orders/success?session_id={CHECKOUT_SESSION_ID}&provider=stripe`,
-      cancel_url:`${frontendUrl}/orders/cancel?provider=stripe`,
-      metadata:{ purpose:'order', buyer_id:req.user!.id, order_ids:createdOrderIds.join(','), seller_ids:[...groups.keys()].join(','), coupon_id:couponInfo?.id??'' },
+      const sessionParams: Record<string,unknown> = {
+        mode:'payment',
+        line_items:[{ price_data:{ currency, product_data:{name:cartLabel}, unit_amount:subtotalCents }, quantity:1 }],
+        success_url:`${frontendUrl}/orders/success?session_id={CHECKOUT_SESSION_ID}&provider=stripe`,
+        cancel_url:`${frontendUrl}/orders/cancel?provider=stripe`,
+        metadata:{ purpose:'order', buyer_id:req.user!.id, order_ids:createdOrderIds.join(','), seller_ids:[...groups.keys()].join(','), coupon_id:couponInfo?.id??'' },
+      };
+      const amountOff = subtotalCents - totalCents;
+      if (amountOff > 0) {
+        if (!couponInfo) throw new Error('Stripe amount rounding produced an unexpected discount');
+        const stripeCoupon = await stripe.coupons.create({
+          amount_off:amountOff, currency, duration:'once', name:`Nodbusiness coupon ${couponInfo.code}`,
+        });
+        sessionParams.discounts = [{ coupon:stripeCoupon.id }];
+      }
+      return stripe.checkout.sessions.create(sessionParams);
     };
     let session: Record<string,unknown>;
-    try { session = await stripe.checkout.sessions.create(sessionParams); }
+    try { session = await createCheckoutSession(chargeCurrency); }
     catch (e) {
-      if (chargeCurrency==='etb') { chargeCurrency='usd'; (sessionParams as Record<string,unknown>).line_items=buildLineItems('usd'); session=await stripe.checkout.sessions.create(sessionParams); }
+      if (chargeCurrency==='etb') { chargeCurrency='usd'; session=await createCheckoutSession('usd'); }
       else throw e;
     }
     await pool.query('UPDATE orders SET stripe_session_id=$1 WHERE id=ANY($2::uuid[])', [session.id, createdOrderIds]);
@@ -300,6 +405,8 @@ router.post('/checkout/session', requireAuth, async (req: Request, res: Response
     });
   } catch (err) {
     if (createdOrderIds.length) pool.query(`UPDATE orders SET status='payment_failed',updated_at=NOW() WHERE id=ANY($1::uuid[]) AND stripe_session_id IS NULL AND status='pending'`, [createdOrderIds]).catch(()=>undefined);
+    if (createdOrderIds.length) await releaseOrderInventory(pool, createdOrderIds).catch((releaseErr) => logger.error({ err: releaseErr, orderIds: createdOrderIds }, 'Failed to release inventory after Stripe checkout failure'));
+    if (err instanceof InventoryUnavailableError) { res.status(409).json({ error: 'Product inventory changed; please review your cart and try again' }); return; }
     logger.error({ err }, 'Stripe session error');
     apiError.serverError(res, 'Failed to create payment session');
   }
@@ -326,15 +433,13 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
       } catch(err) { await client.query('ROLLBACK'); throw err; } finally { client.release(); }
       return;
     }
-    const { rows } = await pool.query(`UPDATE orders SET status='paid',stripe_payment_intent_id=$1,updated_at=NOW() WHERE stripe_session_id=$2 AND status='pending' RETURNING *`, [obj.payment_intent??null, obj.id]);
+    const rows = await transitionPaymentOrders(pool, 'stripe_session_id', String(obj.id), 'paid', String(obj.payment_intent ?? ''));
     recordEvent('payment_result',{provider:'stripe',outcome:rows.length?'paid':'no_pending_match',session:String(obj.id),count:rows.length},{level:rows.length?'info':'warn'});
     const couponId = (obj.metadata as Record<string,string>)?.coupon_id;
     if (couponId) await pool.query('UPDATE coupons SET usage_count=usage_count+1 WHERE id=$1', [couponId]);
     for (const order of rows) {
       collectCommission(order.id as string, order.seller_id as string, parseFloat(String(order.total_price))).catch(()=>undefined);
       notifyUser(order.seller_id as string, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ETB via Stripe ✅`).catch(()=>undefined);
-      // Decrement stock
-      if (order.product_id) pool.query('UPDATE products SET stock=GREATEST(0,stock-$1) WHERE id=$2 AND stock IS NOT NULL', [order.quantity??1, order.product_id]).catch(()=>undefined);
       // Confirm email
       pool.query('SELECT email FROM users WHERE id=$1', [order.buyer_id]).then(({rows:buyers}) => {
         if (buyers[0]?.email) sendOrderConfirmation(buyers[0].email as string, order as Parameters<typeof sendOrderConfirmation>[1]).catch(()=>undefined);
@@ -342,14 +447,16 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
     }
     return;
   }
-  if (type==='checkout.session.expired') {
+  if (type==='checkout.session.expired' || type==='checkout.session.async_payment_failed') {
     recordEvent('payment_result',{provider:'stripe',outcome:'expired',session:String(obj.id)},{level:'warn'});
     if ((obj.metadata as Record<string,string>)?.purpose==='wallet_topup') { await pool.query(`UPDATE wallet_transactions SET type='failed_topup',description='Stripe top-up expired' WHERE reference=$1 AND type='pending_topup'`, [obj.id]); return; }
-    await pool.query(`UPDATE orders SET status='payment_failed',updated_at=NOW() WHERE stripe_session_id=$1 AND status='pending'`, [obj.id]);
+    await transitionPaymentOrders(pool, 'stripe_session_id', String(obj.id), 'payment_failed');
     return;
   }
   if (type==='payment_intent.payment_failed') {
-    if (obj.id) await pool.query(`UPDATE orders SET status='payment_failed',updated_at=NOW() WHERE stripe_payment_intent_id=$1 AND status='pending'`, [obj.id]);
+    if (obj.id) {
+      await transitionPaymentOrders(pool, 'stripe_payment_intent_id', String(obj.id), 'payment_failed');
+    }
     return;
   }
   if (type==='charge.refunded') {
@@ -384,12 +491,12 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
 }
 
 router.post('/webhook', async (req: Request, res: Response) => {
-  if (!stripe) { res.status(503).json({ error: 'Stripe not configured' }); return; }
-  const sig = req.headers['stripe-signature'] as string;
-  let event: Record<string,unknown>;
-  try { event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET) as Record<string,unknown>; }
-  catch (err) { apiError.validationError(res, `Webhook error: ${(err as Error).message}`); return; }
   try {
+    await withVerifiedStripeWebhook(
+      req.body as Buffer,
+      req.headers['stripe-signature'] as string | undefined,
+      { real: process.env.STRIPE_WEBHOOK_SECRET, demo: process.env.STRIPE_TEST_WEBHOOK_SECRET },
+      async (event: Record<string, unknown>) => {
     // Atomic claim: only ONE concurrent delivery can insert the event id.
     // (A check-then-insert race allowed duplicate deliveries to both process.)
     const claimed = await pool.query(
@@ -406,42 +513,74 @@ router.post('/webhook', async (req: Request, res: Response) => {
       throw processErr;
     }
     res.json({ received: true });
+      },
+    );
   } catch (err) {
-    logger.error({ err: (err as Error).message, eventId: event.id, type: event.type }, 'Stripe webhook processing failed');
+    const message = (err as Error).message;
+    if (message.includes('signature')) { res.status(400).json({ error: 'Invalid Stripe webhook signature' }); return; }
+    logger.error({ err: message }, 'Stripe webhook processing failed');
     res.status(500).json({ error: 'Webhook processing failed' });
   }
 });
 
 // ── Chapa checkout ─────────────────────────────────────────────────────────────
-router.post('/checkout/chapa', requireAuth, async (req: Request, res: Response) => {
+router.post('/checkout/chapa', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('chapa_payments', 'Chapa payments temporarily disabled'), async (req: Request, res: Response) => {
   if (!CHAPA_SECRET) { res.status(503).json({ error: 'Chapa not configured' }); return; }
+  if (CHAPA_SANDBOX && process.env.NODE_ENV === 'production') { res.status(503).json({ error: 'Chapa sandbox is disabled in production' }); return; }
   const body = req.body as Record<string,unknown>;
   const { product_id, quantity=1, buyer_name, buyer_email, buyer_phone, delivery_address, notes } = body;
   if (!product_id) { apiError.validationError(res,'product_id is required'); return; }
+  const qty = Number(quantity);
+  if (!Number.isInteger(qty) || qty < 1 || qty > 1000) { apiError.validationError(res, 'quantity must be an integer between 1 and 1000'); return; }
+  let orderId: string | null = null;
+  let inventoryReserved = false;
+  let txRef: string | null = null;
   try {
     const product = await getRecord<Record<string,unknown>>('products', product_id as string);
     if (!product) { apiError.notFound(res,'Product not found'); return; }
-    const qty = Math.max(1, parseInt(String(quantity),10));
-    const total = Math.round(parseFloat(String(product.price))*qty*100)/100;
-    const tx_ref = `ndb-${req.user!.id.slice(0,8)}-${Date.now()}`;
+    if (product.seller_id === req.user!.id) { apiError.validationError(res, 'You cannot purchase your own product'); return; }
+    if (product.status !== 'active') { apiError.validationError(res, 'This product is not available'); return; }
+    if (product.stock !== null && product.stock !== undefined && Number(product.stock) < qty) {
+      apiError.validationError(res, `Only ${product.stock} of this product are in stock`); return;
+    }
+    const unitPrice = Number(product.price);
+    const total = Math.round(unitPrice * qty * 100) / 100;
+    if (!Number.isFinite(unitPrice) || unitPrice <= 0 || !Number.isFinite(total) || total <= 0 || total > 10_000_000) {
+      apiError.validationError(res, 'Product price is invalid'); return;
+    }
+    txRef = `ndb-${req.user!.id.slice(0,8)}-${Date.now()}`;
     const frontendUrl = getPrimaryFrontendUrl();
     const apiUrl = process.env.API_URL??'http://localhost:3001';
     const order = await createRecord('orders', {
-      buyer_id:req.user!.id, seller_id:product.seller_id, product_id, product_title:product.title,
-      quantity:qty, unit_price:parseFloat(String(product.price)), total_price:total, currency:'ETB',
-      status:'pending', payment_provider:'chapa', chapa_tx_ref:tx_ref,
+      buyer_id:req.user!.id, seller_id:product.seller_id, business_id:product.business_id ?? null,
+      product_id, product_title:product.title,
+      quantity:qty, unit_price:unitPrice, total_price:total, currency:'ETB',
+      status:'pending', payment_provider:'chapa', chapa_tx_ref:txRef,
       buyer_name:String(buyer_name||''), buyer_email:String(buyer_email||req.user!.email||''),
       buyer_phone:String(buyer_phone||''), delivery_address:String(delivery_address||''), notes:String(notes||''),
     });
+    orderId = String(order.id);
+    await reserveInventoryForOrders([{ orderId, lines: [{ productId: String(product.id), quantity: qty }] }]);
+    inventoryReserved = true;
     const chapaRes = await chapaPost('/transaction/initialize', {
       amount:String(total), currency:'ETB', email:buyer_email||req.user!.email||'user@nodbusiness.app',
-      first_name:String(buyer_name||'User'), tx_ref,
-      callback_url:`${apiUrl}/api/orders/chapa/verify/${tx_ref}`,
-      return_url:`${frontendUrl}/orders/success?tx_ref=${tx_ref}&provider=chapa`,
+      first_name:String(buyer_name||'User'), tx_ref:txRef,
+      callback_url:`${apiUrl}/api/orders/chapa/verify/${txRef}`,
+      return_url:`${frontendUrl}/orders/success?tx_ref=${txRef}&provider=chapa`,
     });
-    if (chapaRes.status!=='success') { apiError.serverError(res,'Failed to initialize Chapa payment'); return; }
-    res.json({ url:(chapaRes.data as Record<string,string>).checkout_url, tx_ref, order_id:order.id });
-  } catch (err) { logger.error({err},'Chapa checkout error'); apiError.serverError(res,'Failed to create Chapa session'); }
+    if (chapaRes.status!=='success') {
+      await pool.query(`UPDATE orders SET status='payment_failed',updated_at=NOW() WHERE id=$1 AND status='pending'`, [orderId]);
+      await releaseOrderInventory(pool, [orderId]);
+      inventoryReserved = false;
+      apiError.serverError(res,'Failed to initialize Chapa payment'); return;
+    }
+    res.json({ url:(chapaRes.data as Record<string,string>).checkout_url, tx_ref:txRef, order_id:order.id });
+  } catch (err) {
+    if (orderId) await pool.query(`UPDATE orders SET status='payment_failed',updated_at=NOW() WHERE id=$1 AND status='pending'`, [orderId]).catch(() => undefined);
+    if (inventoryReserved && orderId) await releaseOrderInventory(pool, [orderId]).catch(releaseErr => logger.error({ err:releaseErr, orderId }, 'Failed to release inventory after Chapa checkout failure'));
+    if (err instanceof InventoryUnavailableError) { res.status(409).json({ error: 'Product inventory changed; please review your cart and try again' }); return; }
+    logger.error({err},'Chapa checkout error'); apiError.serverError(res,'Failed to create Chapa session');
+  }
 });
 
 // Chapa sandbox page — dev/test only. Never expose a fake payment
@@ -471,20 +610,20 @@ router.get('/chapa/status/:tx_ref', async (req: Request, res: Response) => {
 // Chapa verify
 router.get('/chapa/verify/:tx_ref', async (req: Request, res: Response) => {
   if (!CHAPA_SECRET) { res.status(503).json({ error:'Chapa not configured' }); return; }
+  if (CHAPA_SANDBOX && process.env.NODE_ENV === 'production') { res.status(404).json({ error: 'Not found' }); return; }
   const { tx_ref } = req.params;
   const frontendUrl = process.env.FRONTEND_URL??'http://localhost:3002';
   try {
     const chapaRes = await chapaGet(`/transaction/verify/${tx_ref}`);
     const ok = chapaRes.status==='success' && (chapaRes.data as Record<string,string>)?.status==='success';
     if (!ok && !CHAPA_SANDBOX) {
-      await pool.query(`UPDATE orders SET status='payment_failed',updated_at=NOW() WHERE chapa_tx_ref=$1 AND status='pending'`, [tx_ref]);
+      await transitionPaymentOrders(pool, 'chapa_tx_ref', tx_ref, 'payment_failed');
       if (req.headers.accept?.includes('text/html')) { res.redirect(`${frontendUrl}/orders/cancel?provider=chapa`); return; }
       apiError.validationError(res,'Payment not successful'); return;
     }
-    const { rows } = await pool.query(`UPDATE orders SET status='paid',updated_at=NOW() WHERE chapa_tx_ref=$1 AND status='pending' RETURNING *`, [tx_ref]);
+    const rows = await transitionPaymentOrders(pool, 'chapa_tx_ref', tx_ref, 'paid');
     for (const order of rows) {
       collectCommission(order.id as string, order.seller_id as string, parseFloat(String(order.total_price))).catch(()=>undefined);
-      if (order.product_id) pool.query('UPDATE products SET stock=GREATEST(0,stock-$1) WHERE id=$2 AND stock IS NOT NULL', [order.quantity??1, order.product_id]).catch(()=>undefined);
       notifyUser(order.seller_id as string, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ${order.currency||'ETB'} via Chapa ✅`).catch(()=>undefined);
       sendPushToUser(order.seller_id as string,'💰 Payment received!',`${order.product_title} — ${order.total_price} ETB via Chapa`,'/orders').catch(()=>undefined);
       sendPushToUser(order.buyer_id as string,'✅ Payment confirmed!',`Your payment for ${order.product_title} was successful.`,'/orders').catch(()=>undefined);

@@ -23,14 +23,14 @@ import { sendPushToUser } from './push';
 import { getPrimaryFrontendUrl } from '../lib/frontendUrl';
 import * as apiError from '../lib/apiError';
 import logger from '../lib/logger';
+import { isStripeConfigured, stripeClientFacade, withVerifiedStripeWebhook } from '../lib/stripeClient';
+import { requireIsolatedPaymentEnvironment } from '../middleware/demoEnvironment';
+import { requireFeatureFlag } from '../middleware/featureFlag';
 
 const router = Router();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const stripe = process.env.STRIPE_SECRET_KEY
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  ? (require('stripe')(process.env.STRIPE_SECRET_KEY) as any)
-  : null;
+const stripe: any = stripeClientFacade();
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -262,8 +262,8 @@ router.get('/groups/:id', requireAuth, async (req: Request, res: Response) => {
 });
 
 // ── POST /api/mewacho/groups/:id/contribute ───────────────────────────────────
-router.post('/groups/:id/contribute', requireAuth, async (req: Request, res: Response) => {
-  if (!stripe) { res.status(503).json({ error: 'Stripe not configured' }); return; }
+router.post('/groups/:id/contribute', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('stripe_payments', 'Stripe payments temporarily disabled'), async (req: Request, res: Response) => {
+  if (!isStripeConfigured()) { res.status(503).json({ error: 'Stripe is not configured for this environment' }); return; }
 
   const member = await isMember(req.params.id, req.user!.id);
   if (!member) { apiError.notFound(res, 'Group not found'); return; }
@@ -367,7 +367,7 @@ router.post('/groups/:id/message', requireAuth, async (req: Request, res: Respon
 });
 
 // ── POST /api/mewacho/groups/:id/withdraw ─────────────────────────────────────
-router.post('/groups/:id/withdraw', requireAuth, async (req: Request, res: Response) => {
+router.post('/groups/:id/withdraw', requireAuth, requireIsolatedPaymentEnvironment, async (req: Request, res: Response) => {
   const member = await isMember(req.params.id, req.user!.id);
   if (!member || member.role !== 'admin') {
     res.status(403).json({ error: 'Only admins can request withdrawals' }); return;
@@ -508,21 +508,15 @@ router.put('/withdrawals/:wid/reject', requireAuth, async (req: Request, res: Re
 // Raw body parser registered in index.ts:
 //   app.use('/api/mewacho/webhook', express.raw({ type: 'application/json' }));
 router.post('/webhook', async (req: Request, res: Response) => {
-  if (!stripe) { res.status(503).send('Stripe not configured'); return; }
-
-  const sig    = req.headers['stripe-signature'] as string;
-  const secret = process.env.STRIPE_MEWACHO_WEBHOOK_SECRET ?? process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) { res.status(503).send('Webhook secret not configured'); return; }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let event: any;
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, secret);
-  } catch (err) {
-    logger.warn({ err: (err as Error).message }, 'mewacho webhook: invalid signature');
-    res.status(400).send(`Webhook Error: ${(err as Error).message}`); return;
-  }
-
+    await withVerifiedStripeWebhook(
+      req.body as Buffer,
+      req.headers['stripe-signature'] as string | undefined,
+      {
+        real: process.env.STRIPE_MEWACHO_WEBHOOK_SECRET ?? process.env.STRIPE_WEBHOOK_SECRET,
+        demo: process.env.STRIPE_TEST_MEWACHO_WEBHOOK_SECRET,
+      },
+      async (event: any) => {
   if (event.type === 'checkout.session.completed') {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const session = event.data.object as any;
@@ -535,11 +529,19 @@ router.post('/webhook', async (req: Request, res: Response) => {
     try {
       await client.query('BEGIN');
 
-      await client.query(
+      const { rows: [confirmed] } = await client.query(
         `UPDATE mewacho_contributions SET status='confirmed'
-         WHERE id=$1 AND status='pending'`,
+         WHERE id=$1 AND status='pending' RETURNING id`,
         [mewacho_contrib_id],
       );
+
+      // Stripe retries webhook deliveries. Only the request that atomically
+      // changes pending → confirmed may append activity or send notifications.
+      if (!confirmed) {
+        await client.query('COMMIT');
+        res.json({ received: true, duplicate: true });
+        return;
+      }
 
       const name = await getUserName(client, user_id);
       const { rows: [contrib] } = await client.query<{ is_anonymous: boolean }>(
@@ -568,14 +570,23 @@ router.post('/webhook', async (req: Request, res: Response) => {
         `/mewacho/${mewacho_group_id}`,
       );
     } catch (err) {
-      await client.query('ROLLBACK');
+      await client.query('ROLLBACK').catch(() => undefined);
       logger.error({ err }, 'mewacho webhook: failed to confirm contribution');
+      throw err;
     } finally {
       client.release();
     }
   }
 
   res.json({ received: true });
+      },
+    );
+  } catch (err) {
+    const message = (err as Error).message;
+    if (message.includes('signature')) { res.status(400).send('Invalid Stripe signature'); return; }
+    logger.error({ err: message }, 'mewacho webhook handler failed');
+    res.status(500).send('Webhook processing failed');
+  }
 });
 
 module.exports = router;

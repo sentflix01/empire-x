@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { X, Send, RotateCcw, Wifi, WifiOff } from "lucide-react";
 import client from "@/api/client";
 import { offlineAnswer } from "@/lib/aiOffline";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/lib/AuthContext";
 
 interface Message {
   role: "user" | "assistant";
@@ -31,6 +32,7 @@ function AssistantLogo({ size = "sm", animated = false }: { size?: "xs" | "sm" |
         alt=""
         width={44}
         height={44}
+        loading="eager"
         className={`${imageClass} rounded-full object-cover`}
       />
       {animated && <span className="ai-logo-blink" />}
@@ -48,6 +50,7 @@ function AssistantFlipCoin() {
             alt=""
             width={48}
             height={48}
+            loading="eager"
             className="h-10 w-10 rounded-full object-cover"
           />
         </span>
@@ -61,9 +64,9 @@ function AssistantFlipCoin() {
 }
 
 /** Load persisted messages from localStorage */
-function loadHistory(): Message[] {
+function loadHistory(storageKey: string): Message[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -73,9 +76,9 @@ function loadHistory(): Message[] {
 }
 
 /** Save messages to localStorage, keeping the last MAX_STORED */
-function saveHistory(messages: Message[]) {
+function saveHistory(storageKey: string, messages: Message[]) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-MAX_STORED)));
+    localStorage.setItem(storageKey, JSON.stringify(messages.slice(-MAX_STORED)));
   } catch {}
 }
 
@@ -92,6 +95,10 @@ function fmtTime(ts: number): string {
 
 export default function AiAssistant() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const historyKey = `${STORAGE_KEY}:${user?.id ?? "guest"}:${user?.is_demo ? "demo" : "real"}`;
+  const historyKeyRef = useRef(historyKey);
+  historyKeyRef.current = historyKey;
   const SUGGESTIONS = [
     t('ai.suggestion1'),
     t('ai.suggestion2'),
@@ -100,6 +107,7 @@ export default function AiAssistant() {
   ];
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [historyReadyKey, setHistoryReadyKey] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [online, setOnline] = useState(true);
@@ -183,32 +191,43 @@ export default function AiAssistant() {
     window.addEventListener("online", up);
     window.addEventListener("offline", down);
     setOnline(navigator.onLine);
-    setMessages(loadHistory());
-
     return () => {
       window.removeEventListener("online", up);
       window.removeEventListener("offline", down);
-    };  }, []);
+    };
+  }, []);
+
+  // Conversations are private to the signed-in identity and demo/real mode.
+  useEffect(() => {
+    setMessages(loadHistory(historyKey));
+    setHistoryReadyKey(historyKey);
+    setInput("");
+    setLoading(false);
+  }, [historyKey]);
 
   // Persist history whenever messages change (client-only)
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      saveHistory(messages);
+    if (typeof window !== "undefined" && historyReadyKey === historyKey) {
+      saveHistory(historyKey, messages);
     }
-  }, [messages]);
+  }, [historyKey, historyReadyKey, messages]);
 
   // Scroll to bottom on new messages or open
+  const visibleMessages = useMemo(
+    () => historyReadyKey === historyKey ? messages : [],
+    [historyKey, historyReadyKey, messages],
+  );
   useEffect(() => {
     if (open) setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-  }, [messages, open]);
+  }, [visibleMessages, open]);
 
   // Focus input when opened
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 120);
   }, [open]);
 
-  const addMessage = useCallback((msg: Message) => {
-    setMessages(prev => [...prev, msg]);
+  const addMessage = useCallback((msg: Message, expectedKey: string) => {
+    if (historyKeyRef.current === expectedKey) setMessages(prev => [...prev, msg]);
   }, []);
 
   const sendMessage = async (text?: string) => {
@@ -217,7 +236,8 @@ export default function AiAssistant() {
     setInput("");
 
     const userMsg: Message = { role: "user", content, ts: Date.now() };
-    const next = [...messages, userMsg];
+    const requestHistoryKey = historyKey;
+    const next = [...visibleMessages, userMsg];
     setMessages(next);
     setLoading(true);
 
@@ -225,7 +245,7 @@ export default function AiAssistant() {
     const localAnswer = offlineAnswer(content);
     if (localAnswer) {
       setTimeout(() => {
-        addMessage({ role: "assistant", content: localAnswer, offline: true, ts: Date.now() });
+        addMessage({ role: "assistant", content: localAnswer, offline: true, ts: Date.now() }, requestHistoryKey);
         setLoading(false);
       }, 300); // small delay feels more natural
       return;
@@ -237,7 +257,7 @@ export default function AiAssistant() {
         const { data } = await client.post("/api/ai/chat", {
           messages: next.map(m => ({ role: m.role, content: m.content })),
         });
-        addMessage({ role: "assistant", content: data.reply || "Sorry, I couldn't get a response.", ts: Date.now() });
+        addMessage({ role: "assistant", content: data.reply || "Sorry, I couldn't get a response.", ts: Date.now() }, requestHistoryKey);
         setLoading(false);
         return;
       } catch {
@@ -253,13 +273,13 @@ export default function AiAssistant() {
         : t('ai.offlineFallback'),
       offline: true,
       ts: Date.now(),
-    });
+    }, requestHistoryKey);
     setLoading(false);
   };
 
   const reset = () => {
     setMessages([]);
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(historyKey);
   };
 
   // AI Assistant is visible on ALL pages — including the showroom builder
@@ -279,7 +299,7 @@ export default function AiAssistant() {
         title={t('ai.title') + ' (drag to move)'}
         aria-label={t('ai.title')}>
         {open ? <X className="w-5 h-5 text-white" /> : <AssistantFlipCoin />}
-        {!open && messages.length > 0 && (
+        {!open && visibleMessages.length > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-background" />
         )}
       </button>
@@ -313,7 +333,7 @@ export default function AiAssistant() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-blue-100/70 dark:bg-slate-900">
-            {messages.length === 0 ? (
+            {visibleMessages.length === 0 ? (
               /* Welcome screen */
               <div className="space-y-3 pt-1">
                 <div className="flex items-start gap-2">
@@ -337,7 +357,7 @@ export default function AiAssistant() {
                 </div>
               </div>
             ) : (
-              messages.map((m, i) => (
+              visibleMessages.map((m, i) => (
                 <div key={i} className={`flex items-end gap-2 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
                   {m.role === "assistant" && (
                     <span className="mb-4 shrink-0"><AssistantLogo size="xs" /></span>

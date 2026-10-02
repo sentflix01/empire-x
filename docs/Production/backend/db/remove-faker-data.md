@@ -1,22 +1,12 @@
-# backend/db/remove-faker-data
+# Seed data cleanup compatibility command
 
-<!-- AUTO-STUB  2026-08-23 — curate narrative below -->
+`remove-faker-data.js` now delegates to the guarded seed cleanup routine. By
+default it reports how many users are explicitly marked `is_seed=TRUE` and
+changes no data. To delete seed users, require a local development database,
+`NODE_ENV` other than production, `ALLOW_SEED_CLEANUP=1`, `--execute`, and the
+exact database name with `--database=<name>`. The operation is transactional
+and relies on declared FK cascades, with explicit handling for the nullable
+`devops_items.created_by` reference.
 
-## 1. What is this?
-
-**Database layer module.** Newly added module — narrative pending curation.
-
-Size: roughly 151 lines of source.
-
-## 2. Why does it exist?
-
-Newly introduced as part of recent development; see source and git history for the introducing commit.
-
-## 3. What does it do?
-
-Extracted facts (auto):
-- Lines: ~151
-
-## 4. What does it touch?
-
-**Source:** `backend/db/remove-faker-data.js`
+Email domains are no longer treated as proof that an account is disposable, and
+wallet balances for non-seed users are never reset.

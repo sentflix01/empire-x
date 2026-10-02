@@ -12,7 +12,7 @@ type SafeImageProps = Omit<React.ComponentPropsWithoutRef<'img'>, 'src' | 'onErr
   height?: number;
   sizes?: string;
   priority?: boolean;
-  onError?: () => void;
+  onError?: React.ReactEventHandler<HTMLImageElement>;
 };
 
 /**
@@ -41,9 +41,9 @@ export default function SafeImage({
 
   if (!resolvedSrc || failed) return <>{fallback}</>;
 
-  const handleError = () => {
+  const handleError: React.ReactEventHandler<HTMLImageElement> = (event) => {
     setFailed(true);
-    onError?.();
+    onError?.(event);
   };
 
   // When fill=false, use width/height for intrinsic sizing

@@ -125,9 +125,13 @@ export interface Product {
 export type OrderStatus =
   | 'pending'
   | 'paid'
+  | 'confirmed'
   | 'processing'
+  | 'shipped'
+  | 'delivered'
   | 'completed'
   | 'cancelled'
+  | 'disputed'
   | 'refunded'
   | 'payment_failed'
   | 'return_requested'

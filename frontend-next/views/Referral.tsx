@@ -1,8 +1,7 @@
 'use client'
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
-import { auth } from "@/api/auth";
-import { Copy, Check, Gift, Users, Star, Share2, ExternalLink } from "lucide-react";
+import { Copy, Check, Gift, Users, Star, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";

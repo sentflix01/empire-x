@@ -5,6 +5,19 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { Pool } = require('pg');
 
+function getPoolOptions(url, env = process.env) {
+  const tlsOverride = env.DATABASE_URL_REQUIRE_TLS;
+  const needsSsl = tlsOverride === 'true' || (tlsOverride !== 'false' && (
+    env.NODE_ENV === 'production' ||
+    /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(url)
+  ));
+  return {
+    connectionString: url,
+    ssl: needsSsl ? { rejectUnauthorized: env.DB_TLS_REJECT_UNAUTHORIZED !== 'false' } : false,
+    connectionTimeoutMillis: 10_000,
+  };
+}
+
 async function main() {
   const url = process.env.DATABASE_URL;
   if (!url) {
@@ -13,12 +26,7 @@ async function main() {
     process.exit(1);
   }
 
-  const needsSsl = /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(url);
-  const pool = new Pool({
-    connectionString: url,
-    ssl: needsSsl ? { rejectUnauthorized: false } : false,
-    connectionTimeoutMillis: 10_000,
-  });
+  const pool = new Pool(getPoolOptions(url));
 
   try {
     await pool.query('SELECT 1');
@@ -41,4 +49,6 @@ async function main() {
   }
 }
 
-main();
+module.exports = { getPoolOptions };
+
+if (require.main === module) main();

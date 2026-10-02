@@ -5,7 +5,7 @@
 A thorough scan of the Nodbusiness codebase (backend + frontend) revealed a set of bugs, misconfigurations, and inconsistencies that would prevent a clean production deployment. The issues span three categories:
 
 1. **Authentication token inconsistency** — the frontend uses two conflicting storage strategies for the access token (in-memory + cookie vs. `localStorage`), causing broken auth state after page refresh and broken WebSocket connections in production.
-2. **Missing `trust proxy` setting** — the Express backend does not set `app.set('trust proxy', 1)`, so `req.ip` returns the internal IP of the load-balancer on Coolify/Cloudflare, breaking IP-based rate limiting and the SSRF proxy gateway.
+2. **Missing `trust proxy` setting** — the Express backend does not set `app.set('trust proxy', 1)`, so `req.ip` returns the internal IP of the load-balancer on Render/Cloudflare, breaking IP-based rate limiting and the SSRF proxy gateway.
 3. **`orders` table missing Chapa column** — the initial migration (`migrate.js`) does not include the `chapa_tx_ref` column used throughout `routes/orders.js`, so Chapa payments fail with a DB error on fresh deployments.
 4. **`user_profiles` table missing `points` column** — the referral and commission routes write to `user_profiles.points`, but the column is absent from the schema migration.
 5. **`users` table missing `referral_code` / `referred_by` columns** — `routes/referral.js` reads and writes these columns, but they are not in the base migration.
@@ -27,7 +27,7 @@ A thorough scan of the Nodbusiness codebase (backend + frontend) revealed a set 
 
 1.4 WHEN `googleAuth.ts` completes Google sign-in THEN the system writes the token to `localStorage.setItem('access_token', ...)` instead of calling `storeToken()`, same problem as 1.3.
 
-1.5 WHEN the backend is deployed behind a reverse proxy (Coolify + Cloudflare) THEN the system reads the proxy's internal IP as `req.ip` because `app.set('trust proxy', 1)` is not configured, causing all Chapa/proxy rate-limit keys to collide under a single IP and IP-based blocking logic to be ineffective.
+1.5 WHEN the backend is deployed behind a reverse proxy (Render + Cloudflare) THEN the system reads the proxy's internal IP as `req.ip` because `app.set('trust proxy', 1)` is not configured, causing all Chapa/proxy rate-limit keys to collide under a single IP and IP-based blocking logic to be ineffective.
 
 1.6 WHEN a Chapa payment is initiated on a fresh database THEN the system throws a PostgreSQL error `column "chapa_tx_ref" does not exist` because the `orders` table migration does not include that column.
 

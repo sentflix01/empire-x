@@ -4,13 +4,12 @@ import Image from 'next/image';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 
-import { GraduationCap, Plus, Star, Users } from "lucide-react";
+import { GraduationCap, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Input } from "@/components/ui/input";
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { Skeleton } from '@/components/ui/skeleton';
 
 const CATEGORIES = ["All","Technology","Business","Design","Language","Health","Other"];
 

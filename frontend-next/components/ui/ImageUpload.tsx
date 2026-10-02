@@ -1,3 +1,4 @@
+import SafeImage from '@/components/ui/SafeImage';
 // @ts-check
 /**
  * ImageUpload — reusable image picker + uploader.
@@ -11,7 +12,7 @@
  * The component shows a live preview and uploads to the backend on file select.
  */
 import React, { useState, useRef } from 'react';
-import { Upload, X, Loader2, ImageIcon } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
 import { uploadFile, uploadFiles } from '@/lib/uploadFile';
 import { cn } from '@/lib/utils';
 
@@ -100,7 +101,7 @@ export default function ImageUpload({
           value && 'border-solid border-border/30'
         )}>
           {singleValue && !failedUrls.includes(singleValue) ? (
-            <img loading="lazy"
+            <SafeImage fill={false} width={800} height={600} loading="lazy"
               src={singleValue}
               alt="upload preview"
               className="w-full h-full object-cover"
@@ -160,7 +161,7 @@ export default function ImageUpload({
                 Image unavailable
               </div>
             ) : (
-              <img loading="lazy"
+              <SafeImage fill={false} width={800} height={600} loading="lazy"
                 src={url}
                 alt=""
                 className="w-full h-full object-cover"

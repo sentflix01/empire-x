@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { auth } from "@/api/auth";
@@ -9,15 +9,14 @@ import Image from "next/image";
 import {
   Home, Search, MessageCircle, ShoppingBag, ClipboardList, Bell, User, UserRound,
   Plus, Crown, TrendingUp, Briefcase, GraduationCap, CalendarDays,
-  Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, MapPin, Tag,
+  Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, Tag,
   Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
   PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield,
   ArrowLeft, Coins, Settings, FlaskConical, Loader2,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
-import { toggleLanguage, getCurrentLang } from "@/lib/i18n";
-import { Badge } from "@/components/ui/badge";
+import { toggleLanguage } from "@/lib/i18n";
 import { useCart } from "@/lib/CartContext";
 import { useAuth } from "@/lib/AuthContext";
 import { connectSocket, disconnectSocket, resetSocket, getSocket } from "@/lib/socket";
@@ -203,12 +202,13 @@ function ViewTogglePill({
 export default function AppLayout({ children }: { children?: React.ReactNode }) {
   const { theme, setTheme } = useTheme();
   const { t, i18n } = useTranslation();
-  const currentLang = i18n.language === 'am' ? 'አማ' : 'EN';
   const pathname = usePathname();
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
   const router = useRouter();
   const { user, isAuthenticated, authChecked, isLoadingAuth, logout } = useAuth();
   const hasSignedInUser = authChecked && isAuthenticated && Boolean(user);
-  const { realMode, toggleRealMode } = useRealMode();
+  const { realMode, toggleRealMode, setRealMode } = useRealMode();
   const { homeFeedMode, setHomeFeedMode, profileViewMode, setProfileViewMode } = useProfileView();
 
   const tr = (key: string) => String(t(key));
@@ -223,7 +223,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [drawerSettingsOpen, setDrawerSettingsOpen] = useState(false);
-  const [homeTabsOpen, setHomeTabsOpen] = useState(false);
+  const [, setHomeTabsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userProfile, setUserProfile] = useState<{ avatar_url?: string; cover_url?: string } | null>(null);
   const [switchingEnvironment, setSwitchingEnvironment] = useState(false);
@@ -270,10 +270,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const hydrateBookmarks = useAppStore(s => s.hydrate);
   useEffect(() => {
     if (!user) return;
+    let active = true;
     // Hydrate bookmark state so bookmark buttons show correct saved state immediately
     hydrateBookmarks();
     entities.UserProfile.filter({ user_id: user.id }).then(profiles => {
-      if (profiles.length === 0 && pathname !== "/onboarding") {
+      if (!active) return;
+      if (profiles.length === 0 && pathnameRef.current !== "/onboarding") {
         router.push("/onboarding");
         return;
       }
@@ -308,9 +310,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     }).catch(() => {});
 
     return () => {
+      active = false;
       disconnectSocket();
     };
-  }, [user]);
+  }, [user, hydrateBookmarks, router]);
 
   useEffect(() => {
     if (!user) return;
@@ -332,6 +335,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     if (switchingEnvironment) return;
     setSwitchingEnvironment(true);
     try {
+      // Demo requests must not carry the real-only content filter. Keep the
+      // interceptor and persisted preference in sync before starting the demo.
+      setRealMode(false);
       await auth.setOnboardingMode('demo');
       await auth.loginDemo();
       window.location.assign('/feed');
@@ -432,6 +438,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               alt="Nodbusiness"
               width={32}
               height={32}
+              loading="eager"
               className="w-8 h-8 rounded-xl object-cover shadow-sm"
             />
             {!sidebarCollapsed && (
@@ -541,14 +548,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         </div>
 
       </header>
-
-      {/* Demo banner — Track 1: shared test account or user who chose demo mode.
-          Track 2 (future): full sandbox session detected via demo_session cookie.
-          is_demo=true  → always Track 1 (built-in demo/seed account).
-          onboarding_mode='demo' + !is_demo → real user who chose demo mode in /choose-mode. */}
-      {(user?.is_demo === true || user?.onboarding_mode === 'demo') && (
-        <DemoEnvironmentBanner track={1} />
-      )}
 
       {/* ── Body: sidebar + main + right panel ── */}
       <div className="flex flex-1 w-full">
@@ -878,7 +877,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           xl:mr-72
           ${isImmersiveRoute
             ? 'overflow-hidden'
-            : 'px-4 py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-4'}`}>
+            : 'app-main-safe-padding px-4 py-4'}`}>
+          {/* Keep the mode notice and its actions inside the center column; a
+              full-width banner here would sit underneath the fixed right rail. */}
+          {(user?.demo_session_active === true || user?.is_demo === true) && (
+            <DemoEnvironmentBanner track={user?.demo_track === 2 ? 2 : 1} />
+          )}
           {isLoadingAuth ? (
             <div className="flex justify-center py-20">
               <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />

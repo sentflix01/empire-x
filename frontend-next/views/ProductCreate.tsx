@@ -4,7 +4,6 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/lib/AuthContext";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
-import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,6 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 const CATEGORIES = ["Electronics", "Fashion", "Food", "Services", "Handmade", "Beauty", "Home", "Other"];
 
 function ProductCreate() {
-  const { t } = useTranslation();
   const params = useParams();
   const searchParams = useSearchParams();
   const paramId = Array.isArray(params?.id) ? params.id[0] : params?.id;

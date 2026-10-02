@@ -7,6 +7,13 @@ const router = Router();
 
 router.get('/product/:productId', optionalAuth, async (req: Request, res: Response) => {
   try {
+    if (req.realOnly) {
+      const { rows: products } = await pool.query(
+        'SELECT id FROM products WHERE id=$1 AND seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)',
+        [req.params.productId],
+      );
+      if (!products.length) { res.status(404).json({ error: 'Product not found' }); return; }
+    }
     const { rows } = await pool.query('SELECT * FROM product_variants WHERE product_id=$1 ORDER BY name, value', [req.params.productId]);
     res.json(rows);
   } catch { res.status(500).json({ error: 'Failed to fetch variants' }); }

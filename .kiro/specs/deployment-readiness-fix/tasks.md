@@ -99,7 +99,7 @@ Fix eight deployment-blocking bugs found across the Nodbusiness frontend and bac
       `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in`
       ```
     - **Note (September 2026 — post Railway migration):** The backend runs on a custom domain behind Cloudflare (e.g. `https://api.nodbusiness.app`). The `wsHost` derivation from `NEXT_PUBLIC_API_BASE_URL` covers production WebSocket connections automatically. No `wss://*.railway.app` patterns are needed.
-    - This ensures production WebSocket connections to the Coolify-managed backend are allowed while dev connections still work
+    - This ensures production WebSocket connections to the Render-hosted backend are allowed while dev connections still work
     - _Requirements: 2.8, 3.7_
 
   - [x] 3.7 Verify bug condition exploration test now passes

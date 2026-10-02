@@ -1,12 +1,11 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import client from "@/api/client";
 import { entities } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
-import { useTranslation } from 'react-i18next';
 
 import { MapPin, ShoppingBag, ClipboardList, Navigation, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -96,7 +95,7 @@ function makeLabeledIcon(label, color = "blue") {
 }
 
 /** Hover card — replaces name bubble on mouseover */
-function MarkerHoverCard({ data, onClose }) {
+function MarkerHoverCard({ data, onClose: _onClose }) {
   const [posts, setPosts] = useState([]);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -189,7 +188,6 @@ function MarkerHoverCard({ data, onClose }) {
 }
 
 function NearbyMap() {
-  const { t } = useTranslation();
   const { user: currentUser } = useAuth();
   const [leafletReady, setLeafletReady] = useState(false);
   const [location, setLocation]     = useState(null);
@@ -219,11 +217,22 @@ function NearbyMap() {
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    handleLocate();
-  }, []);
+  const fetchNearby = useCallback(async (coords, radius = radiusKm) => {
+    setLoading(true);
+    try {
+      const [taskRes, productRes] = await Promise.all([
+        client.get("/api/maps/nearby/tasks",    { params: { lat: coords.lat, lon: coords.lon, radius_km: radius } }),
+        client.get("/api/maps/nearby/products", { params: { lat: coords.lat, lon: coords.lon, radius_km: radius } }),
+      ]);
+      setTasks(taskRes.data || []);
+      setProducts(productRes.data || []);
+    } catch {
+      toast.error("Failed to load nearby items");
+    }
+    setLoading(false);
+  }, [radiusKm]);
 
-  const handleLocate = () => {
+  const handleLocate = useCallback(() => {
     if (!navigator.geolocation) {
       toast.error("Geolocation not supported in this browser");
       setLocation({ lat: DEFAULT_CENTER[0], lon: DEFAULT_CENTER[1] });
@@ -247,22 +256,11 @@ function NearbyMap() {
       },
       { timeout: 8000 }
     );
-  };
+  }, [fetchNearby]);
 
-  const fetchNearby = async (coords, radius = radiusKm) => {
-    setLoading(true);
-    try {
-      const [taskRes, productRes] = await Promise.all([
-        client.get("/api/maps/nearby/tasks",    { params: { lat: coords.lat, lon: coords.lon, radius_km: radius } }),
-        client.get("/api/maps/nearby/products", { params: { lat: coords.lat, lon: coords.lon, radius_km: radius } }),
-      ]);
-      setTasks(taskRes.data || []);
-      setProducts(productRes.data || []);
-    } catch {
-      toast.error("Failed to load nearby items");
-    }
-    setLoading(false);
-  };
+  useEffect(() => {
+    handleLocate();
+  }, [handleLocate]);
 
   const center = location ? [location.lat, location.lon] : DEFAULT_CENTER;
 

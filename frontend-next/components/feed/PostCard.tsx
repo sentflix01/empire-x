@@ -325,6 +325,7 @@ interface PostCardProps {
 
 export default function PostCard({ post, currentUserId, currentUser, feedMode }: PostCardProps) {
   const { t } = useTranslation();
+  const embeddedLikedByMe = (post as unknown as Record<string, unknown>).liked_by_me;
   const [liked, setLiked] = useState(Boolean((post as unknown as Record<string, unknown>).liked_by_me));
   const [likeCount, setLikeCount] = useState(post.like_count ?? 0);
   const [commentCount, setCommentCount] = useState(post.comment_count ?? 0);
@@ -348,11 +349,14 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
   useEffect(() => {
     // Server embeds liked_by_me on feed/single payloads; per-card lookup only
     // as legacy fallback when the flag is absent.
-    if ((post as unknown as Record<string, unknown>).liked_by_me !== undefined) return;
+    if (embeddedLikedByMe !== undefined) {
+      setLiked(Boolean(embeddedLikedByMe));
+      return;
+    }
     client.get(`/api/posts/${post.id}/like`)
       .then(({ data }) => setLiked(Boolean(data.liked)))
       .catch(() => setLiked(false));
-  }, [post.id]);
+  }, [post.id, embeddedLikedByMe]);
   useEffect(() => {
     if (!post.author_id) return;
     entities.UserProfile.filter({ user_id: post.author_id })
@@ -405,7 +409,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
       setCommentCount(count => count + 1);
       setCommentText('');
       setShowAllComments(true); // show all so the new comment is visible
-    } catch (err: any) {
+    } catch {
       // toast imported at top via sonner — show inline error
       setCommentText(commentText); // keep text so user can retry
     }

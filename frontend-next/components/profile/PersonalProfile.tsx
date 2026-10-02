@@ -2,14 +2,11 @@
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
-import { useTranslation } from 'react-i18next';
 
 import { Briefcase, GraduationCap, Plus, Store, Crown, ShoppingBag, ClipboardList, Users, Pencil } from "lucide-react";
 import { useProfileView } from '@/lib/ProfileViewContext';
 import { Button } from "@/components/ui/button";
 import PostCard from "@/components/feed/PostCard";
-import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
-import VerifiedBadge from "@/components/ui/VerifiedBadge";
 
 export default function PersonalProfile({ profile, user, isOwner, businesses }) {
   const { profileViewTokens: accentTokens } = useProfileView();

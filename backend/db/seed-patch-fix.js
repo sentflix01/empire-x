@@ -7,6 +7,7 @@
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./pool');
+const { assertSafeDevSeed } = require('./operationSafety');
 
 const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -57,6 +58,7 @@ function buildSections(category, name) {
 }
 
 async function patch() {
+  assertSafeDevSeed();
   const client = await pool.connect();
   console.log('\n🔧 Final Seed Patch\n');
 

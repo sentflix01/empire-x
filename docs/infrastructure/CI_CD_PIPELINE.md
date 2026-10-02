@@ -116,21 +116,24 @@ Detects whether `frontend-next/` files changed using `git diff`. Sets output `fr
 ### 3. migrate
 Runs `node db/migrate-all.js` against the production Supabase database.
 - Uses `secrets.DATABASE_URL` (pooler URL, port 6543)
-- Skips gracefully if `DATABASE_URL` is not set (prints warning)
+- Verifies the database connection first; missing credentials or a failed connection blocks deployment
 - Idempotent — safe to run on every deploy
 
 ### 4. deploy-backend
-Fires the Render deploy hook via HTTP POST.
+Runs only after CI and database migrations succeed, then fires the Render deploy hook via HTTP POST.
 - Uses `secrets.RENDER_DEPLOY_HOOK_URL`
-- If hook URL not set: prints notice, Render's Git integration will auto-deploy anyway
+- Requires the hook URL; missing configuration blocks deployment
+- Includes the exact `workflow_run.head_sha` as the hook's `ref` so Render cannot deploy a newer, untested main commit
+- Render automatic deploys are disabled in `render.yaml`; the Render service must be synced to this setting
 - Waits for HTTP 2xx response from Render
 
 ### 5. deploy-frontend
-Only runs if `changes.outputs.frontend == 'true'`.
+Runs only after migrations succeed and `changes.outputs.frontend == 'true'`.
 - Installs Vercel CLI: `npm install -g vercel`
+- Links the `frontend-next/` source directory to the existing `nodbusiness` Vercel project
 - `vercel pull --yes --environment=production --token=...`
 - `vercel build --prod --token=...`
-- `vercel deploy --prebuilt --prod --yes --no-wait --token=...`
+- `vercel deploy --prebuilt --prod --yes --token=...` waits for deployment completion so build/runtime failures fail the job
 - Up to 2 retry attempts
 
 ### 6. healthcheck (non-blocking)

@@ -179,9 +179,11 @@ When making a significant architectural decision, add a new ADR here following t
 
 ---
 
-## ADR-015: Infrastructure migration — Oracle Cloud Johannesburg + Coolify v4 + Cloudflare Pages
+## ADR-015: Infrastructure proposal — Oracle Cloud Johannesburg + Coolify v4 + Cloudflare Pages
 
-**Status:** Accepted | **Date:** September 2026
+**Status:** Superseded by ADR-016 | **Date:** September 2026
+
+> **Note:** This ADR was superseded before implementation. Oracle required a credit card for identity verification which was unavailable at the time. The project runs on Render + Vercel (ADR-016). This record is kept for historical context only.
 
 **Context:** The previous stack (Railway backend + Vercel Hobby frontend + Neon database) had four critical problems:
 1. **Render/Railway free tier sleeps** after 15 minutes of inactivity — breaks Socket.IO (chat disconnects), BullMQ (queued jobs stop), and causes 30–60s cold starts.
@@ -254,5 +256,5 @@ Specific choices:
 - Render free tier will sleep after idle periods — acceptable for dev/demo, not for production
 - Google OAuth works with `nodbusiness.vercel.app` as the authorized redirect URI
 - GitHub Actions pipeline: `deploy-backend` fires Render deploy hook, `deploy-frontend` uses Vercel CLI
-- When developer gets $1 on Grey card: upgrade to Oracle + Coolify (ADR-015) for always-on production
+- When developer gets funds: upgrade compute if Render free tier becomes limiting
 - All data (Supabase, R2, Upstash) is external — zero migration effort when upgrading compute

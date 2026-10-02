@@ -95,7 +95,7 @@ Highest sensitivity — legal, financial, and identity data:
 | Analytics events | Tier 3 (aggregated) | Analytics DB | 2 years |
 | Session tokens | Tier 3 | Redis (TTL 24h) | Auto-expiry |
 | Error logs | Tier 3 | Sentry | 90 days |
-| Server logs | Tier 3 | Coolify container logs | 30 days |
+| Server logs | Tier 3 | Render container logs | 30 days |
 | Payment tokens | Tier 4 | Stripe (never in Nodbusiness DB) | Managed by Stripe |
 | IP addresses | Tier 3 | Server logs | 30 days |
 
@@ -237,8 +237,8 @@ Nodbusiness shares data with these processors:
 | Processor | Data Shared | Purpose | DPA in Place |
 |-----------|------------|---------|-------------|
 | Supabase (PostgreSQL) | All structured data | Database hosting | Yes (standard terms) |
-| Cloudflare Pages | Request logs, session data | Frontend hosting | Yes |
-| Oracle Cloud | Server logs | Backend compute | Yes (Oracle standard) |
+| Cloudflare Pages / Vercel | Request logs, session data | Frontend hosting | Yes |
+| Render | Server logs | Backend hosting | Yes (Render standard) |
 | Stripe | Payment data, identity for KYC | Payment processing | Yes (Stripe standard) |
 | Chapa | Payment data (Africa) | Local payment processing | Review required |
 | Resend | Email addresses | Transactional email | Yes |

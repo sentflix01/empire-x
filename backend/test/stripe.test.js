@@ -30,10 +30,12 @@ delete process.env.REDIS_URL; // keep feature flags on the in-memory defaults
 // ── Stripe SDK mock ──────────────────────────────────────────────────────────
 const mockConstructEvent = jest.fn();
 const mockSessionsCreate = jest.fn();
+const mockCouponsCreate = jest.fn();
 jest.mock('stripe', () =>
   jest.fn().mockImplementation(() => ({
     webhooks: { constructEvent: (...args) => mockConstructEvent(...args) },
     checkout: { sessions: { create: (...args) => mockSessionsCreate(...args) } },
+    coupons: { create: (...args) => mockCouponsCreate(...args) },
   }))
 );
 
@@ -80,6 +82,8 @@ const ORDER = {
   total_price: '1000.00',
   currency: 'ETB',
 };
+let transactionQueries;
+let failPaidTransition;
 
 const sessionEvent = (id = 'evt_completed_1') => ({
   id,
@@ -97,6 +101,19 @@ const sessionEvent = (id = 'evt_completed_1') => ({
 beforeEach(() => {
   jest.clearAllMocks();
   delete process.env.FF_STRIPE_PAYMENTS;
+  transactionQueries = [];
+  failPaidTransition = false;
+  pool.connect.mockImplementation(async () => ({
+    query: jest.fn(async (sql, values) => {
+      transactionQueries.push([sql, values]);
+      if (sql.startsWith('SELECT id FROM orders')) return { rows: [{ id: 'order-1' }] };
+      if (sql.startsWith('UPDATE orders') && sql.includes("status='paid'") && failPaidTransition) throw new Error('connection lost');
+      if (sql.startsWith('UPDATE orders') && sql.includes("status='paid'")) return { rows: [ORDER] };
+      if (sql.includes('UPDATE products')) return { rows: [{ id: 'product-1' }] };
+      return { rows: [] };
+    }),
+    release: jest.fn(),
+  }));
 });
 
 describe('Stripe webhook — checkout.session.completed', () => {
@@ -117,15 +134,16 @@ describe('Stripe webhook — checkout.session.completed', () => {
 
     // Claim insert happened FIRST (before any processing)
     const calls = pool.query.mock.calls;
+    const txnCalls = transactionQueries;
     const claimIdx = calls.findIndex(c => c[0].includes('INSERT INTO webhook_events'));
-    const paidIdx = calls.findIndex(c => c[0].includes("status='paid'"));
+    const paidIdx = txnCalls.findIndex(c => c[0].includes("status='paid'"));
     expect(claimIdx).toBeGreaterThan(-1);
     expect(paidIdx).toBeGreaterThan(claimIdx);
     expect(calls[claimIdx][1]).toEqual(['evt_completed_1', 'checkout.session.completed']);
 
     // Order moved to paid with the payment intent recorded
-    const paidCall = calls[paidIdx];
-    expect(paidCall[1]).toEqual(['pi_test_123', 'cs_test_123']);
+    const paidCall = txnCalls[paidIdx];
+    expect(paidCall[1]).toEqual([['order-1'], 'pi_test_123']);
 
     // Coupon usage_count incremented atomically
     const couponCall = calls.find(c => c[0].includes('UPDATE coupons SET usage_count'));
@@ -161,12 +179,11 @@ describe('Stripe webhook — checkout.session.completed', () => {
     mockConstructEvent.mockReturnValue(event);
 
     // First attempt: the DB blows up mid-processing
-    routeQueries([
-      ['INSERT INTO webhook_events', { rows: [{ id: 'evt_flaky' }] }],
-      ["status='paid'", () => { throw new Error('connection lost'); }],
-    ]);
+    routeQueries([['INSERT INTO webhook_events', { rows: [{ id: 'evt_flaky' }] }]]);
+    failPaidTransition = true;
     const fail = await postWebhook(event);
     expect(fail.status).toBe(500);
+    failPaidTransition = false;
     // The claim was released so Stripe's redelivery is not misread as a duplicate
     expect(pool.query.mock.calls.filter(c => c[0].includes('DELETE FROM webhook_events')))
       .toHaveLength(1);
@@ -202,9 +219,9 @@ describe('Stripe webhook — payment failures', () => {
     const res = await postWebhook(event);
     expect(res.status).toBe(200);
 
-    const failedCall = pool.query.mock.calls.find(c => c[0].includes("status='payment_failed'"));
+    const failedCall = transactionQueries.find(c => c[0].includes("status='payment_failed'"));
     expect(failedCall).toBeTruthy();
-    expect(failedCall[1]).toEqual(['pi_test_fail']);
+    expect(failedCall[1]).toEqual([['order-1']]);
   });
 
   test('checkout.session.expired marks pending orders payment_failed by session id', async () => {
@@ -221,9 +238,9 @@ describe('Stripe webhook — payment failures', () => {
     const res = await postWebhook(event);
     expect(res.status).toBe(200);
 
-    const failedCall = pool.query.mock.calls.find(c => c[0].includes("status='payment_failed'"));
+    const failedCall = transactionQueries.find(c => c[0].includes("status='payment_failed'"));
     expect(failedCall).toBeTruthy();
-    expect(failedCall[1]).toEqual(['cs_test_expired']);
+    expect(failedCall[1]).toEqual([['order-1']]);
   });
 });
 
@@ -409,6 +426,75 @@ describe('Stripe checkout — multi-seller cart creates ONE session', () => {
     { id: 'prod-2', seller_id: 'seller-2', title: 'Shoes', price: '67.89', status: 'active', stock: null, business_id: null },
   ];
 
+  test('shared Track 1 demo account cannot create a Stripe checkout session', async () => {
+    const demoUserId = 'track1-demo-buyer';
+    routeQueries([
+      ['FROM users WHERE id', { rows: [{ id: demoUserId, email: 'test@nodbusiness.app', role: 'user', is_banned: false, is_demo: true }] }],
+    ]);
+    const demoAuth = `Bearer ${jwt.sign({ sub: demoUserId, type: 'access' }, 'test_jwt_secret')}`;
+
+    const res = await request(app)
+      .post('/api/orders/checkout/session')
+      .set('Authorization', demoAuth)
+      .send({ items: [{ product_id: 'prod-1', quantity: 1 }] });
+
+    expect(res).toMatchObject({ status: 403, body: { code: 'SHARED_DEMO_PAYMENTS_UNAVAILABLE' } });
+    expect(mockSessionsCreate).not.toHaveBeenCalled();
+    expect(pool.query.mock.calls.some(([sql]) => String(sql).includes('INSERT INTO orders'))).toBe(false);
+  });
+
+  test('Stripe checkout stays disabled when the Stripe feature flag is off', async () => {
+    process.env.FF_STRIPE_PAYMENTS = 'false';
+    const userId = 'stripe-disabled-buyer';
+    routeQueries([
+      ['FROM users WHERE id', { rows: [{ id: userId, email: 'buyer@example.test', role: 'user', is_banned: false, is_demo: false }] }],
+    ]);
+    const userAuth = `Bearer ${jwt.sign({ sub: userId, type: 'access' }, 'test_jwt_secret')}`;
+
+    const res = await request(app)
+      .post('/api/orders/checkout/session')
+      .set('Authorization', userAuth)
+      .send({ items: [{ product_id: 'prod-1', quantity: 1 }] });
+
+    expect(res.status).toBe(503);
+    expect(res.body.code).toBe('FEATURE_DISABLED');
+    expect(mockSessionsCreate).not.toHaveBeenCalled();
+    expect(pool.query.mock.calls.some(([sql]) => String(sql).includes('INSERT INTO orders'))).toBe(false);
+  });
+
+  test('rejects malformed quantities before querying products or creating a session', async () => {
+    routeQueries([
+      ['FROM users WHERE id', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user', is_banned: false }] }],
+    ]);
+    const res = await request(app)
+      .post('/api/orders/checkout/session')
+      .set('Authorization', auth())
+      .send({ items: [{ product_id: 'prod-1', quantity: 1.5 }] });
+
+    expect(res.status).toBe(422);
+    expect(pool.query.mock.calls.some(([sql]) => String(sql).includes('SELECT * FROM products'))).toBe(false);
+    expect(pool.query.mock.calls.some(([sql]) => String(sql).includes('INSERT INTO orders'))).toBe(false);
+    expect(mockSessionsCreate).not.toHaveBeenCalled();
+  });
+
+  test('combines duplicate cart lines before checking available stock', async () => {
+    routeQueries([
+      ['FROM users WHERE id', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user', is_banned: false }] }],
+      ['SELECT * FROM products', { rows: [{
+        id: 'prod-1', seller_id: 'seller-1', title: 'Limited stock item', price: '10', status: 'active', stock: 5,
+      }] }],
+    ]);
+    const res = await request(app)
+      .post('/api/orders/checkout/session')
+      .set('Authorization', auth())
+      .send({ items: [{ product_id: 'prod-1', quantity: 3 }, { product_id: 'prod-1', quantity: 3 }] });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error).toMatch(/Only 5/);
+    expect(pool.query.mock.calls.some(([sql]) => String(sql).includes('INSERT INTO orders'))).toBe(false);
+    expect(mockSessionsCreate).not.toHaveBeenCalled();
+  });
+
   test('2-seller cart → one session, one URL, both orders linked', async () => {
     const orderIds = ['order-A', 'order-B'];
     let insertIdx = 0;
@@ -437,7 +523,7 @@ describe('Stripe checkout — multi-seller cart creates ONE session', () => {
     // Exactly ONE Stripe session across all sellers
     expect(mockSessionsCreate).toHaveBeenCalledTimes(1);
     const params = mockSessionsCreate.mock.calls[0][0];
-    expect(params.line_items).toHaveLength(2); // both sellers in the same session
+    expect(params.line_items).toHaveLength(1); // one exact-total cart line for the combined session
     expect(params.metadata.purpose).toBe('order');
     expect(params.metadata.order_ids).toBe('order-A,order-B');
     expect(params.metadata.seller_ids).toBe('seller-1,seller-2');
@@ -477,10 +563,40 @@ describe('Stripe checkout — multi-seller cart creates ONE session', () => {
 
     expect(res.status).toBe(200);
     const params = mockSessionsCreate.mock.calls[0][0];
-    const adjustment = params.line_items.find(li => li.price_data.product_data.name === 'Rounding adjustment');
-    expect(adjustment).toBeTruthy();
-    const sumCents = params.line_items.reduce((s, li) => s + li.price_data.unit_amount * li.quantity, 0);
-    expect(sumCents).toBe(Math.round(9.99 * 0.008 * 100)); // exact grand-total cents
+    expect(params.line_items).toHaveLength(1);
+    expect(params.line_items[0].price_data.unit_amount).toBe(Math.round(9.99 * 0.008 * 100));
+    expect(params.line_items[0].price_data.unit_amount).toBeGreaterThan(0);
+  });
+
+  test('internal coupon becomes a positive Stripe discount, never a negative price line', async () => {
+    routeQueries([
+      ['FROM users WHERE id', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user', is_banned: false }] }],
+      ['SELECT * FROM products', { rows: PRODUCTS }],
+      ['SELECT * FROM coupons', { rows: [{
+        id: 'coupon-db-1', seller_id: 'seller-1', code: 'TENOFF', discount_type: 'fixed',
+        discount_value: '10', min_order: '0',
+      }] }],
+      ['INSERT INTO orders', { rows: [{ id: 'order-coupon' }] }],
+      ['UPDATE orders SET stripe_session_id', { rows: [] }],
+    ]);
+    mockCouponsCreate.mockResolvedValue({ id: 'coupon-stripe-1' });
+    mockSessionsCreate.mockResolvedValue({ id: 'cs_coupon', url: 'https://checkout.stripe.com/c/pay/cs_coupon' });
+
+    const res = await request(app)
+      .post('/api/orders/checkout/session')
+      .set('Authorization', auth())
+      .send({ product_id: 'prod-1', quantity: 1, coupon_code: 'TENOFF' });
+
+    expect(res.status).toBe(200);
+    expect(mockCouponsCreate).toHaveBeenCalledWith(expect.objectContaining({
+      amount_off: 8, currency: 'usd', duration: 'once',
+    }));
+    const params = mockSessionsCreate.mock.calls[0][0];
+    expect(params.line_items).toHaveLength(1);
+    expect(params.line_items[0].price_data.unit_amount).toBeGreaterThan(0);
+    expect(params.discounts).toEqual([{ coupon: 'coupon-stripe-1' }]);
+    expect(params.line_items.some(li => li.price_data.unit_amount < 0)).toBe(false);
+    expect(res.body.display.charge_total).toBe(Math.round((123.45 - 10) * 0.008 * 100) / 100);
   });
 
   test('session creation failure marks session-less orders payment_failed (no deletes)', async () => {
@@ -515,8 +631,8 @@ describe('Stripe webhook — signature verification', () => {
     });
 
     const res = await postWebhook(sessionEvent('evt_bad_sig'));
-    expect(res.status).toBe(422);
-    expect(res.body.error).toMatch(/Webhook error/);
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/Invalid Stripe webhook signature/);
     await flushAsync();
     // Nothing was processed
     const ledger = pool.query.mock.calls.filter(c => c[0].includes('INSERT INTO webhook_events'));

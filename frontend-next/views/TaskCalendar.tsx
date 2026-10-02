@@ -1,9 +1,7 @@
 'use client'
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@/lib/AuthContext";
 import { entities } from "@/api/entities";
-import { useTranslation } from 'react-i18next';
 
 import { ChevronLeft, ChevronRight, Plus, CalendarDays, Clock, Gavel, MapPin, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,8 +31,6 @@ const STATUS_STYLES = {
 };
 
 function TaskCalendar() {
-  const { t } = useTranslation();
-  const { user } = useAuth();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [tasks, setTasks] = useState([]);
   const [bids, setBids] = useState({});

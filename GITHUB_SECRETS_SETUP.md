@@ -34,8 +34,8 @@ If you previously had these secrets configured, remove them:
 
 | Old Secret | Was Used For |
 |---|---|
-| `COOLIFY_WEBHOOK_URL` | Coolify backend deploy webhook |
-| `COOLIFY_TOKEN` | Coolify API token |
+| `COOLIFY_WEBHOOK_URL` | Old deploy webhook — project now on Render |
+| `COOLIFY_TOKEN` | Old API token — project now on Render |
 | `SUPABASE_DATABASE_URL` | Old name — replaced by `DATABASE_URL` |
 | `SOURCE_DATABASE_URL` | Old migration script |
 

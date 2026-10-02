@@ -25,10 +25,10 @@
 ## Current State: Must Activate R2 Before First User
 
 ```
-⚠️  CRITICAL: Upload middleware falls back to local Coolify container disk
-    if R2_* env vars are not set in Coolify.
-    Files saved to local disk are LOST on every Coolify redeploy.
-    Must set all R2_* env vars in Coolify before accepting any user uploads.
+⚠️  CRITICAL: Upload middleware falls back to local disk
+    if R2_* env vars are not set in Render.
+    Files saved to local disk are LOST on every Render redeploy.
+    Must set all R2_* env vars in Render before accepting any user uploads.
     See LAUNCH_CHECKLIST.md § File Storage for step-by-step setup.
 ```
 
@@ -75,9 +75,9 @@ Cloudflare CDN serves from edge (300+ locations)
 4. Copy: Account ID, Access Key ID, Secret Access Key
 ```
 
-### Step 2: Set environment variables in Coolify
+### Step 2: Set environment variables in Render
 ```bash
-# Coolify → nodbusiness-backend → Environment Variables:
+# Render → nodbusiness-backend → Environment → Environment Variables:
 R2_ACCOUNT_ID=your_cloudflare_account_id
 R2_ACCESS_KEY_ID=your_r2_access_key
 R2_SECRET_ACCESS_KEY=your_r2_secret
@@ -95,7 +95,7 @@ Set as R2_PUBLIC_URL
 ### Step 4: Verify (no code changes needed)
 ```bash
 # The upload middleware already checks for R2 env vars
-# If R2_* vars set in Coolify → uses R2; if not → falls back to local disk
+# If R2_* vars set in Render → uses R2; if not → falls back to local disk
 curl -X POST https://api.yourdomain.com/api/upload \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@test-image.jpg"

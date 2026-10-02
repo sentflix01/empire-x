@@ -24,19 +24,22 @@ router.get('/my-code', requireAuth, async (req: Request, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to fetch referral code' }); }
 });
 
-router.post('/use', async (req: Request, res: Response) => {
-  const { code, userId } = req.body as { code?: string; userId?: string };
-  if (!code || !userId) { res.status(400).json({ error: 'code and userId are required' }); return; }
+router.post(['/apply', '/use'], requireAuth, async (req: Request, res: Response) => {
+  const { code } = req.body as { code?: string };
+  if (typeof code !== 'string' || !code.trim()) { res.status(400).json({ error: 'code is required' }); return; }
+  const client = await pool.connect();
   try {
-    const { rows } = await pool.query('SELECT id FROM users WHERE referral_code=$1 AND id!=$2', [code.toUpperCase(), userId]);
-    if (!rows.length) { res.status(404).json({ error: 'Invalid referral code' }); return; }
-    await pool.query('UPDATE users SET referred_by=$1 WHERE id=$2 AND referred_by IS NULL', [rows[0].id, userId]);
-    await pool.query(
-      `INSERT INTO point_transactions (user_id,type,amount,description) VALUES ($1,'earn',50,'Referral bonus') ON CONFLICT DO NOTHING`,
-      [rows[0].id],
-    );
+    const userId = req.user!.id;
+    await client.query('BEGIN');
+    const { rows } = await client.query('SELECT id FROM users WHERE referral_code=$1 AND id!=$2', [code.trim().toUpperCase(), userId]);
+    if (!rows.length) { await client.query('ROLLBACK'); res.status(404).json({ error: 'Invalid referral code' }); return; }
+    const { rowCount } = await client.query('UPDATE users SET referred_by=$1 WHERE id=$2 AND referred_by IS NULL', [rows[0].id, userId]);
+    if (!rowCount) { await client.query('ROLLBACK'); res.status(409).json({ error: 'A referral code has already been applied' }); return; }
+    await client.query(`INSERT INTO point_transactions (user_id,type,amount,description) VALUES ($1,'earn',50,'Referral bonus')`, [rows[0].id]);
+    await client.query('COMMIT');
     res.json({ success: true });
-  } catch { res.status(500).json({ error: 'Failed to use referral code' }); }
+  } catch { await client.query('ROLLBACK').catch(() => undefined); res.status(500).json({ error: 'Failed to use referral code' }); }
+  finally { client.release(); }
 });
 
 module.exports = router;

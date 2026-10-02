@@ -26,6 +26,7 @@ import logger from '../lib/logger';
 import { requireAuth } from '../middleware/auth';
 import { checkTierLimit } from '../middleware/tierLimit';
 import { queueWebhookDelivery, queueUsageRecalc } from '../lib/queue';
+import { validateUrl } from '../services/ssrfValidator';
 
 const router = Router();
 
@@ -82,7 +83,8 @@ router.post('/', requireAuth, checkTierLimit('webhooks'), async (req: Request, r
     const businessId = (req as Request & { businessId?: string }).businessId!;
     const { url, events } = req.body as { url?: string; events?: string[] };
 
-    if (!url || !/^https?:\/\//.test(url)) {
+    const urlCheck = typeof url === 'string' && url.length <= 2048 ? await validateUrl(url) : { ok: false };
+    if (!urlCheck.ok) {
       res.status(400).json({ error: 'Valid HTTPS URL is required' });
       return;
     }
@@ -148,9 +150,12 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     }
 
     // Validate URL if provided
-    if (url && !/^https?:\/\//.test(url)) {
-      res.status(400).json({ error: 'Valid HTTPS URL is required' });
-      return;
+    if (url !== undefined) {
+      const urlCheck = typeof url === 'string' && url.length <= 2048 ? await validateUrl(url) : { ok: false };
+      if (!urlCheck.ok) {
+        res.status(400).json({ error: 'Valid HTTPS URL is required' });
+        return;
+      }
     }
 
     // Validate events if provided

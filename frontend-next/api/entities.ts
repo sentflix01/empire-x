@@ -284,7 +284,7 @@ const MessageApi = {
     }
     return [];
   },
-  async get(id: string) {
+  async get(_id: string) {
     // No GET /messages/:id endpoint on the backend — return null safely
     console.warn('MessageApi.get() is not supported by the backend');
     return null;

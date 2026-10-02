@@ -17,7 +17,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Package, Search, Upload, Loader2, AlertTriangle, CheckCircle2,
-  RefreshCw, Filter, TrendingDown, X,
+  RefreshCw, TrendingDown, X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,7 +58,7 @@ function BusinessInventory() {
   async function loadProducts() {
     setLoading(true);
     try {
-      const { data } = await client.get('/api/products', { params: { limit: 100 } });
+      const { data } = await client.get('/api/products/mine');
       setProducts(data.products ?? data ?? []);
     } catch {
       toast.error('Failed to load products');
@@ -71,7 +71,7 @@ function BusinessInventory() {
     try {
       rows = JSON.parse(importText);
       if (!Array.isArray(rows)) throw new Error('Must be a JSON array');
-    } catch (e) {
+    } catch {
       toast.error('Invalid JSON — must be an array of product objects');
       return;
     }

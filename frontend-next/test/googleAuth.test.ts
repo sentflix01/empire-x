@@ -3,6 +3,8 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+const VALID_CLIENT_ID = '123456789012-demo123.apps.googleusercontent.com';
+
 const mockPost = vi.fn();
 const mockStoreToken = vi.fn();
 vi.mock('@/api/client', () => ({
@@ -21,7 +23,7 @@ describe('isGoogleReady', () => {
   afterEach(() => { vi.unstubAllEnvs(); vi.resetModules(); });
 
   it('true when CLIENT_ID set', async () => {
-    vi.stubEnv('NEXT_PUBLIC_GOOGLE_CLIENT_ID', 'test-id');
+    vi.stubEnv('NEXT_PUBLIC_GOOGLE_CLIENT_ID', VALID_CLIENT_ID);
     const { isGoogleReady } = await import('@/lib/googleAuth');
     expect(isGoogleReady()).toBe(true);
   });
@@ -31,11 +33,17 @@ describe('isGoogleReady', () => {
     const { isGoogleReady } = await import('@/lib/googleAuth');
     expect(isGoogleReady()).toBe(false);
   });
+
+  it('false when the copied example placeholder or malformed ID is configured', async () => {
+    vi.stubEnv('NEXT_PUBLIC_GOOGLE_CLIENT_ID', 'your_google_client_id.apps.googleusercontent.com');
+    const { isGoogleReady } = await import('@/lib/googleAuth');
+    expect(isGoogleReady()).toBe(false);
+  });
 });
 
 describe('renderGoogleSignInButton', () => {
   beforeEach(() => {
-    vi.stubEnv('NEXT_PUBLIC_GOOGLE_CLIENT_ID', 'test-id');
+    vi.stubEnv('NEXT_PUBLIC_GOOGLE_CLIENT_ID', VALID_CLIENT_ID);
     mockPost.mockReset();
     mockStoreToken.mockReset();
   });
@@ -104,6 +112,22 @@ describe('renderGoogleSignInButton', () => {
     await vi.advanceTimersByTimeAsync(600);
     expect(onError).not.toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('reports a Google-side error page when the OAuth popup never redirects back', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as Window);
+    const { renderGoogleSignInButton } = await import('@/lib/googleAuth');
+    const el = document.createElement('div');
+    const onError = vi.fn();
+    renderGoogleSignInButton(el, { onSuccess: vi.fn(), onError });
+
+    el.querySelector('button')!.click();
+    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
+
+    expect(onError).toHaveBeenCalledOnce();
+    expect(onError.mock.calls[0][0].message).toMatch(/active OAuth client/i);
     vi.useRealTimers();
   });
 
@@ -184,5 +208,13 @@ describe('incognito compatibility', () => {
     expect(() => st('tok')).not.toThrow();
     Object.defineProperty(window, 'localStorage', { value: orig, writable: true, configurable: true });
     vi.resetModules();
+  });
+});
+
+describe('Google OAuth configuration errors', () => {
+  it('explains invalid_client as an OAuth environment configuration issue', async () => {
+    const { describeGoogleOAuthError } = await import('@/lib/googleAuth');
+    expect(describeGoogleOAuthError('invalid_client')).toMatch(/OAuth client ID was not found/i);
+    expect(describeGoogleOAuthError('access_denied')).toBe('access_denied');
   });
 });

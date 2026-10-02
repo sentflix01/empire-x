@@ -6,6 +6,7 @@ import ExternalDataSourcePanel from "./ExternalDataSourcePanel";
 import FieldMapperPanel, { FieldDef } from "./FieldMapperPanel";
 import DataSourceStatusPanel from "./DataSourceStatusPanel";
 import type { ExternalDataSource } from "../../types/externalApi";
+import { apiFetch } from '@/api/client';
 
 interface Props {
   activeSections: string[];
@@ -119,7 +120,7 @@ function SectionWithExternalSource({
     if (!sec) return;
     setLoadingSource(true);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/showrooms/${showroomId}/external-sources`,
         { credentials: "include" }
       );
@@ -132,7 +133,7 @@ function SectionWithExternalSource({
     } finally {
       setLoadingSource(false);
     }
-  }, [showroomId, secKey]);
+  }, [showroomId, secKey, sec]);
 
   useEffect(() => {
     loadSource();

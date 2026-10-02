@@ -11,7 +11,7 @@ import { Check } from "lucide-react";
  */
 export default function TemplateCard({ template, selected, onSelect }) {
   // Build a mini wireframe preview from section types
-  const sectionDots = template.sections.map((s, i) => {
+  const sectionDots = template.sections.map((s) => {
     const t = s.type;
     if (t === "hero") return { h: "h-10", w: "w-full", label: "Hero" };
     if (t === "products" || t === "featured_products" || t === "courses" || t === "menu") return { h: "h-6", w: "w-full", label: "Grid", grid: true };

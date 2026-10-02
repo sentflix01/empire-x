@@ -10,7 +10,7 @@ router.post('/:postId/vote', requireAuth, async (req: Request, res: Response) =>
   if (!option_id) { res.status(400).json({ error: 'option_id is required' }); return; }
   try {
     const { rows: posts } = await pool.query(
-      `SELECT id, poll_options, poll_ends_at FROM posts WHERE id=$1 AND post_type='poll'`,
+      `SELECT p.id, p.poll_options, p.poll_ends_at FROM posts p JOIN users u ON u.id=p.author_id WHERE p.id=$1 AND p.post_type='poll' ${req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : ''}`,
       [req.params.postId],
     );
     if (!posts.length) { res.status(404).json({ error: 'Poll not found' }); return; }
@@ -42,8 +42,12 @@ router.post('/:postId/vote', requireAuth, async (req: Request, res: Response) =>
 
 router.get('/:postId/results', optionalAuth, async (req: Request, res: Response) => {
   try {
+    const realAuthorFilter = req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
+    const voteJoin = req.realOnly ? 'JOIN users voter ON voter.id=pv.user_id AND voter.is_seed=FALSE AND voter.is_demo=FALSE' : '';
     const { rows } = await pool.query(
-      `SELECT post_type, poll_options, (SELECT COUNT(*) FROM poll_votes WHERE post_id=$1)::int AS total_votes FROM posts WHERE id=$1`,
+      `SELECT p.post_type,p.poll_options,
+              (SELECT COUNT(*) FROM poll_votes pv ${voteJoin} WHERE pv.post_id=p.id)::int AS total_votes
+       FROM posts p JOIN users u ON u.id=p.author_id WHERE p.id=$1 ${realAuthorFilter}`,
       [req.params.postId],
     );
     if (!rows.length) { res.status(404).json({ error: 'Poll not found' }); return; }
@@ -52,8 +56,19 @@ router.get('/:postId/results', optionalAuth, async (req: Request, res: Response)
     const userVote = req.user
       ? (await pool.query('SELECT option_id FROM poll_votes WHERE post_id=$1 AND user_id=$2', [req.params.postId, req.user.id])).rows[0]?.option_id ?? null
       : null;
+    let options = JSON.parse(post.poll_options || '[]') as Array<{ id: string; vote_count?: number }>;
+    if (req.realOnly) {
+      const { rows: counts } = await pool.query<{ option_id: string; vote_count: number }>(
+        `SELECT pv.option_id,COUNT(*)::int AS vote_count FROM poll_votes pv
+         JOIN users voter ON voter.id=pv.user_id
+         WHERE pv.post_id=$1 AND voter.is_seed=FALSE AND voter.is_demo=FALSE GROUP BY pv.option_id`,
+        [req.params.postId],
+      );
+      const byOption = new Map(counts.map((row) => [row.option_id, row.vote_count]));
+      options = options.map((option) => ({ ...option, vote_count: byOption.get(option.id) ?? 0 }));
+    }
     res.json({
-      poll_options: JSON.parse(post.poll_options || '[]'),
+      poll_options: options,
       total_votes: post.total_votes,
       user_vote: userVote,
     });

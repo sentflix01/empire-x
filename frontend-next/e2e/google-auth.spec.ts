@@ -11,83 +11,48 @@ import { test, expect, type Page, type BrowserContext } from '@playwright/test';
  *     legacy window.__googleSignIn is never present.
  *
  *   Section B — Middleware redirect contract
- *     Verifies that Next.js edge middleware (middleware.ts) correctly gates
+ *     Verifies that the Next.js proxy correctly gates
  *     protected routes and redirects already-logged-in users away from auth pages.
- *     Uses the seeded test account so it can set the nb_auth hint cookie.
+ *     Uses local cookies and mocked APIs; no seeded account is needed.
  *
  *   Section C — Email auth lifecycle (login → session persistence → logout)
  *     Extends the basic auth.spec.ts flows with:
  *       - Successful login stores hint cookie, NOT the token itself
  *       - Reloading re-hydrates via the HttpOnly refresh cookie
- *       - Logout clears hint cookie and bounces /feed → /login
+ *       - Logout clears hint cookie and protected routes return to login
  *       - Password field accepts up to 128 characters (maxLength enforced)
  *       - Email field accepts up to 254 characters (maxLength enforced)
  *
- * Seeded account required for Sections B & C:
- *   test@nodbusiness.app / Test1234!
- *   (run: cd backend && npm run seed)
+ * Auth requests are mocked. No real credentials or backend are used.
  */
 
-const API           = process.env.E2E_BACKEND_URL   ?? 'http://localhost:3001';
-const SEEDED_EMAIL  = process.env.E2E_TEST_EMAIL    ?? 'test@nodbusiness.app';
-const SEEDED_PASS   = process.env.E2E_TEST_PASSWORD ?? 'Test1234!';
+const E2E_EMAIL = 'e2e@example.test';
+const E2E_PASSWORD = 'e2e-only-password';
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
-async function loginViaApi(context: BrowserContext): Promise<string | null> {
-  /** Log in through the backend API directly and inject the resulting
-   *  nb_auth hint cookie into the browser context — faster than UI login. */
-  try {
-    const res  = await fetch(`${API}/api/auth/login`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email: SEEDED_EMAIL, password: SEEDED_PASS }),
-    });
-    if (!res.ok) return null;
-    const body = await res.json() as { access_token?: string };
-    if (!body.access_token) return null;
-    // Inject the hint cookie (the HttpOnly refresh_token cookie is already set
-    // server-side via Set-Cookie — Playwright picks it up automatically on the
-    // first request that passes through the backend origin).
-    await context.addCookies([{
-      name:     'nb_auth',
-      value:    '1',
-      domain:   'localhost',
-      path:     '/',
-      sameSite: 'Lax',
-      httpOnly: false,
-      secure:   false,
-    }]);
-    return body.access_token;
-  } catch {
-    return null;
-  }
+async function installAuthMocks(page: Page, options: { mode?: 'demo' | 'real' | null; loginStatus?: number; loginBody?: Record<string, unknown>; authenticated?: boolean } = {}) {
+  const mode = options.mode ?? null;
+  let sessionActive = options.authenticated ?? false;
+  await page.route('**/api/**', async route => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === '/api/auth/login') {
+      sessionActive = (options.loginStatus ?? 200) < 400;
+      await route.fulfill({ status: options.loginStatus ?? 200, headers: options.loginStatus && options.loginStatus >= 400 ? {} : { 'set-cookie': 'refresh_token=e2e-refresh; Path=/api/auth; HttpOnly; SameSite=Lax' }, json: options.loginBody ?? { access_token: 'e2e-access-token', is_demo: false, onboarding_mode: mode } });
+    } else if (pathname === '/api/auth/refresh') {
+      await route.fulfill(sessionActive ? { json: { access_token: 'e2e-refreshed-token' } } : { status: 401, json: { error: 'Not authenticated' } });
+    } else if (pathname === '/api/auth/me') {
+      await route.fulfill({ json: { id: 'e2e-user', full_name: 'E2E User', email: E2E_EMAIL, role: 'user', is_demo: false, onboarding_mode: mode } });
+    } else if (pathname === '/api/profiles') {
+      await route.fulfill({ json: [{ id: 'e2e-profile', user_id: 'e2e-user', profile_type: 'personal' }] });
+    } else {
+      await route.fulfill({ json: { success: true } });
+    }
+  });
 }
 
-async function seedAvailable(): Promise<boolean> {
-  try {
-    const res  = await fetch(`${API}/api/auth/login`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email: SEEDED_EMAIL, password: SEEDED_PASS }),
-    });
-    if (!res.ok) return false;
-    const body = await res.json() as { access_token?: string };
-    return Boolean(body.access_token);
-  } catch {
-    return false;
-  }
-}
-
-async function loginViaUI(page: Page): Promise<void> {
-  await page.goto('/login', { waitUntil: 'domcontentloaded' });
-  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
-  await page.locator('input[type="email"], input[name="email"]').first().fill(SEEDED_EMAIL);
-  await page.locator('input[type="password"]').first().fill(SEEDED_PASS);
-  await Promise.all([
-    page.waitForURL(u => !u.pathname.startsWith('/login'), { timeout: 20_000 }),
-    page.locator('button[type="submit"]').first().click(),
-  ]);
+async function setAuthHint(context: BrowserContext) {
+  await context.addCookies([{ name: 'nb_auth', value: '1', domain: 'localhost', path: '/', sameSite: 'Lax', httpOnly: false, secure: false }]);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -97,96 +62,91 @@ async function loginViaUI(page: Page): Promise<void> {
 
 test.describe('Section A — Google Sign-In UI', () => {
 
-  test('A1: login page renders a GIS button container (div), not a plain button', async ({ page }) => {
+  test('A1: login page renders the accessible Google OAuth button', async ({ page }) => {
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
 
-    // The new implementation uses a div container for GIS to fill — NOT a
-    // <button> labelled "Continue with Google" (that was the old implementation).
+    // The legacy "Continue with Google" button was replaced by the OAuth popup button.
     const legacyButton = page.locator('button', { hasText: /continue with google/i });
     await expect(legacyButton).toHaveCount(0);
 
-    // The GIS container div must be present (aria-label set in JSX).
-    const gisContainer = page.locator('div[aria-label*="Google"]');
-    await expect(gisContainer).toBeVisible();
+    await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
   });
 
-  test('A2: register page renders a GIS button container', async ({ page }) => {
+  test('A2: register page renders the accessible Google OAuth button', async ({ page }) => {
     await page.goto('/register', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
 
-    const gisContainer = page.locator('div[aria-label*="Google"]');
-    await expect(gisContainer).toBeVisible();
+    await expect(page.getByRole('button', { name: /sign up with google/i })).toBeVisible();
   });
 
-  test('A3: window.__googleSignIn is never set (legacy coupling removed)', async ({ page }) => {
+  test('A3: Google login does not call the legacy sign-in global', async ({ page }) => {
+    await page.addInitScript(() => {
+      (window as any).__googleSignIn = () => sessionStorage.setItem('legacy-google-called', '1');
+      window.open = (() => ({} as Window)) as typeof window.open;
+    });
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
 
-    const isDefined = await page.evaluate(() => typeof (window as any).__googleSignIn !== 'undefined');
-    // GoogleSignInInit still sets window.__googleSignIn for legacy callers.
-    // Login.tsx no longer reads it — but we verify it is NOT being called during
-    // the button-click flow by checking that clicking the container doesn't
-    // trigger a JS error related to the old path.
-    // The binding existing is fine; what matters is Login.tsx doesn't use it.
-    // This test documents the architecture decision rather than asserting absence.
-    // It passes either way — we just log the value.
-    test.info().annotations.push({
-      type: 'architecture-note',
-      description: `window.__googleSignIn defined: ${isDefined}. Login.tsx uses renderGoogleSignInButton() directly.`,
-    });
-    // No assertion — informational only.
+    await page.getByRole('button', { name: /sign in with google/i }).click();
+    expect(await page.evaluate(() => sessionStorage.getItem('legacy-google-called'))).toBeNull();
   });
 
-  test('A4: login page shows loading state then GIS button or unavailable text', async ({ page }) => {
+  test('A4: login page renders a visible Google sign-in area', async ({ page }) => {
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
 
-    // Immediately after load: either "Setting up" text is visible (script loading)
-    // or the GIS container already has content (script was cached/fast).
-    // Either state is valid — we assert the page does NOT show a broken UI.
-    const setupText     = page.getByText(/setting up google sign[ -](?:in|up)/i);
-    const unavailText   = page.getByText(/google sign[ -](?:in|up) unavailable/i);
-    const gisContainer  = page.locator('div[aria-label*="Google"]');
-
-    // At least one of: setup text, unavailable text, or GIS container must exist
-    const hasAny = await Promise.race([
-      setupText.isVisible().catch(() => false),
-      unavailText.isVisible().catch(() => false),
-      gisContainer.isVisible().catch(() => false),
-    ]);
-    expect(hasAny).toBeTruthy();
+    // The OAuth popup button is rendered synchronously when configured; the
+    // accessible region remains visible with the email fallback otherwise.
+    await expect(page.locator('div[aria-label*="Google"]')).toBeVisible();
   });
 
-  test('A5: login page GIS container has correct aria-label for accessibility', async ({ page }) => {
+  test('A5: login page Google OAuth region has an accessible label', async ({ page }) => {
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
     const container = page.locator('div[aria-label*="Google"]').first();
     await expect(container).toHaveAttribute('aria-label', /google/i);
   });
 
-  test('A6: register page shows "Setting up Google Sign-In" while GIS loads', async ({ page }) => {
-    // Block the GIS script so we can assert the loading state
+  test('A6: register Google button does not depend on a GIS script', async ({ page }) => {
+    // This implementation opens OAuth directly; no GIS JavaScript is loaded.
     await page.route('**/accounts.google.com/gsi/client', route => route.abort());
 
     await page.goto('/register', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
 
-    // With script blocked, setup text or unavailable text must appear
-    // (either "Setting up Google Sign-Up…" or "Google Sign-Up unavailable")
-    const setupOrUnavailable = page.getByText(
-      /setting up google sign[ -](?:in|up)|google sign[ -](?:in|up) unavailable/i,
-    );
-    await expect(setupOrUnavailable).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByRole('button', { name: /sign up with google/i })).toBeVisible();
+    await expect(page.locator('script[src*="accounts.google.com/gsi/client"]')).toHaveCount(0);
   });
 
-  test('A7: login page shows "Google Sign-In unavailable" when GIS script is blocked', async ({ page }) => {
+  test('A7: login Google button does not depend on a GIS script', async ({ page }) => {
     await page.route('**/accounts.google.com/gsi/client', route => route.abort());
 
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
 
-    // Wait up to 7s for the 5-second timeout in the component to fire
-    await expect(
-      page.getByText(/google sign[ -](?:in|up) unavailable/i),
-    ).toBeVisible({ timeout: 7_000 });
+    await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
+    await expect(page.locator('script[src*="accounts.google.com/gsi/client"]')).toHaveCount(0);
+  });
+
+  test('A8: OAuth popup uses the configured client ID and same-origin callback', async ({ page }) => {
+    await page.addInitScript(() => {
+      // Capture the constructed URL without sending a test browser to Google.
+      window.open = ((url?: string | URL) => {
+        sessionStorage.setItem('e2e-google-oauth-url', String(url ?? ''));
+        return {} as Window;
+      }) as typeof window.open;
+    });
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    const googleButton = page.getByRole('button', { name: /sign in with google/i });
+    await expect(googleButton).toBeVisible();
+    await googleButton.click();
+
+    const requestUrl = await page.evaluate(() => sessionStorage.getItem('e2e-google-oauth-url'));
+    expect(requestUrl).toBeTruthy();
+    const authorization = new URL(requestUrl!);
+    expect(authorization.origin).toBe('https://accounts.google.com');
+    expect(authorization.pathname).toBe('/o/oauth2/v2/auth');
+    expect(authorization.searchParams.get('client_id')).toMatch(/^\d+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/);
+    expect(authorization.searchParams.get('redirect_uri')).toBe(`${new URL(page.url()).origin}/auth/google/callback`);
+    expect(authorization.searchParams.get('response_type')).toBe('id_token');
   });
 
 });
@@ -196,244 +156,88 @@ test.describe('Section A — Google Sign-In UI', () => {
 // ══════════════════════════════════════════════════════════════════════════════
 
 test.describe('Section B — Middleware redirects', () => {
-  let hasSeed = false;
-
-  test.beforeAll(async () => {
-    hasSeed = await seedAvailable();
+  test('B1: anonymous visitor can browse the public guest feed', async ({ page }) => {
+    // Keep the guest-feed smoke test independent of local/production data. The
+    // feed's empty-state path is enough to verify that guest navigation renders.
+    await page.route('**/api/**', route => {
+      const pathname = new URL(route.request().url()).pathname;
+      if (pathname === '/api/auth/refresh') {
+        return route.fulfill({ status: 401, json: { error: 'Not authenticated' } });
+      }
+      return route.fulfill({ json: {} });
+    });
+    await page.context().clearCookies(); await page.goto('/feed', { waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/\/feed(?:\?|$)/);
+    await expect(page.getByText(/guest|read.only/i).first()).toBeVisible({ timeout: 10_000 });
   });
-
-  test('B1: anonymous visitor hitting /feed is redirected to /login?return=%2Ffeed', async ({ page }) => {
-    // Clear all cookies first to ensure anonymous state
-    await page.context().clearCookies();
-    await page.goto('/feed', { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/\/login/);
-    expect(page.url()).toContain('return=');
-  });
-
-  test('B2: anonymous visitor hitting /wallet is redirected to /login?return=%2Fwallet', async ({ page }) => {
-    await page.context().clearCookies();
-    await page.goto('/wallet', { waitUntil: 'domcontentloaded' });
+  test('B2: anonymous visitor to protected wallet returns to login with destination', async ({ page }) => {
+    await page.context().clearCookies(); await page.goto('/wallet', { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(/\/login\?return=%2Fwallet/);
   });
-
-  test('B3: anonymous visitor hitting /settings is redirected to /login', async ({ page }) => {
+  test('B3: anonymous visitor to protected settings returns to login', async ({ page }) => {
+    await page.context().clearCookies(); await page.goto('/settings', { waitUntil: 'domcontentloaded' }); await expect(page).toHaveURL(/\/login/);
+  });
+  test('B4: login and register remain accessible without auth', async ({ page }) => {
     await page.context().clearCookies();
-    await page.goto('/settings', { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/\/login/);
+    for (const path of ['/login', '/register']) { await page.goto(path, { waitUntil: 'domcontentloaded' }); await expect(page).toHaveURL(new RegExp(path.replace('/', '\\/'))); }
   });
-
-  test('B4: public paths (/login, /register, /products/*) are accessible without auth', async ({ page }) => {
-    await page.context().clearCookies();
-    for (const path of ['/login', '/register']) {
-      await page.goto(path, { waitUntil: 'domcontentloaded' });
-      // Should NOT redirect to /login (already on auth page)
-      await expect(page).toHaveURL(new RegExp(path.replace('/', '\\/')));
-    }
+  for (const path of ['/login', '/register']) {
+    test('authenticated visitor to ' + path + ' is routed to chooser', async ({ page, context }) => {
+      await installAuthMocks(page, { authenticated: true }); await setAuthHint(context); await page.goto(path, { waitUntil: 'domcontentloaded' }); await expect(page).toHaveURL(/\/choose-mode/);
+    });
+  }
+  test('B7: protected destination is retained across sign-in and first-login chooser', async ({ page }) => {
+    await installAuthMocks(page); await page.context().clearCookies(); await page.goto('/wallet', { waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/\/login\?return=%2Fwallet/);
+    // The protected-route redirect is a full document navigation. Wait for
+    // the login page's hydration before filling its controlled fields so a
+    // slow dev-server hydration cannot reset the email between fill and submit.
+    await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+    const emailInput = page.getByRole('textbox', { name: /email/i });
+    await emailInput.fill(E2E_EMAIL);
+    await expect(emailInput).toHaveValue(E2E_EMAIL);
+    await page.locator('input[type="password"]').fill(E2E_PASSWORD);
+    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+    await expect(page).toHaveURL(/\/choose-mode\?return=%2Fwallet/);
+    await page.getByRole('button', { name: 'Use Real Account' }).click();
+    await expect(page).toHaveURL(/\/wallet/);
   });
-
-  test('B5: logged-in user visiting /login is redirected to /feed', async ({ page, context }) => {
-    test.skip(!hasSeed, `Seeded account unavailable`);
-
-    await loginViaApi(context);
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-
-    // Middleware sees nb_auth=1 and redirects to /feed
-    await expect(page).toHaveURL(/\/feed/, { timeout: 10_000 });
-  });
-
-  test('B6: logged-in user visiting /register is redirected to /feed', async ({ page, context }) => {
-    test.skip(!hasSeed, `Seeded account unavailable`);
-
-    await loginViaApi(context);
-    await page.goto('/register', { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/\/feed/, { timeout: 10_000 });
-  });
-
-  test('B7: return URL is preserved through redirect — after login lands on original path', async ({ page }) => {
-    test.skip(!hasSeed, `Seeded account unavailable`);
-
-    await page.context().clearCookies();
-    // Visit a protected route anonymously — gets redirected to /login?return=/wallet
-    await page.goto('/wallet', { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/\/login\?return=/);
-
-    // Now log in via the form
-    await page.locator('input[type="email"], input[name="email"]').first().fill(SEEDED_EMAIL);
-    await page.locator('input[type="password"]').first().fill(SEEDED_PASS);
-    await Promise.all([
-      page.waitForURL(u => !u.pathname.startsWith('/login'), { timeout: 20_000 }),
-      page.locator('button[type="submit"]').first().click(),
-    ]);
-
-    // Should land on /wallet (the original destination), not /feed
-    await expect(page).toHaveURL(/\/wallet/, { timeout: 10_000 });
-  });
-
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Section C — Email auth lifecycle
+// Section C — Email auth lifecycle (mock API only)
 // ══════════════════════════════════════════════════════════════════════════════
-
 test.describe('Section C — Email auth lifecycle', () => {
-  let hasSeed = false;
-
-  test.beforeAll(async () => {
-    hasSeed = await seedAvailable();
+  async function signIn(page: Page, mode: 'real' | null = 'real') {
+    await installAuthMocks(page, { mode }); await page.goto('/login'); await page.getByRole('textbox', { name: /email/i }).fill(E2E_EMAIL);
+    await page.locator('input[type="password"]').fill(E2E_PASSWORD); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  }
+  test('C1: login stores routing hint but never exposes JWT', async ({ page }) => {
+    await signIn(page); await expect(page).toHaveURL(/\/feed/); const cookies=await page.context().cookies();
+    expect(cookies.some(c=>c.name==='nb_auth'&&c.value==='1')).toBeTruthy();
+    const leaked=await page.evaluate(()=>({ls:localStorage.getItem('access_token'),cookie:document.cookie.includes('access_token=')})); expect(leaked.ls).toBeNull(); expect(leaked.cookie).toBeFalsy();
   });
-
-  test('C1: successful login sets nb_auth hint cookie but never exposes JWT', async ({ page }) => {
-    test.skip(!hasSeed, `Seeded account unavailable`);
-
-    await page.context().clearCookies();
-    await loginViaUI(page);
-
-    const cookies = await page.context().cookies();
-    // Hint cookie must be present
-    expect(cookies.some(c => c.name === 'nb_auth' && c.value === '1')).toBeTruthy();
-    // JWT must NOT be readable from JavaScript
-    const leaked = await page.evaluate(() => ({
-      ls:     window.localStorage.getItem('access_token'),
-      cookie: document.cookie.includes('access_token='),
-    }));
-    expect(leaked.ls).toBeNull();
-    expect(leaked.cookie).toBeFalsy();
+  test('C2: refresh token is HttpOnly', async ({ page }) => {
+    await signIn(page); await expect(page).toHaveURL(/\/feed/); const cookie=(await page.context().cookies()).find(c=>c.name==='refresh_token');
+    expect(cookie?.httpOnly).toBeTruthy(); expect(await page.evaluate(()=>document.cookie.includes('refresh_token='))).toBeFalsy();
   });
-
-  test('C2: refresh_token cookie is HttpOnly (not readable by JavaScript)', async ({ page, context }) => {
-    test.skip(!hasSeed, `Seeded account unavailable`);
-
-    await context.clearCookies();
-    await loginViaUI(page);
-
-    // Playwright can read HttpOnly cookies via context.cookies() (server-side view)
-    const cookies = await context.cookies();
-    const refreshCookie = cookies.find(c => c.name === 'refresh_token');
-
-    if (refreshCookie) {
-      // If present, it must be HttpOnly
-      expect(refreshCookie.httpOnly).toBeTruthy();
-      // And it must NOT be readable from page JS
-      const readableFromJs = await page.evaluate(() =>
-        document.cookie.includes('refresh_token='),
-      );
-      expect(readableFromJs).toBeFalsy();
-    } else {
-      // refresh_token cookie path is /api/auth — browsers don't send it to
-      // non-matching paths so Playwright may not capture it here; that's fine.
-      test.info().annotations.push({
-        type: 'note',
-        description: 'refresh_token cookie not captured at this path — expected (path=/api/auth)',
-      });
-    }
+  test('C3: reload rehydrates mocked session', async ({ page }) => { await signIn(page); await expect(page).toHaveURL(/\/feed/); await page.reload(); await expect(page).not.toHaveURL(/\/login/); });
+  test('C4: logout clears hint and protected routes return to login', async ({ page }) => {
+    await signIn(page); await expect(page).toHaveURL(/\/feed/); await page.evaluate(()=>{document.cookie='nb_auth=; path=/; max-age=0';});
+    expect((await page.context().cookies()).some(c=>c.name==='nb_auth'&&c.value==='1')).toBeFalsy(); await page.goto('/wallet'); await expect(page).toHaveURL(/\/login\?return=%2Fwallet/);
   });
-
-  test('C3: page reload re-hydrates session silently (stays on protected route)', async ({ page, context }) => {
-    test.skip(!hasSeed, `Seeded account unavailable`);
-
-    await context.clearCookies();
-    await loginViaUI(page);
-
-    const pathAfterLogin = new URL(page.url()).pathname;
-    await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
-
-    // Must NOT redirect to /login on reload
-    await expect(page).not.toHaveURL(/\/login/);
-    // Must stay on the same authenticated path
-    expect(new URL(page.url()).pathname).toBe(pathAfterLogin);
+  test('C5: rejected credentials show an error without leaving login', async ({ page }) => {
+    await installAuthMocks(page,{loginStatus:401,loginBody:{error:'Invalid email or password'}}); await page.goto('/login'); await page.getByRole('textbox',{name:/email/i}).fill(E2E_EMAIL);
+    await page.locator('input[type="password"]').fill('wrong-e2e-password'); await page.getByRole('button',{name:'Sign in',exact:true}).click(); await expect(page).toHaveURL(/\/login/);
+    await expect(page.locator('.text-destructive, [class*="destructive"]').first()).toBeVisible();
   });
-
-  test('C4: logout clears hint cookie and bounces protected routes to /login', async ({ page, context }) => {
-    test.skip(!hasSeed, `Seeded account unavailable`);
-
-    await context.clearCookies();
-    await loginViaUI(page);
-
-    // Log out via the backend directly (mirrors what AuthContext.logout() does)
-    await page.evaluate(async () => {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-      // Clear the hint cookie from JS (mirrors clearToken())
-      document.cookie = 'nb_auth=; path=/; max-age=0';
-    });
-
-    // Hint cookie must be gone
-    const cookies = await context.cookies();
-    expect(cookies.some(c => c.name === 'nb_auth' && c.value === '1')).toBeFalsy();
-
-    // Protected route must now redirect to login
-    await page.goto('/feed', { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/\/login/);
+  test('C6: email input enforces maxLength=254', async ({ page }) => { await page.goto('/login'); await expect(page.locator('input[type="email"]').first()).toHaveAttribute('maxlength','254'); });
+  test('C7: password input enforces maxLength=128', async ({ page }) => { await page.goto('/login'); await expect(page.locator('input[type="password"]').first()).toHaveAttribute('maxlength','128'); });
+  test('C8: unverified email response routes to verification registration', async ({ page }) => {
+    await installAuthMocks(page,{loginStatus:403,loginBody:{error:'Please verify your email before logging in.',code:'email_not_verified',pendingVerification:true}}); await page.goto('/login');
+    await page.getByRole('textbox',{name:/email/i}).fill('unverified@example.test'); await page.locator('input[type="password"]').fill(E2E_PASSWORD); await page.getByRole('button',{name:'Sign in',exact:true}).click();
+    await expect(page).toHaveURL(/\/register\?verify=unverified%40example\.test/);
   });
-
-  test('C5: wrong password shows error message without navigation', async ({ page }) => {
-    test.skip(!hasSeed, `Seeded account unavailable`);
-
-    await page.context().clearCookies();
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
-
-    await page.locator('input[type="email"], input[name="email"]').first().fill(SEEDED_EMAIL);
-    await page.locator('input[type="password"]').first().fill('definitely-wrong!');
-    await page.locator('button[type="submit"]').first().click();
-
-    await page.waitForTimeout(2_000);
-    await expect(page).toHaveURL(/\/login/);
-    // An error message must be visible
-    const errorEl = page.locator('.text-destructive, [class*="destructive"]').first();
-    await expect(errorEl).toBeVisible({ timeout: 5_000 });
-  });
-
-  test('C6: email input maxLength=254 is enforced in the browser', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-    const maxLen = await emailInput.getAttribute('maxlength');
-    expect(maxLen).toBe('254');
-  });
-
-  test('C7: password input maxLength=128 is enforced in the browser', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    const pwInput = page.locator('input[type="password"]').first();
-    const maxLen = await pwInput.getAttribute('maxlength');
-    expect(maxLen).toBe('128');
-  });
-
-  test('C8: unverified-email login redirects to /register?verify=<email>', async ({ page }) => {
-    // This test only runs when the seeded DB has an unverified account.
-    // The backend returns 403 + code:'email_not_verified' for such accounts.
-    // We simulate this by checking Login.tsx's error-handling branch via the
-    // network-level mock pattern.
-    //
-    // Since we can't easily create an unverified account in E2E, we just verify
-    // that the /login page will navigate to /register?verify= when the backend
-    // sends the expected 403 response. We check this through the URL after a
-    // deliberate bad login that we intercept.
-    test.skip(!hasSeed, `Seeded account unavailable`);
-
-    await page.context().clearCookies();
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
-
-    // Intercept the login API call and return the unverified-email response
-    await page.route('**/api/auth/login', async route => {
-      await route.fulfill({
-        status:      403,
-        contentType: 'application/json',
-        body:        JSON.stringify({
-          error:               'Please verify your email before logging in.',
-          code:                'email_not_verified',
-          pendingVerification: true,
-        }),
-      });
-    });
-
-    await page.locator('input[type="email"], input[name="email"]').first().fill('unverified@example.com');
-    await page.locator('input[type="password"]').first().fill('password123');
-    await page.locator('button[type="submit"]').first().click();
-
-    await expect(page).toHaveURL(/\/register\?verify=unverified%40example\.com/, { timeout: 8_000 });
-  });
-
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -459,7 +263,6 @@ test.describe('Section D — Google OAuth popup handoff', () => {
 
   test('D1: normal popup handoff', async ({ page, context }) => {
     const counters = baseMocks(context);
-    const state = 'd1state';
     await context.route(`${GoogleAuthHost}/o/oauth2/v2/auth*`, async route => {
       counters.google++;
       const reqUrl = new URL(route.request().url());
@@ -526,14 +329,15 @@ test.describe('Section D — Google OAuth popup handoff', () => {
 
     const gisButton = page.locator('div[aria-label*="Google"] button').first();
     await expect(gisButton).toBeVisible({ timeout: 20_000 });
-    await gisButton.click();
-
     const popupPromise = context.waitForEvent('page', { timeout: 20_000 });
+    await gisButton.click();
     const popup = await popupPromise;
 
     await popup.waitForLoadState('load', { timeout: 20_000 });
 
-    await page.waitForURL(u => u.pathname === '/feed', { timeout: 20_000 });
+    // This mocked account has no onboarding preference, so a successful OAuth
+    // handoff must enter the first-login mode chooser rather than skip to feed.
+    await page.waitForURL(u => u.pathname === '/choose-mode', { timeout: 20_000 });
 
     await expect
       .poll(() => counters.exchange, { timeout: 10_000, intervals: [100, 250, 500, 1_000] })
@@ -552,5 +356,3 @@ test.describe('Section D — Google OAuth popup handoff', () => {
   });
 
 });
-
-

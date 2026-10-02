@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Store, Star, Eye, Users, Building2, MapPin } from 'lucide-react';
+import {  Star, Eye, Users, Building2, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import client from '@/api/client';
 import { useCollapse } from '@/hooks/useCollapse';

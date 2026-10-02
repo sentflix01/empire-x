@@ -80,7 +80,7 @@ You will be paged from:
 - How many users affected?
 - Which feature/endpoint is failing?
 - When did it start? (Sentry first-seen timestamp)
-- Was there a recent deployment? (Check Coolify Deployments tab)
+- Was there a recent deployment? (Check Render → Deployments tab)
 - Check DevOps Live Error Feed for error pattern
 ```
 
@@ -95,8 +95,8 @@ All: Keep status page updated every 30 min during active incident
 ### Step 4: Resolve
 ```
 Option A: Roll back (if caused by a recent deploy)
-  → Backend: Coolify → Application → Deployments → select previous → Redeploy (~60s)
-  → Frontend: Cloudflare → Pages → nodbusiness → Deployments → Rollback (~30s)
+  → Backend: Render → service → Deploys → select previous → Redeploy (~2 min)
+  → Frontend: Vercel → Project → Deployments → Rollback (~1 min)
 
 Option B: Hotfix
   → Fix code on a branch
@@ -137,7 +137,7 @@ Or: `psql "$DATABASE_URL" -c "SELECT 1"`
 Upstash → console.upstash.com → your database → CLI
 
 ### Roll back backend
-Coolify → Application → Deployments → Select previous → Redeploy
+Render → service → Deploys → Select previous → Redeploy
 
 ### Roll back frontend
 Cloudflare → Pages → nodbusiness → Deployments → Select previous → Rollback
@@ -151,7 +151,7 @@ Cloudflare → Pages → nodbusiness → Deployments → Select previous → Rol
 | Database unreachable | CTO → Supabase status (status.supabase.com) |
 | Payment system down | CTO → Stripe/Chapa status page |
 | Security incident / breach | CEO + Legal counsel immediately |
-| All API calls 500 | CTO → check Coolify container logs |
+| All API calls 500 | CTO → check Render service logs |
 | High fraud rate detected | CEO → freeze affected accounts |
 | Media escalation | CEO → PR response |
 | Oracle VM unreachable | CTO → provision Hetzner CAX11 (see DISASTER_RECOVERY.md Scenario 2) |

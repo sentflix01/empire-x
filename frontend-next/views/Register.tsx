@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
-import { renderGoogleSignInButton } from "@/lib/googleAuth";
+import { describeGoogleOAuthError, renderGoogleSignInButton } from "@/lib/googleAuth";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function Register() {
@@ -44,7 +44,9 @@ function Register() {
       onError: (err) => setError(
         err.message === 'Sign-in was cancelled.'
           ? ''
-          : 'Google sign-in failed. Please try email and password below.'
+          : /invalid_client|oauth client was not found/i.test(err.message)
+            ? describeGoogleOAuthError(err.message)
+            : 'Google sign-in failed. Please try email and password below.'
       ),
     });
     if (ok) setGoogleReady(true);

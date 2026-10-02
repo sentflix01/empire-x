@@ -18,10 +18,10 @@ Event listings: create/manage events, ticket types, purchase/RSVP flows writing 
 | `GET` | `/api/events/` | optional | 9 |
 | `GET` | `/api/events/:id` | optional | 16 |
 | `POST` | `/api/events/` | auth | 24 |
-| `PUT` | `/api/events/:id` | auth | 32 |
-| `DELETE` | `/api/events/:id` | auth | 41 |
-| `POST` | `/api/events/:id/book` | auth | 51 |
-| `GET` | `/api/events/:id/attendees` | optional | 69 |
+| `PUT` | `/api/events/:id` | auth | 33 |
+| `DELETE` | `/api/events/:id` | auth | 44 |
+| `POST` | `/api/events/:id/book` | auth | 54 |
+| `GET` | `/api/events/:id/attendees` | optional | 86 |
 
 ## 4. What does it touch?
 

@@ -15,8 +15,8 @@ Delivery timeline: status checkpoint inserts producing the order tracking timeli
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/delivery/order/:orderId` | optional | 9 |
-| `POST` | `/api/delivery/` | auth | 19 |
+| `GET` | `/api/delivery/order/:orderId` | auth | 9 |
+| `POST` | `/api/delivery/` | auth | 26 |
 
 ## 4. What does it touch?
 

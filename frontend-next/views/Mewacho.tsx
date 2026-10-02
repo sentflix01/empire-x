@@ -1,8 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Users, Target, TrendingUp, Link2, QrCode, X } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
+import { Plus, Users, Link2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

@@ -176,7 +176,20 @@ router.put('/conversations/:id', requireAuth, async (req: Request, res: Response
     const conv = await getRecord('conversations', req.params.id);
     if (!conv) { apiError.notFound(res, 'Conversation not found'); return; }
     if (!(await isConvAdmin(req.params.id, req.user!.id)) && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
-    res.json(await updateRecord('conversations', req.params.id, req.body as Record<string,unknown>));
+    const body = req.body as Record<string, unknown>;
+    const updates = Object.fromEntries(['name', 'description', 'avatar_url']
+      .filter((field) => body[field] !== undefined)
+      .map((field) => [field, body[field]]));
+    if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable conversation fields provided' }); return; }
+    for (const [field, value] of Object.entries(updates)) {
+      if (value !== null && typeof value !== 'string') {
+        apiError.validationError(res, `${field} must be a string or null`); return;
+      }
+      if (typeof value === 'string' && value.length > 500) {
+        apiError.validationError(res, `${field} must be 500 characters or fewer`); return;
+      }
+    }
+    res.json(await updateRecord('conversations', req.params.id, updates));
   } catch { res.status(500).json({ error: 'Failed to update conversation' }); }
 });
 

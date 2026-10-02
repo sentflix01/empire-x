@@ -14,6 +14,7 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const bcrypt = require('bcryptjs');
 const pool   = require('./pool');
+const { assertSafeLocalDatabase } = require('./operationSafety');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const pick  = arr => arr[Math.floor(Math.random() * arr.length)];
@@ -24,8 +25,23 @@ function jitter(lat, lon, km = 0.8) {
   return { lat: lat + (Math.random() - 0.5) * d, lon: lon + (Math.random() - 0.5) * d };
 }
 
-const TEST_PASSWORD  = 'Test1234!';
-const ADMIN_PASSWORD = 'Admin1234!';
+const TEST_PASSWORD  = process.env.TEST_ACCOUNT_PASSWORD;
+const ADMIN_PASSWORD = process.env.ADMIN_NEW_PASSWORD;
+
+function validateSeedEnvironment(env = process.env) {
+  assertSafeLocalDatabase({
+    databaseUrl: env.DATABASE_URL,
+    connectionString: env.DATABASE_URL,
+    nodeEnv: env.NODE_ENV,
+    acknowledgement: env.ALLOW_DEV_SEED,
+    acknowledgementName: 'ALLOW_DEV_SEED',
+  });
+  for (const [label, password] of [['ADMIN_NEW_PASSWORD', env.ADMIN_NEW_PASSWORD], ['TEST_ACCOUNT_PASSWORD', env.TEST_ACCOUNT_PASSWORD]]) {
+    if (typeof password !== 'string' || password.length < 16 || password.length > 128) {
+      throw new Error(`Set ${label} to a unique password between 16 and 128 characters`);
+    }
+  }
+}
 
 // ── Ethiopian names ───────────────────────────────────────────────────────────
 const ETHIOPIAN_NAMES = [
@@ -142,10 +158,12 @@ const MSG_SAMPLES = [
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function seed() {
+  validateSeedEnvironment();
   const client = await pool.connect();
   console.log('\n🌱 Nodbusiness Seed — 50 users, 150 businesses, no products\n');
 
   try {
+    await client.query('BEGIN');
     const pwHash    = await bcrypt.hash(TEST_PASSWORD, 10);
     const adminHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
 
@@ -155,11 +173,18 @@ async function seed() {
       { email: 'admin@nodbusiness.app', hash: adminHash, name: 'Admin User', role: 'admin', bal: 50000 },
       { email: 'test@nodbusiness.app',  hash: pwHash,    name: 'Test User',  role: 'user',  bal: 5000  },
     ];
+    const existingDevAccounts = await client.query(
+      'SELECT email FROM users WHERE email = ANY($1::text[])',
+      [devAccounts.map((account) => account.email)],
+    );
+    if (existingDevAccounts.rows.length) {
+      throw new Error('A dev account already exists; refusing to change its role, password, demo status, or wallet balance');
+    }
     for (const acc of devAccounts) {
       const { rows } = await client.query(
         `INSERT INTO users (email, password_hash, full_name, role, is_verified, is_seed, is_demo, provider)
          VALUES ($1,$2,$3,$4,TRUE,FALSE,TRUE,'local')
-         ON CONFLICT (email) DO UPDATE SET full_name = EXCLUDED.full_name, is_seed = FALSE, is_demo = TRUE RETURNING id`,
+         RETURNING id`,
         [acc.email, acc.hash, acc.name, acc.role]
       );
       const uid = rows[0].id;
@@ -171,12 +196,11 @@ async function seed() {
       );
       await client.query(
         `INSERT INTO wallets (user_id, balance, currency) VALUES ($1,$2,'ETB')
-         ON CONFLICT (user_id) DO UPDATE SET balance = $2`,
+         ON CONFLICT (user_id) DO NOTHING`,
         [uid, acc.bal]
       );
     }
-    console.log(`  ✅ admin@nodbusiness.app / ${ADMIN_PASSWORD}`);
-    console.log(`  ✅ test@nodbusiness.app  / ${TEST_PASSWORD}\n`);
+    console.log('  ✅ Local dev accounts created; passwords were not printed.\n');
 
     // ── 1. 50 seed users ─────────────────────────────────────────────────────
     console.log('👥 Creating 50 seed users...');
@@ -594,7 +618,7 @@ async function seed() {
     console.log(`  ✅ ${dismissCount} dismissed suggestions\n`);
 
     // ── Summary ───────────────────────────────────────────────────────────────
-    const [uR, bR, poR, tR, jR, eR, cR, fR, mR] = await Promise.all([
+    const [uR, bR, shR, poR, tR, jR, eR, cR, fR, mR] = await Promise.all([
       client.query(`SELECT COUNT(*) FROM users       WHERE is_seed = TRUE`),
       client.query(`SELECT COUNT(*) FROM businesses`),
       client.query(`SELECT COUNT(*) FROM showrooms`),
@@ -611,6 +635,7 @@ async function seed() {
     console.log('📊 Summary:');
     console.log(`   Seed users:    ${uR.rows[0].count}`);
     console.log(`   Businesses:    ${bR.rows[0].count}`);
+    console.log(`   Showrooms:     ${shR.rows[0].count}`);
     console.log(`   Posts:         ${poR.rows[0].count}`);
     console.log(`   Tasks:         ${tR.rows[0].count}`);
     console.log(`   Jobs:          ${jR.rows[0].count}`);
@@ -619,19 +644,26 @@ async function seed() {
     console.log(`   Follows:       ${fR.rows[0].count}`);
     console.log(`   Messages:      ${mR.rows[0].count}`);
     console.log(`   Products:      0 (sellers create their own)`);
-    console.log('\n👤 Dev logins:');
-    console.log(`   Admin: admin@nodbusiness.app / ${ADMIN_PASSWORD}`);
-    console.log(`   Test:  test@nodbusiness.app  / ${TEST_PASSWORD}`);
-    console.log(`   Seed:  abebe.girma0@nodbusiness.test … (50 accounts) / ${TEST_PASSWORD}\n`);
+    await client.query('COMMIT');
+    console.log('\n👤 Local dev accounts: admin@nodbusiness.app and test@nodbusiness.app (passwords supplied securely through environment variables).');
+    console.log('   Seed-user passwords use TEST_ACCOUNT_PASSWORD.\n');
 
   } catch (err) {
     console.error('\n❌ Seed failed:', err.message);
     console.error(err.stack);
-    process.exit(1);
+    await client.query('ROLLBACK').catch(() => undefined);
+    process.exitCode = 1;
   } finally {
     client.release();
     await pool.end();
   }
 }
 
-seed();
+if (require.main === module) {
+  seed().catch((error) => {
+    console.error(`Seed refused or failed: ${error.message}`);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = { seed, validateSeedEnvironment };

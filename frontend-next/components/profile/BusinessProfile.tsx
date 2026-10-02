@@ -1,21 +1,18 @@
 'use client'
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { entities } from "@/api/entities";
-import { useTranslation } from 'react-i18next';
 
-import { Mail, Phone, MapPin, Clock, Star, ShoppingBag, ArrowRight, Check, Plus, Edit2, ExternalLink, MessageSquare } from "lucide-react";
+import { Mail, Phone, MapPin, ShoppingBag, Plus, Edit2, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
-import { getCategoryByValue } from "@/lib/businessTemplates";
 import { findOrCreateConversation } from "@/lib/messaging";
 import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import SafeImage from "@/components/ui/SafeImage";
 
-const parseImages = (img) => { try { return JSON.parse(img || "[]"); } catch { return img ? [img] : []; } };
 
 export default function BusinessProfile({ profile, business, user, isOwner }) {
   const [products, setProducts] = useState([]);
@@ -42,11 +39,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
     setMessaging(false);
   };
 
-  useEffect(() => {
-    loadData();
-  }, [profile.user_id, business?.id]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     const [prods, ords] = await Promise.all([
       entities.Product.filter({ seller_id: profile.user_id, status: "active" }, "-created_at", 50).catch(() => []),
@@ -55,12 +48,15 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
     setProducts(prods);
     setOrders(ords);
     setLoading(false);
-  };
+  }, [profile.user_id, isOwner]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData, business?.id]);
 
   const sections = (() => { try { return JSON.parse(biz.business_sections || "[]"); } catch { return []; } })();
   const ctaTarget = resolveCtaTarget(sections);
   const productsIdx = firstProductsIndex(sections);
-  const category = getCategoryByValue(biz.business_category);
   const themeColor = biz.business_theme_color || "#2563EB";
   const hours = (() => { try { return JSON.parse(biz.business_hours || "[]"); } catch { return []; } })();
 
@@ -216,4 +212,3 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
     </div>
   );
 }
-

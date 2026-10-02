@@ -1,65 +1,60 @@
 /**
- * reset-admin.js — One-time admin credential reset script
+ * Reset an existing local admin account password.
  *
- * Usage (run from backend/ directory):
- *   node scripts/reset-admin.js
- *
- * What it does:
- *   1. Finds the first admin user in the database
- *   2. Resets their password to the value in ADMIN_NEW_PASSWORD env var
- *      (defaults to a strong generated password if not set)
- *   3. Prints the admin email + new password to stdout
- *   4. DELETE THIS FILE after running — do not leave in production
+ * Required environment: ADMIN_EMAIL and ADMIN_NEW_PASSWORD (at least 16 chars).
+ * This utility refuses production, never creates users, and never prints the
+ * supplied password. Use the application's normal account recovery process
+ * for hosted/production systems.
  */
-
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
-const pool   = require('../db/pool');
+const { assertSafeLocalDatabase } = require('../db/operationSafety');
 
-async function resetAdmin() {
-  try {
-    // Find admin user
-    const { rows } = await pool.query(
-      "SELECT id, email FROM users WHERE role = 'admin' ORDER BY created_at ASC LIMIT 1"
-    );
-
-    if (!rows.length) {
-      // No admin found — create one
-      console.log('No admin user found. Creating one...');
-      const newPassword = process.env.ADMIN_NEW_PASSWORD || 'Nodbusiness@Admin2026!';
-      const hash = await bcrypt.hash(newPassword, 12);
-
-      const { rows: created } = await pool.query(
-        `INSERT INTO users (email, password_hash, full_name, role, is_verified)
-         VALUES ($1, $2, $3, 'admin', TRUE) RETURNING id, email`,
-        ['admin@nodbusiness.app', hash, 'Admin User']
-      );
-
-      console.log('\n✅ Admin user CREATED:');
-      console.log('   Email   :', created[0].email);
-      console.log('   Password:', newPassword);
-      console.log('\n⚠️  DELETE this script after use!\n');
-      process.exit(0);
-    }
-
-    const admin = rows[0];
-    const newPassword = process.env.ADMIN_NEW_PASSWORD || 'Nodbusiness@Admin2026!';
-    const hash = await bcrypt.hash(newPassword, 12);
-
-    await pool.query(
-      'UPDATE users SET password_hash = $1, is_verified = TRUE WHERE id = $2',
-      [hash, admin.id]
-    );
-
-    console.log('\n✅ Admin password RESET:');
-    console.log('   Email   :', admin.email);
-    console.log('   Password:', newPassword);
-    console.log('\n⚠️  DELETE this script after use!\n');
-    process.exit(0);
-  } catch (err) {
-    console.error('❌ Error:', err.message);
-    process.exit(1);
+async function resetAdmin({ dbPool, nodeEnv, databaseUrl, acknowledgement, email, password }) {
+  assertSafeLocalDatabase({
+    connectionString: databaseUrl,
+    nodeEnv,
+    acknowledgement,
+    acknowledgementName: 'ALLOW_LOCAL_ADMIN_RESET',
+  });
+  const adminEmail = typeof email === 'string' ? email.trim() : '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail)) {
+    throw new Error('Set ADMIN_EMAIL to the exact existing admin email');
   }
+  if (typeof password !== 'string' || password.length < 16 || password.length > 128) {
+    throw new Error('Set ADMIN_NEW_PASSWORD to a unique password between 16 and 128 characters');
+  }
+
+  const { rows } = await dbPool.query(
+    "SELECT id FROM users WHERE role = 'admin' AND lower(email) = lower($1) LIMIT 2",
+    [adminEmail],
+  );
+  if (rows.length !== 1) throw new Error('Exactly one existing admin matching ADMIN_EMAIL must exist; no account was changed');
+
+  const hash = await bcrypt.hash(password, 12);
+  const updated = await dbPool.query(
+    "UPDATE users SET password_hash = $1, is_verified = TRUE WHERE id = $2 AND role = 'admin' RETURNING id",
+    [hash, rows[0].id],
+  );
+  if (updated.rowCount !== 1) throw new Error('The matching admin account changed during reset; no success was reported');
+  return { success: true };
 }
 
-resetAdmin();
+if (require.main === module) {
+  const pool = require('../db/pool');
+  resetAdmin({
+    dbPool: pool,
+    nodeEnv: process.env.NODE_ENV,
+    databaseUrl: process.env.DATABASE_URL,
+    acknowledgement: process.env.ALLOW_LOCAL_ADMIN_RESET,
+    email: process.env.ADMIN_EMAIL,
+    password: process.env.ADMIN_NEW_PASSWORD,
+  }).then(() => {
+    console.log('Existing admin password reset successfully. The password was not printed.');
+  }).catch((error) => {
+    console.error(`Admin reset refused or failed: ${error.message}`);
+    process.exitCode = 1;
+  }).finally(() => pool.end());
+}
+
+module.exports = { resetAdmin };

@@ -2,7 +2,6 @@
 import { useRouter } from 'next/navigation';
 import React, { useState } from "react";
 import { entities } from "@/api/entities";
-import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,6 @@ const JOB_TYPES = ["full_time","part_time","contract","internship","freelance"];
 const CATEGORIES = ["Technology","Design","Marketing","Sales","Finance","Education","Health","Operations","Other"];
 
 function JobCreate() {
-  const { t } = useTranslation();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({

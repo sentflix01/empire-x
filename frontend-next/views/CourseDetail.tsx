@@ -1,11 +1,12 @@
 'use client';
+import SafeImage from '@/components/ui/SafeImage';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import { entities } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 
-import { ArrowLeft, GraduationCap, Play, Lock, CheckCircle } from "lucide-react";
+import { ArrowLeft, GraduationCap, Play, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -39,7 +40,7 @@ function CourseDetail() {
         setLoading(false);
       }
     })();
-  }, [id, user?.id]);
+  }, [id, router, user]);
 
   const handleEnroll = async () => {
     setEnrolling(true);
@@ -67,7 +68,7 @@ function CourseDetail() {
         {/* Header */}
         <div className="bg-card rounded-2xl border border-border/50 overflow-hidden mb-4">
           <div className="h-48 bg-gradient-to-br from-amber-100 to-orange-100 relative">
-            {course.cover_image && <img loading="lazy" src={course.cover_image} alt={course.title} className="w-full h-full object-cover"/>}
+            {course.cover_image && <SafeImage fill={false} width={800} height={600} loading="lazy" src={course.cover_image} alt={course.title} className="w-full h-full object-cover"/>}
           </div>
           <div className="p-5">
             <div className="flex items-start justify-between mb-2">

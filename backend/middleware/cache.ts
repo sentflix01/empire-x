@@ -61,6 +61,15 @@ export function cacheMiddleware(
   const { varyByUser = false, varyByQuery = true } = opts;
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // The same authenticated user can switch Real mode on/off. Both shared
+    // Redis and intermediary HTTP caches must keep those result sets separate.
+    res.vary('X-Real-Only');
+    // Browser caches must also partition personalized responses. The server-side
+    // Redis key is not visible to the browser and cannot protect account switches.
+    if (varyByUser) {
+      res.vary('Authorization');
+      res.vary('Cookie');
+    }
     // Guests and demo accounts are served directly from PostgreSQL; only real
     // signed-in users use the shared Redis response cache.
     if (req.method !== 'GET' || !req.user || req.user.is_demo) {
@@ -77,7 +86,8 @@ export function cacheMiddleware(
         : '';
     // Anonymous requests share one bucket; authenticated users are isolated.
     const userSuffix = varyByUser && req.user?.id ? `:u:${req.user.id}` : '';
-    const key = `cache:${prefix}${querySuffix}${userSuffix}`;
+    const modeSuffix = req.realOnly ? ':real-only' : ':all-users';
+    const key = `cache:${prefix}${querySuffix}${userSuffix}${modeSuffix}`;
     // Personalized responses must never be stored by shared caches/CDNs.
     const cacheControl = varyByUser
       ? `private, max-age=${Math.floor(ttlSecs / 2)}, stale-while-revalidate=${ttlSecs}`
