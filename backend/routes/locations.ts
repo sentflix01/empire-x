@@ -103,11 +103,14 @@ router.post(
 // ── GET /:businessId — public latest location (aggregate only) ────────────────
 router.get('/:businessId', async (req: Request, res: Response) => {
   try {
+    const realJoin = req.realOnly
+      ? 'JOIN businesses b ON b.id=ll.business_id JOIN users u ON u.id=b.owner_id AND u.is_seed=FALSE AND u.is_demo=FALSE'
+      : '';
     const { rows } = await pool.query(
-      `SELECT lat, lng, label, updated_at
-       FROM live_locations
-       WHERE business_id = $1
-         AND updated_at > NOW() - INTERVAL '10 minutes'`,
+      `SELECT ll.lat, ll.lng, ll.label, ll.updated_at
+       FROM live_locations ll ${realJoin}
+       WHERE ll.business_id = $1
+         AND ll.updated_at > NOW() - INTERVAL '10 minutes'`,
       [req.params.businessId],
     );
 

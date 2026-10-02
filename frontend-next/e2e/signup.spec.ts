@@ -7,9 +7,6 @@ import { test, expect } from '@playwright/test';
  * For local development, OTP codes are printed to the backend console.
  */
 
-const API = process.env.E2E_BACKEND_URL ?? 'http://localhost:3001';
-const FRONTEND_URL = process.env.E2E_FRONTEND_URL ?? 'http://localhost:3002';
-
 function generateTestEmail(): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(7);

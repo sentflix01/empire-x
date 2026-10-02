@@ -2,7 +2,7 @@
 
 > How much infrastructure we need at each user count, and when to add more.
 > **Last updated:** September 2026
-> **Stack:** Oracle Cloud Johannesburg (2 OCPU / 12 GB ARM) + Coolify v4 · Cloudflare Pages · Supabase · Upstash Redis · Cloudflare R2
+> **Stack:** Render (backend) · Vercel (frontend) · Supabase · Upstash Redis · Cloudflare R2
 
 ---
 
@@ -11,7 +11,6 @@
 | Acronym | Full Form |
 |---------|-----------|
 | CPU | Central Processing Unit |
-| OCPU | Oracle Compute Unit — roughly equivalent to 1 physical CPU core (ARM Ampere) |
 | RAM | Random Access Memory |
 | DB | Database |
 | CDN | Content Delivery Network |
@@ -44,26 +43,19 @@
 
 ---
 
-## Oracle Cloud VM Capacity (Current: 2 OCPU / 12 GB ARM)
+## Render Free Tier Capacity (Current)
 
 ```
-Container memory budget (12 GB total):
-  Coolify panel:                 ~350 MB
-  Backend container (Node.js):   ~200–400 MB at 500 DAU
-  Uptime Kuma container:         ~100 MB
-  OS + Docker overhead:          ~800 MB
-  Reserved headroom (30%):       ~3 GB
-  ─────────────────────────────────────
-  Used at 500 DAU:               ~1.5–1.7 GB
-  Available buffer:              ~10 GB
+Memory: 512 MB RAM
+CPU: 0.1 CPU (shared)
+Network: Unlimited inbound, limited outbound
 
-CPU budget (2 OCPU — ARM Ampere A1):
-  At 500 DAU (peak ~5 req/sec):  ~20–30% CPU
-  At 2,000 DAU (peak ~20 req/sec): ~70–80% CPU ← upgrade trigger
-  At 5,000 DAU:                  Needs second instance
+At 500 DAU (peak ~5 req/sec):  well within limits
+At 2,000 DAU (peak ~20 req/sec): upgrade to Starter ($7/month) or Standard ($25/month)
+At 5,000 DAU: upgrade to Standard ($25/month) for dedicated CPU
+
+Scale-up trigger: p95 response time > 500ms sustained → upgrade Render plan
 ```
-
-**Scale-up trigger:** CPU > 60% sustained for 30 minutes → add Hetzner CAX21 (€8/month)
 
 ---
 
@@ -71,15 +63,14 @@ CPU budget (2 OCPU — ARM Ampere A1):
 
 **DAU:** ~300 | **Peak concurrent users:** ~50
 
-### API Server (Oracle VM + Coolify)
+### API Server (Render)
 
 ```
 Requests/day:    300 × 50 = 15,000/day
 Requests/second: ~0.5 req/sec at peak
-Memory used:     ~350 MB backend container
+Memory used:     ~250 MB backend process
 
-→ Oracle VM 2 OCPU / 12 GB handles this trivially
-→ CPU utilization: ~3–5% at peak
+→ Render free tier (512 MB RAM) handles this trivially
 → No scaling needed
 ```
 
@@ -130,9 +121,10 @@ Commands/day:
 ### Cost
 
 ```
-Oracle VM:    $0
-Coolify:      $0
-CF Pages:     $0
+Oracle VM:    $0 → replaced by Render free tier
+Render:       $0 (free tier)
+CF Pages:     $0 → replaced by Vercel free tier
+Vercel:       $0 (free tier)
 Supabase:     $0
 Upstash:      $0–1 (possible slight overage)
 R2:           $0
@@ -153,11 +145,10 @@ Total:        ~$1.50–2.50/month
 ```
 Requests/day:    150,000/day
 Requests/second: ~5 req/sec at peak
-Memory used:     ~400–600 MB backend container
+Memory used:     ~350–450 MB backend process
 
-→ Oracle VM 2 OCPU / 12 GB handles this
-→ CPU utilization: ~25–40% at peak
-→ Monitor: If CPU > 60% sustained → provision Hetzner CAX21
+→ Render Starter ($7/month) or Standard ($25/month) recommended at this scale
+→ Monitor: if p95 > 500ms → upgrade plan
 ```
 
 ### Database (Supabase)
@@ -191,16 +182,17 @@ Or: Upstash Fixed $10/month plan
 ### Cost
 
 ```
-Oracle VM:          $0
-Coolify:            $0
-CF Pages:           $0
+Oracle VM:          $0 → Render
+Render:             $7–25
+CF Pages:           $0 → Vercel
+Vercel:             $0
 Supabase Pro:       $25
 Upstash PAYG:       $20–30
 R2 storage:         $0.50
 Resend Starter:     $20 (if email volume requires)
 Sentry:             $0
 Domain:             $1.50
-Total:              ~$70–80/month
+Total:              ~$75–100/month
 ```
 
 ---
@@ -213,13 +205,11 @@ Total:              ~$70–80/month
 
 ```
 Requests/second: ~25 req/sec at peak
-Memory needed:   ~600–800 MB
+Memory needed:   ~500–700 MB
 
-→ Oracle VM 2 OCPU approaching CPU saturation at peak
-→ Add Hetzner CAX21 (4 vCPU ARM / 8 GB / €8/month) as second instance
-→ Cloudflare Load Balancer ($5/month) to distribute traffic
+→ Upgrade Render to Standard ($25/month) or Pro ($85/month)
+→ Consider multiple Render instances or a Hetzner VM for the backend
 → Socket.IO Redis adapter REQUIRED (Upstash pub/sub for shared rooms)
-→ CPU per instance: ~40% at peak (with 2 instances)
 ```
 
 ### Background Jobs (BullMQ)
@@ -232,9 +222,9 @@ Jobs/day:
   Cache warm:                   288
   Webhook deliveries:           1,000
 
-→ Workers run in-process (same container) — sufficient at this scale
-→ Consider dedicated worker container in Coolify if API latency suffers
-→ Cost: $0 (same Oracle VM or Hetzner instance)
+→ Workers run in-process (same Render instance) — sufficient at this scale
+→ Consider dedicated Render worker service if API latency suffers
+→ Cost: included in Render plan
 ```
 
 ### Storage
@@ -248,17 +238,18 @@ Egress: $0 (R2 zero egress) vs AWS S3 equivalent: ~$675/month
 ### Cost
 
 ```
-Oracle VM:              $0
-Hetzner CAX21 (2nd):   $9
-CF Load Balancer:       $5
-CF Pages:               $0
+Oracle VM:              $0 → replaced by Render
+Render Standard:        $25
+CF Load Balancer:       $5 (optional, if multiple instances)
+CF Pages:               $0 → replaced by Vercel
+Vercel:                 $0
 Supabase Pro:           $25–50
 Upstash PAYG/Fixed:     $30
 R2 storage:             $2
 Resend Growth:          $89 (50K emails)
 Sentry Team:            $26
 Domain + misc:          $2
-Total:                  ~$190–215/month
+Total:                  ~$205–235/month
 ```
 
 ---
@@ -271,11 +262,10 @@ Total:                  ~$190–215/month
 
 ```
 Requests/second: ~100 req/sec at peak
-→ 3–4 Hetzner CAX21 instances (€8/month each)
-→ Coolify on each VM managing the backend container
+→ Multiple Render instances (Pro plan) or migrate to a dedicated VPS (Hetzner CAX21 €8/month each)
 → Socket.IO Redis adapter (Upstash handles pub/sub)
 → Each instance: ~40% CPU at peak
-→ Cost: ~$35/month for 4 Hetzner VMs + Oracle VM
+→ Cost: ~$35–50/month for compute
 ```
 
 ### Database
@@ -294,7 +284,7 @@ Connections: ~150–200 concurrent
 
 ```
 PostgreSQL ILIKE too slow at this scale for product search
-→ Deploy Meilisearch on Hetzner VM via Coolify
+→ Deploy Meilisearch on a Hetzner VM
 → BullMQ job syncs writes → index updates < 1 minute
 → Cost: $0 (on existing Hetzner VM)
 ```
@@ -302,10 +292,9 @@ PostgreSQL ILIKE too slow at this scale for product search
 ### Cost
 
 ```
-Oracle VM:              $0
-Hetzner (3 VMs):        $27
+Render (multiple instances): $50–100
 CF Load Balancer:       $5
-CF Pages:               $0
+Vercel:                 $0
 Supabase Scale:         $599
 Upstash Fixed:          $50
 R2 storage (500 GB):    $7.50
@@ -313,7 +302,7 @@ Email (Resend Business): $249
 Sentry Business:         $80
 Cloudflare Pro:          $20
 Meilisearch:             $0 (self-hosted)
-Total:                   ~$1,040/month
+Total:                   ~$1,060–1,110/month
 ```
 
 ---
@@ -323,7 +312,7 @@ Total:                   ~$1,040/month
 **DAU:** ~300,000 | **Peak concurrent:** ~50,000
 
 ```
-At this scale, migrate from Coolify/Hetzner to AWS:
+At this scale, migrate from Render to AWS:
   - AWS ECS (Fargate): 10–20 containers, auto-scaling — ~$1,500/month
   - AWS RDS Aurora PostgreSQL: multi-AZ, read replicas — ~$2,000/month
   - AWS ElastiCache Redis: Cluster mode — ~$500/month
@@ -344,8 +333,8 @@ Revenue (100K orders/month × ETB 1,500 × 3% + 10K subs × ETB 299):
 
 | Metric | Alert threshold | Action |
 |---|---|---|
-| Oracle VM CPU | > 60% sustained for 30 min | Add Hetzner CAX21 instance |
-| Oracle VM RAM | > 10 GB (83%) | Investigate memory leak or scale |
+| Render p95 latency | > 500ms sustained | Upgrade Render plan or add instances |
+| Render memory | > 80% of plan limit | Upgrade Render plan |
 | Supabase DB size | > 400 MB | Plan upgrade to Pro |
 | Supabase egress | > 4 GB/month | Plan upgrade to Pro |
 | Upstash commands | > 400K/month | Switch to PAYG or Fixed plan |

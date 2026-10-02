@@ -5,9 +5,11 @@
   "type": "commonjs",
   "main": "index.js",
   "overrides": {
-    "brace-expansion": ">=2.0.2",
+    "brace-expansion": ">=5.0.12",
+    "engine.io": ">=6.6.11",
     "js-yaml": ">=4.3.1",
     "nanoid": ">=5.1.5",
+    "uuid": "$uuid",
     "browserslist": ">=4.25.0"
   },
   "scripts": {
@@ -15,7 +17,7 @@
     "start": "tsx index.ts",
     "build": "tsc --project tsconfig.json",
     "test": "node test/e2e.test.js",
-    "test:unit": "jest --testPathPattern=test/.*\\.test\\.js --runInBand",
+    "test:unit": "jest --runInBand",
     "test:keploy:record": "keploy record -c 'node index.js'",
     "test:keploy:test": "keploy test -c 'node index.js'",
     "typecheck": "tsc --noEmit",
@@ -91,7 +93,7 @@
     "sharp": "^0.35.4",
     "socket.io": "^4.8.1",
     "stripe": "22.6.2",
-    "uuid": "14.0.2",
+    "uuid": "11.1.1",
     "web-push": "^3.6.7"
   },
   "devDependencies": {
@@ -115,6 +117,6 @@
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.12",
     "tsx": "^4.23.13",
-    "typescript": "^7.0.2"
+    "typescript": "5.9.3"
   }
 }

@@ -2,7 +2,7 @@
 
 > Everything about how Nodbusiness runs, scales, costs, and stays alive.
 > **Last updated:** September 2026
-> **Stack:** Oracle Cloud Johannesburg + Coolify v4 · Cloudflare Pages · Supabase · Upstash Redis · Cloudflare R2 · Resend · Uptime Kuma
+> **Stack:** Render (backend) · Vercel (frontend) · Supabase · Upstash Redis · Cloudflare R2 · Resend
 
 ---
 
@@ -12,18 +12,18 @@
 |---|---|---|
 | `CURRENT_STATE.md` | ⭐ What's running right now — tools, costs, env var status | Starting out / auditing |
 | `LAUNCH_CHECKLIST.md` | ⭐ Every item to verify before real users | **Read this first** |
-| `CLOUD_PROVIDERS.md` | Why Oracle/Coolify/Supabase/CF Pages — alternatives compared | Choosing providers |
-| `CI_CD_PIPELINE.md` | Build → test → migrate → Coolify webhook → CF Pages auto-deploy | DevOps setup |
+| `CLOUD_PROVIDERS.md` | Why Render/Vercel/Supabase — alternatives compared | Choosing providers |
+| `CI_CD_PIPELINE.md` | Build → test → migrate → gated Render/Vercel deploys | DevOps setup |
 | `COST_BREAKDOWN.md` | Monthly costs at every growth stage ($0 → $40K/month) | Planning budget |
 | `SCALING_PLAN.md` | Exactly what to change at each user milestone | Adding capacity |
 | `TIMELINE.md` | Month-by-month infrastructure roadmap | Planning ahead |
 | `CAPACITY_PLANNING.md` | Exact numbers: req/sec, DB size, storage at each scale | Engineering decisions |
 | `DATABASE_STRATEGY.md` | Supabase evolution: single → replicas → sharding | Database planning |
 | `CDN_AND_STORAGE.md` | Cloudflare R2 setup, image optimization, video strategy | File storage |
-| `NETWORKING.md` | Domains, DNS, SSL, Cloudflare, Oracle VM IP allowlist | Domain setup |
-| `SECURITY_HARDENING.md` | Security at every layer — OWASP, Cloudflare IP allowlist, pen testing | Security review |
-| `MONITORING_STACK.md` | Uptime Kuma, Sentry, Pino, PostHog, alerts, dashboards | Observability setup |
-| `DISASTER_RECOVERY.md` | Backup, failover, RTO/RPO, Hetzner contingency playbook | Incident response |
+| `NETWORKING.md` | Domains, DNS, SSL, Cloudflare proxy setup | Domain setup |
+| `SECURITY_HARDENING.md` | Security at every layer — OWASP, pen testing | Security review |
+| `MONITORING_STACK.md` | Sentry, Pino, PostHog, alerts, dashboards | Observability setup |
+| `DISASTER_RECOVERY.md` | Backup, failover, RTO/RPO, contingency playbook | Incident response |
 | `MIGRATION_GUIDE.md` | Safe database migration procedures | DB schema changes |
 | `SCALABILITY_PLAN_GROWTH.md` | Architecture diagrams at each scale | System design |
 | `SLO.md` | Service Level Objectives and error budgets | Reliability targets |
@@ -33,11 +33,11 @@
 ## Infrastructure Philosophy
 
 1. **Free first, pay when metrics demand it** — The entire stack runs at $0 (except domain ~$1.50/month)
-2. **Data is external, compute is disposable** — Supabase, R2, and Upstash are all external; the Oracle VM can be replaced in 30 minutes
+2. **Data is external, compute is disposable** — Supabase, R2, and Upstash are all external; the Render service can be swapped in minutes
 3. **Automate everything** — Every deploy is triggered by GitHub Actions; every alert fires to Telegram automatically
-4. **Africa-first latency** — Oracle Johannesburg for the backend, Cloudflare's Nairobi PoP for static assets
-5. **Security by default** — Cloudflare IP allowlist on Oracle VM, TLS everywhere, parameterized SQL, Helmet.js headers
-6. **No vendor lock-in** — Coolify is open source; migrating from Oracle to Hetzner takes 30 minutes; R2 is S3-compatible
+4. **Africa-first latency** — Render backend + Cloudflare CDN for static assets
+5. **Security by default** — TLS everywhere, parameterized SQL, Helmet.js headers
+6. **No vendor lock-in** — All data is external (Supabase, R2, Upstash); migrating compute takes 30 minutes
 
 ---
 
@@ -46,18 +46,15 @@
 ### Pre-Launch (This Week) 🔴
 
 ```bash
-# 1. Oracle Cloud Johannesburg VM + Coolify
-curl -fsSL https://get.coolify.io | bash  # on the Oracle VM
-
-# 2. Activate Cloudflare R2 — files lost without this!
-# Set in Coolify env vars:
+# 1. Activate Cloudflare R2 — files lost on Render redeploy without this!
+# Set in Render environment variables:
 R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
 R2_BUCKET_NAME=nodbusiness-uploads
 R2_PUBLIC_URL=https://pub-xxx.r2.dev
 
-# 3. Configure Sentry
+# 2. Configure Sentry
 SENTRY_DSN=https://xxx@o123.ingest.sentry.io/456
 NEXT_PUBLIC_SENTRY_DSN=https://xxx@o123.ingest.sentry.io/789  # CF Pages
 

@@ -26,11 +26,12 @@ export default function GoogleCallbackPage() {
 
     const idToken = params.get('id_token');
     const error   = params.get('error');
+    const errorDescription = params.get('error_description');
     const state   = params.get('state');
 
     const payload = idToken
       ? { type: 'GOOGLE_OAUTH_CALLBACK', id_token: idToken }
-      : { type: 'GOOGLE_OAUTH_CALLBACK', error: error ?? 'no_id_token' };
+      : { type: 'GOOGLE_OAUTH_CALLBACK', error: errorDescription || error || 'no_id_token' };
 
     // ── 1. BroadcastChannel (primary, COOP-safe) ─────────────────────────────
     if (state && typeof BroadcastChannel !== 'undefined') {

@@ -2,14 +2,13 @@
 'use client'
 import React, { useState } from "react";
 import { entities } from "@/api/entities";
-import { createNotification } from "@/lib/notifications";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
-import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 export default function BidModal({ task, user, onClose, onPlaced }) {
   const [bidAmount, setBidAmount] = useState(task.offered_payment?.toString() || "");
@@ -19,24 +18,23 @@ export default function BidModal({ task, user, onClose, onPlaced }) {
   const handleSubmit = async () => {
     if (!bidAmount) return;
     setSaving(true);
-    await entities.TaskBid.create({
-      task_id: task.id,
-      bidder_id: user?.id || "",
-      bidder_name: user?.full_name || "Anonymous",
-      bid_amount: parseFloat(bidAmount),
-      message,
-      status: "pending",
-    });
-    await createNotification(
-      task.requester_id,
-      "task_update",
-      `New bid on "${task.title}"`,
-      `${user?.full_name || "Someone"} bid ${bidAmount} ETB for your task.`,
-      "/tasks"
-    );
-    setSaving(false);
-    onPlaced?.();
-    onClose();
+    try {
+      await entities.TaskBid.create({
+        task_id: task.id,
+        bidder_id: user?.id || "",
+        bidder_name: user?.full_name || "Anonymous",
+        bid_amount: parseFloat(bidAmount),
+        message,
+        status: "pending",
+      });
+      onPlaced?.();
+      onClose();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not submit your bid";
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

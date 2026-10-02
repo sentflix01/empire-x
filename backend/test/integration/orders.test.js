@@ -36,6 +36,10 @@ const ordersRouter = require('../../routes/orders');
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockPool.connect.mockImplementation(async () => ({
+    query: jest.fn(async (sql) => sql.includes('UPDATE products') ? { rows: [{ id: 'product-1' }] } : { rows: [] }),
+    release: jest.fn(),
+  }));
 });
 
 // Inject a mock user as if requireAuth passed
@@ -75,19 +79,24 @@ describe('POST /api/orders/ (cash on delivery)', () => {
     expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
   });
 
-  it('returns 422 when total_price is not a positive amount', async () => {
+  it('returns 422 when product_id or quantity is invalid', async () => {
     const res = await request(buildApp()).post('/api/orders/')
-      .send({ seller_id: 'seller-1', product_title: 'T', total_price: -5 });
+      .send({ product_id: 'product-1', quantity: -5, total_price: 100 });
     expect(res.status).toBe(422);
   });
 
-  it('returns 201 and strips server-owned fields from client input', async () => {
-    createRecord.mockResolvedValueOnce({ id: 'order-new', buyer_id: 'user-1', product_title: 'Test', total_price: 100 });
-    mockPool.query.mockResolvedValueOnce({ rows: [{ email: 'u@b.com' }] }); // buyer email lookup
+  it('returns 201 and derives seller and price from the product record', async () => {
+    createRecord.mockResolvedValueOnce({ id: 'order-new', buyer_id: 'user-1', product_title: 'Test Product', total_price: 24 });
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ id: 'product-1', seller_id: 'seller-1', business_id: 'business-1', title: 'Test Product', price: '12', stock: 5, status: 'active' }] })
+      .mockResolvedValueOnce({ rows: [{ email: 'u@b.com' }] }); // buyer email lookup
     const res = await request(buildApp()).post('/api/orders/').send({
-      seller_id: 'seller-1',
-      product_title: 'Test Product',
-      total_price: 100,
+      product_id: 'product-1',
+      quantity: 2,
+      seller_id: 'attacker-seller',
+      product_title: 'Fake Product',
+      unit_price: 0.01,
+      total_price: 0.02,
       // Attempted mass assignment — must never reach createRecord:
       status: 'paid',
       payment_provider: 'stripe',
@@ -103,8 +112,12 @@ describe('POST /api/orders/ (cash on delivery)', () => {
     expect(data.status).toBe('pending');            // forced server-side
     expect(data.payment_provider).toBe('cod');      // forced server-side
     expect(data.currency).toBe('ETB');              // forced server-side
+    expect(data.seller_id).toBe('seller-1');          // product owner from DB
+    expect(data.product_title).toBe('Test Product');  // product data from DB
+    expect(data.unit_price).toBe(12);
+    expect(data.quantity).toBe(2);
     expect(data.stripe_session_id).toBeUndefined(); // stripped
-    expect(data.total_price).toBe(100);             // validated number kept
+    expect(data.total_price).toBe(24);               // server-calculated total
   });
 });
 
@@ -117,11 +130,22 @@ describe('PUT /api/orders/:id', () => {
   });
 
   it('buyer can cancel their own order', async () => {
-    getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'user-1', seller_id: 'seller-1', status: 'pending', product_title: 'T', total_price: 100, currency: 'ETB' });
-    updateRecord.mockResolvedValueOnce({ id: 'order-1', status: 'cancelled' });
+    getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'user-1', seller_id: 'seller-1', status: 'pending', payment_provider: 'cod', product_title: 'T', total_price: 100, currency: 'ETB' });
+    const queries = [];
+    mockPool.connect.mockResolvedValueOnce({
+      query: jest.fn(async (sql) => {
+        queries.push(sql);
+        if (sql.startsWith('SELECT id FROM orders')) return { rows: [{ id: 'order-1' }] };
+        if (sql.startsWith('UPDATE orders')) return { rows: [{ id: 'order-1', status: 'cancelled' }] };
+        return { rows: [] };
+      }),
+      release: jest.fn(),
+    });
     const res = await request(buildApp()).put('/api/orders/order-1').send({ status: 'cancelled' });
     expect(res.status).toBe(200);
-    expect(updateRecord.mock.calls[0][2]).toEqual({ status: 'cancelled' });
+    expect(res.body.status).toBe('cancelled');
+    expect(queries).toContain('COMMIT');
+    expect(updateRecord).not.toHaveBeenCalled();
   });
 
   it('buyer cannot set seller-only fulfilment statuses', async () => {
@@ -131,8 +155,15 @@ describe('PUT /api/orders/:id', () => {
     expect(updateRecord).not.toHaveBeenCalled();
   });
 
-  it('strips money and identity columns from party updates', async () => {
+  it('buyer cannot complete an order before seller delivery', async () => {
     getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'user-1', seller_id: 'seller-9', status: 'pending' });
+    const res = await request(buildApp()).put('/api/orders/order-1').send({ status: 'completed' });
+    expect(res.status).toBe(403);
+    expect(updateRecord).not.toHaveBeenCalled();
+  });
+
+  it('strips money and identity columns from party updates', async () => {
+    getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'user-1', seller_id: 'seller-9', status: 'delivered' });
     updateRecord.mockResolvedValueOnce({ id: 'order-1', status: 'completed' });
     // "completed" transition fires buyer/seller notification inserts
     mockPool.query.mockResolvedValue({ rows: [{ id: 'notif-1' }] });

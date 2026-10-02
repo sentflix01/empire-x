@@ -29,10 +29,9 @@ services:
     # env vars — let Render inject it. See backend/index.ts warning at line ~66.
     # Render routes external HTTPS traffic → container port 10000 automatically.
 
-    # Auto-deploy every push to main (after CI passes via GitHub integration).
-    # If you add RENDER_DEPLOY_HOOK_URL to GitHub Secrets, the GitHub Actions
-    # deploy.yml also triggers an explicit deploy after migrations complete.
-    autoDeploy: true
+    # GitHub Actions deploys the exact CI-tested commit after migrations pass.
+    # Keep provider auto-deploy off so it cannot bypass CI or migration gates.
+    autoDeployTrigger: 'off'
     branch: main
 
     # Health check — Render marks the deploy failed if this returns non-200.

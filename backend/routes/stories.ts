@@ -14,11 +14,12 @@ const engagementColumns = `
 
 router.get('/', optionalAuth, async (req: Request, res: Response) => {
   try {
+    const realFilter = req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
     const { rows } = await pool.query(
       `SELECT s.*, up.display_name, up.avatar_url, ${engagementColumns},
               EXISTS(SELECT 1 FROM story_reactions mine WHERE mine.story_id=s.id AND mine.user_id=$1) AS reacted
-       FROM stories s LEFT JOIN user_profiles up ON up.user_id=s.user_id
-       WHERE s.expires_at > NOW() ORDER BY s.created_at DESC LIMIT 200`,
+       FROM stories s LEFT JOIN user_profiles up ON up.user_id=s.user_id JOIN users u ON u.id=s.user_id
+       WHERE s.expires_at > NOW() ${realFilter} ORDER BY s.created_at DESC LIMIT 200`,
       [req.user?.id ?? null],
     );
     res.json(rows);
@@ -27,10 +28,11 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
 
 router.get('/user/:userId', optionalAuth, async (req: Request, res: Response) => {
   try {
+    const realFilter = req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
     const { rows } = await pool.query(
       `SELECT s.*, ${engagementColumns},
               EXISTS(SELECT 1 FROM story_reactions mine WHERE mine.story_id=s.id AND mine.user_id=$2) AS reacted
-       FROM stories s WHERE s.user_id=$1 AND s.expires_at > NOW() ORDER BY s.created_at DESC`,
+       FROM stories s JOIN users u ON u.id=s.user_id WHERE s.user_id=$1 AND s.expires_at > NOW() ${realFilter} ORDER BY s.created_at DESC`,
       [req.params.userId, req.user?.id ?? null],
     );
     res.json(rows);

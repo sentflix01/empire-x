@@ -1,0 +1,24 @@
+# backend/db/cleanup-demo
+
+## 1. What is this?
+
+**Database operations script.** A dry-run-first cleanup for expired or ended Track 2 demo sessions and their session-owned objects.
+
+## 2. Why does it exist?
+
+The script removes temporary demo identities and AI usage rows, then deletes only the upload prefix belonging to the same demo session. Database work commits before external object deletion; a pending cleanup marker makes partial storage failures retryable.
+
+## 3. What does it do?
+
+- Requires both `DATABASE_URL` and `DEMO_DATABASE_URL`, and refuses identical normalized database targets.
+- Dry-run is the default and does not mutate the database or storage.
+- Execution requires `ALLOW_DEMO_CLEANUP=1`, `--execute`, and `--database=<exact demo database name>`.
+- Deletes only users with `is_demo=TRUE AND is_seed=FALSE`; curated seed users are preserved.
+- Clears demo storage under `demo/<sessionId>/`, matching Track 2 upload paths.
+- Run with demo-only credentials and confirm the target before enabling execution.
+
+## 4. What does it touch?
+
+**Source:** `backend/db/cleanup-demo.js`
+
+Do not run the execution mode against real-user or production data during local verification.

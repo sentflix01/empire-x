@@ -11,18 +11,20 @@ Gig/task marketplace: task posting with offered payment, bidding flow, offer acc
 ## 3. What does it do?
 
 
-### Endpoints (8)
+### Endpoints (10)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/tasks/` | optional | 54 |
-| `GET` | `/api/tasks/:id` | optional | 65 |
-| `POST` | `/api/tasks/` | auth | 73 |
-| `PUT` | `/api/tasks/bids/:bidId` | auth | 88 |
-| `PUT` | `/api/tasks/:id` | auth | 100 |
-| `DELETE` | `/api/tasks/:id` | auth | 109 |
-| `GET` | `/api/tasks/:taskId/bids` | optional | 119 |
-| `POST` | `/api/tasks/:taskId/bids` | auth | 126 |
+| `GET` | `/api/tasks/bids` | auth | 67 |
+| `GET` | `/api/tasks/bids/:bidId` | auth | 85 |
+| `GET` | `/api/tasks/:id` | optional | 99 |
+| `POST` | `/api/tasks/` | auth | 107 |
+| `PUT` | `/api/tasks/bids/:bidId` | auth | 130 |
+| `PUT` | `/api/tasks/:id` | auth | 223 |
+| `DELETE` | `/api/tasks/:id` | auth | 270 |
+| `GET` | `/api/tasks/:taskId/bids` | optional | 280 |
+| `POST` | `/api/tasks/:taskId/bids` | auth | 291 |
 
 ## 4. What does it touch?
 

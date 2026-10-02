@@ -1,4 +1,5 @@
 'use client';
+import SafeImage from '@/components/ui/SafeImage';
 import React, { useState } from 'react';
 import { X, MapPin, Users } from 'lucide-react';
 import { Suggestion } from '@/api/suggestions';
@@ -53,7 +54,7 @@ export function SuggestionCard({ suggestion, onFollow, onDismiss }: SuggestionCa
       {/* Avatar */}
       <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
         {avatar_url && !avatarFailed ? (
-          <img loading="lazy"
+          <SafeImage fill={false} width={800} height={600} loading="lazy"
             src={avatar_url}
             alt={display_name ?? 'User avatar'}
             className="w-full h-full object-cover"

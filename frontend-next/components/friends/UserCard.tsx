@@ -1,4 +1,5 @@
 'use client';
+import SafeImage from '@/components/ui/SafeImage';
 import React, { useState } from 'react';
 import { Users } from 'lucide-react';
 import { DemoBadge } from '@/components/profile/DemoBadge';
@@ -54,7 +55,7 @@ export function UserCard({
       {/* Avatar */}
       <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
         {avatarUrl && !avatarFailed ? (
-          <img loading="lazy"
+          <SafeImage fill={false} width={800} height={600} loading="lazy"
             src={avatarUrl}
             alt={displayName ?? 'User avatar'}
             className="w-full h-full object-cover"

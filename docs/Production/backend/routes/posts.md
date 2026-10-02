@@ -18,13 +18,13 @@ The social feed engine: smart ranked feed (recency + engagement + social boost) 
 | `GET` | `/api/posts/` | optional | 38 |
 | `GET` | `/api/posts/:id` | optional | 102 |
 | `POST` | `/api/posts/` | auth | 111 |
-| `PUT` | `/api/posts/:id` | auth | 140 |
-| `DELETE` | `/api/posts/:id` | auth | 149 |
-| `GET` | `/api/posts/:id/like` | optional | 161 |
-| `POST` | `/api/posts/:id/like` | auth | 169 |
-| `GET` | `/api/posts/:id/comments` | optional | 199 |
-| `POST` | `/api/posts/:id/comments` | auth | 211 |
-| `DELETE` | `/api/posts/:postId/comments/:commentId` | auth | 263 |
+| `PUT` | `/api/posts/:id` | auth | 143 |
+| `DELETE` | `/api/posts/:id` | auth | 164 |
+| `GET` | `/api/posts/:id/like` | optional | 176 |
+| `POST` | `/api/posts/:id/like` | auth | 184 |
+| `GET` | `/api/posts/:id/comments` | optional | 214 |
+| `POST` | `/api/posts/:id/comments` | auth | 228 |
+| `DELETE` | `/api/posts/:postId/comments/:commentId` | auth | 280 |
 
 ## 4. What does it touch?
 

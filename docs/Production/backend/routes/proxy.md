@@ -15,7 +15,7 @@ PATENT 4 surface B: public render endpoint GET /api/proxy/:showroomId/:sectionKe
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/proxy/:showroomId/:sectionKey` | public | 16 |
+| `GET` | `/api/proxy/:showroomId/:sectionKey` | optional | 17 |
 
 ## 4. What does it touch?
 

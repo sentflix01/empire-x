@@ -222,8 +222,8 @@ A: Network effects: Each business brings customers. Each customer discovers busi
    Developer ecosystem: 50+ developers will be invested in our success by Phase 2.
 
 Q: What's the biggest technical risk?
-A: Scale — we're on Oracle Cloud + Coolify + Supabase which may need upgrading at 100K+ users.
-   Mitigation: Architecture is cloud-agnostic. All data is external (Supabase, R2, Upstash) so we can migrate compute (Oracle → AWS/GCP) with zero data loss.
+A: Scale — we're on Render + Vercel + Supabase which is sufficient for early stage but may need upgrading at 100K+ users.
+   Mitigation: Architecture is cloud-agnostic. All data is external (Supabase, R2, Upstash) so we can migrate compute (Render → AWS/GCP) with zero data loss.
 ```
 
 ### About the Team

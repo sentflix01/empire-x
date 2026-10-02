@@ -11,15 +11,16 @@ Return requests: buyer opens return with reason/images, seller respond window, a
 ## 3. What does it do?
 
 
-### Endpoints (5)
+### Endpoints (6)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/returns/` | auth | 10 |
-| `GET` | `/api/returns/seller` | auth | 21 |
-| `POST` | `/api/returns/` | auth | 33 |
-| `PUT` | `/api/returns/:id/approve` | auth | 58 |
-| `PUT` | `/api/returns/:id/reject` | auth | 78 |
+| `GET` | `/api/returns/` | auth | 12 |
+| `GET` | `/api/returns/seller` | auth | 30 |
+| `POST` | `/api/returns/` | auth | 46 |
+| `PUT` | `/api/returns/:id/approve` | auth | 187 |
+| `PUT` | `/api/returns/:id/reject` | auth | 188 |
+| `PUT` | `/api/returns/:id` | auth | 189 |
 
 ## 4. What does it touch?
 

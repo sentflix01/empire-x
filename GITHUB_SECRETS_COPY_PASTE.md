@@ -123,9 +123,9 @@ After adding all secrets:
 - [ ] `TELEGRAM_BOT_TOKEN` — optional ✓
 - [ ] `TELEGRAM_CHAT_ID` — optional ✓
 
-**Secrets to remove** (old stack — no longer used):
-- `COOLIFY_WEBHOOK_URL` → Coolify no longer used
-- `COOLIFY_TOKEN` → Coolify no longer used
+**Secrets to remove** (old stack — no longer used, delete from GitHub if present):
+- `COOLIFY_WEBHOOK_URL` — project now runs on Render
+- `COOLIFY_TOKEN` — project now runs on Render
 - `SUPABASE_DATABASE_URL` → replaced by `DATABASE_URL`
 - `SOURCE_DATABASE_URL` → no longer referenced
 

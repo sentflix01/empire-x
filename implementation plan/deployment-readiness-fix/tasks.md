@@ -102,7 +102,7 @@ Fix eight deployment-blocking bugs found across the Nodbusiness frontend and bac
       ```typescript
       `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in`
       ```
-    - This ensures production WebSocket connections to the Coolify-managed backend are allowed while dev connections still work
+    - This ensures production WebSocket connections to the Render-hosted backend are allowed while dev connections still work
     - _Requirements: 2.8, 3.7_
 
   - [x] 3.7 Verify bug condition exploration test now passes

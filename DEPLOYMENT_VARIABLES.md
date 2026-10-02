@@ -31,7 +31,8 @@ Set these in: **GitHub → Settings → Secrets and variables → Actions**
 
 ### Secrets to Remove (Old Stack — No Longer Used)
 
-If these exist from a previous setup, delete them:
+If these exist from a previous setup, delete them — the project now runs on Render and no longer uses them:
+
 `COOLIFY_WEBHOOK_URL` · `COOLIFY_TOKEN` · `SUPABASE_DATABASE_URL` · `SOURCE_DATABASE_URL`
 
 ---

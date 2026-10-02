@@ -1,15 +1,11 @@
 'use client';
 import Link from 'next/link';
-import Image from 'next/image';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { entities } from "@/api/entities";
-import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 import { Search, Plus, ShoppingBag, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -30,8 +26,8 @@ function ProductSkeleton() {
 
 function Marketplace() {
   const { t } = useTranslation();
-  const { user } = useAuth();
   const searchParams = useSearchParams();
+  const paymentResult = searchParams?.get('payment');
   const CATEGORIES = [
     t('marketplace.categories.all'), t('marketplace.categories.electronics'),
     t('marketplace.categories.fashion'), t('marketplace.categories.food'),
@@ -47,26 +43,53 @@ function Marketplace() {
   const [category, setCategory] = useState("All");
   const [paymentBanner, setPaymentBanner] = useState<"success"|"failed"|"cancelled"|null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const offsetRef = useRef(0);
+  const cursorRef = useRef<string | null>(null);
   const PAGE_SIZE = 24;
+
+  const loadProducts = useCallback(async (reset = false) => {
+    if (reset) { setLoading(true); cursorRef.current = null; setHasMore(true); }
+    try {
+      const { data } = await client.get('/api/products', {
+        params: { status: 'active', sort: '-created_at', limit: PAGE_SIZE, ...(reset || !cursorRef.current ? {} : { cursor: cursorRef.current }) }
+      });
+      const rows = Array.isArray(data) ? data : Array.isArray(data?.products) ? data.products : [];
+      cursorRef.current = typeof data?.next_cursor === 'string' ? data.next_cursor : null;
+      setProducts(reset ? rows : prev => {
+        const seen = new Set(prev.map(p => p.id));
+        return [...prev, ...rows.filter(p => !seen.has(p.id))];
+      });
+      setHasMore(!!cursorRef.current);
+    } catch {
+      if (reset) setProducts([]);
+      setHasMore(false);
+      toast.error('Could not load marketplace products. Refresh to try again.');
+    }
+    if (reset) setLoading(false);
+  }, []);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    await loadProducts(false);
+    setLoadingMore(false);
+  }, [loadingMore, hasMore, loadProducts]);
 
   useEffect(() => {
     loadProducts(true);
-    const payment = searchParams?.get("payment");
-    if (payment === "success") {
+    if (paymentResult === "success") {
       setPaymentBanner("success");
       toast.success("💳 Payment confirmed! Your order has been placed.");
       window.history.replaceState({}, '', '/marketplace');
-    } else if (payment === "cancelled") {
+    } else if (paymentResult === "cancelled") {
       setPaymentBanner("cancelled");
       toast.info("Checkout cancelled — you were not charged.");
       window.history.replaceState({}, '', '/marketplace');
-    } else if (payment === "failed") {
+    } else if (paymentResult === "failed") {
       setPaymentBanner("failed");
       toast.error("Payment was not completed. Please try again.");
       window.history.replaceState({}, '', '/marketplace');
     }
-  }, []);
+  }, [loadProducts, paymentResult]);
 
   // Infinite scroll sentinel
   useEffect(() => {
@@ -77,31 +100,7 @@ function Marketplace() {
     );
     obs.observe(sentinelRef.current);
     return () => obs.disconnect();
-  }, [hasMore, loadingMore, loading]);
-
-  const loadProducts = async (reset = false) => {
-    if (reset) { setLoading(true); offsetRef.current = 0; setHasMore(true); }
-    try {
-      const { data } = await client.get('/api/products', {
-        params: { status: 'active', sort: '-created_at', limit: PAGE_SIZE, offset: reset ? 0 : offsetRef.current }
-      });
-      const rows = Array.isArray(data) ? data : [];
-      setProducts(reset ? rows : prev => {
-        const seen = new Set(prev.map(p => p.id));
-        return [...prev, ...rows.filter(p => !seen.has(p.id))];
-      });
-      offsetRef.current = (reset ? 0 : offsetRef.current) + rows.length;
-      if (rows.length < PAGE_SIZE) setHasMore(false);
-    } catch { if (reset) setProducts([]); }
-    if (reset) setLoading(false);
-  };
-
-  const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
-    setLoadingMore(true);
-    await loadProducts(false);
-    setLoadingMore(false);
-  }, [loadingMore, hasMore]);
+  }, [hasMore, loadingMore, loading, loadMore]);
 
   const filtered = products.filter(p => {
     const matchSearch = !search || p.title?.toLowerCase().includes(search.toLowerCase());

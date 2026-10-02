@@ -42,7 +42,7 @@ Set at: Render → nodbusiness-backend → Environment
 
 | Variable | Value format | Required | Notes |
 |---|---|---|---|
-| `GOOGLE_CLIENT_ID` | `793690330854-...apps.googleusercontent.com` | ✅ Yes (production) | App **exits with process.exit(1)** in production if missing. Get from Google Cloud Console. |
+| `GOOGLE_CLIENT_ID` | `793690330854-...apps.googleusercontent.com` | ✅ Yes (production) | Must be the active Web application OAuth client ID and exactly match `NEXT_PUBLIC_GOOGLE_CLIENT_ID`. |
 | `GOOGLE_CLIENT_SECRET` | `GOCSPX-...` | No | Not used by this backend for token verification — only Client ID needed. |
 
 ### CORS / Frontend
@@ -181,7 +181,7 @@ Set at: Vercel → nodbusiness project → Settings → Environment Variables
 |---|---|---|---|---|
 | `NEXT_PUBLIC_API_BASE_URL` | `https://nodbusiness-backend-9psf.onrender.com` | All | ✅ Yes | Backend API URL. Baked into JS bundle at build time. Must redeploy after changing. |
 | `NEXT_PUBLIC_APP_URL` | `https://nodbusiness.vercel.app` | Production | ✅ Yes | Public app URL for SEO metadata. |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | `793690330854-...apps.googleusercontent.com` | All | ✅ Yes | Same client ID as backend. Used to initialize Google Identity Services. |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | `793690330854-...apps.googleusercontent.com` | All | ✅ Yes | Same active Web client ID as backend; embedded at frontend build time and used to open Google's OAuth flow. |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `BKe52mPRC_...` | All | No | Web push subscription public key. |
 | `NEXT_PUBLIC_SENTRY_DSN` | `https://xxx@sentry.io/...` | All | No | Frontend Sentry DSN. |
 | `NEXT_PUBLIC_APP_VERSION` | `1.0.0` | All | No | Shown in Sentry releases. |
@@ -216,8 +216,7 @@ DATABASE_URL=postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@aws-0-eu-west-1.poo
 JWT_SECRET=any-long-random-string-for-local-dev-only
 FRONTEND_URL=http://localhost:3002
 
-# Run migrations locally
-NODE_TLS_REJECT_UNAUTHORIZED=0  # Only for local dev, not production
+# Keep TLS certificate verification enabled when connecting to hosted services.
 ```
 
 For the frontend, copy `frontend-next/.env.local.example` to `frontend-next/.env.local`:
@@ -245,4 +244,6 @@ For feature flags, priority order is:
 - `SUPABASE_STORAGE_KEY` must be the `service_role` key, not the `anon` key. The anon key cannot create storage objects.
 - Never put `STRIPE_SECRET_KEY`, `JWT_SECRET`, or `SUPABASE_STORAGE_KEY` in `NEXT_PUBLIC_*` variables — those are baked into the public JavaScript bundle.
 - `GOOGLE_CLIENT_SECRET` is NOT used by this backend. The backend verifies Google ID tokens using only the Client ID.
+- Configure the OAuth Web client with each exact frontend origin under **Authorized JavaScript origins** and each callback URL (`<origin>/auth/google/callback`) under **Authorized redirect URIs**. A Google `401 invalid_client` / “OAuth client was not found” means the submitted client ID is not an active OAuth client; origins alone cannot repair a missing or deleted client.
+- Local `.env.local` and Vercel's `NEXT_PUBLIC_GOOGLE_CLIENT_ID` must use the same active client ID as the backend's `GOOGLE_CLIENT_ID`. Restart the local Next.js server or rebuild/redeploy Vercel after changing the frontend value.
 - Rotating `JWT_SECRET` instantly invalidates ALL active sessions for all users.

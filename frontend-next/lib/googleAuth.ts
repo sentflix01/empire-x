@@ -13,7 +13,18 @@ const GOOGLE_AUTH   = 'https://accounts.google.com/o/oauth2/v2/auth';
 const CALLBACK_PATH = '/auth/google/callback';
 
 function getClientId(): string {
-  return process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() ?? '';
+  // Fail closed for copied .env.example placeholders and malformed values.
+  // This cannot detect a deleted OAuth client; Google reports that at runtime.
+  return /^\d+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(clientId) ? clientId : '';
+}
+
+export function describeGoogleOAuthError(error: string): string {
+  const normalized = error.toLowerCase();
+  if (normalized.includes('invalid_client') || normalized.includes('oauth client was not found')) {
+    return 'Google sign-in is misconfigured: the OAuth client ID was not found. Set NEXT_PUBLIC_GOOGLE_CLIENT_ID to an active Web application client in the frontend environment, and set the same ID as GOOGLE_CLIENT_ID in the backend. Add this site origin and /auth/google/callback to the client settings.';
+  }
+  return error;
 }
 
 function randomHex(bytes = 16): string {
@@ -22,8 +33,14 @@ function randomHex(bytes = 16): string {
   return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
 }
 
-async function sendToBackend(idToken: string): Promise<{ access_token: string }> {
-  const res = await client.post<{ access_token: string }>(
+interface GoogleAuthResult {
+  access_token: string;
+  onboarding_mode?: 'demo' | 'real' | null;
+  is_demo?: boolean;
+}
+
+async function sendToBackend(idToken: string): Promise<GoogleAuthResult> {
+  const res = await client.post<GoogleAuthResult>(
     '/api/auth/google',
     { id_token: idToken },
   );
@@ -42,7 +59,8 @@ async function sendToBackend(idToken: string): Promise<{ access_token: string }>
  *
  * We never poll popup.closed (that throws COOP errors).
  * The popup signals completion via BroadcastChannel then closes itself.
- * A 5-minute timeout covers the case where the user abandons the popup.
+ * A 5-minute timeout covers abandoned popups and Google-side errors (such as
+ * invalid_client) that are rendered by Google without redirecting to callback.
  */
 function openGooglePopup(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -97,7 +115,7 @@ function openGooglePopup(): Promise<string> {
       if (data.id_token) {
         resolve(data.id_token);
       } else {
-        reject(new Error(data.error ? `Google Sign-In failed: ${data.error}` : 'Google Sign-In did not return an ID token.'));
+        reject(new Error(data.error ? `Google Sign-In failed: ${describeGoogleOAuthError(data.error)}` : 'Google Sign-In did not return an ID token.'));
       }
     }
 
@@ -125,13 +143,12 @@ function openGooglePopup(): Promise<string> {
     }
     window.addEventListener('message', onMessage);
 
-    // ── 5-minute timeout — user abandoned the popup ───────────────────────────
+    // ── 5-minute timeout — Google may show an error without calling back ──────
     const timeoutId = setTimeout(() => {
       if (!settled) {
         settled = true;
         cleanup();
-        // Silent cancel — not an error the user needs to see
-        reject(new Error('Sign-in was cancelled.'));
+        reject(new Error('Google sign-in did not complete. Close the Google window and verify that this site uses an active OAuth client configured for its domain.'));
       }
     }, 5 * 60 * 1000);
   });
@@ -146,7 +163,11 @@ export function initGoogleSignIn(): void { /* no GIS to initialise */ }
 export function isGoogleReady(): boolean { return Boolean(getClientId()); }
 
 export interface RenderGoogleButtonOptions {
-  onSuccess: (result: { access_token: string }) => void;
+  onSuccess: (result: {
+    access_token: string;
+    onboarding_mode?: 'demo' | 'real' | null;
+    is_demo?: boolean;
+  }) => void;
   onError:   (error: Error) => void;
   width?:      number;
   buttonText?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';

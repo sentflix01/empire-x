@@ -32,8 +32,6 @@ export function generateInvoice(order: Order): void {
   const light  = [245, 245, 245] as [number, number, number];
   const white  = [255, 255, 255] as [number, number, number];
 
-  let y = 0;
-
   // ── Header band ──────────────────────────────────────────────────────────
   doc.setFillColor(...brand);
   doc.rect(0, 0, W, 38, "F");
@@ -57,7 +55,7 @@ export function generateInvoice(order: Order): void {
   doc.text(`#${order.id?.slice(0, 8).toUpperCase() ?? "N/A"}`, W - margin, 24, { align: "right" });
   doc.text(`Date: ${order.created_at ? new Date(order.created_at).toLocaleDateString("en-GB") : "—"}`, W - margin, 30, { align: "right" });
 
-  y = 50;
+  let y = 50;
 
   // ── Bill To ───────────────────────────────────────────────────────────────
   doc.setTextColor(...dark);
@@ -179,7 +177,7 @@ export function generateInvoice(order: Order): void {
   doc.text(`Quantity: ${order.quantity ?? 1}`, margin, y); y += 5;
   doc.text(`Payment Status: ${(order.status ?? "—").toUpperCase()}`, margin, y); y += 5;
   if (order.delivery_address) {
-    doc.text(`Delivery: ${order.delivery_address}`, margin, y); y += 5;
+    doc.text(`Delivery: ${order.delivery_address}`, margin, y);
   }
 
   // ── Footer ────────────────────────────────────────────────────────────────

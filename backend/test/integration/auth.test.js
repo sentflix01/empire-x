@@ -253,6 +253,103 @@ describe('POST /api/auth/login', () => {
   });
 });
 
+describe('POST /api/auth/demo configuration', () => {
+  const original = {};
+  const trackedKeys = ['DEMO_ENABLED', 'DEMO_DATABASE_URL', 'DEMO_SESSION_SECRET', 'JWT_SECRET'];
+
+  beforeEach(() => {
+    for (const key of trackedKeys) original[key] = process.env[key];
+  });
+
+  afterEach(() => {
+    for (const key of trackedKeys) {
+      if (original[key] === undefined) delete process.env[key];
+      else process.env[key] = original[key];
+    }
+  });
+
+  it.each([
+    ['missing demo database URL', { DEMO_DATABASE_URL: undefined, DEMO_SESSION_SECRET: 's'.repeat(32) }],
+    ['short or missing isolated signing secret', { DEMO_DATABASE_URL: 'postgres://demo.invalid/demo', DEMO_SESSION_SECRET: 'too-short' }],
+    ['signing secret reused from JWT_SECRET', { DEMO_DATABASE_URL: 'postgres://demo.invalid/demo', DEMO_SESSION_SECRET: 'j'.repeat(40), JWT_SECRET: 'j'.repeat(40) }],
+  ])('fails closed for %s without querying the shared database', async (_caseName, overrides) => {
+    process.env.DEMO_ENABLED = 'true';
+    process.env.DEMO_DATABASE_URL = 'postgres://demo.invalid/demo';
+    process.env.DEMO_SESSION_SECRET = 'd'.repeat(40);
+    process.env.JWT_SECRET = 'j'.repeat(40);
+    for (const [key, value] of Object.entries(overrides)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+
+    const res = await request(buildApp()).post('/api/auth/demo').send({});
+
+    expect(res.status).toBe(503);
+    expect(res.body.code).toBe('DEMO_CONFIGURATION_INVALID');
+    expect(mockPool.query).not.toHaveBeenCalled();
+  });
+});
+
+describe('Track 1 demo session handoff', () => {
+  const originalDemoEnabled = process.env.DEMO_ENABLED;
+
+  afterAll(() => {
+    if (originalDemoEnabled === undefined) delete process.env.DEMO_ENABLED;
+    else process.env.DEMO_ENABLED = originalDemoEnabled;
+  });
+
+  it('survives a reload and restores the existing real refresh session on exit', async () => {
+    process.env.DEMO_ENABLED = 'false';
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ id: 'real-id', email: 'real@example.test', password_hash: '$2b$hashed', is_verified: true, role: 'user', is_demo: false, is_seed: false }] })
+      .mockResolvedValueOnce({ rows: [{ id: 'demo-id', email: 'test@nodbusiness.app', is_banned: false, is_demo: true, is_seed: false, onboarding_mode: 'demo' }] })
+      .mockResolvedValueOnce({ rows: [{ id: 'demo-id', is_banned: false, is_demo: true, is_seed: false }] })
+      .mockResolvedValueOnce({ rows: [{ is_demo: false, is_seed: false, is_banned: false }] })
+      .mockResolvedValueOnce({ rows: [{ id: 'real-id', is_banned: false, is_demo: false, is_seed: false }] });
+
+    const agent = request.agent(buildApp());
+    const login = await agent.post('/api/auth/login').send({ email: 'real@example.test', password: 'password123' });
+    expect(login.status).toBe(200);
+    const originalRefreshCookie = login.headers['set-cookie'].find(cookie => cookie.startsWith('refresh_token=')).split(';')[0];
+
+    const demo = await agent.post('/api/auth/demo');
+    expect(demo.status).toBe(200);
+    expect(demo.headers['set-cookie'].some(cookie => cookie.startsWith('demo_track1='))).toBe(true);
+    expect(demo.headers['set-cookie'].some(cookie => cookie.startsWith('refresh_token='))).toBe(false);
+
+    const demoRefresh = await agent.post('/api/auth/refresh');
+    expect(demoRefresh.status).toBe(200);
+    expect(require('jsonwebtoken').decode(demoRefresh.body.access_token).sub).toBe('demo-id');
+
+    const exit = await agent.post('/api/auth/demo/exit');
+    expect(exit.body.return_to_real).toBe(true);
+    expect(exit.headers['set-cookie'].some(cookie => cookie.startsWith('demo_track1=;'))).toBe(true);
+
+    const realRefresh = await agent.post('/api/auth/refresh');
+    expect(realRefresh.status).toBe(200);
+    expect(require('jsonwebtoken').decode(realRefresh.body.access_token).sub).toBe('real-id');
+    expect(originalRefreshCookie).toBeTruthy();
+  });
+
+  it('does not treat a shared demo account refresh cookie as a real account to return to', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [{
+      id: 'demo-id', email: 'test@nodbusiness.app', password_hash: '$2b$hashed',
+      is_verified: true, role: 'user', is_banned: false, is_demo: true, is_seed: false,
+    }] });
+
+    const agent = request.agent(buildApp());
+    const login = await agent.post('/api/auth/login').send({ email: 'test@nodbusiness.app', password: 'password123' });
+    expect(login.status).toBe(200);
+
+    const exit = await agent.post('/api/auth/demo/exit');
+    expect(exit.status).toBe(200);
+    expect(exit.body.return_to_real).toBe(false);
+    // The signed refresh token identifies itself as demo, so no real-user
+    // lookup is needed and no return-to-real path is advertised.
+    expect(mockPool.query).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('POST /api/auth/verify-otp', () => {
   it('returns 422 when fields are missing', async () => {
     const app = buildApp();

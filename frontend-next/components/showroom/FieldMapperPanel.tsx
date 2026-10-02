@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Trash2, FlaskConical, Save, Loader2, ChevronDown, ChevronUp, ClipboardPaste } from 'lucide-react';
 import { FieldMapping } from '../../types/externalApi';
 import { computePreview } from '../../lib/externalMappingPreview';
+import { apiFetch } from '@/api/client';
 
 export interface FieldDef {
   key: string;
@@ -70,7 +71,7 @@ export default function FieldMapperPanel({
     // Reset rows to empty first so stale paths from a previous source don't linger
     setRows(buildEmptyRows());
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/showrooms/${showroomId}/external-sources/${sourceId}/mappings`,
         { credentials: 'include' }
       );
@@ -100,7 +101,7 @@ export default function FieldMapperPanel({
     setTestError(null);
     setSampleKeys([]);
     try {
-      const res = await fetch(`/api/proxy/${showroomId}/${sectionKey}`);
+      const res = await apiFetch(`/api/proxy/${showroomId}/${sectionKey}`);
       const contentType = res.headers.get('content-type') || '';
       if (!res.ok) {
         const body = contentType.includes('application/json') ? await res.json() : {};
@@ -166,7 +167,7 @@ export default function FieldMapperPanel({
     try {
       const results = await Promise.all(
         filledRows.map((row) =>
-          fetch(
+          apiFetch(
             `/api/showrooms/${showroomId}/external-sources/${sourceId}/mappings`,
             {
               method: 'POST',
@@ -215,7 +216,7 @@ export default function FieldMapperPanel({
     setDeletingId(mappingId);
     setDeleteError(null);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/showrooms/${showroomId}/external-sources/${sourceId}/mappings/${mappingId}`,
         { method: 'DELETE', credentials: 'include' }
       );

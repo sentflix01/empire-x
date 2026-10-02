@@ -83,7 +83,7 @@ Until R2 is configured, use **manual backups** for important data preservation.
 cd backend
 
 # Create backup to local file
-NODE_TLS_REJECT_UNAUTHORIZED=0 npm run backup
+npm run backup
 
 # Or run pg_dump directly
 PGPASSWORD=your_password pg_dump \

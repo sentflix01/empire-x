@@ -17,13 +17,13 @@ Showroom CRUD: draft/publish lifecycle, layout template selection, section conte
 |---|---|---|---|
 | `GET` | `/api/showrooms/` | optional | 13 |
 | `GET` | `/api/showrooms/slug/:slug` | optional | 24 |
-| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | auth | 35 |
-| `GET` | `/api/showrooms/:id/doctor` | auth | 60 |
-| `GET` | `/api/showrooms/sitemap-data` | public | 117 |
-| `GET` | `/api/showrooms/:id` | optional | 126 |
-| `POST` | `/api/showrooms/` | auth | 134 |
-| `PUT` | `/api/showrooms/:id` | auth | 150 |
-| `DELETE` | `/api/showrooms/:id` | auth | 159 |
+| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | auth | 36 |
+| `GET` | `/api/showrooms/:id/doctor` | auth | 61 |
+| `GET` | `/api/showrooms/sitemap-data` | public | 118 |
+| `GET` | `/api/showrooms/:id` | optional | 128 |
+| `POST` | `/api/showrooms/` | auth | 136 |
+| `PUT` | `/api/showrooms/:id` | auth | 153 |
+| `DELETE` | `/api/showrooms/:id` | auth | 164 |
 
 ## 4. What does it touch?
 

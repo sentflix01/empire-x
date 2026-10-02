@@ -237,14 +237,17 @@ function ReturnBadge({ orderId, isSeller }: { orderId: string; isSeller: boolean
   const [loaded, setLoaded]   = useState(false);
 
   useEffect(() => {
+    let active = true;
+    setLoaded(false);
     client.get(`/api/returns?role=${isSeller ? "seller" : "buyer"}`)
       .then(r => {
         const mine = (r.data || []).filter((rr: any) => rr.order_id === orderId);
-        setReturns(mine);
+        if (active) setReturns(mine);
       })
       .catch(() => {})
-      .finally(() => setLoaded(true));
-  }, [orderId]);
+      .finally(() => { if (active) setLoaded(true); });
+    return () => { active = false; };
+  }, [orderId, isSeller]);
 
   if (!loaded || returns.length === 0) return null;
   const latest = returns[0];
@@ -272,10 +275,15 @@ function SellerReturnActions({ orderId, onActioned }: { orderId: string; onActio
   const [saving, setSaving]           = useState(false);
 
   useEffect(() => {
+    let active = true;
+    setLoaded(false);
     client.get(`/api/returns?role=seller`)
-      .then(r => setReturns((r.data || []).filter((rr: any) => rr.order_id === orderId && rr.status === "pending")))
+      .then(r => {
+        if (active) setReturns((r.data || []).filter((rr: any) => rr.order_id === orderId && rr.status === "pending"));
+      })
       .catch(() => {})
-      .finally(() => setLoaded(true));
+      .finally(() => { if (active) setLoaded(true); });
+    return () => { active = false; };
   }, [orderId]);
 
   if (!loaded || returns.length === 0) return null;
@@ -302,7 +310,7 @@ function SellerReturnActions({ orderId, onActioned }: { orderId: string; onActio
       {rr.details && <p className="text-xs text-muted-foreground mb-2">{rr.details}</p>}
       <input
         type="number"
-        placeholder={`Refund amount (default: ${rr.total_price} ${rr.currency || "USD"})`}
+        placeholder={`Agreed refund to arrange manually (max ${rr.total_price} ${rr.currency || "USD"})`}
         value={refundAmount}
         onChange={e => setRefundAmount(e.target.value)}
         className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-amber-400/40 mb-2"
@@ -310,13 +318,14 @@ function SellerReturnActions({ orderId, onActioned }: { orderId: string; onActio
       <div className="flex gap-2">
         <Button size="sm" onClick={() => act("approved")} disabled={saving}
           className="h-7 text-xs rounded-full bg-green-600 hover:bg-green-700 text-white">
-          Approve & Refund
+          Approve Return
         </Button>
         <Button size="sm" onClick={() => act("rejected")} disabled={saving}
           variant="destructive" className="h-7 text-xs rounded-full">
           Reject
         </Button>
       </div>
+      <p className="mt-2 text-[10px] text-muted-foreground">Approval records the agreed amount. Buyer and seller arrange payment separately.</p>
     </div>
   );
 }
@@ -329,14 +338,15 @@ function Orders() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [tab, setTab]         = useState("selling");
+  const userId = user?.id;
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showReturn, setShowReturn] = useState<Record<string, boolean>>({});
   // Map of user_id → display_name for orders counterparty
   const [nameMap, setNameMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (user) loadOrders(user, "selling");
-  }, [user?.id]);
+    if (userId) loadOrders({ id: userId }, "selling");
+  }, [userId]);
 
   const loadOrders = async (u, mode) => {
     setLoading(true);

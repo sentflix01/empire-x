@@ -10,7 +10,7 @@ import { CalendarDays, MapPin, Ticket, Plus, Globe, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { fromNow, fmtDateTime } from "@/lib/date";
+import {  fmtDateTime } from "@/lib/date";
 import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Skeleton } from '@/components/ui/skeleton';

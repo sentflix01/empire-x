@@ -4,7 +4,7 @@
  * Requirements: 4.4, 4.6
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
 vi.mock('@/api/client', () => ({
@@ -35,63 +35,25 @@ describe('Wallet top-up form', () => {
 
   it('renders the wallet page with top-up tab', async () => {
     render(<Wallet />);
-
-    // Wait for loading to complete
-    await vi.waitFor(() => {
-      expect(screen.queryByRole('status')).toBeNull();
-    }, { timeout: 2000 }).catch(() => {
-      // Loading state is fine — just verify the page renders
-    });
-
-    // The page renders even in loading state
-    expect(document.body).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'wallet.title' })).toBeTruthy();
+    expect(screen.getByText('wallet.availableBalance')).toBeTruthy();
   });
 
   it('Chapa top-up button is disabled when amount is empty', async () => {
     render(<Wallet />);
-
-    // Switch to top-up tab
-    const topupTab = screen.queryByText(/wallet\.topUp|topup|top.up/i);
-    if (topupTab) {
-      fireEvent.click(topupTab);
-
-      // Amount input should exist
-      const amountInput = screen.queryByRole('spinbutton');
-      if (amountInput) {
-        // Buttons should be disabled with empty amount
-        const chapaBtn = screen.queryAllByRole('button').find(
-          (btn) => btn.textContent?.toLowerCase().includes('chapa')
-        );
-        if (chapaBtn) {
-          expect((chapaBtn as HTMLButtonElement).disabled).toBe(true);
-        }
-      }
-    }
-
-    // If the tab isn't visible (loading), just assert page doesn't crash
-    expect(document.body).toBeTruthy();
+    await screen.findByRole('heading', { name: 'wallet.title' });
+    fireEvent.click(screen.getByRole('button', { name: 'wallet.topUp' }));
+    const chapaButton = await screen.findByRole('button', { name: /Top Up with Chapa/i });
+    expect((chapaButton as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('Chapa top-up button enables when valid amount is entered', async () => {
     render(<Wallet />);
-
-    const topupTab = screen.queryByText(/wallet\.topUp|topup|top.up/i);
-    if (topupTab) {
-      fireEvent.click(topupTab);
-
-      const amountInput = screen.queryByRole('spinbutton');
-      if (amountInput) {
-        fireEvent.change(amountInput, { target: { value: '100' } });
-
-        const chapaBtn = screen.queryAllByRole('button').find(
-          (btn) => btn.textContent?.toLowerCase().includes('chapa')
-        );
-        if (chapaBtn) {
-          expect((chapaBtn as HTMLButtonElement).disabled).toBe(false);
-        }
-      }
-    }
-
-    expect(document.body).toBeTruthy();
+    await screen.findByRole('heading', { name: 'wallet.title' });
+    fireEvent.click(screen.getByRole('button', { name: 'wallet.topUp' }));
+    fireEvent.change(await screen.findByRole('spinbutton'), { target: { value: '100' } });
+    await waitFor(() => {
+      expect((screen.getByRole('button', { name: /Top Up with Chapa/i }) as HTMLButtonElement).disabled).toBe(false);
+    });
   });
 });

@@ -138,14 +138,34 @@ export function isSupabaseConfigured(): boolean {
   return !!(getSupabaseProjectUrl() && process.env.SUPABASE_STORAGE_KEY && process.env.SUPABASE_BUCKET);
 }
 
+function assertValidDemoSessionId(sessionId: string): void {
+  if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(sessionId)) {
+    throw new Error('Invalid demo session ID for upload storage');
+  }
+}
+
+export function createStorageKey(originalName: string, demoSessionId?: string, unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`): string {
+  const ext = path.extname(originalName).toLowerCase();
+  if (demoSessionId) {
+    assertValidDemoSessionId(demoSessionId);
+    return `demo/${demoSessionId}/uploads/${unique}${ext}`;
+  }
+  return `uploads/${unique}${ext}`;
+}
+
+export function getUploadDirectory(baseDirectory: string, demoSessionId?: string): string {
+  if (!demoSessionId) return baseDirectory;
+  assertValidDemoSessionId(demoSessionId);
+  return path.join(baseDirectory, 'demo', demoSessionId);
+}
+
 export async function uploadToSupabase(
   buffer: Buffer,
   originalName: string,
   mimeType: string,
+  demoSessionId?: string,
 ): Promise<string> {
-  const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-  const ext = path.extname(originalName).toLowerCase();
-  const key = `uploads/${unique}${ext}`;
+  const key = createStorageKey(originalName, demoSessionId);
   const bucket = process.env.SUPABASE_BUCKET as string;
   const projectUrl = getSupabaseProjectUrl();
   const serviceKey = process.env.SUPABASE_STORAGE_KEY as string;
@@ -207,11 +227,10 @@ export async function uploadToR2(
   buffer: Buffer,
   originalName: string,
   mimeType: string,
+  demoSessionId?: string,
 ): Promise<string> {
   const { PutObjectCommand } = require('@aws-sdk/client-s3') as typeof import('@aws-sdk/client-s3');
-  const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-  const ext = path.extname(originalName).toLowerCase();
-  const key = `uploads/${unique}${ext}`;
+  const key = createStorageKey(originalName, demoSessionId);
 
   await getR2Client().send(new PutObjectCommand({
     Bucket: process.env.R2_BUCKET_NAME as string,
@@ -232,9 +251,10 @@ export async function uploadFile(
   buffer: Buffer,
   originalName: string,
   mimeType: string,
+  demoSessionId?: string,
 ): Promise<string> {
-  if (isSupabaseConfigured()) return uploadToSupabase(buffer, originalName, mimeType);
-  if (isR2Configured())       return uploadToR2(buffer, originalName, mimeType);
+  if (isSupabaseConfigured()) return uploadToSupabase(buffer, originalName, mimeType, demoSessionId);
+  if (isR2Configured())       return uploadToR2(buffer, originalName, mimeType, demoSessionId);
   throw new Error('No cloud storage configured — set Supabase or R2 env vars');
 }
 
@@ -258,7 +278,14 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const diskStorage = multer.diskStorage({
-  destination: (_req: Request, _file: Express.Multer.File, cb: (err: Error | null, dest: string) => void) => cb(null, uploadDir),
+  destination: (req: Request, _file: Express.Multer.File, cb: (err: Error | null, dest: string) => void) => {
+    try {
+      const destination = getUploadDirectory(uploadDir, req.demoSession?.id);
+      fs.mkdir(destination, { recursive: true }, (err) => cb(err, destination));
+    } catch (error) {
+      cb(error as Error, '');
+    }
+  },
   filename: (_req: Request, file: Express.Multer.File, cb: (err: Error | null, name: string) => void) => {
     const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     cb(null, `${unique}${path.extname(file.originalname)}`);
@@ -286,3 +313,5 @@ module.exports.activeStorageProvider    = activeStorageProvider;
 module.exports.fileFilter               = fileFilter;
 module.exports.validateFileBytes        = validateFileBytes;
 module.exports.allowedMimeTypesByExtension = allowedMimeTypesByExtension;
+module.exports.createStorageKey         = createStorageKey;
+module.exports.getUploadDirectory       = getUploadDirectory;

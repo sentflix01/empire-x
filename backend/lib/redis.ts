@@ -189,4 +189,4 @@ export async function invalidate(keyPrefix: string): Promise<void> {
   }
 }
 
-module.exports = { getRedis, cached, invalidate };
+module.exports = { getRedis, cached, invalidate, withoutRedis, isRedisBypassed };

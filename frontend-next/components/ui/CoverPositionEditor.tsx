@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 /**
  * CoverPositionEditor — drag-to-pan cover positioning overlay.
  *
@@ -118,7 +119,7 @@ export default function CoverPositionEditor({
       ref={frameRef}
       className={cn('relative overflow-hidden select-none rounded-[inherit]', t.frame, className)}
     >
-      <img loading="lazy"
+      <Image unoptimized width={800} height={600} loading="lazy"
         ref={imgRef}
         src={src}
         alt="Cover preview — drag to reposition"

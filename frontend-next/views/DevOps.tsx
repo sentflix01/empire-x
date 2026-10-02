@@ -20,10 +20,10 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import {
   Activity, AlertTriangle, BarChart3, Ban, BookOpen, Bug, CheckCircle2, ChevronDown,
-  ChevronUp, CircleDot, ClipboardList, Clock, Code2, Database, Eye, FileText, Flag,
+  ChevronUp, CircleDot, ClipboardList, Clock, Database, Eye, FileText, Flag,
   Bot, GitBranch, Globe, KanbanSquare, ListChecks, Loader2, Map, Pencil,
   Plus, RefreshCw, Rocket, Search, Server, ShieldAlert, Sparkles, Tag, Terminal,
-  Trash2, TrendingUp, User, Users, Wifi, WifiOff, X, Zap,
+  Trash2, User, Users, WifiOff, X, Zap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1110,11 +1110,6 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
   const [showResolved, setShowResolved] = useState(false);
   const lastPollRef = React.useRef<string>(new Date().toISOString());
 
-  // Initial load
-  useEffect(() => {
-    fetchAll();
-  }, [levelFilter, showResolved]);
-
   // Auto-poll every 15 seconds for new errors
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -1147,7 +1142,7 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
     return () => clearInterval(interval);
   }, [levelFilter, showResolved]);
 
-  async function fetchAll() {
+  const fetchAll = React.useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -1168,7 +1163,12 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [levelFilter, showResolved]);
+
+  // Initial load and reload when the selected error filters change.
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
   async function resolve(id: string) {
     setResolving(id);
@@ -1659,7 +1659,7 @@ function Changelog() {
             {/* Timeline line */}
             <div className="absolute left-[18px] top-0 bottom-0 w-px bg-border/50" />
             <div className="space-y-6">
-              {CHANGELOG.map((entry, i) => (
+              {CHANGELOG.map((entry) => (
                 <div key={entry.tag} className="relative flex gap-4">
                   {/* Dot */}
                   <div className={`relative shrink-0 w-9 h-9 rounded-full border-2 border-background flex items-center justify-center ${dotMap[entry.color]} shadow-sm`}>

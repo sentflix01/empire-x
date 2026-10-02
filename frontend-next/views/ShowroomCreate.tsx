@@ -1,15 +1,14 @@
 'use client';
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useEffectEvent } from "react";
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from "@/lib/AuthContext";
 import { entities } from "@/api/entities";
+import { apiFetch } from "@/api/client";
 import { useTranslation } from 'react-i18next';
 
 import {
   ArrowLeft, Monitor, Tablet, Smartphone, Moon, Sun,
-  RotateCcw, RotateCw, Save, CheckCircle,
-  ChevronUp, ChevronDown, Crown, PenLine, Eye,
+  RotateCcw, RotateCw, Save, CheckCircle, Crown, PenLine, Eye,
   Download, Copy, Layers, Menu,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -275,6 +274,8 @@ function ShowroomCreate({
   const templateName = templateParam.replace(/-/g, " ");
 
   const { user } = useAuth();
+  const draftKey = `nodbusiness_builder_draft:${user?.id ?? "guest"}:${user?.is_demo ? "demo" : "real"}`;
+  const [loadedDraftKey, setLoadedDraftKey] = useState("");
   const [saving, setSaving] = useState(false);
   const [darkBuilder, setDarkBuilder] = useState(false);
   const [previewMode, setPreviewMode] = useState<"desktop"|"tablet"|"mobile">("desktop");
@@ -306,7 +307,7 @@ function ShowroomCreate({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/showrooms/${editId}`, { credentials: "include" });
+        const res = await apiFetch(`/api/showrooms/${editId}`, { credentials: "include" });
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled) return;
@@ -327,16 +328,23 @@ function ShowroomCreate({
   const [redoStack, setRedoStack] = useState<any[]>([]);
 
   useEffect(() => {
-    // Try to restore draft
-    const draft = localStorage.getItem("nodbusiness_builder_draft");
-    if (draft && !templateParam && !categoryParam && !sampleParam) {
+    const defaultData = getDefaultFormData(templateName, categoryParam, sampleParam);
+    const defaultSections = getDefaultSections(templateName, categoryParam, sampleParam);
+    setLoadedDraftKey("");
+    setFormData(defaultData);
+    setActiveSections(defaultSections);
+    if (!editId && !templateParam && !categoryParam && !sampleParam) {
       try {
-        const parsed = JSON.parse(draft);
-        if (parsed.formData) setFormData(prev => ({ ...prev, ...parsed.formData }));
-        if (parsed.activeSections) setActiveSections(parsed.activeSections);
+        const draft = localStorage.getItem(draftKey);
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          if (parsed.formData) setFormData({ ...defaultData, ...parsed.formData });
+          if (parsed.activeSections) setActiveSections(parsed.activeSections);
+        }
       } catch {}
     }
-  }, []);
+    setLoadedDraftKey(draftKey);
+  }, [draftKey, templateName, templateParam, categoryParam, sampleParam, editId]);
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 639px)");
@@ -350,23 +358,12 @@ function ShowroomCreate({
 
   // Auto-save draft
   useEffect(() => {
+    if (loadedDraftKey !== draftKey) return;
     const timer = setTimeout(() => {
-      localStorage.setItem("nodbusiness_builder_draft", JSON.stringify({ formData, activeSections }));
+      localStorage.setItem(draftKey, JSON.stringify({ formData, activeSections }));
     }, 1500);
     return () => clearTimeout(timer);
-  }, [formData, activeSections]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); handleSaveDraft(); }
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === "z") { e.preventDefault(); undo(); }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "z") { e.preventDefault(); redo(); }
-      if ((e.ctrlKey || e.metaKey) && e.key === "e") { e.preventDefault(); handleExport(); }
-    };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [formData, activeSections, undoStack, redoStack]);
+  }, [draftKey, loadedDraftKey, formData, activeSections]);
 
   const pushUndo = () => {
     setUndoStack(prev => [...prev.slice(-19), { formData, activeSections }]);
@@ -416,19 +413,8 @@ function ShowroomCreate({
     });
   };
 
-  const duplicateSection = (key: string) => {
-    pushUndo();
-    setActiveSections(prev => {
-      const i = prev.indexOf(key);
-      if (i === -1) return prev;
-      const a = [...prev];
-      a.splice(i + 1, 0, key + "_copy_" + Date.now());
-      return a;
-    });
-  };
-
   const handleSaveDraft = () => {
-    localStorage.setItem("nodbusiness_builder_draft", JSON.stringify({ formData, activeSections }));
+    localStorage.setItem(draftKey, JSON.stringify({ formData, activeSections }));
     toast.success("Draft saved ✅");
   };
 
@@ -482,6 +468,18 @@ function ShowroomCreate({
     toast.success("Website exported! 📥");
   };
 
+  const onKeyboardShortcut = useEffectEvent((event: KeyboardEvent) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === "s") { event.preventDefault(); handleSaveDraft(); }
+    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "z") { event.preventDefault(); undo(); }
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "z") { event.preventDefault(); redo(); }
+    if ((event.ctrlKey || event.metaKey) && event.key === "e") { event.preventDefault(); handleExport(); }
+  });
+
+  useEffect(() => {
+    window.addEventListener("keydown", onKeyboardShortcut);
+    return () => window.removeEventListener("keydown", onKeyboardShortcut);
+  }, []);
+
   const handleCopyCode = () => {
     navigator.clipboard.writeText(getExportHTML())
       .then(() => toast.success("Code copied! 📋"))
@@ -515,10 +513,10 @@ function ShowroomCreate({
         sections: JSON.stringify(sections),
         status: "published",
       });
-      localStorage.removeItem("nodbusiness_builder_draft");
+      localStorage.removeItem(draftKey);
       toast.success("Showroom published! 🎉");
       router.push(`/showrooms/${showroom.id}`);
-    } catch (e) {
+    } catch {
       toast.error("Failed to publish. Please try again.");
     }
     setSaving(false);
@@ -630,7 +628,7 @@ function ShowroomCreate({
           canUndo={undoStack.length > 0}
           canRedo={redoStack.length > 0}
           onLoad={() => {
-            const draft = localStorage.getItem("nodbusiness_builder_draft");
+            const draft = localStorage.getItem(draftKey);
             if (!draft) { toast.error("No draft found"); return; }
             try {
               const p = JSON.parse(draft);
@@ -640,7 +638,7 @@ function ShowroomCreate({
             } catch { toast.error("Failed to load draft"); }
           }}
           onClear={() => {
-            localStorage.removeItem("nodbusiness_builder_draft");
+            localStorage.removeItem(draftKey);
             setFormData(getDefaultFormData(templateName, categoryParam, sampleParam));
             setActiveSections(getDefaultSections(templateName, categoryParam, sampleParam));
             toast.success("Draft cleared");

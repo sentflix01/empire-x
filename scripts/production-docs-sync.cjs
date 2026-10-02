@@ -26,11 +26,19 @@ const GROUPED=new Set([
  'frontend-next/components.md','frontend-next/components/analytics.md',
  'frontend-next/components/profile.md'
 ]);
-function walk(d,out=[],extRe=/\.tsx?$/){
+function walk(d,out=[],extRe=/\.m?tsx?$/){
   if(!fs.existsSync(d))return out;
   for(const e of fs.readdirSync(d,{withFileTypes:true})){
     const p=path.join(d,e.name);
-    if(e.isDirectory()){if(e.name!=='node_modules'&&e.name!=='dist'&&e.name!=='.next')walk(p,out,extRe);}
+    // Ignore framework/build caches even when tools suffix the directory name
+    // (for example `.next-audit` or `.next-ci-check`). These are generated
+    // output, not source files that need permanent production documentation.
+    if(e.isDirectory()){
+      const generated=e.name==='node_modules'||e.name==='dist'||e.name==='build'||
+        e.name==='.next'||e.name.startsWith('.next-')||e.name==='coverage'||
+        e.name==='playwright-report'||e.name==='test-results';
+      if(!generated)walk(p,out,extRe);
+    }
     else if(extRe.test(e.name))out.push(p);
   }
   return out;
@@ -43,7 +51,7 @@ function docFor(srcRel){
   if(/^frontend-next\/e2e\//.test(srcRel))return 'frontend-next/e2e.md';
   const cfg={'frontend-next/next.config.ts':'frontend-next/next-config.md',
     'frontend-next/proxy.ts':'frontend-next/proxy-ts.md',
-    'frontend-next/vitest.config.ts':'frontend-next/configs.md',
+    'frontend-next/vitest.config.mts':'frontend-next/configs.md',
     'frontend-next/playwright.config.ts':'frontend-next/configs.md',
     'frontend-next/tailwind.config.js':'frontend-next/configs.md'};
   if(cfg[srcRel])return cfg[srcRel];

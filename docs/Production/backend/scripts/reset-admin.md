@@ -1,17 +1,16 @@
-# scripts/reset-admin.js - Admin Account Reset
+# scripts/reset-admin.js — Safe Local Admin Password Reset
 
-## 1. What is this?
+## Purpose
 
-**Operational script.** Dev utility: resets/creates the seeded admin account password for local environments.
+Resets the password of one existing local admin account for development recovery.
 
-## 2. Why does it exist?
+## Safeguards
 
-Dev utility: resets/creates the seeded admin account password for local environments. Not for production use.
+- Refuses `NODE_ENV=production`.
+- Requires `ADMIN_EMAIL` to identify the exact existing admin and `ADMIN_NEW_PASSWORD` to contain 16–128 characters.
+- Never creates an account, uses a default password, or prints the supplied password.
+- Updates only a row that still has the `admin` role.
 
-## 3. What does it do?
+## Usage
 
-Dev utility: resets/creates the seeded admin account password for local environments. Not for production use.
-
-## 4. What does it touch?
-
-Inline references only — nothing external.
+Set `ADMIN_EMAIL` and `ADMIN_NEW_PASSWORD` in the local environment, then run `node scripts/reset-admin.js` from `backend/`. Do not use this utility for hosted account recovery.

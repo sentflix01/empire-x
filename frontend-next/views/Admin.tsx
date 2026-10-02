@@ -1,4 +1,5 @@
 'use client';
+import SafeImage from '@/components/ui/SafeImage';
 /**
  * Admin.tsx — Nodbusiness Platform Operations Hub
  *
@@ -23,8 +24,7 @@ import client from '@/api/client';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import {
-  Activity, AlertTriangle, BadgeCheck, BarChart3, Bug, CheckCircle2,
-  ClipboardList, Clock, Code2, Database, Eye, FileText, Flag, Globe,
+  Activity, AlertTriangle, BadgeCheck, BarChart3, CheckCircle2, Clock, Code2, Database, FileText, Flag, Globe,
   KanbanSquare, Loader2, Map, Package, RefreshCw, Search, Server,
   ShieldAlert, ShoppingBag, Sparkles, Terminal, Trash2, TrendingUp,
   Users, X, XCircle, Zap,
@@ -35,7 +35,7 @@ import { Badge } from '@/components/ui/badge';
 import VerifiedBadge, { type VerificationType } from '@/components/ui/VerifiedBadge';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-  PieChart, Pie, Cell, Legend,
+  PieChart, Pie, Cell,
 } from 'recharts';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -377,7 +377,6 @@ function Admin() {
   const [orders,       setOrders]       = useState<any[]>([]);
   const [reports,      setReports]      = useState<any[]>([]);
   const [revenueChart, setRevenueChart] = useState<any[]>([]);
-  const [orderStats,   setOrderStats]   = useState<any[]>([]);
   const [topSellers,   setTopSellers]   = useState<any[]>([]);
   const [loading,      setLoading]      = useState(true);
 
@@ -415,7 +414,6 @@ function Admin() {
       setStats(s); setUsers(Array.isArray(u) ? u : []); setVerifications(v);
       setPosts(Array.isArray(po) ? po : []); setProducts(Array.isArray(pr) ? pr : []); setOrders(Array.isArray(o) ? o : []); setReports(r);
       setRevenueChart(rc.daily || []);
-      setOrderStats(rc.order_stats || []);
       setTopSellers(rc.top_sellers || []);
     } catch { toast.error('Failed to load admin data'); }
     setLoading(false);
@@ -434,7 +432,7 @@ function Admin() {
     setVerifications(v);
   }, [vFilter]);
 
-  useEffect(() => { if (tab === 'verify') loadVerifications(); }, [tab, vFilter]);
+  useEffect(() => { if (tab === 'verify') loadVerifications(); }, [tab, vFilter, loadVerifications]);
 
   // ── Actions ────────────────────────────────────────────────────────────────
   const grantVerification = async () => {
@@ -867,7 +865,7 @@ function Admin() {
               {filteredVer.map((u: any) => (
                 <div key={u.id} className="flex items-center gap-3 p-4 border-b border-border/20 last:border-0">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden">
-                    {u.avatar_url ? <img loading="lazy" src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : (u.display_name?.[0] ?? u.full_name?.[0] ?? '?')}
+                    {u.avatar_url ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : (u.display_name?.[0] ?? u.full_name?.[0] ?? '?')}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">

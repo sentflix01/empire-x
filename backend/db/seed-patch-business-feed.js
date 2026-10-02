@@ -20,6 +20,7 @@
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./pool');
+const { assertSafeDevSeed } = require('./operationSafety');
 
 const pick  = arr => arr[Math.floor(Math.random() * arr.length)];
 const rand  = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -127,6 +128,7 @@ function buildBusinessSections(category, businessName) {
 }
 
 async function patch() {
+  assertSafeDevSeed();
   const client = await pool.connect();
   console.log('\n🔧 Business Feed Patch\n');
   console.log('Fixes: business_sections NULL, logo URLs, services with prices\n');

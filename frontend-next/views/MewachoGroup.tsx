@@ -1,9 +1,10 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import SafeImage from '@/components/ui/SafeImage';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  ArrowLeft, Send, QrCode, Download, Users, Target,
-  CreditCard, ArrowUpRight, X, Copy, CheckCheck, AlertCircle,
+  ArrowLeft, Send, QrCode, Download,
+  CreditCard, ArrowUpRight, X, Copy, CheckCheck,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { jsPDF } from 'jspdf';
@@ -36,7 +37,7 @@ function ActivityItem({ item }: { item: MewachoActivity }) {
     <div className={`flex gap-2.5 ${isContrib || isWithdrawal ? 'items-start' : 'items-end'}`}>
       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden">
         {item.avatar_url
-          ? <img src={item.avatar_url} alt="" className="w-full h-full object-cover" />
+          ? <SafeImage fill={false} width={800} height={600} src={item.avatar_url} alt="" className="w-full h-full object-cover" />
           : (item.display_name?.[0] || '?')}
       </div>
       <div className={`max-w-[75%] ${isContrib ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-card border border-border/60'} rounded-2xl rounded-tl-sm px-3.5 py-2.5`}>
@@ -316,15 +317,15 @@ export default function MewachoGroupView({ groupId }: { groupId: string }) {
   const [activeTab, setActiveTab] = useState<'feed' | 'ledger' | 'withdrawals'>('feed');
   const feedBottomRef = useRef<HTMLDivElement>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const d = await mewachoApi.getGroup(groupId);
       setData(d);
     } catch { router.push('/mewacho'); }
     setLoading(false);
-  };
+  }, [groupId, router]);
 
-  useEffect(() => { load(); }, [groupId]);
+  useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
     if (activeTab === 'feed') {
@@ -462,7 +463,7 @@ export default function MewachoGroupView({ groupId }: { groupId: string }) {
                 <div key={c.id} className="flex items-center gap-3 bg-card rounded-xl border border-border/60 p-3">
                   <div className="w-9 h-9 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-sm overflow-hidden shrink-0">
                     {c.avatar_url
-                      ? <img src={c.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ? <SafeImage fill={false} width={800} height={600} src={c.avatar_url} alt="" className="w-full h-full object-cover" />
                       : (c.is_anonymous ? '🎭' : c.display_name?.[0] || '?')}
                   </div>
                   <div className="flex-1 min-w-0">

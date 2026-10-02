@@ -2,7 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
-import { listRecords, getRecord, createRecord, updateRecord, deleteRecord } from '../utils/crud';
+import { listRecords, getRecord, createRecord, updateRecord, deleteRecord, withoutProtectedFields } from '../utils/crud';
 
 const router = Router();
 
@@ -13,13 +13,13 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     if (status)   filter.status   = status;
     if (job_type) filter.job_type = job_type;
     if (category) filter.category = category;
-    res.json(await listRecords('jobs', { filter, sort, limit }));
+    res.json(await listRecords('jobs', { filter, sort, limit, realOnly: req.realOnly }));
   } catch { res.status(500).json({ error: 'Failed to fetch jobs' }); }
 });
 
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
-    const job = await getRecord('jobs', req.params.id);
+    const job = await getRecord('jobs', req.params.id, { realOnly: req.realOnly });
     if (!job) { res.status(404).json({ error: 'Job not found' }); return; }
     res.json(job);
   } catch { res.status(500).json({ error: 'Failed to fetch job' }); }
@@ -29,7 +29,8 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const { title } = req.body as Record<string, string>;
     if (!title) { res.status(400).json({ error: 'title is required' }); return; }
-    res.status(201).json(await createRecord('jobs', { ...(req.body as Record<string, unknown>), poster_id: req.user!.id }));
+    const fields = withoutProtectedFields(req.body as Record<string, unknown>, 'poster_id');
+    res.status(201).json(await createRecord('jobs', { ...fields, poster_id: req.user!.id }));
   } catch { res.status(500).json({ error: 'Failed to create job' }); }
 });
 
@@ -38,7 +39,9 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     const existing = await getRecord<{ poster_id: string }>('jobs', req.params.id);
     if (!existing) { res.status(404).json({ error: 'Job not found' }); return; }
     if (existing.poster_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
-    res.json(await updateRecord('jobs', req.params.id, req.body as Record<string, unknown>));
+    const updates = withoutProtectedFields(req.body as Record<string, unknown>, 'poster_id');
+    if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable job fields provided' }); return; }
+    res.json(await updateRecord('jobs', req.params.id, updates));
   } catch { res.status(500).json({ error: 'Failed to update job' }); }
 });
 
@@ -54,7 +57,7 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
 
 router.post('/:id/apply', requireAuth, async (req: Request, res: Response) => {
   try {
-    const job = await getRecord<{ poster_id: string }>('jobs', req.params.id);
+    const job = await getRecord<{ poster_id: string }>('jobs', req.params.id, { realOnly: req.realOnly });
     if (!job) { res.status(404).json({ error: 'Job not found' }); return; }
     if (job.poster_id === req.user!.id) { res.status(400).json({ error: 'Cannot apply to your own job posting' }); return; }
     const { cover_letter, resume_url } = req.body as Record<string, string>;
@@ -69,11 +72,14 @@ router.post('/:id/apply', requireAuth, async (req: Request, res: Response) => {
 
 router.get('/:id/applications', requireAuth, async (req: Request, res: Response) => {
   try {
-    const job = await getRecord<{ poster_id: string }>('jobs', req.params.id);
+    const job = await getRecord<{ poster_id: string }>('jobs', req.params.id, { realOnly: req.realOnly });
     if (!job) { res.status(404).json({ error: 'Job not found' }); return; }
     if (job.poster_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
     const { rows } = await pool.query(
-      `SELECT ja.*, up.display_name, up.avatar_url, up.headline FROM job_applications ja LEFT JOIN user_profiles up ON up.user_id=ja.applicant_id WHERE ja.job_id=$1 ORDER BY ja.created_at DESC`,
+      `SELECT ja.*, up.display_name, up.avatar_url, up.headline FROM job_applications ja
+       LEFT JOIN user_profiles up ON up.user_id=ja.applicant_id
+       ${req.realOnly ? 'JOIN users applicant ON applicant.id=ja.applicant_id AND applicant.is_seed=FALSE AND applicant.is_demo=FALSE' : ''}
+       WHERE ja.job_id=$1 ORDER BY ja.created_at DESC`,
       [req.params.id],
     );
     res.json(rows);
@@ -82,7 +88,27 @@ router.get('/:id/applications', requireAuth, async (req: Request, res: Response)
 
 router.put('/applications/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { rows } = await pool.query('UPDATE job_applications SET status=$1 WHERE id=$2 RETURNING *', [(req.body as { status: string }).status, req.params.id]);
+    const status = (req.body as { status?: string }).status;
+    if (!status || !['pending', 'reviewed', 'accepted', 'rejected'].includes(status)) {
+      res.status(400).json({ error: 'Invalid application status' });
+      return;
+    }
+    const realModeJoins = req.realOnly
+      ? `JOIN users applicant ON applicant.id=ja.applicant_id AND applicant.is_seed=FALSE AND applicant.is_demo=FALSE
+         JOIN users poster ON poster.id=j.poster_id AND poster.is_seed=FALSE AND poster.is_demo=FALSE`
+      : '';
+    const { rows: applicationRows } = await pool.query(
+      `SELECT ja.id, j.poster_id FROM job_applications ja JOIN jobs j ON j.id=ja.job_id
+       ${realModeJoins} WHERE ja.id=$1`,
+      [req.params.id],
+    );
+    const application = applicationRows[0] as { id: string; poster_id: string } | undefined;
+    if (!application) { res.status(404).json({ error: 'Application not found' }); return; }
+    if (application.poster_id !== req.user!.id && req.user!.role !== 'admin') {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+    const { rows } = await pool.query('UPDATE job_applications SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
     if (!rows.length) { res.status(404).json({ error: 'Application not found' }); return; }
     res.json(rows[0]);
   } catch { res.status(500).json({ error: 'Failed to update application' }); }

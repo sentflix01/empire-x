@@ -1,15 +1,26 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { FlaskConical, ShieldCheck, Loader2 } from 'lucide-react';
 import { auth } from '@/api/auth';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
+import { useSearchParams } from 'next/navigation';
+
+function safeReturnPath(value: string | null): string {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) return '/feed';
+  const path = value.split(/[?#]/, 1)[0];
+  if (path === '/choose-mode' || path === '/login' || path === '/register') return '/feed';
+  return value;
+}
 
 function ChooseMode() {
+  const searchParams = useSearchParams();
+  const returnTo = safeReturnPath(searchParams.get('return'));
   const { user, isAuthenticated, authChecked } = useAuth();
   const [pending, setPending] = useState<'demo' | 'real' | null>(null);
   const [error, setError] = useState('');
+  const applyingSavedPreference = useRef(false);
 
   useEffect(() => {
     if (!authChecked) return;
@@ -21,6 +32,25 @@ function ChooseMode() {
   const ready = authChecked && isAuthenticated;
   const isDemo = Boolean(user?.is_demo);
 
+  useEffect(() => {
+    if (!ready || !user?.onboarding_mode || applyingSavedPreference.current) return;
+    applyingSavedPreference.current = true;
+
+    if (user.onboarding_mode === 'real') {
+      localStorage.setItem('nodbusiness_real_mode', 'true');
+      window.location.replace(returnTo);
+      return;
+    }
+
+    localStorage.setItem('nodbusiness_real_mode', 'false');
+    auth.loginDemo()
+      .then(() => window.location.replace(returnTo))
+      .catch((err: unknown) => {
+        const e = err as { response?: { data?: { error?: string } }; message?: string };
+        setError(e.response?.data?.error || e.message || 'Could not restore your saved demo mode. Please try again.');
+      });
+  }, [ready, returnTo, user?.onboarding_mode]);
+
   async function choose(mode: 'demo' | 'real') {
     setPending(mode);
     setError('');
@@ -31,31 +61,17 @@ function ChooseMode() {
 
     try {
       if (mode === 'demo') {
-        // Demo mode: show seed data — disable the real-only filter.
+        // Demo mode: disable the real-only filter before navigating.
         localStorage.setItem(REAL_MODE_KEY, 'false');
 
-        if (isDemo) {
-          // Already logged in as the shared demo account — go straight to feed.
-          window.location.assign('/feed');
-          return;
-        }
+        // Save this preference while the request still uses the real user's
+        // token. The demo identity cannot change the real profile afterward.
+        if (!isDemo) await auth.setOnboardingMode('demo');
 
-        // Real account choosing demo: log in as the test account.
-        // Fall back to just going to feed with seed data visible if the
-        // /api/auth/demo endpoint isn't available yet on this deployment.
-        try {
-          await auth.loginDemo();
-        } catch (demoErr) {
-          const e = demoErr as { response?: { status?: number } };
-          if (e.response?.status === 404) {
-            // Backend not yet deployed with the demo route — seed data is
-            // still visible since realMode=false, just without switching accounts.
-            window.location.assign('/feed');
-            return;
-          }
-          throw demoErr; // re-throw other errors
-        }
-        window.location.assign('/feed');
+        // The backend selects the configured sandbox track. Never silently
+        // continue with the real account if demo initialization failed.
+        await auth.loginDemo();
+        window.location.assign(returnTo);
         return;
       }
 
@@ -68,8 +84,8 @@ function ChooseMode() {
       }
 
       localStorage.setItem(REAL_MODE_KEY, 'true');
-      auth.setOnboardingMode('real').catch(() => undefined);
-      window.location.assign('/feed');
+      await auth.setOnboardingMode('real');
+      window.location.assign(returnTo);
 
     } catch (err) {
       const e = err as {
@@ -93,8 +109,7 @@ function ChooseMode() {
     </main>
   );
 
-  if (!authChecked) return spinner;
-  if (!isAuthenticated) return spinner;
+  if (!authChecked || !isAuthenticated || (user?.onboarding_mode && !error)) return spinner;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 px-5 py-12 text-white">
@@ -107,8 +122,8 @@ function ChooseMode() {
           How would you like to continue?
         </h1>
         <p className="mt-3 max-w-2xl text-white/65">
-          Choose every time you sign in. Demo uses pre-loaded seed data with full
-          access. Real Account is your own blank slate — everything you do is permanent.
+          Your choice is remembered for future sign-ins. Demo uses pre-loaded seed data;
+          Real Account is your own blank slate. You can switch environments later from Settings.
         </p>
 
         {error && (

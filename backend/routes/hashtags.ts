@@ -20,8 +20,19 @@ export async function syncHashtags(postId: string, content: string): Promise<voi
   }
 }
 
-router.get('/trending', async (_req: Request, res: Response) => {
+router.get('/trending', async (req: Request, res: Response) => {
   try {
+    if (req.realOnly) {
+      const { rows } = await pool.query(
+        `SELECT h.name, COUNT(DISTINCT p.id)::int AS post_count
+         FROM hashtags h JOIN post_hashtags ph ON ph.hashtag_id=h.id
+         JOIN posts p ON p.id=ph.post_id JOIN users u ON u.id=p.author_id
+         WHERE u.is_seed=FALSE AND u.is_demo=FALSE
+         GROUP BY h.id,h.name ORDER BY post_count DESC LIMIT 30`,
+      );
+      res.json(rows);
+      return;
+    }
     const { rows } = await pool.query(
       `SELECT name, post_count FROM hashtags ORDER BY post_count DESC LIMIT 30`,
     );
@@ -34,11 +45,22 @@ router.get('/:name', optionalAuth, async (req: Request, res: Response) => {
     const tag = req.params.name.toLowerCase().replace(/^#/, '');
     const { rows: hashtag } = await pool.query('SELECT * FROM hashtags WHERE name=$1', [tag]);
     if (!hashtag.length) { res.status(404).json({ error: 'Hashtag not found' }); return; }
+    const realFilter = req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
     const { rows: posts } = await pool.query(
-      `SELECT p.* FROM posts p JOIN post_hashtags ph ON ph.post_id=p.id JOIN hashtags h ON h.id=ph.hashtag_id WHERE h.name=$1 ORDER BY p.created_at DESC LIMIT 50`,
+      `SELECT p.* FROM posts p JOIN post_hashtags ph ON ph.post_id=p.id JOIN hashtags h ON h.id=ph.hashtag_id JOIN users u ON u.id=p.author_id WHERE h.name=$1 ${realFilter} ORDER BY p.created_at DESC LIMIT 50`,
       [tag],
     );
-    res.json({ hashtag: hashtag[0], posts });
+    let realTag = hashtag[0];
+    if (req.realOnly) {
+      const { rows: countRows } = await pool.query(
+        `SELECT COUNT(DISTINCT p.id)::int AS post_count FROM posts p
+         JOIN post_hashtags ph ON ph.post_id=p.id JOIN hashtags h ON h.id=ph.hashtag_id
+         JOIN users u ON u.id=p.author_id WHERE h.name=$1 AND u.is_seed=FALSE AND u.is_demo=FALSE`,
+        [tag],
+      );
+      realTag = { ...hashtag[0], post_count: countRows[0]?.post_count ?? 0 };
+    }
+    res.json({ hashtag: realTag, posts });
   } catch { res.status(500).json({ error: 'Failed to fetch hashtag posts' }); }
 });
 
@@ -46,7 +68,7 @@ router.get('/:name/posts', optionalAuth, async (req: Request, res: Response) => 
   try {
     const tag = req.params.name.toLowerCase().replace(/^#/, '');
     const { rows } = await pool.query(
-      `SELECT p.* FROM posts p JOIN post_hashtags ph ON ph.post_id=p.id JOIN hashtags h ON h.id=ph.hashtag_id WHERE h.name=$1 ORDER BY p.created_at DESC LIMIT 50`,
+      `SELECT p.* FROM posts p JOIN post_hashtags ph ON ph.post_id=p.id JOIN hashtags h ON h.id=ph.hashtag_id JOIN users u ON u.id=p.author_id WHERE h.name=$1 ${req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : ''} ORDER BY p.created_at DESC LIMIT 50`,
       [tag],
     );
     res.json(rows);

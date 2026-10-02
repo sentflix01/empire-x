@@ -5,6 +5,8 @@ import { suggestionsApi, Suggestion } from '@/api/suggestions';
 import client from '@/api/client';
 import { SuggestionCard } from './SuggestionCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/lib/AuthContext';
+import { useRealMode } from '@/lib/RealModeContext';
 
 const MAX_VISIBLE = 5;
 
@@ -18,10 +20,12 @@ const MAX_VISIBLE = 5;
  * - Shows "No more suggestions" empty state when the list is empty
  */
 export function PeopleYouMayKnow() {
+  const { user } = useAuth();
+  const { realMode } = useRealMode();
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   const { data, isLoading, isError } = useQuery<Suggestion[]>({
-    queryKey: ['suggestions', 'people'],
+    queryKey: ['suggestions', 'people', user?.id ?? 'anonymous', realMode],
     queryFn: () => suggestionsApi.getPeople(),
     staleTime: 5 * 60 * 1000, // 5 min
   });

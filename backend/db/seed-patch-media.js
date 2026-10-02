@@ -23,6 +23,7 @@
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./pool');
+const { assertSafeDevSeed } = require('./operationSafety');
 
 const pick  = arr => arr[Math.floor(Math.random() * arr.length)];
 const rand  = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -99,6 +100,7 @@ const BUSINESS_POST_TEMPLATES = {
 };
 
 async function seed() {
+  assertSafeDevSeed();
   const client = await pool.connect();
   console.log('\n🖼️  Nodbusiness Media Patch Seed\n');
   console.log('Fixes: avatar/cover images, image posts, business logos, business posts\n');

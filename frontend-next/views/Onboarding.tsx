@@ -1,11 +1,13 @@
 'use client'
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
+import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
-import { useTranslation } from 'react-i18next';
+import { useRealMode } from "@/lib/RealModeContext";
 
-import { User, Store, ArrowRight, ArrowLeft, Check, Crown, Sparkles } from "lucide-react";
+import { User, Store, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,9 +19,11 @@ import TemplateCard from "@/components/profile/TemplateCard";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function Onboarding() {
-  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
+  const { setRealMode } = useRealMode();
+  const [leavingDemo, setLeavingDemo] = useState(false);
+  const userFullName = user?.full_name;
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [profileType, setProfileType] = useState("personal");
@@ -27,9 +31,21 @@ function Onboarding() {
   const [business, setBusiness] = useState({ business_name: "", business_category: "", business_template: "", business_description: "" });
   const [selectedLayout, setSelectedLayout] = useState("aurora_modern");
 
+  const leaveDemo = async () => {
+    setLeavingDemo(true);
+    try {
+      const result = await auth.exitDemo();
+      if (result.return_to_real) setRealMode(true);
+      router.replace(result.return_to_real ? "/feed" : "/landing");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || err?.message || "Could not leave demo mode. Please try again.");
+      setLeavingDemo(false);
+    }
+  };
+
   useEffect(() => {
-    if (user) setPersonal(prev => ({ ...prev, display_name: user.full_name || "" }));
-  }, [user?.id]);
+    if (userFullName !== undefined) setPersonal(prev => ({ ...prev, display_name: userFullName || "" }));
+  }, [userFullName]);
 
   const handleFinish = async () => {
     if (!user) return; // Fix: guard against null user
@@ -70,10 +86,22 @@ function Onboarding() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-violet-50 flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
+        <Link href="/feed" className="mb-5 inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-white/70 hover:text-foreground">
+          <ArrowLeft className="h-4 w-4" />
+          Back to feed
+        </Link>
         {/* Logo */}
         <div className="text-center mb-8">
           <span className="text-3xl">👑</span>
           <h1 className="font-display text-xl font-bold mt-1 bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">Nodbusiness</h1>
+          {(user?.is_demo || user?.demo_session_active) && (
+            <div role="status" className="mt-4 rounded-xl border border-amber-300/50 bg-amber-50 p-3 text-sm text-amber-950">
+              <p>You are setting up a demo profile. Your real account is unchanged.</p>
+              <Button type="button" variant="link" disabled={leavingDemo} onClick={() => void leaveDemo()} className="mt-1 h-auto px-1 text-amber-800">
+                {leavingDemo ? "Returning to your account…" : "Switch back to my real account"}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Step 0: Choose Profile Type */}
@@ -246,17 +274,6 @@ function Onboarding() {
         )}
       </div>
     </div>
-  );
-}
-
-function LayoutIcon(props) {
-  return (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>
   );
 }
 

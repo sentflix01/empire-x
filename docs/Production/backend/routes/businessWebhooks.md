@@ -19,10 +19,10 @@ Newly introduced as part of recent development; see source and git history for t
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/business-webhooks/` | auth | 56 |
-| `POST` | `/api/business-webhooks/` | auth | 80 |
-| `PUT` | `/api/business-webhooks/:id` | auth | 134 |
-| `DELETE` | `/api/business-webhooks/:id` | auth | 226 |
+| `GET` | `/api/business-webhooks/` | auth | 57 |
+| `POST` | `/api/business-webhooks/` | auth | 81 |
+| `PUT` | `/api/business-webhooks/:id` | auth | 136 |
+| `DELETE` | `/api/business-webhooks/:id` | auth | 231 |
 
 ## 4. What does it touch?
 

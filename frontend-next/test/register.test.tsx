@@ -83,7 +83,7 @@ describe('Register form', () => {
     fireEvent.change(passwordInputs[1], { target: { value: 'password123' } });
 
     // Check the Terms of Service checkbox before submitting
-    const tosCheckbox = screen.getByRole('button', { name: /I agree to Nodbusiness/i });
+    const tosCheckbox = screen.getByRole('checkbox');
     fireEvent.click(tosCheckbox);
 
     const form = emailInput.closest('form') as HTMLFormElement;
@@ -102,7 +102,7 @@ describe('Register form', () => {
   it('opens code entry for an unverified account redirected from login', () => {
     setSearchParams({ verify: 'pending@example.com' });
     render(<Register />);
-    expect(screen.getByText(/auth\.verifyEmail/i)).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /check your email/i })).toBeTruthy();
     expect(screen.getByText(/pending@example\.com/i)).toBeTruthy();
   });
 });

@@ -199,12 +199,12 @@ Details: `docs/backend/PAYMENT_INTEGRATION.md`.
 
 | Secret | Location | Never in |
 |---|---|---|
-| `JWT_SECRET` | Coolify env vars | Git, logs, client bundle |
-| `DATABASE_URL` | Coolify env vars | Git, logs, client bundle |
-| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Coolify env vars | Git, logs, client bundle |
-| `CHAPA_SECRET_KEY` | Coolify env vars | Git, logs, client bundle |
-| `RESEND_API_KEY` / SMTP creds | Coolify env vars | Git, logs, client bundle |
-| `NEXT_PUBLIC_*` | Cloudflare Pages env vars | Server-only code |
+| `JWT_SECRET` | Render env vars | Git, logs, client bundle |
+| `DATABASE_URL` | Render env vars | Git, logs, client bundle |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Render env vars | Git, logs, client bundle |
+| `CHAPA_SECRET_KEY` | Render env vars | Git, logs, client bundle |
+| `RESEND_API_KEY` / SMTP creds | Render env vars | Git, logs, client bundle |
+| `NEXT_PUBLIC_*` | Vercel env vars | Server-only code |
 
 `.env` is gitignored; `.env.example` contains placeholders only.
 ⚠️ Known debt: `backend/db/dev-credentials.json` (dev seed passwords) is currently tracked —

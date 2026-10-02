@@ -107,7 +107,7 @@ function BusinessSubscription() {
     }).catch(() => {
       toast.error('Failed to load subscription data');
     }).finally(() => setLoading(false));
-  }, []);
+  }, [searchParams]);
 
   async function handleUpgrade(planKey: string) {
     setUpgrading(planKey);

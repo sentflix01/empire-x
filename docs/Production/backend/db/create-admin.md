@@ -1,22 +1,12 @@
-# backend/db/create-admin
+# Local development account bootstrap
 
-<!-- AUTO-STUB  2026-08-23 — curate narrative below -->
+`create-admin.js` creates one local admin and one shared demo user on a fresh
+development database. It requires `ALLOW_DEV_ACCOUNT_BOOTSTRAP=1` and explicit
+`ADMIN_NEW_PASSWORD` and `TEST_ACCOUNT_PASSWORD` values, each 16–128 characters.
+It rejects production and hosted database targets, checks both addresses are
+unused before inserting, and rolls back on failure. The demo user is marked
+`is_demo=true`; the admin is not. No passwords are printed.
 
-## 1. What is this?
-
-**Database layer module.** Newly added module — narrative pending curation.
-
-Size: roughly 59 lines of source.
-
-## 2. Why does it exist?
-
-Newly introduced as part of recent development; see source and git history for the introducing commit.
-
-## 3. What does it do?
-
-Extracted facts (auto):
-- Lines: ~59
-
-## 4. What does it touch?
-
-**Source:** `backend/db/create-admin.js`
+This script is not a production account recovery tool. It refuses to update,
+promote, or reset an existing account. For hosted environments, use the
+provider's secure provisioning procedure.

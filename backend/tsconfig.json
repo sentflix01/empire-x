@@ -31,14 +31,13 @@
     "tsBuildInfoFile": ".tsbuildinfo",
 
     // Path aliases for cleaner imports
-    "baseUrl": ".",
     "paths": {
-      "@lib/*":        ["lib/*"],
-      "@middleware/*": ["middleware/*"],
-      "@routes/*":     ["routes/*"],
-      "@db/*":         ["db/*"],
-      "@utils/*":      ["utils/*"],
-      "@services/*":   ["services/*"]
+      "@lib/*":        ["./lib/*"],
+      "@middleware/*": ["./middleware/*"],
+      "@routes/*":     ["./routes/*"],
+      "@db/*":         ["./db/*"],
+      "@utils/*":      ["./utils/*"],
+      "@services/*":   ["./services/*"]
     }
   },
   "include": ["**/*.ts"],

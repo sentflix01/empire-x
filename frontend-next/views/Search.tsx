@@ -2,17 +2,15 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import client from "@/api/client";
 import {
   Search as SearchIcon, Users, ShoppingBag, Crown, ClipboardList,
-  FileText, Loader2, Mic, MicOff, MapPin, SlidersHorizontal,
-  ArrowUpDown, Calendar, DollarSign, X, ChevronDown, Briefcase,
-  CalendarDays, TrendingUp, Navigation, Filter,
+  FileText, Loader2, Mic, MicOff, MapPin, SlidersHorizontal, Calendar, DollarSign, X, Briefcase,
+  CalendarDays, Navigation, Filter,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/use-debounce";
 import { toast } from "sonner";
 import { DemoBadge } from "@/components/profile/DemoBadge";
@@ -21,17 +19,6 @@ import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 // ── Category tabs ────────────────────────────────────────────────────────────
-const TABS = [
-  { key: "all",       label: "All",        Icon: SearchIcon },
-  { key: "users",     label: "People",     Icon: Users },
-  { key: "products",  label: "Products",   Icon: ShoppingBag },
-  { key: "showrooms", label: "Showrooms",  Icon: Crown },
-  { key: "tasks",     label: "Tasks",      Icon: ClipboardList },
-  { key: "posts",     label: "Posts",      Icon: FileText },
-  { key: "jobs",      label: "Jobs",       Icon: Briefcase },
-  { key: "events",    label: "Events",     Icon: CalendarDays },
-];
-
 const SORT_OPTIONS = [
   { value: "relevance", label: "Most Relevant" },
   { value: "recent",    label: "Most Recent" },
@@ -65,7 +52,6 @@ function DistanceBadge({ km }: { km?: number | null }) {
 function Search() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   const TABS = [
     { key: "all",       label: t('search.all'),        Icon: SearchIcon },
@@ -103,15 +89,7 @@ function Search() {
   const debouncedQuery = useDebounce(query, 380);
 
   // Request geolocation when distance sort or radius filter is active
-  useEffect(() => {
-    const needsLoc = sort === "distance" || radius !== "";
-    if (needsLoc && !locRequested.current) {
-      locRequested.current = true;
-      requestLocation();
-    }
-  }, [sort, radius]);
-
-  const requestLocation = () => {
+  const requestLocation = useCallback(() => {
     if (!navigator.geolocation) { setLocStatus("denied"); return; }
     setLocStatus("loading");
     navigator.geolocation.getCurrentPosition(
@@ -129,12 +107,7 @@ function Search() {
       },
       { timeout: 8000 }
     );
-  };
-
-  useEffect(() => {
-    if (debouncedQuery.length < 2) { setResults({}); return; }
-    doSearch();
-  }, [debouncedQuery, tab, sort, radius, priceMin, priceMax, dateFrom, dateTo, userLat, userLon]);
+  }, [t]);
 
   // Reset all section expanded states when query changes
   useEffect(() => {
@@ -145,7 +118,7 @@ function Search() {
   useEffect(() => {
     setExpandedSections({});
   }, [tab]);
-  const doSearch = async () => {
+  const doSearch = useCallback(async () => {
     setLoading(true);
     try {
       const params: Record<string, string> = { q: debouncedQuery, type: tab, sort, limit: "20" };
@@ -160,7 +133,20 @@ function Search() {
       setResults(res.data);
     } catch { setResults({}); }
     setLoading(false);
-  };
+  }, [debouncedQuery, tab, sort, radius, priceMin, priceMax, dateFrom, dateTo, userLat, userLon]);
+
+  useEffect(() => {
+    const needsLoc = sort === "distance" || radius !== "";
+    if (needsLoc && !locRequested.current) {
+      locRequested.current = true;
+      requestLocation();
+    }
+  }, [sort, radius, requestLocation]);
+
+  useEffect(() => {
+    if (debouncedQuery.length < 2) { setResults({}); return; }
+    doSearch();
+  }, [debouncedQuery, tab, sort, radius, priceMin, priceMax, dateFrom, dateTo, userLat, userLon, doSearch]);
 
   const handleVoiceSearch = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -181,11 +167,6 @@ function Search() {
 
   const hasActiveFilters = sort !== "relevance" || radius !== "" || priceMin !== "" || priceMax !== "" || dateFrom !== "" || dateTo !== "";
   const totalResults = Object.values(results).reduce((s, a) => s + (a?.length || 0), 0);
-
-  const tabHasResults = (key: string) => {
-    if (key === "all") return totalResults > 0;
-    return (results[key]?.length || 0) > 0;
-  };
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (

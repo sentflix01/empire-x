@@ -10,17 +10,16 @@
  *   certifications, awards, business type, registration number, template.
  */
 import { useRouter, usePathname } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/lib/AuthContext';
 import { entities, type UserProfile } from '@/api/entities';
 import { useTranslation } from 'react-i18next';
 import {
-  ArrowLeft, User, Store, Eye, Radio,
-  Plus, X, Globe, MapPin, Phone, Mail, Link as LinkIcon,
-  GraduationCap, Briefcase, Award, Star, Languages as LangIcon,
-  Shield, FileText, Building2, Users, Calendar, Hash,
-  ChevronDown, ChevronUp, Camera, Edit3, CheckCircle,
+  ArrowLeft, User, Store, Radio,
+  Plus, X, Globe, MapPin, Phone, Mail,
+  GraduationCap, Briefcase, Award, Star, Languages as LangIcon, Building2, Hash,
+  ChevronDown, ChevronUp, Camera, CheckCircle,
   ExternalLink, AtSign, Share2, Rss, Link2, Crown,
 } from 'lucide-react';
 
@@ -171,6 +170,12 @@ function CertListEditor({ values, onChange, type }: {
 }
 
 // ── Main component ─────────────────────────────────────────────────────────
+function parseJSON(v: any, fallback: any) {
+  if (!v) return fallback;
+  if (typeof v === 'object') return v;
+  try { return JSON.parse(v); } catch { return fallback; }
+}
+
 function ProfileEdit() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -215,15 +220,7 @@ function ProfileEdit() {
     service_areas: [] as string[],
   });
 
-  useEffect(() => { if (user) loadData(); }, [user?.id]);
-
-  const parseJSON = (v: any, fallback: any) => {
-    if (!v) return fallback;
-    if (typeof v === 'object') return v;
-    try { return JSON.parse(v); } catch { return fallback; }
-  };
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!user) return;
     try {
       const profiles = await entities.UserProfile.filter({ user_id: user.id }) as UserProfile[];
@@ -280,7 +277,9 @@ function ProfileEdit() {
         });
       }
     } catch (err) { console.error('loadData error', err); }
-  };
+  }, [user]);
+
+  useEffect(() => { if (user) loadData(); }, [user, loadData]);
 
   const handleSavePersonal = async () => {
     setSaving(true);
@@ -335,7 +334,6 @@ function ProfileEdit() {
   const sp = (field: keyof typeof personal, val: any) => setPersonal(prev => ({ ...prev, [field]: val }));
   const b = business;
   const sb = (field: keyof typeof business, val: any) => setBusiness(prev => ({ ...prev, [field]: val }));
-  const selectedCategory = BUSINESS_CATEGORIES.find(c => c.value === b.business_category);
   const [editingPersonalCover, setEditingPersonalCover] = useState(false);
   const [editingBusinessCover, setEditingBusinessCover] = useState(false);
 

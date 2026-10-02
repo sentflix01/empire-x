@@ -16,7 +16,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Settings, User, Lock, Bell, Shield, LogOut, X,
-  ChevronRight, Eye, EyeOff, Check,
+  ChevronRight, Eye, EyeOff,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import client from '@/api/client';

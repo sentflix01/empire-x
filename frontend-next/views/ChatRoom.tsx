@@ -4,11 +4,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from "@/lib/AuthContext";
 import { getSocket } from "@/lib/socket";
 import client, { getAccessToken } from "@/api/client";
-import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
   CornerUpLeft, Check, CheckCheck, ShieldOff, History, ImagePlus, Forward,
-  Copy, UserCircle, Settings, Pin, Bookmark, Languages, RotateCcw,
+  Copy, UserCircle, Pin, Bookmark, Languages,
 } from "lucide-react";
 import { fmtTime, fmtLongDate } from "@/lib/date";
 import { parseISO, isToday, isYesterday, format as fmtDate } from "date-fns";
@@ -53,8 +52,6 @@ function ChatRoom() {
   const [savedMsgs, setSavedMsgs]       = useState<Set<string>>(() => {
     try { return new Set(JSON.parse(localStorage.getItem('savedMsgs') || '[]')); } catch { return new Set(); }
   });
-  const [reactions, setReactions]       = useState<Record<string, string[]>>({}); // msgId → emoji[]
-  const [translatedMsgs, setTranslatedMsgs] = useState<Record<string, string>>({}); // msgId → translated text
 
   // Legacy hover state (desktop) — still used to determine visual selection
   const [hoveredMsg, setHoveredMsg]     = useState(null);
@@ -94,7 +91,7 @@ function ChatRoom() {
       const { data } = await client.get(`/api/messages/conversations/${convId}/messages?limit=200`);
       setMessages(Array.isArray(data) ? data : (data as any)?.messages ?? []);
     } catch { /* ignore */ }
-  }, [id]);
+  }, [id, conversation?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -305,7 +302,7 @@ function ChatRoom() {
         type: 'image',
       });
       setMessages(prev => prev.some(message => message.id === sent.id) ? prev : [...prev, sent]);
-    } catch (error) {
+    } catch {
       toast.error('Could not send the picture. Please try again.');
     } finally {
       setUploadingImage(false);
@@ -368,7 +365,7 @@ function ChatRoom() {
         setConversations(Array.isArray(r.data) ? r.data : []);
       }).catch(() => {});
     }
-  }, [forwardMsg]);
+  }, [forwardMsg, conversations.length]);
 
   const handleClearHistory = async () => {
     setHeaderMenuOpen(false);

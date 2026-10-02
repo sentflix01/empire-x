@@ -49,9 +49,10 @@ import httpLogger from './middleware/httpLogger';
 import apiVersion from './middleware/apiVersion';
 import responseTime from './middleware/responseTime';
 import { realModeMiddleware } from './middleware/realMode';
+import { demoEnvironmentMiddleware } from './middleware/demoEnvironment';
 import { requireAuth, requireAdmin } from './middleware/auth';
 import { activeStorageProvider, isSupabaseConfigured } from './middleware/upload';
-import pool from './db/pool';
+import pool, { closeAllPools } from './db/pool';
 import * as apiError from './lib/apiError';
 
 // ── App setup ─────────────────────────────────────────────────────────────────
@@ -258,6 +259,9 @@ app.use('/api/mewacho/webhook',       express.raw({ type: 'application/json' }))
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+// Resolve demo-session cookies before auth, data, or payment routes execute so
+// AsyncLocalStorage selects the isolated demo database for the whole request.
+app.use(demoEnvironmentMiddleware);
 
 // ── Static uploads ────────────────────────────────────────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, process.env.UPLOAD_DIR ?? 'uploads')));
@@ -364,7 +368,7 @@ app.use(errorMiddleware);
 installProcessHandlers();
 
 // ── 404 catch-all (must be last route) ───────────────────────────────────────
-app.all('*', (_req: Request, res: Response) => {
+app.all('/{*path}', (_req: Request, res: Response) => {
   apiError.notFound(res, 'Route not found');
 });
 
@@ -458,7 +462,7 @@ async function shutdown(signal: string): Promise<void> {
       await closeQueues();
       const redis = getRedis();
       if (!redis.isNoOp) await (redis as RedisClient).quit();
-      await pool.end();
+      await closeAllPools();
       logger.info('Graceful shutdown complete');
       process.exit(0);
     } catch (err) {

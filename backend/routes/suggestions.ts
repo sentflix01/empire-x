@@ -37,10 +37,11 @@ router.get(
            WHERE u.id<>$1
              AND u.id NOT IN (SELECT followed_id FROM follows WHERE follower_id=$1)
              AND u.id NOT IN (SELECT target_id FROM dismissed_suggestions WHERE requester_id=$1)
+             AND ($2::boolean=FALSE OR (u.is_seed=FALSE AND u.is_demo=FALSE))
          )
          SELECT user_id,display_name,avatar_url,location,follower_count,mutual_count,is_seed
          FROM candidates ORDER BY suggestion_score DESC, follower_count DESC, is_seed ASC, user_id LIMIT 20`,
-        [requesterId],
+        [requesterId, !!req.realOnly],
       );
 
       let results = scored;
@@ -55,7 +56,7 @@ router.get(
           SELECT u.id AS user_id, COALESCE(up.display_name,u.full_name,u.email) AS display_name,
                  up.avatar_url, up.location, COALESCE(up.follower_count,0) AS follower_count, u.is_seed, 0 AS mutual_count
           FROM users u LEFT JOIN user_profiles up ON up.user_id=u.id
-          WHERE u.is_seed=FALSE AND u.id<>$1
+          WHERE u.is_seed=FALSE AND u.is_demo=FALSE AND u.id<>$1
             AND u.id NOT IN (SELECT followed_id FROM follows WHERE follower_id=$1)
             AND u.id NOT IN (SELECT target_id FROM dismissed_suggestions WHERE requester_id=$1)
             ${placeholders ? `AND u.id NOT IN (${placeholders})` : ''}

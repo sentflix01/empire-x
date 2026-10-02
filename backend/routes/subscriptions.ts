@@ -44,13 +44,14 @@ import { invalidateSubCache } from '../middleware/tierLimit';
 import { PLANS, type PlanKey, type Tier } from '../lib/subscriptionPlans';
 import { getPrimaryFrontendUrl } from '../lib/frontendUrl';
 import { sendPushToUser } from './push';
+import { isStripeConfigured, stripeClientFacade, withVerifiedStripeWebhook } from '../lib/stripeClient';
+import { requireIsolatedPaymentEnvironment } from '../middleware/demoEnvironment';
+import { requireFeatureFlag } from '../middleware/featureFlag';
 
 const router = Router();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const stripe: any = process.env.STRIPE_SECRET_KEY
-  ? require('stripe')(process.env.STRIPE_SECRET_KEY)
-  : null;
+const stripe: any = stripeClientFacade();
 
 const SUB_WEBHOOK_SECRET = process.env.STRIPE_SUBSCRIPTION_WEBHOOK_SECRET ?? '';
 
@@ -110,9 +111,9 @@ router.get('/my', requireAuth, async (req: Request, res: Response) => {
 });
 
 // ── POST /create — Stripe Checkout Session for upgrade ───────────────────────
-router.post('/create', requireAuth, async (req: Request, res: Response) => {
-  if (!stripe) {
-    res.status(503).json({ error: 'Stripe not configured. Add STRIPE_SECRET_KEY.' });
+router.post('/create', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('stripe_payments', 'Stripe payments temporarily disabled'), async (req: Request, res: Response) => {
+  if (!isStripeConfigured()) {
+    res.status(503).json({ error: 'Stripe is not configured for this environment.' });
     return;
   }
 
@@ -154,7 +155,7 @@ router.post('/create', requireAuth, async (req: Request, res: Response) => {
 });
 
 // ── POST /cancel — schedule cancellation at period end ───────────────────────
-router.post('/cancel', requireAuth, async (req: Request, res: Response) => {
+router.post('/cancel', requireAuth, requireIsolatedPaymentEnvironment, async (req: Request, res: Response) => {
   try {
     const businessId = await getBusinessId(req.user!.id);
     if (!businessId) {
@@ -194,50 +195,33 @@ router.post('/cancel', requireAuth, async (req: Request, res: Response) => {
 // ── POST /webhook — Stripe subscription events ────────────────────────────────
 // NOTE: This route requires raw body — registered in index.ts BEFORE express.json()
 router.post('/webhook', async (req: Request, res: Response) => {
-  const sig = req.headers['stripe-signature'] as string;
-  let event: { id: string; type: string; data: { object: Record<string, unknown> } };
-
-  // Verify Stripe signature
-  if (stripe && SUB_WEBHOOK_SECRET && sig) {
-    try {
-      event = stripe.webhooks.constructEvent(req.body, sig, SUB_WEBHOOK_SECRET);
-    } catch (err) {
-      logger.warn({ err: (err as Error).message }, 'Subscription webhook signature invalid');
-      res.status(400).json({ error: 'Invalid signature' });
-      return;
-    }
-  } else {
-    // Dev mode — accept without signature verification
-    try {
-      event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    } catch {
-      res.status(400).json({ error: 'Invalid JSON' });
-      return;
-    }
-  }
-
-  // Idempotency — claim event before processing
   try {
-    await pool.query(
-      `INSERT INTO webhook_events (event_id, event_type, processed_at)
-       VALUES ($1, $2, NOW())
-       ON CONFLICT (event_id) DO NOTHING`,
-      [event.id, event.type],
+    await withVerifiedStripeWebhook(
+      req.body as Buffer,
+      req.headers['stripe-signature'] as string | undefined,
+      { real: SUB_WEBHOOK_SECRET, demo: process.env.STRIPE_TEST_SUBSCRIPTION_WEBHOOK_SECRET },
+      async (event: { id: string; type: string; data: { object: Record<string, unknown> } }) => {
+        const claimed = await pool.query(
+          `INSERT INTO webhook_events (event_id, event_type, processed_at)
+           VALUES ($1, $2, NOW()) ON CONFLICT (event_id) DO NOTHING RETURNING event_id`,
+          [event.id, event.type],
+        );
+        if (!claimed.rows.length) { res.json({ received: true, duplicate: true }); return; }
+        try {
+          await handleSubscriptionEvent(event);
+        } catch (err) {
+          await pool.query('DELETE FROM webhook_events WHERE event_id=$1', [event.id]).catch(() => undefined);
+          throw err;
+        }
+        res.json({ received: true });
+      },
     );
-  } catch {
-    // webhook_events table may not exist in older DBs — log and continue
-    logger.debug({ eventId: event.id }, 'webhook_events upsert skipped');
-  }
-
-  try {
-    await handleSubscriptionEvent(event);
   } catch (err) {
-    logger.error({ err: (err as Error).message, eventType: event.type }, 'Subscription webhook handler failed');
+    const message = (err as Error).message;
+    if (message.includes('signature')) { res.status(400).json({ error: 'Invalid signature' }); return; }
+    logger.error({ err: message }, 'Subscription webhook handler failed');
     res.status(500).json({ error: 'Handler failed' });
-    return;
   }
-
-  res.json({ received: true });
 });
 
 // ── Internal event handler ────────────────────────────────────────────────────

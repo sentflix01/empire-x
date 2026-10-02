@@ -2,7 +2,7 @@
 
 > Layered security at every level: network, application, database, and human.
 > **Last updated:** September 2026
-> **Stack:** Oracle Cloud Johannesburg + Coolify v4 · Cloudflare Pages · Supabase · Cloudflare R2
+> **Stack:** Render (backend) · Vercel (frontend) · Supabase · Cloudflare R2
 
 ---
 
@@ -35,7 +35,7 @@
 ## Security Layers (Defence in Depth)
 
 ```
-Layer 1: Network         — Cloudflare DDoS/WAF/TLS; Oracle VM security group (Cloudflare IP allowlist)
+Layer 1: Network         — Cloudflare DDoS/WAF/TLS; Render network isolation
 Layer 2: Authentication  — JWT, ban enforcement, Redis-backed rate limiting
 Layer 3: Authorization   — requireAuth, requireAdmin, ownership checks
 Layer 4: Input           — ALLOWED_TABLES, parameterized SQL, MIME validation
@@ -69,7 +69,7 @@ Layer 7: Process         — Code review, npm audit in CI, post-mortems
 | Stripe webhook verification | `routes/orders.ts` | `constructEvent()` with `STRIPE_WEBHOOK_SECRET` |
 | External API credential encryption | `routes/externalSources.ts` | AES-256-GCM, key from `EXTERNAL_API_ENCRYPTION_KEY` |
 | Cloudflare DDoS protection | Network layer | L3/L4/L7 always-on, automatic, 335+ PoPs |
-| Backend IP hidden | Cloudflare proxy | Oracle VM real IP never exposed to the internet |
+| Backend IP hidden | Cloudflare proxy | Render's real IP never directly exposed |
 
 ### ❌ Not Yet Implemented (Prioritized)
 
@@ -77,7 +77,7 @@ Layer 7: Process         — Code review, npm audit in CI, post-mortems
 |---|---|---|---|
 | Sentry error monitoring | 🔴 Critical | 30 min | This week |
 | VAPID keys (push security) | 🔴 Critical | 30 min | This week |
-| Oracle VM security group (CF IP allowlist) | 🔴 Critical | 30 min | **Before launch** |
+| Oracle VM security group (CF IP allowlist) | N/A — on Render, no VM to configure |
 | OWASP dependency audit | 🟡 High | 1 hour | Monthly (CI already has `npm audit --audit-level=high`) |
 | 2FA (TOTP) | 🟡 High | 3 days | Month 2–3 |
 | HttpOnly cookie for JWT | 🟡 High | 2 days | Month 2–3 |
@@ -87,46 +87,20 @@ Layer 7: Process         — Code review, npm audit in CI, post-mortems
 
 ---
 
-## CRITICAL: Oracle VM — Cloudflare IP Allowlist
+## Network Security (Render + Cloudflare)
 
-**This must be configured before public launch.** Without it, attackers can bypass Cloudflare by hitting your Oracle VM's public IP directly, circumventing all DDoS protection and WAF rules.
+Render manages network isolation automatically. No VM firewall configuration is required.
+Traffic flows through Cloudflare's proxy for DDoS protection and WAF.
 
-```bash
-# In Oracle Cloud Console:
-# Networking → Virtual Cloud Networks → Your VCN → Security Lists → Default Security List
-# Edit Ingress Rules:
-
-# ALLOW: HTTPS (443) from Cloudflare IPv4 ranges only
-# Get current ranges: https://www.cloudflare.com/ips-v4
-# As of September 2026, these include:
-# 103.21.244.0/22, 103.22.200.0/22, 103.31.4.0/22, 104.16.0.0/13, 104.24.0.0/14
-# 108.162.192.0/18, 131.0.72.0/22, 141.101.64.0/18, 162.158.0.0/15
-# 172.64.0.0/13, 173.245.48.0/20, 188.114.96.0/20, 190.93.240.0/20
-# 197.234.240.0/22, 198.41.128.0/17
-# (Always fetch current list from cloudflare.com/ips — it changes periodically)
-
-# ALLOW: HTTP (80) from Cloudflare IPv4 ranges only (Cloudflare upgrades to HTTPS)
-# ALLOW: TCP 8000 from your own IP only (Coolify dashboard)
-# ALLOW: TCP 22 from your own IP only (SSH)
-# DENY: Everything else on 80/443
-
-# Also add IPv6 Cloudflare ranges from https://www.cloudflare.com/ips-v6
-```
-
-**Verify the restriction is working:**
-```bash
-# From your local machine (not through Cloudflare):
-curl -k https://<oracle-vm-ip>/health
-# Expected: Connection refused or timeout
-# If you get a 200 response, the IP allowlist is NOT configured correctly
-```
+- Cloudflare IPv4/IPv6 ranges are the only external ingress; Render handles the rest
+- No SSH or admin port management needed
+- Cloudflare "Under Attack Mode" can be enabled instantly from the dashboard if needed
 
 ---
 
 ## Authentication Security
 
 ### JWT Security
-
 ```javascript
 // Current: JWT in localStorage + cookie + memory (fixed in deployment-readiness-fix)
 // Planned fix: HttpOnly cookie (not accessible to JS) — Month 2–3
@@ -135,7 +109,7 @@ curl -k https://<oracle-vm-ip>/health
 // JWT revocation already built:
 // Per-token (logout): redis SET revoked:{jti} 1 EX 604800
 // Per-user (logout-all / breach): redis SET revoke_before:{userId} {timestamp}
-// Platform-wide: rotate JWT_SECRET in Coolify → instant global invalidation
+// Platform-wide: rotate JWT_SECRET in Render → instant global invalidation
 ```
 
 ### Password Security
@@ -176,7 +150,7 @@ pool.query(`SELECT * FROM ${table} WHERE id = '${id}'`);
 -- Supabase project → SQL Editor → Create separate roles:
 
 -- 1. app_user — used by the backend application (current default)
---    Connected via DATABASE_URL in Coolify
+--    Connected via DATABASE_URL in Render
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_user;
 
 -- 2. readonly_user — for analytics queries only
@@ -250,15 +224,14 @@ Rule 4: Allow Stripe webhook IPs only for /api/orders/webhook
 
 ---
 
-## Coolify Security Settings
+## Render Security Settings
 
 ```
-# In Coolify → Settings:
-✅ Enable 2FA for Coolify admin login
-✅ Set a strong Coolify admin password
-✅ Use Coolify's automatic Let's Encrypt SSL for the Coolify dashboard
-✅ Restrict Coolify dashboard access (port 8000) to your IP via Oracle security group
-✅ Rotate Coolify API tokens regularly (GitHub Secrets → COOLIFY_TOKEN)
+# In Render → your service → Settings:
+✅ Environment variables set (not committed to Git)
+✅ Auto-deploy on push to main enabled
+✅ Health check path: /health
+✅ Custom domain with SSL (if configured)
 ```
 
 ---
@@ -286,10 +259,10 @@ const ALLOWED_MIME_TYPES = new Set([
 | OWASP Risk | Status | Mitigation |
 |---|---|---|
 | A01 Broken Access Control | ✅ Mitigated | requireAuth + ownership checks on all mutations |
-| A02 Cryptographic Failures | ✅ Mitigated | bcrypt passwords, HTTPS everywhere, secrets in Coolify env |
+| A02 Cryptographic Failures | ✅ Mitigated | bcrypt passwords, HTTPS everywhere, secrets in Render env |
 | A03 Injection | ✅ Mitigated | Parameterized SQL, ALLOWED_TABLES, input validation |
 | A04 Insecure Design | ⚠️ Ongoing | Security reviews in code review checklist |
-| A05 Security Misconfiguration | ⚠️ Partial | Helmet.js done; Oracle VM Cloudflare IP allowlist needed |
+| A05 Security Misconfiguration | ⚠️ Partial | Helmet.js done; review Render env vars |
 | A06 Vulnerable Components | ✅ Monitored | `npm audit --audit-level=high` blocks in CI pipeline |
 | A07 Auth Failures | ⚠️ Partial | Redis rate limiting done; HttpOnly cookie pending |
 | A08 Software Integrity | ⚠️ Partial | Dependabot alerts enabled |
@@ -351,7 +324,7 @@ docker run -t owasp/zap2docker-stable zap-baseline.py \
 - [ ] Try accessing admin routes without admin role
 - [ ] Try JWT manipulation (change `sub` claim)
 - [ ] Try IDOR on all resource IDs
-- [ ] Verify Oracle VM IP is not directly reachable (Cloudflare bypass test)
+- [ ] Verify Render service is behind Cloudflare proxy (if using custom domain)
 
 ### Before 200,000 users — External Audit
 
@@ -365,10 +338,10 @@ Hire a professional penetration testing firm:
 
 ### Critical (Active breach)
 ```
-1. Rotate JWT_SECRET in Coolify → all sessions invalidated (< 3 min)
-2. Change Supabase database password → update DATABASE_URL in Coolify
+1. Rotate JWT_SECRET in Render → all sessions invalidated (< 3 min)
+2. Change Supabase database password → update DATABASE_URL in Render
 3. Enable Cloudflare Under Attack Mode
-4. Download Coolify container logs
+4. Download Render service logs
 5. Preserve evidence → investigate
 6. Notify affected users + INSA within 72 hours (GDPR/local requirement)
 ```

@@ -6,6 +6,7 @@
  * fix deep-links into the builder.
  */
 import React, { useState } from 'react';
+import { apiFetch } from '@/api/client';
 import { Loader2, Stethoscope, AlertTriangle, CheckCircle2, ExternalLink, Sparkles } from 'lucide-react';
 
 interface Finding { id: string; severity: 'critical'|'high'|'medium'|'low'; area: string; message: string;
@@ -31,8 +32,8 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
   const recheckSource = async (sectionKey: string) => {
     setRechecking(sectionKey);
     try {
-      await fetch(`/api/showrooms/${showroomId}/recheck/${sectionKey}`, { method: 'POST', credentials: 'include' });
-      const res = await fetch(`/api/showrooms/${showroomId}/doctor`, { credentials: 'include' });
+      await apiFetch(`/api/showrooms/${showroomId}/recheck/${sectionKey}`, { method: 'POST', credentials: 'include' });
+      const res = await apiFetch(`/api/showrooms/${showroomId}/doctor`, { credentials: 'include' });
       if (res.ok) setReport(await res.json());
     } catch { /* non-fatal */ } finally { setRechecking(null); }
   };
@@ -41,7 +42,7 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
     if (!report || narrating) return;
     setNarrating(true);
     try {
-      const res = await fetch(`/api/showrooms/${showroomId}/doctor?narrate=1`, { credentials: 'include' });
+      const res = await apiFetch(`/api/showrooms/${showroomId}/doctor?narrate=1`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setReport(data);
@@ -54,7 +55,7 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
     if (report || loading) return;
     setLoading(true); setError(null);
     try {
-      const res = await fetch(`/api/showrooms/${showroomId}/doctor`, { credentials: 'include' });
+      const res = await apiFetch(`/api/showrooms/${showroomId}/doctor`, { credentials: 'include' });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
       setReport(await res.json());
     } catch (e) {

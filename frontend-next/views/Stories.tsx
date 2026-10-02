@@ -4,7 +4,6 @@ import { entities } from '@/api/entities';
 import client from '@/api/client';
 import { uploadFile } from '@/lib/uploadFile';
 import { X, Plus, Clock, Heart, MessageCircle, Send } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import SafeImage from '@/components/ui/SafeImage';
 import { resolveMediaUrl } from '@/lib/media';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -118,7 +117,6 @@ function StoryInitial({ name }: { name: string }) {
 }
 
 function Stories() {
-  const { t } = useTranslation();
   const [stories, setStories] = useState<StoryGroup[]>([]);
   const [viewing, setViewing] = useState<ViewingState | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -170,7 +168,7 @@ function Stories() {
       setProgress(0);
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [viewing?.index, viewing !== null, storyCommentsOpen]);
+  }, [startTimer, viewing, storyCommentsOpen]);
 
   const loadStories = async () => {
     const data = (await entities.Story.list('-created_at', 200).catch(() => [])) as unknown as Story[];

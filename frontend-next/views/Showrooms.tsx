@@ -1,11 +1,12 @@
 'use client'
+import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
+import { apiFetch } from "@/api/client";
 import { Crown, Search, Plus, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/AuthContext';
@@ -51,7 +52,7 @@ function Showrooms() {
   const deleteShowroom = async (id: string) => {
     if (!window.confirm('Delete this showroom permanently?')) return;
     try {
-      const res = await fetch(`/api/showrooms/${id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await apiFetch(`/api/showrooms/${id}`, { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error();
       setShowrooms((prev: unknown[]) => prev.filter((x: { id: string }) => x.id !== id));
     } catch { alert('Delete failed'); }
@@ -125,7 +126,7 @@ function Showrooms() {
                 <Link href={`/showrooms/${s.id}`} className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-md transition-all block group">
                   <div className="h-28 relative overflow-hidden bg-gradient-to-r from-amber-100 to-amber-50">
                     {s.cover_image ? (
-                      <img loading="lazy"
+                      <SafeImage fill={false} width={800} height={600} loading="lazy"
                         src={s.cover_image}
                         alt={s.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

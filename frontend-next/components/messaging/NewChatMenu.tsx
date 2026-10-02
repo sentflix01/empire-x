@@ -1,7 +1,6 @@
 'use client'
 import React, { useState, useRef, useEffect } from "react";
-import { useTranslation } from 'react-i18next';
-import { Menu, Pencil, Users, Radio } from "lucide-react";
+import { Menu, Users, Radio } from "lucide-react";
 import CreateGroupModal from "@/components/messaging/CreateGroupModal";
 import CreateChannelModal from "@/components/messaging/CreateChannelModal";
 import client from "@/api/client";

@@ -16,11 +16,11 @@ Seller coupon system: create/manage discount codes (percentage/fixed, min order,
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `POST` | `/api/coupons/` | auth | 8 |
-| `GET` | `/api/coupons/mine` | auth | 25 |
-| `POST` | `/api/coupons/validate` | public | 32 |
-| `POST` | `/api/coupons/use` | auth | 52 |
-| `PATCH` | `/api/coupons/:id/toggle` | auth | 60 |
-| `DELETE` | `/api/coupons/:id` | auth | 70 |
+| `GET` | `/api/coupons/mine` | auth | 34 |
+| `POST` | `/api/coupons/validate` | public | 41 |
+| `POST` | `/api/coupons/use` | auth | 61 |
+| `PATCH` | `/api/coupons/:id/toggle` | auth | 67 |
+| `DELETE` | `/api/coupons/:id` | auth | 77 |
 
 ## 4. What does it touch?
 

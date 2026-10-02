@@ -35,6 +35,7 @@
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./pool');
+const { assertSafeDevSeed } = require('./operationSafety');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const pick  = arr => arr[Math.floor(Math.random() * arr.length)];
@@ -249,6 +250,7 @@ const SYSTEM_JOIN_MESSAGES = [
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function seed() {
+  assertSafeDevSeed();
   const client = await pool.connect();
   console.log('\n💰 Nodbusiness Mewacho Seed\n');
   console.log('Creates: 15 groups, members, contributions, messages, withdrawals\n');
@@ -458,8 +460,7 @@ async function seed() {
     console.log('Browse:');
     console.log('  Frontend: https://nodbusiness.vercel.app/mewacho');
     console.log('');
-    console.log('Login as any seed user to see their groups:');
-    console.log('  abebe.girma0@nodbusiness.test / Test1234!');
+    console.log('Seed users use the TEST_ACCOUNT_PASSWORD supplied to the guarded local seed command.');
     console.log('════════════════════════════════════════\n');
 
   } catch (err) {

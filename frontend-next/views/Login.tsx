@@ -1,5 +1,5 @@
 'use client';
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AuthLayout from "@/components/AuthLayout";
-import { renderGoogleSignInButton } from "@/lib/googleAuth";
+import { describeGoogleOAuthError, renderGoogleSignInButton } from "@/lib/googleAuth";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function Login() {
@@ -25,11 +25,49 @@ function Login() {
   const [googleUnavailable, setGoogleUnavailable] = useState(false);
   const googleRef = useRef<HTMLDivElement | null>(null);
 
+  const continueAfterLogin = useCallback(async (result: {
+    onboarding_mode?: 'demo' | 'real' | null;
+    is_demo?: boolean;
+  }) => {
+    const realModeKey = 'nodbusiness_real_mode';
+
+    if (result.is_demo || result.onboarding_mode === 'demo') {
+      localStorage.setItem(realModeKey, 'false');
+      await auth.loginDemo();
+      window.location.href = '/feed';
+      return;
+    }
+
+    if (result.onboarding_mode === 'real') {
+      localStorage.setItem(realModeKey, 'true');
+      window.location.href = dest === '/choose-mode' ? '/feed' : dest;
+      return;
+    }
+
+    const chooserUrl = new URL('/choose-mode', window.location.origin);
+    if (dest !== '/feed' && dest !== '/choose-mode') chooserUrl.searchParams.set('return', dest);
+    window.location.href = chooserUrl.toString();
+  }, [dest]);
+
   // Pre-warm the backend on login page load to prevent cold-start timeout
   // Render free tier sleeps after 15 min — this silent ping wakes it up
   // so the actual login call succeeds quickly instead of timing out
   useEffect(() => {
-    const API = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+    const configuredApi = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const API = configuredApi || 'http://localhost:3001';
+    let apiHost: string;
+    try {
+      apiHost = new URL(API).hostname.replace(/^\[|\]$/g, '');
+    } catch {
+      return;
+    }
+
+    // A local backend is already addressed by normal auth requests. Warming
+    // it here creates noisy connection-refused errors when only the frontend
+    // is running, and Strict Mode replays effects in development. Keep the
+    // cold-start wake-up for explicitly configured remote APIs.
+    if (!configuredApi || ['localhost', '127.0.0.1', '::1'].includes(apiHost)) return;
+
     fetch(`${API}/health`, { method: 'GET', signal: AbortSignal.timeout(55000) })
       .catch(() => {}); // fire-and-forget, ignore errors
   }, []);
@@ -40,20 +78,24 @@ function Login() {
     if (!googleRef.current || googleReady) return;
     const ok = renderGoogleSignInButton(googleRef.current, {
       buttonText: 'signin_with',
-      onSuccess: async (_result) => {
-        // Every account always goes to /choose-mode.
-        window.location.href = '/choose-mode';
+      onSuccess: (result) => {
+        void continueAfterLogin(result).catch((err: unknown) => {
+          const e = err as { response?: { data?: { error?: string } }; message?: string };
+          setError(e.response?.data?.error || e.message || 'Could not restore your saved account mode. Please try again.');
+        });
       },
-      onError: (err) => setError(
-        err.message === 'Sign-in was cancelled.'
-          ? ''
-          : 'Google sign-in failed. Please try email and password below.'
-      ),
+      onError: (err) => {
+        if (err.message === 'Sign-in was cancelled.') return setError('');
+        if (/invalid_client|oauth client was not found/i.test(err.message)) return setError(describeGoogleOAuthError(err.message));
+        if (/active OAuth client|Google sign-in did not complete/i.test(err.message)) return setError(err.message);
+        if (/popup.*closed|closed.*popup/i.test(err.message)) return setError('Sign-in popup was closed. Please try again.');
+        if (/could not be verified/i.test(err.message)) return setError('Sign-in could not be verified. Check that the frontend and backend use the same Google OAuth client ID.');
+        setError('Google sign-in failed. Please try email and password below.');
+      },
     });
     if (ok) setGoogleReady(true);
     else setGoogleUnavailable(true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dest]);
+  }, [continueAfterLogin, googleReady]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,11 +106,13 @@ function Login() {
       setError('Server is waking up… this takes up to 30 seconds on first load. Please wait.');
     }, 5000);
     try {
-      const loginResult = await auth.loginViaEmailPassword(email.trim().toLowerCase(), password);
+      const result = await auth.loginViaEmailPassword(email.trim().toLowerCase(), password);
       clearTimeout(slowTimer);
       setError('');
-      // Every account — including is_demo — always goes to /choose-mode.
-      window.location.href = '/choose-mode';
+      await continueAfterLogin(result as {
+        onboarding_mode?: 'demo' | 'real' | null;
+        is_demo?: boolean;
+      });
     } catch (err: unknown) {
       clearTimeout(slowTimer);
       const e = err as { code?: string; status?: number; response?: { status?: number }; error?: string; message?: string; isTimeout?: boolean };
@@ -107,8 +151,8 @@ function Login() {
           </div>
         )}
         {googleUnavailable && (
-          <div className="flex h-10 items-center justify-center rounded-lg border border-input text-sm text-muted-foreground">
-            Google Sign-In unavailable
+          <div role="status" className="rounded-lg border border-input px-3 py-2 text-center text-sm text-muted-foreground">
+            Google sign-in is not configured for this environment. Use email and password.
           </div>
         )}
         <div ref={googleRef} className="flex min-h-10 w-full justify-center" aria-label="Sign in with Google" />

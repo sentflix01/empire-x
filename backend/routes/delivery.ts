@@ -1,13 +1,20 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
-import { requireAuth, optionalAuth } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth';
 import { emitNotification } from '../socket';
 
 const router = Router();
 
-router.get('/order/:orderId', optionalAuth, async (req: Request, res: Response) => {
+router.get('/order/:orderId', requireAuth, async (req: Request, res: Response) => {
   try {
+    const { rows: orders } = await pool.query<{ buyer_id: string; seller_id: string }>(
+      'SELECT buyer_id,seller_id FROM orders WHERE id=$1', [req.params.orderId],
+    );
+    if (!orders.length) { res.status(404).json({ error: 'Order not found' }); return; }
+    if (orders[0].buyer_id !== req.user!.id && orders[0].seller_id !== req.user!.id && req.user!.role !== 'admin') {
+      res.status(403).json({ error: 'Forbidden' }); return;
+    }
     const { rows } = await pool.query(
       'SELECT * FROM delivery_updates WHERE order_id=$1 ORDER BY created_at ASC',
       [req.params.orderId],

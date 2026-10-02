@@ -28,6 +28,9 @@ export default defineConfig({
     baseURL: FRONTEND_URL,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    ...(process.env.E2E_CHROME_PATH
+      ? { launchOptions: { executablePath: process.env.E2E_CHROME_PATH } }
+      : {}),
   },
   projects: [
     {
@@ -36,13 +39,13 @@ export default defineConfig({
     },
   ],
   webServer: [
-    {
+    ...(process.env.E2E_SKIP_BACKEND === 'true' ? [] : [{
       command: 'npm run dev',
       cwd: path.resolve(__dirname, '../backend'),
       url: `${BACKEND_URL}/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
-    },
+    }]),
     {
       command: 'npm run dev',
       url: FRONTEND_URL,

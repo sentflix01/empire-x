@@ -82,7 +82,7 @@ Or via Vercel dashboard:
 
 ```bash
 cd backend
-NODE_TLS_REJECT_UNAUTHORIZED=0 node db/migrate-all.js
+node db/migrate-all.js
 ```
 
 **From GitHub Actions (manual trigger):**
@@ -92,18 +92,14 @@ NODE_TLS_REJECT_UNAUTHORIZED=0 node db/migrate-all.js
 
 ---
 
-## Create/Reset Admin Account
+## Admin Account Provisioning
 
-```bash
-cd backend
-NODE_TLS_REJECT_UNAUTHORIZED=0 node db/create-admin.js
-```
-
-Creates (or resets) two accounts:
-- `admin@nodbusiness.app` / `Admin1234!` — role: admin
-- `test@nodbusiness.app` / `Test1234!` — role: user
-
-> Change the admin password immediately after running this in production.
+Do not run development account scripts against a hosted database. The former
+`create-admin.js` workflow that reset fixed passwords has been removed. For a
+production deployment, provision or reset an administrator through the hosting
+provider's secure access procedure using a unique password stored in a secret
+manager. The repository's `create-admin.js` is restricted to fresh local
+development databases and refuses to modify existing accounts.
 
 ---
 
@@ -160,7 +156,7 @@ If you need to set up a completely fresh deployment from scratch:
 1. Create project at https://supabase.com
 2. Note the project URL and service_role key
 3. Run migrations: `node db/migrate-all.js`
-4. Run admin creation: `node db/create-admin.js`
+4. Provision the first administrator through the provider's secure procedure; do not run local development bootstrap scripts against Supabase.
 
 ### Step 3 — Upstash (Redis)
 

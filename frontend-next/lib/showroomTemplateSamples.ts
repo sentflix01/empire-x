@@ -27,7 +27,7 @@ const baseContact = {
   telegram: "https://t.me/",
 };
 
-const sampleBase = (templateName: string, category: string) => {
+const sampleBase = (templateName: string) => {
   const name = titleCase(templateName) || "Business";
   return {
     title: name,
@@ -90,7 +90,7 @@ const sampleBase = (templateName: string, category: string) => {
 function categorySample(templateName: string, category: string, premium = false) {
   const name = titleCase(templateName);
   const cat = category || "";
-  const base = sampleBase(name, cat);
+  const base = sampleBase(name);
 
   if (name.toLowerCase().includes("import/export")) {
     return {

@@ -8,21 +8,21 @@
  *   "You're exploring a demo account — sign up to keep your work."
  *   CTA: "Create Account →"  (navigates to /register)
  *
- * Track 2 (full sandbox with demo_session cookie, future):
+ * Track 2 (full sandbox with demo_session cookie):
  *   "Demo sandbox · Changes are temporary and separate from your real account."
  *   CTA: "Reset demo" + "Switch to real →"
  *
  * The track is determined by whether a full demo session is active (Track 2)
  * or the user is simply the shared demo account / chose demo preference (Track 1).
- * Track 2 is enabled when the backend sets demoSession on the request; the
- * frontend detects it via the `demo_session` cookie presence (not yet wired —
- * defaults to Track 1 until Track 2 is deployed).
+ * The backend reports the active track from its verified session context;
+ * the HttpOnly `demo_session` cookie is never exposed to browser JavaScript.
  */
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { FlaskConical, Loader2, X } from 'lucide-react';
+import { FlaskConical, Loader2 } from 'lucide-react';
 import { auth } from '@/api/auth';
+import { useRealMode } from '@/lib/RealModeContext';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -35,6 +35,7 @@ interface DemoEnvironmentBannerProps {
 }
 
 export default function DemoEnvironmentBanner({ track = 1 }: DemoEnvironmentBannerProps) {
+  const { setRealMode } = useRealMode();
   const [exitOpen, setExitOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -47,7 +48,8 @@ export default function DemoEnvironmentBanner({ track = 1 }: DemoEnvironmentBann
     setError('');
     try {
       const result = await auth.exitDemo();
-      window.location.assign(result.return_to_real ? '/feed' : '/landing');
+          if (result.return_to_real) setRealMode(true);
+          window.location.assign(result.return_to_real ? '/feed' : (track === 1 ? '/register' : '/landing'));
     } catch (err) {
       const e = err as { response?: { data?: { error?: string } }; message?: string };
       setError(e.response?.data?.error || e.message || 'Could not leave demo mode. Please try again.');
@@ -72,6 +74,7 @@ export default function DemoEnvironmentBanner({ track = 1 }: DemoEnvironmentBann
 
   if (track === 1) {
     return (
+      <>
       <div
         role="status"
         aria-label="Demo account notice"
@@ -84,13 +87,37 @@ export default function DemoEnvironmentBanner({ track = 1 }: DemoEnvironmentBann
             <span className="font-semibold">sign up to keep your work.</span>
           </span>
         </div>
-        <Link
-          href="/register"
-          className="inline-flex h-7 items-center justify-center rounded-lg bg-amber-500 px-3 text-xs font-bold text-white transition-colors hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1"
-        >
-          Create Account →
-        </Link>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" className="border-amber-500/40 bg-transparent" onClick={() => setExitOpen(true)}>
+            Switch to real
+          </Button>
+          <Link
+            href="/register"
+            className="inline-flex h-7 items-center justify-center rounded-lg bg-amber-500 px-3 text-xs font-bold text-white transition-colors hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1"
+          >
+            Create Account →
+          </Link>
+        </div>
       </div>
+      <AlertDialog open={exitOpen} onOpenChange={setExitOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader className="">
+            <AlertDialogTitle>Leave the shared demo account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your demo activity is in a shared account and may remain visible to other demo visitors. If you signed in first, you will return to your real account. Otherwise, you can create one.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+          <AlertDialogFooter className="">
+            <AlertDialogCancel disabled={busy}>Stay in demo</AlertDialogCancel>
+            <AlertDialogAction disabled={busy} onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.preventDefault(); void exitDemo(); }}>
+              {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Leave demo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      </>
     );
   }
 
@@ -136,8 +163,9 @@ export default function DemoEnvironmentBanner({ track = 1 }: DemoEnvironmentBann
           <AlertDialogHeader className="">
             <AlertDialogTitle>Switch to your real account?</AlertDialogTitle>
             <AlertDialogDescription>
-              Your demo session will end. Content you created in demo mode will be removed
-              within 24 hours. Your real account and its data are completely untouched.
+              Your demo session will end and its data will no longer be available to you.
+              Old demo data is deleted only when the operator&apos;s configured cleanup job runs.
+              Your real account and its data are completely untouched.
             </AlertDialogDescription>
           </AlertDialogHeader>
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}

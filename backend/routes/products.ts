@@ -28,6 +28,21 @@ function normalizeProduct(p: Record<string,unknown>): Record<string,unknown> {
   return out;
 }
 
+function publicProduct(p: Record<string, unknown>): Record<string, unknown> {
+  const out = normalizeProduct(p);
+  for (const key of ['cost_price', 'supplier_id', 'batch_number', 'variant_of']) delete out[key];
+  return out;
+}
+
+const PRODUCT_FIELDS = [
+  'title', 'description', 'price', 'currency', 'stock', 'images', 'category', 'tags',
+  'status', 'business_id', 'showroom_id',
+] as const;
+
+function pickProductFields(body: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(PRODUCT_FIELDS.filter(key => body[key] !== undefined).map(key => [key, body[key]]));
+}
+
 // ── GET /api/products — keyset cursor pagination ──────────────────────────────
 // varyByQuery ensures every distinct filter combo (seller_id, status, sort…)
 // gets its own cache slot. varyByUser isolates realOnly/seed-filtered responses.
@@ -35,49 +50,121 @@ router.get('/', optionalAuth, cacheMiddleware('products:list', 90, { varyByQuery
   try {
     const { seller_id, business_id, showroom_id, status, sort='-created_at', limit='24', cursor } = req.query as Record<string,string>;
     const lim = Math.min(parseInt(limit)||24, 100);
-    const cursorTs = cursor ? new Date(cursor) : new Date();
-    if (isNaN(cursorTs.getTime())) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
+    const safeSorts: Record<string, { column: string; order: string; direction: '<' | '>'; kind: 'date' | 'number' }> = {
+      '-created_at': { column: 'p.created_at', order: 'p.created_at DESC,p.id DESC', direction: '<', kind: 'date' },
+      'created_at': { column: 'p.created_at', order: 'p.created_at ASC,p.id ASC', direction: '>', kind: 'date' },
+      '-price': { column: 'p.price', order: 'p.price DESC,p.id DESC', direction: '<', kind: 'number' },
+      'price': { column: 'p.price', order: 'p.price ASC,p.id ASC', direction: '>', kind: 'number' },
+      '-view_count': { column: 'p.view_count', order: 'p.view_count DESC,p.id DESC', direction: '<', kind: 'number' },
+    };
+    const sortConfig = safeSorts[sort] ?? safeSorts['-created_at'];
+    const sortKey = safeSorts[sort] ? sort : '-created_at';
+    const cursorParts = cursor?.split('|') ?? [];
+    const cursorSort = cursorParts.length === 3 ? cursorParts[0] : '-created_at';
+    const cursorValueText = cursorParts.length === 3 ? cursorParts[1] : cursorParts[0];
+    const cursorId = cursorParts.length >= 2 ? cursorParts.at(-1) : undefined;
+    if (cursor && cursorParts.length === 3 && cursorSort !== sortKey) { res.status(400).json({ error: 'Cursor does not match requested sort order' }); return; }
+    const cursorValue = sortConfig.kind === 'date' ? new Date(cursorValueText) : Number(cursorValueText);
+    if (cursor && (sortConfig.kind === 'date' ? isNaN((cursorValue as Date).getTime()) : !Number.isFinite(cursorValue))) {
+      res.status(400).json({ error: 'Invalid cursor value' }); return;
+    }
 
     const realJoin = req.realOnly ? 'JOIN users u ON u.id=p.seller_id' : '';
-    const realCond = req.realOnly ? 'AND u.is_seed=FALSE' : '';
-    const conditions = [`p.created_at < $1`];
-    const values: unknown[] = [cursorTs];
+    const realCond = req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
+    const validCursorId = !!cursorId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cursorId);
+    if (cursorId && !validCursorId) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
+    const conditions: string[] = [];
+    const values: unknown[] = [];
+    if (cursor && validCursorId) {
+      values.push(cursorValue, cursorId);
+      conditions.push(`(${sortConfig.column},p.id) ${sortConfig.direction} ($1,$2::uuid)`);
+    } else if (cursor && sortConfig.kind === 'date') {
+      values.push(cursorValue);
+      conditions.push(`${sortConfig.column} < $1`);
+    } else {
+      conditions.push('p.created_at <= NOW()');
+    }
 
     if (seller_id)   { values.push(seller_id);   conditions.push(`p.seller_id=$${values.length}`); }
     if (business_id) { values.push(business_id); conditions.push(`p.business_id=$${values.length}`); }
     if (showroom_id) { values.push(showroom_id); conditions.push(`p.showroom_id=$${values.length}`); }
+    // Drafts are private. Only a seller explicitly viewing their own listings
+    // (or an admin) may request them; public feeds include active and sold-out.
+    const mayViewDrafts = req.user?.role === 'admin' || (!!seller_id && seller_id === req.user?.id);
+    if (!mayViewDrafts) conditions.push("p.status IN ('active','sold_out')");
     if (status)      { values.push(status);      conditions.push(`p.status=$${values.length}`); }
 
-    const SAFE_SORT: Record<string,string> = {
-      '-created_at':'p.created_at DESC', 'created_at':'p.created_at ASC',
-      '-price':'p.price DESC', 'price':'p.price ASC', '-view_count':'p.view_count DESC',
-    };
-    const orderBy = SAFE_SORT[sort] ?? 'p.created_at DESC';
+    const orderBy = sortConfig.order;
     values.push(lim);
 
     const { rows } = await pool.query(
       `SELECT p.* FROM products p ${realJoin} WHERE ${conditions.join(' AND ')} ${realCond} ORDER BY ${orderBy} LIMIT $${values.length}`,
       values,
     );
-    const products = rows.map(normalizeProduct);
-    res.json({ products, next_cursor: products.length===lim ? products[products.length-1].created_at : null });
+    const products = rows.map(product => (!!req.user?.id && product.seller_id === req.user.id) || req.user?.role === 'admin'
+      ? normalizeProduct(product)
+      : publicProduct(product));
+    const lastProduct = rows.at(-1) as Record<string, unknown> | undefined;
+    res.json({
+      products,
+      next_cursor: rows.length === lim && lastProduct
+        ? `${sortKey}|${sortConfig.kind === 'date' ? new Date(String(lastProduct.created_at)).toISOString() : String(lastProduct[sortKey === '-price' || sortKey === 'price' ? 'price' : 'view_count'])}|${String(lastProduct.id)}`
+        : null,
+    });
   } catch { res.status(500).json({ error: 'Failed to fetch products' }); }
+});
+
+router.get('/mine', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM products WHERE seller_id=$1 ORDER BY created_at DESC LIMIT 100',
+      [req.user!.id],
+    );
+    res.json({ products: rows.map(normalizeProduct) });
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'Failed to fetch seller inventory');
+    res.status(500).json({ error: 'Failed to fetch inventory' });
+  }
 });
 
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
-    const product = await getRecord('products', req.params.id);
+    const product = await getRecord('products', req.params.id, { realOnly: req.realOnly });
     if (!product) { res.status(404).json({ error: 'Product not found' }); return; }
+    const record = product as Record<string, unknown>;
+    if (!['active', 'sold_out'].includes(String(record.status)) && (!req.user?.id || record.seller_id !== req.user.id) && req.user?.role !== 'admin') {
+      res.status(404).json({ error: 'Product not found' }); return;
+    }
     await pool.query('UPDATE products SET view_count=view_count+1 WHERE id=$1', [req.params.id]).catch(()=>undefined);
-    res.json(normalizeProduct(product as Record<string,unknown>));
+    res.json((!!req.user?.id && record.seller_id === req.user.id) || req.user?.role === 'admin' ? normalizeProduct(record) : publicProduct(record));
   } catch { res.status(500).json({ error: 'Failed to fetch product' }); }
 });
 
 router.post('/', requireAuth, async (req: Request, res: Response) => {
-  const { title, price } = req.body as Record<string,unknown>;
-  if (!title || price==null) { res.status(400).json({ error: 'title and price are required' }); return; }
+  const body = req.body as Record<string, unknown>;
+  const title = typeof body.title === 'string' ? body.title.trim() : '';
+  const price = Number(body.price);
+  const stock = body.stock === undefined ? 0 : Number(body.stock);
+  if (!title || body.price == null) { res.status(400).json({ error: 'title and price are required' }); return; }
+  if (!Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < 0) {
+    res.status(422).json({ error: 'price must be positive and stock must be a non-negative integer' }); return;
+  }
+  const data = pickProductFields(body);
+  data.title = title;
+  data.price = price;
+  data.stock = stock;
+  if (data.status !== undefined && !['active', 'sold_out', 'draft', 'archived'].includes(String(data.status))) {
+    res.status(422).json({ error: 'Invalid product status' }); return;
+  }
   try {
-    const product = await createRecord('products', { ...(req.body as Record<string,unknown>), seller_id: req.user!.id });
+    for (const key of ['business_id', 'showroom_id'] as const) {
+      if (data[key] != null) {
+        const table = key === 'business_id' ? 'businesses' : 'showrooms';
+        const { rows } = await pool.query(`SELECT id FROM ${table} WHERE id=$1 AND owner_id=$2`, [data[key], req.user!.id]);
+        if (!rows.length && req.user!.role !== 'admin') { res.status(403).json({ error: `You cannot attach a product to this ${key === 'business_id' ? 'business' : 'showroom'}` }); return; }
+      }
+    }
+    const product = await createRecord('products', { ...data, seller_id: req.user!.id });
     await invalidateCache('products:list').catch(()=>undefined);
     res.status(201).json(normalizeProduct(product as Record<string,unknown>));
   } catch (err) {
@@ -92,12 +179,30 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     if (!existing) { res.status(404).json({ error: 'Product not found' }); return; }
     if (existing.seller_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
 
-    const updated = await updateRecord('products', req.params.id, req.body as Record<string,unknown>);
+    const body = req.body as Record<string, unknown>;
+    const updates = pickProductFields(body);
+    if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable product fields provided' }); return; }
+    if (updates.price !== undefined && (!Number.isFinite(Number(updates.price)) || Number(updates.price) <= 0)) {
+      res.status(422).json({ error: 'price must be a positive number' }); return;
+    }
+    if (updates.stock !== undefined && (!Number.isInteger(Number(updates.stock)) || Number(updates.stock) < 0)) {
+      res.status(422).json({ error: 'stock must be a non-negative integer' }); return;
+    }
+    if (updates.status !== undefined && !['active', 'sold_out', 'draft', 'archived'].includes(String(updates.status))) {
+      res.status(422).json({ error: 'Invalid product status' }); return;
+    }
+    for (const key of ['business_id', 'showroom_id'] as const) {
+      if (updates[key] != null) {
+        const table = key === 'business_id' ? 'businesses' : 'showrooms';
+        const { rows } = await pool.query(`SELECT id FROM ${table} WHERE id=$1 AND owner_id=$2`, [updates[key], req.user!.id]);
+        if (!rows.length && req.user!.role !== 'admin') { res.status(403).json({ error: `You cannot attach a product to this ${key === 'business_id' ? 'business' : 'showroom'}` }); return; }
+      }
+    }
+    const updated = await updateRecord('products', req.params.id, updates);
     if (!updated) { res.status(404).json({ error: 'Product not found' }); return; }
     await invalidateCache('products:list').catch(()=>undefined);
 
     // Low-stock alert
-    const body = req.body as Record<string,unknown>;
     if (body.stock != null) {
       const prev = parseInt(String(existing.stock ?? '0'), 10);
       const next = parseInt(String(body.stock), 10);
@@ -192,6 +297,11 @@ router.post(
           const product = products[i];
           const { title, description, price, currency, stock, images, category, tags, status, sku, barcode, unit, cost_price, min_stock, max_stock, expiry_date, batch_number, manufacturer, supplier_id, weight_kg, dimensions_cm, tax_rate, is_prescription, controlled_substance, storage_condition, variant_of, is_bundle, bundle_components, attributes } = product as Record<string, unknown>;
 
+          if (supplier_id !== undefined && supplier_id !== null && supplier_id !== '') {
+            errors.push({ index: i, reason: 'supplier_id is not supported until supplier records are available', data: product });
+            continue;
+          }
+
           // Validation
           if (!title || typeof title !== 'string' || title.trim().length === 0) {
             errors.push({ index: i, reason: 'title is required and must be a non-empty string', data: product });
@@ -201,53 +311,54 @@ router.post(
             errors.push({ index: i, reason: 'price is required', data: product });
             continue;
           }
-          const parsedPrice = parseFloat(String(price));
-          if (isNaN(parsedPrice) || parsedPrice < 0) {
-            errors.push({ index: i, reason: 'price must be a non-negative number', data: product });
+          const parsedPrice = Number(price);
+          if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+            errors.push({ index: i, reason: 'price must be a positive number', data: product });
             continue;
           }
           const curr = currency ? String(currency).toUpperCase() : 'ETB';
-          if (curr.length !== 3) {
+          if (!/^[A-Z]{3}$/.test(curr)) {
             errors.push({ index: i, reason: 'currency must be a 3-letter ISO code (e.g., ETB, USD)', data: product });
             continue;
           }
 
-          const parsedStock = stock !== undefined && stock !== null && stock !== '' ? parseInt(String(stock), 10) : 0;
-          if (isNaN(parsedStock) || parsedStock < 0) {
+          const parsedStock = stock !== undefined && stock !== null && stock !== '' ? Number(stock) : 0;
+          if (!Number.isInteger(parsedStock) || parsedStock < 0) {
             errors.push({ index: i, reason: 'stock must be a non-negative integer', data: product });
             continue;
           }
 
-          const parsedCostPrice = cost_price !== undefined && cost_price !== null && cost_price !== '' ? parseFloat(String(cost_price)) : null;
-          if (cost_price !== undefined && cost_price !== null && cost_price !== '' && (isNaN(parsedCostPrice!) || parsedCostPrice! < 0)) {
+          const parsedCostPrice = cost_price !== undefined && cost_price !== null && cost_price !== '' ? Number(cost_price) : null;
+          if (cost_price !== undefined && cost_price !== null && cost_price !== '' && (!Number.isFinite(parsedCostPrice) || parsedCostPrice! < 0)) {
             errors.push({ index: i, reason: 'cost_price must be a non-negative number', data: product });
             continue;
           }
 
-          const parsedMinStock = min_stock !== undefined && min_stock !== null && min_stock !== '' ? parseInt(String(min_stock), 10) : 10;
-          if (min_stock !== undefined && min_stock !== null && min_stock !== '' && (isNaN(parsedMinStock) || parsedMinStock < 0)) {
+          const parsedMinStock = min_stock !== undefined && min_stock !== null && min_stock !== '' ? Number(min_stock) : 10;
+          if (!Number.isInteger(parsedMinStock) || parsedMinStock < 0) {
             errors.push({ index: i, reason: 'min_stock must be a non-negative integer', data: product });
             continue;
           }
 
-          const parsedMaxStock = max_stock !== undefined && max_stock !== null && max_stock !== '' ? parseInt(String(max_stock), 10) : null;
-          if (max_stock !== undefined && max_stock !== null && max_stock !== '' && (isNaN(parsedMaxStock!) || parsedMaxStock! < 0)) {
+          const parsedMaxStock = max_stock !== undefined && max_stock !== null && max_stock !== '' ? Number(max_stock) : null;
+          if (max_stock !== undefined && max_stock !== null && max_stock !== '' && (!Number.isInteger(parsedMaxStock) || parsedMaxStock! < parsedMinStock)) {
             errors.push({ index: i, reason: 'max_stock must be a non-negative integer', data: product });
             continue;
           }
 
           let parsedExpiryDate: string | null = null;
           if (expiry_date !== undefined && expiry_date !== null && expiry_date !== '') {
-            const d = new Date(String(expiry_date));
-            if (isNaN(d.getTime())) {
+            const dateText = String(expiry_date);
+            const d = new Date(`${dateText}T00:00:00.000Z`);
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(dateText) || isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== dateText) {
               errors.push({ index: i, reason: 'expiry_date must be a valid date (ISO 8601)', data: product });
               continue;
             }
             parsedExpiryDate = d.toISOString().split('T')[0];
           }
 
-          const parsedWeight = weight_kg !== undefined && weight_kg !== null && weight_kg !== '' ? parseFloat(String(weight_kg)) : null;
-          if (weight_kg !== undefined && weight_kg !== null && weight_kg !== '' && (isNaN(parsedWeight!) || parsedWeight! < 0)) {
+          const parsedWeight = weight_kg !== undefined && weight_kg !== null && weight_kg !== '' ? Number(weight_kg) : null;
+          if (weight_kg !== undefined && weight_kg !== null && weight_kg !== '' && (!Number.isFinite(parsedWeight) || parsedWeight! < 0)) {
             errors.push({ index: i, reason: 'weight_kg must be a non-negative number', data: product });
             continue;
           }
@@ -256,6 +367,7 @@ router.post(
           if (dimensions_cm !== undefined && dimensions_cm !== null) {
             try {
               parsedDimensions = typeof dimensions_cm === 'string' ? JSON.parse(dimensions_cm) : dimensions_cm;
+              if (!parsedDimensions || typeof parsedDimensions !== 'object' || Array.isArray(parsedDimensions)) throw new Error('not an object');
             } catch {
               errors.push({ index: i, reason: 'dimensions_cm must be a valid JSON object', data: product });
               continue;
@@ -266,6 +378,7 @@ router.post(
           if (bundle_components !== undefined && bundle_components !== null) {
             try {
               parsedBundleComponents = typeof bundle_components === 'string' ? JSON.parse(bundle_components) : bundle_components;
+              if (!Array.isArray(parsedBundleComponents)) throw new Error('not an array');
             } catch {
               errors.push({ index: i, reason: 'bundle_components must be a valid JSON array', data: product });
               continue;
@@ -276,6 +389,7 @@ router.post(
           if (attributes !== undefined && attributes !== null) {
             try {
               parsedAttributes = typeof attributes === 'string' ? JSON.parse(attributes) : attributes;
+              if (!parsedAttributes || typeof parsedAttributes !== 'object' || Array.isArray(parsedAttributes)) throw new Error('not an object');
             } catch {
               errors.push({ index: i, reason: 'attributes must be a valid JSON object', data: product });
               continue;
@@ -286,12 +400,16 @@ router.post(
           const parsedControlledSubstance = controlled_substance === true || controlled_substance === 'true';
           const parsedIsBundle = is_bundle === true || is_bundle === 'true';
           const parsedVariantOf = variant_of !== undefined && variant_of !== null && variant_of !== '' ? String(variant_of) : null;
-          const parsedSupplierId = supplier_id !== undefined && supplier_id !== null && supplier_id !== '' ? String(supplier_id) : null;
           const parsedSku = sku !== undefined && sku !== null && sku !== '' ? String(sku).trim() : null;
           const parsedBarcode = barcode !== undefined && barcode !== null && barcode !== '' ? String(barcode).trim() : null;
           const parsedUnit = unit !== undefined && unit !== null && unit !== '' ? String(unit) : 'pcs';
           const parsedManufacturer = manufacturer !== undefined && manufacturer !== null && manufacturer !== '' ? String(manufacturer) : null;
           const parsedStorageCondition = storage_condition !== undefined && storage_condition !== null && storage_condition !== '' ? String(storage_condition) : null;
+          const parsedTaxRate = tax_rate !== undefined && tax_rate !== null && tax_rate !== '' ? Number(tax_rate) : 0;
+          if (!Number.isFinite(parsedTaxRate) || parsedTaxRate < 0 || parsedTaxRate > 100) {
+            errors.push({ index: i, reason: 'tax_rate must be between 0 and 100', data: product });
+            continue;
+          }
 
           const prodStatus = status !== undefined && status !== null && status !== '' ? String(status) : 'active';
           const validStatuses = ['active', 'sold_out', 'draft', 'archived'];
@@ -305,8 +423,8 @@ router.post(
             `INSERT INTO products
                (seller_id, business_id, title, description, price, currency, stock, images, category, tags, status,
                 sku, barcode, unit, cost_price, min_stock, max_stock, expiry_date, batch_number, manufacturer,
-                supplier_id, weight_kg, dimensions_cm, is_prescription, controlled_substance,
-                storage_condition, variant_of, is_bundle, bundle_components, attributes)
+                weight_kg, dimensions_cm, is_prescription, controlled_substance,
+                storage_condition, variant_of, is_bundle, bundle_components, attributes, tax_rate)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30)`,
             [
               req.user!.id,
@@ -329,7 +447,6 @@ router.post(
               parsedExpiryDate,
               batch_number !== undefined && batch_number !== null && batch_number !== '' ? String(batch_number) : null,
               parsedManufacturer,
-              parsedSupplierId,
               parsedWeight,
               parsedDimensions ? JSON.stringify(parsedDimensions) : null,
               parsedIsPrescription,
@@ -339,6 +456,7 @@ router.post(
               parsedIsBundle,
               parsedBundleComponents ? JSON.stringify(parsedBundleComponents) : null,
               parsedAttributes ? JSON.stringify(parsedAttributes) : null,
+              parsedTaxRate,
             ],
           );
 

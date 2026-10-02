@@ -24,6 +24,7 @@
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./pool');
+const { assertSafeDevSeed } = require('./operationSafety');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const pick  = arr => arr[Math.floor(Math.random() * arr.length)];
@@ -279,6 +280,7 @@ function buildSections(category, businessName) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function seed() {
+  assertSafeDevSeed();
   const client = await pool.connect();
   console.log('\n🏪 Nodbusiness Showroom + Product Seed\n');
   console.log('Creates: 50 showrooms, 200+ products, business subscriptions\n');
@@ -522,10 +524,7 @@ async function seed() {
     console.log('  Frontend:  https://nodbusiness.vercel.app/showrooms');
     console.log('  Marketplace: https://nodbusiness.vercel.app/marketplace');
     console.log('');
-    console.log('Login as any seed user:');
-    console.log('  Password: Test1234!');
-    console.log('  Email pattern: firstname.lastname0@nodbusiness.test');
-    console.log('  e.g. abebe.girma0@nodbusiness.test / Test1234!');
+    console.log('Seed users use the TEST_ACCOUNT_PASSWORD supplied to the guarded local seed command.');
     console.log('════════════════════════════════════════\n');
 
   } catch (err) {

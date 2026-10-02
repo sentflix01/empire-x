@@ -2,7 +2,9 @@
 
 > How the system handles growth from 100 to 10 million users.
 > **Last updated:** September 2026
-> **Stack:** Oracle Cloud Johannesburg + Coolify v4 · Cloudflare Pages · Supabase · Upstash Redis · Cloudflare R2
+> **Stack:** Render (backend) · Vercel (frontend) · Supabase · Upstash Redis · Cloudflare R2
+>
+> **Note:** This plan was originally written for Oracle Cloud + Coolify. The current compute stack is Render + Vercel. References to Oracle VM, Coolify, and Hetzner describe migration paths for later scale stages — not the current setup.
 
 ---
 
@@ -17,9 +19,9 @@
    ┌────┴────┐
    │         │
    ▼         ▼
-[CF Pages] [Oracle Cloud Johannesburg — ARM A1 2OCPU/12GB]
+[Vercel  ] [Render — backend Node.js service]
 [Next.js  ]         │
-[Static   ]   [Coolify v4 — container management]
+[Static   ]   [Express + Socket.IO + BullMQ]
 [SPA      ]         │
                     ▼
          [Node.js + Express + Socket.IO]
@@ -35,8 +37,8 @@
 ```
 
 **What works at this scale:**
-- Oracle VM 2 OCPU / 12 GB ARM handles ~500–2,000 DAU comfortably
-- Coolify provides zero-downtime deploys via Docker HEALTHCHECK
+- Render handles ~500–2,000 DAU comfortably on free/starter tier
+- Render provides zero-downtime deploys with health checks
 - Cloudflare's Nairobi PoP serves static assets to Ethiopia in ~20ms
 - Supabase free tier is sufficient for months at low user counts
 - Upstash Redis activates BullMQ, rate limiting, caching, feature flags
@@ -54,7 +56,7 @@
 ### Step 1: Activate R2 Storage (Immediate — required before launch)
 
 ```bash
-# Add to Coolify env vars:
+# Add to Render environment variables:
 R2_ACCOUNT_ID=your_id
 R2_ACCESS_KEY_ID=your_key
 R2_SECRET_ACCESS_KEY=your_secret
@@ -64,12 +66,12 @@ R2_PUBLIC_URL=https://pub-xxx.r2.dev
 
 `@aws-sdk/client-s3` is already installed. The upload middleware detects R2 env vars automatically.
 
-**Result:** Uploads persist across Coolify deploys. Images served from Cloudflare CDN globally including Nairobi PoP.
+**Result:** Uploads persist across Render deploys. Images served from Cloudflare CDN globally.
 
 ### Step 2: Activate Upstash Redis (Immediate — required before launch)
 
 ```bash
-# Add to Coolify env vars:
+# Add to Render environment variables:
 REDIS_URL=rediss://default:token@host.upstash.io:6380
 ```
 
@@ -88,9 +90,8 @@ Redis is already integrated in `lib/redis.ts`. Adding `REDIS_URL` activates:
 **Trigger:** Oracle VM CPU > 60% sustained for 30 minutes
 
 ```bash
-# Provision Hetzner CAX21 (€8/month — 4 vCPU ARM, 8 GB RAM)
-# Install Coolify on Hetzner
-# Deploy backend to Hetzner Coolify (same GitHub repo, same env vars)
+# Provision Hetzner CAX21 (€8/month — 4 vCPU ARM, 8 GB RAM) for scale beyond Render
+# Deploy backend to Hetzner (same GitHub repo, same env vars)
 ```
 
 **Required with multiple instances — Socket.IO Redis adapter:**
@@ -176,11 +177,11 @@ nodbusiness-monolith (today)
 
 ### Search at Scale
 
-PostgreSQL `ILIKE` doesn't scale past ~1M rows in a high-traffic environment. Switch to Meilisearch (already self-hosted on Coolify when deployed):
+PostgreSQL `ILIKE` doesn't scale past ~1M rows in a high-traffic environment. Switch to Meilisearch (self-hosted on a Hetzner VM at this scale):
 
 ```
 Meilisearch advantages:
-- Self-hosted on existing Hetzner VM via Coolify one-click — $0 extra cost
+- Self-hosted on existing Hetzner VM — $0 extra cost
 - Indexes: products, users, showrooms, tasks, posts
 - BullMQ sync job after every write (already wired in lib/queue.ts)
 - Response time: < 50ms vs 500ms+ PostgreSQL ILIKE at scale

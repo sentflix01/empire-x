@@ -11,7 +11,6 @@ import BidModal from "@/components/tasks/BidModal";
 import TaskBidsDialog from "@/components/tasks/TaskBidsDialog";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { Skeleton } from '@/components/ui/skeleton';
 import BookmarkButton from '@/components/ui/BookmarkButton';
 
 const TASK_TYPES = {

@@ -6,16 +6,15 @@ import { entities } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
 
 import {
-  ArrowLeft, TrendingUp, ShoppingBag, Eye, Users, BarChart3, Heart,
+  ArrowLeft, TrendingUp, ShoppingBag, Eye, BarChart3, Heart,
   Store, Plus, Pencil, Activity, DollarSign, Package, Download, FileSpreadsheet
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid,
-  LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, Legend
+  BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, AreaChart, Area, PieChart, Pie, Cell, Legend
 } from "recharts";
-import { fromNow, fmtISO } from "@/lib/date";
+import { fromNow } from "@/lib/date";
 import { subDays, isSameDay, format as dfFormat } from "date-fns";
 import { useTranslation } from 'react-i18next';
 import BusinessSwitcher from "@/components/analytics/BusinessSwitcher";
@@ -60,7 +59,7 @@ function BusinessAnalytics() {
     setLoading(false);
   };
 
-  const loadData = async (userId, bizList) => {
+  const loadData = async (userId, _bizList) => {
     const bizId = searchParams.get("business");
     const productFilter = bizId ? { seller_id: userId, business_id: bizId } : { seller_id: userId };
     const [ords, prods, allLikes] = await Promise.all([
@@ -88,7 +87,7 @@ function BusinessAnalytics() {
         setLikes(allLikes);
       });
     }
-  }, [searchParams]);
+  }, [searchParams, profile]);
 
   const handleSelectBusiness = (id) => {
     if (id) router.push(`/business/analytics?business=${id}`);

@@ -26,7 +26,10 @@ import type { Request, Response } from 'express';
 import type { Redis as RedisClient } from 'ioredis';
 import pool from '../db/pool';
 import { runWithDatabaseEnvironment } from '../db/pool';
-import { clearDemoSessionCookie, setDemoSessionCookie, signDemoAccessToken, signDemoSessionCookie } from '../middleware/demoEnvironment';
+import {
+  clearDemoSessionCookie, clearDemoTrack1Cookie, setDemoSessionCookie, setDemoTrack1Cookie,
+  signDemoAccessToken, signDemoSessionCookie, verifyDemoTrack1Cookie, isDemoSessionSecretValid,
+} from '../middleware/demoEnvironment';
 import { sendOtpEmail, sendPasswordResetEmail } from '../utils/mailer';
 import { requireAuth, invalidateUserCache } from '../middleware/auth';
 import { getRedis } from '../lib/redis';
@@ -110,6 +113,36 @@ function signToken(userId: string, res: Response, isDemo = false): string {
     path: '/api/auth',
   });
   return accessToken;
+}
+
+/** Return true only when the refresh cookie belongs to a current real account.
+ * Track 1's shared demo login must not be mistaken for a user's own session. */
+async function hasRealRefreshSession(req: Request): Promise<boolean> {
+  const refreshToken = (req.cookies as Record<string, string | undefined> | undefined)?.refresh_token;
+  if (!refreshToken) return false;
+
+  let payload: jwt.JwtPayload;
+  try {
+    payload = jwt.verify(refreshToken, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+  } catch {
+    return false;
+  }
+  if (payload.type !== 'refresh' || payload.demo === true || typeof payload.sub !== 'string') return false;
+
+  try {
+    // Track 2 requests are in the demo DB context; validate the retained
+    // refresh session against the real users table before offering a return.
+    const result = await runWithDatabaseEnvironment({ environment: 'real' }, () =>
+      pool.query<{ is_demo: boolean; is_seed: boolean; is_banned: boolean }>(
+        'SELECT is_demo, is_seed, is_banned FROM users WHERE id = $1',
+        [payload.sub],
+      ),
+    );
+    const user = result.rows[0];
+    return Boolean(user && !user.is_demo && !user.is_seed && !user.is_banned);
+  } catch {
+    return false;
+  }
 }
 
 async function revokeToken(jti: string, expiresAt: number): Promise<void> {
@@ -319,7 +352,8 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       [user.id],
     );
 
-    const token = signToken(user.id, res);
+    const isDemo = Boolean(banCheck[0]?.is_demo || banCheck[0]?.is_seed);
+    const token = signToken(user.id, res, isDemo);
     res.json({ access_token: token });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Verify OTP error');
@@ -397,23 +431,26 @@ async function createDemoSession(res: Response): Promise<{ userId: string; sessi
 router.post('/demo', async (req: Request, res: Response) => {
   try {
     // ── Track 2: full sandbox with separate DB and demo_session cookie ────
-    if (
-      process.env.DEMO_ENABLED === 'true' &&
-      process.env.DEMO_DATABASE_URL &&
-      process.env.DEMO_SESSION_SECRET &&
-      process.env.DEMO_SESSION_SECRET !== process.env.JWT_SECRET
-    ) {
+    if (process.env.DEMO_ENABLED === 'true') {
+      if (!process.env.DEMO_DATABASE_URL || !isDemoSessionSecretValid()) {
+        res.status(503).json({
+          error: 'The isolated demo sandbox is enabled but its database or signing secret is not configured safely.',
+          code: 'DEMO_CONFIGURATION_INVALID',
+        });
+        return;
+      }
       const session = req.demoSession
         ? { userId: req.demoSession.userId, sessionId: req.demoSession.id, expiresAt: req.demoSession.expiresAt }
         : await createDemoSession(res);
       const sessionCookie = signDemoSessionCookie(session.sessionId, session.userId, session.expiresAt);
+      clearDemoTrack1Cookie(res);
       setDemoSessionCookie(res, sessionCookie, session.expiresAt);
       res.json({
         access_token: signDemoAccessToken(session.userId, session.sessionId),
         demo: true,
         track: 2,
         expires_at: session.expiresAt.toISOString(),
-        return_to_real: Boolean((req.cookies as Record<string, string | undefined> | undefined)?.refresh_token),
+        return_to_real: await hasRealRefreshSession(req),
       });
       return;
     }
@@ -443,7 +480,11 @@ router.post('/demo', async (req: Request, res: Response) => {
       return;
     }
 
-    const accessToken = signToken(demoUser.id, res, /* isDemo= */ true);
+    // Do not replace a signed-in user's real refresh cookie with the shared
+    // demo account's refresh token. The separate signed selector keeps this
+    // demo identity reload-safe while preserving an explicit path back.
+    setDemoTrack1Cookie(res, demoUser.id);
+    const accessToken = signAccessToken(demoUser.id, /* isDemo= */ true);
     logger.debug({ userId: demoUser.id }, 'Track 1 demo sign-in');
     res.json({
       access_token: accessToken,
@@ -459,15 +500,17 @@ router.post('/demo', async (req: Request, res: Response) => {
 
 router.post('/demo/exit', async (req: Request, res: Response) => {
   if (!req.demoSession) {
-    const returnToReal = Boolean((req.cookies as Record<string, string | undefined> | undefined)?.refresh_token);
+    const returnToReal = await hasRealRefreshSession(req);
     clearDemoSessionCookie(res);
+    clearDemoTrack1Cookie(res);
     res.json({ success: true, return_to_real: returnToReal });
     return;
   }
   try {
     await pool.query("UPDATE demo_sessions SET status = 'ended', ended_at = NOW() WHERE id = $1 AND status = 'active'", [req.demoSession.id]);
-    const returnToReal = Boolean((req.cookies as Record<string, string | undefined> | undefined)?.refresh_token);
+    const returnToReal = await hasRealRefreshSession(req);
     clearDemoSessionCookie(res);
+    clearDemoTrack1Cookie(res);
     res.json({ success: true, return_to_real: returnToReal });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Demo exit failed');
@@ -632,7 +675,7 @@ router.post('/login', async (req: Request, res: Response) => {
       return;
     }
 
-    const token = signToken(user.id, res);
+    const token = signToken(user.id, res, Boolean(user.is_demo || user.is_seed));
     res.json({ access_token: token, onboarding_mode: user.onboarding_mode ?? null, is_demo: user.is_demo ?? false });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Login error');
@@ -763,11 +806,11 @@ router.post('/google', async (req: Request, res: Response) => {
       return;
     }
 
-    const token = signToken(user.id, res);
+    const token = signToken(user.id, res, Boolean(banCheck[0]?.is_demo || banCheck[0]?.is_seed));
     const mode = (await pool.query<{ onboarding_mode: 'demo' | 'real' | null }>(
       'SELECT onboarding_mode FROM users WHERE id = $1', [user.id],
     )).rows[0]?.onboarding_mode ?? null;
-    res.json({ access_token: token, onboarding_mode: mode });
+    res.json({ access_token: token, onboarding_mode: mode, is_demo: Boolean(banCheck[0]?.is_demo || banCheck[0]?.is_seed) });
   } catch (err) {
     logger.error({ err: (err as Error).message, stack: (err as Error).stack?.split('\n').slice(0,3).join(' | ') }, 'Google auth error — DB or unexpected failure');
     apiError.serverError(res, 'Google sign-in is temporarily unavailable. Please try again.');
@@ -801,7 +844,14 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
       res.status(404).json({ error: 'Not found' });
       return;
     }
-    res.json(rows[0]);
+    res.json({
+      ...rows[0],
+      // The HttpOnly cookie is intentionally invisible to the browser. Expose
+      // only the active environment state needed to render the correct UI.
+      demo_track: req.demoSession ? 2 : (rows[0].is_demo ? 1 : null),
+      demo_session_active: Boolean(req.demoSession),
+      demo_expires_at: req.demoSession?.expiresAt.toISOString() ?? null,
+    });
   } catch (err) {
     logger.error({ err }, 'Me error');
     apiError.serverError(res, 'Failed to fetch user');
@@ -965,6 +1015,23 @@ router.post('/refresh', async (req: Request, res: Response) => {
     res.json({ access_token: signDemoAccessToken(req.demoSession.userId, req.demoSession.id), demo: true });
     return;
   }
+  const demoTrack1Token = (req.cookies as Record<string, string | undefined> | undefined)?.demo_track1;
+  if (demoTrack1Token) {
+    try {
+      const demoUserId = verifyDemoTrack1Cookie(demoTrack1Token);
+      if (process.env.DEMO_ENABLED !== 'true') {
+        const { rows } = await pool.query<{ id: string; is_banned: boolean; is_demo: boolean; is_seed: boolean }>(
+          'SELECT id, is_banned, is_demo, is_seed FROM users WHERE id = $1',
+          [demoUserId],
+        );
+        if (rows[0] && !rows[0].is_banned && rows[0].is_demo && !rows[0].is_seed) {
+          res.json({ access_token: signAccessToken(rows[0].id, true), demo: true, track: 1 });
+          return;
+        }
+      }
+    } catch { /* stale selector: clear it and try the real refresh session */ }
+    clearDemoTrack1Cookie(res);
+  }
   const refreshToken = (req.cookies as Record<string, string | undefined>)?.refresh_token;
   if (!refreshToken) {
     res.status(401).json({ error: 'No refresh token' });
@@ -997,7 +1064,21 @@ router.post('/refresh', async (req: Request, res: Response) => {
     return;
   }
 
-  if (payload.demo === true || rows[0].is_demo || rows[0].is_seed) {
+  const demoAccount = Boolean(rows[0].is_demo || rows[0].is_seed);
+  if (payload.demo === true) {
+    // Track 1 intentionally uses the built-in demo identity in the shared DB.
+    // Its short-lived access token must remain refreshable across page loads.
+    // Track 2 has a separate session cookie/secret and never refreshes here.
+    if (process.env.DEMO_ENABLED === 'true' || !demoAccount) {
+      res.status(401).json({ error: 'Legacy demo credentials are no longer valid. Start a new demo session.', code: 'DEMO_SESSION_REQUIRED' });
+      return;
+    }
+    const accessToken = signToken(payload.sub as string, res, true);
+    res.json({ access_token: accessToken, demo: true });
+    return;
+  }
+
+  if (demoAccount) {
     res.status(401).json({ error: 'Legacy demo credentials are no longer valid. Start a new demo session.', code: 'DEMO_SESSION_REQUIRED' });
     return;
   }
@@ -1018,6 +1099,7 @@ router.post('/logout', async (req: Request, res: Response) => {
   if (req.demoSession) {
     await pool.query("UPDATE demo_sessions SET status = 'ended', ended_at = NOW() WHERE id = $1 AND status = 'active'", [req.demoSession.id]);
     clearDemoSessionCookie(res);
+    clearDemoTrack1Cookie(res);
     res.clearCookie('refresh_token', {
       httpOnly: true,
       path: '/api/auth',
@@ -1047,6 +1129,7 @@ router.post('/logout', async (req: Request, res: Response) => {
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   });
+  clearDemoTrack1Cookie(res);
   res.json({ success: true });
 });
 
@@ -1078,6 +1161,7 @@ router.post('/logout-all', requireAuth, async (req: Request, res: Response) => {
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   });
+  clearDemoTrack1Cookie(res);
   res.json({ success: true });
 });
 

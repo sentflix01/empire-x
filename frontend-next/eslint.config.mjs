@@ -14,6 +14,7 @@ export default [
       "build/**",
       "coverage/**",
       "test-results/**",
+      ".playwright-tmp/**",
       "next-env.d.ts",
       "**/__mocks__/**",
     ],
@@ -50,6 +51,28 @@ export default [
       "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
       // Empty catch blocks are intentional in many places (swallowed errors)
       "no-empty": "off",
+    },
+  },
+  // Browser service workers and the legacy Tailwind config have their own
+  // runtime globals and should not inherit the Node/React source assumptions.
+  {
+    files: ["public/sw.js"],
+    languageOptions: {
+      globals: {
+        self: "readonly",
+        caches: "readonly",
+        fetch: "readonly",
+        clients: "readonly",
+      },
+    },
+  },
+  {
+    files: ["tailwind.config.js"],
+    languageOptions: {
+      globals: {
+        module: "readonly",
+        require: "readonly",
+      },
     },
   },
 ];

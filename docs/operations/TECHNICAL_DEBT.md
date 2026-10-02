@@ -56,9 +56,9 @@
 
 ### TD-024: Admin password change
 **Status:** Not done — must fix before real users  
-**Problem:** Admin account created with default password `Admin1234!` from `db/create-admin.js`.  
-**Fix:** Log in as admin → Settings → Change password.  
-**Impact:** Security — anyone who reads the docs can log in as admin.
+**Status:** The repository scripts no longer assign or print default admin credentials. `create-admin.js` now creates accounts only on a local development database with explicit unique passwords and refuses to change existing accounts.
+
+**Deployment action:** Provision or reset a production admin through the hosting provider's secure database/authentication procedure. Never run local development account bootstrap scripts against hosted databases.
 
 ---
 

@@ -25,16 +25,27 @@ jobs:
       - name: Check CI result and commit match
         id: check
         run: |
-          echo "CI conclusion : ${{ github.event.workflow_run.conclusion }}"
-          echo "CI head commit : ${{ github.event.workflow_run.head_commit.id }}"
-          echo "Deploy target  : ${{ github.sha }}"
-          if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
-            echo "❌ CI did not pass — blocking deploy."
+          echo "CI event      : $CI_EVENT"
+          echo "CI repository : $CI_REPOSITORY"
+          echo "CI branch     : $CI_BRANCH"
+          echo "CI conclusion : $CI_CONCLUSION"
+          echo "CI head SHA   : $CI_HEAD_SHA"
+          if [ "$CI_EVENT" != "push" ] || \
+             [ "$CI_REPOSITORY" != "$GITHUB_REPOSITORY" ] || \
+             [ "$CI_BRANCH" != "main" ] || \
+             [ "$CI_CONCLUSION" != "success" ]; then
+            echo "❌ CI run is not a successful push from this repository's main branch — blocking deploy."
             echo "proceed=false" >> $GITHUB_OUTPUT
             exit 0
           fi
-          echo "✅ Green CI run accepted for its tested commit."
+          echo "✅ Green CI run from this repository's main push accepted for its tested commit."
           echo "proceed=true" >> $GITHUB_OUTPUT
+        env:
+          CI_EVENT: ${{ github.event.workflow_run.event }}
+          CI_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
+          CI_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          CI_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          CI_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
 
   # ── Detect whether the frontend actually changed ───────────────────────────
   changes:
@@ -95,65 +106,44 @@ jobs:
         working-directory: backend
 
       - name: Verify DB connection
-        id: db_check
-        continue-on-error: true
         run: node scripts/verify-db.js
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Run migrations
-        run: |
-          if [ -z "$DATABASE_URL" ]; then
-            echo "⚠️  DATABASE_URL not set in the 'production' GitHub environment."
-            echo "    → GitHub → Settings → Environments → production → Add DATABASE_URL"
-            echo "    Skipping migrations — deploy will continue."
-            exit 0
-          fi
-          if [ "${{ steps.db_check.outcome }}" = "failure" ]; then
-            echo "⚠️  DB connection check failed — skipping migrations to allow deploy."
-            echo "    Fix DATABASE_URL in GitHub Environments and re-run the workflow."
-            exit 0
-          fi
-          node db/migrate-all.js
+        run: node db/migrate-all.js
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
   # ── Deploy Backend to Render ──────────────────────────────────────────────
-  # Render watches the connected GitHub repo for auto-deploys on push to main.
-  # This job triggers an explicit deploy via the Render deploy hook URL so the
-  # deploy is synchronised with the migration step above.
-  # If RENDER_DEPLOY_HOOK_URL is not set the job prints a notice and exits
-  # cleanly — Render's built-in Git integration will still pick up the push.
+  # Auto-deploy is disabled in render.yaml. This explicit hook deploys the
+  # exact CI-tested commit only after the database migration job succeeds.
   deploy-backend:
     name: Deploy Backend → Render
     needs: [gate, migrate]
-    if: needs.gate.outputs.proceed == 'true' && needs.migrate.result != 'cancelled'
+    if: needs.gate.outputs.proceed == 'true' && needs.migrate.result == 'success'
     runs-on: ubuntu-latest
     environment: production
 
     steps:
       - name: Check Render deploy hook
-        id: hook_check
         run: |
-          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" ]; then
-            echo "has_hook=false" >> $GITHUB_OUTPUT
-            echo "⚠️  RENDER_DEPLOY_HOOK_URL secret is not set."
-            echo "    Render will auto-deploy via its Git integration within 1–2 minutes."
-            echo "    To enable explicit deploys: Render → your service → Settings → Deploy Hook → Copy URL"
-            echo "    Then add RENDER_DEPLOY_HOOK_URL to GitHub Secrets."
-          else
-            echo "has_hook=true" >> $GITHUB_OUTPUT
-            echo "✅ RENDER_DEPLOY_HOOK_URL found — triggering explicit deploy."
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::error::RENDER_DEPLOY_HOOK_URL is required because Render auto-deploy is disabled."
+            exit 1
           fi
+          echo "✅ Render deploy hook is configured."
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
 
       - name: Trigger Render deploy
-        if: steps.hook_check.outputs.has_hook == 'true'
         run: |
           HTTP_STATUS=$(curl -fsSL -o /dev/null -w "%{http_code}" \
             --retry 3 --retry-delay 5 \
-            -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
+            --get --data-urlencode "ref=$DEPLOY_COMMIT" \
+            -X POST "$RENDER_DEPLOY_HOOK_URL")
           echo "Render deploy hook responded with HTTP $HTTP_STATUS"
           if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
             echo "✅ Render accepted the deploy request."
@@ -161,19 +151,15 @@ jobs:
             echo "❌ Render deploy hook returned $HTTP_STATUS — check Render logs."
             exit 1
           fi
-
-      - name: Render auto-deploy notice
-        if: steps.hook_check.outputs.has_hook != 'true'
-        run: |
-          echo "ℹ️  Explicit Render deploy hook skipped."
-          echo "    Render will deploy automatically from the GitHub Git integration."
-          echo "    Check status at: https://dashboard.render.com"
+        env:
+          DEPLOY_COMMIT: ${{ github.event.workflow_run.head_sha }}
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
 
   # ── Deploy Frontend to Vercel ─────────────────────────────────────────────
   deploy-frontend:
     name: Deploy Frontend (Next.js) → Vercel
     needs: [gate, migrate, changes]
-    if: needs.gate.outputs.proceed == 'true' && needs.migrate.result != 'cancelled' && needs.changes.outputs.frontend == 'true'
+    if: needs.gate.outputs.proceed == 'true' && needs.migrate.result == 'success' && needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 15
@@ -192,6 +178,13 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
+      # Explicitly link this source directory to the sole Vercel project.
+      # Without this step, a fresh CI checkout has no .vercel/project.json and
+      # `vercel pull --yes` can infer a project from the directory name.
+      - name: Link the nodbusiness Vercel project
+        run: vercel link --yes --project prj_ah82N44ivm8dp4SlWN3qgdXSdiot --scope sentflixs-projects --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: frontend-next
+
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: frontend-next
@@ -205,7 +198,7 @@ jobs:
         run: |
           for attempt in 1 2; do
             echo "Submitting Vercel deployment (attempt $attempt of 2)..."
-            if vercel deploy --prebuilt --prod --yes --no-wait --token=${{ secrets.VERCEL_TOKEN }}; then
+            if vercel deploy --prebuilt --prod --yes --token=${{ secrets.VERCEL_TOKEN }}; then
               echo "✅ Vercel accepted the deployment request."
               exit 0
             fi

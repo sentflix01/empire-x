@@ -19,11 +19,11 @@ Newly introduced as part of recent development; see source and git history for t
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/subscriptions/plans` | public | 67 |
-| `GET` | `/api/subscriptions/my` | auth | 84 |
-| `POST` | `/api/subscriptions/create` | auth | 113 |
-| `POST` | `/api/subscriptions/cancel` | auth | 157 |
-| `POST` | `/api/subscriptions/webhook` | public | 196 |
+| `GET` | `/api/subscriptions/plans` | public | 68 |
+| `GET` | `/api/subscriptions/my` | auth | 85 |
+| `POST` | `/api/subscriptions/create` | auth | 114 |
+| `POST` | `/api/subscriptions/cancel` | auth | 158 |
+| `POST` | `/api/subscriptions/webhook` | public | 197 |
 
 ## 4. What does it touch?
 

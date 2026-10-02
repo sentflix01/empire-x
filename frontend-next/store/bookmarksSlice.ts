@@ -85,17 +85,14 @@ export const createBookmarksSlice: StateCreator<BookmarksSlice, [], [], Bookmark
     const snapshot = get().savedIds;
 
     // Optimistic update: add or remove
-    let newSavedIds = snapshot;
-    if (Object.prototype.hasOwnProperty.call(snapshot, targetId)) {
-      newSavedIds = withoutKey(snapshot, targetId);
-    } else {
-      newSavedIds = withKey(snapshot, targetId, {
+    const newSavedIds = Object.prototype.hasOwnProperty.call(snapshot, targetId)
+      ? withoutKey(snapshot, targetId)
+      : withKey(snapshot, targetId, {
         target_id: targetId,
         target_type: targetType,
         title: itemData?.title,
         thumbnailUrl: itemData?.thumbnailUrl,
       });
-    }
     set({ savedIds: newSavedIds, error: null });
 
     try {

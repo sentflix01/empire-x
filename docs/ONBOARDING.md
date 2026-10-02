@@ -53,15 +53,13 @@ cp backend/.env.example backend/.env
 #   JWT_SECRET=any-long-random-string-for-local-dev
 #   NODE_ENV=development
 
-# 3. Run migrations against Supabase
+# 3. Run migrations against Supabase (keep TLS certificate verification enabled)
 cd backend
 npm install
-NODE_TLS_REJECT_UNAUTHORIZED=0 node db/migrate-all.js
+node db/migrate-all.js
 
-# 4. Create admin + test accounts
-NODE_TLS_REJECT_UNAUTHORIZED=0 node db/create-admin.js
-# → admin@nodbusiness.app / Admin1234!
-# → test@nodbusiness.app / Test1234!
+# 4. Provision production admin access through your hosting provider's secure
+#    account procedure. Do not use local development account scripts on Supabase.
 
 # 5. Start backend
 npm run dev

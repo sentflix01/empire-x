@@ -2,16 +2,16 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 import { useRealMode } from "@/lib/RealModeContext";
-import { Search, Users, Radio, User as UserIcon, MessageCircle, Check, CheckCheck, Edit } from "lucide-react";
-import { fmtTime, fmtISO } from "@/lib/date";
+import { Search, Users, Radio, User as UserIcon, MessageCircle, CheckCheck } from "lucide-react";
+import { fmtTime } from "@/lib/date";
 import { parseISO, isToday, isYesterday, isAfter, subDays, format as dfFormat } from "date-fns";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
-import { formatLastSeen, isUserOnline } from "@/lib/presence";
+import {  isUserOnline } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
 import { getSocket, connectSocket } from "@/lib/socket";
 import { useChatPresence } from "@/lib/useChatPresence";
@@ -31,6 +31,7 @@ function Messages() {
   const [unreadByConv, setUnreadByConv]   = useState<Record<string, number>>({});
   const [presence, setPresence]           = useState<Record<string, PresenceData>>({});
   const [typingConvs, setTypingConvs]     = useState<Record<string, boolean>>({});
+  const loadConversationsRef = useRef<((currentUser?: any) => Promise<void>) | null>(null);
 
   useChatPresence(Boolean(user));
 
@@ -48,7 +49,7 @@ function Messages() {
     const socket = getSocket();
 
     const onNewMessage = (msg: any) => {
-      loadConversations();
+      void loadConversationsRef.current?.();
       if (msg?.conversation_id) {
         setUnreadByConv(prev => ({
           ...prev,
@@ -72,7 +73,7 @@ function Messages() {
     socket.on('presence_updated', onPresenceUpdated);
     socket.on('typing_updated', onTyping);
 
-    const interval = setInterval(() => loadConversations(), 60_000);
+    const interval = setInterval(() => { void loadConversationsRef.current?.(); }, 60_000);
     return () => {
       socket.off('new_message', onNewMessage);
       socket.off('presence_updated', onPresenceUpdated);
@@ -133,6 +134,7 @@ function Messages() {
       }
     } catch {} finally { setLoading(false); }
   };
+  loadConversationsRef.current = loadConversations;
 
   const loadContacts = async (u: any) => {
     try {
@@ -143,7 +145,7 @@ function Messages() {
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  const getDisplayName = (conv: any) => {
+  const getDisplayName = useCallback((conv: any) => {
     if (conv.type === "group" || conv.type === "channel")
       return conv.name || (conv.type === "channel" ? "Channel" : "Group");
     try {
@@ -152,7 +154,7 @@ function Messages() {
       const idx   = ids.findIndex((id: string) => String(id) === String(user?.id));
       return names[idx === 0 ? 1 : 0] || names[0] || "Chat";
     } catch { return "Chat"; }
-  };
+  }, [user?.id]);
 
   const getDmAvatarUrl = (conv: any) => {
     if (conv.avatar_url) return conv.avatar_url;
@@ -220,7 +222,7 @@ function Messages() {
       list = list.filter(c => getDisplayName(c).toLowerCase().includes(q));
     }
     return list;
-  }, [conversations, contacts, tab, realMode, search, user]);
+  }, [conversations, contacts, tab, realMode, search, user, getDisplayName]);
 
   const TABS: { id: Tab; label: string; icon?: any }[] = [
     { id: 'all',      label: 'All' },

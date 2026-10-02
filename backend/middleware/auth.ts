@@ -17,7 +17,8 @@
  */
 import jwt from 'jsonwebtoken';
 import type { Request, Response, NextFunction } from 'express';
-import pool from '../db/pool';
+import pool, { getCurrentDatabaseContext } from '../db/pool';
+import { DEMO_SESSION_AUDIENCE } from './demoEnvironment';
 import { getRedis, withoutRedis } from '../lib/redis';
 import logger from '../lib/logger';
 import type { AuthUser } from '../lib/types';
@@ -55,11 +56,13 @@ function localSet<T>(map: Map<string, LocalEntry<T>>, key: string, value: T, ttl
 // ── User cache ────────────────────────────────────────────────────────────────
 
 async function getCachedUser(userId: string, demoAccount = false): Promise<AuthUser | null> {
+  const context = getCurrentDatabaseContext();
+  const cacheKey = `${context.environment}:${context.demoSessionId ?? ''}:${userId}`;
   // 1. In-process cache (no Redis round-trip)
-  const localHit = localGet(localUserCache, userId);
+  const localHit = localGet(localUserCache, cacheKey);
   if (localHit !== undefined) return localHit;
 
-  const redis = demoAccount ? null : getRedis();
+  const redis = demoAccount || context.environment === 'demo' ? null : getRedis();
 
   // 2. Redis cache
   if (redis && !redis.isNoOp) {
@@ -67,7 +70,7 @@ async function getCachedUser(userId: string, demoAccount = false): Promise<AuthU
       const cached = await (redis as RedisClient).get(`user:${userId}`);
       if (cached) {
         const user = JSON.parse(cached) as AuthUser;
-        localSet(localUserCache, userId, user, USER_LOCAL_TTL);
+        localSet(localUserCache, cacheKey, user, USER_LOCAL_TTL);
         return user;
       }
     } catch (err) {
@@ -82,7 +85,7 @@ async function getCachedUser(userId: string, demoAccount = false): Promise<AuthU
   );
   const user = rows[0] ?? null;
 
-  localSet(localUserCache, userId, user, USER_LOCAL_TTL);
+  localSet(localUserCache, cacheKey, user, USER_LOCAL_TTL);
 
   if (user && !user.is_demo && redis && !redis.isNoOp) {
     (redis as RedisClient)
@@ -96,8 +99,11 @@ async function getCachedUser(userId: string, demoAccount = false): Promise<AuthU
 }
 
 export async function invalidateUserCache(userId: string): Promise<void> {
+  const context = getCurrentDatabaseContext();
   // Always evict from in-process cache immediately
-  localUserCache.delete(userId);
+  localUserCache.delete(`${context.environment}:${context.demoSessionId ?? ''}:${userId}`);
+
+  if (context.environment === 'demo') return;
 
   const redis = getRedis();
   if (redis.isNoOp) return;
@@ -158,8 +164,22 @@ async function isTokenRevoked(
  * them as Bearer credentials would turn a leaked refresh cookie into a
  * week-long session, defeating the 15-minute access-token design.
  */
-function verifyAccessToken(token: string): jwt.JwtPayload {
-  const payload = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+function verifyAccessToken(
+  token: string,
+  demoSession?: { id: string; userId: string },
+): jwt.JwtPayload {
+  let payload: jwt.JwtPayload;
+  if (demoSession) {
+    const secret = process.env.DEMO_SESSION_SECRET;
+    if (!secret || secret === process.env.JWT_SECRET) throw new jwt.JsonWebTokenError('invalid demo secret');
+    payload = jwt.verify(token, secret, { audience: DEMO_SESSION_AUDIENCE }) as jwt.JwtPayload;
+    if (payload.environment !== 'demo' || payload.sid !== demoSession.id || payload.sub !== demoSession.userId) {
+      throw new jwt.JsonWebTokenError('demo token does not match the active demo session');
+    }
+  } else {
+    payload = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+    if (payload.environment === 'demo') throw new jwt.JsonWebTokenError('demo token requires an active demo session');
+  }
   if (payload.type !== 'access') {
     throw new jwt.JsonWebTokenError('invalid token type');
   }
@@ -174,14 +194,15 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    const payload = verifyAccessToken(header.slice(7));
+    const payload = verifyAccessToken(header.slice(7), req.demoSession);
+    const isDemo = payload.demo === true || Boolean(req.demoSession);
 
-    if (payload.demo !== true && await isTokenRevoked(payload.jti, payload.sub, payload.iat)) {
+    if (!isDemo && await isTokenRevoked(payload.jti, payload.sub, payload.iat)) {
       res.status(401).json({ error: 'Token has been revoked' });
       return;
     }
 
-    const user = await getCachedUser(payload.sub as string, payload.demo === true);
+    const user = await getCachedUser(payload.sub as string, isDemo);
     if (!user) {
       res.status(401).json({ error: 'User not found' });
       return;
@@ -206,18 +227,23 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 export async function optionalAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
+    if (req.demoSession) {
+      withoutRedis(next);
+      return;
+    }
     req.user = null;
     withoutRedis(next);
     return;
   }
   try {
-    const payload = verifyAccessToken(header.slice(7));
-    if (payload.demo !== true && await isTokenRevoked(payload.jti, payload.sub, payload.iat)) {
+    const payload = verifyAccessToken(header.slice(7), req.demoSession);
+    const isDemo = payload.demo === true || Boolean(req.demoSession);
+    if (!isDemo && await isTokenRevoked(payload.jti, payload.sub, payload.iat)) {
       req.user = null;
       withoutRedis(next);
       return;
     }
-    const user = await getCachedUser(payload.sub as string, payload.demo === true);
+    const user = await getCachedUser(payload.sub as string, isDemo);
     req.user = user && !user.is_banned ? user : null;
     if (!req.user?.is_demo) {
       next();

@@ -1,10 +1,10 @@
 'use client';
+import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
-import { TrendingUp, ShoppingBag, Crown, ClipboardList, Users, Loader2, Banknote, Hash } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { TrendingUp, ShoppingBag, Crown, ClipboardList, Users, Banknote, Hash } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import PostCard from "@/components/feed/PostCard";
 import { useAuth } from "@/lib/AuthContext";
@@ -127,7 +127,7 @@ function Explore() {
                 <Link key={s.id} href={`/showrooms/${s.id}`} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow">
                   <div className="h-24 relative bg-gradient-to-br from-amber-100 to-amber-50 overflow-hidden">
                     {(s.cover_image || s.logo_url) ? (
-                      <img loading="lazy"
+                      <SafeImage fill={false} width={800} height={600} loading="lazy"
                         src={s.cover_image || s.logo_url}
                         alt={s.title}
                         className="w-full h-full object-cover"

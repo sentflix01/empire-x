@@ -3,14 +3,12 @@
 import { useRouter } from 'next/navigation';
 import React, { useState } from "react";
 import { entities } from "@/api/entities";
-import { useTranslation } from 'react-i18next';
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, MessageSquare, Banknote } from "lucide-react";
 import { findOrCreateConversation } from "@/lib/messaging";
-import { createNotification } from "@/lib/notifications";
+import { toast } from "sonner";
 
 export default function TaskBidsDialog({ task, user, bids, onClose, onAccepted }) {
   const [processing, setProcessing] = useState("");
@@ -20,23 +18,18 @@ export default function TaskBidsDialog({ task, user, bids, onClose, onAccepted }
 
   const handleAccept = async (bid) => {
     setProcessing(bid.id);
-    await entities.Task.update(task.id, { agent_id: bid.bidder_id, status: "in_progress" });
-    await entities.TaskBid.update(bid.id, { status: "accepted" });
-    const others = bids.filter((b) => b.id !== bid.id && b.status === "pending");
-    if (others.length > 0) {
-      // Reject all other pending bids one by one
-      await Promise.all(others.map((b) => entities.TaskBid.update(b.id, { status: "rejected" })));
+    try {
+      // The backend accepts this bid, assigns the agent and rejects competing
+      // pending bids in one transaction.
+      await entities.TaskBid.update(bid.id, { status: "accepted" });
+      onAccepted?.();
+      onClose();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not accept this bid";
+      toast.error(message);
+    } finally {
+      setProcessing("");
     }
-    await createNotification(
-      bid.bidder_id,
-      "task_update",
-      "Your bid was accepted! 🎉",
-      `Your bid for "${task.title}" was accepted. Contact the requester to get started.`,
-      "/tasks"
-    );
-    setProcessing("");
-    onAccepted?.();
-    onClose();
   };
 
   const handleMessage = async (bid) => {
@@ -109,4 +102,3 @@ export default function TaskBidsDialog({ task, user, bids, onClose, onAccepted }
     </Dialog>
   );
 }
-

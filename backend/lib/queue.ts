@@ -312,6 +312,15 @@ async function deliverWebhook(
   const signature = require('crypto').createHmac('sha256', webhook.secret).update(payloadStr).digest('hex');
 
   try {
+    // Revalidate at delivery time: persisted URLs may predate URL validation,
+    // and DNS can change between webhook creation and this outbound request.
+    const { validateUrl } = require('../services/ssrfValidator') as typeof import('../services/ssrfValidator');
+    const urlCheck = await validateUrl(webhook.url);
+    if (!urlCheck.ok) {
+      logger.warn({ webhookId, reason: urlCheck.error }, 'Webhook delivery blocked by URL safety policy');
+      return;
+    }
+    const signal = (AbortSignal as unknown as { timeout?: (ms: number) => AbortSignal }).timeout?.(10_000);
     const response = await fetch(webhook.url, {
       method: 'POST',
       headers: {
@@ -322,6 +331,8 @@ async function deliverWebhook(
         'User-Agent': 'Nodbusiness-Webhook/1.0',
       },
       body: payloadStr,
+      redirect: 'error',
+      ...(signal ? { signal } : {}),
     });
 
     if (!response.ok) {

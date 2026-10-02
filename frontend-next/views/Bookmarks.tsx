@@ -38,7 +38,7 @@ function Bookmarks() {
     if (Object.keys(savedIds).length === 0) {
       hydrate();
     }
-  }, []);
+  }, [hydrate, savedIds]);
 
   useEffect(() => {
     if (tab === "alerts") loadAlerts();

@@ -16,6 +16,14 @@ const router = Router();
 
 router.get('/:showroomId/:sectionKey', optionalAuth, async (req: Request, res: Response) => {
   const { showroomId, sectionKey } = req.params;
+  if (req.realOnly) {
+    const { rows } = await pool.query(
+      `SELECT s.id FROM showrooms s JOIN users u ON u.id=s.owner_id
+       WHERE s.id=$1 AND u.is_seed=FALSE AND u.is_demo=FALSE`,
+      [showroomId],
+    );
+    if (!rows.length) { res.status(404).json({ error: 'Showroom not found' }); return; }
+  }
   // Rate-limit key MUST come from req.ip (Express applies `trust proxy` and
   // validates the socket peer). Trusting a raw x-forwarded-for header lets
   // clients rotate fake values to bypass the quota entirely.

@@ -12,9 +12,11 @@
 
 # testing
 /coverage
+/.playwright-tmp/
 
 # next.js
 /.next/
+/.next-*/
 /out/
 
 # production

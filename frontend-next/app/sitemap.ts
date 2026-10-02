@@ -19,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const res = await fetch(`${API}/api/showrooms/sitemap-data`, {
       next: { revalidate: 3600 },
+      headers: { 'X-Real-Only': '1' },
     });
     if (res.ok) {
       const showrooms: SitemapShowroom[] = await res.json();

@@ -1,16 +1,16 @@
 'use client';
+import SafeImage from '@/components/ui/SafeImage';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, X, Search, Navigation, Loader2, ShoppingBag } from "lucide-react";
-import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
-import BusinessShowroomFeed from "@/components/feed/BusinessShowroomFeed";
 import ProfilePeek from "@/components/profile/ProfilePeek";
 import { toast } from "sonner";
 import type { MapSearchResult, MapSearchState } from "@/types/map-search";
 import { getMapSearchDisplayState } from "@/types/map-search";
+import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
 
 // Leaflet modules — assigned after dynamic import inside useEffect
 // We CANNOT use require() or static import because Turbopack processes CSS imports at build time
@@ -18,7 +18,6 @@ import { getMapSearchDisplayState } from "@/types/map-search";
 let MapContainer: any, TileLayer: any, Marker: any, Circle: any, useMap: any;
 let MarkerClusterGroup: any;
 let L: any;
-let goldIcon: any, redIcon: any, blueIcon: any, greenIcon: any;
 let leafletLoaded = false;
 
 async function loadLeaflet() {
@@ -58,16 +57,6 @@ async function loadLeaflet() {
     shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
   });
 
-  const makeIcon = (color: string) => new L.Icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
-  });
-
-  goldIcon = makeIcon("gold");
-  redIcon = makeIcon("red");
-  blueIcon = makeIcon("blue");
-  greenIcon = makeIcon("green");
   } catch (error) {
     leafletLoaded = false;
     MapContainer = TileLayer = Marker = Circle = MarkerClusterGroup = L = undefined;
@@ -131,7 +120,7 @@ interface HoverData {
   y: number;
 }
 
-function MarkerHoverCard({ data, onClose }: { data: HoverData; onClose: () => void }) {
+function MarkerHoverCard({ data }: { data: HoverData }) {
   const [posts, setPosts] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -174,7 +163,7 @@ function MarkerHoverCard({ data, onClose }: { data: HoverData; onClose: () => vo
           <div className="w-9 h-9 rounded-xl shrink-0 overflow-hidden flex items-center justify-center text-white font-bold text-sm"
             style={{ background: `linear-gradient(135deg, ${accentColor}cc, ${accentColor})` }}>
             {profile?.avatar_url
-              ? <img loading="lazy" src={profile.avatar_url} alt={`${data.name || 'User'}'s avatar`} className="w-full h-full object-cover" />
+              ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={profile.avatar_url} alt={`${data.name || 'User'}'s avatar`} className="w-full h-full object-cover" />
               : (data.name?.charAt(0) ?? "?")}
           </div>
           <div className="min-w-0 flex-1">
@@ -193,7 +182,7 @@ function MarkerHoverCard({ data, onClose }: { data: HoverData; onClose: () => vo
               const imgs = (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })();
               return (
                 <div key={p.id} className="flex-1 bg-secondary/40 rounded-lg p-1.5 min-w-0">
-                  {imgs[0] && <img loading="lazy" src={imgs[0]} alt={p.title || 'Product image'} className="w-full h-8 object-cover rounded mb-1" />}
+                  {imgs[0] && <SafeImage fill={false} width={800} height={600} loading="lazy" src={imgs[0]} alt={p.title || 'Product image'} className="w-full h-8 object-cover rounded mb-1" />}
                   <p className="text-[9px] font-medium truncate">{p.title}</p>
                   <p className="text-[9px] font-bold" style={{ color: accentColor }}>{p.price?.toLocaleString()} ETB</p>
                 </div>
@@ -235,46 +224,19 @@ function MarkerHoverCard({ data, onClose }: { data: HoverData; onClose: () => vo
 
 function MapFlyTo({ center, zoom }: { center: [number, number]; zoom?: number }) {
   const map = useMap();
+  const [lat, lng] = center;
   useEffect(() => {
     map.flyTo(center, zoom ?? map.getZoom(), { duration: 0.8 });
-  }, [center[0], center[1]]);
+  }, [map, center, zoom, lat, lng]);
   return null;
 }
 
 const DEFAULT_CENTER: [number, number] = [9.005401, 38.763611];
 const RADIUS_OPTIONS = [2, 5, 10, 20, 50];
-
 const NEARBY_CATEGORIES: { value: string; label: string; icon?: any }[] = [
   { value: "", label: "All" },
-  ...BUSINESS_CATEGORIES.map(c => ({ value: c.value, label: c.label, icon: c.icon })),
+  ...BUSINESS_CATEGORIES.map(category => ({ value: category.value, label: category.label, icon: category.icon })),
 ];
-
-// Nearby business card
-function NearbyBusinessCard({ business, currentUser }) {
-  const profile = {
-    user_id: business.owner_id,
-    display_name: business.display_name,
-    avatar_url: business.avatar_url,
-  };
-  return (
-    <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
-      <BusinessShowroomFeed profile={profile} currentUser={currentUser} businesses={[business]} />
-      {business.distance_km != null && (
-        <div className="px-4 pb-3 flex items-center gap-1">
-          <MapPin className="w-3 h-3 text-amber-500" />
-          <span className="text-xs text-muted-foreground">
-            {business.distance_km < 1
-              ? `${Math.round(business.distance_km * 1000)}m away`
-              : `${business.distance_km.toFixed(1)} km away`}
-          </span>
-          {business.district && (
-            <span className="text-xs text-muted-foreground">· {business.district}</span>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // Search result business card
 function SearchResultBusinessCard({ business, query, onOpenProfile }) {
@@ -309,7 +271,7 @@ function SearchResultBusinessCard({ business, query, onOpenProfile }) {
                 <div key={p.id} className="flex items-center gap-2 bg-secondary/40 rounded-xl p-2">
                   <div className="w-9 h-9 rounded-lg bg-secondary/60 overflow-hidden shrink-0">
                     {pImgs[0]
-                      ? <img loading="lazy" src={pImgs[0]} alt={p.title} className="w-full h-full object-cover" />
+                      ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={pImgs[0]} alt={p.title} className="w-full h-full object-cover" />
                       : <ShoppingBag className="w-4 h-4 text-muted-foreground/30 m-auto mt-2.5" />}
                   </div>
                   <div className="min-w-0">
@@ -327,6 +289,11 @@ function SearchResultBusinessCard({ business, query, onOpenProfile }) {
           )}
         </div>
       )}
+      <div className="px-4 pb-4">
+        <button type="button" onClick={onOpenProfile} className="text-xs font-semibold text-primary hover:underline">
+          View business profile
+        </button>
+      </div>
     </div>
   );
 }
@@ -339,7 +306,7 @@ function NearbyPersonCard({ person, onOpenProfile }) {
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-sm">
           {person.avatar_url
-            ? <img loading="lazy" src={person.avatar_url} alt="" className="w-full h-full object-cover" />
+            ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={person.avatar_url} alt="" className="w-full h-full object-cover" />
             : (person.display_name?.charAt(0) ?? "U")}
         </div>
         <div className="flex-1 min-w-0">
@@ -368,12 +335,10 @@ export interface HomeMapTabProps {
 
 export default function HomeMapTab({ user }: HomeMapTabProps) {
   const [leafletReady, setLeafletReady] = useState(false);
-  const [nearbyBusinesses, setNearbyBusinesses] = useState<any[]>([]);
-  const [nearbyLoading, setNearbyLoading] = useState(false);
   const [nearbyError, setNearbyError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
-  const [nearbyCategory, setNearbyCategory] = useState("");
   const [nearbyRadius, setNearbyRadius] = useState(10);
+  const [nearbyCategory, setNearbyCategory] = useState("");
   const locationRequested = useRef(false);
 
   const [searchState, setSearchState] = useState<MapSearchState>({
@@ -390,13 +355,6 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
   const [hoverCard, setHoverCard] = useState<HoverData | null>(null);
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    if (!locationRequested.current) {
-      locationRequested.current = true;
-      requestLocation();
-    }
-  }, []);
-
   // Load Leaflet async — only runs client-side, sets leafletReady when done
   useEffect(() => {
     let cancelled = false;
@@ -406,19 +364,11 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    if (userLocation) {
-      loadNearbyBusinesses(userLocation.lat, userLocation.lon, nearbyCategory, nearbyRadius);
-    }
-  }, [nearbyCategory, nearbyRadius]);
-
-  const requestLocation = () => {
-    setNearbyLoading(true);
+  const requestLocation = useCallback(() => {
     setNearbyError(null);
     setLocating(true);
     if (!navigator.geolocation) {
       setNearbyError("Location not supported by your browser.");
-      setNearbyLoading(false);
       setLocating(false);
       return;
     }
@@ -427,7 +377,6 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
         const loc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
         setUserLocation(loc);
         setMapCenter([loc.lat, loc.lon]);
-        loadNearbyBusinesses(loc.lat, loc.lon, nearbyCategory);
         setLocating(false);
         toast.success("Location found!");
       },
@@ -435,26 +384,19 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
         const loc = { lat: 9.0192, lon: 38.7525 };
         setUserLocation(loc);
         setMapCenter([loc.lat, loc.lon]);
-        loadNearbyBusinesses(loc.lat, loc.lon, nearbyCategory);
         setLocating(false);
         setNearbyError("Unable to detect location. Please enable location access.");
       },
       { timeout: 8000 }
     );
-  };
+  }, []);
 
-  const loadNearbyBusinesses = async (lat, lon, category = "", radius = nearbyRadius) => {
-    setNearbyLoading(true);
-    try {
-      const params = new URLSearchParams({ lat: String(lat), lon: String(lon), radius_km: String(radius) });
-      if (category) params.append("category", category);
-      const res = await client.get(`/api/maps/nearby/businesses?${params}`);
-      setNearbyBusinesses(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      setNearbyError("Failed to load nearby businesses.");
+  useEffect(() => {
+    if (!locationRequested.current) {
+      locationRequested.current = true;
+      requestLocation();
     }
-    setNearbyLoading(false);
-  };
+  }, [requestLocation]);
 
   const handleProductSearch = useCallback(async (q: string) => {
     const trimmed = q.trim();
@@ -486,7 +428,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
         if (firstGeo) setMapCenter([parseFloat(firstGeo.latitude), parseFloat(firstGeo.longitude)]);
       } else {
         const res = await client.get("/api/maps/nearby/product-search", {
-          params: { lat: userLocation.lat, lon: userLocation.lon, q: trimmed, radius_km: nearbyRadius },
+          params: { lat: userLocation.lat, lon: userLocation.lon, q: trimmed, radius_km: nearbyRadius, category: nearbyCategory },
         });
         const nextResults: MapSearchResult = { ...res.data, searchType: "place" };
         setSearchState({ query: trimmed, results: nextResults, loading: false, searchType: "place" });
@@ -502,7 +444,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
       toast.error("Search failed. Try again.");
       setSearchState({ query: trimmed, results: null, loading: false, searchType: null });
     }
-  }, [userLocation, nearbyRadius]);
+  }, [userLocation, nearbyRadius, nearbyCategory]);
 
   const clearSearch = () => {
     setSearchState({ query: "", results: null, loading: false, searchType: null });
@@ -755,7 +697,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
 
         {/* Hover card */}
         <AnimatePresence>
-          {hoverCard && <MarkerHoverCard data={hoverCard} onClose={() => setHoverCard(null)} />}
+          {hoverCard && <MarkerHoverCard data={hoverCard} />}
         </AnimatePresence>
 
         {/* ── Search Results Summary ── */}
@@ -847,8 +789,3 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
     </AnimatePresence>
   );
 }
-
-
-
-
-

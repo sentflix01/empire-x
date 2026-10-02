@@ -18,11 +18,11 @@ Job board: job posting CRUD, application submission with resume links, applicant
 | `GET` | `/api/jobs/` | optional | 9 |
 | `GET` | `/api/jobs/:id` | optional | 20 |
 | `POST` | `/api/jobs/` | auth | 28 |
-| `PUT` | `/api/jobs/:id` | auth | 36 |
-| `DELETE` | `/api/jobs/:id` | auth | 45 |
-| `POST` | `/api/jobs/:id/apply` | auth | 55 |
-| `GET` | `/api/jobs/:id/applications` | auth | 70 |
-| `PUT` | `/api/jobs/applications/:id` | auth | 83 |
+| `PUT` | `/api/jobs/:id` | auth | 37 |
+| `DELETE` | `/api/jobs/:id` | auth | 48 |
+| `POST` | `/api/jobs/:id/apply` | auth | 58 |
+| `GET` | `/api/jobs/:id/applications` | auth | 73 |
+| `PUT` | `/api/jobs/applications/:id` | auth | 86 |
 
 ## 4. What does it touch?
 

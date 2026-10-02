@@ -1,11 +1,10 @@
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
-import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, QrCode, Crown, X, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -128,7 +127,6 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, onClos
 }
 
 function ShowroomView() {
-  const { t } = useTranslation();
   const params = useParams();
   const id = params.id;
   const slugParam = params.slug;
@@ -142,11 +140,7 @@ function ShowroomView() {
   const [purchaseItem, setPurchaseItem] = useState(null);
   const [quoteItem, setQuoteItem] = useState<{ name: string; desc?: string } | null>(null);
 
-  useEffect(() => {
-    loadShowroom();
-  }, [id, slugParam]);
-
-  const loadShowroom = async () => {
+  const loadShowroom = useCallback(async () => {
     setLoading(true);
     try {
       const s = slugParam
@@ -159,7 +153,11 @@ function ShowroomView() {
       setShowroom(null);
     }
     setLoading(false);
-  };
+  }, [id, slugParam]);
+
+  useEffect(() => {
+    loadShowroom();
+  }, [loadShowroom]);
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
   if (!showroom) return <UnavailableNotice title="Showroom not found" message="This mini-website doesn't exist or has been removed." />;

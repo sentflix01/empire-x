@@ -9,11 +9,13 @@ import type { Request, Response } from 'express';
 import logger from '../lib/logger';
 import pool from '../db/pool';
 import { requireAuth } from '../middleware/auth';
+import { isStripeConfigured, stripeClientFacade } from '../lib/stripeClient';
 import * as apiError from '../lib/apiError';
 import { getPrimaryFrontendUrl } from '../lib/frontendUrl';
-import { isEnabled } from '../lib/featureFlags';
 import { recordEvent } from '../lib/telemetry';
 import { auditLog } from '../lib/auditLogger';
+import { requireIsolatedPaymentEnvironment } from '../middleware/demoEnvironment';
+import { requireFeatureFlag } from '../middleware/featureFlag';
 
 const router = Router();
 
@@ -103,7 +105,7 @@ router.post('/topup', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-router.post('/withdraw', requireAuth, async (req: Request, res: Response) => {
+router.post('/withdraw', requireAuth, requireIsolatedPaymentEnvironment, async (req: Request, res: Response) => {
   const { amount, bank_name, account_number } = req.body as Record<string,unknown>;
   if (!amount || Number(amount) <= 0) { apiError.validationError(res, 'Valid amount is required'); return; }
   try {
@@ -144,10 +146,11 @@ router.post('/refund', requireAuth, async (req: Request, res: Response) => {
 
 // ── Chapa Top-up ──────────────────────────────────────────────────────────────
 
-router.post('/topup/chapa', requireAuth, async (req: Request, res: Response) => {
+router.post('/topup/chapa', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('chapa_payments', 'Chapa payments temporarily disabled'), async (req: Request, res: Response) => {
   const CHAPA_SECRET = process.env.CHAPA_SECRET_KEY ?? null;
   const SANDBOX = CHAPA_SECRET === 'SANDBOX';
   if (!CHAPA_SECRET) { res.status(503).json({ error: 'Chapa payments not configured. Add CHAPA_SECRET_KEY.' }); return; }
+  if (SANDBOX && process.env.NODE_ENV === 'production') { res.status(503).json({ error: 'Chapa sandbox is disabled in production' }); return; }
   const { amount, email, first_name, last_name, phone_number } = req.body as Record<string,unknown>;
   if (!amount || Number(amount) <= 0) { apiError.validationError(res, 'Valid amount is required'); return; }
   const tx_ref = `empx-wallet-${req.user!.id.slice(0,8)}-${Date.now()}`;
@@ -200,6 +203,7 @@ router.get('/topup/chapa/verify/:tx_ref', async (req: Request, res: Response) =>
   const { tx_ref } = req.params;
   const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3002';
   if (!CHAPA_SECRET) { res.status(503).json({ error: 'Chapa not configured' }); return; }
+  if (SANDBOX && process.env.NODE_ENV === 'production') { res.status(404).json({ error: 'Not found' }); return; }
   try {
     let paidAmount: number | null = null;
     if (!SANDBOX) {
@@ -261,12 +265,9 @@ router.get('/topup/chapa/verify/:tx_ref', async (req: Request, res: Response) =>
 
 // ── Stripe Top-up ─────────────────────────────────────────────────────────────
 
-router.post('/topup/stripe', requireAuth, async (req: Request, res: Response) => {
-  const stripe = process.env.STRIPE_SECRET_KEY ? require('stripe')(process.env.STRIPE_SECRET_KEY) as Record<string,unknown> : null;
-  if (!stripe) { res.status(503).json({ error: 'Stripe not configured' }); return; }
-  try {
-    if (!(await isEnabled('stripe_payments'))) { res.status(503).json({ error: 'Stripe payments temporarily disabled' }); return; }
-  } catch { /* fall through */ }
+router.post('/topup/stripe', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('stripe_payments', 'Stripe payments temporarily disabled'), async (req: Request, res: Response) => {
+  const stripe = stripeClientFacade() as Record<string,unknown>;
+  if (!isStripeConfigured()) { res.status(503).json({ error: 'Stripe is not configured for this environment' }); return; }
   const { amount } = req.body as { amount?: number };
   if (!amount || parseFloat(String(amount))<=0) { apiError.validationError(res, 'Valid amount is required'); return; }
   const amountEtb = Math.round(parseFloat(String(amount))*100)/100;

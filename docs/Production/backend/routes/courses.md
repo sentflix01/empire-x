@@ -18,11 +18,11 @@ Course marketplace: course/lesson authoring, enrollment (course_enrollments), le
 | `GET` | `/api/courses/` | optional | 9 |
 | `GET` | `/api/courses/:id` | optional | 18 |
 | `POST` | `/api/courses/` | auth | 27 |
-| `PUT` | `/api/courses/:id` | auth | 35 |
-| `POST` | `/api/courses/:id/lessons` | auth | 44 |
-| `POST` | `/api/courses/:id/enroll` | auth | 59 |
-| `GET` | `/api/courses/:id/enrolled` | auth | 72 |
-| `PUT` | `/api/courses/:id/progress` | auth | 79 |
+| `PUT` | `/api/courses/:id` | auth | 36 |
+| `POST` | `/api/courses/:id/lessons` | auth | 47 |
+| `POST` | `/api/courses/:id/enroll` | auth | 62 |
+| `GET` | `/api/courses/:id/enrolled` | auth | 75 |
+| `PUT` | `/api/courses/:id/progress` | auth | 82 |
 
 ## 4. What does it touch?
 

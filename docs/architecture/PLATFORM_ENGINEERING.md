@@ -140,8 +140,7 @@ No team needs another team's permission to ship.
 2. Their scale exceeded what existing tools could handle
 3. Chinese government requirements demanded domestic infrastructure
 
-Nodbusiness should use existing global tools (Oracle Cloud + Coolify, Cloudflare Pages, Supabase, Stripe, Upstash) instead
-of building infrastructure. Alibaba's path was forced by geopolitics and extreme scale.
+Nodbusiness uses Render (backend) + Vercel (frontend) + Supabase + Stripe + Upstash instead of building infrastructure.
 
 ---
 
@@ -175,7 +174,7 @@ Never deploy directly to 100% of traffic. Always:
 - Gradually shift more traffic
 - Roll back instantly if errors spike
 
-**Nodbusiness equivalent:** Coolify provides this with health checks + zero-downtime rolling deploys (HEALTHCHECK-driven container swap).
+**Nodbusiness equivalent:** Render provides this with health checks + zero-downtime rolling deploys.
 
 ### 3. Experimentation Culture (Universal)
 
@@ -194,8 +193,8 @@ Every request is traced. Every error is captured. Every metric is dashboarded.
 | What | Facebook | LinkedIn | Amazon | Nodbusiness |
 |---|---|---|---|---|
 | Error tracking | Scuba | Internal | CloudWatch | **Sentry** |
-| Log aggregation | ODS | Kafka | CloudWatch Logs | **Pino → Coolify logs** |
-| Metrics | ODS | Pinot | CloudWatch Metrics | **Coolify metrics** |
+| Log aggregation | ODS | Kafka | CloudWatch Logs | **Pino → Render logs** |
+| Metrics | ODS | Pinot | CloudWatch Metrics | **Render metrics** |
 | Distributed tracing | Internal | OpenTelemetry | X-Ray | **Sentry traces** |
 | Alerts | Internal | PagerDuty | CloudWatch Alarms | **Uptime Kuma + Telegram** |
 
@@ -237,7 +236,7 @@ Every service has:
 - Basic dashboard for North Star metrics
 
 ### Month 6–12 (50K–200K users): Reliability
-- Blue-green deployments (Coolify rolling deploys via HEALTHCHECK)
+- Blue-green deployments (Render rolling deploys)
 - Database read replicas (Supabase Pro plan)
 - CDN for API responses (Cloudflare Workers)
 - Load testing before peak events

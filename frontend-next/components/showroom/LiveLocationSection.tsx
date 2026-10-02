@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { MapPin, Loader2, CheckCircle2, XCircle, RefreshCw, MapPin as MapPinIcon } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { MapPin, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getIO } from '@/lib/socket';
+import { apiFetch } from '@/api/client';
 
 interface LiveLocationSectionProps {
   businessId: string;
@@ -22,7 +23,27 @@ export function LiveLocationSection({ businessId, title = 'Live Location' }: Liv
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
-  const [updating, setUpdating] = useState(false);
+
+  const fetchLocation = useCallback(async () => {
+    try {
+      const res = await apiFetch(`/api/locations/${businessId}`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.available) {
+          setLocation({
+            lat: data.lat,
+            lng: data.lng,
+            label: data.label,
+            updated_at: data.updated_at,
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch location:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [businessId]);
 
   useEffect(() => {
     // Fetch initial location
@@ -63,28 +84,7 @@ export function LiveLocationSection({ businessId, title = 'Live Location' }: Liv
       io.off('connect_error');
       io.emit('leave_business_tracking', businessId);
     };
-  }, [businessId]);
-
-  const fetchLocation = async () => {
-    try {
-      const res = await fetch(`/api/locations/${businessId}`, { credentials: 'include' });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.available) {
-          setLocation({
-            lat: data.lat,
-            lng: data.lng,
-            label: data.label,
-            updated_at: data.updated_at,
-          });
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch location:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [businessId, fetchLocation]);
 
   if (!businessId) {
     return (
@@ -225,7 +225,7 @@ export function LiveLocationSection({ businessId, title = 'Live Location' }: Liv
                     navigator.geolocation.getCurrentPosition(
                       (pos) => {
                         // This would call the API to update location
-                        fetch(`/api/locations/update`, {
+                        apiFetch(`/api/locations/update`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           credentials: 'include',
@@ -257,7 +257,7 @@ export function LiveLocationSection({ businessId, title = 'Live Location' }: Liv
               if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                   (pos) => {
-                    fetch(`/api/locations/update`, {
+                    apiFetch(`/api/locations/update`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       credentials: 'include',

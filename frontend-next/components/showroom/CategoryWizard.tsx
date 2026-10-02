@@ -15,7 +15,6 @@ import {
   Search, ChevronRight, ChevronLeft, Check, Palette, Building2,
   ArrowRight, Loader2, X,
 } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BUSINESS_CATEGORIES, searchCategories, type BusinessCategory } from '@/lib/showroomTaxonomy';
@@ -35,13 +34,6 @@ const BRAND_COLORS = [
 ];
 
 // ── Dynamic icon resolver ─────────────────────────────────────────────────────
-function DynamicIcon({ name, className }: { name: string; className?: string }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Icon = (LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[name];
-  if (!Icon) return <Building2 className={className} />;
-  return <Icon className={className} />;
-}
-
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface CategoryWizardProps {
   onComplete: (data: {

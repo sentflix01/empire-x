@@ -6,7 +6,6 @@ on:
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
-      - 'backend/db/**'
       - '.github/workflows/docs-sync.yml'
       - '.github/workflows/db-migrate-to-supabase.yml'
   pull_request:
@@ -61,7 +60,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U nodbusiness -d nodbusiness_test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5

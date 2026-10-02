@@ -1,22 +1,14 @@
-# backend/db/cleanup-seed-data
+# backend/db/cleanup-seed-data.js
 
-<!-- AUTO-STUB  2026-08-23 — curate narrative below -->
+Backward-compatible entry point for the safe seed cleanup in `clean-seed-data.js`.
+It does not truncate tables or delete real accounts. Dry-run is the default.
 
-## 1. What is this?
+## Destructive execution
 
-**Database layer module.** Newly added module — narrative pending curation.
+Execution requires all of the following:
 
-Size: roughly 110 lines of source.
+1. `NODE_ENV` is not `production`.
+2. `ALLOW_SEED_CLEANUP=1` is explicitly set.
+3. The command includes `--execute` and `--database=<exact database name>`.
 
-## 2. Why does it exist?
-
-Newly introduced as part of recent development; see source and git history for the introducing commit.
-
-## 3. What does it do?
-
-Extracted facts (auto):
-- Lines: ~110
-
-## 4. What does it touch?
-
-**Source:** `backend/db/cleanup-seed-data.js`
+The cleanup runs a single transaction deleting only `users.is_seed = TRUE`; database foreign-key actions clean up dependent rows. It first sets `devops_items.created_by` to NULL for seed accounts because that nullable FK has no delete action. A constraint failure rolls the transaction back.

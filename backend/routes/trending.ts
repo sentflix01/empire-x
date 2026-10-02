@@ -13,11 +13,11 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     const cacheKey = isReal ? 'trending:real' : 'trending:global';
 
     const data = await cached(cacheKey, 300, async () => {
-      const realPostJoin  = isReal ? 'JOIN users _pu ON _pu.id=p.author_id AND _pu.is_seed=FALSE' : '';
-      const realProdWhere = isReal ? `AND seller_id IN (SELECT id FROM users WHERE is_seed=FALSE)` : '';
-      const realShowWhere = isReal ? `AND owner_id  IN (SELECT id FROM users WHERE is_seed=FALSE)` : '';
-      const realTaskWhere = isReal ? `AND requester_id IN (SELECT id FROM users WHERE is_seed=FALSE)` : '';
-      const realUserJoin  = isReal ? 'JOIN users _uu ON _uu.id=up.user_id AND _uu.is_seed=FALSE' : '';
+      const realPostJoin  = isReal ? 'JOIN users _pu ON _pu.id=p.author_id AND _pu.is_seed=FALSE AND _pu.is_demo=FALSE' : '';
+      const realProdWhere = isReal ? `AND seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)` : '';
+      const realShowWhere = isReal ? `AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)` : '';
+      const realTaskWhere = isReal ? `AND requester_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)` : '';
+      const realUserJoin  = isReal ? 'JOIN users _uu ON _uu.id=up.user_id AND _uu.is_seed=FALSE AND _uu.is_demo=FALSE' : '';
 
       const [posts, products, showrooms, tasks, users] = await Promise.all([
         pool.query(

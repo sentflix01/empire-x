@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import client from '@/api/client';
 import { CheckCircle, Package, Loader2, ArrowRight, ShoppingBag } from 'lucide-react';
@@ -17,9 +17,7 @@ interface OrderSummary {
 
 export default function OrderSuccessPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const sessionId = searchParams.get('session_id');
-  const provider  = searchParams.get('provider') || 'stripe';
 
   const [orders, setOrders] = useState<OrderSummary[]>([]);
   const [loading, setLoading] = useState(true);

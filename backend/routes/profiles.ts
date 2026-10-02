@@ -11,6 +11,59 @@ const router = Router();
 
 const COVER_POS_RE = /^\d{1,3}(\.\d+)?% \d{1,3}(\.\d+)?%$/;
 const COVER_POSITION_FIELDS = ['cover_position', 'business_cover_position'] as const;
+const EDITABLE_PROFILE_FIELDS = [
+  'display_name', 'bio', 'avatar_url', 'cover_url', 'profile_type', 'headline', 'location', 'phone',
+  'business_name', 'business_category', 'business_template', 'business_description', 'business_logo_url',
+  'business_cover_url', 'business_sections', 'business_theme_color', 'business_contact_email',
+  'business_contact_phone', 'business_address', 'business_hours', 'skills', 'experience', 'education',
+  'ticker_text', 'ticker_type', 'cover_position', 'business_cover_position', 'social_linkedin',
+  'social_twitter', 'social_instagram', 'social_facebook', 'social_youtube', 'website', 'languages',
+  'business_website', 'business_founded_year', 'business_team_size', 'business_registration_number',
+  'business_type', 'business_social_linkedin', 'business_social_twitter', 'business_social_facebook',
+  'certifications', 'awards', 'services', 'service_areas', 'extra_json', 'business_extra_json',
+  'latitude', 'longitude', 'presence_visibility', 'has_business_profile',
+] as const;
+const PUBLIC_PROFILE_COLUMNS = [
+  'id', 'user_id', 'display_name', 'bio', 'avatar_url', 'cover_url', 'profile_type', 'headline', 'location',
+  'is_verified', 'verification_type', 'follower_count', 'following_count', 'connection_count', 'has_business_profile',
+  'business_name', 'business_category', 'business_template', 'business_description', 'business_logo_url',
+  'business_cover_url', 'business_sections', 'business_theme_color', 'business_contact_email',
+  'business_contact_phone', 'business_address', 'business_hours', 'skills', 'experience', 'education',
+  'ticker_text', 'ticker_type', 'social_linkedin', 'social_twitter', 'social_instagram', 'social_facebook',
+  'social_youtube', 'website', 'languages', 'business_website', 'business_founded_year', 'business_team_size',
+  'business_type', 'business_social_linkedin', 'business_social_twitter', 'business_social_facebook',
+  'certifications', 'awards', 'services', 'service_areas', 'cover_position', 'business_cover_position',
+] as const;
+const PUBLIC_PROFILE_SELECT = PUBLIC_PROFILE_COLUMNS.map((field) => `up.${field}`).join(', ');
+
+function editableProfileFields(body: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(EDITABLE_PROFILE_FIELDS
+    .filter((field) => body[field] !== undefined)
+    .map((field) => [field, body[field]]));
+}
+
+function profileValidationError(body: Record<string, unknown>): string | null {
+  if (body.profile_type !== undefined && !['personal', 'business'].includes(String(body.profile_type))) {
+    return 'profile_type must be personal or business';
+  }
+  if (body.ticker_type !== undefined && !['none', 'contact', 'promo', 'news', 'location', 'custom', 'auto'].includes(String(body.ticker_type))) {
+    return 'Invalid ticker_type';
+  }
+  if (body.presence_visibility !== undefined && !['everyone', 'nobody'].includes(String(body.presence_visibility))) {
+    return 'presence_visibility must be everyone or nobody';
+  }
+  for (const [field, max] of [['latitude', 90], ['longitude', 180]] as const) {
+    if (body[field] === undefined || body[field] === null || body[field] === '') continue;
+    const coordinate = Number(body[field]);
+    if (!Number.isFinite(coordinate) || Math.abs(coordinate) > max) return `${field} is outside its valid range`;
+    body[field] = coordinate;
+  }
+  if (body.display_name !== undefined && (typeof body.display_name !== 'string' || !body.display_name.trim())) {
+    return 'display_name must be a non-empty string';
+  }
+  if (typeof body.display_name === 'string') body.display_name = body.display_name.trim();
+  return null;
+}
 
 function sanitizeCoverPositions(body: Record<string, unknown>): Record<string, unknown> {
   for (const k of COVER_POSITION_FIELDS) {
@@ -37,8 +90,10 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
 
 router.get('/by-user/:userId', optionalAuth, async (req: Request, res: Response) => {
   try {
+    const realFilter = req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
+    const profileSelect = req.user?.id === req.params.userId ? 'up.*' : PUBLIC_PROFILE_SELECT;
     const { rows } = await pool.query(
-      `SELECT up.*, u.is_seed FROM user_profiles up JOIN users u ON u.id = up.user_id WHERE up.user_id = $1`,
+      `SELECT ${profileSelect}, u.is_seed FROM user_profiles up JOIN users u ON u.id = up.user_id WHERE up.user_id = $1 ${realFilter}`,
       [req.params.userId],
     );
     if (!rows.length) { res.status(404).json({ error: 'Profile not found' }); return; }
@@ -62,8 +117,15 @@ router.get('/follows', requireAuth, async (req: Request, res: Response) => {
 
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
+    const realFilter = req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
+    const { rows: ownerRows } = await pool.query(
+      `SELECT up.user_id FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE up.id=$1 ${realFilter}`,
+      [req.params.id],
+    );
+    if (!ownerRows.length) { res.status(404).json({ error: 'Profile not found' }); return; }
+    const profileSelect = req.user?.id === ownerRows[0].user_id ? 'up.*' : PUBLIC_PROFILE_SELECT;
     const { rows } = await pool.query(
-      `SELECT up.*, u.is_seed FROM user_profiles up JOIN users u ON u.id = up.user_id WHERE up.id = $1`,
+      `SELECT ${profileSelect}, u.is_seed FROM user_profiles up JOIN users u ON u.id = up.user_id WHERE up.id = $1 ${realFilter}`,
       [req.params.id],
     );
     if (!rows.length) { res.status(404).json({ error: 'Profile not found' }); return; }
@@ -74,8 +136,9 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
 router.get('/', optionalAuth, async (req: Request, res: Response) => {
   const redis = getRedis();
   const { user_id, profile_type, sort = '-created_at', limit = 50 } = req.query as Record<string, string>;
-  const cacheKey = `cache:profiles:list:${new URLSearchParams({ ...req.query as Record<string, string>, realOnly: req.realOnly ? '1' : '0' }).toString()}`;
-  if (!redis.isNoOp) {
+  const includePrivateFields = !!req.user?.id && user_id === req.user.id;
+  const cacheKey = `cache:profiles:list:v2:${new URLSearchParams({ ...req.query as Record<string, string>, realOnly: req.realOnly ? '1' : '0' }).toString()}`;
+  if (!redis.isNoOp && !includePrivateFields) {
     try {
       const cached = await (redis as RedisClient).get(cacheKey);
       if (cached) { res.set('X-Cache', 'HIT'); res.json(JSON.parse(cached)); return; }
@@ -86,7 +149,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     const values: unknown[] = [];
     if (user_id)      { values.push(user_id);      conditions.push(`up.user_id = $${values.length}`); }
     if (profile_type) { values.push(profile_type); conditions.push(`up.profile_type = $${values.length}`); }
-    if (req.realOnly) conditions.push('u.is_seed = FALSE');
+    if (req.realOnly) conditions.push('u.is_seed = FALSE AND u.is_demo = FALSE');
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const lim = Math.min(parseInt(String(limit), 10) || 50, 500);
     const sortDir = sort.startsWith('-') ? 'DESC' : 'ASC';
@@ -95,12 +158,13 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     const rawCol = sort.replace(/^-/, '');
     const sortCol = SORT_ALLOWLIST.has(rawCol) ? rawCol : 'created_at';
     values.push(lim);
+    const profileSelect = includePrivateFields ? 'up.*' : PUBLIC_PROFILE_SELECT;
     const { rows } = await pool.query(
-      `SELECT up.*, u.is_seed FROM user_profiles up JOIN users u ON u.id = up.user_id
+      `SELECT ${profileSelect}, u.is_seed FROM user_profiles up JOIN users u ON u.id = up.user_id
        ${whereClause} ORDER BY up.${sortCol} ${sortDir} LIMIT $${values.length}`,
       values,
     );
-    if (!redis.isNoOp) (redis as RedisClient).setex(cacheKey, 60, JSON.stringify(rows)).catch(() => undefined);
+    if (!redis.isNoOp && !includePrivateFields) (redis as RedisClient).setex(cacheKey, 60, JSON.stringify(rows)).catch(() => undefined);
     res.set('X-Cache', 'MISS');
     res.json(rows);
   } catch { res.status(500).json({ error: 'Failed to fetch profiles' }); }
@@ -110,7 +174,11 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const existing = await pool.query('SELECT id FROM user_profiles WHERE user_id = $1', [req.user!.id]);
     if (existing.rows.length) { res.status(409).json({ error: 'Profile already exists. Use PUT to update.' }); return; }
-    const profile = await createRecord('user_profiles', { ...(req.body as Record<string, unknown>), user_id: req.user!.id });
+    const safeBody = editableProfileFields(req.body as Record<string, unknown>);
+    const validationError = profileValidationError(safeBody);
+    if (validationError) { res.status(422).json({ error: validationError }); return; }
+    if (!safeBody.display_name) { res.status(400).json({ error: 'display_name is required' }); return; }
+    const profile = await createRecord('user_profiles', { ...safeBody, user_id: req.user!.id });
     await syncUserName(req.user!.id, (req.body as Record<string, unknown>).display_name);
     res.status(201).json(profile);
   } catch (err) {
@@ -122,7 +190,9 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
 router.put('/me/upsert', requireAuth, async (req: Request, res: Response) => {
   try {
     const { rows: existing } = await pool.query('SELECT id FROM user_profiles WHERE user_id = $1', [req.user!.id]);
-    const body = sanitizeCoverPositions({ ...(req.body as Record<string, unknown>) });
+    const body = sanitizeCoverPositions(editableProfileFields(req.body as Record<string, unknown>));
+    const validationError = profileValidationError(body);
+    if (validationError) { res.status(422).json({ error: validationError }); return; }
     let profile;
     if (existing.length) {
       profile = await updateRecord('user_profiles', existing[0].id as string, { ...body, user_id: req.user!.id });
@@ -144,7 +214,11 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     if (existing.user_id !== req.user!.id && req.user!.role !== 'admin') {
       res.status(403).json({ error: 'Forbidden' }); return;
     }
-    const updated = await updateRecord('user_profiles', req.params.id, sanitizeCoverPositions({ ...(req.body as Record<string, unknown>) }));
+    const body = sanitizeCoverPositions(editableProfileFields(req.body as Record<string, unknown>));
+    const validationError = profileValidationError(body);
+    if (validationError) { res.status(422).json({ error: validationError }); return; }
+    if (!Object.keys(body).length) { res.status(400).json({ error: 'No updatable profile fields provided' }); return; }
+    const updated = await updateRecord('user_profiles', req.params.id, body);
     if (!updated) { res.status(404).json({ error: 'Profile not found' }); return; }
     await syncUserName(existing.user_id as string, (req.body as Record<string, unknown>).display_name);
     res.json(updated);

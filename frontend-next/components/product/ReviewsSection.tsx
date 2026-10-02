@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { Star } from "lucide-react";
-import { useTranslation } from 'react-i18next';
 
 import { toast } from "sonner";
 import client from "@/api/client";

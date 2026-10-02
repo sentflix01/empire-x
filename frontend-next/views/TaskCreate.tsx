@@ -2,9 +2,7 @@
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
-import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,7 +24,6 @@ const TASK_TYPES = [
 ];
 
 function TaskCreate() {
-  const { t } = useTranslation();
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [saving, setSaving] = useState(false);

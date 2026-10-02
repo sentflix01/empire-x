@@ -6,7 +6,7 @@
  * These tests verify the new implementation contract.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
@@ -64,11 +64,13 @@ describe('Login — form fields', () => {
 
   it('renders a submit button', () => {
     render(<Login />);
-    // Button text comes from the i18n key which our mock returns verbatim
-    expect(screen.getByRole('button', { name: /auth\.login/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^sign in$/i })).toBeTruthy();
   });
 
   it('calls loginViaEmailPassword with trimmed, lowercased email on submit', async () => {
+    // Keep this test focused on request normalization. Browser redirect
+    // behavior is covered by Playwright and JSDOM cannot perform navigation.
+    vi.mocked(auth.loginViaEmailPassword).mockImplementationOnce(() => new Promise(() => {}));
     render(<Login />);
     fillAndSubmitForm(' Test@Example.com ', 'password123');
 
@@ -124,27 +126,16 @@ describe('Login — Google Sign-In (GIS rendered button)', () => {
     expect((window as any).__googleSignIn).toBeUndefined();
   });
 
-  it('shows "Setting up Google Sign-In…" while GIS script is loading', () => {
-    // GIS not available yet — renderButton returns false every time
+  it('shows the unavailable state when GIS cannot render synchronously', () => {
     mockRenderGoogleSignInButton.mockReturnValue(false);
     render(<Login />);
-    expect(screen.getByText(/setting up google sign.?in/i)).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toMatch(/not configured for this environment/i);
   });
 
-  it('shows "Google Sign-In unavailable" after the 5-second timeout', async () => {
-    vi.useFakeTimers();
+  it('shows the unavailable state immediately when GIS is not configured', () => {
     mockRenderGoogleSignInButton.mockReturnValue(false);
-
-    const { unmount } = render(<Login />);
-    expect(screen.queryByText(/unavailable/i)).toBeNull();
-
-    // Advance past the 5-second retry timeout inside the component
-    vi.advanceTimersByTime(5100);
-    // Flush React's state update queue
-    await Promise.resolve();
-
-    expect(screen.getByText(/google sign.?in unavailable/i)).toBeTruthy();
-    unmount();
+    render(<Login />);
+    expect(screen.getByRole('status').textContent).toMatch(/not configured for this environment/i);
   });
 
   it('does NOT render a plain Google icon button (old implementation gone)', () => {
@@ -188,12 +179,10 @@ describe('Login — Google Sign-In (GIS rendered button)', () => {
     vi.useRealTimers();
 
     expect(capturedOnError).toBeDefined();
-    capturedOnError!(new Error('Google sign-in could not be verified. Ensure the frontend and backend use the same Google OAuth client ID.'));
+    act(() => capturedOnError!(new Error('Google sign-in could not be verified. Ensure the frontend and backend use the same Google OAuth client ID.')));
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/frontend and backend use the same Google OAuth client ID/i),
-      ).toBeTruthy();
+      expect(screen.getByText(/same Google OAuth client ID/i)).toBeTruthy();
     });
   });
 
@@ -212,7 +201,7 @@ describe('Login — Google Sign-In (GIS rendered button)', () => {
     vi.useRealTimers();
 
     expect(capturedOnError).toBeDefined();
-    capturedOnError!(new Error('popup closed'));
+    act(() => capturedOnError!(new Error('popup closed')));
 
     await waitFor(() => {
       expect(screen.getByText(/sign-in popup was closed/i)).toBeTruthy();
@@ -234,10 +223,10 @@ describe('Login — Google Sign-In (GIS rendered button)', () => {
     vi.useRealTimers();
 
     expect(capturedOnError).toBeDefined();
-    capturedOnError!(new Error('unknown_internal_error'));
+    act(() => capturedOnError!(new Error('unknown_internal_error')));
 
     await waitFor(() => {
-      expect(screen.getByText(/google sign-in failed\. please try again/i)).toBeTruthy();
+      expect(screen.getByText(/google sign-in failed\. please try email and password below/i)).toBeTruthy();
     });
   });
 });
