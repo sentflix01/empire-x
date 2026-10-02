@@ -22,7 +22,7 @@ Job board: job posting CRUD, application submission with resume links, applicant
 | `DELETE` | `/api/jobs/:id` | auth | 48 |
 | `POST` | `/api/jobs/:id/apply` | auth | 58 |
 | `GET` | `/api/jobs/:id/applications` | auth | 73 |
-| `PUT` | `/api/jobs/applications/:id` | auth | 86 |
+| `PUT` | `/api/jobs/applications/:id` | auth | 89 |
 
 ## 4. What does it touch?
 

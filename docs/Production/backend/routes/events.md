@@ -21,7 +21,7 @@ Event listings: create/manage events, ticket types, purchase/RSVP flows writing 
 | `PUT` | `/api/events/:id` | auth | 33 |
 | `DELETE` | `/api/events/:id` | auth | 44 |
 | `POST` | `/api/events/:id/book` | auth | 54 |
-| `GET` | `/api/events/:id/attendees` | optional | 86 |
+| `GET` | `/api/events/:id/attendees` | optional | 92 |
 
 ## 4. What does it touch?
 

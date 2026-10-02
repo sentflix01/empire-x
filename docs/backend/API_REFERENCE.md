@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **298** across **49** mounted modules · Generated: 2026-09-28
+> Endpoints: **298** across **49** mounted modules · Generated: 2026-10-02
 
 | Legend | Meaning |
 |---|---|
@@ -103,22 +103,22 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:151 |
-| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:245 |
-| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:336 |
-| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:401 |
-| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:469 |
-| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:489 |
-| `POST` | `/api/auth/onboarding-mode` | 🔒 auth | routes/auth.ts:506 |
-| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:527 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:656 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:790 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:831 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:866 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:929 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:981 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1066 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1106 |
+| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:181 |
+| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:275 |
+| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:366 |
+| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:431 |
+| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:501 |
+| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:521 |
+| `POST` | `/api/auth/onboarding-mode` | 🔒 auth | routes/auth.ts:538 |
+| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:559 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:688 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:822 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:863 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:898 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:961 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1013 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1098 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1138 |
 
 ## businessApiKeys — Business API key management
 
@@ -231,7 +231,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `PUT` | `/api/events/:id` | 🔒 auth | routes/events.ts:33 |
 | `DELETE` | `/api/events/:id` | 🔒 auth | routes/events.ts:44 |
 | `POST` | `/api/events/:id/book` | 🔒 auth | routes/events.ts:54 |
-| `GET` | `/api/events/:id/attendees` | ⚪ optional | routes/events.ts:86 |
+| `GET` | `/api/events/:id/attendees` | ⚪ optional | routes/events.ts:92 |
 
 ## externalSources — External Data Sources
 
@@ -280,7 +280,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `DELETE` | `/api/jobs/:id` | 🔒 auth | routes/jobs.ts:48 |
 | `POST` | `/api/jobs/:id/apply` | 🔒 auth | routes/jobs.ts:58 |
 | `GET` | `/api/jobs/:id/applications` | 🔒 auth | routes/jobs.ts:73 |
-| `PUT` | `/api/jobs/applications/:id` | 🔒 auth | routes/jobs.ts:86 |
+| `PUT` | `/api/jobs/applications/:id` | 🔒 auth | routes/jobs.ts:89 |
 
 ## locations — Live GPS location for Enterprise businesses
 

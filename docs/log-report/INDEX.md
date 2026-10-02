@@ -5,6 +5,69 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-02 | Maintenance | merge: full audit, Coolify removal, CI fixes, package updates | [8cfd37023](2026-10-02-8cfd37023-full-audit-coolify-removal-ci-fixes-package-upda.md) |
+| 2026-10-02 | Maintenance | chore: full audit, remove Coolify, fix CI, update packages and docs | [f4cdbfd95](2026-10-02-f4cdbfd95-full-audit-remove-coolify-fix-ci-update-packages.md) |
+| 2026-09-30 | Maintenance | Merge pull request #68 from sentflix01/dependabot/npm_and_yarn/frontend-next/vitest/coverage-v8-5.0.2 | [f9038e2cb](2026-09-30-f9038e2cb-merge-pull-request-68-from-sentflix01-dependabot.md) |
+| 2026-09-30 | Maintenance | chore(deps-dev): bump @vitest/coverage-v8 in /frontend-next | [e7c609477](2026-09-30-e7c609477-bump-vitest-coverage-v8-in-frontend-next.md) |
+| 2026-09-30 | Maintenance | Merge pull request #67 from sentflix01/dependabot/npm_and_yarn/frontend-next/multi-de36fa8f59 | [d3ea73099](2026-09-30-d3ea73099-merge-pull-request-67-from-sentflix01-dependabot.md) |
+| 2026-09-30 | Maintenance | chore(deps): bump react-dom and @types/react-dom in /frontend-next | [4d0fa0341](2026-09-30-4d0fa0341-bump-react-dom-and-types-react-dom-in-frontend-n.md) |
+| 2026-09-30 | Maintenance | Merge pull request #66 from sentflix01/dependabot/npm_and_yarn/backend/dotenv-18.0.3 | [3bc568dea](2026-09-30-3bc568dea-merge-pull-request-66-from-sentflix01-dependabot.md) |
+| 2026-09-30 | Maintenance | Merge pull request #65 from sentflix01/dependabot/npm_and_yarn/frontend-next/eslint-10.11.0 | [ddfb693f2](2026-09-30-ddfb693f2-merge-pull-request-65-from-sentflix01-dependabot.md) |
+| 2026-09-30 | Maintenance | Merge pull request #64 from sentflix01/dependabot/npm_and_yarn/backend/sentry/node-11.0.0 | [b9b3099a0](2026-09-30-b9b3099a0-merge-pull-request-64-from-sentflix01-dependabot.md) |
+| 2026-09-30 | Maintenance | Merge pull request #63 from sentflix01/dependabot/npm_and_yarn/frontend-next/react-leaflet-5.0.0 | [91170f511](2026-09-30-91170f511-merge-pull-request-63-from-sentflix01-dependabot.md) |
+| 2026-09-30 | Maintenance | chore(deps-dev): bump eslint from 9.39.4 to 10.11.0 in /frontend-next | [c7e179a29](2026-09-30-c7e179a29-bump-eslint-from-9-39-4-to-10-11-0-in-frontend-n.md) |
+| 2026-09-30 | Maintenance | chore(deps): bump react-leaflet from 4.2.1 to 5.0.0 in /frontend-next | [70c9e7ab6](2026-09-30-70c9e7ab6-bump-react-leaflet-from-4-2-1-to-5-0-0-in-fronte.md) |
+| 2026-09-30 | Maintenance | Merge pull request #62 from sentflix01/dependabot/npm_and_yarn/backend/types/uuid-11.0.0 | [1238be0f3](2026-09-30-1238be0f3-merge-pull-request-62-from-sentflix01-dependabot.md) |
+| 2026-09-30 | Maintenance | chore(deps): bump @sentry/node from 10.75.0 to 11.0.0 in /backend | [3b7d58ea9](2026-09-30-3b7d58ea9-bump-sentry-node-from-10-75-0-to-11-0-0-in-backe.md) |
+| 2026-09-30 | Maintenance | chore(deps-dev): bump @types/uuid from 9.0.8 to 11.0.0 in /backend | [b553ad7f6](2026-09-30-b553ad7f6-bump-types-uuid-from-9-0-8-to-11-0-0-in-backend.md) |
+| 2026-09-30 | Maintenance | Merge pull request #61 from sentflix01/dependabot/npm_and_yarn/backend/types/node-26.6.2 | [846c5e101](2026-09-30-846c5e101-merge-pull-request-61-from-sentflix01-dependabot.md) |
+| 2026-09-30 | Maintenance | Merge pull request #60 from sentflix01/dependabot/npm_and_yarn/frontend-next/minor-and-patch-486924fb89 | [0ea5d97ce](2026-09-30-0ea5d97ce-merge-pull-request-60-from-sentflix01-dependabot.md) |
+| 2026-09-30 | Maintenance | Merge pull request #59 from sentflix01/dependabot/npm_and_yarn/backend/minor-and-patch-733058d0a6 | [d825b7856](2026-09-30-d825b7856-merge-pull-request-59-from-sentflix01-dependabot.md) |
+| 2026-09-30 | Bugfix | fix: make demo dialog backgrounds solid | [b1a38491a](2026-09-30-b1a38491a-make-demo-dialog-backgrounds-solid.md) |
+| 2026-09-28 | Maintenance | chore(deps): bump dotenv from 16.4.5 to 18.0.3 in /backend | [d63256d9f](2026-09-28-d63256d9f-bump-dotenv-from-16-4-5-to-18-0-3-in-backend.md) |
+| 2026-09-28 | Maintenance | chore(deps-dev): bump @types/node from 20.19.43 to 26.6.2 in /backend | [cdd85fcf0](2026-09-28-cdd85fcf0-bump-types-node-from-20-19-43-to-26-6-2-in-backe.md) |
+| 2026-09-28 | Maintenance | chore(deps): bump the minor-and-patch group | [de42630ba](2026-09-28-de42630ba-bump-the-minor-and-patch-group.md) |
+| 2026-09-28 | Maintenance | chore(deps): bump the minor-and-patch group in /backend with 9 updates | [2509e9e23](2026-09-28-2509e9e23-bump-the-minor-and-patch-group-in-backend-with-9.md) |
+| 2026-09-27 | Bugfix | fix: choose-mode routing and real vs demo data separation | [0c40379c8](2026-09-27-0c40379c8-choose-mode-routing-and-real-vs-demo-data-separa.md) |
+| 2026-09-27 | Bugfix | fix: Real Account navigates immediately, demo shows real error message | [a23ef03ea](2026-09-27-a23ef03ea-real-account-navigates-immediately-demo-shows-re.md) |
+| 2026-09-27 | Maintenance | Merge branch 'main' of https://github.com/sentflix01/empire-x | [136a14633](2026-09-27-136a14633-merge-branch-main-of-https-github-com-sentflix01.md) |
+| 2026-09-27 | Maintenance | merge: feat/demo-landing-bridge into main | [873432e0b](2026-09-27-873432e0b-feat-demo-landing-bridge-into-main.md) |
+| 2026-09-27 | Bugfix | fix: use AuthContext in choose-mode, remove is_demo shortcut in Login | [863a11faa](2026-09-27-863a11faa-use-authcontext-in-choose-mode-remove-is-demo-sh.md) |
+| 2026-09-27 | Feature | feat: is_demo accounts also go through /choose-mode | [aef5dc4c5](2026-09-27-aef5dc4c5-is-demo-accounts-also-go-through-choose-mode.md) |
+| 2026-09-27 | Maintenance | Merge pull request #58 from sentflix01/feat/demo-landing-bridge | [9dcc453ef](2026-09-27-9dcc453ef-merge-pull-request-58-from-sentflix01-feat-demo-.md) |
+| 2026-09-27 | Feature | feat: always show /choose-mode after every login/signup | [3fe0789d9](2026-09-27-3fe0789d9-always-show-choose-mode-after-every-login-signup.md) |
+| 2026-09-27 | Bugfix | fix: choose-mode redirect loop after picking Real Account | [cd416e92b](2026-09-27-cd416e92b-choose-mode-redirect-loop-after-picking-real-acc.md) |
+| 2026-09-27 | Feature | feat: Guest on landing, Try Demo + Real Account on choose-mode | [fd7e91759](2026-09-27-fd7e91759-guest-on-landing-try-demo-real-account-on-choose.md) |
+| 2026-09-26 | Bugfix | fix: Chrome STATUS_ACCESS_VIOLATION crash on choose-mode login | [e25486aba](2026-09-26-e25486aba-chrome-status-access-violation-crash-on-choose-m.md) |
+| 2026-09-26 | Bugfix | fix: eliminate choose-mode redirect loop and disabled buttons | [015e8c2fb](2026-09-26-015e8c2fb-eliminate-choose-mode-redirect-loop-and-disabled.md) |
+| 2026-09-26 | Bugfix | fix: allow is_demo accounts to log in via normal /login in Track 1 | [96cbd3d95](2026-09-26-96cbd3d95-allow-is-demo-accounts-to-log-in-via-normal-logi.md) |
+| 2026-09-26 | Feature | feat: Track 1 demo bridge — landing controls, choose-mode, demo banner | [caa7bf47e](2026-09-26-caa7bf47e-track-1-demo-bridge-landing-controls-choose-mode.md) |
+| 2026-09-25 | Bugfix | fix: stop demo traffic consuming Redis quota | [f7fe328d5](2026-09-25-f7fe328d5-stop-demo-traffic-consuming-redis-quota.md) |
+| 2026-09-25 | Bugfix | fix: login cold start timeout + 60s timeout + warmup ping | [a998b0af8](2026-09-25-a998b0af8-login-cold-start-timeout-60s-timeout-warmup-ping.md) |
+| 2026-09-25 | Feature | feat: QR scan landing flow + fix guest banner flicker | [ae545d0bb](2026-09-25-ae545d0bb-qr-scan-landing-flow-fix-guest-banner-flicker.md) |
+| 2026-09-25 | Bugfix | fix(mobile): add auth guard to Friends.tsx to prevent 401 cascade | [fa836aecb](2026-09-25-fa836aecb-add-auth-guard-to-friends-tsx-to-prevent-401-cas.md) |
+| 2026-09-25 | Bugfix | fix: stop infinite spinners on mobile when auth resolves to no user | [ede70954f](2026-09-25-ede70954f-stop-infinite-spinners-on-mobile-when-auth-resol.md) |
+| 2026-09-25 | Bugfix | fix: clear stale refresh cookies on 401 to stop infinite auth loop on mobile | [42b5faa08](2026-09-25-42b5faa08-clear-stale-refresh-cookies-on-401-to-stop-infin.md) |
+| 2026-09-25 | Feature | feat: guest mode for feed + QR codes link to showroom slugs | [f17accbc3](2026-09-25-f17accbc3-guest-mode-for-feed-qr-codes-link-to-showroom-sl.md) |
+| 2026-09-24 | Maintenance | Merge pull request #56 from sentflix01/dependabot/npm_and_yarn/frontend-next/multi-7f19880bf6 | [fab511080](2026-09-24-fab511080-merge-pull-request-56-from-sentflix01-dependabot.md) |
+| 2026-09-24 | Maintenance | Merge branch 'main' into dependabot/npm_and_yarn/frontend-next/multi-7f19880bf6 | [9a94c3737](2026-09-24-9a94c3737-merge-branch-main-into-dependabot-npm-and-yarn-f.md) |
+| 2026-09-24 | Maintenance | Merge pull request #57 from sentflix01/dependabot/npm_and_yarn/frontend-next/react-leaflet-cluster-4.1.3 | [7b826f3e8](2026-09-24-7b826f3e8-merge-pull-request-57-from-sentflix01-dependabot.md) |
+| 2026-09-24 | Maintenance | Merge branch 'main' into dependabot/npm_and_yarn/frontend-next/react-leaflet-cluster-4.1.3 | [c8e7c2457](2026-09-24-c8e7c2457-merge-branch-main-into-dependabot-npm-and-yarn-f.md) |
+| 2026-09-24 | Maintenance | Merge branch 'main' into dependabot/npm_and_yarn/frontend-next/multi-7f19880bf6 | [13316dd5f](2026-09-24-13316dd5f-merge-branch-main-into-dependabot-npm-and-yarn-f.md) |
+| 2026-09-24 | Maintenance | Merge pull request #53 from sentflix01/dependabot/npm_and_yarn/frontend-next/minor-and-patch-36888ad5cc | [e4a724b2d](2026-09-24-e4a724b2d-merge-pull-request-53-from-sentflix01-dependabot.md) |
+| 2026-09-24 | Maintenance | Merge branch 'main' into dependabot/npm_and_yarn/frontend-next/minor-and-patch-36888ad5cc | [ed5ae2377](2026-09-24-ed5ae2377-merge-branch-main-into-dependabot-npm-and-yarn-f.md) |
+| 2026-09-24 | Maintenance | Merge pull request #54 from sentflix01/dependabot/npm_and_yarn/frontend-next/typescript-7.0.2 | [13f929874](2026-09-24-13f929874-merge-pull-request-54-from-sentflix01-dependabot.md) |
+| 2026-09-24 | Maintenance | Merge branch 'main' into dependabot/npm_and_yarn/frontend-next/typescript-7.0.2 | [0d398407a](2026-09-24-0d398407a-merge-branch-main-into-dependabot-npm-and-yarn-f.md) |
+| 2026-09-24 | Maintenance | Merge pull request #52 from sentflix01/dependabot/npm_and_yarn/backend/uuid-14.0.2 | [c6979f535](2026-09-24-c6979f535-merge-pull-request-52-from-sentflix01-dependabot.md) |
+| 2026-09-24 | Maintenance | Merge branch 'main' into dependabot/npm_and_yarn/frontend-next/minor-and-patch-36888ad5cc | [348189078](2026-09-24-348189078-merge-branch-main-into-dependabot-npm-and-yarn-f.md) |
+| 2026-09-24 | Maintenance | Merge branch 'main' into dependabot/npm_and_yarn/backend/uuid-14.0.2 | [a3f0bb511](2026-09-24-a3f0bb511-merge-branch-main-into-dependabot-npm-and-yarn-b.md) |
+| 2026-09-24 | Maintenance | Merge pull request #51 from sentflix01/dependabot/npm_and_yarn/backend/typescript-7.0.2 | [997517de8](2026-09-24-997517de8-merge-pull-request-51-from-sentflix01-dependabot.md) |
+| 2026-09-24 | Maintenance | Merge branch 'main' into dependabot/npm_and_yarn/backend/typescript-7.0.2 | [a857af445](2026-09-24-a857af445-merge-branch-main-into-dependabot-npm-and-yarn-b.md) |
+| 2026-09-24 | Maintenance | chore(deps): bump uuid from 9.0.1 to 14.0.2 in /backend | [fe2ca93af](2026-09-24-fe2ca93af-bump-uuid-from-9-0-1-to-14-0-2-in-backend.md) |
+| 2026-09-24 | Maintenance | Merge pull request #50 from sentflix01/dependabot/npm_and_yarn/backend/multi-b251156d90 | [02d4c6d18](2026-09-24-02d4c6d18-merge-pull-request-50-from-sentflix01-dependabot.md) |
+| 2026-09-24 | Maintenance | Merge branch 'main' into dependabot/npm_and_yarn/backend/multi-b251156d90 | [01666fbea](2026-09-24-01666fbea-merge-branch-main-into-dependabot-npm-and-yarn-b.md) |
+| 2026-09-24 | Maintenance | chore(deps-dev): bump typescript from 5.9.3 to 7.0.2 in /backend | [6fc4dd234](2026-09-24-6fc4dd234-bump-typescript-from-5-9-3-to-7-0-2-in-backend.md) |
+| 2026-09-24 | Maintenance | chore(deps): bump express and @types/express in /backend | [5ed232320](2026-09-24-5ed232320-bump-express-and-types-express-in-backend.md) |
 | 2026-09-24 | Maintenance | Merge pull request #49 from sentflix01/dependabot/npm_and_yarn/backend/nodemailer-10.0.10 | [ab00ef8f6](2026-09-24-ab00ef8f6-merge-pull-request-49-from-sentflix01-dependabot.md) |
 | 2026-09-24 | Maintenance | Merge pull request #48 from sentflix01/dependabot/npm_and_yarn/backend/minor-and-patch-baa0d3440d | [d28050110](2026-09-24-d28050110-merge-pull-request-48-from-sentflix01-dependabot.md) |
 | 2026-09-24 | Bugfix | fix: QR code uses window.location.origin instead of NEXT_PUBLIC_APP_URL | [95fa50a6f](2026-09-24-95fa50a6f-qr-code-uses-window-location-origin-instead-of-n.md) |
@@ -34,6 +97,10 @@
 | 2026-09-22 | Maintenance | chore: trigger Vercel redeploy with updated env vars | [403690250](2026-09-22-403690250-trigger-vercel-redeploy-with-updated-env-vars.md) |
 | 2026-09-22 | Maintenance | chore: commit all doc updates, render.yaml, workflow fixes, and cleanup from session | [7763a2b76](2026-09-22-7763a2b76-commit-all-doc-updates-render-yaml-workflow-fixe.md) |
 | 2026-09-22 | Bugfix | fix: add .js extension to dynamic imports in showroom-digests for Node ESM resolution in Docker | [641a3eb7f](2026-09-22-641a3eb7f-add-js-extension-to-dynamic-imports-in-showroom-.md) |
+| 2026-09-21 | Maintenance | chore(deps): bump react-leaflet-cluster in /frontend-next | [df5d3b4ac](2026-09-21-df5d3b4ac-bump-react-leaflet-cluster-in-frontend-next.md) |
+| 2026-09-21 | Maintenance | chore(deps): bump react and @types/react in /frontend-next | [1b755afd5](2026-09-21-1b755afd5-bump-react-and-types-react-in-frontend-next.md) |
+| 2026-09-21 | Maintenance | chore(deps-dev): bump typescript from 5.9.3 to 7.0.2 in /frontend-next | [f5612f337](2026-09-21-f5612f337-bump-typescript-from-5-9-3-to-7-0-2-in-frontend-.md) |
+| 2026-09-21 | Maintenance | chore(deps): bump the minor-and-patch group | [84ab5a473](2026-09-21-84ab5a473-bump-the-minor-and-patch-group.md) |
 | 2026-09-21 | Maintenance | chore(deps): bump nodemailer from 9.1.1 to 10.0.10 in /backend | [925f2f37f](2026-09-21-925f2f37f-bump-nodemailer-from-9-1-1-to-10-0-10-in-backend.md) |
 | 2026-09-21 | Maintenance | chore(deps): bump the minor-and-patch group in /backend with 5 updates | [03666ec23](2026-09-21-03666ec23-bump-the-minor-and-patch-group-in-backend-with-5.md) |
 | 2026-09-20 | Bugfix | fix(deploy): detect frontend changes through merge commits for Vercel deploy | [e2f4f1fb1](2026-09-20-e2f4f1fb1-detect-frontend-changes-through-merge-commits-fo.md) |
