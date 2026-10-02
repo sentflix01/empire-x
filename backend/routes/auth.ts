@@ -105,10 +105,16 @@ function signRefreshToken(userId: string, isDemo = false): string {
 function signToken(userId: string, res: Response, isDemo = false): string {
   const accessToken = signAccessToken(userId, isDemo);
   const refreshToken = signRefreshToken(userId, isDemo);
+  const isProd = process.env.NODE_ENV === 'production';
   res.cookie('refresh_token', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    // In production: Secure + SameSite=None allows the cookie to be sent from
+    // the Vercel frontend (different origin) to the Render backend.
+    // In development: SameSite=None without Secure — browsers allow this for
+    // localhost, which is needed because frontend (port 3002) and backend
+    // (port 3001) are treated as cross-site by SameSite=Lax.
+    secure: isProd,
+    sameSite: 'none',
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/api/auth',
   });
@@ -1104,7 +1110,7 @@ router.post('/logout', async (req: Request, res: Response) => {
       httpOnly: true,
       path: '/api/auth',
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      sameSite: 'none',
     });
     res.json({ success: true, demo_ended: true });
     return;
@@ -1127,7 +1133,7 @@ router.post('/logout', async (req: Request, res: Response) => {
     httpOnly: true,
     path: '/api/auth',
     secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    sameSite: 'none',
   });
   clearDemoTrack1Cookie(res);
   res.json({ success: true });
@@ -1159,7 +1165,7 @@ router.post('/logout-all', requireAuth, async (req: Request, res: Response) => {
     httpOnly: true,
     path: '/api/auth',
     secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    sameSite: 'none',
   });
   clearDemoTrack1Cookie(res);
   res.json({ success: true });
