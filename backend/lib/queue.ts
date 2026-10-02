@@ -98,7 +98,10 @@ const syncHandlers = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createQueue(name: string): any {
-  if (!REDIS_URL || !QUEUE_PRODUCERS_ENABLED) return null;
+  // Producers require both the explicit flag AND production mode.
+  // A preview or staging deployment creating Queue objects writes bull:*:meta
+  // keys to Redis on every startup — wasting Upstash quota for zero benefit.
+  if (!REDIS_URL || !QUEUE_PRODUCERS_ENABLED || process.env.NODE_ENV !== 'production') return null;
   try {
     const { Queue } = require('bullmq') as typeof import('bullmq');
     return new Queue(name, {
@@ -395,8 +398,18 @@ async function recalcUsage(businessId: string): Promise<void> {
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 export async function startWorkers(): Promise<void> {
+  // Double guard: workers require both the explicit flag AND production mode.
+  // In development or staging without the flag, always use sync fallbacks.
+  // This prevents accidental Redis polling on review/preview deployments.
   if (!QUEUE_WORKERS_ENABLED) {
     logger.info('Queue workers disabled — this process will not poll Redis');
+    return;
+  }
+
+  // Extra safety: even if the flag is set, refuse to start workers outside production.
+  // A staging or PR preview environment should never burn Upstash quota with pollers.
+  if (process.env.NODE_ENV !== 'production') {
+    logger.info('Queue workers skipped — NODE_ENV is not production (jobs run synchronously)');
     return;
   }
 
