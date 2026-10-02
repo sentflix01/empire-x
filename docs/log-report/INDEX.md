@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-02 | Bugfix | fix: add NODE_ENV=production guard to BullMQ workers and queue producers | [ce63e985e](2026-10-02-ce63e985e-add-node-env-production-guard-to-bullmq-workers-.md) |
 | 2026-10-02 | Maintenance | merge: full audit, Coolify removal, CI fixes, package updates | [8cfd37023](2026-10-02-8cfd37023-full-audit-coolify-removal-ci-fixes-package-upda.md) |
 | 2026-10-02 | Maintenance | chore: full audit, remove Coolify, fix CI, update packages and docs | [f4cdbfd95](2026-10-02-f4cdbfd95-full-audit-remove-coolify-fix-ci-update-packages.md) |
 | 2026-09-30 | Maintenance | Merge pull request #68 from sentflix01/dependabot/npm_and_yarn/frontend-next/vitest/coverage-v8-5.0.2 | [f9038e2cb](2026-09-30-f9038e2cb-merge-pull-request-68-from-sentflix01-dependabot.md) |
