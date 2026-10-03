@@ -1,17 +1,17 @@
 /**
- * Migration 25 — Backfill users.full_name from profile display_name (BUG-6 follow-up).
+ * Migration 25 ? Backfill users.full_name from profile display_name (BUG-6 follow-up).
  *
  * Registration stores no name, and onboarding historically wrote only
  * user_profiles.display_name, leaving users.full_name NULL for existing
- * accounts — so /api/auth/me returned null and the nav showed "User".
+ * accounts ? so /api/auth/me returned null and the nav showed "User".
  * This copies display_name into users.full_name wherever full_name is
  * NULL/empty and a profile name exists. No data is deleted or wiped.
  * When a user has duplicate profile rows, the MOST RECENT name wins
- * (updated_at DESC, fallback created_at DESC) — matching runtime sync.
+ * (updated_at DESC, fallback created_at DESC) ? matching runtime sync.
  * Idempotent: already-filled full_name values are left untouched.
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 async function run() {
   try {
@@ -26,10 +26,10 @@ async function run() {
       WHERE up.user_id = u.id
         AND (u.full_name IS NULL OR TRIM(u.full_name) = '')
     `);
-    console.log(`✅ Migration 25 complete — full_name backfilled for ${rowCount} users.`);
+    console.log(`? Migration 25 complete ? full_name backfilled for ${rowCount} users.`);
   } finally {
     await pool.end();
   }
 }
 
-run().catch(err => { console.error('❌ Migration 25 failed:', err.message); process.exit(1); });
+run().catch(err => { console.error('? Migration 25 failed:', err.message); process.exit(1); });

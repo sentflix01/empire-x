@@ -1,5 +1,5 @@
 /**
- * seed-showrooms.js — Showroom + Product seed for Nodbusiness
+ * seed-showrooms.js ? Showroom + Product seed for Nodbusiness
  *
  * Seeds showrooms and products on top of the existing 50 seed users
  * and 150 businesses created by seed.js. Strictly follows how the
@@ -13,7 +13,7 @@
  *
  * What this creates:
  *   - 1 published showroom per seed user (50 total)
- *   - 3–6 products per showroom (200+ products total)
+ *   - 3?6 products per showroom (200+ products total)
  *   - business_subscriptions freemium row per existing business
  *   - Showroom sections that match the actual builder section types
  *
@@ -23,10 +23,10 @@
  * Requirements: seed.js must have been run first (needs existing seed users)
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 const { assertSafeDevSeed } = require('./operationSafety');
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ?? Helpers ???????????????????????????????????????????????????????????????????
 const pick  = arr => arr[Math.floor(Math.random() * arr.length)];
 const rand  = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const randF = (min, max) => parseFloat((Math.random() * (max - min) + min).toFixed(2));
@@ -36,7 +36,7 @@ function makeSlug(title) {
   return `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
-// ── Business templates — same categories as seed.js ───────────────────────────
+// ?? Business templates ? same categories as seed.js ???????????????????????????
 const BUSINESS_CONFIGS = {
   restaurant: {
     template:   'restaurant',
@@ -48,7 +48,7 @@ const BUSINESS_CONFIGS = {
       { title: 'Kitfo with Gomen',             priceRange: [200, 350], currency: 'ETB', desc: 'Freshly minced beef seasoned with mitmita and niter kibbeh. Served warm.' },
       { title: 'Shiro Wot + Atkilt',           priceRange: [80,  150], currency: 'ETB', desc: 'Creamy chickpea stew with mixed vegetable sides. Perfect for fasting days.' },
       { title: 'Injera Family Basket',         priceRange: [150, 250], currency: 'ETB', desc: 'Fresh injera (10 pieces) delivered daily. Teff and barley blend.' },
-      { title: 'Ethiopian Coffee Ceremony Set',priceRange: [250, 450], currency: 'ETB', desc: 'Full ceremony set — green beans, jebena, incense, and cups for 6.' },
+      { title: 'Ethiopian Coffee Ceremony Set',priceRange: [250, 450], currency: 'ETB', desc: 'Full ceremony set ? green beans, jebena, incense, and cups for 6.' },
       { title: 'Firfir Breakfast Plate',       priceRange: [60,  120], currency: 'ETB', desc: 'Shredded injera with spiced lamb or vegetarian sauce. Served hot.' },
     ],
   },
@@ -72,7 +72,7 @@ const BUSINESS_CONFIGS = {
     sectionTypes: ['hero', 'services', 'portfolio', 'team', 'contact'],
     productCategory: 'Services',
     products: [
-      { title: 'Website Design Package',       priceRange: [3000, 15000], currency: 'ETB', desc: 'Full responsive website — 5 pages, mobile optimized, 1 month support included.' },
+      { title: 'Website Design Package',       priceRange: [3000, 15000], currency: 'ETB', desc: 'Full responsive website ? 5 pages, mobile optimized, 1 month support included.' },
       { title: 'Logo + Brand Identity Kit',    priceRange: [1500, 6000],  currency: 'ETB', desc: 'Logo design, color palette, typography, and brand guidelines. 3 concepts.' },
       { title: 'Social Media Management (1mo)',priceRange: [2000, 8000],  currency: 'ETB', desc: '20 posts/month across 2 platforms. Content creation + scheduling + analytics.' },
       { title: 'Tax Filing Service',           priceRange: [500,  2000],  currency: 'ETB', desc: 'Annual business tax return preparation. VAT registration included if needed.' },
@@ -105,7 +105,7 @@ const BUSINESS_CONFIGS = {
       { title: 'Commercial Space (Kirkos)',     priceRange: [20000, 60000], currency: 'ETB', desc: '80sqm ground-floor retail space. High foot traffic, corner location.' },
       { title: 'Land Plot (Akaki, 500sqm)',     priceRange: [500000,1500000],currency:'ETB', desc: 'Residential land with clear title deed. Infrastructure ready. Financing available.' },
       { title: '3-Bedroom Villa (CMC)',         priceRange: [35000, 80000], currency: 'ETB', desc: 'Fully furnished villa with garden, backup generator, and domestic help quarters.' },
-      { title: 'Property Management Service',  priceRange: [2000,  8000],  currency: 'ETB', desc: 'Full property management — tenant finding, rent collection, maintenance.' },
+      { title: 'Property Management Service',  priceRange: [2000,  8000],  currency: 'ETB', desc: 'Full property management ? tenant finding, rent collection, maintenance.' },
     ],
   },
   portfolio: {
@@ -124,7 +124,7 @@ const BUSINESS_CONFIGS = {
   },
 };
 
-// ── Showroom section builder — mirrors what the frontend builder creates ──────
+// ?? Showroom section builder ? mirrors what the frontend builder creates ??????
 function buildSections(category, businessName) {
   const config = BUSINESS_CONFIGS[category] || BUSINESS_CONFIGS.service;
   const sections = [];
@@ -197,13 +197,13 @@ function buildSections(category, businessName) {
       type:    'hours',
       title:   'Business Hours',
       hours: {
-        monday:    '8:00 AM – 9:00 PM',
-        tuesday:   '8:00 AM – 9:00 PM',
-        wednesday: '8:00 AM – 9:00 PM',
-        thursday:  '8:00 AM – 9:00 PM',
-        friday:    '8:00 AM – 10:00 PM',
-        saturday:  '9:00 AM – 10:00 PM',
-        sunday:    '10:00 AM – 8:00 PM',
+        monday:    '8:00 AM ? 9:00 PM',
+        tuesday:   '8:00 AM ? 9:00 PM',
+        wednesday: '8:00 AM ? 9:00 PM',
+        thursday:  '8:00 AM ? 9:00 PM',
+        friday:    '8:00 AM ? 10:00 PM',
+        saturday:  '9:00 AM ? 10:00 PM',
+        sunday:    '10:00 AM ? 8:00 PM',
       },
       visible: true,
     }),
@@ -278,16 +278,16 @@ function buildSections(category, businessName) {
   return sections;
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+// ?? Main ??????????????????????????????????????????????????????????????????????
 async function seed() {
   assertSafeDevSeed();
   const client = await pool.connect();
-  console.log('\n🏪 Nodbusiness Showroom + Product Seed\n');
+  console.log('\n?? Nodbusiness Showroom + Product Seed\n');
   console.log('Creates: 50 showrooms, 200+ products, business subscriptions\n');
 
   try {
-    // ── Load existing seed users ──────────────────────────────────────────────
-    console.log('👥 Loading existing seed users...');
+    // ?? Load existing seed users ??????????????????????????????????????????????
+    console.log('?? Loading existing seed users...');
     const { rows: users } = await client.query(
       `SELECT u.id, u.full_name, u.email,
               up.location, up.latitude, up.longitude
@@ -298,13 +298,13 @@ async function seed() {
        LIMIT 50`
     );
     if (!users.length) {
-      console.error('❌ No seed users found. Run node db/seed.js first.');
+      console.error('? No seed users found. Run node db/seed.js first.');
       process.exit(1);
     }
-    console.log(`  ✅ Found ${users.length} seed users\n`);
+    console.log(`  ? Found ${users.length} seed users\n`);
 
-    // ── Load existing businesses (to link products and subscriptions) ─────────
-    console.log('🏢 Loading existing businesses...');
+    // ?? Load existing businesses (to link products and subscriptions) ?????????
+    console.log('?? Loading existing businesses...');
     const { rows: businesses } = await client.query(
       `SELECT b.id, b.owner_id, b.business_name, b.business_category
        FROM businesses b
@@ -312,10 +312,10 @@ async function seed() {
        WHERE u.is_seed = TRUE
        ORDER BY b.created_at`
     );
-    console.log(`  ✅ Found ${businesses.length} businesses\n`);
+    console.log(`  ? Found ${businesses.length} businesses\n`);
 
-    // ── 1. business_subscriptions — freemium row for each business ────────────
-    console.log('📋 Creating business subscriptions (freemium tier)...');
+    // ?? 1. business_subscriptions ? freemium row for each business ????????????
+    console.log('?? Creating business subscriptions (freemium tier)...');
     let subCount = 0;
     for (const biz of businesses) {
       await client.query(
@@ -327,10 +327,10 @@ async function seed() {
       );
       subCount++;
     }
-    console.log(`  ✅ ${subCount} business subscriptions\n`);
+    console.log(`  ? ${subCount} business subscriptions\n`);
 
-    // ── 2. Showrooms — 1 per seed user ───────────────────────────────────────
-    console.log('🏪 Creating showrooms...');
+    // ?? 2. Showrooms ? 1 per seed user ???????????????????????????????????????
+    console.log('?? Creating showrooms...');
     const showroomRecords = [];
     const CATEGORIES = Object.keys(BUSINESS_CONFIGS);
 
@@ -376,7 +376,7 @@ async function seed() {
           `https://picsum.photos/seed/${slug.slice(0,12)}/1200/400`,
           `https://picsum.photos/seed/${slug.slice(0,8)}logo/200/200`,
           colors[category] ?? '#D4AF37',
-          `${title} — your trusted ${category} in ${user.location ?? 'Addis Ababa'}.`,
+          `${title} ? your trusted ${category} in ${user.location ?? 'Addis Ababa'}.`,
           rand(50, 2000),
         ]
       );
@@ -403,10 +403,10 @@ async function seed() {
         [title, category, config.template, colors[category] ?? '#D4AF37', user.id]
       );
     }
-    console.log(`  ✅ ${showroomRecords.length} showrooms published\n`);
+    console.log(`  ? ${showroomRecords.length} showrooms published\n`);
 
-    // ── 3. Products — 3–6 per showroom ───────────────────────────────────────
-    console.log('🛍️  Creating products...');
+    // ?? 3. Products ? 3?6 per showroom ???????????????????????????????????????
+    console.log('???  Creating products...');
     let productCount = 0;
 
     for (const showroom of showroomRecords) {
@@ -419,7 +419,7 @@ async function seed() {
       for (const p of chosen) {
         const price = randF(p.priceRange[0], p.priceRange[1]);
         const stock = rand(1, 50);
-        // Images: 2–3 picsum photos based on product title seed
+        // Images: 2?3 picsum photos based on product title seed
         const imgSeed = p.title.replace(/\s/g,'').slice(0, 8).toLowerCase();
         const images  = JSON.stringify([
           `https://picsum.photos/seed/${imgSeed}1/600/600`,
@@ -461,10 +461,10 @@ async function seed() {
         );
       }
     }
-    console.log(`  ✅ ${productCount} products\n`);
+    console.log(`  ? ${productCount} products\n`);
 
-    // ── 4. Product reviews — a few per product ────────────────────────────────
-    console.log('⭐ Creating product reviews...');
+    // ?? 4. Product reviews ? a few per product ????????????????????????????????
+    console.log('? Creating product reviews...');
     const { rows: allProducts } = await client.query(
       `SELECT p.id, p.seller_id FROM products p
        JOIN showrooms s ON s.id = p.showroom_id
@@ -496,12 +496,12 @@ async function seed() {
           [reviewer.id, product.id, product.seller_id, rating, pick(REVIEW_TEXTS)]
         );
         reviewCount++;
-      } catch { /* reviews table may have different constraint — skip */ }
+      } catch { /* reviews table may have different constraint ? skip */ }
     }
-    console.log(`  ✅ ${reviewCount} reviews\n`);
+    console.log(`  ? ${reviewCount} reviews\n`);
 
-    // ── 5. Showroom views — simulate real traffic ─────────────────────────────
-    console.log('👁️  Simulating showroom views (no extra Redis commands)...');
+    // ?? 5. Showroom views ? simulate real traffic ?????????????????????????????
+    console.log('???  Simulating showroom views (no extra Redis commands)...');
     for (const showroom of showroomRecords.slice(0, 30)) {
       const views = rand(50, 2000);
       await client.query(
@@ -509,12 +509,12 @@ async function seed() {
         [views, showroom.id]
       );
     }
-    console.log('  ✅ View counts set\n');
+    console.log('  ? View counts set\n');
 
-    // ── Summary ───────────────────────────────────────────────────────────────
-    console.log('════════════════════════════════════════');
-    console.log('✅ Showroom seed complete!');
-    console.log('════════════════════════════════════════');
+    // ?? Summary ???????????????????????????????????????????????????????????????
+    console.log('????????????????????????????????????????');
+    console.log('? Showroom seed complete!');
+    console.log('????????????????????????????????????????');
     console.log(`  Showrooms:              ${showroomRecords.length}`);
     console.log(`  Products:               ${productCount}`);
     console.log(`  Reviews:                ${reviewCount}`);
@@ -525,10 +525,10 @@ async function seed() {
     console.log('  Marketplace: https://nodbusiness.vercel.app/marketplace');
     console.log('');
     console.log('Seed users use the TEST_ACCOUNT_PASSWORD supplied to the guarded local seed command.');
-    console.log('════════════════════════════════════════\n');
+    console.log('????????????????????????????????????????\n');
 
   } catch (err) {
-    console.error('\n❌ Seed failed:', err.message);
+    console.error('\n? Seed failed:', err.message);
     if (err.stack) console.error(err.stack);
     process.exit(1);
   } finally {

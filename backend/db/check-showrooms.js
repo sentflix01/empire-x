@@ -1,5 +1,5 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 async function run() {
   const { rows } = await pool.query(
     `SELECT s.id, s.owner_id, s.title, s.slug, s.status, s.created_at, u.email
@@ -9,9 +9,9 @@ async function run() {
   );
   console.log(`\nShowrooms in DB: ${rows.length}`);
   if (rows.length) {
-    rows.forEach(r => console.log(`  [${r.status}] "${r.title}" — owner: ${r.email} — created: ${r.created_at}`));
+    rows.forEach(r => console.log(`  [${r.status}] "${r.title}" ? owner: ${r.email} ? created: ${r.created_at}`));
   } else {
-    console.log('  (none — table is empty)');
+    console.log('  (none ? table is empty)');
   }
   await pool.end();
 }

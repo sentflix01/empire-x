@@ -31,7 +31,7 @@ async function loginViaUi(page: Page, email: string, password: string) {
   await page.locator('input[type="email"], input[name="email"]').first().fill(email);
   await page.locator('input[type="password"]').first().fill(password);
   const loginResponse = page.waitForResponse((r) => r.url().includes('/api/auth/login'), { timeout: 20_000 }).catch(() => null);
-  await page.locator('button[type="submit"], button:has-text("Log in"), button:has-text("Login"), button:has-text("Sign in")').first().click();
+  await page.locator('button[type="submit"]').first().click();
   try {
     await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 });
   } catch (e) {

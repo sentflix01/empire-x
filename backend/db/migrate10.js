@@ -1,5 +1,5 @@
 /**
- * migrate10.js — External API Integration tables
+ * migrate10.js ? External API Integration tables
  *
  * Creates three new tables to support the Showroom External API Integration:
  *   - external_data_sources  : stores external REST endpoint configs per showroom section
@@ -12,10 +12,10 @@
  * Run: node db/migrate10.js
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 const schema = `
--- ── External Data Sources ────────────────────────────────────────────────────
+-- ?? External Data Sources ????????????????????????????????????????????????????
 -- One row per showroom section that is connected to an external REST API.
 -- Credentials are stored as { iv, authTag, ciphertext } (AES-256-GCM hex strings).
 CREATE TABLE IF NOT EXISTS external_data_sources (
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS external_data_sources (
 
 CREATE INDEX IF NOT EXISTS idx_ext_sources_showroom ON external_data_sources(showroom_id);
 
--- ── Field Mappings ────────────────────────────────────────────────────────────
+-- ?? Field Mappings ????????????????????????????????????????????????????????????
 -- Maps a dot-notation source path in the external API response to a target
 -- schema field name. One mapping per target_field per source (enforced by UNIQUE).
 CREATE TABLE IF NOT EXISTS field_mappings (
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS field_mappings (
 
 CREATE INDEX IF NOT EXISTS idx_field_mappings_source ON field_mappings(source_id);
 
--- ── External Health Records ───────────────────────────────────────────────────
+-- ?? External Health Records ???????????????????????????????????????????????????
 -- Audit log written after every proxy fetch attempt (success or failure).
 -- source_id uses SET NULL on delete so history is preserved even when the
 -- source is removed.
@@ -75,11 +75,11 @@ CREATE INDEX IF NOT EXISTS idx_health_showroom_section
 async function migrate() {
   const client = await pool.connect();
   try {
-    console.log('Running migration 10 — External API Integration tables...');
+    console.log('Running migration 10 ? External API Integration tables...');
     await client.query(schema);
-    console.log('✅ Migration 10 complete — external_data_sources, field_mappings, external_health_records tables created.');
+    console.log('? Migration 10 complete ? external_data_sources, field_mappings, external_health_records tables created.');
   } catch (err) {
-    console.error('❌ Migration 10 failed:', err.message);
+    console.error('? Migration 10 failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

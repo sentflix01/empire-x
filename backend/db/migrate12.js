@@ -1,5 +1,5 @@
 /**
- * migrate12.js — is_seed column and dismissed_suggestions table
+ * migrate12.js ? is_seed column and dismissed_suggestions table
  *
  * Performs three non-destructive operations in a single transaction:
  *   1. Adds `is_seed BOOLEAN NOT NULL DEFAULT FALSE` to the `users` table.
@@ -12,7 +12,7 @@
  * Run: node db/migrate12.js
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 const schema = `
 BEGIN;
@@ -45,11 +45,11 @@ COMMIT;
 async function migrate() {
   const client = await pool.connect();
   try {
-    console.log('Running migration 12 — is_seed column and dismissed_suggestions table...');
+    console.log('Running migration 12 ? is_seed column and dismissed_suggestions table...');
     await client.query(schema);
-    console.log('✅ Migration 12 complete — is_seed column backfilled, dismissed_suggestions table created.');
+    console.log('? Migration 12 complete ? is_seed column backfilled, dismissed_suggestions table created.');
   } catch (err) {
-    console.error('❌ Migration 12 failed:', err.message);
+    console.error('? Migration 12 failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

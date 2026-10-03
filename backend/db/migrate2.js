@@ -1,5 +1,5 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 const schema = `
 
@@ -262,7 +262,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code TEXT UNIQUE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by   UUID REFERENCES users(id) ON DELETE SET NULL;
 
 -- ============================================================
--- SEARCH — full text indexes
+-- SEARCH ? full text indexes
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_products_search ON products USING gin(to_tsvector('english', title || ' ' || COALESCE(description,'') || ' ' || COALESCE(category,'')));
 CREATE INDEX IF NOT EXISTS idx_posts_search ON posts USING gin(to_tsvector('english', content));
@@ -275,9 +275,9 @@ async function migrate() {
   try {
     console.log('Running migration 2...');
     await client.query(schema);
-    console.log('✅ Migration 2 complete.');
+    console.log('? Migration 2 complete.');
   } catch (err) {
-    console.error('❌ Migration 2 failed:', err.message);
+    console.error('? Migration 2 failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

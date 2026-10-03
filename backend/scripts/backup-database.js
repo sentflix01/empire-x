@@ -1,10 +1,10 @@
 /**
- * scripts/backup-database.js — Automated database backups (TD-020 / audit item O-19)
+ * scripts/backup-database.js ? Automated database backups (TD-020 / audit item O-19)
  *
  * What it does:
- *   1. Dumps DATABASE_URL with pg_dump (custom-format → gzip).
+ *   1. Dumps DATABASE_URL with pg_dump (custom-format ? gzip).
  *   2. Uploads to Cloudflare R2 when configured, otherwise stores locally under
- *      backend/backups/ (dev fallback — NOT durable enough for production).
+ *      backend/backups/ (dev fallback ? NOT durable enough for production).
  *   3. Enforces retention: keeps the newest BACKUP_RETENTION_DAYS days (default 14).
  *   4. Records the outcome in app_settings key 'last_database_backup' so the
  *      monitoring/alerting layer can page when backups go stale.
@@ -28,7 +28,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const logger = require('../lib/logger');
 let recordEvent=null; try{recordEvent=require('../lib/telemetry').recordEvent;}catch{}
-const pool = require('../db/pool');
+const pool = require('../db/poolJsShim.cjs');
 
 const RETENTION_DAYS = parseInt(process.env.BACKUP_RETENTION_DAYS ?? '14', 10);
 const LOCAL_DIR = path.join('/app', 'backups');
@@ -75,7 +75,7 @@ function stripPgbouncerParam(raw) {
         /[^@]+\.pooler\.supabase\.com:\d+/,
         `db.${projectRef}.supabase.co:5432`
       );
-      // Fix username: postgres.PROJECT_REF:password → postgres:password
+      // Fix username: postgres.PROJECT_REF:password ? postgres:password
       cleaned = cleaned.replace(`postgres.${projectRef}:`, 'postgres:');
     }
   }
@@ -125,7 +125,7 @@ function hasR2() {
 }
 
 function recordOutcome(status, extra = {}) {
-  // Best-effort telemetry — never fail the backup because bookkeeping failed.
+  // Best-effort telemetry ? never fail the backup because bookkeeping failed.
   const payload = JSON.stringify({ at: new Date().toISOString(), status, ...extra });
   return pool.query(
     `INSERT INTO app_settings (key,value) VALUES ('last_database_backup',$1)
@@ -181,7 +181,7 @@ async function runBackup() {
   const gzPath = path.join(LOCAL_DIR, `${baseName}.gz`);
 
   if (!process.env.DATABASE_URL) {
-    logger.warn('backup: DATABASE_URL not set — skipping');
+    logger.warn('backup: DATABASE_URL not set ? skipping');
     await recordOutcome('skipped', { reason: 'no_database_url' });
     return { ok: false, reason: 'no_database_url' };
   }
@@ -197,7 +197,7 @@ async function runBackup() {
     throw err;
   }
 
-  // ── Dump (pg_dump custom format piped through gzip) ────────────────────────
+  // ?? Dump (pg_dump custom format piped through gzip) ????????????????????????
   const dumpUrl = getBackupConnectionString();
 
   const result = await new Promise((resolve, reject) => {
@@ -221,9 +221,9 @@ async function runBackup() {
     dump.on('close', (code) => {
       if (code !== 0) {
           const err = new Error(`pg_dump exited ${code}: ${stderr.slice(0, 500)}`);
-          // Detect auth/network failure — skip to avoid circuit breaker
+          // Detect auth/network failure ? skip to avoid circuit breaker
           if (isAuthError(err) || isSkippableNetworkError(err)) {
-            logger.warn({ err: err.message }, 'backup: skipped (auth/network issue — check DATABASE_URL and connectivity)');
+            logger.warn({ err: err.message }, 'backup: skipped (auth/network issue ? check DATABASE_URL and connectivity)');
             // Clean up partial file if it exists
             try { fs.unlinkSync(gzPath); } catch {}
             resolve({ skipped: true, reason: isAuthError(err) ? 'auth_failure' : 'network_failure' });
@@ -244,16 +244,16 @@ async function runBackup() {
   const size = fs.statSync(gzPath).size;
   if (size === 0) throw new Error('Backup file is empty');
 
-  // ── Store ───────────────────────────────────────────────────────────────────
+  // ?? Store ???????????????????????????????????????????????????????????????????
   let destination;
   if (hasR2()) {
     const key = `backups/${path.basename(gzPath)}`;
     const uploaded = await uploadToR2(gzPath, key);
-    fs.unlinkSync(gzPath); // durable copy exists remotely — drop local temp
+    fs.unlinkSync(gzPath); // durable copy exists remotely ? drop local temp
     destination = `r2:${key} (${uploaded} bytes)`;
   } else {
     destination = `local:${gzPath} (${size} bytes)`;
-    logger.warn('backup: R2 not configured — backup kept on local disk only (NOT durable)');
+    logger.warn('backup: R2 not configured ? backup kept on local disk only (NOT durable)');
   }
 
   const pruned = await pruneLocal();
@@ -274,7 +274,7 @@ async function backupDue() {
       logger.warn({ err: err.message }, 'backup: skipped due to Neon compute quota exhaustion');
       return false;
     }
-    return true; // settings table missing → attempt anyway
+    return true; // settings table missing ? attempt anyway
   }
 }
 

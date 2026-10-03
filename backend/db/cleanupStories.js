@@ -3,7 +3,7 @@
  * Deletes expired stories from the DB and schedules itself every hour.
  * Called once from index.js on server start.
  */
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 async function deleteExpiredStories() {
   try {
@@ -11,7 +11,7 @@ async function deleteExpiredStories() {
       "SELECT 1 FROM information_schema.tables WHERE table_name = 'stories'"
     );
     if (rows.length === 0) {
-      // Stories table doesn't exist yet — skip cleanup silently.
+      // Stories table doesn't exist yet ? skip cleanup silently.
       return;
     }
 
@@ -23,7 +23,7 @@ async function deleteExpiredStories() {
     }
   } catch (err) {
     if (err.code === '42P01') {
-      // relation "stories" does not exist — skip cleanup silently.
+      // relation "stories" does not exist ? skip cleanup silently.
       return;
     }
     console.error('[stories] Cleanup error:', err.message);

@@ -82,7 +82,7 @@ async function main(args = process.argv.slice(2), env = process.env) {
   // Report only non-secret connection identity. Never print credentials or
   // customer-owned row data from an operational cleanup command.
   console.log(`Seed cleanup target: ${target.host}:${target.port}/${target.name}`);
-  const dbPool = require('./pool');
+  const dbPool = require('./poolJsShim.cjs');
   try {
     const result = await cleanupSeedUsers(dbPool, options);
     if (result.dryRun) {

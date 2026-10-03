@@ -1,5 +1,5 @@
 /**
- * migrate22.js — Repair/verification for migrate20's broad constraint drops
+ * migrate22.js ? Repair/verification for migrate20's broad constraint drops
  *
  * Background (task #31 review finding 7):
  *   migrate20 dropped CHECK constraints matching ILIKE '%status%' on `orders`
@@ -7,11 +7,11 @@
  *   broad in principle. A pg_constraint audit of the live Neon database
  *   (after migrate20 ran) confirmed NO unintended constraints were dropped:
  *
- *     orders:              exactly one CHECK — orders_status_check
+ *     orders:              exactly one CHECK ? orders_status_check
  *                          (pending, paid, processing, completed, cancelled,
  *                          payment_failed, refunded); PK, 4 FKs and all
  *                          NOT NULLs intact.
- *     wallet_transactions: exactly one CHECK — wallet_transactions_type_check
+ *     wallet_transactions: exactly one CHECK ? wallet_transactions_type_check
  *                          (credit, debit, withdrawal, refund, pending_topup,
  *                          failed_topup); PK, wallet FK and NOT NULLs intact.
  *
@@ -23,15 +23,15 @@
  * Run: node db/migrate22.js
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 const schema = `
--- ── orders.status — exact-name drop + recreate (idempotent) ─────────────────
+-- ?? orders.status ? exact-name drop + recreate (idempotent) ?????????????????
 ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;
 ALTER TABLE orders ADD CONSTRAINT orders_status_check
   CHECK (status IN ('pending','paid','processing','completed','cancelled','payment_failed','refunded'));
 
--- ── wallet_transactions.type — exact-name drop + recreate (idempotent) ─────
+-- ?? wallet_transactions.type ? exact-name drop + recreate (idempotent) ?????
 ALTER TABLE wallet_transactions DROP CONSTRAINT IF EXISTS wallet_transactions_type_check;
 ALTER TABLE wallet_transactions ADD CONSTRAINT wallet_transactions_type_check
   CHECK (type IN ('credit','debit','withdrawal','refund','pending_topup','failed_topup'));
@@ -40,11 +40,11 @@ ALTER TABLE wallet_transactions ADD CONSTRAINT wallet_transactions_type_check
 async function migrate() {
   const client = await pool.connect();
   try {
-    console.log('Running migration 22 — idempotent CHECK constraint repair (orders.status, wallet_transactions.type)...');
+    console.log('Running migration 22 ? idempotent CHECK constraint repair (orders.status, wallet_transactions.type)...');
     await client.query(schema);
-    console.log('✅ Migration 22 complete — constraints verified/recreated with exact names.');
+    console.log('? Migration 22 complete ? constraints verified/recreated with exact names.');
   } catch (err) {
-    console.error('❌ Migration 22 failed:', err.message);
+    console.error('? Migration 22 failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

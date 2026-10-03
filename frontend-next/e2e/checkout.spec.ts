@@ -30,7 +30,7 @@ async function loginViaUi(page: Page, email: string, password: string) {
   await page.locator('input[type="password"]').first().fill(password);
   await Promise.all([
     page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 }),
-    page.locator('button[type="submit"], button:has-text("Log in"), button:has-text("Login"), button:has-text("Sign in")').first().click(),
+    page.locator('button[type="submit"]').first().click(),
   ]);
 }
 
@@ -96,18 +96,20 @@ test.describe('Checkout flow', () => {
     await page.locator('button:has-text("Buy Now")').first().click();
     await expect(page.locator('text=Checkout').or(page.locator('text=Order')).first()).toBeVisible({ timeout: 10_000 });
 
-    // Fill delivery details
-    const nameInput = page.locator('input[placeholder*="name" i], input[name*="name" i]').first();
-    if (await nameInput.isVisible()) await nameInput.fill('E2E Test Buyer');
-    const phoneInput = page.locator('input[placeholder*="phone" i], input[name*="phone" i], input[type="tel"]').first();
-    if (await phoneInput.isVisible()) await phoneInput.fill('+251911000000');
-    const addressInput = page.locator('input[placeholder*="address" i], input[name*="address" i], textarea[placeholder*="address" i]').first();
-    if (await addressInput.isVisible()) await addressInput.fill('Bole Road, Addis Ababa');
-
     // Advance to checkout
     const continueBtn = page.getByRole('button', { name: /continue to checkout/i });
     await expect(continueBtn).toBeVisible();
     await continueBtn.click();
+
+    // Fill delivery details (these fields appear in the "checkout" step)
+    const nameInput = page.locator('input[placeholder="Your name"]').first();
+    if (await nameInput.isVisible()) await nameInput.fill('E2E Test Buyer');
+    const phoneInput = page.locator('input[placeholder*="234"], input[type="tel"]').first();
+    if (await phoneInput.isVisible()) await phoneInput.fill('+251911000000');
+    const emailInput = page.locator('input[type="email"][placeholder*="email" i]').first();
+    if (await emailInput.isVisible()) await emailInput.fill('e2e@test.dev');
+    const addressInput = page.locator('input[placeholder*="Street" i], textarea[placeholder*="address" i]').first();
+    if (await addressInput.isVisible()) await addressInput.fill('Bole Road, Addis Ababa');
 
     const codButton = page.getByRole('button', { name: /place order \(cod\)/i });
     await expect(codButton).toBeVisible({ timeout: 15_000 });
@@ -122,9 +124,12 @@ test.describe('Checkout flow', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
-        seller_id: sellerId,
-        product_title: 'E2E COD Test Product',
-        total_price: 100,
+        product_id: productId,
+        quantity: 1,
+        buyer_name: 'E2E COD Test Buyer',
+        buyer_email: 'seeded-buyer@e2e.test',
+        buyer_phone: '+251911223344',
+        delivery_address: 'Bole Road, Addis Ababa',
       }),
     });
     expect(res.status).toBe(201);

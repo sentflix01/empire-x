@@ -1,5 +1,5 @@
 /**
- * migrate13.js — Verification requests table
+ * migrate13.js ? Verification requests table
  *
  * Creates the verification_requests table that stores user-submitted
  * selfie + ID document pairs for admin review.
@@ -7,7 +7,7 @@
  * Run: node db/migrate13.js
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 const schema = `
 CREATE TABLE IF NOT EXISTS verification_requests (
@@ -38,11 +38,11 @@ CREATE INDEX IF NOT EXISTS idx_verification_requests_user
 async function migrate() {
   const client = await pool.connect();
   try {
-    console.log('Running migration 13 — verification_requests table...');
+    console.log('Running migration 13 ? verification_requests table...');
     await client.query(schema);
-    console.log('✅ Migration 13 complete — verification_requests table created.');
+    console.log('? Migration 13 complete ? verification_requests table created.');
   } catch (err) {
-    console.error('❌ Migration 13 failed:', err.message);
+    console.error('? Migration 13 failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

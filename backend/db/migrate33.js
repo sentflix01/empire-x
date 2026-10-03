@@ -1,31 +1,31 @@
 /**
- * migrate33.js — Scalability indexes: FK columns + high-traffic query paths
+ * migrate33.js ? Scalability indexes: FK columns + high-traffic query paths
  *
  * Why these indexes:
  *   migrate32 added search vectors and feed indexes.
  *   This migration covers the remaining O(N) scan paths on FK columns that
  *   hit the database hard as row counts grow:
  *
- *   - posts.author_id       — "all posts by user X" (profile page, feed)
- *   - wishlists composite   — "does user X have product Y in wishlist?" (O(1) check)
- *   - likes composite       — "did user X like post/product Y?" (O(1) check)
- *   - follows reverse       — "who does user X follow?" (social graph)
- *   - notifications user    — covered by migrate32, adding read-only variant
- *   - comments.post_id      — "all comments on post X"
- *   - reviews.product_id    — "all reviews for product X"
- *   - saves.user_id         — "all bookmarks for user X"
- *   - cart_items.user_id    — "cart for user X"
- *   - wallets.user_id       — "wallet for user X" (unique lookup)
- *   - wallet_transactions   — "all transactions for wallet X"
- *   - stories.author_id     — "stories by user X" + expiry filter
- *   - businesses.owner_id   — "businesses owned by user X"
- *   - showrooms.owner_id    — "showrooms by user X"
- *   - tasks.requester_id    — "tasks by user X"
- *   - events.organizer_id   — "events by user X"
- *   - jobs.poster_id        — "jobs by user X"
- *   - courses.instructor_id — "courses by user X"
+ *   - posts.author_id       ? "all posts by user X" (profile page, feed)
+ *   - wishlists composite   ? "does user X have product Y in wishlist?" (O(1) check)
+ *   - likes composite       ? "did user X like post/product Y?" (O(1) check)
+ *   - follows reverse       ? "who does user X follow?" (social graph)
+ *   - notifications user    ? covered by migrate32, adding read-only variant
+ *   - comments.post_id      ? "all comments on post X"
+ *   - reviews.product_id    ? "all reviews for product X"
+ *   - saves.user_id         ? "all bookmarks for user X"
+ *   - cart_items.user_id    ? "cart for user X"
+ *   - wallets.user_id       ? "wallet for user X" (unique lookup)
+ *   - wallet_transactions   ? "all transactions for wallet X"
+ *   - stories.author_id     ? "stories by user X" + expiry filter
+ *   - businesses.owner_id   ? "businesses owned by user X"
+ *   - showrooms.owner_id    ? "showrooms by user X"
+ *   - tasks.requester_id    ? "tasks by user X"
+ *   - events.organizer_id   ? "events by user X"
+ *   - jobs.poster_id        ? "jobs by user X"
+ *   - courses.instructor_id ? "courses by user X"
  *
- * All indexes use CREATE INDEX CONCURRENTLY — zero table locks, safe for live DB.
+ * All indexes use CREATE INDEX CONCURRENTLY ? zero table locks, safe for live DB.
  *
  * Run standalone: node db/migrate33.js
  * Auto-run:       node db/migrate-all.js
@@ -33,7 +33,7 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 
 async function migrate33(trackPool) {
-  const pool = trackPool ?? require('./pool');
+  const pool = trackPool ?? require('./poolJsShim.cjs');
   console.log('migrate33: adding scalability indexes for FK columns...');
 
   // CONCURRENT indexes cannot run inside a transaction
@@ -106,13 +106,13 @@ async function migrate33(trackPool) {
     const name = sql.match(/idx_\w+/)?.[0] ?? 'index';
     try {
       await pool.query(sql);
-      console.log(`  ✅  ${name}`);
+      console.log(`  ?  ${name}`);
     } catch (err) {
       if (err.message?.includes('already exists')) {
-        console.log(`  ✓   ${name} (already exists)`);
+        console.log(`  ?   ${name} (already exists)`);
       } else {
         // Non-fatal: some tables may not exist in all environments
-        console.warn(`  ⚠️  ${name} skipped: ${err.message}`);
+        console.warn(`  ??  ${name} skipped: ${err.message}`);
       }
     }
   }
@@ -123,7 +123,7 @@ async function migrate33(trackPool) {
 module.exports = migrate33;
 
 if (require.main === module) {
-  const standalonePool = require('./pool');
+  const standalonePool = require('./poolJsShim.cjs');
   migrate33(standalonePool)
     .then(() => { standalonePool.end(); process.exit(0); })
     .catch(err => { console.error(err.message); standalonePool.end(); process.exit(1); });

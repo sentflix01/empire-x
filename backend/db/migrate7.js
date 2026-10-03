@@ -1,8 +1,8 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 const schema = `
--- ── Migration 7: Ticker opt-in defaults ─────────────────────────────────────
+-- ?? Migration 7: Ticker opt-in defaults ?????????????????????????????????????
 -- Add ticker_type column if it doesn't exist (was missing from the original schema)
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS ticker_type TEXT DEFAULT 'none';
 
@@ -29,9 +29,9 @@ async function migrate() {
   try {
     console.log('Running migration 7 (ticker opt-in defaults)...');
     await client.query(schema);
-    console.log('✅ Migration 7 complete.');
+    console.log('? Migration 7 complete.');
   } catch (err) {
-    console.error('❌ Migration 7 failed:', err.message);
+    console.error('? Migration 7 failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

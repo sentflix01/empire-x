@@ -1,6 +1,6 @@
 # Nodbusiness — Standard Operating Procedure (SOP)
 
-> **Version:** 1.0 | **Status:** Active | **Last Updated:** September 22, 2026
+> **Version:** 1.1 | **Status:** Active | **Last Updated:** October 3, 2026
 >
 > This document governs every single decision, change, and addition made to the
 > Nodbusiness platform — from a one-line bug fix to a full feature version. Nothing
@@ -146,25 +146,25 @@ async function saveProfile(data: Partial<UserProfile>): Promise<void> {
 }
 ```
 
-### 3.2 JavaScript (Backend)
-```javascript
+### 3.2 TypeScript (Backend)
+```typescript
 // ✅ CORRECT — always destructure and validate
-router.post('/api/products', requireAuth, async (req, res) => {
-  const { title, price, category } = req.body;
+router.post('/api/products', requireAuth, async (req: Request, res: Response) => {
+  const { title, price, category } = req.body ?? {};
 
   // Validate first
-  if (!title?.trim())  return res.status(400).json({ error: 'title is required' });
-  if (!price || price <= 0) return res.status(400).json({ error: 'price must be > 0' });
+  if (!title?.trim())  return apiError.validationError(res, 'title is required');
+  if (!price || Number(price) <= 0) return apiError.validationError(res, 'price must be > 0');
 
   try {
     const { rows } = await pool.query(
       'INSERT INTO products (seller_id, title, price, category) VALUES ($1,$2,$3,$4) RETURNING *',
-      [req.user.id, title.trim(), price, category]
+      [req.user!.id, title.trim(), Number(price), category]
     );
     res.status(201).json(rows[0]);
   } catch (err) {
-    logger.error({ err: err.message }, 'Failed to create product');
-    res.status(500).json({ error: 'Failed to create product' });
+    logger.error({ err: (err as Error).message }, 'Failed to create product');
+    return apiError.serverError(res, 'Failed to create product');
   }
 });
 
@@ -371,7 +371,7 @@ module.exports = router;
 ```
 
 ### 5.2 Input Validation Rules
-```javascript
+```typescript
 // Validate ALL input before using it
 // 1. Check required fields exist
 // 2. Check types are correct
@@ -380,13 +380,35 @@ module.exports = router;
 
 // ✅ CORRECT
 const title = String(req.body.title ?? '').trim();
-if (!title) return res.status(400).json({ error: 'title is required' });
+if (!title) return apiError.validationError(res, 'title is required');
 
 // ✅ CORRECT — parameterized query
-pool.query('SELECT * FROM users WHERE email = $1', [email]);
+await pool.query('SELECT * FROM users WHERE email = $1', [email]);
 
 // ❌ WRONG — SQL injection risk
-pool.query(`SELECT * FROM users WHERE email = '${email}'`);
+await pool.query(`SELECT * FROM users WHERE email = '${email}'`);
+```
+
+### 5.3 Module Pattern & Pool Rules (learned from dev-mode incident)
+```
+✅ TypeScript files that are imported by other TS code write ESM only:
+     export default X;
+     export function helper() { ... }
+
+❌ NEVER mix ESM exports and `module.exports` in the same .ts file.
+     `module.exports = X` REPLACES the compiled module's exports object,
+     which silently breaks every named import under tsx (dev server) and
+     often under tsc as well. This once disabled all authenticated routes.
+
+✅ Plain-Node CommonJS scripts (migrations, seeds) import the JS shim:
+     const pool = require('./poolJsShim.cjs');
+   The TS facade lives in `backend/db/pool.ts` and is only loaded by the
+   server (tsx/tsc) — never `require('../db/pool')` from a .js migration.
+
+✅ Route modules and reusable functions are exported CJS-style on purpose:
+     module.exports = router;
+     module.exports.handleStripeEvent = handleStripeEvent;
+   They are only consumed via require() from routes that mount them.
 ```
 
 ### 5.3 Ownership Checks
@@ -610,11 +632,18 @@ it('rejects missing title', async () => {
 
 ### 9.3 Before Every Commit
 ```bash
-# Run these checks — commit only if all pass:
-cd frontend-next && npx tsc --noEmit    # 0 TypeScript errors
+# Frontend — all three, zero errors/warnings:
+cd frontend-next && npx tsc --noEmit   # 0 TypeScript errors
 cd frontend-next && npm run lint        # 0 ESLint errors
-cd backend && npm test                  # all tests pass
+cd frontend-next && npm run test        # Vitest pass
 cd frontend-next && npm run build       # successful build
+
+# Backend:
+cd backend && npx tsc --noEmit          # 0 TypeScript errors
+cd backend && npm run test:unit         # Jest pass (49 suites / 404 tests)
+
+# Full-stack when touching request/auth/payment flows:
+cd frontend-next && npm run test:e2e    # Playwright 49 tests
 ```
 
 ---
@@ -623,7 +652,7 @@ cd frontend-next && npm run build       # successful build
 
 ### 10.1 Branch Naming
 ```
-feature/[description]     → new feature:    feature/product-search-filters
+feat/[description]        → new feature:    feat/product-search-filters
 fix/[description]         → bug fix:        fix/cart-quantity-update
 docs/[description]        → docs only:      docs/update-api-reference
 refactor/[description]    → refactoring:    refactor/product-card-component
@@ -790,7 +819,17 @@ When NOT to comment:
 ```
 
 ### 13.3 API Documentation
-Every new route added to `backend/routes/` must be documented in `docs/backend/API.md`:
+Every new route added to `backend/routes/` must be documented. After adding routes:
+
+```bash
+cd backend && npm run docs:api
+```
+
+This regenerates `docs/backend/API_REFERENCE.md` (the authoritative endpoint
+catalog) and `backend/api-catalog.json`. Keep the human summary tables in
+`docs/backend/API.md` in sync for significant endpoints.
+
+Template for a new endpoint summary:
 ```markdown
 ### POST /api/products
 

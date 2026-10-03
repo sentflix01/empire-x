@@ -1,112 +1,112 @@
 /**
- * seed-patch-media.js — Patch existing seed data with media, richer posts,
+ * seed-patch-media.js ? Patch existing seed data with media, richer posts,
  *                        business logos, and business-specific activity posts.
  *
  * Fixes 4 issues found after initial seed:
  *
- * Issue 1 — All user profiles missing avatar_url and cover_url
- *   → UPDATE user_profiles SET avatar_url, cover_url for every seed user
+ * Issue 1 ? All user profiles missing avatar_url and cover_url
+ *   ? UPDATE user_profiles SET avatar_url, cover_url for every seed user
  *
- * Issue 2 — Personal feed has only text posts, no images/promotions
- *   → Add 50 image posts and 30 promotional posts with image_url + post_type
+ * Issue 2 ? Personal feed has only text posts, no images/promotions
+ *   ? Add 50 image posts and 30 promotional posts with image_url + post_type
  *
- * Issue 3 — Business feed shows businesses with no posts
- *   → Add 1 product post per business (post_type='product'), 1 promo post,
+ * Issue 3 ? Business feed shows businesses with no posts
+ *   ? Add 1 product post per business (post_type='product'), 1 promo post,
  *      and update businesses with logo_url + cover image
  *
- * Issue 4 — Businesses and showrooms missing logo/cover pictures
- *   → UPDATE businesses SET business_logo_url, business_cover_url
- *   → user_profiles.has_business_profile already set by seed-showrooms.js
+ * Issue 4 ? Businesses and showrooms missing logo/cover pictures
+ *   ? UPDATE businesses SET business_logo_url, business_cover_url
+ *   ? user_profiles.has_business_profile already set by seed-showrooms.js
  *
  * Run: node db/seed-patch-media.js
  * Safe to re-run (uses ON CONFLICT DO NOTHING where possible).
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 const { assertSafeDevSeed } = require('./operationSafety');
 
 const pick  = arr => arr[Math.floor(Math.random() * arr.length)];
 const rand  = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-// ── Image content for posts ───────────────────────────────────────────────────
+// ?? Image content for posts ???????????????????????????????????????????????????
 const IMAGE_POST_CONTENTS = [
-  'Just launched our new product line! Come check it out at the showroom 🛍️ #AddisAbaba #Nodbusiness',
-  'Morning view from our Bole office ☀️ Grateful for another day of building. #EthiopianBusiness',
-  'Fresh delivery just arrived 📦 Order yours before stock runs out! #Merkato #Ethiopia',
-  'Our team after completing a major project this week 💪 Proud of what we built! #EthioTech',
-  'New arrivals in the shop! All locally made 🇪🇹 #HabeshaFashion #AddisStyle',
-  'Client testimonial: "Best service in Addis Ababa!" Thank you for your trust 🙏',
-  'Behind the scenes at our workshop — craftsmanship at its finest ✨ #MadeInEthiopia',
-  'Special Friday offer: 20% off everything in the marketplace this weekend only! 🔥',
-  'Excited to announce our new location in Yeka! Grand opening next week 🎉 #NewLocation',
-  'Traditional Ethiopian coffee ceremony at our showroom ☕ You are all invited!',
-  'Nodbusiness marketplace is the place to be for Ethiopian products 🛒 Visit us today!',
-  'Handmade leather bags — every piece is unique and crafted with love 🎨 #EthioLeather',
-  'Our restaurant now delivers! Order on Nodbusiness and get it in 30 minutes 🍽️',
-  'The team is growing! We are hiring in Addis Ababa. Check our job listing 💼',
-  'Look at this incredible view from our Entoto branch 🌄 #AddisViews #Ethiopia',
-  'Product spotlight: Our best-selling item this month with 200+ orders! 📈',
-  'Celebrating 1 year on Nodbusiness! Thank you to all our customers ❤️ #1Year',
-  'New fabric collection just arrived from Dorze weavers 🧵 #TraditionalEthiopian',
-  'Saturday market is live! 50+ products added this weekend 🏪 #WeekendMarket',
-  'Gena is coming — special holiday bundle available now 🎁 #EthiopianChristmas',
+  'Just launched our new product line! Come check it out at the showroom ??? #AddisAbaba #Nodbusiness',
+  'Morning view from our Bole office ?? Grateful for another day of building. #EthiopianBusiness',
+  'Fresh delivery just arrived ?? Order yours before stock runs out! #Merkato #Ethiopia',
+  'Our team after completing a major project this week ?? Proud of what we built! #EthioTech',
+  'New arrivals in the shop! All locally made ???? #HabeshaFashion #AddisStyle',
+  'Client testimonial: "Best service in Addis Ababa!" Thank you for your trust ??',
+  'Behind the scenes at our workshop ? craftsmanship at its finest ? #MadeInEthiopia',
+  'Special Friday offer: 20% off everything in the marketplace this weekend only! ??',
+  'Excited to announce our new location in Yeka! Grand opening next week ?? #NewLocation',
+  'Traditional Ethiopian coffee ceremony at our showroom ? You are all invited!',
+  'Nodbusiness marketplace is the place to be for Ethiopian products ?? Visit us today!',
+  'Handmade leather bags ? every piece is unique and crafted with love ?? #EthioLeather',
+  'Our restaurant now delivers! Order on Nodbusiness and get it in 30 minutes ???',
+  'The team is growing! We are hiring in Addis Ababa. Check our job listing ??',
+  'Look at this incredible view from our Entoto branch ?? #AddisViews #Ethiopia',
+  'Product spotlight: Our best-selling item this month with 200+ orders! ??',
+  'Celebrating 1 year on Nodbusiness! Thank you to all our customers ?? #1Year',
+  'New fabric collection just arrived from Dorze weavers ?? #TraditionalEthiopian',
+  'Saturday market is live! 50+ products added this weekend ?? #WeekendMarket',
+  'Gena is coming ? special holiday bundle available now ?? #EthiopianChristmas',
 ];
 
 const PROMO_POST_CONTENTS = [
-  { text: 'This week only: Buy 2 get 1 FREE on all products in my showroom! Limited stock. 🔥', tag: '#Promo' },
-  { text: 'Introducing our new Premium service package — more features, same trusted team. 💎', tag: '#NewLaunch' },
-  { text: 'Announcing: free delivery on all orders above 500 ETB this month only! 🚚', tag: '#FreeDelivery' },
-  { text: 'Flash sale starting NOW — up to 40% off selected items. First come first serve! ⚡', tag: '#FlashSale' },
-  { text: 'We just added online payment through Nodbusiness Wallet. Pay faster, shop easier. 💳', tag: '#PayWithWallet' },
-  { text: 'Referral bonus: Share our showroom link and earn 200 ETB credit for every new customer! 🎁', tag: '#ReferralProgram' },
-  { text: 'Premium membership just got better — now includes priority support and analytics. 📊', tag: '#PremiumBusiness' },
-  { text: 'Limited edition: Only 20 units of our signature product remaining. Order now! ⏳', tag: '#LimitedEdition' },
-  { text: 'New: Subscribe to our showroom for exclusive deals and early access! 🔔', tag: '#Subscribe' },
-  { text: 'Holiday bundle: Get our top 3 products at 30% off — perfect gift package! 🎄', tag: '#HolidayOffer' },
+  { text: 'This week only: Buy 2 get 1 FREE on all products in my showroom! Limited stock. ??', tag: '#Promo' },
+  { text: 'Introducing our new Premium service package ? more features, same trusted team. ??', tag: '#NewLaunch' },
+  { text: 'Announcing: free delivery on all orders above 500 ETB this month only! ??', tag: '#FreeDelivery' },
+  { text: 'Flash sale starting NOW ? up to 40% off selected items. First come first serve! ?', tag: '#FlashSale' },
+  { text: 'We just added online payment through Nodbusiness Wallet. Pay faster, shop easier. ??', tag: '#PayWithWallet' },
+  { text: 'Referral bonus: Share our showroom link and earn 200 ETB credit for every new customer! ??', tag: '#ReferralProgram' },
+  { text: 'Premium membership just got better ? now includes priority support and analytics. ??', tag: '#PremiumBusiness' },
+  { text: 'Limited edition: Only 20 units of our signature product remaining. Order now! ?', tag: '#LimitedEdition' },
+  { text: 'New: Subscribe to our showroom for exclusive deals and early access! ??', tag: '#Subscribe' },
+  { text: 'Holiday bundle: Get our top 3 products at 30% off ? perfect gift package! ??', tag: '#HolidayOffer' },
 ];
 
-// ── Business-specific post templates ─────────────────────────────────────────
+// ?? Business-specific post templates ?????????????????????????????????????????
 const BUSINESS_POST_TEMPLATES = {
   restaurant: [
-    'Today\'s special: Injera with 5 wots + tej — only 180 ETB. Come dine with us! 🍽️',
-    'Our menu now includes vegan Ethiopian options. Perfect for fasting season! 🌿',
-    'We cater for weddings, birthdays, and corporate events. Get a quote today! 📞',
+    'Today\'s special: Injera with 5 wots + tej ? only 180 ETB. Come dine with us! ???',
+    'Our menu now includes vegan Ethiopian options. Perfect for fasting season! ??',
+    'We cater for weddings, birthdays, and corporate events. Get a quote today! ??',
   ],
   shop: [
-    'New stock alert: Ethiopian traditional dress collection now available online 👗',
-    'All leather products 25% off this week only. Authentic Merkato quality! 🎒',
-    'Custom orders accepted — get your traditional outfit made to measure! 📐',
+    'New stock alert: Ethiopian traditional dress collection now available online ??',
+    'All leather products 25% off this week only. Authentic Merkato quality! ??',
+    'Custom orders accepted ? get your traditional outfit made to measure! ??',
   ],
   service: [
-    'Our team completed 15 projects this month. Excellence is our standard! ⚙️',
-    'New service: Digital marketing for small businesses starting at 2,000 ETB/month 📱',
-    'Free consultation available this week. Book your slot now! 📅',
+    'Our team completed 15 projects this month. Excellence is our standard! ??',
+    'New service: Digital marketing for small businesses starting at 2,000 ETB/month ??',
+    'Free consultation available this week. Book your slot now! ??',
   ],
   health: [
-    'Reminder: Annual health checkup packages available — prevention is key! 🏥',
-    'New doctor joining our team next week: specialist in internal medicine. 👨‍⚕️',
-    'Blood donation drive this Saturday at our clinic. Save a life! ❤️',
+    'Reminder: Annual health checkup packages available ? prevention is key! ??',
+    'New doctor joining our team next week: specialist in internal medicine. ?????',
+    'Blood donation drive this Saturday at our clinic. Save a life! ??',
   ],
   realestate: [
-    'New listing: 3-bedroom villa in CMC — fully furnished. Available now! 🏡',
-    'Rent vs buy in Addis: Our experts will help you make the right decision. 📊',
-    'We handle all paperwork — lease agreements, title deed transfers, and more! 📋',
+    'New listing: 3-bedroom villa in CMC ? fully furnished. Available now! ??',
+    'Rent vs buy in Addis: Our experts will help you make the right decision. ??',
+    'We handle all paperwork ? lease agreements, title deed transfers, and more! ??',
   ],
   portfolio: [
-    'New portfolio piece: Brand identity for a tech startup in Bole. Swipe to see! 🎨',
-    'Accepting new photography clients for October. DM to book your session! 📸',
-    'Before & after: See the transformation of our latest web design project! 💻',
+    'New portfolio piece: Brand identity for a tech startup in Bole. Swipe to see! ??',
+    'Accepting new photography clients for October. DM to book your session! ??',
+    'Before & after: See the transformation of our latest web design project! ??',
   ],
 };
 
 async function seed() {
   assertSafeDevSeed();
   const client = await pool.connect();
-  console.log('\n🖼️  Nodbusiness Media Patch Seed\n');
+  console.log('\n???  Nodbusiness Media Patch Seed\n');
   console.log('Fixes: avatar/cover images, image posts, business logos, business posts\n');
 
   try {
-    // ── Load existing seed users ──────────────────────────────────────────────
+    // ?? Load existing seed users ??????????????????????????????????????????????
     const { rows: users } = await client.query(
       `SELECT u.id, u.full_name, up.id as profile_id
        FROM users u
@@ -115,13 +115,13 @@ async function seed() {
        ORDER BY u.created_at LIMIT 50`
     );
     if (!users.length) {
-      console.error('❌ No seed users found. Run node db/seed.js first.');
+      console.error('? No seed users found. Run node db/seed.js first.');
       process.exit(1);
     }
-    console.log(`✅ Found ${users.length} seed users\n`);
+    console.log(`? Found ${users.length} seed users\n`);
 
-    // ── FIX 1: Add avatar + cover to every seed user profile ─────────────────
-    console.log('👤 Adding profile pictures to all seed users...');
+    // ?? FIX 1: Add avatar + cover to every seed user profile ?????????????????
+    console.log('?? Adding profile pictures to all seed users...');
     let avatarCount = 0;
     for (let i = 0; i < users.length; i++) {
       const user = users[i];
@@ -141,10 +141,10 @@ async function seed() {
       );
       avatarCount++;
     }
-    console.log(`  ✅ ${avatarCount} profiles updated with avatar + cover\n`);
+    console.log(`  ? ${avatarCount} profiles updated with avatar + cover\n`);
 
-    // ── FIX 2: Add image posts and promotional posts to personal feed ─────────
-    console.log('📸 Adding image posts and promo posts to personal feed...');
+    // ?? FIX 2: Add image posts and promotional posts to personal feed ?????????
+    console.log('?? Adding image posts and promo posts to personal feed...');
     let imagePostCount = 0, promoPostCount = 0;
 
     // 50 image posts
@@ -197,11 +197,11 @@ async function seed() {
       promoPostCount++;
     }
 
-    console.log(`  ✅ ${imagePostCount} image posts added`);
-    console.log(`  ✅ ${promoPostCount} promotional posts added\n`);
+    console.log(`  ? ${imagePostCount} image posts added`);
+    console.log(`  ? ${promoPostCount} promotional posts added\n`);
 
-    // ── FIX 3 + 4: Business logos and business-specific posts ─────────────────
-    console.log('🏢 Adding logos and posts to businesses...');
+    // ?? FIX 3 + 4: Business logos and business-specific posts ?????????????????
+    console.log('?? Adding logos and posts to businesses...');
     const { rows: businesses } = await client.query(
       `SELECT b.id, b.owner_id, b.business_name, b.business_category,
               u.full_name as owner_name
@@ -275,11 +275,11 @@ async function seed() {
       }
     }
 
-    console.log(`  ✅ ${bizLogoCount} businesses updated with logo + cover`);
-    console.log(`  ✅ ${bizPostCount} business posts added\n`);
+    console.log(`  ? ${bizLogoCount} businesses updated with logo + cover`);
+    console.log(`  ? ${bizPostCount} business posts added\n`);
 
-    // ── FIX: Update showroom logo_url to match business logo ─────────────────
-    console.log('🏪 Updating showroom covers with user avatars as logos...');
+    // ?? FIX: Update showroom logo_url to match business logo ?????????????????
+    console.log('?? Updating showroom covers with user avatars as logos...');
     const { rows: showrooms } = await client.query(
       `SELECT s.id, s.owner_id FROM showrooms s
        JOIN users u ON u.id = s.owner_id
@@ -294,12 +294,12 @@ async function seed() {
         );
       }
     }
-    console.log(`  ✅ ${showrooms.length} showroom logos updated\n`);
+    console.log(`  ? ${showrooms.length} showroom logos updated\n`);
 
-    // ── Summary ───────────────────────────────────────────────────────────────
-    console.log('════════════════════════════════════════');
-    console.log('✅ Media patch complete!');
-    console.log('════════════════════════════════════════');
+    // ?? Summary ???????????????????????????????????????????????????????????????
+    console.log('????????????????????????????????????????');
+    console.log('? Media patch complete!');
+    console.log('????????????????????????????????????????');
     console.log(`  Profile avatars + covers: ${avatarCount} users`);
     console.log(`  Image posts added:        ${imagePostCount}`);
     console.log(`  Promo posts added:        ${promoPostCount}`);
@@ -310,11 +310,11 @@ async function seed() {
     console.log('Now browse:');
     console.log('  Personal feed: https://nodbusiness.vercel.app/feed (Personal tab)');
     console.log('  Business feed: https://nodbusiness.vercel.app/feed (Business tab)');
-    console.log('  Profile:       Login → click any user avatar');
-    console.log('════════════════════════════════════════\n');
+    console.log('  Profile:       Login ? click any user avatar');
+    console.log('????????????????????????????????????????\n');
 
   } catch (err) {
-    console.error('\n❌ Patch failed:', err.message);
+    console.error('\n? Patch failed:', err.message);
     if (err.stack) console.error(err.stack);
     process.exit(1);
   } finally {

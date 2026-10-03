@@ -1,8 +1,8 @@
 /**
- * migrate26.js — Mewacho group money collection tables
+ * migrate26.js ? Mewacho group money collection tables
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 async function run() {
   const client = await pool.connect();
@@ -85,10 +85,10 @@ async function run() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_mewacho_activity_group ON mewacho_activity(group_id, created_at DESC)`);
 
     await client.query('COMMIT');
-    console.log('✅ Migration 26 complete — Mewacho tables created.');
+    console.log('? Migration 26 complete ? Mewacho tables created.');
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('❌ Migration 26 failed:', err.message);
+    console.error('? Migration 26 failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

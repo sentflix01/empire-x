@@ -1,5 +1,5 @@
-jest.unmock('../db/pool.js');
-const migrationPool = require('../db/pool.js');
+jest.unmock('../db/poolJsShim.cjs');
+const migrationPool = require('../db/poolJsShim.cjs');
 
 describe('migration pool TLS options', () => {
   test('requires certificate-verified TLS for any production database host', () => {

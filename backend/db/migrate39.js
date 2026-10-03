@@ -1,10 +1,10 @@
 /**
- * Migration 39 — mark built-in demo accounts independently from generated seed content.
+ * Migration 39 ? mark built-in demo accounts independently from generated seed content.
  * New registrations default to real accounts. Existing fake personas and the
  * built-in test/admin accounts are marked demo so their sessions bypass Redis.
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 async function migrate() {
   const client = await pool.connect();
@@ -22,7 +22,7 @@ async function migrate() {
     `);
     await client.query('CREATE INDEX IF NOT EXISTS idx_users_is_demo ON users(id) WHERE is_demo = TRUE');
     await client.query('COMMIT');
-    console.log('Migration 39 complete — demo accounts marked.');
+    console.log('Migration 39 complete ? demo accounts marked.');
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     console.error('Migration 39 failed:', err.message);

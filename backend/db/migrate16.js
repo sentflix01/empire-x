@@ -1,20 +1,20 @@
 /**
- * migrate16.js — Add missing performance indexes on hot query paths
+ * migrate16.js ? Add missing performance indexes on hot query paths
  *
  * Covers:
- *  - notifications(user_id, created_at DESC)  → notification list query
- *  - posts(author_id, created_at DESC)         → profile posts query
- *  - likes(target_id, user_id)                → like check + count
- *  - comments(post_id, created_at)            → comment thread
- *  - follows(follower_id, followed_id)        → follow check
- *  - follows(followed_id)                     → follower list
- *  - conversations(updated_at DESC)           → messages list sort
- *  - messages(conversation_id, created_at)    → already exists, ensure
+ *  - notifications(user_id, created_at DESC)  ? notification list query
+ *  - posts(author_id, created_at DESC)         ? profile posts query
+ *  - likes(target_id, user_id)                ? like check + count
+ *  - comments(post_id, created_at)            ? comment thread
+ *  - follows(follower_id, followed_id)        ? follow check
+ *  - follows(followed_id)                     ? follower list
+ *  - conversations(updated_at DESC)           ? messages list sort
+ *  - messages(conversation_id, created_at)    ? already exists, ensure
  *
  * Run: node db/migrate16.js
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 const schema = `
 -- Notifications: list by user sorted by newest first
@@ -63,11 +63,11 @@ END $$;
 async function run() {
   const client = await pool.connect();
   try {
-    console.log('Running migration 16 — performance indexes...');
+    console.log('Running migration 16 ? performance indexes...');
     await client.query(schema);
-    console.log('✅ Migration 16 complete.');
+    console.log('? Migration 16 complete.');
   } catch (err) {
-    console.error('❌ Migration 16 failed:', err.message);
+    console.error('? Migration 16 failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

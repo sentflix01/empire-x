@@ -1,5 +1,5 @@
 /**
- * migrate17.js — Add missing user_profile columns for full ProfileEdit support
+ * migrate17.js ? Add missing user_profile columns for full ProfileEdit support
  *
  * The ProfileEdit view sends: social_linkedin, social_twitter, social_instagram,
  * social_facebook, social_youtube, website, phone, languages, certifications,
@@ -11,7 +11,7 @@
  * Run: node db/migrate17.js
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 const schema = `
 -- Personal social links
@@ -49,11 +49,11 @@ ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS business_extra_json  JSONB DE
 async function migrate() {
   const client = await pool.connect();
   try {
-    console.log('Running migration 17 — add missing profile columns...');
+    console.log('Running migration 17 ? add missing profile columns...');
     await client.query(schema);
-    console.log('✅ Migration 17 complete — all profile columns added.');
+    console.log('? Migration 17 complete ? all profile columns added.');
   } catch (err) {
-    console.error('❌ Migration 17 failed:', err.message);
+    console.error('? Migration 17 failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

@@ -1,5 +1,5 @@
 /**
- * migrate30.js — Error Events table for DevOps live error feed
+ * migrate30.js ? Error Events table for DevOps live error feed
  *
  * Creates the `error_events` table that stores every unhandled error,
  * unhandled promise rejection, and manually captured error from the
@@ -9,14 +9,14 @@
  * Run: node backend/db/migrate30.js
  */
 require('dotenv').config();
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 async function migrate() {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
-    // ── error_events ─────────────────────────────────────────────────────────
+    // ?? error_events ?????????????????????????????????????????????????????????
     await client.query(`
       CREATE TABLE IF NOT EXISTS error_events (
         id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -69,16 +69,16 @@ async function migrate() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_error_events_resolved   ON error_events(resolved)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_error_events_created    ON error_events(created_at DESC)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_error_events_last_seen  ON error_events(last_seen_at DESC)`);
-    // Unique fingerprint index for ON CONFLICT dedup (was missing — caused all
+    // Unique fingerprint index for ON CONFLICT dedup (was missing ? caused all
     // fresh deployments to silently fail error capture)
     await client.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_error_events_fingerprint ON error_events(fingerprint)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_error_events_path       ON error_events(path)`);
 
     await client.query('COMMIT');
-    console.log('✅  migrate30: error_events table created successfully');
+    console.log('?  migrate30: error_events table created successfully');
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('❌  migrate30 failed:', err.message);
+    console.error('?  migrate30 failed:', err.message);
     throw err;
   } finally {
     client.release();

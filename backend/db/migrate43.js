@@ -1,10 +1,10 @@
 /**
- * Migration 43 — columns used by the product inventory and bulk import routes.
+ * Migration 43 ? columns used by the product inventory and bulk import routes.
  * The importer previously referenced these fields without any migration, so a
  * clean install could not import even one valid inventory row.
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 async function migrate() {
   const client = await pool.connect();
@@ -54,7 +54,7 @@ async function migrate() {
     `);
     await client.query('CREATE INDEX IF NOT EXISTS idx_products_sku ON products(seller_id,sku) WHERE sku IS NOT NULL');
     await client.query('COMMIT');
-    console.log('Migration 43 complete — product inventory columns are available.');
+    console.log('Migration 43 complete ? product inventory columns are available.');
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     console.error('Migration 43 failed:', err.message);

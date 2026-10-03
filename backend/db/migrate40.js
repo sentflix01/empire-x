@@ -1,5 +1,5 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 async function migrate() {
   const client = await pool.connect();
@@ -38,7 +38,7 @@ async function migrate() {
       )
     `);
     await client.query('COMMIT');
-    console.log('Migration 40 complete — onboarding preference and sandbox sessions are available.');
+    console.log('Migration 40 complete ? onboarding preference and sandbox sessions are available.');
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     console.error('Migration 40 failed:', err.message);

@@ -6,7 +6,7 @@
  */
 let pool;
 module.exports = async function migrate(trackPool) {
-  pool = trackPool ?? require('./pool');
+  pool = trackPool ?? require('./poolJsShim.cjs');
   await pool.query(`
     ALTER TABLE verification_requests
       ADD COLUMN IF NOT EXISTS supporting_docs TEXT,

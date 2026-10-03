@@ -1,12 +1,12 @@
 /**
- * migrate38.js — story_reactions and story_comments tables
+ * migrate38.js ? story_reactions and story_comments tables
  *
  * stories.ts references these tables for engagement (reactions/replies)
  * but they were never created in a migration. This adds them idempotently.
  */
 'use strict';
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 async function run() {
   const client = await pool.connect();
@@ -18,7 +18,7 @@ async function run() {
         id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         story_id   UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
         user_id    UUID NOT NULL REFERENCES users(id)   ON DELETE CASCADE,
-        emoji      TEXT NOT NULL DEFAULT '❤️',
+        emoji      TEXT NOT NULL DEFAULT '??',
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         UNIQUE (story_id, user_id)
       )
@@ -40,10 +40,10 @@ async function run() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_story_comments_story  ON story_comments(story_id)`);
 
     await client.query('COMMIT');
-    console.log('✅ Migration 38 complete — story_reactions and story_comments tables created.');
+    console.log('? Migration 38 complete ? story_reactions and story_comments tables created.');
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('❌ Migration 38 failed:', err.message);
+    console.error('? Migration 38 failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

@@ -1,5 +1,5 @@
 /**
- * migrate31.js — conversation_participants junction table
+ * migrate31.js ? conversation_participants junction table
  *
  * Why this migration exists:
  *   Previously, conversation participants were stored as a JSON array in the
@@ -10,11 +10,11 @@
  *
  *   This migration creates a proper normalized junction table with a
  *   composite primary key (conversation_id, user_id) and an indexed
- *   lookup path on user_id — turning O(N) full scans into O(log N) lookups.
+ *   lookup path on user_id ? turning O(N) full scans into O(log N) lookups.
  *
  *   Additional columns:
- *     role        — 'admin' | 'member', supports group permission checks
- *     last_read_at — per-user read position, enables unread count queries
+ *     role        ? 'admin' | 'member', supports group permission checks
+ *     last_read_at ? per-user read position, enables unread count queries
  *                    without scanning all messages
  *
  *   Data migration: reads every existing conversation's participant_ids JSON
@@ -37,13 +37,13 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 async function migrate31(trackPool) {
   // When called by migrate-all.js, use the injected pool.
   // When run standalone, load pool directly via tsx.
-  const pool = trackPool ?? require('./pool');
+  const pool = trackPool ?? require('./poolJsShim.cjs');
   const client = await pool.connect();
   try {
     console.log('migrate31: creating conversation_participants junction table...');
     await client.query('BEGIN');
 
-    // ── 1. Create junction table ──────────────────────────────────────────────
+    // ?? 1. Create junction table ??????????????????????????????????????????????
     await client.query(`
       CREATE TABLE IF NOT EXISTS conversation_participants (
         conversation_id  UUID        NOT NULL
@@ -58,7 +58,7 @@ async function migrate31(trackPool) {
       )
     `);
 
-    // ── 2. Indexes ────────────────────────────────────────────────────────────
+    // ?? 2. Indexes ????????????????????????????????????????????????????????????
     // Primary lookup: "show all conversations for user X, newest first"
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_conv_participants_user_joined
@@ -71,7 +71,7 @@ async function migrate31(trackPool) {
         ON conversation_participants(conversation_id)
     `);
 
-    // ── 3. Backward-compat GIN index on legacy participant_ids column ─────────
+    // ?? 3. Backward-compat GIN index on legacy participant_ids column ?????????
     // Keeps old-style WHERE participant_ids::jsonb @> ... queries fast while
     // the codebase transitions to the junction table.
     await client.query(`
@@ -79,7 +79,7 @@ async function migrate31(trackPool) {
         ON conversations USING GIN ((participant_ids::jsonb))
     `);
 
-    // ── 4. Migrate existing data from JSON arrays ─────────────────────────────
+    // ?? 4. Migrate existing data from JSON arrays ?????????????????????????????
     console.log('migrate31: migrating participant data from participant_ids JSON...');
 
     const { rows: conversations } = await client.query(
@@ -98,7 +98,7 @@ async function migrate31(trackPool) {
         ids = Array.isArray(parsed) ? parsed.map(String) : [];
       } catch {
         skipped++;
-        continue; // malformed JSON — skip this row
+        continue; // malformed JSON ? skip this row
       }
 
       for (const uid of ids) {
@@ -113,7 +113,7 @@ async function migrate31(trackPool) {
           );
           migrated++;
         } catch {
-          // Foreign-key violation means the user was deleted — skip silently
+          // Foreign-key violation means the user was deleted ? skip silently
           skipped++;
         }
       }
@@ -121,7 +121,7 @@ async function migrate31(trackPool) {
 
     await client.query('COMMIT');
     console.log(
-      `migrate31: complete — ${migrated} participant rows migrated, ${skipped} skipped`
+      `migrate31: complete ? ${migrated} participant rows migrated, ${skipped} skipped`
     );
   } catch (err) {
     await client.query('ROLLBACK');
@@ -132,12 +132,12 @@ async function migrate31(trackPool) {
   }
 }
 
-// Exported async function — picked up by migrate-all.js automatically
+// Exported async function ? picked up by migrate-all.js automatically
 module.exports = migrate31;
 
 // Allow standalone run: node db/migrate31.js
 if (require.main === module) {
-  const standalonePool = require('./pool');
+  const standalonePool = require('./poolJsShim.cjs');
   migrate31(standalonePool)
     .then(() => { standalonePool.end(); process.exit(0); })
     .catch(err => { console.error(err); standalonePool.end(); process.exit(1); });

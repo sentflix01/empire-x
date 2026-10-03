@@ -150,9 +150,3 @@ export async function closeAllPools(): Promise<void> {
 }
 
 export default pool;
-module.exports = pool;
-module.exports.buildConnectionString = buildConnectionString;
-module.exports.getCurrentDatabaseEnvironment = getCurrentDatabaseEnvironment;
-module.exports.getCurrentDatabaseContext = getCurrentDatabaseContext;
-module.exports.runWithDatabaseEnvironment = runWithDatabaseEnvironment;
-module.exports.closeAllPools = closeAllPools;

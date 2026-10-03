@@ -1,6 +1,6 @@
 let pool;
 module.exports = async function migrate(trackPool) {
-  pool = trackPool ?? require('./pool');
+  pool = trackPool ?? require('./poolJsShim.cjs');
   await pool.query(`
     CREATE TABLE IF NOT EXISTS audit_logs (
       id BIGSERIAL PRIMARY KEY,

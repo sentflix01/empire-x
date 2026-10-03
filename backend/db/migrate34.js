@@ -6,7 +6,7 @@
  */
 let pool;
 module.exports = async function migrate(trackPool) {
-  pool = trackPool ?? require('./pool');
+  pool = trackPool ?? require('./poolJsShim.cjs');
   await pool.query(`
     CREATE TABLE IF NOT EXISTS telemetry_events (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

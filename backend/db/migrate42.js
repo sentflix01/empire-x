@@ -1,10 +1,10 @@
 /**
- * Migration 42 — durable product inventory reservations for open orders.
+ * Migration 42 ? durable product inventory reservations for open orders.
  * Stock is decremented when an order is created; provider success commits the
  * reservation, while payment failure or pre-payment cancellation releases it.
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 async function migrate() {
   const client = await pool.connect();
@@ -24,7 +24,7 @@ async function migrate() {
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_order_inventory_reservations_status ON order_inventory_reservations(status, order_id)`);
     await client.query('COMMIT');
-    console.log('Migration 42 complete — order inventory reservations are available.');
+    console.log('Migration 42 complete ? order inventory reservations are available.');
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     console.error('Migration 42 failed:', err.message);

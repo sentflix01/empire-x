@@ -1,5 +1,5 @@
 /**
- * migrate21.js — Developer Ops / Todo Board (devops_items)
+ * migrate21.js ? Developer Ops / Todo Board (devops_items)
  *
  * Creates the devops_items table used by the admin-only Developer Ops board:
  * bugs, features, and tasks tracked by admins/developers/owner.
@@ -7,7 +7,7 @@
  * Run: node db/migrate21.js
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 const schema = `
 CREATE TABLE IF NOT EXISTS devops_items (
@@ -34,11 +34,11 @@ CREATE INDEX IF NOT EXISTS idx_devops_items_severity ON devops_items(severity);
 async function migrate() {
   const client = await pool.connect();
   try {
-    console.log('Running migration 21 — Developer Ops board (devops_items)...');
+    console.log('Running migration 21 ? Developer Ops board (devops_items)...');
     await client.query(schema);
-    console.log('✅ Migration 21 complete — devops_items table + indexes created.');
+    console.log('? Migration 21 complete ? devops_items table + indexes created.');
   } catch (err) {
-    console.error('❌ Migration 21 failed:', err.message);
+    console.error('? Migration 21 failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

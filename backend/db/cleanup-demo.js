@@ -41,7 +41,7 @@ if (process.env.DEMO_DB_TLS_REJECT_UNAUTHORIZED !== undefined) {
   process.env.DB_TLS_REJECT_UNAUTHORIZED = process.env.DEMO_DB_TLS_REJECT_UNAUTHORIZED;
 }
 process.env.DB_POOL_MAX = '1';
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 async function removeDemoUploads(sessionId) {
   // Session IDs come from the demo_sessions table, but validate before using

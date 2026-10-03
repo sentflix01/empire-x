@@ -41,7 +41,7 @@ async function resetAdmin({ dbPool, nodeEnv, databaseUrl, acknowledgement, email
 }
 
 if (require.main === module) {
-  const pool = require('../db/pool');
+  const pool = require('../db/poolJsShim.cjs');
   resetAdmin({
     dbPool: pool,
     nodeEnv: process.env.NODE_ENV,

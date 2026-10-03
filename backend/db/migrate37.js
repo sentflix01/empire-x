@@ -1,16 +1,16 @@
 /**
- * migrate37.js — Business Subscription Tiers
+ * migrate37.js ? Business Subscription Tiers
  *
  * Creates 4 tables required by the business-subscription-tiers feature:
  *
- *   business_subscriptions  — one row per business; tracks Stripe subscription
+ *   business_subscriptions  ? one row per business; tracks Stripe subscription
  *                             state and current tier (freemium / premium / pro)
- *   live_locations          — upsert model; stores the latest GPS position
+ *   live_locations          ? upsert model; stores the latest GPS position
  *                             broadcast by Enterprise ride/delivery businesses
- *   business_webhooks       — outbound webhook endpoints registered by Premium+
+ *   business_webhooks       ? outbound webhook endpoints registered by Premium+
  *                             business owners (HMAC-signed event delivery)
- *   business_api_keys       — API keys for programmatic access; plaintext key is
- *                             never stored — only the SHA-256 hash
+ *   business_api_keys       ? API keys for programmatic access; plaintext key is
+ *                             never stored ? only the SHA-256 hash
  *
  * Run standalone:  node db/migrate37.js
  * Auto-run:        node db/migrate-all.js  (exports async function)
@@ -19,9 +19,9 @@
 let pool;
 
 module.exports = async function migrate37(trackPool) {
-  pool = trackPool ?? require('./pool');
+  pool = trackPool ?? require('./poolJsShim.cjs');
 
-  // ── 1. business_subscriptions ─────────────────────────────────────────────
+  // ?? 1. business_subscriptions ?????????????????????????????????????????????
   await pool.query(`
     CREATE TABLE IF NOT EXISTS business_subscriptions (
       id                      UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -48,9 +48,9 @@ module.exports = async function migrate37(trackPool) {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_bsub_business   ON business_subscriptions (business_id)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_bsub_stripe_sub ON business_subscriptions (stripe_subscription_id) WHERE stripe_subscription_id IS NOT NULL`);
 
-  console.log('  ✅  business_subscriptions');
+  console.log('  ?  business_subscriptions');
 
-  // ── 2. live_locations ─────────────────────────────────────────────────────
+  // ?? 2. live_locations ?????????????????????????????????????????????????????
   await pool.query(`
     CREATE TABLE IF NOT EXISTS live_locations (
       id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -71,9 +71,9 @@ module.exports = async function migrate37(trackPool) {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_live_locations_business ON live_locations (business_id)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_live_locations_updated  ON live_locations (updated_at DESC)`);
 
-  console.log('  ✅  live_locations');
+  console.log('  ?  live_locations');
 
-  // ── 3. business_webhooks ──────────────────────────────────────────────────
+  // ?? 3. business_webhooks ??????????????????????????????????????????????????
   await pool.query(`
     CREATE TABLE IF NOT EXISTS business_webhooks (
       id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -94,9 +94,9 @@ module.exports = async function migrate37(trackPool) {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_bwebhooks_business   ON business_webhooks (business_id)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_bwebhooks_enabled    ON business_webhooks (business_id, is_enabled)`);
 
-  console.log('  ✅  business_webhooks');
+  console.log('  ?  business_webhooks');
 
-  // ── 4. business_api_keys ──────────────────────────────────────────────────
+  // ?? 4. business_api_keys ??????????????????????????????????????????????????
   await pool.query(`
     CREATE TABLE IF NOT EXISTS business_api_keys (
       id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -118,15 +118,15 @@ module.exports = async function migrate37(trackPool) {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_bapi_keys_hash     ON business_api_keys (key_hash)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_bapi_keys_active   ON business_api_keys (business_id, is_active)`);
 
-  console.log('  ✅  business_api_keys');
+  console.log('  ?  business_api_keys');
 
-  console.log('migrate37: complete — 4 subscription-tier tables created');
+  console.log('migrate37: complete ? 4 subscription-tier tables created');
 };
 
 // Allow standalone run
 if (require.main === module) {
   require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-  const pool = require('./pool');
+  const pool = require('./poolJsShim.cjs');
   module.exports(pool)
     .then(() => { pool.end(); process.exit(0); })
     .catch(err => { console.error(err.message); pool.end(); process.exit(1); });

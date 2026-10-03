@@ -1,5 +1,5 @@
 /**
- * migrate11.js — Composite indexes for performance
+ * migrate11.js ? Composite indexes for performance
  *
  * Adds targeted composite indexes to support the most frequent query patterns:
  *   - notifications: unread count query on every authenticated page load
@@ -11,7 +11,7 @@
  * Run: node db/migrate11.js
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 const schema = `
 -- Notifications: unread count query on every authenticated page load
@@ -33,11 +33,11 @@ CREATE INDEX IF NOT EXISTS idx_products_seller_status_created
 async function migrate() {
   const client = await pool.connect();
   try {
-    console.log('Running migration 11 — composite indexes...');
+    console.log('Running migration 11 ? composite indexes...');
     await client.query(schema);
-    console.log('✅ Migration 11 complete — composite indexes created.');
+    console.log('? Migration 11 complete ? composite indexes created.');
   } catch (err) {
-    console.error('❌ Migration 11 failed:', err.message);
+    console.error('? Migration 11 failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

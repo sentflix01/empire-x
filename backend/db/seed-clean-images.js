@@ -1,17 +1,17 @@
 /**
- * seed-clean-images.js — Remove posts with picsum image URLs from seed users.
+ * seed-clean-images.js ? Remove posts with picsum image URLs from seed users.
  * picsum.photos returns random real photos (faces, landscapes) that are
  * inappropriate for a demo feed. Text posts look clean and professional.
  * Run: node db/seed-clean-images.js
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 const { assertSafeDevSeed } = require('./operationSafety');
 
 async function clean() {
   assertSafeDevSeed();
   const client = await pool.connect();
-  console.log('\n🧹 Cleaning picsum image posts from seed users...\n');
+  console.log('\n?? Cleaning picsum image posts from seed users...\n');
   try {
     // Delete image posts where image_url contains picsum.photos (random photos)
     const { rowCount } = await client.query(
@@ -19,7 +19,7 @@ async function clean() {
        WHERE author_id IN (SELECT id FROM users WHERE is_seed = TRUE)
          AND image_url LIKE '%picsum.photos%'`
     );
-    console.log(`✅ Deleted ${rowCount} picsum image posts`);
+    console.log(`? Deleted ${rowCount} picsum image posts`);
 
     // Also clean up any posts with null/empty content
     const { rowCount: r2 } = await client.query(
@@ -27,7 +27,7 @@ async function clean() {
        WHERE author_id IN (SELECT id FROM users WHERE is_seed = TRUE)
          AND (content IS NULL OR TRIM(content) = '')`
     );
-    console.log(`✅ Deleted ${r2} empty-content posts`);
+    console.log(`? Deleted ${r2} empty-content posts`);
 
     // Check remaining
     const { rows } = await client.query(
@@ -40,9 +40,9 @@ async function clean() {
     console.log('\nRemaining seed posts:');
     rows.forEach(r => console.log(`  ${r.post_type}: ${r.total} posts (${r.with_image} with image)`));
 
-    console.log('\n✅ Done — feed now shows clean text and promo posts only.\n');
+    console.log('\n? Done ? feed now shows clean text and promo posts only.\n');
   } catch (err) {
-    console.error('❌ Failed:', err.message);
+    console.error('? Failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

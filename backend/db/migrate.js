@@ -1,5 +1,5 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 
 const schema = `
 
@@ -316,9 +316,9 @@ async function migrate() {
   try {
     console.log('Running migrations...');
     await client.query(schema);
-    console.log('✅ Migrations complete.');
+    console.log('? Migrations complete.');
   } catch (err) {
-    console.error('❌ Migration failed:', err.message);
+    console.error('? Migration failed:', err.message);
     process.exit(1);
   } finally {
     client.release();

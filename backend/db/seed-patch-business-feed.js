@@ -1,9 +1,9 @@
 /**
- * seed-patch-business-feed.js — Fix business feed sections and logos
+ * seed-patch-business-feed.js ? Fix business feed sections and logos
  *
  * Problems fixed:
  *
- * 1. user_profiles.business_sections is NULL — business feed shows nothing
+ * 1. user_profiles.business_sections is NULL ? business feed shows nothing
  *    Fix: Copy and enrich sections from showrooms into user_profiles.business_sections
  *    Format matches exactly what BusinessShowroomFeed.tsx expects:
  *    - type: 'services' or 'menu' with items[] having name, description, price
@@ -11,7 +11,7 @@
  *    - type: 'hero' with title, content
  *
  * 2. business_logo_url uses picsum (random dark photos as square logos)
- *    Fix: Use pravatar.cc (human round avatars) for logos — matches reference pictures
+ *    Fix: Use pravatar.cc (human round avatars) for logos ? matches reference pictures
  *
  * 3. Services section items missing price
  *    Fix: Add ETB price string to each service item
@@ -19,13 +19,13 @@
  * Run: node db/seed-patch-business-feed.js
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./pool');
+const pool = require('./poolJsShim.cjs');
 const { assertSafeDevSeed } = require('./operationSafety');
 
 const pick  = arr => arr[Math.floor(Math.random() * arr.length)];
 const rand  = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-// ── Services with prices per category — what BusinessShowroomFeed renders ─────
+// ?? Services with prices per category ? what BusinessShowroomFeed renders ?????
 const SERVICES_WITH_PRICES = {
   restaurant: {
     title: 'WHAT WE SERVE',
@@ -33,8 +33,8 @@ const SERVICES_WITH_PRICES = {
       { name: 'Traditional Firfir',   description: 'Shredded injera with spiced lamb sauce',        price: 'From 80 ETB' },
       { name: 'Special Tibs Combo',   description: 'Tender tibs with injera, salad, and ayib',      price: 'From 180 ETB' },
       { name: 'Kitfo with Gomen',     description: 'Minced beef with greens and cottage cheese',     price: 'From 200 ETB' },
-      { name: 'Shiro Wot',            description: 'Chickpea stew — perfect for fasting days',      price: 'From 70 ETB' },
-      { name: 'Coffee Ceremony',      description: 'Full traditional ceremony for 4–6 guests',      price: 'From 250 ETB' },
+      { name: 'Shiro Wot',            description: 'Chickpea stew ? perfect for fasting days',      price: 'From 70 ETB' },
+      { name: 'Coffee Ceremony',      description: 'Full traditional ceremony for 4?6 guests',      price: 'From 250 ETB' },
     ],
   },
   shop: {
@@ -52,7 +52,7 @@ const SERVICES_WITH_PRICES = {
     items: [
       { name: 'Standard Package',     description: 'Reliable service with clear timelines',         price: 'From 500 ETB' },
       { name: 'Premium Package',      description: 'Priority service with dedicated support',       price: 'From 2,000 ETB' },
-      { name: 'Enterprise Plan',      description: 'Tailored solution — custom scope and pricing',  price: 'Get Quote' },
+      { name: 'Enterprise Plan',      description: 'Tailored solution ? custom scope and pricing',  price: 'Get Quote' },
     ],
   },
   health: {
@@ -70,7 +70,7 @@ const SERVICES_WITH_PRICES = {
       { name: '2BR Apartment (Bole)', description: 'Modern, furnished, 24/7 security',             price: 'From 15,000 ETB/mo' },
       { name: 'Studio (Yeka)',        description: 'Compact with kitchenette, utilities included',  price: 'From 6,000 ETB/mo' },
       { name: 'Commercial Space',     description: 'Ground-floor retail, high foot traffic',        price: 'From 20,000 ETB/mo' },
-      { name: 'Property Management',  description: 'Full management — tenant, rent, maintenance',   price: 'From 2,000 ETB/mo' },
+      { name: 'Property Management',  description: 'Full management ? tenant, rent, maintenance',   price: 'From 2,000 ETB/mo' },
     ],
   },
   portfolio: {
@@ -84,7 +84,7 @@ const SERVICES_WITH_PRICES = {
   },
 };
 
-// ── Features section for categories that show chips ───────────────────────────
+// ?? Features section for categories that show chips ???????????????????????????
 const FEATURES = {
   restaurant: ['Dine-In', 'Takeaway', 'Catering', 'Fasting Menu', 'Delivery'],
   shop:       ['In-Store', 'Online Orders', 'Custom Made', 'Wholesale', 'Gift Wrap'],
@@ -130,11 +130,11 @@ function buildBusinessSections(category, businessName) {
 async function patch() {
   assertSafeDevSeed();
   const client = await pool.connect();
-  console.log('\n🔧 Business Feed Patch\n');
+  console.log('\n?? Business Feed Patch\n');
   console.log('Fixes: business_sections NULL, logo URLs, services with prices\n');
 
   try {
-    // ── Load seed users with business profiles ────────────────────────────────
+    // ?? Load seed users with business profiles ????????????????????????????????
     const { rows: profiles } = await client.query(
       `SELECT up.user_id, up.business_name, up.business_category,
               up.business_sections, u.full_name
@@ -154,7 +154,7 @@ async function patch() {
       const bizName  = p.business_name || p.full_name;
       const sections = buildBusinessSections(p.business_category, bizName);
 
-      // Use pravatar (human avatar) for logo — matches reference pictures
+      // Use pravatar (human avatar) for logo ? matches reference pictures
       const avatarIndex = (i % 70) + 1;
       const logoUrl = `https://i.pravatar.cc/150?img=${avatarIndex}`;
 
@@ -162,13 +162,13 @@ async function patch() {
       let hoursJson = null;
       if (['restaurant', 'health'].includes(p.business_category)) {
         hoursJson = JSON.stringify([
-          { day: 'Monday',    hours: '8:00 AM – 9:00 PM' },
-          { day: 'Tuesday',   hours: '8:00 AM – 9:00 PM' },
-          { day: 'Wednesday', hours: '8:00 AM – 9:00 PM' },
-          { day: 'Thursday',  hours: '8:00 AM – 9:00 PM' },
-          { day: 'Friday',    hours: '8:00 AM – 10:00 PM' },
-          { day: 'Saturday',  hours: '9:00 AM – 10:00 PM' },
-          { day: 'Sunday',    hours: p.business_category === 'restaurant' ? '10:00 AM – 8:00 PM' : 'Closed' },
+          { day: 'Monday',    hours: '8:00 AM ? 9:00 PM' },
+          { day: 'Tuesday',   hours: '8:00 AM ? 9:00 PM' },
+          { day: 'Wednesday', hours: '8:00 AM ? 9:00 PM' },
+          { day: 'Thursday',  hours: '8:00 AM ? 9:00 PM' },
+          { day: 'Friday',    hours: '8:00 AM ? 10:00 PM' },
+          { day: 'Saturday',  hours: '9:00 AM ? 10:00 PM' },
+          { day: 'Sunday',    hours: p.business_category === 'restaurant' ? '10:00 AM ? 8:00 PM' : 'Closed' },
         ]);
       }
 
@@ -188,10 +188,10 @@ async function patch() {
       sectionsFixed++;
       logosFixed++;
     }
-    console.log(`✅ ${sectionsFixed} profiles patched with business_sections`);
-    console.log(`✅ ${logosFixed} business logos updated to pravatar.cc\n`);
+    console.log(`? ${sectionsFixed} profiles patched with business_sections`);
+    console.log(`? ${logosFixed} business logos updated to pravatar.cc\n`);
 
-    // ── Also patch businesses table logo ─────────────────────────────────────
+    // ?? Also patch businesses table logo ?????????????????????????????????????
     const { rows: bizs } = await client.query(
       `SELECT b.id, b.owner_id FROM businesses b
        JOIN users u ON u.id = b.owner_id
@@ -205,9 +205,9 @@ async function patch() {
         [`https://i.pravatar.cc/150?img=${avatarIndex}`, bizs[i].id]
       );
     }
-    console.log(`✅ ${bizs.length} businesses logo URLs updated\n`);
+    console.log(`? ${bizs.length} businesses logo URLs updated\n`);
 
-    // ── Patch showrooms sections to also include price in service items ───────
+    // ?? Patch showrooms sections to also include price in service items ???????
     const { rows: showrooms } = await client.query(
       `SELECT s.id, s.category, s.sections
        FROM showrooms s
@@ -243,28 +243,28 @@ async function patch() {
         showroomFixed++;
       } catch { /* skip malformed */ }
     }
-    console.log(`✅ ${showroomFixed} showrooms patched with service prices\n`);
+    console.log(`? ${showroomFixed} showrooms patched with service prices\n`);
 
-    // ── Summary ───────────────────────────────────────────────────────────────
-    console.log('════════════════════════════════════════');
-    console.log('✅ Business feed patch complete!');
-    console.log('════════════════════════════════════════');
+    // ?? Summary ???????????????????????????????????????????????????????????????
+    console.log('????????????????????????????????????????');
+    console.log('? Business feed patch complete!');
+    console.log('????????????????????????????????????????');
     console.log(`  Profiles with business_sections: ${sectionsFixed}`);
     console.log(`  Business logos (pravatar):       ${logosFixed}`);
     console.log(`  Showrooms with prices:           ${showroomFixed}`);
     console.log('');
     console.log('Now the business feed shows:');
-    console.log('  • Cover image (landscape picsum)');
-    console.log('  • Logo (round human avatar from pravatar.cc)');
-    console.log('  • Business name + description + location');
-    console.log('  • WHAT WE OFFER / OUR SERVICES with ETB prices');
-    console.log('  • Visit button linking to showroom');
+    console.log('  ? Cover image (landscape picsum)');
+    console.log('  ? Logo (round human avatar from pravatar.cc)');
+    console.log('  ? Business name + description + location');
+    console.log('  ? WHAT WE OFFER / OUR SERVICES with ETB prices');
+    console.log('  ? Visit button linking to showroom');
     console.log('');
-    console.log('Browse: https://nodbusiness.vercel.app/feed → Business tab');
-    console.log('════════════════════════════════════════\n');
+    console.log('Browse: https://nodbusiness.vercel.app/feed ? Business tab');
+    console.log('????????????????????????????????????????\n');
 
   } catch (err) {
-    console.error('\n❌ Patch failed:', err.message);
+    console.error('\n? Patch failed:', err.message);
     if (err.stack) console.error(err.stack);
     process.exit(1);
   } finally {

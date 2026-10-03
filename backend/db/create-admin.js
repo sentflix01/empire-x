@@ -67,7 +67,7 @@ async function bootstrapLocalAccounts({ dbPool, databaseUrl, nodeEnv, acknowledg
 }
 
 if (require.main === module) {
-  const pool = require('./pool');
+  const pool = require('./poolJsShim.cjs');
   bootstrapLocalAccounts({
     dbPool: pool,
     databaseUrl: process.env.DATABASE_URL,
@@ -80,7 +80,7 @@ if (require.main === module) {
   }).catch((error) => {
     console.error(`Local account bootstrap refused or failed: ${error.message}`);
     process.exitCode = 1;
-  }).finally(() => require('./pool').end());
+  }).finally(() => require('./poolJsShim.cjs').end());
 }
 
 module.exports = { bootstrapLocalAccounts };
