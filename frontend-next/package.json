@@ -5,7 +5,8 @@
   "overrides": {
     "brace-expansion": ">=5.0.12",
     "js-yaml": ">=4.3.1",
-    "undici": "^7.29.1"
+    "undici": "^7.29.1",
+    "braces": ">=3.0.3"
   },
   "scripts": {
     "dev": "next dev --port 3002",

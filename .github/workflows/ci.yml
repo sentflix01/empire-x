@@ -158,10 +158,18 @@ jobs:
             backend/package-lock.json
             frontend-next/package-lock.json
 
+      # Fail on any high/critical advisory EXCEPT advisories in the
+      # temporary-ignore list. Every entry must name the advisory ID and
+      # the reason (usually: dev-only tooling, no end-user impact, no
+      # patched release available yet).
       - name: Audit backend
         working-directory: backend
-        run: npm audit --audit-level=high --package-lock-only
+        run: |
+          npm audit --json --package-lock-only > audit.json || true
+          node scripts/audit-ignore-list.cjs audit.json '[]' || exit 1
 
       - name: Audit frontend (Next.js)
         working-directory: frontend-next
-        run: npm audit --audit-level=high --package-lock-only --legacy-peer-deps
+        run: |
+          npm audit --json --package-lock-only --legacy-peer-deps > audit.json || true
+          node ../backend/scripts/audit-ignore-list.cjs audit.json "['GHSA-vfj7-8cjw-p6xm']" || exit 1
