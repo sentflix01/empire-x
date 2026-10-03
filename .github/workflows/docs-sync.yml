@@ -48,8 +48,8 @@ jobs:
       - name: Commit updated docs
         id: commit
         run: |
-          git config user.name "nodbusiness-docs-bot"
-          git config user.email "docs-bot@nodbusiness.app"
+          git config user.name "sentflix01"
+          git config user.email "sentflix01@users.noreply.github.com"
           if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard docs/)" ]; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "Docs already in sync"
