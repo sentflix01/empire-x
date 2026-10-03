@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-03 | Maintenance | chore(ci): resolve blocking security audit — drop unused nodemon, add GHSA-vfj7 ignore helper | [06ddd7cc4](2026-10-03-06ddd7cc4-resolve-blocking-security-audit-drop-unused-node.md) |
+| 2026-10-03 | Bugfix | fix: restore auth in dev mode (pool.ts module.exports clash), apply pending migrations, repair e2e specs; docs: SOP v1.1 | [66f23b0cb](2026-10-03-66f23b0cb-restore-auth-in-dev-mode-pool-ts-module-exports-.md) |
 | 2026-10-03 | Maintenance | Merge branch 'main' of https://github.com/sentflix01/empire-x | [2c3ebc302](2026-10-03-2c3ebc302-merge-branch-main-of-https-github-com-sentflix01.md) |
 | 2026-10-03 | Bugfix | fix: set SameSite=None on refresh_token cookie in all environments | [ff19773fa](2026-10-03-ff19773fa-set-samesite-none-on-refresh-token-cookie-in-all.md) |
 | 2026-10-02 | Bugfix | fix: sendCustomEmail missing from module.exports — digest: failed for showroom | [1373f42e9](2026-10-02-1373f42e9-sendcustomemail-missing-from-module-exports-dige.md) |
