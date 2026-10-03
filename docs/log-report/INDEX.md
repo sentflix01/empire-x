@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-03 | CI/CD | ci(deploy): add DB_TLS_REJECT_UNAUTHORIZED=false for migrate job; reuse poolJsShim TLS options in migrate-all | [38ffafa1d](2026-10-03-38ffafa1d-add-db-tls-reject-unauthorized-false-for-migrate.md) |
 | 2026-10-03 | Maintenance | chore(ci): resolve blocking security audit — drop unused nodemon, add GHSA-vfj7 ignore helper | [06ddd7cc4](2026-10-03-06ddd7cc4-resolve-blocking-security-audit-drop-unused-node.md) |
 | 2026-10-03 | Bugfix | fix: restore auth in dev mode (pool.ts module.exports clash), apply pending migrations, repair e2e specs; docs: SOP v1.1 | [66f23b0cb](2026-10-03-66f23b0cb-restore-auth-in-dev-mode-pool-ts-module-exports-.md) |
 | 2026-10-03 | Maintenance | Merge branch 'main' of https://github.com/sentflix01/empire-x | [2c3ebc302](2026-10-03-2c3ebc302-merge-branch-main-of-https-github-com-sentflix01.md) |
