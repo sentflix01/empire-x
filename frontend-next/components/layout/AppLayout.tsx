@@ -432,7 +432,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           </button>
 
           {/* Logo */}
-          <Link href={hasSignedInUser ? "/" : "/landing"} aria-label={hasSignedInUser ? "Go to home" : "Back to Nodbusiness landing page"} className={`flex items-center gap-2 shrink-0 transition-all w-8 ${sidebarCollapsed ? "md:w-8" : "md:w-44"}`}>
+          <Link href="/feed" aria-label="Go to home" className={`flex items-center gap-2 shrink-0 transition-all w-8 ${sidebarCollapsed ? "md:w-8" : "md:w-44"}`}>
             <Image
               src="/brand/nodbusiness-icon.svg"
               alt="Nodbusiness"
@@ -537,7 +537,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               </>
             ) : (
               <>
-                <Link href={`/login?return=${encodeURIComponent(pathname)}`} className="inline-flex h-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3 sm:text-sm">Sign in</Link>
+                <Link href={`/choose-mode?return=${encodeURIComponent(pathname)}`} className="inline-flex h-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3 sm:text-sm">Sign in</Link>
                 <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 sm:px-3 sm:text-sm">Join</Link>
                 {authChecked && <span title="Browsing as guest" aria-label="Guest session" className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground">
                   <UserRound className="h-4 w-4" />
@@ -694,7 +694,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 <p className="text-xs font-bold text-foreground">Browsing as a guest</p>
                 <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Sign in or join to save your activity.</p>
                 <div className="mt-3 flex gap-2">
-                  <Link href={`/login?return=${encodeURIComponent(pathname)}`} className="flex-1 rounded-lg border border-border bg-background px-2 py-2 text-center text-xs font-semibold text-foreground hover:bg-secondary">Sign in</Link>
+                  <Link href={`/choose-mode?return=${encodeURIComponent(pathname)}`} className="flex-1 rounded-lg border border-border bg-background px-2 py-2 text-center text-xs font-semibold text-foreground hover:bg-secondary">Sign in</Link>
                   <Link href="/register" className="flex-1 rounded-lg bg-primary px-2 py-2 text-center text-xs font-semibold text-primary-foreground hover:bg-primary/90">Join free</Link>
                 </div>
                 <Link href="/landing" className="mt-2 block rounded-lg px-2 py-1.5 text-center text-xs font-medium text-muted-foreground hover:bg-background hover:text-foreground">Back to landing page</Link>
@@ -861,7 +861,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </button>
               ) : (
                 <>
-                  <Link href={`/login?return=${encodeURIComponent(pathname)}`} title={sidebarCollapsed ? 'Sign in' : undefined} aria-label="Sign in" className={`flex items-center gap-2.5 rounded-xl text-muted-foreground text-sm font-medium hover:bg-secondary hover:text-foreground ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'}`}>
+                  <Link href={`/choose-mode?return=${encodeURIComponent(pathname)}`} title={sidebarCollapsed ? 'Sign in' : undefined} aria-label="Sign in" className={`flex items-center gap-2.5 rounded-xl text-muted-foreground text-sm font-medium hover:bg-secondary hover:text-foreground ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'}`}>
                     <User className="w-4 h-4 shrink-0" />{!sidebarCollapsed && <span>Sign in</span>}
                   </Link>
                   {!sidebarCollapsed && <Link href="/register" className="rounded-xl bg-primary px-3 py-2 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90">Join free</Link>}
@@ -1036,7 +1036,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                       <p className="text-xs font-bold text-foreground">Browsing as a guest</p>
                       <p className="mt-1 text-[11px] text-muted-foreground">Sign in or join to save your activity.</p>
                       <div className="mt-3 flex gap-2">
-                        <Link href={`/login?return=${encodeURIComponent(pathname)}`} onClick={() => setDrawerOpen(false)} className="flex-1 rounded-lg border border-border bg-background px-2 py-2 text-center text-xs font-semibold">Sign in</Link>
+                        <Link href={`/choose-mode?return=${encodeURIComponent(pathname)}`} onClick={() => setDrawerOpen(false)} className="flex-1 rounded-lg border border-border bg-background px-2 py-2 text-center text-xs font-semibold">Sign in</Link>
                         <Link href="/register" onClick={() => setDrawerOpen(false)} className="flex-1 rounded-lg bg-primary px-2 py-2 text-center text-xs font-semibold text-primary-foreground">Join free</Link>
                       </div>
                       <Link href="/landing" onClick={() => setDrawerOpen(false)} className="mt-2 block rounded-lg px-2 py-1.5 text-center text-xs font-medium text-muted-foreground hover:bg-background hover:text-foreground">Back to landing page</Link>
@@ -1147,7 +1147,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   {hasSignedInUser ? <button onClick={() => { setDrawerOpen(false); resetSocket(); logout(); }}
                     className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium">
                     <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
-                  </button> : <Link href={`/login?return=${encodeURIComponent(pathname)}`} onClick={() => setDrawerOpen(false)} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground"><User className="h-4 w-4" /><span>Sign in</span></Link>}
+                  </button> : <Link href={`/choose-mode?return=${encodeURIComponent(pathname)}`} onClick={() => setDrawerOpen(false)} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground"><User className="h-4 w-4" /><span>Sign in</span></Link>}
                 </div>
               </div>
             </>

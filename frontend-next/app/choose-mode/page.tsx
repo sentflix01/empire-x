@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { FlaskConical, ShieldCheck, Loader2 } from 'lucide-react';
 import { auth } from '@/api/auth';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
 import { useSearchParams } from 'next/navigation';
@@ -24,9 +25,10 @@ function ChooseMode() {
 
   useEffect(() => {
     if (!authChecked) return;
-    if (!isAuthenticated) {
-      window.location.replace('/login?return=%2Fchoose-mode');
-    }
+    // Unauthenticated visitors may land here from the Sign in CTA - staying
+    // logged out is fine: choosing Demo / Real stores the intent and we route
+    // them to /login. Only require auth for the manual "Switch back" flows
+    // where demo vs real environments need the session to mutate.
   }, [authChecked, isAuthenticated]);
 
   const ready = authChecked && isAuthenticated;
@@ -54,6 +56,14 @@ function ChooseMode() {
   async function choose(mode: 'demo' | 'real') {
     setPending(mode);
     setError('');
+
+    // Anonymous visitors: persist chosen mode and take them to /login so
+    // they can actually sign in/register with the account matching their mode.
+    if (!isAuthenticated) {
+      localStorage.setItem('nodbusiness_onboarding_mode', mode);
+      window.location.assign(`/login?mode=${mode}`);
+      return;
+    }
 
     // The STORAGE_KEY used by RealModeContext — we write it directly here
     // so the correct filter is active the moment /feed loads.
@@ -109,11 +119,17 @@ function ChooseMode() {
     </main>
   );
 
-  if (!authChecked || !isAuthenticated || (user?.onboarding_mode && !error)) return spinner;
+  if (!authChecked || (isAuthenticated && Boolean(user?.onboarding_mode) && !error)) return spinner;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 px-5 py-12 text-white">
       <section className="mx-auto max-w-3xl">
+
+        <div className="mb-4">
+          <Link href="/landing" className="text-sm font-semibold text-white/70 hover:text-white underline-offset-2 hover:underline">
+            Back to Landing
+          </Link>
+        </div>
 
         <p className="text-sm font-semibold uppercase tracking-[.18em] text-blue-300">
           Welcome to Nodbusiness
@@ -145,7 +161,7 @@ function ChooseMode() {
             </p>
             <Button
               className="mt-6 w-full bg-amber-500 text-white hover:bg-amber-400"
-              disabled={!ready || pending !== null}
+              disabled={pending !== null}
               onClick={() => choose('demo')}
             >
               {pending === 'demo' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -165,7 +181,7 @@ function ChooseMode() {
             <Button
               variant="outline"
               className="mt-6 w-full border-white/20 bg-transparent text-white hover:bg-white/10"
-              disabled={!ready || pending !== null}
+              disabled={pending !== null}
               onClick={() => choose('real')}
             >
               {pending === 'real' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

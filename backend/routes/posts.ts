@@ -56,7 +56,7 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: tr
            CASE WHEN p.author_id=ANY($3::uuid[]) THEN 30 ELSE 0 END AS social_boost,
            GREATEST(0, 168-EXTRACT(EPOCH FROM (NOW()-p.created_at))/3600.0) AS recency_score,
            (p.like_count*0.4 + p.comment_count*0.3) AS engagement_score
-         FROM posts p WHERE p.created_at > NOW()-INTERVAL '7 days' AND p.created_at < $2 ${realFilter}
+         FROM posts p WHERE p.created_at < $2 ${realFilter}
          ORDER BY
            (CASE WHEN p.author_id=ANY($3::uuid[]) THEN 30 ELSE 0 END
             + GREATEST(0, 168-EXTRACT(EPOCH FROM (NOW()-p.created_at))/3600.0)

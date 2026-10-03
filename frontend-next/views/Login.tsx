@@ -30,16 +30,20 @@ function Login() {
     is_demo?: boolean;
   }) => {
     const realModeKey = 'nodbusiness_real_mode';
+    const savedMode = localStorage.getItem('nodbusiness_onboarding_mode') as 'demo' | 'real' | null;
+    const mode = result.onboarding_mode ?? savedMode;
 
-    if (result.is_demo || result.onboarding_mode === 'demo') {
+    if (mode === 'demo' || result.is_demo) {
       localStorage.setItem(realModeKey, 'false');
-      await auth.loginDemo();
+      await auth.setOnboardingMode('demo').catch(() => {});
+      try { await auth.loginDemo(); } catch { /* noop */ }
       window.location.href = '/feed';
       return;
     }
 
-    if (result.onboarding_mode === 'real') {
+    if (mode === 'real') {
       localStorage.setItem(realModeKey, 'true');
+      await auth.setOnboardingMode('real').catch(() => {});
       window.location.href = dest === '/choose-mode' ? '/feed' : dest;
       return;
     }

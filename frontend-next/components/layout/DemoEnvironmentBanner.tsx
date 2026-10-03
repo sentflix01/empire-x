@@ -19,7 +19,6 @@
  */
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { FlaskConical, Loader2 } from 'lucide-react';
 import { auth } from '@/api/auth';
 import { useRealMode } from '@/lib/RealModeContext';
@@ -91,12 +90,6 @@ export default function DemoEnvironmentBanner({ track = 1 }: DemoEnvironmentBann
           <Button size="sm" variant="outline" className="border-amber-500/40 bg-transparent" onClick={() => setExitOpen(true)}>
             Switch to real
           </Button>
-          <Link
-            href="/register"
-            className="inline-flex h-7 items-center justify-center rounded-lg bg-amber-500 px-3 text-xs font-bold text-white transition-colors hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1"
-          >
-            Create Account →
-          </Link>
         </div>
       </div>
       <AlertDialog open={exitOpen} onOpenChange={setExitOpen}>

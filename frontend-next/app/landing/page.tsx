@@ -75,7 +75,7 @@ export default function LandingPage() {
           <Link href="/register" className="hidden sm:inline-flex h-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-xl hover:bg-white/20 transition-all">
             Create Account
           </Link>
-          <Link href="/login" className="inline-flex h-9 items-center justify-center rounded-xl bg-white px-4 text-sm font-bold text-blue-700 shadow-lg hover:bg-blue-50 transition-all">
+          <Link href="/choose-mode" className="inline-flex h-9 items-center justify-center rounded-xl bg-white px-4 text-sm font-bold text-blue-700 shadow-lg hover:bg-blue-50 transition-all">
             Sign In
           </Link>
         </div>
@@ -294,7 +294,7 @@ export default function LandingPage() {
               Create Account
             </Link>
             <Link
-              href="/login"
+              href="/choose-mode"
               className="inline-flex h-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur-xl hover:bg-white/20 transition-all"
             >
               Sign In
@@ -307,7 +307,7 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
           <p>© 2026 Nodbusiness. The Global Superapp.</p>
           <div className="flex gap-5">
-            <Link href="/login" className="hover:text-white">Sign In</Link>
+            <Link href="/choose-mode" className="hover:text-white">Sign In</Link>
             <Link href="/register" className="hover:text-white">Register</Link>
             <Link href="/marketplace" className="hover:text-white">Marketplace</Link>
             <Link href="/showrooms" className="hover:text-white">Showrooms</Link>

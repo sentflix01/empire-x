@@ -42,7 +42,7 @@ export default function GuestSignUpPrompt({ action = 'do this', onClose }: Guest
                 Create Free Account
               </Link>
               <Link
-                href="/login"
+                href="/choose-mode"
                 className="w-full h-12 flex items-center justify-center rounded-2xl border border-border font-semibold text-sm hover:bg-secondary/50 transition-colors"
               >
                 Sign In
