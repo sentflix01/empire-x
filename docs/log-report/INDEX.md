@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-03 | Bugfix | fix(feed): stop unauthenticated post-card/profile peek from calling /api/auth/me, causing incognito 401 spam | [2169aa6c9](2026-10-03-2169aa6c9-stop-unauthenticated-post-card-profile-peek-from.md) |
 | 2026-10-03 | Feature | feat(guest): show seed posts for guest and demo feed, add back link on choose-mode, remove create account CTA for logged-in demo users, route sign in via choose-mode, make logo a home link | [a3f1d9e90](2026-10-03-a3f1d9e90-show-seed-posts-for-guest-and-demo-feed-add-back.md) |
 | 2026-10-03 | Bugfix | fix(backend): copy poolJsShim.cjs into dist/db/ and use .default for lazy pool in errorCollector | [26383f41a](2026-10-03-26383f41a-copy-pooljsshim-cjs-into-dist-db-and-use-default.md) |
 | 2026-10-03 | CI/CD | ci(deploy): strip settings.rootDirectory after vercel link to fix spawn sh ENOENT on vercel build | [1f46c4b44](2026-10-03-1f46c4b44-strip-settings-rootdirectory-after-vercel-link-t.md) |
