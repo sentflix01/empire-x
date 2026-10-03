@@ -199,6 +199,25 @@ jobs:
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: frontend-next
 
+      # vercel build/deploy composers `cwd + settings.rootDirectory`, which
+      # doubles the subdirectory (`frontend-next/frontend-next`) and dies as
+      # `spawn sh ENOENT` inside the deploy-project Link → build → deploy flow.
+      # Drop it so Vercel resolves the linked directory exactly once.
+      - name: Normalize Vercel project link (strip duplicated rootDirectory)
+        working-directory: frontend-next
+        run: |
+          node -e "
+            const fs = require('fs');
+            const p = '.vercel/project.json';
+            if (!fs.existsSync(p)) { console.error('no project.json — link step gone wrong'); process.exit(1); }
+            const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+            if (j.settings && j.settings.rootDirectory) {
+              console.log('Removing settings.rootDirectory =', j.settings.rootDirectory);
+              delete j.settings.rootDirectory;
+            }
+            fs.writeFileSync(p, JSON.stringify(j, null, 2));
+          "
+
       - name: Build project
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: frontend-next
