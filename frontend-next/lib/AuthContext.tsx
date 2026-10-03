@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode } from 'react';
-import client, { clearToken, ensureFreshToken } from '@/api/client';
+import client, { clearToken, ensureFreshToken, getAccessToken } from '@/api/client';
 
 export interface AuthUser {
   id?: string;
@@ -60,6 +60,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // TD-014: the JWT never touches localStorage. A session can only be
     // re-hydrated through the silent refresh (HttpOnly refresh cookie).
     // ensureFreshToken() covers the "token already in memory" case too.
+
+    // Do not churn the API for anonymous visitors on public pages — /api/auth/me
+    // and /api/auth/refresh would both 401 and pollute the network console.
+    // GetAccessToken() is only set after a successful login; the nb_auth cookie
+    // is a non-sensitive hint set at login and cleared on logout/token expiry.
+    const hasHintCookie = /(?:^|;) ?nb_auth=1(?:;|$)/.test(document.cookie);
+    if (!getAccessToken() && !hasHintCookie) {
+      setUser(null);
+      setIsAuth(false);
+      setAuthError(null);
+      setIsLoadingAuth(false);
+      setAuthChecked(true);
+      return;
+    }
+
     setIsLoadingAuth(true);
 
     try {

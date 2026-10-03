@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import client, { clearToken, ensureFreshToken } from '@/api/client';
+import client, { clearToken, ensureFreshToken, getAccessToken } from '@/api/client';
 
 export interface User {
   id: string;
@@ -31,7 +31,13 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (set)
 
   checkAuth: async () => {
     if (typeof window === 'undefined') return;
-    // TD-014: tokens live in memory only — re-hydrate via the refresh cookie.
+    // TD-014: tokens live in memory only - re-hydrate via the refresh cookie.
+    // Opt anonymous public visitors out of the refresh/me API calls (401 noise).
+    const hasHintCookie = /(?:^|;) ?nb_auth=1(?:;|$)/.test(document.cookie);
+    if (!getAccessToken() && !hasHintCookie) {
+      set({ isAuthenticated: false, isLoading: false, user: null });
+      return;
+    }
     const hydrated = await ensureFreshToken();
     if (!hydrated) {
       set({ isAuthenticated: false, isLoading: false, user: null });
