@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { createPortal } from "react-dom";
 import { entities } from "@/api/entities";
 import { auth } from "@/api/auth";
+import { useAuth } from "@/lib/AuthContext";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { fromNow } from "@/lib/date";
@@ -337,6 +338,7 @@ export default function ProfilePeek({
   const [peekView, setPeekView] = useState<"personal" | "business">(initialView);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const { isAuthenticated } = useAuth();
 
   // Lock body scroll while open
   useEffect(() => {
@@ -346,7 +348,6 @@ export default function ProfilePeek({
   }, []);
 
   useEffect(() => {
-    auth.me().then(setCurrentUser).catch(() => {});
     Promise.all([
       entities.UserProfile.filter({ user_id: authorId }),
       entities.Business.filter({ owner_id: authorId }),
@@ -356,6 +357,10 @@ export default function ProfilePeek({
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [authorId]);
+
+  useEffect(() => {
+    if (isAuthenticated) auth.me().then(setCurrentUser).catch(() => {});
+  }, [isAuthenticated]);
 
   useEffect(() => {
     // Update view if initialView changes (e.g. clicking a different marker)

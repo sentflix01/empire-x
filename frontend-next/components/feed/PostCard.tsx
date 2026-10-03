@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { entities } from '@/api/entities';
 import client from '@/api/client';
 import { auth } from '@/api/auth';
+import { useAuth } from '@/lib/AuthContext';
 
 import {
   Heart, MessageCircle, Store, User as UserIcon,
@@ -325,6 +326,7 @@ interface PostCardProps {
 
 export default function PostCard({ post, currentUserId, currentUser, feedMode }: PostCardProps) {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
   const embeddedLikedByMe = (post as unknown as Record<string, unknown>).liked_by_me;
   const [liked, setLiked] = useState(Boolean((post as unknown as Record<string, unknown>).liked_by_me));
   const [likeCount, setLikeCount] = useState(post.like_count ?? 0);
@@ -345,7 +347,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
   const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
 
   useEffect(() => { if (feedMode) setViewMode(feedMode); }, [feedMode]);
-  useEffect(() => { if (!currentUserData && !currentUser) auth.me().then(setCurrentUserData).catch(() => {}); }, [currentUser, currentUserData]);
+  useEffect(() => { if (isAuthenticated && !currentUserData && !currentUser) auth.me().then(setCurrentUserData).catch(() => {}); }, [currentUser, currentUserData, isAuthenticated]);
   useEffect(() => {
     // Server embeds liked_by_me on feed/single payloads; per-card lookup only
     // as legacy fallback when the flag is absent.
@@ -353,10 +355,11 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
       setLiked(Boolean(embeddedLikedByMe));
       return;
     }
+    if (!isAuthenticated) { setLiked(false); return; }
     client.get(`/api/posts/${post.id}/like`)
       .then(({ data }) => setLiked(Boolean(data.liked)))
       .catch(() => setLiked(false));
-  }, [post.id, embeddedLikedByMe]);
+  }, [post.id, embeddedLikedByMe, isAuthenticated]);
   useEffect(() => {
     if (!post.author_id) return;
     entities.UserProfile.filter({ user_id: post.author_id })
