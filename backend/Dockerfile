@@ -28,6 +28,8 @@ COPY --from=builder /app/package.json ./dist/package.json
 
 # Copy JS migration scripts and seed (not compiled by tsc)
 COPY --from=builder /app/db ./db
+# The plain-JS server scripts in dist/scripts expect ../db/poolJsShim.cjs relative to dist/scripts/
+COPY --from=builder /app/db/poolJsShim.cjs ./dist/db/poolJsShim.cjs
 
 # Copy JS scheduler scripts into dist so require('./scripts/...') resolves
 COPY --from=builder /app/scripts ./dist/scripts

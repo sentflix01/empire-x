@@ -16,7 +16,10 @@ import logger from './logger';
 // Lazy-load pool to avoid circular require during startup
 let _pool: import('pg').Pool | null = null;
 function getPool(): import('pg').Pool {
-  if (!_pool) _pool = require('../db/pool') as import('pg').Pool;
+  if (!_pool) {
+    const mod = require('../db/pool') as { default: import('pg').Pool };
+    _pool = mod.default;
+  }
   return _pool;
 }
 
