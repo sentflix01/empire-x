@@ -102,7 +102,8 @@ if (require.main === module) {
             throw new Error(`${file} module.exports is not a function`);
           }
           const { Pool } = require('pg');
-          const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+          const shimOptions = require('./poolJsShim.cjs').poolOptions;
+          const pool = new Pool(shimOptions(process.env.DATABASE_URL));
           try {
             await migrateFn(pool);
           } finally {

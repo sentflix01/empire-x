@@ -110,12 +110,18 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # Supabase's pooler presents a chain that the public CA bundle does
+          # not fully verify out of the box ("self-signed certificate in
+          # certificate chain"). Without this, CI migrations fail at the
+          # verify-db step. Local dev already sets this in .env.
+          DB_TLS_REJECT_UNAUTHORIZED: 'false'
 
       - name: Run migrations
         run: node db/migrate-all.js
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DB_TLS_REJECT_UNAUTHORIZED: 'false'
 
   # ── Deploy Backend to Render ──────────────────────────────────────────────
   # Auto-deploy is disabled in render.yaml. This explicit hook deploys the
