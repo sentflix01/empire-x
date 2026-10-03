@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-03 | CI/CD | ci(deploy): strip settings.rootDirectory after vercel link to fix spawn sh ENOENT on vercel build | [1f46c4b44](2026-10-03-1f46c4b44-strip-settings-rootdirectory-after-vercel-link-t.md) |
 | 2026-10-03 | Bugfix | fix(auth): skip server session probe on anonymous public pages | [66b661b36](2026-10-03-66b661b36-skip-server-session-probe-on-anonymous-public-pa.md) |
 | 2026-10-03 | Maintenance | chore(ci): make docs-sync bot commits use a GitHub noreply email so Vercel accepts them | [6fc129e88](2026-10-03-6fc129e88-make-docs-sync-bot-commits-use-a-github-noreply-.md) |
 | 2026-10-03 | CI/CD | ci(deploy): also set NODE_TLS_REJECT_UNAUTHORIZED=0 for migrate job steps | [45b31a8dc](2026-10-03-45b31a8dc-also-set-node-tls-reject-unauthorized-0-for-migr.md) |
