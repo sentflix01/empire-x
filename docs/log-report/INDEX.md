@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-04 | Maintenance | chore: add micromatch override to better address audit finding | [5f70d202e](2026-10-04-5f70d202e-add-micromatch-override-to-better-address-audit-.md) |
 | 2026-10-03 | Bugfix | fix(feed): stop unauthenticated post-card/profile peek from calling /api/auth/me, causing incognito 401 spam | [2169aa6c9](2026-10-03-2169aa6c9-stop-unauthenticated-post-card-profile-peek-from.md) |
 | 2026-10-03 | Feature | feat(guest): show seed posts for guest and demo feed, add back link on choose-mode, remove create account CTA for logged-in demo users, route sign in via choose-mode, make logo a home link | [a3f1d9e90](2026-10-03-a3f1d9e90-show-seed-posts-for-guest-and-demo-feed-add-back.md) |
 | 2026-10-03 | Bugfix | fix(backend): copy poolJsShim.cjs into dist/db/ and use .default for lazy pool in errorCollector | [26383f41a](2026-10-03-26383f41a-copy-pooljsshim-cjs-into-dist-db-and-use-default.md) |
