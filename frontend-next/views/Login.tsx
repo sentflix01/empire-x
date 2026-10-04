@@ -35,7 +35,7 @@ function Login() {
 
     if (mode === 'demo' || result.is_demo) {
       localStorage.setItem(realModeKey, 'false');
-      await auth.setOnboardingMode('demo').catch(() => {});
+      if (!result.onboarding_mode) await auth.setOnboardingMode('demo').catch(() => {});
       try { await auth.loginDemo(); } catch { /* noop */ }
       window.location.href = '/feed';
       return;
@@ -43,7 +43,7 @@ function Login() {
 
     if (mode === 'real') {
       localStorage.setItem(realModeKey, 'true');
-      await auth.setOnboardingMode('real').catch(() => {});
+      if (!result.onboarding_mode) await auth.setOnboardingMode('real').catch(() => {});
       window.location.href = dest === '/choose-mode' ? '/feed' : dest;
       return;
     }
