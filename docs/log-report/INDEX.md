@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-07 | Maintenance | Merge branch 'main' of https://github.com/sentflix01/empire-x | [322e9bb5f](2026-10-07-322e9bb5f-merge-branch-main-of-https-github-com-sentflix01.md) |
+| 2026-10-07 | Bugfix | fix(security): patch critical/high CVEs in backend and frontend | [c219b076e](2026-10-07-c219b076e-patch-critical-high-cves-in-backend-and-frontend.md) |
 | 2026-10-04 | Bugfix | fix(spa): guard post-card and profile-peek auth probes when anonymous; honor saved view preference on login | [5db867b27](2026-10-04-5db867b27-guard-post-card-and-profile-peek-auth-probes-whe.md) |
 | 2026-10-04 | Maintenance | chore: add micromatch override to better address audit finding | [5f70d202e](2026-10-04-5f70d202e-add-micromatch-override-to-better-address-audit-.md) |
 | 2026-10-03 | Bugfix | fix(feed): stop unauthenticated post-card/profile peek from calling /api/auth/me, causing incognito 401 spam | [2169aa6c9](2026-10-03-2169aa6c9-stop-unauthenticated-post-card-profile-peek-from.md) |
