@@ -14,8 +14,11 @@ function getPoolOptions(url, env = process.env) {
   const caFile = env.DB_SSL_CA_FILE;
   if (needsSsl && connectionString) {
     const parsed = new URL(connectionString);
-    parsed.searchParams.set('sslmode', 'verify-full');
-    if (caFile) parsed.searchParams.set('sslrootcert', caFile);
+    // node-postgres replaces the explicit `ssl` object when SSL parameters are
+    // present in the URI. Keep the policy and CA exclusively in `ssl` below.
+    for (const key of ['ssl', 'sslmode', 'sslrootcert', 'sslcert', 'sslkey']) {
+      parsed.searchParams.delete(key);
+    }
     connectionString = parsed.toString();
   }
   return {

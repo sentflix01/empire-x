@@ -17,10 +17,10 @@ describe('migration pool TLS options', () => {
       NODE_ENV: 'production', DATABASE_URL_REQUIRE_TLS: 'false',
     });
     expect(options.ssl).toEqual({ rejectUnauthorized: true });
-    expect(new URL(options.connectionString).searchParams.get('sslmode')).toBe('verify-full');
+    expect(new URL(options.connectionString).searchParams.has('sslmode')).toBe(false);
   });
 
-  test('includes the configured root CA and forces full verification', () => {
+  test('keeps the configured root CA in explicit SSL options only', () => {
     const fs = require('node:fs');
     const path = require('node:path');
     const caFile = path.join(__dirname, '../certs/prod-ca-2021.crt');
@@ -28,7 +28,9 @@ describe('migration pool TLS options', () => {
       NODE_ENV: 'production', DB_SSL_CA_FILE: caFile,
     });
     expect(options.ssl.ca).toBe(fs.readFileSync(caFile, 'utf8'));
-    expect(new URL(options.connectionString).searchParams.get('sslrootcert')).toBe(caFile);
-    expect(new URL(options.connectionString).searchParams.get('sslmode')).toBe('verify-full');
+    const query = new URL(options.connectionString).searchParams;
+    for (const key of ['ssl', 'sslmode', 'sslrootcert', 'sslcert', 'sslkey']) {
+      expect(query.has(key)).toBe(false);
+    }
   });
 });

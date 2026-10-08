@@ -51,10 +51,11 @@ function poolOptions(rawUrl: string | undefined, environment: DatabaseEnvironmen
   const caFile = process.env[environment === 'demo' ? 'DEMO_DB_SSL_CA_FILE' : 'DB_SSL_CA_FILE'];
   if (needsSsl && connectionString) {
     const parsed = new URL(connectionString);
-    // pg parses connection-string SSL options after Pool options, so enforce
-    // verify-full in the URI itself and point it at the trusted provider CA.
-    parsed.searchParams.set('sslmode', 'verify-full');
-    if (caFile) parsed.searchParams.set('sslrootcert', caFile);
+    // node-postgres replaces the explicit `ssl` object when SSL parameters are
+    // present in the URI. Keep the policy and CA exclusively in `ssl` below.
+    for (const key of ['ssl', 'sslmode', 'sslrootcert', 'sslcert', 'sslkey']) {
+      parsed.searchParams.delete(key);
+    }
     connectionString = parsed.toString();
   }
   const ssl = needsSsl
