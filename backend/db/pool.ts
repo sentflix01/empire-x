@@ -5,6 +5,7 @@
  * SSL forced in production and whenever the URL contains a known cloud DB host.
  */
 import dns from 'node:dns';
+import fs from 'node:fs';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Pool } from 'pg';
 import logger from '../lib/logger';
@@ -41,21 +42,28 @@ function databaseIdentity(connectionString: string): string {
 }
 
 function poolOptions(rawUrl: string | undefined, environment: DatabaseEnvironment) {
-  const connectionString = buildConnectionString(rawUrl);
+  let connectionString = buildConnectionString(rawUrl);
   const tlsOverride = process.env[environment === 'demo' ? 'DEMO_DATABASE_URL_REQUIRE_TLS' : 'DATABASE_URL_REQUIRE_TLS'];
-  const needsSsl = tlsOverride === 'true' || (tlsOverride !== 'false' && (
-    process.env.NODE_ENV === 'production' ||
-    !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString))
-  ));
-  // Verify server certificates by default. Operators using a private/self-signed
-  // database certificate may explicitly opt out per environment.
-  const rejectUnauthorized = environment === 'demo'
-    ? process.env.DEMO_DB_TLS_REJECT_UNAUTHORIZED !== 'false'
-    : process.env.DB_TLS_REJECT_UNAUTHORIZED !== 'false';
+  const needsSsl = tlsOverride === 'true' || process.env.NODE_ENV === 'production' ||
+    !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
+  // Keep certificate and hostname verification enabled. A private root CA can
+  // be supplied through the environment-specific CA file setting.
+  const caFile = process.env[environment === 'demo' ? 'DEMO_DB_SSL_CA_FILE' : 'DB_SSL_CA_FILE'];
+  if (needsSsl && connectionString) {
+    const parsed = new URL(connectionString);
+    // pg parses connection-string SSL options after Pool options, so enforce
+    // verify-full in the URI itself and point it at the trusted provider CA.
+    parsed.searchParams.set('sslmode', 'verify-full');
+    if (caFile) parsed.searchParams.set('sslrootcert', caFile);
+    connectionString = parsed.toString();
+  }
+  const ssl = needsSsl
+    ? { rejectUnauthorized: true, ...(caFile ? { ca: fs.readFileSync(caFile, 'utf8') } : {}) }
+    : false;
 
   return {
     connectionString,
-    ssl: needsSsl ? { rejectUnauthorized } : false,
+    ssl,
     max: parseInt(process.env[environment === 'demo' ? 'DEMO_DB_POOL_MAX' : 'DB_POOL_MAX'] ?? '5', 10),
     min: 0,
     idleTimeoutMillis: 60_000,

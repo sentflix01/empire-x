@@ -27,7 +27,7 @@ Set at: Render → nodbusiness-backend → Environment
 | `DB_POOL_MAX` | `5` | No | Max DB connections in pool. Default 5. |
 | `DB_POOL_MIN` | `0` | No | Min idle connections. Default 0. |
 | `DB_CONNECTION_TIMEOUT_MS` | `15000` | No | Connection timeout in ms. Default 15000. |
-| `DB_TLS_REJECT_UNAUTHORIZED` | `false` | No | Set `true` only if using a CA-signed cert. Default false (Supabase uses valid certs). |
+| `DB_SSL_CA_FILE` | `certs/prod-ca-2021.crt` locally; `/app/certs/prod-ca-2021.crt` on Render | Yes for Supabase | Supabase root CA is included in the backend image and used to verify the database certificate and hostname. |
 | `BACKUP_FORCE_IPV4` | `true` | No | Forces IPv4 for backup connections. Required on Render free tier. |
 
 ### Authentication

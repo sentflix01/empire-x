@@ -12,8 +12,8 @@ CI needs to confirm `DATABASE_URL` is reachable before running schema migrations
 
 - Requires `DATABASE_URL`; exits with a configuration error when it is absent.
 - Opens a short-lived PostgreSQL pool and runs only `SELECT 1`.
-- Enables TLS for production and recognized hosted database URLs, unless `DATABASE_URL_REQUIRE_TLS=false` is explicitly set.
-- Verifies TLS certificates unless `DB_TLS_REJECT_UNAUTHORIZED=false` is explicitly set for a trusted private CA.
+- Enables TLS for production and recognized hosted database URLs. TLS cannot be disabled in these environments.
+- Enforces TLS certificate and hostname verification. Set `DB_SSL_CA_FILE` to a trusted provider PEM when a private root CA is required.
 - Uses a 10-second connection timeout and prints categorized connection diagnostics.
 
 ## 4. What does it touch?
