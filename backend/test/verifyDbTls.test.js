@@ -17,7 +17,7 @@ describe('database verifier TLS policy', () => {
       DB_TLS_REJECT_UNAUTHORIZED: 'false',
     });
     expect(options.ssl).toEqual({ rejectUnauthorized: true });
-    expect(new URL(options.connectionString).searchParams.get('sslmode')).toBe('verify-full');
+    expect(new URL(options.connectionString).searchParams.has('sslmode')).toBe(false);
   });
 
   test('does not allow hosted production TLS to be disabled', () => {
@@ -26,10 +26,10 @@ describe('database verifier TLS policy', () => {
       DATABASE_URL_REQUIRE_TLS: 'false',
     });
     expect(options.ssl).toEqual({ rejectUnauthorized: true });
-    expect(new URL(options.connectionString).searchParams.get('sslmode')).toBe('verify-full');
+    expect(new URL(options.connectionString).searchParams.has('sslmode')).toBe(false);
   });
 
-  test('includes a configured trusted CA in the SSL options and connection URI', () => {
+  test('keeps the trusted CA in explicit SSL options without conflicting URI options', () => {
     const fs = require('node:fs');
     const path = require('node:path');
     const caFile = path.join(__dirname, '../certs/prod-ca-2021.crt');
@@ -37,6 +37,22 @@ describe('database verifier TLS policy', () => {
       NODE_ENV: 'production', DB_SSL_CA_FILE: caFile,
     });
     expect(options.ssl.ca).toBe(fs.readFileSync(caFile, 'utf8'));
-    expect(new URL(options.connectionString).searchParams.get('sslrootcert')).toBe(caFile);
+    const query = new URL(options.connectionString).searchParams;
+    for (const key of ['ssl', 'sslmode', 'sslrootcert', 'sslcert', 'sslkey']) {
+      expect(query.has(key)).toBe(false);
+    }
+  });
+
+  test('removes all URI TLS options while preserving unrelated connection parameters', () => {
+    const options = getPoolOptions(
+      'postgresql://db.internal/app?sslmode=require&sslrootcert=%2Fold%2Fca.crt&sslcert=client.crt&sslkey=client.key&application_name=api',
+      { NODE_ENV: 'production' },
+    );
+    const query = new URL(options.connectionString).searchParams;
+    expect(query.get('application_name')).toBe('api');
+    for (const key of ['ssl', 'sslmode', 'sslrootcert', 'sslcert', 'sslkey']) {
+      expect(query.has(key)).toBe(false);
+    }
+    expect(options.ssl).toEqual({ rejectUnauthorized: true });
   });
 });
