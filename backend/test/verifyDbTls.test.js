@@ -11,17 +11,32 @@ describe('database verifier TLS policy', () => {
       .toEqual({ rejectUnauthorized: true });
   });
 
-  test('allows an explicit TLS opt-out for private development certificates', () => {
-    expect(getPoolOptions('postgresql://db.internal/app', {
+  test('ignores legacy certificate-verification opt-outs', () => {
+    const options = getPoolOptions('postgresql://db.internal/app', {
       NODE_ENV: 'production',
       DB_TLS_REJECT_UNAUTHORIZED: 'false',
-    }).ssl).toEqual({ rejectUnauthorized: false });
+    });
+    expect(options.ssl).toEqual({ rejectUnauthorized: true });
+    expect(new URL(options.connectionString).searchParams.get('sslmode')).toBe('verify-full');
   });
 
-  test('allows explicitly disabling TLS only when an operator sets the override', () => {
-    expect(getPoolOptions('postgresql://db.internal/app', {
+  test('does not allow hosted production TLS to be disabled', () => {
+    const options = getPoolOptions('postgresql://db.internal/app', {
       NODE_ENV: 'production',
       DATABASE_URL_REQUIRE_TLS: 'false',
-    }).ssl).toBe(false);
+    });
+    expect(options.ssl).toEqual({ rejectUnauthorized: true });
+    expect(new URL(options.connectionString).searchParams.get('sslmode')).toBe('verify-full');
+  });
+
+  test('includes a configured trusted CA in the SSL options and connection URI', () => {
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const caFile = path.join(__dirname, '../certs/prod-ca-2021.crt');
+    const options = getPoolOptions('postgresql://db.internal/app', {
+      NODE_ENV: 'production', DB_SSL_CA_FILE: caFile,
+    });
+    expect(options.ssl.ca).toBe(fs.readFileSync(caFile, 'utf8'));
+    expect(new URL(options.connectionString).searchParams.get('sslrootcert')).toBe(caFile);
   });
 });

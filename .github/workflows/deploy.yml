@@ -105,27 +105,22 @@ jobs:
         run: npm ci
         working-directory: backend
 
+      - name: Verify Supabase root certificate is present
+        run: test -s backend/certs/prod-ca-2021.crt
+
       - name: Verify DB connection
         run: node scripts/verify-db.js
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          # Supabase's pooler presents a chain that the public CA bundle does
-          # not fully verify out of the box ("self-signed certificate in
-          # certificate chain"). Without this, CI migrations fail at the
-          # verify-db step. Local dev already sets it in .env. Keeping it in
-          # the environment makes pg's ssl works regardless of how
-          # sslmode=require is currently interpreted by the pg client.
-          DB_TLS_REJECT_UNAUTHORIZED: 'false'
-          NODE_TLS_REJECT_UNAUTHORIZED: '0'
+          DB_SSL_CA_FILE: certs/prod-ca-2021.crt
 
       - name: Run migrations
         run: node db/migrate-all.js
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DB_TLS_REJECT_UNAUTHORIZED: 'false'
-          NODE_TLS_REJECT_UNAUTHORIZED: '0'
+          DB_SSL_CA_FILE: certs/prod-ca-2021.crt
 
   # ── Deploy Backend to Render ──────────────────────────────────────────────
   # Auto-deploy is disabled in render.yaml. This explicit hook deploys the

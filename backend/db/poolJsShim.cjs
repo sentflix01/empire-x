@@ -15,6 +15,7 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { Pool } = require('pg');
 const dns = require('dns');
+const fs = require('fs');
 
 // Force IPv4 — Render free tier does not support IPv6 outbound connections.
 dns.setDefaultResultOrder('ipv4first');
@@ -29,19 +30,26 @@ function buildConnectionString(raw) {
 }
 
 function poolOptions(rawUrl, env = process.env) {
-  const connectionString = buildConnectionString(rawUrl);
+  let connectionString = buildConnectionString(rawUrl);
   const tlsOverride = env.DATABASE_URL_REQUIRE_TLS;
-  const needsSsl = tlsOverride === 'true' || (tlsOverride !== 'false' && (
-    env.NODE_ENV === 'production' ||
-    !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString))
-  ));
-  // Verify server certificates by default, matching pool.ts. Operators using
-  // private/self-signed certificates can explicitly opt out per environment.
-  const rejectUnauthorized = env.DB_TLS_REJECT_UNAUTHORIZED !== 'false';
+  const needsSsl = tlsOverride === 'true' || env.NODE_ENV === 'production' ||
+    !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
+  // Keep certificate and hostname verification enabled. A private root CA can
+  // be supplied through DB_SSL_CA_FILE.
+  const caFile = env.DB_SSL_CA_FILE;
+  if (needsSsl && connectionString) {
+    const parsed = new URL(connectionString);
+    parsed.searchParams.set('sslmode', 'verify-full');
+    if (caFile) parsed.searchParams.set('sslrootcert', caFile);
+    connectionString = parsed.toString();
+  }
+  const ssl = needsSsl
+    ? { rejectUnauthorized: true, ...(caFile ? { ca: fs.readFileSync(caFile, 'utf8') } : {}) }
+    : false;
 
   return {
     connectionString,
-    ssl: needsSsl ? { rejectUnauthorized } : false,
+    ssl,
     max: parseInt(env.DB_POOL_MAX || '5', 10),
     idleTimeoutMillis: 60000,
     connectionTimeoutMillis: parseInt(env.DB_CONNECTION_TIMEOUT_MS || '15000', 10),
