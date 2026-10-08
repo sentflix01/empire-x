@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-08 | Maintenance | Merge pull request #85 from sentflix01/fix/default-supabase-ca-path | [f4f0b98b9](2026-10-08-f4f0b98b9-merge-pull-request-85-from-sentflix01-fix-defaul.md) |
+| 2026-10-08 | Bugfix | fix: default to bundled Supabase CA | [09646c77a](2026-10-08-09646c77a-default-to-bundled-supabase-ca.md) |
 | 2026-10-08 | Maintenance | Merge pull request #84 from sentflix01/fix/postgres-explicit-tls-options | [c2f5ef639](2026-10-08-c2f5ef639-merge-pull-request-84-from-sentflix01-fix-postgr.md) |
 | 2026-10-08 | Bugfix | fix: preserve explicit database TLS options | [40d18567b](2026-10-08-40d18567b-preserve-explicit-database-tls-options.md) |
 | 2026-10-08 | Maintenance | Merge pull request #82 from sentflix01/fix/next-security-audit | [183e5c8f7](2026-10-08-183e5c8f7-merge-pull-request-82-from-sentflix01-fix-next-s.md) |
