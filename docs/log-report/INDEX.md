@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-08 | Maintenance | Merge pull request #84 from sentflix01/fix/postgres-explicit-tls-options | [c2f5ef639](2026-10-08-c2f5ef639-merge-pull-request-84-from-sentflix01-fix-postgr.md) |
+| 2026-10-08 | Bugfix | fix: preserve explicit database TLS options | [40d18567b](2026-10-08-40d18567b-preserve-explicit-database-tls-options.md) |
 | 2026-10-08 | Maintenance | Merge pull request #82 from sentflix01/fix/next-security-audit | [183e5c8f7](2026-10-08-183e5c8f7-merge-pull-request-82-from-sentflix01-fix-next-s.md) |
 | 2026-10-08 | Bugfix | fix: update Next.js security patch | [698688a28](2026-10-08-698688a28-update-next-js-security-patch.md) |
 | 2026-10-08 | Maintenance | Merge pull request #81 from sentflix01/fix/verified-supabase-db-tls | [68dfa669c](2026-10-08-68dfa669c-merge-pull-request-81-from-sentflix01-fix-verifi.md) |
