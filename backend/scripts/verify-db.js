@@ -5,13 +5,18 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { Pool } = require('pg');
 const fs = require('node:fs');
+const path = require('node:path');
 
 function getPoolOptions(url, env = process.env) {
   const tlsOverride = env.DATABASE_URL_REQUIRE_TLS;
   const needsSsl = tlsOverride === 'true' || env.NODE_ENV === 'production' ||
     /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(url);
   let connectionString = url;
-  const caFile = env.DB_SSL_CA_FILE;
+  const configuredCaFile = env.DB_SSL_CA_FILE;
+  const host = connectionString ? new URL(connectionString).hostname.toLowerCase() : '';
+  const bundledCaFile = path.resolve(process.cwd(), 'certs', 'prod-ca-2021.crt');
+  const isSupabaseHost = host.endsWith('.supabase.com') || host.endsWith('.supabase.co');
+  const caFile = configuredCaFile ?? (isSupabaseHost && fs.existsSync(bundledCaFile) ? bundledCaFile : undefined);
   if (needsSsl && connectionString) {
     const parsed = new URL(connectionString);
     // node-postgres replaces the explicit `ssl` object when SSL parameters are

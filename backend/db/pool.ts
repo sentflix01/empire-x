@@ -6,6 +6,7 @@
  */
 import dns from 'node:dns';
 import fs from 'node:fs';
+import path from 'node:path';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Pool } from 'pg';
 import logger from '../lib/logger';
@@ -41,14 +42,18 @@ function databaseIdentity(connectionString: string): string {
   return `${url.hostname.toLowerCase()}:${url.port || '5432'}${url.pathname}`;
 }
 
-function poolOptions(rawUrl: string | undefined, environment: DatabaseEnvironment) {
+export function buildPoolOptions(rawUrl: string | undefined, environment: DatabaseEnvironment) {
   let connectionString = buildConnectionString(rawUrl);
   const tlsOverride = process.env[environment === 'demo' ? 'DEMO_DATABASE_URL_REQUIRE_TLS' : 'DATABASE_URL_REQUIRE_TLS'];
   const needsSsl = tlsOverride === 'true' || process.env.NODE_ENV === 'production' ||
     !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
   // Keep certificate and hostname verification enabled. A private root CA can
   // be supplied through the environment-specific CA file setting.
-  const caFile = process.env[environment === 'demo' ? 'DEMO_DB_SSL_CA_FILE' : 'DB_SSL_CA_FILE'];
+  const configuredCaFile = process.env[environment === 'demo' ? 'DEMO_DB_SSL_CA_FILE' : 'DB_SSL_CA_FILE'];
+  const supabaseHost = connectionString ? new URL(connectionString).hostname.toLowerCase() : '';
+  const bundledCaFile = path.resolve(process.cwd(), 'certs', 'prod-ca-2021.crt');
+  const isSupabaseHost = supabaseHost.endsWith('.supabase.com') || supabaseHost.endsWith('.supabase.co');
+  const caFile = configuredCaFile ?? (isSupabaseHost && fs.existsSync(bundledCaFile) ? bundledCaFile : undefined);
   if (needsSsl && connectionString) {
     const parsed = new URL(connectionString);
     // node-postgres replaces the explicit `ssl` object when SSL parameters are
@@ -76,7 +81,7 @@ function poolOptions(rawUrl: string | undefined, environment: DatabaseEnvironmen
 }
 
 function createPool(connectionString: string | undefined, environment: DatabaseEnvironment): Pool {
-  const created = new Pool(poolOptions(connectionString, environment));
+  const created = new Pool(buildPoolOptions(connectionString, environment));
   created.on('error', (err: Error) => {
     logger.error({ err: err.message, component: `db-pool-${environment}` }, 'Unexpected PostgreSQL pool error');
   });
@@ -108,6 +113,7 @@ function activePool(): Pool {
 
 const poolHelperNames = new Set([
   'buildConnectionString',
+  'buildPoolOptions',
   'getCurrentDatabaseEnvironment',
   'getCurrentDatabaseContext',
   'runWithDatabaseEnvironment',
@@ -122,6 +128,7 @@ const pool = new Proxy(realPool, {
     // Returning them before selecting the active pool keeps them available from
     // inside a demo AsyncLocalStorage context as well as from real requests.
     if (property === 'buildConnectionString') return buildConnectionString;
+    if (property === 'buildPoolOptions') return buildPoolOptions;
     if (property === 'getCurrentDatabaseEnvironment') return getCurrentDatabaseEnvironment;
     if (property === 'getCurrentDatabaseContext') return getCurrentDatabaseContext;
     if (property === 'runWithDatabaseEnvironment') return runWithDatabaseEnvironment;

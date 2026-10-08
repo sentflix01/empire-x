@@ -7,8 +7,9 @@ describe('database verifier TLS policy', () => {
   });
 
   test('verifies certificates for known hosted database URLs outside production', () => {
-    expect(getPoolOptions('postgresql://db.example.supabase.co/app', { NODE_ENV: 'test' }).ssl)
-      .toEqual({ rejectUnauthorized: true });
+    const options = getPoolOptions('postgresql://db.example.supabase.co/app', { NODE_ENV: 'test' });
+    expect(options.ssl.rejectUnauthorized).toBe(true);
+    expect(options.ssl.ca).toContain('BEGIN CERTIFICATE');
   });
 
   test('ignores legacy certificate-verification opt-outs', () => {
@@ -41,6 +42,17 @@ describe('database verifier TLS policy', () => {
     for (const key of ['ssl', 'sslmode', 'sslrootcert', 'sslcert', 'sslkey']) {
       expect(query.has(key)).toBe(false);
     }
+  });
+
+  test('uses the bundled Supabase CA when DB_SSL_CA_FILE is absent', () => {
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const options = getPoolOptions(
+      'postgresql://user:pass@aws-0-eu-west-1.pooler.supabase.com:6543/postgres',
+      { NODE_ENV: 'production' },
+    );
+    const caFile = path.resolve(process.cwd(), 'certs', 'prod-ca-2021.crt');
+    expect(options.ssl.ca).toBe(fs.readFileSync(caFile, 'utf8'));
   });
 
   test('removes all URI TLS options while preserving unrelated connection parameters', () => {

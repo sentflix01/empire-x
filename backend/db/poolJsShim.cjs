@@ -16,6 +16,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { Pool } = require('pg');
 const dns = require('dns');
 const fs = require('fs');
+const path = require('path');
 
 // Force IPv4 — Render free tier does not support IPv6 outbound connections.
 dns.setDefaultResultOrder('ipv4first');
@@ -36,7 +37,11 @@ function poolOptions(rawUrl, env = process.env) {
     !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
   // Keep certificate and hostname verification enabled. A private root CA can
   // be supplied through DB_SSL_CA_FILE.
-  const caFile = env.DB_SSL_CA_FILE;
+  const configuredCaFile = env.DB_SSL_CA_FILE;
+  const host = connectionString ? new URL(connectionString).hostname.toLowerCase() : '';
+  const bundledCaFile = path.resolve(process.cwd(), 'certs', 'prod-ca-2021.crt');
+  const isSupabaseHost = host.endsWith('.supabase.com') || host.endsWith('.supabase.co');
+  const caFile = configuredCaFile ?? (isSupabaseHost && fs.existsSync(bundledCaFile) ? bundledCaFile : undefined);
   if (needsSsl && connectionString) {
     const parsed = new URL(connectionString);
     // node-postgres replaces the explicit `ssl` object when SSL parameters are

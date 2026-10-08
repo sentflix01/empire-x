@@ -8,8 +8,9 @@ describe('migration pool TLS options', () => {
   });
 
   test('requires verified TLS for hosted database URLs outside production', () => {
-    expect(migrationPool.poolOptions('postgresql://user:pass@db.example.supabase.co/app', { NODE_ENV: 'test' }).ssl)
-      .toEqual({ rejectUnauthorized: true });
+    const options = migrationPool.poolOptions('postgresql://user:pass@db.example.supabase.co/app', { NODE_ENV: 'test' });
+    expect(options.ssl.rejectUnauthorized).toBe(true);
+    expect(options.ssl.ca).toContain('BEGIN CERTIFICATE');
   });
 
   test('does not allow production TLS to be disabled', () => {
@@ -32,5 +33,16 @@ describe('migration pool TLS options', () => {
     for (const key of ['ssl', 'sslmode', 'sslrootcert', 'sslcert', 'sslkey']) {
       expect(query.has(key)).toBe(false);
     }
+  });
+
+  test('uses the bundled Supabase CA when DB_SSL_CA_FILE is absent', () => {
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const env = { NODE_ENV: 'production' };
+    const options = migrationPool.poolOptions(
+      'postgresql://user:pass@aws-0-eu-west-1.pooler.supabase.com:6543/postgres', env,
+    );
+    const caFile = path.resolve(process.cwd(), 'certs', 'prod-ca-2021.crt');
+    expect(options.ssl.ca).toBe(fs.readFileSync(caFile, 'utf8'));
   });
 });
