@@ -52,7 +52,9 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        # Pull the Docker Official Image from ECR Public to avoid Docker Hub's
+        # anonymous pull limits on GitHub-hosted runners.
+        image: public.ecr.aws/docker/library/postgres:16
         env:
           POSTGRES_USER: nodbusiness
           POSTGRES_PASSWORD: testpassword
