@@ -5,6 +5,9 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-09 | Maintenance | Merge pull request #86 from sentflix01/fix/supabase-storage-secret-key | [ce56a2b3c](2026-10-09-ce56a2b3c-merge-pull-request-86-from-sentflix01-fix-supaba.md) |
+| 2026-10-09 | Bugfix | fix: upgrade vulnerable handlebars lockfile | [27254975e](2026-10-09-27254975e-upgrade-vulnerable-handlebars-lockfile.md) |
+| 2026-10-09 | Bugfix | fix: support Supabase secret API keys in Storage | [43e798a12](2026-10-09-43e798a12-support-supabase-secret-api-keys-in-storage.md) |
 | 2026-10-08 | Maintenance | Merge pull request #85 from sentflix01/fix/default-supabase-ca-path | [f4f0b98b9](2026-10-08-f4f0b98b9-merge-pull-request-85-from-sentflix01-fix-defaul.md) |
 | 2026-10-08 | Bugfix | fix: default to bundled Supabase CA | [09646c77a](2026-10-08-09646c77a-default-to-bundled-supabase-ca.md) |
 | 2026-10-08 | Maintenance | Merge pull request #84 from sentflix01/fix/postgres-explicit-tls-options | [c2f5ef639](2026-10-08-c2f5ef639-merge-pull-request-84-from-sentflix01-fix-postgr.md) |
