@@ -1,3 +1,5 @@
+> ⚠️ **HISTORICAL** — corresponding source file was removed from the codebase on 2026-10-08. Kept for reference.
+
 # Courses
 
 ## 1. What is this?

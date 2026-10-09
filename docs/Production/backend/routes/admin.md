@@ -16,24 +16,24 @@ Platform administration: dashboard stats aggregation, user ban/unban + role chan
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/admin/stats` | public | 24 |
-| `GET` | `/api/admin/users` | public | 54 |
-| `PUT` | `/api/admin/users/:id/role` | public | 87 |
-| `DELETE` | `/api/admin/users/:id` | public | 108 |
-| `POST` | `/api/admin/users/:id/ban` | public | 136 |
-| `POST` | `/api/admin/users/:id/unban` | public | 162 |
-| `GET` | `/api/admin/verifications` | public | 175 |
-| `POST` | `/api/admin/verifications/:userId` | public | 190 |
-| `DELETE` | `/api/admin/verifications/:userId` | public | 209 |
-| `GET` | `/api/admin/posts` | public | 221 |
-| `DELETE` | `/api/admin/posts/:id` | public | 235 |
-| `GET` | `/api/admin/products` | public | 248 |
-| `DELETE` | `/api/admin/products/:id` | public | 262 |
-| `GET` | `/api/admin/orders` | public | 268 |
-| `GET` | `/api/admin/reports` | public | 283 |
-| `PUT` | `/api/admin/reports/:id` | public | 292 |
-| `PUT` | `/api/admin/users/:id/verify` | public | 300 |
-| `GET` | `/api/admin/stats/revenue` | public | 308 |
-| `GET` | `/api/admin/audit-logs` | public | 328 |
+| `GET` | `/api/admin/users` | public | 52 |
+| `PUT` | `/api/admin/users/:id/role` | public | 85 |
+| `DELETE` | `/api/admin/users/:id` | public | 106 |
+| `POST` | `/api/admin/users/:id/ban` | public | 134 |
+| `POST` | `/api/admin/users/:id/unban` | public | 160 |
+| `GET` | `/api/admin/verifications` | public | 173 |
+| `POST` | `/api/admin/verifications/:userId` | public | 188 |
+| `DELETE` | `/api/admin/verifications/:userId` | public | 207 |
+| `GET` | `/api/admin/posts` | public | 219 |
+| `DELETE` | `/api/admin/posts/:id` | public | 233 |
+| `GET` | `/api/admin/products` | public | 246 |
+| `DELETE` | `/api/admin/products/:id` | public | 260 |
+| `GET` | `/api/admin/orders` | public | 266 |
+| `GET` | `/api/admin/reports` | public | 281 |
+| `PUT` | `/api/admin/reports/:id` | public | 290 |
+| `PUT` | `/api/admin/users/:id/verify` | public | 298 |
+| `GET` | `/api/admin/stats/revenue` | public | 306 |
+| `GET` | `/api/admin/audit-logs` | public | 326 |
 
 ## 4. What does it touch?
 

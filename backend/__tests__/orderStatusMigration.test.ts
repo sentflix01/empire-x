@@ -7,7 +7,8 @@ describe('order status migration', () => {
     const migrations = discoverMigrationFiles();
     expect(migrations.indexOf('migrate41.js')).toBeLessThan(migrations.indexOf('migrate42.js'));
     expect(migrations.indexOf('migrate42.js')).toBeLessThan(migrations.indexOf('migrate43.js'));
-    expect(migrations.at(-1)).toBe('migrate43.js');
+    expect(migrations.indexOf('migrate43.js')).toBeLessThan(migrations.indexOf('migrate44.js'));
+    expect(migrations.at(-1)).toBe('migrate47.js');
   });
 
   it('allows every fulfillment and return status used by the routes', () => {

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useCallback } from "react";
 import { entities } from "@/api/entities";
 
-import { Mail, Phone, MapPin, ShoppingBag, Plus, Edit2, MessageSquare } from "lucide-react";
+import { Mail, Phone, MapPin, ShoppingBag, Plus, Edit2, MessageSquare, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
@@ -90,7 +90,10 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
               <a key={s.title} href={`#section-${sections.indexOf(s)}`} className="hidden sm:block text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">{s.title}</a>
             ))}
             {isOwner ? (
-              <Link href={`/business/edit?id=${business?.id || ""}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button></Link>
+              <div className="flex items-center gap-1.5">
+                {biz.showroom_slug && <Link href={`/showroom/${biz.showroom_slug}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><ExternalLink className="w-3 h-3 mr-1" /> View site</Button></Link>}
+                <Link href={biz.showroom_id ? `/showroom/create?edit=${biz.showroom_id}` : `/business/edit?id=${business?.id || ""}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button></Link>
+              </div>
             ) : (
               <div className="flex items-center gap-1.5">
                 <Button size="sm" variant="outline" className="rounded-full h-7 text-xs" onClick={handleMessage} disabled={messaging}>

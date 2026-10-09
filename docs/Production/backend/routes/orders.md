@@ -6,7 +6,7 @@
 
 ## 2. Why does it exist?
 
-Money core: COD order creation (field allowlisted), order status transitions role-scoped buyer vs seller, Stripe Checkout sessions (multi-seller cart, server-side pricing, rounding adjustment line), Stripe webhooks (atomic idempotency claim, fulfillment, refunds, wallet topups) and Chapa checkout + verify callback + sandbox pages + status polling.
+Money core: COD order creation (field allowlisted), order status transitions role-scoped buyer vs seller, Stripe Checkout sessions (multi-seller cart, server-side pricing, rounding adjustment line), Stripe webhooks (atomic idempotency claim, fulfillment, refunds, wallet topups) and Chapa checkout + verify callback + sandbox pages + status polling. A validated profile-partnership code can be attached to one product checkout; the agreed rate is snapshotted on the order and a creator commission is recorded when the order completes. Stripe refunds reverse or proportionally reduce it.
 
 ## 3. What does it do?
 
@@ -15,17 +15,17 @@ Money core: COD order creation (field allowlisted), order status transitions rol
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/orders/` | auth | 83 |
-| `GET` | `/api/orders/session/:sessionId` | auth | 112 |
-| `GET` | `/api/orders/:id` | auth | 120 |
-| `POST` | `/api/orders/` | auth | 164 |
-| `PUT` | `/api/orders/:id` | auth | 235 |
-| `POST` | `/api/orders/checkout/session` | auth | 292 |
-| `POST` | `/api/orders/webhook` | public | 493 |
-| `POST` | `/api/orders/checkout/chapa` | auth | 527 |
-| `GET` | `/api/orders/chapa/sandbox` | public | 588 |
-| `GET` | `/api/orders/chapa/status/:tx_ref` | public | 600 |
-| `GET` | `/api/orders/chapa/verify/:tx_ref` | public | 611 |
+| `GET` | `/api/orders/` | auth | 84 |
+| `GET` | `/api/orders/session/:sessionId` | auth | 113 |
+| `GET` | `/api/orders/:id` | auth | 121 |
+| `POST` | `/api/orders/` | auth | 165 |
+| `PUT` | `/api/orders/:id` | auth | 243 |
+| `POST` | `/api/orders/checkout/session` | auth | 301 |
+| `POST` | `/api/orders/webhook` | public | 614 |
+| `POST` | `/api/orders/checkout/chapa` | auth | 648 |
+| `GET` | `/api/orders/chapa/sandbox` | public | 716 |
+| `GET` | `/api/orders/chapa/status/:tx_ref` | public | 728 |
+| `GET` | `/api/orders/chapa/verify/:tx_ref` | public | 739 |
 
 ## 4. What does it touch?
 

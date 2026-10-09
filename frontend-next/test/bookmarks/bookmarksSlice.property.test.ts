@@ -163,7 +163,9 @@ describe('Property 6: Toggle round-trip restores original state', () => {
 
           const finalSavedIds = store.getState().savedIds;
 
-          expect(Object.keys(finalSavedIds)).toEqual(Object.keys(initialSavedIds));
+          // Removing and re-adding a key may change JavaScript insertion order;
+          // this property is about membership, so compare the key sets.
+          expect(Object.keys(finalSavedIds).sort()).toEqual(Object.keys(initialSavedIds).sort());
           for (const key of Object.keys(initialSavedIds)) {
             expect(finalSavedIds[key]).toBeDefined();
           }

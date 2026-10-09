@@ -32,6 +32,8 @@ function buildConnectionString(raw) {
 
 function poolOptions(rawUrl, env = process.env) {
   let connectionString = buildConnectionString(rawUrl);
+  const schema = env.DATABASE_SCHEMA || 'public';
+  if (!/^[a-z_][a-z0-9_]*$/i.test(schema)) throw new Error('DATABASE_SCHEMA must be a simple PostgreSQL schema name');
   const tlsOverride = env.DATABASE_URL_REQUIRE_TLS;
   const needsSsl = tlsOverride === 'true' || env.NODE_ENV === 'production' ||
     !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
@@ -41,14 +43,15 @@ function poolOptions(rawUrl, env = process.env) {
   const host = connectionString ? new URL(connectionString).hostname.toLowerCase() : '';
   const bundledCaFile = path.resolve(process.cwd(), 'certs', 'prod-ca-2021.crt');
   const isSupabaseHost = host.endsWith('.supabase.com') || host.endsWith('.supabase.co');
-  const caFile = configuredCaFile ?? (isSupabaseHost && fs.existsSync(bundledCaFile) ? bundledCaFile : undefined);
-  if (needsSsl && connectionString) {
+  const caFile = configuredCaFile || (isSupabaseHost && fs.existsSync(bundledCaFile) ? bundledCaFile : undefined);
+  if (connectionString) {
     const parsed = new URL(connectionString);
-    // node-postgres replaces the explicit `ssl` object when SSL parameters are
-    // present in the URI. Keep the policy and CA exclusively in `ssl` below.
-    for (const key of ['ssl', 'sslmode', 'sslrootcert', 'sslcert', 'sslkey']) {
-      parsed.searchParams.delete(key);
+    if (needsSsl) {
+      // node-postgres replaces explicit SSL options when TLS parameters remain
+      // in the URI; keep TLS policy and CA exclusively in the ssl object.
+      for (const key of ['ssl', 'sslmode', 'sslrootcert', 'sslcert', 'sslkey']) parsed.searchParams.delete(key);
     }
+    parsed.searchParams.set('options', `-c search_path=${schema},pg_catalog`);
     connectionString = parsed.toString();
   }
   const ssl = needsSsl

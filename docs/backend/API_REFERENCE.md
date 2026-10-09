@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **298** across **49** mounted modules · Generated: 2026-10-09
+> Endpoints: **266** across **45** mounted modules · Generated: 2026-10-09
 
 | Legend | Meaning |
 |---|---|
@@ -18,33 +18,30 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 ## Contents
 - [`admin`](#admin) (19)
 - [`ai`](#ai) (3)
-- [`auth`](#auth) (16)
+- [`auth`](#auth) (17)
 - [`businessApiKeys`](#businessapikeys) (3)
 - [`businesses`](#businesses) (5)
 - [`businessWebhooks`](#businesswebhooks) (4)
 - [`cart`](#cart) (5)
 - [`commission`](#commission) (2)
 - [`coupons`](#coupons) (6)
-- [`courses`](#courses) (8)
 - [`delivery`](#delivery) (2)
 - [`devops`](#devops) (15)
 - [`docs`](#docs) (1)
-- [`events`](#events) (7)
 - [`externalSources`](#externalsources) (9)
 - [`flags`](#flags) (3)
 - [`friends`](#friends) (1)
 - [`hashtags`](#hashtags) (3)
-- [`jobs`](#jobs) (8)
 - [`locations`](#locations) (2)
 - [`maps`](#maps) (2)
 - [`messages`](#messages) (22)
-- [`mewacho`](#mewacho) (10)
 - [`moderation`](#moderation) (3)
 - [`notifications`](#notifications) (6)
 - [`orders`](#orders) (11)
 - [`polls`](#polls) (2)
 - [`posts`](#posts) (10)
 - [`products`](#products) (7)
+- [`profilePartnerships`](#profilepartnerships) (10)
 - [`profiles`](#profiles) (11)
 - [`proxy`](#proxy) (1)
 - [`push`](#push) (3)
@@ -57,7 +54,6 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`stories`](#stories) (8)
 - [`subscriptions`](#subscriptions) (5)
 - [`suggestions`](#suggestions) (2)
-- [`tasks`](#tasks) (10)
 - [`telegram`](#telegram) (4)
 - [`trending`](#trending) (2)
 - [`upload`](#upload) (1)
@@ -72,24 +68,24 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | Method | Path | Auth | Source |
 |---|---|---|---|
 | `GET` | `/api/admin/stats` | 🌐 public | routes/admin.ts:24 |
-| `GET` | `/api/admin/users` | 🌐 public | routes/admin.ts:54 |
-| `PUT` | `/api/admin/users/:id/role` | 🌐 public | routes/admin.ts:87 |
-| `DELETE` | `/api/admin/users/:id` | 🌐 public | routes/admin.ts:108 |
-| `POST` | `/api/admin/users/:id/ban` | 🌐 public | routes/admin.ts:136 |
-| `POST` | `/api/admin/users/:id/unban` | 🌐 public | routes/admin.ts:162 |
-| `GET` | `/api/admin/verifications` | 🌐 public | routes/admin.ts:175 |
-| `POST` | `/api/admin/verifications/:userId` | 🌐 public | routes/admin.ts:190 |
-| `DELETE` | `/api/admin/verifications/:userId` | 🌐 public | routes/admin.ts:209 |
-| `GET` | `/api/admin/posts` | 🌐 public | routes/admin.ts:221 |
-| `DELETE` | `/api/admin/posts/:id` | 🌐 public | routes/admin.ts:235 |
-| `GET` | `/api/admin/products` | 🌐 public | routes/admin.ts:248 |
-| `DELETE` | `/api/admin/products/:id` | 🌐 public | routes/admin.ts:262 |
-| `GET` | `/api/admin/orders` | 🌐 public | routes/admin.ts:268 |
-| `GET` | `/api/admin/reports` | 🌐 public | routes/admin.ts:283 |
-| `PUT` | `/api/admin/reports/:id` | 🌐 public | routes/admin.ts:292 |
-| `PUT` | `/api/admin/users/:id/verify` | 🌐 public | routes/admin.ts:300 |
-| `GET` | `/api/admin/stats/revenue` | 🌐 public | routes/admin.ts:308 |
-| `GET` | `/api/admin/audit-logs` | 🌐 public | routes/admin.ts:328 |
+| `GET` | `/api/admin/users` | 🌐 public | routes/admin.ts:52 |
+| `PUT` | `/api/admin/users/:id/role` | 🌐 public | routes/admin.ts:85 |
+| `DELETE` | `/api/admin/users/:id` | 🌐 public | routes/admin.ts:106 |
+| `POST` | `/api/admin/users/:id/ban` | 🌐 public | routes/admin.ts:134 |
+| `POST` | `/api/admin/users/:id/unban` | 🌐 public | routes/admin.ts:160 |
+| `GET` | `/api/admin/verifications` | 🌐 public | routes/admin.ts:173 |
+| `POST` | `/api/admin/verifications/:userId` | 🌐 public | routes/admin.ts:188 |
+| `DELETE` | `/api/admin/verifications/:userId` | 🌐 public | routes/admin.ts:207 |
+| `GET` | `/api/admin/posts` | 🌐 public | routes/admin.ts:219 |
+| `DELETE` | `/api/admin/posts/:id` | 🌐 public | routes/admin.ts:233 |
+| `GET` | `/api/admin/products` | 🌐 public | routes/admin.ts:246 |
+| `DELETE` | `/api/admin/products/:id` | 🌐 public | routes/admin.ts:260 |
+| `GET` | `/api/admin/orders` | 🌐 public | routes/admin.ts:266 |
+| `GET` | `/api/admin/reports` | 🌐 public | routes/admin.ts:281 |
+| `PUT` | `/api/admin/reports/:id` | 🌐 public | routes/admin.ts:290 |
+| `PUT` | `/api/admin/users/:id/verify` | 🌐 public | routes/admin.ts:298 |
+| `GET` | `/api/admin/stats/revenue` | 🌐 public | routes/admin.ts:306 |
+| `GET` | `/api/admin/audit-logs` | 🌐 public | routes/admin.ts:326 |
 
 ## ai — ai
 
@@ -103,22 +99,23 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:187 |
-| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:281 |
-| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:372 |
-| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:437 |
-| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:507 |
-| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:527 |
-| `POST` | `/api/auth/onboarding-mode` | 🔒 auth | routes/auth.ts:544 |
-| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:565 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:694 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:828 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:869 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:904 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:967 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1019 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1104 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1144 |
+| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:231 |
+| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:325 |
+| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:425 |
+| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:462 |
+| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:466 |
+| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:486 |
+| `POST` | `/api/auth/workspace` | 🔒 auth | routes/auth.ts:506 |
+| `POST` | `/api/auth/onboarding-mode` | 🌐 public | routes/auth.ts:607 |
+| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:614 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:742 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:880 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:922 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:958 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1021 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1073 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1156 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1196 |
 
 ## businessApiKeys — Business API key management
 
@@ -175,19 +172,6 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `PATCH` | `/api/coupons/:id/toggle` | 🔒 auth | routes/coupons.ts:67 |
 | `DELETE` | `/api/coupons/:id` | 🔒 auth | routes/coupons.ts:77 |
 
-## courses — courses
-
-| Method | Path | Auth | Source |
-|---|---|---|---|
-| `GET` | `/api/courses/` | ⚪ optional | routes/courses.ts:9 |
-| `GET` | `/api/courses/:id` | ⚪ optional | routes/courses.ts:18 |
-| `POST` | `/api/courses/` | 🔒 auth | routes/courses.ts:27 |
-| `PUT` | `/api/courses/:id` | 🔒 auth | routes/courses.ts:36 |
-| `POST` | `/api/courses/:id/lessons` | 🔒 auth | routes/courses.ts:47 |
-| `POST` | `/api/courses/:id/enroll` | 🔒 auth | routes/courses.ts:62 |
-| `GET` | `/api/courses/:id/enrolled` | 🔒 auth | routes/courses.ts:75 |
-| `PUT` | `/api/courses/:id/progress` | 🔒 auth | routes/courses.ts:82 |
-
 ## delivery — delivery
 
 | Method | Path | Auth | Source |
@@ -220,18 +204,6 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | Method | Path | Auth | Source |
 |---|---|---|---|
 | `GET` | `/api/docs/` | 🌐 public | routes/docs.ts:6 |
-
-## events — events
-
-| Method | Path | Auth | Source |
-|---|---|---|---|
-| `GET` | `/api/events/` | ⚪ optional | routes/events.ts:9 |
-| `GET` | `/api/events/:id` | ⚪ optional | routes/events.ts:16 |
-| `POST` | `/api/events/` | 🔒 auth | routes/events.ts:24 |
-| `PUT` | `/api/events/:id` | 🔒 auth | routes/events.ts:33 |
-| `DELETE` | `/api/events/:id` | 🔒 auth | routes/events.ts:44 |
-| `POST` | `/api/events/:id/book` | 🔒 auth | routes/events.ts:54 |
-| `GET` | `/api/events/:id/attendees` | ⚪ optional | routes/events.ts:92 |
 
 ## externalSources — External Data Sources
 
@@ -268,19 +240,6 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `GET` | `/api/hashtags/trending` | 🌐 public | routes/hashtags.ts:23 |
 | `GET` | `/api/hashtags/:name` | ⚪ optional | routes/hashtags.ts:43 |
 | `GET` | `/api/hashtags/:name/posts` | ⚪ optional | routes/hashtags.ts:67 |
-
-## jobs — jobs
-
-| Method | Path | Auth | Source |
-|---|---|---|---|
-| `GET` | `/api/jobs/` | ⚪ optional | routes/jobs.ts:9 |
-| `GET` | `/api/jobs/:id` | ⚪ optional | routes/jobs.ts:20 |
-| `POST` | `/api/jobs/` | 🔒 auth | routes/jobs.ts:28 |
-| `PUT` | `/api/jobs/:id` | 🔒 auth | routes/jobs.ts:37 |
-| `DELETE` | `/api/jobs/:id` | 🔒 auth | routes/jobs.ts:48 |
-| `POST` | `/api/jobs/:id/apply` | 🔒 auth | routes/jobs.ts:58 |
-| `GET` | `/api/jobs/:id/applications` | 🔒 auth | routes/jobs.ts:73 |
-| `PUT` | `/api/jobs/applications/:id` | 🔒 auth | routes/jobs.ts:89 |
 
 ## locations — Live GPS location for Enterprise businesses
 
@@ -323,21 +282,6 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `POST` | `/api/messages/messages/:id/forward` | 🔒 auth | routes/messages.ts:405 |
 | `POST` | `/api/messages/inquiry` | 🔒 auth | routes/messages.ts:424 |
 
-## mewacho — Mewacho (ምውጮ) group money collection
-
-| Method | Path | Auth | Source |
-|---|---|---|---|
-| `GET` | `/api/mewacho/groups` | 🔒 auth | routes/mewacho.ts:98 |
-| `POST` | `/api/mewacho/groups` | 🔒 auth | routes/mewacho.ts:121 |
-| `GET` | `/api/mewacho/groups/join/:invite_code` | 🔒 auth | routes/mewacho.ts:159 |
-| `GET` | `/api/mewacho/groups/:id` | 🔒 auth | routes/mewacho.ts:191 |
-| `POST` | `/api/mewacho/groups/:id/contribute` | 🔒 auth | routes/mewacho.ts:265 |
-| `POST` | `/api/mewacho/groups/:id/message` | 🔒 auth | routes/mewacho.ts:347 |
-| `POST` | `/api/mewacho/groups/:id/withdraw` | 🔒 auth | routes/mewacho.ts:370 |
-| `PUT` | `/api/mewacho/withdrawals/:wid/approve` | 🔒 auth | routes/mewacho.ts:448 |
-| `PUT` | `/api/mewacho/withdrawals/:wid/reject` | 🔒 auth | routes/mewacho.ts:484 |
-| `POST` | `/api/mewacho/webhook` | 🌐 public | routes/mewacho.ts:510 |
-
 ## moderation — moderation
 
 | Method | Path | Auth | Source |
@@ -361,17 +305,17 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/orders/` | 🔒 auth | routes/orders.ts:83 |
-| `GET` | `/api/orders/session/:sessionId` | 🔒 auth | routes/orders.ts:112 |
-| `GET` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:120 |
-| `POST` | `/api/orders/` | 🔒 auth | routes/orders.ts:164 |
-| `PUT` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:235 |
-| `POST` | `/api/orders/checkout/session` | 🔒 auth | routes/orders.ts:292 |
-| `POST` | `/api/orders/webhook` | 🌐 public | routes/orders.ts:493 |
-| `POST` | `/api/orders/checkout/chapa` | 🔒 auth | routes/orders.ts:527 |
-| `GET` | `/api/orders/chapa/sandbox` | 🌐 public | routes/orders.ts:588 |
-| `GET` | `/api/orders/chapa/status/:tx_ref` | 🌐 public | routes/orders.ts:600 |
-| `GET` | `/api/orders/chapa/verify/:tx_ref` | 🌐 public | routes/orders.ts:611 |
+| `GET` | `/api/orders/` | 🔒 auth | routes/orders.ts:84 |
+| `GET` | `/api/orders/session/:sessionId` | 🔒 auth | routes/orders.ts:113 |
+| `GET` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:121 |
+| `POST` | `/api/orders/` | 🔒 auth | routes/orders.ts:165 |
+| `PUT` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:243 |
+| `POST` | `/api/orders/checkout/session` | 🔒 auth | routes/orders.ts:301 |
+| `POST` | `/api/orders/webhook` | 🌐 public | routes/orders.ts:614 |
+| `POST` | `/api/orders/checkout/chapa` | 🔒 auth | routes/orders.ts:648 |
+| `GET` | `/api/orders/chapa/sandbox` | 🌐 public | routes/orders.ts:716 |
+| `GET` | `/api/orders/chapa/status/:tx_ref` | 🌐 public | routes/orders.ts:728 |
+| `GET` | `/api/orders/chapa/verify/:tx_ref` | 🌐 public | routes/orders.ts:739 |
 
 ## polls — polls
 
@@ -406,6 +350,21 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:176 |
 | `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:254 |
 | `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:266 |
+
+## profilePartnerships — profilePartnerships
+
+| Method | Path | Auth | Source |
+|---|---|---|---|
+| `GET` | `/api/profile-partnerships/mine` | 🔒 auth | routes/profilePartnerships.ts:59 |
+| `GET` | `/api/profile-partnerships/business/:businessId/products` | 🔒 auth | routes/profilePartnerships.ts:72 |
+| `GET` | `/api/profile-partnerships/profile/:userId` | ⚪ optional | routes/profilePartnerships.ts:89 |
+| `POST` | `/api/profile-partnerships/` | 🔒 auth | routes/profilePartnerships.ts:117 |
+| `PUT` | `/api/profile-partnerships/:id/accept` | 🔒 auth | routes/profilePartnerships.ts:163 |
+| `PUT` | `/api/profile-partnerships/:id/decline` | 🔒 auth | routes/profilePartnerships.ts:173 |
+| `PUT` | `/api/profile-partnerships/:id/terminate` | 🔒 auth | routes/profilePartnerships.ts:183 |
+| `GET` | `/api/profile-partnerships/my-commissions` | 🔒 auth | routes/profilePartnerships.ts:193 |
+| `GET` | `/api/profile-partnerships/payouts` | 🔒 auth | routes/profilePartnerships.ts:215 |
+| `POST` | `/api/profile-partnerships/:id/payouts` | 🔒 auth | routes/profilePartnerships.ts:237 |
 
 ## profiles — profiles
 
@@ -468,8 +427,8 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | Method | Path | Auth | Source |
 |---|---|---|---|
 | `GET` | `/api/saves/` | 🔒 auth | routes/saves.ts:8 |
-| `POST` | `/api/saves/toggle` | 🔒 auth | routes/saves.ts:66 |
-| `GET` | `/api/saves/check/:targetId` | 🔒 auth | routes/saves.ts:80 |
+| `POST` | `/api/saves/toggle` | 🔒 auth | routes/saves.ts:64 |
+| `GET` | `/api/saves/check/:targetId` | 🔒 auth | routes/saves.ts:79 |
 
 ## search — Cross-entity full-text search
 
@@ -487,9 +446,9 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `GET` | `/api/showrooms/:id/doctor` | 🔒 auth | routes/showrooms.ts:61 |
 | `GET` | `/api/showrooms/sitemap-data` | 🌐 public | routes/showrooms.ts:118 |
 | `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:128 |
-| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:136 |
-| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:153 |
-| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:164 |
+| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:138 |
+| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:159 |
+| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:175 |
 
 ## stories — stories
 
@@ -521,21 +480,6 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `GET` | `/api/suggestions/people` | 🔒 auth | routes/suggestions.ts:9 |
 | `POST` | `/api/suggestions/dismiss/:targetUserId` | 🔒 auth | routes/suggestions.ts:74 |
 
-## tasks — tasks
-
-| Method | Path | Auth | Source |
-|---|---|---|---|
-| `GET` | `/api/tasks/` | ⚪ optional | routes/tasks.ts:54 |
-| `GET` | `/api/tasks/bids` | 🔒 auth | routes/tasks.ts:67 |
-| `GET` | `/api/tasks/bids/:bidId` | 🔒 auth | routes/tasks.ts:85 |
-| `GET` | `/api/tasks/:id` | ⚪ optional | routes/tasks.ts:99 |
-| `POST` | `/api/tasks/` | 🔒 auth | routes/tasks.ts:107 |
-| `PUT` | `/api/tasks/bids/:bidId` | 🔒 auth | routes/tasks.ts:130 |
-| `PUT` | `/api/tasks/:id` | 🔒 auth | routes/tasks.ts:223 |
-| `DELETE` | `/api/tasks/:id` | 🔒 auth | routes/tasks.ts:270 |
-| `GET` | `/api/tasks/:taskId/bids` | ⚪ optional | routes/tasks.ts:280 |
-| `POST` | `/api/tasks/:taskId/bids` | 🔒 auth | routes/tasks.ts:291 |
-
 ## telegram — telegram
 
 | Method | Path | Auth | Source |
@@ -549,14 +493,14 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/trending/` | ⚪ optional | routes/trending.ts:10 |
-| `GET` | `/api/trending/warm` | ⚪ optional | routes/trending.ts:63 |
+| `GET` | `/api/trending/` | ⚪ optional | routes/trending.ts:45 |
+| `GET` | `/api/trending/warm` | ⚪ optional | routes/trending.ts:66 |
 
 ## upload — upload
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/upload/` | 🔒 auth | routes/upload.ts:9 |
+| `POST` | `/api/upload/` | 🔒 auth | routes/upload.ts:10 |
 
 ## variants — variants
 

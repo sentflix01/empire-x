@@ -13,6 +13,7 @@ export interface AuthUser {
   demo_track?: 1 | 2 | null;
   demo_session_active?: boolean;
   demo_expires_at?: string | null;
+  demo_workspace_available?: boolean;
   /** Set after first-login mode selection. null = user has not yet chosen. */
   onboarding_mode?: 'demo' | 'real' | null;
   [key: string]: unknown;
@@ -28,6 +29,7 @@ interface AuthContextValue {
   authChecked: boolean;
   logout: (redirectTo?: string) => void;
   navigateToLogin: () => void;
+  completeLogin: () => Promise<AuthUser>;
   checkUserAuth: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -130,19 +132,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [checkUserAuth]);
 
   const logout = (redirectTo?: string) => {
-    // Revoke refresh token server-side before clearing local state
-    client.post('/api/auth/logout').catch(() => {});
+    // Revoke the active environment's refresh cookie before navigation. Keep
+    // local state cleared immediately so the old account cannot remain visible.
     clearToken();
     setUser(null);
     setIsAuth(false);
     setAuthChecked(false);
     const target = typeof redirectTo === 'string' ? redirectTo : '/';
-    if (typeof window !== 'undefined') window.location.href = target;
+    if (typeof window !== 'undefined') {
+      // Delay navigation until logout reaches the server so the refresh cookie
+      // is cleared before a new account environment can start.
+      void client.post('/api/auth/logout', {}, { timeout: 5000 })
+        .catch(() => {}).finally(() => { window.location.href = target; });
+    }
   };
 
   const navigateToLogin = () => {
     if (typeof window !== 'undefined') window.location.href = '/login';
   };
+
+  // A successful login already placed the short-lived access token in memory.
+  // Verify it here and update the root provider before navigating, so the app
+  // shell never briefly treats a newly signed-in user as a guest.
+  const completeLogin = useCallback(async (): Promise<AuthUser> => {
+    setIsLoadingAuth(true);
+    try {
+      const res = await client.get('/api/auth/me');
+      const authenticatedUser = res.data as AuthUser;
+      setUser(authenticatedUser);
+      setIsAuth(true);
+      setAuthError(null);
+      setAuthChecked(true);
+      return authenticatedUser;
+    } catch (error) {
+      setUser(null);
+      setIsAuth(false);
+      setAuthChecked(true);
+      throw error;
+    } finally {
+      setIsLoadingAuth(false);
+    }
+  }, []);
 
   const refreshUser = useCallback(async () => {
     await checkUserAuth();
@@ -159,6 +189,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       authChecked,
       logout,
       navigateToLogin,
+      completeLogin,
       checkUserAuth,
       refreshUser,
     }}>

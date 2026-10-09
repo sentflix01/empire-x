@@ -1,5 +1,5 @@
 /**
- * Task 21 regression test — published renderer must cover all 25 builder
+ * Builder regression test — published renderer must cover all 24 builder
  * section types (builder-shape keys) without breaking legacy business-template
  * shapes or the index-based anchor scheme.
  */
@@ -16,7 +16,7 @@ const builderSections = JSON.parse(
 
 // Distinctive visible text expected per builder section type.
 const EXPECTED: Record<string, string> = {
-  hero: "T21 Renderer QA",
+  hero: "Renderer QA",
   about: "Builder-shape about section with description.",
   items: "299 ETB",
   gallery: "Photo A",
@@ -39,13 +39,12 @@ const EXPECTED: Record<string, string> = {
   caseStudies: "300% increase in sales",
   partners: "Long-time partner",
   awards: "Best Business 2024",
-  careers: "Senior Designer",
   industries: "Healthcare",
 };
 
-describe("SectionRenderer — all 25 builder section types", () => {
+describe("SectionRenderer — all 24 builder section types", () => {
   it("renders builder-shape content for every registered type", () => {
-    expect(builderSections.length).toBe(25);
+    expect(builderSections.length).toBe(24);
     builderSections.forEach((section: any, i: number) => {
       const { container } = render(
         <SectionRenderer section={section} sectionIndex={i} themeColor="#7C3AED" profile={{}} />

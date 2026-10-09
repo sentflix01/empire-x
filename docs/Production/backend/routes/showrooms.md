@@ -21,9 +21,9 @@ Showroom CRUD: draft/publish lifecycle, layout template selection, section conte
 | `GET` | `/api/showrooms/:id/doctor` | auth | 61 |
 | `GET` | `/api/showrooms/sitemap-data` | public | 118 |
 | `GET` | `/api/showrooms/:id` | optional | 128 |
-| `POST` | `/api/showrooms/` | auth | 136 |
-| `PUT` | `/api/showrooms/:id` | auth | 153 |
-| `DELETE` | `/api/showrooms/:id` | auth | 164 |
+| `POST` | `/api/showrooms/` | auth | 138 |
+| `PUT` | `/api/showrooms/:id` | auth | 159 |
+| `DELETE` | `/api/showrooms/:id` | auth | 175 |
 
 ## 4. What does it touch?
 

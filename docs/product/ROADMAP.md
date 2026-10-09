@@ -1,6 +1,6 @@
 # Nodbusiness — Product Roadmap
 
-> Milestones from MVP to global platform. Updated quarterly.
+> Launch roadmap for the local merchant showroom and order workflow. Deferred feature plans are in [POST_LAUNCH_FEATURES.md](POST_LAUNCH_FEATURES.md).
 > Last updated: September 2026
 
 ---
@@ -22,8 +22,7 @@
 - [x] Stripe payments (orders + wallet topup)
 - [x] Showroom Studio (27 templates)
 - [x] Real-time chat (DM + groups)
-- [x] Tasks marketplace (post, bid, complete)
-- [x] Nearby map (products, businesses, tasks)
+- [x] Nearby map (products, businesses)
 - [x] Push notifications + in-app notifications
 - [x] Wallet (balance, topup, withdraw)
 - [x] Basic admin panel
@@ -32,14 +31,6 @@
 - [x] HttpOnly refresh token cookie (TD-001)
 - [x] JWT revocation blocklist via Redis (TD-005)
 - [x] Silent token refresh on page load — logout loop fixed (September 2026)
-- [x] **Mewacho** — group money collection module (September 2026)
-  - Group creation, invite via link + QR code
-  - Stripe payment integration with webhook confirmation
-  - Chat-style activity feed (contributions + messages)
-  - Contribution ledger + progress bar
-  - Withdrawal requests with multi-admin approval workflow
-  - Push notifications to all group members on contribution
-  - PDF export of group summary
 - [x] **Personal / Business feed toggle** (September 2026)
   - Independent `homeFeedMode` (feed) and `profileViewMode` (profile) states
   - Personal/Business pills in sidebar under Home tab (feed mode) and Profile tab (profile mode)
@@ -78,11 +69,6 @@
 - [ ] Coupon codes *(backend done — UI pending)*
 - [ ] Business analytics dashboard
 - [ ] Referral program *(backend done — UI pending)*
-- [ ] Events ticketing *(backend done — UI pending)*
-- [ ] Jobs board *(backend done — UI pending)*
-- [ ] Courses marketplace *(backend done — UI pending)*
-- [ ] Mewacho: Equb-style rotation mode
-- [ ] Mewacho: diaspora multi-currency support (USD/EUR → ETB)
 
 ### Engineering
 - [ ] Redis + BullMQ activated (`REDIS_URL` configured in production)
@@ -104,8 +90,6 @@
 - [ ] 2FA authentication
 - [ ] Virtual gifts
 - [ ] Promoted posts / ads system
-- [ ] Mewacho: recurring contribution reminders
-- [ ] Mewacho: social share of group progress
 
 ### Engineering
 - [ ] TypeScript migration (backend) — TD-004
@@ -146,8 +130,6 @@
 | Monthly Active Users (MAU) | Growing |
 | New registrations | Trending up |
 | GMV (marketplace volume) | +10% month-over-month |
-| Mewacho groups created | Trending up |
-| Mewacho total collected (ETB) | Trending up |
 | Payment success rate | >95% |
 | API uptime | >99.9% |
 | Avg API response time | <200ms |

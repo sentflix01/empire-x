@@ -109,8 +109,9 @@ export async function sendOtpEmail(to: string, otp: string): Promise<void> {
   }
 }
 
-export async function sendPasswordResetEmail(to: string, token: string): Promise<void> {
-  const resetUrl = `${getPrimaryFrontendUrl()}/reset-password?token=${token}`;
+export async function sendPasswordResetEmail(to: string, token: string, accountMode?: 'demo' | 'real'): Promise<void> {
+  const modeParam = accountMode ? `&mode=${accountMode}` : '';
+  const resetUrl = `${getPrimaryFrontendUrl()}/reset-password?token=${encodeURIComponent(token)}${modeParam}`;
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#fff;">
       <div style="text-align:center;margin-bottom:24px;">

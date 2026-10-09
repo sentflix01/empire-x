@@ -14,8 +14,14 @@ if (!URL || !KEY || !BUCKET) {
   process.exit(1);
 }
 
-const authHeaders = KEY.startsWith('sb_secret_') ? { apikey: KEY } : { Authorization: `Bearer ${KEY}`, apikey: KEY };
-const headers = { ...authHeaders, 'Content-Type': 'application/json' };
+const authHeaders = KEY?.startsWith('sb_secret_')
+  ? { apikey: KEY }
+  : { Authorization: `Bearer ${KEY}`, apikey: KEY };
+
+const headers = {
+  ...authHeaders,
+  'Content-Type': 'application/json',
+};
 
 async function run() {
   console.log(`\n🔧  Supabase project : ${URL}`);

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import NextImage from 'next/image';
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
-import { TrendingUp, ShoppingBag, Crown, ClipboardList, Users, Banknote, Hash } from "lucide-react";
+import { TrendingUp, ShoppingBag, Crown, Users, Hash } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import PostCard from "@/components/feed/PostCard";
 import { useAuth } from "@/lib/AuthContext";
@@ -148,24 +148,6 @@ function Explore() {
             </div>
           </Section>
         )}
-        {data?.open_tasks?.length > 0 && (
-          <Section title={t('explore.openTasks')} icon={ClipboardList}>
-            <div className="space-y-2">
-              {data.open_tasks.map(task => (
-                <Link key={task.id} href="/tasks" className="flex items-center justify-between p-3 rounded-xl hover:bg-secondary/50 transition-colors">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{task.title}</p>
-                    <p className="text-xs text-muted-foreground">{task.task_type}{task.location ? ` • ${task.location}` : ""}</p>
-                  </div>
-                  <p className="text-sm font-bold text-amber-600 shrink-0 ml-2 flex items-center gap-1">
-                    <Banknote className="w-3 h-3" />{task.offered_payment?.toLocaleString()}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </Section>
-        )}
-
         {data?.suggested_users?.length > 0 && (
           <Section title={t('explore.peopleToFollow')} icon={Users}>
             <div className="space-y-1">

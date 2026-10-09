@@ -8,11 +8,12 @@ export const DEMO_SESSION_COOKIE = 'demo_session';
 export const DEMO_SESSION_AUDIENCE = 'nodbusiness-demo-session';
 export const DEMO_TRACK1_COOKIE = 'demo_track1';
 const DEMO_TRACK1_AUDIENCE = 'nodbusiness-demo-track1';
+const DEMO_ASSET_AUDIENCE = 'nodbusiness-demo-asset';
 const DEMO_COOKIE_PATH = '/';
 const AUTH_RECOVERY_PATHS = new Set([
   '/api/auth/login', '/api/auth/register', '/api/auth/google', '/api/auth/verify-otp',
   '/api/auth/resend-otp', '/api/auth/forgot-password', '/api/auth/reset-password',
-  '/api/auth/demo', '/api/auth/demo/exit',
+  '/api/auth/demo', '/api/auth/demo/exit', '/api/auth/refresh', '/api/auth/logout',
 ]);
 
 function canRecoverFromStaleDemoCookie(pathname: string): boolean {
@@ -78,15 +79,14 @@ export function clearDemoTrack1Cookie(res: Response): void {
 }
 
 /**
- * Track 1 is a shared account on the real database, so any provider-backed
- * payment or withdrawal can create real financial side effects. Only real
- * accounts and verified Track 2 sessions may start those operations.
+ * A Demo workspace must never create provider-backed charges or withdrawals,
+ * even when it has its own signed session and database schema.
  */
 export function requireIsolatedPaymentEnvironment(req: Request, res: Response, next: NextFunction): void {
-  if (req.user?.is_demo === true && !req.demoSession) {
+  if (req.demoSession || req.user?.is_demo === true) {
     res.status(403).json({
-      error: 'Payments are unavailable in the shared demo account. Use a real account or an isolated demo sandbox.',
-      code: 'SHARED_DEMO_PAYMENTS_UNAVAILABLE',
+      error: 'Payments and withdrawals are unavailable in the Demo workspace. Switch to Real to continue.',
+      code: 'DEMO_PAYMENTS_UNAVAILABLE',
     });
     return;
   }
@@ -131,7 +131,15 @@ function isAllowedOrigin(origin: string): boolean {
 /** Resolve a signed sandbox cookie before any route or auth query can run. */
 export async function demoEnvironmentMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   if (req.path === '/health') { next(); return; }
+  const requestedMode = req.get('X-Account-Mode') ?? (req.body as { account_mode?: string } | undefined)?.account_mode;
   const token = (req.cookies as Record<string, string | undefined> | undefined)?.[DEMO_SESSION_COOKIE];
+  // A deliberate Real sign-in must not be routed through a stale Demo cookie.
+  if (token && requestedMode === 'real' && AUTH_RECOVERY_PATHS.has(req.path)) {
+    clearDemoSessionCookie(res);
+    clearDemoTrack1Cookie(res);
+    next();
+    return;
+  }
   if (!token) { next(); return; }
   if (process.env.DEMO_ENABLED !== 'true') {
     clearDemoSessionCookie(res);
@@ -206,4 +214,24 @@ export function signDemoAccessToken(userId: string, sessionId: string): string {
     secret,
     { audience: DEMO_SESSION_AUDIENCE, expiresIn: '15m', jwtid: `${sessionId}:${Date.now()}` },
   );
+}
+
+/** Temporary bearer used only for loading a private local Demo asset in an
+ * <img>/<video> request, which cannot attach the in-memory API access token. */
+export function signDemoAssetToken(sessionId: string, storageKey: string): string {
+  const secret = getDemoSessionSecret();
+  return jwt.sign(
+    { sid: sessionId, asset: storageKey, type: 'demo_asset' },
+    secret,
+    { audience: DEMO_ASSET_AUDIENCE, expiresIn: '7d' },
+  );
+}
+
+export function verifyDemoAssetToken(token: string, sessionId: string, storageKey: string): boolean {
+  try {
+    const claims = jwt.verify(token, getDemoSessionSecret(), { audience: DEMO_ASSET_AUDIENCE }) as jwt.JwtPayload;
+    return claims.type === 'demo_asset' && claims.sid === sessionId && claims.asset === storageKey;
+  } catch {
+    return false;
+  }
 }

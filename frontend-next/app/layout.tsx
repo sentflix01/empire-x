@@ -9,8 +9,8 @@ export const metadata: Metadata = {
     default: 'Nodbusiness 👑',
     template: '%s | Nodbusiness',
   },
-  description: 'The global superapp — social networking, business showrooms, marketplace, messaging, and task services. For everyone, everywhere.',
-  keywords: ['superapp', 'marketplace', 'social', 'business', 'global', 'showroom', 'tasks', 'ecommerce'],
+  description: 'Build a guided online showroom for your local business, connect with customers, and manage product orders in one place.',
+  keywords: ['local business', 'marketplace', 'showroom', 'products', 'orders', 'ecommerce'],
   authors: [{ name: 'Nodbusiness' }],
   creator: 'Nodbusiness',
   openGraph: {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     url: process.env.NEXT_PUBLIC_APP_URL || 'https://nodbusiness.app',
     siteName: 'Nodbusiness',
     title: 'Nodbusiness 👑 — Africa\'s Superapp',
-    description: 'Social networking, business showrooms, marketplace, messaging, and task services.',
+    description: 'Guided business showrooms, local product discovery, ordering, and customer connections.',
     images: ['/brand/nodbusiness-logo.svg'],
   },
   twitter: {

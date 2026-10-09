@@ -7,7 +7,7 @@ import client from "@/api/client";
 import { entities } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
 
-import { MapPin, ShoppingBag, ClipboardList, Navigation, Loader2 } from "lucide-react";
+import { MapPin, ShoppingBag, Navigation, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
@@ -191,11 +191,9 @@ function NearbyMap() {
   const { user: currentUser } = useAuth();
   const [leafletReady, setLeafletReady] = useState(false);
   const [location, setLocation]     = useState(null);
-  const [tasks, setTasks]           = useState([]);
   const [products, setProducts]     = useState([]);
   const [loading, setLoading]       = useState(false);
   const [locating, setLocating]     = useState(false);
-  const [tab, setTab]               = useState("tasks");
   const [radiusKm, setRadiusKm]     = useState(DEFAULT_RADIUS);
 
   // selectedMarker drives the ProfilePeek modal
@@ -220,12 +218,8 @@ function NearbyMap() {
   const fetchNearby = useCallback(async (coords, radius = radiusKm) => {
     setLoading(true);
     try {
-      const [taskRes, productRes] = await Promise.all([
-        client.get("/api/maps/nearby/tasks",    { params: { lat: coords.lat, lon: coords.lon, radius_km: radius } }),
-        client.get("/api/maps/nearby/products", { params: { lat: coords.lat, lon: coords.lon, radius_km: radius } }),
-      ]);
-      setTasks(taskRes.data || []);
-      setProducts(productRes.data || []);
+      const productRes = await client.get("/api/maps/nearby", { params: { lat: coords.lat, lon: coords.lon, radius: radius, type: 'products' } });
+      setProducts(productRes.data?.products || []);
     } catch {
       toast.error("Failed to load nearby items");
     }
@@ -284,7 +278,7 @@ function NearbyMap() {
           <MapPin className="w-6 h-6 text-amber-500" />
           <div>
             <h1 className="font-display text-2xl font-bold">Nearby</h1>
-            <p className="text-xs text-muted-foreground">Tasks and products near you</p>
+            <p className="text-xs text-muted-foreground">Local products near you</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -381,42 +375,12 @@ function NearbyMap() {
               </>
             )}
 
-            {/* Task and product markers — clustered when many pins overlap */}
+            {/* Product markers — clustered when many pins overlap */}
             <MarkerClusterGroup
               chunkedLoading
               maxClusterRadius={50}
               showCoverageOnHover={false}
             >
-            {/* Task markers — labeled with task title */}
-            {tasks.filter(t => t.latitude && t.longitude).map(t => (
-              <Marker
-                key={t.id}
-                position={[t.latitude, t.longitude]}
-                icon={makeLabeledIcon(t.title ?? "Task", "blue")}
-                eventHandlers={{
-                  mouseover: (e) => {
-                    const rect = e.originalEvent.target?.closest?.(".leaflet-marker-icon")?.getBoundingClientRect();
-                    if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
-                    setHoverCard({
-                      ownerId: t.requester_id,
-                      view: "personal",
-                      name: t.title ?? "Task",
-                      category: t.task_type,
-                      distanceKm: t.distance_km,
-                      x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX,
-                      y: rect ? rect.top : e.originalEvent.clientY,
-                    });
-                  },
-                  mouseout: () => { setHoverCard(null); },
-                  dblclick: (e) => {
-                    e.originalEvent?.stopPropagation?.();
-                    setHoverCard(null);
-                    openMarker(t.requester_id, "personal");
-                  },
-                }}
-              />
-            ))}
-
             {/* Product markers — labeled with product title */}
             {products.filter(p => p.latitude && p.longitude).map(p => (
               <Marker
@@ -470,60 +434,13 @@ function NearbyMap() {
         )}
       </AnimatePresence>
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-4">
-        <button
-          onClick={() => setTab("tasks")}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
-            tab === "tasks" ? "bg-amber-500 text-white" : "text-muted-foreground hover:bg-secondary"
-          }`}
-        >
-          <ClipboardList className="w-3.5 h-3.5" /> Tasks ({tasks.length})
-        </button>
-        <button
-          onClick={() => setTab("products")}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
-            tab === "products" ? "bg-amber-500 text-white" : "text-muted-foreground hover:bg-secondary"
-          }`}
-        >
-          <ShoppingBag className="w-3.5 h-3.5" /> Products ({products.length})
-        </button>
-      </div>
+      <div className="mb-4 rounded-xl border border-border/50 bg-card px-4 py-2 text-sm text-muted-foreground">{products.length} nearby products</div>
 
       {/* List */}
       {loading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
         </div>
-      ) : tab === "tasks" ? (
-        tasks.length === 0 ? (
-          <EmptyState icon={ClipboardList} message={`No tasks within ${radiusKm} km`} />
-        ) : (
-          <div className="space-y-2">
-            {tasks.map(t => (
-              <button
-                key={t.id}
-                onDoubleClick={() => openMarker(t.requester_id, "personal")}
-                className="w-full text-left flex items-center justify-between bg-card rounded-xl border border-border/50 p-4 hover:shadow-sm transition-shadow"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                    <ClipboardList className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{t.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t.task_type} · <MapPin className="w-3 h-3 inline" /> {t.distance_km?.toFixed(1)} km away
-                    </p>
-                  </div>
-                </div>
-                <p className="font-bold text-amber-600 shrink-0 ml-2">
-                  {t.offered_payment?.toLocaleString()} {t.currency || 'USD'}
-                </p>
-              </button>
-            ))}
-          </div>
-        )
       ) : (
         products.length === 0 ? (
           <EmptyState icon={ShoppingBag} message={`No products within ${radiusKm} km`} />

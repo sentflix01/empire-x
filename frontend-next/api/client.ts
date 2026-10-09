@@ -14,8 +14,9 @@
  */
 import axios, { InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
+const API_BASE_URL = typeof window !== 'undefined'
+  ? ''
+  : (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001');
 
 // ── In-memory access token store ─────────────────────────────────────────────
 let _accessToken: string | null = null;
@@ -46,6 +47,7 @@ export function storeToken(token: string) {
   if (typeof window !== 'undefined') {
     setHintCookie();
     clearLegacyTokenArtifacts();
+    try { localStorage.removeItem('nodbusiness_account_mode'); } catch { /* old mode hint is not authoritative */ }
   }
 }
 
@@ -54,6 +56,7 @@ export function clearToken() {
   if (typeof window !== 'undefined') {
     clearHintCookie();
     clearLegacyTokenArtifacts();
+    try { localStorage.removeItem('nodbusiness_account_mode'); } catch { /* old mode hint is not authoritative */ }
   }
 }
 

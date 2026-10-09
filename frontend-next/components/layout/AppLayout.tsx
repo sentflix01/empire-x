@@ -2,28 +2,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
-import { auth } from "@/api/auth";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  Home, Search, MessageCircle, ShoppingBag, ClipboardList, Bell, User, UserRound,
-  Plus, Crown, TrendingUp, Briefcase, GraduationCap, CalendarDays,
+  Home, Search, MessageCircle, ShoppingBag, Bell, User, UserRound,
+  Plus, Crown, TrendingUp,
   Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, Tag,
-  Package, ShieldAlert, BarChart3, Store, Flame, Users, Zap, ChevronDown,
+  Package, ShieldAlert, BarChart3, Store, Flame, Users, ChevronDown,
   PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield,
-  ArrowLeft, Coins, Settings, FlaskConical, Loader2,
+  ArrowLeft, Settings,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { toggleLanguage } from "@/lib/i18n";
 import { useCart } from "@/lib/CartContext";
 import { useAuth } from "@/lib/AuthContext";
 import { connectSocket, disconnectSocket, resetSocket, getSocket } from "@/lib/socket";
-import { toast } from "sonner";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
-import DemoEnvironmentBanner from "@/components/layout/DemoEnvironmentBanner";
-import { useRealMode } from "@/lib/RealModeContext";
+import WorkspaceSwitcher from "@/components/layout/WorkspaceSwitcher";
 import { useProfileView } from "@/lib/ProfileViewContext";
 import { useAppStore } from "@/store";
 import { isGuestBrowsablePath } from "@/lib/publicPaths";
@@ -33,11 +31,7 @@ import { isGuestBrowsablePath } from "@/lib/publicPaths";
 function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string } | null }) {
   const quickLinks = [
     { path: "/showrooms",  icon: Store,        label: "Showrooms",   color: "#2563EB" },
-    { path: "/events",     icon: CalendarDays, label: "Events",      color: "#2563EB" },
-    { path: "/jobs",       icon: Briefcase,    label: "Jobs",        color: "#2563EB" },
-    { path: "/courses",    icon: GraduationCap,label: "Courses",     color: "#7c3aed" },
     { path: "/marketplace",icon: ShoppingBag,  label: "Marketplace", color: "#7c3aed" },
-    { path: "/tasks",      icon: Zap,          label: "Tasks",       color: "#2563EB" },
     { path: "/bookmarks",  icon: Bookmark,     label: "Bookmarks",   color: "#6B7280" },
     { path: "/wallet",     icon: Wallet,       label: "Wallet",      color: "#f59e0b" },
   ];
@@ -208,7 +202,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const router = useRouter();
   const { user, isAuthenticated, authChecked, isLoadingAuth, logout } = useAuth();
   const hasSignedInUser = authChecked && isAuthenticated && Boolean(user);
-  const { realMode, toggleRealMode, setRealMode } = useRealMode();
   const { homeFeedMode, setHomeFeedMode, profileViewMode, setProfileViewMode } = useProfileView();
 
   const tr = (key: string) => String(t(key));
@@ -226,7 +219,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [, setHomeTabsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userProfile, setUserProfile] = useState<{ avatar_url?: string; cover_url?: string } | null>(null);
-  const [switchingEnvironment, setSwitchingEnvironment] = useState(false);
   const { cart } = useCart();
   const isShowroomBuilder = pathname === "/showroom/create";
   const isImmersiveRoute = isShowroomBuilder || pathname.startsWith("/messages/");
@@ -253,7 +245,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   // Redirect to /login when auth has resolved and user is not authenticated.
   // Guest-browsable paths (feed, marketplace, showrooms, etc.) are exempt —
   // guests see content read-only with sign-up prompts on write actions.
-  // /choose-mode is also exempt — that page handles its own auth check.
+  // Legacy /choose-mode bookmarks are redirected by proxy.ts before rendering.
   useEffect(() => {
     if (
       authChecked &&
@@ -331,31 +323,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     } catch {}
   };
 
-  const enterDemoEnvironment = async () => {
-    if (switchingEnvironment) return;
-    setSwitchingEnvironment(true);
-    try {
-      // Demo requests must not carry the real-only content filter. Keep the
-      // interceptor and persisted preference in sync before starting the demo.
-      setRealMode(false);
-      await auth.setOnboardingMode('demo');
-      await auth.loginDemo();
-      window.location.assign('/feed');
-    } catch (err) {
-      const e = err as { response?: { data?: { error?: string } }; message?: string };
-      toast.error(e.response?.data?.error || e.message || 'Demo sandbox is temporarily unavailable.');
-      setSwitchingEnvironment(false);
-    }
-  };
-
   const mainNavItems = [
     { path: "/feed", icon: Home, label: tr('nav.home') },
     { path: "/explore", icon: TrendingUp, label: tr('nav.explore') },
     { path: "/friends", icon: Users, label: tr('nav.friends') },
     { path: "/businesses", icon: Store, label: tr('nav.businesses') },
     { path: "/marketplace", icon: ShoppingBag, label: tr('nav.marketplace') },
-    { path: "/tasks", icon: ClipboardList, label: tr('nav.tasks') },
-    { path: "/mewacho", icon: Coins, label: 'Mewacho' },
     { path: "/messages", icon: MessageCircle, label: tr('nav.messages') },
     { path: "/profile", icon: User, label: tr('nav.profile') },
   ];
@@ -365,9 +338,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   const extraNavItems = [
     { path: "/showrooms", icon: Crown, label: tr('nav.showrooms') },
-    { path: "/events", icon: CalendarDays, label: tr('nav.events') },
-    { path: "/jobs", icon: Briefcase, label: tr('nav.jobs') },
-    { path: "/courses", icon: GraduationCap, label: tr('nav.courses') },
   ];
 
   const accountItems = [
@@ -500,7 +470,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
                     <input name="mq" type="search" autoFocus enterKeyHint="search"
-                      placeholder="Search people, products, tasks..."
+                      placeholder="Search people, products, and showrooms..."
                       onKeyDown={e => { if (e.key === 'Escape') setSearchOpen(false); }}
                       className="w-full pl-9 pr-4 h-10 bg-secondary border border-border rounded-full text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all" />
                   </div>
@@ -537,7 +507,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               </>
             ) : (
               <>
-                <Link href={`/choose-mode?return=${encodeURIComponent(pathname)}`} className="inline-flex h-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3 sm:text-sm">Sign in</Link>
+                <Link href={`/login?return=${encodeURIComponent(pathname)}`} className="inline-flex h-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3 sm:text-sm">Sign in</Link>
                 <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 sm:px-3 sm:text-sm">Join</Link>
                 {authChecked && <span title="Browsing as guest" aria-label="Guest session" className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground">
                   <UserRound className="h-4 w-4" />
@@ -694,7 +664,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 <p className="text-xs font-bold text-foreground">Browsing as a guest</p>
                 <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Sign in or join to save your activity.</p>
                 <div className="mt-3 flex gap-2">
-                  <Link href={`/choose-mode?return=${encodeURIComponent(pathname)}`} className="flex-1 rounded-lg border border-border bg-background px-2 py-2 text-center text-xs font-semibold text-foreground hover:bg-secondary">Sign in</Link>
+                  <Link href={`/login?return=${encodeURIComponent(pathname)}`} className="flex-1 rounded-lg border border-border bg-background px-2 py-2 text-center text-xs font-semibold text-foreground hover:bg-secondary">Sign in</Link>
                   <Link href="/register" className="flex-1 rounded-lg bg-primary px-2 py-2 text-center text-xs font-semibold text-primary-foreground hover:bg-primary/90">Join free</Link>
                 </div>
                 <Link href="/landing" className="mt-2 block rounded-lg px-2 py-1.5 text-center text-xs font-medium text-muted-foreground hover:bg-background hover:text-foreground">Back to landing page</Link>
@@ -768,28 +738,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   </button>
 
                   {hasSignedInUser && <>
-                  {/* Content filter; the verified cookie controls the environment. */}
-                  {user?.is_demo !== true && <button
-                    onClick={toggleRealMode}
-                    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm"
-                  >
-                    <div className="flex items-center gap-2.5 text-muted-foreground">
-                      <span className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${realMode ? 'border-green-500 bg-green-500' : 'border-amber-500 bg-amber-500'}`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                      </span>
-                      <span>Content filter</span>
-                    </div>
-                    <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${realMode ? 'bg-green-500/10 text-green-600 border border-green-500/30' : 'bg-amber-500/10 text-amber-600 border border-amber-500/30'}`}>
-                      {realMode ? 'Real accounts only' : 'All accounts'}
-                    </span>
-                  </button>}
-
-                  {user?.is_demo !== true && <button onClick={() => void enterDemoEnvironment()} disabled={switchingEnvironment}
-                    className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-60 dark:text-amber-300 dark:hover:bg-amber-950/40">
-                    {switchingEnvironment ? <Loader2 className="h-4 w-4 animate-spin" /> : <FlaskConical className="h-4 w-4" />}
-                    <span>{switchingEnvironment ? 'Opening demo…' : 'Explore demo sandbox'}</span>
-                  </button>}
-
                   <div className="mx-3 my-1 border-t border-border/40" />
 
                   {/* Account Settings */}
@@ -861,7 +809,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </button>
               ) : (
                 <>
-                  <Link href={`/choose-mode?return=${encodeURIComponent(pathname)}`} title={sidebarCollapsed ? 'Sign in' : undefined} aria-label="Sign in" className={`flex items-center gap-2.5 rounded-xl text-muted-foreground text-sm font-medium hover:bg-secondary hover:text-foreground ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'}`}>
+                  <Link href={`/login?return=${encodeURIComponent(pathname)}`} title={sidebarCollapsed ? 'Sign in' : undefined} aria-label="Sign in" className={`flex items-center gap-2.5 rounded-xl text-muted-foreground text-sm font-medium hover:bg-secondary hover:text-foreground ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'}`}>
                     <User className="w-4 h-4 shrink-0" />{!sidebarCollapsed && <span>Sign in</span>}
                   </Link>
                   {!sidebarCollapsed && <Link href="/register" className="rounded-xl bg-primary px-3 py-2 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90">Join free</Link>}
@@ -878,11 +826,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           ${isImmersiveRoute
             ? 'overflow-hidden'
             : 'app-main-safe-padding px-4 py-4'}`}>
-          {/* Keep the mode notice and its actions inside the center column; a
-              full-width banner here would sit underneath the fixed right rail. */}
-          {(user?.demo_session_active === true || user?.is_demo === true) && (
-            <DemoEnvironmentBanner track={user?.demo_track === 2 ? 2 : 1} />
-          )}
+          <WorkspaceSwitcher />
           {isLoadingAuth ? (
             <div className="flex justify-center py-20">
               <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
@@ -1036,7 +980,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                       <p className="text-xs font-bold text-foreground">Browsing as a guest</p>
                       <p className="mt-1 text-[11px] text-muted-foreground">Sign in or join to save your activity.</p>
                       <div className="mt-3 flex gap-2">
-                        <Link href={`/choose-mode?return=${encodeURIComponent(pathname)}`} onClick={() => setDrawerOpen(false)} className="flex-1 rounded-lg border border-border bg-background px-2 py-2 text-center text-xs font-semibold">Sign in</Link>
+                        <Link href={`/login?return=${encodeURIComponent(pathname)}`} onClick={() => setDrawerOpen(false)} className="flex-1 rounded-lg border border-border bg-background px-2 py-2 text-center text-xs font-semibold">Sign in</Link>
                         <Link href="/register" onClick={() => setDrawerOpen(false)} className="flex-1 rounded-lg bg-primary px-2 py-2 text-center text-xs font-semibold text-primary-foreground">Join free</Link>
                       </div>
                       <Link href="/landing" onClick={() => setDrawerOpen(false)} className="mt-2 block rounded-lg px-2 py-1.5 text-center text-xs font-medium text-muted-foreground hover:bg-background hover:text-foreground">Back to landing page</Link>
@@ -1091,26 +1035,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                         </button>
 
                         {hasSignedInUser && <>
-                        {/* Content filter; the verified cookie controls the environment. */}
-                        {user?.is_demo !== true && <button onClick={toggleRealMode}
-                          className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm">
-                          <div className="flex items-center gap-2.5 text-muted-foreground">
-                            <span className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${realMode ? 'border-green-500 bg-green-500' : 'border-amber-500 bg-amber-500'}`}>
-                              <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                            </span>
-                            <span>Content filter</span>
-                          </div>
-                          <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${realMode ? 'bg-green-500/10 text-green-600 border border-green-500/30' : 'bg-amber-500/10 text-amber-600 border border-amber-500/30'}`}>
-                            {realMode ? 'Real accounts only' : 'All accounts'}
-                          </span>
-                        </button>}
-
-                        {user?.is_demo !== true && <button onClick={() => void enterDemoEnvironment()} disabled={switchingEnvironment}
-                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-amber-700 hover:bg-amber-50 disabled:opacity-60 dark:text-amber-300 dark:hover:bg-amber-950/40">
-                          {switchingEnvironment ? <Loader2 className="h-4 w-4 animate-spin" /> : <FlaskConical className="h-4 w-4" />}
-                          <span>{switchingEnvironment ? 'Opening demo…' : 'Explore demo sandbox'}</span>
-                        </button>}
-
                         <div className="mx-3 my-1 border-t border-border/40" />
 
                         {/* Account Settings */}
@@ -1147,7 +1071,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   {hasSignedInUser ? <button onClick={() => { setDrawerOpen(false); resetSocket(); logout(); }}
                     className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium">
                     <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
-                  </button> : <Link href={`/choose-mode?return=${encodeURIComponent(pathname)}`} onClick={() => setDrawerOpen(false)} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground"><User className="h-4 w-4" /><span>Sign in</span></Link>}
+                  </button> : <Link href={`/login?return=${encodeURIComponent(pathname)}`} onClick={() => setDrawerOpen(false)} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground"><User className="h-4 w-4" /><span>Sign in</span></Link>}
                 </div>
               </div>
             </>

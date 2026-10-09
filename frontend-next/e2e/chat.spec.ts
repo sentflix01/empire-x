@@ -7,12 +7,12 @@ import { test, expect, Page } from '@playwright/test';
  * user B; B must see it appear LIVE (no reload). Validates the whole chain:
  * UI send → Socket.IO (access-token auth, conv room join) → recipient render.
  *
- * Requires seeded accounts (backend/db/seed.js). Skips otherwise.
+ * Requires the isolated real-mode accounts from backend/db/seed-e2e.js.
  */
 
 const API = process.env.E2E_BACKEND_URL ?? 'http://localhost:3001';
-const A = { email: process.env.E2E_TEST_EMAIL ?? 'test@nodbusiness.app', password: process.env.E2E_TEST_PASSWORD ?? 'Test1234!' };
-const B = { email: process.env.E2E_ADMIN_EMAIL ?? 'admin@nodbusiness.app', password: process.env.E2E_ADMIN_PASSWORD ?? 'Admin1234!' };
+const A = { email: process.env.E2E_TEST_EMAIL ?? 'e2e-buyer@nodbusiness.test', password: process.env.E2E_TEST_PASSWORD ?? 'TestCodexE2E2026!' };
+const B = { email: process.env.E2E_ADMIN_EMAIL ?? 'e2e-seller@nodbusiness.test', password: process.env.E2E_ADMIN_PASSWORD ?? 'AdminCodexE2E2026!' };
 
 async function apiLogin(email: string, password: string) {
   const res = await fetch(`${API}/api/auth/login`, {
@@ -43,7 +43,7 @@ async function loginViaUi(page: Page, email: string, password: string) {
     throw e;
   }
   const resp = await loginResponse;
-  console.log(`[chat-e2e] UI login ${email}: POST status ${resp?.status() ?? 'none'}`);
+  if (!resp?.ok()) throw new Error(`UI login failed for ${email} (HTTP ${resp?.status() ?? 'no response'})`);
 }
 
 let convId: string | null = null;

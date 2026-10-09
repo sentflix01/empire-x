@@ -26,9 +26,9 @@
 
 ## Why Nodbusiness Exists
 
-Billions of people globally lack access to the digital tools that people in developed markets take for granted — tools to run a business, find work, buy and sell, connect with their community, and access financial services.
+Local merchants often lack an easy way to create and manage a useful online storefront, while customers struggle to discover and buy from nearby businesses.
 
-Nodbusiness exists to change that. We are building the global superapp: one platform where anyone, anywhere can participate in the digital economy.
+Nodbusiness helps merchants build a storefront through a visual, guided builder and connect it to discovery and ordering in one platform.
 
 ---
 
@@ -36,13 +36,11 @@ Nodbusiness exists to change that. We are building the global superapp: one plat
 
 **Primary users:**
 - Entrepreneurs and small business owners who want to sell products and services online
-- Individuals who want to find local products, services, and jobs
-- Anyone who wants to connect with their community, share content, and communicate
+- Local customers who want to discover products and services and place orders
 
 **Secondary users:**
 - Businesses that want a showroom — a full digital storefront in minutes
-- Freelancers and service providers finding clients through the tasks marketplace
-- Educators selling courses to a local or global audience
+- Creators who can introduce merchants to their audiences through time-bound, agreed commission partnerships
 - Developers building integrations on the Nodbusiness platform
 
 ---
@@ -85,18 +83,18 @@ These boundaries protect the core identity:
 
 ```
 2026 — Nodbusiness launches globally
-        Core: social feed, marketplace, showrooms, tasks, messaging
+        Core: guided showroom builder, merchant profiles, product/service discovery, orders
 
 2027 — 100,000 active users
-        Add: events, jobs, courses, wallet, local delivery
+        Improve: merchant onboarding, trust, order fulfillment, payments, creator partnerships
 
 2028 — 1,000,000 users
         Expand: Kenya, Nigeria, Ghana, India, Southeast Asia
         Add: API platform, developer integrations
 
-2030 — Global superapp
-        Platform: public APIs, SDKs, webhooks, developer portal
-        Infrastructure: multi-region, 10M+ users
+2030 — Trusted merchant commerce network
+        Platform: storefront tools, merchant integrations, and reliable fulfillment
+        Infrastructure: multi-region support for local commerce markets
 ```
 
 ---
@@ -222,7 +220,7 @@ These boundaries protect the core identity:
 We know Nodbusiness is working when:
 - A small business owner can set up a showroom, list products, and receive their first order in under 30 minutes
 - A buyer can find a product, pay with their preferred payment method, and receive delivery — all in one app
-- A freelancer finds a task, bids, gets hired, delivers, and gets paid without leaving the platform
+- A profile owner promotes a merchant through an agreed storefront partnership and receives commission on attributed completed orders
 - Monthly GMV grows 20%+ month-over-month in the first year
 
 ---

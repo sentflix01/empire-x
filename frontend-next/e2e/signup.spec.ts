@@ -36,9 +36,23 @@ async function fillRegisterForm(page: any, email: string, password: string, conf
 
 test.describe('Signup flow', () => {
   let testEmail: string;
+  let submittedAccountModes: unknown[];
 
-  test.beforeEach(() => {
+  test.beforeEach(async ({ page }) => {
     testEmail = generateTestEmail();
+    submittedAccountModes = [];
+    // Keep this signup flow deterministic and independent of live email or
+    // database services. Workspace selection happens after authentication.
+    await page.route('**/api/auth/register', async (route) => {
+      const { email, account_mode } = route.request().postDataJSON() as { email: string; account_mode?: string };
+      submittedAccountModes.push(account_mode);
+      if (email === 'test@nodbusiness.app') {
+        await route.fulfill({ status: 409, json: { error: 'Account already exists' } });
+      } else {
+        await route.fulfill({ json: { message: 'Registration successful.' } });
+      }
+    });
+    await page.route('**/api/auth/resend-otp', (route) => route.fulfill({ json: { message: 'Code sent' } }));
   });
 
   test('register with valid credentials shows OTP verification screen', async ({ page }) => {
@@ -52,6 +66,7 @@ test.describe('Signup flow', () => {
       page.waitForSelector('text=Check your email', { timeout: 30_000 }),
       page.locator('button[type="submit"], button:has-text("Create account")').first().click({ force: true }),
     ]);
+    expect(submittedAccountModes).toEqual([undefined]);
 
     console.log('OTP screen appeared');
 
@@ -68,7 +83,7 @@ test.describe('Signup flow', () => {
     // Use seeded test account (verified)
     const existingEmail = 'test@nodbusiness.app';
 
-    await page.goto('/register', { waitUntil: 'domcontentloaded' });
+    await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
 
     await fillRegisterForm(page, existingEmail, TEST_PASSWORD, TEST_PASSWORD, true);
@@ -80,7 +95,7 @@ test.describe('Signup flow', () => {
   });
 
   test('register rejects mismatched passwords', async ({ page }) => {
-    await page.goto('/register', { waitUntil: 'domcontentloaded' });
+    await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
 
     await fillRegisterForm(page, testEmail, TEST_PASSWORD, 'DifferentPassword123!', true);
@@ -95,7 +110,7 @@ test.describe('Signup flow', () => {
   });
 
   test('register rejects password too short', async ({ page }) => {
-    await page.goto('/register', { waitUntil: 'domcontentloaded' });
+    await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
 
     await fillRegisterForm(page, testEmail, 'Short1!', 'Short1!', true);
@@ -111,7 +126,7 @@ test.describe('Signup flow', () => {
   });
 
   test('register requires terms acceptance', async ({ page }) => {
-    await page.goto('/register', { waitUntil: 'domcontentloaded' });
+    await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
 
     // Fill form but DON'T agree to terms
@@ -131,7 +146,7 @@ test.describe('Signup flow', () => {
   });
 
   test('can navigate back from OTP screen to edit email', async ({ page }) => {
-    await page.goto('/register', { waitUntil: 'domcontentloaded' });
+    await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
 
     await fillRegisterForm(page, testEmail, TEST_PASSWORD, TEST_PASSWORD, true);
@@ -153,7 +168,7 @@ test.describe('Signup flow', () => {
   });
 
   test('resend OTP button works and shows cooldown', async ({ page }) => {
-    await page.goto('/register', { waitUntil: 'domcontentloaded' });
+    await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
 
     await fillRegisterForm(page, testEmail, TEST_PASSWORD, TEST_PASSWORD, true);

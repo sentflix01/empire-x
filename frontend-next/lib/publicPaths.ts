@@ -28,10 +28,6 @@ const PUBLIC_PATHS = new Set([
   '/businesses',
   '/showrooms',
   '/explore',
-  '/events',
-  '/jobs',
-  '/courses',
-  '/tasks',
   '/nearby',
 ]);
 
@@ -47,7 +43,7 @@ const SHOWROOM_BUILDER_PAGES = new Set([
 const AUTH_ONLY_PREFIXES = [
   '/messages', '/notifications', '/settings', '/profile/edit',
   '/account', '/wallet', '/orders', '/cart', '/bookmarks',
-  '/analytics', '/referral', '/coupons', '/mewacho', '/friends',
+  '/analytics', '/referral', '/coupons', '/friends',
   '/scorecard',
 ];
 
@@ -65,10 +61,6 @@ export function isPublicPath(pathname: string): boolean {
   if (pathname.startsWith('/showroom/')) return true;
   if (pathname.startsWith('/showrooms/')) return true;
   if (pathname.startsWith('/businesses/')) return true;
-  if (pathname.startsWith('/events/')) return true;
-  if (pathname.startsWith('/jobs/')) return true;
-  if (pathname.startsWith('/courses/')) return true;
-  if (pathname.startsWith('/tasks/')) return true;
   if (pathname.startsWith('/hashtag/')) return true;
   return false;
 }
@@ -77,7 +69,7 @@ export function isPublicPath(pathname: string): boolean {
 export function isGuestBrowsablePath(pathname: string): boolean {
   return [
     '/feed', '/marketplace', '/businesses', '/showrooms',
-    '/explore', '/events', '/jobs', '/courses', '/tasks', '/nearby',
+    '/explore', '/nearby',
   ].some(p => pathname === p) ||
     pathname.startsWith('/products/') ||
     pathname.startsWith('/showroom/') ||

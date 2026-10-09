@@ -1,3 +1,11 @@
 'use client';
-export { default } from '@/views/ForgotPassword';
+import { Suspense } from 'react';
+import ForgotPassword from '@/views/ForgotPassword';
 
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <ForgotPassword />
+    </Suspense>
+  );
+}

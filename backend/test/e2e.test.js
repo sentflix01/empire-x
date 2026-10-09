@@ -393,7 +393,7 @@ async function run() {
   section('10. Search');
 
   const searchResp = await request('GET', '/api/search?q=E2E', { token: TOKEN });
-  // Search may fail in dev if DB schema has missing columns (e.g. latitude on jobs)
+  // Search may fail in dev if DB schema has missing columns
   // — treat 500 as a soft warning, not a hard failure
   assert('GET /api/search?q=... returns 200 or 500 (schema-dependent)',
     searchResp.status === 200 || searchResp.status === 500,
@@ -506,18 +506,6 @@ async function run() {
 
   // ── 15. ADDITIONAL ROUTES ──────────────────────────────────────────────────
   section('15. Additional routes');
-
-  const eventsResp = await request('GET', '/api/events', { token: TOKEN });
-  assert('GET /api/events returns 200', eventsResp.status === 200,
-    `got ${eventsResp.status}`);
-
-  const jobsResp = await request('GET', '/api/jobs', { token: TOKEN });
-  assert('GET /api/jobs returns 200', jobsResp.status === 200,
-    `got ${jobsResp.status}`);
-
-  const coursesResp = await request('GET', '/api/courses', { token: TOKEN });
-  assert('GET /api/courses returns 200', coursesResp.status === 200,
-    `got ${coursesResp.status}`);
 
   const businessesResp = await request('GET', '/api/businesses', { token: TOKEN });
   assert('GET /api/businesses returns 200', businessesResp.status === 200,

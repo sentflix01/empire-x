@@ -6,7 +6,7 @@ import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 
-import { ArrowLeft, QrCode, Crown, X, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, QrCode, Crown, X, Send, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -223,6 +223,13 @@ function ShowroomView() {
                 <Button size="sm" variant="outline" className="rounded-full h-8" onClick={() => setShowQr(v => !v)}>
                   <QrCode className="w-3 h-3 mr-1" /> QR Code
                 </Button>
+                {showroom.status === "published" && (
+                  <Link href={`/profile/${showroom.owner_id}?view=business`}>
+                    <Button size="sm" className="rounded-full h-8 bg-amber-500 text-white hover:bg-amber-600">
+                      <Check className="w-3 h-3 mr-1" /> Finish
+                    </Button>
+                  </Link>
+                )}
               </>
             )}
           </div>

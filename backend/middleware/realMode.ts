@@ -1,14 +1,16 @@
 /**
  * middleware/realMode.ts — Real-users-only filter
  *
- * When X-Real-Only: 1 header is present, sets req.realOnly = true.
- * Routes use helper functions below to inject seed-user exclusion clauses
- * into their SQL queries.
+ * The signed Demo session selects the Demo schema. Requests in the Real
+ * schema also exclude any legacy seed/Demo rows left during migration.
  */
 import type { Request, Response, NextFunction } from 'express';
+import { getCurrentDatabaseEnvironment } from '../db/pool';
 
 export function realModeMiddleware(req: Request, res: Response, next: NextFunction): void {
-  req.realOnly = req.headers['x-real-only'] === '1';
+  // Real and Demo use separate schemas (or databases), so the server-selected
+  // database context is the authoritative environment boundary.
+  req.realOnly = getCurrentDatabaseEnvironment() === 'real';
   // Intermediary caches must not reuse Demo/all-user responses in Real mode.
   res.vary('X-Real-Only');
   next();

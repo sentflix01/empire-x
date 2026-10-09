@@ -14,7 +14,7 @@ const RULES: Rule[] = [
   // ── Greetings ──────────────────────────────────────────────────────────────
   {
     patterns: [/^(hi|hello|hey|selam|salam|good morning|good afternoon|good evening)\b/i],
-    answer: "👋 Hello! I'm the Nodbusiness AI assistant. I can help you navigate the app, write descriptions, find products, post tasks, and more. What would you like to do today?",
+    answer: "👋 Hello! I'm the Nodbusiness AI assistant. I can help you navigate the app, write descriptions, find products, and more. What would you like to do today?",
   },
   {
     patterns: [/how are you|are you okay|what('s| is) up/i],
@@ -53,16 +53,6 @@ const RULES: Rule[] = [
     answer: "⭐ To leave a review:\n1. Go to any product detail page\n2. Scroll to the **Reviews** section at the bottom\n3. Click the stars to select your rating (1–5)\n4. Optionally add a comment\n5. Tap **Submit review**\n\nYou can edit or delete your review anytime.",
   },
 
-  // ── Tasks / Errands ────────────────────────────────────────────────────────
-  {
-    patterns: [/post.*task|create.*task|add.*task|how.*task/i],
-    answer: "📋 To post a task/errand:\n1. Go to **Tasks** → tap **+ Post Task**\n2. Choose the task type (delivery, grocery, document pickup, etc.)\n3. Set your offered payment, deadline, and location\n4. Submit — people nearby can bid to help you!\n\nYou'll see all bids and can accept the best one.",
-  },
-  {
-    patterns: [/accept.*task|bid.*task|apply.*task|earn.*task/i],
-    answer: "💰 To earn money from tasks:\n1. Go to **Tasks** and browse open tasks near you\n2. Tap **Apply / Bid** on any task you can complete\n3. Enter your bid amount and a message\n4. If the requester accepts your bid, the task is yours!\n\nComplete the task, get marked as done, and get paid. 🎉",
-  },
-
   // ── Referral ───────────────────────────────────────────────────────────────
   {
     patterns: [/referral|refer.*friend|invite.*friend|referral.*code|how.*referral/i],
@@ -72,7 +62,7 @@ const RULES: Rule[] = [
   // ── Wallet ─────────────────────────────────────────────────────────────────
   {
     patterns: [/wallet|top.?up|withdraw|balance|how.*pay/i],
-    answer: "💳 Your Nodbusiness Wallet:\n• Go to **My Account → Wallet**\n• **Top Up**: Add funds (connected to Chapa/Stripe in production)\n• **Withdraw**: Request a payout to your bank account\n• **History**: See all transactions\n\nYour wallet balance is used for marketplace purchases and task payments.",
+    answer: "💳 Your Nodbusiness Wallet:\n• Go to **My Account → Wallet**\n• **Top Up**: Add funds (connected to Chapa/Stripe in production)\n• **Withdraw**: Request a payout to your bank account\n• **History**: See all transactions\n\nYour wallet balance is used for marketplace purchases.",
   },
 
   // ── Messages / Chat ────────────────────────────────────────────────────────
@@ -96,7 +86,7 @@ const RULES: Rule[] = [
   // ── Business / Profile ─────────────────────────────────────────────────────
   {
     patterns: [/create.*business|add.*business|set up.*business|business.*profile/i],
-    answer: "🏢 To create a Business Profile:\n1. Go to **Profile → Edit Profile**\n2. Switch to the **Business** tab\n3. Fill in your business name, category, description, and contact info\n4. Choose a theme colour and upload a logo\n5. Save — your business profile is now live!\n\nYou can then create a Showroom, list products, and post tasks all under your business.",
+    answer: "🏢 To create a Business Profile:\n1. Go to **Profile → Edit Profile**\n2. Switch to the **Business** tab\n3. Fill in your business name, category, description, and contact info\n4. Choose a theme colour and upload a logo\n5. Save — your business profile is now live!\n\nYou can then create a Showroom and list products or services under your business.",
   },
   {
     patterns: [/edit.*profile|update.*profile|change.*profile/i],
@@ -105,8 +95,8 @@ const RULES: Rule[] = [
 
   // ── Search ─────────────────────────────────────────────────────────────────
   {
-    patterns: [/search|find.*people|find.*product|find.*job|find.*event/i],
-    answer: "🔍 Use the **Search** bar at the top of the app to find:\n• People and profiles\n• Products and services\n• Jobs and tasks\n• Events and courses\n• Showrooms\n• Hashtag posts\n\nYou can also filter by distance, price range, and date.",
+    patterns: [/search|find.*people|find.*product|find.*showroom/i],
+    answer: "🔍 Use the **Search** bar at the top of the app to find:\n• People and profiles\n• Products and services\n• Showrooms\n• Hashtag posts\n\nYou can also filter by distance and price range.",
   },
 
   // ── Points ─────────────────────────────────────────────────────────────────
@@ -115,26 +105,16 @@ const RULES: Rule[] = [
     answer: "⭐ Nodbusiness Points:\n• Earn **50 points** when someone uses your referral code\n• Earn **20 points** when you sign up with a referral code\n• More ways to earn points are coming soon!\n\nCheck your points balance on your **Profile** or the **Referral** page.",
   },
 
-  // ── Events / Jobs / Courses ────────────────────────────────────────────────
-  {
-    patterns: [/post.*event|create.*event|add.*event/i],
-    answer: "📅 To post an event:\n1. Go to **Events** in the Discover section\n2. Tap **+ Create Event**\n3. Fill in the title, date, location, description, and ticket info\n4. Publish — your event will appear in the events feed!",
-  },
-  {
-    patterns: [/post.*job|create.*job|add.*job/i],
-    answer: "💼 To post a job:\n1. Go to **Jobs** in the Discover section\n2. Tap **+ Post Job**\n3. Fill in the position, company, location, salary range, and requirements\n4. Publish — job seekers can apply directly through the app.",
-  },
-
   // ── Nearby Map ─────────────────────────────────────────────────────────────
   {
     patterns: [/nearby|near me|close to me|location.*product|map/i],
-    answer: "📍 The **Nearby Map** shows products and tasks near your location:\n1. Go to **Nearby Map** in the sidebar\n2. Tap **Locate Me** to share your location\n3. Browse tasks and products within your chosen radius (5–100 km)\n4. Tap any marker on the map for details\n\nPerfect for finding local deals and errands!",
+    answer: "📍 The **Nearby Map** shows products and businesses near your location:\n1. Go to **Nearby Map** in the sidebar\n2. Tap **Locate Me** to share your location\n3. Browse businesses and products within your chosen radius (5–100 km)\n4. Tap any marker on the map for details\n\nPerfect for finding nearby businesses and products!",
   },
 
   // ── AI description ─────────────────────────────────────────────────────────
   {
     patterns: [/write.*description|generate.*description|product.*description|business.*description/i],
-    answer: "✍️ To auto-generate a description with AI:\n1. When creating a **product**, **job**, or **business profile** — look for the **AI Generate** button next to the description field\n2. Make sure you've entered the title first\n3. Click **AI Generate** — a compelling description is written for you instantly!\n\nYou can edit it afterwards to add your personal touch.",
+    answer: "✍️ To auto-generate a description with AI:\n1. When creating a **product** or **business profile** — look for the **AI Generate** button next to the description field\n2. Make sure you've entered the title first\n3. Click **AI Generate** — a compelling description is written for you instantly!\n\nYou can edit it afterwards to add your personal touch.",
   },
 
   // ── Offline / connectivity ─────────────────────────────────────────────────

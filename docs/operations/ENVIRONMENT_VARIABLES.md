@@ -86,8 +86,9 @@ Set at: Render → nodbusiness-backend → Environment
 | `SUPABASE_URL` | `https://tpgzlokgnjxcerexxoda.supabase.co` | ✅ Yes* | *Required for cloud storage. App **exits with process.exit(1)** in production if neither Supabase nor R2 is configured. |
 | `SUPABASE_API_URL` | Same as `SUPABASE_URL` | No | Alias. |
 | `STORAGE_SUPABASE_URL` | Same as `SUPABASE_URL` | No | Another alias used internally. |
-| `SUPABASE_STORAGE_KEY` | `eyJ...` (service_role JWT) | ✅ Yes* | Must be the **service_role** key, not the anon key. Get from Supabase → Settings → API. |
+| `SUPABASE_STORAGE_KEY` | `sb_secret_...` (recommended) or legacy `eyJ...` service_role JWT | ✅ Yes* | Use a server-only Secret API key from Supabase → Settings → API Keys. The backend supports the new `sb_secret_...` format and legacy service_role JWT during migration. Never use the publishable/anon key here. |
 | `SUPABASE_BUCKET` | `uploads` | ✅ Yes* | Storage bucket name. Auto-created at startup if missing. |
+| `DEMO_SUPABASE_BUCKET` | `demo-uploads` | Required when Demo is enabled | Must be a separate Supabase Storage bucket with **public access disabled**. The backend checks this at startup and fails closed if it is missing, public, or the same bucket as `SUPABASE_BUCKET`. Demo assets use temporary signed URLs. Do not point this at the Real uploads bucket. |
 | `UPLOAD_DIR` | `uploads` | No | Local disk fallback directory. Default `uploads`. |
 | `MAX_FILE_SIZE_MB` | `10` | No | Max upload size in MB. Default 10. |
 
@@ -241,7 +242,7 @@ For feature flags, priority order is:
 ## Security Notes
 
 - `JWT_SECRET` must be at least 64 random bytes (128 hex chars). A guessable secret breaks all authentication.
-- `SUPABASE_STORAGE_KEY` must be the `service_role` key, not the `anon` key. The anon key cannot create storage objects.
+- `SUPABASE_STORAGE_KEY` must be a server-only Secret API key (`sb_secret_...`) or legacy `service_role` key, never the publishable/anon key. Secret API keys bypass RLS and must never be exposed to browsers.
 - Never put `STRIPE_SECRET_KEY`, `JWT_SECRET`, or `SUPABASE_STORAGE_KEY` in `NEXT_PUBLIC_*` variables — those are baked into the public JavaScript bundle.
 - `GOOGLE_CLIENT_SECRET` is NOT used by this backend. The backend verifies Google ID tokens using only the Client ID.
 - Configure the OAuth Web client with each exact frontend origin under **Authorized JavaScript origins** and each callback URL (`<origin>/auth/google/callback`) under **Authorized redirect URIs**. A Google `401 invalid_client` / “OAuth client was not found” means the submitted client ID is not an active OAuth client; origins alone cannot repair a missing or deleted client.

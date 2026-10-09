@@ -1,3 +1,5 @@
+> ⚠️ **HISTORICAL** — corresponding source file was removed from the codebase on 2026-10-08. Kept for reference.
+
 # backend/__tests__/mewachoWebhook.test
 
 <!-- AUTO-STUB  2026-09-30 — curate narrative below -->

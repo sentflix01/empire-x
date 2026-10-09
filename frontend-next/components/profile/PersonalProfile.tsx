@@ -3,10 +3,11 @@ import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 
-import { Briefcase, GraduationCap, Plus, Store, Crown, ShoppingBag, ClipboardList, Users, Pencil } from "lucide-react";
+import { Briefcase, GraduationCap, Plus, Store, Crown, ShoppingBag, Users, Pencil } from "lucide-react";
 import { useProfileView } from '@/lib/ProfileViewContext';
 import { Button } from "@/components/ui/button";
 import PostCard from "@/components/feed/PostCard";
+import ProfilePartnerships from '@/components/profile/ProfilePartnerships';
 
 export default function PersonalProfile({ profile, user, isOwner, businesses }) {
   const { profileViewTokens: accentTokens } = useProfileView();
@@ -37,10 +38,6 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
             <ShoppingBag className="w-5 h-5 mx-auto text-amber-500 mb-1" />
             <p className="text-[10px] font-medium">Sell Product</p>
           </Link>
-          <Link href="/tasks/create" className="bg-card rounded-xl border border-border/50 p-3 text-center hover:shadow-sm transition-shadow">
-            <ClipboardList className="w-5 h-5 mx-auto text-amber-500 mb-1" />
-            <p className="text-[10px] font-medium">Post Task</p>
-          </Link>
           <Link href="/showroom/create" className="bg-card rounded-xl border border-border/50 p-3 text-center hover:shadow-sm transition-shadow">
             <Crown className="w-5 h-5 mx-auto text-amber-500 mb-1" />
             <p className="text-[10px] font-medium">Showroom</p>
@@ -60,6 +57,8 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
           </button>
         ))}
       </div>
+
+      <ProfilePartnerships profile={profile} />
 
       {tab === "posts" && (
         <div className="space-y-3">
@@ -178,4 +177,3 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
     </div>
   );
 }
-

@@ -1,3 +1,5 @@
+> ⚠️ **HISTORICAL** — corresponding source file was removed from the codebase on 2026-10-08. Kept for reference.
+
 # frontend-next/components/tasks/BidModal
 
 <!-- AUTO-STUB  2026-08-23 — curate narrative below -->

@@ -33,15 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    ".next-audit/types/**/*.ts",
-    ".next-audit/dev/types/**/*.ts",
-    ".next-ci-check/types/**/*.ts",
-    ".next-ci-check/dev/types/**/*.ts",
-    ".next-ci-clean/types/**/*.ts",
-    ".next-ci-clean/dev/types/**/*.ts",
-    ".next-audit-final/types/**/*.ts",
-    ".next-audit-final/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

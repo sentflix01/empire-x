@@ -33,11 +33,24 @@ export default function proxy(request: NextRequest) {
   // itself is never stored client-side (TD-014). Real verification happens
   // via the HttpOnly refresh cookie against the API.
   const isLoggedIn = request.cookies.get('nb_auth')?.value === '1';
+  // A Demo cookie and the hint cookie look the same to this edge guard. Let a
+  // Demo visitor open sign-in so they can authenticate their canonical Real
+  // identity; the auth request explicitly clears Demo selectors server-side.
+  const hasDemoSelector = request.cookies.has('demo_session') || request.cookies.has('demo_track1');
+  const explicitlySwitchingToReal = request.nextUrl.searchParams.get('intent') === 'real';
 
-  // Authenticated users on auth pages → choose-mode (not /feed directly —
-  // user must explicitly pick Demo or Real Account on every session)
-  if (isLoggedIn && AUTH_PAGES.has(pathname)) {
-    return NextResponse.redirect(new URL('/choose-mode', request.url));
+  // Preserve old bookmarked chooser links while removing account selection from
+  // the current one-identity registration and sign-in journey.
+  if (pathname === '/choose-mode') {
+    const target = new URL(request.nextUrl.searchParams.get('intent') === 'signup' ? '/register' : '/login', request.url);
+    const returnTo = request.nextUrl.searchParams.get('return');
+    if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) target.searchParams.set('return', returnTo);
+    return NextResponse.redirect(target);
+  }
+
+  // Authenticated users on auth pages return to their workspace.
+  if (isLoggedIn && AUTH_PAGES.has(pathname) && !hasDemoSelector && !explicitlySwitchingToReal) {
+    return NextResponse.redirect(new URL('/feed', request.url));
   }
 
   // Unauthenticated users on protected routes → login with return URL

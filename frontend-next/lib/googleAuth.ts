@@ -43,6 +43,7 @@ async function sendToBackend(idToken: string): Promise<GoogleAuthResult> {
   const res = await client.post<GoogleAuthResult>(
     '/api/auth/google',
     { id_token: idToken },
+    { headers: { 'X-Account-Mode': 'real' } },
   );
   storeToken(res.data.access_token);
   return res.data;

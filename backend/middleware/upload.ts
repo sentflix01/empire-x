@@ -138,11 +138,47 @@ export function isSupabaseConfigured(): boolean {
   return !!(getSupabaseProjectUrl() && process.env.SUPABASE_STORAGE_KEY && process.env.SUPABASE_BUCKET);
 }
 
-/** Build Storage API credentials for current `sb_secret_` and legacy JWT keys. */
-export function getSupabaseStorageAuthHeaders(key: string): Record<string, string> {
+/** Build Storage API credentials for both current `sb_secret_` and legacy JWT keys. */
+export function getSupabaseStorageAuthHeaders(key = process.env.SUPABASE_STORAGE_KEY): Record<string, string> {
   if (!key) throw new Error('SUPABASE_STORAGE_KEY is required for Supabase Storage');
+  // New API keys are opaque, not JWTs. Supabase requires them on `apikey` only;
+  // sending one as a Bearer token can fail JWT validation.
   if (key.startsWith('sb_secret_')) return { apikey: key };
+  // Keep the legacy service_role JWT working during a staged key migration.
   return { Authorization: `Bearer ${key}`, apikey: key };
+}
+
+export function getDemoSupabaseBucket(): string {
+  const demoBucket = process.env.DEMO_SUPABASE_BUCKET?.trim();
+  if (!demoBucket || !/^[a-z0-9][a-z0-9_-]{1,62}$/i.test(demoBucket)) {
+    throw Object.assign(new Error('Demo uploads require a separately provisioned private DEMO_SUPABASE_BUCKET'), { statusCode: 503 });
+  }
+  if (demoBucket.toLowerCase() === process.env.SUPABASE_BUCKET?.trim().toLowerCase()) {
+    throw Object.assign(new Error('DEMO_SUPABASE_BUCKET must be different from the public Real bucket'), { statusCode: 503 });
+  }
+  return demoBucket;
+}
+
+/** Verify the provider reports the Demo bucket as private before the API starts. */
+export async function verifyDemoStorageIsolation(): Promise<void> {
+  if (process.env.DEMO_ENABLED !== 'true') return;
+  if (!isSupabaseConfigured()) {
+    throw new Error('Demo requires Supabase Storage with a separately provisioned private bucket; public R2/local Demo uploads are not enabled');
+  }
+  const bucket = getDemoSupabaseBucket();
+  const projectUrl = getSupabaseProjectUrl();
+  const key = process.env.SUPABASE_STORAGE_KEY as string;
+  const response = await fetch(`${projectUrl}/storage/v1/bucket/${encodeURIComponent(bucket)}`, {
+    headers: getSupabaseStorageAuthHeaders(key),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!response.ok) {
+    throw new Error(`Demo private Storage bucket "${bucket}" could not be verified (HTTP ${response.status}); create it as private before enabling Demo`);
+  }
+  const details = await response.json() as { id?: string; name?: string; public?: boolean };
+  if ((details.id && details.id !== bucket) || details.public !== false) {
+    throw new Error(`Demo Storage bucket "${bucket}" must exist and have public=false before enabling Demo`);
+  }
 }
 
 function assertValidDemoSessionId(sessionId: string): void {
@@ -163,7 +199,7 @@ export function createStorageKey(originalName: string, demoSessionId?: string, u
 export function getUploadDirectory(baseDirectory: string, demoSessionId?: string): string {
   if (!demoSessionId) return baseDirectory;
   assertValidDemoSessionId(demoSessionId);
-  return path.join(baseDirectory, 'demo', demoSessionId);
+  return path.join(baseDirectory, 'demo', demoSessionId, 'uploads');
 }
 
 export async function uploadToSupabase(
@@ -173,7 +209,7 @@ export async function uploadToSupabase(
   demoSessionId?: string,
 ): Promise<string> {
   const key = createStorageKey(originalName, demoSessionId);
-  const bucket = process.env.SUPABASE_BUCKET as string;
+  const bucket = demoSessionId ? getDemoSupabaseBucket() : process.env.SUPABASE_BUCKET as string;
   const projectUrl = getSupabaseProjectUrl();
   const serviceKey = process.env.SUPABASE_STORAGE_KEY as string;
 
@@ -181,12 +217,12 @@ export async function uploadToSupabase(
     throw new Error(`Invalid SUPABASE_URL: "${projectUrl}". Must be https://xxx.supabase.co`);
   }
 
-  const response = await fetch(`${projectUrl}/storage/v1/object/${bucket}/${key}`, {
+  const response = await fetch(`${projectUrl}/storage/v1/object/${encodeURIComponent(bucket)}/${key.split('/').map(encodeURIComponent).join('/')}`, {
     method: 'POST',
     headers: {
       ...getSupabaseStorageAuthHeaders(serviceKey),
       'Content-Type': mimeType,
-      'Cache-Control': 'public, max-age=31536000',
+      'Cache-Control': demoSessionId ? 'private, no-store' : 'public, max-age=31536000',
       'x-upsert': 'true',
     },
     body: buffer,
@@ -197,6 +233,22 @@ export async function uploadToSupabase(
   if (!response.ok) {
     const errText = await response.text();
     throw new Error(`Supabase upload failed [${response.status}]: ${errText}`);
+  }
+  if (demoSessionId) {
+    const signedResponse = await fetch(`${projectUrl}/storage/v1/object/sign/${encodeURIComponent(bucket)}/${key.split('/').map(encodeURIComponent).join('/')}`, {
+      method: 'POST',
+      headers: { ...getSupabaseStorageAuthHeaders(serviceKey), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expiresIn: 7 * 24 * 60 * 60 }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!signedResponse.ok) {
+      throw new Error(`Could not create a temporary private Demo asset URL [${signedResponse.status}]: ${await signedResponse.text()}`);
+    }
+    const signed = await signedResponse.json() as { signedURL?: string; signedUrl?: string };
+    const signedUrl = signed.signedURL ?? signed.signedUrl;
+    if (!signedUrl) throw new Error('Storage provider returned no signed Demo asset URL');
+    if (/^https:\/\//i.test(signedUrl)) return signedUrl;
+    return `${projectUrl}/storage/v1${signedUrl.startsWith('/') ? signedUrl : `/${signedUrl}`}`;
   }
   return `${projectUrl}/storage/v1/object/public/${bucket}/${key}`;
 }
@@ -236,6 +288,9 @@ export async function uploadToR2(
   mimeType: string,
   demoSessionId?: string,
 ): Promise<string> {
+  if (demoSessionId) {
+    throw Object.assign(new Error('Demo uploads currently require the verified private Supabase Storage bucket'), { statusCode: 503 });
+  }
   const { PutObjectCommand } = require('@aws-sdk/client-s3') as typeof import('@aws-sdk/client-s3');
   const key = createStorageKey(originalName, demoSessionId);
 
@@ -315,7 +370,6 @@ module.exports.uploadToR2               = uploadToR2;
 module.exports.uploadToSupabase         = uploadToSupabase;
 module.exports.isR2Configured           = isR2Configured;
 module.exports.isSupabaseConfigured     = isSupabaseConfigured;
-module.exports.getSupabaseStorageAuthHeaders = getSupabaseStorageAuthHeaders;
 module.exports.isCloudStorageConfigured = isCloudStorageConfigured;
 module.exports.activeStorageProvider    = activeStorageProvider;
 module.exports.fileFilter               = fileFilter;
@@ -323,3 +377,6 @@ module.exports.validateFileBytes        = validateFileBytes;
 module.exports.allowedMimeTypesByExtension = allowedMimeTypesByExtension;
 module.exports.createStorageKey         = createStorageKey;
 module.exports.getUploadDirectory       = getUploadDirectory;
+module.exports.getDemoSupabaseBucket    = getDemoSupabaseBucket;
+module.exports.getSupabaseStorageAuthHeaders = getSupabaseStorageAuthHeaders;
+module.exports.verifyDemoStorageIsolation = verifyDemoStorageIsolation;

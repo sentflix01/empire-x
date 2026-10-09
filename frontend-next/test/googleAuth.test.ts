@@ -161,7 +161,9 @@ describe('renderGoogleSignInButton', () => {
     } as MessageEvent);
 
     await vi.waitFor(() => expect(onSuccess).toHaveBeenCalled(), { timeout: 3000 });
-    expect(mockPost).toHaveBeenCalledWith('/api/auth/google', { id_token: 'fake-id-token' });
+    expect(mockPost).toHaveBeenCalledWith('/api/auth/google', { id_token: 'fake-id-token' }, {
+      headers: { 'X-Account-Mode': 'real' },
+    });
     expect(mockStoreToken).toHaveBeenCalledWith('at-xyz');
     expect(onSuccess).toHaveBeenCalledWith(expect.objectContaining({ access_token: 'at-xyz' }));
 

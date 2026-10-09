@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import NextImage from 'next/image';
 import client from "@/api/client";
-import { Bookmark, ShoppingBag, Crown, ClipboardList, FileText, Bell, Trash2 } from "lucide-react";
+import { Bookmark, ShoppingBag, Crown, FileText, Bell, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import ErrorState from "@/components/ui/ErrorState";
@@ -19,7 +19,6 @@ function Bookmarks() {
     { key:"post",    label: t('bookmarks.posts'),     icon:FileText   },
     { key:"product", label: t('bookmarks.products'),  icon:ShoppingBag },
     { key:"showroom",label: t('bookmarks.showrooms'), icon:Crown       },
-    { key:"task",    label: t('bookmarks.tasks'),     icon:ClipboardList },
     { key:"alerts",  label: t('bookmarks.alerts'),    icon:Bell        },
   ];
 
@@ -175,11 +174,6 @@ function Bookmarks() {
                       )}
                       {target_type === "showroom" && (
                         <Link href={`/businesses`} className="hover:underline">
-                          <p className="text-sm font-medium">{title || t('bookmarks.untitled')}</p>
-                        </Link>
-                      )}
-                      {target_type === "task" && (
-                        <Link href="/tasks" className="hover:underline">
                           <p className="text-sm font-medium">{title || t('bookmarks.untitled')}</p>
                         </Link>
                       )}

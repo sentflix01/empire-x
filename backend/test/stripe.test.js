@@ -324,6 +324,33 @@ describe('Stripe webhook — charge.refunded', () => {
     expect(walletCredits[0][1]).toEqual([7.5, 'seller-1']);
   });
 
+  test('partial refund also records an idempotent profile-owner commission adjustment', async () => {
+    const event = refundEvent({
+      id: 'ch_profile_partial',
+      payment_intent: 'pi_test_refund',
+      amount: 100000,
+      amount_refunded: 25000,
+    });
+    mockConstructEvent.mockReturnValue(event);
+    routeQueries([
+      ['INSERT INTO webhook_events', { rows: [{ id: 'evt_refund_1' }] }],
+      ['SELECT * FROM orders', { rows: [{ ...ORDER, profile_partnership_id: 'partnership-1' }] }],
+      ['FROM profile_owner_commissions', { rows: [{ id: 'profile-comm-1', eligible_gross: '100.00', amount: '10.00', rate: '0.10' }] }],
+      ['FROM profile_owner_commission_adjustments', { rows: [{ base_reversed: '0', commission_reversed: '0' }] }],
+    ]);
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+    await flushAsync();
+
+    const adjustment = pool.query.mock.calls.find(([sql]) => sql.includes('INSERT INTO profile_owner_commission_adjustments'));
+    expect(adjustment).toBeTruthy();
+    expect(adjustment[1]).toEqual([
+      'profile-comm-1', 'order-1', 'evt_refund_1', 'ch_profile_partial', 2.5, 25, false,
+    ]);
+    expect(adjustment[0]).toContain('ON CONFLICT DO NOTHING');
+  });
+
   test('wallet top-up refund: proportional credit reversal (no double refund)', async () => {
     const event = refundEvent({
       id: 'ch_topup',
@@ -438,7 +465,7 @@ describe('Stripe checkout — multi-seller cart creates ONE session', () => {
       .set('Authorization', demoAuth)
       .send({ items: [{ product_id: 'prod-1', quantity: 1 }] });
 
-    expect(res).toMatchObject({ status: 403, body: { code: 'SHARED_DEMO_PAYMENTS_UNAVAILABLE' } });
+    expect(res).toMatchObject({ status: 403, body: { code: 'DEMO_PAYMENTS_UNAVAILABLE' } });
     expect(mockSessionsCreate).not.toHaveBeenCalled();
     expect(pool.query.mock.calls.some(([sql]) => String(sql).includes('INSERT INTO orders'))).toBe(false);
   });

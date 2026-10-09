@@ -24,9 +24,11 @@
     "test:keploy:test": "keploy test -c 'node index.js'",
     "typecheck": "tsc --noEmit",
     "migrate": "node db/migrate-all.js",
+    "migrate:demo": "node db/migrate-demo.js",
     "seed": "node db/seed.js",
+    "seed:e2e": "node db/seed-e2e.js",
+    "seed:demo": "node db/seed-demo.js",
     "seed:showrooms": "node db/seed-showrooms.js",
-    "seed:mewacho": "node db/seed-mewacho.js",
     "seed:patch-media": "node db/seed-patch-media.js",
     "seed:patch-business-feed": "node db/seed-patch-business-feed.js",
     "clean": "node db/cleanup-seed-data.js",
@@ -118,6 +120,6 @@
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.12",
     "tsx": "^4.23.13",
-    "typescript": "7.0.2"
+    "typescript": "6.0.3"
   }
 }

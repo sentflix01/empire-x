@@ -20,7 +20,6 @@ router.get('/', (_req: Request, res: Response) => {
       notifications:'/api/notifications',
       businesses:   '/api/businesses',
       showrooms:    '/api/showrooms',
-      tasks:        '/api/tasks',
       wallet:       '/api/wallet',
       search:       '/api/search',
       trending:     '/api/trending',

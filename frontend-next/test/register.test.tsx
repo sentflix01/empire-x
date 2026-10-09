@@ -36,7 +36,7 @@ import { setSearchParams, clearSearchParams } from './setup';
 describe('Register form', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    clearSearchParams();
+    setSearchParams({ mode: 'real' });
   });
 
   it('renders email, password and confirm password fields', () => {
@@ -92,7 +92,8 @@ describe('Register form', () => {
     await waitFor(() => {
       expect(vi.mocked(client.post)).toHaveBeenCalledWith(
         '/api/auth/register',
-        expect.objectContaining({ email: 'new@example.com' })
+        expect.objectContaining({ email: 'new@example.com' }),
+        { headers: { 'X-Account-Mode': 'real' } },
       );
     });
 
@@ -100,7 +101,7 @@ describe('Register form', () => {
   });
 
   it('opens code entry for an unverified account redirected from login', () => {
-    setSearchParams({ verify: 'pending@example.com' });
+    setSearchParams({ mode: 'real', verify: 'pending@example.com' });
     render(<Register />);
     expect(screen.getByRole('heading', { name: /check your email/i })).toBeTruthy();
     expect(screen.getByText(/pending@example\.com/i)).toBeTruthy();

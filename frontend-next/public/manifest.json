@@ -1,7 +1,7 @@
 {
   "name": "Nodbusiness",
   "short_name": "Nodbusiness",
-  "description": "Global superapp — social, commerce, tasks & more",
+  "description": "Build a guided online showroom for your local business and connect with customers.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

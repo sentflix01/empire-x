@@ -1,7 +1,7 @@
 'use client';
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Loader2, Mail } from "lucide-react";
 import client, { storeToken } from "@/api/client";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,12 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import AuthLayout from "@/components/AuthLayout";
 import { describeGoogleOAuthError, renderGoogleSignInButton } from "@/lib/googleAuth";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useAuth } from '@/lib/AuthContext';
 
 function Register() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { completeLogin } = useAuth();
   const refCode = searchParams.get("ref") || "";
   const verifyEmail = searchParams.get("verify")?.trim().toLowerCase() || "";
 
@@ -37,9 +40,15 @@ function Register() {
     const ok = renderGoogleSignInButton(googleRef.current, {
       buttonText: 'signup_with',
       onSuccess: (result) => {
+        if (result.is_demo) {
+          setError('This legacy Demo login needs to be linked to a Real account before it can be used here.');
+          return;
+        }
         if (result?.access_token) storeToken(result.access_token);
-        // Always go to /choose-mode — every session requires an explicit choice.
-        window.location.href = '/choose-mode';
+        // Registration always creates the user's canonical Real identity.
+        void completeLogin().then(() => router.replace('/feed')).catch(() => {
+          setError('Your Google account was created, but we could not start your session. Please sign in again.');
+        });
       },
       onError: (err) => setError(
         err.message === 'Sign-in was cancelled.'
@@ -51,8 +60,7 @@ function Register() {
     });
     if (ok) setGoogleReady(true);
     else setGoogleUnavailable(true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [completeLogin, googleReady, router]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -68,7 +76,9 @@ function Register() {
     setLoading(true);
     try {
       const normalizedEmail = email.trim().toLowerCase();
-      await client.post('/api/auth/register', { email: normalizedEmail, password });
+      await client.post('/api/auth/register', { email: normalizedEmail, password }, {
+        headers: { 'X-Account-Mode': 'real' },
+      });
       setEmail(normalizedEmail);
       setShowOtp(true);
     } catch (err: unknown) {
@@ -84,13 +94,20 @@ function Register() {
     setError("");
     setLoading(true);
     try {
-      const result = await client.post('/api/auth/verify-otp', { email, otpCode });
+      const result = await client.post('/api/auth/verify-otp', { email, otpCode }, {
+        headers: { 'X-Account-Mode': 'real' },
+      });
+      if (result?.data?.is_demo) {
+        setError('This legacy Demo login needs to be linked to a Real account before it can be used here.');
+        return;
+      }
       if (result?.data?.access_token) storeToken(result.data.access_token);
       if (refCode) {
         await client.post('/api/referral/apply', { code: refCode }).catch(() => {});
       }
-      // Always go to /choose-mode — every session requires an explicit choice.
-      window.location.href = '/choose-mode';
+      // New registrations always create the canonical Real identity.
+      await completeLogin();
+      router.replace('/feed');
     } catch (err: unknown) {
       const e = err as { error?: string; message?: string };
       setError(e?.error || e?.message || 'Invalid code. Please try again.');
@@ -102,7 +119,9 @@ function Register() {
   const handleResend = async () => {
     if (resendCooldown > 0) return;
     try {
-      await client.post('/api/auth/resend-otp', { email });
+      await client.post('/api/auth/resend-otp', { email }, {
+        headers: { 'X-Account-Mode': 'real' },
+      });
       setResendCooldown(30);
     } catch (err: unknown) {
       const e = err as { error?: string; message?: string };

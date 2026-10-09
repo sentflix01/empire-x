@@ -6,7 +6,7 @@
 
 ## 2. Why does it exist?
 
-File intake: authenticated multipart upload through middleware/upload storage chain (Supabase->R2->local) returning provider URL; size/MIME enforced.
+File intake: authenticated multipart upload through middleware/upload. Real uploads return public provider URLs; Demo uploads use the verified private Supabase bucket and return temporary signed URLs. Demo R2 uploads fail closed. Size, MIME, and image/PDF magic bytes are enforced.
 
 ## 3. What does it do?
 
@@ -15,7 +15,7 @@ File intake: authenticated multipart upload through middleware/upload storage ch
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `POST` | `/api/upload/` | auth | 9 |
+| `POST` | `/api/upload/` | auth | 10 |
 
 ## 4. What does it touch?
 
