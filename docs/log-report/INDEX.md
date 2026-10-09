@@ -5,6 +5,22 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-10 | Maintenance | Merge pull request #89 from sentflix01/fix/supabase-secret-api-key | [bf989e05d](2026-10-10-bf989e05d-merge-pull-request-89-from-sentflix01-fix-supaba.md) |
+| 2026-10-10 | Bugfix | fix: align backend TypeScript with ts-jest | [cf1213315](2026-10-10-cf1213315-align-backend-typescript-with-ts-jest.md) |
+| 2026-10-10 | CI/CD | ci: pull postgres service from ECR Public | [ebbc6433b](2026-10-10-ebbc6433b-pull-postgres-service-from-ecr-public.md) |
+| 2026-10-09 | Maintenance | merge: reconcile latest main into Demo and partnership work | [059f33463](2026-10-09-059f33463-reconcile-latest-main-into-demo-and-partnership-.md) |
+| 2026-10-09 | Feature | feat: isolate demo workspace and add profile partnerships | [f3b18b215](2026-10-09-f3b18b215-isolate-demo-workspace-and-add-profile-partnersh.md) |
+| 2026-10-09 | Maintenance | Merge pull request #88 from sentflix01/dependabot/npm_and_yarn/frontend-next/minor-and-patch-11b5b6d731 | [2c1e051ab](2026-10-09-2c1e051ab-merge-pull-request-88-from-sentflix01-dependabot.md) |
+| 2026-10-09 | Maintenance | chore(deps): bump the minor-and-patch group across 1 directory with 35 updates | [6e719116c](2026-10-09-6e719116c-bump-the-minor-and-patch-group-across-1-director.md) |
+| 2026-10-09 | Maintenance | Merge pull request #78 from sentflix01/dependabot/npm_and_yarn/backend/stripe-23.0.0 | [3ac93674a](2026-10-09-3ac93674a-merge-pull-request-78-from-sentflix01-dependabot.md) |
+| 2026-10-09 | Maintenance | Merge pull request #77 from sentflix01/dependabot/npm_and_yarn/frontend-next/react-leaflet-5.0.0 | [f308db502](2026-10-09-f308db502-merge-pull-request-77-from-sentflix01-dependabot.md) |
+| 2026-10-09 | Maintenance | Merge pull request #76 from sentflix01/dependabot/npm_and_yarn/backend/fast-check-4.10.2 | [09e87360f](2026-10-09-09e87360f-merge-pull-request-76-from-sentflix01-dependabot.md) |
+| 2026-10-09 | Maintenance | Merge pull request #75 from sentflix01/dependabot/npm_and_yarn/frontend-next/stripe/react-stripe-js-7.0.0 | [5235b0d48](2026-10-09-5235b0d48-merge-pull-request-75-from-sentflix01-dependabot.md) |
+| 2026-10-09 | Maintenance | Merge pull request #74 from sentflix01/dependabot/npm_and_yarn/backend/typescript-7.0.2 | [e144a11f9](2026-10-09-e144a11f9-merge-pull-request-74-from-sentflix01-dependabot.md) |
+| 2026-10-09 | Maintenance | Merge pull request #73 from sentflix01/dependabot/npm_and_yarn/frontend-next/vitest/coverage-v8-5.0.3 | [9b71f7477](2026-10-09-9b71f7477-merge-pull-request-73-from-sentflix01-dependabot.md) |
+| 2026-10-09 | Maintenance | Merge pull request #72 from sentflix01/dependabot/npm_and_yarn/backend/types/node-26.6.4 | [93fc763e1](2026-10-09-93fc763e1-merge-pull-request-72-from-sentflix01-dependabot.md) |
+| 2026-10-09 | Maintenance | Merge branch 'main' into dependabot/npm_and_yarn/backend/types/node-26.6.4 | [8f5a659f0](2026-10-09-8f5a659f0-merge-branch-main-into-dependabot-npm-and-yarn-b.md) |
+| 2026-10-09 | Maintenance | chore(deps): bump @stripe/react-stripe-js in /frontend-next | [07f902ff6](2026-10-09-07f902ff6-bump-stripe-react-stripe-js-in-frontend-next.md) |
 | 2026-10-09 | Maintenance | Merge pull request #71 from sentflix01/dependabot/npm_and_yarn/frontend-next/stripe/stripe-js-10.0.0 | [58ab138d5](2026-10-09-58ab138d5-merge-pull-request-71-from-sentflix01-dependabot.md) |
 | 2026-10-09 | Maintenance | Merge pull request #86 from sentflix01/fix/supabase-storage-secret-key | [ce56a2b3c](2026-10-09-ce56a2b3c-merge-pull-request-86-from-sentflix01-fix-supaba.md) |
 | 2026-10-09 | Bugfix | fix: upgrade vulnerable handlebars lockfile | [27254975e](2026-10-09-27254975e-upgrade-vulnerable-handlebars-lockfile.md) |
@@ -17,8 +33,14 @@
 | 2026-10-08 | Bugfix | fix: update Next.js security patch | [698688a28](2026-10-08-698688a28-update-next-js-security-patch.md) |
 | 2026-10-08 | Maintenance | Merge pull request #81 from sentflix01/fix/verified-supabase-db-tls | [68dfa669c](2026-10-08-68dfa669c-merge-pull-request-81-from-sentflix01-fix-verifi.md) |
 | 2026-10-08 | Bugfix | fix: enforce verified Supabase database TLS | [51f7e4661](2026-10-08-51f7e4661-enforce-verified-supabase-database-tls.md) |
+| 2026-10-07 | Maintenance | chore(deps): bump stripe from 22.6.2 to 23.0.0 in /backend | [e78a6938c](2026-10-07-e78a6938c-bump-stripe-from-22-6-2-to-23-0-0-in-backend.md) |
+| 2026-10-07 | Maintenance | chore(deps-dev): bump @types/node from 20.19.43 to 26.6.4 in /backend | [eb1f9e763](2026-10-07-eb1f9e763-bump-types-node-from-20-19-43-to-26-6-4-in-backe.md) |
 | 2026-10-07 | Maintenance | Merge branch 'main' of https://github.com/sentflix01/empire-x | [322e9bb5f](2026-10-07-322e9bb5f-merge-branch-main-of-https-github-com-sentflix01.md) |
 | 2026-10-07 | Bugfix | fix(security): patch critical/high CVEs in backend and frontend | [c219b076e](2026-10-07-c219b076e-patch-critical-high-cves-in-backend-and-frontend.md) |
+| 2026-10-05 | Maintenance | chore(deps): bump react-leaflet from 4.2.1 to 5.0.0 in /frontend-next | [2dc9ef048](2026-10-05-2dc9ef048-bump-react-leaflet-from-4-2-1-to-5-0-0-in-fronte.md) |
+| 2026-10-05 | Maintenance | chore(deps-dev): bump fast-check from 3.23.2 to 4.10.2 in /backend | [577cc9828](2026-10-05-577cc9828-bump-fast-check-from-3-23-2-to-4-10-2-in-backend.md) |
+| 2026-10-05 | Maintenance | chore(deps-dev): bump typescript from 5.9.3 to 7.0.2 in /backend | [bc9cbb7d1](2026-10-05-bc9cbb7d1-bump-typescript-from-5-9-3-to-7-0-2-in-backend.md) |
+| 2026-10-05 | Maintenance | chore(deps-dev): bump @vitest/coverage-v8 in /frontend-next | [30d04648b](2026-10-05-30d04648b-bump-vitest-coverage-v8-in-frontend-next.md) |
 | 2026-10-05 | Maintenance | chore(deps): bump @stripe/stripe-js in /frontend-next | [3f138d2dd](2026-10-05-3f138d2dd-bump-stripe-stripe-js-in-frontend-next.md) |
 | 2026-10-04 | Bugfix | fix(spa): guard post-card and profile-peek auth probes when anonymous; honor saved view preference on login | [5db867b27](2026-10-04-5db867b27-guard-post-card-and-profile-peek-auth-probes-whe.md) |
 | 2026-10-04 | Maintenance | chore: add micromatch override to better address audit finding | [5f70d202e](2026-10-04-5f70d202e-add-micromatch-override-to-better-address-audit-.md) |
