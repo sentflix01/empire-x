@@ -51,7 +51,7 @@ import responseTime from './middleware/responseTime';
 import { realModeMiddleware } from './middleware/realMode';
 import { demoEnvironmentMiddleware } from './middleware/demoEnvironment';
 import { requireAuth, requireAdmin } from './middleware/auth';
-import { activeStorageProvider, isSupabaseConfigured } from './middleware/upload';
+import { activeStorageProvider, getSupabaseStorageAuthHeaders, isSupabaseConfigured } from './middleware/upload';
 import pool, { closeAllPools } from './db/pool';
 import * as apiError from './lib/apiError';
 
@@ -399,7 +399,7 @@ server.listen(PORT, () => {
       const projectUrl = match ? match[0] : raw.replace(/\/$/, '');
       const key        = process.env.SUPABASE_STORAGE_KEY;
       const bucket     = process.env.SUPABASE_BUCKET;
-      const H: Record<string, string> = { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
+      const H: Record<string, string> = { ...getSupabaseStorageAuthHeaders(key!), 'Content-Type': 'application/json' };
 
       const check = await fetch(`${projectUrl}/storage/v1/bucket/${bucket}`, { headers: H });
       if (check.ok) { logger.info(`☁️  Supabase Storage bucket "${bucket}" ready`); return; }

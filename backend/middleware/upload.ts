@@ -138,6 +138,13 @@ export function isSupabaseConfigured(): boolean {
   return !!(getSupabaseProjectUrl() && process.env.SUPABASE_STORAGE_KEY && process.env.SUPABASE_BUCKET);
 }
 
+/** Build Storage API credentials for current `sb_secret_` and legacy JWT keys. */
+export function getSupabaseStorageAuthHeaders(key: string): Record<string, string> {
+  if (!key) throw new Error('SUPABASE_STORAGE_KEY is required for Supabase Storage');
+  if (key.startsWith('sb_secret_')) return { apikey: key };
+  return { Authorization: `Bearer ${key}`, apikey: key };
+}
+
 function assertValidDemoSessionId(sessionId: string): void {
   if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(sessionId)) {
     throw new Error('Invalid demo session ID for upload storage');
@@ -177,7 +184,7 @@ export async function uploadToSupabase(
   const response = await fetch(`${projectUrl}/storage/v1/object/${bucket}/${key}`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${serviceKey}`,
+      ...getSupabaseStorageAuthHeaders(serviceKey),
       'Content-Type': mimeType,
       'Cache-Control': 'public, max-age=31536000',
       'x-upsert': 'true',
@@ -308,6 +315,7 @@ module.exports.uploadToR2               = uploadToR2;
 module.exports.uploadToSupabase         = uploadToSupabase;
 module.exports.isR2Configured           = isR2Configured;
 module.exports.isSupabaseConfigured     = isSupabaseConfigured;
+module.exports.getSupabaseStorageAuthHeaders = getSupabaseStorageAuthHeaders;
 module.exports.isCloudStorageConfigured = isCloudStorageConfigured;
 module.exports.activeStorageProvider    = activeStorageProvider;
 module.exports.fileFilter               = fileFilter;
