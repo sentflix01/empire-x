@@ -25,7 +25,6 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
            WHEN 'post'     THEN p.content
            WHEN 'product'  THEN pr.title
            WHEN 'showroom' THEN sr.title
-           WHEN 'task'     THEN t.title
            ELSE NULL
          END AS title,
          CASE s.target_type
@@ -37,7 +36,6 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
        LEFT JOIN posts     p  ON p.id  = s.target_id AND s.target_type = 'post'
        LEFT JOIN products  pr ON pr.id = s.target_id AND s.target_type = 'product'
        LEFT JOIN showrooms sr ON sr.id = s.target_id AND s.target_type = 'showroom'
-       LEFT JOIN tasks     t  ON t.id  = s.target_id AND s.target_type = 'task'
        WHERE s.user_id=$1${filter}
        ORDER BY s.created_at DESC`,
       values,
@@ -66,6 +64,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
 router.post('/toggle', requireAuth, async (req: Request, res: Response) => {
   const { target_id, target_type } = req.body as Record<string, string>;
   if (!target_id || !target_type) { res.status(400).json({ error: 'target_id and target_type are required' }); return; }
+  if (!['post', 'product', 'showroom'].includes(target_type)) { res.status(400).json({ error: 'Unsupported bookmark type' }); return; }
   try {
     const existing = await pool.query('SELECT id FROM saves WHERE user_id=$1 AND target_id=$2', [req.user!.id, target_id]);
     if (existing.rows.length) {

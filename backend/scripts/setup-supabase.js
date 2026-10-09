@@ -14,8 +14,12 @@ if (!URL || !KEY || !BUCKET) {
   process.exit(1);
 }
 
+const authHeaders = KEY?.startsWith('sb_secret_')
+  ? { apikey: KEY }
+  : { Authorization: `Bearer ${KEY}`, apikey: KEY };
+
 const headers = {
-  Authorization: `Bearer ${KEY}`,
+  ...authHeaders,
   'Content-Type': 'application/json',
 };
 
@@ -71,7 +75,7 @@ async function run() {
   const uploadRes = await fetch(`${URL}/storage/v1/object/${BUCKET}/${key}`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${KEY}`,
+      ...authHeaders,
       'Content-Type': 'image/png',
       'x-upsert': 'true',
     },

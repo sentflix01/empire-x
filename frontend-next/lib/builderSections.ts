@@ -329,22 +329,6 @@ export const SECTION_TYPES: SectionType[] = [
     ],
   },
   {
-    key: "careers", label: "Careers / Jobs", icon: "UserPlus", tier: "pro",
-    tierLabel: "Pro feature",
-    tierFeatures: ["Job board", "Application tracking", "Team pages"],
-    fields: [
-      { key: "careersTitle", label: "Section Title", type: "text", placeholder: "Join Our Team" },
-      {
-        key: "careers", label: "Open Positions", type: "repeater",
-        itemFields: [
-          { key: "title",    label: "Job Title",  type: "text", placeholder: "Senior Designer" },
-          { key: "location", label: "Location",   type: "text", placeholder: "Your city" },
-          { key: "type",     label: "Type",       type: "text", placeholder: "Full-time" },
-        ],
-      },
-    ],
-  },
-  {
     key: "industries", label: "Industries We Serve", icon: "Building2", tier: "pro",
     tierLabel: "Pro feature",
     tierFeatures: ["Industry filtering", "Case study links", "Expertise tags"],

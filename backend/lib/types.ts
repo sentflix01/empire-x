@@ -279,22 +279,6 @@ export interface Showroom {
   updated_at: Date;
 }
 
-export interface Task {
-  id: string;
-  requester_id: string;
-  title: string;
-  description: string | null;
-  task_type: string | null;
-  offered_payment: number | null;
-  currency: string;
-  location: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  status: 'open' | 'assigned' | 'completed' | 'cancelled';
-  created_at: Date;
-  updated_at: Date;
-}
-
 export interface Commission {
   id: string;
   order_id: string;

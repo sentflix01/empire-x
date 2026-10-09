@@ -37,9 +37,10 @@ interface PurchaseModalProps {
   };
   onClose: () => void;
   onPurchased?: () => void;
+  partnershipCode?: string;
 }
 
-export default function PurchaseModal({ item, seller, buyer, onClose, onPurchased }: PurchaseModalProps) {
+export default function PurchaseModal({ item, seller, buyer, onClose, onPurchased, partnershipCode }: PurchaseModalProps) {
   const [step, setStep] = useState("details"); // details | checkout | success | chapa_pending
   const [quantity, setQuantity] = useState(1);
   const [processing, setProcessing] = useState(false);
@@ -122,6 +123,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
         buyer_email: orderInfo.email,
         delivery_address: orderInfo.address,
         notes: orderInfo.notes,
+        partnership_code: partnershipCode,
       });
       setStep("success");
       onPurchased?.();
@@ -282,6 +284,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
                       delivery_address: orderInfo.address,
                       notes:            orderInfo.notes,
                       coupon_discount:  discount,
+                      partnership_code: partnershipCode,
                     });
                     if (data?.checkout_url) {
                       setChapaTxRef(data.tx_ref);
@@ -318,6 +321,7 @@ export default function PurchaseModal({ item, seller, buyer, onClose, onPurchase
                       buyer_phone:      orderInfo.phone || "",
                       delivery_address: orderInfo.address,
                       notes:            orderInfo.notes,
+                      partnership_code: partnershipCode,
                     });
                     if (data?.url) {
                       const conv = data.display?.converted;

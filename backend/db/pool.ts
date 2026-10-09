@@ -5,6 +5,7 @@
  * SSL forced in production and whenever the URL contains a known cloud DB host.
  */
 import dns from 'node:dns';
+import fs from 'node:fs';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Pool } from 'pg';
 import logger from '../lib/logger';
@@ -40,22 +41,47 @@ function databaseIdentity(connectionString: string): string {
   return `${url.hostname.toLowerCase()}:${url.port || '5432'}${url.pathname}`;
 }
 
+function databaseRole(connectionString: string): string {
+  return decodeURIComponent(new URL(connectionString).username);
+}
+
+function schemaFor(environment: DatabaseEnvironment): string {
+  const configured = process.env[environment === 'demo' ? 'DEMO_DB_SCHEMA' : 'DATABASE_SCHEMA'] ?? 'public';
+  if (!/^[a-z_][a-z0-9_]*$/i.test(configured)) {
+    throw new Error(`${environment === 'demo' ? 'DEMO_DB_SCHEMA' : 'DATABASE_SCHEMA'} must be a simple PostgreSQL schema name`);
+  }
+  return configured;
+}
+
 function poolOptions(rawUrl: string | undefined, environment: DatabaseEnvironment) {
-  const connectionString = buildConnectionString(rawUrl);
+  let connectionString = buildConnectionString(rawUrl);
+  const schema = schemaFor(environment);
   const tlsOverride = process.env[environment === 'demo' ? 'DEMO_DATABASE_URL_REQUIRE_TLS' : 'DATABASE_URL_REQUIRE_TLS'];
-  const needsSsl = tlsOverride === 'true' || (tlsOverride !== 'false' && (
-    process.env.NODE_ENV === 'production' ||
-    !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString))
-  ));
-  // Verify server certificates by default. Operators using a private/self-signed
-  // database certificate may explicitly opt out per environment.
-  const rejectUnauthorized = environment === 'demo'
-    ? process.env.DEMO_DB_TLS_REJECT_UNAUTHORIZED !== 'false'
-    : process.env.DB_TLS_REJECT_UNAUTHORIZED !== 'false';
+  const needsSsl = tlsOverride === 'true' || process.env.NODE_ENV === 'production' ||
+    !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
+  // Keep certificate and hostname verification enabled. A private root CA can
+  // be supplied through the environment-specific CA file setting.
+  const caFile = process.env[environment === 'demo' ? 'DEMO_DB_SSL_CA_FILE' : 'DB_SSL_CA_FILE'];
+  if (needsSsl && connectionString) {
+    const parsed = new URL(connectionString);
+    // pg parses connection-string SSL options after Pool options, so enforce
+    // verify-full in the URI itself and point it at the trusted provider CA.
+    parsed.searchParams.set('sslmode', 'verify-full');
+    if (caFile) parsed.searchParams.set('sslrootcert', caFile);
+    parsed.searchParams.set('options', `-c search_path=${schema},pg_catalog`);
+    connectionString = parsed.toString();
+  } else if (connectionString) {
+    const parsed = new URL(connectionString);
+    parsed.searchParams.set('options', `-c search_path=${schema},pg_catalog`);
+    connectionString = parsed.toString();
+  }
+  const ssl = needsSsl
+    ? { rejectUnauthorized: true, ...(caFile ? { ca: fs.readFileSync(caFile, 'utf8') } : {}) }
+    : false;
 
   return {
     connectionString,
-    ssl: needsSsl ? { rejectUnauthorized } : false,
+    ssl,
     max: parseInt(process.env[environment === 'demo' ? 'DEMO_DB_POOL_MAX' : 'DB_POOL_MAX'] ?? '5', 10),
     min: 0,
     idleTimeoutMillis: 60_000,
@@ -81,8 +107,13 @@ function getDemoPool(): Pool {
   const demoUrl = process.env.DEMO_DATABASE_URL;
   const realUrl = process.env.DATABASE_URL;
   if (!demoUrl) throw new Error('Demo database is not configured');
-  if (!realUrl || databaseIdentity(demoUrl) === databaseIdentity(realUrl)) {
-    throw new Error('Demo database must be configured separately from the real database');
+  if (!realUrl) throw new Error('Real database must also be configured before Demo database access is enabled');
+  if (realUrl && databaseIdentity(demoUrl) === databaseIdentity(realUrl)) {
+    const realSchema = schemaFor('real');
+    const demoSchema = schemaFor('demo');
+    if (realSchema === demoSchema || databaseRole(demoUrl) === databaseRole(realUrl)) {
+      throw new Error('A shared Demo/Real database requires different schemas and different restricted database roles');
+    }
   }
   const key = `demo:${demoUrl}`;
   let current = connectionPools.get(key);
@@ -102,6 +133,7 @@ const poolHelperNames = new Set([
   'getCurrentDatabaseEnvironment',
   'getCurrentDatabaseContext',
   'runWithDatabaseEnvironment',
+  'verifySharedDatabaseIsolation',
   'closeAllPools',
 ]);
 
@@ -116,6 +148,7 @@ const pool = new Proxy(realPool, {
     if (property === 'getCurrentDatabaseEnvironment') return getCurrentDatabaseEnvironment;
     if (property === 'getCurrentDatabaseContext') return getCurrentDatabaseContext;
     if (property === 'runWithDatabaseEnvironment') return runWithDatabaseEnvironment;
+    if (property === 'verifySharedDatabaseIsolation') return verifySharedDatabaseIsolation;
     if (property === 'closeAllPools') return closeAllPools;
 
     const current = activePool();
@@ -142,6 +175,84 @@ export function getCurrentDatabaseContext(): DatabaseContext {
 export function runWithDatabaseEnvironment<T>(context: DatabaseContext, callback: () => T): T {
   if (context.environment === 'demo') getDemoPool(); // fail closed before running demo work
   return databaseContext.run(context, callback);
+}
+
+/** Confirm that same-database deployments have real schema-level isolation;
+ * separate search_path values alone do not prevent cross-schema access. */
+export async function verifySharedDatabaseIsolation(): Promise<void> {
+  const demoUrl = process.env.DEMO_DATABASE_URL;
+  const realUrl = process.env.DATABASE_URL;
+  if (!demoUrl) {
+    if (process.env.DEMO_ENABLED === 'true') throw new Error('DEMO_ENABLED requires DEMO_DATABASE_URL');
+    return;
+  }
+  if (!realUrl) throw new Error('DEMO_DATABASE_URL requires DATABASE_URL for canonical Real identity verification');
+
+  const realSchema = schemaFor('real');
+  const demoSchema = schemaFor('demo');
+  const demoPool = getDemoPool();
+  if (databaseIdentity(demoUrl) === databaseIdentity(realUrl)) {
+    const verify = async (target: Pool, ownSchema: string, otherSchema: string, name: string): Promise<void> => {
+    const { rows } = await target.query<{
+      schema: string; is_superuser: boolean; can_create_in_other_schema: boolean;
+      can_access_other_tables: boolean; can_execute_other_security_definer: boolean;
+      can_assume_other_role: boolean;
+    }>(
+      `WITH RECURSIVE reachable_roles(roleid) AS (
+         SELECT m.roleid FROM pg_auth_members m JOIN pg_roles login_role ON login_role.oid=m.member
+          WHERE login_role.rolname=current_user
+         UNION
+         SELECT m.roleid FROM pg_auth_members m JOIN reachable_roles rr ON rr.roleid=m.member
+       )
+       SELECT current_schema() AS schema, r.rolsuper AS is_superuser,
+              EXISTS (SELECT 1 FROM reachable_roles) AS can_assume_other_role,
+              has_schema_privilege(current_user, $1, 'CREATE') AS can_create_in_other_schema,
+              EXISTS (
+                SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+                 WHERE n.nspname=$1 AND c.relkind IN ('r','p','v','m','f')
+                   AND (has_table_privilege(current_user,c.oid,'SELECT')
+                     OR has_table_privilege(current_user,c.oid,'INSERT')
+                     OR has_table_privilege(current_user,c.oid,'UPDATE')
+                     OR has_table_privilege(current_user,c.oid,'DELETE')
+                     OR has_any_column_privilege(current_user,c.oid,'SELECT')
+                     OR has_any_column_privilege(current_user,c.oid,'INSERT')
+                     OR has_any_column_privilege(current_user,c.oid,'UPDATE')
+                     OR has_any_column_privilege(current_user,c.oid,'REFERENCES'))
+              ) OR EXISTS (
+                SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+                 WHERE n.nspname=$1 AND c.relkind='S'
+                   AND (has_sequence_privilege(current_user,c.oid,'USAGE')
+                     OR has_sequence_privilege(current_user,c.oid,'SELECT')
+                     OR has_sequence_privilege(current_user,c.oid,'UPDATE'))
+              ) AS can_access_other_tables,
+              EXISTS (
+                SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+                 WHERE n.nspname=$1 AND p.prosecdef
+                   AND has_function_privilege(current_user,p.oid,'EXECUTE')
+              ) AS can_execute_other_security_definer
+         FROM pg_roles r WHERE r.rolname = current_user`,
+      [otherSchema],
+    );
+    const result = rows[0];
+    if (!result || result.schema !== ownSchema || result.is_superuser || result.can_assume_other_role || result.can_create_in_other_schema || result.can_access_other_tables || result.can_execute_other_security_definer) {
+      throw new Error(`${name} database role must be a non-superuser with no role memberships, scoped to schema "${ownSchema}" without CREATE, table/sequence access, or executable SECURITY DEFINER routines in "${otherSchema}"`);
+    }
+    };
+
+    await verify(realPool, realSchema, demoSchema, 'Real');
+    await verify(demoPool, demoSchema, realSchema, 'Demo');
+  }
+
+  if (process.env.DEMO_ENABLED === 'true') {
+    const demoSecret = process.env.DEMO_SESSION_SECRET;
+    if (!demoSecret || Buffer.byteLength(demoSecret, 'utf8') < 32 || demoSecret === process.env.JWT_SECRET) {
+      throw new Error('DEMO_ENABLED requires a unique DEMO_SESSION_SECRET with at least 32 bytes');
+    }
+    await runWithDatabaseEnvironment({ environment: 'demo' }, async () => {
+      await pool.query('SELECT workspace_owner_id FROM users LIMIT 0');
+      await pool.query('SELECT id FROM demo_sessions LIMIT 0');
+    });
+  }
 }
 
 export async function closeAllPools(): Promise<void> {

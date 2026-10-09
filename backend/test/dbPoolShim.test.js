@@ -12,12 +12,12 @@ describe('migration pool TLS options', () => {
       .toEqual({ rejectUnauthorized: true });
   });
 
-  test('honors explicit TLS configuration overrides', () => {
+  test('keeps production TLS and certificate verification enabled despite insecure overrides', () => {
     expect(migrationPool.poolOptions('postgresql://user:pass@db.internal/app', {
       NODE_ENV: 'production', DATABASE_URL_REQUIRE_TLS: 'false',
-    }).ssl).toBe(false);
+    }).ssl).toEqual({ rejectUnauthorized: true });
     expect(migrationPool.poolOptions('postgresql://user:pass@db.internal/app', {
       NODE_ENV: 'test', DATABASE_URL_REQUIRE_TLS: 'true', DB_TLS_REJECT_UNAUTHORIZED: 'false',
-    }).ssl).toEqual({ rejectUnauthorized: false });
+    }).ssl).toEqual({ rejectUnauthorized: true });
   });
 });

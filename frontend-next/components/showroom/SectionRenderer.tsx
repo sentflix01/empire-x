@@ -623,28 +623,6 @@ export default function SectionRenderer({
     );
   }
 
-  if (s.type === "careers") {
-    const jobs = Array.isArray(s.careers) ? s.careers : [];
-    return (
-      <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/20">
-        {(s.careersTitle || s.title) && <h2 className="font-display text-lg font-bold mb-4">{s.careersTitle || s.title}</h2>}
-        <div className="space-y-2">
-          {jobs.map((c, i) => (
-            <div key={i} className="p-4 rounded-xl border border-border/40 bg-card flex items-center justify-between gap-3 flex-wrap">
-              <div>
-                <h3 className="text-sm font-semibold">{c.title}</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">{[c.location, c.type].filter(Boolean).join(" · ")}</p>
-              </div>
-              <a href="#section-contact">
-                <Button size="sm" className="rounded-full h-7 text-xs text-white px-4" style={{ backgroundColor: themeColor }}>Apply</Button>
-              </a>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   if (s.type === "industries") {
     const industries = Array.isArray(s.industries) ? s.industries : [];
     return (

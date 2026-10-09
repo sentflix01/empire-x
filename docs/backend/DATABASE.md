@@ -2,7 +2,7 @@
 
 > Full ERD: `docs/architecture/ERD.md`
 > Migration files: `backend/db/migrate*.js`
-> Current migration count: **26**
+> Current migration count: **47**
 
 ---
 
@@ -51,6 +51,12 @@ psql $DATABASE_URL -c "\dt"  # list all tables
 | `migrate24.js` | `comment_count` recomputed on posts |
 | `migrate25.js` | `full_name` backfilled for existing users |
 | `migrate26.js` | **Mewacho tables**: `mewacho_groups`, `mewacho_members`, `mewacho_contributions`, `mewacho_withdrawals`, `mewacho_activity` |
+| `migrate44.js` | Demo showroom expiry timestamp and index |
+| `migrate45.js` | Profile-owner partnerships, eligible product snapshots, commission ledger, and partnership attribution columns on orders |
+| `migrate46.js` | Canonical account ownership link for isolated Demo workspace identities |
+| `migrate47.js` | Explicit eligible subtotal on orders, profile commission adjustment ledger, and manual payout history/items |
+
+Mewacho and the other deferred areas are not mounted in the launch app. Their historical schemas and records are retained; see `docs/product/POST_LAUNCH_FEATURES.md` before considering data cleanup or a future rebuild.
 
 ---
 

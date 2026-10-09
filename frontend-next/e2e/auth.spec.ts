@@ -3,16 +3,15 @@ import { test, expect } from '@playwright/test';
 /**
  * Authenticated smoke flows — TD-003.
  *
- * Requires the seeded accounts from backend/db/seed.js:
- *   test@nodbusiness.app / Test1234!
+ * Requires the isolated real-mode accounts from backend/db/seed-e2e.js.
  *
  * When the seed data (or the backend) is missing, these tests SKIP instead of
  * failing — the public.spec.ts suite owns the zero-state guarantees.
  */
 
 const API = process.env.E2E_BACKEND_URL ?? 'http://localhost:3001';
-const SEEDED_EMAIL = process.env.E2E_TEST_EMAIL ?? 'test@nodbusiness.app';
-const SEEDED_PASSWORD = process.env.E2E_TEST_PASSWORD ?? 'Test1234!';
+const SEEDED_EMAIL = process.env.E2E_TEST_EMAIL ?? 'e2e-buyer@nodbusiness.test';
+const SEEDED_PASSWORD = process.env.E2E_TEST_PASSWORD ?? 'TestCodexE2E2026!';
 
 /** Skip the whole suite when the seeded account cannot log in via the API. */
 async function seedAvailable(): Promise<boolean> {
@@ -53,6 +52,11 @@ test.describe('Authenticated flows', () => {
     // The hint cookie that powers middleware gating must now exist…
     const cookies = await page.context().cookies();
     expect(cookies.some((c) => c.name === 'nb_auth')).toBeTruthy();
+    const refreshCookie = cookies.find((cookie) => cookie.name === 'refresh_token');
+    expect(refreshCookie?.httpOnly).toBe(true);
+    if (new URL(API).hostname === 'localhost' || new URL(API).hostname === '127.0.0.1') {
+      expect(refreshCookie?.sameSite).toBe('Lax');
+    }
 
     // …and the token itself must NOT be readable anywhere client-side (TD-014).
     const leaked = await page.evaluate(() => ({

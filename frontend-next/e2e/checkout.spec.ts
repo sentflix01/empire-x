@@ -7,11 +7,13 @@ import { test, expect, Page } from '@playwright/test';
  * checkout options) plus a COD order placed via the API (the most reliable
  * path for automated testing — no external payment provider dependency).
  *
- * Requires seeded accounts + products. Skips otherwise.
+ * Requires the isolated real-mode accounts from backend/db/seed-e2e.js.
+ * The admin fixture creates a fresh product during the suite setup.
  */
 
 const API = process.env.E2E_BACKEND_URL ?? 'http://localhost:3001';
-const A = { email: process.env.E2E_TEST_EMAIL ?? 'test@nodbusiness.app', password: process.env.E2E_TEST_PASSWORD ?? 'Test1234!' };
+const A = { email: process.env.E2E_TEST_EMAIL ?? 'e2e-buyer@nodbusiness.test', password: process.env.E2E_TEST_PASSWORD ?? 'TestCodexE2E2026!' };
+const ADMIN = { email: process.env.E2E_ADMIN_EMAIL ?? 'e2e-seller@nodbusiness.test', password: process.env.E2E_ADMIN_PASSWORD ?? 'AdminCodexE2E2026!' };
 
 async function apiLogin(email: string, password: string) {
   const res = await fetch(`${API}/api/auth/login`, {
@@ -32,6 +34,7 @@ async function loginViaUi(page: Page, email: string, password: string) {
     page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 }),
     page.locator('button[type="submit"]').first().click(),
   ]);
+  await expect(page).toHaveURL(/\/feed(?:\?|$)/);
 }
 
 let token: string | null = null;
@@ -41,7 +44,7 @@ let seeded = false;
 
 test.beforeAll(async () => {
   token = await apiLogin(A.email, A.password);
-  const adminToken = await apiLogin('admin@nodbusiness.app', 'Admin1234!');
+  const adminToken = await apiLogin(ADMIN.email, ADMIN.password);
   if (!token || !adminToken) return;
 
   const adminMe = await fetch(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${adminToken}` } });

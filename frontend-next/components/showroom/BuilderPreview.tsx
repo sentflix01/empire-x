@@ -343,23 +343,6 @@ function renderSection(key: string, d: any): React.ReactNode {
         </div>
       );
 
-    // ── Careers ───────────────────────────────────────────────────────────────
-    case "careers":
-      return (
-        <div style={sec()}>
-          <h2 style={h2()}>{d.careersTitle || "Join Our Team"}</h2>
-          {(d.careers||[]).map((c:any,i:number) => (
-            <div key={i} style={{ background:"#fff",borderRadius:8,padding:16,marginBottom:8,border:"1px solid #eee",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10 }}>
-              <div>
-                <strong style={{ fontSize:12,display:"block" }}>{c.title}</strong>
-                <small style={{ color:"#888",fontSize:11 }}>{c.location} · {c.type}</small>
-              </div>
-              <button style={{ background:brandPrimary,color:"#fff",padding:"5px 14px",borderRadius:20,border:"none",fontSize:11,fontWeight:600 }}>Apply</button>
-            </div>
-          ))}
-        </div>
-      );
-
     // ── Booking ───────────────────────────────────────────────────────────────
     case "booking":
       return (

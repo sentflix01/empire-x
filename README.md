@@ -1,6 +1,6 @@
 # Nodbusiness 👑
 
-Global superapp — social networking, business showrooms, marketplace, messaging, and task services. Built for everyone, everywhere.
+A guided digital storefront and ordering platform that helps local merchants build an online presence and connect with customers.
 
 > **Status (September 2026):** Production-ready. 75+ features built, TypeScript 0 errors, full Stripe + Chapa payment integration, real-time chat, admin panel, Personal/Business feed toggle, Google OAuth popup flow.
 

@@ -61,9 +61,10 @@ function Profile() {
       const targetUserId = id || user.id;
 
       // ── Parallel fetches — 2 RTTs instead of 3 ──────────────────────────
-      const [profiles, bizList] = await Promise.all([
+      const [profiles, bizList, showroomList] = await Promise.all([
         entities.UserProfile.filter({ user_id: targetUserId }),
         entities.Business.filter({ owner_id: targetUserId }, "-created_at", 50).catch(() => []),
+        entities.Showroom.filter({ owner_id: targetUserId, status: "published" }, "-created_at", 50).catch(() => []),
       ]);
 
       if (profiles.length > 0) {
@@ -76,8 +77,36 @@ function Profile() {
           setProfileViewMode(profiles[0].profile_type === "business" ? "business" : "personal");
         }
       }
-      setBusinesses(bizList);
-      if (bizList.length > 0) setSelectedBizId(bizList[0].id);
+      const showroomBusinesses = showroomList.map(showroom => {
+        const sections = typeof showroom.sections === "string" ? showroom.sections : JSON.stringify(showroom.sections ?? []);
+        let contact: { location?: string } = {};
+        try { contact = JSON.parse(sections).find((section: { type?: string }) => section.type === "contact") ?? {}; } catch {}
+        const businessFields = {
+          owner_id: targetUserId,
+          business_name: showroom.title || "Business",
+          business_category: showroom.category || "other",
+          business_description: showroom.description || "",
+          business_theme_color: showroom.theme_color || "#2563EB",
+          business_logo_url: showroom.logo_url || "",
+          business_cover_url: showroom.cover_image || "",
+          business_address: contact.location || "",
+          business_sections: sections,
+          showroom_id: showroom.id,
+          showroom_slug: showroom.slug || "",
+        };
+        const existing = bizList.find(business => business.business_name?.trim().toLowerCase() === String(showroom.title || "").trim().toLowerCase());
+        return existing ? { ...existing, ...businessFields, id: existing.id } : { ...businessFields, id: `showroom-${showroom.id}` };
+      });
+      const mergedBusinesses = [...bizList];
+      for (const showroom of showroomBusinesses) {
+        const matchIndex = mergedBusinesses.findIndex(business =>
+          business.business_name?.trim().toLowerCase() === showroom.business_name?.trim().toLowerCase(),
+        );
+        if (matchIndex >= 0) mergedBusinesses[matchIndex] = { ...mergedBusinesses[matchIndex], ...showroom, id: mergedBusinesses[matchIndex].id };
+        else mergedBusinesses.push(showroom);
+      }
+      setBusinesses(mergedBusinesses);
+      if (mergedBusinesses.length > 0) setSelectedBizId(mergedBusinesses[0].id);
     } catch (err) {
       if (err?.message?.includes("Authentication required") || err?.message?.includes("auth")) {
         router.push("/login");

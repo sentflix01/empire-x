@@ -71,7 +71,22 @@ beforeEach(() => {
   bcrypt.hash.mockReset();
   bcrypt.hash.mockResolvedValue('$2b$hashed');
   mockPool.query.mockReset();
+  mockPool.connect.mockReset();
+  mockPool.connect.mockResolvedValue({
+    query: jest.fn().mockResolvedValue({ rows: [] }),
+    release: jest.fn(),
+  });
 });
+
+function mockDemoSessionTransaction() {
+  const clientQuery = jest.fn(async (sql) => (
+    String(sql).includes('INSERT INTO demo_sessions')
+      ? { rows: [{ id: 'demo-session-id' }] }
+      : { rows: [] }
+  ));
+  mockPool.connect.mockResolvedValue({ query: clientQuery, release: jest.fn() });
+  return clientQuery;
+}
 
 describe('POST /api/auth/register', () => {
   it('returns 422 when email or password is missing', async () => {
@@ -157,7 +172,7 @@ describe('POST /api/auth/login', () => {
     expect(res.body).toHaveProperty('access_token');
   });
 
-  it('does not issue Redis commands for a built-in demo account', async () => {
+  it('rejects a legacy built-in Demo account instead of authenticating it in Real', async () => {
     const redis = getRedis();
     for (const method of ['get', 'set', 'setex', 'del', 'incr', 'expire']) redis[method].mockClear();
     mockPool.query.mockResolvedValueOnce({
@@ -170,10 +185,85 @@ describe('POST /api/auth/login', () => {
     const app = buildApp();
     const res = await request(app).post('/api/auth/login').send({ email: 'test@nodbusiness.app', password: 'password123' });
 
-    expect(res.status).toBe(200);
-    expect(require('jsonwebtoken').decode(res.body.access_token)).toMatchObject({ demo: true });
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe('LEGACY_DEMO_ACCOUNT');
     for (const method of ['get', 'set', 'setex', 'del', 'incr', 'expire']) {
       expect(redis[method]).not.toHaveBeenCalled();
+    }
+  });
+
+  it('rejects direct authentication into a legacy Demo account', async () => {
+    const prior = {
+      enabled: process.env.DEMO_ENABLED,
+      demoUrl: process.env.DEMO_DATABASE_URL,
+      demoSecret: process.env.DEMO_SESSION_SECRET,
+      jwtSecret: process.env.JWT_SECRET,
+    };
+    process.env.DEMO_ENABLED = 'true';
+    process.env.DEMO_DATABASE_URL = 'postgres://demo.example.test/nodbusiness_demo';
+    process.env.JWT_SECRET = 'real-session-secret-for-tests';
+    process.env.DEMO_SESSION_SECRET = 'independent-demo-session-secret-for-tests';
+    try {
+      const app = buildApp();
+      const res = await request(app).post('/api/auth/login').send({
+        email: 'same@example.test', password: 'password123', account_mode: 'demo',
+      });
+      expect(res.status).toBe(409);
+      expect(res.body.code).toBe('WORKSPACE_SWITCH_REQUIRED');
+    } finally {
+      if (prior.enabled === undefined) delete process.env.DEMO_ENABLED; else process.env.DEMO_ENABLED = prior.enabled;
+      if (prior.demoUrl === undefined) delete process.env.DEMO_DATABASE_URL; else process.env.DEMO_DATABASE_URL = prior.demoUrl;
+      if (prior.demoSecret === undefined) delete process.env.DEMO_SESSION_SECRET; else process.env.DEMO_SESSION_SECRET = prior.demoSecret;
+      if (prior.jwtSecret === undefined) delete process.env.JWT_SECRET; else process.env.JWT_SECRET = prior.jwtSecret;
+    }
+  });
+
+  it('rejects account-mode Demo login while keeping the canonical Real login', async () => {
+    const prior = {
+      enabled: process.env.DEMO_ENABLED,
+      demoUrl: process.env.DEMO_DATABASE_URL,
+      demoSecret: process.env.DEMO_SESSION_SECRET,
+      jwtSecret: process.env.JWT_SECRET,
+    };
+    process.env.DEMO_ENABLED = 'true';
+    process.env.DEMO_DATABASE_URL = 'postgres://demo.example.test/nodbusiness_demo';
+    process.env.JWT_SECRET = 'real-session-secret-for-same-email-tests';
+    process.env.DEMO_SESSION_SECRET = 'independent-demo-session-secret-for-same-email-tests';
+
+    const environments = [];
+    mockPool.query.mockImplementation(async (sql) => {
+      const environment = mockPool.getCurrentDatabaseEnvironment();
+      environments.push(environment);
+      if (sql.includes('SELECT id, email, password_hash')) {
+        return { rows: [{
+          id: `${environment}-same-email-user`, email: 'same@example.test', password_hash: '$2b$hashed',
+          is_verified: true, role: 'user', is_banned: false, is_demo: environment === 'demo', is_seed: false,
+        }] };
+      }
+      if (sql.includes('INSERT INTO demo_sessions')) return { rows: [{ id: 'demo-session-id' }] };
+      return { rows: [] };
+    });
+
+    try {
+      const app = buildApp();
+      const demo = await request(app).post('/api/auth/login').send({
+        email: 'same@example.test', password: 'password123', account_mode: 'demo',
+      });
+      const real = await request(app).post('/api/auth/login').send({
+        email: 'same@example.test', password: 'password123', account_mode: 'real',
+      });
+
+      expect(demo.status).toBe(409);
+      expect(demo.body.code).toBe('WORKSPACE_SWITCH_REQUIRED');
+      expect(real.status).toBe(200);
+      expect(real.body).toMatchObject({ is_demo: false });
+      expect(environments).not.toContain('demo');
+      expect(environments).toContain('real');
+    } finally {
+      if (prior.enabled === undefined) delete process.env.DEMO_ENABLED; else process.env.DEMO_ENABLED = prior.enabled;
+      if (prior.demoUrl === undefined) delete process.env.DEMO_DATABASE_URL; else process.env.DEMO_DATABASE_URL = prior.demoUrl;
+      if (prior.demoSecret === undefined) delete process.env.DEMO_SESSION_SECRET; else process.env.DEMO_SESSION_SECRET = prior.demoSecret;
+      if (prior.jwtSecret === undefined) delete process.env.JWT_SECRET; else process.env.JWT_SECRET = prior.jwtSecret;
     }
   });
 
@@ -253,100 +343,12 @@ describe('POST /api/auth/login', () => {
   });
 });
 
-describe('POST /api/auth/demo configuration', () => {
-  const original = {};
-  const trackedKeys = ['DEMO_ENABLED', 'DEMO_DATABASE_URL', 'DEMO_SESSION_SECRET', 'JWT_SECRET'];
-
-  beforeEach(() => {
-    for (const key of trackedKeys) original[key] = process.env[key];
-  });
-
-  afterEach(() => {
-    for (const key of trackedKeys) {
-      if (original[key] === undefined) delete process.env[key];
-      else process.env[key] = original[key];
-    }
-  });
-
-  it.each([
-    ['missing demo database URL', { DEMO_DATABASE_URL: undefined, DEMO_SESSION_SECRET: 's'.repeat(32) }],
-    ['short or missing isolated signing secret', { DEMO_DATABASE_URL: 'postgres://demo.invalid/demo', DEMO_SESSION_SECRET: 'too-short' }],
-    ['signing secret reused from JWT_SECRET', { DEMO_DATABASE_URL: 'postgres://demo.invalid/demo', DEMO_SESSION_SECRET: 'j'.repeat(40), JWT_SECRET: 'j'.repeat(40) }],
-  ])('fails closed for %s without querying the shared database', async (_caseName, overrides) => {
-    process.env.DEMO_ENABLED = 'true';
-    process.env.DEMO_DATABASE_URL = 'postgres://demo.invalid/demo';
-    process.env.DEMO_SESSION_SECRET = 'd'.repeat(40);
-    process.env.JWT_SECRET = 'j'.repeat(40);
-    for (const [key, value] of Object.entries(overrides)) {
-      if (value === undefined) delete process.env[key];
-      else process.env[key] = value;
-    }
-
+describe('POST /api/auth/demo legacy endpoint', () => {
+  it('requires users to authenticate a Real identity before switching to Demo', async () => {
     const res = await request(buildApp()).post('/api/auth/demo').send({});
-
-    expect(res.status).toBe(503);
-    expect(res.body.code).toBe('DEMO_CONFIGURATION_INVALID');
+    expect(res.status).toBe(410);
+    expect(res.body.code).toBe('WORKSPACE_SWITCH_REQUIRED');
     expect(mockPool.query).not.toHaveBeenCalled();
-  });
-});
-
-describe('Track 1 demo session handoff', () => {
-  const originalDemoEnabled = process.env.DEMO_ENABLED;
-
-  afterAll(() => {
-    if (originalDemoEnabled === undefined) delete process.env.DEMO_ENABLED;
-    else process.env.DEMO_ENABLED = originalDemoEnabled;
-  });
-
-  it('survives a reload and restores the existing real refresh session on exit', async () => {
-    process.env.DEMO_ENABLED = 'false';
-    mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'real-id', email: 'real@example.test', password_hash: '$2b$hashed', is_verified: true, role: 'user', is_demo: false, is_seed: false }] })
-      .mockResolvedValueOnce({ rows: [{ id: 'demo-id', email: 'test@nodbusiness.app', is_banned: false, is_demo: true, is_seed: false, onboarding_mode: 'demo' }] })
-      .mockResolvedValueOnce({ rows: [{ id: 'demo-id', is_banned: false, is_demo: true, is_seed: false }] })
-      .mockResolvedValueOnce({ rows: [{ is_demo: false, is_seed: false, is_banned: false }] })
-      .mockResolvedValueOnce({ rows: [{ id: 'real-id', is_banned: false, is_demo: false, is_seed: false }] });
-
-    const agent = request.agent(buildApp());
-    const login = await agent.post('/api/auth/login').send({ email: 'real@example.test', password: 'password123' });
-    expect(login.status).toBe(200);
-    const originalRefreshCookie = login.headers['set-cookie'].find(cookie => cookie.startsWith('refresh_token=')).split(';')[0];
-
-    const demo = await agent.post('/api/auth/demo');
-    expect(demo.status).toBe(200);
-    expect(demo.headers['set-cookie'].some(cookie => cookie.startsWith('demo_track1='))).toBe(true);
-    expect(demo.headers['set-cookie'].some(cookie => cookie.startsWith('refresh_token='))).toBe(false);
-
-    const demoRefresh = await agent.post('/api/auth/refresh');
-    expect(demoRefresh.status).toBe(200);
-    expect(require('jsonwebtoken').decode(demoRefresh.body.access_token).sub).toBe('demo-id');
-
-    const exit = await agent.post('/api/auth/demo/exit');
-    expect(exit.body.return_to_real).toBe(true);
-    expect(exit.headers['set-cookie'].some(cookie => cookie.startsWith('demo_track1=;'))).toBe(true);
-
-    const realRefresh = await agent.post('/api/auth/refresh');
-    expect(realRefresh.status).toBe(200);
-    expect(require('jsonwebtoken').decode(realRefresh.body.access_token).sub).toBe('real-id');
-    expect(originalRefreshCookie).toBeTruthy();
-  });
-
-  it('does not treat a shared demo account refresh cookie as a real account to return to', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{
-      id: 'demo-id', email: 'test@nodbusiness.app', password_hash: '$2b$hashed',
-      is_verified: true, role: 'user', is_banned: false, is_demo: true, is_seed: false,
-    }] });
-
-    const agent = request.agent(buildApp());
-    const login = await agent.post('/api/auth/login').send({ email: 'test@nodbusiness.app', password: 'password123' });
-    expect(login.status).toBe(200);
-
-    const exit = await agent.post('/api/auth/demo/exit');
-    expect(exit.status).toBe(200);
-    expect(exit.body.return_to_real).toBe(false);
-    // The signed refresh token identifies itself as demo, so no real-user
-    // lookup is needed and no return-to-real path is advertised.
-    expect(mockPool.query).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -289,45 +289,6 @@ async function runTests() {
     expect(r.status).toBe(200);
   });
 
-  // ── Tasks ─────────────────────────────────────────────────────────────────
-  console.log('\n📋 Tasks');
-  let taskId, bidId;
-
-  await test('POST /api/tasks — creates task', async () => {
-    const r = await request('POST', '/api/tasks', {
-      title: 'Test Task',
-      task_type: 'delivery',
-      offered_payment: 200,
-      description: 'Test delivery task',
-      location: 'Addis Ababa',
-    });
-    expect(r.status).toBe(201);
-    taskId = r.data.id;
-  });
-
-  await test('GET /api/tasks — lists tasks', async () => {
-    const r = await request('GET', '/api/tasks?status=open', null, null);
-    expect(r.status).toBe(200);
-    expect(r.data).toBeArray();
-  });
-
-  await test('POST /api/tasks/:id/bids — places bid (user2)', async () => {
-    const r = await request('POST', `/api/tasks/${taskId}/bids`, { bid_amount: 180, message: 'I can do this!' }, token2);
-    expect(r.status).toBe(201);
-    bidId = r.data.id;
-  });
-
-  await test('GET /api/tasks/:id/bids — gets bids', async () => {
-    const r = await request('GET', `/api/tasks/${taskId}/bids`, null, null);
-    expect(r.status).toBe(200);
-    expect(r.data).toHaveLength(1);
-  });
-
-  await test('PUT /api/tasks/bids/:bidId — accepts bid', async () => {
-    const r = await request('PUT', `/api/tasks/bids/${bidId}`, { status: 'accepted' });
-    expect(r.status).toBe(200);
-  });
-
   // ── Messages ──────────────────────────────────────────────────────────────
   console.log('\n💬 Messages');
   let convId;
@@ -507,26 +468,6 @@ async function runTests() {
     expect(r.status).toBe(403);
   });
 
-  // ── Events ────────────────────────────────────────────────────────────────
-  console.log('\n🎫 Events');
-  let eventId;
-
-  await test('POST /api/events — creates event', async () => {
-    const r = await request('POST', '/api/events', {
-      title: 'Test Event',
-      start_at: new Date(Date.now() + 7 * 24 * 3600000).toISOString(),
-      ticket_price: 100,
-      status: 'published',
-    });
-    expect(r.status).toBe(201);
-    eventId = r.data.id;
-  });
-
-  await test('POST /api/events/:id/book — books event (user2)', async () => {
-    const r = await request('POST', `/api/events/${eventId}/book`, {}, token2);
-    expect(r.status).toBe(201);
-  });
-
   // ── Hashtags ──────────────────────────────────────────────────────────────
   console.log('\n# Hashtags');
 
@@ -543,36 +484,6 @@ async function runTests() {
     const r = await request('GET', '/api/maps/geocode?address=Addis+Ababa', null, null);
     // Nominatim may be rate-limited; accept 200 or 404
     expect(r.status).toBeOneOf([200, 404, 500]);
-  });
-
-  // ── Jobs ──────────────────────────────────────────────────────────────────
-  console.log('\n💼 Jobs');
-  let jobId;
-
-  await test('POST /api/jobs — creates job', async () => {
-    const r = await request('POST', '/api/jobs', { title: 'React Developer', job_type: 'full_time' });
-    expect(r.status).toBe(201);
-    jobId = r.data.id;
-  });
-
-  await test('POST /api/jobs/:id/apply — applies for job (user2)', async () => {
-    const r = await request('POST', `/api/jobs/${jobId}/apply`, { cover_letter: 'I am interested.' }, token2);
-    expect(r.status).toBe(201);
-  });
-
-  // ── Courses ───────────────────────────────────────────────────────────────
-  console.log('\n📚 Courses');
-  let courseId;
-
-  await test('POST /api/courses — creates course', async () => {
-    const r = await request('POST', '/api/courses', { title: 'Test Course', price: 0 });
-    expect(r.status).toBe(201);
-    courseId = r.data.id;
-  });
-
-  await test('POST /api/courses/:id/enroll — enrolls (user2)', async () => {
-    const r = await request('POST', `/api/courses/${courseId}/enroll`, {}, token2);
-    expect(r.status).toBe(201);
   });
 
   // ── AI Description ────────────────────────────────────────────────────────

@@ -5,16 +5,15 @@ import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import client from "@/api/client";
 import {
-  Search as SearchIcon, Users, ShoppingBag, Crown, ClipboardList,
-  FileText, Loader2, Mic, MicOff, MapPin, SlidersHorizontal, Calendar, DollarSign, X, Briefcase,
-  CalendarDays, Navigation, Filter,
+  Search as SearchIcon, Users, ShoppingBag, Crown,
+  FileText, Loader2, Mic, MicOff, MapPin, SlidersHorizontal, Calendar, DollarSign, X,
+  Navigation, Filter,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { useDebounce } from "@/hooks/use-debounce";
 import { toast } from "sonner";
 import { DemoBadge } from "@/components/profile/DemoBadge";
-import { fromNow, fmtDate } from "@/lib/date";
+import { fromNow } from "@/lib/date";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -58,10 +57,7 @@ function Search() {
     { key: "users",     label: t('search.people'),     Icon: Users },
     { key: "products",  label: t('search.products'),   Icon: ShoppingBag },
     { key: "showrooms", label: t('search.showrooms'),  Icon: Crown },
-    { key: "tasks",     label: t('nav.tasks'),         Icon: ClipboardList },
     { key: "posts",     label: t('search.posts'),      Icon: FileText },
-    { key: "jobs",      label: t('nav.jobs'),          Icon: Briefcase },
-    { key: "events",    label: t('nav.events'),        Icon: CalendarDays },
   ];
 
   const [query, setQuery]       = useState(searchParams.get("q") || "");
@@ -244,7 +240,7 @@ function Search() {
                 </div>
               </div>
             )}
-            {(tab === "posts" || tab === "events" || tab === "jobs" || tab === "all") && (
+            {(tab === "posts" || tab === "all") && (
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1.5">
                   <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {t('search.datePosted')}</span>
@@ -384,25 +380,6 @@ function Search() {
           </CollapsibleSection>
         )}
 
-        {results.tasks?.length > 0 && (tab === "all" || tab === "tasks") && (
-          <CollapsibleSection title={t('nav.tasks')} icon={ClipboardList} count={results.tasks.length} sectionKey="tasks" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
-            {results.tasks.map(t => (
-              <Link key={t.id} href="/tasks"
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-secondary/50 transition-colors gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate">{t.title}</p>
-                  <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                    <p className="text-xs text-muted-foreground">{t.task_type}</p>
-                    {t.location && <p className="text-xs text-muted-foreground flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{t.location}</p>}
-                    <DistanceBadge km={t.distance_km} />
-                  </div>
-                </div>
-                <p className="text-sm font-bold text-amber-600 shrink-0">{t.offered_payment?.toLocaleString()} {t.currency}</p>
-              </Link>
-            ))}
-          </CollapsibleSection>
-        )}
-
         {results.posts?.length > 0 && (tab === "all" || tab === "posts") && (
           <CollapsibleSection title={t('search.posts')} icon={FileText} count={results.posts.length} sectionKey="posts" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
             {results.posts.map(p => (
@@ -417,60 +394,6 @@ function Search() {
                 <p className="text-sm line-clamp-2">{p.content}</p>
                 <p className="text-xs text-muted-foreground mt-1">❤️ {p.like_count} · 💬 {p.comment_count}</p>
               </div>
-            ))}
-          </CollapsibleSection>
-        )}
-
-        {results.jobs?.length > 0 && (tab === "all" || tab === "jobs") && (
-          <CollapsibleSection title={t('nav.jobs')} icon={Briefcase} count={results.jobs.length} sectionKey="jobs" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
-            {results.jobs.map(j => (
-              <Link key={j.id} href="/jobs"
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                  <Briefcase className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-sm font-medium truncate">{j.title}</p>
-                    <DistanceBadge km={j.distance_km} />
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                    <Badge variant="outline" className="text-[10px] py-0">{j.job_type?.replace("_"," ")}</Badge>
-                    {j.location && <p className="text-xs text-muted-foreground flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{j.location}</p>}
-                    {j.is_remote && <Badge variant="outline" className="text-[10px] py-0 text-green-600">{t('search.remote')}</Badge>}
-                  </div>
-                  {(j.salary_min || j.salary_max) && (
-                    <p className="text-xs text-amber-600 font-medium mt-0.5">
-                      {j.salary_min?.toLocaleString()} – {j.salary_max?.toLocaleString()} {j.currency}
-                    </p>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </CollapsibleSection>
-        )}
-
-        {results.events?.length > 0 && (tab === "all" || tab === "events") && (
-          <CollapsibleSection title={t('nav.events')} icon={CalendarDays} count={results.events.length} sectionKey="events" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
-            {results.events.map(e => (
-              <Link key={e.id} href="/events"
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0 overflow-hidden">
-                  {e.cover_image ? <Image src={e.cover_image} alt={e.title || ''} width={40} height={40} className="w-full h-full object-cover rounded-xl" unoptimized /> : <CalendarDays className="w-5 h-5 text-accent" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-sm font-medium truncate">{e.title}</p>
-                    <DistanceBadge km={e.distance_km} />
-                  </div>
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <p className="text-xs text-muted-foreground">{fmtDate(e.start_at)}</p>
-                    {e.is_online ? <Badge variant="outline" className="text-[10px] py-0 text-blue-600">{t('search.online')}</Badge>
-                      : e.location && <p className="text-xs text-muted-foreground flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{e.location}</p>}
-                  </div>
-                  {e.ticket_price > 0 && <p className="text-xs text-amber-600 font-medium">{e.ticket_price?.toLocaleString()} {e.currency}</p>}
-                </div>
-              </Link>
             ))}
           </CollapsibleSection>
         )}

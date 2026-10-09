@@ -104,22 +104,6 @@ export interface Order extends BaseEntity {
   product_id?: string;
 }
 
-export interface Task extends BaseEntity {
-  user_id?: string;
-  agent_id?: string;
-  title?: string;
-  description?: string;
-  status?: string;
-  budget?: number;
-}
-
-export interface TaskBid extends BaseEntity {
-  task_id?: string;
-  bidder_id?: string;
-  amount?: number;
-  status?: string;
-}
-
 export interface Conversation extends BaseEntity {
   title?: string;
   participant_ids?: string[];
@@ -163,26 +147,6 @@ export interface Save extends BaseEntity {
   target_id?: string;
   target_type?: string;
   user_id?: string;
-}
-
-export interface Event extends BaseEntity {
-  title?: string;
-  description?: string;
-  start_at?: string;
-  end_at?: string;
-  status?: string;
-}
-
-export interface Job extends BaseEntity {
-  title?: string;
-  company?: string;
-  status?: string;
-}
-
-export interface Course extends BaseEntity {
-  title?: string;
-  description?: string;
-  status?: string;
 }
 
 export interface Follow extends BaseEntity {
@@ -320,37 +284,6 @@ export const entities = {
       return Array.isArray(res.data) ? res.data : res.data?.orders ?? [];
     },
   },
-  Task:         buildEntityApi<Task>('tasks'),
-  TaskBid: {
-    async list(sort = '-created_at', limit = 50) {
-      const res = await client.get<TaskBid[]>('/api/tasks/bids', { params: { sort, limit } });
-      return res.data;
-    },
-    async filter(filterObj: FilterObj = {}) {
-      if (filterObj.task_id) {
-        const res = await client.get<TaskBid[]>(`/api/tasks/${filterObj.task_id}/bids`);
-        return res.data;
-      }
-      return [];
-    },
-    async create(data: Partial<TaskBid> & AnyRecord) {
-      const { task_id, ...rest } = data;
-      const res = await client.post<TaskBid>(`/api/tasks/${task_id}/bids`, rest);
-      return res.data;
-    },
-    async update(id: string, data: Partial<TaskBid> & AnyRecord) {
-      const res = await client.put<TaskBid>(`/api/tasks/bids/${id}`, data);
-      return res.data;
-    },
-    async get(id: string) {
-      const res = await client.get<TaskBid>(`/api/tasks/bids/${id}`);
-      return res.data;
-    },
-    async delete(id: string) {
-      await client.delete(`/api/tasks/bids/${id}`);
-      return { success: true as const };
-    },
-  },
   Conversation: ConversationApi,
   Message:      MessageApi,
   Notification: { ...buildEntityApi<Notification>('notifications') },
@@ -385,7 +318,4 @@ export const entities = {
   Story:   buildEntityApi<Story>('stories'),
   Review:  buildEntityApi<Review>('reviews'),
   Save:    buildEntityApi<Save>('saves'),
-  Event:   buildEntityApi<Event>('events'),
-  Job:     buildEntityApi<Job>('jobs'),
-  Course:  buildEntityApi<Course>('courses'),
 };

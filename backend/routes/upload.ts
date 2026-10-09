@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import logger from '../lib/logger';
 import { requireAuth } from '../middleware/auth';
 import upload, { uploadFile, isCloudStorageConfigured, validateFileBytes } from '../middleware/upload';
+import { signDemoAssetToken } from '../middleware/demoEnvironment';
 
 const router = Router();
 
@@ -51,7 +52,11 @@ router.post('/', requireAuth, upload.single('file'), async (req: Request, res: R
         .split(path.sep)
         .map(encodeURIComponent)
         .join('/');
-      url = `${process.env.API_URL ?? 'http://localhost:3001'}/uploads/${relativePath}`;
+      const apiBase = (process.env.API_URL ?? 'http://localhost:3001').replace(/\/$/, '');
+      const assetToken = req.demoSession
+        ? `?demo_asset=${encodeURIComponent(signDemoAssetToken(req.demoSession.id, decodeURIComponent(relativePath)))}`
+        : '';
+      url = `${apiBase}/uploads/${relativePath}${assetToken}`;
     } else {
       res.status(500).json({ error: 'Upload failed — no storage configured' }); return;
     }

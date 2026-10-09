@@ -20,10 +20,16 @@ describe('generic CRUD real-mode reads', () => {
   });
 
   it('applies the same owner boundary to individual records', async () => {
-    await getRecord('courses', 'course-id', { realOnly: true });
+    await getRecord('businesses', 'business-id', { realOnly: true });
 
-    expect(query.mock.calls[0][0]).toContain('courses.creator_id IN');
+    expect(query.mock.calls[0][0]).toContain('businesses.owner_id IN');
     expect(query.mock.calls[0][0]).toContain('is_seed=FALSE AND is_demo=FALSE');
+  });
+
+  it('hides expired showrooms from direct ID reads', async () => {
+    await getRecord('showrooms', 'showroom-id');
+
+    expect(query.mock.calls[0][0]).toContain('(showrooms.expires_at IS NULL OR showrooms.expires_at > NOW())');
   });
 
   it('removes ownership and immutable identity fields from editable payloads', () => {

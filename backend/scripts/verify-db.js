@@ -4,16 +4,23 @@
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { Pool } = require('pg');
+const fs = require('node:fs');
 
 function getPoolOptions(url, env = process.env) {
   const tlsOverride = env.DATABASE_URL_REQUIRE_TLS;
-  const needsSsl = tlsOverride === 'true' || (tlsOverride !== 'false' && (
-    env.NODE_ENV === 'production' ||
-    /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(url)
-  ));
+  const needsSsl = tlsOverride === 'true' || env.NODE_ENV === 'production' ||
+    /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(url);
+  let connectionString = url;
+  const caFile = env.DB_SSL_CA_FILE;
+  if (needsSsl && connectionString) {
+    const parsed = new URL(connectionString);
+    parsed.searchParams.set('sslmode', 'verify-full');
+    if (caFile) parsed.searchParams.set('sslrootcert', caFile);
+    connectionString = parsed.toString();
+  }
   return {
-    connectionString: url,
-    ssl: needsSsl ? { rejectUnauthorized: env.DB_TLS_REJECT_UNAUTHORIZED !== 'false' } : false,
+    connectionString,
+    ssl: needsSsl ? { rejectUnauthorized: true, ...(caFile ? { ca: fs.readFileSync(caFile, 'utf8') } : {}) } : false,
     connectionTimeoutMillis: 10_000,
   };
 }
@@ -42,7 +49,7 @@ async function main() {
       console.error('    → Host unreachable. Check the hostname in DATABASE_URL.');
       console.error('    → If using Supabase, use the pooler URL: aws-0-REGION.pooler.supabase.com:6543');
     } else if (err.message.includes('SSL') || err.message.includes('certificate')) {
-      console.error('    → SSL error. Add ?sslmode=require to DATABASE_URL or check provider docs.');
+      console.error('    → TLS verification failed. Check the database hostname and configure DB_SSL_CA_FILE with the trusted provider root CA PEM.');
     }
     await pool.end().catch(() => {});
     process.exit(1);

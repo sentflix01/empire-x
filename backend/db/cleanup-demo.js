@@ -3,6 +3,11 @@ const { URL } = require('node:url');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
+function supabaseStorageAuthHeaders(key) {
+  if (key.startsWith('sb_secret_')) return { apikey: key };
+  return { Authorization: `Bearer ${key}`, apikey: key };
+}
+
 function identity(connectionString) {
   const u = new URL(connectionString);
   return `${u.hostname.replace(/^\[|\]$/g, '').toLowerCase()}:${u.port || '5432'}/${decodeURIComponent(u.pathname.replace(/^\//, ''))}`;
@@ -13,33 +18,40 @@ function databaseName(connectionString) {
   return decodeURIComponent(url.pathname.replace(/^\//, ''));
 }
 
+function databaseRole(connectionString) {
+  return decodeURIComponent(new URL(connectionString).username);
+}
+
 const realUrl = process.env.DATABASE_URL;
 const demoUrl = process.env.DEMO_DATABASE_URL;
 if (!realUrl || !demoUrl) {
   console.error('Refusing demo cleanup: DATABASE_URL and DEMO_DATABASE_URL are both required for target comparison.');
   process.exit(1);
 }
-if (identity(realUrl) === identity(demoUrl)) {
-  console.error('Refusing demo cleanup: DEMO_DATABASE_URL resolves to the real database.');
+const sharedDatabase = identity(realUrl) === identity(demoUrl);
+const demoSchema = process.env.DEMO_DB_SCHEMA || (sharedDatabase ? '' : 'public');
+const realSchema = process.env.DATABASE_SCHEMA || 'public';
+if (sharedDatabase && (!demoSchema || demoSchema === realSchema || databaseRole(demoUrl) === databaseRole(realUrl))) {
+  console.error('Refusing shared-database Demo cleanup: configure different schemas and different restricted database roles.');
   process.exit(1);
 }
 
 const execute = process.argv.includes('--execute');
 const acknowledged = process.env.ALLOW_DEMO_CLEANUP === '1';
 const targetArgument = process.argv.find((argument) => argument.startsWith('--database='))?.slice('--database='.length);
-if (execute && (!acknowledged || !targetArgument || targetArgument !== databaseName(demoUrl))) {
-  console.error('Refusing demo cleanup: execution requires ALLOW_DEMO_CLEANUP=1 and --database=<exact demo database name>.');
+const schemaArgument = process.argv.find((argument) => argument.startsWith('--schema='))?.slice('--schema='.length);
+if (execute && (!acknowledged || !targetArgument || targetArgument !== databaseName(demoUrl) || (sharedDatabase && schemaArgument !== demoSchema))) {
+  console.error(`Refusing demo cleanup: execution requires ALLOW_DEMO_CLEANUP=1 and --database=<exact demo database name>${sharedDatabase ? ' --schema=<exact demo schema>' : ''}.`);
   process.exit(1);
 }
 
-console.log(`Demo cleanup target: ${identity(demoUrl)}`);
+console.log(`Demo cleanup target: ${identity(demoUrl)} schema=${demoSchema}`);
 process.env.DATABASE_URL = demoUrl;
+process.env.DATABASE_SCHEMA = demoSchema;
 if (process.env.DEMO_DATABASE_URL_REQUIRE_TLS !== undefined) {
   process.env.DATABASE_URL_REQUIRE_TLS = process.env.DEMO_DATABASE_URL_REQUIRE_TLS;
 }
-if (process.env.DEMO_DB_TLS_REJECT_UNAUTHORIZED !== undefined) {
-  process.env.DB_TLS_REJECT_UNAUTHORIZED = process.env.DEMO_DB_TLS_REJECT_UNAUTHORIZED;
-}
+if (process.env.DEMO_DB_SSL_CA_FILE !== undefined) process.env.DB_SSL_CA_FILE = process.env.DEMO_DB_SSL_CA_FILE;
 process.env.DB_POOL_MAX = '1';
 const pool = require('./poolJsShim.cjs');
 
@@ -59,11 +71,12 @@ async function removeDemoUploads(sessionId) {
   const projectUrl = candidates
     .map((value) => value?.match(/https:\/\/[a-z0-9]+\.supabase\.co/i)?.[0])
     .find(Boolean);
-  if (projectUrl && process.env.SUPABASE_STORAGE_KEY && process.env.SUPABASE_BUCKET) {
-    const response = await fetch(`${projectUrl.replace(/\/$/, '')}/storage/v1/object/${encodeURIComponent(process.env.SUPABASE_BUCKET)}`, {
+  const demoBucket = process.env.DEMO_SUPABASE_BUCKET || process.env.SUPABASE_BUCKET;
+  if (projectUrl && process.env.SUPABASE_STORAGE_KEY && demoBucket) {
+    const response = await fetch(`${projectUrl.replace(/\/$/, '')}/storage/v1/object/${encodeURIComponent(demoBucket)}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${process.env.SUPABASE_STORAGE_KEY}`,
+        ...supabaseStorageAuthHeaders(process.env.SUPABASE_STORAGE_KEY),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ prefixes: [prefix] }),
@@ -125,20 +138,16 @@ async function cleanup() {
       await client.query('BEGIN');
       if (session.status !== 'cleaned') {
         await client.query('DELETE FROM demo_session_ai_usage WHERE session_id=$1', [session.id]);
-        const removedUser = await client.query(
-          'DELETE FROM users WHERE id=$1 AND is_demo=TRUE AND is_seed=FALSE',
-          [session.user_id],
-        );
-        if (removedUser.rowCount !== 1) throw new Error('temporary demo user was missing or did not pass the cleanup ownership checks');
-        // External storage deletion cannot participate in a PostgreSQL
-        // transaction. Commit the DB cleanup first and retry object deletion
-        // idempotently when this marker remains set after a failure.
+        // Demo accounts persist. Session cleanup removes session-scoped usage
+        // and uploads only; showcase expiry is enforced by the showroom API.
         await client.query(
           "UPDATE demo_sessions SET status='cleaned', cleaned_at=NOW(), cleanup_error='upload_cleanup_pending' WHERE id=$1",
           [session.id],
         );
       }
       await client.query('COMMIT');
+      // Session-scoped uploads can be deleted after commit. Keep the user,
+      // profile, business, and showroom rows; Demo accounts are persistent.
       await removeDemoUploads(session.id);
       await pool.query('UPDATE demo_sessions SET cleanup_error=NULL WHERE id=$1 AND status=\'cleaned\'', [session.id]);
       cleaned += 1;

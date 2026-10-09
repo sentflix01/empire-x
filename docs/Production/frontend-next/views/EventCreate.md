@@ -1,3 +1,5 @@
+> ⚠️ **HISTORICAL** — corresponding source file was removed from the codebase on 2026-10-08. Kept for reference.
+
 # frontend-next/views/EventCreate.tsx
 
 ## 1. What is this?

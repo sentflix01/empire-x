@@ -3,10 +3,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   Bot,
-  Briefcase,
   CheckCircle2,
   CreditCard,
-  GraduationCap,
   LayoutGrid,
   MapPin,
   MessageCircle,
@@ -16,7 +14,6 @@ import {
   Sparkles,
   Store,
   Users,
-  Zap,
 } from 'lucide-react';
 import { LandingPreferences } from '@/components/landing/LandingControls';
 
@@ -27,12 +24,12 @@ import { LandingPreferences } from '@/components/landing/LandingControls';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: "Nodbusiness - The Global Superapp",
+  title: "Nodbusiness - Local merchant showrooms and orders",
   description:
-    "Nodbusiness is the global superapp for social networking, business showrooms, marketplace, messaging, payments, AI, jobs, courses, and local services.",
+    "Nodbusiness helps local merchants create online showrooms, manage orders, and reach customers through social discovery.",
   openGraph: {
-    title: "Nodbusiness - The Global Superapp",
-    description: 'Social, commerce, payments, services, and AI in one trusted platform.',
+    title: "Nodbusiness - Local merchant showrooms and orders",
+    description: 'Simple online showrooms and order tools for local merchants.',
     images: ['/brand/nodbusiness-logo.svg'],
   },
 };
@@ -44,13 +41,10 @@ const modules = [
   { title: 'Wallet', desc: 'Payments, balances, invoices, and transaction history.', Icon: CreditCard },
   { title: 'Messaging', desc: 'Direct chat, groups, channels, and notifications.', Icon: MessageCircle },
   { title: 'AI Assistant', desc: 'Help users write, search, sell, and grow faster.', Icon: Bot },
-  { title: 'Tasks', desc: 'Post errands, collect bids, and coordinate delivery.', Icon: Zap },
-  { title: 'Jobs', desc: 'Hire locally and find better work opportunities.', Icon: Briefcase },
-  { title: 'Courses', desc: 'Teach, learn, and sell digital education.', Icon: GraduationCap },
 ];
 
 const stats = [
-  ['9+', 'Core modules'],
+  ['6', 'Merchant tools'],
   ['27+', 'Showroom templates'],
   ['24/7', 'AI assistant'],
   ['1', 'Connected platform'],
@@ -59,7 +53,6 @@ const stats = [
 const previewRows = [
   ['Feed', 'Aster shared a showroom launch', 'Live'],
   ['Order', 'Coffee pack paid with wallet', 'Paid'],
-  ['Task', 'Delivery bid accepted', 'Open'],
 ];
 
 export default function LandingPage() {
@@ -75,7 +68,7 @@ export default function LandingPage() {
           <Link href="/register" className="hidden sm:inline-flex h-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-xl hover:bg-white/20 transition-all">
             Create Account
           </Link>
-          <Link href="/choose-mode" className="inline-flex h-9 items-center justify-center rounded-xl bg-white px-4 text-sm font-bold text-blue-700 shadow-lg hover:bg-blue-50 transition-all">
+          <Link href="/login" className="inline-flex h-9 items-center justify-center rounded-xl bg-white px-4 text-sm font-bold text-blue-700 shadow-lg hover:bg-blue-50 transition-all">
             Sign In
           </Link>
         </div>
@@ -137,13 +130,13 @@ export default function LandingPage() {
           <h1 className="max-w-5xl text-4xl font-black leading-tight tracking-normal sm:text-7xl lg:text-8xl">
             Nodbusiness
             <span className="block text-white/78">
-              <span className="block sm:inline">The Global</span>
+              <span className="block sm:inline">Merchant</span>
               <span className="hidden sm:inline"> </span>
-              <span className="block sm:inline">Superapp</span>
+              <span className="block sm:inline">Commerce</span>
             </span>
           </h1>
           <p className="mt-6 max-w-[21rem] text-sm font-medium leading-7 text-white/76 sm:max-w-2xl sm:text-xl">
-            One trusted platform where people connect, businesses sell, customers pay, teams chat, tasks move, and AI helps the whole ecosystem grow.
+            One simple platform where local businesses create showrooms, connect with customers, and manage orders.
           </p>
           <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
             {/* Primary: create or sign in */}
@@ -238,7 +231,7 @@ export default function LandingPage() {
                     <Image src="/brand/nodbusiness-icon.svg" alt="" width={40} height={40} className="h-10 w-10 rounded-xl object-cover flex-shrink-0" />
                     <div>
                       <p className="text-sm font-black">Nodbusiness</p>
-                      <p className="text-xs text-slate-500">Superapp dashboard</p>
+                      <p className="text-xs text-slate-500">Merchant dashboard</p>
                     </div>
                   </div>
                   <LayoutGrid className="h-5 w-5 text-blue-600" />
@@ -294,7 +287,7 @@ export default function LandingPage() {
               Create Account
             </Link>
             <Link
-              href="/choose-mode"
+              href="/login"
               className="inline-flex h-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur-xl hover:bg-white/20 transition-all"
             >
               Sign In
@@ -305,9 +298,9 @@ export default function LandingPage() {
 
       <footer className="border-t border-white/10 bg-slate-950 px-6 py-8 text-sm text-white/55">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-          <p>© 2026 Nodbusiness. The Global Superapp.</p>
+          <p>© 2026 Nodbusiness. Showrooms and orders for local merchants.</p>
           <div className="flex gap-5">
-            <Link href="/choose-mode" className="hover:text-white">Sign In</Link>
+            <Link href="/login" className="hover:text-white">Sign In</Link>
             <Link href="/register" className="hover:text-white">Register</Link>
             <Link href="/marketplace" className="hover:text-white">Marketplace</Link>
             <Link href="/showrooms" className="hover:text-white">Showrooms</Link>

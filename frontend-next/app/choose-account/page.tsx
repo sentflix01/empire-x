@@ -60,7 +60,7 @@ export default function ChooseAccountPage() {
             <div className="min-w-0">
               <p className="text-white font-bold text-base">Business Profile</p>
               <p className="text-white/55 text-sm mt-1 leading-relaxed">
-                Get a mini-website (showroom), sell products, accept payments, post jobs, and reach thousands of local customers.
+                Build a guided business showroom, sell products and services, accept orders, and reach local customers.
               </p>
               <span className="inline-block mt-3 text-xs font-semibold text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-full">
                 Includes personal profile

@@ -14,6 +14,7 @@ import pool from '../db/pool';
 import { requireAuth } from '../middleware/auth';
 import { getRecord, createRecord, updateRecord } from '../utils/crud';
 import { collectCommission } from './commission';
+import { resolvePartnerAttribution, recordProfileOwnerCommission } from './profilePartnerships';
 import { notifyUser } from './telegram';
 import { emitNotification } from '../socket';
 import { sendPushToUser } from './push';
@@ -181,6 +182,9 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     if (product.stock !== null && product.stock !== undefined && Number(product.stock) < quantity) {
       apiError.validationError(res, `Only ${product.stock} of this product are in stock`); return;
     }
+    let partner: Awaited<ReturnType<typeof resolvePartnerAttribution>> = null;
+    try { partner = await resolvePartnerAttribution(body.partnership_code, String(product.id), req.user!.id); }
+    catch (err) { apiError.validationError(res, err instanceof Error ? err.message : 'Invalid partnership link'); return; }
     const unitPrice = Number(product.price);
     const totalPrice = Math.round(unitPrice * quantity * 100) / 100;
     if (!Number.isFinite(unitPrice) || unitPrice <= 0 || !Number.isFinite(totalPrice) || totalPrice <= 0 || totalPrice > 10_000_000) {
@@ -204,6 +208,10 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       status: 'pending',
       currency: 'ETB',
       payment_provider: 'cod',
+      profile_partnership_id: partner?.partnershipId,
+      profile_owner_id: partner?.profileOwnerId,
+      profile_commission_rate: partner?.rate,
+      profile_eligible_subtotal: partner ? totalPrice : null,
     });
     createdOrderId = String(order.id);
     await reserveInventoryForOrders([{ orderId: createdOrderId, lines: [{ productId: String(product.id), quantity }] }]);
@@ -268,6 +276,7 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     if ((updates as {status?:string}).status==='completed' && existing.status!=='completed') {
       await commitOrderInventory(pool, [req.params.id]).catch(err => logger.error({ err }, 'Failed to commit inventory for completed COD order'));
       collectCommission(existing.id as string, existing.seller_id as string, parseFloat(String(existing.total_price))).catch(err => logger.error({err},'Commission failed'));
+      recordProfileOwnerCommission(existing).catch(err => logger.error({ err, orderId: existing.id }, 'Profile-owner commission recording failed'));
       notifyUser(existing.seller_id as string, `✅ <b>Order Completed</b>\n${existing.product_title}\nAmount: ${existing.total_price} ${existing.currency}`).catch(()=>undefined);
       notifyUser(existing.buyer_id as string, `📦 <b>Your order is complete!</b>\n${existing.product_title}\nThank you for shopping on Nodbusiness 👑`).catch(()=>undefined);
       const [buyerNotifResult, sellerNotifResult] = await Promise.all([
@@ -314,6 +323,12 @@ router.post('/checkout/session', requireAuth, requireIsolatedPaymentEnvironment,
     const { rows: products } = await pool.query('SELECT * FROM products WHERE id=ANY($1::uuid[])', [requested.map(i=>i.product_id)]);
     const productById = new Map(products.map((p: Record<string,unknown>) => [p.id as string, p]));
     for (const item of requested) { if (!productById.has(item.product_id)) { apiError.notFound(res, 'One or more products not found'); return; } }
+    let partner: Awaited<ReturnType<typeof resolvePartnerAttribution>> = null;
+    if (body.partnership_code !== undefined && body.partnership_code !== '') {
+      if (requested.length !== 1) { apiError.validationError(res, 'A profile partnership checkout can contain one product at a time'); return; }
+      try { partner = await resolvePartnerAttribution(body.partnership_code, requested[0].product_id, req.user!.id); }
+      catch (err) { apiError.validationError(res, err instanceof Error ? err.message : 'Invalid partnership link'); return; }
+    }
     const groups = new Map<string,{seller_id:string;items:Array<{product:Record<string,unknown>;quantity:number}>;subtotal:number;orderId?:string}>();
     for (const item of requested) {
       const product = productById.get(item.product_id)!;
@@ -355,6 +370,10 @@ router.post('/checkout/session', requireAuth, requireIsolatedPaymentEnvironment,
         unit_price:parseFloat(String(group.items[0].product.price)),
         total_price:total, currency:'ETB', status:'pending', payment_provider:'stripe',
         amount_subtotal:subtotal, amount_discount:discount,
+        profile_partnership_id:partner?.partnershipId,
+        profile_owner_id:partner?.profileOwnerId,
+        profile_commission_rate:partner?.rate,
+        profile_eligible_subtotal:partner ? total : null,
         buyer_name:String(body.buyer_name||''), buyer_email:String(body.buyer_email||req.user!.email||''),
         buyer_phone:String(body.buyer_phone||''), delivery_address:String(body.delivery_address||''), notes:String(body.notes||''),
       });
@@ -476,6 +495,43 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
     const { rows } = await pool.query(`SELECT * FROM orders WHERE stripe_payment_intent_id=$1 AND status IN ('paid','processing','completed')`, [obj.payment_intent]);
     for (const order of rows) {
       if (isFullRefund) await pool.query(`UPDATE orders SET status='refunded',updated_at=NOW() WHERE id=$1`, [order.id]);
+      const { rows: creatorCommissions } = await pool.query(
+        `SELECT id,eligible_gross,amount,rate FROM profile_owner_commissions WHERE order_id=$1 AND status='earned'`,
+        [order.id],
+      );
+      for (const creatorCommission of creatorCommissions as Array<Record<string, unknown>>) {
+        const eligibleBase = Number(creatorCommission.eligible_gross) || 0;
+        const { rows: priorAdjustments } = await pool.query(
+          `SELECT COALESCE(SUM(eligible_subtotal_delta),0) AS base_reversed,
+                  COALESCE(SUM(amount_delta),0) AS commission_reversed
+             FROM profile_owner_commission_adjustments
+            WHERE commission_id=$1 AND provider_object_id=$2 AND reason='refund'`,
+          [creatorCommission.id, String(obj.id ?? obj.payment_intent)],
+        );
+        const alreadyReversedBase = Number(priorAdjustments[0]?.base_reversed) || 0;
+        const alreadyReversedAmount = Number(priorAdjustments[0]?.commission_reversed) || 0;
+        const originalBase = eligibleBase + alreadyReversedBase;
+        const originalAmount = Number(creatorCommission.amount) + alreadyReversedAmount;
+        const targetBaseReversed = isFullRefund ? originalBase : Math.min(originalBase, Math.round(originalBase * ratio * 100) / 100);
+        const targetAmountReversed = isFullRefund ? originalAmount : Math.min(originalAmount, Math.round(targetBaseReversed * Number(creatorCommission.rate) * 100) / 100);
+        const baseReversal = Math.max(0, Math.round((targetBaseReversed - alreadyReversedBase) * 100) / 100);
+        const commissionReversal = Math.max(0, Math.round((targetAmountReversed - alreadyReversedAmount) * 100) / 100);
+        if (baseReversal <= 0 || commissionReversal < 0) continue;
+        await pool.query(
+          `WITH adjustment AS (
+             INSERT INTO profile_owner_commission_adjustments
+               (commission_id,order_id,provider_event_id,provider_object_id,reason,amount_delta,eligible_subtotal_delta)
+             VALUES ($1,$2,$3,$4,'refund',$5,$6) ON CONFLICT DO NOTHING RETURNING id
+           )
+           UPDATE profile_owner_commissions c
+              SET eligible_gross=GREATEST(c.eligible_gross-$6,0),
+                  amount=GREATEST(c.amount-$5,0),
+                  status=CASE WHEN $7::boolean OR c.amount-$5<=0 THEN 'reversed' ELSE c.status END,
+                  updated_at=NOW()
+             FROM adjustment WHERE c.id=$1 AND c.status='earned'`,
+          [creatorCommission.id, order.id, String(event.id ?? `stripe-refund:${obj.id}`), String(obj.id ?? obj.payment_intent), commissionReversal, baseReversal, isFullRefund],
+        );
+      }
       const { rows:comms } = await pool.query(`SELECT id,amount FROM commissions WHERE order_id=$1 AND status<>'refunded'`, [order.id]);
       for (const c of comms) {
         const rev=Math.round(parseFloat(String(c.amount))*ratio*100)/100; if(rev<=0) continue;
@@ -486,6 +542,71 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
         auditLog({ action:'commission_reversal', entity_type:'wallet', entity_id:order.seller_id as string, amount:rev, metadata:{order_id:order.id, is_full_refund:isFullRefund} }).catch(()=>{});
       }
       notifyUser(order.buyer_id as string, `💸 <b>Refund processed</b>\n${order.product_title}`).catch(()=>undefined);
+    }
+  }
+  if (type === 'charge.dispute.created' || type === 'charge.dispute.closed') {
+    const paymentIntentId = String(obj.payment_intent || '');
+    const disputeId = String(obj.id || '');
+    if (!paymentIntentId || !disputeId) return;
+    const { rows: disputedOrders } = await pool.query(
+      `SELECT id FROM orders WHERE stripe_payment_intent_id=$1 AND status IN ('paid','processing','completed','disputed')`,
+      [paymentIntentId],
+    );
+    for (const order of disputedOrders as Array<Record<string, unknown>>) {
+      if (type === 'charge.dispute.created') {
+        const { rows: commissions } = await pool.query(
+          `SELECT id,amount,eligible_gross FROM profile_owner_commissions WHERE order_id=$1 AND status='earned'`,
+          [order.id],
+        );
+        for (const commission of commissions as Array<Record<string, unknown>>) {
+          await pool.query(
+            `WITH adjustment AS (
+               INSERT INTO profile_owner_commission_adjustments
+                 (commission_id,order_id,provider_event_id,provider_object_id,reason,amount_delta,eligible_subtotal_delta)
+               VALUES ($1,$2,$3,$4,'dispute_opened',$5,$6) ON CONFLICT DO NOTHING RETURNING id
+             )
+             UPDATE profile_owner_commissions c SET status='reversed',amount=0,eligible_gross=0,updated_at=NOW()
+              FROM adjustment WHERE c.id=$1 AND c.status='earned'`,
+            [commission.id, order.id, String(event.id ?? `stripe-dispute-open:${disputeId}`), disputeId, -Number(commission.amount), -Number(commission.eligible_gross)],
+          );
+        }
+      } else {
+        const outcome = String(obj.status || '').toLowerCase();
+        if (outcome !== 'won' && outcome !== 'lost') continue;
+        if (outcome === 'won') {
+          await pool.query(
+            `WITH prior AS (
+               SELECT a.commission_id,SUM(a.amount_delta) AS amount_delta,SUM(a.eligible_subtotal_delta) AS base_delta
+                 FROM profile_owner_commission_adjustments a
+                WHERE a.order_id=$1 AND a.provider_object_id=$2 AND a.reason='dispute_opened'
+                GROUP BY a.commission_id
+             ), adjustment AS (
+               INSERT INTO profile_owner_commission_adjustments
+                 (commission_id,order_id,provider_event_id,provider_object_id,reason,amount_delta,eligible_subtotal_delta)
+               SELECT prior.commission_id,$1,$3,$2,'dispute_won',-prior.amount_delta,-prior.base_delta FROM prior
+               ON CONFLICT DO NOTHING RETURNING commission_id,amount_delta,eligible_subtotal_delta
+             )
+             UPDATE profile_owner_commissions c
+                SET amount=GREATEST(c.amount+a.amount_delta,0),eligible_gross=GREATEST(c.eligible_gross+a.eligible_subtotal_delta,0),
+                    status=CASE WHEN c.amount+a.amount_delta>0 THEN 'earned' ELSE 'reversed' END,updated_at=NOW()
+               FROM adjustment a WHERE c.id=a.commission_id AND c.status='reversed'`,
+            [order.id, disputeId, String(event.id ?? `stripe-dispute-won:${disputeId}`)],
+          );
+        } else {
+          const { rows: commissions } = await pool.query(
+            `SELECT id FROM profile_owner_commissions WHERE order_id=$1 AND status='reversed'`,
+            [order.id],
+          );
+          for (const commission of commissions as Array<Record<string, unknown>>) {
+            await pool.query(
+              `INSERT INTO profile_owner_commission_adjustments
+                (commission_id,order_id,provider_event_id,provider_object_id,reason,amount_delta,eligible_subtotal_delta)
+               VALUES ($1,$2,$3,$4,'dispute_lost',0,0) ON CONFLICT DO NOTHING`,
+              [commission.id, order.id, String(event.id ?? `stripe-dispute-lost:${disputeId}`), disputeId],
+            );
+          }
+        }
+      }
     }
   }
 }
@@ -543,6 +664,9 @@ router.post('/checkout/chapa', requireAuth, requireIsolatedPaymentEnvironment, r
     if (product.stock !== null && product.stock !== undefined && Number(product.stock) < qty) {
       apiError.validationError(res, `Only ${product.stock} of this product are in stock`); return;
     }
+    let partner: Awaited<ReturnType<typeof resolvePartnerAttribution>> = null;
+    try { partner = await resolvePartnerAttribution(body.partnership_code, String(product.id), req.user!.id); }
+    catch (err) { apiError.validationError(res, err instanceof Error ? err.message : 'Invalid partnership link'); return; }
     const unitPrice = Number(product.price);
     const total = Math.round(unitPrice * qty * 100) / 100;
     if (!Number.isFinite(unitPrice) || unitPrice <= 0 || !Number.isFinite(total) || total <= 0 || total > 10_000_000) {
@@ -556,6 +680,10 @@ router.post('/checkout/chapa', requireAuth, requireIsolatedPaymentEnvironment, r
       product_id, product_title:product.title,
       quantity:qty, unit_price:unitPrice, total_price:total, currency:'ETB',
       status:'pending', payment_provider:'chapa', chapa_tx_ref:txRef,
+      profile_partnership_id:partner?.partnershipId,
+      profile_owner_id:partner?.profileOwnerId,
+      profile_commission_rate:partner?.rate,
+      profile_eligible_subtotal:partner ? total : null,
       buyer_name:String(buyer_name||''), buyer_email:String(buyer_email||req.user!.email||''),
       buyer_phone:String(buyer_phone||''), delivery_address:String(delivery_address||''), notes:String(notes||''),
     });

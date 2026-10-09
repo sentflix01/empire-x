@@ -11,17 +11,17 @@ describe('database verifier TLS policy', () => {
       .toEqual({ rejectUnauthorized: true });
   });
 
-  test('allows an explicit TLS opt-out for private development certificates', () => {
+  test('keeps certificate verification enabled when the obsolete insecure opt-out is supplied', () => {
     expect(getPoolOptions('postgresql://db.internal/app', {
       NODE_ENV: 'production',
       DB_TLS_REJECT_UNAUTHORIZED: 'false',
-    }).ssl).toEqual({ rejectUnauthorized: false });
+    }).ssl).toEqual({ rejectUnauthorized: true });
   });
 
-  test('allows explicitly disabling TLS only when an operator sets the override', () => {
+  test('does not allow disabling TLS for production databases', () => {
     expect(getPoolOptions('postgresql://db.internal/app', {
       NODE_ENV: 'production',
       DATABASE_URL_REQUIRE_TLS: 'false',
-    }).ssl).toBe(false);
+    }).ssl).toEqual({ rejectUnauthorized: true });
   });
 });

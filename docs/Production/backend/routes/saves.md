@@ -6,7 +6,7 @@
 
 ## 2. Why does it exist?
 
-Bookmark service powering the bookmarks store: toggle save/unsave for any target type, list saved items for hydration (client store hydrate endpoint).
+Bookmark service powering the bookmarks store: toggle save/unsave for posts, products, and showrooms, and list saved items for hydration. Unsupported target types are rejected.
 
 ## 3. What does it do?
 
@@ -16,8 +16,8 @@ Bookmark service powering the bookmarks store: toggle save/unsave for any target
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/saves/` | auth | 8 |
-| `POST` | `/api/saves/toggle` | auth | 66 |
-| `GET` | `/api/saves/check/:targetId` | auth | 80 |
+| `POST` | `/api/saves/toggle` | auth | 64 |
+| `GET` | `/api/saves/check/:targetId` | auth | 79 |
 
 ## 4. What does it touch?
 

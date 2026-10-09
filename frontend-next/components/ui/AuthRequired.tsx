@@ -13,6 +13,7 @@ interface AuthRequiredProps {
 
 export default function AuthRequired({ message = 'You need to sign in to view this page.', returnPath }: AuthRequiredProps) {
   const loginHref = returnPath ? `/login?return=${encodeURIComponent(returnPath)}` : '/login';
+  const registerHref = returnPath ? `/register?return=${encodeURIComponent(returnPath)}` : '/register';
   return (
     <div className="flex flex-col items-center justify-center min-h-[40vh] px-6 text-center gap-4">
       <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center">
@@ -30,7 +31,7 @@ export default function AuthRequired({ message = 'You need to sign in to view th
           Sign In
         </Link>
         <Link
-          href="/register"
+          href={registerHref}
           className="h-10 px-6 rounded-xl border border-border font-semibold text-sm flex items-center hover:bg-secondary/50 transition-colors"
         >
           Create Account

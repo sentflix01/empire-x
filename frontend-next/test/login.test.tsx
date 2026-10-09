@@ -39,6 +39,7 @@ vi.mock('@/lib/googleAuth', () => ({
 
 import Login from '@/views/Login';
 import { auth } from '@/api/auth';
+import { setSearchParams, clearSearchParams } from './setup';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -54,7 +55,7 @@ function fillAndSubmitForm(email: string, password: string) {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('Login — form fields', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => { vi.clearAllMocks(); setSearchParams({ mode: 'real' }); });
 
   it('renders email and password inputs', () => {
     render(<Login />);
@@ -109,8 +110,10 @@ describe('Login — form fields', () => {
 });
 
 describe('Login — Google Sign-In (GIS rendered button)', () => {
+  beforeEach(() => setSearchParams({ mode: 'real' }));
   afterEach(() => {
     vi.clearAllMocks();
+    clearSearchParams();
     vi.useRealTimers(); // always restore real timers in case a test used fake timers
     mockRenderGoogleSignInButton.mockReturnValue(true);
   });

@@ -24,7 +24,7 @@ router.get('/', optionalAuth, cacheMiddleware('showrooms:list', 30), async (req:
 router.get('/slug/:slug', optionalAuth, async (req: Request, res: Response) => {
   try {
     const realFilter = req.realOnly ? 'AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '';
-    const { rows } = await pool.query(`SELECT * FROM showrooms WHERE slug=$1 ${realFilter}`, [req.params.slug]);
+    const { rows } = await pool.query(`SELECT * FROM showrooms WHERE slug=$1 AND status='published' ${realFilter} AND (expires_at IS NULL OR expires_at > NOW())`, [req.params.slug]);
     if (!rows.length) { res.status(404).json({ error: 'Showroom not found' }); return; }
     await pool.query('UPDATE showrooms SET view_count=view_count+1 WHERE id=$1', [rows[0].id]);
     res.json({ ...rows[0], view_count: rows[0].view_count + 1 });
@@ -119,7 +119,7 @@ router.get('/sitemap-data', async (req: Request, res: Response) => {
   try {
     const realFilter = req.realOnly ? 'AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '';
     const { rows } = await pool.query(
-      `SELECT slug, id, updated_at FROM showrooms WHERE status='published' ${realFilter} ORDER BY updated_at DESC LIMIT 5000`
+      `SELECT slug, id, updated_at FROM showrooms WHERE status='published' AND (expires_at IS NULL OR expires_at > NOW()) ${realFilter} ORDER BY updated_at DESC LIMIT 5000`
     );
     res.json(rows);
   } catch { res.status(500).json({ error: 'Failed to fetch sitemap data' }); }
@@ -127,8 +127,10 @@ router.get('/sitemap-data', async (req: Request, res: Response) => {
 
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
-    const showroom = await getRecord('showrooms', req.params.id, { realOnly: req.realOnly });
+    const showroom = await getRecord<Record<string, unknown>>('showrooms', req.params.id, { realOnly: req.realOnly });
     if (!showroom) { res.status(404).json({ error: 'Showroom not found' }); return; }
+    if (showroom.status !== 'published' && showroom.owner_id !== req.user?.id) { res.status(404).json({ error: 'Showroom not found' }); return; }
+    if (showroom.expires_at && new Date(String(showroom.expires_at)).getTime() <= Date.now()) { res.status(404).json({ error: 'Showroom not found' }); return; }
     res.json(showroom);
   } catch { res.status(500).json({ error: 'Failed to fetch showroom' }); }
 });
@@ -142,6 +144,10 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     const { rows: existing } = await pool.query('SELECT id FROM showrooms WHERE slug=$1', [slug]);
     const finalSlug = existing.length ? `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}` : slug;
     const fields = withoutProtectedFields(req.body as Record<string, unknown>, 'owner_id');
+    delete fields.expires_at;
+    if (req.user!.is_demo && fields.status === 'published') {
+      fields.expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    }
     const showroom = await createRecord('showrooms', { ...fields, slug: finalSlug, owner_id: req.user!.id });
     res.status(201).json(showroom);
   } catch (err) {
@@ -152,10 +158,15 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
 
 router.put('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const existing = await getRecord<{ owner_id: string }>('showrooms', req.params.id);
+    const { rows: currentRows } = await pool.query<{ owner_id: string; status: string; expires_at: Date | null }>('SELECT owner_id, status, expires_at FROM showrooms WHERE id=$1', [req.params.id]);
+    const existing = currentRows[0];
     if (!existing) { res.status(404).json({ error: 'Showroom not found' }); return; }
     if (existing.owner_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
     const updates = withoutProtectedFields(req.body as Record<string, unknown>, 'owner_id');
+    delete updates.expires_at;
+    if (req.user!.is_demo && updates.status === 'published') {
+      updates.expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    }
     if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable showroom fields provided' }); return; }
     res.json(await updateRecord('showrooms', req.params.id, updates));
   } catch { res.status(500).json({ error: 'Failed to update showroom' }); }

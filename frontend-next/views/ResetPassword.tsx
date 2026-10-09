@@ -30,8 +30,8 @@ function ResetPassword() {
     }
     setLoading(true);
     try {
-      await client.post('/api/auth/reset-password', { token: resetToken, password: newPassword });
-      window.location.href = "/login";
+      await client.post('/api/auth/reset-password', { token: resetToken, password: newPassword }, { headers: { 'X-Account-Mode': 'real' } });
+      window.location.href = '/login';
     } catch (err) {
       setError(err.error || err.message || "Failed to reset password");
     } finally {

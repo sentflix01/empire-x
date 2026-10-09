@@ -4,6 +4,7 @@ import Link from 'next/link';
 import NextImage from 'next/image';
 import { useRouter } from 'next/navigation';
 import { entities } from '@/api/entities';
+import { useAuth } from '@/lib/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
 
 import {
@@ -31,6 +32,7 @@ interface Section {
   type: string;
   title?: string;
   subtitle?: string;
+  location?: string;
   items?: SectionItem[];
 }
 
@@ -59,6 +61,8 @@ interface Business {
   business_address?: string;
   business_sections?: string;
   business_hours?: string;
+  showroom_id?: string;
+  showroom_slug?: string;
   [key: string]: unknown;
 }
 
@@ -377,12 +381,14 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
   const [selectedBizId, setSelectedBizId] = useState<string | null>(null);
   const [feedBusinesses, setFeedBusinesses] = useState<Business[]>([]); // global feed mode
-  const [showroomSlugs, setShowroomSlugs] = useState<Record<string, string>>({}); // ownerId → slug
+  const [feedError, setFeedError] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [messaging, setMessaging] = useState(false);
   const [qrOpenId, setQrOpenId] = useState<string | null>(null); // QR popup
   const router = useRouter();
+  const { user: signedInUser } = useAuth();
+  const viewer = currentUser ?? signedInUser;
 
   // ── Purchase modal state ───────────────────────────────────────────
   const [purchaseModal, setPurchaseModal] = useState<{
@@ -395,35 +401,57 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
 
   const loadFeedBusinesses = useCallback(async () => {
     setLoading(true);
+    setFeedError('');
     try {
-      // Load up to 20 businesses for the feed
-      const data = await entities.Business.filter({}, '-created_at', 20) as Business[];
-      setFeedBusinesses(data ?? []);
-
-      // Fetch showroom slugs for each business owner (for QR codes)
-      // Each QR must link to that business's specific showroom page
-      if (data?.length) {
-        const ownerIds = [...new Set(data.map(b => b.owner_id).filter(Boolean))];
-        try {
-          const showroomData = await Promise.all(
-            ownerIds.map(id =>
-              entities.Showroom.filter({ owner_id: id, status: 'published' }, '-created_at', 1)
-                .then((rows: unknown[]) => {
-                  const s = rows?.[0] as { owner_id?: string; slug?: string } | undefined;
-                  return s?.slug ? { ownerId: id, slug: s.slug } : null;
-                })
-                .catch(() => null)
-            )
+      const [businessRows, showroomRows] = await Promise.all([
+        entities.Business.filter({}, '-created_at', 50) as Promise<Business[]>,
+        entities.Showroom.filter({ status: 'published' }, '-created_at', 50) as Promise<Array<Record<string, unknown>>>,
+      ]);
+      const publishedShowrooms = showroomRows.filter(showroom => showroom.status === 'published');
+      const showroomItems: Business[] = publishedShowrooms.map(showroom => {
+        const sectionsJson = typeof showroom.sections === 'string'
+          ? showroom.sections
+          : JSON.stringify(showroom.sections ?? []);
+        const contact = parseSections(sectionsJson).find(section => section.type === 'contact');
+        return {
+          ...showroom,
+          id: String(showroom.id),
+          owner_id: String(showroom.owner_id ?? ''),
+          business_name: String(showroom.title ?? 'Business'),
+          business_category: String(showroom.category ?? 'other'),
+          business_theme_color: String(showroom.theme_color ?? '#2563EB'),
+          business_logo_url: String(showroom.logo_url ?? ''),
+          business_cover_url: String(showroom.cover_image ?? ''),
+          business_description: String(showroom.description ?? ''),
+          business_address: String(contact?.location ?? ''),
+          business_sections: sectionsJson,
+          showroom_id: String(showroom.id),
+          showroom_slug: String(showroom.slug ?? ''),
+        };
+      });
+      const nameKey = (value?: string) => String(value ?? '').trim().toLocaleLowerCase();
+      const showroomKeys = new Set(publishedShowrooms.map(showroom =>
+        `${showroom.owner_id}:${nameKey(String(showroom.title ?? ''))}`,
+      ));
+      const businessItems = businessRows
+        .filter(business => !showroomKeys.has(`${business.owner_id}:${nameKey(business.business_name)}`))
+        .map(business => {
+          const matchingShowroom = publishedShowrooms.find(showroom =>
+            showroom.owner_id === business.owner_id && nameKey(String(showroom.title ?? '')) === nameKey(business.business_name),
           );
-          const slugMap: Record<string, string> = {};
-          showroomData.forEach(item => {
-            if (item) slugMap[item.ownerId as string] = item.slug;
-          });
-          setShowroomSlugs(slugMap);
-        } catch { /* non-critical — QR falls back to profile URL */ }
-      }
-    } catch { setFeedBusinesses([]); }
-    setLoading(false);
+          return matchingShowroom
+            ? { ...business, showroom_id: String(matchingShowroom.id), showroom_slug: String(matchingShowroom.slug ?? '') }
+            : business;
+        });
+      setFeedBusinesses([...showroomItems, ...businessItems]
+        .sort((left, right) => Date.parse(String(right.created_at ?? '')) - Date.parse(String(left.created_at ?? '')))
+        .slice(0, 50));
+    } catch {
+      setFeedBusinesses([]);
+      setFeedError('We could not load business profiles. Check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const ownerId = profile?.user_id;
@@ -484,12 +512,25 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
 
   // ── Global feed mode — render a scrollable list of business cards ──
   if (isFeedMode) {
+    const buildPath = signedInUser ? '/showroom/create' : '/register';
     if (feedBusinesses.length === 0) {
       return (
         <div className="text-center py-10 px-4">
-          <Store className="w-10 h-10 text-muted-foreground/20 mx-auto mb-2" />
-          <p className="text-sm font-medium text-muted-foreground">No businesses yet</p>
-          <p className="text-xs text-muted-foreground/60 mt-1">Be the first to create a business showroom!</p>
+          {feedError ? (
+            <>
+              <p role="alert" className="text-sm font-medium text-destructive">{feedError}</p>
+              <button type="button" onClick={loadFeedBusinesses} className="mt-3 text-sm font-semibold text-primary hover:underline">Try again</button>
+            </>
+          ) : (
+            <>
+              <Store className="w-10 h-10 text-muted-foreground/20 mx-auto mb-2" />
+              <p className="text-sm font-medium text-muted-foreground">No published businesses yet</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Create a showroom and publish it to share it here.</p>
+              <Link href={buildPath} className="mt-4 inline-flex h-10 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">
+                Build a showroom
+              </Link>
+            </>
+          )}
         </div>
       );
     }
@@ -507,15 +548,24 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           const logoUrl    = biz.business_logo_url as string | undefined;
           const coverUrl   = biz.business_cover_url as string | undefined;
           const ownerId    = biz.owner_id as string || '';
-          // Use showroom slug for QR — each business has its own unique public showroom URL
-          const showroomSlug = showroomSlugs[ownerId];
+          const showroomSlug = typeof biz.showroom_slug === 'string' ? biz.showroom_slug : '';
+          const showroomId = typeof biz.showroom_id === 'string' ? biz.showroom_id : '';
+          const visitPath = showroomSlug
+            ? `/showroom/${showroomSlug}`
+            : showroomId
+              ? `/showrooms/${showroomId}`
+              : `/profile/${ownerId}?view=business`;
           const qrUrl = typeof window !== 'undefined'
             ? showroomSlug
               ? `${window.location.origin}/showroom/${showroomSlug}`
-              : `${window.location.origin}/profile/${ownerId}?view=business`
+              : showroomId
+                ? `${window.location.origin}/showrooms/${showroomId}`
+                : `${window.location.origin}/profile/${ownerId}?view=business`
             : showroomSlug
               ? `https://nodbusiness.vercel.app/showroom/${showroomSlug}`
-              : `https://nodbusiness.vercel.app/profile/${ownerId}?view=business`;
+              : showroomId
+                ? `https://nodbusiness.vercel.app/showrooms/${showroomId}`
+                : `https://nodbusiness.vercel.app/profile/${ownerId}?view=business`;
 
           return (
             <div key={biz.id} className="rounded-2xl border border-border/50 overflow-hidden bg-card shadow-sm">
@@ -620,7 +670,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                                 Scan with your phone camera to open this business showroom — no account needed
                               </p>
                               <Link
-                                href={showroomSlug ? `/showroom/${showroomSlug}` : `/profile/${ownerId}?view=business`}
+                                href={visitPath}
                                 className="mt-3 flex items-center justify-center gap-2 w-full h-9 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90"
                                 style={{ backgroundColor: color }}
                                 onClick={() => setQrOpenId(null)}
@@ -633,20 +683,20 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                       )}
                     </div>
                     <SharedBookmarkButton
-                      targetId={biz.id}
+                      targetId={showroomId || biz.id}
                       targetType="showroom"
                       itemData={{ title: bizName }}
                       className="w-8 h-8 rounded-full border border-border/40 bg-card/80 backdrop-blur-sm shadow-sm hover:scale-110 active:scale-95 transition-all"
                     />
                   </div>
                   <div className="flex gap-2 mb-1">
-                    {currentUser && ownerId && ownerId !== currentUser.id && (
+                    {viewer && ownerId && ownerId !== viewer.id && (
                       <Button size="sm" variant="outline" className="rounded-full h-7 text-xs"
                         onClick={() => handleMessage(ownerId, bizName)} disabled={messaging}>
                         <MessageSquare className="w-3 h-3 mr-1" />Message
                       </Button>
                     )}
-                    <Link href={`/profile/${ownerId}?view=business`}>
+                    <Link href={visitPath}>
                       <Button size="sm" className="rounded-full h-7 text-xs text-white"
                         style={{ backgroundColor: color }}>
                         Visit <ArrowRight className="w-3 h-3 ml-1" />
@@ -703,7 +753,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
         <PurchaseModal
           item={purchaseModal.item}
           seller={purchaseModal.seller}
-          buyer={currentUser ? { id: currentUser.id as string } : undefined}
+          buyer={viewer ? { id: viewer.id as string } : undefined}
           onClose={() => setPurchaseModal(null)}
           onPurchased={() => setPurchaseModal(null)}
         />

@@ -16,7 +16,7 @@ import type { Redis as RedisClient } from 'ioredis';
 const router = Router({ mergeParams: true });
 
 const VALID_AUTH_METHODS = ['none', 'bearer_token', 'api_key_header', 'api_key_query'];
-const VALID_SECTION_KEYS = ['items','services','gallery','testimonials','team','faq','features','stats','portfolio','pricing','process','caseStudies','partners','awards','careers','industries'];
+const VALID_SECTION_KEYS = ['items','services','gallery','testimonials','team','faq','features','stats','portfolio','pricing','process','caseStudies','partners','awards','industries'];
 
 // ── Ownership middleware ──────────────────────────────────────────────────────
 

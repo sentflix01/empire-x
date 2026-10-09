@@ -109,7 +109,6 @@ router.get('/nearby', optionalAuth, async (req: Request, res: Response) => {
   const results: Record<string, unknown[]> = {};
   const realProductFilter = req.realOnly ? 'AND seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '';
   const realBusinessFilter = req.realOnly ? 'AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '';
-  const realTaskFilter = req.realOnly ? 'AND requester_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '';
   const realPeopleJoin = req.realOnly ? 'JOIN users u ON u.id=up.user_id AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
 
   try {
@@ -126,13 +125,6 @@ router.get('/nearby', optionalAuth, async (req: Request, res: Response) => {
         [lim * 3],
       );
       results.businesses = attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim);
-    }
-    if (type === 'all' || type === 'tasks') {
-      const { rows } = await pool.query(
-        `SELECT id,requester_id,title,task_type,offered_payment,currency,location,latitude,longitude FROM tasks WHERE status='open' AND latitude IS NOT NULL AND longitude IS NOT NULL ${realTaskFilter} LIMIT $1`,
-        [lim * 3],
-      );
-      results.tasks = attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim);
     }
     if (type === 'all' || type === 'people') {
       const { rows } = await pool.query(

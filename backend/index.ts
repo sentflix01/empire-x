@@ -51,8 +51,9 @@ import responseTime from './middleware/responseTime';
 import { realModeMiddleware } from './middleware/realMode';
 import { demoEnvironmentMiddleware } from './middleware/demoEnvironment';
 import { requireAuth, requireAdmin } from './middleware/auth';
-import { activeStorageProvider, isSupabaseConfigured } from './middleware/upload';
-import pool, { closeAllPools } from './db/pool';
+import { activeStorageProvider, getSupabaseStorageAuthHeaders, isSupabaseConfigured, verifyDemoStorageIsolation } from './middleware/upload';
+import pool, { closeAllPools, runWithDatabaseEnvironment, verifySharedDatabaseIsolation } from './db/pool';
+import { verifyDemoAssetToken } from './middleware/demoEnvironment';
 import * as apiError from './lib/apiError';
 
 // ── App setup ─────────────────────────────────────────────────────────────────
@@ -94,7 +95,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // ── Real-mode filter ──────────────────────────────────────────────────────────
-app.use(realModeMiddleware);
 
 // ── Request ID / HTTP access log / API version ────────────────────────────────
 app.use(requestId);
@@ -119,7 +119,11 @@ function checkEnv(): void {
       warnings.push('Email (RESEND_API_KEY or SMTP_HOST) — OTP emails will only print to console');
     }
   }
-  if (!process.env.STRIPE_SECRET_KEY) {
+  // Stripe is intentionally disabled in some deployments (for example,
+  // Render uses Chapa only). Do not report a missing key as a production
+  // warning unless the Stripe feature flag is enabled.
+  const stripePaymentsEnabled = process.env.FF_STRIPE_PAYMENTS !== 'false';
+  if (stripePaymentsEnabled && !process.env.STRIPE_SECRET_KEY) {
     warnings.push('Stripe (STRIPE_SECRET_KEY) — payments will not work');
   }
   if (!process.env.GOOGLE_CLIENT_ID) {
@@ -255,16 +259,45 @@ app.use('/api/auth/refresh',          rateLimit(rlOpts(60,  'rl:refresh:')));
 // ── Body parsing ──────────────────────────────────────────────────────────────
 app.use('/api/orders/webhook',        express.raw({ type: 'application/json' }));
 app.use('/api/subscriptions/webhook', express.raw({ type: 'application/json' }));
-app.use('/api/mewacho/webhook',       express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 // Resolve demo-session cookies before auth, data, or payment routes execute so
 // AsyncLocalStorage selects the isolated demo database for the whole request.
 app.use(demoEnvironmentMiddleware);
+app.use(realModeMiddleware);
 
 // ── Static uploads ────────────────────────────────────────────────────────────
-app.use('/uploads', express.static(path.join(__dirname, process.env.UPLOAD_DIR ?? 'uploads')));
+const uploadRoot = path.resolve(process.cwd(), process.env.UPLOAD_DIR ?? 'uploads');
+app.use('/uploads', async (req, res, next) => {
+  let relativeKey: string;
+  try { relativeKey = decodeURIComponent(req.path.replace(/^\//, '')); }
+  catch { res.sendStatus(404); return; }
+  if (!relativeKey.startsWith('demo/')) {
+    if (req.demoSession) { res.sendStatus(404); return; }
+    next();
+    return;
+  }
+
+  const [, sessionId] = relativeKey.split('/');
+  const token = typeof req.query.demo_asset === 'string' ? req.query.demo_asset : '';
+  if (process.env.DEMO_ENABLED !== 'true' || !sessionId || (req.demoSession && req.demoSession.id !== sessionId) || !verifyDemoAssetToken(token, sessionId, relativeKey)) {
+    res.sendStatus(404);
+    return;
+  }
+
+  try {
+    const active = await runWithDatabaseEnvironment({ environment: 'demo' }, async () => {
+      const result = await pool.query('SELECT 1 FROM demo_sessions WHERE id=$1 AND status=\'active\' AND expires_at>NOW()', [sessionId]);
+      return result.rowCount === 1;
+    });
+    if (!active) { res.sendStatus(404); return; }
+    res.set('Cache-Control', 'private, no-store');
+    next();
+  } catch {
+    res.status(503).json({ error: 'Demo asset storage is temporarily unavailable' });
+  }
+}, express.static(uploadRoot));
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/health', async (_req: Request, res: Response) => {
@@ -301,7 +334,7 @@ app.use('/api/profiles',     require('./routes/profiles'));
 app.use('/api/posts',        require('./routes/posts'));
 app.use('/api/products',     require('./routes/products'));
 app.use('/api/orders',       require('./routes/orders'));
-app.use('/api/tasks',        require('./routes/tasks'));
+app.use('/api/profile-partnerships', require('./routes/profilePartnerships'));
 app.use('/api/messages',     require('./routes/messages'));
 app.use('/api/notifications',require('./routes/notifications'));
 app.use('/api/businesses',   require('./routes/businesses'));
@@ -313,9 +346,6 @@ app.use('/api/stories',      require('./routes/stories'));
 app.use('/api/reviews',      require('./routes/reviews'));
 app.use('/api/saves',        require('./routes/saves'));
 app.use('/api/moderation',   require('./routes/moderation'));
-app.use('/api/events',       require('./routes/events'));
-app.use('/api/jobs',         require('./routes/jobs'));
-app.use('/api/courses',      require('./routes/courses'));
 app.use('/api/wallet',       require('./routes/wallet'));
 app.use('/api/push',         require('./routes/push'));
 app.use('/api/trending',     require('./routes/trending'));
@@ -341,7 +371,6 @@ app.use('/api/showrooms/:showroomId/external-sources', require('./routes/externa
 app.use('/api/proxy',        require('./routes/proxy'));
 app.use('/api/devops',       require('./routes/devops'));
 app.use('/api/docs',         require('./routes/docs'));
-app.use('/api/mewacho',      require('./routes/mewacho'));
 
 // ── Subscription tiers & business features ───────────────────────────────────
 app.use('/api/subscriptions',      require('./routes/subscriptions'));
@@ -381,7 +410,7 @@ const { startDigestSchedule } = require('./scripts/showroom-digests') as { start
 
 initSocket(server, allowedOrigins);
 
-server.listen(PORT, () => {
+void verifySharedDatabaseIsolation().then(verifyDemoStorageIsolation).then(() => server.listen(PORT, () => {
   logger.info(`👑 Nodbusiness backend running on http://localhost:${PORT}`);
   logger.info(`   Health: http://localhost:${PORT}/health`);
   logger.info('   WebSocket: enabled for real-time chat');
@@ -399,7 +428,7 @@ server.listen(PORT, () => {
       const projectUrl = match ? match[0] : raw.replace(/\/$/, '');
       const key        = process.env.SUPABASE_STORAGE_KEY;
       const bucket     = process.env.SUPABASE_BUCKET;
-      const H: Record<string, string> = { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
+      const H: Record<string, string> = { ...getSupabaseStorageAuthHeaders(key), 'Content-Type': 'application/json' };
 
       const check = await fetch(`${projectUrl}/storage/v1/bucket/${bucket}`, { headers: H });
       if (check.ok) { logger.info(`☁️  Supabase Storage bucket "${bucket}" ready`); return; }
@@ -423,14 +452,13 @@ server.listen(PORT, () => {
     if (process.env.ENABLE_STARTUP_CACHE_WARM === 'true') setTimeout(async () => {
       try {
         await cached('trending:global', 300, async () => {
-          const [posts, products, showrooms, tasks, users] = await Promise.all([
+          const [posts, products, showrooms, users] = await Promise.all([
             pool.query(`SELECT DISTINCT p.id,p.author_id,p.author_name,p.content,p.image_url,p.post_type,p.like_count,p.comment_count,p.created_at FROM posts p WHERE p.created_at > NOW()-INTERVAL '48 hours' ORDER BY p.like_count DESC LIMIT 10`),
             pool.query(`SELECT DISTINCT id,seller_id,title,price,currency,images,category,view_count FROM products WHERE status='active' ORDER BY view_count DESC LIMIT 8`),
             pool.query(`SELECT DISTINCT id,owner_id,title,category,cover_image,logo_url,view_count FROM showrooms WHERE status='published' ORDER BY view_count DESC LIMIT 6`),
-            pool.query(`SELECT id,requester_id,title,task_type,offered_payment,currency,location FROM tasks WHERE status='open' ORDER BY created_at DESC LIMIT 8`),
             pool.query(`SELECT user_id,display_name,avatar_url,headline,follower_count FROM user_profiles ORDER BY follower_count DESC LIMIT 8`),
           ]);
-          return { trending_posts: posts.rows, top_products: products.rows, featured_showrooms: showrooms.rows, open_tasks: tasks.rows, suggested_users: users.rows };
+          return { trending_posts: posts.rows, top_products: products.rows, featured_showrooms: showrooms.rows, suggested_users: users.rows };
         });
         logger.info('Startup cache warm complete');
       } catch { logger.warn('Startup cache warm failed'); }
@@ -452,6 +480,9 @@ server.listen(PORT, () => {
       } catch { /* ignore — network not required */ }
     }, 10 * 60 * 1_000);
   }
+})).catch((err: unknown) => {
+  logger.error({ err: err instanceof Error ? err.message : String(err) }, 'Database environment isolation check failed; refusing to start backend');
+  process.exit(1);
 });
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────────

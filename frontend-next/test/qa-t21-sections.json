@@ -1,5 +1,5 @@
 [
-  {"type":"hero","title":"T21 Renderer QA","subtitle":"All 25 builder sections render","cta":"Explore","heroBg":"#7C3AED","heroBg2":"#2563EB"},
+  {"type":"hero","title":"Renderer QA","subtitle":"All builder sections render","cta":"Explore","heroBg":"#7C3AED","heroBg2":"#2563EB"},
   {"type":"about","aboutTitle":"About T21","aboutDesc":"Builder-shape about section with description.","aboutImage":""},
   {"type":"items","itemsTitle":"Our Items","items":[{"name":"Item One","desc":"First item","price":"299 ETB","icon":"fa-box"},{"name":"Item Two","desc":"Second item","price":"499 ETB","icon":"fa-box"}]},
   {"type":"gallery","galleryTitle":"QA Gallery","galleryImages":[{"url":"https://picsum.photos/seed/t21a/400/400","caption":"Photo A"},{"url":"https://picsum.photos/seed/t21b/400/400","caption":"Photo B"},{"url":"https://picsum.photos/seed/t21c/400/400","caption":"Photo C"}]},
@@ -22,6 +22,5 @@
   {"type":"caseStudies","caseTitle":"QA Success Stories","caseStudies":[{"title":"Client success","summary":"What we achieved","result":"300% increase in sales"}]},
   {"type":"partners","partnersTitle":"QA Partners","partners":[{"name":"Partner Co","logo":"","note":"Long-time partner"}]},
   {"type":"awards","awardsTitle":"QA Awards","awards":[{"title":"Best Business 2024","detail":"Award details"}]},
-  {"type":"careers","careersTitle":"QA Careers","careers":[{"title":"Senior Designer","location":"Addis Ababa","type":"Full-time"}]},
   {"type":"industries","industriesTitle":"QA Industries","industries":[{"name":"Healthcare","desc":"How we help"},{"name":"Retail","desc":"How we help retail"}]}
 ]

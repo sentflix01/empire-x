@@ -1,7 +1,7 @@
 'use client';
 import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { auth } from "@/api/auth";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,12 @@ import { Label } from "@/components/ui/label";
 import AuthLayout from "@/components/AuthLayout";
 import { describeGoogleOAuthError, renderGoogleSignInButton } from "@/lib/googleAuth";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useAuth } from '@/lib/AuthContext';
 
 function Login() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { completeLogin } = useAuth();
   const returnTo = searchParams.get("return");
   const dest = (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) ? returnTo : '/feed';
 
@@ -29,29 +32,13 @@ function Login() {
     onboarding_mode?: 'demo' | 'real' | null;
     is_demo?: boolean;
   }) => {
-    const realModeKey = 'nodbusiness_real_mode';
-    const savedMode = localStorage.getItem('nodbusiness_onboarding_mode') as 'demo' | 'real' | null;
-    const mode = result.onboarding_mode ?? savedMode;
-
-    if (mode === 'demo' || result.is_demo) {
-      localStorage.setItem(realModeKey, 'false');
-      if (!result.onboarding_mode) await auth.setOnboardingMode('demo').catch(() => {});
-      try { await auth.loginDemo(); } catch { /* noop */ }
-      window.location.href = '/feed';
+    if (result.is_demo) {
+      setError('This legacy Demo login needs to be linked to a Real account before it can be used here.');
       return;
     }
-
-    if (mode === 'real') {
-      localStorage.setItem(realModeKey, 'true');
-      if (!result.onboarding_mode) await auth.setOnboardingMode('real').catch(() => {});
-      window.location.href = dest === '/choose-mode' ? '/feed' : dest;
-      return;
-    }
-
-    const chooserUrl = new URL('/choose-mode', window.location.origin);
-    if (dest !== '/feed' && dest !== '/choose-mode') chooserUrl.searchParams.set('return', dest);
-    window.location.href = chooserUrl.toString();
-  }, [dest]);
+    await completeLogin();
+    router.replace(dest);
+  }, [completeLogin, dest, router]);
 
   // Pre-warm the backend on login page load to prevent cold-start timeout
   // Render free tier sleeps after 15 min — this silent ping wakes it up
@@ -142,7 +129,7 @@ function Login() {
       footer={
         <>
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="font-medium text-primary hover:underline">Create account</Link>
+      <Link href="/register" className="font-medium text-primary hover:underline">Create account</Link>
         </>
       }
     >

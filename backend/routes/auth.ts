@@ -25,18 +25,59 @@ import { OAuth2Client } from 'google-auth-library';
 import type { Request, Response } from 'express';
 import type { Redis as RedisClient } from 'ioredis';
 import pool from '../db/pool';
-import { runWithDatabaseEnvironment } from '../db/pool';
+import { getCurrentDatabaseEnvironment, runWithDatabaseEnvironment } from '../db/pool';
 import {
   clearDemoSessionCookie, clearDemoTrack1Cookie, setDemoSessionCookie, setDemoTrack1Cookie,
   signDemoAccessToken, signDemoSessionCookie, verifyDemoTrack1Cookie, isDemoSessionSecretValid,
 } from '../middleware/demoEnvironment';
 import { sendOtpEmail, sendPasswordResetEmail } from '../utils/mailer';
-import { requireAuth, invalidateUserCache } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth';
 import { getRedis } from '../lib/redis';
 import * as apiError from '../lib/apiError';
 import logger from '../lib/logger';
 
 const router = Router();
+
+// Legacy account-mode requests can no longer provision or authenticate a
+// separate Demo identity. An authenticated Demo workspace already has verified
+// server-side session state and continues through its selected database.
+router.use((req, res, next) => {
+  const requested = req.get('X-Account-Mode') ?? (req.body as { account_mode?: string } | undefined)?.account_mode;
+  if (req.demoSession) { next(); return; }
+  if (requested === 'demo') {
+    res.status(409).json({ error: 'Demo is a workspace for your Real account. Sign in or create a Real account, then switch to Demo.', code: 'WORKSPACE_SWITCH_REQUIRED' });
+    return;
+  }
+  next();
+});
+
+async function establishDemoAccountSession(userId: string, res: Response): Promise<{ sessionId: string; expiresAt: Date }> {
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    // Serialize logins for one Demo identity, then retire its previous session
+    // so a lost cookie or a new browser can always establish a fresh session.
+    await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE', [userId]);
+    await client.query(
+      "UPDATE demo_sessions SET status='ended', ended_at=NOW() WHERE user_id=$1 AND status='active'",
+      [userId],
+    );
+    const { rows } = await client.query<{ id: string }>(
+      "INSERT INTO demo_sessions (user_id, expires_at) VALUES ($1, $2) RETURNING id",
+      [userId, expiresAt],
+    );
+    await client.query('COMMIT');
+    const sessionId = rows[0].id;
+    setDemoSessionCookie(res, signDemoSessionCookie(sessionId, userId, expiresAt), expiresAt);
+    return { sessionId, expiresAt };
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+}
 
 // Read at request time so a restart picks up env changes without recompiling.
 // Do NOT cache at module level — the env var may not be set during test imports.
@@ -102,19 +143,22 @@ function signRefreshToken(userId: string, isDemo = false): string {
   );
 }
 
+function refreshCookieSameSite(): 'lax' | 'none' {
+  // Local frontend/backend ports are different origins but still same-site.
+  // Lax is accepted by modern browsers on localhost without Secure. Production
+  // frontend/backend hosts are cross-site and require Secure + SameSite=None.
+  return process.env.NODE_ENV === 'production' ? 'none' : 'lax';
+}
+
 function signToken(userId: string, res: Response, isDemo = false): string {
   const accessToken = signAccessToken(userId, isDemo);
   const refreshToken = signRefreshToken(userId, isDemo);
   const isProd = process.env.NODE_ENV === 'production';
   res.cookie('refresh_token', refreshToken, {
     httpOnly: true,
-    // In production: Secure + SameSite=None allows the cookie to be sent from
-    // the Vercel frontend (different origin) to the Render backend.
-    // In development: SameSite=None without Secure — browsers allow this for
-    // localhost, which is needed because frontend (port 3002) and backend
-    // (port 3001) are treated as cross-site by SameSite=Lax.
+    // Production frontend/backend hosts are cross-site; local ports are same-site.
     secure: isProd,
-    sameSite: 'none',
+    sameSite: refreshCookieSameSite(),
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/api/auth',
   });
@@ -250,9 +294,9 @@ router.post('/register', async (req: Request, res: Response) => {
     const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
 
     const { rows } = await pool.query<{ id: string }>(
-      `INSERT INTO users (email, password_hash, full_name, otp_code, otp_expires)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [normalizedEmail, passwordHash, full_name ?? null, otpHash, otpExpires],
+      `INSERT INTO users (email, password_hash, full_name, otp_code, otp_expires, is_demo)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [normalizedEmail, passwordHash, full_name ?? null, otpHash, otpExpires, getCurrentDatabaseEnvironment() === 'demo'],
     );
 
     try {
@@ -358,9 +402,18 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       [user.id],
     );
 
+    const isDemoEnvironment = getCurrentDatabaseEnvironment() === 'demo';
+    if (isDemoEnvironment) {
+      const session = await establishDemoAccountSession(user.id, res);
+      res.json({ access_token: signDemoAccessToken(user.id, session.sessionId), is_demo: true, onboarding_mode: 'demo' });
+      return;
+    }
     const isDemo = Boolean(banCheck[0]?.is_demo || banCheck[0]?.is_seed);
-    const token = signToken(user.id, res, isDemo);
-    res.json({ access_token: token });
+    if (isDemo) {
+      res.status(403).json({ error: 'This legacy Demo identity is not linked to a Real account. Sign in to Real and switch to Demo.', code: 'LEGACY_DEMO_ACCOUNT' });
+      return;
+    }
+    res.json({ access_token: signToken(user.id, res), is_demo: false });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Verify OTP error');
     apiError.serverError(res, 'Verification failed');
@@ -406,102 +459,8 @@ router.post('/resend-otp', async (req: Request, res: Response) => {
 
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
 
-// Public, low-privilege entry to the seeded demo account. The account is
-// intentionally selected server-side so demo credentials are never shipped to
-// the browser bundle.
-async function createDemoSession(res: Response): Promise<{ userId: string; sessionId: string; expiresAt: Date }> {
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  return runWithDatabaseEnvironment({ environment: 'demo' }, async () => {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      const email = `sandbox-${uuidv4()}@demo.invalid`;
-      const user = await client.query<{ id: string }>(
-        `INSERT INTO users (email, full_name, role, is_verified, is_demo, is_seed)
-         VALUES ($1, 'Demo User', 'user', TRUE, TRUE, FALSE) RETURNING id`, [email],
-      );
-      const userId = user.rows[0].id;
-      await client.query('INSERT INTO user_profiles (user_id, display_name, profile_type) VALUES ($1, $2, \'personal\')', [userId, 'Demo User']);
-      const session = await client.query<{ id: string }>(
-        'INSERT INTO demo_sessions (user_id, expires_at) VALUES ($1, $2) RETURNING id', [userId, expiresAt],
-      );
-      await client.query('COMMIT');
-      return { userId, sessionId: session.rows[0].id, expiresAt };
-    } catch (err) {
-      await client.query('ROLLBACK').catch(() => undefined);
-      throw err;
-    } finally { client.release(); }
-  });
-}
-
 router.post('/demo', async (req: Request, res: Response) => {
-  try {
-    // ── Track 2: full sandbox with separate DB and demo_session cookie ────
-    if (process.env.DEMO_ENABLED === 'true') {
-      if (!process.env.DEMO_DATABASE_URL || !isDemoSessionSecretValid()) {
-        res.status(503).json({
-          error: 'The isolated demo sandbox is enabled but its database or signing secret is not configured safely.',
-          code: 'DEMO_CONFIGURATION_INVALID',
-        });
-        return;
-      }
-      const session = req.demoSession
-        ? { userId: req.demoSession.userId, sessionId: req.demoSession.id, expiresAt: req.demoSession.expiresAt }
-        : await createDemoSession(res);
-      const sessionCookie = signDemoSessionCookie(session.sessionId, session.userId, session.expiresAt);
-      clearDemoTrack1Cookie(res);
-      setDemoSessionCookie(res, sessionCookie, session.expiresAt);
-      res.json({
-        access_token: signDemoAccessToken(session.userId, session.sessionId),
-        demo: true,
-        track: 2,
-        expires_at: session.expiresAt.toISOString(),
-        return_to_real: await hasRealRefreshSession(req),
-      });
-      return;
-    }
-
-    // ── Track 1: bridge mode — issue a normal JWT for the built-in demo account ──
-    // The test@nodbusiness.app account is is_demo=true in the production DB.
-    // Redis is bypassed for is_demo accounts so no quota is consumed.
-    const DEMO_EMAIL = 'test@nodbusiness.app';
-    const { rows } = await pool.query<{
-      id: string; email: string; password_hash: string | null;
-      is_verified: boolean; role: string; is_banned: boolean;
-      is_demo: boolean; is_seed: boolean; onboarding_mode: 'demo' | 'real' | null;
-    }>(
-      'SELECT id, email, password_hash, is_verified, role, is_banned, is_demo, is_seed, onboarding_mode FROM users WHERE email = $1',
-      [DEMO_EMAIL],
-    );
-
-    if (!rows.length) {
-      // Demo account not seeded yet — run migrations/seed to create it.
-      res.status(503).json({ error: 'Demo account not set up. Run backend migrations first.', code: 'DEMO_UNAVAILABLE' });
-      return;
-    }
-
-    const demoUser = rows[0];
-    if (demoUser.is_banned) {
-      res.status(503).json({ error: 'Demo account is unavailable.', code: 'DEMO_UNAVAILABLE' });
-      return;
-    }
-
-    // Do not replace a signed-in user's real refresh cookie with the shared
-    // demo account's refresh token. The separate signed selector keeps this
-    // demo identity reload-safe while preserving an explicit path back.
-    setDemoTrack1Cookie(res, demoUser.id);
-    const accessToken = signAccessToken(demoUser.id, /* isDemo= */ true);
-    logger.debug({ userId: demoUser.id }, 'Track 1 demo sign-in');
-    res.json({
-      access_token: accessToken,
-      demo: true,
-      track: 1,
-      onboarding_mode: demoUser.onboarding_mode,
-    });
-  } catch (err) {
-    logger.error({ err: (err as Error).message }, 'Demo sign-in failed');
-    res.status(503).json({ error: 'Demo access is temporarily unavailable.', code: 'DEMO_UNAVAILABLE' });
-  }
+  res.status(410).json({ error: 'Anonymous Demo sessions are no longer supported. Sign in or create a Real account, then switch to Demo.', code: 'WORKSPACE_SWITCH_REQUIRED' });
 });
 
 router.post('/demo/exit', async (req: Request, res: Response) => {
@@ -528,10 +487,10 @@ router.post('/demo/reset', async (req: Request, res: Response) => {
   if (!req.demoSession) { res.status(401).json({ error: 'An active demo session is required' }); return; }
   try {
     await pool.query("UPDATE demo_sessions SET status='ended', ended_at=NOW() WHERE id=$1 AND status='active'", [req.demoSession.id]);
-    const session = await createDemoSession(res);
-    setDemoSessionCookie(res, signDemoSessionCookie(session.sessionId, session.userId, session.expiresAt), session.expiresAt);
+    const session = await establishDemoAccountSession(req.demoSession.userId, res);
+    setDemoSessionCookie(res, signDemoSessionCookie(session.sessionId, req.demoSession.userId, session.expiresAt), session.expiresAt);
     res.json({
-      access_token: signDemoAccessToken(session.userId, session.sessionId),
+      access_token: signDemoAccessToken(req.demoSession.userId, session.sessionId),
       demo: true,
       expires_at: session.expiresAt.toISOString(),
     });
@@ -541,22 +500,112 @@ router.post('/demo/reset', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/onboarding-mode', requireAuth, async (req: Request, res: Response) => {
-  const mode = (req.body as { mode?: string } | undefined)?.mode;
-  if (mode !== 'demo' && mode !== 'real') { apiError.validationError(res, 'Mode must be demo or real'); return; }
-  if (req.demoSession || req.user?.is_demo) { res.status(403).json({ error: 'Demo sessions cannot change account mode' }); return; }
-  try {
-    await pool.query('UPDATE users SET onboarding_mode = $1 WHERE id = $2', [mode, req.user!.id]);
-    // Bust the in-process and Redis user cache so the very next /api/auth/me
-    // call returns the updated onboarding_mode, not the 30-second stale value.
-    // Without this, AppLayout re-reads onboarding_mode = null and sends the
-    // user back to /choose-mode immediately after they just chose.
-    await invalidateUserCache(req.user!.id);
-    res.json({ onboarding_mode: mode });
-  } catch (err) {
-    logger.error({ err: (err as Error).message }, 'Could not save onboarding mode');
-    res.status(503).json({ error: 'Could not save account mode' });
+/** Switch the signed-in identity between its Real account and its isolated
+ * practice workspace. The workspace selector is a request to the server;
+ * authorization and database routing still come from verified session state. */
+router.post('/workspace', requireAuth, async (req: Request, res: Response) => {
+  const workspace = (req.body as { workspace?: unknown } | undefined)?.workspace;
+  if (workspace !== 'real' && workspace !== 'demo') {
+    apiError.validationError(res, 'workspace must be either real or demo');
+    return;
   }
+  const user = req.user;
+  if (!user) { res.status(401).json({ error: 'Authentication required' }); return; }
+
+  try {
+    if (workspace === 'demo') {
+      if (req.demoSession) {
+        res.json({ access_token: signDemoAccessToken(user.id, req.demoSession.id), workspace: 'demo' });
+        return;
+      }
+      const realIdentity = await runWithDatabaseEnvironment({ environment: 'real' }, async () => {
+        const { rows } = await pool.query<{ id: string; email: string; full_name: string | null; is_demo: boolean; is_seed: boolean; is_banned: boolean }>(
+          'SELECT id, email, full_name, is_demo, is_seed, is_banned FROM users WHERE id=$1', [user.id],
+        );
+        return rows[0];
+      });
+      if (!realIdentity || realIdentity.email.toLowerCase() !== user.email.toLowerCase() || realIdentity.is_demo || realIdentity.is_seed || realIdentity.is_banned) {
+        res.status(403).json({ error: 'Sign in to your Real account before opening its Demo workspace.', code: 'REAL_IDENTITY_REQUIRED' });
+        return;
+      }
+      if (process.env.DEMO_ENABLED !== 'true' || !process.env.DEMO_DATABASE_URL || !isDemoSessionSecretValid()) {
+        res.status(503).json({ error: 'Demo workspace is not configured yet.', code: 'DEMO_CONFIGURATION_INVALID' });
+        return;
+      }
+
+      const workspaceResult = await runWithDatabaseEnvironment({ environment: 'demo' }, async () => {
+        const existing = await pool.query<{ id: string; email: string; is_demo: boolean; is_seed: boolean; workspace_owner_id: string | null }>(
+          'SELECT id, email, is_demo, is_seed, workspace_owner_id FROM users WHERE id=$1 OR email=$2 LIMIT 1', [user.id, user.email],
+        );
+        const byId = existing.rows.find((row) => row.id === user.id);
+        const emailConflict = existing.rows.find((row) => row.email.toLowerCase() === user.email.toLowerCase() && row.id !== user.id);
+        if (emailConflict || (byId && (!byId.is_demo || byId.is_seed || byId.email.toLowerCase() !== user.email.toLowerCase() || byId.workspace_owner_id !== user.id))) {
+          throw Object.assign(new Error('An existing Demo identity conflicts with this Real account. Its data was left unchanged.'), { statusCode: 409, code: 'DEMO_IDENTITY_CONFLICT' });
+        }
+        if (!byId) {
+          await pool.query(
+            `INSERT INTO users (id, email, full_name, is_verified, is_demo, is_seed, provider, workspace_owner_id)
+            VALUES ($1,$2,$3,TRUE,TRUE,FALSE,'local',$1)`, [user.id, user.email, realIdentity.full_name],
+          );
+          await pool.query(
+            `INSERT INTO user_profiles (user_id, display_name, profile_type)
+             SELECT $1, COALESCE(display_name, $2), 'personal'
+               FROM (SELECT display_name FROM user_profiles WHERE user_id=$1 LIMIT 1) source
+             UNION ALL SELECT $1, COALESCE($2, 'Member'), 'personal'
+              WHERE NOT EXISTS (SELECT 1 FROM user_profiles WHERE user_id=$1)`,
+            [user.id, realIdentity.full_name],
+          );
+        }
+        const session = await establishDemoAccountSession(user.id, res);
+        return {
+          access_token: signDemoAccessToken(user.id, session.sessionId),
+          workspace: 'demo', expires_at: session.expiresAt.toISOString(),
+        };
+      });
+      res.json(workspaceResult);
+      return;
+    }
+
+    if (!req.demoSession) {
+      if (user.is_demo) {
+        res.status(403).json({ error: 'This legacy Demo account is not linked to a Real identity.', code: 'REAL_IDENTITY_REQUIRED' });
+        return;
+      }
+      res.json({ access_token: signToken(user.id, res, false), workspace: 'real' });
+      return;
+    }
+
+    const demoLink = await pool.query<{ workspace_owner_id: string | null }>(
+      'SELECT workspace_owner_id FROM users WHERE id=$1 AND is_demo=TRUE AND is_seed=FALSE', [user.id],
+    );
+    if (demoLink.rows[0]?.workspace_owner_id !== user.id) {
+      res.status(403).json({ error: 'This legacy Demo account is not linked to a Real identity.', code: 'REAL_IDENTITY_REQUIRED' });
+      return;
+    }
+
+    const realUser = await runWithDatabaseEnvironment({ environment: 'real' }, async () => {
+      const { rows } = await pool.query<{ id: string; email: string; is_demo: boolean; is_seed: boolean; is_banned: boolean }>(
+        'SELECT id, email, is_demo, is_seed, is_banned FROM users WHERE id=$1', [user.id],
+      );
+      return rows[0];
+    });
+    if (!realUser || realUser.email.toLowerCase() !== user.email.toLowerCase() || realUser.is_demo || realUser.is_seed || realUser.is_banned) {
+      res.status(403).json({ error: 'The linked Real account could not be verified.', code: 'REAL_IDENTITY_REQUIRED' });
+      return;
+    }
+    await pool.query("UPDATE demo_sessions SET status='ended', ended_at=NOW() WHERE id=$1 AND status='active'", [req.demoSession.id]);
+    clearDemoSessionCookie(res);
+    clearDemoTrack1Cookie(res);
+    res.json({ access_token: signToken(realUser.id, res, false), workspace: 'real' });
+  } catch (err) {
+    const error = err as Error & { statusCode?: number; code?: string };
+    logger.error({ err: error.message, requestId: req.requestId }, 'Workspace switch failed');
+    res.status(error.statusCode ?? 503).json({ error: error.message || 'Could not switch workspace', code: error.code ?? 'WORKSPACE_SWITCH_FAILED' });
+  }
+});
+
+router.post('/onboarding-mode', (_req: Request, res: Response) => {
+  res.status(410).json({ error: 'Account modes are no longer selectable. Sign in to Real, then switch workspaces from the app.', code: 'WORKSPACE_SWITCH_REQUIRED' });
 });
 
 const LOCKOUT_THRESHOLD = 5;
@@ -638,16 +687,6 @@ router.post('/login', async (req: Request, res: Response) => {
       return;
     }
 
-    // `is_demo` accounts are the built-in demo/seed personas.
-    // Track 2 (separate demo DB): block direct login and force users through
-    // POST /api/auth/demo which provisions a session in the isolated database.
-    // Track 1 (bridge, no separate DB): allow normal login so the test account
-    // works directly. Track 1 is active when DEMO_ENABLED !== 'true'.
-    if ((user.is_demo || user.is_seed) && process.env.DEMO_ENABLED === 'true') {
-      res.status(403).json({ error: 'Use Explore Demo to start an isolated demo session.', code: 'DEMO_SESSION_REQUIRED' });
-      return;
-    }
-
     // ── Successful login — clear failed attempts ─────────────────────────
     if (redis) {
       redis.del(failedKey).catch(() => undefined);
@@ -681,8 +720,17 @@ router.post('/login', async (req: Request, res: Response) => {
       return;
     }
 
-    const token = signToken(user.id, res, Boolean(user.is_demo || user.is_seed));
-    res.json({ access_token: token, onboarding_mode: user.onboarding_mode ?? null, is_demo: user.is_demo ?? false });
+    if (getCurrentDatabaseEnvironment() === 'demo') {
+      const session = await establishDemoAccountSession(user.id, res);
+      res.json({ access_token: signDemoAccessToken(user.id, session.sessionId), onboarding_mode: 'demo', is_demo: true });
+      return;
+    }
+    if (user.is_demo || user.is_seed) {
+      res.status(403).json({ error: 'This legacy Demo identity is not linked to a Real account. Sign in to Real and switch to Demo.', code: 'LEGACY_DEMO_ACCOUNT' });
+      return;
+    }
+    const token = signToken(user.id, res);
+    res.json({ access_token: token, onboarding_mode: user.onboarding_mode ?? null, is_demo: false });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Login error');
     apiError.serverError(res, 'Login failed');
@@ -777,10 +825,11 @@ router.post('/google', async (req: Request, res: Response) => {
         );
         user = existing;
       } else {
+        const demoEnvironment = getCurrentDatabaseEnvironment() === 'demo';
         const { rows } = await pool.query<{ id: string }>(
-          `INSERT INTO users (email, full_name, provider, provider_id, is_verified)
-           VALUES ($1, $2, 'google', $3, TRUE) RETURNING id`,
-          [email.toLowerCase(), name ?? null, googleId],
+          `INSERT INTO users (email, full_name, provider, provider_id, is_verified, is_demo)
+           VALUES ($1, $2, 'google', $3, TRUE, $4) RETURNING id`,
+          [email.toLowerCase(), name ?? null, googleId, demoEnvironment],
         );
         user = rows[0];
       }
@@ -805,18 +854,21 @@ router.post('/google', async (req: Request, res: Response) => {
       res.status(403).json({ error: 'Account suspended. Contact support.' });
       return;
     }
-    // Track 2 only: block demo accounts from Google auth path, force through /demo endpoint.
-    // Track 1 (DEMO_ENABLED !== 'true'): allow normal Google sign-in for is_demo accounts.
-    if ((banCheck[0]?.is_demo || banCheck[0]?.is_seed) && process.env.DEMO_ENABLED === 'true') {
-      res.status(403).json({ error: 'Use Explore Demo to start an isolated demo session.', code: 'DEMO_SESSION_REQUIRED' });
+    if (getCurrentDatabaseEnvironment() === 'demo') {
+      const session = await establishDemoAccountSession(user.id, res);
+      res.json({ access_token: signDemoAccessToken(user.id, session.sessionId), onboarding_mode: 'demo', is_demo: true });
+      return;
+    }
+    if (banCheck[0]?.is_demo || banCheck[0]?.is_seed) {
+      res.status(403).json({ error: 'This legacy Demo identity is not linked to a Real account. Sign in to Real and switch to Demo.', code: 'LEGACY_DEMO_ACCOUNT' });
       return;
     }
 
-    const token = signToken(user.id, res, Boolean(banCheck[0]?.is_demo || banCheck[0]?.is_seed));
+    const token = signToken(user.id, res);
     const mode = (await pool.query<{ onboarding_mode: 'demo' | 'real' | null }>(
       'SELECT onboarding_mode FROM users WHERE id = $1', [user.id],
     )).rows[0]?.onboarding_mode ?? null;
-    res.json({ access_token: token, onboarding_mode: mode, is_demo: Boolean(banCheck[0]?.is_demo || banCheck[0]?.is_seed) });
+    res.json({ access_token: token, onboarding_mode: mode, is_demo: false });
   } catch (err) {
     logger.error({ err: (err as Error).message, stack: (err as Error).stack?.split('\n').slice(0,3).join(' | ') }, 'Google auth error — DB or unexpected failure');
     apiError.serverError(res, 'Google sign-in is temporarily unavailable. Please try again.');
@@ -857,6 +909,7 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
       demo_track: req.demoSession ? 2 : (rows[0].is_demo ? 1 : null),
       demo_session_active: Boolean(req.demoSession),
       demo_expires_at: req.demoSession?.expiresAt.toISOString() ?? null,
+      demo_workspace_available: process.env.DEMO_ENABLED === 'true' && Boolean(process.env.DEMO_DATABASE_URL) && isDemoSessionSecretValid(),
     });
   } catch (err) {
     logger.error({ err }, 'Me error');
@@ -891,7 +944,8 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
       'UPDATE users SET reset_token = $1, reset_expires = $2 WHERE id = $3',
       [tokenHash, expires, rows[0].id],
     );
-    await sendPasswordResetEmail(email, token).catch((err: Error) =>
+    const accountMode = getCurrentDatabaseEnvironment();
+    await sendPasswordResetEmail(email, token, accountMode).catch((err: Error) =>
       logger.error({ err }, 'Reset email failed'),
     );
   } catch (err) {
@@ -1072,9 +1126,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
 
   const demoAccount = Boolean(rows[0].is_demo || rows[0].is_seed);
   if (payload.demo === true) {
-    // Track 1 intentionally uses the built-in demo identity in the shared DB.
-    // Its short-lived access token must remain refreshable across page loads.
-    // Track 2 has a separate session cookie/secret and never refreshes here.
+    // Reject access tokens minted by the retired shared-demo environment.
     if (process.env.DEMO_ENABLED === 'true' || !demoAccount) {
       res.status(401).json({ error: 'Legacy demo credentials are no longer valid. Start a new demo session.', code: 'DEMO_SESSION_REQUIRED' });
       return;
@@ -1110,7 +1162,7 @@ router.post('/logout', async (req: Request, res: Response) => {
       httpOnly: true,
       path: '/api/auth',
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      sameSite: refreshCookieSameSite(),
     });
     res.json({ success: true, demo_ended: true });
     return;
@@ -1133,7 +1185,7 @@ router.post('/logout', async (req: Request, res: Response) => {
     httpOnly: true,
     path: '/api/auth',
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'none',
+    sameSite: refreshCookieSameSite(),
   });
   clearDemoTrack1Cookie(res);
   res.json({ success: true });
@@ -1165,7 +1217,7 @@ router.post('/logout-all', requireAuth, async (req: Request, res: Response) => {
     httpOnly: true,
     path: '/api/auth',
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'none',
+    sameSite: refreshCookieSameSite(),
   });
   clearDemoTrack1Cookie(res);
   res.json({ success: true });

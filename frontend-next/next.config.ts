@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
   // double-mount no longer double-initialises maps.
   reactStrictMode: true,
 
+  // Keep browser API traffic on the app's own origin. In private browsing,
+  // browsers may block refresh cookies sent directly to a different-site API.
+  async rewrites() {
+    const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001').replace(/\/$/, '');
+    return [{ source: '/api/:path*', destination: `${apiBase}/api/:path*` }];
+  },
+
   // BUG-5: the dev-tools launcher defaulted to the bottom-left corner and
   // overlapped the sidebar footer, stealing clicks from the Log out button.
   // Pin it to the bottom-right where no UI controls live.

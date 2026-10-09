@@ -95,7 +95,6 @@ function NotificationsView() {
         follow: '/profile',
         order: '/orders',
         message: '/messages',
-        task_update: '/tasks',
         referral: '/referral',
       };
       const route = typeRoutes[notif.type] || '/notifications';

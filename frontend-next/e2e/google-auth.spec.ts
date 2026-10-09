@@ -63,7 +63,7 @@ async function setAuthHint(context: BrowserContext) {
 test.describe('Section A — Google Sign-In UI', () => {
 
   test('A1: login page renders the accessible Google OAuth button', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
 
     // The legacy "Continue with Google" button was replaced by the OAuth popup button.
@@ -74,7 +74,7 @@ test.describe('Section A — Google Sign-In UI', () => {
   });
 
   test('A2: register page renders the accessible Google OAuth button', async ({ page }) => {
-    await page.goto('/register', { waitUntil: 'domcontentloaded' });
+    await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
 
     await expect(page.getByRole('button', { name: /sign up with google/i })).toBeVisible();
@@ -85,7 +85,7 @@ test.describe('Section A — Google Sign-In UI', () => {
       (window as any).__googleSignIn = () => sessionStorage.setItem('legacy-google-called', '1');
       window.open = (() => ({} as Window)) as typeof window.open;
     });
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
 
     await page.getByRole('button', { name: /sign in with google/i }).click();
@@ -93,7 +93,7 @@ test.describe('Section A — Google Sign-In UI', () => {
   });
 
   test('A4: login page renders a visible Google sign-in area', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
 
     // The OAuth popup button is rendered synchronously when configured; the
     // accessible region remains visible with the email fallback otherwise.
@@ -101,7 +101,7 @@ test.describe('Section A — Google Sign-In UI', () => {
   });
 
   test('A5: login page Google OAuth region has an accessible label', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
     const container = page.locator('div[aria-label*="Google"]').first();
     await expect(container).toHaveAttribute('aria-label', /google/i);
   });
@@ -110,7 +110,7 @@ test.describe('Section A — Google Sign-In UI', () => {
     // This implementation opens OAuth directly; no GIS JavaScript is loaded.
     await page.route('**/accounts.google.com/gsi/client', route => route.abort());
 
-    await page.goto('/register', { waitUntil: 'domcontentloaded' });
+    await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
 
     await expect(page.getByRole('button', { name: /sign up with google/i })).toBeVisible();
@@ -120,7 +120,7 @@ test.describe('Section A — Google Sign-In UI', () => {
   test('A7: login Google button does not depend on a GIS script', async ({ page }) => {
     await page.route('**/accounts.google.com/gsi/client', route => route.abort());
 
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
 
     await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
     await expect(page.locator('script[src*="accounts.google.com/gsi/client"]')).toHaveCount(0);
@@ -134,7 +134,7 @@ test.describe('Section A — Google Sign-In UI', () => {
         return {} as Window;
       }) as typeof window.open;
     });
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
     const googleButton = page.getByRole('button', { name: /sign in with google/i });
     await expect(googleButton).toBeVisible();
     await googleButton.click();
@@ -175,31 +175,30 @@ test.describe('Section B — Middleware redirects', () => {
     await expect(page).toHaveURL(/\/login\?return=%2Fwallet/);
   });
   test('B3: anonymous visitor to protected settings returns to login', async ({ page }) => {
-    await page.context().clearCookies(); await page.goto('/settings', { waitUntil: 'domcontentloaded' }); await expect(page).toHaveURL(/\/login/);
+    await page.context().clearCookies(); await page.goto('/settings', { waitUntil: 'domcontentloaded' }); await expect(page).toHaveURL(/\/login\?return=%2Fsettings/);
   });
   test('B4: login and register remain accessible without auth', async ({ page }) => {
     await page.context().clearCookies();
-    for (const path of ['/login', '/register']) { await page.goto(path, { waitUntil: 'domcontentloaded' }); await expect(page).toHaveURL(new RegExp(path.replace('/', '\\/'))); }
+    for (const path of ['/login', '/register']) { await page.goto(path, { waitUntil: 'domcontentloaded' }); await expect(page).toHaveURL(new RegExp(`${path}$`)); }
   });
   for (const path of ['/login', '/register']) {
-    test('authenticated visitor to ' + path + ' is routed to chooser', async ({ page, context }) => {
-      await installAuthMocks(page, { authenticated: true }); await setAuthHint(context); await page.goto(path, { waitUntil: 'domcontentloaded' }); await expect(page).toHaveURL(/\/choose-mode/);
+    test('authenticated visitor to ' + path + ' is routed to feed', async ({ page, context }) => {
+      await installAuthMocks(page, { authenticated: true }); await setAuthHint(context); await page.goto(path, { waitUntil: 'domcontentloaded' }); await expect(page).toHaveURL(/\/feed/);
     });
   }
-  test('B7: protected destination is retained across sign-in and first-login chooser', async ({ page }) => {
+  test('B7: protected destination is retained across sign-in', async ({ page }) => {
     await installAuthMocks(page); await page.context().clearCookies(); await page.goto('/wallet', { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(/\/login\?return=%2Fwallet/);
     // The protected-route redirect is a full document navigation. Wait for
     // the login page's hydration before filling its controlled fields so a
     // slow dev-server hydration cannot reset the email between fill and submit.
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+    await expect(page).toHaveURL(/\/login\?return=%2Fwallet/);
     const emailInput = page.getByRole('textbox', { name: /email/i });
     await emailInput.fill(E2E_EMAIL);
     await expect(emailInput).toHaveValue(E2E_EMAIL);
     await page.locator('input[type="password"]').fill(E2E_PASSWORD);
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-    await expect(page).toHaveURL(/\/choose-mode\?return=%2Fwallet/);
-    await page.getByRole('button', { name: 'Use Real Account' }).click();
     await expect(page).toHaveURL(/\/wallet/);
   });
 });
@@ -209,7 +208,7 @@ test.describe('Section B — Middleware redirects', () => {
 // ══════════════════════════════════════════════════════════════════════════════
 test.describe('Section C — Email auth lifecycle', () => {
   async function signIn(page: Page, mode: 'real' | null = 'real') {
-    await installAuthMocks(page, { mode }); await page.goto('/login'); await page.getByRole('textbox', { name: /email/i }).fill(E2E_EMAIL);
+    await installAuthMocks(page, { mode }); await page.goto(`/login?mode=${mode ?? 'real'}`); await page.waitForLoadState('networkidle').catch(() => {}); await page.getByRole('textbox', { name: /email/i }).fill(E2E_EMAIL);
     await page.locator('input[type="password"]').fill(E2E_PASSWORD); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   }
   test('C1: login stores routing hint but never exposes JWT', async ({ page }) => {
@@ -227,14 +226,14 @@ test.describe('Section C — Email auth lifecycle', () => {
     expect((await page.context().cookies()).some(c=>c.name==='nb_auth'&&c.value==='1')).toBeFalsy(); await page.goto('/wallet'); await expect(page).toHaveURL(/\/login\?return=%2Fwallet/);
   });
   test('C5: rejected credentials show an error without leaving login', async ({ page }) => {
-    await installAuthMocks(page,{loginStatus:401,loginBody:{error:'Invalid email or password'}}); await page.goto('/login'); await page.getByRole('textbox',{name:/email/i}).fill(E2E_EMAIL);
+    await installAuthMocks(page,{loginStatus:401,loginBody:{error:'Invalid email or password'}}); await page.goto('/login?mode=real'); await page.waitForLoadState('networkidle').catch(() => {}); await page.getByRole('textbox',{name:/email/i}).fill(E2E_EMAIL);
     await page.locator('input[type="password"]').fill('wrong-e2e-password'); await page.getByRole('button',{name:'Sign in',exact:true}).click(); await expect(page).toHaveURL(/\/login/);
     await expect(page.locator('.text-destructive, [class*="destructive"]').first()).toBeVisible();
   });
-  test('C6: email input enforces maxLength=254', async ({ page }) => { await page.goto('/login'); await expect(page.locator('input[type="email"]').first()).toHaveAttribute('maxlength','254'); });
-  test('C7: password input enforces maxLength=128', async ({ page }) => { await page.goto('/login'); await expect(page.locator('input[type="password"]').first()).toHaveAttribute('maxlength','128'); });
+  test('C6: email input enforces maxLength=254', async ({ page }) => { await page.goto('/login?mode=real'); await expect(page.locator('input[type="email"]').first()).toHaveAttribute('maxlength','254'); });
+  test('C7: password input enforces maxLength=128', async ({ page }) => { await page.goto('/login?mode=real'); await expect(page.locator('input[type="password"]').first()).toHaveAttribute('maxlength','128'); });
   test('C8: unverified email response routes to verification registration', async ({ page }) => {
-    await installAuthMocks(page,{loginStatus:403,loginBody:{error:'Please verify your email before logging in.',code:'email_not_verified',pendingVerification:true}}); await page.goto('/login');
+    await installAuthMocks(page,{loginStatus:403,loginBody:{error:'Please verify your email before logging in.',code:'email_not_verified',pendingVerification:true}}); await page.goto('/login?mode=real'); await page.waitForLoadState('networkidle').catch(() => {});
     await page.getByRole('textbox',{name:/email/i}).fill('unverified@example.test'); await page.locator('input[type="password"]').fill(E2E_PASSWORD); await page.getByRole('button',{name:'Sign in',exact:true}).click();
     await expect(page).toHaveURL(/\/register\?verify=unverified%40example\.test/);
   });
@@ -292,12 +291,14 @@ test.describe('Section D — Google OAuth popup handoff', () => {
       });
     });
 
+    let exchangedAccountMode: string | undefined;
     await context.route('**/api/auth/google', async route => {
       counters.exchange++;
+      exchangedAccountMode = (route.request().postDataJSON() as { account_mode?: string }).account_mode;
       await route.fulfill({
         status:      200,
         contentType: 'application/json',
-        body:        JSON.stringify({ access_token: 'e2e-access-token' }),
+        body:        JSON.stringify({ access_token: 'e2e-access-token', is_demo: false }),
       });
     });
 
@@ -324,7 +325,7 @@ test.describe('Section D — Google OAuth popup handoff', () => {
       });
     });
 
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
 
     const gisButton = page.locator('div[aria-label*="Google"] button').first();
@@ -335,15 +336,16 @@ test.describe('Section D — Google OAuth popup handoff', () => {
 
     await popup.waitForLoadState('load', { timeout: 20_000 });
 
-    // This mocked account has no onboarding preference, so a successful OAuth
-    // handoff must enter the first-login mode chooser rather than skip to feed.
-    await page.waitForURL(u => u.pathname === '/choose-mode', { timeout: 20_000 });
+    // Google OAuth always authenticates the canonical Real identity. Demo is
+    // entered later through the authenticated workspace switch endpoint.
+    await page.waitForURL(u => u.pathname === '/feed', { timeout: 20_000 });
 
     await expect
       .poll(() => counters.exchange, { timeout: 10_000, intervals: [100, 250, 500, 1_000] })
       .toBe(1);
 
     expect(counters.refresh).toBe(0);
+    expect(exchangedAccountMode).toBeUndefined();
 
     await popup.close();
 
@@ -352,7 +354,7 @@ test.describe('Section D — Google OAuth popup handoff', () => {
   });
 
   test('D2: popup closed without handoff — parent stays on /login', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
   });
 
 });

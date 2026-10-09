@@ -14,8 +14,8 @@ import type { FilterObject, WhereResult, SortResult, ListOptions } from '../lib/
 
 type ReadScope = { realOnly?: boolean };
 const REAL_MODE_OWNER_COLUMNS: Record<string, string> = {
-  businesses: 'owner_id', courses: 'creator_id', events: 'organizer_id', jobs: 'poster_id',
-  posts: 'author_id', products: 'seller_id', showrooms: 'owner_id', tasks: 'requester_id',
+  businesses: 'owner_id',
+  posts: 'author_id', products: 'seller_id', showrooms: 'owner_id',
 };
 
 function realModeClause(table: string, enabled: boolean): string {
@@ -25,15 +25,18 @@ function realModeClause(table: string, enabled: boolean): string {
     : '';
 }
 
+function unexpiredShowroomClause(table: string): string {
+  return table === 'showrooms' ? ' AND (showrooms.expires_at IS NULL OR showrooms.expires_at > NOW())' : '';
+}
+
 // ── Table allowlist ───────────────────────────────────────────────────────────
 // Prevents SQL injection via dynamic table name arguments.
 // Every table used by crud helpers must be listed here.
 export const ALLOWED_TABLES = new Set<string>([
   'users', 'user_profiles', 'posts', 'products', 'businesses', 'showrooms',
-  'orders', 'tasks', 'task_bids', 'conversations', 'messages', 'notifications',
+  'orders', 'conversations', 'messages', 'notifications',
   'follows', 'likes', 'comments', 'stories', 'story_views', 'reviews', 'saves',
-  'reports', 'blocks', 'wallets', 'wallet_transactions', 'events', 'event_tickets',
-  'jobs', 'job_applications', 'courses', 'course_lessons', 'course_enrollments',
+  'reports', 'blocks', 'wallets', 'wallet_transactions',
   'point_transactions', 'push_subscriptions', 'cart_items', 'wishlists',
   'product_variants', 'return_requests', 'delivery_updates', 'price_alerts',
   'hashtags', 'post_hashtags', 'poll_votes', 'coupons', 'commissions',
@@ -129,7 +132,7 @@ export async function listRecords<T extends Record<string, unknown>>(
   const { col, dir } = parseSort(sort as string);
   const lim = Math.min(parseInt(String(limit), 10) || 50, 500);
   const { rows } = await pool.query(
-    `SELECT * FROM ${table} ${clause}${clause ? '' : 'WHERE TRUE'}${realModeClause(table, realOnly)} ORDER BY ${col} ${dir} LIMIT $${values.length + 1}`,
+    `SELECT * FROM ${table} ${clause}${clause ? '' : 'WHERE TRUE'}${realModeClause(table, realOnly)}${unexpiredShowroomClause(table)} ORDER BY ${col} ${dir} LIMIT $${values.length + 1}`,
     [...values, lim]
   );
   return rows as T[];
@@ -146,7 +149,7 @@ export async function getRecord<T extends Record<string, unknown>>(
 ): Promise<T | null> {
   validateTable(table);
   const { rows } = await pool.query(
-    `SELECT * FROM ${table} WHERE id = $1${realModeClause(table, !!options.realOnly)}`,
+    `SELECT * FROM ${table} WHERE id = $1${realModeClause(table, !!options.realOnly)}${unexpiredShowroomClause(table)}`,
     [id]
   );
   return (rows[0] as T) ?? null;

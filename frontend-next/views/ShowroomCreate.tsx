@@ -45,7 +45,6 @@ const FA_ICONS: Record<string, string> = {
   partners:    "fa-handshake",
   awards:      "fa-medal",
   resources:   "fa-file-download",
-  careers:     "fa-briefcase",
   booking:     "fa-calendar-check",
   industries:  "fa-industry",
   contact:     "fa-envelope",
@@ -67,7 +66,7 @@ const SECTION_GROUPS = [
     keys: [
       "about", "features", "items", "gallery", "testimonials", "team", "faq", "pricing",
       "services", "portfolio", "stats", "process", "caseStudies", "partners", "awards",
-      "resources", "careers", "booking", "industries", "inventory_catalog", "live_location_tracking",
+      "resources", "booking", "industries", "inventory_catalog", "live_location_tracking",
     ],
   },
   {
@@ -104,7 +103,6 @@ function getSmartDefaults(templateName: string, category: string): Record<string
     partnersTitle: "Our Partners", partners: [],
     awardsTitle: "Awards & Recognition", awards: [],
     resourcesTitle: "Resources", resources: [],
-    careersTitle: "Join Our Team", careers: [],
     industriesTitle: "Industries We Serve", industries: [],
     location: "", phone: "", email: "", hours: "Mon–Sat 9AM–6PM",
     whatsapp: "", facebook: "", instagram: "", telegram: "",
@@ -147,6 +145,12 @@ function getSmartDefaults(templateName: string, category: string): Record<string
 
 function getDefaultFormData(templateName: string, category: string, sampleId = ""): Record<string, any> {
   if (sampleId) return getShowroomTemplateSample(templateName, category, sampleId).formData;
+  if (!templateName) {
+    return Object.fromEntries(SECTION_TYPES.flatMap(section => section.fields.map(field => [
+      field.key,
+      field.type === "repeater" ? [] : field.type === "color" ? "#b8860b" : "",
+    ])));
+  }
   return getSmartDefaults(templateName, category);
 }
 
@@ -450,7 +454,6 @@ function ShowroomCreate({
       else if (key==="caseStudies") html+=`<section class="section"><h2>${e(d.caseTitle)}</h2>${(d.caseStudies||[]).map((item:any)=>`<div style="border-left:4px solid #b8860b;padding:16px;margin-bottom:12px;background:#fff;border-radius:8px;border:1px solid #eee"><h4>${e(item.title)}</h4><p>${e(item.summary)}</p>${item.result?`<p style="color:#27ae60;font-weight:600">✅ ${e(item.result)}</p>`:""}</div>`).join("")}</section>`;
       else if (key==="partners") html+=`<section class="section bg-light"><h2>${e(d.partnersTitle)}</h2><div class="grid">${(d.partners||[]).map((p:any)=>`<div class="card"><img loading="lazy" src="${e(p.logo||"https://placehold.co/160x80/eee/999?text=Partner")}" alt="${e(p.name)}" style="max-width:160px;max-height:80px;object-fit:contain;margin-bottom:8px"><h4>${e(p.name)}</h4></div>`).join("")}</div></section>`;
       else if (key==="awards") html+=`<section class="section"><h2>${e(d.awardsTitle)}</h2>${(d.awards||[]).map((a:any)=>`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #eee"><i class="fa-solid fa-medal" style="color:#b8860b;font-size:1.4rem"></i><div><strong>${e(a.title)}</strong><p style="color:#888;margin:4px 0 0">${e(a.detail)}</p></div></div>`).join("")}</section>`;
-      else if (key==="careers") html+=`<section class="section"><h2>${e(d.careersTitle)}</h2>${(d.careers||[]).map((c:any)=>`<div style="background:#fff;border-radius:8px;padding:20px;margin-bottom:10px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><h4 style="margin:0 0 4px">${e(c.title)}</h4><p style="color:#888;margin:0">${e(c.location)} · ${e(c.type)}</p><a href="#" class="btn-cta" style="padding:6px 18px;font-size:13px">Apply Now</a></div>`).join("")}</section>`;
       else if (key==="industries") html+=`<section class="section bg-light"><h2>${e(d.industriesTitle)}</h2><div class="grid">${(d.industries||[]).map((ind:any)=>`<div class="card"><h4>${e(ind.name)}</h4><p>${e(ind.desc)}</p></div>`).join("")}</div></section>`;
       else if (key==="resources") html+=`<section class="section bg-light"><h2>${e(d.resourcesTitle)}</h2>${(d.resources||[]).map((r:any)=>`<div style="display:flex;gap:12px;background:#fff;border-radius:8px;padding:16px;margin-bottom:8px;border:1px solid #eee"><i class="fa-solid fa-file-arrow-down" style="color:#b8860b;font-size:1.2rem"></i><div><strong>${e(r.title)}</strong><p style="color:#888;font-size:.9rem;margin:4px 0">${e(r.desc)}</p>${r.link?`<a href="${e(r.link)}" style="color:#b8860b;font-weight:600">Download →</a>`:""}</div></div>`).join("")}</section>`;
     });
@@ -493,7 +496,8 @@ function ShowroomCreate({
 
   const handlePublish = async () => {
     if (!user) { toast.error("Please log in"); return; }
-    if (!formData.title) { toast.error("Add a business name in the Hero section"); return; }
+    const title = String(formData.title ?? "").trim();
+    if (!title) { toast.error("Add your business name in the Hero section"); return; }
     setSaving(true);
     try {
       const sections = activeSections.map(key => {
@@ -504,20 +508,24 @@ function ShowroomCreate({
         return data;
       }).filter(Boolean);
 
-      const showroom = await entities.Showroom.create({
+      const showroomData = {
         owner_id: user.id,
-        title: formData.title,
+        title,
         description: formData.subtitle || "",
-        slug: formData.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
+        slug: title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
         category: categoryParam || "business",
         sections: JSON.stringify(sections),
         status: "published",
-      });
+      };
+      const showroom = editId
+        ? await entities.Showroom.update(editId, showroomData)
+        : await entities.Showroom.create(showroomData);
       localStorage.removeItem(draftKey);
-      toast.success("Showroom published! 🎉");
+      toast.success("Your showroom is live and visible in the Business feed.");
       router.push(`/showrooms/${showroom.id}`);
-    } catch {
-      toast.error("Failed to publish. Please try again.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Please try again.";
+      toast.error(`Could not publish your showroom. ${message}`);
     }
     setSaving(false);
   };
@@ -753,10 +761,23 @@ function ShowroomCreate({
         <button
           onClick={handlePublish}
           disabled={saving}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 transition-all shrink-0"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 transition-all shrink-0"
         >
           <CheckCircle className="w-3.5 h-3.5" />
           {saving ? "Publishing..." : "Publish"}
+        </button>
+      </div>
+
+      {/* Keep the primary action visible at narrow widths; the desktop toolbar is horizontally scrollable. */}
+      <div className={`sm:hidden shrink-0 border-b px-3 py-2 ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-white border-border/50"}`}>
+        <button
+          type="button"
+          onClick={handlePublish}
+          disabled={saving}
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-sm font-bold text-white shadow-sm disabled:opacity-50"
+        >
+          <CheckCircle className="h-4 w-4" />
+          {saving ? "Publishing..." : "Publish site"}
         </button>
       </div>
 

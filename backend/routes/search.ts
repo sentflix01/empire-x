@@ -53,10 +53,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
   const realUserFilter=req.realOnly?'AND u.is_seed=FALSE AND u.is_demo=FALSE':'';
   const realProductFilter=req.realOnly?'AND p.seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
   const realShowroomFilter=req.realOnly?'AND s.owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
-  const realTaskFilter=req.realOnly?'AND t.requester_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
   const realPostFilter=req.realOnly?'AND p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
-  const realJobFilter=req.realOnly?'AND j.poster_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
-  const realEventFilter=req.realOnly?'AND e.organizer_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
   const R: Record<string,unknown[]> = {};
   try {
     if (type==='all'||type==='users') {
@@ -80,16 +77,10 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     if (type==='all'||type==='showrooms') {
       const ob=sort==='recent'?'s.created_at DESC':'s.view_count DESC';
       let rows;
-      if (useFTS) { try { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km,ts_rank(to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,'')),to_tsquery('english',$1)) AS rank FROM showrooms s WHERE s.status='published' AND to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,''))@@to_tsquery('english',$1) ${realShowroomFilter} ORDER BY ${sort==='relevance'?'rank DESC,s.view_count DESC':ob} LIMIT $2`,[tsQ,lim])); } catch { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km FROM showrooms s WHERE s.status='published' AND (s.title ILIKE $1 OR s.description ILIKE $1) ${realShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); } }
-      else { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km FROM showrooms s WHERE s.status='published' AND (s.title ILIKE $1 OR s.description ILIKE $1) ${realShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); }
+      const ownerNameMatch = `EXISTS (SELECT 1 FROM user_profiles up WHERE up.user_id=s.owner_id AND up.display_name ILIKE $2)`;
+      if (useFTS) { try { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km,ts_rank(to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,'')),to_tsquery('english',$1)) AS rank FROM showrooms s WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,''))@@to_tsquery('english',$1) OR s.title ILIKE $2 OR s.description ILIKE $2 OR ${ownerNameMatch}) ${realShowroomFilter} ORDER BY ${sort==='relevance'?'rank DESC,s.view_count DESC':ob} LIMIT $3`,[tsQ,ilike,lim])); } catch { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km FROM showrooms s WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch}) ${realShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); } }
+      else { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km FROM showrooms s WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch}) ${realShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); }
       R.showrooms = rows;
-    }
-    if (type==='all'||type==='tasks') {
-      const ds=dSel('t.latitude','t.longitude',sL,sLon), df=dFlt('t.latitude','t.longitude',sL,sLon,radius), ob=oBy('t.created_at DESC','t.latitude','t.longitude','t.offered_payment',sort,sL,sLon);
-      let rows;
-      if (useFTS) { try { ({rows}=await pool.query(`SELECT t.id,t.requester_id,t.title,t.description,t.task_type,t.offered_payment,t.currency,t.status,t.location,t.latitude,t.longitude,ts_rank(t.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM tasks t WHERE t.status='open' AND t.search_vector@@to_tsquery('english',$1) ${df} ${realTaskFilter} ORDER BY ${sort==='relevance'?'rank DESC,t.created_at DESC':ob} LIMIT $2`,[tsQ,lim])); } catch { ({rows}=await pool.query(`SELECT t.id,t.requester_id,t.title,t.description,t.task_type,t.offered_payment,t.currency,t.status,t.location,t.latitude,t.longitude ${ds} FROM tasks t WHERE t.status='open' AND (t.title ILIKE $1 OR t.description ILIKE $1 OR t.location ILIKE $1) ${df} ${realTaskFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); } }
-      else { ({rows}=await pool.query(`SELECT t.id,t.requester_id,t.title,t.description,t.task_type,t.offered_payment,t.currency,t.status,t.location,t.latitude,t.longitude ${ds} FROM tasks t WHERE t.status='open' AND (t.title ILIKE $1 OR t.description ILIKE $1 OR t.location ILIKE $1) ${df} ${realTaskFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); }
-      R.tasks = rows;
     }
     if (type==='all'||type==='posts') {
       const dC: string[]=[], dP: unknown[]=[];
@@ -101,30 +92,8 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
       else { ({rows}=await pool.query(`SELECT p.id,p.author_id,p.author_name,p.content,p.post_type,p.like_count,p.comment_count,p.created_at FROM posts p WHERE p.content ILIKE $1 ${dW} ${realPostFilter} ORDER BY ${sort==='recent'?'p.created_at DESC':'p.like_count DESC'} LIMIT $2`,[ilike,lim,...dP])); }
       R.posts = rows;
     }
-    if (type==='all'||type==='jobs') {
-      const ds=dSel('j.latitude','j.longitude',sL,sLon), df=dFlt('j.latitude','j.longitude',sL,sLon,radius), ob=oBy('j.created_at DESC','j.latitude','j.longitude',null,sort,sL,sLon);
-      const dC: string[]=[], dP: unknown[]=[];
-      if (date_from) { dP.push(date_from); dC.push(`j.created_at>=$${dP.length+2}`); }
-      if (date_to)   { dP.push(date_to);   dC.push(`j.created_at<=$${dP.length+2}`); }
-      const dW=dC.length?'AND '+dC.join(' AND '):'';
-      let rows;
-      if (useFTS) { try { ({rows}=await pool.query(`SELECT j.id,j.poster_id,j.title,j.description,j.job_type,j.location,j.salary_min,j.salary_max,j.currency,j.category,j.created_at,j.latitude,j.longitude,j.is_remote,ts_rank(j.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM jobs j WHERE (j.status IS NULL OR j.status='open') AND j.search_vector@@to_tsquery('english',$1) ${dW} ${df} ${realJobFilter} ORDER BY ${sort==='relevance'?'rank DESC,j.created_at DESC':ob} LIMIT $2`,[tsQ,lim,...dP])); } catch { ({rows}=await pool.query(`SELECT j.id,j.poster_id,j.title,j.description,j.job_type,j.location,j.created_at,j.latitude,j.longitude ${ds} FROM jobs j WHERE (j.status IS NULL OR j.status='open') AND (j.title ILIKE $1 OR j.description ILIKE $1) ${dW} ${df} ${realJobFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...dP])); } }
-      else { ({rows}=await pool.query(`SELECT j.id,j.poster_id,j.title,j.description,j.job_type,j.location,j.created_at,j.latitude,j.longitude ${ds} FROM jobs j WHERE (j.status IS NULL OR j.status='open') AND (j.title ILIKE $1 OR j.description ILIKE $1) ${dW} ${df} ${realJobFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...dP])); }
-      R.jobs = rows;
-    }
-    if (type==='all'||type==='events') {
-      const ds=dSel('e.latitude','e.longitude',sL,sLon), df=dFlt('e.latitude','e.longitude',sL,sLon,radius);
-      const dC: string[]=[], dP: unknown[]=[];
-      if (date_from) { dP.push(date_from); dC.push(`e.start_at>=$${dP.length+2}`); }
-      if (date_to)   { dP.push(date_to);   dC.push(`e.start_at<=$${dP.length+2}`); }
-      const dW=dC.length?'AND '+dC.join(' AND '):'';
-      let rows;
-      if (useFTS) { try { ({rows}=await pool.query(`SELECT e.id,e.organizer_id,e.title,e.description,e.cover_image,e.location,e.start_at,e.ticket_price,e.currency,e.is_online,e.capacity,e.latitude,e.longitude,ts_rank(e.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM events e WHERE (e.status IS NULL OR e.status='published') AND e.search_vector@@to_tsquery('english',$1) ${dW} ${df} ${realEventFilter} ORDER BY ${sort==='relevance'?'rank DESC,e.start_at ASC':'e.start_at ASC'} LIMIT $2`,[tsQ,lim,...dP])); } catch { ({rows}=await pool.query(`SELECT e.id,e.organizer_id,e.title,e.description,e.location,e.start_at ${ds} FROM events e WHERE (e.status IS NULL OR e.status='published') AND (e.title ILIKE $1 OR e.description ILIKE $1) ${dW} ${df} ${realEventFilter} ORDER BY e.start_at ASC LIMIT $2`,[ilike,lim,...dP])); } }
-      else { ({rows}=await pool.query(`SELECT e.id,e.organizer_id,e.title,e.description,e.location,e.start_at ${ds} FROM events e WHERE (e.status IS NULL OR e.status='published') AND (e.title ILIKE $1 OR e.description ILIKE $1) ${dW} ${df} ${realEventFilter} ORDER BY e.start_at ASC LIMIT $2`,[ilike,lim,...dP])); }
-      R.events = rows;
-    }
     if (sL&&sLon) {
-      (['users','products','tasks','jobs','events'] as const).forEach(k => { if (R[k]) R[k] = attachDistances(R[k] as Record<string,unknown>[], sL, sLon); });
+      (['users','products'] as const).forEach(k => { if (R[k]) R[k] = attachDistances(R[k] as Record<string,unknown>[], sL, sLon); });
     }
     res.json(R);
   } catch (err) {

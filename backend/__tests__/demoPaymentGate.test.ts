@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { requireIsolatedPaymentEnvironment } from '../middleware/demoEnvironment';
 
-describe('shared demo payment gate', () => {
+describe('Demo workspace payment gate', () => {
   function invoke(user: Request['user'], demoSession?: Request['demoSession']) {
     const req = { user, demoSession } as Request;
     const res = {
@@ -13,24 +13,25 @@ describe('shared demo payment gate', () => {
     return { res, next };
   }
 
-  it('blocks provider payment and withdrawal operations from the shared Track 1 account', () => {
+  it('blocks provider payment and withdrawal operations from a shared Demo identity', () => {
     const { res, next } = invoke({
       id: 'shared-demo', email: 'test@nodbusiness.app', role: 'user', is_banned: false, is_demo: true,
     });
 
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'SHARED_DEMO_PAYMENTS_UNAVAILABLE' }));
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'DEMO_PAYMENTS_UNAVAILABLE' }));
     expect(next).not.toHaveBeenCalled();
   });
 
-  it('allows a verified isolated Track 2 session', () => {
+  it('blocks provider payment and withdrawal operations from an isolated Demo workspace', () => {
     const { res, next } = invoke(
       { id: 'sandbox-user', email: 'sandbox@nodbusiness.test', role: 'user', is_banned: false, is_demo: true },
       { id: 'sandbox-session', userId: 'sandbox-user', expiresAt: new Date(Date.now() + 60_000) },
     );
 
-    expect(res.status).not.toHaveBeenCalled();
-    expect(next).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'DEMO_PAYMENTS_UNAVAILABLE' }));
+    expect(next).not.toHaveBeenCalled();
   });
 
   it('allows a real account', () => {

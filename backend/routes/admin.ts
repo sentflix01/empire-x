@@ -23,13 +23,12 @@ async function getAdminCount(): Promise<number> {
 // ── Stats ─────────────────────────────────────────────────────────────────────
 router.get('/stats', async (_req: Request, res: Response) => {
   try {
-    const [users, posts, products, orders, tasks, revenue, newUsersToday, bannedUsers] =
+    const [users, posts, products, orders, revenue, newUsersToday, bannedUsers] =
       await Promise.all([
         pool.query("SELECT COUNT(*) FROM users WHERE is_banned = FALSE OR is_banned IS NULL"),
         pool.query("SELECT COUNT(*) FROM posts"),
         pool.query("SELECT COUNT(*) FROM products WHERE status = 'active'"),
         pool.query("SELECT COUNT(*), COUNT(*) FILTER (WHERE status='paid') AS paid_count, COUNT(*) FILTER (WHERE status='pending') AS pending_count FROM orders"),
-        pool.query("SELECT COUNT(*) FROM tasks WHERE status = 'open'"),
         pool.query("SELECT COALESCE(SUM(total_price),0) AS total, COALESCE(SUM(total_price) FILTER (WHERE created_at > NOW()-INTERVAL '30 days'),0) AS last_30d FROM orders WHERE status IN ('paid','processing','completed')"),
         pool.query("SELECT COUNT(*) FROM users WHERE created_at > NOW()-INTERVAL '24 hours'"),
         pool.query("SELECT COUNT(*) FROM users WHERE is_banned = TRUE"),
@@ -41,7 +40,6 @@ router.get('/stats', async (_req: Request, res: Response) => {
       orders: parseInt(orders.rows[0].count),
       orders_paid: parseInt(orders.rows[0].paid_count),
       orders_pending: parseInt(orders.rows[0].pending_count),
-      tasks: parseInt(tasks.rows[0].count),
       revenue_total: parseFloat(revenue.rows[0].total),
       revenue_last_30d: parseFloat(revenue.rows[0].last_30d),
       new_users_today: parseInt(newUsersToday.rows[0].count),
