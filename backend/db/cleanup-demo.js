@@ -3,6 +3,10 @@ const { URL } = require('node:url');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
+function supabaseStorageAuthHeaders(key) {
+  return key.startsWith('sb_secret_') ? { apikey: key } : { Authorization: `Bearer ${key}`, apikey: key };
+}
+
 function identity(connectionString) {
   const u = new URL(connectionString);
   return `${u.hostname.replace(/^\[|\]$/g, '').toLowerCase()}:${u.port || '5432'}/${decodeURIComponent(u.pathname.replace(/^\//, ''))}`;
@@ -63,7 +67,7 @@ async function removeDemoUploads(sessionId) {
     const response = await fetch(`${projectUrl.replace(/\/$/, '')}/storage/v1/object/${encodeURIComponent(process.env.SUPABASE_BUCKET)}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${process.env.SUPABASE_STORAGE_KEY}`,
+        ...supabaseStorageAuthHeaders(process.env.SUPABASE_STORAGE_KEY),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ prefixes: [prefix] }),

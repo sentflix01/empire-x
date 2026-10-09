@@ -15,6 +15,8 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { Pool } = require('pg');
 const dns = require('dns');
+const fs = require('fs');
+const path = require('path');
 
 // Force IPv4 — Render free tier does not support IPv6 outbound connections.
 dns.setDefaultResultOrder('ipv4first');
@@ -29,19 +31,33 @@ function buildConnectionString(raw) {
 }
 
 function poolOptions(rawUrl, env = process.env) {
-  const connectionString = buildConnectionString(rawUrl);
+  let connectionString = buildConnectionString(rawUrl);
   const tlsOverride = env.DATABASE_URL_REQUIRE_TLS;
-  const needsSsl = tlsOverride === 'true' || (tlsOverride !== 'false' && (
-    env.NODE_ENV === 'production' ||
-    !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString))
-  ));
-  // Verify server certificates by default, matching pool.ts. Operators using
-  // private/self-signed certificates can explicitly opt out per environment.
-  const rejectUnauthorized = env.DB_TLS_REJECT_UNAUTHORIZED !== 'false';
+  const needsSsl = tlsOverride === 'true' || env.NODE_ENV === 'production' ||
+    !!(connectionString && /supabase\.co|supabase\.com|sslmode=require|ssl=true/i.test(connectionString));
+  // Keep certificate and hostname verification enabled. A private root CA can
+  // be supplied through DB_SSL_CA_FILE.
+  const configuredCaFile = env.DB_SSL_CA_FILE;
+  const host = connectionString ? new URL(connectionString).hostname.toLowerCase() : '';
+  const bundledCaFile = path.resolve(process.cwd(), 'certs', 'prod-ca-2021.crt');
+  const isSupabaseHost = host.endsWith('.supabase.com') || host.endsWith('.supabase.co');
+  const caFile = configuredCaFile ?? (isSupabaseHost && fs.existsSync(bundledCaFile) ? bundledCaFile : undefined);
+  if (needsSsl && connectionString) {
+    const parsed = new URL(connectionString);
+    // node-postgres replaces the explicit `ssl` object when SSL parameters are
+    // present in the URI. Keep the policy and CA exclusively in `ssl` below.
+    for (const key of ['ssl', 'sslmode', 'sslrootcert', 'sslcert', 'sslkey']) {
+      parsed.searchParams.delete(key);
+    }
+    connectionString = parsed.toString();
+  }
+  const ssl = needsSsl
+    ? { rejectUnauthorized: true, ...(caFile ? { ca: fs.readFileSync(caFile, 'utf8') } : {}) }
+    : false;
 
   return {
     connectionString,
-    ssl: needsSsl ? { rejectUnauthorized } : false,
+    ssl,
     max: parseInt(env.DB_POOL_MAX || '5', 10),
     idleTimeoutMillis: 60000,
     connectionTimeoutMillis: parseInt(env.DB_CONNECTION_TIMEOUT_MS || '15000', 10),

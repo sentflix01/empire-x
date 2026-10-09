@@ -59,6 +59,9 @@ services:
                       # Format: postgresql://postgres.REF:PASS@aws-0-REGION.pooler.supabase.com:6543/postgres?sslmode=require
                       # Get it: Supabase → Settings → Database → Connection string → Transaction mode
 
+      - key: DB_SSL_CA_FILE
+        value: /app/certs/prod-ca-2021.crt
+
       - key: JWT_SECRET
         generateValue: true   # Render generates a secure random value automatically
 
