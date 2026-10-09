@@ -6,7 +6,7 @@
 
 ## 2. Why does it exist?
 
-Maintains a real database pool and lazily creates a separate demo pool when a verified demo request enters its AsyncLocalStorage context. Supabase transaction-pooler URLs receive `pgbouncer=true`. TLS is enabled in production and for recognized hosted database URLs; `sslmode=verify-full` enforces certificate and hostname verification. Set `DB_SSL_CA_FILE` for a private root CA; demo traffic can use `DEMO_DB_SSL_CA_FILE`. TLS verification cannot be disabled through an environment override. Pool connections use a 10-second statement timeout and configurable pool sizes. Errors are logged without exposing connection strings.
+Maintains a real database pool and lazily creates a separate demo pool when a verified demo request enters its AsyncLocalStorage context. Same-database workspaces use separate configured schemas and database roles, with startup checks verifying the role boundaries. Supabase transaction-pooler URLs receive `pgbouncer=true`. TLS is enabled in production and for recognized hosted database URLs, with certificate and hostname verification enabled through explicit node-postgres `ssl` options. Conflicting SSL parameters are removed from the URI so they cannot replace those options. Set `DB_SSL_CA_FILE` for the trusted provider root CA; Demo can use `DEMO_DB_SSL_CA_FILE`. Supabase deployments use the bundled root CA when no custom path is configured. TLS verification cannot be disabled through an environment override. Pool connections use a 10-second statement timeout and configurable pool sizes. Errors are logged without exposing connection strings.
 
 ## 3. What does it do?
 

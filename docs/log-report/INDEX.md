@@ -5,6 +5,21 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-09 | Maintenance | Merge pull request #71 from sentflix01/dependabot/npm_and_yarn/frontend-next/stripe/stripe-js-10.0.0 | [58ab138d5](2026-10-09-58ab138d5-merge-pull-request-71-from-sentflix01-dependabot.md) |
+| 2026-10-09 | Maintenance | Merge pull request #86 from sentflix01/fix/supabase-storage-secret-key | [ce56a2b3c](2026-10-09-ce56a2b3c-merge-pull-request-86-from-sentflix01-fix-supaba.md) |
+| 2026-10-09 | Bugfix | fix: upgrade vulnerable handlebars lockfile | [27254975e](2026-10-09-27254975e-upgrade-vulnerable-handlebars-lockfile.md) |
+| 2026-10-09 | Bugfix | fix: support Supabase secret API keys in Storage | [43e798a12](2026-10-09-43e798a12-support-supabase-secret-api-keys-in-storage.md) |
+| 2026-10-08 | Maintenance | Merge pull request #85 from sentflix01/fix/default-supabase-ca-path | [f4f0b98b9](2026-10-08-f4f0b98b9-merge-pull-request-85-from-sentflix01-fix-defaul.md) |
+| 2026-10-08 | Bugfix | fix: default to bundled Supabase CA | [09646c77a](2026-10-08-09646c77a-default-to-bundled-supabase-ca.md) |
+| 2026-10-08 | Maintenance | Merge pull request #84 from sentflix01/fix/postgres-explicit-tls-options | [c2f5ef639](2026-10-08-c2f5ef639-merge-pull-request-84-from-sentflix01-fix-postgr.md) |
+| 2026-10-08 | Bugfix | fix: preserve explicit database TLS options | [40d18567b](2026-10-08-40d18567b-preserve-explicit-database-tls-options.md) |
+| 2026-10-08 | Maintenance | Merge pull request #82 from sentflix01/fix/next-security-audit | [183e5c8f7](2026-10-08-183e5c8f7-merge-pull-request-82-from-sentflix01-fix-next-s.md) |
+| 2026-10-08 | Bugfix | fix: update Next.js security patch | [698688a28](2026-10-08-698688a28-update-next-js-security-patch.md) |
+| 2026-10-08 | Maintenance | Merge pull request #81 from sentflix01/fix/verified-supabase-db-tls | [68dfa669c](2026-10-08-68dfa669c-merge-pull-request-81-from-sentflix01-fix-verifi.md) |
+| 2026-10-08 | Bugfix | fix: enforce verified Supabase database TLS | [51f7e4661](2026-10-08-51f7e4661-enforce-verified-supabase-database-tls.md) |
+| 2026-10-07 | Maintenance | Merge branch 'main' of https://github.com/sentflix01/empire-x | [322e9bb5f](2026-10-07-322e9bb5f-merge-branch-main-of-https-github-com-sentflix01.md) |
+| 2026-10-07 | Bugfix | fix(security): patch critical/high CVEs in backend and frontend | [c219b076e](2026-10-07-c219b076e-patch-critical-high-cves-in-backend-and-frontend.md) |
+| 2026-10-05 | Maintenance | chore(deps): bump @stripe/stripe-js in /frontend-next | [3f138d2dd](2026-10-05-3f138d2dd-bump-stripe-stripe-js-in-frontend-next.md) |
 | 2026-10-04 | Bugfix | fix(spa): guard post-card and profile-peek auth probes when anonymous; honor saved view preference on login | [5db867b27](2026-10-04-5db867b27-guard-post-card-and-profile-peek-auth-probes-whe.md) |
 | 2026-10-04 | Maintenance | chore: add micromatch override to better address audit finding | [5f70d202e](2026-10-04-5f70d202e-add-micromatch-override-to-better-address-audit-.md) |
 | 2026-10-03 | Bugfix | fix(feed): stop unauthenticated post-card/profile peek from calling /api/auth/me, causing incognito 401 spam | [2169aa6c9](2026-10-03-2169aa6c9-stop-unauthenticated-post-card-profile-peek-from.md) |
