@@ -23,4 +23,17 @@ describe('demo upload isolation', () => {
     expect(() => uploadMiddleware.createStorageKey('x.png', '../real', 'asset-1'))
       .toThrow(/Invalid demo session ID/i);
   });
+  test('uses an API-key header only for Supabase secret keys', () => {
+    expect(uploadMiddleware.getSupabaseStorageAuthHeaders('sb_secret_test')).toEqual({
+      apikey: 'sb_secret_test',
+    });
+  });
+
+  test('keeps Bearer authorization for legacy Supabase JWT keys', () => {
+    expect(uploadMiddleware.getSupabaseStorageAuthHeaders('legacy-jwt')).toEqual({
+      Authorization: 'Bearer legacy-jwt',
+      apikey: 'legacy-jwt',
+    });
+  });
+
 });
