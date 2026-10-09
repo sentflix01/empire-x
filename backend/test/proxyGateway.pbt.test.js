@@ -85,9 +85,9 @@ const disabledSourceArb = fc.record({
   auth_method: fc.constantFrom('none', 'bearer_token', 'api_key_header', 'api_key_query'),
   credential: fc.option(
     fc.record({
-      iv: fc.hexaString({ minLength: 24, maxLength: 24 }),
-      authTag: fc.hexaString({ minLength: 32, maxLength: 32 }),
-      ciphertext: fc.hexaString({ minLength: 1, maxLength: 64 }),
+      iv: fc.stringMatching(/^[a-f0-9]{24}$/),
+      authTag: fc.stringMatching(/^[a-f0-9]{32}$/),
+      ciphertext: fc.stringMatching(/^[a-f0-9]{1,64}$/),
     }),
     { nil: null }
   ),
