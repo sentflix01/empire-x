@@ -119,7 +119,7 @@ async function cleanup() {
     ? await pool.query(`UPDATE demo_sessions SET status='expired' WHERE status='active' AND expires_at <= NOW() RETURNING id`)
     : await pool.query(`SELECT id FROM demo_sessions WHERE status='active' AND expires_at <= NOW()`);
   const { rows: candidates } = await pool.query(
-    `SELECT id, user_id, status FROM demo_sessions
+    `SELECT id, user_id, status, is_anonymous FROM demo_sessions
      WHERE status IN ('ended', 'expired')
         OR (status = 'cleaned' AND cleanup_error IS NOT NULL)
         OR (status = 'active' AND expires_at <= NOW())
@@ -138,8 +138,9 @@ async function cleanup() {
       await client.query('BEGIN');
       if (session.status !== 'cleaned') {
         await client.query('DELETE FROM demo_session_ai_usage WHERE session_id=$1', [session.id]);
-        // Demo accounts persist. Session cleanup removes session-scoped usage
-        // and uploads only; showcase expiry is enforced by the showroom API.
+        // Normal Demo accounts persist. Anonymous visitor accounts are removed
+        // below after their final session ends; showroom expiry is enforced by
+        // the showroom API.
         await client.query(
           "UPDATE demo_sessions SET status='cleaned', cleaned_at=NOW(), cleanup_error='upload_cleanup_pending' WHERE id=$1",
           [session.id],
@@ -147,8 +148,25 @@ async function cleanup() {
       }
       await client.query('COMMIT');
       // Session-scoped uploads can be deleted after commit. Keep the user,
-      // profile, business, and showroom rows; Demo accounts are persistent.
+      // profile, business, and showroom rows for normal Demo accounts.
       await removeDemoUploads(session.id);
+      if (session.is_anonymous) {
+        // Visitor-created Demo accounts have no durable login. Delete their
+        // profile and owned records after their last active session expires.
+        await pool.query(
+          `DELETE FROM users AS u
+           WHERE u.id=$1 AND u.is_demo=TRUE AND u.is_seed=FALSE
+             AND EXISTS (
+               SELECT 1 FROM demo_sessions s
+               WHERE s.user_id=u.id AND s.is_anonymous=TRUE
+             )
+             AND NOT EXISTS (
+               SELECT 1 FROM demo_sessions active
+               WHERE active.user_id=u.id AND active.status='active' AND active.expires_at>NOW()
+             )`,
+          [session.user_id],
+        );
+      }
       await pool.query('UPDATE demo_sessions SET cleanup_error=NULL WHERE id=$1 AND status=\'cleaned\'', [session.id]);
       cleaned += 1;
     } catch (error) {

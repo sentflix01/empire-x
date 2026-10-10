@@ -343,12 +343,19 @@ describe('POST /api/auth/login', () => {
   });
 });
 
-describe('POST /api/auth/demo legacy endpoint', () => {
-  it('requires users to authenticate a Real identity before switching to Demo', async () => {
-    const res = await request(buildApp()).post('/api/auth/demo').send({});
-    expect(res.status).toBe(410);
-    expect(res.body.code).toBe('WORKSPACE_SWITCH_REQUIRED');
-    expect(mockPool.query).not.toHaveBeenCalled();
+describe('POST /api/auth/demo', () => {
+  it('refuses to provision an anonymous Demo session when Demo is not configured', async () => {
+    const previousEnabled = process.env.DEMO_ENABLED;
+    process.env.DEMO_ENABLED = 'false';
+    try {
+      const res = await request(buildApp()).post('/api/auth/demo').send({});
+      expect(res.status).toBe(503);
+      expect(res.body.code).toBe('DEMO_CONFIGURATION_INVALID');
+      expect(mockPool.query).not.toHaveBeenCalled();
+    } finally {
+      if (previousEnabled === undefined) delete process.env.DEMO_ENABLED;
+      else process.env.DEMO_ENABLED = previousEnabled;
+    }
   });
 });
 

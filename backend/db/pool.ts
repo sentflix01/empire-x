@@ -254,7 +254,7 @@ export async function verifySharedDatabaseIsolation(): Promise<void> {
     }
     await runWithDatabaseEnvironment({ environment: 'demo' }, async () => {
       await pool.query('SELECT workspace_owner_id FROM users LIMIT 0');
-      await pool.query('SELECT id FROM demo_sessions LIMIT 0');
+      await pool.query('SELECT id, is_anonymous FROM demo_sessions LIMIT 0');
     });
   }
 }

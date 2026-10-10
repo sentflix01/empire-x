@@ -507,6 +507,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               </>
             ) : (
               <>
+                <Link
+                  href="/landing"
+                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3 sm:text-sm"
+                  aria-label="Back to landing page"
+                >
+                  <Home className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span className="whitespace-nowrap">Landing</span>
+                </Link>
                 <Link href={`/login?return=${encodeURIComponent(pathname)}`} className="inline-flex h-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3 sm:text-sm">Sign in</Link>
                 <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 sm:px-3 sm:text-sm">Join</Link>
                 {authChecked && <span title="Browsing as guest" aria-label="Guest session" className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground">
@@ -784,12 +792,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 onClick={() => setSettingsOpen(v => !v)}
                 title={sidebarCollapsed ? "Settings" : undefined}
                 aria-label="Settings"
-                className={`relative flex items-center gap-2.5 rounded-xl transition-colors text-sm font-medium group
+                className={`relative flex items-center rounded-xl transition-colors font-medium group
                   ${settingsOpen ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}
-                  ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'}`}
+                  ${sidebarCollapsed ? 'justify-center gap-2.5 px-0 py-2.5 flex-1 w-full text-sm' : !hasSignedInUser ? 'min-w-0 justify-center gap-1 px-1.5 py-2 flex-1 text-xs whitespace-nowrap' : 'gap-2.5 px-3 py-2 flex-1 text-sm'}`}
               >
                 <Settings className="w-4 h-4 shrink-0" />
-                {!sidebarCollapsed && <span>Settings</span>}
+                {!sidebarCollapsed && <span className={!hasSignedInUser ? 'whitespace-nowrap' : undefined}>Settings</span>}
                 {sidebarCollapsed && (
                   <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
                     Settings
@@ -809,10 +817,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </button>
               ) : (
                 <>
-                  <Link href={`/login?return=${encodeURIComponent(pathname)}`} title={sidebarCollapsed ? 'Sign in' : undefined} aria-label="Sign in" className={`flex items-center gap-2.5 rounded-xl text-muted-foreground text-sm font-medium hover:bg-secondary hover:text-foreground ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'}`}>
+                  <Link href={`/login?return=${encodeURIComponent(pathname)}`} title={sidebarCollapsed ? 'Sign in' : undefined} aria-label="Sign in" className={`flex min-w-0 items-center rounded-xl text-muted-foreground font-medium hover:bg-secondary hover:text-foreground whitespace-nowrap ${sidebarCollapsed ? 'justify-center gap-2.5 px-0 py-2.5 flex-1 w-full text-sm' : 'justify-center gap-1.5 px-1.5 py-2 flex-1 text-xs'}`}>
                     <User className="w-4 h-4 shrink-0" />{!sidebarCollapsed && <span>Sign in</span>}
                   </Link>
-                  {!sidebarCollapsed && <Link href="/register" className="rounded-xl bg-primary px-3 py-2 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90">Join free</Link>}
+                  {!sidebarCollapsed && <Link href="/register" aria-label="Join free" className="min-w-0 flex-1 whitespace-nowrap rounded-xl bg-primary px-1.5 py-2 text-center text-xs font-semibold text-primary-foreground hover:bg-primary/90">Join free</Link>}
                 </>
               )}
             </div>

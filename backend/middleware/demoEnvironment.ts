@@ -163,9 +163,10 @@ export async function demoEnvironmentMiddleware(req: Request, res: Response, nex
     try {
       const { rows } = await pool.query<{
         id: string; user_id: string; expires_at: Date; status: string;
+        is_anonymous: boolean;
         email: string; role: 'user' | 'admin'; is_banned: boolean; is_demo: boolean; is_seed: boolean;
       }>(
-        `SELECT s.id, s.user_id, s.expires_at, s.status,
+        `SELECT s.id, s.user_id, s.expires_at, s.status, s.is_anonymous,
                 u.email, u.role, u.is_banned, u.is_demo, u.is_seed
          FROM demo_sessions s
          JOIN users u ON u.id = s.user_id
@@ -187,7 +188,12 @@ export async function demoEnvironmentMiddleware(req: Request, res: Response, nex
         return;
       }
 
-      req.demoSession = { id: session.id, userId: session.user_id, expiresAt: new Date(session.expires_at) };
+      req.demoSession = {
+        id: session.id,
+        userId: session.user_id,
+        expiresAt: new Date(session.expires_at),
+        isAnonymous: session.is_anonymous,
+      };
       req.user = { id: session.user_id, email: session.email, role: 'user', is_banned: false, is_demo: true };
       next();
     } catch (err) {
