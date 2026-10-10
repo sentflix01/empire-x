@@ -120,12 +120,10 @@ export async function validateFileBytes(
 
 // ── Supabase Storage ──────────────────────────────────────────────────────────
 
-function getSupabaseProjectUrl(): string {
-  const candidates = [
-    process.env.SUPABASE_API_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_URL,
-  ];
+function getSupabaseProjectUrl(environment: 'real' | 'demo' = 'real'): string {
+  const candidates = environment === 'demo'
+    ? [process.env.DEMO_SUPABASE_URL]
+    : [process.env.SUPABASE_API_URL, process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_URL];
   for (const raw of candidates) {
     if (!raw) continue;
     const match = raw.match(/https:\/\/[a-z0-9]+\.supabase\.co/);
@@ -159,15 +157,22 @@ export function getDemoSupabaseBucket(): string {
   return demoBucket;
 }
 
+function isDemoSupabaseConfigured(): boolean {
+  return !!(getSupabaseProjectUrl('demo') && process.env.DEMO_SUPABASE_STORAGE_KEY && process.env.DEMO_SUPABASE_BUCKET);
+}
+
 /** Verify the provider reports the Demo bucket as private before the API starts. */
 export async function verifyDemoStorageIsolation(): Promise<void> {
   if (process.env.DEMO_ENABLED !== 'true') return;
-  if (!isSupabaseConfigured()) {
-    throw new Error('Demo requires Supabase Storage with a separately provisioned private bucket; public R2/local Demo uploads are not enabled');
+  if (!isDemoSupabaseConfigured()) {
+    throw new Error('Demo requires DEMO_SUPABASE_URL, DEMO_SUPABASE_STORAGE_KEY, and a separately provisioned private DEMO_SUPABASE_BUCKET');
+  }
+  const projectUrl = getSupabaseProjectUrl('demo');
+  if (projectUrl === getSupabaseProjectUrl('real')) {
+    throw new Error('Demo Supabase Storage must use a separate project from Real Storage');
   }
   const bucket = getDemoSupabaseBucket();
-  const projectUrl = getSupabaseProjectUrl();
-  const key = process.env.SUPABASE_STORAGE_KEY as string;
+  const key = process.env.DEMO_SUPABASE_STORAGE_KEY as string;
   const response = await fetch(`${projectUrl}/storage/v1/bucket/${encodeURIComponent(bucket)}`, {
     headers: getSupabaseStorageAuthHeaders(key),
     signal: AbortSignal.timeout(10_000),
@@ -210,8 +215,8 @@ export async function uploadToSupabase(
 ): Promise<string> {
   const key = createStorageKey(originalName, demoSessionId);
   const bucket = demoSessionId ? getDemoSupabaseBucket() : process.env.SUPABASE_BUCKET as string;
-  const projectUrl = getSupabaseProjectUrl();
-  const serviceKey = process.env.SUPABASE_STORAGE_KEY as string;
+  const projectUrl = getSupabaseProjectUrl(demoSessionId ? 'demo' : 'real');
+  const serviceKey = (demoSessionId ? process.env.DEMO_SUPABASE_STORAGE_KEY : process.env.SUPABASE_STORAGE_KEY) as string;
 
   if (!projectUrl.startsWith('https://')) {
     throw new Error(`Invalid SUPABASE_URL: "${projectUrl}". Must be https://xxx.supabase.co`);

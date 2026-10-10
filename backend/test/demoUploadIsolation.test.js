@@ -54,12 +54,14 @@ describe('demo upload isolation', () => {
   });
 
   test('uploads Demo files to the distinct private bucket and returns a signed URL', async () => {
-    const keys = ['SUPABASE_API_URL', 'NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_URL', 'SUPABASE_STORAGE_KEY', 'SUPABASE_BUCKET', 'DEMO_SUPABASE_BUCKET'];
+    const keys = ['SUPABASE_API_URL', 'NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_URL', 'SUPABASE_STORAGE_KEY', 'SUPABASE_BUCKET', 'DEMO_SUPABASE_URL', 'DEMO_SUPABASE_STORAGE_KEY', 'DEMO_SUPABASE_BUCKET'];
     const oldValues = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
     for (const key of keys) delete process.env[key];
     process.env.SUPABASE_API_URL = 'https://exampleproject.supabase.co';
-    process.env.SUPABASE_STORAGE_KEY = 'sb_secret_demo-test';
+    process.env.SUPABASE_STORAGE_KEY = 'sb_secret_real-test';
     process.env.SUPABASE_BUCKET = 'real-public-uploads';
+    process.env.DEMO_SUPABASE_URL = 'https://demoproject.supabase.co';
+    process.env.DEMO_SUPABASE_STORAGE_KEY = 'sb_secret_demo-test';
     process.env.DEMO_SUPABASE_BUCKET = 'demo-private-uploads';
     const fetchMock = jest.spyOn(global, 'fetch')
       .mockResolvedValueOnce({ ok: true, status: 200, text: async () => '' })
@@ -70,9 +72,9 @@ describe('demo upload isolation', () => {
       });
     try {
       const url = await uploadMiddleware.uploadToSupabase(Buffer.from('image'), 'image.png', 'image/png', demoSessionId);
-      expect(fetchMock.mock.calls[0][0]).toContain('/object/demo-private-uploads/demo/');
+      expect(fetchMock.mock.calls[0][0]).toContain('https://demoproject.supabase.co/storage/v1/object/demo-private-uploads/demo/');
       expect(fetchMock.mock.calls[0][0]).not.toContain('/object/public/');
-      expect(fetchMock.mock.calls[1][0]).toContain('/object/sign/demo-private-uploads/demo/');
+      expect(fetchMock.mock.calls[1][0]).toContain('https://demoproject.supabase.co/storage/v1/object/sign/demo-private-uploads/demo/');
       for (const [, options] of fetchMock.mock.calls) {
         expect(options.headers.apikey).toBe('sb_secret_demo-test');
         expect(options.headers.Authorization).toBeUndefined();
@@ -88,12 +90,14 @@ describe('demo upload isolation', () => {
   });
 
   test('refuses Demo storage buckets that are public or reused from Real', async () => {
-    const keys = ['DEMO_ENABLED', 'SUPABASE_API_URL', 'SUPABASE_STORAGE_KEY', 'SUPABASE_BUCKET', 'DEMO_SUPABASE_BUCKET'];
+    const keys = ['DEMO_ENABLED', 'SUPABASE_API_URL', 'SUPABASE_STORAGE_KEY', 'SUPABASE_BUCKET', 'DEMO_SUPABASE_URL', 'DEMO_SUPABASE_STORAGE_KEY', 'DEMO_SUPABASE_BUCKET'];
     const oldValues = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
     process.env.DEMO_ENABLED = 'true';
     process.env.SUPABASE_API_URL = 'https://exampleproject.supabase.co';
     process.env.SUPABASE_STORAGE_KEY = 'service-role-test-key';
     process.env.SUPABASE_BUCKET = 'real-public-uploads';
+    process.env.DEMO_SUPABASE_URL = 'https://demoproject.supabase.co';
+    process.env.DEMO_SUPABASE_STORAGE_KEY = 'demo-service-role-test-key';
     process.env.DEMO_SUPABASE_BUCKET = 'demo-private-uploads';
     const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
       ok: true, status: 200, json: async () => ({ id: 'demo-private-uploads', public: true }),
