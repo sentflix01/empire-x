@@ -257,7 +257,8 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       if (updates.status !== undefined) {
         const isBuyer = existing.buyer_id === req.user!.id;
         const transitions = isBuyer ? BUYER_TRANSITIONS : SELLER_TRANSITIONS;
-        if (!transitions[String(existing.status)]?.has(String(updates.status))) {
+        const retryCompletedLedger = existing.status === 'completed' && updates.status === 'completed';
+        if (!retryCompletedLedger && !transitions[String(existing.status)]?.has(String(updates.status))) {
           apiError.forbidden(res, `You cannot set this order to "${String(updates.status)}"`);
           return;
         }
@@ -273,10 +274,15 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       ? await cancelOrderAndReleaseInventory(pool, req.params.id, String(existing.status))
       : await updateRecord('orders', req.params.id, updates);
     if (!updated) { res.status(409).json({ error: 'Order changed; refresh and try again' }); return; }
+    if ((updates as {status?:string}).status === 'completed') {
+      // Keep the commission write retryable if a previous request changed the
+      // order state but failed while recording the ledger entry. This insert is
+      // idempotent by order_id.
+      await recordProfileOwnerCommission({ ...existing, ...updated, status: 'completed' });
+    }
     if ((updates as {status?:string}).status==='completed' && existing.status!=='completed') {
       await commitOrderInventory(pool, [req.params.id]).catch(err => logger.error({ err }, 'Failed to commit inventory for completed COD order'));
       collectCommission(existing.id as string, existing.seller_id as string, parseFloat(String(existing.total_price))).catch(err => logger.error({err},'Commission failed'));
-      recordProfileOwnerCommission(existing).catch(err => logger.error({ err, orderId: existing.id }, 'Profile-owner commission recording failed'));
       notifyUser(existing.seller_id as string, `✅ <b>Order Completed</b>\n${existing.product_title}\nAmount: ${existing.total_price} ${existing.currency}`).catch(()=>undefined);
       notifyUser(existing.buyer_id as string, `📦 <b>Your order is complete!</b>\n${existing.product_title}\nThank you for shopping on Nodbusiness 👑`).catch(()=>undefined);
       const [buyerNotifResult, sellerNotifResult] = await Promise.all([
@@ -496,7 +502,7 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
     for (const order of rows) {
       if (isFullRefund) await pool.query(`UPDATE orders SET status='refunded',updated_at=NOW() WHERE id=$1`, [order.id]);
       const { rows: creatorCommissions } = await pool.query(
-        `SELECT id,eligible_gross,amount,rate FROM profile_owner_commissions WHERE order_id=$1 AND status='earned'`,
+        `SELECT id,eligible_gross,amount,rate,status FROM profile_owner_commissions WHERE order_id=$1 AND status IN ('earned','paid')`,
         [order.id],
       );
       for (const creatorCommission of creatorCommissions as Array<Record<string, unknown>>) {
@@ -526,9 +532,9 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
            UPDATE profile_owner_commissions c
               SET eligible_gross=GREATEST(c.eligible_gross-$6,0),
                   amount=GREATEST(c.amount-$5,0),
-                  status=CASE WHEN $7::boolean OR c.amount-$5<=0 THEN 'reversed' ELSE c.status END,
+                  status=CASE WHEN c.status='earned' AND ($7::boolean OR c.amount-$5<=0) THEN 'reversed' ELSE c.status END,
                   updated_at=NOW()
-             FROM adjustment WHERE c.id=$1 AND c.status='earned'`,
+             FROM adjustment WHERE c.id=$1 AND c.status IN ('earned','paid')`,
           [creatorCommission.id, order.id, String(event.id ?? `stripe-refund:${obj.id}`), String(obj.id ?? obj.payment_intent), commissionReversal, baseReversal, isFullRefund],
         );
       }
@@ -555,7 +561,7 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
     for (const order of disputedOrders as Array<Record<string, unknown>>) {
       if (type === 'charge.dispute.created') {
         const { rows: commissions } = await pool.query(
-          `SELECT id,amount,eligible_gross FROM profile_owner_commissions WHERE order_id=$1 AND status='earned'`,
+          `SELECT id,amount,eligible_gross FROM profile_owner_commissions WHERE order_id=$1 AND status IN ('earned','paid')`,
           [order.id],
         );
         for (const commission of commissions as Array<Record<string, unknown>>) {
@@ -588,7 +594,9 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
              )
              UPDATE profile_owner_commissions c
                 SET amount=GREATEST(c.amount+a.amount_delta,0),eligible_gross=GREATEST(c.eligible_gross+a.eligible_subtotal_delta,0),
-                    status=CASE WHEN c.amount+a.amount_delta>0 THEN 'earned' ELSE 'reversed' END,updated_at=NOW()
+                    status=CASE WHEN c.amount+a.amount_delta>0 THEN
+                      CASE WHEN EXISTS (SELECT 1 FROM profile_owner_payout_items pi WHERE pi.commission_id=c.id) THEN 'paid' ELSE 'earned' END
+                      ELSE 'reversed' END,updated_at=NOW()
                FROM adjustment a WHERE c.id=a.commission_id AND c.status='reversed'`,
             [order.id, disputeId, String(event.id ?? `stripe-dispute-won:${disputeId}`)],
           );

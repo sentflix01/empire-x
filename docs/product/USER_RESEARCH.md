@@ -2,7 +2,8 @@
 
 > Understanding who we are building for — their goals, frustrations, and how Nodbusiness solves their problems.
 > Personas span global markets. Ethiopian personas are preserved as primary reference market examples.
-> Last updated: August 2026
+> Research includes candidate opportunities that are not current launch commitments. Tasks and Jobs below are deferred product concepts; current launch scope is documented in [the roadmap](ROADMAP.md) and [deferred feature record](POST_LAUNCH_FEATURES.md).
+> Last updated: October 2026
 
 ---
 
@@ -108,13 +109,13 @@ The table below shows global patterns with Ethiopia as the reference launch mark
 
 **How Nodbusiness helps:**
 - Social feed → connect with local professionals and creators
-- Task marketplace → find and post freelance work
+- Professional feed and profile → connect with local professionals and creators
 - Marketplace → buy and sell devices, books, electronics
 - Verified badge → build professional credibility
-- Jobs board → find local employment opportunities
-- Unified platform → no app switching
+- Future task and jobs concepts are deferred; they are not available in the launch app
+- Unified platform → no app switching across current launch workflows
 
-**Feature priorities:** Feed, Tasks, Jobs, Profile, Messaging, Marketplace
+**Candidate needs (not launch priorities):** Feed, Profile, Messaging, Marketplace; Tasks and Jobs remain deferred pending evidence and a separate product decision.
 
 ---
 

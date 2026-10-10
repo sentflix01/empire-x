@@ -72,7 +72,7 @@ Users in Addis Ababa can't easily discover products, businesses, and services th
 - As a user, I want to hover a pin and see a quick preview, so I don't have to click every pin
 
 ### Technical Notes
-- Products/businesses/tasks store `latitude` and `longitude` (already in schema)
+- Products and businesses store `latitude` and `longitude` (already in schema); historical task coordinates do not make tasks a launch feature
 - Map: React Leaflet with marker clustering (`leaflet.markercluster`)
 - ProfilePeek modal opens on marker click
 - Dynamic import needed (Leaflet is client-only, uses `window`)
@@ -150,7 +150,7 @@ Stripe requires international cards. Most Ethiopian users pay with Telebirr, CBE
 - Payment success rate for Ethiopian users increases from ~30% to >80%
 
 ### Non-Goals
-- Replace Stripe (keep for international buyers and Mewacho contributions)
+- Replace Stripe (keep for international buyers; deferred product areas do not define launch payment scope)
 
 ### Technical Notes
 - Chapa API: https://developer.chapa.co
@@ -160,26 +160,24 @@ Stripe requires international cards. Most Ethiopian users pay with Telebirr, CBE
 
 ---
 
-## PRD-006: Mewacho — Group Money Collection
+## PRD-006: Mewacho — Group Money Collection (Deferred)
 
-**Status:** Shipped (September 2026)
-**Target phase:** Phase 1 (shipped as part of MVP+)
+**Status:** Deferred; historical product proposal only. Not in the active launch app.
+**Target phase:** Unscheduled; requires a new product decision and staged re-entry review.
 
 ### Problem
 Ethiopians regularly collect money together for birthdays, weddings, trips, and charity — but manage it over WhatsApp with no transparency, no payment integration, and no audit trail. Money gets lost, contributions are disputed, and there's no easy way to see the running total.
 
-### Goals
-- Group admins can collect contributions from members via Stripe
-- All members can see exactly who contributed how much in real time
-- Admins can request withdrawals with a clear approval workflow
+### Goals (proposed, not active commitments)
+- If reprioritized, group admins could collect contributions through an approved payment flow
+- Members could review contribution activity and balances
+- Admins could request withdrawals with a clear approval workflow
 
-### Non-Goals (Phase 1)
-- Chapa / Telebirr integration (Phase 2)
-- Recurring contribution reminders
-- Equb-style rotation (Phase 2)
-- Multi-currency for diaspora (Phase 3)
+### Proposed non-goals (if reprioritized)
+- Payment methods and currencies must be decided during a future product review.
+- Recurring reminders and Equb-style rotation are not currently scheduled.
 
-### User Stories
+### Proposed user stories (not active commitments)
 - As a group creator, I want to set a target amount and invite members via link or QR, so people can join easily
 - As a member, I want to contribute money via Stripe and see my contribution appear instantly in the feed
 - As any member, I want to see the running total and who has paid, so there's full transparency
@@ -187,17 +185,12 @@ Ethiopians regularly collect money together for birthdays, weddings, trips, and 
 - As any member, I want to download a PDF summary of all contributions and withdrawals
 
 ### Technical Notes
-- 5 new tables: `mewacho_groups`, `mewacho_members`, `mewacho_contributions`, `mewacho_withdrawals`, `mewacho_activity`
-- `migrate26.js` — run on all environments
-- Backend: `backend/routes/mewacho.js` — 9 endpoints + Stripe webhook
-- Frontend: `views/Mewacho.tsx` (list), `views/MewachoGroup.tsx` (detail), pages at `/mewacho`, `/mewacho/[id]`, `/mewacho/join/[code]`
-- Sidebar nav: Coins icon between Tasks and Messages
-- Libraries used: `jspdf` (PDF export), `qrcode.react` (QR invite), `@stripe/stripe-js` (payments)
-- Stripe webhook: `STRIPE_MEWACHO_WEBHOOK_SECRET` env var, endpoint: `/api/mewacho/webhook`
+- Historical migration/data may remain in the database but is not an active route or API contract.
+- Do not drop or reactivate historical tables as part of launch cleanup.
+- Before re-entry, audit retained data, payment/webhook ownership, authorization, reconciliation, and migration needs; see [Deferred product areas](POST_LAUNCH_FEATURES.md).
 
 ### Success Metrics
-- Mewacho groups created within 30 days of launch > 50
-- Total ETB collected via Mewacho > 100,000 ETB within 60 days
+- Define a measurable pilot goal and safety/reconciliation criteria before approving a future phase.
 
 ---
 

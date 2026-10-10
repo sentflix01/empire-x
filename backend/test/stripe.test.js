@@ -351,6 +351,54 @@ describe('Stripe webhook — charge.refunded', () => {
     expect(adjustment[0]).toContain('ON CONFLICT DO NOTHING');
   });
 
+  test('refund after a manual profile-owner payout adjusts the ledger and preserves paid status', async () => {
+    const event = refundEvent({
+      id: 'ch_paid_profile_partial',
+      payment_intent: 'pi_test_refund',
+      amount: 100000,
+      amount_refunded: 25000,
+    });
+    mockConstructEvent.mockReturnValue(event);
+    routeQueries([
+      ['INSERT INTO webhook_events', { rows: [{ id: 'evt_refund_1' }] }],
+      ['SELECT * FROM orders', { rows: [{ ...ORDER, profile_partnership_id: 'partnership-1' }] }],
+      ['FROM profile_owner_commissions', { rows: [{ id: 'profile-comm-paid', eligible_gross: '100.00', amount: '10.00', rate: '0.10', status: 'paid' }] }],
+      ['FROM profile_owner_commission_adjustments', { rows: [{ base_reversed: '0', commission_reversed: '0' }] }],
+    ]);
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    const selection = pool.query.mock.calls.find(([sql]) => sql.includes('FROM profile_owner_commissions'));
+    expect(selection[0]).toContain("status IN ('earned','paid')");
+    const adjustment = pool.query.mock.calls.find(([sql]) => sql.includes('INSERT INTO profile_owner_commission_adjustments'));
+    expect(adjustment[1]).toEqual([
+      'profile-comm-paid', 'order-1', 'evt_refund_1', 'ch_paid_profile_partial', 2.5, 25, false,
+    ]);
+    expect(adjustment[0]).toContain("c.status IN ('earned','paid')");
+    expect(adjustment[0]).toContain("c.status='earned'");
+  });
+
+  test('won disputes restore a previously paid profile-owner commission as paid', async () => {
+    const event = {
+      id: 'evt_dispute_won',
+      type: 'charge.dispute.closed',
+      data: { object: { id: 'dp_paid_1', payment_intent: 'pi_test_refund', status: 'won' } },
+    };
+    mockConstructEvent.mockReturnValue(event);
+    routeQueries([
+      ['INSERT INTO webhook_events', { rows: [{ id: event.id }] }],
+      ['SELECT id FROM orders', { rows: [{ id: 'order-1' }] }],
+    ]);
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+    const restoration = pool.query.mock.calls.find(([sql]) => sql.includes("'dispute_won'"));
+    expect(restoration).toBeTruthy();
+    expect(restoration[0]).toContain('profile_owner_payout_items');
+    expect(restoration[0]).toContain("THEN 'paid' ELSE 'earned'");
+  });
+
   test('wallet top-up refund: proportional credit reversal (no double refund)', async () => {
     const event = refundEvent({
       id: 'ch_topup',

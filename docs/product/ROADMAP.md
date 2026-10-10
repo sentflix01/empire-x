@@ -1,6 +1,6 @@
 # Nodbusiness — Product Roadmap
 
-> Launch roadmap for the local merchant showroom and order workflow. Deferred feature plans are in [POST_LAUNCH_FEATURES.md](POST_LAUNCH_FEATURES.md).
+> Launch roadmap for the local merchant showroom and order workflow. Profile-owner partnership rules are in [PROFILE_OWNER_PARTNERSHIPS.md](PROFILE_OWNER_PARTNERSHIPS.md); deferred feature plans are in [POST_LAUNCH_FEATURES.md](POST_LAUNCH_FEATURES.md).
 > Last updated: September 2026
 
 ---

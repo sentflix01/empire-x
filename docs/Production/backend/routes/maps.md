@@ -6,7 +6,7 @@
 
 ## 2. Why does it exist?
 
-Map data: nearby products/businesses/tasks within radius via Haversine SQL (no PostGIS), marker clustering payloads, profile peek info.
+Map data: nearby products, businesses, and people within radius via Haversine SQL (no PostGIS), marker clustering payloads, profile peek info. Task listings are deferred and are not returned by these endpoints.
 
 ## 3. What does it do?
 
