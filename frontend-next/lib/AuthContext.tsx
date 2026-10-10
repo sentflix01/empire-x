@@ -12,6 +12,7 @@ export interface AuthUser {
   /** Active data environment: 2 means an isolated, cookie-bound sandbox. */
   demo_track?: 1 | 2 | null;
   demo_session_active?: boolean;
+  demo_session_anonymous?: boolean;
   demo_expires_at?: string | null;
   demo_workspace_available?: boolean;
   /** Set after first-login mode selection. null = user has not yet chosen. */

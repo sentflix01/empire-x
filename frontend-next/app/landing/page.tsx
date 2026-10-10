@@ -16,6 +16,7 @@ import {
   Users,
 } from 'lucide-react';
 import { LandingPreferences } from '@/components/landing/LandingControls';
+import TryDemoButton from '@/components/landing/TryDemoButton';
 
 // Force dynamic rendering so Next.js serves this page from the server on
 // every request. This ensures the Content-Security-Policy header set in
@@ -146,7 +147,8 @@ export default function LandingPage() {
             >
               Create Account
             </Link>
-            {/* Secondary: read-only browse, no account needed */}
+            <TryDemoButton />
+            {/* Read-only public browsing, with no account required */}
             <Link
               href="/feed"
               className="inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/30 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 sm:w-auto"
@@ -154,6 +156,7 @@ export default function LandingPage() {
               Explore as Guest
             </Link>
           </div>
+          <p className="mt-4 text-xs font-medium text-white/65">Try the practice workspace without signing in. Demo activity stays separate from Real accounts.</p>
         </div>
 
         <div className="relative z-10 mx-auto hidden w-[min(82vw,860px)] grid-cols-3 gap-3 px-6 pb-16 opacity-95 md:grid">

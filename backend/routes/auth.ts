@@ -51,7 +51,7 @@ router.use((req, res, next) => {
   next();
 });
 
-async function establishDemoAccountSession(userId: string, res: Response): Promise<{ sessionId: string; expiresAt: Date }> {
+async function establishDemoAccountSession(userId: string, res: Response, isAnonymous = false): Promise<{ sessionId: string; expiresAt: Date }> {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   const client = await pool.connect();
   try {
@@ -64,8 +64,8 @@ async function establishDemoAccountSession(userId: string, res: Response): Promi
       [userId],
     );
     const { rows } = await client.query<{ id: string }>(
-      "INSERT INTO demo_sessions (user_id, expires_at) VALUES ($1, $2) RETURNING id",
-      [userId, expiresAt],
+      "INSERT INTO demo_sessions (user_id, expires_at, is_anonymous) VALUES ($1, $2, $3) RETURNING id",
+      [userId, expiresAt, isAnonymous],
     );
     await client.query('COMMIT');
     const sessionId = rows[0].id;
@@ -460,7 +460,63 @@ router.post('/resend-otp', async (req: Request, res: Response) => {
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
 
 router.post('/demo', async (req: Request, res: Response) => {
-  res.status(410).json({ error: 'Anonymous Demo sessions are no longer supported. Sign in or create a Real account, then switch to Demo.', code: 'WORKSPACE_SWITCH_REQUIRED' });
+  if (req.demoSession) {
+    res.json({
+      access_token: signDemoAccessToken(req.demoSession.userId, req.demoSession.id),
+      demo: true,
+      anonymous: req.demoSession.isAnonymous,
+      expires_at: req.demoSession.expiresAt.toISOString(),
+    });
+    return;
+  }
+  if (process.env.DEMO_ENABLED !== 'true' || !process.env.DEMO_DATABASE_URL || !isDemoSessionSecretValid()) {
+    res.status(503).json({ error: 'Demo practice is not configured yet.', code: 'DEMO_CONFIGURATION_INVALID' });
+    return;
+  }
+
+  const userId = uuidv4();
+  const sessionId = uuidv4();
+  const email = `visitor-${userId}@demo.nodbusiness.invalid`;
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  try {
+    await runWithDatabaseEnvironment({ environment: 'demo', demoSessionId: sessionId, demoUserId: userId }, async () => {
+      const db = await pool.connect();
+      try {
+        await db.query('BEGIN');
+        await db.query(
+          `INSERT INTO users (id, email, full_name, role, provider, is_verified, is_demo, is_seed)
+           VALUES ($1, $2, 'Demo Visitor', 'user', 'local', TRUE, TRUE, FALSE)`,
+          [userId, email],
+        );
+        await db.query(
+          `INSERT INTO user_profiles (user_id, display_name, profile_type)
+           VALUES ($1, 'Demo Visitor', 'personal')`,
+          [userId],
+        );
+        await db.query(
+          `INSERT INTO demo_sessions (id, user_id, expires_at, is_anonymous)
+           VALUES ($1, $2, $3, TRUE)`,
+          [sessionId, userId, expiresAt],
+        );
+        await db.query('COMMIT');
+      } catch (error) {
+        await db.query('ROLLBACK').catch(() => undefined);
+        throw error;
+      } finally {
+        db.release();
+      }
+    });
+    setDemoSessionCookie(res, signDemoSessionCookie(sessionId, userId, expiresAt), expiresAt);
+    res.json({
+      access_token: signDemoAccessToken(userId, sessionId),
+      demo: true,
+      anonymous: true,
+      expires_at: expiresAt.toISOString(),
+    });
+  } catch (error) {
+    logger.error({ err: (error as Error).message, requestId: req.requestId }, 'Anonymous Demo session creation failed');
+    res.status(503).json({ error: 'Could not start Demo practice. Please try again shortly.', code: 'DEMO_UNAVAILABLE' });
+  }
 });
 
 router.post('/demo/exit', async (req: Request, res: Response) => {
@@ -487,7 +543,7 @@ router.post('/demo/reset', async (req: Request, res: Response) => {
   if (!req.demoSession) { res.status(401).json({ error: 'An active demo session is required' }); return; }
   try {
     await pool.query("UPDATE demo_sessions SET status='ended', ended_at=NOW() WHERE id=$1 AND status='active'", [req.demoSession.id]);
-    const session = await establishDemoAccountSession(req.demoSession.userId, res);
+    const session = await establishDemoAccountSession(req.demoSession.userId, res, req.demoSession.isAnonymous);
     setDemoSessionCookie(res, signDemoSessionCookie(session.sessionId, req.demoSession.userId, session.expiresAt), session.expiresAt);
     res.json({
       access_token: signDemoAccessToken(req.demoSession.userId, session.sessionId),
@@ -908,6 +964,7 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
       // only the active environment state needed to render the correct UI.
       demo_track: req.demoSession ? 2 : (rows[0].is_demo ? 1 : null),
       demo_session_active: Boolean(req.demoSession),
+      demo_session_anonymous: Boolean(req.demoSession?.isAnonymous),
       demo_expires_at: req.demoSession?.expiresAt.toISOString() ?? null,
       demo_workspace_available: process.env.DEMO_ENABLED === 'true' && Boolean(process.env.DEMO_DATABASE_URL) && isDemoSessionSecretValid(),
     });

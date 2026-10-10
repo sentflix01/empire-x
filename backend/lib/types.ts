@@ -361,7 +361,7 @@ declare global {
       /** Set by middleware/realMode.js when X-Real-Only: 1 header is present. */
       realOnly: boolean;
       /** Set only after the demo cookie has been validated against the demo database. */
-      demoSession?: { id: string; userId: string; expiresAt: Date };
+      demoSession?: { id: string; userId: string; expiresAt: Date; isAnonymous: boolean };
     }
   }
 }
