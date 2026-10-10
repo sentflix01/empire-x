@@ -26,6 +26,13 @@ use the actual name at the end of the connection URI in migration commands.
 Keep all connection strings and secret keys private. The Demo session secret
 must differ from `JWT_SECRET`.
 
+For a persistent Render backend, choose the Supabase **Session pooler** URI
+(port `5432`) when using the IPv4 pooler, or Direct connection if the host can
+reach the project's IPv6 endpoint. For migrations, Direct connection is
+preferred; Session pooler is the alternative when Direct is unreachable. Do
+not use the Transaction pooler URI (port `6543`) for this persistent backend
+or migration run.
+
 The Demo Storage bucket must already exist in the Demo project and have public
 access disabled. The backend checks that the Demo Storage project differs from
 the Real project and that the bucket is private before enabling Demo.
