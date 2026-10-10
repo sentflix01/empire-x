@@ -1,3 +1,5 @@
+> **DEFERRED (October 2026):** This strategy file is historical planning material, not a current launch commitment. The feature routes and APIs are not active. Current scope and re-entry criteria are recorded in `docs/product/POST_LAUNCH_FEATURES.md`.
+
 # v1.5 — Tasks & Gigs
 
 > **Theme:** Service Economy

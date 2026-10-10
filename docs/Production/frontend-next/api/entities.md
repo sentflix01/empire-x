@@ -24,7 +24,7 @@ Extracted facts (auto):
   - `/api/messages/conversations/${filterObj.conversation_id}/messages`
   - `/api/messages/conversations/${conversation_id}/messages`
   - `/api/messages/messages/${id}`
-  - `/api/tasks/bids`
+  - Generic entity routes use `/api/${path}` and `/api/${path}/${id}`. Task APIs are deferred and are not part of the active client contract.
 
 ## 4. What does it touch?
 

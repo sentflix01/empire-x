@@ -193,9 +193,17 @@ router.put('/:id/terminate', requireAuth, async (req: Request, res: Response) =>
 router.get('/my-commissions', requireAuth, async (req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(
-      `SELECT c.*,o.product_title,o.currency,b.business_name,p.business_owner_id FROM profile_owner_commissions c
+      `SELECT c.*,o.product_title,o.currency,b.business_name,p.business_owner_id,
+              COALESCE(a.adjustment_count,0)::int AS adjustment_count,
+              COALESCE(a.adjustment_delta,0) AS adjustment_delta
+         FROM profile_owner_commissions c
        JOIN orders o ON o.id=c.order_id JOIN profile_partnerships p ON p.id=c.partnership_id
-       JOIN businesses b ON b.id=p.business_id WHERE c.profile_owner_id=$1 OR p.business_owner_id=$1 ORDER BY c.created_at DESC LIMIT 100`,
+       JOIN businesses b ON b.id=p.business_id
+       LEFT JOIN LATERAL (
+         SELECT COUNT(*) AS adjustment_count, SUM(amount_delta) AS adjustment_delta
+           FROM profile_owner_commission_adjustments a WHERE a.commission_id=c.id
+       ) a ON TRUE
+       WHERE c.profile_owner_id=$1 OR p.business_owner_id=$1 ORDER BY c.created_at DESC LIMIT 100`,
       [req.user!.id],
     );
     const totals = rows.reduce((acc: { earnedByCurrency: Record<string, number>; paidByCurrency: Record<string, number> }, row: Record<string, unknown>) => {

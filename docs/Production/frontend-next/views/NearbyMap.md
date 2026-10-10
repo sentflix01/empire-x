@@ -2,13 +2,13 @@
 
 ## 1. What is this?
 
-**Screen component (view layer).** Map discovery (Leaflet): nearby products/businesses/tasks markers with clustering and profile-peek popovers.
+**Screen component (view layer).** Map discovery (Leaflet): nearby product and business markers with clustering and profile-peek popovers.
 
 Size: roughly 580 lines of source.
 
 ## 2. Why does it exist?
 
-Map discovery (Leaflet): nearby products/businesses/tasks markers with clustering and profile-peek popovers.
+Map discovery (Leaflet): nearby products and businesses with clustering and profile-peek popovers.
 
 ## 3. What does it do?
 
@@ -21,8 +21,8 @@ sonner toasts, and auth failures are handled globally by interceptors.
 **API endpoints:**
 - `/api/client`
 - `/api/entities`
-- `/api/maps/nearby/tasks`
-- `/api/maps/nearby/products`
+- `/api/maps/nearby`
+- `/api/maps/nearby/product-search`
 
 **Integrations:** AuthContext (useAuth)
 

@@ -162,6 +162,14 @@ describe('PUT /api/orders/:id', () => {
     expect(updateRecord).not.toHaveBeenCalled();
   });
 
+  it('allows an idempotent completed update so an interrupted commission write can be retried', async () => {
+    getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'user-1', seller_id: 'seller-9', status: 'completed' });
+    updateRecord.mockResolvedValueOnce({ id: 'order-1', status: 'completed' });
+    const res = await request(buildApp()).put('/api/orders/order-1').send({ status: 'completed' });
+    expect(res.status).toBe(200);
+    expect(updateRecord).toHaveBeenCalledWith('orders', 'order-1', { status: 'completed' });
+  });
+
   it('strips money and identity columns from party updates', async () => {
     getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'user-1', seller_id: 'seller-9', status: 'delivered' });
     updateRecord.mockResolvedValueOnce({ id: 'order-1', status: 'completed' });
