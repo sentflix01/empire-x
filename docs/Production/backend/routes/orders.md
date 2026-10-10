@@ -20,12 +20,12 @@ Money core: COD order creation (field allowlisted), order status transitions rol
 | `GET` | `/api/orders/:id` | auth | 121 |
 | `POST` | `/api/orders/` | auth | 165 |
 | `PUT` | `/api/orders/:id` | auth | 243 |
-| `POST` | `/api/orders/checkout/session` | auth | 301 |
-| `POST` | `/api/orders/webhook` | public | 614 |
-| `POST` | `/api/orders/checkout/chapa` | auth | 648 |
-| `GET` | `/api/orders/chapa/sandbox` | public | 716 |
-| `GET` | `/api/orders/chapa/status/:tx_ref` | public | 728 |
-| `GET` | `/api/orders/chapa/verify/:tx_ref` | public | 739 |
+| `POST` | `/api/orders/checkout/session` | auth | 307 |
+| `POST` | `/api/orders/webhook` | public | 622 |
+| `POST` | `/api/orders/checkout/chapa` | auth | 656 |
+| `GET` | `/api/orders/chapa/sandbox` | public | 724 |
+| `GET` | `/api/orders/chapa/status/:tx_ref` | public | 736 |
+| `GET` | `/api/orders/chapa/verify/:tx_ref` | public | 747 |
 
 ## 4. What does it touch?
 

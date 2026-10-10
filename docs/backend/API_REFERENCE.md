@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **266** across **45** mounted modules · Generated: 2026-10-09
+> Endpoints: **266** across **45** mounted modules · Generated: 2026-10-10
 
 | Legend | Meaning |
 |---|---|
@@ -310,12 +310,12 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `GET` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:121 |
 | `POST` | `/api/orders/` | 🔒 auth | routes/orders.ts:165 |
 | `PUT` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:243 |
-| `POST` | `/api/orders/checkout/session` | 🔒 auth | routes/orders.ts:301 |
-| `POST` | `/api/orders/webhook` | 🌐 public | routes/orders.ts:614 |
-| `POST` | `/api/orders/checkout/chapa` | 🔒 auth | routes/orders.ts:648 |
-| `GET` | `/api/orders/chapa/sandbox` | 🌐 public | routes/orders.ts:716 |
-| `GET` | `/api/orders/chapa/status/:tx_ref` | 🌐 public | routes/orders.ts:728 |
-| `GET` | `/api/orders/chapa/verify/:tx_ref` | 🌐 public | routes/orders.ts:739 |
+| `POST` | `/api/orders/checkout/session` | 🔒 auth | routes/orders.ts:307 |
+| `POST` | `/api/orders/webhook` | 🌐 public | routes/orders.ts:622 |
+| `POST` | `/api/orders/checkout/chapa` | 🔒 auth | routes/orders.ts:656 |
+| `GET` | `/api/orders/chapa/sandbox` | 🌐 public | routes/orders.ts:724 |
+| `GET` | `/api/orders/chapa/status/:tx_ref` | 🌐 public | routes/orders.ts:736 |
+| `GET` | `/api/orders/chapa/verify/:tx_ref` | 🌐 public | routes/orders.ts:747 |
 
 ## polls — polls
 
@@ -363,8 +363,8 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `PUT` | `/api/profile-partnerships/:id/decline` | 🔒 auth | routes/profilePartnerships.ts:173 |
 | `PUT` | `/api/profile-partnerships/:id/terminate` | 🔒 auth | routes/profilePartnerships.ts:183 |
 | `GET` | `/api/profile-partnerships/my-commissions` | 🔒 auth | routes/profilePartnerships.ts:193 |
-| `GET` | `/api/profile-partnerships/payouts` | 🔒 auth | routes/profilePartnerships.ts:215 |
-| `POST` | `/api/profile-partnerships/:id/payouts` | 🔒 auth | routes/profilePartnerships.ts:237 |
+| `GET` | `/api/profile-partnerships/payouts` | 🔒 auth | routes/profilePartnerships.ts:223 |
+| `POST` | `/api/profile-partnerships/:id/payouts` | 🔒 auth | routes/profilePartnerships.ts:245 |
 
 ## profiles — profiles
 

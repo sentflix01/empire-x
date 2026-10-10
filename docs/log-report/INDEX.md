@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-10 | Maintenance | Merge pull request #90 from sentflix01/codex/launch-scope-partnership-audit | [8d847633c](2026-10-10-8d847633c-merge-pull-request-90-from-sentflix01-codex-laun.md) |
+| 2026-10-10 | Bugfix | fix: align launch scope and partnership accounting | [2b5f71af7](2026-10-10-2b5f71af7-align-launch-scope-and-partnership-accounting.md) |
 | 2026-10-10 | Maintenance | Merge pull request #89 from sentflix01/fix/supabase-secret-api-key | [bf989e05d](2026-10-10-bf989e05d-merge-pull-request-89-from-sentflix01-fix-supaba.md) |
 | 2026-10-10 | Bugfix | fix: align backend TypeScript with ts-jest | [cf1213315](2026-10-10-cf1213315-align-backend-typescript-with-ts-jest.md) |
 | 2026-10-10 | CI/CD | ci: pull postgres service from ECR Public | [ebbc6433b](2026-10-10-ebbc6433b-pull-postgres-service-from-ecr-public.md) |

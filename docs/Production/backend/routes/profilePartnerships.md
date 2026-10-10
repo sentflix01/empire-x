@@ -23,8 +23,8 @@ It lets a merchant offer products or services through another person's profile w
 | `PUT` | `/api/profile-partnerships/:id/decline` | auth | 173 |
 | `PUT` | `/api/profile-partnerships/:id/terminate` | auth | 183 |
 | `GET` | `/api/profile-partnerships/my-commissions` | auth | 193 |
-| `GET` | `/api/profile-partnerships/payouts` | auth | 215 |
-| `POST` | `/api/profile-partnerships/:id/payouts` | auth | 237 |
+| `GET` | `/api/profile-partnerships/payouts` | auth | 223 |
+| `POST` | `/api/profile-partnerships/:id/payouts` | auth | 245 |
 
 ## 4. What does it touch?
 
