@@ -88,7 +88,9 @@ Set at: Render → nodbusiness-backend → Environment
 | `STORAGE_SUPABASE_URL` | Same as `SUPABASE_URL` | No | Another alias used internally. |
 | `SUPABASE_STORAGE_KEY` | `sb_secret_...` (recommended) or legacy `eyJ...` service_role JWT | ✅ Yes* | Use a server-only Secret API key from Supabase → Settings → API Keys. The backend supports the new `sb_secret_...` format and legacy service_role JWT during migration. Never use the publishable/anon key here. |
 | `SUPABASE_BUCKET` | `uploads` | ✅ Yes* | Storage bucket name. Auto-created at startup if missing. |
-| `DEMO_SUPABASE_BUCKET` | `demo-uploads` | Required when Demo is enabled | Must be a separate Supabase Storage bucket with **public access disabled**. The backend checks this at startup and fails closed if it is missing, public, or the same bucket as `SUPABASE_BUCKET`. Demo assets use temporary signed URLs. Do not point this at the Real uploads bucket. |
+| `DEMO_SUPABASE_URL` | `https://<demo-project-ref>.supabase.co` | Required when Demo is enabled | Supabase project URL for the separate Demo Storage project. Must differ from the Real project's URL. |
+| `DEMO_SUPABASE_STORAGE_KEY` | `sb_secret_...` | Required when Demo is enabled | Server-only Secret API key from the Demo Supabase project. Never use a publishable/anon key or the Real project's key. |
+| `DEMO_SUPABASE_BUCKET` | `demo-uploads` | Required when Demo is enabled | Bucket in the Demo Storage project with **public access disabled**. The backend checks project separation and verifies that the bucket is private. Demo assets use temporary signed URLs. |
 | `UPLOAD_DIR` | `uploads` | No | Local disk fallback directory. Default `uploads`. |
 | `MAX_FILE_SIZE_MB` | `10` | No | Max upload size in MB. Default 10. |
 

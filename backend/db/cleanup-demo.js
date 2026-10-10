@@ -67,16 +67,13 @@ async function removeDemoUploads(sessionId) {
   }
   await fs.rm(localTarget, { recursive: true, force: true });
 
-  const candidates = [process.env.SUPABASE_API_URL, process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_URL];
-  const projectUrl = candidates
-    .map((value) => value?.match(/https:\/\/[a-z0-9]+\.supabase\.co/i)?.[0])
-    .find(Boolean);
-  const demoBucket = process.env.DEMO_SUPABASE_BUCKET || process.env.SUPABASE_BUCKET;
-  if (projectUrl && process.env.SUPABASE_STORAGE_KEY && demoBucket) {
+  const projectUrl = process.env.DEMO_SUPABASE_URL?.match(/https:\/\/[a-z0-9]+\.supabase\.co/i)?.[0];
+  const demoBucket = process.env.DEMO_SUPABASE_BUCKET;
+  if (projectUrl && process.env.DEMO_SUPABASE_STORAGE_KEY && demoBucket) {
     const response = await fetch(`${projectUrl.replace(/\/$/, '')}/storage/v1/object/${encodeURIComponent(demoBucket)}`, {
       method: 'DELETE',
       headers: {
-        ...supabaseStorageAuthHeaders(process.env.SUPABASE_STORAGE_KEY),
+        ...supabaseStorageAuthHeaders(process.env.DEMO_SUPABASE_STORAGE_KEY),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ prefixes: [prefix] }),

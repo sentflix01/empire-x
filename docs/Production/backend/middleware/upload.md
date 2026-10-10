@@ -6,7 +6,7 @@
 
 ## 2. Why does it exist?
 
-Multer chooses Supabase Storage, Cloudflare R2, or local disk. It enforces an extension/MIME allowlist, a 10 MB default size limit, and magic-byte validation for images and PDFs. Video files currently rely on the MIME/extension allowlist. Demo cloud uploads require a separately provisioned private `DEMO_SUPABASE_BUCKET`, distinct from the Real public bucket; uploads receive seven-day signed URLs. Demo uploads on R2 are rejected. Local Demo uploads use `uploads/demo/<sessionId>/uploads/` and signed application tokens; static delivery checks the exact asset, active Demo session, and expiry. Local files rejected by magic-byte validation are deleted immediately.
+Multer chooses Supabase Storage, Cloudflare R2, or local disk. It enforces an extension/MIME allowlist, a 10 MB default size limit, and magic-byte validation for images and PDFs. Video files currently rely on the MIME/extension allowlist. Demo cloud uploads require the separate Demo project's `DEMO_SUPABASE_URL`, `DEMO_SUPABASE_STORAGE_KEY`, and private `DEMO_SUPABASE_BUCKET`; uploads receive seven-day signed URLs. Demo uploads on R2 are rejected. Local Demo uploads use `uploads/demo/<sessionId>/uploads/` and signed application tokens; static delivery checks the exact asset, active Demo session, and expiry. Local files rejected by magic-byte validation are deleted immediately.
 
 ## 3. What does it do?
 

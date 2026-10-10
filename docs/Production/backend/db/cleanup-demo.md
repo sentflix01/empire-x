@@ -14,7 +14,7 @@ The script removes session-scoped AI usage rows and the upload prefix belonging 
 - Dry-run is the default and does not mutate the database or storage.
 - Execution requires `ALLOW_DEMO_CLEANUP=1`, `--execute`, and `--database=<exact demo database name>`.
 - Does not delete Demo users or business data.
-- Clears local Demo uploads and removes `demo/<sessionId>/` from `DEMO_SUPABASE_BUCKET` (falling back to `SUPABASE_BUCKET` for older Demo objects).
+- Clears local Demo uploads and removes `demo/<sessionId>/` from `DEMO_SUPABASE_BUCKET` using the separate `DEMO_SUPABASE_URL` and `DEMO_SUPABASE_STORAGE_KEY` credentials.
 - Run with demo-only credentials and confirm the target before enabling execution.
 
 ## 4. What does it touch?
