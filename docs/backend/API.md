@@ -20,7 +20,14 @@ Register a new account. Sends OTP to email.
 ```json
 { "message": "Registration successful. Check your email for the verification code.", "userId": "uuid" }
 ```
-**Errors:** 400 (missing fields), 409 (email exists)
+**Response 200** (email already registered but never verified):
+```json
+{ "message": "Your account is awaiting verification. A new verification code has been sent.", "pendingVerification": true }
+```
+Re-registering an unverified email replaces its password and name with the new request's,
+so only the person who can read the inbox ends up controlling the account.
+
+**Errors:** 400 (missing fields), 403 (account suspended), 409 (verified account with this email exists), 503 (`OTP_DELIVERY_FAILED`)
 
 ---
 
@@ -63,8 +70,13 @@ Login or register with Google ID token.
 ```
 **Response 200:**
 ```json
-{ "access_token": "eyJhbG..." }
+{ "access_token": "eyJhbG...", "onboarding_mode": null, "is_demo": false }
 ```
+**Errors:** 401 (invalid token, no email, or `email_verified` is not `true`), 403 (account suspended), 503 (not configured or Google unreachable)
+
+Linking by email: a verified local account keeps its password and gains Google sign-in. An
+unverified local account is marked verified, and its password and pending OTP are cleared,
+because whoever created it never proved they own the inbox.
 
 ---
 

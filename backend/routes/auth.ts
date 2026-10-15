@@ -267,12 +267,17 @@ router.post('/register', async (req: Request, res: Response) => {
         return;
       }
       if (!existing.rows[0].is_verified) {
+        // Nobody has proven they own this inbox yet, so the latest registration
+        // wins: replace the password (and name) along with the OTP. Otherwise an
+        // attacker who pre-registers the victim's email keeps a working password
+        // after the victim verifies.
+        const passwordHash = await bcrypt.hash(password, 12);
         const otp = generateOtp();
         const otpHash = hashOtp(otp);
         const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
         await pool.query(
-          'UPDATE users SET otp_code = $1, otp_expires = $2 WHERE id = $3',
-          [otpHash, otpExpires, existing.rows[0].id],
+          'UPDATE users SET password_hash = $1, full_name = $2, otp_code = $3, otp_expires = $4 WHERE id = $5 AND is_verified = FALSE',
+          [passwordHash, full_name ?? null, otpHash, otpExpires, existing.rows[0].id],
         );
         try {
           await sendOtpEmail(normalizedEmail, otp);
@@ -857,9 +862,13 @@ router.post('/google', async (req: Request, res: Response) => {
   }
 
   try {
-    const { sub: googleId, email, name } = payload;
+    const { sub: googleId, email, name, email_verified: emailVerified } = payload;
     if (!email) {
       res.status(401).json({ error: 'Google account has no email' });
+      return;
+    }
+    if (emailVerified !== true) {
+      res.status(401).json({ error: 'Google has not verified this email address.' });
       return;
     }
 
@@ -869,15 +878,27 @@ router.post('/google', async (req: Request, res: Response) => {
     )).rows[0];
 
     if (!user) {
-      const existing = (await pool.query<{ id: string }>(
-        'SELECT id FROM users WHERE email = $1',
+      const existing = (await pool.query<{ id: string; is_verified: boolean }>(
+        'SELECT id, is_verified FROM users WHERE email = $1',
         [email.toLowerCase()],
       )).rows[0];
 
-      if (existing) {
+      if (existing?.is_verified) {
         await pool.query(
-          'UPDATE users SET provider = $1, provider_id = $2, is_verified = TRUE WHERE id = $3',
+          'UPDATE users SET provider = $1, provider_id = $2 WHERE id = $3',
           ['google', googleId, existing.id],
+        );
+        user = existing;
+      } else if (existing) {
+        // An unverified local account was created by someone who never proved
+        // they own this inbox. Drop its password and pending OTP so a
+        // pre-registered attacker credential cannot survive the Google link.
+        await pool.query(
+          `UPDATE users SET provider = $1, provider_id = $2, is_verified = TRUE,
+                  password_hash = NULL, otp_code = NULL, otp_expires = NULL,
+                  full_name = COALESCE($3, full_name)
+           WHERE id = $4`,
+          ['google', googleId, name ?? null, existing.id],
         );
         user = existing;
       } else {
