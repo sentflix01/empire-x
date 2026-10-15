@@ -18,7 +18,7 @@ Product reviews and star ratings: create/update with purchase-bias checks, per-p
 | `GET` | `/api/reviews/` | optional | 9 |
 | `GET` | `/api/reviews/product/:productId` | optional | 34 |
 | `POST` | `/api/reviews/` | auth | 50 |
-| `DELETE` | `/api/reviews/:id` | auth | 72 |
+| `DELETE` | `/api/reviews/:id` | auth | 83 |
 
 ## 4. What does it touch?
 

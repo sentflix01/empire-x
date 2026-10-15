@@ -21,22 +21,22 @@ Chat REST layer backing Socket.IO: conversation lists, message history paginatio
 | `POST` | `/api/messages/conversations` | auth | 152 |
 | `PUT` | `/api/messages/conversations/:id` | auth | 174 |
 | `GET` | `/api/messages/conversations/:convId/messages` | auth | 198 |
-| `POST` | `/api/messages/conversations/:convId/messages` | auth | 211 |
-| `PUT` | `/api/messages/messages/:id` | auth | 265 |
-| `DELETE` | `/api/messages/messages/:id` | auth | 278 |
-| `DELETE` | `/api/messages/conversations/:id/history` | auth | 289 |
-| `POST` | `/api/messages/conversations/:id/leave` | auth | 297 |
-| `POST` | `/api/messages/conversations/:id/members` | auth | 309 |
-| `DELETE` | `/api/messages/conversations/:id/members/:userId` | auth | 324 |
-| `DELETE` | `/api/messages/conversations/:id` | auth | 337 |
-| `PUT` | `/api/messages/presence` | auth | 350 |
-| `GET` | `/api/messages/presence/:userId` | auth | 363 |
-| `PUT` | `/api/messages/presence/settings` | auth | 378 |
-| `POST` | `/api/messages/block/:targetId` | auth | 387 |
-| `DELETE` | `/api/messages/block/:targetId` | auth | 393 |
-| `GET` | `/api/messages/block/:targetId` | auth | 398 |
-| `POST` | `/api/messages/messages/:id/forward` | auth | 405 |
-| `POST` | `/api/messages/inquiry` | auth | 424 |
+| `POST` | `/api/messages/conversations/:convId/messages` | auth | 216 |
+| `PUT` | `/api/messages/messages/:id` | auth | 270 |
+| `DELETE` | `/api/messages/messages/:id` | auth | 283 |
+| `DELETE` | `/api/messages/conversations/:id/history` | auth | 294 |
+| `POST` | `/api/messages/conversations/:id/leave` | auth | 302 |
+| `POST` | `/api/messages/conversations/:id/members` | auth | 314 |
+| `DELETE` | `/api/messages/conversations/:id/members/:userId` | auth | 329 |
+| `DELETE` | `/api/messages/conversations/:id` | auth | 342 |
+| `PUT` | `/api/messages/presence` | auth | 355 |
+| `GET` | `/api/messages/presence/:userId` | auth | 370 |
+| `PUT` | `/api/messages/presence/settings` | auth | 387 |
+| `POST` | `/api/messages/block/:targetId` | auth | 396 |
+| `DELETE` | `/api/messages/block/:targetId` | auth | 402 |
+| `GET` | `/api/messages/block/:targetId` | auth | 407 |
+| `POST` | `/api/messages/messages/:id/forward` | auth | 414 |
+| `POST` | `/api/messages/inquiry` | auth | 433 |
 
 ## 4. What does it touch?
 

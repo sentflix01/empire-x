@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **266** across **45** mounted modules · Generated: 2026-10-10
+> Endpoints: **267** across **45** mounted modules · Generated: 2026-10-15
 
 | Legend | Meaning |
 |---|---|
@@ -58,7 +58,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`trending`](#trending) (2)
 - [`upload`](#upload) (1)
 - [`variants`](#variants) (4)
-- [`verification`](#verification) (5)
+- [`verification`](#verification) (6)
 - [`wallet`](#wallet) (9)
 - [`wishlists`](#wishlists) (14)
 
@@ -103,19 +103,19 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:325 |
 | `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:425 |
 | `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:462 |
-| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:466 |
-| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:486 |
-| `POST` | `/api/auth/workspace` | 🔒 auth | routes/auth.ts:506 |
-| `POST` | `/api/auth/onboarding-mode` | 🌐 public | routes/auth.ts:607 |
-| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:614 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:742 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:880 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:922 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:958 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1021 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1073 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1156 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1196 |
+| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:522 |
+| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:542 |
+| `POST` | `/api/auth/workspace` | 🔒 auth | routes/auth.ts:562 |
+| `POST` | `/api/auth/onboarding-mode` | 🌐 public | routes/auth.ts:663 |
+| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:670 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:798 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:936 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:979 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:1015 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1078 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1130 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1213 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1253 |
 
 ## businessApiKeys — Business API key management
 
@@ -265,22 +265,22 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `POST` | `/api/messages/conversations` | 🔒 auth | routes/messages.ts:152 |
 | `PUT` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:174 |
 | `GET` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:198 |
-| `POST` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:211 |
-| `PUT` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:265 |
-| `DELETE` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:278 |
-| `DELETE` | `/api/messages/conversations/:id/history` | 🔒 auth | routes/messages.ts:289 |
-| `POST` | `/api/messages/conversations/:id/leave` | 🔒 auth | routes/messages.ts:297 |
-| `POST` | `/api/messages/conversations/:id/members` | 🔒 auth | routes/messages.ts:309 |
-| `DELETE` | `/api/messages/conversations/:id/members/:userId` | 🔒 auth | routes/messages.ts:324 |
-| `DELETE` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:337 |
-| `PUT` | `/api/messages/presence` | 🔒 auth | routes/messages.ts:350 |
-| `GET` | `/api/messages/presence/:userId` | 🔒 auth | routes/messages.ts:363 |
-| `PUT` | `/api/messages/presence/settings` | 🔒 auth | routes/messages.ts:378 |
-| `POST` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:387 |
-| `DELETE` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:393 |
-| `GET` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:398 |
-| `POST` | `/api/messages/messages/:id/forward` | 🔒 auth | routes/messages.ts:405 |
-| `POST` | `/api/messages/inquiry` | 🔒 auth | routes/messages.ts:424 |
+| `POST` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:216 |
+| `PUT` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:270 |
+| `DELETE` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:283 |
+| `DELETE` | `/api/messages/conversations/:id/history` | 🔒 auth | routes/messages.ts:294 |
+| `POST` | `/api/messages/conversations/:id/leave` | 🔒 auth | routes/messages.ts:302 |
+| `POST` | `/api/messages/conversations/:id/members` | 🔒 auth | routes/messages.ts:314 |
+| `DELETE` | `/api/messages/conversations/:id/members/:userId` | 🔒 auth | routes/messages.ts:329 |
+| `DELETE` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:342 |
+| `PUT` | `/api/messages/presence` | 🔒 auth | routes/messages.ts:355 |
+| `GET` | `/api/messages/presence/:userId` | 🔒 auth | routes/messages.ts:370 |
+| `PUT` | `/api/messages/presence/settings` | 🔒 auth | routes/messages.ts:387 |
+| `POST` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:396 |
+| `DELETE` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:402 |
+| `GET` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:407 |
+| `POST` | `/api/messages/messages/:id/forward` | 🔒 auth | routes/messages.ts:414 |
+| `POST` | `/api/messages/inquiry` | 🔒 auth | routes/messages.ts:433 |
 
 ## moderation — moderation
 
@@ -400,7 +400,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/referral/my-code` | 🔒 auth | routes/referral.ts:8 |
+| `GET` | `/api/referral/my-code` | 🔒 auth | routes/referral.ts:13 |
 
 ## returns — returns
 
@@ -420,7 +420,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `GET` | `/api/reviews/` | ⚪ optional | routes/reviews.ts:9 |
 | `GET` | `/api/reviews/product/:productId` | ⚪ optional | routes/reviews.ts:34 |
 | `POST` | `/api/reviews/` | 🔒 auth | routes/reviews.ts:50 |
-| `DELETE` | `/api/reviews/:id` | 🔒 auth | routes/reviews.ts:72 |
+| `DELETE` | `/api/reviews/:id` | 🔒 auth | routes/reviews.ts:83 |
 
 ## saves — saves
 
@@ -515,11 +515,12 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/verification/request` | 🔒 auth | routes/verification.ts:8 |
-| `GET` | `/api/verification/my-request` | 🔒 auth | routes/verification.ts:28 |
-| `GET` | `/api/verification/` | 👑 admin | routes/verification.ts:38 |
-| `PUT` | `/api/verification/:id/approve` | 👑 admin | routes/verification.ts:51 |
-| `PUT` | `/api/verification/:id/reject` | 👑 admin | routes/verification.ts:66 |
+| `POST` | `/api/verification/request` | 🔒 auth | routes/verification.ts:13 |
+| `GET` | `/api/verification/status` | 🔒 auth | routes/verification.ts:51 |
+| `GET` | `/api/verification/my-request` | 🔒 auth | routes/verification.ts:71 |
+| `GET` | `/api/verification/` | 👑 admin | routes/verification.ts:81 |
+| `PUT` | `/api/verification/:id/approve` | 👑 admin | routes/verification.ts:94 |
+| `PUT` | `/api/verification/:id/reject` | 👑 admin | routes/verification.ts:109 |
 
 ## wallet — Wallet management
 

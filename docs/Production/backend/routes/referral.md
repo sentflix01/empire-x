@@ -15,7 +15,7 @@ Referral program: referral codes, attribution on signup, reward point issuance l
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/referral/my-code` | auth | 8 |
+| `GET` | `/api/referral/my-code` | auth | 13 |
 
 ## 4. What does it touch?
 

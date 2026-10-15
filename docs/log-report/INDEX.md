@@ -5,6 +5,19 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-15 | Maintenance | Merge pull request #101 from sentflix01/claude/phase2-audit-fixes | [51c25e78c](2026-10-15-51c25e78c-merge-pull-request-101-from-sentflix01-claude-ph.md) |
+| 2026-10-15 | Testing | test: stop ProductDetail property test colliding title with price | [223a881ab](2026-10-15-223a881ab-stop-productdetail-property-test-colliding-title.md) |
+| 2026-10-15 | Testing | test: update stale migration-order and demo-storage expectations | [75b11ceea](2026-10-15-75b11ceea-update-stale-migration-order-and-demo-storage-ex.md) |
+| 2026-10-15 | Bugfix | fix: honour presence visibility and stop broadcasting presence without Redis | [63b6918c8](2026-10-15-63b6918c8-honour-presence-visibility-and-stop-broadcasting.md) |
+| 2026-10-15 | CI/CD | ci: run frontend tests, harden skip check, keep deploys from cancelling migrations | [29d5faee4](2026-10-15-29d5faee4-run-frontend-tests-harden-skip-check-keep-deploy.md) |
+| 2026-10-15 | Bugfix | fix: block self-reviews and unsafe login return paths | [fee592a33](2026-10-15-fee592a33-block-self-reviews-and-unsafe-login-return-paths.md) |
+| 2026-10-15 | Bugfix | fix: query real business columns in maps and load newest chat messages | [d9ee8787d](2026-10-15-d9ee8787d-query-real-business-columns-in-maps-and-load-new.md) |
+| 2026-10-15 | Bugfix | fix: repair referral rewards and verification requests | [589da18ec](2026-10-15-589da18ec-repair-referral-rewards-and-verification-request.md) |
+| 2026-10-10 | Maintenance | Merge pull request #92 from sentflix01/codex/launch-scope-partnership-audit | [9cb71f963](2026-10-10-9cb71f963-merge-pull-request-92-from-sentflix01-codex-laun.md) |
+| 2026-10-10 | Documentation | docs: use session pooler for demo deployment | [11493fd8e](2026-10-10-11493fd8e-use-session-pooler-for-demo-deployment.md) |
+| 2026-10-10 | Bugfix | fix: isolate demo storage project | [fc636b0bc](2026-10-10-fc636b0bc-isolate-demo-storage-project.md) |
+| 2026-10-10 | Maintenance | Merge pull request #91 from sentflix01/codex/launch-scope-partnership-audit | [3cab30c99](2026-10-10-3cab30c99-merge-pull-request-91-from-sentflix01-codex-laun.md) |
+| 2026-10-10 | Feature | feat: add public demo practice entry | [ac82f89a5](2026-10-10-ac82f89a5-add-public-demo-practice-entry.md) |
 | 2026-10-10 | Maintenance | Merge pull request #90 from sentflix01/codex/launch-scope-partnership-audit | [8d847633c](2026-10-10-8d847633c-merge-pull-request-90-from-sentflix01-codex-laun.md) |
 | 2026-10-10 | Bugfix | fix: align launch scope and partnership accounting | [2b5f71af7](2026-10-10-2b5f71af7-align-launch-scope-and-partnership-accounting.md) |
 | 2026-10-10 | Maintenance | Merge pull request #89 from sentflix01/fix/supabase-secret-api-key | [bf989e05d](2026-10-10-bf989e05d-merge-pull-request-89-from-sentflix01-fix-supaba.md) |

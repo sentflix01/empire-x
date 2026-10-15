@@ -11,15 +11,16 @@ Creator/business badge verification requests: submit selfie+ID references, admin
 ## 3. What does it do?
 
 
-### Endpoints (5)
+### Endpoints (6)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `POST` | `/api/verification/request` | auth | 8 |
-| `GET` | `/api/verification/my-request` | auth | 28 |
-| `GET` | `/api/verification/` | admin | 38 |
-| `PUT` | `/api/verification/:id/approve` | admin | 51 |
-| `PUT` | `/api/verification/:id/reject` | admin | 66 |
+| `POST` | `/api/verification/request` | auth | 13 |
+| `GET` | `/api/verification/status` | auth | 51 |
+| `GET` | `/api/verification/my-request` | auth | 71 |
+| `GET` | `/api/verification/` | admin | 81 |
+| `PUT` | `/api/verification/:id/approve` | admin | 94 |
+| `PUT` | `/api/verification/:id/reject` | admin | 109 |
 
 ## 4. What does it touch?
 
