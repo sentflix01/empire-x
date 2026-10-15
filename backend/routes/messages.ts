@@ -198,10 +198,15 @@ router.put('/conversations/:id', requireAuth, async (req: Request, res: Response
 router.get('/conversations/:convId/messages', requireAuth, async (req: Request, res: Response) => {
   try {
     if (!(await isParticipant(req.params.convId, req.user!.id)) && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
-    const limit = Math.min(parseInt((req.query.limit as string)||'100',10), 500);
+    const limit = Math.min(Math.max(parseInt((req.query.limit as string)||'100',10) || 100, 1), 500);
     const before = req.query.before ? new Date(req.query.before as string) : null;
+    if (before && Number.isNaN(before.getTime())) { apiError.validationError(res, 'before must be a valid date'); return; }
+    // Take the newest `limit` messages (older than the cursor when paging back),
+    // then return them oldest-first, the order the chat renders.
     const { rows } = await pool.query(
-      `SELECT * FROM messages WHERE conversation_id=$1 ${before?'AND created_at<$3':''} ORDER BY created_at ASC LIMIT $2`,
+      `SELECT * FROM (
+         SELECT * FROM messages WHERE conversation_id=$1 ${before?'AND created_at<$3':''} ORDER BY created_at DESC LIMIT $2
+       ) newest ORDER BY created_at ASC`,
       before ? [req.params.convId, limit, before] : [req.params.convId, limit],
     );
     res.json(rows);

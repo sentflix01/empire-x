@@ -72,7 +72,7 @@ router.get('/nearby/product-search', optionalAuth, async (req: Request, res: Res
     let businesses: Array<Record<string, unknown>> = [];
     if (ownerIds.length) {
       const { rows: businessRows } = await pool.query(
-        `SELECT id,owner_id,name AS business_name,category AS business_category,logo_url,address,latitude,longitude
+        `SELECT id,owner_id,business_name,business_category,business_logo_url AS logo_url,business_address AS address,latitude,longitude
          FROM businesses
          WHERE owner_id = ANY($1::uuid[])
            AND latitude IS NOT NULL AND longitude IS NOT NULL
@@ -121,7 +121,7 @@ router.get('/nearby', optionalAuth, async (req: Request, res: Response) => {
     }
     if (type === 'all' || type === 'businesses') {
       const { rows } = await pool.query(
-        `SELECT id,owner_id,name,category,logo_url,address,latitude,longitude FROM businesses WHERE latitude IS NOT NULL AND longitude IS NOT NULL ${realBusinessFilter} LIMIT $1`,
+        `SELECT id,owner_id,business_name AS name,business_name,business_category AS category,business_category,business_logo_url AS logo_url,business_address AS address,latitude,longitude FROM businesses WHERE latitude IS NOT NULL AND longitude IS NOT NULL ${realBusinessFilter} LIMIT $1`,
         [lim * 3],
       );
       results.businesses = attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim);

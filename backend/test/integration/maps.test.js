@@ -61,3 +61,26 @@ describe('nearby product map search', () => {
     expect(response.body).toEqual({ error: 'Failed to search nearby products' });
   });
 });
+
+// Mocked pools cannot catch unknown columns, so pin the businesses column
+// names from migrate.js (business_name, business_category, ...).
+describe('businesses column names', () => {
+
+  it('product search selects the real businesses columns', async () => {
+    pool.query
+      .mockResolvedValueOnce({ rows: [{ id: 'p1', seller_id: '00000000-0000-0000-0000-000000000001', title: 'Coffee', latitude: '9.01', longitude: '38.76' }] })
+      .mockResolvedValueOnce({ rows: [] });
+    await request(buildApp()).get('/api/maps/nearby/product-search?q=coffee&lat=9&lon=38.75');
+    const sql = pool.query.mock.calls[1][0];
+    expect(sql).toMatch(/business_name,business_category,business_logo_url AS logo_url,business_address AS address/);
+  });
+
+  it('nearby businesses selects the real columns and keeps name/category aliases', async () => {
+    pool.query.mockResolvedValueOnce({ rows: [{ id: 'b1', owner_id: 'o1', name: 'Shop', business_name: 'Shop', latitude: '9.0', longitude: '38.75' }] });
+    const response = await request(buildApp()).get('/api/maps/nearby?lat=9&lon=38.75&type=businesses');
+    expect(response.status).toBe(200);
+    const sql = pool.query.mock.calls[0][0];
+    expect(sql).toMatch(/business_name AS name,business_name,business_category AS category/);
+    expect(response.body.businesses[0]).toMatchObject({ name: 'Shop', business_name: 'Shop' });
+  });
+});
