@@ -36,7 +36,7 @@ Chat REST layer backing Socket.IO: conversation lists, message history paginatio
 | `DELETE` | `/api/messages/block/:targetId` | auth | 402 |
 | `GET` | `/api/messages/block/:targetId` | auth | 407 |
 | `POST` | `/api/messages/messages/:id/forward` | auth | 414 |
-| `POST` | `/api/messages/inquiry` | auth | 433 |
+| `POST` | `/api/messages/inquiry` | auth | 436 |
 
 ## 4. What does it touch?
 

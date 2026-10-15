@@ -5,6 +5,9 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-15 | Maintenance | Merge pull request #103 from sentflix01/claude/festive-shamir-9e140a | [4af4ec141](2026-10-15-4af4ec141-merge-pull-request-103-from-sentflix01-claude-fe.md) |
+| 2026-10-15 | Bugfix | fix(api): enforce ownership on variants, message forward, webhooks and API keys | [6626cd40d](2026-10-15-6626cd40d-enforce-ownership-on-variants-message-forward-we.md) |
+| 2026-10-15 | Bugfix | fix(auth): close account pre-hijacking via unverified registrations | [dc0051992](2026-10-15-dc0051992-close-account-pre-hijacking-via-unverified-regis.md) |
 | 2026-10-15 | Maintenance | Merge pull request #101 from sentflix01/claude/phase2-audit-fixes | [51c25e78c](2026-10-15-51c25e78c-merge-pull-request-101-from-sentflix01-claude-ph.md) |
 | 2026-10-15 | Testing | test: stop ProductDetail property test colliding title with price | [223a881ab](2026-10-15-223a881ab-stop-productdetail-property-test-colliding-title.md) |
 | 2026-10-15 | Testing | test: update stale migration-order and demo-storage expectations | [75b11ceea](2026-10-15-75b11ceea-update-stale-migration-order-and-demo-storage-ex.md) |
