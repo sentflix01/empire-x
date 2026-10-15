@@ -34,6 +34,7 @@ import TemplateCard from "@/components/profile/TemplateCard";
 import ImageUpload from "@/components/ui/ImageUpload";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { toast } from 'sonner';
+import PaymentAccountsManager from '@/components/business/PaymentAccountsManager';
 
 function BusinessCreate() {
   const router = useRouter();
@@ -57,12 +58,17 @@ function BusinessCreate() {
     business_theme_color: string;
     business_logo_url: string | string[];
     business_cover_url: string | string[];
+    pickup_address: string;
+    public_contact_fields: string[];
   };
   const [business, setBusiness] = useState<BizState>({
     business_name: "", business_category: "", business_template: "",
     business_description: "", business_contact_email: "", business_contact_phone: "",
     business_address: "", business_theme_color: "#D4AF37",
-      business_logo_url: "", business_cover_url: ""
+      business_logo_url: "", business_cover_url: "",
+    pickup_address: "",
+    // Phone and email public by default; the address only if the owner chooses (decision §2.3).
+    public_contact_fields: ["business_contact_phone", "business_contact_email"],
   });
 
   useEffect(() => {
@@ -83,7 +89,9 @@ function BusinessCreate() {
         business_address: b.business_address || "",
         business_theme_color: b.business_theme_color || "#D4AF37",
         business_logo_url: b.business_logo_url || "",
-        business_cover_url: b.business_cover_url || ""
+        business_cover_url: b.business_cover_url || "",
+        pickup_address: typeof b.pickup_address === "string" ? b.pickup_address : "",
+        public_contact_fields: Array.isArray(b.public_contact_fields) ? (b.public_contact_fields as string[]) : ["business_contact_phone", "business_contact_email"],
       });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Could not load this business. Please try again.');
@@ -204,6 +212,20 @@ function BusinessCreate() {
             <Label htmlFor="business-address">Business Address</Label>
             <Input id="business-address" autoComplete="street-address" value={business.business_address} onChange={e => setBusiness({...business, business_address: e.target.value})} placeholder="Your city or area" className="mt-1 h-11" />
           </div>
+          <fieldset className="rounded-xl border border-border/50 p-3">
+            <legend className="px-1 text-sm font-medium">Show on my public site</legend>
+            <p className="text-xs text-muted-foreground mb-2">Only the details you tick are visible to visitors. Never share a personal home address here.</p>
+            {([["business_contact_phone", "Contact phone"], ["business_contact_email", "Contact email"], ["business_address", "Business address"]] as const).map(([field, label]) => (
+              <label key={field} className="flex items-center gap-2 py-1 text-sm">
+                <input type="checkbox" checked={business.public_contact_fields.includes(field)} onChange={e => setBusiness({ ...business, public_contact_fields: e.target.checked ? [...business.public_contact_fields, field] : business.public_contact_fields.filter(f => f !== field) })} />
+                {label}
+              </label>
+            ))}
+          </fieldset>
+          <div>
+            <Label htmlFor="pickup-address">Pickup address (private)</Label>
+            <Input id="pickup-address" value={business.pickup_address} onChange={e => setBusiness({...business, pickup_address: e.target.value})} placeholder="Shown to a buyer only after they order" maxLength={500} className="mt-1 h-11" />
+          </div>
           <div>
             <Label>Theme Color</Label>
             <div className="flex gap-2 mt-2">
@@ -215,6 +237,7 @@ function BusinessCreate() {
           <Button onClick={handleSave} disabled={saving || !business.business_name || !business.business_category} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
             {saving ? "Saving..." : isEdit ? "Update Business" : "Create Business"}
           </Button>
+          {isEdit && <PaymentAccountsManager businessId={id} />}
         </div>
       </div>
   );
