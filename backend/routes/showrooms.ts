@@ -8,6 +8,7 @@ import { listRecords, getRecord, createRecord, updateRecord, deleteRecord, witho
 import { runDoctor } from '../lib/showroomDoctor';
 import { recordEvent } from '../lib/telemetry';
 import { canPublishBusinessSite, getBusinessSubscriptionAccess, getRequiredBusinessTier, isBusinessOwnerBlocked } from '../lib/businessSubscriptionPolicy';
+import { announceShowroomPublished, type PublishedShowroom } from '../lib/showroomAnnouncement';
 
 const router = Router();
 
@@ -224,6 +225,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       res.status(402).json({ error: 'subscription_required', businessId, draftId: showroom.id, requiredTier, message: `Your selected sections require the ${requiredTier === 'pro' ? 'Pro' : requiredTier === 'premium' ? 'Premium' : 'Normal'} plan to publish.` });
       return;
     }
+    if (showroom.status === 'published') void announceShowroomPublished(showroom as unknown as PublishedShowroom);
     res.status(201).json(showroom);
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Create showroom error');
@@ -284,7 +286,12 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       updates.expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000);
     }
     if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable showroom fields provided' }); return; }
-    res.json(await updateRecord('showrooms', req.params.id, updates));
+    const updated = await updateRecord('showrooms', req.params.id, updates);
+    // First transition to published puts the site in followers' feeds.
+    if (updated && existing.status !== 'published' && (updated as Record<string, unknown>).status === 'published') {
+      void announceShowroomPublished(updated as unknown as PublishedShowroom);
+    }
+    res.json(updated);
   } catch { res.status(500).json({ error: 'Failed to update showroom' }); }
 });
 
