@@ -5,6 +5,14 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-15 | Maintenance | Merge pull request #104 from sentflix01/claude/owner-decision-fixes | [6cbc3063d](2026-10-15-6cbc3063d-merge-pull-request-104-from-sentflix01-claude-ow.md) |
+| 2026-10-15 | Bugfix | fix: mount the sonner Toaster so app messages actually appear | [c9f8d9740](2026-10-15-c9f8d9740-mount-the-sonner-toaster-so-app-messages-actuall.md) |
+| 2026-10-15 | Bugfix | fix: answer a wrong delete-account password with 422, not 401 | [499d0e5e9](2026-10-15-499d0e5e9-answer-a-wrong-delete-account-password-with-422-.md) |
+| 2026-10-15 | Documentation | docs: remove concrete secret values from deployment docs | [620648acc](2026-10-15-620648acc-remove-concrete-secret-values-from-deployment-do.md) |
+| 2026-10-15 | Documentation | docs: align plan prices to the live $12 Pro / $49 Enterprise plans | [ba23a9c81](2026-10-15-ba23a9c81-align-plan-prices-to-the-live-12-pro-49-enterpri.md) |
+| 2026-10-15 | Bugfix | fix: require the Premium plan to create external data sources (F-H8) | [c052fc0a1](2026-10-15-c052fc0a1-require-the-premium-plan-to-create-external-data.md) |
+| 2026-10-15 | Feature | feat: real account deletion (anonymize) and full data export | [2f3c85cf3](2026-10-15-2f3c85cf3-real-account-deletion-anonymize-and-full-data-ex.md) |
+| 2026-10-15 | Bugfix | fix: stop locking out the real admin account on every deploy | [3acf7dc03](2026-10-15-3acf7dc03-stop-locking-out-the-real-admin-account-on-every.md) |
 | 2026-10-15 | Maintenance | Merge pull request #103 from sentflix01/claude/festive-shamir-9e140a | [4af4ec141](2026-10-15-4af4ec141-merge-pull-request-103-from-sentflix01-claude-fe.md) |
 | 2026-10-15 | Bugfix | fix(api): enforce ownership on variants, message forward, webhooks and API keys | [6626cd40d](2026-10-15-6626cd40d-enforce-ownership-on-variants-message-forward-we.md) |
 | 2026-10-15 | Bugfix | fix(auth): close account pre-hijacking via unverified registrations | [dc0051992](2026-10-15-dc0051992-close-account-pre-hijacking-via-unverified-regis.md) |

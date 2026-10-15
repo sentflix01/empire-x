@@ -11,27 +11,29 @@ Authentication and account lifecycle: register with OTP email verification, veri
 ## 3. What does it do?
 
 
-### Endpoints (17)
+### Endpoints (19)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | public | 231 |
-| `POST` | `/api/auth/verify-otp` | public | 330 |
-| `POST` | `/api/auth/resend-otp` | public | 430 |
-| `POST` | `/api/auth/demo` | public | 467 |
-| `POST` | `/api/auth/demo/exit` | public | 527 |
-| `POST` | `/api/auth/demo/reset` | public | 547 |
-| `POST` | `/api/auth/workspace` | auth | 567 |
-| `POST` | `/api/auth/onboarding-mode` | public | 668 |
-| `POST` | `/api/auth/login` | public | 675 |
-| `POST` | `/api/auth/google` | public | 803 |
-| `GET` | `/api/auth/me` | auth | 957 |
-| `POST` | `/api/auth/forgot-password` | public | 1000 |
-| `POST` | `/api/auth/reset-password` | public | 1036 |
-| `PUT` | `/api/auth/change-password` | auth | 1099 |
-| `POST` | `/api/auth/refresh` | public | 1151 |
-| `POST` | `/api/auth/logout` | public | 1234 |
-| `POST` | `/api/auth/logout-all` | auth | 1274 |
+| `POST` | `/api/auth/register` | public | 233 |
+| `POST` | `/api/auth/verify-otp` | public | 332 |
+| `POST` | `/api/auth/resend-otp` | public | 432 |
+| `POST` | `/api/auth/demo` | public | 469 |
+| `POST` | `/api/auth/demo/exit` | public | 529 |
+| `POST` | `/api/auth/demo/reset` | public | 549 |
+| `POST` | `/api/auth/workspace` | auth | 569 |
+| `POST` | `/api/auth/onboarding-mode` | public | 670 |
+| `POST` | `/api/auth/login` | public | 677 |
+| `POST` | `/api/auth/google` | public | 805 |
+| `GET` | `/api/auth/me` | auth | 959 |
+| `GET` | `/api/auth/me/export` | auth | 1002 |
+| `DELETE` | `/api/auth/me` | auth | 1015 |
+| `POST` | `/api/auth/forgot-password` | public | 1068 |
+| `POST` | `/api/auth/reset-password` | public | 1104 |
+| `PUT` | `/api/auth/change-password` | auth | 1167 |
+| `POST` | `/api/auth/refresh` | public | 1219 |
+| `POST` | `/api/auth/logout` | public | 1302 |
+| `POST` | `/api/auth/logout-all` | auth | 1342 |
 
 ## 4. What does it touch?
 
