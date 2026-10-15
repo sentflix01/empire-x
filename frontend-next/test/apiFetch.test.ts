@@ -37,4 +37,25 @@ describe('apiFetch request policy', () => {
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(new Headers(init.headers).has('X-Real-Only')).toBe(false);
   });
+
+  it('selects Demo for anonymous read requests from the guest feed', async () => {
+    clearToken();
+    window.history.pushState({}, '', '/feed');
+
+    await apiFetch('/api/posts?feed=true');
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(new Headers(init.headers).get('X-Public-Demo-Read')).toBe('1');
+    expect(new Headers(init.headers).has('Authorization')).toBe(false);
+  });
+
+  it('keeps a real QR showroom lookup on the Real public path', async () => {
+    clearToken();
+    window.history.pushState({}, '', '/showroom/real-business');
+
+    await apiFetch('/api/showrooms/slug/real-business');
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(new Headers(init.headers).has('X-Public-Demo-Read')).toBe(false);
+  });
 });

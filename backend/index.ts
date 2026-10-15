@@ -50,6 +50,7 @@ import apiVersion from './middleware/apiVersion';
 import responseTime from './middleware/responseTime';
 import { realModeMiddleware } from './middleware/realMode';
 import { demoEnvironmentMiddleware } from './middleware/demoEnvironment';
+import { publicDemoBrowseMiddleware } from './middleware/publicDemoBrowse';
 import { requireAuth, requireAdmin } from './middleware/auth';
 import { activeStorageProvider, getSupabaseStorageAuthHeaders, isSupabaseConfigured, verifyDemoStorageIsolation } from './middleware/upload';
 import pool, { closeAllPools, runWithDatabaseEnvironment, verifySharedDatabaseIsolation } from './db/pool';
@@ -266,6 +267,7 @@ app.use(cookieParser());
 // Resolve demo-session cookies before auth, data, or payment routes execute so
 // AsyncLocalStorage selects the isolated demo database for the whole request.
 app.use(demoEnvironmentMiddleware);
+app.use(publicDemoBrowseMiddleware);
 app.use(realModeMiddleware);
 
 // ── Static uploads ────────────────────────────────────────────────────────────
@@ -408,6 +410,7 @@ import { startStoriesCleanup } from './db/cleanupStories';
 const { startBackupSchedule } = require('./scripts/backup-database') as { startBackupSchedule: () => void };
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { startDigestSchedule } = require('./scripts/showroom-digests') as { startDigestSchedule: () => void };
+const { startBusinessSubscriptionLifecycle } = require('./scripts/business-subscription-lifecycle') as { startBusinessSubscriptionLifecycle: () => void };
 
 initSocket(server, allowedOrigins);
 
@@ -419,6 +422,7 @@ void verifySharedDatabaseIsolation().then(verifyDemoStorageIsolation).then(() =>
   startWorkers();
   startBackupSchedule();
   startDigestSchedule();
+  startBusinessSubscriptionLifecycle();
 
   // ── Auto-create Supabase Storage bucket ──────────────────────────────────
   setTimeout(async () => {
@@ -456,7 +460,11 @@ void verifySharedDatabaseIsolation().then(verifyDemoStorageIsolation).then(() =>
           const [posts, products, showrooms, users] = await Promise.all([
             pool.query(`SELECT DISTINCT p.id,p.author_id,p.author_name,p.content,p.image_url,p.post_type,p.like_count,p.comment_count,p.created_at FROM posts p WHERE p.created_at > NOW()-INTERVAL '48 hours' ORDER BY p.like_count DESC LIMIT 10`),
             pool.query(`SELECT DISTINCT id,seller_id,title,price,currency,images,category,view_count FROM products WHERE status='active' ORDER BY view_count DESC LIMIT 8`),
-            pool.query(`SELECT DISTINCT id,owner_id,title,category,cover_image,logo_url,view_count FROM showrooms WHERE status='published' ORDER BY view_count DESC LIMIT 6`),
+            pool.query(`SELECT DISTINCT s.id,s.owner_id,s.title,s.category,s.cover_image,s.logo_url,s.view_count
+              FROM showrooms s JOIN business_subscriptions bs ON bs.business_id=s.business_id
+              WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at>NOW())
+                AND bs.tier <> 'freemium' AND bs.current_period_end>NOW()-INTERVAL '24 hours'
+              ORDER BY s.view_count DESC LIMIT 6`),
             pool.query(`SELECT user_id,display_name,avatar_url,headline,follower_count FROM user_profiles ORDER BY follower_count DESC LIMIT 8`),
           ]);
           return { trending_posts: posts.rows, top_products: products.rows, featured_showrooms: showrooms.rows, suggested_users: users.rows };

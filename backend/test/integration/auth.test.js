@@ -357,6 +357,36 @@ describe('POST /api/auth/demo', () => {
       else process.env.DEMO_ENABLED = previousEnabled;
     }
   });
+
+  it('requires an active Real refresh session to be logged out before Demo starts', async () => {
+    const jwt = require('jsonwebtoken');
+    const refreshToken = jwt.sign(
+      { sub: 'real-user-id', type: 'refresh' },
+      process.env.JWT_SECRET,
+      { expiresIn: '5m' },
+    );
+    mockPool.query.mockResolvedValueOnce({ rows: [{ is_demo: false, is_seed: false, is_banned: false }] });
+
+    const res = await request(buildApp())
+      .post('/api/auth/demo')
+      .set('Cookie', `refresh_token=${refreshToken}`)
+      .send({});
+
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('REAL_SESSION_MUST_LOG_OUT');
+    expect(mockPool.connect).not.toHaveBeenCalled();
+  });
+});
+
+describe('POST /api/auth/workspace', () => {
+  it('does not convert an authenticated Real identity into a Demo identity', async () => {
+    const res = await request(buildApp())
+      .post('/api/auth/workspace')
+      .send({ workspace: 'demo' });
+
+    expect(res.status).toBe(410);
+    expect(res.body.code).toBe('SEPARATE_DEMO_SESSION_REQUIRED');
+  });
 });
 
 describe('POST /api/auth/verify-otp', () => {

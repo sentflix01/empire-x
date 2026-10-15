@@ -46,16 +46,18 @@ function RepeaterField({ field, value, onChange }: any) {
             type="button"
             onClick={() => remove(idx)}
             className="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200 transition-colors"
+            aria-label={`Remove ${field.label} ${idx + 1}`}
           >
             <X className="w-3 h-3" />
           </button>
           <div className="pr-6 space-y-1.5">
             {field.itemFields.map((sub: any) => (
               <div key={sub.key}>
-                <label className="text-[10px] font-semibold text-muted-foreground block mb-0.5">{sub.label}</label>
+                <label htmlFor={`${field.key}-${idx}-${sub.key}`} className="text-[10px] font-semibold text-muted-foreground block mb-0.5">{sub.label}</label>
                 {sub.type === "textarea" ? (
                   <textarea
                     value={item[sub.key] || ""}
+                    id={`${field.key}-${idx}-${sub.key}`}
                     onChange={e => update(idx, sub.key, e.target.value)}
                     placeholder={sub.placeholder}
                     rows={2}
@@ -65,6 +67,7 @@ function RepeaterField({ field, value, onChange }: any) {
                   <input
                     type="text"
                     value={item[sub.key] || ""}
+                    id={`${field.key}-${idx}-${sub.key}`}
                     onChange={e => update(idx, sub.key, e.target.value)}
                     placeholder={sub.placeholder}
                     className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400"
@@ -188,7 +191,7 @@ function SectionWithExternalSource({
 
           return (
             <div key={field.key}>
-              <label className="text-[11px] font-semibold text-muted-foreground block mb-1">{field.label}</label>
+              <label htmlFor={`builder-${secKey}-${field.key}`} className="text-[11px] font-semibold text-muted-foreground block mb-1">{field.label}</label>
               {field.type === "repeater" ? (
                 <RepeaterField
                   field={field}
@@ -199,12 +202,14 @@ function SectionWithExternalSource({
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
+                    id={`builder-${secKey}-${field.key}`}
                     value={formData[field.key] || (field.key === "heroBg2" ? "#7C3AED" : "#2563EB")}
                     onChange={e => onChange(field.key, e.target.value)}
                     className="w-9 h-9 rounded-lg border border-border/60 cursor-pointer"
                   />
                   <input
                     type="text"
+                    aria-label={`${field.label} color value`}
                     value={formData[field.key] || (field.key === "heroBg2" ? "#7C3AED" : "#2563EB")}
                     onChange={e => onChange(field.key, e.target.value)}
                     className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400"
@@ -213,6 +218,7 @@ function SectionWithExternalSource({
                 </div>
               ) : field.type === "textarea" ? (
                 <textarea
+                  id={`builder-${secKey}-${field.key}`}
                   value={formData[field.key] || ""}
                   onChange={e => onChange(field.key, e.target.value)}
                   placeholder={field.placeholder}
@@ -222,6 +228,7 @@ function SectionWithExternalSource({
               ) : (
                 <input
                   type="text"
+                  id={`builder-${secKey}-${field.key}`}
                   value={formData[field.key] || ""}
                   onChange={e => onChange(field.key, e.target.value)}
                   placeholder={field.placeholder}

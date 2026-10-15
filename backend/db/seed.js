@@ -1,15 +1,17 @@
 /**
  * seed.js ? Nodbusiness development seed data
  *
- * Seeds: 50 Ethiopian users, 150 businesses (no showrooms/products),
- *        posts, hashtags,
- *        follows, likes, comments, stories, conversations, messages,
- *        notifications, wallet transactions, coupons, point transactions,
- *        saves, dismissed_suggestions, referral codes.
+ * Seeds: 50 local synthetic business owners, 150 business profiles, wallets,
+ *        conversations/messages, notifications, wallet transactions, coupons,
+ *        points, dismissed suggestions, and referral codes.
  *
- * NOT seeded: products, showrooms, orders (created by real users through the app).
+ * This is the account/business-profile step. Public sites live in `showrooms`
+ * and are seeded separately by `seed-showrooms.js`; products/orders are not
+ * created by this script.
  *
- * Run: node db/seed.js
+ * Run from backend after migrations with ALLOW_DEV_SEED=1 and a unique
+ * TEST_ACCOUNT_PASSWORD of at least 16 characters.
+ * Existing synthetic accounts must be removed with the guarded cleanup script first.
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const bcrypt = require('bcryptjs');
@@ -26,7 +28,6 @@ function jitter(lat, lon, km = 0.8) {
 }
 
 const TEST_PASSWORD  = process.env.TEST_ACCOUNT_PASSWORD;
-const ADMIN_PASSWORD = process.env.ADMIN_NEW_PASSWORD;
 
 function validateSeedEnvironment(env = process.env) {
   assertSafeLocalDatabase({
@@ -36,7 +37,7 @@ function validateSeedEnvironment(env = process.env) {
     acknowledgement: env.ALLOW_DEV_SEED,
     acknowledgementName: 'ALLOW_DEV_SEED',
   });
-  for (const [label, password] of [['ADMIN_NEW_PASSWORD', env.ADMIN_NEW_PASSWORD], ['TEST_ACCOUNT_PASSWORD', env.TEST_ACCOUNT_PASSWORD]]) {
+  for (const [label, password] of [['TEST_ACCOUNT_PASSWORD', env.TEST_ACCOUNT_PASSWORD]]) {
     if (typeof password !== 'string' || password.length < 16 || password.length > 128) {
       throw new Error(`Set ${label} to a unique password between 16 and 128 characters`);
     }
@@ -59,6 +60,7 @@ const ETHIOPIAN_NAMES = [
   ['Kirubel','Alemu'],  ['Yemi','Tadesse'],     ['Fasika','Bekele'],  ['Haben','Haile'],
   ['Ermias','Gebre'],   ['Tsegay','Berhe'],
 ];
+const BUSINESSES_PER_USER = 3;
 
 const ADDIS_DISTRICTS = [
   'Bole','Kirkos','Yeka','Arada','Lideta','Nifas Silk-Lafto',
@@ -68,45 +70,32 @@ const ADDIS_DISTRICTS = [
 const CENTER = { lat: 9.0192, lon: 38.7525 }; // Addis Ababa center
 
 // ?? Business templates ????????????????????????????????????????????????????????
+// These category/template IDs are the values in frontend-next/lib/businessTemplates.ts.
+// Keep this local fixture contract in sync with the business creation form.
 const BIZ_TEMPLATES = [
-  { category: 'restaurant',  template: 'restaurant',   names: ['Yod Abyssinia','Kategna Kitchen','Totot Kitfo','Sunbird Cafe','Habesha Grill','Tej House','Addis Bites','Timket Restaurant'] },
-  { category: 'shop',        template: 'retail_store',  names: ['Bole Fashion','Shiro Meda Textiles','Addis Electronics','Style Ethiopia','Habesha Crafts','Tech Zone','Merkato Store'] },
-  { category: 'service',     template: 'agency',        names: ['Sur Construction','Flintstone Engineering','Spark Electric','Saba Consulting','SIMBA Cleaning','EthioTech Solutions','Addis Logistics'] },
-  { category: 'health',      template: 'clinic',        names: ['Bole Medical Center','Addis Wellness Clinic','Family Health Hub','Nodbusiness Health','Bethzatha Clinic','Tikur Anbessa Pharmacy'] },
-  { category: 'realestate',  template: 'real_estate',   names: ['Addis Property Group','Bole Realty','Sunshine Real Estate','Capital Homes','Gold Key Properties'] },
-  { category: 'portfolio',   template: 'portfolio',     names: ['Addis Creative Studio','EthioDesign Lab','Pixel Ethiopia','Vision Media','Habesha Films'] },
+  { category: 'restaurant', template: 'restaurant_menu', cta: 'View Menu', sectionTypes: ['hero', 'menu', 'gallery', 'hours', 'contact'], names: ['Yod Abyssinia', 'Kategna Kitchen', 'Totot Kitfo', 'Sunbird Cafe', 'Habesha Grill', 'Tej House'] },
+  { category: 'shop', template: 'shop_grid', cta: 'Browse Products', sectionTypes: ['hero', 'featured_products', 'products', 'about', 'features', 'contact'], names: ['Bole Fashion', 'Shiro Meda Textiles', 'Addis Electronics', 'Style Ethiopia', 'Habesha Crafts', 'Tech Zone'] },
+  { category: 'service', template: 'service_agency', cta: 'Get a Quote', sectionTypes: ['hero', 'services', 'process', 'testimonials', 'team', 'contact'], names: ['Sur Construction', 'Flintstone Engineering', 'Spark Electric', 'Saba Consulting', 'SIMBA Cleaning', 'EthioTech Solutions'] },
+  { category: 'health', template: 'health_clinic', cta: 'Book Appointment', sectionTypes: ['hero', 'services', 'team', 'hours', 'contact'], names: ['Bole Medical Center', 'Addis Wellness Clinic', 'Family Health Hub', 'Bethzatha Clinic', 'Tikur Anbessa Pharmacy'] },
+  { category: 'realestate', template: 'realestate_listings', cta: 'View Properties', sectionTypes: ['hero', 'products', 'about', 'testimonials', 'contact'], names: ['Addis Property Group', 'Bole Realty', 'Sunshine Real Estate', 'Capital Homes', 'Gold Key Properties'] },
+  { category: 'portfolio', template: 'portfolio_gallery', cta: 'View Portfolio', sectionTypes: ['hero', 'gallery', 'about', 'services', 'contact'], names: ['Addis Creative Studio', 'EthioDesign Lab', 'Pixel Ethiopia', 'Vision Media', 'Habesha Films'] },
 ];
 
-// ?? Content data ??????????????????????????????????????????????????????????????
-const POST_CONTENTS = [
-  'Just launched my new showroom on Nodbusiness! Check out our latest collection ??? #AddisAbaba',
-  'Ethiopian coffee is the best in the world ? Proud to share our culture globally.',
-  'Shout out to everyone building businesses in Ethiopia ???? Keep going, keep growing! #EthiopianBusiness',
-  'Morning view from Entoto Hill ?? The city never looked more beautiful. #AddisVibes',
-  'Just completed a big project for a client in Bole. So proud of our team! ?? #EthioTech',
-  'Fresh injera from my grandma\'s recipe ?? Some traditions should never change. #HabeshaLife',
-  'Looking for a 2-bedroom apartment in Yeka ? anyone know a good place? ??',
-  'Big sale this weekend ? up to 30% off on all leather goods! ?? #Merkato',
-  'Our delivery team completed 50 orders this week. Thank you Nodbusiness community! ??',
-  'The future of global e-commerce is here. Proud to be an early seller! ??',
-  'My showroom hit 1000 views this month! Thank you everyone who checked it out ??',
-  'Pro tip: Use Nodbusiness\'s nearby map to find the best local shops around you ??',
-  'Anyone want to collaborate on a social media project? DM me! ?? #CreativeEthiopia',
-  'New arrivals just dropped at my showroom. Check it out now! ?',
-  'Proud Ethiopian entrepreneur sharing my journey on Nodbusiness ???? #StartupEthiopia',
-];
+function getBusinessTemplate(ownerIndex, businessIndex) {
+  return BIZ_TEMPLATES[(ownerIndex + businessIndex) % BIZ_TEMPLATES.length];
+}
 
-const HASHTAGS = [
-  'AddisAbaba','Ethiopia','Nodbusiness','HabeshaLife','EthiopianBusiness',
-  'Bole','Merkato','EthioTech','AddisVibes','AfricanEntrepreneur',
-  'ShegerCity','EthioBeauty','AddisFood','EthioFashion','StartupEthiopia',
-];
-
-const COMMENTS = [
-  'Great post! ??','This is exactly what I needed!','Amazing work, keep it up! ??',
-  'Very helpful, thanks!','Love this! ??','Sharing this with my friends.',
-  'Perfect timing!','Will definitely try this!','Quality looks great ??',
-];
+function buildBusinessSections(business, template) {
+  return template.sectionTypes.map((type) => {
+    const section = { type, title: type.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()), visible: true };
+    if (type === 'hero') return { ...section, title: business.business_name, subtitle: business.business_description, cta: template.cta };
+    if (type === 'about') return { ...section, content: business.business_description };
+    if (type === 'contact') {
+      return { ...section, title: 'Contact Us', email: business.business_contact_email, phone: business.business_contact_phone, location: business.business_address };
+    }
+    return section;
+  });
+}
 
 const MSG_SAMPLES = [
   'Hi, is this service still available?','What are your working hours?',
@@ -119,12 +108,113 @@ const MSG_SAMPLES = [
 async function seed() {
   validateSeedEnvironment();
   const client = await pool.connect();
-  console.log('\n?? Nodbusiness Seed ? 50 users, 150 businesses, no products\n');
+  console.log('\nNodbusiness local seed: 50 synthetic owners, 150 business profiles\n');
 
   try {
     await client.query('BEGIN');
-    const pwHash    = await bcrypt.hash(TEST_PASSWORD, 10);
-    const adminHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+    const existingSeeds = await client.query(
+      `SELECT COUNT(*)::int AS count FROM users
+       WHERE is_seed = TRUE AND email LIKE '%@nodbusiness.test'`
+    );
+    if (existingSeeds.rows[0].count > 0) {
+      throw new Error('Synthetic seed accounts already exist. Use the guarded local seed cleanup command before reseeding.');
+    }
+
+    const reservedEmailCollision = await client.query(
+      `SELECT email FROM users WHERE email = ANY($1::text[]) AND is_seed = FALSE LIMIT 1`,
+      [ETHIOPIAN_NAMES.map(([first, last], i) => `${first.toLowerCase()}.${last.toLowerCase()}${i}@nodbusiness.test`)]
+    );
+    if (reservedEmailCollision.rows.length) {
+      throw new Error(`Reserved synthetic email already belongs to a non-seed account: ${reservedEmailCollision.rows[0].email}`);
+    }
+
+    const pwHash = await bcrypt.hash(TEST_PASSWORD, 10);
+
+    console.log('Creating 50 synthetic business-owner accounts...');
+    const users = [];
+    for (let i = 0; i < ETHIOPIAN_NAMES.length; i++) {
+      const [first, last] = ETHIOPIAN_NAMES[i];
+      const fullName = `${first} ${last}`;
+      const email = `${first.toLowerCase()}.${last.toLowerCase()}${i}@nodbusiness.test`;
+      const district = ADDIS_DISTRICTS[i % ADDIS_DISTRICTS.length];
+      const coords = jitter(CENTER.lat, CENTER.lon, 3);
+      const { rows } = await client.query(
+        `INSERT INTO users (email, password_hash, full_name, role, is_verified, is_seed, is_demo, provider)
+         VALUES ($1,$2,$3,'user',TRUE,TRUE,FALSE,'local') RETURNING id`,
+        [email, pwHash, fullName]
+      );
+      const user = { id: rows[0].id, name: fullName, email, district, coords };
+      users.push(user);
+      await client.query(
+        `INSERT INTO user_profiles
+           (user_id, display_name, bio, profile_type, has_business_profile,
+            is_verified, location, latitude, longitude, headline)
+         VALUES ($1,$2,$3,'business',TRUE,$4,$5,$6,$7,'Business owner')`,
+        [user.id, fullName, `${fullName} runs a sample local business in ${district}, Addis Ababa.`, i % 5 === 0, `${district}, Addis Ababa`, coords.lat, coords.lon]
+      );
+      await client.query(
+        `INSERT INTO wallets (user_id, balance, currency) VALUES ($1,$2,'ETB')
+         ON CONFLICT (user_id) DO NOTHING`,
+        [user.id, randF(500, 25000)]
+      );
+    }
+    console.log(`  ${users.length} synthetic users created.`);
+
+    console.log('Creating 150 business profiles from current category/template contracts...');
+    const businesses = [];
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+      let primaryBusiness = null;
+      for (let b = 0; b < BUSINESSES_PER_USER; b++) {
+        // Rotate the primary business category across all owners while giving
+        // each owner three distinct category/template examples.
+        const template = getBusinessTemplate(i, b);
+        const baseName = template.names[(i + b) % template.names.length];
+        const businessName = `${baseName} ${user.district} ${b + 1}`;
+        const business = {
+          business_name: businessName,
+          business_category: template.category,
+          business_template: template.template,
+          business_description: `${businessName} is a sample ${template.category} business serving customers in ${user.district}, Addis Ababa.`,
+          business_theme_color: pick(['#D4AF37', '#2563eb', '#7c3aed', '#f59e0b', '#10b981', '#ef4444']),
+          business_contact_email: user.email,
+          business_contact_phone: `+251 9${rand(10, 99)} ${rand(100, 999)} ${rand(1000, 9999)}`,
+          business_address: `${user.district}, Addis Ababa, Ethiopia`,
+        };
+        const sections = JSON.stringify(buildBusinessSections(business, template));
+        const coords = jitter(user.coords.lat, user.coords.lon, 0.5);
+        const { rows: businessRows } = await client.query(
+          `INSERT INTO businesses
+             (owner_id, business_name, business_category, business_template,
+              business_description, business_sections, business_theme_color,
+              business_contact_email, business_contact_phone, business_address,
+              latitude, longitude)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
+          [user.id, business.business_name, business.business_category, business.business_template,
+            business.business_description, sections, business.business_theme_color,
+            business.business_contact_email, business.business_contact_phone, business.business_address,
+            coords.lat, coords.lon]
+        );
+        const record = { id: businessRows[0].id, owner: user, ...business, business_sections: sections };
+        businesses.push(record);
+        if (!primaryBusiness) primaryBusiness = record;
+      }
+
+      // BusinessCreate and ProfileEdit store business fields in both records.
+      await client.query(
+        `UPDATE user_profiles SET
+           business_name=$1, business_category=$2, business_template=$3,
+           business_description=$4, business_sections=$5, business_theme_color=$6,
+           business_contact_email=$7, business_contact_phone=$8, business_address=$9,
+           updated_at=NOW()
+         WHERE user_id=$10`,
+        [primaryBusiness.business_name, primaryBusiness.business_category, primaryBusiness.business_template,
+          primaryBusiness.business_description, primaryBusiness.business_sections, primaryBusiness.business_theme_color,
+          primaryBusiness.business_contact_email, primaryBusiness.business_contact_phone, primaryBusiness.business_address,
+          user.id]
+      );
+    }
+    console.log(`  ${businesses.length} business profiles created.`);
 
     console.log('?? Creating conversations & messages...');
     let convCount = 0;
@@ -250,7 +340,7 @@ async function seed() {
     let dismissCount = 0;
     const dismissPairs = new Set();
     for (const user of users.slice(0, 15)) {
-      for (const target of users.sort(() => 0.5 - Math.random()).slice(0, rand(1, 3))) {
+      for (const target of [...users].sort(() => 0.5 - Math.random()).slice(0, rand(1, 3))) {
         if (target.id === user.id) continue;
         const key = `${user.id}-${target.id}`;
         if (dismissPairs.has(key)) continue;
@@ -264,28 +354,21 @@ async function seed() {
     }
     console.log(`  ? ${dismissCount} dismissed suggestions\n`);
 
-    // ?? Summary ???????????????????????????????????????????????????????????????
-    const [uR, bR, shR, poR, fR, mR] = await Promise.all([
-      client.query(`SELECT COUNT(*) FROM users       WHERE is_seed = TRUE`),
-      client.query(`SELECT COUNT(*) FROM businesses`),
-      client.query(`SELECT COUNT(*) FROM showrooms`),
-      client.query(`SELECT COUNT(*) FROM posts`),
-      client.query(`SELECT COUNT(*) FROM follows`),
-      client.query(`SELECT COUNT(*) FROM messages`),
-    ]);
-
     console.log('?? SEED COMPLETE!\n');
-    console.log('?? Summary:');
-    console.log(`   Seed users:    ${uR.rows[0].count}`);
-    console.log(`   Businesses:    ${bR.rows[0].count}`);
-    console.log(`   Showrooms:     ${shR.rows[0].count}`);
-    console.log(`   Posts:         ${poR.rows[0].count}`);
-    console.log(`   Follows:       ${fR.rows[0].count}`);
-    console.log(`   Messages:      ${mR.rows[0].count}`);
-    console.log(`   Products:      0 (sellers create their own)`);
+    console.log('?? Records created by this run:');
+    console.log(`   Synthetic users:       ${users.length}`);
+    console.log(`   Business profiles:     ${businesses.length}`);
+    console.log(`   Conversations:         ${convCount}`);
+    console.log(`   Messages:              ${convCount * 3}`);
+    console.log(`   Notifications:         ${notifCount}`);
+    console.log(`   Wallet transactions:   ${txCount}`);
+    console.log(`   Coupons attempted:     20`);
+    console.log(`   Point transactions:    ${ptCount}`);
+    console.log(`   Dismissed suggestions: ${dismissCount}`);
+    console.log('   Public showrooms:      0 (created separately by seed-showrooms.js)');
+    console.log('   Products and orders:   0');
     await client.query('COMMIT');
-    console.log('\n?? Local dev accounts: admin@nodbusiness.app and test@nodbusiness.app (passwords supplied securely through environment variables).');
-    console.log('   Seed-user passwords use TEST_ACCOUNT_PASSWORD.\n');
+    console.log('\nSeed-user passwords use TEST_ACCOUNT_PASSWORD. Synthetic accounts are local development data.\n');
 
   } catch (err) {
     console.error('\n? Seed failed:', err.message);
@@ -305,4 +388,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { seed, validateSeedEnvironment };
+module.exports = { seed, validateSeedEnvironment, buildBusinessSections, getBusinessTemplate, BIZ_TEMPLATES, ETHIOPIAN_NAMES, BUSINESSES_PER_USER };

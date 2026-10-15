@@ -20,17 +20,12 @@ export default function TryDemoButton() {
         router.push('/feed');
         return;
       }
-
-      const response = isAuthenticated && !user?.is_demo
-        ? await client.post<{ access_token: string }>('/api/auth/workspace', { workspace: 'demo' })
-        : isAuthenticated
-          ? null
-          : await client.post<{ access_token: string }>('/api/auth/demo');
-
-      if (!response) {
-        toast.error('Please sign in to your Real account before opening Demo practice.');
+      if (isAuthenticated) {
+        toast.error('Log out of your account first, then start Demo practice. Demo and Real accounts stay separate.');
         return;
       }
+
+      const response = await client.post<{ access_token: string }>('/api/auth/demo');
 
       storeToken(response.data.access_token);
       await completeLogin();

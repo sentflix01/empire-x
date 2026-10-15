@@ -11,7 +11,10 @@ const router = Router();
 async function loadTrending(isReal: boolean): Promise<Record<string, unknown>> {
   const realPostJoin  = isReal ? 'JOIN users _pu ON _pu.id=p.author_id AND _pu.is_seed=FALSE AND _pu.is_demo=FALSE' : '';
   const realProdWhere = isReal ? `AND seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)` : '';
-  const realShowWhere = isReal ? `AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)` : '';
+  const realShowWhere = isReal ? `AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)
+       AND EXISTS (SELECT 1 FROM business_subscriptions paid_sub
+         WHERE paid_sub.business_id=showrooms.business_id AND paid_sub.tier <> 'freemium'
+           AND paid_sub.current_period_end > NOW() - INTERVAL '24 hours')` : '';
   const realUserJoin  = isReal ? 'JOIN users _uu ON _uu.id=up.user_id AND _uu.is_seed=FALSE AND _uu.is_demo=FALSE' : '';
 
   const [posts, products, showrooms, users] = await Promise.all([
@@ -48,7 +51,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     const environment = getCurrentDatabaseEnvironment();
     const cacheKey = `trending:${environment}:${isReal ? 'real-only' : 'all-users'}`;
 
-    const data = await cached(cacheKey, 300, () => loadTrending(isReal));
+    const data = await cached(cacheKey, 45, () => loadTrending(isReal));
 
     // This endpoint is account-environment aware. Do not let browser/CDN caches
     // share a response between anonymous, Real, and isolated Demo requests.
@@ -68,7 +71,7 @@ router.get('/warm', optionalAuth, async (req: Request, res: Response) => {
     const isReal = !!req.realOnly;
     const environment = getCurrentDatabaseEnvironment();
     const cacheKey = `trending:${environment}:${isReal ? 'real-only' : 'all-users'}`;
-    await cached(cacheKey, 300, () => loadTrending(isReal));
+    await cached(cacheKey, 45, () => loadTrending(isReal));
     res.vary('X-Account-Mode');
     res.vary('X-Real-Only');
     res.vary('Cookie');

@@ -202,6 +202,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const router = useRouter();
   const { user, isAuthenticated, authChecked, isLoadingAuth, logout } = useAuth();
   const hasSignedInUser = authChecked && isAuthenticated && Boolean(user);
+  const isDemoSession = user?.demo_session_active === true;
   const { homeFeedMode, setHomeFeedMode, profileViewMode, setProfileViewMode } = useProfileView();
 
   const tr = (key: string) => String(t(key));
@@ -558,8 +559,11 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               </div>
               {/* Name + email row */}
               <div className="pt-7 pb-2 px-4 border-b border-border/40">
-                <p className="text-xs font-bold truncate text-foreground leading-tight">{displayName}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{hasSignedInUser ? userEmail : 'Read-only guest access'}</p>
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <p className="text-xs font-bold truncate text-foreground leading-tight">{displayName}</p>
+                  {isDemoSession && <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-800 dark:bg-amber-400/15 dark:text-amber-200">Demo</span>}
+                </div>
+                <p className="text-[10px] text-muted-foreground truncate">{hasSignedInUser ? (isDemoSession ? 'Temporary practice session' : userEmail) : 'Read-only guest access'}</p>
               </div>
             </div>
           )}
@@ -897,8 +901,11 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
                   {/* Name + email — bottom-right of cover, overlaid on gradient */}
                   <div className="absolute bottom-3 left-24 right-3 min-w-0">
-                    <p className="text-sm font-bold text-white truncate leading-tight drop-shadow-sm">{displayName}</p>
-                    <p className="text-[11px] text-white/80 truncate drop-shadow-sm">{userEmail}</p>
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <p className="text-sm font-bold text-white truncate leading-tight drop-shadow-sm">{displayName}</p>
+                      {isDemoSession && <span className="shrink-0 rounded-full bg-amber-400/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">Demo</span>}
+                    </div>
+                    <p className="text-[11px] text-white/80 truncate drop-shadow-sm">{isDemoSession ? 'Temporary practice session' : userEmail}</p>
                   </div>
                 </div>
 

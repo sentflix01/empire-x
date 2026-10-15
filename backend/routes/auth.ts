@@ -467,6 +467,15 @@ router.post('/resend-otp', async (req: Request, res: Response) => {
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
 
 router.post('/demo', async (req: Request, res: Response) => {
+  // A Real refresh session must be explicitly logged out before an isolated
+  // anonymous Demo identity can be started in the same browser.
+  if (await hasRealRefreshSession(req)) {
+    res.status(409).json({
+      error: 'Log out of your Real account before starting Demo practice.',
+      code: 'REAL_SESSION_MUST_LOG_OUT',
+    });
+    return;
+  }
   if (req.demoSession) {
     res.json({
       access_token: signDemoAccessToken(req.demoSession.userId, req.demoSession.id),
@@ -563,112 +572,15 @@ router.post('/demo/reset', async (req: Request, res: Response) => {
   }
 });
 
-/** Switch the signed-in identity between its Real account and its isolated
- * practice workspace. The workspace selector is a request to the server;
- * authorization and database routing still come from verified session state. */
-router.post('/workspace', requireAuth, async (req: Request, res: Response) => {
-  const workspace = (req.body as { workspace?: unknown } | undefined)?.workspace;
-  if (workspace !== 'real' && workspace !== 'demo') {
-    apiError.validationError(res, 'workspace must be either real or demo');
-    return;
-  }
-  const user = req.user;
-  if (!user) { res.status(401).json({ error: 'Authentication required' }); return; }
-
-  try {
-    if (workspace === 'demo') {
-      if (req.demoSession) {
-        res.json({ access_token: signDemoAccessToken(user.id, req.demoSession.id), workspace: 'demo' });
-        return;
-      }
-      const realIdentity = await runWithDatabaseEnvironment({ environment: 'real' }, async () => {
-        const { rows } = await pool.query<{ id: string; email: string; full_name: string | null; is_demo: boolean; is_seed: boolean; is_banned: boolean }>(
-          'SELECT id, email, full_name, is_demo, is_seed, is_banned FROM users WHERE id=$1', [user.id],
-        );
-        return rows[0];
-      });
-      if (!realIdentity || realIdentity.email.toLowerCase() !== user.email.toLowerCase() || realIdentity.is_demo || realIdentity.is_seed || realIdentity.is_banned) {
-        res.status(403).json({ error: 'Sign in to your Real account before opening its Demo workspace.', code: 'REAL_IDENTITY_REQUIRED' });
-        return;
-      }
-      if (process.env.DEMO_ENABLED !== 'true' || !process.env.DEMO_DATABASE_URL || !isDemoSessionSecretValid()) {
-        res.status(503).json({ error: 'Demo workspace is not configured yet.', code: 'DEMO_CONFIGURATION_INVALID' });
-        return;
-      }
-
-      const workspaceResult = await runWithDatabaseEnvironment({ environment: 'demo' }, async () => {
-        const existing = await pool.query<{ id: string; email: string; is_demo: boolean; is_seed: boolean; workspace_owner_id: string | null }>(
-          'SELECT id, email, is_demo, is_seed, workspace_owner_id FROM users WHERE id=$1 OR email=$2 LIMIT 1', [user.id, user.email],
-        );
-        const byId = existing.rows.find((row) => row.id === user.id);
-        const emailConflict = existing.rows.find((row) => row.email.toLowerCase() === user.email.toLowerCase() && row.id !== user.id);
-        if (emailConflict || (byId && (!byId.is_demo || byId.is_seed || byId.email.toLowerCase() !== user.email.toLowerCase() || byId.workspace_owner_id !== user.id))) {
-          throw Object.assign(new Error('An existing Demo identity conflicts with this Real account. Its data was left unchanged.'), { statusCode: 409, code: 'DEMO_IDENTITY_CONFLICT' });
-        }
-        if (!byId) {
-          await pool.query(
-            `INSERT INTO users (id, email, full_name, is_verified, is_demo, is_seed, provider, workspace_owner_id)
-            VALUES ($1,$2,$3,TRUE,TRUE,FALSE,'local',$1)`, [user.id, user.email, realIdentity.full_name],
-          );
-          await pool.query(
-            `INSERT INTO user_profiles (user_id, display_name, profile_type)
-             SELECT $1, COALESCE(display_name, $2), 'personal'
-               FROM (SELECT display_name FROM user_profiles WHERE user_id=$1 LIMIT 1) source
-             UNION ALL SELECT $1, COALESCE($2, 'Member'), 'personal'
-              WHERE NOT EXISTS (SELECT 1 FROM user_profiles WHERE user_id=$1)`,
-            [user.id, realIdentity.full_name],
-          );
-        }
-        const session = await establishDemoAccountSession(user.id, res);
-        return {
-          access_token: signDemoAccessToken(user.id, session.sessionId),
-          workspace: 'demo', expires_at: session.expiresAt.toISOString(),
-        };
-      });
-      res.json(workspaceResult);
-      return;
-    }
-
-    if (!req.demoSession) {
-      if (user.is_demo) {
-        res.status(403).json({ error: 'This legacy Demo account is not linked to a Real identity.', code: 'REAL_IDENTITY_REQUIRED' });
-        return;
-      }
-      res.json({ access_token: signToken(user.id, res, false), workspace: 'real' });
-      return;
-    }
-
-    const demoLink = await pool.query<{ workspace_owner_id: string | null }>(
-      'SELECT workspace_owner_id FROM users WHERE id=$1 AND is_demo=TRUE AND is_seed=FALSE', [user.id],
-    );
-    if (demoLink.rows[0]?.workspace_owner_id !== user.id) {
-      res.status(403).json({ error: 'This legacy Demo account is not linked to a Real identity.', code: 'REAL_IDENTITY_REQUIRED' });
-      return;
-    }
-
-    const realUser = await runWithDatabaseEnvironment({ environment: 'real' }, async () => {
-      const { rows } = await pool.query<{ id: string; email: string; is_demo: boolean; is_seed: boolean; is_banned: boolean }>(
-        'SELECT id, email, is_demo, is_seed, is_banned FROM users WHERE id=$1', [user.id],
-      );
-      return rows[0];
-    });
-    if (!realUser || realUser.email.toLowerCase() !== user.email.toLowerCase() || realUser.is_demo || realUser.is_seed || realUser.is_banned) {
-      res.status(403).json({ error: 'The linked Real account could not be verified.', code: 'REAL_IDENTITY_REQUIRED' });
-      return;
-    }
-    await pool.query("UPDATE demo_sessions SET status='ended', ended_at=NOW() WHERE id=$1 AND status='active'", [req.demoSession.id]);
-    clearDemoSessionCookie(res);
-    clearDemoTrack1Cookie(res);
-    res.json({ access_token: signToken(realUser.id, res, false), workspace: 'real' });
-  } catch (err) {
-    const error = err as Error & { statusCode?: number; code?: string };
-    logger.error({ err: error.message, requestId: req.requestId }, 'Workspace switch failed');
-    res.status(error.statusCode ?? 503).json({ error: error.message || 'Could not switch workspace', code: error.code ?? 'WORKSPACE_SWITCH_FAILED' });
-  }
+/** Retired: Real accounts must log out before starting a separate Demo session. */
+router.post('/workspace', requireAuth, (_req: Request, res: Response) => {
+  res.status(410).json({
+    error: 'Demo practice is a separate anonymous session. Log out of your account before starting Demo.',
+    code: 'SEPARATE_DEMO_SESSION_REQUIRED',
+  });
 });
-
 router.post('/onboarding-mode', (_req: Request, res: Response) => {
-  res.status(410).json({ error: 'Account modes are no longer selectable. Sign in to Real, then switch workspaces from the app.', code: 'WORKSPACE_SWITCH_REQUIRED' });
+  res.status(410).json({ error: 'Real accounts and Demo practice are separate. Log out before starting Demo.', code: 'SEPARATE_DEMO_SESSION_REQUIRED' });
 });
 
 const LOCKOUT_THRESHOLD = 5;

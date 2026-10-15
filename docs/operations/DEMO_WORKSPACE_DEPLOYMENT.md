@@ -69,6 +69,36 @@ npm --prefix backend run seed:demo -- --execute --database=postgres
 Use `npm run seed:demo -- --execute --database=postgres` instead when already
 inside `backend`. Never point this seed command at the Real database.
 
+The Demo seed creates sample showroom records and a non-billable Premium
+subscription fixture for each sample business so the public discovery feed can
+show them. These fixture subscriptions have no Stripe IDs and are written only
+to the isolated Demo database.
+
+The seed provides 11 fictional business examples: fashion, restaurant, creative
+services, clinic, technology retail/services, pharmacy, supermarket, ride
+service, telecom, hospitality, and civic information. Each showroom has
+business-specific content, personal and business profile imagery, feed posts,
+and 5–10 catalog or service listings. Demo identities use one profile row:
+personal identity fields and business profile fields coexist, and the profile
+view can switch between them.
+
+Storefront product search and category filters query the backend. Showrooms
+load 24 catalog items at a time and use backend cursors to load more; the API
+caps any single response at 100 items. Product checkout uses the existing Demo
+order flow. A service or booking CTA sends an inquiry to the signed-in Demo
+business account; it is not a confirmed booking.
+The ride-service showcase does not dispatch drivers or track trips, the telecom
+showcase does not activate accounts or connectivity, and the civic information
+prototype is not an official government website or transaction service. The
+pharmacy catalogue is limited to illustrative over-the-counter and general
+wellness listings; it does not offer prescription or controlled medicines.
+Never enter real medical, identity, or payment details in Demo.
+
+Profile, cover, and catalogue images are illustrative remote Unsplash images;
+sample logos use placehold.co. They are not uploaded to Demo Storage. If these
+third-party image hosts are unavailable, the application should continue to
+work with its existing image fallbacks.
+
 ## 4. Configure Render after the code is merged
 
 In the backend Render service, keep all existing Real variables unchanged and

@@ -67,17 +67,18 @@ describe('product visibility and field authorization', () => {
   });
 
   it('returns a stable keyset cursor and applies it on the next page', async () => {
-    const createdAt = '2026-09-27T10:20:30.000Z';
+    const createdAt = '2026-09-27T10:20:30.123456Z';
     const id = 'f8b4a3d2-0b1a-4c3d-8e9f-123456789abc';
-    pool.query.mockResolvedValueOnce({ rows: [{ id, created_at: createdAt, status: 'active', seller_id: 'seller-2' }] });
+    pool.query.mockResolvedValueOnce({ rows: [{ id, created_at: createdAt, __cursor_created_at: createdAt, status: 'active', seller_id: 'seller-2' }] });
     const firstPage = await request(buildApp()).get('/api/products?limit=1');
     expect(firstPage.body.next_cursor).toBe(`-created_at|${createdAt}|${id}`);
+    expect(firstPage.body.products[0]).not.toHaveProperty('__cursor_created_at');
 
     pool.query.mockResolvedValueOnce({ rows: [] });
     const secondPage = await request(buildApp()).get(`/api/products?limit=1&cursor=${encodeURIComponent(firstPage.body.next_cursor)}`);
     expect(pool.query.mock.calls[1][0]).toContain('(p.created_at,p.id) < ($1,$2::uuid)');
     expect(pool.query.mock.calls[1][0]).toContain('p.id DESC');
-    expect(pool.query.mock.calls[1][1].slice(0, 2)).toEqual([new Date(createdAt), id]);
+    expect(pool.query.mock.calls[1][1].slice(0, 2)).toEqual([createdAt, id]);
     expect(secondPage.status).toBe(200);
   });
 

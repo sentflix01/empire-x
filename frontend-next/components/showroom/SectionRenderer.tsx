@@ -6,10 +6,11 @@ import React from "react";
 import Link from 'next/link';
 
 import {
-  Clock, ShoppingBag, Star, Mail, Phone, MapPin, PlayCircle, CalendarCheck,
+  Clock, ShoppingBag, Star, Mail, Phone, MapPin, PlayCircle, CalendarCheck, Search,
   Medal, Send, Share2, Bookmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import BookmarkButton from "@/components/ui/BookmarkButton";
 
 const parseImages = (img?: string | string[] | null) => { try { return JSON.parse(String(img || "[]")); } catch { return img ? [img].flat() : []; } };
@@ -42,11 +43,21 @@ interface SectionRendererProps {
   section: Record<string, any>;
   sectionIndex: number;
   products?: Array<Record<string, any>>;
+  productSearch?: string;
+  productCategory?: string;
+  productCategories?: string[];
+  productsLoading?: boolean;
+  productsLoadingMore?: boolean;
+  productsError?: string;
+  hasMoreProducts?: boolean;
+  onLoadMoreProducts?: () => void;
   themeColor?: string;
   profile?: Record<string, any>;
   isOwner?: boolean;
   onBuy?: (product: Record<string, any>) => void;
   onGetQuote?: (serviceName: string, serviceDesc?: string) => void;
+  onProductSearchChange?: (value: string) => void;
+  onProductCategoryChange?: (value: string) => void;
   hours?: Array<{ day: string; hours: string }>;
   showProductLinks?: boolean;
   /** Anchor for the hero CTA; null hides the CTA (no valid target). */
@@ -62,11 +73,21 @@ export default function SectionRenderer({
   section,
   sectionIndex,
   products = [],
+  productSearch = '',
+  productCategory = '',
+  productCategories = [],
+  productsLoading = false,
+  productsLoadingMore = false,
+  productsError = '',
+  hasMoreProducts = false,
+  onLoadMoreProducts,
   themeColor = "#2563EB",
   profile = {},
   isOwner = false,
   onBuy,
   onGetQuote,
+  onProductSearchChange,
+  onProductCategoryChange,
   hours = [],
   showProductLinks = true,
   ctaTarget = null,
@@ -111,18 +132,50 @@ export default function SectionRenderer({
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         {isPrimaryProducts && <span id="section-products" className="sr-only" aria-hidden="true" />}
         <h2 className="font-display text-lg font-bold mb-4">{s.title}</h2>
-        {products.length === 0 ? (
+        {s.enableSearch !== false && onProductSearchChange && (
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row">
+            <div className="relative min-w-0 flex-1">
+              <Search aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                aria-label="Search products and services"
+                placeholder={s.searchPlaceholder || 'Search by name, description, or category'}
+                value={productSearch}
+                onChange={event => onProductSearchChange(event.target.value)}
+                className="pl-9"
+              />
+            </div>
+            {productCategories.length > 1 && onProductCategoryChange && (
+              <select
+                aria-label="Filter products by category"
+                value={productCategory}
+                onChange={event => onProductCategoryChange(event.target.value)}
+                className="h-10 rounded-md border border-input bg-background px-3 text-sm sm:w-48"
+              >
+                <option value="">All categories</option>
+                {productCategories.map(category => <option key={category} value={category}>{category}</option>)}
+              </select>
+            )}
+          </div>
+        )}
+        {productsLoading ? (
+          <p className="py-6 text-center text-sm text-muted-foreground" role="status">Loading catalog…</p>
+        ) : productsError ? (
+          <p className="py-6 text-center text-sm text-destructive" role="alert">{productsError}</p>
+        ) : products.length === 0 ? (
           <div className="text-center py-8">
             <ShoppingBag className="w-10 h-10 text-muted-foreground/20 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No products available yet</p>
+            <p className="text-sm text-muted-foreground">
+              {productSearch || productCategory ? 'No matching products. Try a different search or category.' : 'No products available yet'}
+            </p>
             {isOwner && <Link href="/products/create" className="text-xs text-amber-600 hover:underline mt-2 inline-block">Add your first product →</Link>}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3" aria-live="polite">
             {products.map(p => {
               const imgs = parseImages(p.images);
-              const card = (
-                <>
+              const cardContent = (
+                <div className="group">
                   <div className="aspect-square bg-secondary/20 relative overflow-hidden">
                     {imgs[0] ? (
                       <SafeImage fill={false} width={800} height={600} loading="lazy" src={imgs[0]} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -136,18 +189,41 @@ export default function SectionRenderer({
                     <div className="flex items-center justify-between mt-2">
                       <p className="text-sm font-bold" style={{ color: themeColor }}>{p.price?.toLocaleString()} {p.currency || "USD"}</p>
                       {!isOwner && onBuy && (
-                        <Button size="sm" className="h-7 text-xs rounded-full text-white px-3" style={{ backgroundColor: themeColor }} onClick={() => onBuy(p)}>Buy</Button>
+                        <span className="text-xs text-muted-foreground">{Number(p.stock) > 0 ? `${p.stock} in stock` : 'Check availability'}</span>
                       )}
                     </div>
                   </div>
-                </>
+                </div>
               );
-              return showProductLinks ? (
-                <Link key={p.id} href={`/products/${p.id}`} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-md transition-all group block">{card}</Link>
-              ) : (
-                <div key={p.id} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-md transition-all group">{card}</div>
+              const productCard = (
+                <div key={p.id} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-md transition-all">
+                  {showProductLinks ? (
+                    <Link href={`/products/${p.id}`} className="block">{cardContent}</Link>
+                  ) : cardContent}
+                  {!isOwner && onBuy && (
+                    <div className="px-3 pb-3">
+                      <Button size="sm" className="h-8 w-full rounded-full text-white" style={{ backgroundColor: themeColor }} onClick={() => onBuy(p)}>
+                        Order
+                      </Button>
+                    </div>
+                  )}
+                </div>
               );
+              return productCard;
             })}
+          </div>
+        )}
+        {!productsLoading && !productsError && products.length > 0 && hasMoreProducts && onLoadMoreProducts && (
+          <div className="mt-5 flex justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 min-w-36 rounded-full"
+              onClick={onLoadMoreProducts}
+              disabled={productsLoadingMore}
+            >
+              {productsLoadingMore ? 'Loading…' : 'Load more'}
+            </Button>
           </div>
         )}
       </div>
@@ -550,15 +626,21 @@ export default function SectionRenderer({
   }
 
   if (s.type === "booking") {
+    const requestName = s.requestName || s.bookingTitle || s.title || "Appointment request";
+    const buttonLabel = s.bookingBtn || "Request an appointment";
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/20 text-center">
         <h2 className="font-display text-lg font-bold mb-2">{s.bookingTitle || s.title || "Book an Appointment"}</h2>
         {(s.bookingDesc || s.content) && <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">{s.bookingDesc || s.content}</p>}
-        <a href="#section-contact">
-          <Button className="rounded-full text-white px-6" style={{ backgroundColor: themeColor }}>
-            <CalendarCheck className="w-4 h-4 mr-1" /> {s.bookingBtn || "Book Now"}
+        {onGetQuote ? (
+          <Button type="button" onClick={() => onGetQuote(requestName, s.bookingDesc || s.content)} className="rounded-full text-white px-6" style={{ backgroundColor: themeColor }}>
+            <CalendarCheck className="w-4 h-4 mr-1" /> {buttonLabel}
           </Button>
-        </a>
+        ) : (
+          <a href="#section-contact" className="inline-flex items-center justify-center rounded-full px-6 py-2 text-sm font-medium text-white" style={{ backgroundColor: themeColor }}>
+            <CalendarCheck className="w-4 h-4 mr-1" /> {buttonLabel}
+          </a>
+        )}
       </div>
     );
   }
@@ -715,6 +797,4 @@ export default function SectionRenderer({
     </div>
   );
 }
-
-
 

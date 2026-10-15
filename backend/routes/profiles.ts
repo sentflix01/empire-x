@@ -35,6 +35,32 @@ const PUBLIC_PROFILE_COLUMNS = [
   'certifications', 'awards', 'services', 'service_areas', 'cover_position', 'business_cover_position',
 ] as const;
 const PUBLIC_PROFILE_SELECT = PUBLIC_PROFILE_COLUMNS.map((field) => `up.${field}`).join(', ');
+const BUSINESS_PROFILE_FIELDS = [
+  'has_business_profile', 'business_name', 'business_category', 'business_template', 'business_description',
+  'business_logo_url', 'business_cover_url', 'business_sections', 'business_theme_color', 'business_contact_email',
+  'business_contact_phone', 'business_address', 'business_hours', 'business_website', 'business_founded_year',
+  'business_team_size', 'business_type', 'business_social_linkedin', 'business_social_twitter',
+  'business_social_facebook', 'certifications', 'awards', 'services', 'service_areas', 'business_cover_position',
+] as const;
+
+async function redactUnpaidBusinessProfile<T extends Record<string, unknown>>(profile: T, isOwner: boolean): Promise<T> {
+  if (profile.has_business_profile !== true) return profile;
+  const { rows } = await pool.query(
+    `SELECT EXISTS (
+       SELECT 1 FROM businesses b JOIN business_subscriptions bs ON bs.business_id=b.id
+       WHERE b.owner_id=$1 AND bs.tier <> 'freemium'
+         AND bs.current_period_end > NOW() - INTERVAL '24 hours'
+     ) AS visible, EXISTS (
+       SELECT 1 FROM businesses b JOIN business_subscriptions bs ON bs.business_id=b.id
+       WHERE b.owner_id=$1 AND bs.current_period_end <= NOW() - INTERVAL '3 days'
+     ) AS owner_blocked`,
+    [profile.user_id],
+  );
+  if (isOwner ? !rows[0]?.owner_blocked : rows[0]?.visible) return profile;
+  const sanitized: Record<string, unknown> = { ...profile };
+  for (const field of BUSINESS_PROFILE_FIELDS) sanitized[field] = field === 'has_business_profile' ? false : null;
+  return sanitized as T;
+}
 
 function editableProfileFields(body: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(EDITABLE_PROFILE_FIELDS
@@ -84,7 +110,7 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
   try {
     const { rows } = await pool.query('SELECT * FROM user_profiles WHERE user_id = $1', [req.user!.id]);
     if (!rows.length) { res.status(404).json({ error: 'Profile not found' }); return; }
-    res.json(rows[0]);
+    res.json(await redactUnpaidBusinessProfile(rows[0], true));
   } catch { res.status(500).json({ error: 'Failed to fetch profile' }); }
 });
 
@@ -97,7 +123,7 @@ router.get('/by-user/:userId', optionalAuth, async (req: Request, res: Response)
       [req.params.userId],
     );
     if (!rows.length) { res.status(404).json({ error: 'Profile not found' }); return; }
-    res.json(rows[0]);
+    res.json(await redactUnpaidBusinessProfile(rows[0], req.user?.id === req.params.userId));
   } catch { res.status(500).json({ error: 'Failed to fetch profile' }); }
 });
 
@@ -129,7 +155,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
       [req.params.id],
     );
     if (!rows.length) { res.status(404).json({ error: 'Profile not found' }); return; }
-    res.json(rows[0]);
+    res.json(await redactUnpaidBusinessProfile(rows[0], req.user?.id === ownerRows[0].user_id));
   } catch { res.status(500).json({ error: 'Failed to fetch profile' }); }
 });
 
@@ -141,7 +167,11 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
   if (!redis.isNoOp && !includePrivateFields) {
     try {
       const cached = await (redis as RedisClient).get(cacheKey);
-      if (cached) { res.set('X-Cache', 'HIT'); res.json(JSON.parse(cached)); return; }
+      if (cached) {
+        const parsed = JSON.parse(cached) as Array<Record<string, unknown>>;
+        const safe = await Promise.all(parsed.map(profile => redactUnpaidBusinessProfile(profile, profile.user_id === req.user?.id)));
+        res.set('X-Cache', 'HIT'); res.json(safe); return;
+      }
     } catch { /* fall through */ }
   }
   try {
@@ -164,9 +194,10 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
        ${whereClause} ORDER BY up.${sortCol} ${sortDir} LIMIT $${values.length}`,
       values,
     );
-    if (!redis.isNoOp && !includePrivateFields) (redis as RedisClient).setex(cacheKey, 60, JSON.stringify(rows)).catch(() => undefined);
+    const safeRows = await Promise.all(rows.map(profile => redactUnpaidBusinessProfile(profile, profile.user_id === req.user?.id)));
+    if (!redis.isNoOp && !includePrivateFields) (redis as RedisClient).setex(cacheKey, 60, JSON.stringify(safeRows)).catch(() => undefined);
     res.set('X-Cache', 'MISS');
-    res.json(rows);
+    res.json(safeRows);
   } catch { res.status(500).json({ error: 'Failed to fetch profiles' }); }
 });
 

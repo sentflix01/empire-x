@@ -23,6 +23,17 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 
 const FONT_OPTIONS = ["Inter", "Playfair Display", "Space Grotesk"];
 
+function getSectionPlanRequirement(sectionKeys: string[]): { tier: 'normal' | 'premium' | 'pro'; label: string; price: number } {
+  const rank = { normal: 1, premium: 2, pro: 3 } as const;
+  let tier: 'normal' | 'premium' | 'pro' = sectionKeys.length > 25 ? 'pro' : sectionKeys.length > 5 ? 'premium' : 'normal';
+  for (const key of sectionKeys) {
+    const sectionTier = getSectionType(key)?.tier;
+    if (sectionTier === 'pro') tier = 'pro';
+    else if (sectionTier === 'premium' && rank[tier] < rank.premium) tier = 'premium';
+  }
+  return { tier, label: tier === 'pro' ? 'Pro' : tier === 'premium' ? 'Premium' : 'Normal', price: tier === 'pro' ? 1000 : tier === 'premium' ? 500 : 100 };
+}
+
 // FA icon map — exactly from use 1.html SECTION_TYPES
 const FA_ICONS: Record<string, string> = {
   hero:        "fa-house",
@@ -279,7 +290,12 @@ function ShowroomCreate({
 
   const { user } = useAuth();
   const draftKey = `nodbusiness_builder_draft:${user?.id ?? "guest"}:${user?.is_demo ? "demo" : "real"}`;
+  const serverDraftKey = `${draftKey}:server_id`;
   const [loadedDraftKey, setLoadedDraftKey] = useState("");
+  const [serverDraftId, setServerDraftId] = useState<string | null>(null);
+  const [editingStatus, setEditingStatus] = useState<string | null>(null);
+  const [businesses, setBusinesses] = useState<Array<{ id: string; business_name: string }>>([]);
+  const [selectedBusinessId, setSelectedBusinessId] = useState('');
   const [saving, setSaving] = useState(false);
   const [darkBuilder, setDarkBuilder] = useState(false);
   const [previewMode, setPreviewMode] = useState<"desktop"|"tablet"|"mobile">("desktop");
@@ -294,9 +310,24 @@ function ShowroomCreate({
   const [activeSections, setActiveSections] = useState<string[]>(
     getDefaultSections(templateName, categoryParam, sampleParam)
   );
+  const sectionPlanRequirement = getSectionPlanRequirement(activeSections);
   const [formData, setFormData] = useState<Record<string, any>>(
     getDefaultFormData(templateName, categoryParam, sampleParam)
   );
+
+  useEffect(() => {
+    if (!user?.id || user.is_demo) return;
+    let cancelled = false;
+    entities.Business.filter({ owner_id: user.id }, '-created_at', 100)
+      .then((owned) => {
+        if (cancelled) return;
+        const choices = owned.map((business: any) => ({ id: String(business.id), business_name: String(business.business_name || 'Business') }));
+        setBusinesses(choices);
+        if (choices.length === 1) setSelectedBusinessId(choices[0].id);
+      })
+      .catch(() => { if (!cancelled) toast.error('Could not load your Business profiles.'); });
+    return () => { cancelled = true; };
+  }, [user?.id, user?.is_demo]);
 
   // Doctor fix deep-link: append recommended sections after load
   useEffect(() => {
@@ -312,18 +343,30 @@ function ShowroomCreate({
     (async () => {
       try {
         const res = await apiFetch(`/api/showrooms/${editId}`, { credentials: "include" });
-        if (!res.ok) return;
+        if (!res.ok) throw new Error('We could not load this site for editing.');
         const data = await res.json();
         if (cancelled) return;
+        if (typeof data.business_id === 'string') setSelectedBusinessId(data.business_id);
+        setEditingStatus(typeof data.status === 'string' ? data.status : null);
         let sections = data.sections;
         if (typeof sections === 'string') { try { sections = JSON.parse(sections); } catch { sections = undefined; } }
-        if (Array.isArray(sections) && sections.length) setActiveSections(sections);
+        const savedSections = Array.isArray(sections) ? sections : [];
+        const sectionKeys = savedSections
+          .map((section: unknown) => typeof section === 'string' ? section : (section as { type?: unknown })?.type)
+          .filter((key: unknown): key is string => typeof key === 'string' && Boolean(getSectionType(key)));
+        const sectionFields = Object.assign({}, ...savedSections
+          .filter((section: unknown): section is Record<string, unknown> => Boolean(section) && typeof section === 'object' && !Array.isArray(section))
+          .map(({ type: _type, ...fields }: Record<string, unknown>) => fields));
+        if (sectionKeys.length) setActiveSections(sectionKeys);
         setFormData((prev: Record<string, unknown>) => ({
           ...prev,
-          ...Object.fromEntries(Object.entries(data).filter(([, v]) => v !== null && v !== undefined && typeof v !== 'object')),
-          ...(sections && typeof sections === 'object' && !Array.isArray(sections) ? (sections as Record<string, unknown>) : {}),
+          ...Object.fromEntries(Object.entries(data).filter(([key, v]) => key !== 'sections' && v !== null && v !== undefined && typeof v !== 'object')),
+          ...(data.description ? { subtitle: data.description } : {}),
+          ...sectionFields,
         }));
-      } catch { /* non-fatal */ }
+      } catch (error) {
+        if (!cancelled) toast.error(error instanceof Error ? error.message : 'We could not load this site for editing.');
+      }
     })();
     return () => { cancelled = true; };
   }, [editId]);
@@ -342,13 +385,25 @@ function ShowroomCreate({
         const draft = localStorage.getItem(draftKey);
         if (draft) {
           const parsed = JSON.parse(draft);
-          if (parsed.formData) setFormData({ ...defaultData, ...parsed.formData });
-          if (parsed.activeSections) setActiveSections(parsed.activeSections);
+          const createdAt = Number(parsed.createdAt) || Date.now();
+          if (Date.now() - createdAt >= 3 * 24 * 60 * 60 * 1000) {
+            localStorage.removeItem(draftKey);
+            const expiredId = localStorage.getItem(`${draftKey}:server_id`);
+            localStorage.removeItem(`${draftKey}:server_id`);
+            if (expiredId && !user?.is_demo) void apiFetch(`/api/showrooms/${expiredId}`, { method: 'DELETE', credentials: 'include' });
+            toast.info('This saved draft expired after three days. Start a new website when you are ready.');
+          } else {
+            if (!parsed.createdAt) localStorage.setItem(draftKey, JSON.stringify({ ...parsed, createdAt }));
+            if (parsed.formData) setFormData({ ...defaultData, ...parsed.formData });
+            if (parsed.activeSections) setActiveSections(parsed.activeSections);
+            if (typeof parsed.businessId === 'string') setSelectedBusinessId(parsed.businessId);
+            setServerDraftId(localStorage.getItem(`${draftKey}:server_id`));
+          }
         }
       } catch {}
     }
     setLoadedDraftKey(draftKey);
-  }, [draftKey, templateName, templateParam, categoryParam, sampleParam, editId]);
+  }, [draftKey, templateName, templateParam, categoryParam, sampleParam, editId, user?.is_demo]);
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 639px)");
@@ -364,10 +419,17 @@ function ShowroomCreate({
   useEffect(() => {
     if (loadedDraftKey !== draftKey) return;
     const timer = setTimeout(() => {
-      localStorage.setItem(draftKey, JSON.stringify({ formData, activeSections }));
+      let createdAt = Date.now();
+      let businessId = selectedBusinessId;
+      try {
+        const previous = JSON.parse(localStorage.getItem(draftKey) ?? '{}');
+        createdAt = Number(previous.createdAt) || createdAt;
+        businessId ||= typeof previous.businessId === 'string' ? previous.businessId : '';
+      } catch { /* start a new local draft */ }
+      localStorage.setItem(draftKey, JSON.stringify({ formData, activeSections, createdAt, businessId }));
     }, 1500);
     return () => clearTimeout(timer);
-  }, [draftKey, loadedDraftKey, formData, activeSections]);
+  }, [draftKey, loadedDraftKey, formData, activeSections, selectedBusinessId]);
 
   const pushUndo = () => {
     setUndoStack(prev => [...prev.slice(-19), { formData, activeSections }]);
@@ -417,9 +479,54 @@ function ShowroomCreate({
     });
   };
 
-  const handleSaveDraft = () => {
-    localStorage.setItem(draftKey, JSON.stringify({ formData, activeSections }));
-    toast.success("Draft saved ✅");
+  const buildShowroomPayload = (status: 'draft' | 'published') => {
+    const title = String(formData.title ?? '').trim();
+    const sections = activeSections.map(key => {
+      const sec = getSectionType(key);
+      if (!sec) return null;
+      const data: Record<string, any> = { type: key };
+      sec.fields.forEach(f => { if (formData[f.key] !== undefined) data[f.key] = formData[f.key]; });
+      return data;
+    }).filter(Boolean);
+    return {
+      title,
+      description: formData.subtitle || '',
+      slug: title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+      category: categoryParam || 'business',
+      sections: JSON.stringify(sections),
+      ...(selectedBusinessId ? { business_id: selectedBusinessId } : {}),
+      status,
+    };
+  };
+
+  const handleSaveDraft = async () => {
+    const title = String(formData.title ?? '').trim();
+    const createdAt = (() => {
+      try { return Number(JSON.parse(localStorage.getItem(draftKey) ?? '{}').createdAt) || Date.now(); }
+      catch { return Date.now(); }
+    })();
+    localStorage.setItem(draftKey, JSON.stringify({ formData, activeSections, createdAt, businessId: selectedBusinessId }));
+
+    // Demo workspaces remain isolated and temporary. Real-account site drafts
+    // are stored on the server so expiry applies across browsers and devices.
+    if (user && !user.is_demo && title && (!editId || editingStatus === 'draft')) {
+      setSaving(true);
+      try {
+        const targetId = editId || serverDraftId;
+        const payload = buildShowroomPayload('draft');
+        const saved = targetId
+          ? await entities.Showroom.update(targetId, payload)
+          : await entities.Showroom.create(payload);
+        const id = String(saved.id);
+        localStorage.setItem(serverDraftKey, id);
+        setServerDraftId(id);
+        toast.success('Draft saved. It will be kept for three days.');
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Could not save this draft to your account.');
+      } finally { setSaving(false); }
+      return;
+    }
+    toast.success('Draft saved on this device. Add a website title to save it to your account.');
   };
 
   const completion = Math.round((Object.values(formData).filter(v => v && (Array.isArray(v) ? v.length > 0 : String(v).trim().length > 0)).length / Object.keys(formData).length) * 100);
@@ -496,9 +603,15 @@ function ShowroomCreate({
 
   const handlePublish = async () => {
     if (!user) { toast.error("Please log in"); return; }
+    if (!user.is_demo && businesses.length > 1 && !selectedBusinessId) {
+      toast.error('Choose which Business profile this website belongs to before publishing.');
+      return;
+    }
     const title = String(formData.title ?? "").trim();
     if (!title) { toast.error("Add your business name in the Hero section"); return; }
     setSaving(true);
+    // Keep an up-to-date local copy before any billing redirect or API error.
+    localStorage.setItem(draftKey, JSON.stringify({ formData, activeSections }));
     try {
       const sections = activeSections.map(key => {
         const sec = getSectionType(key);
@@ -510,6 +623,7 @@ function ShowroomCreate({
 
       const showroomData = {
         owner_id: user.id,
+        ...(selectedBusinessId ? { business_id: selectedBusinessId } : {}),
         title,
         description: formData.subtitle || "",
         slug: title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
@@ -524,7 +638,22 @@ function ShowroomCreate({
       toast.success("Your showroom is live and visible in the Business feed.");
       router.push(`/showrooms/${showroom.id}`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Please try again.";
+      const apiError = error as { message?: string; response?: { data?: { error?: string; message?: string; businessId?: string; draftId?: string; requiredTier?: 'normal' | 'premium' | 'pro' } } };
+      const details = apiError.response?.data;
+      if (details?.error === 'subscription_required' && details.businessId) {
+        const query = new URLSearchParams({ businessId: details.businessId });
+        if (details.draftId) query.set('draftId', details.draftId);
+        if (details.requiredTier) query.set('requiredTier', details.requiredTier);
+        router.push(`/business/subscription?${query.toString()}`);
+        setSaving(false);
+        return;
+      }
+      if (details?.error === 'business_profile_required' && details.draftId) {
+        router.push(`/business/create?draftId=${encodeURIComponent(details.draftId)}`);
+        setSaving(false);
+        return;
+      }
+      const message = details?.message ?? apiError.message ?? "Please try again.";
       toast.error(`Could not publish your showroom. ${message}`);
     }
     setSaving(false);
@@ -538,6 +667,13 @@ function ShowroomCreate({
         ${darkBuilder ? "border-slate-700 bg-slate-900/60" : "border-border/40 bg-white"}`}>
         <i className="fa-solid fa-drafting-compass" style={{ color: "#b8860b", fontSize: 13 }} />
         <span style={{ fontSize: 13, fontWeight: 700 }}>Sections ({activeSections.length})</span>
+      </div>
+
+      <div aria-live="polite" className={`mx-2 my-2 rounded-lg border px-2.5 py-2 text-[10px] leading-relaxed
+        ${darkBuilder ? "border-blue-400/30 bg-blue-500/10 text-blue-100" : "border-blue-200 bg-blue-50 text-blue-950"}`}>
+        Selected sections need the <strong>{sectionPlanRequirement.label} plan</strong> to publish:
+        {' '}<strong>{sectionPlanRequirement.price.toLocaleString()} ETB/month</strong>.
+        {sectionPlanRequirement.tier === 'normal' && ' Premium and Pro sections raise the required plan.'}
       </div>
 
       {/* Section list — scrollable */}
@@ -684,6 +820,18 @@ function ShowroomCreate({
           </div>
         </div>
 
+        {!user?.is_demo && businesses.length > 1 && (
+          <label className="flex items-center gap-1.5 shrink-0 text-xs">
+            <span className="sr-only">Business profile for this website</span>
+            <select aria-label="Business profile for this website" value={selectedBusinessId}
+              onChange={event => setSelectedBusinessId(event.target.value)}
+              className="max-w-[170px] rounded-md border border-border bg-background px-2 py-1 text-xs">
+              <option value="">Choose business</option>
+              {businesses.map(business => <option key={business.id} value={business.id}>{business.business_name}</option>)}
+            </select>
+          </label>
+        )}
+
         <div className="flex-1" />
 
         {/* Color presets — hide on xs, show from sm */}
@@ -718,22 +866,22 @@ function ShowroomCreate({
         </div>
 
         {/* Undo / Redo */}
-        <button onClick={undo} disabled={!undoStack.length} className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary disabled:opacity-30 transition-colors">
+        <button type="button" onClick={undo} disabled={!undoStack.length} aria-label="Undo" className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary disabled:opacity-30 transition-colors">
           <RotateCcw className="w-3.5 h-3.5" />
         </button>
-        <button onClick={redo} disabled={!redoStack.length} className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary disabled:opacity-30 transition-colors">
+        <button type="button" onClick={redo} disabled={!redoStack.length} aria-label="Redo" className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary disabled:opacity-30 transition-colors">
           <RotateCw className="w-3.5 h-3.5" />
         </button>
 
         {/* WhatsApp toggle */}
-        <button onClick={() => setShowWhatsapp(v => !v)}
+        <button type="button" onClick={() => setShowWhatsapp(v => !v)} aria-label="Toggle WhatsApp button" aria-pressed={showWhatsapp}
           className={`p-1.5 rounded-lg text-xs font-bold transition-colors ${showWhatsapp ? "bg-green-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}
           title="WhatsApp float button">
           💬
         </button>
 
         {/* Dark mode */}
-        <button onClick={() => setDarkBuilder(v => !v)} className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary transition-colors">
+        <button type="button" onClick={() => setDarkBuilder(v => !v)} aria-label={darkBuilder ? "Use light editor theme" : "Use dark editor theme"} aria-pressed={darkBuilder} className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary transition-colors">
           {darkBuilder ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5" />}
         </button>
 

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { entities } from "@/api/entities";
@@ -15,24 +15,27 @@ import { QRCodeSVG } from "qrcode.react";
 import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
 import QRLandingModal from "@/components/showroom/QRLandingModal";
+import TryDemoButton from '@/components/landing/TryDemoButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { toast } from "sonner";
 
 /* ── Lightweight inquiry / "Get Quote" modal ─────────────────────────────── */
-function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, onClose }: {
+function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, isAuthenticated, onClose }: {
   serviceName: string;
   serviceDesc?: string;
   businessName: string;
   ownerId: string;
+  isAuthenticated: boolean;
   onClose: () => void;
 }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState(`Hi, I'm interested in your ${serviceName} service. Please send me a quote.`);
+  const [message, setMessage] = useState(`Hi, I'm interested in ${serviceName}. Please share availability and next steps.`);
   const [sending, setSending] = useState(false);
 
   const handleSend = async () => {
+    if (!isAuthenticated) return;
     if (!name.trim() || !phone.trim()) {
       toast.error('Please enter your name and phone number');
       return;
@@ -42,27 +45,16 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, onClos
       // Send inquiry as a direct message to the business owner
       await client.post('/api/messages/inquiry', {
         receiver_id: ownerId,
-        subject: `Quote Request: ${serviceName}`,
+        subject: `Service request: ${serviceName}`,
         body: `Name: ${name}\nPhone: ${phone}${email ? `\nEmail: ${email}` : ''}\n\n${message}`,
       });
-      toast.success('Inquiry sent! The business will contact you shortly.');
+      toast.success('Request sent. The business will follow up; this is not a confirmed booking.');
       onClose();
     } catch {
-      // Fallback: create a notification for the owner
-      try {
-        await client.post('/api/notifications', {
-          user_id: ownerId,
-          type: 'inquiry',
-          title: `Quote Request: ${serviceName}`,
-          body: `${name} (${phone}) is requesting a quote for ${serviceName}.`,
-        });
-        toast.success('Inquiry sent! The business will contact you shortly.');
-        onClose();
-      } catch {
-        toast.error('Could not send inquiry. Please contact the business directly.');
-      }
+      toast.error('Could not send the request. Please sign in again or contact the business directly.');
+    } finally {
+      setSending(false);
     }
-    setSending(false);
   };
 
   return (
@@ -75,7 +67,7 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, onClos
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border/50" style={{ backgroundColor: 'hsl(var(--card))' }}>
           <div>
-            <h2 className="font-display text-base font-bold">Request a Quote</h2>
+            <h2 className="font-display text-base font-bold">Send a request</h2>
             <p className="text-xs text-muted-foreground mt-0.5">{serviceName} · {businessName}</p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-secondary transition-colors">
@@ -83,7 +75,14 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, onClos
           </button>
         </div>
 
-        {/* Form */}
+        {!isAuthenticated ? (
+          <div className="p-5 space-y-3">
+            <p className="text-sm text-muted-foreground">Sign in to send a service request. You can also start a Demo session from the page header.</p>
+            <Link href="/login" className="inline-flex h-10 items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground">
+              Sign in to continue
+            </Link>
+          </div>
+        ) : (
         <div className="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
           {serviceDesc && (
             <p className="text-xs text-muted-foreground bg-secondary/40 rounded-xl px-3 py-2">{serviceDesc}</p>
@@ -118,9 +117,10 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, onClos
           >
             {sending
               ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</>
-              : <><Send className="w-4 h-4 mr-2" />Send Inquiry</>}
+              : <><Send className="w-4 h-4 mr-2" />Send Request</>}
           </Button>
         </div>
+        )}
       </div>
     </div>
   );
@@ -128,11 +128,19 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, onClos
 
 function ShowroomView() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id;
   const slugParam = params.slug;
-  const router = useRouter();
   const [showroom, setShowroom] = useState(null);
   const [products, setProducts] = useState([]);
+  const [productSearch, setProductSearch] = useState('');
+  const [productCategory, setProductCategory] = useState('');
+  const [productCategories, setProductCategories] = useState<string[]>([]);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [productsLoadingMore, setProductsLoadingMore] = useState(false);
+  const [nextProductCursor, setNextProductCursor] = useState<string | null>(null);
+  const [productsError, setProductsError] = useState('');
+  const catalogRequestId = useRef(0);
   const [loading, setLoading] = useState(true);
   const [showQr, setShowQr] = useState(false);
   const { user } = useAuth();
@@ -147,17 +155,86 @@ function ShowroomView() {
         ? (await client.get(`/api/showrooms/slug/${slugParam}`)).data
         : await entities.Showroom.get(id as string);
       setShowroom(s);
-      const prods = await entities.Product.filter({ seller_id: s.owner_id, status: "active" }, "-created_at", 24);
-      setProducts(prods);
     } catch {
       setShowroom(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [id, slugParam]);
 
   useEffect(() => {
     loadShowroom();
   }, [loadShowroom]);
+
+  useEffect(() => {
+    const ownerId = showroom?.owner_id;
+    if (!ownerId) return;
+
+    const requestId = ++catalogRequestId.current;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      setProductsLoading(true);
+      setProductsLoadingMore(false);
+      setProductsError('');
+      void entities.Product.filterPage({
+          seller_id: ownerId,
+          status: 'active',
+          ...(productSearch.trim() ? { search: productSearch.trim() } : {}),
+          ...(productCategory ? { category: productCategory } : {}),
+        }, '-created_at', 24).then(({ items, nextCursor }) => {
+        if (cancelled || catalogRequestId.current !== requestId) return;
+        setProducts(items);
+        setNextProductCursor(nextCursor);
+        if (!productSearch.trim() && !productCategory) {
+          const categories = [...new Set(items.map(item => String(item.category || '').trim()).filter(Boolean))];
+          setProductCategories(categories.sort((a, b) => a.localeCompare(b)));
+        }
+      }).catch(() => {
+        if (cancelled || catalogRequestId.current !== requestId) return;
+        setProducts([]);
+        setNextProductCursor(null);
+        setProductsError('Could not load the catalog. Please try again.');
+        toast.error('Could not load the business catalog.');
+      }).finally(() => {
+        if (!cancelled && catalogRequestId.current === requestId) setProductsLoading(false);
+      });
+    }, productSearch.trim() ? 250 : 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      if (catalogRequestId.current === requestId) catalogRequestId.current += 1;
+    };
+  }, [showroom?.owner_id, productSearch, productCategory]);
+
+  const loadMoreProducts = useCallback(async () => {
+    const ownerId = showroom?.owner_id;
+    const cursor = nextProductCursor;
+    if (!ownerId || !cursor || productsLoadingMore) return;
+
+    const requestId = catalogRequestId.current;
+    setProductsLoadingMore(true);
+    try {
+      const { items, nextCursor } = await entities.Product.filterPage({
+        seller_id: ownerId,
+        status: 'active',
+        ...(productSearch.trim() ? { search: productSearch.trim() } : {}),
+        ...(productCategory ? { category: productCategory } : {}),
+      }, '-created_at', 24, cursor);
+      if (catalogRequestId.current !== requestId) return;
+      setProducts(current => {
+        const existingIds = new Set(current.map(item => item.id));
+        return [...current, ...items.filter(item => !existingIds.has(item.id))];
+      });
+      setNextProductCursor(nextCursor);
+    } catch {
+      if (catalogRequestId.current === requestId) {
+        toast.error('Could not load more products. Please try again.');
+      }
+    } finally {
+      if (catalogRequestId.current === requestId) setProductsLoadingMore(false);
+    }
+  }, [showroom?.owner_id, nextProductCursor, productsLoadingMore, productSearch, productCategory]);
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
   if (!showroom) return <UnavailableNotice title="Showroom not found" message="This mini-website doesn't exist or has been removed." />;
@@ -197,6 +274,14 @@ function ShowroomView() {
     setQuoteItem({ name: serviceName, desc: serviceDesc });
   };
 
+  const handleGoBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push('/showrooms');
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
       {/* QR Landing Modal — shown to first-time unauthenticated visitors */}
@@ -209,11 +294,12 @@ function ShowroomView() {
           themeColor={themeColor}
         />
       )}
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" /> Back
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <button type="button" onClick={handleGoBack} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="w-4 h-4" /> Go back
           </button>
           <div className="flex items-center gap-2">
+            {!user && <TryDemoButton />}
             {showroom.status !== "published" && isOwner && (
               <Badge variant="outline" className="text-amber-600 border-amber-400/50">Draft preview</Badge>
             )}
@@ -250,12 +336,22 @@ function ShowroomView() {
               section={section}
               sectionIndex={i}
               products={section.type === "products" || section.type === "featured_products" ? products : []}
+              productSearch={productSearch}
+              productCategory={productCategory}
+              productCategories={productCategories}
+              productsLoading={productsLoading}
+              productsLoadingMore={productsLoadingMore}
+              productsError={productsError}
+              hasMoreProducts={Boolean(nextProductCursor)}
+              onLoadMoreProducts={loadMoreProducts}
               themeColor={themeColor}
               profile={profile}
               isOwner={isOwner}
               showProductLinks
               onBuy={isOwner ? undefined : handleBuy}
               onGetQuote={isOwner ? undefined : handleGetQuote}
+              onProductSearchChange={setProductSearch}
+              onProductCategoryChange={setProductCategory}
               ctaTarget={ctaTarget}
               isPrimaryProducts={i === productsIdx}
             />
@@ -286,6 +382,7 @@ function ShowroomView() {
             serviceDesc={quoteItem.desc}
             businessName={showroom.title}
             ownerId={showroom.owner_id}
+            isAuthenticated={Boolean(user)}
             onClose={() => setQuoteItem(null)}
           />
         )}

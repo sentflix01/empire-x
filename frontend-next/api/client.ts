@@ -21,6 +21,21 @@ const API_BASE_URL = typeof window !== 'undefined'
 // ── In-memory access token store ─────────────────────────────────────────────
 let _accessToken: string | null = null;
 
+const PUBLIC_DEMO_PAGES = ['/feed', '/businesses', '/marketplace', '/showrooms'];
+const PUBLIC_DEMO_UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
+const PUBLIC_DEMO_API_PATH = new RegExp(`^/api/(?:posts|businesses|products|profiles|showrooms)(?:/${PUBLIC_DEMO_UUID}(?:/comments)?)?$|^/api/stories(?:/user/${PUBLIC_DEMO_UUID})?$`, 'i');
+
+function shouldReadPublicDemo(url: unknown, method?: string): boolean {
+  if (typeof window === 'undefined' || _accessToken || !['get', 'head'].includes((method ?? 'get').toLowerCase())) return false;
+  if (/(?:^|;\s*)nb_auth=1(?:;|$)/.test(document.cookie) || document.cookie.includes('demo_session=')) return false;
+  const page = window.location.pathname;
+  if (!PUBLIC_DEMO_PAGES.some(prefix => page === prefix || page.startsWith(`${prefix}/`))) return false;
+  const rawUrl = typeof url === 'string' ? url : '';
+  let pathname = rawUrl;
+  try { pathname = new URL(rawUrl, window.location.origin).pathname; } catch { /* use relative path */ }
+  return PUBLIC_DEMO_API_PATH.test(pathname);
+}
+
 const AUTH_HINT_COOKIE = 'nb_auth';
 const HINT_MAX_AGE = 7 * 24 * 60 * 60; // 7 days — matches refresh-token lifetime
 
@@ -95,7 +110,8 @@ export async function ensureFreshToken(): Promise<boolean> {
  * request paths.
  */
 export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
-  if (!_accessToken) await ensureFreshToken();
+  const hasAuthHint = typeof document !== 'undefined' && /(?:^|;\s*)nb_auth=1(?:;|$)/.test(document.cookie);
+  if (!_accessToken && hasAuthHint) await ensureFreshToken();
 
   const headers = new Headers(
     typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined,
@@ -113,6 +129,9 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
         headers.delete('X-Real-Only');
       }
     } catch { /* storage may be disabled; preserve the caller's request state */ }
+    if (shouldReadPublicDemo(input instanceof Request ? input.url : input, init.method ?? (input instanceof Request ? input.method : undefined))) {
+      headers.set('X-Public-Demo-Read', '1');
+    }
   }
 
   return fetch(input, {
@@ -133,6 +152,9 @@ const client = axios.create({
 client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (_accessToken) {
     config.headers.Authorization = `Bearer ${_accessToken}`;
+  }
+  if (shouldReadPublicDemo(config.url, config.method)) {
+    config.headers['X-Public-Demo-Read'] = '1';
   }
   return config;
 });

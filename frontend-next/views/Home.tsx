@@ -397,14 +397,14 @@ function Home() {
                   ))}
 
                   {/* Infinite scroll sentinel */}
-                  <div ref={sentinelRef} className="h-4" />
+                  <div key="feed-infinite-scroll-sentinel" ref={sentinelRef} className="h-4" />
                   {loadingMore && (
-                    <div className="flex justify-center py-4">
+                    <div key="feed-loading-more" className="flex justify-center py-4">
                       <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
                     </div>
                   )}
                   {!hasMore && posts.length > 0 && (
-                    <p className="text-center text-xs text-muted-foreground py-4">You've seen all posts</p>
+                    <p key="feed-end-of-list" className="text-center text-xs text-muted-foreground py-4">You've seen all posts</p>
                   )}
                 </AnimatePresence>
               )}

@@ -5,6 +5,11 @@
 > **Last updated:** September 22, 2026
 > **Live stack:** Render (backend) · Vercel (frontend) · Supabase · Upstash Redis · Resend · Gemini AI
 
+For a task-oriented index, document register, source precedence, glossary, and
+cross-cutting decisions, start with [`project-brain/README.md`](../project-brain/README.md).
+The handbook remains the canonical home for detailed engineering, product,
+and operations guidance.
+
 ---
 
 ## Start Here

@@ -33,11 +33,13 @@ function personalizeSections(sections, biz) {
 import TemplateCard from "@/components/profile/TemplateCard";
 import ImageUpload from "@/components/ui/ImageUpload";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { toast } from 'sonner';
 
 function BusinessCreate() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
+  const draftId = searchParams.get('draftId');
   const paramId = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const idValue = searchParams.get("id") || paramId;
   const id = typeof idValue === 'string' ? idValue : '';
@@ -84,7 +86,7 @@ function BusinessCreate() {
         business_cover_url: b.business_cover_url || ""
       });
     } catch (e) {
-      console.error(e);
+      toast.error(e instanceof Error ? e.message : 'Could not load this business. Please try again.');
     }
   };
 
@@ -104,11 +106,12 @@ function BusinessCreate() {
           await entities.UserProfile.update(profiles[0].id, { has_business_profile: true });
         }
       }
-      router.push("/profile?view=business");
+      router.push(draftId && !isEdit ? `/showroom/create?edit=${encodeURIComponent(draftId)}` : "/profile?view=business");
     } catch (e) {
-      console.error(e);
+      toast.error(e instanceof Error ? e.message : 'Could not save this business. Please try again.');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const selectedCategory = BUSINESS_CATEGORIES.find(c => c.value === business.business_category);
@@ -149,12 +152,12 @@ function BusinessCreate() {
             </div>
           </div>
           <div>
-            <Label>Business Name</Label>
-            <Input value={business.business_name} onChange={e => setBusiness({...business, business_name: e.target.value})} placeholder="e.g. Abebe's Coffee Shop" className="mt-1 h-11" />
+            <Label htmlFor="business-name">Business Name</Label>
+            <Input id="business-name" value={business.business_name} onChange={e => setBusiness({...business, business_name: e.target.value})} placeholder="e.g. Abebe's Coffee Shop" className="mt-1 h-11" />
           </div>
           <div>
-            <Label>Business Description</Label>
-            <Textarea value={business.business_description} onChange={e => setBusiness({...business, business_description: e.target.value})} placeholder="What does your business do?" className="mt-1" rows={2} />
+            <Label htmlFor="business-description">Business Description</Label>
+            <Textarea id="business-description" value={business.business_description} onChange={e => setBusiness({...business, business_description: e.target.value})} placeholder="What does your business do?" className="mt-1" rows={2} />
           </div>
           <div>
             <Label>Business Category</Label>
@@ -162,7 +165,7 @@ function BusinessCreate() {
               {BUSINESS_CATEGORIES.map(cat => {
                 const Icon = cat.icon;
                 return (
-                  <button key={cat.value} onClick={() => setBusiness({...business, business_category: cat.value, business_template: String(cat.templates[0].id)})} className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${business.business_category === cat.value ? "border-amber-400 bg-amber-50" : "border-border hover:border-amber-300"}`}>
+                  <button key={cat.value} type="button" aria-pressed={business.business_category === cat.value} onClick={() => setBusiness({...business, business_category: cat.value, business_template: String(cat.templates[0].id)})} className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${business.business_category === cat.value ? "border-amber-400 bg-amber-50" : "border-border hover:border-amber-300"}`}>
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: cat.color + "20" }}>
                       <Icon className="w-3.5 h-3.5" style={{ color: cat.color }} />
                     </div>
@@ -189,23 +192,23 @@ function BusinessCreate() {
           )}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Contact Email</Label>
-              <Input type="email" value={business.business_contact_email} onChange={e => setBusiness({...business, business_contact_email: e.target.value})} className="mt-1 h-11" />
+              <Label htmlFor="business-contact-email">Contact Email</Label>
+              <Input id="business-contact-email" type="email" value={business.business_contact_email} onChange={e => setBusiness({...business, business_contact_email: e.target.value})} className="mt-1 h-11" />
             </div>
             <div>
-              <Label>Contact Phone</Label>
-              <Input value={business.business_contact_phone} onChange={e => setBusiness({...business, business_contact_phone: e.target.value})} placeholder="+1 234 567 8900" className="mt-1 h-11" />
+              <Label htmlFor="business-contact-phone">Contact Phone</Label>
+              <Input id="business-contact-phone" type="tel" value={business.business_contact_phone} onChange={e => setBusiness({...business, business_contact_phone: e.target.value})} placeholder="+251 9 12 34 56 78" className="mt-1 h-11" />
             </div>
           </div>
           <div>
-            <Label>Business Address</Label>
-            <Input value={business.business_address} onChange={e => setBusiness({...business, business_address: e.target.value})} placeholder="Your city or area" className="mt-1 h-11" />
+            <Label htmlFor="business-address">Business Address</Label>
+            <Input id="business-address" autoComplete="street-address" value={business.business_address} onChange={e => setBusiness({...business, business_address: e.target.value})} placeholder="Your city or area" className="mt-1 h-11" />
           </div>
           <div>
             <Label>Theme Color</Label>
             <div className="flex gap-2 mt-2">
               {["#D4AF37", "#3B82F6", "#8B5CF6", "#06B6D4", "#F97316", "#EC4899", "#10B981", "#EF4444"].map(color => (
-                <button key={color} onClick={() => setBusiness({...business, business_theme_color: color})} className={`w-8 h-8 rounded-full border-2 transition-all ${business.business_theme_color === color ? "border-foreground scale-110" : "border-transparent"}`} style={{ backgroundColor: color }} />
+                <button key={color} type="button" aria-label={`Theme color ${color}`} aria-pressed={business.business_theme_color === color} onClick={() => setBusiness({...business, business_theme_color: color})} className={`w-8 h-8 rounded-full border-2 transition-all ${business.business_theme_color === color ? "border-foreground scale-110" : "border-transparent"}`} style={{ backgroundColor: color }} />
               ))}
             </div>
           </div>

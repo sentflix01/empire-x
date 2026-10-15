@@ -12,7 +12,7 @@
 import pool from '../db/pool';
 import type { FilterObject, WhereResult, SortResult, ListOptions } from '../lib/types';
 
-type ReadScope = { realOnly?: boolean };
+type ReadScope = { realOnly?: boolean; paidBusinessGrace?: boolean };
 const REAL_MODE_OWNER_COLUMNS: Record<string, string> = {
   businesses: 'owner_id',
   posts: 'author_id', products: 'seller_id', showrooms: 'owner_id',
@@ -27,6 +27,21 @@ function realModeClause(table: string, enabled: boolean): string {
 
 function unexpiredShowroomClause(table: string): string {
   return table === 'showrooms' ? ' AND (showrooms.expires_at IS NULL OR showrooms.expires_at > NOW())' : '';
+}
+
+function paidBusinessClause(table: string, enabled: boolean): string {
+  if (!enabled) return '';
+  if (table === 'businesses') {
+    return ` AND EXISTS (SELECT 1 FROM business_subscriptions paid_sub
+      WHERE paid_sub.business_id=businesses.id AND paid_sub.tier <> 'freemium'
+        AND paid_sub.current_period_end > NOW() - INTERVAL '24 hours')`;
+  }
+  if (table === 'showrooms') {
+    return ` AND EXISTS (SELECT 1 FROM business_subscriptions paid_sub
+      WHERE paid_sub.business_id=showrooms.business_id AND paid_sub.tier <> 'freemium'
+        AND paid_sub.current_period_end > NOW() - INTERVAL '24 hours')`;
+  }
+  return '';
 }
 
 // ── Table allowlist ───────────────────────────────────────────────────────────
@@ -126,13 +141,13 @@ export async function listRecords<T extends Record<string, unknown>>(
   table: string,
   options: ListOptions & ReadScope = {}
 ): Promise<T[]> {
-  const { filter = {}, sort = '-created_at', limit = 50, realOnly = false } = options;
+  const { filter = {}, sort = '-created_at', limit = 50, realOnly = false, paidBusinessGrace = false } = options;
   validateTable(table);
   const { clause, values } = buildWhere(filter);
   const { col, dir } = parseSort(sort as string);
   const lim = Math.min(parseInt(String(limit), 10) || 50, 500);
   const { rows } = await pool.query(
-    `SELECT * FROM ${table} ${clause}${clause ? '' : 'WHERE TRUE'}${realModeClause(table, realOnly)}${unexpiredShowroomClause(table)} ORDER BY ${col} ${dir} LIMIT $${values.length + 1}`,
+    `SELECT * FROM ${table} ${clause}${clause ? '' : 'WHERE TRUE'}${realModeClause(table, realOnly)}${unexpiredShowroomClause(table)}${paidBusinessClause(table, paidBusinessGrace)} ORDER BY ${col} ${dir} LIMIT $${values.length + 1}`,
     [...values, lim]
   );
   return rows as T[];

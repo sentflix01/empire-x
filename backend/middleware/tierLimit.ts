@@ -111,7 +111,8 @@ async function getTierForBusiness(businessId: string): Promise<CachedSub> {
 
   const result: CachedSub = rows.length
     ? {
-        tier: (rows[0].tier as Tier) ?? 'freemium',
+        tier: rows[0].current_period_end && new Date(rows[0].current_period_end).getTime() > Date.now()
+          ? ((rows[0].tier as Tier) ?? 'freemium') : 'freemium',
         status: rows[0].status ?? 'active',
         expiresAt: rows[0].current_period_end ?? null,
       }
