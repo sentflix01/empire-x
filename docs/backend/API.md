@@ -106,7 +106,7 @@ messages sent, seller data, partnerships and wallet ledger.
 "Delete my account". Requires auth. Body `{ confirm: "DELETE", password? }`;
 `password` is required when the account has one. Anonymizes the account and
 keeps financial records (see `docs/decisions/account-deletion-decisions.md`).
-Errors: 422 without the confirmation, 401 wrong password, 403 demo account,
+Errors: 422 without the confirmation or with a wrong password, 403 demo account,
 409 `WALLET_BALANCE` / `OPEN_ORDERS` / last admin.
 
 ### POST /api/auth/forgot-password

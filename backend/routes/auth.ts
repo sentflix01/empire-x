@@ -1026,7 +1026,8 @@ router.delete('/me', requireAuth, async (req: Request, res: Response) => {
     if (!rows.length) { await client.query('ROLLBACK'); apiError.notFound(res, 'User not found'); return; }
     // Accounts with a password must re-enter it; Google-only accounts confirm by typing DELETE.
     if (rows[0].password_hash && !(typeof password === 'string' && await bcrypt.compare(password, rows[0].password_hash))) {
-      await client.query('ROLLBACK'); res.status(401).json({ error: 'Incorrect password' }); return;
+      // 422 like change-password: a 401 would make the client treat the session as expired.
+      await client.query('ROLLBACK'); apiError.validationError(res, 'Incorrect password'); return;
     }
     if (rows[0].role === 'admin') {
       const { rows: admins } = await client.query("SELECT COUNT(*)::int AS n FROM users WHERE role = 'admin' AND deleted_at IS NULL");

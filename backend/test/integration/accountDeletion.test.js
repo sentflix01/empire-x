@@ -67,7 +67,8 @@ describe('account export and deletion', () => {
   it('rejects a wrong password for password accounts', async () => {
     const client = mockClient({ password_hash: 'hash', role: 'user' });
     const res = await request(buildApp()).delete('/api/auth/me').send({ password: 'wrong', confirm: 'DELETE' });
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(422);
+    expect(res.body.error).toBe('Incorrect password');
     expect(accountData.anonymizeAccount).not.toHaveBeenCalled();
     expect(client.query.mock.calls.some(([sql]) => sql === 'ROLLBACK')).toBe(true);
   });
