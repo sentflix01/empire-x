@@ -48,6 +48,13 @@ Token architecture (ADR-004):
   rotated on every refresh with the old jti revoked.
 - **logout-all:** sets `revoke_before:{userId}` — any token issued before that instant is rejected.
 
+Account pre-hijacking (an attacker registering a victim's email first) is closed on both entry points:
+- `POST /api/auth/register` on an existing **unverified** email replaces the stored password hash
+  (and name) before re-sending the OTP, so the password that works after verification is the one
+  chosen by whoever reads the inbox.
+- `POST /api/auth/google` requires `email_verified === true` in the ID token. Linking an existing
+  **unverified** local account clears its `password_hash` and OTP; a verified account keeps its password.
+
 Every protected route uses `requireAuth`. Every admin route uses `requireAuth` + `requireAdmin`.
 Socket.IO handshakes run the same access-type check plus revocation and ban checks (fail-closed).
 
@@ -175,6 +182,17 @@ if (order.buyer_id !== req.user.id && order.seller_id !== req.user.id && req.use
   return res.status(403).json({ error: 'Forbidden' });
 }
 ```
+
+Other ownership rules worth knowing:
+- **Product variants** (`PUT`/`DELETE /api/variants/:id`) resolve the variant's product and require
+  `products.seller_id = req.user.id` or admin, like create. Missing variant → 404, someone else's → 403.
+- **Message forward** (`POST /api/messages/messages/:id/forward`) requires the caller to be a participant
+  of the *source* message's conversation (or admin) as well as the target. Outsiders get 404, so
+  message IDs cannot be probed.
+- **Business webhooks and API keys** (`PUT`/`DELETE /api/business-webhooks/:id`,
+  `DELETE /api/business-api-keys/:id`) scope by `business_id IN (SELECT id FROM businesses WHERE owner_id = req.user.id)`.
+  They deliberately do not use `checkTierLimit`, so an owner can disable a webhook or revoke a leaked key
+  even after downgrading below the tier that created it.
 
 Money endpoints are stricter:
 - `POST /api/wallet/topup` — **admin-only in production**

@@ -100,22 +100,22 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | Method | Path | Auth | Source |
 |---|---|---|---|
 | `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:231 |
-| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:325 |
-| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:425 |
-| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:462 |
-| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:522 |
-| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:542 |
-| `POST` | `/api/auth/workspace` | 🔒 auth | routes/auth.ts:562 |
-| `POST` | `/api/auth/onboarding-mode` | 🌐 public | routes/auth.ts:663 |
-| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:670 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:798 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:936 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:979 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:1015 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1078 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1130 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1213 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1253 |
+| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:330 |
+| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:430 |
+| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:467 |
+| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:527 |
+| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:547 |
+| `POST` | `/api/auth/workspace` | 🔒 auth | routes/auth.ts:567 |
+| `POST` | `/api/auth/onboarding-mode` | 🌐 public | routes/auth.ts:668 |
+| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:675 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:803 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:957 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:1000 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:1036 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1099 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1151 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1234 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1274 |
 
 ## businessApiKeys — Business API key management
 
@@ -139,10 +139,10 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/business-webhooks/` | 🔒 auth | routes/businessWebhooks.ts:57 |
-| `POST` | `/api/business-webhooks/` | 🔒 auth | routes/businessWebhooks.ts:81 |
-| `PUT` | `/api/business-webhooks/:id` | 🔒 auth | routes/businessWebhooks.ts:136 |
-| `DELETE` | `/api/business-webhooks/:id` | 🔒 auth | routes/businessWebhooks.ts:231 |
+| `GET` | `/api/business-webhooks/` | 🔒 auth | routes/businessWebhooks.ts:62 |
+| `POST` | `/api/business-webhooks/` | 🔒 auth | routes/businessWebhooks.ts:86 |
+| `PUT` | `/api/business-webhooks/:id` | 🔒 auth | routes/businessWebhooks.ts:141 |
+| `DELETE` | `/api/business-webhooks/:id` | 🔒 auth | routes/businessWebhooks.ts:236 |
 
 ## cart — cart
 
@@ -280,7 +280,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `DELETE` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:402 |
 | `GET` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:407 |
 | `POST` | `/api/messages/messages/:id/forward` | 🔒 auth | routes/messages.ts:414 |
-| `POST` | `/api/messages/inquiry` | 🔒 auth | routes/messages.ts:433 |
+| `POST` | `/api/messages/inquiry` | 🔒 auth | routes/messages.ts:436 |
 
 ## moderation — moderation
 
@@ -506,10 +506,10 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/variants/product/:productId` | ⚪ optional | routes/variants.ts:8 |
-| `POST` | `/api/variants/product/:productId` | 🔒 auth | routes/variants.ts:22 |
-| `PUT` | `/api/variants/:id` | 🔒 auth | routes/variants.ts:37 |
-| `DELETE` | `/api/variants/:id` | 🔒 auth | routes/variants.ts:49 |
+| `GET` | `/api/variants/product/:productId` | ⚪ optional | routes/variants.ts:20 |
+| `POST` | `/api/variants/product/:productId` | 🔒 auth | routes/variants.ts:34 |
+| `PUT` | `/api/variants/:id` | 🔒 auth | routes/variants.ts:49 |
+| `DELETE` | `/api/variants/:id` | 🔒 auth | routes/variants.ts:64 |
 
 ## verification — verification
 
