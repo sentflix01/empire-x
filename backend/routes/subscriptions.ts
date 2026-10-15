@@ -12,7 +12,14 @@
  *   checkout.session.completed        → activate subscription
  *   customer.subscription.updated     → sync tier changes, renewals
  *   customer.subscription.deleted     → downgrade to freemium
+ *   invoice.paid                      → renewal: extend current_period_end
  *   invoice.payment_failed            → set status to past_due
+ *
+ * Billing periods: from Stripe API 2025-03-31 on (stripe@23 pins 2026-09-30),
+ * current_period_start/end live on subscription items, not the subscription;
+ * subscriptionPeriod() reads them from the items. The period end drives
+ * scripts/business-subscription-lifecycle.js, which removes businesses whose
+ * period lapsed, so renewals must move it forward.
  *
  * Integration:
  *   - Uses webhook_events table for idempotency (same pattern as orders.ts)
@@ -201,16 +208,17 @@ router.post('/webhook', async (req: Request, res: Response) => {
       req.headers['stripe-signature'] as string | undefined,
       { real: SUB_WEBHOOK_SECRET, demo: process.env.STRIPE_TEST_SUBSCRIPTION_WEBHOOK_SECRET },
       async (event: { id: string; type: string; data: { object: Record<string, unknown> } }) => {
+        // Atomic claim on webhook_events (migrate20.js: id, type, processed_at),
+        // same pattern as the order webhook in orders.ts.
         const claimed = await pool.query(
-          `INSERT INTO webhook_events (event_id, event_type, processed_at)
-           VALUES ($1, $2, NOW()) ON CONFLICT (event_id) DO NOTHING RETURNING event_id`,
+          'INSERT INTO webhook_events (id,type) VALUES ($1,$2) ON CONFLICT (id) DO NOTHING RETURNING id',
           [event.id, event.type],
         );
         if (!claimed.rows.length) { res.json({ received: true, duplicate: true }); return; }
         try {
           await handleSubscriptionEvent(event);
         } catch (err) {
-          await pool.query('DELETE FROM webhook_events WHERE event_id=$1', [event.id]).catch(() => undefined);
+          await pool.query('DELETE FROM webhook_events WHERE id=$1', [event.id]).catch(() => undefined);
           throw err;
         }
         res.json({ received: true });
@@ -223,6 +231,58 @@ router.post('/webhook', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Handler failed' });
   }
 });
+
+// ── Billing period helpers ────────────────────────────────────────────────────
+type StripeSubscriptionLike = {
+  status?: string;
+  current_period_start?: unknown;
+  current_period_end?: unknown;
+  items?: { data?: Array<{ current_period_start?: unknown; current_period_end?: unknown }> };
+};
+
+const STRIPE_STATUS_MAP: Record<string, string> = {
+  active: 'active', trialing: 'trialing',
+  past_due: 'past_due', canceled: 'cancelled',
+  unpaid: 'past_due',
+};
+
+function stripeTimestampToDate(value: unknown): Date | null {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? new Date(value * 1000)
+    : null;
+}
+
+/**
+ * Billing period of a Stripe subscription. Uses the item with the latest
+ * current_period_end (items carry the period on current API versions) and
+ * falls back to the legacy subscription-level fields. Never returns an
+ * Invalid Date: missing values come back as null so the SQL keeps the
+ * stored period.
+ */
+export function subscriptionPeriod(sub: StripeSubscriptionLike | null | undefined): { start: Date | null; end: Date | null } {
+  let start: Date | null = null;
+  let end: Date | null = null;
+  for (const item of sub?.items?.data ?? []) {
+    const itemEnd = stripeTimestampToDate(item.current_period_end);
+    if (itemEnd && (!end || itemEnd > end)) {
+      end = itemEnd;
+      start = stripeTimestampToDate(item.current_period_start);
+    }
+  }
+  if (!end) {
+    end = stripeTimestampToDate(sub?.current_period_end);
+    start = stripeTimestampToDate(sub?.current_period_start);
+  }
+  return { start, end };
+}
+
+function invoiceSubscriptionId(invoice: Record<string, unknown>): string | null {
+  const parent = invoice.parent as { subscription_details?: { subscription?: unknown } | null } | null | undefined;
+  const ref = parent?.subscription_details?.subscription ?? invoice.subscription;
+  if (typeof ref === 'string') return ref;
+  if (ref && typeof ref === 'object' && typeof (ref as { id?: unknown }).id === 'string') return (ref as { id: string }).id;
+  return null;
+}
 
 // ── Internal event handler ────────────────────────────────────────────────────
 async function handleSubscriptionEvent(
@@ -245,10 +305,11 @@ async function handleSubscriptionEvent(
       let periodEnd: Date | null = null;
       if (stripe && stripeSubId) {
         try {
-          const sub = await stripe.subscriptions.retrieve(stripeSubId);
-          periodStart = new Date(sub.current_period_start * 1000);
-          periodEnd   = new Date(sub.current_period_end   * 1000);
-        } catch { /* non-fatal */ }
+          ({ start: periodStart, end: periodEnd } = subscriptionPeriod(await stripe.subscriptions.retrieve(stripeSubId)));
+        } catch (err) {
+          // Non-fatal: customer.subscription.updated / invoice.paid set the period.
+          logger.warn({ err: (err as Error).message, stripeSubId }, 'Subscription period lookup failed');
+        }
       }
 
       await pool.query(
@@ -277,8 +338,7 @@ async function handleSubscriptionEvent(
       const stripeSubId = obj.id as string;
       const status = obj.status as string;
       const cancelAtPeriodEnd = Boolean(obj.cancel_at_period_end);
-      const periodStart = obj.current_period_start ? new Date((obj.current_period_start as number) * 1000) : null;
-      const periodEnd   = obj.current_period_end   ? new Date((obj.current_period_end   as number) * 1000) : null;
+      const { start: periodStart, end: periodEnd } = subscriptionPeriod(obj as StripeSubscriptionLike);
 
       const { rows } = await pool.query(
         'SELECT business_id FROM business_subscriptions WHERE stripe_subscription_id = $1',
@@ -288,21 +348,16 @@ async function handleSubscriptionEvent(
 
       const businessId = rows[0].business_id as string;
 
-      // Map Stripe status to our status
-      const mappedStatus: Record<string, string> = {
-        active: 'active', trialing: 'trialing',
-        past_due: 'past_due', canceled: 'cancelled',
-        unpaid: 'past_due',
-      };
-
+      // GREATEST (which skips NULL): a late, out-of-order snapshot must not
+      // pull the period end back — the lifecycle job removes lapsed businesses.
       await pool.query(
         `UPDATE business_subscriptions SET
            status = $1, cancel_at_period_end = $2,
            current_period_start = COALESCE($3, current_period_start),
-           current_period_end   = COALESCE($4, current_period_end),
+           current_period_end   = GREATEST(current_period_end, $4),
            updated_at = NOW()
          WHERE stripe_subscription_id = $5`,
-        [mappedStatus[status] ?? 'active', cancelAtPeriodEnd, periodStart, periodEnd, stripeSubId],
+        [STRIPE_STATUS_MAP[status] ?? 'active', cancelAtPeriodEnd, periodStart, periodEnd, stripeSubId],
       );
 
       await invalidateSubCache(businessId);
@@ -329,6 +384,39 @@ async function handleSubscriptionEvent(
 
       await invalidateSubCache(businessId);
       logger.info({ businessId }, 'Subscription cancelled — downgraded to freemium');
+      break;
+    }
+
+    case 'invoice.paid': {
+      // Renewal (or first) payment. Re-read the subscription so the stored
+      // period follows Stripe even if customer.subscription.updated is missed.
+      const stripeSubId = invoiceSubscriptionId(obj);
+      if (!stripeSubId) break;
+
+      const { rows } = await pool.query(
+        'SELECT business_id FROM business_subscriptions WHERE stripe_subscription_id = $1',
+        [stripeSubId],
+      );
+      if (!rows.length) break;
+      const businessId = rows[0].business_id as string;
+
+      // A lookup failure throws on purpose: the webhook claim is released and
+      // Stripe redelivers, instead of the period silently not moving.
+      const sub = await stripe.subscriptions.retrieve(stripeSubId) as StripeSubscriptionLike;
+      const { start: periodStart, end: periodEnd } = subscriptionPeriod(sub);
+
+      await pool.query(
+        `UPDATE business_subscriptions SET
+           status = $1,
+           current_period_start = COALESCE($2, current_period_start),
+           current_period_end   = GREATEST(current_period_end, $3),
+           updated_at = NOW()
+         WHERE stripe_subscription_id = $4`,
+        [STRIPE_STATUS_MAP[sub.status ?? ''] ?? 'active', periodStart, periodEnd, stripeSubId],
+      );
+
+      await invalidateSubCache(businessId);
+      logger.info({ businessId, periodEnd }, 'Subscription invoice paid — period extended');
       break;
     }
 
@@ -366,3 +454,4 @@ async function handleSubscriptionEvent(
 }
 
 module.exports = router;
+module.exports.subscriptionPeriod = subscriptionPeriod;
