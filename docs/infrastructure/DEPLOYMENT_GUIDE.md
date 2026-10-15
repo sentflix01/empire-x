@@ -40,20 +40,22 @@ Internet
 
 ---
 
-## Pre-generated secrets
+## Generate your secrets
 
-Save these in a password manager **before proceeding**. Use them when adding env vars to Render.
+Generate each value with the command shown, save it in a password manager **before proceeding**, and use it when adding env vars to Render. Never paste real values into this file.
+
+> **Security note (2026-10-15):** earlier versions of this guide and of `DEPLOYMENT_VARIABLES.md` published concrete values for these secrets. They remain in git history. If any of them was ever used in an environment, rotate it (new JWT_SECRET signs everyone out; a new EXTERNAL_API_ENCRYPTION_KEY requires re-entering stored external-API credentials; new VAPID keys require users to re-enable push).
 
 ```
-JWT_SECRET=ab675f38b720f9280d6f16c3107c845c7c412f0c3ceab25b465370f8ca751ecf788702d596642be9ce36a7710fac0e76ba2633d6eb7651317c29f714bf0975c1
+JWT_SECRET=<generate: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))">
 
-EXTERNAL_API_ENCRYPTION_KEY=2bbd4f62b50487f0ca6b4601e21142ac317ffb661601c9cafacaa32bf1ad5cf4
+EXTERNAL_API_ENCRYPTION_KEY=<generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">
 
-OTP_SALT=22d2b7e82027da77f6f6cd41d74bbf229b37a9ae2a415666d36c271476c10f59
+OTP_SALT=<generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">
 
-VAPID_PUBLIC_KEY=BM8ikr0zBzT2pspi3x6VjMq0w10aEyTHCsIf9ruakLWPr8CWp8Gu61iYe5SIOfMctwxEKa3yd8-VKbDhoNoy1SE
+VAPID_PUBLIC_KEY=<generate: npx web-push generate-vapid-keys>
 
-VAPID_PRIVATE_KEY=oCgwCPXk6M8ZESO8-kQt-5IWU_NwVbk7MATn0O5X0pA
+VAPID_PRIVATE_KEY=<generate: npx web-push generate-vapid-keys>
 
 VAPID_EMAIL=mailto:admin@yourdomain.com
 ```
@@ -223,10 +225,10 @@ In Render → your service → **Environment** tab, add all variables from `DEPL
 ```
 NODE_ENV         = production
 DATABASE_URL     = <Supabase pooler URL, port 6543>
-JWT_SECRET       = ab675f38b720f9280d6f16c3107c845c7c412f0c3ceab25b465370f8ca751ecf788702d596642be9ce36a7710fac0e76ba2633d6eb7651317c29f714bf0975c1
+JWT_SECRET       = <generate: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))">
 FRONTEND_URL     = https://nodbusiness.vercel.app
-OTP_SALT         = 22d2b7e82027da77f6f6cd41d74bbf229b37a9ae2a415666d36c271476c10f59
-EXTERNAL_API_ENCRYPTION_KEY = 2bbd4f62b50487f0ca6b4601e21142ac317ffb661601c9cafacaa32bf1ad5cf4
+OTP_SALT         = <generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">
+EXTERNAL_API_ENCRYPTION_KEY = <generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">
 FF_STRIPE_PAYMENTS = true
 FF_CHAPA_PAYMENTS  = true
 ```
@@ -298,7 +300,7 @@ NEXT_PUBLIC_API_BASE_URL         = https://nodbusiness-backend-9psf.onrender.com
 NEXT_PUBLIC_APP_URL              = https://nodbusiness.vercel.app
 NEXT_PUBLIC_GOOGLE_CLIENT_ID     = <same as backend GOOGLE_CLIENT_ID>
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = pk_test_...
-NEXT_PUBLIC_VAPID_PUBLIC_KEY     = BM8ikr0zBzT2pspi3x6VjMq0w10aEyTHCsIf9ruakLWPr8CWp8Gu61iYe5SIOfMctwxEKa3yd8-VKbDhoNoy1SE
+NEXT_PUBLIC_VAPID_PUBLIC_KEY     = <generate: npx web-push generate-vapid-keys>
 NEXT_PUBLIC_SENTRY_DSN           = <paste your frontend SENTRY_DSN>
 ```
 

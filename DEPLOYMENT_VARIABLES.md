@@ -1,5 +1,7 @@
 # Complete Deployment Variables Checklist
 
+> **Security note (2026-10-15):** this file used to list concrete secret values. They were removed but remain in git history; rotate any that were used in a real environment. Generate fresh values with the commands in each row.
+
 This document lists **ALL** environment variables and secrets needed for a complete
 Render + Vercel + Supabase deployment from scratch.
 
@@ -120,8 +122,8 @@ Migration 39 adds `users.is_demo` and marks the built-in demo accounts plus exis
 
 | Variable | Value | Notes |
 |---|---|---|
-| `VAPID_PUBLIC_KEY` | `BM8ikr0zBzT2pspi3x6VjMq0w10aEyTHCsIf9ruakLWPr8CWp8Gu61iYe5SIOfMctwxEKa3yd8-VKbDhoNoy1SE` | Pre-generated |
-| `VAPID_PRIVATE_KEY` | `oCgwCPXk6M8ZESO8-kQt-5IWU_NwVbk7MATn0O5X0pA` | Pre-generated |
+| `VAPID_PUBLIC_KEY` | `<generate: npx web-push generate-vapid-keys>` | Generate your own |
+| `VAPID_PRIVATE_KEY` | `<generate: npx web-push generate-vapid-keys>` | Generate your own |
 | `VAPID_EMAIL` | `mailto:admin@yourdomain.com` | Your contact email for VAPID |
 
 ### Google OAuth
@@ -134,9 +136,9 @@ Migration 39 adds `users.is_demo` and marks the built-in demo accounts plus exis
 
 | Variable | Value | Notes |
 |---|---|---|
-| `EXTERNAL_API_ENCRYPTION_KEY` | `2bbd4f62b50487f0ca6b4601e21142ac317ffb661601c9cafacaa32bf1ad5cf4` | Pre-generated (64 hex chars) |
-| `OTP_SALT` | `22d2b7e82027da77f6f6cd41d74bbf229b37a9ae2a415666d36c271476c10f59` | Pre-generated (64 hex chars) |
-| `JWT_SECRET` | `ab675f38b720f9280d6f16c3107c845c7c412f0c3ceab25b465370f8ca751ecf788702d596642be9ce36a7710fac0e76ba2633d6eb7651317c29f714bf0975c1` | Pre-generated (128 hex chars) |
+| `EXTERNAL_API_ENCRYPTION_KEY` | `<generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">` | Generate your own (64 hex chars) |
+| `OTP_SALT` | `<generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">` | Generate your own (64 hex chars) |
+| `JWT_SECRET` | `<generate: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))">` | Generate your own (128 hex chars) |
 
 ### Database Backups
 
@@ -179,7 +181,7 @@ Apply to both **Production** and **Preview** environments.
 |---|---|---|
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | `...googleusercontent.com` | Same value as backend `GOOGLE_CLIENT_ID` |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | `pk_test_...` or `pk_live_...` | Stripe → Dashboard → API Keys → Publishable Key |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `BM8ikr0zBzT2pspi3x6VjMq0w10aEyTHCsIf9ruakLWPr8CWp8Gu61iYe5SIOfMctwxEKa3yd8-VKbDhoNoy1SE` | Pre-generated |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `<generate: npx web-push generate-vapid-keys>` | Generate your own |
 | `NEXT_PUBLIC_SENTRY_DSN` | Your Sentry frontend DSN | Sentry → Projects → Frontend project → DSN |
 
 ### Vercel Project Settings
@@ -285,7 +287,7 @@ Watch: GitHub → Actions → Nodbusiness Deploy pipeline
 | Issue | Solution |
 |---|---|
 | `Missing DATABASE_URL` at startup | Add `DATABASE_URL` to Render env vars; redeploy |
-| `Missing JWT_SECRET` at startup | Add pre-generated value to Render env vars |
+| `Missing JWT_SECRET` at startup | Add a generated value to Render env vars |
 | Uploads fail: `No cloud storage configured` | Add all `R2_*` vars to Render |
 | Redis shows `not configured` on /health | Add `REDIS_URL` (must start with `rediss://`) to Render |
 | Render service sleeps (free tier) | Expected on free tier — first request wakes it in 30–60s |
