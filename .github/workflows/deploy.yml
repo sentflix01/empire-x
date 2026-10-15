@@ -9,10 +9,12 @@ on:
     types: [completed]
     branches: [main]
 
-# Only run one deploy at a time
+# Only run one deploy at a time. Never cancel a running deploy: the migrate
+# job has no ledger or wrapping transaction, so cancelling it mid-run can leave
+# the production schema half-applied. A newer push waits in the queue instead.
 concurrency:
   group: deploy-production
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   # ── Gate: only proceed when the pinned CI run passed for this exact commit ──
