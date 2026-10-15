@@ -55,6 +55,7 @@ psql $DATABASE_URL -c "\dt"  # list all tables
 | `migrate45.js` | Profile-owner partnerships, eligible product snapshots, commission ledger, and partnership attribution columns on orders |
 | `migrate46.js` | Canonical account ownership link for isolated Demo workspace identities |
 | `migrate47.js` | Explicit eligible subtotal on orders, profile commission adjustment ledger, and manual payout history/items |
+| `migrate52.js` | Unique `commissions(order_id)` (one platform commission per order); archives prior duplicates to `commissions_duplicates_archive` |
 
 Mewacho and the other deferred areas are not mounted in the launch app. Their historical schemas and records are retained; see `docs/product/POST_LAUNCH_FEATURES.md` before considering data cleanup or a future rebuild.
 

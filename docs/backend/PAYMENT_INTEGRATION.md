@@ -99,6 +99,12 @@ const sessionParams = {
 | `payment_intent.payment_failed` | Mark orders as `payment_failed` |
 | `charge.refunded` | Mark orders refunded, reverse commission, notify |
 
+### Platform Commission
+
+`collectCommission` (`routes/commission.ts`) runs when an online order is paid (Stripe or Chapa) and again when the order is marked completed, so it is idempotent per order: it inserts the `commissions` row with `ON CONFLICT (order_id) DO NOTHING RETURNING id` (unique index from `migrate52.js`) and debits the seller wallet only if that insert happened. The insert and the debit share one transaction; if the seller balance is too low the commission row is kept and the debit is skipped. The wallet transaction carries `reference = commission:<order_id>`.
+
+`migrate52.js` removes pre-existing duplicate commission rows (keeping the earliest per order) and copies them to `commissions_duplicates_archive`. Each archived row corresponds to a second commission debit the seller was charged before the fix; reconcile those by hand if needed.
+
 ### Webhook Security
 
 ```javascript

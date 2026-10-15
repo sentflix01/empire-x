@@ -123,8 +123,6 @@ describe('Stripe webhook — checkout.session.completed', () => {
       // Atomic claim insert returns the row when the event is new
       ['INSERT INTO webhook_events', { rows: [{ id: 'evt_completed_1' }] }],
       ["status='paid'", { rows: [ORDER] }],            // orders UPDATE ... RETURNING *
-      ['INSERT INTO commissions', { rows: [] }],       // collectCommission
-      ['SELECT id, balance FROM wallets', { rows: [] }],
     ]);
 
     const res = await postWebhook(sessionEvent());
@@ -150,8 +148,8 @@ describe('Stripe webhook — checkout.session.completed', () => {
     expect(couponCall).toBeTruthy();
     expect(couponCall[1]).toEqual(['coupon-9']);
 
-    // Commission was collected for the order
-    const commissionCall = calls.find(c => c[0].includes('INSERT INTO commissions'));
+    // Commission was collected for the order (in its own transaction)
+    const commissionCall = txnCalls.find(c => c[0].includes('INSERT INTO commissions'));
     expect(commissionCall).toBeTruthy();
     expect(commissionCall[1][0]).toBe('order-1');
     expect(commissionCall[1][1]).toBe('seller-1');

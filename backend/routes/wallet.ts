@@ -22,6 +22,10 @@ const router = Router();
 // ── atomicWalletOp ────────────────────────────────────────────────────────────
 const CREDIT_TYPES = new Set(['credit', 'refund', 'pending_topup']);
 
+type WalletQueryClient = {
+  query: (text: string, params?: unknown[]) => Promise<{ rows: Array<Record<string, unknown>> }>;
+};
+
 export async function atomicWalletOp(
   userId: string,
   type: string,
@@ -30,39 +34,12 @@ export async function atomicWalletOp(
   reference: string | null = null,
   auditContext: { actor_id?: string; actor_email?: string; ip?: string; ua?: string } = {},
 ): Promise<{ wallet: Record<string,unknown>; transaction: Record<string,unknown> }> {
-  const delta = CREDIT_TYPES.has(type) ? amount : -amount;
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const { rows: wallets } = await client.query('SELECT * FROM wallets WHERE user_id=$1', [userId]);
-    if (!wallets.length) {
-      await client.query('INSERT INTO wallets (user_id) VALUES ($1)', [userId]);
-    }
-    const { rows: locked } = await client.query('SELECT id, balance FROM wallets WHERE user_id=$1 FOR UPDATE', [userId]);
-    if (!locked.length) throw Object.assign(new Error('Wallet not found'), { code: 'WALLET_NOT_FOUND' });
-    const current = parseFloat(locked[0].balance as string);
-    const newBalance = Math.round((current + delta) * 100) / 100;
-    if (newBalance < 0) throw Object.assign(new Error(`Insufficient balance: have ${current}, need ${amount}`), { code: 'INSUFFICIENT_BALANCE' });
-    const { rows: [updated] } = await client.query('UPDATE wallets SET balance=$1, updated_at=NOW() WHERE id=$2 RETURNING *', [newBalance, locked[0].id]);
-    const { rows: [tx] } = await client.query(`INSERT INTO wallet_transactions (wallet_id,type,amount,description,reference) VALUES ($1,$2,$3,$4,$5) RETURNING *`, [locked[0].id, type, amount, description, reference]);
-
-    // Audit log — captures every wallet mutation (topup, debit, refund, withdrawal)
-    auditLog({
-      actor_id: auditContext.actor_id ?? userId,
-      actor_email: auditContext.actor_email ?? null,
-      action: type,
-      entity_type: 'wallet',
-      entity_id: locked[0].id as string,
-      amount,
-      balance_before: current,
-      balance_after: newBalance,
-      metadata: { description, reference, target_user: userId },
-      ip_address: auditContext.ip ?? null,
-      user_agent: auditContext.ua ?? null,
-    }).catch(() => {}); // fire-and-forget — never block the transaction
-
+    const result = await walletOpInTransaction(client, userId, type, amount, description, reference, auditContext);
     await client.query('COMMIT');
-    return { wallet: updated as Record<string,unknown>, transaction: tx as Record<string,unknown> };
+    return result;
   } catch (err) {
     try { await client.query('ROLLBACK'); } catch (rollbackErr) {
       // The connection may already be dead — never mask the original error.
@@ -72,6 +49,52 @@ export async function atomicWalletOp(
   } finally {
     client.release();
   }
+}
+
+/**
+ * The balance mutation behind atomicWalletOp, for callers that already hold a
+ * transaction on `client` and need the wallet write to commit or roll back
+ * together with their own writes (e.g. collectCommission). Does not BEGIN,
+ * COMMIT or release.
+ */
+export async function walletOpInTransaction(
+  client: WalletQueryClient,
+  userId: string,
+  type: string,
+  amount: number,
+  description: string,
+  reference: string | null = null,
+  auditContext: { actor_id?: string; actor_email?: string; ip?: string; ua?: string } = {},
+): Promise<{ wallet: Record<string,unknown>; transaction: Record<string,unknown> }> {
+  const delta = CREDIT_TYPES.has(type) ? amount : -amount;
+  const { rows: wallets } = await client.query('SELECT * FROM wallets WHERE user_id=$1', [userId]);
+  if (!wallets.length) {
+    await client.query('INSERT INTO wallets (user_id) VALUES ($1)', [userId]);
+  }
+  const { rows: locked } = await client.query('SELECT id, balance FROM wallets WHERE user_id=$1 FOR UPDATE', [userId]);
+  if (!locked.length) throw Object.assign(new Error('Wallet not found'), { code: 'WALLET_NOT_FOUND' });
+  const current = parseFloat(locked[0].balance as string);
+  const newBalance = Math.round((current + delta) * 100) / 100;
+  if (newBalance < 0) throw Object.assign(new Error(`Insufficient balance: have ${current}, need ${amount}`), { code: 'INSUFFICIENT_BALANCE' });
+  const { rows: [updated] } = await client.query('UPDATE wallets SET balance=$1, updated_at=NOW() WHERE id=$2 RETURNING *', [newBalance, locked[0].id]);
+  const { rows: [tx] } = await client.query(`INSERT INTO wallet_transactions (wallet_id,type,amount,description,reference) VALUES ($1,$2,$3,$4,$5) RETURNING *`, [locked[0].id, type, amount, description, reference]);
+
+  // Audit log — captures every wallet mutation (topup, debit, refund, withdrawal)
+  auditLog({
+    actor_id: auditContext.actor_id ?? userId,
+    actor_email: auditContext.actor_email ?? null,
+    action: type,
+    entity_type: 'wallet',
+    entity_id: locked[0].id as string,
+    amount,
+    balance_before: current,
+    balance_after: newBalance,
+    metadata: { description, reference, target_user: userId },
+    ip_address: auditContext.ip ?? null,
+    user_agent: auditContext.ua ?? null,
+  }).catch(() => {}); // fire-and-forget — never block the transaction
+
+  return { wallet: updated as Record<string,unknown>, transaction: tx as Record<string,unknown> };
 }
 
 async function getOrCreateWallet(userId: string): Promise<Record<string,unknown>> {
@@ -300,3 +323,4 @@ router.post('/topup/stripe', requireAuth, requireIsolatedPaymentEnvironment, req
 
 module.exports = router;
 module.exports.atomicWalletOp = atomicWalletOp;
+module.exports.walletOpInTransaction = walletOpInTransaction;

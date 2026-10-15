@@ -10,6 +10,7 @@ describe('order status migration', () => {
     expect(migrations.indexOf('migrate43.js')).toBeLessThan(migrations.indexOf('migrate44.js'));
     expect(migrations).toContain('migrate47.js');
     expect(migrations.indexOf('migrate43.js')).toBeLessThan(migrations.indexOf('migrate47.js'));
+    expect(migrations.at(-1)).toBe('migrate52.js');
   });
 
   it('allows every fulfillment and return status used by the routes', () => {
