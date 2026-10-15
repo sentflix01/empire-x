@@ -390,8 +390,19 @@ export async function emitPresenceUpdated(
     }
   }
 
-  // Dev fallback — broadcast to all connected sockets
-  ioInstance.emit('presence_updated', { user_id: userId, ...presence });
+  // No Redis (the production default) — read followers from the database
+  // instead of broadcasting one user's status to every connected socket.
+  const payload = { user_id: userId, ...presence };
+  try {
+    const { rows } = await pool.query<{ follower_id: string }>(
+      'SELECT follower_id FROM follows WHERE followed_id = $1 LIMIT 5000',
+      [userId],
+    );
+    for (const { follower_id } of rows) ioInstance.to(`user:${follower_id}`).emit('presence_updated', payload);
+  } catch (err) {
+    logger.warn({ err: (err as Error).message, userId }, 'Presence fan-out via database failed');
+  }
+  ioInstance.to(`user:${userId}`).emit('presence_updated', payload);
 }
 
 export function emitNotification(userId: string, notification: Record<string, unknown>): void {

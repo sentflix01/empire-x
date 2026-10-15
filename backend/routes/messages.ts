@@ -361,7 +361,9 @@ router.put('/presence', requireAuth, async (req: Request, res: Response) => {
   const redis = getRedis();
   if (!redis.isNoOp) (redis as RedisClient).set(`presence:${req.user!.id}`, JSON.stringify(presence), 'EX', 15*60).catch(()=>undefined);
   if (status==='online'||status==='offline') pool.query('UPDATE users SET updated_at=NOW(),last_seen=NOW() WHERE id=$1', [req.user!.id]).catch(()=>undefined);
-  emitPresenceUpdated(req.user!.id, presence as Parameters<typeof emitPresenceUpdated>[1]);
+  // presence_visibility='nobody' (Settings › Privacy) keeps the status private.
+  const { rows: vis } = await pool.query('SELECT presence_visibility FROM user_profiles WHERE user_id=$1', [req.user!.id]).catch(() => ({ rows: [] as Array<{ presence_visibility?: string }> }));
+  if (vis[0]?.presence_visibility !== 'nobody') emitPresenceUpdated(req.user!.id, presence as Parameters<typeof emitPresenceUpdated>[1]);
   res.json({ success: true, ...presence });
 });
 
@@ -370,6 +372,8 @@ router.get('/presence/:userId', requireAuth, async (req: Request, res: Response)
     if (String(req.user!.id) !== req.params.userId) {
       const { rows: bl } = await pool.query('SELECT 1 FROM blocks WHERE blocker_id=$1 AND blocked_id=$2 LIMIT 1', [req.params.userId, req.user!.id]);
       if (bl.length) { res.json({ user_id: req.params.userId, status:'offline', last_seen:null, hidden:true }); return; }
+      const { rows: vis } = await pool.query('SELECT presence_visibility FROM user_profiles WHERE user_id=$1', [req.params.userId]);
+      if (vis[0]?.presence_visibility === 'nobody') { res.json({ user_id: req.params.userId, status:'offline', last_seen:null, hidden:true }); return; }
     }
     const redis = getRedis();
     let status='offline', last_seen: string|null=null;

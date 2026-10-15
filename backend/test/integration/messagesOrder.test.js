@@ -24,7 +24,7 @@ function buildApp() {
   return app;
 }
 
-beforeEach(() => { pool.query.mockReset(); });
+beforeEach(() => { pool.query.mockReset(); jest.clearAllMocks(); });
 
 describe('GET conversation messages', () => {
   it('loads the newest messages and returns them oldest-first', async () => {
@@ -51,5 +51,32 @@ describe('GET conversation messages', () => {
       .mockResolvedValueOnce({ rows: [] });
     await request(buildApp()).get('/api/messages/conversations/c1/messages?limit=abc');
     expect(pool.query.mock.calls[1][1]).toEqual(['c1', 100]);
+  });
+});
+
+describe('presence visibility', () => {
+  const socket = require('../../socket');
+
+  it('hides another user\'s presence when they chose nobody', async () => {
+    pool.query
+      .mockResolvedValueOnce({ rows: [] }) // not blocked
+      .mockResolvedValueOnce({ rows: [{ presence_visibility: 'nobody' }] });
+    const res = await request(buildApp()).get('/api/messages/presence/user-2');
+    expect(res.body).toEqual({ user_id: 'user-2', status: 'offline', last_seen: null, hidden: true });
+  });
+
+  it('does not fan out presence for a user who chose nobody', async () => {
+    pool.query
+      .mockResolvedValueOnce({ rows: [] }) // last_seen update
+      .mockResolvedValueOnce({ rows: [{ presence_visibility: 'nobody' }] });
+    const res = await request(buildApp()).put('/api/messages/presence').send({ status: 'online' });
+    expect(res.status).toBe(200);
+    expect(socket.emitPresenceUpdated).not.toHaveBeenCalled();
+  });
+
+  it('fans out presence by default', async () => {
+    pool.query.mockResolvedValue({ rows: [{ presence_visibility: 'everyone' }] });
+    await request(buildApp()).put('/api/messages/presence').send({ status: 'online' });
+    expect(socket.emitPresenceUpdated).toHaveBeenCalledWith('user-1', expect.objectContaining({ status: 'online' }));
   });
 });
