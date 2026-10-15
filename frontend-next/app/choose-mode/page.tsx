@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { safeReturnPath } from '@/lib/safeReturnPath';
 
 function LegacyAccountChooserRedirect() {
   const params = useSearchParams();
@@ -9,7 +10,8 @@ function LegacyAccountChooserRedirect() {
   useEffect(() => {
     const destination = new URL(params.get('intent') === 'signup' ? '/register' : '/login', window.location.origin);
     const returnTo = params.get('return');
-    if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) destination.searchParams.set('return', returnTo);
+    const safe = safeReturnPath(returnTo, '');
+    if (safe) destination.searchParams.set('return', safe);
     window.location.replace(destination.toString());
   }, [params]);
 

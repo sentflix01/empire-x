@@ -50,8 +50,19 @@ router.get('/product/:productId', optionalAuth, async (req: Request, res: Respon
 router.post('/', requireAuth, async (req: Request, res: Response) => {
   const { product_id, order_id, rating, comment } = req.body as Record<string, unknown>;
   if (!product_id || rating == null) { res.status(400).json({ error: 'product_id and rating are required' }); return; }
-  if (Number(rating) < 1 || Number(rating) > 5) { res.status(400).json({ error: 'Rating must be between 1 and 5' }); return; }
+  if (!Number.isInteger(Number(rating)) || Number(rating) < 1 || Number(rating) > 5) { res.status(400).json({ error: 'Rating must be a whole number between 1 and 5' }); return; }
   try {
+    const { rows: product } = await pool.query('SELECT seller_id FROM products WHERE id=$1', [product_id]);
+    if (!product.length) { res.status(404).json({ error: 'Product not found' }); return; }
+    if (product[0].seller_id === req.user!.id) { res.status(403).json({ error: 'You cannot review your own product' }); return; }
+    if (order_id != null) {
+      // An order reference must be the reviewer's own order for this product.
+      const { rows: order } = await pool.query(
+        'SELECT 1 FROM orders WHERE id=$1 AND buyer_id=$2 AND product_id=$3',
+        [order_id, req.user!.id, product_id],
+      );
+      if (!order.length) { res.status(400).json({ error: 'order_id does not match one of your orders for this product' }); return; }
+    }
     const { rows } = await pool.query(
       `INSERT INTO reviews (product_id, order_id, reviewer_id, rating, comment)
        VALUES ($1,$2,$3,$4,$5) ON CONFLICT (product_id, reviewer_id)
