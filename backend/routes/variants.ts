@@ -5,6 +5,18 @@ import { requireAuth, optionalAuth } from '../middleware/auth';
 
 const router = Router();
 
+// Resolves to 'ok', or the HTTP status to send when the variant is missing or
+// its product belongs to someone else.
+async function checkVariantOwner(req: Request): Promise<'ok' | 404 | 403> {
+  const { rows } = await pool.query(
+    'SELECT p.seller_id FROM product_variants v JOIN products p ON p.id = v.product_id WHERE v.id=$1',
+    [req.params.id],
+  );
+  if (!rows.length) return 404;
+  if (rows[0].seller_id !== req.user!.id && req.user!.role !== 'admin') return 403;
+  return 'ok';
+}
+
 router.get('/product/:productId', optionalAuth, async (req: Request, res: Response) => {
   try {
     if (req.realOnly) {
@@ -37,6 +49,9 @@ router.post('/product/:productId', requireAuth, async (req: Request, res: Respon
 router.put('/:id', requireAuth, async (req: Request, res: Response) => {
   const { name, value, price, stock, sku } = req.body as Record<string, unknown>;
   try {
+    const access = await checkVariantOwner(req);
+    if (access === 404) { res.status(404).json({ error: 'Variant not found' }); return; }
+    if (access === 403) { res.status(403).json({ error: 'Forbidden' }); return; }
     const { rows } = await pool.query(
       `UPDATE product_variants SET name=COALESCE($1,name),value=COALESCE($2,value),price=$3,stock=COALESCE($4,stock),sku=$5,updated_at=NOW() WHERE id=$6 RETURNING *`,
       [name ?? null, value ?? null, price ?? null, stock ?? null, sku ?? null, req.params.id],
@@ -48,6 +63,9 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
 
 router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
+    const access = await checkVariantOwner(req);
+    if (access === 404) { res.status(404).json({ error: 'Variant not found' }); return; }
+    if (access === 403) { res.status(403).json({ error: 'Forbidden' }); return; }
     await pool.query('DELETE FROM product_variants WHERE id=$1', [req.params.id]);
     res.json({ success: true });
   } catch { res.status(500).json({ error: 'Failed to delete variant' }); }
