@@ -277,9 +277,12 @@ describe('Preservation: Existing ProductDetail Interactions Unchanged', () => {
           // Title is preserved in DOM
           expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(product.title);
 
-          // Price is preserved in DOM (rendered as toLocaleString)
+          // Price is preserved in DOM (rendered as toLocaleString). Generated
+          // titles/descriptions can equal the price text (title "5", price 5),
+          // so look for a match outside the title heading instead of getByText.
           const priceText = product.price.toLocaleString();
-          expect(screen.getByText(priceText)).toBeInTheDocument();
+          const heading = screen.getByRole('heading', { level: 1 });
+          expect(screen.getAllByText(priceText).some((el) => el !== heading)).toBe(true);
         } finally {
           unmount();
         }

@@ -98,7 +98,7 @@ export default function Scorecard() {
                   ['API endpoints', data.liveSignals.endpoints],
                   ['Prod docs', data.liveSignals.prodDocs],
                   ['Task reports', data.liveSignals.logReports],
-                  ['Migrations', data.liveSignals.migrationsApplied],
+                  ['Migrations', data.liveSignals.migrationsApplied ?? '—'],
                   ['Errors / hr', data.liveSignals.errorsLastHour],
                   ['Payments 24h', data.liveSignals.payments24h],
                   ['Backup age', data.liveSignals.backupAgeH !== null && data.liveSignals.backupAgeH !== undefined ? `${data.liveSignals.backupAgeH}h` : '—'],

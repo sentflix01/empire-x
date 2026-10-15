@@ -44,8 +44,13 @@ export async function buildScorecard(pool: import('pg').Pool): Promise<Scorecard
   const sev1 = alerts.filter((a) => a.severity === 'SEV1').length;
   const sev2 = alerts.filter((a) => a.severity === 'SEV2').length;
 
-  const mig = await pool.query('SELECT COUNT(*)::int AS n FROM schema_migrations').catch(() => ({ rows: [{ n: 0 }] }));
-  const migrationsApplied = mig.rows[0]?.n ?? 0;
+  // db/migrate-all.js keeps no ledger table (every migrate*.js is idempotent and
+  // re-runs on each deploy), so there is no applied-migration count to read.
+  // null means unknown; the scorecard says so instead of reporting 0.
+  const mig = await pool.query("SELECT to_regclass('schema_migrations') IS NOT NULL AS has_ledger").catch(() => ({ rows: [{ has_ledger: false }] }));
+  const migrationsApplied: number | null = mig.rows[0]?.has_ledger
+    ? ((await pool.query('SELECT COUNT(*)::int AS n FROM schema_migrations').catch(() => ({ rows: [{ n: null }] }))).rows[0]?.n ?? null)
+    : null;
 
   // Docs + log counts (available when the deploy includes the repo docs/, e.g. local & monorepo deploys)
   const fs = await import('fs');
@@ -131,7 +136,7 @@ export async function buildScorecard(pool: import('pg').Pool): Promise<Scorecard
     {
       key: 'performance', label: 'Performance', grade: 'B+', score: 85, checks: [
         { label: 'Keyset pagination on hot paths', status: 'pass', detail: 'orders/posts cursor pagination' },
-        { label: 'Database indexes', status: migrationsApplied >= 33 ? 'pass' : 'warn', detail: `${migrationsApplied} migrations applied — incl. FTS + FK scalability sets` },
+        { label: 'Database indexes', status: migrationsApplied !== null && migrationsApplied >= 33 ? 'pass' : 'warn', detail: migrationsApplied === null ? 'Applied migrations unknown: migrate-all.js keeps no ledger table' : `${migrationsApplied} migrations applied — incl. FTS + FK scalability sets` },
         { label: 'gzip + ETag + HTTP caching', status: 'pass', detail: 'compression + per-user-isolated cache middleware' },
         { label: 'Lazy images', status: 'pass', detail: '51+ img tags lazy-loaded (verified ' + VERIFIED + ')' },
         { label: 'Lighthouse on production URL', status: 'warn', detail: 'Run after domain DNS is final' },

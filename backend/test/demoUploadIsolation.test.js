@@ -79,7 +79,7 @@ describe('demo upload isolation', () => {
         expect(options.headers.apikey).toBe('sb_secret_demo-test');
         expect(options.headers.Authorization).toBeUndefined();
       }
-      expect(url).toMatch(/^https:\/\/exampleproject\.supabase\.co\/storage\/v1\/object\/sign\/demo-private-uploads\/demo\/b77f1c5a-a0b0-4b61-9cb9-0fd2abe7d1a1\/uploads\/\d+-\d+\.png\?token=temporary$/);
+      expect(url).toMatch(/^https:\/\/demoproject\.supabase\.co\/storage\/v1\/object\/sign\/demo-private-uploads\/demo\/b77f1c5a-a0b0-4b61-9cb9-0fd2abe7d1a1\/uploads\/\d+-\d+\.png\?token=temporary$/);
     } finally {
       fetchMock.mockRestore();
       for (const key of keys) {

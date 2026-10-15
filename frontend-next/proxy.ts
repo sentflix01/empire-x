@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { isPublicPath } from '@/lib/publicPaths';
+import { safeReturnPath } from '@/lib/safeReturnPath';
 
 /**
  * proxy.ts — Auth routing for Next.js 16+
@@ -44,7 +45,8 @@ export default function proxy(request: NextRequest) {
   if (pathname === '/choose-mode') {
     const target = new URL(request.nextUrl.searchParams.get('intent') === 'signup' ? '/register' : '/login', request.url);
     const returnTo = request.nextUrl.searchParams.get('return');
-    if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) target.searchParams.set('return', returnTo);
+    const safeReturn = safeReturnPath(returnTo, '');
+    if (safeReturn) target.searchParams.set('return', safeReturn);
     return NextResponse.redirect(target);
   }
 

@@ -349,6 +349,36 @@ Create or update a review. Requires auth (one review per user per product).
 
 ---
 
+## Referral
+
+### GET /api/referral/my-code
+Returns `{ code, referral_link, referrals, total_referred, earned }`. `referrals`
+and `total_referred` are the same count (users whose `referred_by` is the caller);
+`earned` sums the caller's `point_transactions.points` with a `referral:` reference.
+
+### POST /api/referral/apply
+Body `{ code }` (alias `/use`). Records `referred_by` once per user and, in one
+transaction, awards 50 points to the referrer and 20 to the caller
+(`point_transactions` rows plus `user_profiles.points`). 404 for an unknown or own
+code, 409 when a code was already applied.
+
+---
+
+## Verification
+
+### GET /api/verification/status
+Returns `{ is_verified, verification_type, verified_at, request }`, where
+`request` is the caller's latest request (`id, status, verification_type,
+admin_note, created_at, reviewed_at`) or `null`.
+
+### POST /api/verification/request
+Body `{ verification_type, selfie_url, id_document_url, supporting_docs?, reason? }`.
+Both URLs are required (http/https). 409 while a request is pending. After a
+request is approved or rejected, a new request re-opens the same row
+(`verification_requests` has `UNIQUE(user_id)`), resetting it to `pending`.
+
+---
+
 ## Feature Flags
 
 ### GET /api/flags

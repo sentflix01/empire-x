@@ -198,10 +198,15 @@ router.put('/conversations/:id', requireAuth, async (req: Request, res: Response
 router.get('/conversations/:convId/messages', requireAuth, async (req: Request, res: Response) => {
   try {
     if (!(await isParticipant(req.params.convId, req.user!.id)) && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
-    const limit = Math.min(parseInt((req.query.limit as string)||'100',10), 500);
+    const limit = Math.min(Math.max(parseInt((req.query.limit as string)||'100',10) || 100, 1), 500);
     const before = req.query.before ? new Date(req.query.before as string) : null;
+    if (before && Number.isNaN(before.getTime())) { apiError.validationError(res, 'before must be a valid date'); return; }
+    // Take the newest `limit` messages (older than the cursor when paging back),
+    // then return them oldest-first, the order the chat renders.
     const { rows } = await pool.query(
-      `SELECT * FROM messages WHERE conversation_id=$1 ${before?'AND created_at<$3':''} ORDER BY created_at ASC LIMIT $2`,
+      `SELECT * FROM (
+         SELECT * FROM messages WHERE conversation_id=$1 ${before?'AND created_at<$3':''} ORDER BY created_at DESC LIMIT $2
+       ) newest ORDER BY created_at ASC`,
       before ? [req.params.convId, limit, before] : [req.params.convId, limit],
     );
     res.json(rows);
@@ -356,7 +361,9 @@ router.put('/presence', requireAuth, async (req: Request, res: Response) => {
   const redis = getRedis();
   if (!redis.isNoOp) (redis as RedisClient).set(`presence:${req.user!.id}`, JSON.stringify(presence), 'EX', 15*60).catch(()=>undefined);
   if (status==='online'||status==='offline') pool.query('UPDATE users SET updated_at=NOW(),last_seen=NOW() WHERE id=$1', [req.user!.id]).catch(()=>undefined);
-  emitPresenceUpdated(req.user!.id, presence as Parameters<typeof emitPresenceUpdated>[1]);
+  // presence_visibility='nobody' (Settings › Privacy) keeps the status private.
+  const { rows: vis } = await pool.query('SELECT presence_visibility FROM user_profiles WHERE user_id=$1', [req.user!.id]).catch(() => ({ rows: [] as Array<{ presence_visibility?: string }> }));
+  if (vis[0]?.presence_visibility !== 'nobody') emitPresenceUpdated(req.user!.id, presence as Parameters<typeof emitPresenceUpdated>[1]);
   res.json({ success: true, ...presence });
 });
 
@@ -365,6 +372,8 @@ router.get('/presence/:userId', requireAuth, async (req: Request, res: Response)
     if (String(req.user!.id) !== req.params.userId) {
       const { rows: bl } = await pool.query('SELECT 1 FROM blocks WHERE blocker_id=$1 AND blocked_id=$2 LIMIT 1', [req.params.userId, req.user!.id]);
       if (bl.length) { res.json({ user_id: req.params.userId, status:'offline', last_seen:null, hidden:true }); return; }
+      const { rows: vis } = await pool.query('SELECT presence_visibility FROM user_profiles WHERE user_id=$1', [req.params.userId]);
+      if (vis[0]?.presence_visibility === 'nobody') { res.json({ user_id: req.params.userId, status:'offline', last_seen:null, hidden:true }); return; }
     }
     const redis = getRedis();
     let status='offline', last_seen: string|null=null;

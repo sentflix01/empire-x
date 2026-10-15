@@ -28,10 +28,13 @@ jobs:
       skip: ${{ steps.check.outputs.skip }}
     steps:
       - id: check
+        # Commit text reaches bash through env vars, never ${{ }} interpolation,
+        # so a crafted commit message cannot inject shell commands.
+        env:
+          author_name: ${{ github.event.head_commit.author.name || '' }}
+          author_email: ${{ github.event.head_commit.author.email || '' }}
+          msg: ${{ github.event.head_commit.message || '' }}
         run: |
-          author_name="${{ github.event.head_commit.author.name || '' }}"
-          author_email="${{ github.event.head_commit.author.email || '' }}"
-          msg="${{ github.event.head_commit.message || '' }}"
           # 1) Explicit skip markers in the commit message always skip.
           if [[ "${msg}" == *"[skip ci]"* || "${msg}" == *"[ci skip]"* ]]; then
             echo "skip=true" >> $GITHUB_OUTPUT
@@ -138,6 +141,33 @@ jobs:
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ci-placeholder-google-client-id
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_placeholder
           NEXT_PUBLIC_SENTRY_DSN: ""
+
+  # Vitest 5 and jsdom need Node 22+, so unit tests run in their own job and
+  # the build job keeps the Node version used for deployment.
+  frontend-tests:
+    name: Frontend (Next.js) — Unit tests (blocking)
+    needs: check-skip
+    if: needs.check-skip.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend-next
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: frontend-next/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Vitest (blocking)
+        run: npm test
 
   # ── Security audit ───────────────────────────────────────────────────────────
   # Hard gate at --audit-level=high for both packages.

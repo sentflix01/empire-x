@@ -11,13 +11,14 @@ import AuthLayout from "@/components/AuthLayout";
 import { describeGoogleOAuthError, renderGoogleSignInButton } from "@/lib/googleAuth";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useAuth } from '@/lib/AuthContext';
+import { safeReturnPath } from '@/lib/safeReturnPath';
 
 function Login() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { completeLogin } = useAuth();
   const returnTo = searchParams.get("return");
-  const dest = (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) ? returnTo : '/feed';
+  const dest = safeReturnPath(returnTo);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
