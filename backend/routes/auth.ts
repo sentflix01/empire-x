@@ -31,7 +31,9 @@ import {
   signDemoAccessToken, signDemoSessionCookie, verifyDemoTrack1Cookie, isDemoSessionSecretValid,
 } from '../middleware/demoEnvironment';
 import { sendOtpEmail, sendPasswordResetEmail } from '../utils/mailer';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, invalidateUserCache } from '../middleware/auth';
+import { forceDisconnectUser } from '../socket';
+import { anonymizeAccount, deletionBlocker, exportAccountData } from '../lib/accountData';
 import { getRedis } from '../lib/redis';
 import * as apiError from '../lib/apiError';
 import logger from '../lib/logger';
@@ -993,6 +995,72 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
     logger.error({ err }, 'Me error');
     apiError.serverError(res, 'Failed to fetch user');
   }
+});
+
+// ── GET /api/auth/me/export — "Download my data" ─────────────────────────────
+
+router.get('/me/export', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const data = await exportAccountData(req.user!.id);
+    res.setHeader('Content-Disposition', `attachment; filename="nodbusiness-data-${new Date().toISOString().slice(0, 10)}.json"`);
+    res.json(data);
+  } catch (err) {
+    logger.error({ err }, 'Account export error');
+    apiError.serverError(res, 'Failed to export account data');
+  }
+});
+
+// ── DELETE /api/auth/me — "Delete my account" (anonymize) ────────────────────
+
+router.delete('/me', requireAuth, async (req: Request, res: Response) => {
+  const { password, confirm } = (req.body ?? {}) as { password?: string; confirm?: string };
+  if (confirm !== 'DELETE') { apiError.validationError(res, 'Type DELETE to confirm account deletion'); return; }
+  if (req.demoSession || req.user!.is_demo) { res.status(403).json({ error: 'Demo accounts are removed automatically when the session ends.' }); return; }
+  const userId = req.user!.id;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ password_hash: string | null; role: string }>(
+      'SELECT password_hash, role FROM users WHERE id = $1 FOR UPDATE', [userId],
+    );
+    if (!rows.length) { await client.query('ROLLBACK'); apiError.notFound(res, 'User not found'); return; }
+    // Accounts with a password must re-enter it; Google-only accounts confirm by typing DELETE.
+    if (rows[0].password_hash && !(typeof password === 'string' && await bcrypt.compare(password, rows[0].password_hash))) {
+      // 422 like change-password: a 401 would make the client treat the session as expired.
+      await client.query('ROLLBACK'); apiError.validationError(res, 'Incorrect password'); return;
+    }
+    if (rows[0].role === 'admin') {
+      const { rows: admins } = await client.query("SELECT COUNT(*)::int AS n FROM users WHERE role = 'admin' AND deleted_at IS NULL");
+      if ((admins[0]?.n ?? 0) <= 1) { await client.query('ROLLBACK'); res.status(409).json({ error: 'The last admin account cannot be deleted.' }); return; }
+    }
+    const block = await deletionBlocker(userId, client);
+    if (block) { await client.query('ROLLBACK'); res.status(409).json({ error: block.message, code: block.code }); return; }
+    await anonymizeAccount(client, userId);
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => undefined);
+    logger.error({ err }, 'Account deletion error');
+    apiError.serverError(res, 'Failed to delete account');
+    return;
+  } finally {
+    client.release();
+  }
+
+  // The row is now banned with ban_reason='account_deleted', which the auth
+  // middleware rejects; also drop caches, sessions and sockets right away.
+  await invalidateUserCache(userId);
+  const redis = getRedis();
+  if (!redis.isNoOp) {
+    await (redis as RedisClient).setex(`revoke_before:${userId}`, 7 * 24 * 60 * 60, Math.floor(Date.now() / 1000).toString()).catch(() => undefined);
+  }
+  forceDisconnectUser(userId);
+  res.clearCookie('refresh_token', {
+    httpOnly: true,
+    path: '/api/auth',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: refreshCookieSameSite(),
+  });
+  res.json({ success: true });
 });
 
 // ── POST /api/auth/forgot-password ───────────────────────────────────────────

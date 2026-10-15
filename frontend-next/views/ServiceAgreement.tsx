@@ -96,13 +96,13 @@ function PrivacyContent() {
         </ul>
       </Accordion>
       <Accordion title="3. Data Sharing">
-        <p>We share data with: Stripe (payments), Chapa (payments), Resend (emails), Sentry (error tracking, no PII), Render/Vercel/Neon (hosting). We <strong>do not sell</strong> your personal data to advertisers or data brokers.</p>
+        <p>We share data with: Stripe (payments), Chapa (payments), Resend (emails), Sentry (error tracking, no PII), Render/Vercel/Supabase (hosting and database). We <strong>do not sell</strong> your personal data to advertisers or data brokers.</p>
       </Accordion>
       <Accordion title="4. Data Retention">
         <ul className="list-disc list-inside space-y-1">
           <li>Account data: until you delete your account</li>
-          <li>Order records: 7 years (standard commercial record-keeping)</li>
-          <li>Message history: 1 year after account deletion</li>
+          <li>Order and payment records: 7 years (standard commercial record-keeping), with your name and contact details removed if you delete your account</li>
+          <li>Messages you sent: deleted when you delete your account</li>
           <li>Server logs: 90 days</li>
         </ul>
       </Accordion>
@@ -113,7 +113,7 @@ function PrivacyContent() {
         <ul className="list-disc list-inside space-y-1">
           <li>Passwords: bcrypt hash (never plaintext)</li>
           <li>HTTPS everywhere (TLS 1.2+ enforced)</li>
-          <li>Database: encrypted at rest (Neon managed PostgreSQL)</li>
+          <li>Database: encrypted at rest (Supabase managed PostgreSQL)</li>
           <li>API: parameterized queries, allowlisted endpoints</li>
           <li>Backups: daily automated, 7-day retention</li>
         </ul>

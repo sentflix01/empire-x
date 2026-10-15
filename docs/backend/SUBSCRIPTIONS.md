@@ -175,6 +175,7 @@ Feature → Minimum tier mapping:
 | `api_keys` | premium |
 | `analytics` | premium |
 | `builder_premium` | premium |
+| `external_data_sources` | premium (create, edit, map; disable and delete stay open) |
 | `live_location_tracking` | pro |
 | `builder_pro` | pro |
 
