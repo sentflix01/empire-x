@@ -6,6 +6,7 @@ import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { listRecords, getRecord, createRecord, updateRecord } from '../utils/crud';
 import { getRedis } from '../lib/redis';
+import { redactContactFields, parsePublicContactFields } from '../lib/contactPrivacy';
 
 const router = Router();
 
@@ -21,7 +22,7 @@ const EDITABLE_PROFILE_FIELDS = [
   'business_website', 'business_founded_year', 'business_team_size', 'business_registration_number',
   'business_type', 'business_social_linkedin', 'business_social_twitter', 'business_social_facebook',
   'certifications', 'awards', 'services', 'service_areas', 'extra_json', 'business_extra_json',
-  'latitude', 'longitude', 'presence_visibility', 'has_business_profile',
+  'latitude', 'longitude', 'presence_visibility', 'has_business_profile', 'public_contact_fields',
 ] as const;
 const PUBLIC_PROFILE_COLUMNS = [
   'id', 'user_id', 'display_name', 'bio', 'avatar_url', 'cover_url', 'profile_type', 'headline', 'location',
@@ -33,6 +34,7 @@ const PUBLIC_PROFILE_COLUMNS = [
   'social_youtube', 'website', 'languages', 'business_website', 'business_founded_year', 'business_team_size',
   'business_type', 'business_social_linkedin', 'business_social_twitter', 'business_social_facebook',
   'certifications', 'awards', 'services', 'service_areas', 'cover_position', 'business_cover_position',
+  'public_contact_fields',
 ] as const;
 const PUBLIC_PROFILE_SELECT = PUBLIC_PROFILE_COLUMNS.map((field) => `up.${field}`).join(', ');
 const BUSINESS_PROFILE_FIELDS = [
@@ -44,7 +46,7 @@ const BUSINESS_PROFILE_FIELDS = [
 ] as const;
 
 async function redactUnpaidBusinessProfile<T extends Record<string, unknown>>(profile: T, isOwner: boolean): Promise<T> {
-  if (profile.has_business_profile !== true) return profile;
+  if (profile.has_business_profile !== true) return redactContactFields(profile, isOwner);
   const { rows } = await pool.query(
     `SELECT EXISTS (
        SELECT 1 FROM businesses b JOIN business_subscriptions bs ON bs.business_id=b.id
@@ -56,7 +58,7 @@ async function redactUnpaidBusinessProfile<T extends Record<string, unknown>>(pr
      ) AS owner_blocked`,
     [profile.user_id],
   );
-  if (isOwner ? !rows[0]?.owner_blocked : rows[0]?.visible) return profile;
+  if (isOwner ? !rows[0]?.owner_blocked : rows[0]?.visible) return redactContactFields(profile, isOwner);
   const sanitized: Record<string, unknown> = { ...profile };
   for (const field of BUSINESS_PROFILE_FIELDS) sanitized[field] = field === 'has_business_profile' ? false : null;
   return sanitized as T;
@@ -69,6 +71,11 @@ function editableProfileFields(body: Record<string, unknown>): Record<string, un
 }
 
 function profileValidationError(body: Record<string, unknown>): string | null {
+  if (body.public_contact_fields !== undefined) {
+    const parsed = parsePublicContactFields(body.public_contact_fields);
+    if (!parsed) return 'public_contact_fields must list only business_contact_phone, business_contact_email or business_address';
+    body.public_contact_fields = parsed;
+  }
   if (body.profile_type !== undefined && !['personal', 'business'].includes(String(body.profile_type))) {
     return 'profile_type must be personal or business';
   }

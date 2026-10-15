@@ -72,7 +72,7 @@ describe('businesses column names', () => {
       .mockResolvedValueOnce({ rows: [] });
     await request(buildApp()).get('/api/maps/nearby/product-search?q=coffee&lat=9&lon=38.75');
     const sql = pool.query.mock.calls[1][0];
-    expect(sql).toMatch(/business_name,business_category,business_logo_url AS logo_url,business_address AS address/);
+    expect(sql).toContain("business_name,business_category,business_logo_url AS logo_url,CASE WHEN 'business_address' = ANY(public_contact_fields) THEN business_address END AS address");
   });
 
   it('nearby businesses selects the real columns and keeps name/category aliases', async () => {
