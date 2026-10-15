@@ -257,7 +257,12 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     }
     updates.business_id = businessId ?? null;
     if (updates.status !== undefined && !['draft', 'published', 'archived'].includes(String(updates.status))) { res.status(400).json({ error: 'Invalid showroom status' }); return; }
-    if (updates.status === 'published' && !req.user!.is_demo) {
+    // Re-check entitlements whenever the result is a published site with new
+    // sections, not only when status:'published' is sent: otherwise a live
+    // site could be edited to add sections above its plan.
+    const publishesSections = updates.status === 'published'
+      || (updates.status === undefined && existing.status === 'published' && updates.sections !== undefined);
+    if (publishesSections && !req.user!.is_demo) {
       if (!businessId) { res.status(409).json({ error: 'business_profile_required', draftId: req.params.id, message: 'Create a Business profile before publishing this website.' }); return; }
       const requestedSections = updates.sections ?? existing.sections;
       const requiredTier = getRequiredBusinessTier(requestedSections);
