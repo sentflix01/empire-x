@@ -372,6 +372,7 @@ app.use('/api/delivery',     require('./routes/delivery'));
 app.use('/api/flags',        require('./routes/flags'));
 app.use('/api/showrooms/:showroomId/external-sources', require('./routes/externalSources'));
 app.use('/api/proxy',        require('./routes/proxy'));
+app.use('/api/share-preview', require('./routes/sharePreview'));
 app.use('/api/devops',       require('./routes/devops'));
 app.use('/api/docs',         require('./routes/docs'));
 
