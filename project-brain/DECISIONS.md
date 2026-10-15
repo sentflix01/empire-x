@@ -44,9 +44,73 @@ documents when verified; do not copy stale values into new work.
 
 ## Accepted feature decisions
 
-### 2026-10-15 — Demo storefronts showcase supported flows without simulating external integrations
+### 2026-10-16 — NodBusiness never holds customer funds; revenue is subscriptions only
 
 - **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** The platform charged a 3% commission and kept a user wallet,
+  both of which require holding customer money.
+- **Decision:** Remove the platform commission and the money-holding wallet.
+  Sellers are paid directly, by external payment or by an integrated provider
+  that settles to the seller's own account. Creator partnership commissions
+  are recorded and reported only; the parties settle directly.
+- **Consequences:** Checkout must never charge into a platform-owned account.
+  Real wallet balances must be paid out or zeroed before the wallet is switched off.
+- **Related documentation:** [Platform model decisions](../docs/decisions/platform-model-decisions.md) §1
+
+### 2026-10-16 — Guest checkout, external-payment confirmation and address privacy
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Decision:** Guests buy without an account using phone and email and a
+  private order link; notifications go by email first and SMS later. For
+  external payments the buyer reports payment (receipt optional, stored
+  privately) and only the seller confirms; unconfirmed orders expire after 7
+  days. Only business contact details are public by default, per-field
+  visibility is owner-controlled and server-enforced, and the pickup address
+  shows only after an order.
+- **Related documentation:** [Platform model decisions](../docs/decisions/platform-model-decisions.md) §2
+
+### 2026-10-16 — ETB subscription plans and owner access until deletion
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Decision:** Plans are Normal ETB 100, Premium ETB 500, Pro ETB 1,000 and
+  Enterprise custom per month, replacing the `$12 / $49` table shipped in PR
+  #104. USD equivalents are kept only for billing businesses outside Ethiopia.
+  After expiry the owner keeps full access (view, edit, renew) to the hidden
+  business until the Day-10 deletion, replacing the implemented Day-3 owner
+  lockout.
+- **Related documentation:** [Platform model decisions](../docs/decisions/platform-model-decisions.md) §3, §6
+
+### 2026-10-16 — Guests browse Real content read-only; Demo only through Try Demo
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Decision:** Visitors without an account browse Real businesses, products,
+  services and feeds read-only and never connect to Demo data. A business QR
+  code or link opens only that business's public page, with Back to Landing
+  and Try Demo buttons. Real published businesses stay findable by search
+  engines. Demo/Real separation is audited across reads, writes, profiles,
+  feeds, search, showroom pages and cache keys; Demo payments never reach real
+  providers. This replaces "Explore as guest shows Demo content only".
+- **Related documentation:** [Platform model decisions](../docs/decisions/platform-model-decisions.md) §7
+
+### 2026-10-16 — Demo businesses simulate their core flows, built through the builder
+
+- **Status:** Accepted. **Supersedes** the 2026-10-15 decision below.
+- **Decision owner:** Project owner (@Sent)
+- **Decision:** Demo businesses (ride service, telecom, booking, supermarket,
+  pharmacy, government) simulate their core flows, clearly labelled as Demo,
+  with 5–10 or more working products or services each. Every template and demo
+  site is built through the real Build/template → customize → publish
+  pathway. A research step decides the best presentation for each business
+  type before building. The ride-service route line is simulated.
+- **Related documentation:** [Platform model decisions](../docs/decisions/platform-model-decisions.md) §8
+
+### 2026-10-15 — Demo storefronts showcase supported flows without simulating external integrations
+
+- **Status:** Superseded on 2026-10-16 by "Demo businesses simulate their core flows, built through the builder" above.
 - **Decision owner:** Project owner
 - **Context:** The Demo should demonstrate different business models, while the
   current platform does not provide live ride dispatch, telecom provisioning,
