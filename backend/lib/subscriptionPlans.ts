@@ -22,7 +22,8 @@ export type TierFeature =
   | 'api_keys'                // premium+  — programmatic data access
   | 'analytics'               // premium+  — full business analytics dashboard
   | 'builder_premium'         // premium+  — premium showroom sections
-  | 'builder_pro';            // pro only  — enterprise showroom sections
+  | 'builder_pro'             // pro only  — enterprise showroom sections
+  | 'external_data_sources';  // premium+  — showroom sections fed by the owner's API
 
 /** Minimum tiers that satisfy each feature requirement */
 export const FEATURE_MIN_TIER: Record<TierFeature, Tier[]> = {
@@ -33,6 +34,7 @@ export const FEATURE_MIN_TIER: Record<TierFeature, Tier[]> = {
   analytics:                ['premium', 'pro'],
   builder_premium:          ['premium', 'pro'],
   builder_pro:              ['pro'],
+  external_data_sources:    ['premium', 'pro'],
 };
 
 /** Ordered tier levels — higher index = higher tier */
