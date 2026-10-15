@@ -97,6 +97,18 @@ Get current user. Requires auth.
 
 ---
 
+### GET /api/auth/me/export
+"Download my data". Requires auth. Returns a JSON attachment with the account
+(without password hash, OTP or tokens), profile, content, orders, reviews,
+messages sent, seller data, partnerships and wallet ledger.
+
+### DELETE /api/auth/me
+"Delete my account". Requires auth. Body `{ confirm: "DELETE", password? }`;
+`password` is required when the account has one. Anonymizes the account and
+keeps financial records (see `docs/decisions/account-deletion-decisions.md`).
+Errors: 422 without the confirmation, 401 wrong password, 403 demo account,
+409 `WALLET_BALANCE` / `OPEN_ORDERS` / last admin.
+
 ### POST /api/auth/forgot-password
 Request password reset email. Always returns success (prevents user enumeration).
 

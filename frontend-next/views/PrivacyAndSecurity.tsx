@@ -9,6 +9,10 @@ import {
 import { toast } from 'sonner';
 import client from '@/api/client';
 import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -129,7 +133,8 @@ function PrivacyAndSecurityView() {
   const handleExportData = async () => {
     setLoadingExport(true);
     try {
-      const res = await client.get('/api/auth/me');
+      // Full export: profile, posts, orders, messages sent, wallet ledger, etc.
+      const res = await client.get('/api/auth/me/export');
       const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = 'my-nodbusiness-data.json'; a.click();
@@ -139,23 +144,21 @@ function PrivacyAndSecurityView() {
     setLoadingExport(false);
   };
 
-  const handleDeleteAccount = () => {
-    toast('Are you sure? This action is irreversible.', {
-      action: {
-        label: 'Delete my account',
-        onClick: async () => {
-          setLoadingDelete(true);
-          try {
-            await client.delete('/api/auth/me');
-            toast.success('Account deleted');
-            logout('/');
-          } catch { toast.error('Could not delete account. Contact support.'); }
-          setLoadingDelete(false);
-        },
-      },
-      cancel: { label: 'Cancel', onClick: () => {} },
-      duration: 10000,
-    });
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+
+  const handleDeleteAccount = async () => {
+    setLoadingDelete(true);
+    try {
+      await client.delete('/api/auth/me', { data: { password: deletePassword || undefined, confirm: deleteConfirm } });
+      setDeleteOpen(false);
+      toast.success('Account deleted');
+      logout('/');
+    } catch (err: any) {
+      toast.error(err?.error ?? 'Could not delete account. Contact support.');
+    }
+    setLoadingDelete(false);
   };
 
   return (
@@ -278,11 +281,43 @@ function PrivacyAndSecurityView() {
         <ButtonRow
           label="Delete Account"
           description="Permanently delete your account and all data. This cannot be undone."
-          onClick={handleDeleteAccount}
+          onClick={() => { setDeletePassword(''); setDeleteConfirm(''); setDeleteOpen(true); }}
           danger
           loading={loadingDelete}
         />
       </Section>
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete your account?</DialogTitle>
+            <DialogDescription>
+              Your profile, posts, messages, follows and other personal data are deleted. Orders and payment
+              records are kept without your name or contact details, as required for accounting. Withdraw any
+              wallet balance and finish open orders first. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="delete-password">Password</Label>
+              <Input id="delete-password" type="password" autoComplete="current-password" value={deletePassword}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeletePassword(e.target.value)}
+                placeholder="Leave empty if you sign in with Google" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="delete-confirm">Type DELETE to confirm</Label>
+              <Input id="delete-confirm" value={deleteConfirm}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeleteConfirm(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={loadingDelete}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteAccount} disabled={deleteConfirm !== 'DELETE' || loadingDelete}>
+              {loadingDelete ? 'Deleting…' : 'Delete my account'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <p className="text-center text-[10px] text-muted-foreground px-4">
         Nodbusiness · City, Country · privacy@nodbusiness.app
