@@ -5,24 +5,67 @@ import { requireAuth, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
+function isHttpUrl(v: unknown): v is string {
+  if (typeof v !== 'string' || !v.trim()) return false;
+  try { const u = new URL(v); return u.protocol === 'https:' || u.protocol === 'http:'; } catch { return false; }
+}
+
 router.post('/request', requireAuth, async (req: Request, res: Response) => {
-  const { verification_type = 'personal', supporting_docs, reason } = req.body as Record<string, string>;
+  const { verification_type = 'personal', supporting_docs, reason, selfie_url, id_document_url } = req.body as Record<string, string>;
   const validTypes = ['personal', 'business', 'creator', 'official'];
   if (!validTypes.includes(verification_type)) {
     res.status(400).json({ error: `Invalid verification_type. Must be: ${validTypes.join(', ')}` }); return;
   }
+  // verification_requests.selfie_url and id_document_url are NOT NULL (migrate13).
+  if (!isHttpUrl(selfie_url) || !isHttpUrl(id_document_url)) {
+    res.status(400).json({ error: 'selfie_url and id_document_url must be valid URLs' }); return;
+  }
   try {
     const { rows: existing } = await pool.query(
-      `SELECT id,status FROM verification_requests WHERE user_id=$1 AND status='pending'`,
+      'SELECT id,status FROM verification_requests WHERE user_id=$1 ORDER BY created_at DESC',
       [req.user!.id],
     );
-    if (existing.length) { res.status(409).json({ error: 'You already have a pending verification request' }); return; }
-    const { rows } = await pool.query(
-      `INSERT INTO verification_requests (user_id,verification_type,supporting_docs,reason) VALUES ($1,$2,$3,$4) RETURNING *`,
-      [req.user!.id, verification_type, supporting_docs ?? null, reason ?? null],
-    );
+    if (existing.some((r) => r.status === 'pending')) { res.status(409).json({ error: 'You already have a pending verification request' }); return; }
+    const params = [req.user!.id, verification_type, selfie_url, id_document_url, supporting_docs ?? null, reason ?? null];
+    // migrate13 declares UNIQUE(user_id): a user whose earlier request was
+    // resolved re-opens that row instead of inserting a second one.
+    const { rows } = existing.length
+      ? await pool.query(
+        `UPDATE verification_requests
+            SET verification_type=$2, selfie_url=$3, id_document_url=$4, supporting_docs=$5, reason=$6,
+                status='pending', admin_note=NULL, reviewed_by=NULL, reviewed_at=NULL, resolved_at=NULL,
+                created_at=NOW(), updated_at=NOW()
+          WHERE id=$7 AND user_id=$1 RETURNING *`,
+        [...params, existing[0].id],
+      )
+      : await pool.query(
+        `INSERT INTO verification_requests (user_id,verification_type,selfie_url,id_document_url,supporting_docs,reason)
+         VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+        params,
+      );
     res.status(201).json(rows[0]);
   } catch { res.status(500).json({ error: 'Failed to submit verification request' }); }
+});
+
+// Shape consumed by frontend-next/components/profile/VerificationRequest.tsx.
+router.get('/status', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { rows: profile } = await pool.query(
+      'SELECT is_verified, verification_type, verified_at FROM user_profiles WHERE user_id=$1',
+      [req.user!.id],
+    );
+    const { rows: request } = await pool.query(
+      `SELECT id, status, verification_type, admin_note, created_at, COALESCE(resolved_at, reviewed_at) AS reviewed_at
+         FROM verification_requests WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1`,
+      [req.user!.id],
+    );
+    res.json({
+      is_verified: Boolean(profile[0]?.is_verified),
+      verification_type: profile[0]?.verification_type ?? null,
+      verified_at: profile[0]?.verified_at ?? null,
+      request: request[0] ?? null,
+    });
+  } catch { res.status(500).json({ error: 'Failed to fetch verification status' }); }
 });
 
 router.get('/my-request', requireAuth, async (req: Request, res: Response) => {
