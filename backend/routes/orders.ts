@@ -5,7 +5,8 @@
  *   - Keyset cursor pagination on GET /
  *   - Stripe checkout: all prices computed server-side
  *   - Webhook: idempotent event processing via webhook_events table
- *   - Commission collected via atomicWalletOp (Phase 1 Task 4)
+ *   - No platform commission: NodBusiness earns only from subscriptions
+ *     (docs/decisions/platform-model-decisions.md §1)
  */
 import { Router } from 'express';
 import type { Request, Response } from 'express';
@@ -13,7 +14,6 @@ import logger from '../lib/logger';
 import pool from '../db/pool';
 import { requireAuth } from '../middleware/auth';
 import { getRecord, createRecord, updateRecord } from '../utils/crud';
-import { collectCommission } from './commission';
 import { resolvePartnerAttribution, recordProfileOwnerCommission } from './profilePartnerships';
 import { notifyUser } from './telegram';
 import { emitNotification } from '../socket';
@@ -26,12 +26,17 @@ import { auditLog } from '../lib/auditLogger';
 import { isStripeConfigured, stripeClientFacade, withVerifiedStripeWebhook } from '../lib/stripeClient';
 import { requireIsolatedPaymentEnvironment } from '../middleware/demoEnvironment';
 import { requireFeatureFlag } from '../middleware/featureFlag';
+import { platformCollectionRetired } from '../middleware/platformCollectionRetired';
 import {
   InventoryUnavailableError, reserveOrderInventory, commitOrderInventory,
   releaseOrderInventory, transitionPaymentOrders, cancelOrderAndReleaseInventory,
 } from '../services/orderInventory';
 
 const router = Router();
+
+// Card and Chapa checkout charged buyers into NodBusiness's own accounts.
+// Retired until a provider settles directly to the seller (decision §1).
+const platformCheckoutRetired = platformCollectionRetired('Paying through NodBusiness is not available. Pay the seller directly using the payment details on the order.');
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const stripe: any = stripeClientFacade();
@@ -282,7 +287,6 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     }
     if ((updates as {status?:string}).status==='completed' && existing.status!=='completed') {
       await commitOrderInventory(pool, [req.params.id]).catch(err => logger.error({ err }, 'Failed to commit inventory for completed COD order'));
-      collectCommission(existing.id as string, existing.seller_id as string, parseFloat(String(existing.total_price))).catch(err => logger.error({err},'Commission failed'));
       notifyUser(existing.seller_id as string, `✅ <b>Order Completed</b>\n${existing.product_title}\nAmount: ${existing.total_price} ${existing.currency}`).catch(()=>undefined);
       notifyUser(existing.buyer_id as string, `📦 <b>Your order is complete!</b>\n${existing.product_title}\nThank you for shopping on Nodbusiness 👑`).catch(()=>undefined);
       const [buyerNotifResult, sellerNotifResult] = await Promise.all([
@@ -304,7 +308,7 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
 });
 
 // ── Stripe Checkout ───────────────────────────────────────────────────────────
-router.post('/checkout/session', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('stripe_payments', 'Stripe payments temporarily disabled'), async (req: Request, res: Response) => {
+router.post('/checkout/session', platformCheckoutRetired, requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('stripe_payments', 'Stripe payments temporarily disabled'), async (req: Request, res: Response) => {
   if (!isStripeConfigured()) { res.status(503).json({ error: 'Stripe is not configured for this environment' }); return; }
   const createdOrderIds: string[] = [];
   try {
@@ -463,7 +467,6 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
     const couponId = (obj.metadata as Record<string,string>)?.coupon_id;
     if (couponId) await pool.query('UPDATE coupons SET usage_count=usage_count+1 WHERE id=$1', [couponId]);
     for (const order of rows) {
-      collectCommission(order.id as string, order.seller_id as string, parseFloat(String(order.total_price))).catch(()=>undefined);
       notifyUser(order.seller_id as string, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ETB via Stripe ✅`).catch(()=>undefined);
       // Confirm email
       pool.query('SELECT email FROM users WHERE id=$1', [order.buyer_id]).then(({rows:buyers}) => {
@@ -653,7 +656,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
 });
 
 // ── Chapa checkout ─────────────────────────────────────────────────────────────
-router.post('/checkout/chapa', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('chapa_payments', 'Chapa payments temporarily disabled'), async (req: Request, res: Response) => {
+router.post('/checkout/chapa', platformCheckoutRetired, requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('chapa_payments', 'Chapa payments temporarily disabled'), async (req: Request, res: Response) => {
   if (!CHAPA_SECRET) { res.status(503).json({ error: 'Chapa not configured' }); return; }
   if (CHAPA_SANDBOX && process.env.NODE_ENV === 'production') { res.status(503).json({ error: 'Chapa sandbox is disabled in production' }); return; }
   const body = req.body as Record<string,unknown>;
@@ -759,7 +762,6 @@ router.get('/chapa/verify/:tx_ref', async (req: Request, res: Response) => {
     }
     const rows = await transitionPaymentOrders(pool, 'chapa_tx_ref', tx_ref, 'paid');
     for (const order of rows) {
-      collectCommission(order.id as string, order.seller_id as string, parseFloat(String(order.total_price))).catch(()=>undefined);
       notifyUser(order.seller_id as string, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ${order.currency||'ETB'} via Chapa ✅`).catch(()=>undefined);
       sendPushToUser(order.seller_id as string,'💰 Payment received!',`${order.product_title} — ${order.total_price} ETB via Chapa`,'/orders').catch(()=>undefined);
       sendPushToUser(order.buyer_id as string,'✅ Payment confirmed!',`Your payment for ${order.product_title} was successful.`,'/orders').catch(()=>undefined);

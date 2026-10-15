@@ -170,10 +170,10 @@ function SellerContent() {
         <p>Sellers must: provide accurate descriptions and images, price products in their preferred currency, maintain accurate stock levels, and remove discontinued products promptly. Prohibited: counterfeit goods, illegal items, adult content, weapons, or any item banned under applicable law.</p>
       </Accordion>
       <Accordion title="3. Commission & Fees">
-        <p>Nodbusiness charges a platform commission on completed orders (rate configurable by admin, displayed in your analytics). The commission is deducted automatically from your wallet balance after each confirmed order.</p>
+        <p>Nodbusiness does not charge any commission on your sales. Our only fee is your business subscription plan (Normal ETB 100, Premium ETB 500, Pro ETB 1,000 per month, or custom Enterprise terms), which keeps your site published.</p>
       </Accordion>
       <Accordion title="4. Payments & Payouts">
-        <p>Payments are processed via Stripe (international cards) and Chapa (Ethiopian banks/mobile money). Funds are credited to your Nodbusiness wallet. Payouts to your bank account are subject to NBE compliance requirements and KYC verification.</p>
+        <p>Nodbusiness never holds customer funds. Buyers pay you directly, either to the payment accounts you choose to show on your site (bank transfer, mobile money) or through a supported payment provider that settles straight to your own account. You confirm payments you receive outside Nodbusiness on the order. Any balance left in a legacy Nodbusiness wallet can still be withdrawn.</p>
       </Accordion>
       <Accordion title="5. Orders & Fulfillment">
         <p>Sellers are responsible for: confirming orders within 24 hours, shipping within the stated delivery time, providing tracking information, and responding to buyer messages within 48 hours. Failure to fulfill orders may result in account suspension.</p>
