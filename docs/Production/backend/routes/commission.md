@@ -15,8 +15,8 @@ Commission ledger access: seller-facing commission history and platform-wide tot
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/commission/my-commissions` | auth | 44 |
-| `GET` | `/api/commission/admin/summary` | admin | 55 |
+| `GET` | `/api/commission/my-commissions` | auth | 19 |
+| `GET` | `/api/commission/admin/summary` | admin | 30 |
 
 ## 4. What does it touch?
 

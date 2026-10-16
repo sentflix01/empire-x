@@ -19,21 +19,21 @@ Authentication and account lifecycle: register with OTP email verification, veri
 | `POST` | `/api/auth/verify-otp` | public | 332 |
 | `POST` | `/api/auth/resend-otp` | public | 432 |
 | `POST` | `/api/auth/demo` | public | 469 |
-| `POST` | `/api/auth/demo/exit` | public | 529 |
-| `POST` | `/api/auth/demo/reset` | public | 549 |
-| `POST` | `/api/auth/workspace` | auth | 569 |
-| `POST` | `/api/auth/onboarding-mode` | public | 670 |
-| `POST` | `/api/auth/login` | public | 677 |
-| `POST` | `/api/auth/google` | public | 805 |
-| `GET` | `/api/auth/me` | auth | 959 |
-| `GET` | `/api/auth/me/export` | auth | 1002 |
-| `DELETE` | `/api/auth/me` | auth | 1015 |
-| `POST` | `/api/auth/forgot-password` | public | 1068 |
-| `POST` | `/api/auth/reset-password` | public | 1104 |
-| `PUT` | `/api/auth/change-password` | auth | 1167 |
-| `POST` | `/api/auth/refresh` | public | 1219 |
-| `POST` | `/api/auth/logout` | public | 1302 |
-| `POST` | `/api/auth/logout-all` | auth | 1342 |
+| `POST` | `/api/auth/demo/exit` | public | 538 |
+| `POST` | `/api/auth/demo/reset` | public | 558 |
+| `POST` | `/api/auth/workspace` | auth | 576 |
+| `POST` | `/api/auth/onboarding-mode` | public | 582 |
+| `POST` | `/api/auth/login` | public | 589 |
+| `POST` | `/api/auth/google` | public | 717 |
+| `GET` | `/api/auth/me` | auth | 871 |
+| `GET` | `/api/auth/me/export` | auth | 914 |
+| `DELETE` | `/api/auth/me` | auth | 927 |
+| `POST` | `/api/auth/forgot-password` | public | 980 |
+| `POST` | `/api/auth/reset-password` | public | 1016 |
+| `PUT` | `/api/auth/change-password` | auth | 1079 |
+| `POST` | `/api/auth/refresh` | public | 1131 |
+| `POST` | `/api/auth/logout` | public | 1214 |
+| `POST` | `/api/auth/logout-all` | auth | 1254 |
 
 ## 4. What does it touch?
 

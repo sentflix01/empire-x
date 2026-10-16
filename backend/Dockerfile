@@ -21,6 +21,9 @@ RUN addgroup --system --gid 1001 nodejs \
 RUN apk add --no-cache postgresql-client
 
 # Copy compiled JS from build stage
+# Plain JS helpers in db/ first, then the compiled output on top, so a compiled
+# .ts module always wins over an older .js file of the same name.
+COPY --from=builder /app/db/*.js /app/db/*.cjs ./dist/db/
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
@@ -34,6 +37,10 @@ COPY --from=builder /app/db/poolJsShim.cjs ./dist/db/poolJsShim.cjs
 
 # Copy JS scheduler scripts into dist so require('./scripts/...') resolves
 COPY --from=builder /app/scripts ./dist/scripts
+# tsc only emits .ts files; copy plain .js modules that compiled code requires.
+COPY --from=builder /app/lib/*.js ./dist/lib/
+# Fail the build (not production start-up) if any relative require is missing.
+RUN node dist/scripts/check-dist-requires.cjs dist
 
 # Create uploads directory with correct ownership BEFORE switching user
 RUN mkdir -p /app/uploads && chown -R expressjs:nodejs /app/uploads

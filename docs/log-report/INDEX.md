@@ -5,6 +5,41 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-16 | Maintenance | Merge pull request #112 from sentflix01/fix/render-js-modules | [556885ee0](2026-10-16-556885ee0-merge-pull-request-112-from-sentflix01-fix-rende.md) |
+| 2026-10-16 | Bugfix | fix(deploy): ship plain JS modules in the image and fail the build if one is missing | [1dd893c5d](2026-10-16-1dd893c5d-ship-plain-js-modules-in-the-image-and-fail-the-.md) |
+| 2026-10-16 | Maintenance | Merge pull request #111 from sentflix01/ci/use-runner-postgres | [e0831f986](2026-10-16-e0831f986-merge-pull-request-111-from-sentflix01-ci-use-ru.md) |
+| 2026-10-16 | CI/CD | ci: use the runner's preinstalled PostgreSQL instead of pulling an image | [6718e5efb](2026-10-16-6718e5efb-use-the-runner-s-preinstalled-postgresql-instead.md) |
+| 2026-10-16 | Maintenance | Merge pull request #110 from sentflix01/fix/review-pbt-generator | [a80d2583f](2026-10-16-a80d2583f-merge-pull-request-110-from-sentflix01-fix-revie.md) |
+| 2026-10-16 | Testing | test: generate only visible reviewer names in the ProductDetail property test | [0d3ed5f14](2026-10-16-0d3ed5f14-generate-only-visible-reviewer-names-in-the-prod.md) |
+| 2026-10-16 | Maintenance | Merge pull request #105 from sentflix01/claude/mvp-phase1 | [2e9072b16](2026-10-16-2e9072b16-merge-pull-request-105-from-sentflix01-claude-mv.md) |
+| 2026-10-16 | Testing | test: give the Marketplace paging test time for the second page on slow CI | [0311fd7e5](2026-10-16-0311fd7e5-give-the-marketplace-paging-test-time-for-the-se.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/mvp-phase1 | [1907df6da](2026-10-16-1907df6da-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-16 | Bugfix | fix(ui): Buy view uses theme tokens again now that Tailwind generates them (#106) | [e62aa4c2e](2026-10-16-e62aa4c2e-buy-view-uses-theme-tokens-again-now-that-tailwi.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/mvp-phase1 | [e1c8dc89f](2026-10-16-e1c8dc89f-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-16 | Maintenance | Merge pull request #106 from sentflix01/fix/tailwind-theme-colours | [f2f76943e](2026-10-16-f2f76943e-merge-pull-request-106-from-sentflix01-fix-tailw.md) |
+| 2026-10-16 | Testing | test: give the ProductDetail property test enough time on slow CI runners | [28f5e8d0f](2026-10-16-28f5e8d0f-give-the-productdetail-property-test-enough-time.md) |
+| 2026-10-16 | Bugfix | fix(jobs): draft reminders failed every run on a SQL type error | [0a7967234](2026-10-16-0a7967234-draft-reminders-failed-every-run-on-a-sql-type-e.md) |
+| 2026-10-16 | Feature | feat(db): give legacy websites a Business profile and a 30-day free period | [5a10f3bea](2026-10-16-5a10f3bea-give-legacy-websites-a-business-profile-and-a-30.md) |
+| 2026-10-16 | Testing | test: check migrate41 statuses through the shared list | [947038eba](2026-10-16-947038eba-check-migrate41-statuses-through-the-shared-list.md) |
+| 2026-10-16 | Bugfix | fix(db): every migration rebuilds orders_status_check from one list | [079adc41b](2026-10-16-079adc41b-every-migration-rebuilds-orders-status-check-fro.md) |
+| 2026-10-16 | Documentation | docs: record the Tailwind v4 single-config decision and check:css gate | [c955bc2c6](2026-10-16-c955bc2c6-record-the-tailwind-v4-single-config-decision-an.md) |
+| 2026-10-16 | Bugfix | fix(ui): make globals.css the only Tailwind config and fail CI on missing utilities | [3231d33d5](2026-10-16-3231d33d5-make-globals-css-the-only-tailwind-config-and-fa.md) |
+| 2026-10-16 | Bugfix | fix(ui): generate theme colour utilities under Tailwind v4 | [1a2281146](2026-10-16-1a2281146-generate-theme-colour-utilities-under-tailwind-v.md) |
+| 2026-10-16 | Documentation | docs: document RECEIPTS_SUPABASE_BUCKET in the backend env template | [e687b8cd1](2026-10-16-e687b8cd1-document-receipts-supabase-bucket-in-the-backend.md) |
+| 2026-10-16 | Documentation | docs: direct-payment API, retired collection endpoints and new migrations | [3531e9220](2026-10-16-3531e9220-direct-payment-api-retired-collection-endpoints-.md) |
+| 2026-10-16 | Feature | feat: guests browse Real content; QR page offers Back to Landing and Try Demo | [8d5a6dd12](2026-10-16-8d5a6dd12-guests-browse-real-content-qr-page-offers-back-t.md) |
+| 2026-10-16 | Bugfix | fix: guests can buy everywhere and keep their order link after ordering | [2c39d0169](2026-10-16-2c39d0169-guests-can-buy-everywhere-and-keep-their-order-l.md) |
+| 2026-10-16 | Feature | feat: Buy view, private order page and direct-payment actions in Orders | [7bfa94ac8](2026-10-16-7bfa94ac8-buy-view-private-order-page-and-direct-payment-a.md) |
+| 2026-10-16 | Feature | feat: pre-order seller details and partnership attribution for direct orders | [b4593d865](2026-10-16-b4593d865-pre-order-seller-details-and-partnership-attribu.md) |
+| 2026-10-16 | Feature | feat: guest checkout with direct payment, order links and seller confirmation | [877bb99fc](2026-10-16-877bb99fc-guest-checkout-with-direct-payment-order-links-a.md) |
+| 2026-10-16 | Feature | feat: owners manage payment accounts and contact visibility | [2e2416fac](2026-10-16-2e2416fac-owners-manage-payment-accounts-and-contact-visib.md) |
+| 2026-10-16 | Feature | feat: seller payment accounts and server-enforced contact privacy (API) | [6947803f4](2026-10-16-6947803f4-seller-payment-accounts-and-server-enforced-cont.md) |
+| 2026-10-16 | Feature | feat: stop charging commission and taking money into NodBusiness accounts | [92dd63178](2026-10-16-92dd63178-stop-charging-commission-and-taking-money-into-n.md) |
+| 2026-10-16 | Feature | feat: announce newly published business sites to followers | [670bb2154](2026-10-16-670bb2154-announce-newly-published-business-sites-to-follo.md) |
+| 2026-10-16 | Feature | feat: link previews for shared business and product links | [01c35db4f](2026-10-16-01c35db4f-link-previews-for-shared-business-and-product-li.md) |
+| 2026-10-16 | Documentation | docs: record platform model decisions (2026-10-16) | [fe5517cf9](2026-10-16-fe5517cf9-record-platform-model-decisions-2026-10-16.md) |
+| 2026-10-16 | Bugfix | fix: re-check plan entitlements when a published showroom's sections change (F-H8) | [46557bec7](2026-10-16-46557bec7-re-check-plan-entitlements-when-a-published-show.md) |
+| 2026-10-16 | Feature | feat: demo workspace browse, subscription lifecycle policy, partnership and builder updates | [ba3141b90](2026-10-16-ba3141b90-demo-workspace-browse-subscription-lifecycle-pol.md) |
 | 2026-10-15 | Maintenance | Merge pull request #104 from sentflix01/claude/owner-decision-fixes | [6cbc3063d](2026-10-15-6cbc3063d-merge-pull-request-104-from-sentflix01-claude-ow.md) |
 | 2026-10-15 | Bugfix | fix: mount the sonner Toaster so app messages actually appear | [c9f8d9740](2026-10-15-c9f8d9740-mount-the-sonner-toaster-so-app-messages-actuall.md) |
 | 2026-10-15 | Bugfix | fix: answer a wrong delete-account password with 422, not 401 | [499d0e5e9](2026-10-15-499d0e5e9-answer-a-wrong-delete-account-password-with-422-.md) |
