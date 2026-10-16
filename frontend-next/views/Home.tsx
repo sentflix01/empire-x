@@ -397,7 +397,12 @@ function Home() {
                         : ''}
                     >
                       <ErrorBoundary>
-                        <PostCard post={post} currentUser={user} />
+                        <PostCard
+                          post={post}
+                          currentUser={user}
+                          currentUserId={user?.id}
+                          onDeleted={(id) => setPosts(prev => prev.filter(p => p.id !== id))}
+                        />
                       </ErrorBoundary>
                     </motion.div>
                   ))}

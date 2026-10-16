@@ -261,9 +261,9 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/hashtags/trending` | 🌐 public | routes/hashtags.ts:24 |
-| `GET` | `/api/hashtags/:name` | ⚪ optional | routes/hashtags.ts:44 |
-| `GET` | `/api/hashtags/:name/posts` | ⚪ optional | routes/hashtags.ts:68 |
+| `GET` | `/api/hashtags/trending` | 🌐 public | routes/hashtags.ts:48 |
+| `GET` | `/api/hashtags/:name` | ⚪ optional | routes/hashtags.ts:68 |
+| `GET` | `/api/hashtags/:name/posts` | ⚪ optional | routes/hashtags.ts:92 |
 
 ## internalJobs — run scheduled jobs on request.
 
@@ -362,12 +362,12 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `GET` | `/api/posts/:id` | ⚪ optional | routes/posts.ts:130 |
 | `POST` | `/api/posts/` | 🔒 auth | routes/posts.ts:140 |
 | `PUT` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:172 |
-| `DELETE` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:193 |
-| `GET` | `/api/posts/:id/like` | ⚪ optional | routes/posts.ts:205 |
-| `POST` | `/api/posts/:id/like` | 🔒 auth | routes/posts.ts:213 |
-| `GET` | `/api/posts/:id/comments` | ⚪ optional | routes/posts.ts:243 |
-| `POST` | `/api/posts/:id/comments` | 🔒 auth | routes/posts.ts:258 |
-| `DELETE` | `/api/posts/:postId/comments/:commentId` | 🔒 auth | routes/posts.ts:310 |
+| `DELETE` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:206 |
+| `GET` | `/api/posts/:id/like` | ⚪ optional | routes/posts.ts:227 |
+| `POST` | `/api/posts/:id/like` | 🔒 auth | routes/posts.ts:235 |
+| `GET` | `/api/posts/:id/comments` | ⚪ optional | routes/posts.ts:265 |
+| `POST` | `/api/posts/:id/comments` | 🔒 auth | routes/posts.ts:280 |
+| `DELETE` | `/api/posts/:postId/comments/:commentId` | 🔒 auth | routes/posts.ts:332 |
 
 ## products — Marketplace products
 

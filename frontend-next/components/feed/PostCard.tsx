@@ -15,6 +15,12 @@ import { AnimatePresence } from 'framer-motion';
 import { fromNow } from '@/lib/date';
 import TickerBar from './TickerBar';
 import PostCardMenu from './PostCardMenu';
+import EditPostDialog from './EditPostDialog';
+import { toast } from 'sonner';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import BusinessShowroomFeed from './BusinessShowroomFeed';
 import ShareButton from '@/components/ui/ShareButton';
 import BookmarkButton from '@/components/ui/BookmarkButton';
@@ -38,6 +44,9 @@ interface Post {
   like_count?: number;
   comment_count?: number;
   created_at?: string;
+  post_type?: string;
+  /** Set when the author edited the text or photo. */
+  edited_at?: string | null;
 }
 
 import { UserProfile } from '@/api/entities';
@@ -324,11 +333,56 @@ interface PostCardProps {
   currentUserId?: string;
   currentUser?: { full_name?: string | null; [key: string]: unknown } | null;
   feedMode?: string;
+  /** Called after the post was deleted, so the list can drop it. */
+  onDeleted?: (postId: string) => void;
 }
 
-export default function PostCard({ post, currentUserId, currentUser, feedMode }: PostCardProps) {
+export default function PostCard({ post: postProp, currentUserId, currentUser, feedMode, onDeleted }: PostCardProps) {
   const { t } = useTranslation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user: authUser } = useAuth();
+  // Local copy so an edit shows at once; resets when the parent passes a new post.
+  const [post, setPost] = useState<Post>(postProp);
+  useEffect(() => { setPost(postProp); }, [postProp]);
+  const [editOpen, setEditOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+  const viewerId = currentUserId ?? (authUser?.id as string | undefined);
+  const isAuthor = Boolean(viewerId && post.author_id === viewerId);
+  const isAdmin = (authUser as { role?: string } | null)?.role === 'admin' || (currentUser as { role?: string } | null | undefined)?.role === 'admin';
+
+  const savePost = async (changes: { content: string; image_url: string | null }) => {
+    const before = post;
+    const post_type = before.post_type === 'image' || before.post_type === 'text' || !before.post_type
+      ? (changes.image_url ? 'image' : 'text')
+      : before.post_type;
+    setPost({ ...before, ...changes, post_type, edited_at: new Date().toISOString() });
+    try {
+      const saved = await entities.Post.update(before.id, { ...changes, post_type }) as Partial<Post> | null;
+      if (saved) setPost((current) => ({ ...current, ...saved }));
+      toast.success('Post updated');
+    } catch (err) {
+      setPost(before);
+      throw err;
+    }
+  };
+
+  const deletePost = async () => {
+    // Hide the card at once and bring it back if the request fails.
+    setDeleting(true);
+    setConfirmDelete(false);
+    setDeleted(true);
+    try {
+      await entities.Post.delete(post.id);
+      toast.success('Post deleted');
+      onDeleted?.(post.id);
+    } catch {
+      setDeleted(false);
+      toast.error('Could not delete the post. Try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
   const embeddedLikedByMe = (post as unknown as Record<string, unknown>).liked_by_me;
   const [liked, setLiked] = useState(Boolean((post as unknown as Record<string, unknown>).liked_by_me));
   const [likeCount, setLikeCount] = useState(post.like_count ?? 0);
@@ -506,6 +560,8 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
   };
   const vb = VBADGE[variant] ?? null;
 
+  if (deleted) return null;
+
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-sm transition-shadow">
       {/* Header */}
@@ -561,6 +617,9 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
           )}
           <p className="text-xs text-muted-foreground">
             {viewMode === 'business' ? t('feed.businessShowroom') : fromNow(post.created_at)}
+            {viewMode !== 'business' && post.edited_at && (
+              <span title={`Edited ${fromNow(post.edited_at)}`}> · Edited</span>
+            )}
           </p>
         </div>
         {/* Profile Peek button */}
@@ -571,7 +630,12 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
         >
           <Maximize2 className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
         </button>
-        <PostCardMenu currentView={viewMode} onSelect={handleViewChange} />
+        <PostCardMenu
+          currentView={viewMode}
+          onSelect={handleViewChange}
+          onEdit={isAuthor ? () => setEditOpen(true) : undefined}
+          onDelete={isAuthor || isAdmin ? () => setConfirmDelete(true) : undefined}
+        />
       </div>
 
       {/* Body */}
@@ -725,7 +789,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
                                   { label: 'Copy',     icon: '📋', action: () => { navigator.clipboard?.writeText(c.content ?? ''); setCommentMenuId(null); } },
                                   { label: 'Copy Link',icon: '🔗', action: () => { navigator.clipboard?.writeText(`${window.location.href}#comment-${c.id}`); setCommentMenuId(null); } },
                                   { label: 'Translate',icon: '🌐', action: () => setCommentMenuId(null) },
-                                  ...((c as any).author_id === currentUserId || (currentUser as any)?.role === 'admin'
+                                  ...((c as any).author_id === viewerId || isAdmin
                                     ? [{ label: 'Delete', icon: '🗑️', action: () => { handleDeleteComment(c.id, null); setCommentMenuId(null); }, danger: true }]
                                     : []),
                                 ].map(item => (
@@ -747,7 +811,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
                             <Reply className="w-3 h-3" />
                             {t('common.reply')}
                           </button>
-                          {((c as any).author_id === currentUserId || (currentUser as any)?.role === 'admin') && (
+                          {((c as any).author_id === viewerId || isAdmin) && (
                             <button onClick={() => handleDeleteComment(c.id, null)}
                               className="text-[11px] text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all flex items-center gap-0.5">
                               <X className="w-3 h-3" /> Delete
@@ -807,7 +871,7 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
                                     <p className="text-xs font-semibold">{reply.author_name ?? 'Unknown'}</p>
                                     <p className="text-sm">{reply.content}</p>
                                   </div>
-                                  {((reply as any).author_id === currentUserId || (currentUser as any)?.role === 'admin') && (
+                                  {((reply as any).author_id === viewerId || isAdmin) && (
                                     <button onClick={() => handleDeleteComment(reply.id, c.id)}
                                       className="mt-0.5 ml-2 text-[11px] text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all flex items-center gap-0.5">
                                       <X className="w-3 h-3" /> Delete
@@ -850,6 +914,30 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
           />
         )}
       </AnimatePresence>
+
+      {isAuthor && (
+        <EditPostDialog open={editOpen} post={post} onOpenChange={setEditOpen} onSave={savePost} />
+      )}
+      <AlertDialog open={confirmDelete} onOpenChange={(open: boolean) => { if (!deleting) setConfirmDelete(open); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader className="">
+            <AlertDialogTitle>Delete post?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the post with its likes and comments. It can&apos;t be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="">
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={(e: React.MouseEvent) => { e.preventDefault(); void deletePost(); }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -14,10 +14,12 @@ Newly introduced as part of recent development; see source and git history for t
 
 ## 3. What does it do?
 
-Extracted facts (auto):
-- Lines: ~76
-- API references:
-  - `/api/internal/jobs/:name`
+
+### Endpoints (1)
+
+| Method | Path | Auth | Line |
+|---|---|---|---|
+| `POST` | `/api/internal/jobs/:name` | public | 45 |
 
 ## 4. What does it touch?
 

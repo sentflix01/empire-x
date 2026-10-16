@@ -13,7 +13,7 @@ import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { announcementLiveSql, guestPostSql, SIGN_IN_REQUIRED } from '../lib/siteVisibility';
 import { getRecord, createRecord, updateRecord, deleteRecord } from '../utils/crud';
-import { syncHashtags } from './hashtags';
+import { syncHashtags, resyncHashtags, unlinkHashtags } from './hashtags';
 import { emitNotification } from '../socket';
 import { sendPushToUser } from './push';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache';
@@ -171,23 +171,36 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
 
 router.put('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const existing = await getRecord<{author_id:string}>('posts', req.params.id);
+    const existing = await getRecord<{author_id:string; image_url:string|null}>('posts', req.params.id);
     if (!existing) { res.status(404).json({ error: 'Post not found' }); return; }
     if (existing.author_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
     const body = req.body as Record<string, unknown>;
     const allowed = ['content', 'image_url', 'post_type'] as const;
     const updates = Object.fromEntries(allowed.filter(key => body[key] !== undefined).map(key => [key, body[key]]));
     if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable post fields provided' }); return; }
-    if (updates.content !== undefined && (typeof updates.content !== 'string' || !updates.content.trim())) {
+    if (updates.image_url !== undefined && updates.image_url !== null && typeof updates.image_url !== 'string') {
+      res.status(422).json({ error: 'image_url must be a string or null' }); return;
+    }
+    // A photo post may have an empty caption; a post with no photo needs text.
+    const imageAfterEdit = updates.image_url !== undefined ? updates.image_url : existing.image_url;
+    if (updates.content !== undefined && (typeof updates.content !== 'string' || (!updates.content.trim() && !imageAfterEdit))) {
       res.status(422).json({ error: 'content must be a non-empty string' }); return;
+    }
+    if (updates.content === undefined && updates.image_url === null && !String((existing as Record<string,unknown>).content ?? '').trim()) {
+      res.status(422).json({ error: 'A post needs text or a photo' }); return;
     }
     if (updates.post_type !== undefined && !['text', 'image', 'product', 'task', 'event', 'poll'].includes(String(updates.post_type))) {
       res.status(422).json({ error: 'Invalid post_type' }); return;
     }
+    if (updates.content !== undefined || updates.image_url !== undefined) (updates as Record<string, unknown>).edited_at = new Date().toISOString();
     const updated = await updateRecord('posts', req.params.id, updates);
+    if (typeof updates.content === 'string') await resyncHashtags(req.params.id, updates.content).catch(() => undefined);
     invalidateCache('posts:list').catch(() => undefined);
     res.json(updated);
-  } catch { res.status(500).json({ error: 'Failed to update post' }); }
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'Failed to update post');
+    res.status(500).json({ error: 'Failed to update post' });
+  }
 });
 
 router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
@@ -195,10 +208,19 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
     const existing = await getRecord<{author_id:string}>('posts', req.params.id);
     if (!existing) { res.status(404).json({ error: 'Post not found' }); return; }
     if (existing.author_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
+    // Likes and saves point at posts by target_id without a foreign key, and
+    // hashtag post counts are denormalised, so tidy them before the delete.
+    const { rows: tagRows } = await pool.query<{ hashtag_id: string }>('SELECT hashtag_id FROM post_hashtags WHERE post_id = $1', [req.params.id]);
+    await unlinkHashtags(req.params.id, tagRows.map((row) => row.hashtag_id));
+    await pool.query("DELETE FROM likes WHERE target_type = 'post' AND target_id = $1", [req.params.id]);
+    await pool.query("DELETE FROM saves WHERE target_type = 'post' AND target_id = $1", [req.params.id]);
     await deleteRecord('posts', req.params.id);
     invalidateCache('posts:list').catch(()=>undefined);
     res.json({ success: true });
-  } catch { res.status(500).json({ error: 'Failed to delete post' }); }
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'Failed to delete post');
+    res.status(500).json({ error: 'Failed to delete post' });
+  }
 });
 
 // Like toggle — atomic CTE (single round-trip)
