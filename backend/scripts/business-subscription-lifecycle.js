@@ -189,7 +189,56 @@ async function permanentlyRemoveBusiness(row) {
   }
 }
 
+function buildLegacyGrantHtml(businessName, periodEnd, subscriptionUrl) {
+  const title = escapeHtml(businessName || 'your business');
+  const until = escapeHtml(new Date(periodEnd).toDateString());
+  return `<p>Hello,</p>
+    <p>Every NodBusiness website now belongs to a Business profile. So that your website stays online, we created the Business profile <strong>${title}</strong> for it.</p>
+    <p>It is free until <strong>${until}</strong>. Choose a plan before then to keep your website published.</p>
+    <p><a href="${escapeHtml(subscriptionUrl)}">Review your Business profile and plan</a></p>`;
+}
+
+/**
+ * One email per Business profile that migrate59 created for a legacy website
+ * (owner decision 1, 2026-10-16). Claimed through business_subscription_notices
+ * so it is sent once, even with several workers.
+ */
+async function processLegacyGrantNotices(sendEmail) {
+  const { rows } = await pool.query(
+    `SELECT b.id AS business_id, b.business_name, u.email, bs.current_period_end
+       FROM businesses b
+       JOIN users u ON u.id = b.owner_id
+       JOIN business_subscriptions bs ON bs.business_id = b.id
+      WHERE b.legacy_migrated_at IS NOT NULL AND u.email IS NOT NULL
+        AND NOT EXISTS (SELECT 1 FROM business_subscription_notices n
+                         WHERE n.business_id = b.id AND n.notice_key = 'legacy_grant')`,
+  );
+  const send = sendEmail || (async (...args) => {
+    const { sendCustomEmail } = await import('../utils/mailer.js');
+    return sendCustomEmail(...args);
+  });
+  let sent = 0;
+  for (const row of rows) {
+    const claim = await pool.query(
+      `INSERT INTO business_subscription_notices (business_id, period_end, notice_key)
+       VALUES ($1, $2, 'legacy_grant') ON CONFLICT DO NOTHING RETURNING business_id`,
+      [row.business_id, row.current_period_end],
+    );
+    if (!claim.rowCount) continue;
+    try {
+      const url = `${(process.env.FRONTEND_URL || 'https://nodbusiness.app').split(',')[0]}/business/subscription?businessId=${encodeURIComponent(row.business_id)}`;
+      await send(row.email, `Your website now has a Business profile: ${row.business_name}`, buildLegacyGrantHtml(row.business_name, row.current_period_end, url));
+      sent++;
+    } catch (err) {
+      await pool.query(`DELETE FROM business_subscription_notices WHERE business_id=$1 AND notice_key='legacy_grant'`, [row.business_id]);
+      logger.error({ err: err.message, businessId: row.business_id }, 'Legacy Business profile email failed');
+    }
+  }
+  return sent;
+}
+
 async function runBusinessSubscriptionLifecycle(now = new Date(), options = {}) {
+  const legacyNotices = await processLegacyGrantNotices(options.sendEmail);
   const { rows } = await pool.query(
     `SELECT b.id AS business_id, b.owner_id, b.business_name, u.email,
             bs.current_period_end
@@ -224,8 +273,8 @@ async function runBusinessSubscriptionLifecycle(now = new Date(), options = {}) 
     }
   }
   const draftLifecycle = await processDraftNotices(now, options.sendEmail);
-  logger.info({ notices, removed, draftNotices: draftLifecycle.notices, expiredDrafts: draftLifecycle.deleted }, 'Business subscription lifecycle tick complete');
-  return { notices, removed, draftNotices: draftLifecycle.notices, expiredDrafts: draftLifecycle.deleted };
+  logger.info({ notices, removed, legacyNotices, draftNotices: draftLifecycle.notices, expiredDrafts: draftLifecycle.deleted }, 'Business subscription lifecycle tick complete');
+  return { notices, removed, legacyNotices, draftNotices: draftLifecycle.notices, expiredDrafts: draftLifecycle.deleted };
 }
 
 function startBusinessSubscriptionLifecycle() {
@@ -236,4 +285,4 @@ function startBusinessSubscriptionLifecycle() {
   setTimeout(tick, 15_000).unref();
 }
 
-module.exports = { runBusinessSubscriptionLifecycle, startBusinessSubscriptionLifecycle, buildNoticeHtml, buildDraftNoticeHtml, processDraftNotices };
+module.exports = { runBusinessSubscriptionLifecycle, startBusinessSubscriptionLifecycle, buildNoticeHtml, buildDraftNoticeHtml, buildLegacyGrantHtml, processDraftNotices, processLegacyGrantNotices };

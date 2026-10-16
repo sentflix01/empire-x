@@ -59,6 +59,7 @@ psql $DATABASE_URL -c "\dt"  # list all tables
 | `migrate56.js` | `business_payment_accounts`; `public_contact_fields` on businesses and profiles; `businesses.pickup_address` |
 | `migrate57.js` | Direct-payment orders: nullable `buyer_id` for guests, private-link token hash, payment report/confirm/expiry columns, receipt key, and the `awaiting_payment`, `payment_reported` and `expired` statuses |
 | `migrate58.js` | `businesses.visibility` (`public` default, `private` = signed-in users only) |
+| `migrate59.js` | Legacy published sites without a Business profile: one profile per real owner, sites linked, a 30-day free period at the tier their sections need, an in-app notice (`businesses.legacy_migrated_at`); the lifecycle job emails each owner once |
 
 Mewacho and the other deferred areas are not mounted in the launch app. Their historical schemas and records are retained; see `docs/product/POST_LAUNCH_FEATURES.md` before considering data cleanup or a future rebuild.
 

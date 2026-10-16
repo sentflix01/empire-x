@@ -148,6 +148,22 @@ documents when verified; do not copy stale values into new work.
   members.
 - **Related documentation:** [Platform model decisions](../docs/decisions/platform-model-decisions.md) §2, §7.1, §7.3, §7.5
 
+### 2026-10-16 — Legacy websites get a Business profile and a 30-day free period
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** All 12 public production sites were published before every site
+  had to belong to a Business profile (`business_id` is null), so the new
+  visibility rules would hide them.
+- **Decision:** `migrate59` creates one Business profile per real owner from
+  their latest site's title and category, links their published sites, grants
+  30 days free at the plan tier their sections need, and notifies them in the
+  app; the lifecycle job emails each owner once. After the free period the
+  normal expiry timeline applies.
+- **Consequences:** The free period must not end before owners can pay in ETB
+  (Phase 1). If Phase 1 slips, extend the grant before it ends.
+- **Related documentation:** [Database](../docs/backend/DATABASE.md), [Platform model decisions](../docs/decisions/platform-model-decisions.md) §4, §6
+
 ### 2026-10-16 — globals.css is the only Tailwind configuration; CI fails on missing utilities
 
 - **Status:** Accepted

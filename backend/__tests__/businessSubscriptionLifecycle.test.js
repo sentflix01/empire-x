@@ -10,6 +10,8 @@ const mockDraft = {
 jest.mock('../db/poolJsShim.cjs', () => ({
   query: jest.fn(async (sql, params = []) => {
     if (sql.includes('FROM business_subscriptions bs')) return { rows: [] };
+    // Legacy Business profile emails (migrate59): none pending in these tests.
+    if (sql.includes('legacy_migrated_at')) return { rows: [] };
     if (sql.includes('FROM showrooms s')) return { rows: [{ ...mockDraft }] };
     if (sql.includes('INSERT INTO showroom_draft_notices')) {
       const key = `${params[0]}:${params[1]}`;
