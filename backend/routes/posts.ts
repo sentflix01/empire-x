@@ -37,6 +37,21 @@ async function attachLikedByMe(userId: string | undefined, rows: Array<Record<st
 // boosts and following=true filters on the caller's follow graph. Caching
 // those under a shared key served one user's personalized feed to another.
 /** Guests may open only announcement posts of live, public business sites. */
+/**
+ * The ranked feed orders by a score, not by time, so it cannot page by
+ * created_at. Its cursor is "<snapshot ISO>|<offset>": every page scores posts
+ * against the same snapshot time and only includes posts created before it, so
+ * the order is stable and no post is skipped or repeated.
+ */
+export function parseFeedCursor(cursor: string | undefined, now = new Date()): { snapshot: Date; offset: number } | null {
+  if (!cursor) return { snapshot: now, offset: 0 };
+  const [iso, rawOffset] = cursor.split('|');
+  const snapshot = new Date(iso);
+  const offset = rawOffset === undefined ? 0 : Number(rawOffset);
+  if (Number.isNaN(snapshot.getTime()) || !Number.isInteger(offset) || offset < 0 || offset > 10_000) return null;
+  return { snapshot, offset };
+}
+
 async function guestMaySeePost(postId: string): Promise<boolean> {
   const { rows } = await pool.query(`SELECT 1 FROM posts p WHERE p.id=$1 AND ${guestPostSql('p')}`, [postId]);
   return rows.length > 0;
@@ -46,8 +61,6 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: tr
   try {
     const { sort='-created_at', limit='15', author_id, post_type, feed='false', cursor } = req.query as Record<string,string>;
     const lim = Math.min(parseInt(limit)||15, 50);
-    const cursorTs = cursor ? new Date(cursor) : new Date();
-    if (isNaN(cursorTs.getTime())) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
     // Announcements of sites that are no longer live are hidden; guests see
     // only announcements of public businesses (decision §7).
     const realFilter = (req.realOnly ? `AND p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)` : '')
@@ -55,6 +68,8 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: tr
 
     // Smart feed mode
     if (feed==='true' && !author_id && !post_type) {
+      const page = parseFeedCursor(cursor);
+      if (!page) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
       let followedIds: string[] = [];
       if (req.user?.id) {
         const { rows: fw } = await pool.query('SELECT followed_id FROM follows WHERE follower_id=$1 LIMIT 500', [req.user.id]);
@@ -64,25 +79,27 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: tr
       const { rows } = await pool.query(
         `SELECT p.*,
            CASE WHEN p.author_id=ANY($3::uuid[]) THEN 30 ELSE 0 END AS social_boost,
-           GREATEST(0, 168-EXTRACT(EPOCH FROM (NOW()-p.created_at))/3600.0) AS recency_score,
+           GREATEST(0, 168-EXTRACT(EPOCH FROM ($2::timestamptz-p.created_at))/3600.0) AS recency_score,
            (p.like_count*0.4 + p.comment_count*0.3) AS engagement_score
          FROM posts p WHERE p.created_at < $2 ${realFilter}
          ORDER BY
            (CASE WHEN p.author_id=ANY($3::uuid[]) THEN 30 ELSE 0 END
-            + GREATEST(0, 168-EXTRACT(EPOCH FROM (NOW()-p.created_at))/3600.0)
+            + GREATEST(0, 168-EXTRACT(EPOCH FROM ($2::timestamptz-p.created_at))/3600.0)
             + p.like_count*0.4 + p.comment_count*0.3) DESC,
-           p.created_at DESC LIMIT $1`,
-        [lim, cursorTs, idList],
+           p.created_at DESC, p.id DESC LIMIT $1 OFFSET $4`,
+        [lim, page.snapshot, idList, page.offset],
       );
       await attachLikedByMe(req.user?.id, rows as Array<Record<string,unknown>>);
       res.json({
         posts: rows,
-        next_cursor: rows.length===lim ? rows[rows.length-1].created_at : null,
+        next_cursor: rows.length===lim ? `${page.snapshot.toISOString()}|${page.offset + rows.length}` : null,
       });
       return;
     }
 
-    // Default list with keyset pagination
+    // Default list with keyset pagination (time-ordered, so the cursor is a timestamp)
+    const cursorTs = cursor ? new Date(cursor) : new Date();
+    if (isNaN(cursorTs.getTime())) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
     const conditions = [`p.created_at < $1`];
     const params: unknown[] = [cursorTs];
     if (author_id) { params.push(author_id); conditions.push(`p.author_id=$${params.length}`); }
@@ -304,3 +321,4 @@ router.delete('/:postId/comments/:commentId', requireAuth, async (req: Request, 
 });
 
 module.exports = router;
+module.exports.parseFeedCursor = parseFeedCursor;

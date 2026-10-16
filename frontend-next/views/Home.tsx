@@ -102,7 +102,8 @@ function Home() {
   const [filter, setFilter]       = useState("all");
   const [highlightPostId, setHighlightPostId] = useState<string|null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const offsetRef   = useRef(0);
+  // Opaque cursor from the API (the ranked feed pages within a fixed snapshot).
+  const cursorRef   = useRef<string | null>(null);
   const PAGE_SIZE   = 15;
 
   // Handle ?post=<id> from notification deep-link
@@ -147,15 +148,17 @@ function Home() {
   }, []);
 
   const loadPosts = async (reset = false) => {
-    if (reset) { setLoading(true); offsetRef.current = 0; setHasMore(true); }
+    if (reset) { setLoading(true); cursorRef.current = null; setHasMore(true); }
     setFeedError('');
     try {
-      const res = await client.get("/api/posts", { params: { feed: "true", limit: PAGE_SIZE, offset: reset ? 0 : offsetRef.current } });
+      const params: Record<string, string | number> = { feed: "true", limit: PAGE_SIZE };
+      if (!reset && cursorRef.current) params.cursor = cursorRef.current;
+      const res = await client.get("/api/posts", { params });
       const payload = res.data;
       const data = Array.isArray(payload) ? payload : (payload?.posts ?? []);
       setPosts(reset ? data : prev => [...prev, ...data]);
-      offsetRef.current = (reset ? 0 : offsetRef.current) + data.length;
-      if (data.length < PAGE_SIZE) setHasMore(false);
+      cursorRef.current = payload?.next_cursor ?? null;
+      if (!cursorRef.current) setHasMore(false);
     } catch (err: any) {
       if (reset) setPosts([]);
       setFeedError(err?.error || err?.message || 'Failed to load posts. Check your connection.');
@@ -164,21 +167,23 @@ function Home() {
   };
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
+    if (loadingMore || !hasMore || !cursorRef.current) return;
     setLoadingMore(true);
     try {
-      const res = await client.get("/api/posts", { params: { feed: "true", limit: PAGE_SIZE, offset: offsetRef.current } });
+      const params: Record<string, string> = { limit: String(PAGE_SIZE), cursor: cursorRef.current };
+      if (filter === "following") params.following = "true"; else params.feed = "true";
+      const res = await client.get("/api/posts", { params });
       const payload = res.data;
       const data = Array.isArray(payload) ? payload : (payload?.posts ?? []);
       setPosts(prev => {
         const existingIds = new Set(prev.map(p => p.id));
         return [...prev, ...data.filter(p => !existingIds.has(p.id))];
       });
-      offsetRef.current += data.length;
-      if (data.length < PAGE_SIZE) setHasMore(false);
+      cursorRef.current = payload?.next_cursor ?? null;
+      if (!cursorRef.current) setHasMore(false);
     } catch { /* silenced */ }
     setLoadingMore(false);
-  }, [loadingMore, hasMore]);
+  }, [loadingMore, hasMore, filter]);
 
   // Intersection Observer — fires when sentinel enters viewport.
   useEffect(() => {
@@ -193,7 +198,6 @@ function Home() {
 
   const handlePostCreated = (post) => {
     setPosts(prev => [post, ...prev]);
-    offsetRef.current += 1;
   };
 
   const handleFilterChange = async (key) => {
@@ -207,7 +211,7 @@ function Home() {
     }
 
     setLoading(true);
-    offsetRef.current = 0;
+    cursorRef.current = null;
     setHasMore(true);
     try {
       // Following: fetch posts from people the user follows
@@ -221,8 +225,8 @@ function Home() {
       const payload = res.data;
       const data = Array.isArray(payload) ? payload : (payload?.posts ?? []);
       setPosts(key === "trending" ? [...data].sort((a, b) => (b.like_count || 0) - (a.like_count || 0)) : data);
-      offsetRef.current = data.length;
-      if (data.length < 30) setHasMore(false);
+      cursorRef.current = payload?.next_cursor ?? null;
+      if (!cursorRef.current) setHasMore(false);
       setFeedError('');
     } catch (err: any) {
       setPosts([]);
