@@ -66,6 +66,12 @@ describe('unpaid website draft reminders', () => {
     expect(sendEmail).toHaveBeenCalledTimes(3);
   });
 
+  it('passes the clock as a timestamp, not an interval', async () => {
+    await runBusinessSubscriptionLifecycle(new Date('2026-10-12T12:00:00Z'), { sendEmail: jest.fn() });
+    const draftQuery = pool.query.mock.calls.find(([sql]) => sql.includes('FROM showrooms s'))[0];
+    expect(draftQuery).toContain("$1::timestamptz + INTERVAL '48 hours'");
+  });
+
   it('retains the draft if the final reminder email fails', async () => {
     const now = new Date('2026-10-12T12:00:00Z');
     mockDraft.expires_at = now;
