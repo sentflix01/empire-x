@@ -123,11 +123,21 @@ Set at: Render → nodbusiness-backend → Environment
 | `CHAPA_SECRET_KEY` | `CHASECK_test_...` or `CHASECK_live_...` | No | Ethiopian payment gateway. Feature flag `FF_CHAPA_PAYMENTS=true`. |
 | `STRIPE_SECRET_KEY` | `sk_test_...` or `sk_live_...` | No | Currently set to `FF_STRIPE_PAYMENTS=false`. Add key when ready. |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` | No | Required to verify Stripe webhook signatures. |
+| `STRIPE_SUBSCRIPTION_WEBHOOK_SECRET` | `whsec_...` | No | Separate signing secret for subscription lifecycle events. |
 | `STRIPE_CURRENCY` | `usd` | No | Default `usd`. Set `etb` for Ethiopian Birr (falls back to USD if rejected). |
 | `STRIPE_ETB_TO_USD_RATE` | `0.008` | No | ETB to USD conversion rate for display. |
-| `STRIPE_PRICE_PREMIUM_MONTHLY` | `price_...` | No | Stripe price ID for Premium ($12/mo) plan. |
-| `STRIPE_PRICE_PRO_MONTHLY` | `price_...` | No | Stripe price ID for Pro ($49/mo) plan. |
+| `STRIPE_PRICE_NORMAL_MONTHLY_ETB` | `price_...` | No | Monthly recurring Price for Normal (ETB 100). |
+| `STRIPE_PRICE_NORMAL_MONTHLY_USD` | `price_...` | No | Monthly recurring Price for Normal (USD $1). |
+| `STRIPE_PRICE_PREMIUM_MONTHLY_ETB` | `price_...` | No | Monthly recurring Price for Premium (ETB 500). |
+| `STRIPE_PRICE_PREMIUM_MONTHLY_USD` | `price_...` | No | Monthly recurring Price for Premium (USD $5). |
+| `STRIPE_PRICE_PRO_MONTHLY_ETB` | `price_...` | No | Monthly recurring Price for Pro (ETB 1,000). |
+| `STRIPE_PRICE_PRO_MONTHLY_USD` | `price_...` | No | Monthly recurring Price for Pro (USD $10). |
 | `COMMISSION_RATE` | e.g. `0.05` | No | Platform commission rate (decimal). |
+
+Subscription billing uses the six currency-specific Price IDs above; it does
+not convert between currencies or fall back to the legacy unscoped subscription
+Price ID variables. The backend verifies each Stripe Price's currency, amount,
+and monthly interval before checkout.
 
 ### Web Push Notifications
 

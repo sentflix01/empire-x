@@ -105,6 +105,23 @@ PR description explains: what changed, why, how to test.
 | Client env vars | `NEXT_PUBLIC_` prefix | `NEXT_PUBLIC_API_BASE_URL` |
 | Types/interfaces | PascalCase | `interface ProductCard { ... }` |
 
+### Theme tokens and Tailwind v4
+
+Tailwind v4 has no `tailwind.config.js`. **`frontend-next/app/globals.css` is the only theme
+configuration**: colours, radius and animations live in its `@theme inline` block, and plugins
+load there with `@plugin`. Tailwind silently generates nothing for a utility whose token is not
+defined (for example `bg-card` without `--color-card`). That hid card, button and dialog
+styling across the site from July to October 2026.
+
+- To add a design token (a colour, radius or animation), define its CSS variable for light and
+  `.dark`, then add it to `@theme inline`. Never add a `tailwind.config.js`.
+- A shadcn component added with the CLI may need new tokens (for example `sidebar-*`). Add
+  them to `@theme` in the same change.
+- `npm run check:css` (run after `npm run build`, and blocking in CI) fails when the source
+  uses a theme or plugin utility that the build did not generate. Fix the token or the typo.
+  Add to `ALLOWED` in `scripts/cssUtilityCheck.mjs` only for strings that are not classes,
+  with a reason.
+
 ---
 
 ## API Standards

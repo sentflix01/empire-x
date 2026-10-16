@@ -9,6 +9,7 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import pool from '../db/pool';
 import { requireAuth } from '../middleware/auth';
+import { checkTierLimit } from '../middleware/tierLimit';
 import { getRedis } from '../lib/redis';
 import logger from '../lib/logger';
 import type { Redis as RedisClient } from 'ioredis';
@@ -28,6 +29,18 @@ async function assertOwnership(req: Request, res: Response, next: NextFunction):
     if (rows[0].owner_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
     next();
   } catch (err) { next(err); }
+}
+
+// ── Tier gate ─────────────────────────────────────────────────────────────────
+// External data sources are a Premium feature (lib/subscriptionPlans.ts). Only
+// creating or changing a source is gated: listing, health, refresh, disabling
+// and deleting stay open so a downgraded owner can still clean up.
+const externalSourcesTier = checkTierLimit('external_data_sources');
+function requirePaidTier(req: Request, res: Response, next: NextFunction): void {
+  if (req.user!.role === 'admin') { next(); return; }
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  if (req.method === 'PUT' && Object.keys(body).length === 1 && body.is_enabled === false) { next(); return; }
+  void externalSourcesTier(req, res, next);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -123,7 +136,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
 // ── POST create/upsert ────────────────────────────────────────────────────────
 
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requirePaidTier, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { showroomId } = req.params;
     const { section_key, url, auth_method = 'none', credential, header_name, query_param, ttl_seconds = 300, is_enabled = true } = req.body as Record<string, unknown>;
@@ -146,7 +159,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 
 // ── PUT update ────────────────────────────────────────────────────────────────
 
-router.put('/:sourceId', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:sourceId', requirePaidTier, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { showroomId, sourceId } = req.params;
     const body = req.body as Record<string, unknown>;
@@ -196,7 +209,7 @@ router.get('/:sourceId/mappings', async (req: Request, res: Response, next: Next
   } catch (err) { next(err); }
 });
 
-router.post('/:sourceId/mappings', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:sourceId/mappings', requirePaidTier, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { showroomId, sourceId } = req.params;
     const { source_path, target_field } = req.body as Record<string, string>;

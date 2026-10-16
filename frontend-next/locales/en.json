@@ -299,7 +299,7 @@
     "deliveryNote": "Negotiated with seller",
     "total": "Total",
     "checkout": "Checkout — {{total}} ETB",
-    "payNote": "💳 Pay on delivery · negotiate with each seller via chat",
+    "payNote": "You pay each seller directly. Check out each item with its Buy button.",
     "each": "each",
     "checkoutRedirect": "Redirecting to secure checkout…",
     "orderPlaced": "Order placed! Online payments aren't set up yet — pay on delivery.",

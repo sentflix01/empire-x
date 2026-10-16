@@ -139,7 +139,7 @@ describe('subscription billing periods (F-C2)', () => {
     expect(response.status).toBe(200);
     expect(mockStripe.subscriptions.retrieve).toHaveBeenCalledWith('sub_1');
     const [insert] = callsMatching('INSERT INTO business_subscriptions');
-    const [, , , , start, end] = insert[1] as [string, string, string, string, Date, Date];
+    const [, , , , , start, end] = insert[1] as [string, string, string, string, string, Date, Date];
     expect(start.toISOString()).toBe('2026-10-15T00:00:00.000Z');
     expect(end.toISOString()).toBe('2026-11-15T00:00:00.000Z');
   });
@@ -153,7 +153,7 @@ describe('subscription billing periods (F-C2)', () => {
     });
 
     const [insert] = callsMatching('INSERT INTO business_subscriptions');
-    expect((insert[1] as unknown[]).slice(4)).toEqual([null, null]);
+    expect((insert[1] as unknown[]).slice(5)).toEqual([null, null]);
   });
 
   it('customer.subscription.updated extends the period from items and never moves it back', async () => {

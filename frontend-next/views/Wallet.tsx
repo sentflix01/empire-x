@@ -24,7 +24,6 @@ function Wallet() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [tab, setTab] = useState("overview");
-  const [topupAmount, setTopupAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [bankName, setBankName] = useState("");
   const [accountNum, setAccountNum] = useState("");
@@ -64,17 +63,6 @@ function Wallet() {
     setLoading(false);
   };
 
-  const handleTopup = async () => {
-    if (!topupAmount || parseFloat(topupAmount) <= 0) return;
-    setProcessing(true);
-    try {
-      await client.post("/api/wallet/topup", { amount: parseFloat(topupAmount) });
-      setTopupAmount("");
-      await loadWallet();
-      toast.success(t('wallet.topUpSuccess'));
-    } catch (e) { toast.error(e?.response?.data?.error || t('wallet.topUpFailed')); }
-    setProcessing(false);
-  };
 
   const handleWithdraw = async () => {
     if (!withdrawAmount || !bankName || !accountNum) return;
@@ -143,7 +131,7 @@ function Wallet() {
           <p className="text-sm text-white/70 mt-1">{wallet?.currency || "USD"}</p>
         </div>
         <div className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-5">
-          {["overview","topup","withdraw"].map(t2=>(
+          {["overview","withdraw"].map(t2=>(
             <button key={t2} onClick={()=>setTab(t2)}
               className={`flex-1 py-2 rounded-lg text-xs font-medium capitalize transition-all ${tab===t2?"bg-amber-500 text-white":"text-muted-foreground hover:bg-secondary"}`}>
               {t2 === "topup" ? t('wallet.topUp') : t2 === "withdraw" ? t('wallet.withdraw') : t('wallet.history')}
@@ -175,67 +163,9 @@ function Wallet() {
           </div>
         )}
 
-        {tab === "topup" && (
-          <div className="bg-card rounded-2xl border border-border/50 p-5 space-y-4">
-            <p className="text-sm text-muted-foreground">{t('wallet.topUpDesc')}</p>
-            <div><Label>{t('wallet.amount')}</Label><Input type="number" value={topupAmount} onChange={e=>setTopupAmount(e.target.value)} placeholder={t('wallet.amountPlaceholder')} className="mt-1"/></div>
-
-            {/* Chapa — ETB top-up (primary) */}
-            <Button
-              disabled={processing || !topupAmount || parseFloat(topupAmount) <= 0}
-              className="w-full rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white font-semibold"
-              onClick={async () => {
-                setProcessing(true);
-                try {
-                  const { data } = await client.post("/api/wallet/topup/chapa", {
-                    amount: parseFloat(topupAmount),
-                  });
-                  if (data?.checkout_url) window.location.href = data.checkout_url;
-                  else toast.error("Chapa unavailable — use manual top-up or add CHAPA_SECRET_KEY");
-                } catch (e) {
-                  toast.error(e?.response?.data?.error || "Chapa top-up unavailable");
-                }
-                setProcessing(false);
-              }}
-            >
-              {processing ? "Processing..." : `🇪🇹 Top Up with Chapa • ${parseFloat(topupAmount || "0").toLocaleString()} ETB`}
-            </Button>
-
-            {/* Stripe — cards, wallets & local payment methods */}
-            <Button
-              disabled={processing || !topupAmount || parseFloat(topupAmount) <= 0}
-              className="w-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-semibold"
-              onClick={async () => {
-                setProcessing(true);
-                try {
-                  const { data } = await client.post("/api/wallet/topup/stripe", {
-                    amount: parseFloat(topupAmount),
-                  });
-                  if (data?.checkout_url) {
-                    if (data.display?.currency === "USD") {
-                      toast.info(`You'll be charged ${data.display.amount.toLocaleString()} USD ≈ ${parseFloat(topupAmount).toLocaleString()} ETB`);
-                    }
-                    window.location.href = data.checkout_url;
-                    return; // keep spinner up while redirecting
-                  }
-                  toast.error("Stripe unavailable — use the Chapa top-up instead");
-                } catch (e) {
-                  toast.error(e?.response?.data?.error || "Stripe top-up unavailable");
-                }
-                setProcessing(false);
-              }}
-            >
-              {processing ? "Processing..." : `💳 Top Up with Card & Wallets • ${parseFloat(topupAmount || "0").toLocaleString()} ETB`}
-            </Button>
-
-            {/* Manual / admin top-up — only visible to admin users */}
-            {(wallet as any)?.user_role === 'admin' && (
-              <Button onClick={handleTopup} variant="outline" disabled={processing||!topupAmount} className="w-full rounded-full border-amber-300 text-amber-700">
-                {processing ? t('wallet.processing') : t('wallet.topUpBtn') + " (Admin Test)"}
-              </Button>
-            )}
-          </div>
-        )}
+        {/* NodBusiness never holds funds (docs/decisions/platform-model-decisions.md §1):
+            the wallet no longer accepts money. Existing balances can still be withdrawn. */}
+        <p className="text-xs text-muted-foreground px-1">The wallet no longer accepts top-ups. NodBusiness never holds your money; buyers pay sellers directly. You can withdraw any existing balance.</p>
         {tab === "withdraw" && (
           <div className="bg-card rounded-2xl border border-border/50 p-5 space-y-4">
             <p className="text-sm text-muted-foreground">{t('wallet.withdrawDesc')}</p>

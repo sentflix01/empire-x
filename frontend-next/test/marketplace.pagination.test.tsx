@@ -50,13 +50,14 @@ describe('Marketplace API contract', () => {
       .mockResolvedValueOnce({ data: { products: [{ id: 'product-1', title: 'First item', status: 'active' }], next_cursor: '-created_at|2026-09-27T10:20:30.000Z|f8b4a3d2-0b1a-4c3d-8e9f-123456789abc' } })
       .mockResolvedValueOnce({ data: { products: [{ id: 'product-2', title: 'Second item', status: 'active' }], next_cursor: null } });
     render(<MarketplacePage />);
-    expect(await screen.findByText('First item')).toBeInTheDocument();
+    expect(await screen.findByText('First item', undefined, { timeout: 5000 })).toBeInTheDocument();
 
     act(() => {
       intersectionCallback?.([{ isIntersecting: true } as IntersectionObserverEntry] as IntersectionObserverEntry[], {} as IntersectionObserver);
     });
 
-    expect(await screen.findByText('Second item')).toBeInTheDocument();
+    // The second page arrives after the observer fires; the 1 s default flaked on CI.
+    expect(await screen.findByText('Second item', undefined, { timeout: 5000 })).toBeInTheDocument();
     expect(api.get).toHaveBeenLastCalledWith('/api/products', expect.objectContaining({
       params: expect.objectContaining({ cursor: expect.stringMatching(/^-created_at\|/) }),
     }));

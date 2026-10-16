@@ -33,6 +33,8 @@
 | [showroom-external-api-implementation.md](./showroom-external-api-implementation.md) | Showroom External API | Implementation reference | Full task-by-task implementation notes for all 18 tasks |
 | [product-reviews-decisions.md](./product-reviews-decisions.md) | Product Reviews Bugfix | Bugfix spec | 10 decisions covering component design, state management, testing approach |
 | [gap-fixes-decisions.md](./gap-fixes-decisions.md) | Application-Wide Gap Fixes | Bugfix spec | 13 decisions covering migration bugs, route bugs, CORS, auth, wallet |
+| [account-deletion-decisions.md](./account-deletion-decisions.md) | Account Deletion and Data Export | Owner decision (2026-10-15) | Anonymize instead of delete, keep financial records, guards, export contents |
+| [platform-model-decisions.md](./platform-model-decisions.md) | Platform model | Owner decisions (2026-10-15/16) | Never hold funds, subscription-only revenue, guest checkout, external-payment confirmation, ETB plans, expiry policy, guest/QR access, Demo content |
 
 ---
 

@@ -14,6 +14,7 @@ import { makeQueryClient } from '@/lib/query-client';
 import { AuthProvider } from '@/lib/AuthContext';
 import { CartProvider } from '@/lib/CartContext';
 import { Toaster } from '@/components/ui/toaster';
+import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import AiAssistant from '@/components/AiAssistant';
 import GlobalErrorReporter from '@/components/GlobalErrorReporter';
 import { initSentry } from '@/lib/sentry';
@@ -40,6 +41,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               {children}
               <AiAssistant />
               <Toaster />
+              {/* Views call toast() from 'sonner'; without this container none of those messages appear. */}
+              <SonnerToaster richColors closeButton />
+
             </QueryClientProvider>
           </CartProvider>
         </AuthProvider>

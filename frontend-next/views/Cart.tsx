@@ -1,113 +1,25 @@
 
 'use client';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useState } from "react";
 import { useCart } from "@/lib/CartContext";
-import client from "@/api/client";
-import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, ShoppingBag, Loader2 } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, ShoppingBag } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
+import PurchaseModal from "@/components/checkout/PurchaseModal";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function Cart() {
   const { t } = useTranslation();
   const { cart, updateQty, removeItem, clearCart } = useCart();
-  const [checkingOut, setCheckingOut] = useState(false);
-  const router = useRouter();
+  const { user } = useAuth();
+  // Each seller is paid directly (NodBusiness never holds funds), so items are
+  // checked out one at a time through the Buy view; ordered items leave the cart.
+  const [buying, setBuying] = useState<null | { id: string; product_id: string; title: string; price: string; currency?: string; quantity: number; seller_id: string }>(null);
 
   const { items = [], total = 0 } = cart;
-
-  const handleCheckout = async () => {
-    if (!items.length || checkingOut) return;
-    setCheckingOut(true);
-    try {
-
-      // 1) Try the hosted payment checkout (Stripe supports multi-item carts).
-      //    Prices are re-computed server-side; this only redirects the buyer.
-      try {
-        const { data } = await client.post('/api/orders/checkout/session', {
-          items: items.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
-          // Pass buyer info so order records are populated correctly
-          buyer_name:       '',
-          buyer_email:      '',
-          buyer_phone:      '',
-          delivery_address: '',
-          notes:            '',
-        });
-        if (data?.url) {
-          try { await clearCart(); } catch { /* cart cleanup must not block redirect */ }
-          toast.success(t('cart.checkoutRedirect'));
-          window.location.href = data.url;
-          return;
-        }
-      } catch (err) {
-        // Fall through to COD ONLY when payments are genuinely unavailable:
-        // 503 = Stripe not configured/disabled, no status = network error.
-        // Any other status is a real validation failure from the backend
-        // (stock, draft product, missing product) — surface it and abort so
-        // the COD path can never bypass those checks.
-        if (err?.status && err.status !== 503) {
-          toast.error(err?.error || t('cart.checkoutFailed'));
-          return;
-        }
-      }
-
-      // 2) Graceful degradation: place Cash-on-Delivery orders directly —
-      //    one order per product so persisted quantity/unit_price/total
-      //    always describe the exact item that was ordered.
-      const placedItemIds = [];
-      let placed = 0;
-      try {
-        for (const item of items) {
-          await client.post('/api/orders', {
-            seller_id: item.seller_id,
-            product_id: item.product_id,
-            product_title: item.title,
-            quantity: item.quantity,
-            unit_price: parseFloat(item.price),
-            total_price: Math.round(parseFloat(item.price) * item.quantity * 100) / 100,
-            currency: item.currency || 'USD',
-            status: 'pending',
-          });
-          placedItemIds.push(item.id);
-          placed++;
-        }
-      } catch (err) {
-        // Partial failure: drop the already-ordered items from the cart so a
-        // retry only re-posts the remainder instead of duplicating orders.
-        if (placed > 0) {
-          for (const id of placedItemIds) {
-            try { await removeItem(id); } catch { /* keep removing the rest */ }
-          }
-          toast.error(t('cart.partialCheckout', { placed, reason: err?.error || err?.message || t('cart.checkoutFailed') }));
-          router.push('/orders');
-        } else {
-          toast.error(err?.error || err?.message || t('cart.checkoutFailed'));
-        }
-        return;
-      }
-
-      // 3) Clear the cart — guarded so placed orders are never stranded: if
-      //    the bulk clear fails, remove the ordered items individually.
-      try {
-        await clearCart();
-      } catch {
-        for (const id of placedItemIds) {
-          try { await removeItem(id); } catch { /* best effort */ }
-        }
-      }
-      toast.success(placed > 1 ? t('cart.ordersPlaced', { count: placed }) : t('cart.orderPlaced'));
-      router.push('/orders');
-    } catch {
-      toast.error(t('cart.checkoutFailed'));
-    } finally {
-      setCheckingOut(false);
-    }
-
-  };
 
   return (
       <div className="max-w-2xl mx-auto">
@@ -158,7 +70,7 @@ function Cart() {
                   {/* Details */}
                   <div className="flex-1 min-w-0">
                     <Link href={`/products/${item.product_id}`} className="font-semibold text-sm truncate block hover:underline">{item.title}</Link>
-                    <p className="text-xs text-muted-foreground mt-0.5">{parseFloat(item.price).toLocaleString()} {item.currency || "USD"} each</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{parseFloat(item.price).toLocaleString()} {item.currency || "ETB"} each</p>
 
                     {/* Qty controls */}
                     <div className="flex items-center gap-2 mt-3">
@@ -182,9 +94,12 @@ function Cart() {
                   </div>
 
                   {/* Line total */}
-                  <div className="text-right shrink-0">
-                    <p className="font-bold text-amber-600">{lineTotal.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">{item.currency || "USD"}</p>
+                  <div className="text-right shrink-0 flex flex-col items-end gap-2">
+                    <div>
+                      <p className="font-bold text-amber-600">{lineTotal.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">{item.currency || "ETB"}</p>
+                    </div>
+                    <Button size="sm" className="h-8 rounded-full" onClick={() => setBuying(item)}>Buy</Button>
                   </div>
                 </div>
               );
@@ -207,14 +122,19 @@ function Cart() {
                   <span className="text-amber-600">{total.toLocaleString()} ETB</span>
                 </div>
               </div>
-              <Button onClick={handleCheckout} disabled={checkingOut}
-                className="w-full mt-4 h-12 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 font-semibold">
-                {checkingOut ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                {t('cart.checkout', { total: total.toLocaleString() })} <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-              <p className="text-xs text-center text-muted-foreground mt-3">{t('cart.payNote')}</p>
+              <p className="text-xs text-muted-foreground mt-4">{t('cart.payNote')}</p>
             </div>
           </div>
+        )}
+        {buying && (
+          <PurchaseModal
+            item={{ id: buying.product_id, title: buying.title, price: parseFloat(buying.price), currency: buying.currency || "ETB" }}
+            seller={{ user_id: buying.seller_id }}
+            buyer={user ?? undefined}
+            initialQuantity={buying.quantity}
+            onClose={() => setBuying(null)}
+            onPurchased={() => { const ordered = buying; void Promise.resolve(removeItem(ordered.id)).catch(() => undefined); }}
+          />
         )}
       </div>
   );

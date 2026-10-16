@@ -72,13 +72,13 @@ By creating an account, accessing the Platform, or using any services, you agree
 
 ### 4.1 Plans
 
+Canonical prices are the ones the product charges (`backend/lib/subscriptionPlans.ts`; owner decision 2026-10-15).
+
 | Plan | Monthly | Key Limits |
 |------|---------|------------|
-| **Free** | $0 | 1 showroom, 10 products, 20 orders/mo, 1 team member |
-| **Starter** | $19 | 1 showroom, 100 products, 200 orders, 2 team members, custom domain |
-| **Pro** | $49 | 3 showrooms, 1,000 products, 2,000 orders, 5 team members, API read |
-| **Business** | $99 | 10 showrooms, 10K products, 20K orders, 20 team members, API RW |
-| **Enterprise** | Custom | Unlimited, SSO, SLA, dedicated support, custom contracts |
+| **Free** | $0 | 1 showroom, 50 products, 5 builder sections, 5 GB storage |
+| **Pro** | $12 (650 ETB) | 3 showrooms, 10,000 products, 25 builder sections, 50 GB storage, inventory catalog, bookings, external API data sources, bulk import, full analytics |
+| **Enterprise** | $49 (2,700 ETB) | Unlimited showrooms, products and sections, 500 GB storage, everything in Pro, live location tracking, outbound webhooks, business API keys |
 
 ### 4.2 Billing Terms
 - **Monthly billing** in advance, auto-renew unless cancelled

@@ -48,6 +48,11 @@ export function verifyWebhookSignature(signature: string, payload: string, secre
   return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
 }
 
+// PUT/DELETE resolve ownership from every business the caller owns instead of
+// checkTierLimit's req.businessId, so an owner can still disable or remove a
+// webhook after downgrading below the webhooks tier.
+const OWNED_BUSINESS_SQL = 'business_id IN (SELECT id FROM businesses WHERE owner_id = $2)';
+
 // ── Webhook CRUD ────────────────────────────────────────────────────────────────
 
 /**
@@ -135,14 +140,14 @@ router.post('/', requireAuth, checkTierLimit('webhooks'), async (req: Request, r
  */
 router.put('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const businessId = (req as Request & { businessId?: string }).businessId!;
+    const ownerId = req.user!.id;
     const webhookId = req.params.id;
     const { url, events, is_enabled } = req.body as { url?: string; events?: string[]; is_enabled?: boolean };
 
     // Verify ownership
     const { rows: existing } = await pool.query(
-      'SELECT id FROM business_webhooks WHERE id = $1 AND business_id = $2',
-      [webhookId, businessId],
+      `SELECT id FROM business_webhooks WHERE id = $1 AND ${OWNED_BUSINESS_SQL}`,
+      [webhookId, ownerId],
     );
     if (!existing.length) {
       res.status(404).json({ error: 'Webhook not found' });
@@ -189,7 +194,7 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     }
 
     const updates: string[] = [];
-    const values: unknown[] = [webhookId, businessId];
+    const values: unknown[] = [webhookId, ownerId];
     let paramIndex = 3;
 
     if (url !== undefined) {
@@ -213,7 +218,7 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     updates.push(`updated_at = NOW()`);
 
     const { rows } = await pool.query(
-      `UPDATE business_webhooks SET ${updates.join(', ')} WHERE id = $1 AND business_id = $2 RETURNING id, url, events, is_enabled, created_at, updated_at`,
+      `UPDATE business_webhooks SET ${updates.join(', ')} WHERE id = $1 AND ${OWNED_BUSINESS_SQL} RETURNING id, url, events, is_enabled, created_at, updated_at`,
       values,
     );
 
@@ -230,12 +235,11 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
  */
 router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const businessId = (req as Request & { businessId?: string }).businessId!;
     const webhookId = req.params.id;
 
     const { rowCount } = await pool.query(
-      'DELETE FROM business_webhooks WHERE id = $1 AND business_id = $2',
-      [webhookId, businessId],
+      `DELETE FROM business_webhooks WHERE id = $1 AND ${OWNED_BUSINESS_SQL}`,
+      [webhookId, req.user!.id],
     );
 
     if (rowCount === 0) {

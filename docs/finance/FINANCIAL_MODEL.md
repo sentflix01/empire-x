@@ -40,7 +40,7 @@
 
 | Stream | Model | Year 1 | Year 2 | Year 3 |
 |--------|-------|--------|--------|--------|
-| **Subscriptions** | Tiered: Free / $19 / $49 / $99 / Custom | $180K | $1.2M | $3.6M |
+| **Subscriptions** | Tiered: Free / $12 Pro / $49 Enterprise (canonical since 2026-10-15; the ARR figures still assume the earlier Free/$19/$49/$99/Custom mix and need recomputing) | $180K | $1.2M | $3.6M |
 | **Template Marketplace** | 30% cut (quality-adjusted 70-84% to dev) | $0 | $150K | $1.1M |
 | **Featured Placement** | Vickrey auction (5% platform fee) | $0 | $60K | $300K |
 | **Transaction Fees** | 1-3% (Stripe/Chapa/COD/Wallet) | $50K | $600K | $2.5M |
@@ -65,7 +65,7 @@
 
 | Metric | Value | Calculation |
 |--------|-------|-------------|
-| **Avg Plan** | $49/mo | Mix: 40% Pro, 30% Business, 20% Starter, 10% Enterprise |
+| **Avg Plan** | $49/mo (outdated) | Based on the retired Starter/Pro/Business/Enterprise mix; with the live plans ($12 Pro, $49 Enterprise) the average must be recomputed from a real paying-customer mix |
 | **Marketplace Attach** | 30% | 30% of businesses buy ≥1 template |
 | **Avg Marketplace Spend** | $120/yr | 4 templates × $30 avg |
 | **Transaction Fees** | $200/yr | $50K GMV × 0.4% blended rate |

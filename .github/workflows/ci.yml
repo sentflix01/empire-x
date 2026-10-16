@@ -142,6 +142,11 @@ jobs:
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_placeholder
           NEXT_PUBLIC_SENTRY_DSN: ""
 
+      # Tailwind v4 silently drops a class whose theme token or plugin is missing
+      # (this hid card, button and dialog styling from July to October 2026).
+      - name: CSS utility check (blocking)
+        run: npm run check:css
+
   # Vitest 5 and jsdom need Node 22+, so unit tests run in their own job and
   # the build job keeps the Node version used for deployment.
   frontend-tests:

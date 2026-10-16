@@ -33,6 +33,8 @@ interface Post {
   image_url?: string;
   poll_options?: string;
   poll_ends_at?: string;
+  /** In-app destination, e.g. /showroom/<slug> for a site announcement. */
+  link_url?: string | null;
   like_count?: number;
   comment_count?: number;
   created_at?: string;
@@ -582,6 +584,13 @@ export default function PostCard({ post, currentUserId, currentUser, feedMode }:
             {variant === 'location' && <LocationPost post={post} />}
             {variant === 'poll'     && <PollPost     post={post} />}
             {variant === 'text'     && <TextPost     post={post} isPromo={isPromo} themeColor={themeColor} primaryBiz={primaryBiz} />}
+            {post.link_url?.startsWith('/') && !post.link_url.startsWith('//') && (
+              <div className="px-4 pb-3">
+                <Link href={post.link_url} className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-white" style={{ backgroundColor: themeColor }}>
+                  <Store className="w-4 h-4" /> Visit site
+                </Link>
+              </div>
+            )}
           </>
         ) : authorProfile ? (
           <BusinessShowroomFeed

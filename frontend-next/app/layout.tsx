@@ -56,6 +56,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       suppressHydrationWarning // needed for next-themes dark mode
     >
       <body className="min-h-screen bg-background text-foreground antialiased" suppressHydrationWarning>

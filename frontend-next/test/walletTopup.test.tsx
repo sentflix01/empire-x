@@ -1,16 +1,16 @@
 /**
- * Wallet top-up form tests
- * Feature: professional-grade-upgrade
- * Requirements: 4.4, 4.6
+ * Wallet is withdraw-only: NodBusiness never takes money in
+ * (docs/decisions/platform-model-decisions.md, decision 7). Existing balances
+ * can still be withdrawn; there is no top-up.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 vi.mock('@/api/client', () => ({
   default: {
     get: vi.fn().mockResolvedValue({ data: { balance: 0, currency: 'ETB', transactions: [] } }),
-    post: vi.fn().mockResolvedValue({ data: { checkout_url: 'https://chapa.co/checkout/test' } }),
+    post: vi.fn(),
   },
   storeToken: vi.fn(),
   clearToken: vi.fn(),
@@ -28,32 +28,22 @@ vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 import Wallet from '@/views/Wallet';
 
-describe('Wallet top-up form', () => {
+describe('Wallet (withdraw-only)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders the wallet page with top-up tab', async () => {
+  it('shows the balance and a withdraw tab', async () => {
     render(<Wallet />);
     expect(await screen.findByRole('heading', { name: 'wallet.title' })).toBeTruthy();
     expect(screen.getByText('wallet.availableBalance')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'wallet.withdraw' })).toBeTruthy();
   });
 
-  it('Chapa top-up button is disabled when amount is empty', async () => {
+  it('offers no way to add money', async () => {
     render(<Wallet />);
     await screen.findByRole('heading', { name: 'wallet.title' });
-    fireEvent.click(screen.getByRole('button', { name: 'wallet.topUp' }));
-    const chapaButton = await screen.findByRole('button', { name: /Top Up with Chapa/i });
-    expect((chapaButton as HTMLButtonElement).disabled).toBe(true);
-  });
-
-  it('Chapa top-up button enables when valid amount is entered', async () => {
-    render(<Wallet />);
-    await screen.findByRole('heading', { name: 'wallet.title' });
-    fireEvent.click(screen.getByRole('button', { name: 'wallet.topUp' }));
-    fireEvent.change(await screen.findByRole('spinbutton'), { target: { value: '100' } });
-    await waitFor(() => {
-      expect((screen.getByRole('button', { name: /Top Up with Chapa/i }) as HTMLButtonElement).disabled).toBe(false);
-    });
+    expect(screen.queryByRole('button', { name: 'wallet.topUp' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Top Up/i })).toBeNull();
   });
 });

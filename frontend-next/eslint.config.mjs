@@ -66,13 +66,4 @@ export default [
       },
     },
   },
-  {
-    files: ["tailwind.config.js"],
-    languageOptions: {
-      globals: {
-        module: "readonly",
-        require: "readonly",
-      },
-    },
-  },
 ];

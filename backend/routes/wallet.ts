@@ -16,15 +16,14 @@ import { recordEvent } from '../lib/telemetry';
 import { auditLog } from '../lib/auditLogger';
 import { requireIsolatedPaymentEnvironment } from '../middleware/demoEnvironment';
 import { requireFeatureFlag } from '../middleware/featureFlag';
+import { platformCollectionRetired } from '../middleware/platformCollectionRetired';
+
+const walletRetired = platformCollectionRetired('The wallet no longer accepts money. NodBusiness never holds funds; you can still withdraw an existing balance.');
 
 const router = Router();
 
 // ── atomicWalletOp ────────────────────────────────────────────────────────────
 const CREDIT_TYPES = new Set(['credit', 'refund', 'pending_topup']);
-
-type WalletQueryClient = {
-  query: (text: string, params?: unknown[]) => Promise<{ rows: Array<Record<string, unknown>> }>;
-};
 
 export async function atomicWalletOp(
   userId: string,
@@ -34,12 +33,39 @@ export async function atomicWalletOp(
   reference: string | null = null,
   auditContext: { actor_id?: string; actor_email?: string; ip?: string; ua?: string } = {},
 ): Promise<{ wallet: Record<string,unknown>; transaction: Record<string,unknown> }> {
+  const delta = CREDIT_TYPES.has(type) ? amount : -amount;
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const result = await walletOpInTransaction(client, userId, type, amount, description, reference, auditContext);
+    const { rows: wallets } = await client.query('SELECT * FROM wallets WHERE user_id=$1', [userId]);
+    if (!wallets.length) {
+      await client.query('INSERT INTO wallets (user_id) VALUES ($1)', [userId]);
+    }
+    const { rows: locked } = await client.query('SELECT id, balance FROM wallets WHERE user_id=$1 FOR UPDATE', [userId]);
+    if (!locked.length) throw Object.assign(new Error('Wallet not found'), { code: 'WALLET_NOT_FOUND' });
+    const current = parseFloat(locked[0].balance as string);
+    const newBalance = Math.round((current + delta) * 100) / 100;
+    if (newBalance < 0) throw Object.assign(new Error(`Insufficient balance: have ${current}, need ${amount}`), { code: 'INSUFFICIENT_BALANCE' });
+    const { rows: [updated] } = await client.query('UPDATE wallets SET balance=$1, updated_at=NOW() WHERE id=$2 RETURNING *', [newBalance, locked[0].id]);
+    const { rows: [tx] } = await client.query(`INSERT INTO wallet_transactions (wallet_id,type,amount,description,reference) VALUES ($1,$2,$3,$4,$5) RETURNING *`, [locked[0].id, type, amount, description, reference]);
+
+    // Audit log — captures every wallet mutation (topup, debit, refund, withdrawal)
+    auditLog({
+      actor_id: auditContext.actor_id ?? userId,
+      actor_email: auditContext.actor_email ?? null,
+      action: type,
+      entity_type: 'wallet',
+      entity_id: locked[0].id as string,
+      amount,
+      balance_before: current,
+      balance_after: newBalance,
+      metadata: { description, reference, target_user: userId },
+      ip_address: auditContext.ip ?? null,
+      user_agent: auditContext.ua ?? null,
+    }).catch(() => {}); // fire-and-forget — never block the transaction
+
     await client.query('COMMIT');
-    return result;
+    return { wallet: updated as Record<string,unknown>, transaction: tx as Record<string,unknown> };
   } catch (err) {
     try { await client.query('ROLLBACK'); } catch (rollbackErr) {
       // The connection may already be dead — never mask the original error.
@@ -49,52 +75,6 @@ export async function atomicWalletOp(
   } finally {
     client.release();
   }
-}
-
-/**
- * The balance mutation behind atomicWalletOp, for callers that already hold a
- * transaction on `client` and need the wallet write to commit or roll back
- * together with their own writes (e.g. collectCommission). Does not BEGIN,
- * COMMIT or release.
- */
-export async function walletOpInTransaction(
-  client: WalletQueryClient,
-  userId: string,
-  type: string,
-  amount: number,
-  description: string,
-  reference: string | null = null,
-  auditContext: { actor_id?: string; actor_email?: string; ip?: string; ua?: string } = {},
-): Promise<{ wallet: Record<string,unknown>; transaction: Record<string,unknown> }> {
-  const delta = CREDIT_TYPES.has(type) ? amount : -amount;
-  const { rows: wallets } = await client.query('SELECT * FROM wallets WHERE user_id=$1', [userId]);
-  if (!wallets.length) {
-    await client.query('INSERT INTO wallets (user_id) VALUES ($1)', [userId]);
-  }
-  const { rows: locked } = await client.query('SELECT id, balance FROM wallets WHERE user_id=$1 FOR UPDATE', [userId]);
-  if (!locked.length) throw Object.assign(new Error('Wallet not found'), { code: 'WALLET_NOT_FOUND' });
-  const current = parseFloat(locked[0].balance as string);
-  const newBalance = Math.round((current + delta) * 100) / 100;
-  if (newBalance < 0) throw Object.assign(new Error(`Insufficient balance: have ${current}, need ${amount}`), { code: 'INSUFFICIENT_BALANCE' });
-  const { rows: [updated] } = await client.query('UPDATE wallets SET balance=$1, updated_at=NOW() WHERE id=$2 RETURNING *', [newBalance, locked[0].id]);
-  const { rows: [tx] } = await client.query(`INSERT INTO wallet_transactions (wallet_id,type,amount,description,reference) VALUES ($1,$2,$3,$4,$5) RETURNING *`, [locked[0].id, type, amount, description, reference]);
-
-  // Audit log — captures every wallet mutation (topup, debit, refund, withdrawal)
-  auditLog({
-    actor_id: auditContext.actor_id ?? userId,
-    actor_email: auditContext.actor_email ?? null,
-    action: type,
-    entity_type: 'wallet',
-    entity_id: locked[0].id as string,
-    amount,
-    balance_before: current,
-    balance_after: newBalance,
-    metadata: { description, reference, target_user: userId },
-    ip_address: auditContext.ip ?? null,
-    user_agent: auditContext.ua ?? null,
-  }).catch(() => {}); // fire-and-forget — never block the transaction
-
-  return { wallet: updated as Record<string,unknown>, transaction: tx as Record<string,unknown> };
 }
 
 async function getOrCreateWallet(userId: string): Promise<Record<string,unknown>> {
@@ -115,7 +95,7 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-router.post('/topup', requireAuth, async (req: Request, res: Response) => {
+router.post('/topup', walletRetired, requireAuth, async (req: Request, res: Response) => {
   if (process.env.NODE_ENV==='production' && req.user!.role !== 'admin') { res.status(403).json({ error: 'Admin access required' }); return; }
   const { amount, reference } = req.body as { amount?: number; reference?: string };
   if (!amount || amount <= 0) { apiError.validationError(res, 'Valid amount is required'); return; }
@@ -141,7 +121,7 @@ router.post('/withdraw', requireAuth, requireIsolatedPaymentEnvironment, async (
   }
 });
 
-router.post('/debit', requireAuth, async (req: Request, res: Response) => {
+router.post('/debit', walletRetired, requireAuth, async (req: Request, res: Response) => {
   if (req.user!.role !== 'admin') { res.status(403).json({ error: 'Admin only' }); return; }
   const { user_id, amount, description, reference } = req.body as Record<string,unknown>;
   if (!user_id || !amount || Number(amount) <= 0) { apiError.validationError(res, 'user_id and a positive amount are required'); return; }
@@ -154,7 +134,7 @@ router.post('/debit', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-router.post('/refund', requireAuth, async (req: Request, res: Response) => {
+router.post('/refund', walletRetired, requireAuth, async (req: Request, res: Response) => {
   if (req.user!.role !== 'admin') { res.status(403).json({ error: 'Admin access required' }); return; }
   const { user_id, amount, description, reference } = req.body as Record<string,unknown>;
   if (!user_id || !amount || Number(amount) <= 0) { apiError.validationError(res, 'user_id and a positive amount are required'); return; }
@@ -169,7 +149,7 @@ router.post('/refund', requireAuth, async (req: Request, res: Response) => {
 
 // ── Chapa Top-up ──────────────────────────────────────────────────────────────
 
-router.post('/topup/chapa', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('chapa_payments', 'Chapa payments temporarily disabled'), async (req: Request, res: Response) => {
+router.post('/topup/chapa', walletRetired, requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('chapa_payments', 'Chapa payments temporarily disabled'), async (req: Request, res: Response) => {
   const CHAPA_SECRET = process.env.CHAPA_SECRET_KEY ?? null;
   const SANDBOX = CHAPA_SECRET === 'SANDBOX';
   if (!CHAPA_SECRET) { res.status(503).json({ error: 'Chapa payments not configured. Add CHAPA_SECRET_KEY.' }); return; }
@@ -288,7 +268,7 @@ router.get('/topup/chapa/verify/:tx_ref', async (req: Request, res: Response) =>
 
 // ── Stripe Top-up ─────────────────────────────────────────────────────────────
 
-router.post('/topup/stripe', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('stripe_payments', 'Stripe payments temporarily disabled'), async (req: Request, res: Response) => {
+router.post('/topup/stripe', walletRetired, requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('stripe_payments', 'Stripe payments temporarily disabled'), async (req: Request, res: Response) => {
   const stripe = stripeClientFacade() as Record<string,unknown>;
   if (!isStripeConfigured()) { res.status(503).json({ error: 'Stripe is not configured for this environment' }); return; }
   const { amount } = req.body as { amount?: number };
@@ -323,4 +303,3 @@ router.post('/topup/stripe', requireAuth, requireIsolatedPaymentEnvironment, req
 
 module.exports = router;
 module.exports.atomicWalletOp = atomicWalletOp;
-module.exports.walletOpInTransaction = walletOpInTransaction;

@@ -415,6 +415,9 @@ router.post('/messages/:id/forward', requireAuth, async (req: Request, res: Resp
   try {
     const { rows:[src] } = await pool.query('SELECT * FROM messages WHERE id=$1', [req.params.id]);
     if (!src) { apiError.notFound(res,'Message not found'); return; }
+    // Only someone who can already read the source conversation may copy from it.
+    // Answer 404 like a missing message so outsiders cannot probe message IDs.
+    if (req.user!.role !== 'admin' && !(await isParticipant(src.conversation_id as string, req.user!.id))) { apiError.notFound(res,'Message not found'); return; }
     const { target_conversation_id } = req.body as { target_conversation_id?: string };
     if (!target_conversation_id) { apiError.validationError(res,'target_conversation_id is required'); return; }
     if (!(await isParticipant(target_conversation_id, req.user!.id)) && req.user!.role !== 'admin') { res.status(403).json({ error:'Forbidden' }); return; }

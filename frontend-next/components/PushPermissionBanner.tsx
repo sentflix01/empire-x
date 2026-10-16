@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { getPushPermission, subscribeToPush } from "@/lib/push";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/lib/AuthContext";
 
 const DISMISSED_KEY = "nodbusiness_push_banner_dismissed";
 
 export default function PushPermissionBanner() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +26,9 @@ export default function PushPermissionBanner() {
     }
   }, []);
 
-  if (!visible) return null;
+  // Push subscriptions belong to a visitor's browser, not the isolated Demo
+  // session. Keep the permission prompt out of Demo practice.
+  if (!visible || user?.demo_session_active) return null;
 
   const handleEnable = async () => {
     setLoading(true);

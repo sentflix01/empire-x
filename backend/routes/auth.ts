@@ -31,7 +31,9 @@ import {
   signDemoAccessToken, signDemoSessionCookie, verifyDemoTrack1Cookie, isDemoSessionSecretValid,
 } from '../middleware/demoEnvironment';
 import { sendOtpEmail, sendPasswordResetEmail } from '../utils/mailer';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, invalidateUserCache } from '../middleware/auth';
+import { forceDisconnectUser } from '../socket';
+import { anonymizeAccount, deletionBlocker, exportAccountData } from '../lib/accountData';
 import { getRedis } from '../lib/redis';
 import * as apiError from '../lib/apiError';
 import logger from '../lib/logger';
@@ -267,12 +269,17 @@ router.post('/register', async (req: Request, res: Response) => {
         return;
       }
       if (!existing.rows[0].is_verified) {
+        // Nobody has proven they own this inbox yet, so the latest registration
+        // wins: replace the password (and name) along with the OTP. Otherwise an
+        // attacker who pre-registers the victim's email keeps a working password
+        // after the victim verifies.
+        const passwordHash = await bcrypt.hash(password, 12);
         const otp = generateOtp();
         const otpHash = hashOtp(otp);
         const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
         await pool.query(
-          'UPDATE users SET otp_code = $1, otp_expires = $2 WHERE id = $3',
-          [otpHash, otpExpires, existing.rows[0].id],
+          'UPDATE users SET password_hash = $1, full_name = $2, otp_code = $3, otp_expires = $4 WHERE id = $5 AND is_verified = FALSE',
+          [passwordHash, full_name ?? null, otpHash, otpExpires, existing.rows[0].id],
         );
         try {
           await sendOtpEmail(normalizedEmail, otp);
@@ -460,6 +467,15 @@ router.post('/resend-otp', async (req: Request, res: Response) => {
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
 
 router.post('/demo', async (req: Request, res: Response) => {
+  // A Real refresh session must be explicitly logged out before an isolated
+  // anonymous Demo identity can be started in the same browser.
+  if (await hasRealRefreshSession(req)) {
+    res.status(409).json({
+      error: 'Log out of your Real account before starting Demo practice.',
+      code: 'REAL_SESSION_MUST_LOG_OUT',
+    });
+    return;
+  }
   if (req.demoSession) {
     res.json({
       access_token: signDemoAccessToken(req.demoSession.userId, req.demoSession.id),
@@ -556,112 +572,15 @@ router.post('/demo/reset', async (req: Request, res: Response) => {
   }
 });
 
-/** Switch the signed-in identity between its Real account and its isolated
- * practice workspace. The workspace selector is a request to the server;
- * authorization and database routing still come from verified session state. */
-router.post('/workspace', requireAuth, async (req: Request, res: Response) => {
-  const workspace = (req.body as { workspace?: unknown } | undefined)?.workspace;
-  if (workspace !== 'real' && workspace !== 'demo') {
-    apiError.validationError(res, 'workspace must be either real or demo');
-    return;
-  }
-  const user = req.user;
-  if (!user) { res.status(401).json({ error: 'Authentication required' }); return; }
-
-  try {
-    if (workspace === 'demo') {
-      if (req.demoSession) {
-        res.json({ access_token: signDemoAccessToken(user.id, req.demoSession.id), workspace: 'demo' });
-        return;
-      }
-      const realIdentity = await runWithDatabaseEnvironment({ environment: 'real' }, async () => {
-        const { rows } = await pool.query<{ id: string; email: string; full_name: string | null; is_demo: boolean; is_seed: boolean; is_banned: boolean }>(
-          'SELECT id, email, full_name, is_demo, is_seed, is_banned FROM users WHERE id=$1', [user.id],
-        );
-        return rows[0];
-      });
-      if (!realIdentity || realIdentity.email.toLowerCase() !== user.email.toLowerCase() || realIdentity.is_demo || realIdentity.is_seed || realIdentity.is_banned) {
-        res.status(403).json({ error: 'Sign in to your Real account before opening its Demo workspace.', code: 'REAL_IDENTITY_REQUIRED' });
-        return;
-      }
-      if (process.env.DEMO_ENABLED !== 'true' || !process.env.DEMO_DATABASE_URL || !isDemoSessionSecretValid()) {
-        res.status(503).json({ error: 'Demo workspace is not configured yet.', code: 'DEMO_CONFIGURATION_INVALID' });
-        return;
-      }
-
-      const workspaceResult = await runWithDatabaseEnvironment({ environment: 'demo' }, async () => {
-        const existing = await pool.query<{ id: string; email: string; is_demo: boolean; is_seed: boolean; workspace_owner_id: string | null }>(
-          'SELECT id, email, is_demo, is_seed, workspace_owner_id FROM users WHERE id=$1 OR email=$2 LIMIT 1', [user.id, user.email],
-        );
-        const byId = existing.rows.find((row) => row.id === user.id);
-        const emailConflict = existing.rows.find((row) => row.email.toLowerCase() === user.email.toLowerCase() && row.id !== user.id);
-        if (emailConflict || (byId && (!byId.is_demo || byId.is_seed || byId.email.toLowerCase() !== user.email.toLowerCase() || byId.workspace_owner_id !== user.id))) {
-          throw Object.assign(new Error('An existing Demo identity conflicts with this Real account. Its data was left unchanged.'), { statusCode: 409, code: 'DEMO_IDENTITY_CONFLICT' });
-        }
-        if (!byId) {
-          await pool.query(
-            `INSERT INTO users (id, email, full_name, is_verified, is_demo, is_seed, provider, workspace_owner_id)
-            VALUES ($1,$2,$3,TRUE,TRUE,FALSE,'local',$1)`, [user.id, user.email, realIdentity.full_name],
-          );
-          await pool.query(
-            `INSERT INTO user_profiles (user_id, display_name, profile_type)
-             SELECT $1, COALESCE(display_name, $2), 'personal'
-               FROM (SELECT display_name FROM user_profiles WHERE user_id=$1 LIMIT 1) source
-             UNION ALL SELECT $1, COALESCE($2, 'Member'), 'personal'
-              WHERE NOT EXISTS (SELECT 1 FROM user_profiles WHERE user_id=$1)`,
-            [user.id, realIdentity.full_name],
-          );
-        }
-        const session = await establishDemoAccountSession(user.id, res);
-        return {
-          access_token: signDemoAccessToken(user.id, session.sessionId),
-          workspace: 'demo', expires_at: session.expiresAt.toISOString(),
-        };
-      });
-      res.json(workspaceResult);
-      return;
-    }
-
-    if (!req.demoSession) {
-      if (user.is_demo) {
-        res.status(403).json({ error: 'This legacy Demo account is not linked to a Real identity.', code: 'REAL_IDENTITY_REQUIRED' });
-        return;
-      }
-      res.json({ access_token: signToken(user.id, res, false), workspace: 'real' });
-      return;
-    }
-
-    const demoLink = await pool.query<{ workspace_owner_id: string | null }>(
-      'SELECT workspace_owner_id FROM users WHERE id=$1 AND is_demo=TRUE AND is_seed=FALSE', [user.id],
-    );
-    if (demoLink.rows[0]?.workspace_owner_id !== user.id) {
-      res.status(403).json({ error: 'This legacy Demo account is not linked to a Real identity.', code: 'REAL_IDENTITY_REQUIRED' });
-      return;
-    }
-
-    const realUser = await runWithDatabaseEnvironment({ environment: 'real' }, async () => {
-      const { rows } = await pool.query<{ id: string; email: string; is_demo: boolean; is_seed: boolean; is_banned: boolean }>(
-        'SELECT id, email, is_demo, is_seed, is_banned FROM users WHERE id=$1', [user.id],
-      );
-      return rows[0];
-    });
-    if (!realUser || realUser.email.toLowerCase() !== user.email.toLowerCase() || realUser.is_demo || realUser.is_seed || realUser.is_banned) {
-      res.status(403).json({ error: 'The linked Real account could not be verified.', code: 'REAL_IDENTITY_REQUIRED' });
-      return;
-    }
-    await pool.query("UPDATE demo_sessions SET status='ended', ended_at=NOW() WHERE id=$1 AND status='active'", [req.demoSession.id]);
-    clearDemoSessionCookie(res);
-    clearDemoTrack1Cookie(res);
-    res.json({ access_token: signToken(realUser.id, res, false), workspace: 'real' });
-  } catch (err) {
-    const error = err as Error & { statusCode?: number; code?: string };
-    logger.error({ err: error.message, requestId: req.requestId }, 'Workspace switch failed');
-    res.status(error.statusCode ?? 503).json({ error: error.message || 'Could not switch workspace', code: error.code ?? 'WORKSPACE_SWITCH_FAILED' });
-  }
+/** Retired: Real accounts must log out before starting a separate Demo session. */
+router.post('/workspace', requireAuth, (_req: Request, res: Response) => {
+  res.status(410).json({
+    error: 'Demo practice is a separate anonymous session. Log out of your account before starting Demo.',
+    code: 'SEPARATE_DEMO_SESSION_REQUIRED',
+  });
 });
-
 router.post('/onboarding-mode', (_req: Request, res: Response) => {
-  res.status(410).json({ error: 'Account modes are no longer selectable. Sign in to Real, then switch workspaces from the app.', code: 'WORKSPACE_SWITCH_REQUIRED' });
+  res.status(410).json({ error: 'Real accounts and Demo practice are separate. Log out before starting Demo.', code: 'SEPARATE_DEMO_SESSION_REQUIRED' });
 });
 
 const LOCKOUT_THRESHOLD = 5;
@@ -857,9 +776,13 @@ router.post('/google', async (req: Request, res: Response) => {
   }
 
   try {
-    const { sub: googleId, email, name } = payload;
+    const { sub: googleId, email, name, email_verified: emailVerified } = payload;
     if (!email) {
       res.status(401).json({ error: 'Google account has no email' });
+      return;
+    }
+    if (emailVerified !== true) {
+      res.status(401).json({ error: 'Google has not verified this email address.' });
       return;
     }
 
@@ -869,15 +792,27 @@ router.post('/google', async (req: Request, res: Response) => {
     )).rows[0];
 
     if (!user) {
-      const existing = (await pool.query<{ id: string }>(
-        'SELECT id FROM users WHERE email = $1',
+      const existing = (await pool.query<{ id: string; is_verified: boolean }>(
+        'SELECT id, is_verified FROM users WHERE email = $1',
         [email.toLowerCase()],
       )).rows[0];
 
-      if (existing) {
+      if (existing?.is_verified) {
         await pool.query(
-          'UPDATE users SET provider = $1, provider_id = $2, is_verified = TRUE WHERE id = $3',
+          'UPDATE users SET provider = $1, provider_id = $2 WHERE id = $3',
           ['google', googleId, existing.id],
+        );
+        user = existing;
+      } else if (existing) {
+        // An unverified local account was created by someone who never proved
+        // they own this inbox. Drop its password and pending OTP so a
+        // pre-registered attacker credential cannot survive the Google link.
+        await pool.query(
+          `UPDATE users SET provider = $1, provider_id = $2, is_verified = TRUE,
+                  password_hash = NULL, otp_code = NULL, otp_expires = NULL,
+                  full_name = COALESCE($3, full_name)
+           WHERE id = $4`,
+          ['google', googleId, name ?? null, existing.id],
         );
         user = existing;
       } else {
@@ -972,6 +907,72 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
     logger.error({ err }, 'Me error');
     apiError.serverError(res, 'Failed to fetch user');
   }
+});
+
+// ── GET /api/auth/me/export — "Download my data" ─────────────────────────────
+
+router.get('/me/export', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const data = await exportAccountData(req.user!.id);
+    res.setHeader('Content-Disposition', `attachment; filename="nodbusiness-data-${new Date().toISOString().slice(0, 10)}.json"`);
+    res.json(data);
+  } catch (err) {
+    logger.error({ err }, 'Account export error');
+    apiError.serverError(res, 'Failed to export account data');
+  }
+});
+
+// ── DELETE /api/auth/me — "Delete my account" (anonymize) ────────────────────
+
+router.delete('/me', requireAuth, async (req: Request, res: Response) => {
+  const { password, confirm } = (req.body ?? {}) as { password?: string; confirm?: string };
+  if (confirm !== 'DELETE') { apiError.validationError(res, 'Type DELETE to confirm account deletion'); return; }
+  if (req.demoSession || req.user!.is_demo) { res.status(403).json({ error: 'Demo accounts are removed automatically when the session ends.' }); return; }
+  const userId = req.user!.id;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ password_hash: string | null; role: string }>(
+      'SELECT password_hash, role FROM users WHERE id = $1 FOR UPDATE', [userId],
+    );
+    if (!rows.length) { await client.query('ROLLBACK'); apiError.notFound(res, 'User not found'); return; }
+    // Accounts with a password must re-enter it; Google-only accounts confirm by typing DELETE.
+    if (rows[0].password_hash && !(typeof password === 'string' && await bcrypt.compare(password, rows[0].password_hash))) {
+      // 422 like change-password: a 401 would make the client treat the session as expired.
+      await client.query('ROLLBACK'); apiError.validationError(res, 'Incorrect password'); return;
+    }
+    if (rows[0].role === 'admin') {
+      const { rows: admins } = await client.query("SELECT COUNT(*)::int AS n FROM users WHERE role = 'admin' AND deleted_at IS NULL");
+      if ((admins[0]?.n ?? 0) <= 1) { await client.query('ROLLBACK'); res.status(409).json({ error: 'The last admin account cannot be deleted.' }); return; }
+    }
+    const block = await deletionBlocker(userId, client);
+    if (block) { await client.query('ROLLBACK'); res.status(409).json({ error: block.message, code: block.code }); return; }
+    await anonymizeAccount(client, userId);
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => undefined);
+    logger.error({ err }, 'Account deletion error');
+    apiError.serverError(res, 'Failed to delete account');
+    return;
+  } finally {
+    client.release();
+  }
+
+  // The row is now banned with ban_reason='account_deleted', which the auth
+  // middleware rejects; also drop caches, sessions and sockets right away.
+  await invalidateUserCache(userId);
+  const redis = getRedis();
+  if (!redis.isNoOp) {
+    await (redis as RedisClient).setex(`revoke_before:${userId}`, 7 * 24 * 60 * 60, Math.floor(Date.now() / 1000).toString()).catch(() => undefined);
+  }
+  forceDisconnectUser(userId);
+  res.clearCookie('refresh_token', {
+    httpOnly: true,
+    path: '/api/auth',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: refreshCookieSameSite(),
+  });
+  res.json({ success: true });
 });
 
 // ── POST /api/auth/forgot-password ───────────────────────────────────────────

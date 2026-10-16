@@ -193,7 +193,9 @@ export default function ExternalDataSourcePanel({
 
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        setServerError(json.error || `Request failed (${res.status})`);
+        setServerError(json.error === 'upgrade_required'
+          ? 'External data sources need the Pro plan ($12/month). Upgrade under Business › Subscription.'
+          : json.error || `Request failed (${res.status})`);
         return;
       }
 

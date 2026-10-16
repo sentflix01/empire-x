@@ -13,9 +13,9 @@
  *
  * What this creates:
  *   - 1 published showroom per seed user (50 total)
- *   - 3?6 products per showroom (200+ products total)
+ *   - 3-6 products per showroom (150-300 products total)
  *   - business_subscriptions freemium row per existing business
- *   - Showroom sections that match the actual builder section types
+ *   - Showroom sections that match the actual builder's editable field schema
  *
  * Run: node db/seed-showrooms.js
  * Clean: node db/cleanup-seed-data.js (removes is_seed=TRUE users and cascade)
@@ -39,7 +39,7 @@ function makeSlug(title) {
 // ?? Business templates ? same categories as seed.js ???????????????????????????
 const BUSINESS_CONFIGS = {
   restaurant: {
-    template:   'restaurant',
+    template:   'restaurant_menu',
     themeColor: '#D4AF37',
     sectionTypes: ['hero', 'menu', 'gallery', 'contact', 'hours'],
     productCategory: 'Food & Beverage',
@@ -53,7 +53,7 @@ const BUSINESS_CONFIGS = {
     ],
   },
   shop: {
-    template:   'retail_store',
+    template:   'shop_grid',
     themeColor: '#2563eb',
     sectionTypes: ['hero', 'featured_products', 'categories', 'about', 'contact'],
     productCategory: 'Fashion & Accessories',
@@ -67,7 +67,7 @@ const BUSINESS_CONFIGS = {
     ],
   },
   service: {
-    template:   'agency',
+    template:   'service_agency',
     themeColor: '#7c3aed',
     sectionTypes: ['hero', 'services', 'portfolio', 'team', 'contact'],
     productCategory: 'Services',
@@ -81,7 +81,7 @@ const BUSINESS_CONFIGS = {
     ],
   },
   health: {
-    template:   'clinic',
+    template:   'health_clinic',
     themeColor: '#10b981',
     sectionTypes: ['hero', 'services', 'doctors', 'appointment', 'contact'],
     productCategory: 'Health & Wellness',
@@ -95,7 +95,7 @@ const BUSINESS_CONFIGS = {
     ],
   },
   realestate: {
-    template:   'real_estate',
+    template:   'realestate_listings',
     themeColor: '#f59e0b',
     sectionTypes: ['hero', 'listings', 'featured_products', 'about', 'contact'],
     productCategory: 'Real Estate',
@@ -109,7 +109,7 @@ const BUSINESS_CONFIGS = {
     ],
   },
   portfolio: {
-    template:   'portfolio',
+    template:   'portfolio_gallery',
     themeColor: '#ef4444',
     sectionTypes: ['hero', 'portfolio', 'about', 'skills', 'contact'],
     productCategory: 'Creative Services',
@@ -124,166 +124,61 @@ const BUSINESS_CONFIGS = {
   },
 };
 
-// ?? Showroom section builder ? mirrors what the frontend builder creates ??????
-function buildSections(category, businessName) {
+// Builder category and section fields from frontend-next/lib/builderSections.ts.
+const BUILDER_CATEGORY = {
+  restaurant: 'Food & Beverage', shop: 'Business & Commerce', service: 'Professional Services',
+  health: 'Health & Medical', realestate: 'Business & Commerce', portfolio: 'Professional Services',
+};
+const BUILDER_SECTIONS = {
+  restaurant: ['hero', 'items', 'gallery', 'testimonials', 'contact', 'social'],
+  shop: ['hero', 'items', 'gallery', 'testimonials', 'contact', 'social'],
+  service: ['hero', 'services', 'portfolio', 'team', 'testimonials', 'contact'],
+  health: ['hero', 'services', 'testimonials', 'team', 'contact'],
+  realestate: ['hero', 'items', 'gallery', 'testimonials', 'contact', 'social'],
+  portfolio: ['hero', 'services', 'portfolio', 'team', 'testimonials', 'contact'],
+};
+
+// ShowroomCreate persists active sections as { type, ...SECTION_TYPES field values }.
+function buildSections(category, business) {
   const config = BUSINESS_CONFIGS[category] || BUSINESS_CONFIGS.service;
-  const sections = [];
-
-  const SECTION_BUILDERS = {
-    hero: () => ({
-      key:     'hero',
-      type:    'hero',
-      title:   businessName,
-      content: `Welcome to ${businessName}. We serve the Addis Ababa community with quality products and services.`,
-      cta:     'Explore Now',
-      visible: true,
-    }),
-    menu: () => ({
-      key:     'menu',
-      type:    'menu',
-      title:   'Our Menu',
-      content: 'Fresh ingredients, traditional recipes, modern presentation.',
-      items: [
-        { name: 'Main Dishes', description: 'Traditional Ethiopian cuisine' },
-        { name: 'Beverages',   description: 'Ethiopian coffee, juice, and soft drinks' },
-        { name: 'Desserts',    description: 'Seasonal sweets and pastries' },
-      ],
-      visible: true,
-    }),
-    services: () => ({
-      key:     'services',
-      type:    'services',
-      title:   'Our Services',
-      content: 'Professional services tailored to your needs.',
-      items:   config.products.slice(0, 3).map(p => ({ name: p.title, description: p.desc })),
-      visible: true,
-    }),
-    featured_products: () => ({
-      key:     'featured_products',
-      type:    'featured_products',
-      title:   'Featured Products',
-      content: 'Our best-selling and most popular items.',
-      visible: true,
-    }),
-    gallery: () => ({
-      key:     'gallery',
-      type:    'gallery',
-      title:   'Our Gallery',
-      images:  [
-        `https://picsum.photos/seed/${businessName.replace(/\s/g,'').slice(0,8)}1/800/600`,
-        `https://picsum.photos/seed/${businessName.replace(/\s/g,'').slice(0,8)}2/800/600`,
-        `https://picsum.photos/seed/${businessName.replace(/\s/g,'').slice(0,8)}3/800/600`,
-      ],
-      visible: true,
-    }),
-    about: () => ({
-      key:     'about',
-      type:    'about',
-      title:   `About ${businessName}`,
-      content: `${businessName} was founded with the mission to serve Addis Ababa with excellence. We are proud members of the Nodbusiness community.`,
-      visible: true,
-    }),
-    contact: () => ({
-      key:     'contact',
-      type:    'contact',
-      title:   'Contact Us',
-      phone:   `+251 9${rand(10,99)} ${rand(100,999)} ${rand(1000,9999)}`,
-      email:   `contact@${businessName.toLowerCase().replace(/\s/g,'').slice(0,12)}.et`,
-      address: `${pick(['Bole','Yeka','Kirkos','Arada','Lideta'])}, Addis Ababa, Ethiopia`,
-      visible: true,
-    }),
-    hours: () => ({
-      key:     'hours',
-      type:    'hours',
-      title:   'Business Hours',
-      hours: {
-        monday:    '8:00 AM ? 9:00 PM',
-        tuesday:   '8:00 AM ? 9:00 PM',
-        wednesday: '8:00 AM ? 9:00 PM',
-        thursday:  '8:00 AM ? 9:00 PM',
-        friday:    '8:00 AM ? 10:00 PM',
-        saturday:  '9:00 AM ? 10:00 PM',
-        sunday:    '10:00 AM ? 8:00 PM',
-      },
-      visible: true,
-    }),
-    portfolio: () => ({
-      key:     'portfolio',
-      type:    'portfolio',
-      title:   'Our Work',
-      content: 'A selection of our recent projects and creative work.',
-      items: [
-        { title: 'Project Alpha', image: `https://picsum.photos/seed/p1${businessName.slice(0,4)}/600/400`, desc: 'Brand identity project' },
-        { title: 'Project Beta',  image: `https://picsum.photos/seed/p2${businessName.slice(0,4)}/600/400`, desc: 'Website redesign' },
-        { title: 'Project Gamma', image: `https://picsum.photos/seed/p3${businessName.slice(0,4)}/600/400`, desc: 'Social media campaign' },
-      ],
-      visible: true,
-    }),
-    team: () => ({
-      key:     'team',
-      type:    'team',
-      title:   'Our Team',
-      members: [
-        { name: 'Abebe Tadesse',  role: 'Founder & CEO',     avatar: 'https://i.pravatar.cc/150?img=1' },
-        { name: 'Tigist Bekele',  role: 'Operations Manager', avatar: 'https://i.pravatar.cc/150?img=2' },
-        { name: 'Dawit Haile',    role: 'Lead Specialist',    avatar: 'https://i.pravatar.cc/150?img=3' },
-      ],
-      visible: true,
-    }),
-    categories: () => ({
-      key:        'categories',
-      type:       'categories',
-      title:      'Shop by Category',
-      categories: ['New Arrivals', 'Traditional', 'Modern', 'Sale'],
-      visible:    true,
-    }),
-    appointment: () => ({
-      key:     'appointment',
-      type:    'appointment',
-      title:   'Book an Appointment',
-      content: 'Schedule your visit online. Same-day appointments available.',
-      visible: true,
-    }),
-    listings: () => ({
-      key:     'listings',
-      type:    'listings',
-      title:   'Available Properties',
-      content: 'Browse our current listings.',
-      visible: true,
-    }),
-    skills: () => ({
-      key:    'skills',
-      type:   'skills',
-      title:  'Skills & Expertise',
-      skills: ['Photography', 'Video Editing', 'Graphic Design', 'Motion Graphics', 'UI/UX'],
-      visible: true,
-    }),
-    doctors: () => ({
-      key:     'doctors',
-      type:    'team',
-      title:   'Our Doctors',
-      members: [
-        { name: 'Dr. Meron Tesfaye', role: 'General Practitioner', avatar: 'https://i.pravatar.cc/150?img=5' },
-        { name: 'Dr. Yonas Bekele',  role: 'Specialist',           avatar: 'https://i.pravatar.cc/150?img=6' },
-      ],
-      visible: true,
-    }),
+  const color = business.business_theme_color || config.themeColor;
+  const form = {
+    title: business.business_name,
+    subtitle: business.business_description || `Welcome to ${business.business_name}`,
+    cta: category === 'restaurant' ? 'View Menu' : category === 'shop' ? 'Browse Products' : 'Contact Us',
+    heroBg: color, heroBg2: color,
+    itemsTitle: category === 'restaurant' ? 'Our Menu' : category === 'realestate' ? 'Available Properties' : 'Our Products',
+    items: config.products.slice(0, 3).map((item) => ({
+      name: item.title, desc: item.desc, price: `ETB ${item.priceRange[0].toLocaleString()}+`, icon: 'fa-box',
+    })),
+    galleryTitle: 'Gallery', galleryImages: [],
+    servTitle: 'Our Services',
+    services: config.products.slice(0, 3).map((item) => ({ name: item.title, desc: item.desc, icon: 'fa-star' })),
+    portTitle: 'Our Work', portfolio: [],
+    teamTitle: category === 'health' ? 'Our Care Team' : 'Our Team', members: [],
+    testTitle: 'What People Say', testimonials: [],
+    location: business.business_address || business.location || '',
+    phone: business.business_contact_phone || '', email: business.business_contact_email || '',
+    hours: business.business_hours || 'Contact us for business hours',
+    whatsapp: '', facebook: '', instagram: '', telegram: '', youtube: '', tiktok: '', twitter: '', linkedin: '',
   };
-
-  for (const sType of config.sectionTypes) {
-    const builder = SECTION_BUILDERS[sType];
-    if (builder) sections.push(builder());
-  }
-
-  return sections;
+  const fieldsByType = {
+    hero: ['title', 'subtitle', 'cta', 'heroBg', 'heroBg2'], items: ['itemsTitle', 'items'],
+    gallery: ['galleryTitle', 'galleryImages'], testimonials: ['testTitle', 'testimonials'],
+    contact: ['location', 'phone', 'email', 'hours', 'whatsapp'],
+    social: ['facebook', 'instagram', 'telegram', 'youtube', 'tiktok', 'twitter', 'linkedin'],
+    services: ['servTitle', 'services'], portfolio: ['portTitle', 'portfolio'], team: ['teamTitle', 'members'],
+  };
+  return BUILDER_SECTIONS[category].map((type) => ({
+    type, ...Object.fromEntries(fieldsByType[type].map((field) => [field, form[field]])),
+  }));
 }
-
 // ?? Main ??????????????????????????????????????????????????????????????????????
 async function seed() {
   assertSafeDevSeed();
   const client = await pool.connect();
   console.log('\n?? Nodbusiness Showroom + Product Seed\n');
-  console.log('Creates: 50 showrooms, 200+ products, business subscriptions\n');
+  console.log('Creates: 50 showrooms, 150-300 products, business subscriptions\n');
 
   try {
     // ?? Load existing seed users ??????????????????????????????????????????????
@@ -306,9 +201,13 @@ async function seed() {
     // ?? Load existing businesses (to link products and subscriptions) ?????????
     console.log('?? Loading existing businesses...');
     const { rows: businesses } = await client.query(
-      `SELECT b.id, b.owner_id, b.business_name, b.business_category
+      `SELECT b.id, b.owner_id, b.business_name, b.business_category,
+              b.business_template, b.business_description, b.business_contact_email,
+              b.business_contact_phone, b.business_address, b.business_hours,
+              b.business_theme_color, up.location
        FROM businesses b
        JOIN users u ON u.id = b.owner_id
+       LEFT JOIN user_profiles up ON up.user_id = u.id
        WHERE u.is_seed = TRUE
        ORDER BY b.created_at`
     );
@@ -336,27 +235,17 @@ async function seed() {
 
     for (let i = 0; i < users.length; i++) {
       const user     = users[i];
-      const category = CATEGORIES[i % CATEGORIES.length];
-      const config   = BUSINESS_CONFIGS[category];
-
       // Find this user's first business (for linking)
       const userBiz = businesses.find(b => b.owner_id === user.id);
 
-      // Generate business name matching the category template
-      const BIZ_NAME_TEMPLATES = {
-        restaurant:  ['Kitchen','Grill','Cafe','Restaurant','Eatery'],
-        shop:        ['Store','Boutique','Fashion','Market','Shop'],
-        service:     ['Solutions','Services','Consulting','Agency','Group'],
-        health:      ['Clinic','Medical','Wellness','Health Center','Pharmacy'],
-        realestate:  ['Properties','Realty','Homes','Real Estate','Group'],
-        portfolio:   ['Studio','Creative','Design Lab','Media','Productions'],
-      };
-      const nameParts = BIZ_NAME_TEMPLATES[category];
-      const firstName = user.full_name.split(' ')[0];
-      const title     = `${firstName} ${pick(nameParts)}`;
+      if (!userBiz) throw new Error(`Seed user ${user.email} has no business row; run seed.js first and inspect its output.`);
+      const fallbackCategory = CATEGORIES[i % CATEGORIES.length];
+      const businessCategory = BUSINESS_CONFIGS[userBiz.business_category] ? userBiz.business_category : fallbackCategory;
+      const config   = BUSINESS_CONFIGS[businessCategory];
+      const title     = userBiz.business_name;
       const slug      = makeSlug(title);
-      const sections  = buildSections(category, title);
-      const colors    = { restaurant:'#D4AF37', shop:'#2563eb', service:'#7c3aed', health:'#10b981', realestate:'#f59e0b', portfolio:'#ef4444' };
+      const sections  = buildSections(businessCategory, userBiz);
+      const color     = userBiz.business_theme_color || config.themeColor;
 
       const { rows } = await client.query(
         `INSERT INTO showrooms
@@ -370,13 +259,13 @@ async function seed() {
           user.id,
           title,
           slug,
-          category,
-          config.template,
+          BUILDER_CATEGORY[businessCategory],
+          userBiz.business_template || config.template,
           JSON.stringify(sections),
           `https://picsum.photos/seed/${slug.slice(0,12)}/1200/400`,
           `https://picsum.photos/seed/${slug.slice(0,8)}logo/200/200`,
-          colors[category] ?? '#D4AF37',
-          `${title} ? your trusted ${category} in ${user.location ?? 'Addis Ababa'}.`,
+          color,
+          userBiz.business_description || `${title} in ${userBiz.location || user.location || 'Addis Ababa'}.`,
           rand(50, 2000),
         ]
       );
@@ -385,7 +274,7 @@ async function seed() {
       showroomRecords.push({
         id:        showroom.id,
         title:     showroom.title,
-        category:  showroom.category,
+        category:  businessCategory,
         ownerId:   user.id,
         businessId: userBiz ? userBiz.id : null,
       });
@@ -400,7 +289,7 @@ async function seed() {
              business_template    = $3,
              business_theme_color = $4
          WHERE user_id = $5`,
-        [title, category, config.template, colors[category] ?? '#D4AF37', user.id]
+        [userBiz.business_name, userBiz.business_category, userBiz.business_template || config.template, color, user.id]
       );
     }
     console.log(`  ? ${showroomRecords.length} showrooms published\n`);
@@ -537,4 +426,6 @@ async function seed() {
   }
 }
 
-seed();
+if (require.main === module) seed();
+
+module.exports = { BUSINESS_CONFIGS, BUILDER_CATEGORY, BUILDER_SECTIONS, buildSections };

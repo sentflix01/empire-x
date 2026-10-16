@@ -6,6 +6,13 @@
 > page. Where any document disagrees with this one, this one wins until an ADR changes it.
 > Last updated: 2026-08-23 · Owner: Engineering + Finance
 
+> **Superseded in part (2026-10-16)** by
+> [platform model decisions](../decisions/platform-model-decisions.md): NodBusiness never holds
+> buyer money. Buyers pay sellers directly, revenue is subscriptions only, no sales commission is
+> collected (partnership commissions are recorded only), and the wallet is withdraw-only for
+> existing balances. Where this page describes platform checkout, commission collection, top-ups
+> or seller payouts from platform funds, the decision record wins.
+
 ---
 
 ## Acronyms Used in This Document

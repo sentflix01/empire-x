@@ -74,16 +74,18 @@ Revenue Streams:
 
 **Tier structure:**
 
+Prices match what the product charges (`backend/lib/subscriptionPlans.ts`; owner decision 2026-10-15).
+
 | Tier | Price (ETB/month) | Features |
 |---|---|---|
-| **Free** | 0 | 10 products, 1 showroom, basic analytics |
-| **Pro** | 299 | Unlimited products, 5 showrooms, advanced analytics, verified badge, custom domain |
-| **Enterprise** | 999 | Unlimited everything, dedicated support, API access, white-label showroom |
+| **Free** | 0 | 50 products, 1 showroom, 5 builder sections |
+| **Pro** | 650 ($12) | 10,000 products, 3 showrooms, full analytics, bookings, external API data sources |
+| **Enterprise** | 2,700 ($49) | Unlimited showrooms and products, live location, outbound webhooks, business API keys |
 
 **Projection:**
-- 500 Pro subscribers × ETB 299 = **ETB 149,500/month**
-- 100 Enterprise × ETB 999 = **ETB 99,900/month**
-- Combined: **ETB 249,400/month** recurring
+- 500 Pro subscribers × ETB 650 = **ETB 325,000/month**
+- 100 Enterprise × ETB 2,700 = **ETB 270,000/month**
+- Combined: **ETB 595,000/month** recurring
 
 **Implementation:** Stripe Subscriptions (`subscription_tier` field on businesses).
 

@@ -120,7 +120,7 @@ export async function validateFileBytes(
 
 // ── Supabase Storage ──────────────────────────────────────────────────────────
 
-function getSupabaseProjectUrl(environment: 'real' | 'demo' = 'real'): string {
+export function getSupabaseProjectUrl(environment: 'real' | 'demo' = 'real'): string {
   const candidates = environment === 'demo'
     ? [process.env.DEMO_SUPABASE_URL]
     : [process.env.SUPABASE_API_URL, process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_URL];
@@ -384,4 +384,5 @@ module.exports.createStorageKey         = createStorageKey;
 module.exports.getUploadDirectory       = getUploadDirectory;
 module.exports.getDemoSupabaseBucket    = getDemoSupabaseBucket;
 module.exports.getSupabaseStorageAuthHeaders = getSupabaseStorageAuthHeaders;
+module.exports.getSupabaseProjectUrl    = getSupabaseProjectUrl;
 module.exports.verifyDemoStorageIsolation = verifyDemoStorageIsolation;

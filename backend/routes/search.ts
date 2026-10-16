@@ -51,8 +51,16 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
   const sL=uL!=null&&uL>=-90&&uL<=90?uL:null, sLon=uLon!=null&&uLon>=-180&&uLon<=180?uLon:null;
   const radius=radius_km?parseFloat(radius_km):null;
   const realUserFilter=req.realOnly?'AND u.is_seed=FALSE AND u.is_demo=FALSE':'';
-  const realProductFilter=req.realOnly?'AND p.seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
-  const realShowroomFilter=req.realOnly?'AND s.owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
+  const realProductFilter=req.realOnly?`AND p.seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)
+    AND ((p.business_id IS NULL AND p.showroom_id IS NULL) OR EXISTS (
+      SELECT 1 FROM business_subscriptions paid_sub
+      WHERE paid_sub.business_id=COALESCE(p.business_id,(SELECT s.business_id FROM showrooms s WHERE s.id=p.showroom_id))
+        AND paid_sub.tier <> 'freemium'
+        AND paid_sub.current_period_end > NOW() - INTERVAL '24 hours'))`:'';
+  const realShowroomFilter=req.realOnly?`AND s.owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)
+    AND EXISTS (SELECT 1 FROM business_subscriptions paid_sub
+      WHERE paid_sub.business_id=s.business_id AND paid_sub.tier <> 'freemium'
+        AND paid_sub.current_period_end > NOW() - INTERVAL '24 hours')`:'';
   const realPostFilter=req.realOnly?'AND p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
   const R: Record<string,unknown[]> = {};
   try {

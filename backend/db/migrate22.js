@@ -24,12 +24,12 @@
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
+const { orderStatusCheckSql } = require('./orderStatuses');
 
 const schema = `
 -- ?? orders.status ? exact-name drop + recreate (idempotent) ?????????????????
-ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;
-ALTER TABLE orders ADD CONSTRAINT orders_status_check
-  CHECK (status IN ('pending','paid','processing','completed','cancelled','payment_failed','refunded'));
+-- The full current list (db/orderStatuses.js): this re-runs on every deploy.
+${orderStatusCheckSql()}
 
 -- ?? wallet_transactions.type ? exact-name drop + recreate (idempotent) ?????
 ALTER TABLE wallet_transactions DROP CONSTRAINT IF EXISTS wallet_transactions_type_check;

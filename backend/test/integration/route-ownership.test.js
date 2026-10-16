@@ -73,6 +73,7 @@ describe('route ownership and mass assignment boundaries', () => {
 
 
   it('does not let users choose business ids or timestamps when creating a business', async () => {
+    pool.query.mockResolvedValue({ rows: [{ blocked: false }] });
     crud.createRecord.mockResolvedValue({ id: 'business-new', owner_id: 'user-1' });
 
     const response = await request(buildApp(businesses, '/api/businesses')).post('/api/businesses').send({
@@ -81,11 +82,23 @@ describe('route ownership and mass assignment boundaries', () => {
     });
 
     expect(response.status).toBe(201);
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('FROM business_creation_blocks'), ['user-1']);
     expect(crud.createRecord).toHaveBeenCalledWith('businesses', {
       business_name: 'My business', business_category: 'Retail', owner_id: 'user-1',
     });
   });
 
+  it('blocks business creation during the subscription restriction period', async () => {
+    pool.query.mockResolvedValue({ rows: [{ blocked: true }] });
+
+    const response = await request(buildApp(businesses, '/api/businesses')).post('/api/businesses').send({
+      business_name: 'My business', business_category: 'Retail',
+    });
+
+    expect(response.status).toBe(423);
+    expect(response.body.error).toBe('business_creation_blocked');
+    expect(crud.createRecord).not.toHaveBeenCalled();
+  });
 
 
   it('filters demo users out of Real-mode mutual friend results', async () => {

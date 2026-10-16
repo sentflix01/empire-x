@@ -57,40 +57,15 @@ describe('GET /api/wallet/me', () => {
   });
 });
 
-describe('POST /api/wallet/topup', () => {
-  it('returns 422 VALIDATION_ERROR when amount is missing', async () => {
-    const res = await request(buildApp()).post('/api/wallet/topup').send({});
-    expect(res.status).toBe(422);
-    expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
-  });
-
-  it('returns 200 and credits the balance inside a committed transaction', async () => {
-    const clientQuery = mockTransactionClient(async (sql) => {
-      if (sql.startsWith('BEGIN') || sql === 'COMMIT') return { rows: [] };
-      if (sql.includes('SELECT * FROM wallets')) return { rows: [{ id: 'wallet-1', user_id: 'user-1', balance: '0' }] };
-      if (sql.includes('FOR UPDATE')) return { rows: [{ id: 'wallet-1', balance: '0' }] };
-      if (sql.includes('UPDATE wallets SET balance')) return { rows: [{ id: 'wallet-1', user_id: 'user-1', balance: '500' }] };
-      if (sql.includes('INSERT INTO wallet_transactions')) return { rows: [{ id: 'tx-1' }] };
-      return { rows: [] };
-    });
-
-    const res = await request(buildApp()).post('/api/wallet/topup').send({ amount: 500 });
-    expect(res.status).toBe(200);
-
-    const sqls = clientQuery.mock.calls.map(c => c[0]);
-    expect(sqls[0]).toBe('BEGIN');
-    expect(sqls[sqls.length - 1]).toBe('COMMIT');
-    const creditCall = clientQuery.mock.calls.find(c => c[0].includes('UPDATE wallets SET balance'));
-    expect(creditCall).toBeTruthy();
-    expect(creditCall[1]).toEqual([500, 'wallet-1']);
-  });
-
-  it('returns 403 for non-admin user in production', async () => {
-    const originalNodeEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'production';
-    const res = await request(buildApp()).post('/api/wallet/topup').send({ amount: 500 });
-    expect(res.status).toBe(403);
-    process.env.NODE_ENV = originalNodeEnv;
+describe('wallet no longer accepts money (NodBusiness never holds funds)', () => {
+  it.each(['/api/wallet/topup', '/api/wallet/topup/chapa', '/api/wallet/topup/stripe', '/api/wallet/debit', '/api/wallet/refund'])('%s answers 410 without touching the database', async (path) => {
+    mockPool.query.mockClear();
+    mockPool.connect.mockClear();
+    const res = await request(buildApp()).post(path).send({ amount: 500, user_id: 'user-2' });
+    expect(res.status).toBe(410);
+    expect(res.body.code).toBe('PLATFORM_COLLECTION_RETIRED');
+    expect(mockPool.query).not.toHaveBeenCalled();
+    expect(mockPool.connect).not.toHaveBeenCalled();
   });
 });
 

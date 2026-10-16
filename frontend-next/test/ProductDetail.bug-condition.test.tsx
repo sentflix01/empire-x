@@ -331,5 +331,6 @@ describe('Bug Condition Exploration: Reviews Section Absent Before Fix', () => {
       ),
       { numRuns: 3 }
     );
-  }, 15000);
+    // 3 runs x up to 6 s of waitFor each; 15 s timed out on slow CI runners.
+  }, 30000);
 });

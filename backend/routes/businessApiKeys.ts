@@ -106,12 +106,14 @@ router.post('/', requireAuth, checkTierLimit('api_keys'), async (req: Request, r
  */
 router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const businessId = (req as Request & { businessId?: string }).businessId!;
-    const keyId = req.params.id;
-
+    // Ownership comes from the caller's businesses, not checkTierLimit's
+    // req.businessId, so a key can always be revoked, even after a downgrade.
+    // business_api_keys has no updated_at column (migrate37).
     const { rowCount } = await pool.query(
-      'UPDATE business_api_keys SET is_active = FALSE, updated_at = NOW() WHERE id = $1 AND business_id = $2 AND is_active = TRUE',
-      [req.params.id, (req as Request & { businessId?: string }).businessId!],
+      `UPDATE business_api_keys SET is_active = FALSE
+       WHERE id = $1 AND is_active = TRUE
+         AND business_id IN (SELECT id FROM businesses WHERE owner_id = $2)`,
+      [req.params.id, req.user!.id],
     );
 
     if (rowCount === 0) {

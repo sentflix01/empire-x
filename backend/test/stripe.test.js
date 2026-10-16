@@ -117,12 +117,13 @@ beforeEach(() => {
 });
 
 describe('Stripe webhook — checkout.session.completed', () => {
-  test('marks the order paid, collects commission, increments coupon usage', async () => {
+  test('marks the order paid and increments coupon usage without charging commission', async () => {
     mockConstructEvent.mockReturnValue(sessionEvent());
     routeQueries([
       // Atomic claim insert returns the row when the event is new
       ['INSERT INTO webhook_events', { rows: [{ id: 'evt_completed_1' }] }],
       ["status='paid'", { rows: [ORDER] }],            // orders UPDATE ... RETURNING *
+      ['SELECT id, balance FROM wallets', { rows: [] }],
     ]);
 
     const res = await postWebhook(sessionEvent());
@@ -148,11 +149,8 @@ describe('Stripe webhook — checkout.session.completed', () => {
     expect(couponCall).toBeTruthy();
     expect(couponCall[1]).toEqual(['coupon-9']);
 
-    // Commission was collected for the order (in its own transaction)
-    const commissionCall = txnCalls.find(c => c[0].includes('INSERT INTO commissions'));
-    expect(commissionCall).toBeTruthy();
-    expect(commissionCall[1][0]).toBe('order-1');
-    expect(commissionCall[1][1]).toBe('seller-1');
+    // NodBusiness earns only from subscriptions: no platform commission is charged
+    expect(calls.find(c => c[0].includes('INSERT INTO commissions'))).toBeUndefined();
   });
 
   test('duplicate event ids are skipped (no processing)', async () => {
@@ -491,209 +489,15 @@ describe('Stripe webhook — wallet top-up completion', () => {
   });
 });
 
-describe('Stripe checkout — multi-seller cart creates ONE session', () => {
-  // requireAuth enforces type='access' — refresh tokens must not authenticate.
+describe('Stripe checkout into NodBusiness accounts is retired', () => {
+  // NodBusiness never holds customer funds (docs/decisions/platform-model-decisions.md §1).
   const auth = () => `Bearer ${jwt.sign({ sub: 'buyer-1', type: 'access' }, 'test_jwt_secret')}`;
-  const PRODUCTS = [
-    { id: 'prod-1', seller_id: 'seller-1', title: 'Shirt', price: '123.45', status: 'active', stock: null, business_id: 'biz-1' },
-    { id: 'prod-2', seller_id: 'seller-2', title: 'Shoes', price: '67.89', status: 'active', stock: null, business_id: null },
-  ];
 
-  test('shared Track 1 demo account cannot create a Stripe checkout session', async () => {
-    const demoUserId = 'track1-demo-buyer';
-    routeQueries([
-      ['FROM users WHERE id', { rows: [{ id: demoUserId, email: 'test@nodbusiness.app', role: 'user', is_banned: false, is_demo: true }] }],
-    ]);
-    const demoAuth = `Bearer ${jwt.sign({ sub: demoUserId, type: 'access' }, 'test_jwt_secret')}`;
-
-    const res = await request(app)
-      .post('/api/orders/checkout/session')
-      .set('Authorization', demoAuth)
-      .send({ items: [{ product_id: 'prod-1', quantity: 1 }] });
-
-    expect(res).toMatchObject({ status: 403, body: { code: 'DEMO_PAYMENTS_UNAVAILABLE' } });
-    expect(mockSessionsCreate).not.toHaveBeenCalled();
-    expect(pool.query.mock.calls.some(([sql]) => String(sql).includes('INSERT INTO orders'))).toBe(false);
-  });
-
-  test('Stripe checkout stays disabled when the Stripe feature flag is off', async () => {
-    process.env.FF_STRIPE_PAYMENTS = 'false';
-    const userId = 'stripe-disabled-buyer';
-    routeQueries([
-      ['FROM users WHERE id', { rows: [{ id: userId, email: 'buyer@example.test', role: 'user', is_banned: false, is_demo: false }] }],
-    ]);
-    const userAuth = `Bearer ${jwt.sign({ sub: userId, type: 'access' }, 'test_jwt_secret')}`;
-
-    const res = await request(app)
-      .post('/api/orders/checkout/session')
-      .set('Authorization', userAuth)
-      .send({ items: [{ product_id: 'prod-1', quantity: 1 }] });
-
-    expect(res.status).toBe(503);
-    expect(res.body.code).toBe('FEATURE_DISABLED');
-    expect(mockSessionsCreate).not.toHaveBeenCalled();
-    expect(pool.query.mock.calls.some(([sql]) => String(sql).includes('INSERT INTO orders'))).toBe(false);
-  });
-
-  test('rejects malformed quantities before querying products or creating a session', async () => {
-    routeQueries([
-      ['FROM users WHERE id', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user', is_banned: false }] }],
-    ]);
-    const res = await request(app)
-      .post('/api/orders/checkout/session')
-      .set('Authorization', auth())
-      .send({ items: [{ product_id: 'prod-1', quantity: 1.5 }] });
-
-    expect(res.status).toBe(422);
-    expect(pool.query.mock.calls.some(([sql]) => String(sql).includes('SELECT * FROM products'))).toBe(false);
-    expect(pool.query.mock.calls.some(([sql]) => String(sql).includes('INSERT INTO orders'))).toBe(false);
-    expect(mockSessionsCreate).not.toHaveBeenCalled();
-  });
-
-  test('combines duplicate cart lines before checking available stock', async () => {
-    routeQueries([
-      ['FROM users WHERE id', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user', is_banned: false }] }],
-      ['SELECT * FROM products', { rows: [{
-        id: 'prod-1', seller_id: 'seller-1', title: 'Limited stock item', price: '10', status: 'active', stock: 5,
-      }] }],
-    ]);
-    const res = await request(app)
-      .post('/api/orders/checkout/session')
-      .set('Authorization', auth())
-      .send({ items: [{ product_id: 'prod-1', quantity: 3 }, { product_id: 'prod-1', quantity: 3 }] });
-
-    expect(res.status).toBe(422);
-    expect(res.body.error).toMatch(/Only 5/);
-    expect(pool.query.mock.calls.some(([sql]) => String(sql).includes('INSERT INTO orders'))).toBe(false);
-    expect(mockSessionsCreate).not.toHaveBeenCalled();
-  });
-
-  test('2-seller cart → one session, one URL, both orders linked', async () => {
-    const orderIds = ['order-A', 'order-B'];
-    let insertIdx = 0;
-    routeQueries([
-      // requireAuth → getCachedUser SELECT
-      ['FROM users WHERE id', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user', is_banned: false }] }],
-      ['SELECT * FROM products', { rows: PRODUCTS }],
-      ['INSERT INTO orders', () => ({ rows: [{ id: orderIds[insertIdx++] }] })],
-      ['UPDATE orders SET stripe_session_id', { rows: [] }],
-    ]);
-    mockSessionsCreate.mockResolvedValue({
-      id: 'cs_test_multi',
-      url: 'https://checkout.stripe.com/c/pay/cs_test_multi',
-    });
-
-    const res = await request(app)
-      .post('/api/orders/checkout/session')
-      .set('Authorization', auth())
-      .send({ items: [{ product_id: 'prod-1', quantity: 1 }, { product_id: 'prod-2', quantity: 2 }] });
-
-    expect(res.status).toBe(200);
-    expect(res.body.url).toBe('https://checkout.stripe.com/c/pay/cs_test_multi');
-    expect(res.body.session_id).toBe('cs_test_multi');
-    expect(res.body.order_ids).toEqual(['order-A', 'order-B']);
-
-    // Exactly ONE Stripe session across all sellers
-    expect(mockSessionsCreate).toHaveBeenCalledTimes(1);
-    const params = mockSessionsCreate.mock.calls[0][0];
-    expect(params.line_items).toHaveLength(1); // one exact-total cart line for the combined session
-    expect(params.metadata.purpose).toBe('order');
-    expect(params.metadata.order_ids).toBe('order-A,order-B');
-    expect(params.metadata.seller_ids).toBe('seller-1,seller-2');
-    expect(params.payment_method_types).toBeUndefined(); // automatic methods
-
-    // Integer-cent math: 1×123.45 + 2×67.89 = 259.23 ETB → $2.07
-    const sumCents = params.line_items.reduce((s, li) => s + li.price_data.unit_amount * li.quantity, 0);
-    expect(sumCents).toBe(Math.round((123.45 + 2 * 67.89) * 0.008 * 100));
-    expect(res.body.display.charge_total).toBe(sumCents / 100);
-
-    // Both orders linked to the SAME session id
-    const linkCall = pool.query.mock.calls.find(c => c[0].includes('UPDATE orders SET stripe_session_id'));
-    expect(linkCall[1]).toEqual(['cs_test_multi', ['order-A', 'order-B']]);
-  });
-
-  test('rounding drift is absorbed by an adjustment line (no off-by-cent)', async () => {
-    // 3 × 3.33 ETB each → 3¢ each (9¢) but the converted grand total is 8¢
-    const driftProducts = [
-      { id: 'prod-a', seller_id: 'seller-1', title: 'A', price: '3.33', status: 'active', stock: null, business_id: null },
-      { id: 'prod-b', seller_id: 'seller-2', title: 'B', price: '3.33', status: 'active', stock: null, business_id: null },
-      { id: 'prod-c', seller_id: 'seller-2', title: 'C', price: '3.33', status: 'active', stock: null, business_id: null },
-    ];
-    const orderIds = ['order-X', 'order-Y'];
-    let insertIdx = 0;
-    routeQueries([
-      ['FROM users WHERE id', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user', is_banned: false }] }],
-      ['SELECT * FROM products', { rows: driftProducts }],
-      ['INSERT INTO orders', () => ({ rows: [{ id: orderIds[insertIdx++] }] })],
-      ['UPDATE orders SET stripe_session_id', { rows: [] }],
-    ]);
-    mockSessionsCreate.mockResolvedValue({ id: 'cs_test_drift', url: 'https://checkout.stripe.com/c/pay/cs_test_drift' });
-
-    const res = await request(app)
-      .post('/api/orders/checkout/session')
-      .set('Authorization', auth())
-      .send({ items: driftProducts.map(p => ({ product_id: p.id, quantity: 1 })) });
-
-    expect(res.status).toBe(200);
-    const params = mockSessionsCreate.mock.calls[0][0];
-    expect(params.line_items).toHaveLength(1);
-    expect(params.line_items[0].price_data.unit_amount).toBe(Math.round(9.99 * 0.008 * 100));
-    expect(params.line_items[0].price_data.unit_amount).toBeGreaterThan(0);
-  });
-
-  test('internal coupon becomes a positive Stripe discount, never a negative price line', async () => {
-    routeQueries([
-      ['FROM users WHERE id', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user', is_banned: false }] }],
-      ['SELECT * FROM products', { rows: PRODUCTS }],
-      ['SELECT * FROM coupons', { rows: [{
-        id: 'coupon-db-1', seller_id: 'seller-1', code: 'TENOFF', discount_type: 'fixed',
-        discount_value: '10', min_order: '0',
-      }] }],
-      ['INSERT INTO orders', { rows: [{ id: 'order-coupon' }] }],
-      ['UPDATE orders SET stripe_session_id', { rows: [] }],
-    ]);
-    mockCouponsCreate.mockResolvedValue({ id: 'coupon-stripe-1' });
-    mockSessionsCreate.mockResolvedValue({ id: 'cs_coupon', url: 'https://checkout.stripe.com/c/pay/cs_coupon' });
-
-    const res = await request(app)
-      .post('/api/orders/checkout/session')
-      .set('Authorization', auth())
-      .send({ product_id: 'prod-1', quantity: 1, coupon_code: 'TENOFF' });
-
-    expect(res.status).toBe(200);
-    expect(mockCouponsCreate).toHaveBeenCalledWith(expect.objectContaining({
-      amount_off: 8, currency: 'usd', duration: 'once',
-    }));
-    const params = mockSessionsCreate.mock.calls[0][0];
-    expect(params.line_items).toHaveLength(1);
-    expect(params.line_items[0].price_data.unit_amount).toBeGreaterThan(0);
-    expect(params.discounts).toEqual([{ coupon: 'coupon-stripe-1' }]);
-    expect(params.line_items.some(li => li.price_data.unit_amount < 0)).toBe(false);
-    expect(res.body.display.charge_total).toBe(Math.round((123.45 - 10) * 0.008 * 100) / 100);
-  });
-
-  test('session creation failure marks session-less orders payment_failed (no deletes)', async () => {
-    routeQueries([
-      ['FROM users WHERE id', { rows: [{ id: 'buyer-1', email: 'b@x.com', role: 'user', is_banned: false }] }],
-      ['SELECT * FROM products', { rows: PRODUCTS }],
-      ['INSERT INTO orders', { rows: [{ id: 'order-Z' }] }],
-    ]);
-    mockSessionsCreate.mockRejectedValue(new Error('stripe is down'));
-
-    const res = await request(app)
-      .post('/api/orders/checkout/session')
-      .set('Authorization', auth())
-      .send({ items: [{ product_id: 'prod-1', quantity: 1 }] });
-
-    expect(res.status).toBe(500);
-    await flushAsync();
-
-    // Rollback flags orders instead of deleting them, and only session-less ones
-    const rollback = pool.query.mock.calls.find(c => c[0].includes("SET status='payment_failed'") && c[0].includes('stripe_session_id IS NULL'));
-    expect(rollback).toBeTruthy();
-    expect(rollback[1]).toEqual([['order-Z']]);
-    const deletes = pool.query.mock.calls.filter(c => /^DELETE FROM orders/i.test(c[0].trim()));
-    expect(deletes).toHaveLength(0);
+  test('POST /api/orders/checkout/session answers 410 before touching products or Stripe', async () => {
+    const res = await request(app).post('/api/orders/checkout/session').set('Authorization', auth()).send({ items: [{ product_id: 'prod-1', quantity: 1 }] });
+    expect(res.status).toBe(410);
+    expect(res.body.code).toBe('PLATFORM_COLLECTION_RETIRED');
+    expect(pool.query).not.toHaveBeenCalled();
   });
 });
 

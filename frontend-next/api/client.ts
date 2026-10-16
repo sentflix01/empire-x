@@ -95,7 +95,8 @@ export async function ensureFreshToken(): Promise<boolean> {
  * request paths.
  */
 export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
-  if (!_accessToken) await ensureFreshToken();
+  const hasAuthHint = typeof document !== 'undefined' && /(?:^|;\s*)nb_auth=1(?:;|$)/.test(document.cookie);
+  if (!_accessToken && hasAuthHint) await ensureFreshToken();
 
   const headers = new Headers(
     typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined,

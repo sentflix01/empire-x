@@ -25,7 +25,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body style={{ fontFamily: 'system-ui, sans-serif', background: '#fafafa' }}>
         <div
           style={{

@@ -91,7 +91,13 @@ function WizardTemplateCard({ template, selected, onSelect }: {
       onClick={onSelect}
       role="button"
       tabIndex={0}
-      onKeyDown={e => e.key === "Enter" && onSelect()}
+      aria-pressed={selected}
+      onKeyDown={e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
       className={`relative cursor-pointer overflow-hidden rounded-xl border bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:bg-card ${
         selected
           ? "border-primary shadow-md ring-2 ring-primary/70"
@@ -183,6 +189,7 @@ function ShowroomWizard() {
   const paramCategory = searchParams.get("category") || "";
   const paramTemplate = searchParams.get("template") || "";
   const paramSample = searchParams.get("sample") || "";
+  const editId = searchParams.get("edit") || "";
   const paramStep = Number(searchParams.get("step") || "0");
 
   const matchCategory = (raw: string) => {
@@ -193,7 +200,8 @@ function ShowroomWizard() {
 
   const initCategory = matchCategory(paramCategory);
   const initStep =
-    paramSample && paramTemplate ? 3
+    editId ? 3
+      : paramSample && paramTemplate ? 3
       : paramStep === 3 ? 3
         : paramStep === 2 ? (initCategory ? 2 : 1)
           : paramTemplate && initCategory ? 2
@@ -223,7 +231,8 @@ function ShowroomWizard() {
       ? CATEGORIES.find(c => c.cat.toLowerCase() === paramCategory.replace(/-/g, " ").toLowerCase())?.cat || ""
       : "";
     const urlStep =
-      paramSample && paramTemplate ? 3
+      editId ? 3
+        : paramSample && paramTemplate ? 3
         : paramStep === 3 ? 3
           : paramStep === 2 ? (urlCat ? 2 : 1)
             : paramTemplate && urlCat ? 2
@@ -373,6 +382,7 @@ function ShowroomWizard() {
                         key={cat.cat}
                         type="button"
                         onClick={() => pickCategory(cat.cat)}
+                        aria-pressed={selected}
                         initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.04, duration: 0.25 }}
                         className={`group relative flex flex-col items-start gap-3 rounded-2xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/10 ${
@@ -453,6 +463,7 @@ function ShowroomWizard() {
                   <input
                     value={search}
                     onChange={e => setSearch(e.target.value)}
+                    aria-label={t("showroomWizard.searchPlaceholder")}
                     placeholder={t("showroomWizard.searchPlaceholder")}
                     className="w-full rounded-full border border-transparent bg-secondary py-2.5 pl-10 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
@@ -523,7 +534,8 @@ function ShowroomWizard() {
                                 type="button"
                                 onClick={() => setPreviewMode(m)}
                                 className={`rounded-full p-1.5 transition-colors ${previewMode === m ? "bg-gradient-to-br from-blue-600 to-violet-600 text-white" : "text-muted-foreground hover:bg-secondary"}`}
-                                aria-label={m}
+                                aria-label={`Preview as ${m}`}
+                                aria-pressed={previewMode === m}
                               >
                                 <Icon className="h-3.5 w-3.5" />
                               </button>
@@ -586,10 +598,14 @@ function ShowroomWizard() {
             templateParamOverride={templateId}
             categoryParamOverride={category}
             sampleParamOverride={sampleSel}
-            onBack={() => {
-              setStep(2);
-              syncUrl({ step: 2, category, template: templateId || undefined });
-            }}
+          onBack={() => {
+            if (editId) {
+              router.push(`/showrooms/${editId}`);
+              return;
+            }
+            setStep(2);
+            syncUrl({ step: 2, category, template: templateId || undefined });
+          }}
           />
         </div>
       )}

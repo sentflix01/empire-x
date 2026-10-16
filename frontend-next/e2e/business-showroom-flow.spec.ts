@@ -8,14 +8,14 @@ const publishedShowroom = {
   slug: 'fresh-roots-cooperative',
   category: 'Agriculture',
   sections: JSON.stringify([
-    { type: 'hero', title: 'Fresh Roots Cooperative', subtitle: 'Locally grown produce from our farm.', heroBg: '#b8860b', heroBg2: '#d4a843' },
-    { type: 'contact', location: 'Addis Ababa' },
+    { type: 'hero', title: 'Fresh Roots Cooperative', subtitle: 'Locally grown produce from our farm.', cta: 'Contact Us', heroBg: '#b8860b', heroBg2: '#d4a843' },
+    { type: 'contact', location: 'Addis Ababa', phone: '+251900000000' },
   ]),
   status: 'published',
   created_at: '2026-10-07T08:00:00.000Z',
 };
 
-async function mockShowroomApi(page: Page, options: { signedIn?: boolean; publishedByDefault?: boolean; onPublished?: (body: Record<string, unknown>) => void } = {}) {
+async function mockShowroomApi(page: Page, options: { signedIn?: boolean; publishedByDefault?: boolean; onPublished?: (body: Record<string, unknown>) => void; onUpdated?: (body: Record<string, unknown>) => void } = {}) {
   let isPublished = false;
   await page.route('**/api/**', async route => {
     const request = route.request();
@@ -60,6 +60,12 @@ async function mockShowroomApi(page: Page, options: { signedIn?: boolean; publis
       await route.fulfill({ json: (isPublished || options.publishedByDefault) && url.searchParams.get('status') === 'published' ? [publishedShowroom] : [] });
       return;
     }
+    if (path === `/api/showrooms/${publishedShowroom.id}` && request.method() === 'PUT') {
+      const body = request.postDataJSON() as Record<string, unknown>;
+      options.onUpdated?.(body);
+      await route.fulfill({ json: { ...publishedShowroom, ...body } });
+      return;
+    }
     if (path === `/api/showrooms/${publishedShowroom.id}` || path === `/api/showrooms/slug/${publishedShowroom.slug}`) {
       await route.fulfill({ json: publishedShowroom });
       return;
@@ -75,6 +81,19 @@ async function mockShowroomApi(page: Page, options: { signedIn?: boolean; publis
 async function setAuthHint(context: BrowserContext) {
   await context.addCookies([{ name: 'nb_auth', value: '1', domain: 'localhost', path: '/', sameSite: 'Lax', httpOnly: false, secure: false }]);
 }
+
+test('a showroom back button returns to the previous page', async ({ page }) => {
+  await mockShowroomApi(page, { publishedByDefault: true });
+
+  await page.goto('/showrooms');
+  await expect(page.getByRole('link', { name: /Fresh Roots Cooperative/ })).toBeVisible();
+  await page.getByRole('link', { name: /Fresh Roots Cooperative/ }).click();
+  await expect(page).toHaveURL(/\/showrooms\/e2e-showroom-id$/);
+
+  await page.getByRole('button', { name: /Go back/ }).click();
+  await expect(page).toHaveURL(/\/showrooms$/);
+  await expect(page.getByRole('heading', { name: 'Showrooms' })).toBeVisible();
+});
 
 test('a scratch showroom publishes without sample content and appears to other visitors', async ({ page, browser }) => {
   let publishedBody: Record<string, unknown> | undefined;
@@ -123,4 +142,23 @@ test('a scratch showroom publishes without sample content and appears to other v
   await expect(guestPage).toHaveURL(/\/showroom\/fresh-roots-cooperative$/);
   await expect(guestPage.getByText('Fresh Roots Cooperative').first()).toBeVisible();
   await guestContext.close();
+});
+
+test('editing a published showroom restores its sections and keeps them on republish', async ({ page }) => {
+  let updatedBody: Record<string, unknown> | undefined;
+  await page.setViewportSize({ width: 320, height: 554 });
+  await mockShowroomApi(page, { signedIn: true, onUpdated: body => { updatedBody = body; } });
+  await setAuthHint(page.context());
+
+  await page.goto('/showroom/create?edit=e2e-showroom-id');
+  const businessName = page.locator('input[placeholder="Your Business Name"]:visible').first();
+  await expect(businessName).toHaveValue('Fresh Roots Cooperative');
+  await businessName.fill('Fresh Roots Cooperative Updated');
+  await page.getByRole('button', { name: 'Publish site' }).click();
+  await expect(page).toHaveURL(/\/showrooms\/e2e-showroom-id$/);
+
+  const savedSections = JSON.parse(String(updatedBody?.sections)) as Array<Record<string, unknown>>;
+  expect(savedSections.map(section => section.type)).toEqual(['hero', 'contact']);
+  expect(savedSections[0]).toMatchObject({ title: 'Fresh Roots Cooperative Updated', subtitle: 'Locally grown produce from our farm.' });
+  expect(savedSections[1]).toMatchObject({ location: 'Addis Ababa', phone: '+251900000000' });
 });

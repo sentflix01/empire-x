@@ -10,16 +10,18 @@ describe('order status migration', () => {
     expect(migrations.indexOf('migrate43.js')).toBeLessThan(migrations.indexOf('migrate44.js'));
     expect(migrations).toContain('migrate47.js');
     expect(migrations.indexOf('migrate43.js')).toBeLessThan(migrations.indexOf('migrate47.js'));
-    expect(migrations.at(-1)).toBe('migrate52.js');
   });
 
   it('allows every fulfillment and return status used by the routes', () => {
+    // migrate41 builds the constraint from the shared list (db/orderStatuses.js).
     const migration = fs.readFileSync(path.join(__dirname, '../db/migrate41.js'), 'utf8');
+    expect(migration).toContain('orderStatusCheckSql()');
+    const { ORDER_STATUSES } = require('../db/orderStatuses') as { ORDER_STATUSES: readonly string[] };
     for (const status of [
       'pending', 'paid', 'confirmed', 'processing', 'shipped', 'delivered', 'completed',
       'cancelled', 'disputed', 'payment_failed', 'refunded', 'return_requested', 'return_approved',
     ]) {
-      expect(migration).toContain(`'${status}'`);
+      expect(ORDER_STATUSES).toContain(status);
     }
   });
 

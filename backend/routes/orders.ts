@@ -5,7 +5,8 @@
  *   - Keyset cursor pagination on GET /
  *   - Stripe checkout: all prices computed server-side
  *   - Webhook: idempotent event processing via webhook_events table
- *   - Commission collected via atomicWalletOp (Phase 1 Task 4)
+ *   - No platform commission: NodBusiness earns only from subscriptions
+ *     (docs/decisions/platform-model-decisions.md §1)
  */
 import { Router } from 'express';
 import type { Request, Response } from 'express';
@@ -13,7 +14,6 @@ import logger from '../lib/logger';
 import pool from '../db/pool';
 import { requireAuth } from '../middleware/auth';
 import { getRecord, createRecord, updateRecord } from '../utils/crud';
-import { collectCommission } from './commission';
 import { resolvePartnerAttribution, recordProfileOwnerCommission } from './profilePartnerships';
 import { notifyUser } from './telegram';
 import { emitNotification } from '../socket';
@@ -26,12 +26,17 @@ import { auditLog } from '../lib/auditLogger';
 import { isStripeConfigured, stripeClientFacade, withVerifiedStripeWebhook } from '../lib/stripeClient';
 import { requireIsolatedPaymentEnvironment } from '../middleware/demoEnvironment';
 import { requireFeatureFlag } from '../middleware/featureFlag';
+import { platformCollectionRetired } from '../middleware/platformCollectionRetired';
 import {
   InventoryUnavailableError, reserveOrderInventory, commitOrderInventory,
   releaseOrderInventory, transitionPaymentOrders, cancelOrderAndReleaseInventory,
 } from '../services/orderInventory';
 
 const router = Router();
+
+// Card and Chapa checkout charged buyers into NodBusiness's own accounts.
+// Retired until a provider settles directly to the seller (decision §1).
+const platformCheckoutRetired = platformCollectionRetired('Paying through NodBusiness is not available. Pay the seller directly using the payment details on the order.');
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const stripe: any = stripeClientFacade();
@@ -105,7 +110,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     const orderBy = sort==='created_at' ? 'o.created_at ASC' : 'o.created_at DESC';
     params.push(lim);
     const { rows } = await pool.query(`SELECT o.* FROM orders o WHERE ${conditions.join(' AND ')} ORDER BY ${orderBy} LIMIT $${params.length}`, params);
-    res.json({ orders: rows, next_cursor: rows.length===lim ? rows[rows.length-1].created_at : null });
+    res.json({ orders: rows.map(clientOrder), next_cursor: rows.length===lim ? rows[rows.length-1].created_at : null });
   } catch { apiError.serverError(res, 'Failed to fetch orders'); }
 });
 
@@ -123,7 +128,7 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
     const order = await getRecord<Record<string,unknown>>('orders', req.params.id);
     if (!order) { apiError.notFound(res, 'Order not found'); return; }
     if (order.buyer_id!==req.user!.id && order.seller_id!==req.user!.id && req.user!.role!=='admin') { res.status(403).json({ error:'Forbidden' }); return; }
-    res.json(order);
+    res.json(clientOrder(order));
   } catch { apiError.serverError(res, 'Failed to fetch order'); }
 });
 
@@ -137,8 +142,10 @@ const ORDER_UPDATE_FIELDS = new Set([
 ]);
 
 /** State transitions allowed for each order party, indexed by current state. */
+// Direct-payment orders are confirmed through /api/direct-orders/:id/confirm-payment.
 const BUYER_TRANSITIONS: Record<string, Set<string>> = {
   pending: new Set(['cancelled']),
+  awaiting_payment: new Set(['cancelled']),
   paid: new Set(['disputed']),
   confirmed: new Set(['disputed']),
   processing: new Set(['disputed']),
@@ -147,11 +154,20 @@ const BUYER_TRANSITIONS: Record<string, Set<string>> = {
 };
 const SELLER_TRANSITIONS: Record<string, Set<string>> = {
   pending: new Set(['confirmed', 'cancelled']),
+  awaiting_payment: new Set(['cancelled']),
+  payment_reported: new Set(['cancelled']),
   paid: new Set(['confirmed', 'processing', 'cancelled']),
   confirmed: new Set(['processing', 'cancelled']),
   processing: new Set(['shipped', 'cancelled']),
   shipped: new Set(['delivered']),
 };
+
+/** Never send the order-link token hash or the private receipt key to clients. */
+function clientOrder<T extends Record<string, unknown> | null | undefined>(row: T): T {
+  if (!row) return row;
+  const { access_token_hash: _hash, receipt_key: receiptKey, ...rest } = row as Record<string, unknown>;
+  return { ...rest, has_receipt: !!receiptKey } as unknown as T;
+}
 
 function pickAllowed(body: Record<string, unknown>, allowed: readonly string[]): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -258,11 +274,15 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
         const isBuyer = existing.buyer_id === req.user!.id;
         const transitions = isBuyer ? BUYER_TRANSITIONS : SELLER_TRANSITIONS;
         const retryCompletedLedger = existing.status === 'completed' && updates.status === 'completed';
-        if (!retryCompletedLedger && !transitions[String(existing.status)]?.has(String(updates.status))) {
+        // A guest buyer has no account to confirm delivery, so the seller completes it.
+        const sellerCompletesGuestOrder = !isBuyer && !existing.buyer_id && existing.status === 'delivered' && updates.status === 'completed';
+        if (!retryCompletedLedger && !sellerCompletesGuestOrder && !transitions[String(existing.status)]?.has(String(updates.status))) {
           apiError.forbidden(res, `You cannot set this order to "${String(updates.status)}"`);
           return;
         }
-        if (updates.status === 'cancelled' && existing.payment_provider !== 'cod' && existing.payment_provider !== null) {
+        // Card/Chapa orders went through a provider; COD and direct-payment orders
+        // never passed money through NodBusiness, so they can be cancelled here.
+        if (updates.status === 'cancelled' && !['cod', 'direct'].includes(String(existing.payment_provider)) && existing.payment_provider !== null) {
           apiError.forbidden(res, 'Online orders cannot be cancelled here; use the provider refund or return process');
           return;
         }
@@ -282,21 +302,23 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     }
     if ((updates as {status?:string}).status==='completed' && existing.status!=='completed') {
       await commitOrderInventory(pool, [req.params.id]).catch(err => logger.error({ err }, 'Failed to commit inventory for completed COD order'));
-      collectCommission(existing.id as string, existing.seller_id as string, parseFloat(String(existing.total_price))).catch(err => logger.error({err},'Commission failed'));
       notifyUser(existing.seller_id as string, `✅ <b>Order Completed</b>\n${existing.product_title}\nAmount: ${existing.total_price} ${existing.currency}`).catch(()=>undefined);
-      notifyUser(existing.buyer_id as string, `📦 <b>Your order is complete!</b>\n${existing.product_title}\nThank you for shopping on Nodbusiness 👑`).catch(()=>undefined);
+      const buyerId = (existing.buyer_id as string | null) ?? null; // null for guest orders
+      if (buyerId) notifyUser(buyerId, `📦 <b>Your order is complete!</b>\n${existing.product_title}\nThank you for shopping on Nodbusiness 👑`).catch(()=>undefined);
       const [buyerNotifResult, sellerNotifResult] = await Promise.all([
-        pool.query(`INSERT INTO notifications (user_id,type,title,body,link,is_read) VALUES ($1,'order','📦 Order completed!',$2,'/orders',false) RETURNING *`, [existing.buyer_id, `Your order for ${existing.product_title} is complete.`]),
+        buyerId
+          ? pool.query(`INSERT INTO notifications (user_id,type,title,body,link,is_read) VALUES ($1,'order','📦 Order completed!',$2,'/orders',false) RETURNING *`, [buyerId, `Your order for ${existing.product_title} is complete.`])
+          : Promise.resolve({ rows: [] as Record<string, unknown>[] }),
         pool.query(`INSERT INTO notifications (user_id,type,title,body,link,is_read) VALUES ($1,'order','✅ Sale completed!',$2,'/orders',false) RETURNING *`, [existing.seller_id, `Order for ${existing.product_title} has been completed.`]),
       ]);
       const buyerNotif = buyerNotifResult.rows[0];
       const sellerNotif = sellerNotifResult.rows[0];
-      emitNotification(existing.buyer_id as string, buyerNotif as Record<string,unknown>);
+      if (buyerId && buyerNotif) emitNotification(buyerId, buyerNotif as Record<string,unknown>);
       emitNotification(existing.seller_id as string, sellerNotif as Record<string,unknown>);
-      sendPushToUser(existing.buyer_id as string, '📦 Order completed!', `Your order for ${existing.product_title} is complete.`, '/orders').catch(()=>undefined);
+      if (buyerId) sendPushToUser(buyerId, '📦 Order completed!', `Your order for ${existing.product_title} is complete.`, '/orders').catch(()=>undefined);
       sendPushToUser(existing.seller_id as string, '✅ Sale completed!', `Order for ${existing.product_title} has been completed.`, '/orders').catch(()=>undefined);
     }
-    res.json(updated);
+    res.json(clientOrder(updated as Record<string, unknown>));
   } catch (err) {
     logger.error({ err }, 'Failed to update order');
     apiError.serverError(res, 'Failed to update order');
@@ -304,7 +326,7 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
 });
 
 // ── Stripe Checkout ───────────────────────────────────────────────────────────
-router.post('/checkout/session', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('stripe_payments', 'Stripe payments temporarily disabled'), async (req: Request, res: Response) => {
+router.post('/checkout/session', platformCheckoutRetired, requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('stripe_payments', 'Stripe payments temporarily disabled'), async (req: Request, res: Response) => {
   if (!isStripeConfigured()) { res.status(503).json({ error: 'Stripe is not configured for this environment' }); return; }
   const createdOrderIds: string[] = [];
   try {
@@ -463,7 +485,6 @@ async function handleStripeEvent(event: Record<string,unknown>): Promise<void> {
     const couponId = (obj.metadata as Record<string,string>)?.coupon_id;
     if (couponId) await pool.query('UPDATE coupons SET usage_count=usage_count+1 WHERE id=$1', [couponId]);
     for (const order of rows) {
-      collectCommission(order.id as string, order.seller_id as string, parseFloat(String(order.total_price))).catch(()=>undefined);
       notifyUser(order.seller_id as string, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ETB via Stripe ✅`).catch(()=>undefined);
       // Confirm email
       pool.query('SELECT email FROM users WHERE id=$1', [order.buyer_id]).then(({rows:buyers}) => {
@@ -653,7 +674,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
 });
 
 // ── Chapa checkout ─────────────────────────────────────────────────────────────
-router.post('/checkout/chapa', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('chapa_payments', 'Chapa payments temporarily disabled'), async (req: Request, res: Response) => {
+router.post('/checkout/chapa', platformCheckoutRetired, requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('chapa_payments', 'Chapa payments temporarily disabled'), async (req: Request, res: Response) => {
   if (!CHAPA_SECRET) { res.status(503).json({ error: 'Chapa not configured' }); return; }
   if (CHAPA_SANDBOX && process.env.NODE_ENV === 'production') { res.status(503).json({ error: 'Chapa sandbox is disabled in production' }); return; }
   const body = req.body as Record<string,unknown>;
@@ -759,7 +780,6 @@ router.get('/chapa/verify/:tx_ref', async (req: Request, res: Response) => {
     }
     const rows = await transitionPaymentOrders(pool, 'chapa_tx_ref', tx_ref, 'paid');
     for (const order of rows) {
-      collectCommission(order.id as string, order.seller_id as string, parseFloat(String(order.total_price))).catch(()=>undefined);
       notifyUser(order.seller_id as string, `💰 <b>Payment Confirmed!</b>\n${order.product_title}\nAmount: ${order.total_price} ${order.currency||'ETB'} via Chapa ✅`).catch(()=>undefined);
       sendPushToUser(order.seller_id as string,'💰 Payment received!',`${order.product_title} — ${order.total_price} ETB via Chapa`,'/orders').catch(()=>undefined);
       sendPushToUser(order.buyer_id as string,'✅ Payment confirmed!',`Your payment for ${order.product_title} was successful.`,'/orders').catch(()=>undefined);
