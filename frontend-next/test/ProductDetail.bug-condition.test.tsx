@@ -272,7 +272,10 @@ describe('Bug Condition Exploration: Reviews Section Absent Before Fix', () => {
       id: fc.integer({ min: 1, max: 9999 }),
       product_id: fc.constantFrom('42', '99', '7'),
       reviewer_id: fc.string({ minLength: 1, maxLength: 10 }),
-      display_name: fc.string({ minLength: 1, maxLength: 20 }),
+      // Visible names only: Testing Library normalises whitespace, so a generated
+      // name like " a" or "a  b" can never be found by getAllByText, and each
+      // shrink step then waits out waitFor (timed out on CI at 15 s and 30 s).
+      display_name: fc.stringMatching(/^[A-Za-z][A-Za-z0-9]{0,11}( [A-Za-z][A-Za-z0-9]{0,6})?$/),
       rating: fc.integer({ min: 1, max: 5 }),
       comment: fc.string({ minLength: 1, maxLength: 100 }),
       created_at: fc.constant(new Date().toISOString()),
