@@ -130,6 +130,24 @@ documents when verified; do not copy stale values into new work.
   profile rows for the Demo owner.
 - **Related documentation:** [Demo workspace deployment](../docs/operations/DEMO_WORKSPACE_DEPLOYMENT.md)
 
+### 2026-10-16 — Owners choose public or private; guests see the business feed only
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** Every business site was open to anyone, and guests could read
+  personal posts and profiles.
+- **Decision:** Each business is **Public** (default) or **Private**. Private
+  businesses, their sites and products are for signed-in users only and are
+  hidden from guests, the sitemap and search engines. Guests see the business
+  feed only; personal posts, stories, people and personal profiles need
+  sign-in. This narrows "open without signing in" and "findable by search
+  engines" to public businesses.
+- **Consequences:** Guest-facing reads go through `lib/siteVisibility.ts`;
+  a guest request for private or personal content gets `401 SIGN_IN_REQUIRED`
+  and the page shows "Sign in to view". Response caches split guests from
+  members.
+- **Related documentation:** [Platform model decisions](../docs/decisions/platform-model-decisions.md) §2, §7.1, §7.3, §7.5
+
 ### 2026-10-16 — globals.css is the only Tailwind configuration; CI fails on missing utilities
 
 - **Status:** Accepted
