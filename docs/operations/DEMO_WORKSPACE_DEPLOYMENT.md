@@ -39,7 +39,17 @@ the Real project and that the bucket is private before enabling Demo.
 
 ## 2. Migrate the dedicated Demo database
 
-From the repository root in PowerShell:
+Every production deploy migrates the Demo database right after the Real one
+(`.github/workflows/deploy.yml`, "Run migrations on the Demo database"), so
+Demo always has the schema the newly deployed backend queries. This needs the
+`DEMO_DATABASE_URL` GitHub Actions secret (production environment) set to the
+same Demo Postgres URI Render uses. Without it the step is skipped with a
+notice, and Demo sessions fail with 500 errors as soon as a deploy ships SQL
+that needs a newer migration (this happened on 2026-10-16 after the site
+visibility release).
+
+To migrate by hand, for example the first time or to repair a Demo database
+that missed deploys, run from the repository root in PowerShell:
 
 ```powershell
 $env:ALLOW_DEMO_MIGRATIONS = '1'

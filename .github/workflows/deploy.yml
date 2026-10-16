@@ -124,6 +124,25 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DB_SSL_CA_FILE: certs/prod-ca-2021.crt
 
+      # The Demo workspace has its own database. The backend that this deploy
+      # starts queries it with the same SQL as the Real database, so it must be
+      # migrated in the same step or Demo sessions fail with 500s (2026-10-16).
+      # migrate-demo.js refuses to run if the Demo URL points at the Real DB.
+      - name: Run migrations on the Demo database
+        working-directory: backend
+        run: |
+          if [ -z "$DEMO_DATABASE_URL" ]; then
+            echo "::notice::DEMO_DATABASE_URL secret is not set — skipping Demo database migrations."
+            exit 0
+          fi
+          DEMO_DB_NAME=$(node -e 'console.log(decodeURIComponent(new URL(process.env.DEMO_DATABASE_URL).pathname.slice(1)))')
+          node db/migrate-demo.js --execute "--database=$DEMO_DB_NAME"
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DEMO_DATABASE_URL: ${{ secrets.DEMO_DATABASE_URL }}
+          DEMO_DB_SSL_CA_FILE: certs/prod-ca-2021.crt
+          ALLOW_DEMO_MIGRATIONS: '1'
+
   # ── Deploy Backend to Render ──────────────────────────────────────────────
   # Auto-deploy is disabled in render.yaml. This explicit hook deploys the
   # exact CI-tested commit only after the database migration job succeeds.
