@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #117 from sentflix01/claude/publish-business-step | [1cb6a3ed6](2026-10-17-1cb6a3ed6-merge-pull-request-117-from-sentflix01-claude-pu.md) |
+| 2026-10-17 | Bugfix | fix(studio): create or choose the Business profile inside the publish step | [f27c6bd60](2026-10-17-f27c6bd60-create-or-choose-the-business-profile-inside-the.md) |
 | 2026-10-17 | Maintenance | Merge pull request #116 from sentflix01/claude/profile-site-sections | [79d49e3ff](2026-10-17-79d49e3ff-merge-pull-request-116-from-sentflix01-claude-pr.md) |
 | 2026-10-17 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/profile-site-sections | [96988f0fc](2026-10-17-96988f0fc-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-17 | Maintenance | Merge pull request #115 from sentflix01/claude/brand-logo-onboarding | [8fcfe9f71](2026-10-17-8fcfe9f71-merge-pull-request-115-from-sentflix01-claude-br.md) |
