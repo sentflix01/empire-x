@@ -33,6 +33,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Kind     = 'bug' | 'feature' | 'task';
@@ -1962,7 +1963,7 @@ function DevOps() {
       setEditorOpen(false);
       await load();
     } catch (e: unknown) {
-      toast.error((e as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to save item');
+      toast.error(apiErrorMessage(e, 'Failed to save item'));
     }
     setSaving(false);
   }

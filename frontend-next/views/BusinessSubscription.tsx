@@ -21,6 +21,7 @@ import client from '@/api/client';
 import { toast } from 'sonner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useAuth } from '@/lib/AuthContext';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 interface Subscription {
   tier: 'freemium' | 'normal' | 'premium' | 'pro';
@@ -184,8 +185,7 @@ function BusinessSubscription() {
       });
       window.location.href = data.checkout_url;
     } catch (err: unknown) {
-      const e = err as { error?: string; message?: string; response?: { data?: { message?: string } } };
-      toast.error(e?.response?.data?.message ?? e?.message ?? e?.error ?? 'Failed to start subscription');
+      toast.error(apiErrorMessage(err, 'Failed to start subscription'));
       setUpgrading(null);
     }
   }

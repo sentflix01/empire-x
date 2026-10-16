@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Store, Handshake, ShoppingBag, Clock, Copy, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 type ProfileData = { user_id: string; display_name?: string };
 type BusinessData = { id: string; business_name: string };
@@ -91,7 +92,7 @@ export default function ProfilePartnerships({ profile }: { profile: ProfileData 
       setSelectedProductIds([]);
       await reload();
     } catch (error) {
-      toast.error(error?.response?.data?.error || 'Could not send partnership offer');
+      toast.error(apiErrorMessage(error, 'Could not send partnership offer'));
     } finally { setBusy(false); }
   };
 
@@ -102,14 +103,14 @@ export default function ProfilePartnerships({ profile }: { profile: ProfileData 
       else await profilePartnershipsApi.decline(id);
       toast.success(accepted ? 'Partnership accepted' : 'Offer declined');
       await reload();
-    } catch (error) { toast.error(error?.response?.data?.error || 'Could not update partnership'); }
+    } catch (error) { toast.error(apiErrorMessage(error, 'Could not update partnership')); }
     finally { setBusy(false); }
   };
 
   const endDeal = async (id: string) => {
     setBusy(true);
     try { await profilePartnershipsApi.terminate(id); toast.success('Partnership ended'); await reload(); }
-    catch (error) { toast.error(error?.response?.data?.error || 'Could not end partnership'); }
+    catch (error) { toast.error(apiErrorMessage(error, 'Could not end partnership')); }
     finally { setBusy(false); }
   };
 
@@ -123,7 +124,7 @@ export default function ProfilePartnerships({ profile }: { profile: ProfileData 
       await profilePartnershipsApi.recordPayout(partnershipId, eligible.map(row => String(row.id)), reference);
       toast.success('Manual payout recorded');
       await reload();
-    } catch (error) { toast.error(error?.response?.data?.error || 'Could not record payout'); }
+    } catch (error) { toast.error(apiErrorMessage(error, 'Could not record payout')); }
     finally { setBusy(false); }
   };
 

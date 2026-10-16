@@ -12,6 +12,7 @@ import { describeGoogleOAuthError, renderGoogleSignInButton } from "@/lib/google
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useAuth } from '@/lib/AuthContext';
 import { safeReturnPath } from '@/lib/safeReturnPath';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 function Login() {
   const searchParams = useSearchParams();
@@ -72,8 +73,7 @@ function Login() {
       buttonText: 'signin_with',
       onSuccess: (result) => {
         void continueAfterLogin(result).catch((err: unknown) => {
-          const e = err as { response?: { data?: { error?: string } }; message?: string };
-          setError(e.response?.data?.error || e.message || 'Could not restore your saved account mode. Please try again.');
+          setError(apiErrorMessage(err, 'Could not restore your saved account mode. Please try again.'));
         });
       },
       onError: (err) => {

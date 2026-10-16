@@ -18,6 +18,7 @@ import { useChatPresence } from "@/lib/useChatPresence";
 import SafeImage from "@/components/ui/SafeImage";
 import { uploadFile } from '@/lib/uploadFile';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 
 
@@ -277,7 +278,7 @@ function ChatRoom() {
       setMessages(prev => prev.filter(m => m.id !== tempId));
       setText(content);
       textRef.current = content;
-      const errMsg = err?.response?.data?.error || err?.error || err?.message || 'Failed to send';
+      const errMsg = apiErrorMessage(err, 'Failed to send');
       toast.error(errMsg);
       console.error('Send failed:', errMsg, err);
     }
