@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-16 | Maintenance | Merge pull request #113 from sentflix01/claude/demo-db-migrate | [3b57e3708](2026-10-16-3b57e3708-merge-pull-request-113-from-sentflix01-claude-de.md) |
+| 2026-10-16 | CI/CD | ci(deploy): migrate the Demo database on every production deploy | [eb090c9aa](2026-10-16-eb090c9aa-migrate-the-demo-database-on-every-production-de.md) |
 | 2026-10-16 | Maintenance | Merge pull request #108 from sentflix01/claude/phase0-stabilise | [705930daf](2026-10-16-705930daf-merge-pull-request-108-from-sentflix01-claude-ph.md) |
 | 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/phase0-stabilise | [6c2cd6be1](2026-10-16-6c2cd6be1-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-16 | Maintenance | Merge pull request #107 from sentflix01/claude/site-visibility | [60a97cf92](2026-10-16-60a97cf92-merge-pull-request-107-from-sentflix01-claude-si.md) |
