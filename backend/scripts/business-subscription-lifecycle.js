@@ -91,7 +91,8 @@ async function processDraftNotices(now, sendEmail) {
        FROM showrooms s
        JOIN users u ON u.id=s.owner_id
       WHERE s.status='draft' AND s.expires_at IS NOT NULL
-        AND s.expires_at <= $1 + INTERVAL '48 hours'
+        -- Cast: an untyped $1 + INTERVAL makes Postgres read $1 as an interval.
+        AND s.expires_at <= $1::timestamptz + INTERVAL '48 hours'
       ORDER BY s.expires_at ASC`,
     [now],
   );
