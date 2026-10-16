@@ -26,6 +26,7 @@ import { sendCustomEmail } from '../utils/mailer';
 import { emitNotification } from '../socket';
 import { reserveOrderInventory, releaseOrderInventory, InventoryUnavailableError } from '../services/orderInventory';
 import { validateFileBytes } from '../middleware/upload';
+import { resolvePartnerAttribution } from './profilePartnerships';
 import { RECEIPT_MIME_TYPES, receiptUploadsAvailable, signedReceiptUrl, uploadReceipt } from '../lib/privateReceipts';
 
 const router = Router();
@@ -126,6 +127,41 @@ function publicOrder(row: Record<string, unknown>): Record<string, unknown> {
   return rest;
 }
 
+// ── Before ordering: seller details for the Buy view ─────────────────────────
+
+/**
+ * GET /api/direct-orders/checkout-info?product_id=… | ?showroom_id=…
+ * Public business identity, public contact fields and active payment accounts.
+ * The pickup address is withheld until an order exists.
+ */
+router.get('/checkout-info', optionalAuth, async (req: Request, res: Response) => {
+  try {
+    const { product_id: productId, showroom_id: showroomId } = req.query as Record<string, string | undefined>;
+    let businessId: string | null = null;
+    if (productId) {
+      const { rows } = await pool.query(
+        `SELECT COALESCE(p.business_id, s.business_id) AS business_id FROM products p
+           LEFT JOIN showrooms s ON s.id = p.showroom_id WHERE p.id=$1 AND p.status IN ('active','sold_out')`,
+        [productId],
+      );
+      if (!rows.length) { apiError.notFound(res, 'Product not found'); return; }
+      businessId = rows[0].business_id ?? null;
+    } else if (showroomId) {
+      const { rows } = await pool.query(`SELECT business_id FROM showrooms WHERE id=$1 AND status='published'`, [showroomId]);
+      if (!rows.length) { apiError.notFound(res, 'Showroom not found'); return; }
+      businessId = rows[0].business_id ?? null;
+    } else { apiError.validationError(res, 'product_id or showroom_id is required'); return; }
+    if (businessId) {
+      const access = await getBusinessSubscriptionAccess(businessId);
+      if (!access || access.hiddenFromPublic) { apiError.notFound(res, 'Business not found'); return; }
+    }
+    const details = await sellerPaymentDetails(businessId);
+    const business = details.business as Record<string, unknown> | null;
+    if (business) delete business.pickup_address;
+    res.json({ ...details, payment_window_days: PAYMENT_WINDOW_DAYS });
+  } catch (err) { logger.error({ err: (err as Error).message }, 'checkout-info failed'); apiError.serverError(res, 'Could not load seller details'); }
+});
+
 // ── Create ────────────────────────────────────────────────────────────────────
 
 router.post('/', guestLimiter, optionalAuth, async (req: Request, res: Response) => {
@@ -169,6 +205,12 @@ router.post('/', guestLimiter, optionalAuth, async (req: Request, res: Response)
     const totalPrice = Math.round(unitPrice * quantity * 100) / 100;
     if (!Number.isFinite(unitPrice) || unitPrice <= 0 || !Number.isFinite(totalPrice) || totalPrice > 10_000_000) { apiError.validationError(res, 'Product price is invalid'); return; }
 
+    // Creator partnership links still attribute the sale; the commission is only
+    // recorded on completion and settled between the two parties (decision §1).
+    let partner: Awaited<ReturnType<typeof resolvePartnerAttribution>> = null;
+    try { partner = await resolvePartnerAttribution(body.partnership_code, String(product.id), req.user?.id ?? ''); }
+    catch (err) { apiError.validationError(res, err instanceof Error ? err.message : 'Invalid partnership link'); return; }
+
     const token = crypto.randomBytes(32).toString('base64url');
     const client = await pool.connect();
     let order: Record<string, unknown>;
@@ -177,11 +219,14 @@ router.post('/', guestLimiter, optionalAuth, async (req: Request, res: Response)
       const { rows } = await client.query(
         `INSERT INTO orders (product_id, seller_id, business_id, product_title, quantity, unit_price, total_price, currency,
                              buyer_id, buyer_name, buyer_phone, buyer_email, delivery_address, notes,
-                             status, payment_provider, access_token_hash, payment_expires_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'awaiting_payment','direct',$15, NOW() + make_interval(days => $16))
+                             status, payment_provider, access_token_hash, payment_expires_at,
+                             profile_partnership_id, profile_owner_id, profile_commission_rate, profile_eligible_subtotal)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'awaiting_payment','direct',$15, NOW() + make_interval(days => $16),
+                 $17,$18,$19,$20)
          RETURNING ${PUBLIC_ORDER_COLUMNS}`,
         [product.id, product.seller_id, businessId, product.title, quantity, unitPrice, totalPrice, product.currency ?? 'ETB',
-          req.user?.id ?? null, buyerName, buyerPhone, buyerEmail, deliveryAddress, notes, hashToken(token), PAYMENT_WINDOW_DAYS],
+          req.user?.id ?? null, buyerName, buyerPhone, buyerEmail, deliveryAddress, notes, hashToken(token), PAYMENT_WINDOW_DAYS,
+          partner?.partnershipId ?? null, partner?.profileOwnerId ?? null, partner?.rate ?? null, partner ? totalPrice : null],
       );
       order = rows[0] as Record<string, unknown>;
       orderId = String(order.id);
