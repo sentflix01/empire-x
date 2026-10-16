@@ -4,6 +4,12 @@
 > Reference market: Ethiopia (Chapa/ETB). Global default: Stripe/USD.
 > Last updated: August 2026
 
+> **Changed 2026-10-16** ([platform model decisions](../decisions/platform-model-decisions.md)):
+> order checkout through Stripe or Chapa and wallet top-ups are retired and return
+> `410 PLATFORM_COLLECTION_RETIRED`. Buyers pay sellers directly through `/api/direct-orders`
+> (see [API.md](API.md#direct-orders-pay-the-seller-directly)). Stripe and Chapa remain for
+> business subscriptions only.
+
 ---
 
 ## Acronyms Used in This Document

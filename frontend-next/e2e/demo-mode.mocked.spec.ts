@@ -35,10 +35,12 @@ test.describe('single identity authentication and workspace choice', () => {
     await page.locator('input[type="password"]').fill('practice-only-password');
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await expect(page).toHaveURL(/\/feed(?:\?|$)/);
+    await expect(page.getByRole('button', { name: /Switch to Demo/i })).toHaveCount(0);
     expect(submitted?.body).toMatchObject({ email: 'member@example.test' });
     expect(submitted?.body).not.toHaveProperty('account_mode');
     expect(submitted?.headers['x-account-mode']).toBe('real');
     expect(await page.evaluate(() => localStorage.getItem('nodbusiness_account_mode'))).toBeNull();
     await context.close();
   });
+
 });

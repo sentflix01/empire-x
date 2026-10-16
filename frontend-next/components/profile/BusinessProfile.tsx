@@ -61,7 +61,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
   const hours = (() => { try { return JSON.parse(biz.business_hours || "[]"); } catch { return []; } })();
 
   const handleBuy = (product) => {
-    if (!user) return;
+    // Guests can buy: the Buy view asks for name, phone and email.
     setPurchaseItem({ ...product, product_type: "product" });
   };
 
@@ -207,9 +207,8 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
         <PurchaseModal
           item={purchaseItem}
           seller={biz}
-          buyer={user}
+          buyer={user ?? undefined}
           onClose={() => setPurchaseItem(null)}
-          onPurchased={loadData}
         />
       )}
     </div>

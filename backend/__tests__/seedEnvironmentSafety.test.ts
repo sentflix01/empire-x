@@ -5,7 +5,6 @@ describe('development seed safety', () => {
     DATABASE_URL: 'postgresql://user:secret@localhost:5432/nodbusiness_dev',
     NODE_ENV: 'development',
     ALLOW_DEV_SEED: '1',
-    ADMIN_NEW_PASSWORD: 'unique-admin-password-2026',
     TEST_ACCOUNT_PASSWORD: 'unique-demo-password-2026',
   };
 

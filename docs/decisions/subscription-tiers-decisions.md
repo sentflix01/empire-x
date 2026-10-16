@@ -72,15 +72,25 @@ This mirrors how password hashing works — the DB breach doesn't expose usable 
 
 ---
 
-## Decision 6: Separate Stripe Price IDs per Environment
+## Decision 6: Explicit Stripe Price IDs per Plan, Currency, and Environment
 
-**Problem:** Test mode and live mode need different price IDs. Hardcoding them breaks environment isolation.
+**Problem:** Test and live modes need different Stripe Price IDs, and ETB and USD prices must never be confused or converted implicitly.
 
 **Decision:** Plan definitions in `subscriptionPlans.ts` read price IDs from env vars:
-- `STRIPE_PRICE_PREMIUM_MONTHLY` → Pro plan
-- `STRIPE_PRICE_PRO_MONTHLY` → Enterprise plan
+- `STRIPE_PRICE_NORMAL_MONTHLY_ETB` / `STRIPE_PRICE_NORMAL_MONTHLY_USD`
+- `STRIPE_PRICE_PREMIUM_MONTHLY_ETB` / `STRIPE_PRICE_PREMIUM_MONTHLY_USD`
+- `STRIPE_PRICE_PRO_MONTHLY_ETB` / `STRIPE_PRICE_PRO_MONTHLY_USD`
 
-Plans are defined as TypeScript constants (not in DB) to avoid schema drift. Adding a new tier means adding a new env var + constant, not a migration.
+The agreed fixed prices are Normal (ETB 100 or USD $1), Premium (ETB 500 or
+USD $5), and Pro (ETB 1,000 or USD $10) per month. Enterprise is custom-priced
+in either currency. The backend verifies every configured Stripe Price against
+the selected currency, amount, and monthly interval before creating checkout.
+Old unscoped Price ID variables are not used as fallbacks. Subscription currency
+is stored with each subscription; existing records default to ETB.
+
+Plans are defined as TypeScript constants (not in DB) to avoid tier drift.
+Adding currency persistence requires a migration, while adding another plan
+also requires explicit per-currency Stripe configuration.
 
 **Files:** `backend/lib/subscriptionPlans.ts`
 
@@ -94,6 +104,7 @@ Plans are defined as TypeScript constants (not in DB) to avoid schema drift. Add
 | `backend/lib/subscriptionPlans.ts` | New: tier/feature constants, plan definitions |
 | `backend/middleware/tierLimit.ts` | New: checkTierLimit() middleware factory |
 | `backend/routes/subscriptions.ts` | New: 5 subscription endpoints + Stripe webhook handler |
+| `backend/db/migrate51.js` | Adds subscription currency with existing records defaulted to ETB |
 | `backend/routes/locations.ts` | New: POST /api/locations/update |
 | `backend/routes/businessWebhooks.ts` | New: CRUD + HMAC signing + emitBusinessWebhook helper |
 | `backend/routes/businessApiKeys.ts` | New: API key management (hash-only storage) |

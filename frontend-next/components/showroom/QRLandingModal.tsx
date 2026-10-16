@@ -12,7 +12,9 @@ import SafeImage from '@/components/ui/SafeImage';
  */
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { X, Store, UserCheck, UserPlus } from 'lucide-react';
+import { Store, UserCheck, UserPlus } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import TryDemoButton from '@/components/landing/TryDemoButton';
 
 interface QRLandingModalProps {
   businessName: string;
@@ -54,30 +56,10 @@ export default function QRLandingModal({
   if (!visible) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-        onClick={dismiss}
-        aria-hidden="true"
-      />
-      {/* Modal — centered card */}
-      <div
-        className="fixed inset-x-4 top-1/2 z-50 -translate-y-1/2 max-w-sm mx-auto bg-card rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Welcome to Nodbusiness"
-      >
+    <Dialog open={visible} onOpenChange={open => { if (!open) dismiss(); }}>
+      <DialogContent className="max-h-[90dvh] max-w-sm overflow-y-auto rounded-3xl border-border bg-card p-0" aria-describedby="qr-landing-description">
         {/* Brand header */}
-        <div className="relative px-6 pt-8 pb-6 text-center" style={{ background: `linear-gradient(135deg, ${themeColor}22, ${themeColor}11)` }}>
-          <button
-            onClick={dismiss}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-foreground/60 hover:bg-black/20 transition-colors"
-            aria-label="Continue as guest"
-          >
-            <X className="w-4 h-4" />
-          </button>
-
+        <div className="relative px-6 pt-8 pb-6 text-center" style={{ backgroundColor: 'hsl(var(--card))' }}>
           {/* Business logo or icon */}
           <div
             className="w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-md overflow-hidden"
@@ -88,17 +70,25 @@ export default function QRLandingModal({
               : <Store className="w-8 h-8 text-white" />}
           </div>
 
-          <h2 className="font-bold text-lg leading-tight">{businessName}</h2>
+          <DialogTitle className="font-bold text-lg leading-tight">{businessName}</DialogTitle>
           {businessCategory && (
             <p className="text-xs text-muted-foreground mt-0.5 capitalize">{businessCategory}</p>
           )}
-          <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
+          <DialogDescription id="qr-landing-description" className="text-sm text-muted-foreground mt-3 leading-relaxed">
             Welcome! This business is on Nodbusiness — the platform where Ethiopian businesses connect, sell, and grow.
-          </p>
+          </DialogDescription>
         </div>
 
         {/* Actions */}
         <div className="px-6 pb-6 space-y-3 pt-4">
+          <Link
+            href="/landing"
+            className="flex h-11 w-full items-center justify-center rounded-xl border border-border text-sm font-semibold hover:bg-secondary/60 transition-colors"
+            onClick={dismiss}
+          >
+            ← Back to Landing
+          </Link>
+          <TryDemoButton />
           <Link
             href={`/login?return=${returnParam}`}
             className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl border-2 border-border hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all"
@@ -135,7 +125,7 @@ export default function QRLandingModal({
             Continue as guest →
           </button>
         </div>
-      </div>
-    </>
+      </DialogContent>
+    </Dialog>
   );
 }

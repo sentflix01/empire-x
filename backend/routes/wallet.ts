@@ -16,6 +16,9 @@ import { recordEvent } from '../lib/telemetry';
 import { auditLog } from '../lib/auditLogger';
 import { requireIsolatedPaymentEnvironment } from '../middleware/demoEnvironment';
 import { requireFeatureFlag } from '../middleware/featureFlag';
+import { platformCollectionRetired } from '../middleware/platformCollectionRetired';
+
+const walletRetired = platformCollectionRetired('The wallet no longer accepts money. NodBusiness never holds funds; you can still withdraw an existing balance.');
 
 const router = Router();
 
@@ -92,7 +95,7 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-router.post('/topup', requireAuth, async (req: Request, res: Response) => {
+router.post('/topup', walletRetired, requireAuth, async (req: Request, res: Response) => {
   if (process.env.NODE_ENV==='production' && req.user!.role !== 'admin') { res.status(403).json({ error: 'Admin access required' }); return; }
   const { amount, reference } = req.body as { amount?: number; reference?: string };
   if (!amount || amount <= 0) { apiError.validationError(res, 'Valid amount is required'); return; }
@@ -118,7 +121,7 @@ router.post('/withdraw', requireAuth, requireIsolatedPaymentEnvironment, async (
   }
 });
 
-router.post('/debit', requireAuth, async (req: Request, res: Response) => {
+router.post('/debit', walletRetired, requireAuth, async (req: Request, res: Response) => {
   if (req.user!.role !== 'admin') { res.status(403).json({ error: 'Admin only' }); return; }
   const { user_id, amount, description, reference } = req.body as Record<string,unknown>;
   if (!user_id || !amount || Number(amount) <= 0) { apiError.validationError(res, 'user_id and a positive amount are required'); return; }
@@ -131,7 +134,7 @@ router.post('/debit', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-router.post('/refund', requireAuth, async (req: Request, res: Response) => {
+router.post('/refund', walletRetired, requireAuth, async (req: Request, res: Response) => {
   if (req.user!.role !== 'admin') { res.status(403).json({ error: 'Admin access required' }); return; }
   const { user_id, amount, description, reference } = req.body as Record<string,unknown>;
   if (!user_id || !amount || Number(amount) <= 0) { apiError.validationError(res, 'user_id and a positive amount are required'); return; }
@@ -146,7 +149,7 @@ router.post('/refund', requireAuth, async (req: Request, res: Response) => {
 
 // ── Chapa Top-up ──────────────────────────────────────────────────────────────
 
-router.post('/topup/chapa', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('chapa_payments', 'Chapa payments temporarily disabled'), async (req: Request, res: Response) => {
+router.post('/topup/chapa', walletRetired, requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('chapa_payments', 'Chapa payments temporarily disabled'), async (req: Request, res: Response) => {
   const CHAPA_SECRET = process.env.CHAPA_SECRET_KEY ?? null;
   const SANDBOX = CHAPA_SECRET === 'SANDBOX';
   if (!CHAPA_SECRET) { res.status(503).json({ error: 'Chapa payments not configured. Add CHAPA_SECRET_KEY.' }); return; }
@@ -265,7 +268,7 @@ router.get('/topup/chapa/verify/:tx_ref', async (req: Request, res: Response) =>
 
 // ── Stripe Top-up ─────────────────────────────────────────────────────────────
 
-router.post('/topup/stripe', requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('stripe_payments', 'Stripe payments temporarily disabled'), async (req: Request, res: Response) => {
+router.post('/topup/stripe', walletRetired, requireAuth, requireIsolatedPaymentEnvironment, requireFeatureFlag('stripe_payments', 'Stripe payments temporarily disabled'), async (req: Request, res: Response) => {
   const stripe = stripeClientFacade() as Record<string,unknown>;
   if (!isStripeConfigured()) { res.status(503).json({ error: 'Stripe is not configured for this environment' }); return; }
   const { amount } = req.body as { amount?: number };

@@ -49,7 +49,7 @@ function Section({ icon: Icon, title, children, defaultOpen = true }: {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
-      <button onClick={() => setOpen(v => !v)}
+      <button type="button" aria-expanded={open} onClick={() => setOpen(v => !v)}
         className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-secondary/30 transition-colors">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
@@ -307,7 +307,23 @@ function ProfileEdit() {
   const handleSaveBusiness = async () => {
     setSaving(true);
     try {
-      const sections = JSON.stringify(getTemplateById(business.business_category, business.business_template)?.sections || []);
+      const templateSections = getTemplateById(business.business_category, business.business_template)?.sections || [];
+      const sections = JSON.stringify(templateSections.map(section => {
+        const personalized = { ...section };
+        if (personalized.type === 'hero') {
+          personalized.title = business.business_name || personalized.title;
+          personalized.subtitle = business.business_description || personalized.subtitle;
+        }
+        if (personalized.type === 'about' || personalized.type === 'story') {
+          personalized.content = business.business_description || personalized.content || '';
+        }
+        if (personalized.type === 'contact') {
+          personalized.email = business.business_contact_email || personalized.email || '';
+          personalized.phone = business.business_contact_phone || personalized.phone || '';
+          personalized.location = business.business_address || personalized.location || '';
+        }
+        return personalized;
+      }));
       const payload = {
         ...business,
         business_cover_position: business.business_cover_position || null,
@@ -607,18 +623,18 @@ function ProfileEdit() {
           {/* Core business info */}
           <Section icon={Building2} title="Business Information">
             <div>
-              <Label>Business Name *</Label>
-              <Input value={b.business_name} onChange={e => sb('business_name', e.target.value)} placeholder="e.g. Haile Construction PLC" className="mt-1 h-11" />
+              <Label htmlFor="business-name">Business Name *</Label>
+              <Input id="business-name" value={b.business_name} onChange={e => sb('business_name', e.target.value)} placeholder="e.g. Haile Construction PLC" className="mt-1 h-11" />
             </div>
             <div>
-              <Label>About / Description</Label>
-              <Textarea value={b.business_description} onChange={e => sb('business_description', e.target.value)}
+              <Label htmlFor="business-description">About / Description</Label>
+              <Textarea id="business-description" value={b.business_description} onChange={e => sb('business_description', e.target.value)}
                 placeholder="Describe what your business does, your mission, and what makes you unique..." rows={4} className="mt-1" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Business Type</Label>
-                <select value={b.business_type} onChange={e => sb('business_type', e.target.value)}
+                <Label htmlFor="business-type">Business Type</Label>
+                <select id="business-type" value={b.business_type} onChange={e => sb('business_type', e.target.value)}
                   className="w-full h-11 px-3 mt-1 bg-secondary/50 border border-border/50 rounded-xl text-sm outline-none focus:ring-1 focus:ring-amber-500/30">
                   <option value="">Select type</option>
                   <option>Sole Proprietorship</option>
@@ -632,8 +648,8 @@ function ProfileEdit() {
                 </select>
               </div>
               <div>
-                <Label>Team Size</Label>
-                <select value={b.business_team_size} onChange={e => sb('business_team_size', e.target.value)}
+                <Label htmlFor="business-team-size">Team Size</Label>
+                <select id="business-team-size" value={b.business_team_size} onChange={e => sb('business_team_size', e.target.value)}
                   className="w-full h-11 px-3 mt-1 bg-secondary/50 border border-border/50 rounded-xl text-sm outline-none focus:ring-1 focus:ring-amber-500/30">
                   <option value="">Select size</option>
                   <option>1 (Just me)</option>
@@ -647,12 +663,12 @@ function ProfileEdit() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Founded Year</Label>
-                <Input value={b.business_founded_year} onChange={e => sb('business_founded_year', e.target.value)} placeholder="e.g. 2018" className="mt-1 h-11" />
+                <Label htmlFor="business-founded-year">Founded Year</Label>
+                <Input id="business-founded-year" inputMode="numeric" value={b.business_founded_year} onChange={e => sb('business_founded_year', e.target.value)} placeholder="e.g. 2018" className="mt-1 h-11" />
               </div>
               <div>
-                <Label>Registration No.</Label>
-                <Input value={b.business_registration_number} onChange={e => sb('business_registration_number', e.target.value)} placeholder="e.g. ETH-123456" className="mt-1 h-11" />
+                <Label htmlFor="business-registration-number">Registration No.</Label>
+                <Input id="business-registration-number" value={b.business_registration_number} onChange={e => sb('business_registration_number', e.target.value)} placeholder="e.g. ETH-123456" className="mt-1 h-11" />
               </div>
             </div>
           </Section>
@@ -664,7 +680,7 @@ function ProfileEdit() {
               {BUSINESS_CATEGORIES.map(cat => {
                 const Icon = cat.icon;
                 return (
-                  <button key={cat.value} onClick={() => sb('business_category', cat.value)}
+                  <button key={cat.value} type="button" aria-pressed={b.business_category === cat.value} onClick={() => sb('business_category', cat.value)}
                     className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all ${b.business_category === cat.value ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20' : 'border-border hover:border-amber-300'}`}>
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: cat.color + '20' }}>
                       <Icon className="w-3.5 h-3.5" style={{ color: cat.color }} />
@@ -706,23 +722,23 @@ function ProfileEdit() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input type="email" value={b.business_contact_email} onChange={e => sb('business_contact_email', e.target.value)}
+                <Input type="email" aria-label="Business contact email" value={b.business_contact_email} onChange={e => sb('business_contact_email', e.target.value)}
                   placeholder="contact@business.com" className="pl-9 mt-0 h-11" />
               </div>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input value={b.business_contact_phone} onChange={e => sb('business_contact_phone', e.target.value)}
+                <Input aria-label="Business contact phone" value={b.business_contact_phone} onChange={e => sb('business_contact_phone', e.target.value)}
                   placeholder="+1 234 567 8900" className="pl-9 mt-0 h-11" />
               </div>
             </div>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input value={b.business_address} onChange={e => sb('business_address', e.target.value)}
+              <Input aria-label="Business address" value={b.business_address} onChange={e => sb('business_address', e.target.value)}
                 placeholder="Street, City, Country" className="pl-9 h-11" />
             </div>
             <div className="relative">
               <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input value={b.business_website} onChange={e => sb('business_website', e.target.value)}
+              <Input aria-label="Business website" value={b.business_website} onChange={e => sb('business_website', e.target.value)}
                 placeholder="https://yourcompany.com" className="pl-9 h-11" />
             </div>
           </Section>
@@ -759,7 +775,7 @@ function ProfileEdit() {
             ].map(({ field, icon: Icon, ph }) => (
               <div key={field} className="relative">
                 <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input value={(b as any)[field]} onChange={e => sb(field as any, e.target.value)}
+                <Input aria-label={ph} value={(b as any)[field]} onChange={e => sb(field as any, e.target.value)}
                   placeholder={ph} className="pl-9 h-11" />
               </div>
             ))}
@@ -770,7 +786,7 @@ function ProfileEdit() {
             <Label className="text-sm font-semibold">Brand Color</Label>
             <div className="flex gap-3 mt-3 flex-wrap">
               {['#2563EB','#D4AF37','#8B5CF6','#06B6D4','#F97316','#EC4899','#10B981','#EF4444','#0F172A','#64748B'].map(color => (
-                <button key={color} onClick={() => sb('business_theme_color', color)}
+                <button key={color} type="button" aria-label={`Brand color ${color}`} aria-pressed={b.business_theme_color === color} onClick={() => sb('business_theme_color', color)}
                   className={`w-9 h-9 rounded-full border-2 transition-all shadow-sm ${b.business_theme_color === color ? 'border-foreground scale-110 shadow-md' : 'border-transparent'}`}
                   style={{ backgroundColor: color }} />
               ))}
@@ -779,7 +795,7 @@ function ProfileEdit() {
 
           <Button onClick={handleSaveBusiness} disabled={saving || !b.business_name || !b.business_category}
             className="w-full h-12 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-base shadow-md shadow-amber-500/20">
-            {saving ? 'Saving...' : profile?.has_business_profile ? 'Update Business Profile' : 'Launch Business Profile'}
+            {saving ? 'Saving business profile…' : profile?.has_business_profile ? 'Save Business Profile' : 'Create Business Profile'}
           </Button>
         </div>
       )}

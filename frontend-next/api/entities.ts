@@ -163,6 +163,7 @@ export interface Like extends BaseEntity {
 interface EntityApi<T extends AnyRecord = AnyRecord> {
   list(sort?: string, limit?: number): Promise<T[]>;
   filter(filterObj?: FilterObj, sort?: string, limit?: number): Promise<T[]>;
+  filterPage(filterObj?: FilterObj, sort?: string, limit?: number, cursor?: string): Promise<{ items: T[]; nextCursor: string | null }>;
   get(id: string): Promise<T>;
   create(data: Partial<T> & AnyRecord): Promise<T>;
   update(id: string, data: Partial<T> & AnyRecord): Promise<T>;
@@ -170,14 +171,14 @@ interface EntityApi<T extends AnyRecord = AnyRecord> {
 }
 
 function buildEntityApi<T extends AnyRecord = AnyRecord>(path: string): EntityApi<T> {
-  // Normalise response: some endpoints (e.g. /api/posts) return a paginated
-  // envelope { posts/items: T[], next_cursor } instead of a plain array.
+  // Normalise response: some endpoints return a paginated envelope instead
+  // of a plain array.
   // We unwrap it so all callers get a consistent T[].
   function unwrap(data: unknown): T[] {
     if (Array.isArray(data)) return data as T[];
     if (data && typeof data === 'object') {
       // Try common envelope keys in order
-      for (const key of ['posts', 'items', 'data', 'results']) {
+      for (const key of ['posts', 'products', 'items', 'data', 'results']) {
         const v = (data as Record<string, unknown>)[key];
         if (Array.isArray(v)) return v as T[];
       }
@@ -192,6 +193,17 @@ function buildEntityApi<T extends AnyRecord = AnyRecord>(path: string): EntityAp
     async filter(filterObj: FilterObj = {}, sort = '-created_at', limit = 50) {
       const res = await client.get<T[]>(`/api/${path}`, { params: { ...filterObj, sort, limit } });
       return unwrap(res.data);
+    },
+    async filterPage(filterObj: FilterObj = {}, sort = '-created_at', limit = 24, cursor?: string) {
+      const res = await client.get<unknown>(`/api/${path}`, {
+        params: { ...filterObj, sort, limit, ...(cursor ? { cursor } : {}) },
+      });
+      const response = res.data;
+      const cursorValue = response && typeof response === 'object' && !Array.isArray(response)
+        ? (response as Record<string, unknown>).next_cursor
+        : null;
+      const nextCursor = typeof cursorValue === 'string' ? cursorValue : null;
+      return { items: unwrap(response), nextCursor };
     },
     async get(id: string) {
       const res = await client.get<T>(`/api/${path}/${id}`);

@@ -5,13 +5,20 @@
 
 ---
 
-## Tiers
+## Tiers and prices
 
-| Tier | Label | Price | Products | Storage | Showrooms |
-|------|-------|-------|----------|---------|-----------|
-| `freemium` | Free | $0 | 50 | 5GB | 1 |
-| `premium` | Pro | $12/month | 10,000 | 50GB | 3 |
-| `pro` | Enterprise | $49/month | Unlimited | 500GB | Unlimited |
+| Tier | Monthly price | Products | Storage | Showrooms |
+|------|---------------|----------|---------|-----------|
+| `freemium` | Free | 50 | 5GB | 1 |
+| `normal` | ETB 100 or USD $1 | 50 | 5GB | 1 |
+| `premium` | ETB 500 or USD $5 | 10,000 | 50GB | 3 |
+| `pro` | ETB 1,000 or USD $10 | Unlimited | 500GB | Unlimited |
+| `enterprise` | Custom in ETB or USD | By agreement | By agreement | By agreement |
+
+Prices are fixed by currency, not converted at checkout. Stripe configuration
+must provide a monthly recurring Price for each enabled tier/currency pair.
+The public plans endpoint indicates which currencies are configured without
+returning Stripe Price IDs.
 
 ---
 
@@ -22,9 +29,19 @@
 STRIPE_SUBSCRIPTION_WEBHOOK_SECRET=whsec_...   # from Stripe Dashboard → Webhooks
 
 # Stripe price IDs (create in Stripe Dashboard → Products → Prices)
-STRIPE_PRICE_PREMIUM_MONTHLY=price_...
-STRIPE_PRICE_PRO_MONTHLY=price_...
+STRIPE_PRICE_NORMAL_MONTHLY_ETB=price_...
+STRIPE_PRICE_NORMAL_MONTHLY_USD=price_...
+STRIPE_PRICE_PREMIUM_MONTHLY_ETB=price_...
+STRIPE_PRICE_PREMIUM_MONTHLY_USD=price_...
+STRIPE_PRICE_PRO_MONTHLY_ETB=price_...
+STRIPE_PRICE_PRO_MONTHLY_USD=price_...
 ```
+
+Create each recurring price in Stripe for the matching plan amount and currency.
+Test and live mode use separate Stripe keys and Price IDs. The former
+`STRIPE_PRICE_NORMAL_MONTHLY`, `STRIPE_PRICE_PREMIUM_MONTHLY`, and
+`STRIPE_PRICE_PRO_MONTHLY` variables are not used as fallback values; configure
+the currency-specific IDs explicitly.
 
 ---
 
@@ -37,11 +54,31 @@ Public. Returns all available plan definitions.
 
 ```json
 {
-  "freemium": { "tier": "freemium", "label": "Free", "priceUsd": 0, "features": [...] },
-  "premium_monthly": { "tier": "premium", "label": "Pro", "priceUsd": 12, "features": [...] },
-  "pro_monthly": { "tier": "pro", "label": "Enterprise", "priceUsd": 49, "features": [...] }
+  "freemium": {
+    "tier": "freemium",
+    "label": "Free",
+    "prices": { "ETB": 0, "USD": 0 },
+    "currencyAvailability": { "ETB": true, "USD": true },
+    "features": [...]
+  },
+  "normal_monthly": {
+    "tier": "normal",
+    "label": "Normal",
+    "prices": { "ETB": 100, "USD": 1 },
+    "currencyAvailability": { "ETB": false, "USD": false },
+    "features": [...]
+  },
+  "enterprise": {
+    "label": "Enterprise",
+    "prices": { "ETB": null, "USD": null },
+    "pricingCurrencies": ["ETB", "USD"],
+    "contactRequired": true
+  }
 }
 ```
+
+`currencyAvailability` is deployment-specific and becomes `true` only when the
+matching Stripe Price ID is configured.
 
 #### `GET /api/subscriptions/my`
 Auth required. Returns caller's current subscription or `{ tier: "freemium" }` default.
@@ -49,6 +86,7 @@ Auth required. Returns caller's current subscription or `{ tier: "freemium" }` d
 ```json
 {
   "tier": "premium",
+  "currency": "USD",
   "status": "active",
   "current_period_end": "2026-09-15T00:00:00Z",
   "cancel_at_period_end": false,
@@ -61,10 +99,15 @@ Auth required. Returns caller's current subscription or `{ tier: "freemium" }` d
 #### `POST /api/subscriptions/create`
 Auth required. Creates a Stripe Checkout Session for subscription upgrade.
 
-Request: `{ "plan": "premium_monthly" | "pro_monthly" }`
+Request: `{ "plan": "normal_monthly" | "premium_monthly" | "pro_monthly", "currency": "ETB" | "USD" }`
 Response: `{ "checkout_url": "https://checkout.stripe.com/...", "session_id": "cs_..." }`
 
 Business owner is redirected to `checkout_url`. On completion, Stripe fires a webhook that activates the tier.
+For backward compatibility, an omitted currency is treated as `ETB`; any
+provided currency other than `ETB` or `USD` is rejected. Stripe Price currency,
+amount, and monthly interval are validated against the selected plan before
+creating a Checkout Session. The webhook stores the selected currency with the
+subscription; existing subscriptions are migrated as `ETB`.
 
 #### `POST /api/subscriptions/cancel`
 Auth required. Schedules cancellation at end of current billing period.
@@ -76,6 +119,16 @@ Raw body required — registered BEFORE `express.json()` in `index.ts`.
 Verifies `stripe-signature` header using `STRIPE_SUBSCRIPTION_WEBHOOK_SECRET`.
 
 Handles: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
+
+### Expiry and unpaid-draft lifecycle
+
+- Subscription notices are sent on days 0, 3, 7, 9, and 10 after the paid period ends.
+- The website is hidden after the 24-hour grace period. If it remains unpaid after
+  the final day-10 notice, the business and its products are permanently deleted,
+  and the owner is blocked from creating a new business for one month.
+- An unpublished website draft is reminded at 24, 48, and 72 hours; it is deleted
+  only after the final reminder succeeds.
+- Draft reminders show the plan price in both ETB and USD.
 
 ---
 

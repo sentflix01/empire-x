@@ -68,6 +68,7 @@ Then open http://localhost:3002
 
 | Document | Description |
 |---|---|
+| **`project-brain/README.md`** | Project reference — document register, source precedence, and how to navigate the handbook |
 | **`docs/README.md`** | Engineering handbook — start here |
 | `docs/ONBOARDING.md` | New developer setup guide — productive in 30 minutes |
 | `docs/ENGINEERING_STANDARDS.md` | Git, naming, API, testing, feature flag standards |

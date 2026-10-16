@@ -25,8 +25,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 
 const TIER_LABELS: Record<string, string> = {
   freemium: 'Free',
-  premium:  'Pro ($12/month)',
-  pro:      'Enterprise ($49/month)',
+  normal: 'Normal',
+  premium: 'Premium',
+  pro: 'Pro',
 };
 
 const TIER_COLOR: Record<string, string> = {
@@ -114,7 +115,7 @@ export default function UpgradePromptModal({
               onClick={handleUpgrade}
               className="flex-1 bg-amber-500 hover:bg-amber-600 text-white gap-2"
             >
-              Upgrade to {requiredTier === 'pro' ? 'Enterprise' : 'Pro'}
+              Upgrade to {requiredLabel}
               <ArrowRight className="w-4 h-4" />
             </Button>
             <Button variant="outline" onClick={onClose} className="px-3">

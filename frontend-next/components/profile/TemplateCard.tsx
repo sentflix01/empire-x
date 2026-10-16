@@ -28,6 +28,8 @@ export default function TemplateCard({ template, selected, onSelect }) {
 
   return (
     <button
+      type="button"
+      aria-pressed={selected}
       onClick={onSelect}
       className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${
         selected ? "border-amber-400 bg-amber-50 ring-1 ring-amber-300" : "border-border hover:border-amber-300 hover:bg-secondary/30"

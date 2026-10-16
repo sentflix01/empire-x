@@ -59,7 +59,7 @@ describe('GET /api/orders/', () => {
     const res = await request(buildApp()).get('/api/orders/');
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('orders');
-    expect(res.body.orders).toEqual([order]);
+    expect(res.body.orders).toEqual([{ ...order, has_receipt: false }]);
     // Empty page → no next cursor
     expect(res.body.next_cursor).toBeNull();
   });
@@ -208,5 +208,14 @@ describe('PUT /api/orders/:id', () => {
     const data = updateRecord.mock.calls[0][2];
     expect(data.status).toBe('refunded');
     expect(data.buyer_id).toBeUndefined();
+  });
+});
+
+describe('order responses never expose private direct-payment fields', () => {
+  it('strips the order-link token hash and receipt key from the list', async () => {
+    const order = { id: 'order-9', buyer_id: 'user-1', access_token_hash: 'abc', receipt_key: 'receipts/order-9/r.png' };
+    mockPool.query.mockResolvedValueOnce({ rows: [order] });
+    const res = await request(buildApp()).get('/api/orders/');
+    expect(res.body.orders[0]).toEqual({ id: 'order-9', buyer_id: 'user-1', has_receipt: true });
   });
 });

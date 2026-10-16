@@ -17,6 +17,7 @@ import { getRecord, createRecord, updateRecord, deleteRecord } from '../utils/cr
 import { emitNotification } from '../socket';
 import { sendPushToUser } from './push';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache';
+import { getBusinessSubscriptionAccess } from '../lib/businessSubscriptionPolicy';
 
 const router = Router();
 const LOW_STOCK_THRESHOLD = 5;
@@ -44,11 +45,19 @@ function pickProductFields(body: Record<string, unknown>): Record<string, unknow
 }
 
 // ── GET /api/products — keyset cursor pagination ──────────────────────────────
-// varyByQuery ensures every distinct filter combo (seller_id, status, sort…)
+// varyByQuery ensures every distinct filter combo (seller_id, status, search…)
 // gets its own cache slot. varyByUser isolates realOnly/seed-filtered responses.
 router.get('/', optionalAuth, cacheMiddleware('products:list', 90, { varyByQuery: true, varyByUser: true }), async (req: Request, res: Response) => {
   try {
-    const { seller_id, business_id, showroom_id, status, sort='-created_at', limit='24', cursor } = req.query as Record<string,string>;
+    const { seller_id, business_id, showroom_id, status, category, search, sort='-created_at', limit='24', cursor } = req.query as Record<string,string>;
+    if ((search !== undefined && typeof search !== 'string') || (category !== undefined && typeof category !== 'string')) {
+      res.status(400).json({ error: 'search and category must be single values' }); return;
+    }
+    const searchTerm = typeof search === 'string' ? search.trim() : '';
+    const categoryFilter = typeof category === 'string' ? category.trim() : '';
+    if (searchTerm.length > 100 || categoryFilter.length > 80) {
+      res.status(400).json({ error: 'search must be at most 100 characters and category at most 80 characters' }); return;
+    }
     const lim = Math.min(parseInt(limit)||24, 100);
     const safeSorts: Record<string, { column: string; order: string; direction: '<' | '>'; kind: 'date' | 'number' }> = {
       '-created_at': { column: 'p.created_at', order: 'p.created_at DESC,p.id DESC', direction: '<', kind: 'date' },
@@ -64,8 +73,11 @@ router.get('/', optionalAuth, cacheMiddleware('products:list', 90, { varyByQuery
     const cursorValueText = cursorParts.length === 3 ? cursorParts[1] : cursorParts[0];
     const cursorId = cursorParts.length >= 2 ? cursorParts.at(-1) : undefined;
     if (cursor && cursorParts.length === 3 && cursorSort !== sortKey) { res.status(400).json({ error: 'Cursor does not match requested sort order' }); return; }
-    const cursorValue = sortConfig.kind === 'date' ? new Date(cursorValueText) : Number(cursorValueText);
-    if (cursor && (sortConfig.kind === 'date' ? isNaN((cursorValue as Date).getTime()) : !Number.isFinite(cursorValue))) {
+    const cursorValue = sortConfig.kind === 'date' ? cursorValueText : Number(cursorValueText);
+    const invalidCursorValue = sortConfig.kind === 'date'
+      ? Number.isNaN(new Date(cursorValueText).getTime())
+      : !Number.isFinite(Number(cursorValueText));
+    if (cursor && invalidCursorValue) {
       res.status(400).json({ error: 'Invalid cursor value' }); return;
     }
 
@@ -92,23 +104,46 @@ router.get('/', optionalAuth, cacheMiddleware('products:list', 90, { varyByQuery
     // (or an admin) may request them; public feeds include active and sold-out.
     const mayViewDrafts = req.user?.role === 'admin' || (!!seller_id && seller_id === req.user?.id);
     if (!mayViewDrafts) conditions.push("p.status IN ('active','sold_out')");
+    if (req.realOnly && seller_id !== req.user?.id) {
+      conditions.push(`((p.business_id IS NULL AND p.showroom_id IS NULL) OR EXISTS (
+        SELECT 1 FROM business_subscriptions paid_sub
+        WHERE paid_sub.business_id=COALESCE(p.business_id,(SELECT s.business_id FROM showrooms s WHERE s.id=p.showroom_id))
+          AND paid_sub.tier <> 'freemium'
+          AND paid_sub.current_period_end > NOW() - INTERVAL '24 hours'
+      ))`);
+    }
     if (status)      { values.push(status);      conditions.push(`p.status=$${values.length}`); }
+    if (categoryFilter) {
+      values.push(categoryFilter);
+      conditions.push(`LOWER(p.category)=LOWER($${values.length})`);
+    }
+    if (searchTerm) {
+      const searchPattern = `%${searchTerm.replace(/[\\%_]/g, '\\$&')}%`;
+      values.push(searchPattern);
+      const searchParam = `$${values.length}`;
+      conditions.push(`(p.title ILIKE ${searchParam} ESCAPE E'\\\\' OR p.description ILIKE ${searchParam} ESCAPE E'\\\\' OR p.category ILIKE ${searchParam} ESCAPE E'\\\\')`);
+    }
 
     const orderBy = sortConfig.order;
     values.push(lim);
 
     const { rows } = await pool.query(
-      `SELECT p.* FROM products p ${realJoin} WHERE ${conditions.join(' AND ')} ${realCond} ORDER BY ${orderBy} LIMIT $${values.length}`,
+      `SELECT p.*, to_char(p.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS __cursor_created_at
+       FROM products p ${realJoin} WHERE ${conditions.join(' AND ')} ${realCond} ORDER BY ${orderBy} LIMIT $${values.length}`,
       values,
     );
-    const products = rows.map(product => (!!req.user?.id && product.seller_id === req.user.id) || req.user?.role === 'admin'
-      ? normalizeProduct(product)
-      : publicProduct(product));
+    const products = rows.map(product => {
+      const visibleProduct = (!!req.user?.id && product.seller_id === req.user.id) || req.user?.role === 'admin'
+        ? normalizeProduct(product)
+        : publicProduct(product);
+      delete visibleProduct.__cursor_created_at;
+      return visibleProduct;
+    });
     const lastProduct = rows.at(-1) as Record<string, unknown> | undefined;
     res.json({
       products,
       next_cursor: rows.length === lim && lastProduct
-        ? `${sortKey}|${sortConfig.kind === 'date' ? new Date(String(lastProduct.created_at)).toISOString() : String(lastProduct[sortKey === '-price' || sortKey === 'price' ? 'price' : 'view_count'])}|${String(lastProduct.id)}`
+        ? `${sortKey}|${sortConfig.kind === 'date' ? String(lastProduct.__cursor_created_at ?? lastProduct.created_at) : String(lastProduct[sortKey === '-price' || sortKey === 'price' ? 'price' : 'view_count'])}|${String(lastProduct.id)}`
         : null,
     });
   } catch { res.status(500).json({ error: 'Failed to fetch products' }); }
@@ -134,6 +169,17 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
     const record = product as Record<string, unknown>;
     if (!['active', 'sold_out'].includes(String(record.status)) && (!req.user?.id || record.seller_id !== req.user.id) && req.user?.role !== 'admin') {
       res.status(404).json({ error: 'Product not found' }); return;
+    }
+    let businessId = typeof record.business_id === 'string' ? record.business_id : null;
+    if (!businessId && typeof record.showroom_id === 'string') {
+      const { rows } = await pool.query<{ business_id: string | null }>('SELECT business_id FROM showrooms WHERE id=$1', [record.showroom_id]);
+      businessId = rows[0]?.business_id ?? null;
+    }
+    if (businessId) {
+      const access = await getBusinessSubscriptionAccess(businessId);
+      const isOwner = record.seller_id === req.user?.id;
+      if (!isOwner && (!access || access.hiddenFromPublic)) { res.status(404).json({ error: 'Product not found' }); return; }
+      if (isOwner && access?.blockedForOwner) { res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' }); return; }
     }
     await pool.query('UPDATE products SET view_count=view_count+1 WHERE id=$1', [req.params.id]).catch(()=>undefined);
     res.json((!!req.user?.id && record.seller_id === req.user.id) || req.user?.role === 'admin' ? normalizeProduct(record) : publicProduct(record));
