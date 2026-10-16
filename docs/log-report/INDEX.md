@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-16 | Maintenance | Merge pull request #107 from sentflix01/claude/site-visibility | [60a97cf92](2026-10-16-60a97cf92-merge-pull-request-107-from-sentflix01-claude-si.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/site-visibility | [1de83ff5d](2026-10-16-1de83ff5d-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-16 | Maintenance | Merge pull request #112 from sentflix01/fix/render-js-modules | [556885ee0](2026-10-16-556885ee0-merge-pull-request-112-from-sentflix01-fix-rende.md) |
 | 2026-10-16 | Bugfix | fix(deploy): ship plain JS modules in the image and fail the build if one is missing | [1dd893c5d](2026-10-16-1dd893c5d-ship-plain-js-modules-in-the-image-and-fail-the-.md) |
 | 2026-10-16 | Maintenance | Merge pull request #111 from sentflix01/ci/use-runner-postgres | [e0831f986](2026-10-16-e0831f986-merge-pull-request-111-from-sentflix01-ci-use-ru.md) |
@@ -14,14 +16,23 @@
 | 2026-10-16 | Maintenance | Merge pull request #105 from sentflix01/claude/mvp-phase1 | [2e9072b16](2026-10-16-2e9072b16-merge-pull-request-105-from-sentflix01-claude-mv.md) |
 | 2026-10-16 | Testing | test: give the Marketplace paging test time for the second page on slow CI | [0311fd7e5](2026-10-16-0311fd7e5-give-the-marketplace-paging-test-time-for-the-se.md) |
 | 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/mvp-phase1 | [1907df6da](2026-10-16-1907df6da-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [57740a11f](2026-10-16-57740a11f-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
 | 2026-10-16 | Bugfix | fix(ui): Buy view uses theme tokens again now that Tailwind generates them (#106) | [e62aa4c2e](2026-10-16-e62aa4c2e-buy-view-uses-theme-tokens-again-now-that-tailwi.md) |
 | 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/mvp-phase1 | [e1c8dc89f](2026-10-16-e1c8dc89f-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-16 | Maintenance | Merge pull request #106 from sentflix01/fix/tailwind-theme-colours | [f2f76943e](2026-10-16-f2f76943e-merge-pull-request-106-from-sentflix01-fix-tailw.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [8662858a7](2026-10-16-8662858a7-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
 | 2026-10-16 | Testing | test: give the ProductDetail property test enough time on slow CI runners | [28f5e8d0f](2026-10-16-28f5e8d0f-give-the-productdetail-property-test-enough-time.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [debdc11a3](2026-10-16-debdc11a3-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
 | 2026-10-16 | Bugfix | fix(jobs): draft reminders failed every run on a SQL type error | [0a7967234](2026-10-16-0a7967234-draft-reminders-failed-every-run-on-a-sql-type-e.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [a70196451](2026-10-16-a70196451-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
 | 2026-10-16 | Feature | feat(db): give legacy websites a Business profile and a 30-day free period | [5a10f3bea](2026-10-16-5a10f3bea-give-legacy-websites-a-business-profile-and-a-30.md) |
+| 2026-10-16 | Bugfix | fix(api): product status filter placeholder, short searches, guest owner profiles | [c5f51d79f](2026-10-16-c5f51d79f-product-status-filter-placeholder-short-searches.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [7f947453a](2026-10-16-7f947453a-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
 | 2026-10-16 | Testing | test: check migrate41 statuses through the shared list | [947038eba](2026-10-16-947038eba-check-migrate41-statuses-through-the-shared-list.md) |
 | 2026-10-16 | Bugfix | fix(db): every migration rebuilds orders_status_check from one list | [079adc41b](2026-10-16-079adc41b-every-migration-rebuilds-orders-status-check-fro.md) |
+| 2026-10-16 | Maintenance | test, docs: public/private businesses and guest access | [e7b976a49](2026-10-16-e7b976a49-test-docs-public-private-businesses-and-guest-ac.md) |
+| 2026-10-16 | Feature | feat(web): owners choose public or private; guests get the business feed | [861186041](2026-10-16-861186041-owners-choose-public-or-private-guests-get-the-b.md) |
+| 2026-10-16 | Feature | feat(api): public or private business sites; guests see business content only | [a58175119](2026-10-16-a58175119-public-or-private-business-sites-guests-see-busi.md) |
 | 2026-10-16 | Documentation | docs: record the Tailwind v4 single-config decision and check:css gate | [c955bc2c6](2026-10-16-c955bc2c6-record-the-tailwind-v4-single-config-decision-an.md) |
 | 2026-10-16 | Bugfix | fix(ui): make globals.css the only Tailwind config and fail CI on missing utilities | [3231d33d5](2026-10-16-3231d33d5-make-globals-css-the-only-tailwind-config-and-fa.md) |
 | 2026-10-16 | Bugfix | fix(ui): generate theme colour utilities under Tailwind v4 | [1a2281146](2026-10-16-1a2281146-generate-theme-colour-utilities-under-tailwind-v.md) |

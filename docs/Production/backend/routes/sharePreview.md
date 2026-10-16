@@ -19,8 +19,8 @@ Newly introduced as part of recent development; see source and git history for t
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/share-preview/showroom/:slug` | public | 42 |
-| `GET` | `/api/share-preview/product/:id` | public | 60 |
+| `GET` | `/api/share-preview/showroom/:slug` | public | 43 |
+| `GET` | `/api/share-preview/product/:id` | public | 61 |
 
 ## 4. What does it touch?
 

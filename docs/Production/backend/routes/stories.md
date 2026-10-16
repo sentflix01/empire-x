@@ -15,14 +15,14 @@
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/stories/` | optional | 15 |
-| `GET` | `/api/stories/user/:userId` | optional | 29 |
-| `POST` | `/api/stories/` | auth | 42 |
-| `POST` | `/api/stories/:id/view` | auth | 54 |
-| `POST` | `/api/stories/:id/reactions` | auth | 62 |
-| `GET` | `/api/stories/:id/comments` | auth | 77 |
-| `POST` | `/api/stories/:id/comments` | auth | 84 |
-| `DELETE` | `/api/stories/:id` | auth | 102 |
+| `GET` | `/api/stories/` | optional | 16 |
+| `GET` | `/api/stories/user/:userId` | optional | 30 |
+| `POST` | `/api/stories/` | auth | 43 |
+| `POST` | `/api/stories/:id/view` | auth | 55 |
+| `POST` | `/api/stories/:id/reactions` | auth | 63 |
+| `GET` | `/api/stories/:id/comments` | auth | 78 |
+| `POST` | `/api/stories/:id/comments` | auth | 85 |
+| `DELETE` | `/api/stories/:id` | auth | 103 |
 
 ## 4. What does it touch?
 

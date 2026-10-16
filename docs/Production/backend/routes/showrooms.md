@@ -15,15 +15,15 @@ Showroom CRUD: draft/publish lifecycle, layout template selection, section conte
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/showrooms/` | optional | 15 |
-| `GET` | `/api/showrooms/slug/:slug` | optional | 42 |
-| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | auth | 61 |
-| `GET` | `/api/showrooms/:id/doctor` | auth | 86 |
-| `GET` | `/api/showrooms/sitemap-data` | public | 143 |
-| `GET` | `/api/showrooms/:id` | optional | 156 |
-| `POST` | `/api/showrooms/` | auth | 170 |
-| `PUT` | `/api/showrooms/:id` | auth | 236 |
-| `DELETE` | `/api/showrooms/:id` | auth | 298 |
+| `GET` | `/api/showrooms/` | optional | 16 |
+| `GET` | `/api/showrooms/slug/:slug` | optional | 44 |
+| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | auth | 63 |
+| `GET` | `/api/showrooms/:id/doctor` | auth | 88 |
+| `GET` | `/api/showrooms/sitemap-data` | public | 145 |
+| `GET` | `/api/showrooms/:id` | optional | 159 |
+| `POST` | `/api/showrooms/` | auth | 173 |
+| `PUT` | `/api/showrooms/:id` | auth | 239 |
+| `DELETE` | `/api/showrooms/:id` | auth | 301 |
 
 ## 4. What does it touch?
 

@@ -15,10 +15,10 @@ Product variants: option matrices (size/color), per-variant stock and price over
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/variants/product/:productId` | optional | 20 |
-| `POST` | `/api/variants/product/:productId` | auth | 34 |
-| `PUT` | `/api/variants/:id` | auth | 49 |
-| `DELETE` | `/api/variants/:id` | auth | 64 |
+| `GET` | `/api/variants/product/:productId` | optional | 21 |
+| `POST` | `/api/variants/product/:productId` | auth | 39 |
+| `PUT` | `/api/variants/:id` | auth | 54 |
+| `DELETE` | `/api/variants/:id` | auth | 69 |
 
 ## 4. What does it touch?
 
