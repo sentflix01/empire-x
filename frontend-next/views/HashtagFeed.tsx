@@ -55,7 +55,7 @@ function HashtagFeed() {
         ) : (
           <div className="space-y-3">
             {posts.map(p => (
-              <PostCard key={p.id} post={p} currentUserId={user?.id} />
+              <PostCard key={p.id} post={p} currentUserId={user?.id} onDeleted={(id) => setPosts(prev => prev.filter(x => x.id !== id))} />
             ))}
           </div>
         )}

@@ -24,7 +24,11 @@ jest.mock('../../utils/crud', () => ({
     return safe;
   },
 }));
-jest.mock('../../routes/hashtags', () => ({ syncHashtags: jest.fn().mockResolvedValue(undefined) }));
+jest.mock('../../routes/hashtags', () => ({
+  syncHashtags: jest.fn().mockResolvedValue(undefined),
+  resyncHashtags: jest.fn().mockResolvedValue(undefined),
+  unlinkHashtags: jest.fn().mockResolvedValue(undefined),
+}));
 jest.mock('../../routes/push', () => ({ sendPushToUser: jest.fn().mockResolvedValue(undefined) }));
 jest.mock('../../socket', () => ({
   emitNewMessage: jest.fn(), emitMessageEdited: jest.fn(), emitMessageDeleted: jest.fn(),
@@ -66,7 +70,7 @@ describe('route ownership and mass assignment boundaries', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(crud.updateRecord).toHaveBeenCalledWith('posts', 'post-1', { content: 'Updated' });
+    expect(crud.updateRecord).toHaveBeenCalledWith('posts', 'post-1', { content: 'Updated', edited_at: expect.any(String) });
   });
 
 
