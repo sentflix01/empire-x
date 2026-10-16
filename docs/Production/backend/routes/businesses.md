@@ -11,15 +11,20 @@ Business entity pages: create/manage business profiles linked to owners, busines
 ## 3. What does it do?
 
 
-### Endpoints (5)
+### Endpoints (10)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/businesses/` | optional | 10 |
-| `GET` | `/api/businesses/:id` | optional | 19 |
-| `POST` | `/api/businesses/` | auth | 27 |
-| `PUT` | `/api/businesses/:id` | auth | 42 |
-| `DELETE` | `/api/businesses/:id` | auth | 53 |
+| `GET` | `/api/businesses/` | optional | 32 |
+| `GET` | `/api/businesses/:id` | optional | 50 |
+| `POST` | `/api/businesses/` | auth | 66 |
+| `PUT` | `/api/businesses/:id` | auth | 87 |
+| `DELETE` | `/api/businesses/:id` | auth | 105 |
+| `GET` | `/api/businesses/:id/payment-accounts` | auth | 162 |
+| `POST` | `/api/businesses/:id/payment-accounts` | auth | 170 |
+| `PUT` | `/api/businesses/:id/payment-accounts/:accountId` | auth | 187 |
+| `DELETE` | `/api/businesses/:id/payment-accounts/:accountId` | auth | 205 |
+| `GET` | `/api/businesses/:id/checkout-info` | optional | 218 |
 
 ## 4. What does it touch?
 

@@ -15,8 +15,8 @@ Poll interactions on posts: vote once-per-user enforcement, live vote_count tall
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `POST` | `/api/polls/:postId/vote` | auth | 8 |
-| `GET` | `/api/polls/:postId/results` | optional | 43 |
+| `POST` | `/api/polls/:postId/vote` | auth | 9 |
+| `GET` | `/api/polls/:postId/results` | optional | 44 |
 
 ## 4. What does it touch?
 

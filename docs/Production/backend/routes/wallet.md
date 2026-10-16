@@ -15,15 +15,15 @@ Wallet money movement: balance + transaction history, admin-only topup/debit/ref
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/wallet/me` | auth | 84 |
-| `POST` | `/api/wallet/topup` | auth | 95 |
-| `POST` | `/api/wallet/withdraw` | auth | 108 |
-| `POST` | `/api/wallet/debit` | auth | 121 |
-| `POST` | `/api/wallet/refund` | auth | 134 |
-| `POST` | `/api/wallet/topup/chapa` | auth | 149 |
-| `GET` | `/api/wallet/topup/chapa/sandbox` | public | 186 |
-| `GET` | `/api/wallet/topup/chapa/verify/:tx_ref` | public | 200 |
-| `POST` | `/api/wallet/topup/stripe` | auth | 268 |
+| `GET` | `/api/wallet/me` | auth | 87 |
+| `POST` | `/api/wallet/topup` | auth | 98 |
+| `POST` | `/api/wallet/withdraw` | auth | 111 |
+| `POST` | `/api/wallet/debit` | auth | 124 |
+| `POST` | `/api/wallet/refund` | auth | 137 |
+| `POST` | `/api/wallet/topup/chapa` | auth | 152 |
+| `GET` | `/api/wallet/topup/chapa/sandbox` | public | 189 |
+| `GET` | `/api/wallet/topup/chapa/verify/:tx_ref` | public | 203 |
+| `POST` | `/api/wallet/topup/stripe` | auth | 271 |
 
 ## 4. What does it touch?
 
