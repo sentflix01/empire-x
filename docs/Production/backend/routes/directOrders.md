@@ -14,11 +14,20 @@ Newly introduced as part of recent development; see source and git history for t
 
 ## 3. What does it do?
 
-Extracted facts (auto):
-- Lines: ~412
-- API references:
-  - `/api/direct-orders.`
-  - `/api/direct-orders/checkout-info`
+
+### Endpoints (9)
+
+| Method | Path | Auth | Line |
+|---|---|---|---|
+| `GET` | `/api/direct-orders/checkout-info` | optional | 137 |
+| `POST` | `/api/direct-orders/` | optional | 167 |
+| `GET` | `/api/direct-orders/link/:token` | public | 279 |
+| `POST` | `/api/direct-orders/link/:token/report-payment` | public | 314 |
+| `POST` | `/api/direct-orders/:id/report-payment` | auth | 322 |
+| `POST` | `/api/direct-orders/:id/confirm-payment` | auth | 332 |
+| `POST` | `/api/direct-orders/:id/reject-payment` | auth | 349 |
+| `GET` | `/api/direct-orders/link/:token/receipt` | public | 373 |
+| `GET` | `/api/direct-orders/:id/receipt` | auth | 381 |
 
 ## 4. What does it touch?
 

@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-16 | Maintenance | Merge pull request #112 from sentflix01/fix/render-js-modules | [556885ee0](2026-10-16-556885ee0-merge-pull-request-112-from-sentflix01-fix-rende.md) |
+| 2026-10-16 | Bugfix | fix(deploy): ship plain JS modules in the image and fail the build if one is missing | [1dd893c5d](2026-10-16-1dd893c5d-ship-plain-js-modules-in-the-image-and-fail-the-.md) |
 | 2026-10-16 | Maintenance | Merge pull request #111 from sentflix01/ci/use-runner-postgres | [e0831f986](2026-10-16-e0831f986-merge-pull-request-111-from-sentflix01-ci-use-ru.md) |
 | 2026-10-16 | CI/CD | ci: use the runner's preinstalled PostgreSQL instead of pulling an image | [6718e5efb](2026-10-16-6718e5efb-use-the-runner-s-preinstalled-postgresql-instead.md) |
 | 2026-10-16 | Maintenance | Merge pull request #110 from sentflix01/fix/review-pbt-generator | [a80d2583f](2026-10-16-a80d2583f-merge-pull-request-110-from-sentflix01-fix-revie.md) |

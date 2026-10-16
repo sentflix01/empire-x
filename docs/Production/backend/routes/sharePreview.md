@@ -14,10 +14,13 @@ Newly introduced as part of recent development; see source and git history for t
 
 ## 3. What does it do?
 
-Extracted facts (auto):
-- Lines: ~83
-- API references:
-  - `/api/share-preview.`
+
+### Endpoints (2)
+
+| Method | Path | Auth | Line |
+|---|---|---|---|
+| `GET` | `/api/share-preview/showroom/:slug` | public | 42 |
+| `GET` | `/api/share-preview/product/:id` | public | 60 |
 
 ## 4. What does it touch?
 
