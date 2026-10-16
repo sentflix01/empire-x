@@ -50,7 +50,6 @@ import apiVersion from './middleware/apiVersion';
 import responseTime from './middleware/responseTime';
 import { realModeMiddleware } from './middleware/realMode';
 import { demoEnvironmentMiddleware } from './middleware/demoEnvironment';
-import { publicDemoBrowseMiddleware } from './middleware/publicDemoBrowse';
 import { requireAuth, requireAdmin } from './middleware/auth';
 import { activeStorageProvider, getSupabaseStorageAuthHeaders, isSupabaseConfigured, verifyDemoStorageIsolation } from './middleware/upload';
 import pool, { closeAllPools, runWithDatabaseEnvironment, verifySharedDatabaseIsolation } from './db/pool';
@@ -267,7 +266,6 @@ app.use(cookieParser());
 // Resolve demo-session cookies before auth, data, or payment routes execute so
 // AsyncLocalStorage selects the isolated demo database for the whole request.
 app.use(demoEnvironmentMiddleware);
-app.use(publicDemoBrowseMiddleware);
 app.use(realModeMiddleware);
 
 // ── Static uploads ────────────────────────────────────────────────────────────

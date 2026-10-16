@@ -38,14 +38,14 @@ describe('apiFetch request policy', () => {
     expect(new Headers(init.headers).has('X-Real-Only')).toBe(false);
   });
 
-  it('selects Demo for anonymous read requests from the guest feed', async () => {
+  it('keeps anonymous guest reads on Real data (decision 10)', async () => {
     clearToken();
     window.history.pushState({}, '', '/feed');
 
     await apiFetch('/api/posts?feed=true');
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(new Headers(init.headers).get('X-Public-Demo-Read')).toBe('1');
+    expect(new Headers(init.headers).has('X-Public-Demo-Read')).toBe(false);
     expect(new Headers(init.headers).has('Authorization')).toBe(false);
   });
 

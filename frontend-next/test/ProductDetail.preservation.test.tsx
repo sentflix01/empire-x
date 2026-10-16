@@ -135,6 +135,13 @@ import client from '@/api/client';
 import { auth } from '@/api/auth';
 import { entities } from '@/api/entities';
 import ProductDetail from '@/views/ProductDetail';
+import { useAuth } from '@/lib/AuthContext';
+
+const GUEST = { authChecked: true, isAuthenticated: false };
+/** Add to Cart is for signed-in buyers; guests buy through the Buy view. */
+function signInAsBuyer() {
+  (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({ authChecked: true, isAuthenticated: true, user: { id: 'buyer-1' } });
+}
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 const IMAGES = [
@@ -219,6 +226,7 @@ describe('Preservation: Existing ProductDetail Interactions Unchanged', () => {
     mockAddToCart.mockClear();
     // Re-configure entities filter after clearAllMocks resets it
     (entities.UserProfile.filter as ReturnType<typeof vi.fn>).mockResolvedValue([SELLER_PROFILE]);
+    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue(GUEST);
   });
 
   afterEach(() => {
@@ -308,6 +316,7 @@ describe('Preservation: Existing ProductDetail Interactions Unchanged', () => {
    * Validates: Requirements 3.2
    */
   it('cart button click calls addToCart with the correct product.id', async () => {
+    signInAsBuyer();
     setupMocks();
     await renderAndWait();
 
@@ -457,6 +466,7 @@ describe('Preservation: Existing ProductDetail Interactions Unchanged', () => {
    * Validates: Requirements 3.1
    */
   it('out-of-stock product renders "Out of stock" label and disables cart button', async () => {
+    signInAsBuyer();
     const outOfStockProduct = { ...BASE_PRODUCT, stock: 0 };
     setupMocks(outOfStockProduct);
     await renderAndWait();
@@ -473,6 +483,7 @@ describe('Preservation: Existing ProductDetail Interactions Unchanged', () => {
    * Validates: Requirements 3.1
    */
   it('null stock product renders "In stock"', async () => {
+    signInAsBuyer();
     const nullStockProduct = { ...BASE_PRODUCT, stock: null };
     setupMocks(nullStockProduct);
     await renderAndWait();
@@ -481,5 +492,13 @@ describe('Preservation: Existing ProductDetail Interactions Unchanged', () => {
 
     const cartButton = screen.getByRole('button', { name: /Add to Cart/i });
     expect(cartButton).not.toBeDisabled();
+  });
+
+  it('guests get Buy Now (no account needed) but no Add to Cart', async () => {
+    setupMocks();
+    await renderAndWait();
+
+    expect(screen.getByRole('button', { name: /Buy Now/i })).not.toBeDisabled();
+    expect(screen.queryByRole('button', { name: /Add to Cart/i })).not.toBeInTheDocument();
   });
 });

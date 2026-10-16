@@ -181,9 +181,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
       if (!isOwner && (!access || access.hiddenFromPublic)) { res.status(404).json({ error: 'Product not found' }); return; }
       if (isOwner && access?.blockedForOwner) { res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' }); return; }
     }
-    if (!req.publicDemoRead) {
-      await pool.query('UPDATE products SET view_count=view_count+1 WHERE id=$1', [req.params.id]).catch(()=>undefined);
-    }
+    await pool.query('UPDATE products SET view_count=view_count+1 WHERE id=$1', [req.params.id]).catch(()=>undefined);
     res.json((!!req.user?.id && record.seller_id === req.user.id) || req.user?.role === 'admin' ? normalizeProduct(record) : publicProduct(record));
   } catch { res.status(500).json({ error: 'Failed to fetch product' }); }
 });

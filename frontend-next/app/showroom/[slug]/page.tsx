@@ -8,6 +8,7 @@
  */
 import type { Metadata } from 'next';
 import ShowroomView from '@/views/ShowroomView';
+import QrVisitorActions from '@/components/showroom/QrVisitorActions';
 import { showroomMetadata } from '@/lib/sharePreview';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -18,6 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default function PublicShowroomBySlugPage() {
   return (
     <div className="min-h-screen bg-background px-4 py-6">
+      <QrVisitorActions />
       <ShowroomView />
     </div>
   );

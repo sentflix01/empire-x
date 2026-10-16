@@ -360,8 +360,6 @@ declare global {
       requestId: string;
       /** Set by middleware/realMode.js when X-Real-Only: 1 header is present. */
       realOnly: boolean;
-      /** True only for explicitly requested, anonymous, read-only Demo browsing. */
-      publicDemoRead?: boolean;
       /** Set only after the demo cookie has been validated against the demo database. */
       demoSession?: { id: string; userId: string; expiresAt: Date; isAnonymous: boolean };
     }
