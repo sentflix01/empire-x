@@ -8,7 +8,7 @@ without breaking people's shops, chats, or wallets.
 1. Branch from `main` using `feat/`, `fix/`, `chore/`, `refactor/`, or `docs/` prefixes.
 2. Conventional Commits for every commit (`feat(wallet): …`).
 3. Before opening a PR: backend `npx jest --runInBand` green, frontend `npm run lint` +
-   `npx tsc --noEmit` + `npm run build` green.
+   `npx tsc --noEmit` + `npm run build` + `npm run check:css` green.
 4. Small PRs. One concern each. Explain *why* in the description.
 5. Never commit secrets. `.env` stays local; use `.env.example` placeholders.
 

@@ -133,7 +133,7 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, initial
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="purchase-title">
-      <div className="w-full sm:max-w-md max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white p-5 space-y-4 shadow-xl">
+      <div className="w-full sm:max-w-md max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-card p-5 space-y-4 shadow-xl">
         <div className="flex items-center justify-between">
           <h2 id="purchase-title" className="font-semibold flex items-center gap-2">
             {step === 'done' ? <Check className="w-5 h-5 text-green-600" /> : <ShoppingBag className="w-5 h-5 text-amber-500" />}
@@ -214,7 +214,7 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, initial
               <p className="text-sm"><MapPin className="inline w-4 h-4 mr-1" />Pickup: {placed.details.business.pickup_address}</p>
             )}
             <p className="text-xs text-muted-foreground">We emailed this link to you. Keep it private: anyone with it can see your order.</p>
-            <Link href={`/order/${placed.access_token}`} className="flex w-full items-center justify-center rounded-full bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Open my order</Link>
+            <Link href={`/order/${placed.access_token}`} className="flex w-full items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Open my order</Link>
           </>
         )}
       </div>
