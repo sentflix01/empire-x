@@ -17,6 +17,7 @@ import logger from '../lib/logger';
 import pool from '../db/pool';
 import { runDirectOrderExpiry } from '../lib/directOrderExpiry';
 import { deleteExpiredStories } from '../db/cleanupStories';
+import { deleteExpiredAuthState } from '../lib/authSecurityStore';
 
 const { runBusinessSubscriptionLifecycle } = require('../scripts/business-subscription-lifecycle') as {
   runBusinessSubscriptionLifecycle: () => Promise<unknown>;
@@ -26,6 +27,7 @@ export const JOBS: Record<string, { lockKey: number; run: () => Promise<unknown>
   'subscription-lifecycle': { lockKey: 7_401_001, run: () => runBusinessSubscriptionLifecycle() },
   'direct-order-expiry': { lockKey: 7_401_002, run: () => runDirectOrderExpiry() },
   'stories-cleanup': { lockKey: 7_401_003, run: () => deleteExpiredStories() },
+  'auth-state-cleanup': { lockKey: 7_401_004, run: () => deleteExpiredAuthState() },
 };
 
 const MIN_SECRET_LENGTH = 32;

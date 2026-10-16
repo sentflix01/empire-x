@@ -23,7 +23,6 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { OAuth2Client } from 'google-auth-library';
 import type { Request, Response } from 'express';
-import type { Redis as RedisClient } from 'ioredis';
 import pool from '../db/pool';
 import { getCurrentDatabaseEnvironment, runWithDatabaseEnvironment } from '../db/pool';
 import {
@@ -34,7 +33,7 @@ import { sendOtpEmail, sendPasswordResetEmail } from '../utils/mailer';
 import { requireAuth, invalidateUserCache } from '../middleware/auth';
 import { forceDisconnectUser } from '../socket';
 import { anonymizeAccount, deletionBlocker, exportAccountData } from '../lib/accountData';
-import { getRedis } from '../lib/redis';
+import { clearValue, getValue, incrementCounter, isTokenRevoked, revokeAllSessions, revokeTokenId, setValue } from '../lib/authSecurityStore';
 import * as apiError from '../lib/apiError';
 import logger from '../lib/logger';
 
@@ -197,34 +196,21 @@ async function hasRealRefreshSession(req: Request): Promise<boolean> {
   }
 }
 
+// Revocations live in Postgres (lib/authSecurityStore.ts) so logout still
+// works when Redis is unavailable; Redis keeps a copy for the access-token check.
 async function revokeToken(jti: string, expiresAt: number): Promise<void> {
-  const redis = getRedis();
-  if (redis.isNoOp) return;
-  const ttl = Math.max(1, Math.ceil((expiresAt * 1000 - Date.now()) / 1000));
-  try {
-    await (redis as RedisClient).setex(`revoked:${jti}`, ttl, '1');
-  } catch {
-    logger.warn({ jti }, 'auth: failed to write revocation to Redis');
-  }
+  await revokeTokenId(jti, expiresAt);
 }
 
 async function isRevoked(jti: string | undefined, userId?: string | undefined, iat?: number | undefined, isDemo = false): Promise<boolean> {
   if (!jti && !userId) return false;
   if (isDemo) return false;
-  const redis = getRedis();
-  if (redis.isNoOp) return false;
   try {
-    if (jti) {
-      const val = await (redis as RedisClient).get(`revoked:${jti}`);
-      if (val === '1') return true;
-    }
-    if (userId && iat !== undefined) {
-      const revokeBefore = await (redis as RedisClient).get(`revoke_before:${userId}`);
-      if (revokeBefore && iat < parseInt(revokeBefore, 10)) return true;
-    }
-    return false;
-  } catch {
-    return false;
+    return await isTokenRevoked(jti, userId, iat);
+  } catch (err) {
+    // Fail closed: if revocation cannot be checked, do not issue new tokens.
+    logger.error({ err: (err as Error).message }, 'auth: revocation check failed');
+    return true;
   }
 }
 
@@ -360,27 +346,20 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
     }
 
     // ── Brute-force protection: per-email attempt counter ─────────────────
-    const redis = user.is_demo || user.is_seed ? null : getRedis();
+    // Counted in Postgres so the limit holds when Redis is unavailable.
+    const trackAttempts = !(user.is_demo || user.is_seed);
     const attemptKey = `otp_attempts:${email.toLowerCase()}`;
-    if (redis && !redis.isNoOp) {
-      try {
-        const attempts = await (redis as RedisClient).incr(attemptKey);
-        if (attempts === 1) {
-          // Set TTL only on first increment — Redis INCR creates the key
-          await (redis as RedisClient).expire(attemptKey, OTP_ATTEMPT_TTL);
-        }
-        if (attempts > OTP_ATTEMPT_MAX) {
-          // Invalidate the OTP so the user must request a fresh code
-          await pool.query(
-            'UPDATE users SET otp_code = NULL, otp_expires = NULL WHERE id = $1',
-            [user.id],
-          );
-          await (redis as RedisClient).del(attemptKey);
-          apiError.validationError(res, 'Too many failed attempts. Please request a new verification code.');
-          return;
-        }
-      } catch (redisErr) {
-        logger.warn({ err: (redisErr as Error).message }, 'OTP attempt counter Redis error — continuing');
+    if (trackAttempts) {
+      const attempts = await incrementCounter(attemptKey, OTP_ATTEMPT_TTL);
+      if (attempts > OTP_ATTEMPT_MAX) {
+        // Invalidate the OTP so the user must request a fresh code
+        await pool.query(
+          'UPDATE users SET otp_code = NULL, otp_expires = NULL WHERE id = $1',
+          [user.id],
+        );
+        await clearValue(attemptKey);
+        apiError.validationError(res, 'Too many failed attempts. Please request a new verification code.');
+        return;
       }
     }
     // ─────────────────────────────────────────────────────────────────────
@@ -391,9 +370,7 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
     }
 
     // Correct OTP — clear the attempt counter
-    if (redis && !redis.isNoOp) {
-      (redis as RedisClient).del(attemptKey).catch(() => undefined);
-    }
+    if (trackAttempts) await clearValue(attemptKey).catch(() => undefined);
 
     const { rows: banCheck } = await pool.query<{ is_banned: boolean; is_demo: boolean; is_seed: boolean }>(
       'SELECT is_banned, is_demo, is_seed FROM users WHERE id = $1',
@@ -614,20 +591,14 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // ── Account lockout check ────────────────────────────────────────────
-    const redis = user.is_demo || user.is_seed ? null : getRedis();
+    // Lockout state lives in Postgres so it holds when Redis is unavailable.
+    const trackLogin = !(user.is_demo || user.is_seed);
     const lockoutKey = `lockout:${user.email}`;
     const failedKey = `failed_login:${user.email}`;
 
-    if (redis) {
-      try {
-        const isLocked = await redis.get(lockoutKey);
-        if (isLocked) {
-          res.status(429).json({ error: 'Too many failed attempts. Please try again in 15 minutes.' });
-          return;
-        }
-      } catch {
-        // Redis unavailable — skip lockout check, continue with login
-      }
+    if (trackLogin && (await getValue(lockoutKey)) !== null) {
+      res.status(429).json({ error: 'Too many failed attempts. Please try again in 15 minutes.' });
+      return;
     }
 
     if (!user.password_hash) {
@@ -638,15 +609,12 @@ router.post('/login', async (req: Request, res: Response) => {
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) {
       // ── Increment failed login counter ───────────────────────────────
-      if (redis) {
+      if (trackLogin) {
         try {
-          const attempts = (await redis.incr(failedKey)) ?? 0;
-          if (attempts === 1) {
-            await redis.expire(failedKey, LOCKOUT_TTL_SECONDS);
-          }
+          const attempts = await incrementCounter(failedKey, LOCKOUT_TTL_SECONDS);
           if (attempts >= LOCKOUT_THRESHOLD) {
-            await redis.set(lockoutKey, '1', 'EX', LOCKOUT_TTL_SECONDS);
-            await redis.del(failedKey);
+            await setValue(lockoutKey, 1, LOCKOUT_TTL_SECONDS);
+            await clearValue(failedKey);
             logger.warn({ userId: user.id, email: user.email }, 'Account locked after 5 failed login attempts');
             try {
               await sendPasswordResetEmail(user.email, 'lockout-alert');
@@ -654,8 +622,8 @@ router.post('/login', async (req: Request, res: Response) => {
               // Best-effort alert — don't fail the response
             }
           }
-        } catch {
-          // Redis unavailable — skip attempt tracking, continue with login
+        } catch (err) {
+          logger.error({ err: (err as Error).message }, 'auth: failed-login counter could not be updated');
         }
       }
       res.status(401).json({ error: 'Invalid email or password' });
@@ -663,9 +631,7 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // ── Successful login — clear failed attempts ─────────────────────────
-    if (redis) {
-      redis.del(failedKey).catch(() => undefined);
-    }
+    if (trackLogin) await clearValue(failedKey).catch(() => undefined);
 
     if (!user.is_verified) {
       const otp = generateOtp();
@@ -961,10 +927,7 @@ router.delete('/me', requireAuth, async (req: Request, res: Response) => {
   // The row is now banned with ban_reason='account_deleted', which the auth
   // middleware rejects; also drop caches, sessions and sockets right away.
   await invalidateUserCache(userId);
-  const redis = getRedis();
-  if (!redis.isNoOp) {
-    await (redis as RedisClient).setex(`revoke_before:${userId}`, 7 * 24 * 60 * 60, Math.floor(Date.now() / 1000).toString()).catch(() => undefined);
-  }
+  await revokeAllSessions(userId).catch((err) => logger.error({ err: (err as Error).message }, 'auth: revoke-all failed'));
   forceDisconnectUser(userId);
   res.clearCookie('refresh_token', {
     httpOnly: true,
@@ -1057,16 +1020,7 @@ router.post('/reset-password', async (req: Request, res: Response) => {
       [hash, rows[0].id],
     );
     const isDemo = Boolean(banCheck[0]?.is_demo || banCheck[0]?.is_seed);
-    const redis = isDemo ? null : getRedis();
-    if (redis && !redis.isNoOp) {
-      try {
-        await (redis as RedisClient).setex(
-          `revoke_before:${rows[0].id}`,
-          7 * 24 * 60 * 60,
-          Math.floor(Date.now() / 1000).toString(),
-        );
-      } catch { /* non-fatal */ }
-    }
+    if (!isDemo) await revokeAllSessions(rows[0].id).catch((err) => logger.error({ err: (err as Error).message }, 'auth: revoke-all failed'));
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
     logger.error({ err }, 'Reset password error');
@@ -1109,16 +1063,7 @@ router.put('/change-password', requireAuth, async (req: Request, res: Response) 
     }
     const hash = await bcrypt.hash(new_password, 12);
     await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, req.user!.id]);
-    const redis = getRedis();
-    if (!redis.isNoOp) {
-      try {
-        await (redis as RedisClient).setex(
-          `revoke_before:${req.user!.id}`,
-          7 * 24 * 60 * 60,
-          Math.floor(Date.now() / 1000).toString(),
-        );
-      } catch { /* non-fatal */ }
-    }
+    await revokeAllSessions(req.user!.id).catch((err) => logger.error({ err: (err as Error).message }, 'auth: revoke-all failed'));
     res.json({ message: 'Password changed successfully' });
   } catch (err) {
     logger.error({ err }, 'Change password error');
@@ -1260,16 +1205,7 @@ router.post('/logout-all', requireAuth, async (req: Request, res: Response) => {
     } catch { /* ignore */ }
   }
 
-  const redis = getRedis();
-  if (!redis.isNoOp) {
-    try {
-      await (redis as RedisClient).setex(
-        `revoke_before:${req.user!.id}`,
-        7 * 24 * 60 * 60,
-        Math.floor(Date.now() / 1000).toString(),
-      );
-    } catch { /* non-fatal */ }
-  }
+  await revokeAllSessions(req.user!.id).catch((err) => logger.error({ err: (err as Error).message }, 'auth: revoke-all failed'));
 
   res.clearCookie('refresh_token', {
     httpOnly: true,

@@ -38,7 +38,7 @@ jobs:
           # Wake a sleeping instance first (cold starts can take ~60 s).
           curl -s -o /dev/null --max-time 120 --retry 3 --retry-delay 10 "$BACKEND_URL/health" || true
           failed=0
-          for job in subscription-lifecycle direct-order-expiry stories-cleanup; do
+          for job in subscription-lifecycle direct-order-expiry stories-cleanup auth-state-cleanup; do
             code=$(curl -s -o response.json -w '%{http_code}' --max-time 300 \
               -X POST -H "Authorization: Bearer $JOBS_SECRET" "$BACKEND_URL/api/internal/jobs/$job")
             echo "$job -> HTTP $code $(cat response.json)"
