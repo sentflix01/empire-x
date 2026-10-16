@@ -15,17 +15,17 @@ User profile system: fetch/upsert profile rows, follow/unfollow toggle inside a 
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/profiles/me` | auth | 83 |
-| `GET` | `/api/profiles/by-user/:userId` | optional | 91 |
-| `GET` | `/api/profiles/me/follows` | auth | 104 |
-| `GET` | `/api/profiles/follows` | auth | 111 |
-| `GET` | `/api/profiles/:id` | optional | 118 |
-| `GET` | `/api/profiles/` | optional | 136 |
-| `POST` | `/api/profiles/` | auth | 173 |
-| `PUT` | `/api/profiles/me/upsert` | auth | 190 |
-| `PUT` | `/api/profiles/:id` | auth | 210 |
-| `PATCH` | `/api/profiles/me/ticker` | auth | 228 |
-| `POST` | `/api/profiles/follow/:targetUserId` | auth | 254 |
+| `GET` | `/api/profiles/me` | auth | 116 |
+| `GET` | `/api/profiles/by-user/:userId` | optional | 124 |
+| `GET` | `/api/profiles/me/follows` | auth | 137 |
+| `GET` | `/api/profiles/follows` | auth | 144 |
+| `GET` | `/api/profiles/:id` | optional | 151 |
+| `GET` | `/api/profiles/` | optional | 169 |
+| `POST` | `/api/profiles/` | auth | 211 |
+| `PUT` | `/api/profiles/me/upsert` | auth | 228 |
+| `PUT` | `/api/profiles/:id` | auth | 248 |
+| `PATCH` | `/api/profiles/me/ticker` | auth | 266 |
+| `POST` | `/api/profiles/follow/:targetUserId` | auth | 292 |
 
 ## 4. What does it touch?
 

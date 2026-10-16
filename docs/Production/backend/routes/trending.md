@@ -15,8 +15,8 @@ Trending rankings: computed leaderboards for posts/products/showrooms cached via
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/trending/` | optional | 45 |
-| `GET` | `/api/trending/warm` | optional | 66 |
+| `GET` | `/api/trending/` | optional | 48 |
+| `GET` | `/api/trending/warm` | optional | 69 |
 
 ## 4. What does it touch?
 
