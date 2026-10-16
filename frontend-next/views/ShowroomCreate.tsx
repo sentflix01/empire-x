@@ -6,11 +6,8 @@ import { entities } from "@/api/entities";
 import { apiFetch } from "@/api/client";
 import { useTranslation } from 'react-i18next';
 
-import {
-  ArrowLeft, Monitor, Tablet, Smartphone, Moon, Sun,
-  RotateCcw, RotateCw, Save, CheckCircle, Crown, PenLine, Eye,
-  Download, Copy, Layers, Menu,
-} from "lucide-react";
+import { ArrowLeft, Monitor, Tablet, Smartphone, Moon, Sun, RotateCcw, RotateCw, Save, CheckCircle, PenLine, Eye, Download, Copy, Layers, Menu } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { toast } from "sonner";
 import {
   SECTION_TYPES, CATEGORY_DEFAULT_SECTIONS, COLOR_PRESETS,
@@ -843,7 +840,7 @@ function ShowroomCreate({
 
         {/* Template info */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <Crown className="w-3.5 h-3.5 text-amber-500" />
+          <BrandLogo className="w-3.5 h-3.5 text-amber-500" />
           <span className="text-xs font-semibold truncate max-w-[120px]">{templateParam.replace(/-/g, " ") || "Custom Builder"}</span>
           <span className="text-[10px] text-amber-600 font-medium">{completion}%</span>
           <div className="w-16 h-1.5 bg-border/50 rounded-full overflow-hidden">

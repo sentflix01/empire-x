@@ -4,11 +4,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import client from "@/api/client";
-import {
-  Search as SearchIcon, Users, ShoppingBag, Crown,
-  FileText, Loader2, Mic, MicOff, MapPin, SlidersHorizontal, Calendar, DollarSign, X,
-  Navigation, Filter,
-} from "lucide-react";
+import { Search as SearchIcon, Users, ShoppingBag, FileText, Loader2, Mic, MicOff, MapPin, SlidersHorizontal, Calendar, DollarSign, X, Navigation, Filter } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { toast } from "sonner";
@@ -56,7 +53,7 @@ function Search() {
     { key: "all",       label: t('search.all'),        Icon: SearchIcon },
     { key: "users",     label: t('search.people'),     Icon: Users },
     { key: "products",  label: t('search.products'),   Icon: ShoppingBag },
-    { key: "showrooms", label: t('search.showrooms'),  Icon: Crown },
+    { key: "showrooms", label: t('search.showrooms'),  Icon: BrandLogo },
     { key: "posts",     label: t('search.posts'),      Icon: FileText },
   ];
 
@@ -361,12 +358,12 @@ function Search() {
         )}
 
         {results.showrooms?.length > 0 && (tab === "all" || tab === "showrooms") && (
-          <CollapsibleSection title={t('search.showrooms')} icon={Crown} count={results.showrooms.length} sectionKey="showrooms" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
+          <CollapsibleSection title={t('search.showrooms')} icon={BrandLogo} count={results.showrooms.length} sectionKey="showrooms" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
             {results.showrooms.map(s => (
               <Link key={s.id} href={`/showrooms/${s.id}`}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
                 <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 overflow-hidden">
-                  {s.logo_url ? <Image src={s.logo_url} alt={s.title || ''} width={40} height={40} className="w-full h-full object-cover rounded-xl" unoptimized /> : <Crown className="w-5 h-5 text-amber-500" />}
+                  {s.logo_url ? <Image src={s.logo_url} alt={s.title || ''} width={40} height={40} className="w-full h-full object-cover rounded-xl" unoptimized /> : <BrandLogo className="w-5 h-5 text-amber-500" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">

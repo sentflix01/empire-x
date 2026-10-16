@@ -6,7 +6,8 @@ import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 
-import { ArrowLeft, QrCode, Crown, X, Send, Loader2, Check } from "lucide-react";
+import { ArrowLeft, QrCode, X, Send, Loader2, Check } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -365,7 +366,7 @@ function ShowroomView() {
             <SectionRenderer section={{ type: "contact", title: "Get in Touch" }} sectionIndex={sections.length} themeColor={themeColor} profile={profile} />
           )}
           <div className="px-5 py-6 bg-secondary text-center">
-            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {showroom.title}. Powered by Nodbusiness 👑</p>
+            <p className="inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground">© {new Date().getFullYear()} {showroom.title}. Powered by <BrandLogo className="w-3.5 h-3.5" /> Nodbusiness</p>
           </div>
         </div>
 
@@ -426,7 +427,7 @@ function ShowroomView() {
 function UnavailableNotice({ title, message }: { title: string; message: string }) {
   return (
     <div className="max-w-2xl mx-auto text-center py-20">
-      <Crown className="w-12 h-12 text-amber-400/40 mx-auto mb-3" />
+      <BrandLogo className="w-12 h-12 text-amber-400/40 mx-auto mb-3" />
       <h2 className="font-display text-xl font-bold">{title}</h2>
       <p className="text-sm text-muted-foreground mt-1">{message}</p>
       <Link href="/" className="inline-block mt-4">

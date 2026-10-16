@@ -4,7 +4,8 @@ import Link from 'next/link';
 import NextImage from 'next/image';
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
-import { TrendingUp, ShoppingBag, Crown, Users, Hash } from "lucide-react";
+import { TrendingUp, ShoppingBag, Users, Hash } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { Skeleton } from "@/components/ui/skeleton";
 import PostCard from "@/components/feed/PostCard";
 import { useAuth } from "@/lib/AuthContext";
@@ -121,7 +122,7 @@ function Explore() {
         )}
 
         {data?.featured_showrooms?.length > 0 && (
-          <Section title={t('explore.featuredShowrooms')} icon={Crown}>
+          <Section title={t('explore.featuredShowrooms')} icon={BrandLogo}>
             <div className="grid grid-cols-2 gap-3">
               {data.featured_showrooms.map(s => (
                 <Link key={s.id} href={`/showrooms/${s.id}`} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow">
@@ -135,7 +136,7 @@ function Explore() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Crown className="w-8 h-8 text-amber-400" />
+                        <BrandLogo className="w-8 h-8 text-amber-400" />
                       </div>
                     )}
                   </div>

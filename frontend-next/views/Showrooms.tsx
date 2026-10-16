@@ -4,7 +4,8 @@ import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 import { apiFetch } from "@/api/client";
-import { Crown, Search, Plus, Eye } from "lucide-react";
+import { Search, Plus, Eye } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -115,7 +116,7 @@ function Showrooms() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
-            <Crown className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+            <BrandLogo className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
             <h3 className="font-display text-lg font-bold">No showrooms found</h3>
             <p className="text-sm text-muted-foreground mt-1">Be the first to create one!</p>
           </div>
@@ -134,7 +135,7 @@ function Showrooms() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Crown className="w-8 h-8 text-amber-400 group-hover:scale-110 transition-transform" />
+                        <BrandLogo className="w-8 h-8 text-amber-400 group-hover:scale-110 transition-transform" />
                       </div>
                     )}
                     {/* Category badge overlay */}

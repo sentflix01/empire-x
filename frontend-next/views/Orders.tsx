@@ -523,7 +523,7 @@ function Orders() {
                       {/* Invoice */}
                       {order.status === "completed" && (
                         <button
-                          onClick={() => generateInvoice(order)}
+                          onClick={() => { void generateInvoice(order); }}
                           className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 font-medium px-2 py-1 rounded-full hover:bg-amber-50 transition-colors"
                         >
                           <FileDown className="w-3 h-3" /> Invoice

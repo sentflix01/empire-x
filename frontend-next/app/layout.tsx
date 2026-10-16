@@ -6,7 +6,7 @@ import GoogleSignInInit from '@/components/GoogleSignInInit';
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'),
   title: {
-    default: 'Nodbusiness 👑',
+    default: 'Nodbusiness',
     template: '%s | Nodbusiness',
   },
   description: 'Build a guided online showroom for your local business, connect with customers, and manage product orders in one place.',
@@ -18,20 +18,20 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: process.env.NEXT_PUBLIC_APP_URL || 'https://nodbusiness.app',
     siteName: 'Nodbusiness',
-    title: 'Nodbusiness 👑 — Africa\'s Superapp',
+    title: 'Nodbusiness — Africa\'s Superapp',
     description: 'Guided business showrooms, local product discovery, ordering, and customer connections.',
     images: ['/brand/nodbusiness-logo.svg'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Nodbusiness 👑',
+    title: 'Nodbusiness',
     description: 'Africa\'s Superapp — Social · Commerce · Services',
     images: ['/brand/nodbusiness-logo.svg'],
   },
   manifest: '/manifest.json',
   icons: {
-    icon: '/icons/nodbusiness-icon copy.svg',
-    shortcut: '/icons/nodbusiness-icon copy.svg',
+    icon: '/icons/nodbusiness-icon.svg',
+    shortcut: '/icons/nodbusiness-icon.svg',
     apple: '/apple-touch-icon.png',
   },
 };

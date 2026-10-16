@@ -6,6 +6,7 @@ import { entities } from "@/api/entities";
 
 import { Mail, Phone, MapPin, ShoppingBag, Plus, Edit2, MessageSquare, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { Badge } from "@/components/ui/badge";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
 import { findOrCreateConversation } from "@/lib/messaging";
@@ -155,7 +156,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
 
           {/* Footer */}
           <div className="px-5 py-6 bg-muted text-center">
-            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {biz.business_name}. Powered by Nodbusiness 👑</p>
+            <p className="inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground">© {new Date().getFullYear()} {biz.business_name}. Powered by <BrandLogo className="w-3.5 h-3.5" /> Nodbusiness</p>
           </div>
         </div>
       </div>

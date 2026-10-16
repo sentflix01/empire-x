@@ -181,6 +181,24 @@ documents when verified; do not copy stale values into new work.
   strings that are not classes.
 - **Related documentation:** [Engineering Standards](../docs/ENGINEERING_STANDARDS.md#theme-tokens-and-tailwind-v4) (PR #106)
 
+### 2026-10-16 — The Nodbusiness emblem is the only brand mark; onboarding is personal-only
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** A crown (the 👑 emoji and lucide's `Crown` icon) stood in for
+  the brand in the tab title, onboarding, the 404 page, site footers, invoices
+  and the Showroom Studio and Showrooms icons. Onboarding also offered a
+  Business Profile path that wrote business fields to the user profile without
+  creating a business or a website.
+- **Decision:** Use the real emblem (`frontend-next/components/brand/BrandLogo.tsx`,
+  `/brand/nodbusiness-icon.svg`) everywhere a crown was. A test fails if a
+  crown emoji or a lucide `Crown` import returns. Onboarding has a single
+  Personal Information step. Businesses and their websites are created later
+  from Businesses or Showroom Studio.
+- **Consequences:** Invoices draw the emblem as an image. Onboarding never
+  changes an existing profile's business flag.
+- **Related documentation:** `frontend-next/test/brand/noCrownBranding.test.ts`, `frontend-next/test/onboarding.test.tsx`
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when
