@@ -13,7 +13,8 @@
  */
 import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle2, Loader2, Package, HardDrive, Crown, AlertTriangle, X } from 'lucide-react';
+import { CheckCircle2, Loader2, Package, HardDrive, AlertTriangle, X } from 'lucide-react';
+import BrandLogo from '@/components/brand/BrandLogo';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import client from '@/api/client';
@@ -386,7 +387,7 @@ function BusinessSubscription() {
           );
         })}
         <div className="bg-card border border-violet-400/40 rounded-2xl p-5">
-          <div className="flex items-center gap-2"><Crown className="w-4 h-4 text-violet-500" /><p className="font-semibold">Enterprise</p></div>
+          <div className="flex items-center gap-2"><BrandLogo className="w-4 h-4 text-violet-500" /><p className="font-semibold">Enterprise</p></div>
           <p className="text-sm text-muted-foreground mt-1">Custom pricing in ETB or USD, with tailored plan and service terms.</p>
           <a href="mailto:support@nodbusiness.app?subject=Nodbusiness%20Enterprise%20plan"
             className="inline-flex mt-3 items-center justify-center rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-secondary">

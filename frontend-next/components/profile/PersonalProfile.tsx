@@ -3,7 +3,8 @@ import Link from 'next/link';
 import React, { useState, useEffect } from "react";
 import { entities } from "@/api/entities";
 
-import { Briefcase, GraduationCap, Plus, Store, Crown, ShoppingBag, Users, Pencil } from "lucide-react";
+import { Briefcase, GraduationCap, Plus, Store, ShoppingBag, Users, Pencil } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { useProfileView } from '@/lib/ProfileViewContext';
 import { Button } from "@/components/ui/button";
 import PostCard from "@/components/feed/PostCard";
@@ -39,7 +40,7 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
             <p className="text-[10px] font-medium">Sell Product</p>
           </Link>
           <Link href="/showroom/create" className="bg-card rounded-xl border border-border/50 p-3 text-center hover:shadow-sm transition-shadow">
-            <Crown className="w-5 h-5 mx-auto text-amber-500 mb-1" />
+            <BrandLogo className="w-5 h-5 mx-auto text-amber-500 mb-1" />
             <p className="text-[10px] font-medium">Showroom</p>
           </Link>
           <Link href="/profile/edit" className="bg-card rounded-xl border border-border/50 p-3 text-center hover:shadow-sm transition-shadow">

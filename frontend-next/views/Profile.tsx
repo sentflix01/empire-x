@@ -8,7 +8,8 @@ import { entities } from "@/api/entities";
 import SafeImage from "@/components/ui/SafeImage";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit2, LogOut, MapPin, Crown, Store, Plus, ArrowLeft, User } from "lucide-react";
+import { Edit2, LogOut, MapPin, Store, Plus, ArrowLeft, User } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -152,7 +153,7 @@ function Profile() {
       {!user ? (
         <>
           <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
-            <Crown className="w-7 h-7 text-amber-600" />
+            <BrandLogo className="w-7 h-7 text-amber-600" />
           </div>
           <h2 className="font-display text-xl font-bold">Sign in to view profiles</h2>
           <p className="text-sm text-muted-foreground mt-1 mb-6">Create an account to see profiles, posts, and businesses.</p>
@@ -163,7 +164,7 @@ function Profile() {
         </>
       ) : (
         <>
-          <Crown className="w-12 h-12 text-amber-400 mx-auto mb-3" />
+          <BrandLogo className="w-12 h-12 text-amber-400 mx-auto mb-3" />
           <h2 className="font-display text-xl font-bold">Profile not found</h2>
           <p className="text-sm text-muted-foreground mt-1">This user hasn't set up their profile yet.</p>
           <Link href="/"><Button variant="outline" className="mt-4 rounded-full">Go Home</Button></Link>

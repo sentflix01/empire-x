@@ -19,7 +19,25 @@ interface Order {
   [key: string]: unknown;
 }
 
-export function generateInvoice(order: Order): void {
+/** Loads the brand emblem as a data URL for the PDF header; null if it can't be fetched. */
+async function loadLogo(): Promise<string | null> {
+  try {
+    const res = await fetch("/icons/icon-192.png");
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : null);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function generateInvoice(order: Order): Promise<void> {
+  const logo = await loadLogo();
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = 210; // A4 width
   const margin = 20;
@@ -36,15 +54,19 @@ export function generateInvoice(order: Order): void {
   doc.setFillColor(...brand);
   doc.rect(0, 0, W, 38, "F");
 
+  // Brand emblem, with the text beside it.
+  const textX = logo ? margin + 22 : margin;
+  if (logo) doc.addImage(logo, "PNG", margin, 8, 18, 18);
+
   doc.setTextColor(...white);
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text("Nodbusiness 👑", margin, 16);
+  doc.text("Nodbusiness", textX, 16);
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text("Global Superapp — Social · Commerce · Services", margin, 24);
-  doc.text("www.nodbusiness.app  |  support@nodbusiness.app", margin, 30);
+  doc.text("Global Superapp — Social · Commerce · Services", textX, 24);
+  doc.text("www.nodbusiness.app  |  support@nodbusiness.app", textX, 30);
 
   // Invoice label (right side of header)
   doc.setFontSize(18);
@@ -189,7 +211,7 @@ export function generateInvoice(order: Order): void {
   doc.setTextColor(...gray);
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
-  doc.text("Thank you for using Nodbusiness 👑 — The Global Superapp for Social, Commerce & Services.", margin, y);
+  doc.text("Thank you for using Nodbusiness — The Global Superapp for Social, Commerce & Services.", margin, y);
   doc.text("For support: support@nodbusiness.app", margin, y + 5);
   doc.text(`Invoice generated: ${new Date().toLocaleString("en-GB")}`, W - margin, y, { align: "right" });
 

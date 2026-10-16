@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import NextImage from 'next/image';
 import client from "@/api/client";
-import { Bookmark, ShoppingBag, Crown, FileText, Bell, Trash2 } from "lucide-react";
+import { Bookmark, ShoppingBag, FileText, Bell, Trash2 } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import ErrorState from "@/components/ui/ErrorState";
@@ -18,7 +19,7 @@ function Bookmarks() {
     { key:"all",     label: t('bookmarks.all') },
     { key:"post",    label: t('bookmarks.posts'),     icon:FileText   },
     { key:"product", label: t('bookmarks.products'),  icon:ShoppingBag },
-    { key:"showroom",label: t('bookmarks.showrooms'), icon:Crown       },
+    { key:"showroom",label: t('bookmarks.showrooms'), icon:BrandLogo       },
     { key:"alerts",  label: t('bookmarks.alerts'),    icon:Bell        },
   ];
 

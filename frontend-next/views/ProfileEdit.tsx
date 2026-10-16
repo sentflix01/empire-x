@@ -15,13 +15,8 @@ import Image from 'next/image';
 import { useAuth } from '@/lib/AuthContext';
 import { entities, type UserProfile } from '@/api/entities';
 import { useTranslation } from 'react-i18next';
-import {
-  ArrowLeft, User, Store, Radio,
-  Plus, X, Globe, MapPin, Phone, Mail,
-  GraduationCap, Briefcase, Award, Star, Languages as LangIcon, Building2, Hash,
-  ChevronDown, ChevronUp, Camera, CheckCircle,
-  ExternalLink, AtSign, Share2, Rss, Link2, Crown,
-} from 'lucide-react';
+import { ArrowLeft, User, Store, Radio, Plus, X, Globe, MapPin, Phone, Mail, GraduationCap, Briefcase, Award, Star, Languages as LangIcon, Building2, Hash, ChevronDown, ChevronUp, Camera, CheckCircle, ExternalLink, AtSign, Share2, Rss, Link2 } from 'lucide-react';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 // Social platform icon stubs (lucide-react v1 doesn't include brand icons)
 const LinkedinIcon   = Link2;
@@ -696,7 +691,7 @@ function ProfileEdit() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-300">
-                    <Crown className="w-3.5 h-3.5 text-amber-500" />
+                    <BrandLogo className="w-3.5 h-3.5 text-amber-500" />
                     {t('profile.openInStudio')}
                   </p>
                   <p className="mt-0.5 text-[11px] leading-snug text-amber-700/80 dark:text-amber-300/70">
@@ -710,7 +705,7 @@ function ProfileEdit() {
                     router.push(q ? `/showroom/create?category=${q}` : '/showroom/create');
                   }}
                   className="h-9 shrink-0 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-4 text-xs font-bold text-white shadow-md shadow-amber-500/25 hover:from-amber-600 hover:to-amber-700 disabled:opacity-50">
-                  <Crown className="w-3.5 h-3.5 mr-1.5" />
+                  <BrandLogo className="w-3.5 h-3.5 mr-1.5" />
                   {t('profile.openInStudio')}
                 </Button>
               </div>
