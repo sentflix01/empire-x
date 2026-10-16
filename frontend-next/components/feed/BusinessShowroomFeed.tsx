@@ -755,7 +755,6 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           seller={purchaseModal.seller}
           buyer={viewer ? { id: viewer.id as string } : undefined}
           onClose={() => setPurchaseModal(null)}
-          onPurchased={() => setPurchaseModal(null)}
         />
       )}
     </>
@@ -928,7 +927,6 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           seller={purchaseModal.seller}
           buyer={currentUser ? { id: currentUser.id as string } : undefined}
           onClose={() => setPurchaseModal(null)}
-          onPurchased={() => setPurchaseModal(null)}
         />
       )}
     </div>

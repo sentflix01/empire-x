@@ -372,7 +372,6 @@ function ShowroomView() {
             showroomId={showroom.id}
             buyer={user ? { id: user.id, full_name: user.full_name, email: user.email } : undefined}
             onClose={() => setPurchaseItem(null)}
-            onPurchased={() => setPurchaseItem(null)}
           />
         )}
 

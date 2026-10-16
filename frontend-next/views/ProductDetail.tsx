@@ -202,7 +202,7 @@ function ProductDetail() {
             </div>
             <div className="text-right shrink-0">
               <p className="text-2xl font-bold text-amber-600">{product.price?.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">{product.currency || "USD"}</p>
+              <p className="text-xs text-muted-foreground">{product.currency || "ETB"}</p>
             </div>
           </div>
 
@@ -246,21 +246,23 @@ function ProductDetail() {
           )}
 
           <div className="flex gap-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1"><Shield className="w-3.5 h-3.5 text-green-500" /> Buyer protected</div>
+            <div className="flex items-center gap-1"><Shield className="w-3.5 h-3.5 text-green-500" /> Pay the seller directly</div>
             <div className="flex items-center gap-1"><Truck className="w-3.5 h-3.5 text-blue-500" /> Delivery available</div>
           </div>
 
           <div className="flex gap-2 pt-1">
-            {user && user.id !== product.seller_id && (
+            {user?.id !== product.seller_id && (
               <Button onClick={() => setPurchaseItem(product)} disabled={!inStock}
                 className="flex-1 h-11 rounded-full bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 font-semibold">
                 <Zap className="w-4 h-4 mr-2" /> Buy Now
               </Button>
             )}
-            <Button onClick={() => addItem(product.id)} disabled={!inStock} variant="outline"
-              className="flex-1 h-11 rounded-full border-blue-300 text-blue-700 hover:bg-blue-50 font-semibold">
-              <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
-            </Button>
+            {user && (
+              <Button onClick={() => addItem(product.id)} disabled={!inStock} variant="outline"
+                className="flex-1 h-11 rounded-full border-blue-300 text-blue-700 hover:bg-blue-50 font-semibold">
+                <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
+              </Button>
+            )}
             <Button variant="outline" size="icon"
               className={`h-11 w-11 rounded-full transition-colors ${wishlisted ? "text-red-500 border-red-200 bg-red-50" : ""}`}
               onClick={handleWishlist} disabled={wishlistLoading}>
@@ -276,7 +278,7 @@ function ProductDetail() {
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
                   <Bell className="w-4 h-4 text-amber-600 shrink-0" />
                   <p className="text-xs text-amber-700 dark:text-amber-400 flex-1">
-                    Alert active — notifying you when price drops to <strong>{parseFloat(alertTarget).toLocaleString()} {product.currency || "USD"}</strong>
+                    Alert active — notifying you when price drops to <strong>{parseFloat(alertTarget).toLocaleString()} {product.currency || "ETB"}</strong>
                   </p>
                   <button onClick={handleRemoveAlert} className="text-xs text-amber-600 hover:text-red-500 font-medium transition-colors">Remove</button>
                 </div>
@@ -287,7 +289,7 @@ function ProductDetail() {
                     type="number"
                     value={alertInput}
                     onChange={e => setAlertInput(e.target.value)}
-                    placeholder={`Target price (${product.currency || "USD"})`}
+                    placeholder={`Target price (${product.currency || "ETB"})`}
                     className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
                     onKeyDown={e => { if (e.key === "Enter") handleSetAlert(); }}
                     autoFocus
@@ -321,7 +323,7 @@ function ProductDetail() {
             display_name: seller?.display_name,
             business_name: seller?.business_name,
           }}
-          buyer={user}
+          buyer={user ?? undefined}
           onClose={() => setPurchaseItem(null)}
         />
       )}

@@ -594,6 +594,13 @@ function Orders() {
                       <Truck className="w-3 h-3" />{order.delivery_address}
                     </p>
                   )}
+                  {/* Direct payment: what the buyer reported, and how to reach a guest buyer */}
+                  {order.payment_reference && (
+                    <p className="text-xs text-muted-foreground mt-1">Payment reference: <span className="font-mono">{order.payment_reference}</span></p>
+                  )}
+                  {isSelling && (order.buyer_phone || order.buyer_email) && (
+                    <p className="text-xs text-muted-foreground mt-1">Contact: {[order.buyer_phone, order.buyer_email].filter(Boolean).join(" · ")}</p>
+                  )}
                 </div>
 
                 {/* Expanded section: Delivery Timeline + Return actions */}
