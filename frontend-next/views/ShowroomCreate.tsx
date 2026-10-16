@@ -19,6 +19,8 @@ import BuilderForm from "@/components/showroom/BuilderForm";
 import BuilderPreview from "@/components/showroom/BuilderPreview";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { VisibilitySelect, asVisibility, type BusinessVisibility } from '@/components/business/VisibilityChoice';
+import PublishBusinessDialog, { type NewBusiness } from '@/components/showroom/PublishBusinessDialog';
+import { getBusinessCategoryForBuilder } from '@/lib/showroomCategoryMapping';
 
 const FONT_OPTIONS = ["Inter", "Playfair Display", "Space Grotesk"];
 
@@ -300,6 +302,9 @@ function ShowroomCreate({
   const [businesses, setBusinesses] = useState<Array<{ id: string; business_name: string; visibility: BusinessVisibility }>>([]);
   const [savingVisibility, setSavingVisibility] = useState(false);
   const [selectedBusinessId, setSelectedBusinessId] = useState('');
+  // 'loading' until the owner's Business profiles are known; 'failed' leaves the check to the API.
+  const [businessesState, setBusinessesState] = useState<'loading' | 'loaded' | 'failed'>('loading');
+  const [businessDialog, setBusinessDialog] = useState<'create' | 'choose' | null>(null);
   const [saving, setSaving] = useState(false);
   const [darkBuilder, setDarkBuilder] = useState(false);
   const [previewMode, setPreviewMode] = useState<"desktop"|"tablet"|"mobile">("desktop");
@@ -327,9 +332,10 @@ function ShowroomCreate({
         if (cancelled) return;
         const choices = owned.map((business: any) => ({ id: String(business.id), business_name: String(business.business_name || 'Business'), visibility: asVisibility(business.visibility) }));
         setBusinesses(choices);
+        setBusinessesState('loaded');
         if (choices.length === 1) setSelectedBusinessId(choices[0].id);
       })
-      .catch(() => { if (!cancelled) toast.error('Could not load your Business profiles.'); });
+      .catch(() => { if (!cancelled) { setBusinessesState('failed'); toast.error('Could not load your Business profiles.'); } });
     return () => { cancelled = true; };
   }, [user?.id, user?.is_demo]);
 
@@ -615,15 +621,38 @@ function ShowroomCreate({
     }
   };
 
-  const handlePublish = async () => {
+  // Creates the owner's first Business profile from the publish step, then publishes into it.
+  const createBusinessAndPublish = async (business: NewBusiness) => {
+    if (!user) return;
+    setSaving(true);
+    try {
+      const created = await entities.Business.create({ ...business, owner_id: user.id }) as { id: string; business_name?: string };
+      const profiles = await entities.UserProfile.filter({ user_id: user.id }).catch(() => []);
+      if (profiles.length > 0) await entities.UserProfile.update(profiles[0].id, { has_business_profile: true }).catch(() => undefined);
+      setBusinesses(list => [...list, { id: String(created.id), business_name: created.business_name ?? business.business_name, visibility: business.visibility }]);
+      setSelectedBusinessId(String(created.id));
+      setBusinessDialog(null);
+      toast.success('Business profile created.');
+      await handlePublish(String(created.id));
+    } catch (error) {
+      const body = error as { error?: string; message?: string } | null;
+      toast.error(body?.message || body?.error || 'Could not create your Business profile. Try again.');
+      setSaving(false);
+    }
+  };
+
+  const handlePublish = async (businessIdOverride?: string) => {
     if (!user) { toast.error("Please log in"); return; }
     if (editId && loadedDraftKey !== draftKey) { toast.error("Your site is still loading. Try again in a moment."); return; }
-    if (!user.is_demo && businesses.length > 1 && !selectedBusinessId) {
-      toast.error('Choose which Business profile this website belongs to before publishing.');
-      return;
-    }
     const title = String(formData.title ?? "").trim();
     if (!title) { toast.error("Add your business name in the Hero section"); return; }
+    const businessId = businessIdOverride ?? selectedBusinessId;
+    // Every live site belongs to a Business profile: create or choose it here
+    // rather than failing and sending the owner out of Studio.
+    if (!user.is_demo && !businessId && businessesState === 'loaded') {
+      if (businesses.length === 0) { setBusinessDialog('create'); return; }
+      if (businesses.length > 1) { setBusinessDialog('choose'); return; }
+    }
     setSaving(true);
     // Keep an up-to-date local copy before any billing redirect or API error.
     localStorage.setItem(draftKey, JSON.stringify({ formData, activeSections }));
@@ -638,7 +667,7 @@ function ShowroomCreate({
 
       const showroomData = {
         owner_id: user.id,
-        ...(selectedBusinessId ? { business_id: selectedBusinessId } : {}),
+        ...(businessId ? { business_id: businessId } : {}),
         title,
         description: formData.subtitle || "",
         slug: title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
@@ -653,8 +682,10 @@ function ShowroomCreate({
       toast.success("Your showroom is live and visible in the Business feed.");
       router.push(`/showrooms/${showroom.id}`);
     } catch (error) {
-      const apiError = error as { message?: string; response?: { data?: { error?: string; message?: string; businessId?: string; draftId?: string; requiredTier?: 'normal' | 'premium' | 'pro' } } };
-      const details = apiError.response?.data;
+      // The API client rejects with the response body itself (see api/client.ts).
+      type PublishError = { error?: string; message?: string; businessId?: string; draftId?: string; requiredTier?: 'normal' | 'premium' | 'pro' };
+      const apiError = error as PublishError & { response?: { data?: PublishError } };
+      const details: PublishError | undefined = apiError.response?.data ?? apiError;
       if (details?.error === 'subscription_required' && details.businessId) {
         const query = new URLSearchParams({ businessId: details.businessId });
         if (details.draftId) query.set('draftId', details.draftId);
@@ -663,8 +694,13 @@ function ShowroomCreate({
         setSaving(false);
         return;
       }
-      if (details?.error === 'business_profile_required' && details.draftId) {
-        router.push(`/business/create?draftId=${encodeURIComponent(details.draftId)}`);
+      if (details?.error === 'business_profile_required') {
+        setBusinessDialog('create');
+        setSaving(false);
+        return;
+      }
+      if (details?.error === 'business_selection_required' && businesses.length > 1) {
+        setBusinessDialog('choose');
         setSaving(false);
         return;
       }
@@ -933,7 +969,7 @@ function ShowroomCreate({
 
         {/* Publish */}
         <button
-          onClick={handlePublish}
+          onClick={() => { void handlePublish(); }}
           disabled={saving}
           className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 transition-all shrink-0"
         >
@@ -946,7 +982,7 @@ function ShowroomCreate({
       <div className={`sm:hidden shrink-0 border-b px-3 py-2 ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-white border-border/50"}`}>
         <button
           type="button"
-          onClick={handlePublish}
+          onClick={() => { void handlePublish(); }}
           disabled={saving}
           className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-sm font-bold text-white shadow-sm disabled:opacity-50"
         >
@@ -954,6 +990,18 @@ function ShowroomCreate({
           {saving ? "Publishing..." : "Publish site"}
         </button>
       </div>
+
+      <PublishBusinessDialog
+        open={businessDialog !== null}
+        mode={businessDialog ?? 'create'}
+        businesses={businesses}
+        defaultName={String(formData.title ?? '').trim()}
+        defaultCategory={getBusinessCategoryForBuilder(categoryParam)}
+        busy={saving}
+        onOpenChange={(open) => { if (!open) setBusinessDialog(null); }}
+        onCreate={(business) => { void createBusinessAndPublish(business); }}
+        onChoose={(id) => { setSelectedBusinessId(id); setBusinessDialog(null); void handlePublish(id); }}
+      />
 
       {/* ── Responsive body: drawer on mobile/tablet, sidebar on desktop ── */}
       <div className="flex flex-1 min-h-0 overflow-hidden relative">
