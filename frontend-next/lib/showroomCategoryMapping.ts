@@ -37,3 +37,17 @@ export function getBuilderCategoryQuery(businessCategoryValue: string): string {
   const cat = getBuilderCategoryForBusiness(businessCategoryValue);
   return cat ? encodeURIComponent(cat) : "";
 }
+
+/** Builder category → the closest business_category value (for a new Business profile created from Studio). */
+const BUILDER_TO_BUSINESS_CATEGORY: Record<string, string> = {
+  "Business & Commerce": "shop",
+  "Education": "course",
+  "Professional Services": "service",
+  "Food & Beverage": "restaurant",
+  "Hospitality & Tourism": "event",
+  "Health & Medical": "health",
+};
+
+export function getBusinessCategoryForBuilder(builderCategory: string): string {
+  return BUILDER_TO_BUSINESS_CATEGORY[builderCategory] || "";
+}
