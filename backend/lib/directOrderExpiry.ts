@@ -10,7 +10,8 @@ import { expireStaleDirectOrders } from '../routes/directOrders';
 
 const INTERVAL_MS = 15 * 60 * 1000;
 
-async function tick(): Promise<void> {
+/** One expiry pass over Real (and Demo when enabled). Also run by POST /api/internal/jobs. */
+export async function runDirectOrderExpiry(): Promise<void> {
   const environments: Array<'real' | 'demo'> = ['real'];
   if (process.env.DEMO_ENABLED === 'true' && process.env.DEMO_DATABASE_URL) environments.push('demo');
   for (const environment of environments) {
@@ -26,6 +27,6 @@ async function tick(): Promise<void> {
 export function startDirectOrderExpiry(): void {
   const enabled = process.env.NODE_ENV === 'production' || process.env.DIRECT_ORDER_EXPIRY_ENABLED === 'true';
   if (!enabled) return;
-  setInterval(() => { void tick(); }, INTERVAL_MS).unref();
-  setTimeout(() => { void tick(); }, 20_000).unref();
+  setInterval(() => { void runDirectOrderExpiry(); }, INTERVAL_MS).unref();
+  setTimeout(() => { void runDirectOrderExpiry(); }, 20_000).unref();
 }
