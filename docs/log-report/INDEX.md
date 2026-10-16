@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #118 from sentflix01/claude/api-error-body | [7ddf2629f](2026-10-17-7ddf2629f-merge-pull-request-118-from-sentflix01-claude-ap.md) |
+| 2026-10-17 | Bugfix | fix(frontend): read API error bodies the way the client rejects them | [1eeb2e70a](2026-10-17-1eeb2e70a-read-api-error-bodies-the-way-the-client-rejects.md) |
 | 2026-10-17 | Maintenance | Merge pull request #117 from sentflix01/claude/publish-business-step | [1cb6a3ed6](2026-10-17-1cb6a3ed6-merge-pull-request-117-from-sentflix01-claude-pu.md) |
 | 2026-10-17 | Bugfix | fix(studio): create or choose the Business profile inside the publish step | [f27c6bd60](2026-10-17-f27c6bd60-create-or-choose-the-business-profile-inside-the.md) |
 | 2026-10-17 | Maintenance | Merge pull request #116 from sentflix01/claude/profile-site-sections | [79d49e3ff](2026-10-17-79d49e3ff-merge-pull-request-116-from-sentflix01-claude-pr.md) |
