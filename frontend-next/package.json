@@ -15,6 +15,7 @@
   "scripts": {
     "dev": "next dev --port 3002",
     "build": "next build",
+    "check:css": "node scripts/check-css-utilities.mjs",
     "start": "next start",
     "lint": "eslint app api components hooks lib store views proxy.ts --no-error-on-unmatched-pattern --max-warnings=-1",
     "test": "vitest --run",
