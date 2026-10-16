@@ -14,9 +14,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/lib/AuthContext';
 import { entities, type UserProfile } from '@/api/entities';
-import { useTranslation } from 'react-i18next';
-import { ArrowLeft, User, Store, Radio, Plus, X, Globe, MapPin, Phone, Mail, GraduationCap, Briefcase, Award, Star, Languages as LangIcon, Building2, Hash, ChevronDown, ChevronUp, Camera, CheckCircle, ExternalLink, AtSign, Share2, Rss, Link2 } from 'lucide-react';
-import BrandLogo from '@/components/brand/BrandLogo';
+import { ArrowLeft, User, Store, Radio, Plus, X, Globe, MapPin, Phone, Mail, GraduationCap, Briefcase, Award, Star, Languages as LangIcon, Building2, ChevronDown, ChevronUp, Camera, CheckCircle, ExternalLink, AtSign, Share2, Rss, Link2 } from 'lucide-react';
 
 // Social platform icon stubs (lucide-react v1 doesn't include brand icons)
 const LinkedinIcon   = Link2;
@@ -28,8 +26,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { BUSINESS_CATEGORIES, getTemplateById } from '@/lib/businessTemplates';
-import { getBuilderCategoryQuery } from '@/lib/showroomCategoryMapping';
+import { getTemplateById } from '@/lib/businessTemplates';
+import WebsiteSectionsPanel from '@/components/profile/WebsiteSectionsPanel';
 import ImageUpload from '@/components/ui/ImageUpload';
 import CoverPositionEditor, { CoverPositionTrigger } from '@/components/ui/CoverPositionEditor';
 import TickerBar, { TICKER_TYPES } from '@/components/feed/TickerBar';
@@ -172,7 +170,6 @@ function parseJSON(v: any, fallback: any) {
 }
 
 function ProfileEdit() {
-  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const isBusinessSetup = pathname.includes('setup-business');
@@ -302,7 +299,9 @@ function ProfileEdit() {
   const handleSaveBusiness = async () => {
     setSaving(true);
     try {
-      const templateSections = getTemplateById(business.business_category, business.business_template)?.sections || [];
+      const templateSections = business.business_category
+        ? getTemplateById(business.business_category, business.business_template)?.sections || []
+        : [];
       const sections = JSON.stringify(templateSections.map(section => {
         const personalized = { ...section };
         if (personalized.type === 'hero') {
@@ -323,7 +322,8 @@ function ProfileEdit() {
         ...business,
         business_cover_position: business.business_cover_position || null,
         has_business_profile: true,
-        business_sections: sections,
+        // Without a category there is no template to rebuild from; keep what is stored.
+        ...(templateSections.length ? { business_sections: sections } : {}),
         certifications: JSON.stringify(business.certifications),
         awards:         JSON.stringify(business.awards),
         services:       JSON.stringify(business.services),
@@ -668,48 +668,9 @@ function ProfileEdit() {
             </div>
           </Section>
 
-          {/* Category & Showroom Studio — category chips + Studio deep link */}
-          <Section icon={Hash} title="Category & Template">
-            <Label>Business Category *</Label>
-            <div className="grid grid-cols-2 gap-2 mt-2 max-h-52 overflow-y-auto pr-1">
-              {BUSINESS_CATEGORIES.map(cat => {
-                const Icon = cat.icon;
-                return (
-                  <button key={cat.value} type="button" aria-pressed={b.business_category === cat.value} onClick={() => sb('business_category', cat.value)}
-                    className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all ${b.business_category === cat.value ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20' : 'border-border hover:border-amber-300'}`}>
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: cat.color + '20' }}>
-                      <Icon className="w-3.5 h-3.5" style={{ color: cat.color }} />
-                    </div>
-                    <span className="text-xs font-medium">{cat.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Showroom Studio CTA (gold — business domain) */}
-            <div className="mt-3 rounded-xl border border-amber-300/60 bg-gradient-to-br from-amber-50 to-amber-100/50 p-3 dark:border-amber-700/40 dark:from-amber-900/20 dark:to-amber-900/10">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-300">
-                    <BrandLogo className="w-3.5 h-3.5 text-amber-500" />
-                    {t('profile.openInStudio')}
-                  </p>
-                  <p className="mt-0.5 text-[11px] leading-snug text-amber-700/80 dark:text-amber-300/70">
-                    {b.business_category ? t('profile.openInStudioDesc') : t('profile.selectCategoryHint')}
-                  </p>
-                </div>
-                <Button type="button"
-                  disabled={!b.business_category}
-                  onClick={() => {
-                    const q = getBuilderCategoryQuery(b.business_category);
-                    router.push(q ? `/showroom/create?category=${q}` : '/showroom/create');
-                  }}
-                  className="h-9 shrink-0 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-4 text-xs font-bold text-white shadow-md shadow-amber-500/25 hover:from-amber-600 hover:to-amber-700 disabled:opacity-50">
-                  <BrandLogo className="w-3.5 h-3.5 mr-1.5" />
-                  {t('profile.openInStudio')}
-                </Button>
-              </div>
-            </div>
+          {/* The published website's sections, edited in place */}
+          <Section icon={Globe} title="Your website">
+            <WebsiteSectionsPanel businessCategory={b.business_category} />
           </Section>
 
           {/* Contact */}
@@ -788,7 +749,7 @@ function ProfileEdit() {
             </div>
           </div>
 
-          <Button onClick={handleSaveBusiness} disabled={saving || !b.business_name || !b.business_category}
+          <Button onClick={handleSaveBusiness} disabled={saving || !b.business_name}
             className="w-full h-12 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-base shadow-md shadow-amber-500/20">
             {saving ? 'Saving business profile…' : profile?.has_business_profile ? 'Save Business Profile' : 'Create Business Profile'}
           </Button>

@@ -199,6 +199,23 @@ documents when verified; do not copy stale values into new work.
   changes an existing profile's business flag.
 - **Related documentation:** `frontend-next/test/brand/noCrownBranding.test.ts`, `frontend-next/test/onboarding.test.tsx`
 
+### 2026-10-16 — A published website is maintained from the business profile editor
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** The business profile editor had a category grid and a link into
+  Showroom Studio, so every content change to a live site meant reopening the
+  full builder.
+- **Decision:** The editor's "Your website" section loads the owner's
+  published site and edits every section it has, saving straight to that site
+  (`PUT /api/showrooms/:id`, which re-checks plan entitlements). Adding,
+  removing or reordering sections and changing the template stay in Studio.
+  Studio and the panel share `lib/showroomSectionsCodec.ts`.
+- **Consequences:** Editing the hero's name or tagline also updates the site's
+  title or description. The slug never changes, so shared links and QR codes
+  keep working. Owners without a published site are sent to Studio.
+- **Related documentation:** `frontend-next/components/profile/WebsiteSectionsPanel.tsx`, `frontend-next/test/profile/WebsiteSectionsPanel.test.tsx`
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when
