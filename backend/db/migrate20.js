@@ -14,15 +14,14 @@
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
+const { orderStatusCheckSql } = require('./orderStatuses');
 
 const schema = `
 -- ?? 1. orders.status CHECK ? add 'payment_failed' + 'refunded' ???????????????
 -- Replace only the constraint owned by this migration. Never drop unrelated
 -- CHECK constraints that happen to mention the status column.
-ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;
-
-ALTER TABLE orders ADD CONSTRAINT orders_status_check
-  CHECK (status IN ('pending','paid','processing','completed','cancelled','payment_failed','refunded'));
+-- The full current list (db/orderStatuses.js): this re-runs on every deploy.
+${orderStatusCheckSql()}
 
 -- ?? 2. wallet_transactions.type CHECK ? add pending/failed topup ????????????
 ALTER TABLE wallet_transactions DROP CONSTRAINT IF EXISTS wallet_transactions_type_check;
