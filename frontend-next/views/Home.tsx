@@ -91,7 +91,9 @@ function Home() {
   const { user, isAuthenticated, authChecked } = useAuth();
   const { t } = useTranslation();
   const { homeFeedTokens: accentTokens, homeFeedMode } = useProfileView();
-  const feedMode = homeFeedMode;
+  // Guests see public businesses only; personal posts need sign-in (decision §7).
+  const isGuest = authChecked && !isAuthenticated;
+  const feedMode = isGuest ? "business" : homeFeedMode;
   const [posts, setPosts]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -236,7 +238,7 @@ function Home() {
       {/* Guest read-only banner — only shown after auth fully resolves to unauthenticated */}
       {authChecked && !isAuthenticated && (
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/80 px-4 py-3 dark:border-amber-500/25 dark:bg-amber-950/30">
-          <p className="text-xs font-medium text-amber-900 dark:text-amber-200">👋 Browsing as guest. Sign up to post, like, and follow.</p>
+          <p className="text-xs font-medium text-amber-900 dark:text-amber-200">👋 Browsing as a guest: you see public businesses. Sign in to see personal posts, like and follow.</p>
           <Link href="/register" className="shrink-0 rounded-xl bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600 transition-colors">Join Free</Link>
         </div>
       )}

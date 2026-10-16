@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from "@/lib/AuthContext";
 import { auth } from "@/api/auth";
@@ -24,6 +24,7 @@ function Profile() {
   const { id } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const viewParam = searchParams.get("view");
   const { user, authChecked } = useAuth();
   const [profile, setProfile] = useState(null);
@@ -156,8 +157,8 @@ function Profile() {
           <h2 className="font-display text-xl font-bold">Sign in to view profiles</h2>
           <p className="text-sm text-muted-foreground mt-1 mb-6">Create an account to see profiles, posts, and businesses.</p>
           <div className="flex gap-3 justify-center">
-            <Link href="/login"><Button className="rounded-xl">Sign In</Button></Link>
-            <Link href="/register"><Button variant="outline" className="rounded-xl">Join Free</Button></Link>
+            <Link href={`/login?return=${encodeURIComponent(pathname || "/")}`}><Button className="rounded-xl">Sign In</Button></Link>
+            <Link href={`/register?return=${encodeURIComponent(pathname || "/")}`}><Button variant="outline" className="rounded-xl">Join Free</Button></Link>
           </div>
         </>
       ) : (

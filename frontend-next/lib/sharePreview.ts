@@ -3,21 +3,26 @@
  *
  * Reads /api/share-preview (public fields only, no view counting) so links to
  * a business site or product unfurl on other apps with the right name,
- * description and image. Falls back to the site defaults when the API is slow
- * or the item is not public.
+ * description and image. Falls back to the site defaults when the API is slow.
+ * A page the API reports as not public (private business, unpublished or
+ * hidden) is marked noindex so search engines drop it (decision §7).
  */
 import type { Metadata } from 'next';
+
+/** The API answered that this page is not public. */
+const NOT_PUBLIC = Symbol('not-public');
 
 type Preview = { title?: string | null; description?: string | null; image?: string | null; price?: number | null; currency?: string | null };
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001').replace(/\/$/, '');
 
-async function loadPreview(path: string): Promise<Preview | null> {
+async function loadPreview(path: string): Promise<Preview | typeof NOT_PUBLIC | null> {
   try {
     const res = await fetch(`${API_BASE}/api/share-preview/${path}`, {
       signal: AbortSignal.timeout(3000),
       next: { revalidate: 300 },
     });
+    if (res.status === 404) return NOT_PUBLIC;
     if (!res.ok) return null;
     return (await res.json()) as Preview;
   } catch {
@@ -25,7 +30,8 @@ async function loadPreview(path: string): Promise<Preview | null> {
   }
 }
 
-function build(preview: Preview | null, pathname: string, fallbackTitle: string, extraDescription?: string): Metadata {
+function build(preview: Preview | typeof NOT_PUBLIC | null, pathname: string, fallbackTitle: string, extraDescription?: string): Metadata {
+  if (preview === NOT_PUBLIC) return { title: fallbackTitle, robots: { index: false, follow: false } };
   if (!preview?.title) return { title: fallbackTitle };
   const description = [extraDescription, preview.description].filter(Boolean).join(' · ') || 'On Nodbusiness';
   const images = preview.image ? [preview.image] : undefined;
@@ -45,6 +51,6 @@ export async function showroomMetadata(slug: string): Promise<Metadata> {
 
 export async function productMetadata(id: string): Promise<Metadata> {
   const preview = await loadPreview(`product/${encodeURIComponent(id)}`);
-  const price = preview?.price != null ? `${preview.price.toLocaleString('en-US')} ${preview.currency ?? 'ETB'}` : undefined;
+  const price = preview && preview !== NOT_PUBLIC && preview.price != null ? `${preview.price.toLocaleString('en-US')} ${preview.currency ?? 'ETB'}` : undefined;
   return build(preview, `/products/${encodeURIComponent(id)}`, 'Product on Nodbusiness', price);
 }

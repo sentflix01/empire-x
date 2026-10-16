@@ -594,7 +594,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <React.Fragment key={item.path}>
                 <NavLink {...item} />
                 {/* Personal | Business pill — under Home, only when Home is active */}
-                {item.path === '/feed' && !sidebarCollapsed && isActive('/feed') && (
+                {item.path === '/feed' && isAuthenticated && !sidebarCollapsed && isActive('/feed') && (
                   <ViewTogglePill
                     value={homeFeedMode}
                     onChange={(v) => { if (v !== homeFeedMode) setHomeFeedMode(v); }}
@@ -920,7 +920,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                         <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
                       </Link>
                       {/* Personal | Business pill — under Home in drawer */}
-                      {path === '/feed' && isActive('/feed') && (
+                      {path === '/feed' && isAuthenticated && isActive('/feed') && (
                         <ViewTogglePill
                           value={homeFeedMode}
                           onChange={(v) => { if (v !== homeFeedMode) setHomeFeedMode(v); }}

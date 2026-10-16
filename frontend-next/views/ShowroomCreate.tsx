@@ -20,6 +20,7 @@ import { getShowroomTemplateSample } from "@/lib/showroomTemplateSamples";
 import BuilderForm from "@/components/showroom/BuilderForm";
 import BuilderPreview from "@/components/showroom/BuilderPreview";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { VisibilitySelect, asVisibility, type BusinessVisibility } from '@/components/business/VisibilityChoice';
 
 const FONT_OPTIONS = ["Inter", "Playfair Display", "Space Grotesk"];
 
@@ -294,7 +295,8 @@ function ShowroomCreate({
   const [loadedDraftKey, setLoadedDraftKey] = useState("");
   const [serverDraftId, setServerDraftId] = useState<string | null>(null);
   const [editingStatus, setEditingStatus] = useState<string | null>(null);
-  const [businesses, setBusinesses] = useState<Array<{ id: string; business_name: string }>>([]);
+  const [businesses, setBusinesses] = useState<Array<{ id: string; business_name: string; visibility: BusinessVisibility }>>([]);
+  const [savingVisibility, setSavingVisibility] = useState(false);
   const [selectedBusinessId, setSelectedBusinessId] = useState('');
   const [saving, setSaving] = useState(false);
   const [darkBuilder, setDarkBuilder] = useState(false);
@@ -321,7 +323,7 @@ function ShowroomCreate({
     entities.Business.filter({ owner_id: user.id }, '-created_at', 100)
       .then((owned) => {
         if (cancelled) return;
-        const choices = owned.map((business: any) => ({ id: String(business.id), business_name: String(business.business_name || 'Business') }));
+        const choices = owned.map((business: any) => ({ id: String(business.id), business_name: String(business.business_name || 'Business'), visibility: asVisibility(business.visibility) }));
         setBusinesses(choices);
         if (choices.length === 1) setSelectedBusinessId(choices[0].id);
       })
@@ -601,6 +603,21 @@ function ShowroomCreate({
     if (win) { win.document.write(getExportHTML()); win.document.close(); }
   };
 
+  // Applies to the whole business (site, products and announcements) right away.
+  const changeVisibility = async (visibility: BusinessVisibility) => {
+    if (!selectedBusinessId) return;
+    setSavingVisibility(true);
+    try {
+      await entities.Business.update(selectedBusinessId, { visibility });
+      setBusinesses(list => list.map(b => (b.id === selectedBusinessId ? { ...b, visibility } : b)));
+      toast.success(visibility === 'private' ? 'Only signed-in users can now view this business.' : 'Anyone can now view this business.');
+    } catch {
+      toast.error('Could not change who can view this business.');
+    } finally {
+      setSavingVisibility(false);
+    }
+  };
+
   const handlePublish = async () => {
     if (!user) { toast.error("Please log in"); return; }
     if (!user.is_demo && businesses.length > 1 && !selectedBusinessId) {
@@ -829,6 +846,17 @@ function ShowroomCreate({
               <option value="">Choose business</option>
               {businesses.map(business => <option key={business.id} value={business.id}>{business.business_name}</option>)}
             </select>
+          </label>
+        )}
+
+        {!user?.is_demo && selectedBusinessId && (
+          <label className="flex items-center gap-1.5 shrink-0 text-xs">
+            <span className="hidden md:inline text-muted-foreground">Visible to</span>
+            <VisibilitySelect
+              value={businesses.find(b => b.id === selectedBusinessId)?.visibility ?? 'public'}
+              disabled={savingVisibility}
+              onChange={changeVisibility}
+            />
           </label>
         )}
 

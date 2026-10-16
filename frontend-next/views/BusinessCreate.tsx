@@ -35,6 +35,7 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { toast } from 'sonner';
 import PaymentAccountsManager from '@/components/business/PaymentAccountsManager';
+import { VisibilityFieldset, asVisibility, type BusinessVisibility } from '@/components/business/VisibilityChoice';
 
 function BusinessCreate() {
   const router = useRouter();
@@ -60,6 +61,7 @@ function BusinessCreate() {
     business_cover_url: string | string[];
     pickup_address: string;
     public_contact_fields: string[];
+    visibility: BusinessVisibility;
   };
   const [business, setBusiness] = useState<BizState>({
     business_name: "", business_category: "", business_template: "",
@@ -69,6 +71,8 @@ function BusinessCreate() {
     pickup_address: "",
     // Phone and email public by default; the address only if the owner chooses (decision §2.3).
     public_contact_fields: ["business_contact_phone", "business_contact_email"],
+    // Public by default: guests can open the site from a QR code or link (decision §2).
+    visibility: "public",
   });
 
   useEffect(() => {
@@ -92,6 +96,7 @@ function BusinessCreate() {
         business_cover_url: b.business_cover_url || "",
         pickup_address: typeof b.pickup_address === "string" ? b.pickup_address : "",
         public_contact_fields: Array.isArray(b.public_contact_fields) ? (b.public_contact_fields as string[]) : ["business_contact_phone", "business_contact_email"],
+        visibility: asVisibility(b.visibility),
       });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Could not load this business. Please try again.');
@@ -212,6 +217,7 @@ function BusinessCreate() {
             <Label htmlFor="business-address">Business Address</Label>
             <Input id="business-address" autoComplete="street-address" value={business.business_address} onChange={e => setBusiness({...business, business_address: e.target.value})} placeholder="Your city or area" className="mt-1 h-11" />
           </div>
+          <VisibilityFieldset value={business.visibility} onChange={visibility => setBusiness({ ...business, visibility })} />
           <fieldset className="rounded-xl border border-border/50 p-3">
             <legend className="px-1 text-sm font-medium">Show on my public site</legend>
             <p className="text-xs text-muted-foreground mb-2">Only the details you tick are visible to visitors. Never share a personal home address here.</p>
