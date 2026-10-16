@@ -5,7 +5,10 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #114 from sentflix01/claude/post-edit-delete | [518137fb1](2026-10-17-518137fb1-merge-pull-request-114-from-sentflix01-claude-po.md) |
 | 2026-10-16 | Maintenance | Merge pull request #113 from sentflix01/claude/demo-db-migrate | [3b57e3708](2026-10-16-3b57e3708-merge-pull-request-113-from-sentflix01-claude-de.md) |
+| 2026-10-16 | Bugfix | fix(feed): show the API's error message when a post edit fails | [10407a085](2026-10-16-10407a085-show-the-api-s-error-message-when-a-post-edit-fa.md) |
+| 2026-10-16 | Feature | feat(feed): let authors edit and delete their posts | [54bb32436](2026-10-16-54bb32436-let-authors-edit-and-delete-their-posts.md) |
 | 2026-10-16 | CI/CD | ci(deploy): migrate the Demo database on every production deploy | [eb090c9aa](2026-10-16-eb090c9aa-migrate-the-demo-database-on-every-production-de.md) |
 | 2026-10-16 | Maintenance | Merge pull request #108 from sentflix01/claude/phase0-stabilise | [705930daf](2026-10-16-705930daf-merge-pull-request-108-from-sentflix01-claude-ph.md) |
 | 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/phase0-stabilise | [6c2cd6be1](2026-10-16-6c2cd6be1-merge-remote-tracking-branch-origin-main-into-cl.md) |
