@@ -121,6 +121,7 @@ function MyOrders() {
 | Context files | PascalCase + Context suffix | `AuthContext.tsx` |
 | Utility files | camelCase | `generateInvoice.ts` |
 | CSS classes | Tailwind utilities only | No custom CSS unless truly necessary |
+| Theme colours | Semantic tokens (`bg-card`, `text-muted-foreground`, `bg-primary`) | Define new tokens in `app/globals.css` `@theme`; see [Engineering Standards](../ENGINEERING_STANDARDS.md#theme-tokens-and-tailwind-v4) |
 
 ---
 
