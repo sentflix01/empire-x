@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 function Referral() {
   const { t } = useTranslation();
@@ -32,7 +33,7 @@ function Referral() {
       if (refRes.status === "fulfilled") setReferralData(refRes.value.data);
       if (profileRes.status === "fulfilled") setPoints(profileRes.value.data?.points ?? null);
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || "Failed to load referral data");
+      toast.error(apiErrorMessage(err, "Failed to load referral data"));
     }
     setLoading(false);
   };
@@ -80,7 +81,7 @@ function Referral() {
       setApplyCode("");
       loadData();
     } catch (e) {
-      toast.error(e?.response?.data?.error || "Failed to apply referral code");
+      toast.error(apiErrorMessage(e, "Failed to apply referral code"));
     }
     setApplying(false);
   };

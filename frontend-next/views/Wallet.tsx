@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { fromNow } from "@/lib/date";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { apiErrorMessage } from "@/lib/apiErrorMessage";
 
 const TX_ICONS = {
   credit: { icon: ArrowDownLeft, color: "text-green-600 bg-green-50" },
@@ -74,7 +75,7 @@ function Wallet() {
       setWithdrawAmount(""); setBankName(""); setAccountNum("");
       await loadWallet();
       toast.success(data.message || t('wallet.withdrawSuccess'));
-    } catch (e) { toast.error(e?.response?.data?.error || t('wallet.withdrawFailed')); }
+    } catch (e) { toast.error(apiErrorMessage(e, t('wallet.withdrawFailed'))); }
     setProcessing(false);
   };
 

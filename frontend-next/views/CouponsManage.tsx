@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { fromNow } from "@/lib/date";
 import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 function CouponsManage() {
   const { t } = useTranslation();
@@ -57,7 +58,7 @@ function CouponsManage() {
       setShowForm(false);
       toast.success("Coupon created!");
     } catch (e) {
-      toast.error(e?.response?.data?.error || "Failed to create coupon");
+      toast.error(apiErrorMessage(e, "Failed to create coupon"));
     }
     setSaving(false);
   };

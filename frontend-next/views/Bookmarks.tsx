@@ -12,6 +12,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { useAppStore } from "@/store";
 import { useAuth } from "@/lib/AuthContext";
+import { apiErrorMessage } from "@/lib/apiErrorMessage";
 
 function Bookmarks() {
   const { t } = useTranslation();
@@ -50,7 +51,7 @@ function Bookmarks() {
       const { data } = await client.get("/api/wishlists/price-alerts");
       setAlerts(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || "Failed to load price alerts");
+      toast.error(apiErrorMessage(err, "Failed to load price alerts"));
     }
     setAlertsLoading(false);
   };

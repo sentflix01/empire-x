@@ -21,6 +21,7 @@ import {
 import { toast } from 'sonner';
 import client from '@/api/client';
 import { useAuth } from '@/lib/AuthContext';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 interface Props {
   collapsed?: boolean;
@@ -198,7 +199,7 @@ function ChangePasswordForm({ onBack, onDone }: { onBack: () => void; onDone: ()
       toast.success('Password changed successfully');
       onDone();
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || 'Failed to change password');
+      toast.error(apiErrorMessage(err, 'Failed to change password'));
     }
     setSaving(false);
   }
@@ -249,7 +250,7 @@ function ChangeNameForm({ currentName, onBack, onDone }: { currentName: string; 
       toast.success('Display name updated');
       onDone();
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || 'Failed to update name');
+      toast.error(apiErrorMessage(err, 'Failed to update name'));
     }
     setSaving(false);
   }

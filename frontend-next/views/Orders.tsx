@@ -18,6 +18,7 @@ import { generateInvoice } from "@/lib/generateInvoice";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 const STATUS_CONFIG = {
   pending:    { label: "Pending",    icon: Clock,        color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
@@ -203,7 +204,7 @@ function ReturnRequestForm({ order, onSubmitted }: { order: any; onSubmitted: ()
       await client.post("/api/returns", { order_id: order.id, reason, details });
       onSubmitted();
     } catch (err: any) {
-      setError(err?.response?.data?.error || "Failed to submit request");
+      setError(apiErrorMessage(err, "Failed to submit request"));
     }
     setSaving(false);
   };

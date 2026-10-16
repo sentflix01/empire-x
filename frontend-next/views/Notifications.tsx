@@ -10,6 +10,7 @@ import { connectSocket, getSocket } from "@/lib/socket";
 import { fromNow } from "@/lib/date";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 const TYPE_ICONS = {
   like:        Heart,
@@ -68,7 +69,7 @@ function NotificationsView() {
       const { data } = await client.get("/api/notifications?limit=30&sort=unread_first");
       setNotifications(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || "Failed to load notifications");
+      toast.error(apiErrorMessage(err, "Failed to load notifications"));
     }
     setLoading(false);
   };
@@ -81,7 +82,7 @@ function NotificationsView() {
           prev.map(n => n.id === notif.id ? { ...n, is_read: true } : n)
         );
       } catch (err: any) {
-        toast.error(err?.response?.data?.error || "Failed to mark as read");
+        toast.error(apiErrorMessage(err, "Failed to mark as read"));
       }
     }
     // Navigate to the action location

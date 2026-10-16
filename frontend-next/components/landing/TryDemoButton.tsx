@@ -6,6 +6,7 @@ import { FlaskConical, LoaderCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import client, { storeToken } from '@/api/client';
 import { useAuth } from '@/lib/AuthContext';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 export default function TryDemoButton() {
   const router = useRouter();
@@ -31,8 +32,7 @@ export default function TryDemoButton() {
       await completeLogin();
       router.push('/feed');
     } catch (error) {
-      const cause = error as { response?: { data?: { error?: string } }; message?: string };
-      toast.error(cause.response?.data?.error || cause.message || 'Could not start Demo practice.');
+      toast.error(apiErrorMessage(error, 'Could not start Demo practice.'));
     } finally {
       setStarting(false);
     }

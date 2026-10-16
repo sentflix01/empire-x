@@ -16,6 +16,7 @@ import PurchaseModal from "@/components/checkout/PurchaseModal";
 import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import SignInRequired, { isSignInRequired } from '@/components/auth/SignInRequired';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 function ProductDetail() {
   const params = useParams();
@@ -114,7 +115,7 @@ function ProductDetail() {
         toast.success("Added to wishlist! ❤️");
       }
     } catch (e) {
-      toast.error(e?.response?.data?.error || "Failed to update wishlist");
+      toast.error(apiErrorMessage(e, "Failed to update wishlist"));
     }
     setWishlistLoading(false);
   };
@@ -131,7 +132,7 @@ function ProductDetail() {
       setAlertInput("");
       toast.success(`🔔 Alert set! We'll notify you when price drops to ${price.toLocaleString()} ${product?.currency || "USD"}`);
     } catch (e) {
-      toast.error(e?.response?.data?.error || "Failed to set alert");
+      toast.error(apiErrorMessage(e, "Failed to set alert"));
     }
     setAlertSaving(false);
   };
