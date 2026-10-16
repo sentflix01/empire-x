@@ -5,9 +5,12 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #116 from sentflix01/claude/profile-site-sections | [79d49e3ff](2026-10-17-79d49e3ff-merge-pull-request-116-from-sentflix01-claude-pr.md) |
+| 2026-10-17 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/profile-site-sections | [96988f0fc](2026-10-17-96988f0fc-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-17 | Maintenance | Merge pull request #115 from sentflix01/claude/brand-logo-onboarding | [8fcfe9f71](2026-10-17-8fcfe9f71-merge-pull-request-115-from-sentflix01-claude-br.md) |
 | 2026-10-17 | Maintenance | Merge pull request #114 from sentflix01/claude/post-edit-delete | [518137fb1](2026-10-17-518137fb1-merge-pull-request-114-from-sentflix01-claude-po.md) |
 | 2026-10-16 | Maintenance | Merge pull request #113 from sentflix01/claude/demo-db-migrate | [3b57e3708](2026-10-16-3b57e3708-merge-pull-request-113-from-sentflix01-claude-de.md) |
+| 2026-10-16 | Feature | feat(profile): edit the published website's sections from the profile editor | [2ee21955d](2026-10-16-2ee21955d-edit-the-published-website-s-sections-from-the-p.md) |
 | 2026-10-16 | Bugfix | fix(feed): show the API's error message when a post edit fails | [10407a085](2026-10-16-10407a085-show-the-api-s-error-message-when-a-post-edit-fa.md) |
 | 2026-10-16 | Feature | feat(brand): real Nodbusiness logo instead of crowns; personal-only onboarding | [90a352337](2026-10-16-90a352337-real-nodbusiness-logo-instead-of-crowns-personal.md) |
 | 2026-10-16 | Feature | feat(feed): let authors edit and delete their posts | [54bb32436](2026-10-16-54bb32436-let-authors-edit-and-delete-their-posts.md) |
