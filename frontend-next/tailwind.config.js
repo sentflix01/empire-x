@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+// Tailwind v4 does not load this file (globals.css has no @config). Theme colours
+// and the dark variant are defined in app/globals.css via @theme / @custom-variant.
 module.exports = {
   darkMode: ['class'],
   content: [
