@@ -5,22 +5,14 @@
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
+const { orderStatusCheckSql } = require('./orderStatuses');
 
 async function migrate() {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    await client.query('ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check');
-    await client.query(`
-      ALTER TABLE orders ADD CONSTRAINT orders_status_check
-      CHECK (status IN (
-        'pending','paid','confirmed','processing','shipped','delivered','completed',
-        'cancelled','disputed','payment_failed','refunded','return_requested','return_approved',
-        -- Direct-payment states (migrate57). Listed here too because every
-        -- migration re-runs on deploy and must accept rows already using them.
-        'awaiting_payment','payment_reported','expired'
-      ))
-    `);
+    // The full current list (db/orderStatuses.js): this re-runs on every deploy.
+    await client.query(orderStatusCheckSql());
     await client.query('COMMIT');
     console.log('Migration 41 complete ? fulfilment and return order statuses are allowed.');
   } catch (err) {

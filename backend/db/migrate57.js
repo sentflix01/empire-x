@@ -7,6 +7,8 @@
  * stored). Unconfirmed orders expire after 7 days.
  * See docs/decisions/platform-model-decisions.md §2.1–2.2.
  */
+const { orderStatusCheckSql } = require('./orderStatuses');
+
 module.exports = async function migrate57(pool) {
   const client = await pool.connect();
   try {
@@ -23,12 +25,7 @@ module.exports = async function migrate57(pool) {
       CREATE UNIQUE INDEX IF NOT EXISTS uq_orders_access_token_hash ON orders(access_token_hash) WHERE access_token_hash IS NOT NULL;
       CREATE INDEX IF NOT EXISTS idx_orders_direct_expiry ON orders(payment_expires_at)
         WHERE status IN ('awaiting_payment', 'payment_reported');
-      ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;
-      ALTER TABLE orders ADD CONSTRAINT orders_status_check CHECK (status IN (
-        'pending','paid','confirmed','processing','shipped','delivered','completed',
-        'cancelled','disputed','payment_failed','refunded','return_requested','return_approved',
-        'awaiting_payment','payment_reported','expired'
-      ));
+      ${orderStatusCheckSql()}
       -- A guest order must carry contact details instead of an account.
       ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_buyer_identity_check;
       ALTER TABLE orders ADD CONSTRAINT orders_buyer_identity_check
