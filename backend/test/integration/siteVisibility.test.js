@@ -25,7 +25,7 @@ jest.mock('../../lib/businessSubscriptionPolicy', () => ({
 const policy = require('../../lib/businessSubscriptionPolicy');
 const { businessViewGate, guestPostSql, announcementLiveSql } = require('../../lib/siteVisibility');
 
-const PUBLIC = { businessId: 'b1', ownerId: 'owner-1', hiddenFromPublic: false, blockedForOwner: false, visibility: 'public' };
+const PUBLIC = { businessId: 'b1', ownerId: 'owner-1', hiddenFromPublic: false, visibility: 'public' };
 const PRIVATE = { ...PUBLIC, visibility: 'private' };
 const MEMBER = { id: 'member-1', role: 'user' };
 

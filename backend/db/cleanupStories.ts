@@ -19,7 +19,7 @@ function isNeonQuotaError(err: unknown): boolean {
   );
 }
 
-async function deleteExpiredStories(): Promise<void> {
+export async function deleteExpiredStories(): Promise<void> {
   try {
     const { rows } = await pool.query(
       "SELECT 1 FROM information_schema.tables WHERE table_name = 'stories'"

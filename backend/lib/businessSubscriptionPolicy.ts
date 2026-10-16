@@ -25,7 +25,6 @@ export interface BusinessSubscriptionAccess {
   expiresAt: Date | null;
   paid: boolean;
   hiddenFromPublic: boolean;
-  blockedForOwner: boolean;
   /** 'private' sites are for signed-in users only (lib/siteVisibility.ts). */
   visibility: 'public' | 'private';
 }
@@ -63,7 +62,8 @@ export async function getBusinessSubscriptionAccess(businessId: string): Promise
     // The 24-hour recovery grace applies to a previously paid subscription
     // only. A site without any billing period has no paid access window.
     hiddenFromPublic: !paid && (!end || expiredFor >= DAY_MS),
-    blockedForOwner: !paid && expiredFor >= 3 * DAY_MS,
+    // The owner keeps full access (view, edit, renew) until the business is
+    // deleted on Day 10 (decision record §6); there is no earlier lockout.
     visibility: row.visibility === 'private' ? 'private' : 'public',
   };
 }

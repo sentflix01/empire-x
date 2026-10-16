@@ -295,6 +295,10 @@ function ShowroomCreate({
   const [loadedDraftKey, setLoadedDraftKey] = useState("");
   const [serverDraftId, setServerDraftId] = useState<string | null>(null);
   const [editingStatus, setEditingStatus] = useState<string | null>(null);
+  // The published site being edited, once fetched. The initialization effect
+  // below applies it, so a later reset (e.g. when the signed-in user finishes
+  // loading) can never replace the real site with template defaults (F-H5).
+  const [editSnapshot, setEditSnapshot] = useState<{ sections: string[]; fields: Record<string, unknown> } | null>(null);
   const [businesses, setBusinesses] = useState<Array<{ id: string; business_name: string; visibility: BusinessVisibility }>>([]);
   const [savingVisibility, setSavingVisibility] = useState(false);
   const [selectedBusinessId, setSelectedBusinessId] = useState('');
@@ -331,13 +335,13 @@ function ShowroomCreate({
     return () => { cancelled = true; };
   }, [user?.id, user?.is_demo]);
 
-  // Doctor fix deep-link: append recommended sections after load
+  // Doctor fix deep-link: append recommended sections once the site has loaded
   useEffect(() => {
-    if (!addSectionsParam) return;
+    if (!addSectionsParam || loadedDraftKey !== draftKey) return;
     const wanted = addSectionsParam.split(",").map((x) => x.trim()).filter(Boolean);
     if (!wanted.length) return;
     setActiveSections((prev: string[]) => [...prev, ...wanted.filter((w) => !prev.includes(w))]);
-  }, [addSectionsParam]);
+  }, [addSectionsParam, loadedDraftKey, draftKey]);
   // BUG[2]: edit mode - load an existing showroom into the builder
   useEffect(() => {
     if (!editId) return;
@@ -359,13 +363,14 @@ function ShowroomCreate({
         const sectionFields = Object.assign({}, ...savedSections
           .filter((section: unknown): section is Record<string, unknown> => Boolean(section) && typeof section === 'object' && !Array.isArray(section))
           .map(({ type: _type, ...fields }: Record<string, unknown>) => fields));
-        if (sectionKeys.length) setActiveSections(sectionKeys);
-        setFormData((prev: Record<string, unknown>) => ({
-          ...prev,
-          ...Object.fromEntries(Object.entries(data).filter(([key, v]) => key !== 'sections' && v !== null && v !== undefined && typeof v !== 'object')),
-          ...(data.description ? { subtitle: data.description } : {}),
-          ...sectionFields,
-        }));
+        setEditSnapshot({
+          sections: sectionKeys,
+          fields: {
+            ...Object.fromEntries(Object.entries(data).filter(([key, v]) => key !== 'sections' && v !== null && v !== undefined && typeof v !== 'object')),
+            ...(data.description ? { subtitle: data.description } : {}),
+            ...sectionFields,
+          },
+        });
       } catch (error) {
         if (!cancelled) toast.error(error instanceof Error ? error.message : 'We could not load this site for editing.');
       }
@@ -380,9 +385,17 @@ function ShowroomCreate({
     const defaultData = getDefaultFormData(templateName, categoryParam, sampleParam);
     const defaultSections = getDefaultSections(templateName, categoryParam, sampleParam);
     setLoadedDraftKey("");
+    if (editId) {
+      // Wait for the published site; never show or save defaults in its place.
+      if (!editSnapshot) return;
+      setFormData({ ...defaultData, ...editSnapshot.fields });
+      setActiveSections(editSnapshot.sections.length ? editSnapshot.sections : defaultSections);
+      setLoadedDraftKey(draftKey);
+      return;
+    }
     setFormData(defaultData);
     setActiveSections(defaultSections);
-    if (!editId && !templateParam && !categoryParam && !sampleParam) {
+    if (!templateParam && !categoryParam && !sampleParam) {
       try {
         const draft = localStorage.getItem(draftKey);
         if (draft) {
@@ -405,7 +418,7 @@ function ShowroomCreate({
       } catch {}
     }
     setLoadedDraftKey(draftKey);
-  }, [draftKey, templateName, templateParam, categoryParam, sampleParam, editId, user?.is_demo]);
+  }, [draftKey, templateName, templateParam, categoryParam, sampleParam, editId, editSnapshot, user?.is_demo]);
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 639px)");
@@ -620,6 +633,7 @@ function ShowroomCreate({
 
   const handlePublish = async () => {
     if (!user) { toast.error("Please log in"); return; }
+    if (editId && loadedDraftKey !== draftKey) { toast.error("Your site is still loading. Try again in a moment."); return; }
     if (!user.is_demo && businesses.length > 1 && !selectedBusinessId) {
       toast.error('Choose which Business profile this website belongs to before publishing.');
       return;

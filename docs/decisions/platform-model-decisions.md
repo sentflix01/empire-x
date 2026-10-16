@@ -84,12 +84,12 @@ Days are counted from the moment the subscription expires.
 | Expiry | Owner notified; can pay to continue. |
 | First 24 hours | Site stays public (grace period). |
 | After 24 hours | Hidden from everyone except the owner: direct URL, feeds, search, trending, showroom and product listings, public profile details. |
-| Day 3 | Warning: blocked and deleted unless the owner pays. |
+| Day 3 | Warning: deleted on Day 10 unless the owner pays. The owner can still view, edit and renew. |
 | Day 7 | Second warning. |
 | Day 9 | Final warning. |
 | Day 10 | Site and Business profile permanently deleted; owner emailed; owner cannot create a new Business profile for 1 month (the account itself remains usable). |
 
-- **Owner access until Day 10 (decided 2026-10-16):** the owner keeps full access to the hidden business (view, edit and renew) until deletion. This replaces the implemented Day-3 owner lockout (`blockedForOwner` at 3 days in `backend/lib/businessSubscriptionPolicy.ts`).
+- **Owner access until Day 10 (decided 2026-10-16):** the owner keeps full access to the hidden business (view, edit and renew) until deletion. This replaced the earlier Day-3 owner lockout, which was removed from the code.
 - Transaction records needed for order history and accounting are kept after deletion.
 - Reminder emails are recorded per billing period so scheduled checks never send duplicates.
 

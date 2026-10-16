@@ -25,6 +25,21 @@ jest.mock('bcryptjs', () => ({
   hash: jest.fn().mockResolvedValue('$2b$hashed'),
   compare: jest.fn().mockResolvedValue(true),
 }));
+// In-memory stand-in for the Postgres-backed auth security store, with expiry.
+jest.mock('../../lib/authSecurityStore', () => {
+  const rows = new Map();
+  const live = (key) => { const r = rows.get(key); if (r && r.expires > Date.now()) return r; rows.delete(key); return null; };
+  return {
+    __rows: rows,
+    incrementCounter: jest.fn(async (key, ttl) => { const r = live(key); const count = (r ? r.count : 0) + 1; rows.set(key, { count, expires: r ? r.expires : Date.now() + ttl * 1000 }); return count; }),
+    setValue: jest.fn(async (key, value, ttl) => { rows.set(key, { count: value, expires: Date.now() + ttl * 1000 }); }),
+    getValue: jest.fn(async (key) => { const r = live(key); return r ? r.count : null; }),
+    clearValue: jest.fn(async (key) => { rows.delete(key); }),
+    revokeTokenId: jest.fn(async (jti, exp) => { rows.set('revoked:' + jti, { count: 1, expires: exp * 1000 }); }),
+    revokeAllSessions: jest.fn(async (userId) => { rows.set('revoke_before:' + userId, { count: Math.floor(Date.now() / 1000), expires: Date.now() + 7 * 864e5 }); }),
+    isTokenRevoked: jest.fn(async (jti, userId, iat) => { if (jti && live('revoked:' + jti)) return true; const b = userId ? live('revoke_before:' + userId) : null; return !!(b && iat !== undefined && iat < b.count); }),
+  };
+});
 jest.mock('../../lib/redis', () => {
   const store = {};
   const mockRedis = {
@@ -320,13 +335,10 @@ describe('POST /api/auth/login', () => {
   });
 
   it('clears failed attempts on successful login', async () => {
-    const { getRedis } = require('../../lib/redis');
-    const redis = getRedis();
+    const store = require('../../lib/authSecurityStore');
 
     // Simulate 3 prior failed attempts
-    await redis.incr('failed_login:clear@test.com');
-    await redis.incr('failed_login:clear@test.com');
-    await redis.incr('failed_login:clear@test.com');
+    for (let i = 0; i < 3; i++) await store.incrementCounter('failed_login:clear@test.com', 900);
 
     mockPool.query
       .mockResolvedValueOnce({
@@ -338,8 +350,7 @@ describe('POST /api/auth/login', () => {
     expect(res.status).toBe(200);
 
     // Verify failed counter was cleared
-    const remaining = await redis.get('failed_login:clear@test.com');
-    expect(remaining).toBeNull();
+    expect(await store.getValue('failed_login:clear@test.com')).toBeNull();
   });
 });
 

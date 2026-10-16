@@ -1,0 +1,48 @@
+name: Scheduled jobs
+
+# The backend runs on a host that sleeps when idle, so its in-process timers
+# (subscription expiry notices and deletion, direct-order expiry, stories
+# cleanup) can stop for hours. This workflow calls each job every 15 minutes;
+# the request also wakes the server. Jobs are idempotent and locked, so the
+# in-process timers can keep running too.
+#
+# Setup (GitHub → Settings → Secrets and variables → Actions):
+#   JOBS_SECRET   the same 32+ character value as JOBS_SECRET on the backend
+#   BACKEND_URL   e.g. https://nodbusiness-backend-9psf.onrender.com
+# Until both are set the workflow does nothing.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: scheduled-jobs
+  cancel-in-progress: false
+
+jobs:
+  run:
+    name: Run backend jobs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call each job
+        env:
+          JOBS_SECRET: ${{ secrets.JOBS_SECRET }}
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+        run: |
+          if [ -z "$JOBS_SECRET" ] || [ -z "$BACKEND_URL" ]; then
+            echo "JOBS_SECRET or BACKEND_URL is not set; skipping."
+            exit 0
+          fi
+          # Wake a sleeping instance first (cold starts can take ~60 s).
+          curl -s -o /dev/null --max-time 120 --retry 3 --retry-delay 10 "$BACKEND_URL/health" || true
+          failed=0
+          for job in subscription-lifecycle direct-order-expiry stories-cleanup auth-state-cleanup; do
+            code=$(curl -s -o response.json -w '%{http_code}' --max-time 300 \
+              -X POST -H "Authorization: Bearer $JOBS_SECRET" "$BACKEND_URL/api/internal/jobs/$job")
+            echo "$job -> HTTP $code $(cat response.json)"
+            # 409 means the previous run is still going; that is fine.
+            if [ "$code" != "200" ] && [ "$code" != "409" ]; then failed=1; fi
+          done
+          exit $failed

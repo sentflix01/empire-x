@@ -67,13 +67,11 @@ async function redactUnpaidBusinessProfile<T extends Record<string, unknown>>(pr
        SELECT 1 FROM businesses b JOIN business_subscriptions bs ON bs.business_id=b.id
        WHERE b.owner_id=$1 AND bs.tier <> 'freemium'
          AND bs.current_period_end > NOW() - INTERVAL '24 hours'
-     ) AS visible, EXISTS (
-       SELECT 1 FROM businesses b JOIN business_subscriptions bs ON bs.business_id=b.id
-       WHERE b.owner_id=$1 AND bs.current_period_end <= NOW() - INTERVAL '3 days'
-     ) AS owner_blocked`,
+     ) AS visible`,
     [profile.user_id],
   );
-  if (isOwner ? !rows[0]?.owner_blocked : rows[0]?.visible) return redactContactFields(profile, isOwner);
+  // The owner always sees their own business details until deletion on Day 10.
+  if (isOwner || rows[0]?.visible) return redactContactFields(profile, isOwner);
   const sanitized: Record<string, unknown> = { ...profile };
   for (const field of BUSINESS_PROFILE_FIELDS) sanitized[field] = field === 'has_business_profile' ? false : null;
   return sanitized as T;

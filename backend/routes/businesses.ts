@@ -55,10 +55,6 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
     const access = await getBusinessSubscriptionAccess(req.params.id);
     const isOwner = req.user?.id === ownerId;
     if (!isOwner && rejectViewGate(res, businessViewGate(access, req), 'Business not found')) return;
-    if (isOwner && access?.blockedForOwner) {
-      res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' });
-      return;
-    }
     res.json(redactContactFields(biz as Record<string, unknown>, canSeeAll(req, ownerId)));
   } catch { res.status(500).json({ error: 'Failed to fetch business' }); }
 });
@@ -89,11 +85,6 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     const existing = await getRecord<{ owner_id: string }>('businesses', req.params.id);
     if (!existing) { res.status(404).json({ error: 'Business not found' }); return; }
     if (existing.owner_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
-    const access = await getBusinessSubscriptionAccess(req.params.id);
-    if (existing.owner_id === req.user!.id && access?.blockedForOwner) {
-      res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' });
-      return;
-    }
     const updates = withoutProtectedFields(req.body as Record<string, unknown>, 'owner_id');
     if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable business fields provided' }); return; }
     const privacyError = privacyFieldError(updates);

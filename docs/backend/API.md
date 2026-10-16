@@ -374,6 +374,16 @@ Signed-in users, owners and admins see private businesses as usual.
 
 For everyone, an announcement post is hidden once its site is unpublished, expired or hidden by a lapsed subscription.
 
+## Scheduled jobs (internal)
+
+### POST /api/internal/jobs/:name
+Runs one scheduled job now: `subscription-lifecycle`, `direct-order-expiry`,
+`stories-cleanup` or `auth-state-cleanup`. Called every 15 minutes by
+`.github/workflows/scheduled-jobs.yml` because the backend host sleeps when idle.
+Returns `404` unless `JOBS_SECRET` (32+ characters) is set; needs
+`Authorization: Bearer <JOBS_SECRET>` (otherwise `401`). Returns `409` when the
+same job is already running (Postgres advisory lock), `500` without details on failure.
+
 ## Share previews
 
 ### GET /api/share-preview/showroom/:slug, GET /api/share-preview/product/:id
