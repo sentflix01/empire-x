@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { optionalAuth } from '../middleware/auth';
+import { announcementLiveSql, guestPostSql } from '../lib/siteVisibility';
 
 const router = Router();
 
@@ -68,7 +69,7 @@ router.get('/:name/posts', optionalAuth, async (req: Request, res: Response) => 
   try {
     const tag = req.params.name.toLowerCase().replace(/^#/, '');
     const { rows } = await pool.query(
-      `SELECT p.* FROM posts p JOIN post_hashtags ph ON ph.post_id=p.id JOIN hashtags h ON h.id=ph.hashtag_id JOIN users u ON u.id=p.author_id WHERE h.name=$1 ${req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : ''} ORDER BY p.created_at DESC LIMIT 50`,
+      `SELECT p.* FROM posts p JOIN post_hashtags ph ON ph.post_id=p.id JOIN hashtags h ON h.id=ph.hashtag_id JOIN users u ON u.id=p.author_id WHERE h.name=$1 ${req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : ''} AND ${req.user ? announcementLiveSql('p') : guestPostSql('p')} ORDER BY p.created_at DESC LIMIT 50`,
       [tag],
     );
     res.json(rows);

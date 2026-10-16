@@ -44,6 +44,8 @@ function deregisterKey(prefix: string, fullKey: string): void {
 export interface CacheOptions {
   varyByUser?: boolean;   // include user ID in cache key
   varyByQuery?: boolean;  // include query string in cache key (default true)
+  /** Guests and signed-in users get different results (e.g. private businesses). */
+  varyByAuth?: boolean;
 }
 
 /**
@@ -58,7 +60,7 @@ export function cacheMiddleware(
   ttlSecs = 30,
   opts: CacheOptions = {},
 ): RequestHandler {
-  const { varyByUser = false, varyByQuery = true } = opts;
+  const { varyByUser = false, varyByQuery = true, varyByAuth = false } = opts;
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     // Keep responses separate across server-selected workspace contexts and
@@ -66,7 +68,7 @@ export function cacheMiddleware(
     res.vary('X-Real-Only');
     // Browser caches must also partition personalized responses. The server-side
     // Redis key is not visible to the browser and cannot protect account switches.
-    if (varyByUser) {
+    if (varyByUser || varyByAuth) {
       res.vary('Authorization');
       res.vary('Cookie');
     }
@@ -89,7 +91,7 @@ export function cacheMiddleware(
     const modeSuffix = req.realOnly ? ':real-only' : ':all-users';
     const key = `cache:${prefix}${querySuffix}${userSuffix}${modeSuffix}`;
     // Personalized responses must never be stored by shared caches/CDNs.
-    const cacheControl = varyByUser
+    const cacheControl = varyByUser || varyByAuth
       ? `private, max-age=${Math.floor(ttlSecs / 2)}, stale-while-revalidate=${ttlSecs}`
       : `public, max-age=${Math.floor(ttlSecs / 2)}, stale-while-revalidate=${ttlSecs}`;
 

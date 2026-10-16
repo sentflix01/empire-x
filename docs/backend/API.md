@@ -353,6 +353,27 @@ Businesses and profiles expose only the contact fields listed in `public_contact
 
 ---
 
+## Business visibility and guest access
+
+A business is `public` (default) or `private`, set with `visibility` on
+`POST /api/businesses` and `PUT /api/businesses/:id` (any other value returns
+`422`). See [platform model decisions](../decisions/platform-model-decisions.md) §7.5.
+
+**Private businesses.** For a signed-out request:
+- Direct reads return `401 { code: "SIGN_IN_REQUIRED" }`: site by slug or id, business, product, checkout-info and `POST /api/direct-orders`.
+- Lists and other surfaces simply leave them out: showrooms, businesses, products, reviews, variants, search, maps, live location, trending and the sitemap.
+- Link previews return `404`.
+
+Signed-in users, owners and admins see private businesses as usual.
+
+**Personal content needs sign-in.** For a signed-out request:
+- `/api/posts` (feed, post, comments) and hashtag posts return only announcement posts of live, public business sites. Any other post returns `401 SIGN_IN_REQUIRED`.
+- Profiles return only business profiles whose owner has a public business. Personal profiles return `401`, and lists leave them out.
+- Search, maps and trending return no people or personal posts.
+- Stories, poll results and `/api/profile-partnerships/profile/:userId` return `401`.
+
+For everyone, an announcement post is hidden once its site is unpublished, expired or hidden by a lapsed subscription.
+
 ## Share previews
 
 ### GET /api/share-preview/showroom/:slug, GET /api/share-preview/product/:id

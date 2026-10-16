@@ -36,7 +36,8 @@ function clip(text: unknown, max: number): string | null {
 async function isPubliclyVisible(businessId: unknown): Promise<boolean> {
   if (typeof businessId !== 'string' || !businessId) return true;
   const access = await getBusinessSubscriptionAccess(businessId);
-  return !!access && !access.hiddenFromPublic;
+  // Link previews are anonymous: private businesses never get one.
+  return !!access && !access.hiddenFromPublic && access.visibility !== 'private';
 }
 
 router.get('/showroom/:slug', async (req: Request, res: Response) => {

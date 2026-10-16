@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import logger from '../lib/logger';
 import { requireAuth, optionalAuth } from '../middleware/auth';
+import { requireSignInForPersonal } from '../lib/siteVisibility';
 
 const router = Router();
 const RATE_MAX = 0.5;
@@ -86,7 +87,7 @@ router.get('/business/:businessId/products', requireAuth, async (req: Request, r
   }
 });
 
-router.get('/profile/:userId', optionalAuth, async (req: Request, res: Response) => {
+router.get('/profile/:userId', optionalAuth, requireSignInForPersonal, async (req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(
       `SELECT p.id,p.profile_owner_id,p.business_owner_id,p.share_code,p.commission_rate,p.starts_at,p.ends_at,b.id AS business_id,

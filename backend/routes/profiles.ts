@@ -4,6 +4,7 @@ import type { Redis as RedisClient } from 'ioredis';
 import logger from '../lib/logger';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
+import { SIGN_IN_REQUIRED } from '../lib/siteVisibility';
 import { listRecords, getRecord, createRecord, updateRecord } from '../utils/crud';
 import { getRedis } from '../lib/redis';
 import { redactContactFields, parsePublicContactFields } from '../lib/contactPrivacy';
@@ -44,6 +45,20 @@ const BUSINESS_PROFILE_FIELDS = [
   'business_team_size', 'business_type', 'business_social_linkedin', 'business_social_twitter',
   'business_social_facebook', 'certifications', 'awards', 'services', 'service_areas', 'business_cover_position',
 ] as const;
+
+/**
+ * Guests see only profiles of owners who have a public business;
+ * personal profiles need sign-in (decision §7).
+ */
+const GUEST_PROFILE_SQL = `EXISTS (
+  SELECT 1 FROM businesses guest_b WHERE guest_b.owner_id = up.user_id AND guest_b.visibility = 'public')`;
+
+async function guestMaySeeProfile(userId: unknown): Promise<boolean> {
+  const { rows } = await pool.query(`SELECT 1 FROM user_profiles up WHERE up.user_id=$1 AND ${GUEST_PROFILE_SQL}`, [userId]);
+  return rows.length > 0;
+}
+
+const SIGN_IN_FOR_PROFILE = { error: 'Sign in to see this profile.', code: SIGN_IN_REQUIRED };
 
 async function redactUnpaidBusinessProfile<T extends Record<string, unknown>>(profile: T, isOwner: boolean): Promise<T> {
   if (profile.has_business_profile !== true) return redactContactFields(profile, isOwner);
@@ -130,6 +145,7 @@ router.get('/by-user/:userId', optionalAuth, async (req: Request, res: Response)
       [req.params.userId],
     );
     if (!rows.length) { res.status(404).json({ error: 'Profile not found' }); return; }
+    if (!req.user && !(await guestMaySeeProfile(req.params.userId))) { res.status(401).json(SIGN_IN_FOR_PROFILE); return; }
     res.json(await redactUnpaidBusinessProfile(rows[0], req.user?.id === req.params.userId));
   } catch { res.status(500).json({ error: 'Failed to fetch profile' }); }
 });
@@ -162,6 +178,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
       [req.params.id],
     );
     if (!rows.length) { res.status(404).json({ error: 'Profile not found' }); return; }
+    if (!req.user && !(await guestMaySeeProfile(ownerRows[0].user_id))) { res.status(401).json(SIGN_IN_FOR_PROFILE); return; }
     res.json(await redactUnpaidBusinessProfile(rows[0], req.user?.id === ownerRows[0].user_id));
   } catch { res.status(500).json({ error: 'Failed to fetch profile' }); }
 });
@@ -170,7 +187,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
   const redis = getRedis();
   const { user_id, profile_type, sort = '-created_at', limit = 50 } = req.query as Record<string, string>;
   const includePrivateFields = !!req.user?.id && user_id === req.user.id;
-  const cacheKey = `cache:profiles:list:v2:${new URLSearchParams({ ...req.query as Record<string, string>, realOnly: req.realOnly ? '1' : '0' }).toString()}`;
+  const cacheKey = `cache:profiles:list:v2:${new URLSearchParams({ ...req.query as Record<string, string>, realOnly: req.realOnly ? '1' : '0', viewer: req.user ? 'member' : 'guest' }).toString()}`;
   if (!redis.isNoOp && !includePrivateFields) {
     try {
       const cached = await (redis as RedisClient).get(cacheKey);
@@ -187,6 +204,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     if (user_id)      { values.push(user_id);      conditions.push(`up.user_id = $${values.length}`); }
     if (profile_type) { values.push(profile_type); conditions.push(`up.profile_type = $${values.length}`); }
     if (req.realOnly) conditions.push('u.is_seed = FALSE AND u.is_demo = FALSE');
+    if (!req.user) conditions.push(GUEST_PROFILE_SQL);
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const lim = Math.min(parseInt(String(limit), 10) || 50, 500);
     const sortDir = sort.startsWith('-') ? 'DESC' : 'ASC';

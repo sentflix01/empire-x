@@ -17,6 +17,7 @@ import PurchaseModal from "@/components/checkout/PurchaseModal";
 import QRLandingModal from "@/components/showroom/QRLandingModal";
 import TryDemoButton from '@/components/landing/TryDemoButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import SignInRequired, { isSignInRequired } from '@/components/auth/SignInRequired';
 import { toast } from "sonner";
 
 /* ── Lightweight inquiry / "Get Quote" modal ─────────────────────────────── */
@@ -142,6 +143,7 @@ function ShowroomView() {
   const [productsError, setProductsError] = useState('');
   const catalogRequestId = useRef(0);
   const [loading, setLoading] = useState(true);
+  const [signInRequired, setSignInRequired] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const { user } = useAuth();
   const [authResolved] = useState(true); // auth state from useAuth is synchronous
@@ -150,13 +152,15 @@ function ShowroomView() {
 
   const loadShowroom = useCallback(async () => {
     setLoading(true);
+    setSignInRequired(false);
     try {
       const s = slugParam
         ? (await client.get(`/api/showrooms/slug/${slugParam}`)).data
         : await entities.Showroom.get(id as string);
       setShowroom(s);
-    } catch {
+    } catch (err) {
       setShowroom(null);
+      setSignInRequired(isSignInRequired(err));
     } finally {
       setLoading(false);
     }
@@ -237,6 +241,7 @@ function ShowroomView() {
   }, [showroom?.owner_id, nextProductCursor, productsLoadingMore, productSearch, productCategory]);
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
+  if (!showroom && signInRequired) return <SignInRequired />;
   if (!showroom) return <UnavailableNotice title="Showroom not found" message="This mini-website doesn't exist or has been removed." />;
 
   const sections = (() => { try { return JSON.parse(showroom.sections); } catch { return []; } })();

@@ -8,6 +8,7 @@ import type { Request, Response } from 'express';
 import logger from '../lib/logger';
 import pool from '../db/pool';
 import { optionalAuth } from '../middleware/auth';
+import { notPrivateBusinessSql, productNotPrivateSql } from '../lib/siteVisibility';
 
 const router = Router();
 
@@ -62,9 +63,14 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
       WHERE paid_sub.business_id=s.business_id AND paid_sub.tier <> 'freemium'
         AND paid_sub.current_period_end > NOW() - INTERVAL '24 hours')`:'';
   const realPostFilter=req.realOnly?'AND p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
+  // Guests search businesses only: no personal profiles or posts, and no private businesses (decision §7).
+  const guest=!req.user;
+  const guestProductFilter=guest?`AND ${productNotPrivateSql('p')}`:'';
+  const guestShowroomFilter=guest?`AND ${notPrivateBusinessSql('s.business_id')}`:'';
   const R: Record<string,unknown[]> = {};
   try {
-    if (type==='all'||type==='users') {
+    if (guest&&(type==='all'||type==='users')) R.users=[];
+    else if (type==='all'||type==='users') {
       const ds=dSel('up.latitude','up.longitude',sL,sLon), df=dFlt('up.latitude','up.longitude',sL,sLon,radius), ob=oBy('up.follower_count DESC','up.latitude','up.longitude',null,sort,sL,sLon);
       let rows;
       if (useFTS) { try { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed,ts_rank(up.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE up.search_vector@@to_tsquery('english',$1) ${df} ${realUserFilter} ORDER BY ${sort==='relevance'?'rank DESC,up.follower_count DESC':ob} LIMIT $2`,[tsQ,lim])); } catch { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); } }
@@ -78,19 +84,21 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
       if (price_max) { pE.push(parseFloat(price_max)); pC.push(`p.price<=$${pE.length+2}`); }
       const pW=pC.length?'AND '+pC.join(' AND '):'';
       let rows;
-      if (useFTS) { try { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status,ts_rank(p.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM products p WHERE p.status='active' AND p.search_vector@@to_tsquery('english',$1) ${pW} ${df} ${realProductFilter} ORDER BY ${sort==='relevance'?'rank DESC,p.view_count DESC':ob} LIMIT $2`,[tsQ,lim,...pE])); } catch { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status ${ds} FROM products p WHERE p.status='active' AND (p.title ILIKE $1 OR p.description ILIKE $1 OR p.category ILIKE $1) ${pW} ${df} ${realProductFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...pE])); } }
-      else { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status ${ds} FROM products p WHERE p.status='active' AND (p.title ILIKE $1 OR p.description ILIKE $1 OR p.category ILIKE $1) ${pW} ${df} ${realProductFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...pE])); }
+      if (useFTS) { try { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status,ts_rank(p.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM products p WHERE p.status='active' AND p.search_vector@@to_tsquery('english',$1) ${pW} ${df} ${realProductFilter} ${guestProductFilter} ORDER BY ${sort==='relevance'?'rank DESC,p.view_count DESC':ob} LIMIT $2`,[tsQ,lim,...pE])); } catch { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status ${ds} FROM products p WHERE p.status='active' AND (p.title ILIKE $1 OR p.description ILIKE $1 OR p.category ILIKE $1) ${pW} ${df} ${realProductFilter} ${guestProductFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...pE])); } }
+      else { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status ${ds} FROM products p WHERE p.status='active' AND (p.title ILIKE $1 OR p.description ILIKE $1 OR p.category ILIKE $1) ${pW} ${df} ${realProductFilter} ${guestProductFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...pE])); }
       R.products = rows;
     }
     if (type==='all'||type==='showrooms') {
       const ob=sort==='recent'?'s.created_at DESC':'s.view_count DESC';
       let rows;
-      const ownerNameMatch = `EXISTS (SELECT 1 FROM user_profiles up WHERE up.user_id=s.owner_id AND up.display_name ILIKE $2)`;
-      if (useFTS) { try { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km,ts_rank(to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,'')),to_tsquery('english',$1)) AS rank FROM showrooms s WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,''))@@to_tsquery('english',$1) OR s.title ILIKE $2 OR s.description ILIKE $2 OR ${ownerNameMatch}) ${realShowroomFilter} ORDER BY ${sort==='relevance'?'rank DESC,s.view_count DESC':ob} LIMIT $3`,[tsQ,ilike,lim])); } catch { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km FROM showrooms s WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch}) ${realShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); } }
-      else { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km FROM showrooms s WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch}) ${realShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); }
+      // The ILIKE pattern is $2 in the full-text query and $1 in the fallbacks.
+      const ownerNameMatch = (param: string) => `EXISTS (SELECT 1 FROM user_profiles up WHERE up.user_id=s.owner_id AND up.display_name ILIKE ${param})`;
+      if (useFTS) { try { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km,ts_rank(to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,'')),to_tsquery('english',$1)) AS rank FROM showrooms s WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,''))@@to_tsquery('english',$1) OR s.title ILIKE $2 OR s.description ILIKE $2 OR ${ownerNameMatch('$2')}) ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${sort==='relevance'?'rank DESC,s.view_count DESC':ob} LIMIT $3`,[tsQ,ilike,lim])); } catch { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km FROM showrooms s WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch('$1')}) ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); } }
+      else { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km FROM showrooms s WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch('$1')}) ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); }
       R.showrooms = rows;
     }
-    if (type==='all'||type==='posts') {
+    if (guest&&(type==='all'||type==='posts')) R.posts=[];
+    else if (type==='all'||type==='posts') {
       const dC: string[]=[], dP: unknown[]=[];
       if (date_from) { dP.push(date_from); dC.push(`p.created_at>=$${dP.length+2}`); }
       if (date_to)   { dP.push(date_to);   dC.push(`p.created_at<=$${dP.length+2}`); }

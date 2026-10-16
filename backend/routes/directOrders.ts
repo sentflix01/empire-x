@@ -21,6 +21,7 @@ import logger from '../lib/logger';
 import * as apiError from '../lib/apiError';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { getBusinessSubscriptionAccess } from '../lib/businessSubscriptionPolicy';
+import { businessViewGate, rejectViewGate } from '../lib/siteVisibility';
 import { getPrimaryFrontendUrl } from '../lib/frontendUrl';
 import { sendCustomEmail } from '../utils/mailer';
 import { emitNotification } from '../socket';
@@ -153,7 +154,8 @@ router.get('/checkout-info', optionalAuth, async (req: Request, res: Response) =
     } else { apiError.validationError(res, 'product_id or showroom_id is required'); return; }
     if (businessId) {
       const access = await getBusinessSubscriptionAccess(businessId);
-      if (!access || access.hiddenFromPublic) { apiError.notFound(res, 'Business not found'); return; }
+      // A private business sells to signed-in buyers only (decision §7).
+      if (rejectViewGate(res, businessViewGate(access, req), 'Business not found')) return;
     }
     const details = await sellerPaymentDetails(businessId);
     const business = details.business as Record<string, unknown> | null;
@@ -194,7 +196,7 @@ router.post('/', guestLimiter, optionalAuth, async (req: Request, res: Response)
     const businessId = typeof product.business_id === 'string' ? product.business_id : null;
     if (businessId) {
       const access = await getBusinessSubscriptionAccess(businessId);
-      if (!access || access.hiddenFromPublic) { apiError.notFound(res, 'This product is not available'); return; }
+      if (rejectViewGate(res, businessViewGate(access, req), 'This product is not available')) return;
     }
     const details = await sellerPaymentDetails(businessId);
     if (!(details.payment_accounts as unknown[]).length) {
