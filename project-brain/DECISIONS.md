@@ -226,7 +226,7 @@ documents when verified; do not copy stale values into new work.
   before beta registration, and ETB checkout (Phase 1, Chapa) is not live, so
   those owners could not pay when the period ended.
 - **Decision:** The free period is six months from when each profile was
-  created (about 2026-04-16 for the existing 12). `migrate62.js` extends
+  created (about 2027-04-16 for the existing 12). `migrate62.js` extends
   existing trialing grants; `migrate59.js` now grants six months to any legacy
   site it still finds.
 - **Consequences:** No legacy site enters the expiry timeline before April
