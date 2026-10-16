@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
+import { productNotPrivateSql } from '../lib/siteVisibility';
 
 const router = Router();
 
@@ -25,6 +26,10 @@ router.get('/product/:productId', optionalAuth, async (req: Request, res: Respon
         [req.params.productId],
       );
       if (!products.length) { res.status(404).json({ error: 'Product not found' }); return; }
+    }
+    if (!req.user) {
+      const { rows: visible } = await pool.query(`SELECT 1 FROM products p WHERE p.id=$1 AND ${productNotPrivateSql('p')}`, [req.params.productId]);
+      if (!visible.length) { res.status(404).json({ error: 'Product not found' }); return; }
     }
     const { rows } = await pool.query('SELECT * FROM product_variants WHERE product_id=$1 ORDER BY name, value', [req.params.productId]);
     res.json(rows);

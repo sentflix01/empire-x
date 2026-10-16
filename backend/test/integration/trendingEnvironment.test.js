@@ -35,10 +35,10 @@ it('uses the isolated Demo cache namespace and hides expired showrooms', async (
   );
 
   expect(response.status).toBe(200);
-  expect(cached.mock.calls[0][0]).toBe('trending:demo:all-users');
+  expect(cached.mock.calls[0][0]).toBe('trending:demo:all-users:guest');
   expect(response.headers['cache-control']).toBe('private, no-store');
   expect(response.headers.vary).toContain('X-Account-Mode');
-  const showroomQuery = mockPool.query.mock.calls.find(([sql]) => sql.includes('FROM showrooms'))?.[0];
+  const showroomQuery = mockPool.query.mock.calls.find(([sql]) => sql.includes("FROM showrooms WHERE status='published'"))?.[0];
   expect(showroomQuery).toContain('(expires_at IS NULL OR expires_at > NOW())');
 });
 
@@ -46,5 +46,5 @@ it('keeps Real trending data in its own cache namespace', async () => {
   const response = await request(buildApp()).get('/api/trending');
 
   expect(response.status).toBe(200);
-  expect(cached.mock.calls[0][0]).toBe('trending:real:real-only');
+  expect(cached.mock.calls[0][0]).toBe('trending:real:real-only:guest');
 });

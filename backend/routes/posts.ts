@@ -11,6 +11,7 @@ import type { Request, Response } from 'express';
 import logger from '../lib/logger';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
+import { announcementLiveSql, guestPostSql, SIGN_IN_REQUIRED } from '../lib/siteVisibility';
 import { getRecord, createRecord, updateRecord, deleteRecord } from '../utils/crud';
 import { syncHashtags } from './hashtags';
 import { emitNotification } from '../socket';
@@ -35,13 +36,22 @@ async function attachLikedByMe(userId: string | undefined, rows: Array<Record<st
 // varyByUser is REQUIRED here: feed=true responses embed per-user social
 // boosts and following=true filters on the caller's follow graph. Caching
 // those under a shared key served one user's personalized feed to another.
+/** Guests may open only announcement posts of live, public business sites. */
+async function guestMaySeePost(postId: string): Promise<boolean> {
+  const { rows } = await pool.query(`SELECT 1 FROM posts p WHERE p.id=$1 AND ${guestPostSql('p')}`, [postId]);
+  return rows.length > 0;
+}
+
 router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: true }), async (req: Request, res: Response) => {
   try {
     const { sort='-created_at', limit='15', author_id, post_type, feed='false', cursor } = req.query as Record<string,string>;
     const lim = Math.min(parseInt(limit)||15, 50);
     const cursorTs = cursor ? new Date(cursor) : new Date();
     if (isNaN(cursorTs.getTime())) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
-    const realFilter = req.realOnly ? `AND p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)` : '';
+    // Announcements of sites that are no longer live are hidden; guests see
+    // only announcements of public businesses (decision §7).
+    const realFilter = (req.realOnly ? `AND p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)` : '')
+      + ` AND ${req.user ? announcementLiveSql('p') : guestPostSql('p')}`;
 
     // Smart feed mode
     if (feed==='true' && !author_id && !post_type) {
@@ -78,6 +88,7 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: tr
     if (author_id) { params.push(author_id); conditions.push(`p.author_id=$${params.length}`); }
     if (post_type) { params.push(post_type); conditions.push(`p.post_type=$${params.length}`); }
     if (req.realOnly) conditions.push(`p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)`);
+    conditions.push(req.user ? announcementLiveSql('p') : guestPostSql('p'));
     if (req.query.following==='true' && req.user?.id) {
       params.push(req.user.id);
       conditions.push(`p.author_id IN (SELECT followed_id FROM follows WHERE follower_id=$${params.length})`);
@@ -103,6 +114,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
     const post = await getRecord('posts', req.params.id, { realOnly: req.realOnly });
     if (!post) { res.status(404).json({ error: 'Post not found' }); return; }
+    if (!req.user && !(await guestMaySeePost(req.params.id))) { res.status(401).json({ error: 'Sign in to see this post.', code: SIGN_IN_REQUIRED }); return; }
     await attachLikedByMe(req.user?.id, [post as unknown as Record<string,unknown>]);
     res.json(post);
   } catch { res.status(500).json({ error: 'Failed to fetch post' }); }
@@ -213,6 +225,7 @@ router.post('/:id/like', requireAuth, async (req: Request, res: Response) => {
 // Comments
 router.get('/:id/comments', optionalAuth, async (req: Request, res: Response) => {
   try {
+    if (!req.user && !(await guestMaySeePost(req.params.id))) { res.status(401).json({ error: 'Sign in to see these comments.', code: SIGN_IN_REQUIRED }); return; }
     const realFilter = req.realOnly ? 'AND comment_author.is_seed=FALSE AND comment_author.is_demo=FALSE' : '';
     const realReplyFilter = req.realOnly ? 'AND reply_author.is_seed=FALSE AND reply_author.is_demo=FALSE' : '';
     const { rows } = await pool.query(
