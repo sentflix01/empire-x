@@ -98,6 +98,12 @@ jobs:
       - name: Run migrations
         run: npm run migrate
 
+      # Same routes and migrations against this real Postgres (no mocked pool):
+      # catches wrong columns, broken placeholders and migrations that would
+      # fail on the next deploy.
+      - name: Database-backed tests (blocking)
+        run: npm run test:db
+
       # Jest unit/integration suites — the proven green gate (257 tests).
       # The live-server e2e script stays out of the blocking path.
       - name: Run tests (blocking)
