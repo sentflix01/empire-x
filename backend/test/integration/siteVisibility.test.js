@@ -134,6 +134,17 @@ describe('owner setting', () => {
   });
 });
 
+describe('product list for guests', () => {
+  it('hides private businesses and keeps the status filter a bound parameter', async () => {
+    const products = require('../../routes/products');
+    await request(app('/api/products', products)).get('/api/products?status=active');
+    const [sql, values] = pool.query.mock.calls[0];
+    expect(sql).toMatch(/visibility = 'private'/);
+    expect(sql).toMatch(/p\.status=\$\d+/);
+    expect(values).toContain('active');
+  });
+});
+
 describe('guest checkout from a private business', () => {
   const directOrders = require('../../routes/directOrders');
   const ORDER = { product_id: 'p1', quantity: 1, buyer_name: 'Guest', buyer_phone: '+251922222222', buyer_email: 'g@example.test' };

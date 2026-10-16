@@ -47,10 +47,10 @@ const BUSINESS_PROFILE_FIELDS = [
 ] as const;
 
 /**
- * Guests see only business profiles whose owner has a public business;
+ * Guests see only profiles of owners who have a public business;
  * personal profiles need sign-in (decision §7).
  */
-const GUEST_PROFILE_SQL = `up.has_business_profile = TRUE AND EXISTS (
+const GUEST_PROFILE_SQL = `EXISTS (
   SELECT 1 FROM businesses guest_b WHERE guest_b.owner_id = up.user_id AND guest_b.visibility = 'public')`;
 
 async function guestMaySeeProfile(userId: unknown): Promise<boolean> {

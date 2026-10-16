@@ -115,7 +115,7 @@ router.get('/', optionalAuth, cacheMiddleware('products:list', 90, { varyByQuery
     }
     // Private businesses are for signed-in users only (decision §7).
     if (!req.user) conditions.push(productNotPrivateSql('p'));
-    if (status)      { values.push(status);      conditions.push(`p.status=${values.length}`); }
+    if (status)      { values.push(status);      conditions.push(`p.status=$${values.length}`); }
     if (categoryFilter) {
       values.push(categoryFilter);
       conditions.push(`LOWER(p.category)=LOWER($${values.length})`);
