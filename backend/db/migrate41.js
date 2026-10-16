@@ -15,7 +15,10 @@ async function migrate() {
       ALTER TABLE orders ADD CONSTRAINT orders_status_check
       CHECK (status IN (
         'pending','paid','confirmed','processing','shipped','delivered','completed',
-        'cancelled','disputed','payment_failed','refunded','return_requested','return_approved'
+        'cancelled','disputed','payment_failed','refunded','return_requested','return_approved',
+        -- Direct-payment states (migrate57). Listed here too because every
+        -- migration re-runs on deploy and must accept rows already using them.
+        'awaiting_payment','payment_reported','expired'
       ))
     `);
     await client.query('COMMIT');

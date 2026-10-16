@@ -373,6 +373,7 @@ app.use('/api/flags',        require('./routes/flags'));
 app.use('/api/showrooms/:showroomId/external-sources', require('./routes/externalSources'));
 app.use('/api/proxy',        require('./routes/proxy'));
 app.use('/api/share-preview', require('./routes/sharePreview'));
+app.use('/api/direct-orders', require('./routes/directOrders'));
 app.use('/api/devops',       require('./routes/devops'));
 app.use('/api/docs',         require('./routes/docs'));
 
@@ -412,6 +413,7 @@ const { startBackupSchedule } = require('./scripts/backup-database') as { startB
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { startDigestSchedule } = require('./scripts/showroom-digests') as { startDigestSchedule: () => void };
 const { startBusinessSubscriptionLifecycle } = require('./scripts/business-subscription-lifecycle') as { startBusinessSubscriptionLifecycle: () => void };
+import { startDirectOrderExpiry } from './lib/directOrderExpiry';
 
 initSocket(server, allowedOrigins);
 
@@ -424,6 +426,7 @@ void verifySharedDatabaseIsolation().then(verifyDemoStorageIsolation).then(() =>
   startBackupSchedule();
   startDigestSchedule();
   startBusinessSubscriptionLifecycle();
+  startDirectOrderExpiry();
 
   // ── Auto-create Supabase Storage bucket ──────────────────────────────────
   setTimeout(async () => {

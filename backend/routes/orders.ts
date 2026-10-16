@@ -142,8 +142,10 @@ const ORDER_UPDATE_FIELDS = new Set([
 ]);
 
 /** State transitions allowed for each order party, indexed by current state. */
+// Direct-payment orders are confirmed through /api/direct-orders/:id/confirm-payment.
 const BUYER_TRANSITIONS: Record<string, Set<string>> = {
   pending: new Set(['cancelled']),
+  awaiting_payment: new Set(['cancelled']),
   paid: new Set(['disputed']),
   confirmed: new Set(['disputed']),
   processing: new Set(['disputed']),
@@ -152,6 +154,8 @@ const BUYER_TRANSITIONS: Record<string, Set<string>> = {
 };
 const SELLER_TRANSITIONS: Record<string, Set<string>> = {
   pending: new Set(['confirmed', 'cancelled']),
+  awaiting_payment: new Set(['cancelled']),
+  payment_reported: new Set(['cancelled']),
   paid: new Set(['confirmed', 'processing', 'cancelled']),
   confirmed: new Set(['processing', 'cancelled']),
   processing: new Set(['shipped', 'cancelled']),
@@ -263,11 +267,15 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
         const isBuyer = existing.buyer_id === req.user!.id;
         const transitions = isBuyer ? BUYER_TRANSITIONS : SELLER_TRANSITIONS;
         const retryCompletedLedger = existing.status === 'completed' && updates.status === 'completed';
-        if (!retryCompletedLedger && !transitions[String(existing.status)]?.has(String(updates.status))) {
+        // A guest buyer has no account to confirm delivery, so the seller completes it.
+        const sellerCompletesGuestOrder = !isBuyer && !existing.buyer_id && existing.status === 'delivered' && updates.status === 'completed';
+        if (!retryCompletedLedger && !sellerCompletesGuestOrder && !transitions[String(existing.status)]?.has(String(updates.status))) {
           apiError.forbidden(res, `You cannot set this order to "${String(updates.status)}"`);
           return;
         }
-        if (updates.status === 'cancelled' && existing.payment_provider !== 'cod' && existing.payment_provider !== null) {
+        // Card/Chapa orders went through a provider; COD and direct-payment orders
+        // never passed money through NodBusiness, so they can be cancelled here.
+        if (updates.status === 'cancelled' && !['cod', 'direct'].includes(String(existing.payment_provider)) && existing.payment_provider !== null) {
           apiError.forbidden(res, 'Online orders cannot be cancelled here; use the provider refund or return process');
           return;
         }
@@ -288,16 +296,19 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     if ((updates as {status?:string}).status==='completed' && existing.status!=='completed') {
       await commitOrderInventory(pool, [req.params.id]).catch(err => logger.error({ err }, 'Failed to commit inventory for completed COD order'));
       notifyUser(existing.seller_id as string, `✅ <b>Order Completed</b>\n${existing.product_title}\nAmount: ${existing.total_price} ${existing.currency}`).catch(()=>undefined);
-      notifyUser(existing.buyer_id as string, `📦 <b>Your order is complete!</b>\n${existing.product_title}\nThank you for shopping on Nodbusiness 👑`).catch(()=>undefined);
+      const buyerId = (existing.buyer_id as string | null) ?? null; // null for guest orders
+      if (buyerId) notifyUser(buyerId, `📦 <b>Your order is complete!</b>\n${existing.product_title}\nThank you for shopping on Nodbusiness 👑`).catch(()=>undefined);
       const [buyerNotifResult, sellerNotifResult] = await Promise.all([
-        pool.query(`INSERT INTO notifications (user_id,type,title,body,link,is_read) VALUES ($1,'order','📦 Order completed!',$2,'/orders',false) RETURNING *`, [existing.buyer_id, `Your order for ${existing.product_title} is complete.`]),
+        buyerId
+          ? pool.query(`INSERT INTO notifications (user_id,type,title,body,link,is_read) VALUES ($1,'order','📦 Order completed!',$2,'/orders',false) RETURNING *`, [buyerId, `Your order for ${existing.product_title} is complete.`])
+          : Promise.resolve({ rows: [] as Record<string, unknown>[] }),
         pool.query(`INSERT INTO notifications (user_id,type,title,body,link,is_read) VALUES ($1,'order','✅ Sale completed!',$2,'/orders',false) RETURNING *`, [existing.seller_id, `Order for ${existing.product_title} has been completed.`]),
       ]);
       const buyerNotif = buyerNotifResult.rows[0];
       const sellerNotif = sellerNotifResult.rows[0];
-      emitNotification(existing.buyer_id as string, buyerNotif as Record<string,unknown>);
+      if (buyerId && buyerNotif) emitNotification(buyerId, buyerNotif as Record<string,unknown>);
       emitNotification(existing.seller_id as string, sellerNotif as Record<string,unknown>);
-      sendPushToUser(existing.buyer_id as string, '📦 Order completed!', `Your order for ${existing.product_title} is complete.`, '/orders').catch(()=>undefined);
+      if (buyerId) sendPushToUser(buyerId, '📦 Order completed!', `Your order for ${existing.product_title} is complete.`, '/orders').catch(()=>undefined);
       sendPushToUser(existing.seller_id as string, '✅ Sale completed!', `Order for ${existing.product_title} has been completed.`, '/orders').catch(()=>undefined);
     }
     res.json(updated);
