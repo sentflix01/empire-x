@@ -13,6 +13,7 @@ import {
   SECTION_TYPES, CATEGORY_DEFAULT_SECTIONS, COLOR_PRESETS,
   getSectionType,
 } from "@/lib/builderSections";
+import { parseShowroomSections, serializeShowroomSections } from "@/lib/showroomSectionsCodec";
 import { getShowroomTemplateSample } from "@/lib/showroomTemplateSamples";
 import BuilderForm from "@/components/showroom/BuilderForm";
 import BuilderPreview from "@/components/showroom/BuilderPreview";
@@ -351,15 +352,7 @@ function ShowroomCreate({
         if (cancelled) return;
         if (typeof data.business_id === 'string') setSelectedBusinessId(data.business_id);
         setEditingStatus(typeof data.status === 'string' ? data.status : null);
-        let sections = data.sections;
-        if (typeof sections === 'string') { try { sections = JSON.parse(sections); } catch { sections = undefined; } }
-        const savedSections = Array.isArray(sections) ? sections : [];
-        const sectionKeys = savedSections
-          .map((section: unknown) => typeof section === 'string' ? section : (section as { type?: unknown })?.type)
-          .filter((key: unknown): key is string => typeof key === 'string' && Boolean(getSectionType(key)));
-        const sectionFields = Object.assign({}, ...savedSections
-          .filter((section: unknown): section is Record<string, unknown> => Boolean(section) && typeof section === 'object' && !Array.isArray(section))
-          .map(({ type: _type, ...fields }: Record<string, unknown>) => fields));
+        const { keys: sectionKeys, fields: sectionFields } = parseShowroomSections(data.sections);
         setEditSnapshot({
           sections: sectionKeys,
           fields: {
@@ -493,13 +486,7 @@ function ShowroomCreate({
 
   const buildShowroomPayload = (status: 'draft' | 'published') => {
     const title = String(formData.title ?? '').trim();
-    const sections = activeSections.map(key => {
-      const sec = getSectionType(key);
-      if (!sec) return null;
-      const data: Record<string, any> = { type: key };
-      sec.fields.forEach(f => { if (formData[f.key] !== undefined) data[f.key] = formData[f.key]; });
-      return data;
-    }).filter(Boolean);
+    const sections = serializeShowroomSections(activeSections, formData);
     return {
       title,
       description: formData.subtitle || '',
