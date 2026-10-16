@@ -5,6 +5,9 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-16 | Maintenance | Merge pull request #106 from sentflix01/fix/tailwind-theme-colours | [f2f76943e](2026-10-16-f2f76943e-merge-pull-request-106-from-sentflix01-fix-tailw.md) |
+| 2026-10-16 | Bugfix | fix(ui): make globals.css the only Tailwind config and fail CI on missing utilities | [3231d33d5](2026-10-16-3231d33d5-make-globals-css-the-only-tailwind-config-and-fa.md) |
+| 2026-10-16 | Bugfix | fix(ui): generate theme colour utilities under Tailwind v4 | [1a2281146](2026-10-16-1a2281146-generate-theme-colour-utilities-under-tailwind-v.md) |
 | 2026-10-15 | Maintenance | Merge pull request #104 from sentflix01/claude/owner-decision-fixes | [6cbc3063d](2026-10-15-6cbc3063d-merge-pull-request-104-from-sentflix01-claude-ow.md) |
 | 2026-10-15 | Bugfix | fix: mount the sonner Toaster so app messages actually appear | [c9f8d9740](2026-10-15-c9f8d9740-mount-the-sonner-toaster-so-app-messages-actuall.md) |
 | 2026-10-15 | Bugfix | fix: answer a wrong delete-account password with 422, not 401 | [499d0e5e9](2026-10-15-499d0e5e9-answer-a-wrong-delete-account-password-with-422-.md) |
