@@ -62,6 +62,8 @@ export function isPublicPath(pathname: string): boolean {
   if (pathname.startsWith('/showrooms/')) return true;
   if (pathname.startsWith('/businesses/')) return true;
   if (pathname.startsWith('/hashtag/')) return true;
+  // Private order links for guest checkout; access is the token itself.
+  if (pathname.startsWith('/order/')) return true;
   return false;
 }
 

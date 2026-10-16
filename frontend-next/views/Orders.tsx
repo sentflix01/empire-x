@@ -25,7 +25,18 @@ const STATUS_CONFIG = {
   processing: { label: "Processing", icon: Package,      color: "text-blue-600 bg-blue-50 border-blue-200" },
   completed:  { label: "Completed",  icon: CheckCircle,  color: "text-gray-600 bg-gray-50 border-gray-200" },
   cancelled:  { label: "Cancelled",  icon: XCircle,      color: "text-red-600 bg-red-50 border-red-200" },
+  // Direct payment (buyer pays the seller; only the seller confirms)
+  awaiting_payment: { label: "Awaiting payment", icon: Clock,       color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
+  payment_reported: { label: "Payment reported", icon: Clock,       color: "text-amber-700 bg-amber-50 border-amber-200" },
+  expired:          { label: "Expired",          icon: XCircle,     color: "text-gray-600 bg-gray-50 border-gray-200" },
+  confirmed:        { label: "Confirmed",        icon: CheckCircle, color: "text-green-600 bg-green-50 border-green-200" },
+  shipped:          { label: "Shipped",          icon: Package,     color: "text-blue-600 bg-blue-50 border-blue-200" },
+  delivered:        { label: "Delivered",        icon: CheckCircle, color: "text-green-600 bg-green-50 border-green-200" },
 };
+
+// Seller next steps, matching the backend SELLER_TRANSITIONS.
+const NEXT_STATUS: Record<string, string> = { pending: "confirmed", paid: "processing", confirmed: "processing", processing: "shipped", shipped: "delivered" };
+const NEXT_LABEL: Record<string, string> = { confirmed: "Confirm order", processing: "Mark as processing", shipped: "Mark as shipped", delivered: "Mark as delivered", completed: "Mark as completed" };
 
 const DELIVERY_STEPS = ["Packed", "Picked Up", "In Transit", "Out for Delivery", "Delivered"];
 
@@ -384,14 +395,37 @@ function Orders() {
   };
 
   const updateStatus = async (orderId, status) => {
-    await entities.Order.update(orderId, { status });
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+    try {
+      await entities.Order.update(orderId, { status });
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+    } catch (err: any) {
+      toast.error(err?.error ?? "Could not update the order");
+    }
+  };
+
+  // Direct payment actions (/api/direct-orders).
+  const directAction = async (orderId: string, action: "confirm-payment" | "reject-payment" | "report-payment") => {
+    try {
+      const { data } = await client.post(`/api/direct-orders/${orderId}/${action}`, {});
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...data.order } : o));
+      toast.success(action === "confirm-payment" ? "Payment confirmed" : action === "reject-payment" ? "Buyer told the payment has not arrived" : "The seller has been told you paid");
+    } catch (err: any) {
+      toast.error(err?.error ?? "Could not update the payment");
+    }
+  };
+
+  const viewReceipt = async (orderId: string) => {
+    try {
+      const { data } = await client.get(`/api/direct-orders/${orderId}/receipt`);
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch (err: any) {
+      toast.error(err?.error ?? "Could not open the receipt");
+    }
   };
 
   const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
   const toggleReturn = (id) => setShowReturn(prev => ({ ...prev, [id]: !prev[id] }));
 
-  const NEXT_STATUS = { pending: "processing", paid: "processing", processing: "completed" };
   const isSelling = tab === "selling";
 
   return (
@@ -430,7 +464,8 @@ function Orders() {
           {orders.map(order => {
             const cfg  = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const Icon = cfg.icon;
-            const next = NEXT_STATUS[order.status];
+            // A guest buyer has no account to confirm delivery, so the seller completes it.
+            const next = NEXT_STATUS[order.status] ?? (order.status === "delivered" && !order.buyer_id ? "completed" : undefined);
             const isExpanded = !!expanded[order.id];
             const canReturn  = !isSelling && ["completed", "paid"].includes(order.status);
 
@@ -499,12 +534,34 @@ function Orders() {
                       {isSelling && next && (
                         <Button size="sm" variant="outline" className="h-7 text-xs rounded-full"
                           onClick={() => updateStatus(order.id, next)}>
-                          Mark as {next === "processing" ? "Processing" : "Completed"}
+                          {NEXT_LABEL[next] ?? next}
+                        </Button>
+                      )}
+
+                      {/* Direct payment: seller confirms; buyer reports */}
+                      {isSelling && ["awaiting_payment", "payment_reported"].includes(order.status) && (
+                        <Button size="sm" className="h-7 text-xs rounded-full" onClick={() => directAction(order.id, "confirm-payment")}>
+                          Confirm payment received
+                        </Button>
+                      )}
+                      {isSelling && order.status === "payment_reported" && (
+                        <Button size="sm" variant="outline" className="h-7 text-xs rounded-full" onClick={() => directAction(order.id, "reject-payment")}>
+                          Not received
+                        </Button>
+                      )}
+                      {order.has_receipt && (
+                        <Button size="sm" variant="ghost" className="h-7 text-xs rounded-full" onClick={() => viewReceipt(order.id)}>
+                          View receipt
+                        </Button>
+                      )}
+                      {!isSelling && order.status === "awaiting_payment" && (
+                        <Button size="sm" className="h-7 text-xs rounded-full" onClick={() => directAction(order.id, "report-payment")}>
+                          I&apos;ve paid
                         </Button>
                       )}
 
                       {/* Cancel */}
-                      {order.status === "pending" && (
+                      {(["pending", "awaiting_payment"].includes(order.status) || (isSelling && order.status === "payment_reported")) && (
                         <Button size="sm" variant="ghost" className="h-7 text-xs rounded-full text-destructive"
                           onClick={() => updateStatus(order.id, "cancelled")}>
                           Cancel

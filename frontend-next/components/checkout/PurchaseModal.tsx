@@ -1,19 +1,19 @@
 'use client'
-import SafeImage from '@/components/ui/SafeImage';
-import React, { useState, useEffect, useRef } from "react";
-import { entities } from "@/api/entities";
+/**
+ * PurchaseModal — the Buy view. NodBusiness never holds funds
+ * (docs/decisions/platform-model-decisions.md §2): the buyer sees the seller's
+ * business details and payment accounts, places an order (no account needed),
+ * pays the seller directly, then reports the payment from their private order
+ * page (/order/<token>). Only the seller confirms the payment.
+ */
+import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { X, ShoppingBag, Check, Loader2, Copy, Phone, Mail, MapPin, CreditCard } from "lucide-react";
 import client from "@/api/client";
-import { X, ShoppingBag, Check, Loader2, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-
-interface CouponData {
-  valid: boolean;
-  discount: number;
-  coupon: { code: string };
-}
 
 interface PurchaseModalProps {
   item: {
@@ -35,360 +35,187 @@ interface PurchaseModalProps {
     full_name?: string;
     email?: string;
   };
+  /** Lets items typed into a showroom section (not catalogue products) show the seller's details. */
+  showroomId?: string;
+  /** Starting quantity, e.g. from the cart. */
+  initialQuantity?: number;
   onClose: () => void;
   onPurchased?: () => void;
   partnershipCode?: string;
 }
 
-export default function PurchaseModal({ item, seller, buyer, onClose, onPurchased, partnershipCode }: PurchaseModalProps) {
-  const [step, setStep] = useState("details"); // details | checkout | success | chapa_pending
-  const [quantity, setQuantity] = useState(1);
+export interface PaymentAccount { id: string; method: string; provider_name: string; account_name: string; account_number: string; instructions: string | null }
+interface SellerDetails {
+  business: { business_name?: string; business_logo_url?: string | null; business_contact_phone?: string | null; business_contact_email?: string | null; business_address?: string | null; pickup_address?: string | null } | null;
+  payment_accounts: PaymentAccount[];
+  payment_window_days?: number;
+}
+
+const METHOD_LABEL: Record<string, string> = { bank: 'Bank transfer', mobile_money: 'Mobile money', other: 'Other' };
+
+function copy(text: string, label: string) {
+  navigator.clipboard?.writeText(text).then(() => toast.success(`${label} copied`)).catch(() => toast.error('Could not copy'));
+}
+
+export function PaymentAccountList({ accounts }: { accounts: PaymentAccount[] }) {
+  return (
+    <ul className="space-y-2">
+      {accounts.map((a) => (
+        <li key={a.id} className="rounded-xl border border-border/50 bg-background p-3">
+          <p className="text-xs text-muted-foreground">{METHOD_LABEL[a.method] ?? a.method} · {a.provider_name}</p>
+          <p className="text-sm font-medium">{a.account_name}</p>
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-mono text-sm break-all">{a.account_number}</span>
+            <button type="button" onClick={() => copy(a.account_number, 'Account number')} className="shrink-0 rounded-full p-1.5 hover:bg-secondary" aria-label={`Copy ${a.provider_name} account number`}>
+              <Copy className="w-4 h-4" />
+            </button>
+          </div>
+          {a.instructions && <p className="text-xs text-muted-foreground mt-1">{a.instructions}</p>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function PurchaseModal({ item, seller, buyer, showroomId, initialQuantity, onClose, onPurchased, partnershipCode }: PurchaseModalProps) {
+  const [step, setStep] = useState<'details' | 'contact' | 'done'>('details');
+  const [details, setDetails] = useState<SellerDetails | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(true);
+  const [quantity, setQuantity] = useState(Math.max(1, Math.floor(initialQuantity ?? 1)));
   const [processing, setProcessing] = useState(false);
-  const [chapaTxRef, setChapaTxRef] = useState<string | null>(null);
-  const [orderInfo, setOrderInfo] = useState({ name: "", phone: "", email: "", address: "", notes: "" });
-  const [couponCode, setCouponCode] = useState("");
-  const [couponData, setCouponData] = useState<CouponData | null>(null); // { valid, coupon, discount }
-  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [contact, setContact] = useState({ name: buyer?.full_name ?? '', phone: '', email: buyer?.email ?? '', address: '', notes: '' });
+  const [placed, setPlaced] = useState<{ access_token: string; details: SellerDetails } | null>(null);
 
-  // Use ref for onPurchased to avoid useEffect re-runs
-  const onPurchasedRef = useRef(onPurchased);
+  const isProduct = !!item.id;
+  const unitPrice = Number(item.price ?? 0);
+  const total = useMemo(() => Math.round(unitPrice * quantity * 100) / 100, [unitPrice, quantity]);
+  const currency = item.currency ?? 'ETB';
+  const sellerName = details?.business?.business_name ?? seller.business_name ?? seller.display_name ?? 'the seller';
+
   useEffect(() => {
-    onPurchasedRef.current = onPurchased;
-  }, [onPurchased]);
+    const query = item.id ? `product_id=${encodeURIComponent(item.id)}` : showroomId ? `showroom_id=${encodeURIComponent(showroomId)}` : null;
+    if (!query) { setLoadingDetails(false); return; }
+    client.get<SellerDetails>(`/api/direct-orders/checkout-info?${query}`)
+      .then(({ data }) => setDetails(data))
+      .catch(() => setDetails(null))
+      .finally(() => setLoadingDetails(false));
+  }, [item.id, showroomId]);
 
-  // Poll for Chapa payment confirmation after redirect back to app
-  useEffect(() => {
-    if (step !== "chapa_pending" || !chapaTxRef) return;
-    let attempts = 0;
-    const interval = setInterval(async () => {
-      attempts++;
-      try {
-        const { data } = await client.get(`/api/orders/chapa/status/${chapaTxRef}`);
-        if (data.status === "paid") {
-          clearInterval(interval);
-          setStep("success");
-          onPurchasedRef.current?.();
-        } else if (data.status === "payment_failed") {
-          clearInterval(interval);
-          toast.error("Payment failed. Please try again.");
-          setStep("checkout");
-        }
-      } catch {}
-      if (attempts >= 20) clearInterval(interval); // stop after ~60s
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [step, chapaTxRef]);
+  const accounts = details?.payment_accounts ?? [];
+  const contactValid = !!contact.name.trim()
+    && /^\+?[0-9\s-]{7,20}$/.test(contact.phone.trim())
+    && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contact.email.trim());
 
-  const parseImages = (img: string | null | undefined): string[] => { try { return JSON.parse(img || "[]"); } catch { return img ? [img] : []; } };
-  const images = parseImages(item.images);
-  const unitPrice = item.price || 0;
-  const subtotal = unitPrice * quantity;
-  const discount = couponData?.discount || 0;
-  const totalPrice = Math.max(0, subtotal - discount);
-
-  const validateCoupon = async () => {
-    if (!couponCode.trim()) return;
-    setValidatingCoupon(true);
-    try {
-      const { data } = await client.post("/api/coupons/validate", {
-        code: couponCode.trim(),
-        seller_id: seller.user_id,
-        order_total: subtotal,
-      });
-      setCouponData(data);
-      toast.success(`Coupon applied! You save ${data.discount.toLocaleString()} ${item.currency || "USD"}`);
-    } catch (e) {
-      setCouponData(null);
-      toast.error(e?.response?.data?.error || "Invalid coupon code");
-    }
-    setValidatingCoupon(false);
-  };
-
-  const handleCheckout = async () => {
+  const placeOrder = async () => {
     setProcessing(true);
     try {
-      await entities.Order.create({
-        buyer_id: buyer?.id || "",
-        seller_id: seller.user_id,
-        product_id: item.id || "",
-        product_title: item.title,
-        product_type: item.product_type || "product",
+      const { data } = await client.post('/api/direct-orders', {
+        product_id: item.id,
         quantity,
-        unit_price: unitPrice,
-        total_price: totalPrice,
-        currency: item.currency || "USD",
-        status: "pending",
-        buyer_name: orderInfo.name || buyer?.full_name || "",
-        buyer_phone: orderInfo.phone,
-        buyer_email: orderInfo.email,
-        delivery_address: orderInfo.address,
-        notes: orderInfo.notes,
+        buyer_name: contact.name.trim(),
+        buyer_phone: contact.phone.trim(),
+        buyer_email: contact.email.trim(),
+        delivery_address: contact.address.trim() || undefined,
+        notes: contact.notes.trim() || undefined,
         partnership_code: partnershipCode,
       });
-      setStep("success");
+      setPlaced({ access_token: data.access_token, details: { business: data.business, payment_accounts: data.payment_accounts } });
+      setStep('done');
       onPurchased?.();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Could not place the order. Please try again.";
-      toast.error(message);
+    } catch (err: any) {
+      toast.error(err?.error ?? 'Could not place the order');
     } finally {
       setProcessing(false);
     }
   };
 
+  const business = details?.business;
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60" onClick={onClose}>
-      <div className="bg-card rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl" style={{ backgroundColor: 'hsl(var(--card))' }} onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div className="sticky top-0 border-b border-border/50 px-5 py-3 flex items-center justify-between z-10" style={{ backgroundColor: 'hsl(var(--card))' }}>
-          <h2 className="font-display text-base font-bold">
-            {step === "success" ? "Order Placed!" : "Checkout"}
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="purchase-title">
+      <div className="w-full sm:max-w-md max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-card p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 id="purchase-title" className="font-semibold flex items-center gap-2">
+            {step === 'done' ? <Check className="w-5 h-5 text-green-600" /> : <ShoppingBag className="w-5 h-5 text-amber-500" />}
+            {step === 'done' ? 'Order placed' : 'Buy'}
           </h2>
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-secondary" aria-label="Close modal"><X className="w-4 h-4" /></button>
+          <button type="button" onClick={onClose} className="rounded-full p-1.5 hover:bg-secondary" aria-label="Close"><X className="w-5 h-5" /></button>
         </div>
 
-        {/* Product Details Step */}
-        {step === "details" && (
-          <div className="p-5 space-y-4">
-            {/* Product */}
-            <div className="flex gap-3">
-              <div className="w-20 h-20 rounded-xl bg-secondary/20 overflow-hidden shrink-0">
-                {images[0] ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={images[0]} alt={item.title || 'Product image'} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-muted-foreground/30"><ShoppingBag className="w-6 h-6" /></div>}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm">{item.title}</h3>
-                {item.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
-                <p className="text-amber-600 font-bold text-lg mt-1">{unitPrice.toLocaleString()} <span className="text-xs font-normal">{item.currency || "USD"}</span></p>
-              </div>
-            </div>
+        <div className="rounded-xl bg-secondary/40 p-3">
+          <p className="font-medium">{item.title}</p>
+          {unitPrice > 0 && <p className="text-sm text-muted-foreground">{unitPrice.toLocaleString()} {currency} each</p>}
+        </div>
 
-            {/* Quantity */}
-            <div>
-              <Label className="text-sm">Quantity</Label>
-              <div className="flex items-center gap-3 mt-2">
-                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-lg font-medium hover:bg-secondary">−</button>
-                <span className="text-lg font-semibold w-8 text-center">{quantity}</span>
-                <button onClick={() => setQuantity(q => q + 1)} className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-lg font-medium hover:bg-secondary">+</button>
-              </div>
-            </div>
+        {step === 'details' && (
+          <>
+            <section aria-label="Seller" className="space-y-1 text-sm">
+              <p className="font-medium">Sold by {sellerName}</p>
+              {business?.business_contact_phone && <p className="flex items-center gap-2 text-muted-foreground"><Phone className="w-4 h-4" /> {business.business_contact_phone}</p>}
+              {business?.business_contact_email && <p className="flex items-center gap-2 text-muted-foreground"><Mail className="w-4 h-4" /> {business.business_contact_email}</p>}
+              {business?.business_address && <p className="flex items-center gap-2 text-muted-foreground"><MapPin className="w-4 h-4" /> {business.business_address}</p>}
+            </section>
 
-            {/* Total */}
-            <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/30">
-              <span className="text-sm font-medium">Total</span>
-              <span className="text-xl font-bold text-amber-600">{totalPrice.toLocaleString()} {item.currency || "USD"}</span>
-            </div>
-
-            <Button onClick={() => setStep("checkout")} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
-              Continue to Checkout
-            </Button>
-          </div>
-        )}
-
-        {/* Checkout Step */}
-        {step === "checkout" && (
-          <div className="p-5 space-y-4">
-            <div className="flex gap-3 p-3 rounded-xl bg-secondary/20">
-              <div className="w-12 h-12 rounded-lg bg-secondary/30 overflow-hidden shrink-0">
-                {images[0] ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={images[0]} alt={item.title || 'Product image'} className="w-full h-full object-cover" /> : <ShoppingBag className="w-5 h-5 text-muted-foreground/30 m-auto mt-3" />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.title}</p>
-                <p className="text-xs text-muted-foreground">{quantity} × {unitPrice.toLocaleString()} {item.currency || "USD"}</p>
-              </div>
-              <p className="text-sm font-bold text-amber-600">{totalPrice.toLocaleString()}</p>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <Label>Full Name</Label>
-                <Input value={orderInfo.name} onChange={e => setOrderInfo({...orderInfo, name: e.target.value})} placeholder="Your name" className="mt-1 h-10" />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>Phone</Label>
-                  <Input value={orderInfo.phone} onChange={e => setOrderInfo({...orderInfo, phone: e.target.value})} placeholder="+1 234 567 8900" className="mt-1 h-10" />
-                </div>
-                <div>
-                  <Label>Email</Label>
-                  <Input type="email" value={orderInfo.email} onChange={e => setOrderInfo({...orderInfo, email: e.target.value})} placeholder="you@email.com" className="mt-1 h-10" />
-                </div>
-              </div>
-              <div>
-                <Label>Delivery Address</Label>
-                <Input value={orderInfo.address} onChange={e => setOrderInfo({...orderInfo, address: e.target.value})} placeholder="Street, City, Area" className="mt-1 h-10" />
-              </div>
-              <div>
-                <Label>Notes (optional)</Label>
-                <Input value={orderInfo.notes} onChange={e => setOrderInfo({...orderInfo, notes: e.target.value})} placeholder="Size, color, special instructions..." className="mt-1 h-10" />
-              </div>
-              {/* Coupon Code */}
-              <div>
-                <Label className="flex items-center gap-1"><Tag className="w-3.5 h-3.5 text-amber-500" /> Coupon Code</Label>
-                <div className="flex gap-2 mt-1">
-                  <Input
-                    value={couponCode}
-                    onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponData(null); }}
-                    placeholder="Enter code (e.g. SAVE20)"
-                    className="h-10 font-mono tracking-widest"
-                  />
-                  <Button variant="outline" className="h-10 rounded-xl shrink-0" onClick={validateCoupon} disabled={validatingCoupon || !couponCode.trim()}>
-                    {validatingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : "Apply"}
-                  </Button>
-                </div>
-                {couponData?.valid && (
-                  <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5" /> Coupon applied — you save {couponData.discount.toLocaleString()} {item.currency || "USD"}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-1">
-              {discount > 0 && (
+            <section aria-label="How to pay" className="space-y-2">
+              <p className="text-sm font-medium flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay the seller directly</p>
+              {loadingDetails ? (
+                <p className="text-sm text-muted-foreground"><Loader2 className="inline w-4 h-4 animate-spin mr-1" />Loading payment details…</p>
+              ) : accounts.length ? (
                 <>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>{subtotal.toLocaleString()} {item.currency || "USD"}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-green-600">Discount ({couponData.coupon.code})</span>
-                    <span className="text-green-600">−{discount.toLocaleString()} {item.currency || "USD"}</span>
-                  </div>
-                  <div className="border-t border-amber-200 pt-1" />
+                  <PaymentAccountList accounts={accounts} />
+                  <p className="text-xs text-muted-foreground">NodBusiness never receives your money. You pay {sellerName} and they confirm it.</p>
                 </>
+              ) : (
+                <p className="text-sm text-muted-foreground">{sellerName} has not added payment details yet. Contact them to arrange payment.</p>
               )}
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Total Amount</p>
-                <p className="text-xl font-bold text-amber-600">{totalPrice.toLocaleString()} {item.currency || "USD"}</p>
-              </div>
-            </div>
+            </section>
 
-            <p className="text-xs text-muted-foreground text-center">💳 Pay with Chapa (ETB) or Stripe (cards, wallets & local methods) — or place a COD order</p>
-
-            <div className="grid grid-cols-1 gap-2">
-              {/* ── Chapa — primary ETB payment ── */}
-              <Button
-                disabled={processing || !orderInfo.name || !orderInfo.phone}
-                className="w-full h-11 rounded-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
-                onClick={async () => {
-                  setProcessing(true);
-                  try {
-                    const { data } = await client.post("/api/orders/checkout/chapa", {
-                      product_id:       item.id,
-                      product_title:    item.title,
-                      unit_price:       unitPrice,
-                      quantity,
-                      seller_id:        seller.user_id,
-                      buyer_name:       orderInfo.name || buyer?.full_name || "",
-                      buyer_email:      orderInfo.email || buyer?.email || "",
-                      buyer_phone:      orderInfo.phone || "",
-                      delivery_address: orderInfo.address,
-                      notes:            orderInfo.notes,
-                      coupon_discount:  discount,
-                      partnership_code: partnershipCode,
-                    });
-                    if (data?.checkout_url) {
-                      setChapaTxRef(data.tx_ref);
-                      // Open Chapa in a new tab so modal stays open for polling
-                      window.open(data.checkout_url, '_blank', 'width=500,height=700,noopener');
-                      setStep("chapa_pending");
-                    } else {
-                      toast.error("Chapa checkout unavailable — use Place Order instead");
-                    }
-                  } catch (e) {
-                    toast.error(e?.response?.data?.error || "Chapa payment unavailable. Use COD or add CHAPA_SECRET_KEY.");
-                  }
-                  setProcessing(false);
-                }}
-              >
-                {processing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Opening Chapa...</> : `🇪🇹 Pay with Chapa • ${totalPrice.toLocaleString()} ETB`}
-              </Button>
-
-              {/* ── Stripe — hosted checkout with all payment methods ── */}
-              <Button
-                disabled={processing || !orderInfo.name || !orderInfo.phone}
-                className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-semibold shadow-sm"
-                onClick={async () => {
-                  setProcessing(true);
-                  try {
-                    // Prices are recomputed server-side from the DB — we only
-                    // send identifiers, quantity and the coupon code.
-                    const { data } = await client.post("/api/orders/checkout/session", {
-                      product_id:       item.id,
-                      quantity,
-                      coupon_code:      couponData?.valid ? couponCode.trim() : undefined,
-                      buyer_name:       orderInfo.name || buyer?.full_name || "",
-                      buyer_email:      orderInfo.email || buyer?.email || "",
-                      buyer_phone:      orderInfo.phone || "",
-                      delivery_address: orderInfo.address,
-                      notes:            orderInfo.notes,
-                      partnership_code: partnershipCode,
-                    });
-                    if (data?.url) {
-                      const conv = data.display?.converted;
-                      if (conv) {
-                        toast.info(`You'll be charged ${conv.total.toLocaleString()} ${conv.currency} ≈ ${data.display.total.toLocaleString()} ETB`);
-                      }
-                      window.location.href = data.url; // Stripe handles success/cancel redirects
-                      return; // keep spinner up while redirecting
-                    }
-                    toast.error("Stripe checkout unavailable — use Chapa or Place Order instead");
-                  } catch (e: any) {
-                    toast.error(e?.response?.data?.error || "Stripe unavailable. Use Chapa or Place Order.");
-                  }
-                  setProcessing(false);
-                }}
-              >
-                {processing
-                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Opening secure checkout...</>
-                  : `💳 Pay with Card & Wallets • ${totalPrice.toLocaleString()} ${item.currency || "USD"}`}
-              </Button>
-              <Button onClick={handleCheckout} disabled={processing || !orderInfo.name || !orderInfo.phone} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
-                {processing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Placing Order...</> : `Place Order (COD) • ${totalPrice.toLocaleString()} ${item.currency || "USD"}`}
-              </Button>
-            </div>
-          </div>
+            {isProduct && accounts.length > 0 && (
+              <>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="purchase-qty">Quantity</Label>
+                  <Input id="purchase-qty" type="number" min={1} max={10000} value={quantity} onChange={(e) => setQuantity(Math.max(1, Math.min(10000, Number(e.target.value) || 1)))} className="w-24 h-10" />
+                </div>
+                {unitPrice > 0 && <p className="text-right font-semibold">Total: {total.toLocaleString()} {currency}</p>}
+                <Button onClick={() => setStep('contact')} className="w-full rounded-full">Continue</Button>
+              </>
+            )}
+          </>
         )}
 
-        {/* Chapa Pending Step */}
-        {step === "chapa_pending" && (
-          <div className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto">
-              <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
+        {step === 'contact' && (
+          <>
+            <p className="text-sm text-muted-foreground">No account needed. We email you a private link to your order.</p>
+            <div className="space-y-3">
+              <div><Label htmlFor="buyer-name">Name</Label><Input id="buyer-name" autoComplete="name" value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} maxLength={200} className="mt-1 h-11" /></div>
+              <div><Label htmlFor="buyer-phone">Phone</Label><Input id="buyer-phone" type="tel" autoComplete="tel" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} placeholder="+251 9 12 34 56 78" maxLength={20} className="mt-1 h-11" /></div>
+              <div><Label htmlFor="buyer-email">Email</Label><Input id="buyer-email" type="email" autoComplete="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} maxLength={320} className="mt-1 h-11" /></div>
+              <div><Label htmlFor="buyer-address">Delivery address (optional)</Label><Input id="buyer-address" autoComplete="street-address" value={contact.address} onChange={(e) => setContact({ ...contact, address: e.target.value })} maxLength={2000} className="mt-1 h-11" /></div>
+              <div><Label htmlFor="buyer-notes">Note to seller (optional)</Label><Input id="buyer-notes" value={contact.notes} onChange={(e) => setContact({ ...contact, notes: e.target.value })} maxLength={2000} className="mt-1 h-11" /></div>
             </div>
-            <div>
-              <h3 className="font-display text-xl font-bold">Waiting for Payment</h3>
-              <p className="text-sm text-muted-foreground mt-1">Complete your payment in the Chapa window. This page will update automatically.</p>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setStep('details')} className="flex-1 rounded-full" disabled={processing}>Back</Button>
+              <Button onClick={placeOrder} disabled={!contactValid || processing} className="flex-1 rounded-full">
+                {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : `Place order${unitPrice > 0 ? ` · ${total.toLocaleString()} ${currency}` : ''}`}
+              </Button>
             </div>
-            <div className="p-4 rounded-xl bg-green-50 border border-green-200 text-left space-y-1">
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Amount</span><span className="font-bold text-green-700">{totalPrice.toLocaleString()} ETB</span></div>
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Product</span><span className="font-medium">{item.title}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Reference</span><span className="font-mono text-xs text-muted-foreground">{chapaTxRef}</span></div>
-            </div>
-            <p className="text-xs text-muted-foreground">Checking payment status every 3 seconds...</p>
-            <Button variant="outline" className="w-full rounded-full" onClick={() => setStep("checkout")}>
-              ← Go back
-            </Button>
-          </div>
+          </>
         )}
 
-        {/* Success Step */}
-        {step === "success" && (
-          <div className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-              <Check className="w-8 h-8 text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-display text-xl font-bold">Order Placed Successfully!</h3>
-              <p className="text-sm text-muted-foreground mt-1">The seller has been notified and will contact you shortly to arrange payment and delivery.</p>
-            </div>
-            <div className="p-4 rounded-xl bg-secondary/30 text-left">
-              <div className="flex justify-between text-sm mb-1"><span className="text-muted-foreground">Product</span><span className="font-medium">{item.title}</span></div>
-              <div className="flex justify-between text-sm mb-1"><span className="text-muted-foreground">Quantity</span><span className="font-medium">{quantity}</span></div>
-              <div className="flex justify-between text-sm mb-1"><span className="text-muted-foreground">Seller</span><span className="font-medium">{seller.business_name || seller.display_name}</span></div>
-              <div className="flex justify-between text-sm pt-2 border-t border-border/30 mt-2"><span className="font-medium">Total</span><span className="font-bold text-amber-600">{totalPrice.toLocaleString()} {item.currency || "USD"}</span></div>
-            </div>
-            <Button onClick={onClose} className="w-full h-11 rounded-full">Done</Button>
-          </div>
+        {step === 'done' && placed && (
+          <>
+            <ol className="list-decimal list-inside space-y-1 text-sm">
+              <li>Pay {sellerName}{unitPrice > 0 ? ` ${total.toLocaleString()} ${currency}` : ''} using one of the accounts below.</li>
+              <li>Open your order page and tap <strong>I&apos;ve paid</strong>.</li>
+              <li>{sellerName} confirms when the money arrives.</li>
+            </ol>
+            <PaymentAccountList accounts={placed.details.payment_accounts} />
+            {placed.details.business?.pickup_address && (
+              <p className="text-sm"><MapPin className="inline w-4 h-4 mr-1" />Pickup: {placed.details.business.pickup_address}</p>
+            )}
+            <p className="text-xs text-muted-foreground">We emailed this link to you. Keep it private: anyone with it can see your order.</p>
+            <Link href={`/order/${placed.access_token}`} className="flex w-full items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Open my order</Link>
+          </>
         )}
       </div>
     </div>

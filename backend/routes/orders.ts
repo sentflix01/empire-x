@@ -110,7 +110,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     const orderBy = sort==='created_at' ? 'o.created_at ASC' : 'o.created_at DESC';
     params.push(lim);
     const { rows } = await pool.query(`SELECT o.* FROM orders o WHERE ${conditions.join(' AND ')} ORDER BY ${orderBy} LIMIT $${params.length}`, params);
-    res.json({ orders: rows, next_cursor: rows.length===lim ? rows[rows.length-1].created_at : null });
+    res.json({ orders: rows.map(clientOrder), next_cursor: rows.length===lim ? rows[rows.length-1].created_at : null });
   } catch { apiError.serverError(res, 'Failed to fetch orders'); }
 });
 
@@ -128,7 +128,7 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
     const order = await getRecord<Record<string,unknown>>('orders', req.params.id);
     if (!order) { apiError.notFound(res, 'Order not found'); return; }
     if (order.buyer_id!==req.user!.id && order.seller_id!==req.user!.id && req.user!.role!=='admin') { res.status(403).json({ error:'Forbidden' }); return; }
-    res.json(order);
+    res.json(clientOrder(order));
   } catch { apiError.serverError(res, 'Failed to fetch order'); }
 });
 
@@ -161,6 +161,13 @@ const SELLER_TRANSITIONS: Record<string, Set<string>> = {
   processing: new Set(['shipped', 'cancelled']),
   shipped: new Set(['delivered']),
 };
+
+/** Never send the order-link token hash or the private receipt key to clients. */
+function clientOrder<T extends Record<string, unknown> | null | undefined>(row: T): T {
+  if (!row) return row;
+  const { access_token_hash: _hash, receipt_key: receiptKey, ...rest } = row as Record<string, unknown>;
+  return { ...rest, has_receipt: !!receiptKey } as unknown as T;
+}
 
 function pickAllowed(body: Record<string, unknown>, allowed: readonly string[]): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -311,7 +318,7 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       if (buyerId) sendPushToUser(buyerId, '📦 Order completed!', `Your order for ${existing.product_title} is complete.`, '/orders').catch(()=>undefined);
       sendPushToUser(existing.seller_id as string, '✅ Sale completed!', `Order for ${existing.product_title} has been completed.`, '/orders').catch(()=>undefined);
     }
-    res.json(updated);
+    res.json(clientOrder(updated as Record<string, unknown>));
   } catch (err) {
     logger.error({ err }, 'Failed to update order');
     apiError.serverError(res, 'Failed to update order');
