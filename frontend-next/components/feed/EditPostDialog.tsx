@@ -69,8 +69,9 @@ export default function EditPostDialog({ open, post, onOpenChange, onSave }: Edi
       await onSave({ content, image_url });
       onOpenChange(false);
     } catch (err) {
-      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      setError(message ?? 'Could not save your changes. Try again.');
+      // The API client rejects with the response body, e.g. { error: '...' }.
+      const message = (err as { error?: string } | null)?.error;
+      setError(typeof message === 'string' && message ? message : 'Could not save your changes. Try again.');
     } finally {
       setSaving(false);
     }
