@@ -52,7 +52,6 @@ router.get('/slug/:slug', optionalAuth, async (req: Request, res: Response) => {
     const access = rows[0].business_id ? await getBusinessSubscriptionAccess(String(rows[0].business_id)) : null;
     const isOwner = rows[0].owner_id === req.user?.id;
     if (!isOwner && rejectViewGate(res, businessViewGate(access, req), 'Showroom not found')) return;
-    if (isOwner && access?.blockedForOwner) { res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' }); return; }
     await pool.query('UPDATE showrooms SET view_count=view_count+1 WHERE id=$1', [rows[0].id]);
     res.json({ ...rows[0], view_count: rows[0].view_count + 1 });
   } catch { res.status(500).json({ error: 'Failed to fetch showroom' }); }
@@ -163,7 +162,6 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
     const access = showroom.business_id ? await getBusinessSubscriptionAccess(String(showroom.business_id)) : null;
     const isOwner = showroom.owner_id === req.user?.id;
     if (showroom.status === 'published' && !isOwner && rejectViewGate(res, businessViewGate(access, req), 'Showroom not found')) return;
-    if (isOwner && access?.blockedForOwner) { res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' }); return; }
     if (showroom.status !== 'published' && showroom.owner_id !== req.user?.id) { res.status(404).json({ error: 'Showroom not found' }); return; }
     if (showroom.expires_at && new Date(String(showroom.expires_at)).getTime() <= Date.now()) { res.status(404).json({ error: 'Showroom not found' }); return; }
     res.json(showroom);
@@ -249,7 +247,6 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     const updates = withoutProtectedFields(req.body as Record<string, unknown>, 'owner_id');
     delete updates.expires_at;
     const currentAccess = existing.business_id ? await getBusinessSubscriptionAccess(existing.business_id) : null;
-    if (existing.owner_id === req.user!.id && currentAccess?.blockedForOwner) { res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' }); return; }
     let businessId = typeof updates.business_id === 'string' ? updates.business_id : existing.business_id ?? undefined;
     if (!businessId && !req.user!.is_demo) {
       const { rows } = await pool.query<{ id: string }>('SELECT id FROM businesses WHERE owner_id=$1 ORDER BY created_at ASC LIMIT 2', [req.user!.id]);

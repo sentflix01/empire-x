@@ -18,7 +18,7 @@ jest.mock('../../utils/crud', () => ({
   withoutProtectedFields: (data) => ({ ...data }),
 }));
 jest.mock('../../lib/businessSubscriptionPolicy', () => ({
-  getBusinessSubscriptionAccess: jest.fn().mockResolvedValue({ blockedForOwner: false, hiddenFromPublic: false }),
+  getBusinessSubscriptionAccess: jest.fn().mockResolvedValue({ hiddenFromPublic: false }),
   getRequiredBusinessTier: jest.fn(() => 'pro'),
   canPublishBusinessSite: jest.fn().mockResolvedValue(false),
   isBusinessOwnerBlocked: jest.fn().mockResolvedValue(false),

@@ -19,9 +19,9 @@ function buildNoticeHtml(businessName, day, subscriptionUrl) {
   const content = day === 0
     ? 'Your monthly subscription has ended. Renew within 24 hours to keep your website visible to customers.'
     : day === 3
-      ? 'Your website is overdue. Renew now to restore access to your business profile and website.'
+      ? 'Your website is hidden from customers because the subscription is unpaid. You can still edit it; renew now to make it visible again.'
       : day === 7
-        ? 'Your website remains blocked because the subscription is unpaid. Please renew to restore it.'
+        ? 'Your website is still hidden from customers. Renew to make it visible again before it is deleted on day 10.'
         : day === 9
           ? 'Final reminder: your business profile and website are scheduled for permanent deletion tomorrow if payment is not received.'
           : 'Your business profile and website have been permanently removed because the subscription remained unpaid. Your Nodbusiness account is still available.';

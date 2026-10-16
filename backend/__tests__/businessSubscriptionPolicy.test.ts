@@ -21,25 +21,26 @@ describe('business subscription access policy', () => {
 
   it('allows a paid subscription until its period ends', async () => {
     const result = await accessAt(new Date(Date.now() + 60_000));
-    expect(result).toMatchObject({ paid: true, hiddenFromPublic: false, blockedForOwner: false });
+    expect(result).toMatchObject({ paid: true, hiddenFromPublic: false });
   });
 
   it('hides a site immediately when it has no paid period', async () => {
     const result = await accessAt(null);
-    expect(result).toMatchObject({ paid: false, hiddenFromPublic: true, blockedForOwner: false });
+    expect(result).toMatchObject({ paid: false, hiddenFromPublic: true });
   });
 
   it('keeps a site visible during the 24-hour grace window', async () => {
     const result = await accessAt(new Date(Date.now() - 23 * 60 * 60 * 1000));
-    expect(result).toMatchObject({ paid: false, hiddenFromPublic: false, blockedForOwner: false });
+    expect(result).toMatchObject({ paid: false, hiddenFromPublic: false });
   });
 
-  it('hides after 24 hours and blocks owner access after three days', async () => {
+  it('hides after 24 hours and never locks the owner out before deletion (decision §6)', async () => {
     const after24h = await accessAt(new Date(Date.now() - 24 * 60 * 60 * 1000));
-    expect(after24h).toMatchObject({ paid: false, hiddenFromPublic: true, blockedForOwner: false });
+    expect(after24h).toMatchObject({ paid: false, hiddenFromPublic: true });
 
-    const after3d = await accessAt(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000));
-    expect(after3d).toMatchObject({ paid: false, hiddenFromPublic: true, blockedForOwner: true });
+    const after9d = await accessAt(new Date(Date.now() - 9 * 24 * 60 * 60 * 1000));
+    expect(after9d).toMatchObject({ paid: false, hiddenFromPublic: true });
+    expect(after9d).not.toHaveProperty('blockedForOwner');
   });
 });
 
