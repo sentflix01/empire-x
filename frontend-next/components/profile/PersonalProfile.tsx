@@ -69,7 +69,7 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
               {isOwner ? "You haven't posted yet" : "No posts yet"}
             </div>
           ) : (
-            posts.map(p => <PostCard key={p.id} post={p} currentUserId={user?.id} />)
+            posts.map(p => <PostCard key={p.id} post={p} currentUserId={user?.id} onDeleted={(id) => setPosts(prev => prev.filter(x => x.id !== id))} />)
           )}
         </div>
       )}

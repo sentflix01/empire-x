@@ -205,6 +205,15 @@ Create post. Requires auth.
 }
 ```
 
+### PUT /api/posts/:id
+Edit a post. Only the author or an admin; others get `403`.
+Accepts `content`, `image_url` (string or `null` to remove the photo) and `post_type`. A post with a photo may have an empty caption; a post must keep text or a photo (`422` otherwise).
+Changing `content` or `image_url` sets `edited_at`, which the feed shows as "Edited", and re-syncs the post's hashtags.
+
+### DELETE /api/posts/:id
+Delete a post. Only the author or an admin. This is a hard delete. Comments, hashtag links and poll votes cascade. Likes and saves (bookmarks) of the post are removed, and hashtag post counts are decremented.
+**Response:** `{ "success": true }`
+
 ### POST /api/posts/:id/like
 Like or unlike a post. Requires auth.
 **Response:** `{ "liked": true }` or `{ "liked": false }`
