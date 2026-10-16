@@ -276,22 +276,88 @@ Create an order. Requires auth.
 Update order status. Requires auth (buyer, seller, or admin).
 
 **Request:** `{ "status": "completed" }`
-**Status values:** `pending | paid | processing | completed | cancelled`
+**Status values:** `pending | awaiting_payment | payment_reported | paid | confirmed | processing | shipped | delivered | completed | cancelled | expired`
 
-### POST /api/orders/checkout/session
-Create Stripe checkout session. Requires auth.
+Order responses never include the private-link token hash or the receipt storage key; they include `has_receipt` instead.
+
+### POST /api/orders/checkout/session, POST /api/orders/checkout/chapa
+**Retired: `410 PLATFORM_COLLECTION_RETIRED`.** NodBusiness never collects buyer money
+([platform model decisions](../decisions/platform-model-decisions.md)). Buyers pay the seller
+directly; see Direct orders.
+
+---
+
+## Direct orders (pay the seller directly)
+
+The buyer pays the seller using the seller's own payment accounts, reports the payment, and only
+the seller confirms it. No account is needed to buy. Unpaid orders expire after 7 days and their
+stock is released.
+
+### GET /api/direct-orders/checkout-info?product_id=uuid | showroom_id=uuid
+Public. The seller's business name, the contact fields the owner chose to show, and active payment
+accounts. Never includes the pickup address. The response adds `payment_window_days`.
+
+### POST /api/direct-orders
+Public (optional auth). Rate limited to 10 per 15 minutes per IP.
 
 **Request:**
 ```json
 {
   "product_id": "uuid",
-  "product_title": "Habesha Dress",
-  "unit_price": 1500,
-  "quantity": 2,
-  "seller_id": "uuid"
+  "quantity": 1,
+  "buyer_name": "Abebe",
+  "buyer_phone": "+251911000000",
+  "buyer_email": "buyer@example.com",
+  "delivery_address": "optional",
+  "notes": "optional",
+  "partnership_code": "optional"
 }
 ```
-**Response:** `{ "url": "https://checkout.stripe.com/...", "session_id": "cs_..." }`
+**201:** `{ order, access_token, order_url, business, payment_accounts }`. The order starts as
+`awaiting_payment` and its stock is reserved. The private link `/order/<access_token>` is also
+emailed; only a SHA-256 hash of the token is stored.
+**409 `NO_PAYMENT_ACCOUNTS`:** the seller has no active payment account.
+**422:** invalid contact details, or a seller buying their own product.
+
+### GET /api/direct-orders/link/:token
+Public, by private link. Returns the order, the seller's contact details (including the pickup
+address), payment accounts, and `receipt_uploads` (whether a receipt can be attached).
+**404:** unknown link.
+
+### POST /api/direct-orders/link/:token/report-payment, POST /api/direct-orders/:id/report-payment
+The buyer reports a payment, by link or signed in. Multipart fields: `payment_reference` (optional)
+and `receipt` (optional JPEG, PNG, WebP or PDF, up to 5 MB, stored in the private
+`RECEIPTS_SUPABASE_BUCKET`). Moves `awaiting_payment` to `payment_reported`.
+**409:** the order is no longer open. **503 `RECEIPTS_UNAVAILABLE`:** a receipt was sent but no
+private bucket is configured.
+
+### POST /api/direct-orders/:id/confirm-payment
+Seller or admin only. Moves an open order to `paid`. Anyone else gets `404`.
+
+### POST /api/direct-orders/:id/reject-payment
+Seller or admin only. Moves `payment_reported` back to `awaiting_payment` and tells the buyer.
+
+### GET /api/direct-orders/link/:token/receipt, GET /api/direct-orders/:id/receipt
+Returns a short-lived signed URL, `{ "url": "..." }`, for the buyer (by link) or the seller/admin.
+
+### Business payment accounts
+- `GET /api/businesses/:id/payment-accounts`: owner only.
+- `POST /api/businesses/:id/payment-accounts`: owner only, at most 10 per business. Fields:
+  `method` (`bank | mobile_money | other`), `provider_name`, `account_name`, `account_number`,
+  `instructions`, `is_active`, `sort_order`.
+- `PUT /api/businesses/:id/payment-accounts/:accountId` and `DELETE /api/businesses/:id/payment-accounts/:accountId`: owner only.
+- `GET /api/businesses/:id/checkout-info`: public seller details and active accounts, as above.
+
+Businesses and profiles expose only the contact fields listed in `public_contact_fields`.
+`businesses.pickup_address` is shown to a buyer only after they place an order.
+
+---
+
+## Share previews
+
+### GET /api/share-preview/showroom/:slug, GET /api/share-preview/product/:id
+Public fields used for link-preview metadata (title, description, image). Hidden or unpublished
+items return `404`. These reads do not count as views.
 
 ---
 
@@ -313,10 +379,8 @@ Get wallet balance and last 50 transactions. Requires auth.
 }
 ```
 
-### POST /api/wallet/topup
-Add funds to wallet. Requires auth.
-
-**Request:** `{ "amount": 1000, "reference": "receipt-123" }`
+### POST /api/wallet/topup (and /topup/chapa, /topup/stripe)
+**Retired: `410 PLATFORM_COLLECTION_RETIRED`.** The wallet is withdraw-only for existing balances.
 
 ### POST /api/wallet/withdraw
 Request withdrawal. Requires auth.
@@ -324,14 +388,10 @@ Request withdrawal. Requires auth.
 **Request:** `{ "amount": 500, "bank_name": "CBE", "account_number": "1000123456" }`
 
 ### POST /api/wallet/debit
-Debit a user's wallet. **Requires admin.**
-
-**Request:** `{ "user_id": "uuid", "amount": 150, "description": "Commission 3%", "reference": "order-uuid" }`
+**Retired: `410 PLATFORM_COLLECTION_RETIRED`.** No commission is collected.
 
 ### POST /api/wallet/refund
-Refund to a user's wallet. Requires auth (called when return approved).
-
-**Request:** `{ "user_id": "uuid", "amount": 1500, "description": "Return approved", "reference": "return-uuid" }`
+**Retired: `410 PLATFORM_COLLECTION_RETIRED`.** Refunds are settled between buyer and seller.
 
 ---
 

@@ -55,6 +55,9 @@ psql $DATABASE_URL -c "\dt"  # list all tables
 | `migrate45.js` | Profile-owner partnerships, eligible product snapshots, commission ledger, and partnership attribution columns on orders |
 | `migrate46.js` | Canonical account ownership link for isolated Demo workspace identities |
 | `migrate47.js` | Explicit eligible subtotal on orders, profile commission adjustment ledger, and manual payout history/items |
+| `migrate55.js` | `posts.link_url` and `posts.showroom_id` (one announcement post per published showroom) |
+| `migrate56.js` | `business_payment_accounts`; `public_contact_fields` on businesses and profiles; `businesses.pickup_address` |
+| `migrate57.js` | Direct-payment orders: nullable `buyer_id` for guests, private-link token hash, payment report/confirm/expiry columns, receipt key, and the `awaiting_payment`, `payment_reported` and `expired` statuses |
 
 Mewacho and the other deferred areas are not mounted in the launch app. Their historical schemas and records are retained; see `docs/product/POST_LAUNCH_FEATURES.md` before considering data cleanup or a future rebuild.
 
