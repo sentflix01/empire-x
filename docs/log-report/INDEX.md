@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-16 | Maintenance | Merge pull request #108 from sentflix01/claude/phase0-stabilise | [705930daf](2026-10-16-705930daf-merge-pull-request-108-from-sentflix01-claude-ph.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/phase0-stabilise | [6c2cd6be1](2026-10-16-6c2cd6be1-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-16 | Maintenance | Merge pull request #107 from sentflix01/claude/site-visibility | [60a97cf92](2026-10-16-60a97cf92-merge-pull-request-107-from-sentflix01-claude-si.md) |
 | 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/site-visibility | [1de83ff5d](2026-10-16-1de83ff5d-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-16 | Maintenance | Merge pull request #112 from sentflix01/fix/render-js-modules | [556885ee0](2026-10-16-556885ee0-merge-pull-request-112-from-sentflix01-fix-rende.md) |
@@ -16,14 +18,24 @@
 | 2026-10-16 | Maintenance | Merge pull request #105 from sentflix01/claude/mvp-phase1 | [2e9072b16](2026-10-16-2e9072b16-merge-pull-request-105-from-sentflix01-claude-mv.md) |
 | 2026-10-16 | Testing | test: give the Marketplace paging test time for the second page on slow CI | [0311fd7e5](2026-10-16-0311fd7e5-give-the-marketplace-paging-test-time-for-the-se.md) |
 | 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/mvp-phase1 | [1907df6da](2026-10-16-1907df6da-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/site-visibility' into claude/phase0-stabilise | [e913ccb8c](2026-10-16-e913ccb8c-merge-remote-tracking-branch-origin-claude-site-.md) |
 | 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [57740a11f](2026-10-16-57740a11f-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
 | 2026-10-16 | Bugfix | fix(ui): Buy view uses theme tokens again now that Tailwind generates them (#106) | [e62aa4c2e](2026-10-16-e62aa4c2e-buy-view-uses-theme-tokens-again-now-that-tailwi.md) |
 | 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/mvp-phase1 | [e1c8dc89f](2026-10-16-e1c8dc89f-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-16 | Maintenance | Merge pull request #106 from sentflix01/fix/tailwind-theme-colours | [f2f76943e](2026-10-16-f2f76943e-merge-pull-request-106-from-sentflix01-fix-tailw.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/site-visibility' into claude/phase0-stabilise | [55421d7f4](2026-10-16-55421d7f4-merge-remote-tracking-branch-origin-claude-site-.md) |
 | 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [8662858a7](2026-10-16-8662858a7-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
 | 2026-10-16 | Testing | test: give the ProductDetail property test enough time on slow CI runners | [28f5e8d0f](2026-10-16-28f5e8d0f-give-the-productdetail-property-test-enough-time.md) |
+| 2026-10-16 | Documentation | docs: internal scheduled jobs endpoint, migrate60, regenerated API reference | [29a95cb9a](2026-10-16-29a95cb9a-internal-scheduled-jobs-endpoint-migrate60-regen.md) |
+| 2026-10-16 | Bugfix | fix(builder): editing a published site never loads template defaults over it (F-H5) | [22f2c876d](2026-10-16-22f2c876d-editing-a-published-site-never-loads-template-de.md) |
+| 2026-10-16 | Testing | test(db): run routes and migrations against a real Postgres in CI | [87111aec2](2026-10-16-87111aec2-run-routes-and-migrations-against-a-real-postgre.md) |
+| 2026-10-16 | Bugfix | fix(auth): keep sign-in security controls working when Redis is down | [0670ba824](2026-10-16-0670ba824-keep-sign-in-security-controls-working-when-redi.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/site-visibility' into claude/phase0-stabilise | [79ff4c4d2](2026-10-16-79ff4c4d2-merge-remote-tracking-branch-origin-claude-site-.md) |
+| 2026-10-16 | Feature | feat(jobs): run expiry and cleanup jobs on a schedule, not only in-process | [11d2058e3](2026-10-16-11d2058e3-run-expiry-and-cleanup-jobs-on-a-schedule-not-on.md) |
 | 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [debdc11a3](2026-10-16-debdc11a3-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
 | 2026-10-16 | Bugfix | fix(jobs): draft reminders failed every run on a SQL type error | [0a7967234](2026-10-16-0a7967234-draft-reminders-failed-every-run-on-a-sql-type-e.md) |
+| 2026-10-16 | Bugfix | fix(feed): page the ranked home feed correctly | [eff32dee6](2026-10-16-eff32dee6-page-the-ranked-home-feed-correctly.md) |
+| 2026-10-16 | Bugfix | fix(api): owners keep full access to an unpaid business until Day 10 | [e9e878d2e](2026-10-16-e9e878d2e-owners-keep-full-access-to-an-unpaid-business-un.md) |
 | 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [a70196451](2026-10-16-a70196451-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
 | 2026-10-16 | Feature | feat(db): give legacy websites a Business profile and a 30-day free period | [5a10f3bea](2026-10-16-5a10f3bea-give-legacy-websites-a-business-profile-and-a-30.md) |
 | 2026-10-16 | Bugfix | fix(api): product status filter placeholder, short searches, guest owner profiles | [c5f51d79f](2026-10-16-c5f51d79f-product-status-filter-placeholder-short-searches.md) |
