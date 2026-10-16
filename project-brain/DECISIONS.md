@@ -130,6 +130,23 @@ documents when verified; do not copy stale values into new work.
   profile rows for the Demo owner.
 - **Related documentation:** [Demo workspace deployment](../docs/operations/DEMO_WORKSPACE_DEPLOYMENT.md)
 
+### 2026-10-16 — globals.css is the only Tailwind configuration; CI fails on missing utilities
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** The Next.js 16 move (2026-07-07) upgraded to Tailwind v4 but kept
+  the v3 `tailwind.config.js`, which v4 never loads. Theme colours, enter/exit
+  animations and the custom radius were silently missing in production for
+  three months (151 utilities).
+- **Decision:** `frontend-next/app/globals.css` is the single source of theme
+  tokens (`@theme`) and Tailwind plugins (`@plugin`). There is no
+  `tailwind.config.js`. `npm run check:css` runs after every CI build and fails
+  when the source uses a theme or plugin utility the build did not generate.
+- **Consequences:** New tokens, including ones a shadcn component needs, are
+  added to `@theme` in the same change. The checker's allowlist is only for
+  strings that are not classes.
+- **Related documentation:** [Engineering Standards](../docs/ENGINEERING_STANDARDS.md#theme-tokens-and-tailwind-v4) (PR #106)
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when

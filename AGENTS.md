@@ -33,7 +33,7 @@ test first; run the broader gates required by
 
 - Frontend: `npm run lint`, `npx tsc --noEmit --pretty false`,
   `npm test` (or the relevant Vitest test), and `npm run build`
-  as applicable, from `frontend-next/`.
+  followed by `npm run check:css` as applicable, from `frontend-next/`.
 - Backend: `npm run typecheck`, focused Jest tests, and the required
   integration/e2e checks as applicable, from `backend/`.
 - Database changes: verify migration ordering, idempotency, and rollback or
