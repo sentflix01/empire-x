@@ -50,6 +50,7 @@ interface Post {
 }
 
 import { UserProfile } from '@/api/entities';
+import PhotoViewer from '@/components/feed/PhotoViewer';
 
 interface Profile extends UserProfile {
 }
@@ -117,7 +118,7 @@ function RenderText({ text }: { text?: string }) {
 }
 
 /* ── Post type renderers ────────────────────────────── */
-function ImagePost({ post }: { post: Post }) {
+function ImagePost({ post, onOpen }: { post: Post; onOpen: () => void }) {
   const [err, setErr] = useState(false);
   if (err || !post.image_url) {
     return (
@@ -129,19 +130,22 @@ function ImagePost({ post }: { post: Post }) {
   return (
     <div className="pb-3">
       <div className="relative overflow-hidden bg-secondary/20" style={{ height: '22rem' }}>
-        <SafeImage
-          src={post.image_url}
-          alt={post.content ? post.content.slice(0, 120) : 'Post image'}
-          fill
-          sizes="(max-width: 640px) 100vw, 600px"
-          className="object-cover"
-          loading="lazy"
-          decoding="async"
-          onError={() => setErr(true)}
-        />
+        {/* The photo opens full screen; the caption sits above it so hashtag links stay tappable. */}
+        <button type="button" onClick={onOpen} aria-label="Open photo full screen" className="absolute inset-0 block cursor-zoom-in">
+          <SafeImage
+            src={post.image_url}
+            alt={post.content ? post.content.slice(0, 120) : 'Post image'}
+            fill
+            sizes="(max-width: 640px) 100vw, 600px"
+            className="object-cover"
+            loading="lazy"
+            decoding="async"
+            onError={() => setErr(true)}
+          />
+        </button>
         {post.content && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 py-4">
-            <p className="text-white text-sm leading-relaxed line-clamp-3">
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 py-4">
+            <p className="text-white text-sm leading-relaxed line-clamp-3 [&_a]:pointer-events-auto">
               <RenderText text={post.content} />
             </p>
           </div>
@@ -151,12 +155,12 @@ function ImagePost({ post }: { post: Post }) {
   );
 }
 
-function PromoPost({ post, themeColor, primaryBiz }: { post: Post; themeColor: string; primaryBiz: Business | null }) {
+function PromoPost({ post, themeColor, primaryBiz, onOpen }: { post: Post; themeColor: string; primaryBiz: Business | null; onOpen: () => void }) {
   const [err, setErr] = useState(false);
   return (
     <div>
       {post.image_url && !err && (
-        <div className="relative overflow-hidden bg-secondary/20" style={{ height: 220 }}>
+        <button type="button" onClick={onOpen} aria-label="Open photo full screen" className="relative block w-full overflow-hidden bg-secondary/20 cursor-zoom-in " style={{ height: 220 }}>
           <SafeImage
             src={post.image_url}
             alt="Promo"
@@ -173,7 +177,7 @@ function PromoPost({ post, themeColor, primaryBiz }: { post: Post; themeColor: s
               <Tag className="w-3 h-3" /> SPECIAL OFFER
             </span>
           </div>
-        </div>
+        </button>
       )}
       <div className="px-4 py-3" style={{ borderLeft: `4px solid ${themeColor}` }}>
         {primaryBiz?.business_name && (
@@ -185,12 +189,13 @@ function PromoPost({ post, themeColor, primaryBiz }: { post: Post; themeColor: s
   );
 }
 
-function EventPost({ post }: { post: Post }) {
+function EventPost({ post, onOpen }: { post: Post; onOpen: () => void }) {
   const [err, setErr] = useState(false);
   return (
     <div>
       {post.image_url && !err && (
-        <div className="relative overflow-hidden mx-4 mb-3 rounded-xl bg-secondary/20" style={{ height: 200 }}>
+        <div className="mx-4 mb-3">
+        <button type="button" onClick={onOpen} aria-label="Open photo full screen" className="relative block w-full overflow-hidden bg-secondary/20 cursor-zoom-in rounded-xl" style={{ height: 200 }}>
           <SafeImage
             src={post.image_url}
             alt="Event"
@@ -206,6 +211,7 @@ function EventPost({ post }: { post: Post }) {
               <CalendarDays className="w-3 h-3" /> Event
             </span>
           </div>
+        </button>
         </div>
       )}
       <div className="px-4 pb-3">
@@ -388,6 +394,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
   const [likeCount, setLikeCount] = useState(post.like_count ?? 0);
   const [commentCount, setCommentCount] = useState(post.comment_count ?? 0);
   const [showComments, setShowComments] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
@@ -564,10 +571,32 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
 
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-sm transition-shadow">
+      {viewerOpen && post.image_url && (
+        <PhotoViewer
+          photos={[{ src: post.image_url, alt: post.content ? post.content.slice(0, 120) : 'Post photo' }]}
+          author={post.author_name}
+          caption={post.content}
+          onClose={() => setViewerOpen(false)}
+          footer={
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={handleLike} aria-pressed={liked} aria-label={`${liked ? 'Unlike' : 'Like'} photo`}
+                className={`flex min-h-11 items-center gap-1.5 rounded-full px-4 text-sm font-semibold ${liked ? 'bg-red-500 text-white' : 'bg-white/15 text-white'}`}>
+                <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} aria-hidden="true" /> {likeCount}
+              </button>
+              {viewMode === 'personal' && (
+                <button type="button" onClick={() => { setViewerOpen(false); if (!showComments) void handleShowComments(); }} aria-label={`Comments (${commentCount})`}
+                  className="flex min-h-11 items-center gap-1.5 rounded-full bg-white/15 px-4 text-sm font-semibold text-white">
+                  <MessageCircle className="h-4 w-4" aria-hidden="true" /> {commentCount}
+                </button>
+              )}
+            </div>
+          }
+        />
+      )}
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <Link
-          href={`/profile/${post.author_id}`}
+          href={`/profile/${post.author_id}?view=${viewMode === 'business' ? 'business' : 'personal'}`}
           className={`relative w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden ${viewMode === 'business' ? 'bg-gradient-to-br from-amber-400 to-amber-600' : 'bg-primary'}`}
           aria-label={`View ${post.author_name ?? 'user'}'s profile`}
         >
@@ -580,7 +609,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <Link href={`/profile/${post.author_id}`} className="text-sm font-semibold hover:underline truncate">
+            <Link href={`/profile/${post.author_id}?view=${viewMode === 'business' ? 'business' : 'personal'}`} className="text-sm font-semibold hover:underline truncate">
               {post.author_name ?? 'Unknown'}
             </Link>
             {authorProfile?.is_verified && (
@@ -642,9 +671,9 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
       <div className={`transition-all duration-300 ${flipping ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
         {viewMode === 'personal' ? (
           <>
-            {variant === 'image'    && <ImagePost    post={post} />}
-            {variant === 'promo'    && <PromoPost    post={post} themeColor={themeColor} primaryBiz={primaryBiz} />}
-            {variant === 'event'    && <EventPost    post={post} />}
+            {variant === 'image'    && <ImagePost    post={post} onOpen={() => setViewerOpen(true)} />}
+            {variant === 'promo'    && <PromoPost    post={post} themeColor={themeColor} primaryBiz={primaryBiz} onOpen={() => setViewerOpen(true)} />}
+            {variant === 'event'    && <EventPost    post={post} onOpen={() => setViewerOpen(true)} />}
             {variant === 'location' && <LocationPost post={post} />}
             {variant === 'poll'     && <PollPost     post={post} />}
             {variant === 'text'     && <TextPost     post={post} isPromo={isPromo} themeColor={themeColor} primaryBiz={primaryBiz} />}

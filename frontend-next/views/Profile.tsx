@@ -20,6 +20,7 @@ import TickerBar from "@/components/feed/TickerBar";
 import { DemoBadge } from "@/components/profile/DemoBadge";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useProfileView } from '@/lib/ProfileViewContext';
+import PhotoViewer, { type ViewerPhoto } from '@/components/feed/PhotoViewer';
 
 function Profile() {
   const { id } = useParams();
@@ -30,6 +31,7 @@ function Profile() {
   const { user, authChecked } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [viewerPhoto, setViewerPhoto] = useState<ViewerPhoto | null>(null);
   const { profileViewMode: view, setProfileViewMode } = useProfileView();
   const [businesses, setBusinesses] = useState([]);
   const [selectedBizId, setSelectedBizId] = useState(null);
@@ -45,17 +47,17 @@ function Profile() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user?.id, authChecked]);
 
-  // Honour ?view= URL param on initial entry only — read once on mount.
-  // The sidebar pill sets profileViewMode via context before navigating,
-  // so this only handles deep-link / direct URL entry cases.
+  // Honour ?view= whenever the URL carries it (feed links say which profile:
+  // personal feed → personal, business view → business). Without it, the
+  // profile's own type decides (below).
   const viewParamRef = React.useRef(viewParam);
+  viewParamRef.current = viewParam;
   useEffect(() => {
-    const param = viewParamRef.current;
-    if (param === 'business' || param === 'personal') {
-      setProfileViewMode(param);
+    if (viewParam === 'business' || viewParam === 'personal') {
+      setProfileViewMode(viewParam);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [viewParam, id]);
 
   const loadProfile = async () => {
     setLoading(true);
@@ -202,6 +204,9 @@ function Profile() {
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
         </button>
+        {viewerPhoto && (
+          <PhotoViewer photos={[viewerPhoto]} author={view === "business" ? profile.business_name : profile.display_name} onClose={() => setViewerPhoto(null)} />
+        )}
         {/* Profile Header Card */}
         <div className="bg-card rounded-2xl border border-border/50 overflow-hidden mb-4">
           {/* Cover — personal: primary/accent (blue→purple) · business: gold scheme */}
@@ -214,12 +219,23 @@ function Profile() {
               <SafeImage src={profile.cover_url} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: profile.cover_position || 'center' }} />
             )}
+            {(view === "business" ? profile.business_cover_url : profile.cover_url) && (
+              <button type="button" aria-label="Open cover photo full screen" className="absolute inset-0 cursor-zoom-in"
+                onClick={() => setViewerPhoto({ src: view === "business" ? profile.business_cover_url : profile.cover_url, alt: 'Cover photo' })} />
+            )}
           </div>
           <div className="px-5 pb-4">
             {/* Row 1: Avatar (left) + Toggle + Edit/Logout buttons (right) */}
             <div className="flex items-end justify-between -mt-12">
               <div className="relative">
-                <div className="w-24 h-24 rounded-2xl bg-card p-0.5 shadow-lg">
+                <div className="relative w-24 h-24 rounded-2xl bg-card p-0.5 shadow-lg">
+                  {(view === "personal" ? profile.avatar_url : profile.business_logo_url) && (
+                    <button type="button" aria-label={view === "personal" ? 'Open profile photo full screen' : 'Open logo full screen'}
+                      className="absolute inset-0 z-10 cursor-zoom-in rounded-2xl"
+                      onClick={() => setViewerPhoto(view === "personal"
+                        ? { src: profile.avatar_url, alt: profile.display_name || 'Profile photo' }
+                        : { src: profile.business_logo_url, alt: profile.business_name || 'Logo' })} />
+                  )}
                   {view === "personal" ? (
                     <div className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center text-white text-3xl font-bold"
                       style={{ background: 'linear-gradient(135deg,#60a5fa,#2563eb)' }}>
