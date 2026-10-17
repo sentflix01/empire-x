@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #132 from sentflix01/claude/studio-new-pieces | [68269cf7b](2026-10-17-68269cf7b-merge-pull-request-132-from-sentflix01-claude-st.md) |
+| 2026-10-17 | Feature | feat(studio): How to pay me, Opening hours, Menu and Today's offer | [587f71f31](2026-10-17-587f71f31-how-to-pay-me-opening-hours-menu-and-today-s-off.md) |
 | 2026-10-17 | Maintenance | Merge pull request #131 from sentflix01/claude/section-fixes-1 | [31af6c434](2026-10-17-31af6c434-merge-pull-request-131-from-sentflix01-claude-se.md) |
 | 2026-10-17 | Feature | feat(studio): every section works as shown, in words owners already use | [a3d80406d](2026-10-17-a3d80406d-every-section-works-as-shown-in-words-owners-alr.md) |
 | 2026-10-17 | Maintenance | Merge pull request #129 from sentflix01/claude/studio-every-device | [8efe81b8a](2026-10-17-8efe81b8a-merge-pull-request-129-from-sentflix01-claude-st.md) |
