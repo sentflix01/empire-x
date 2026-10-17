@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **298** across **49** mounted modules · Generated: 2026-10-17
+> Endpoints: **300** across **49** mounted modules · Generated: 2026-10-17
 
 | Legend | Meaning |
 |---|---|
@@ -53,7 +53,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`saves`](#saves) (3)
 - [`search`](#search) (1)
 - [`sharePreview`](#sharepreview) (2)
-- [`showrooms`](#showrooms) (9)
+- [`showrooms`](#showrooms) (11)
 - [`stories`](#stories) (8)
 - [`subscriptions`](#subscriptions) (5)
 - [`subscriptionsEtb`](#subscriptionsetb) (9)
@@ -481,15 +481,17 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/showrooms/` | ⚪ optional | routes/showrooms.ts:16 |
-| `GET` | `/api/showrooms/slug/:slug` | ⚪ optional | routes/showrooms.ts:44 |
-| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | 🔒 auth | routes/showrooms.ts:62 |
-| `GET` | `/api/showrooms/:id/doctor` | 🔒 auth | routes/showrooms.ts:87 |
-| `GET` | `/api/showrooms/sitemap-data` | 🌐 public | routes/showrooms.ts:144 |
-| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:158 |
-| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:171 |
-| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:237 |
-| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:298 |
+| `GET` | `/api/showrooms/` | ⚪ optional | routes/showrooms.ts:18 |
+| `GET` | `/api/showrooms/slug/:slug` | ⚪ optional | routes/showrooms.ts:46 |
+| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | 🔒 auth | routes/showrooms.ts:64 |
+| `GET` | `/api/showrooms/:id/doctor` | 🔒 auth | routes/showrooms.ts:89 |
+| `GET` | `/api/showrooms/sitemap-data` | 🌐 public | routes/showrooms.ts:146 |
+| `POST` | `/api/showrooms/:id/newsletter` | ⚪ optional | routes/showrooms.ts:166 |
+| `GET` | `/api/showrooms/:id/newsletter` | 🔒 auth | routes/showrooms.ts:184 |
+| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:196 |
+| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:209 |
+| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:275 |
+| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:336 |
 
 ## stories — stories
 

@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #131 from sentflix01/claude/section-fixes-1 | [31af6c434](2026-10-17-31af6c434-merge-pull-request-131-from-sentflix01-claude-se.md) |
+| 2026-10-17 | Feature | feat(studio): every section works as shown, in words owners already use | [a3d80406d](2026-10-17-a3d80406d-every-section-works-as-shown-in-words-owners-alr.md) |
 | 2026-10-17 | Maintenance | Merge pull request #129 from sentflix01/claude/studio-every-device | [8efe81b8a](2026-10-17-8efe81b8a-merge-pull-request-129-from-sentflix01-claude-st.md) |
 | 2026-10-17 | Feature | feat(studio): usable on every device; publish-only, no export | [4add7199c](2026-10-17-4add7199c-usable-on-every-device-publish-only-no-export.md) |
 | 2026-10-17 | Maintenance | Merge pull request #128 from sentflix01/claude/payments-test-helpers | [45d85560f](2026-10-17-45d85560f-merge-pull-request-128-from-sentflix01-claude-pa.md) |
