@@ -21,8 +21,11 @@ export interface RepeaterItemField {
 export interface BuilderField {
   key: string;
   label: string;
-  /** "image": Add photo (uploaded); "toggle": on/off switch; "hidden": kept but not shown (set elsewhere, e.g. Style). */
-  type: "text" | "textarea" | "color" | "repeater" | "image" | "toggle" | "hidden";
+  /**
+   * "image": Add photo (uploaded); "toggle": on/off switch; "hidden": kept but not shown (set elsewhere, e.g. Style);
+   * "date": a day picker; "hours": the weekly opening-hours picker.
+   */
+  type: "text" | "textarea" | "color" | "repeater" | "image" | "toggle" | "hidden" | "date" | "hours";
   placeholder?: string;
   /** One line under the field explaining it in plain words. */
   hint?: string;
@@ -382,7 +385,52 @@ export const SECTION_TYPES: SectionType[] = [
       },
     ],
   },
+  {
+    key: "menu", label: "Menu", icon: "UtensilsCrossed", tier: "freemium",
+    purpose: "Your dishes and drinks by group, with photos and prices. Visitors can order.",
+    fields: [
+      { key: "menuTitle", label: "Section heading", type: "text", placeholder: "Our Menu" },
+      {
+        key: "dishes", label: "Dishes", type: "repeater",
+        itemFields: [
+          { key: "category", label: "Group (optional)", type: "text", placeholder: "Breakfast" },
+          { key: "name",  label: "Dish or drink", type: "text", placeholder: "Special Firfir" },
+          { key: "desc",  label: "A few words (optional)", type: "text", placeholder: "With fresh injera" },
+          { key: "price", label: "Price", type: "text", placeholder: "180 ETB" },
+          { key: "photo", label: "Photo (optional)", type: "image" },
+          { key: "product_id", label: "Sell as product (optional)", type: "product" },
+        ],
+      },
+    ],
+  },
+  {
+    key: "offer", label: "Today's offer", icon: "Megaphone", tier: "freemium",
+    purpose: "A short special offer with an end date. It disappears by itself when it ends.",
+    fields: [
+      { key: "offerTitle", label: "The offer", type: "text", placeholder: "20% off all cakes this weekend" },
+      { key: "offerDesc",  label: "A few words (optional)", type: "textarea", placeholder: "Order before Sunday 6 pm" },
+      { key: "offerPhoto", label: "Photo (optional)", type: "image" },
+      { key: "offerEnds",  label: "Last day", type: "date", hint: "After this day visitors no longer see the offer." },
+      { key: "offerBtn",   label: "Button words", type: "text", placeholder: "Order now", hint: "The button takes visitors to what you sell." },
+    ],
+  },
+  {
+    key: "hours", label: "Opening hours", icon: "Clock", tier: "freemium",
+    purpose: "Your days and times. Visitors see if you are open right now.",
+    fields: [
+      { key: "hoursTitle",   label: "Section heading", type: "text", placeholder: "Opening Hours" },
+      { key: "openingHours", label: "Days and times", type: "hours" },
+    ],
+  },
   // ── Living sections: fill themselves from the business's real data ─────────
+  {
+    key: "payment_info", label: "How to pay me", icon: "Wallet", tier: "freemium",
+    purpose: "Your telebirr, CBE or bank accounts from your Business settings, with Copy buttons. Always up to date.",
+    fields: [
+      { key: "payTitle", label: "Section heading", type: "text", placeholder: "How to pay" },
+      { key: "payNote",  label: "A note for buyers (optional)", type: "text", placeholder: "Send the receipt on WhatsApp after paying" },
+    ],
+  },
   {
     key: "inventory_catalog",
     label: "Product catalogue",

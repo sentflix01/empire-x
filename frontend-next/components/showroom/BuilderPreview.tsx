@@ -20,12 +20,14 @@ interface Props {
   mode: "desktop" | "tablet" | "mobile";
   showWhatsapp: boolean;
   fontFamily: string;
+  /** The business this site belongs to (How to pay me, Live location). */
+  businessId?: string | null;
 }
 
 /** Same default as a published site without its own theme colour. */
 const THEME = "#D4AF37";
 
-export default function BuilderPreview({ formData: d, activeSections, mode, showWhatsapp, fontFamily }: Props) {
+export default function BuilderPreview({ formData: d, activeSections, mode, showWhatsapp, fontFamily, businessId = null }: Props) {
   const { user } = useAuth();
   const sections = useMemo(() => serializeShowroomSections(activeSections, d) as Array<Record<string, any>>, [activeSections, d]);
   const wantsCatalogue = sections.some(s => isCatalogueSection(s.type));
@@ -87,6 +89,7 @@ export default function BuilderPreview({ formData: d, activeSections, mode, show
             onGetQuote={explain}
             ctaTarget={ctaTarget}
             isPrimaryProducts={i === productsIdx}
+            businessId={businessId}
             preview
           />
         ))}

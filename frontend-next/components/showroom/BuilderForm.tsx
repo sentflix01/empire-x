@@ -9,6 +9,7 @@ import type { ExternalDataSource } from "../../types/externalApi";
 import { apiFetch } from '@/api/client';
 import ProductPicker from "./ProductPicker";
 import PhotoField from "./PhotoField";
+import HoursField from "./HoursField";
 import { Switch } from "@/components/ui/switch";
 import type { BuilderField, SectionType } from "@/lib/builderSections";
 
@@ -31,6 +32,10 @@ function FieldControl({ id, field, value, onChange }: { id: string; field: Build
       <label htmlFor={id} className="mb-1 block text-xs font-semibold text-muted-foreground">{field.label}</label>
       {field.type === "image" ? (
         <PhotoField id={id} label={field.label} value={value || ""} onChange={onChange} />
+      ) : field.type === "hours" ? (
+        <HoursField id={id} value={value} onChange={onChange} />
+      ) : field.type === "date" ? (
+        <input type="date" id={id} value={value || ""} onChange={e => onChange(e.target.value)} className={`${inputClass} min-h-11`} />
       ) : field.type === "color" ? (
         <input type="color" id={id} value={value || "#2563EB"} onChange={e => onChange(e.target.value)} className="h-11 w-16 rounded-lg border border-border/60" />
       ) : field.type === "textarea" ? (

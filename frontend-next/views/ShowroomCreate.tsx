@@ -615,7 +615,7 @@ function ShowroomCreate({
         <span className="text-xs text-muted-foreground">{previewMode === "mobile" ? "Phone" : previewMode === "tablet" ? "Tablet" : "Computer"}</span>
       </div>
       <div className="min-h-0 flex-1 overflow-auto p-2">
-        <BuilderPreview formData={formData} activeSections={activeSections} mode={previewMode} showWhatsapp={showWhatsapp} fontFamily={fontFamily} />
+        <BuilderPreview formData={formData} activeSections={activeSections} mode={previewMode} showWhatsapp={showWhatsapp} fontFamily={fontFamily} businessId={selectedBusinessId || null} />
       </div>
     </div>
   );
@@ -693,7 +693,7 @@ function ShowroomCreate({
             </button>
           </div>
           <div className="min-h-0 flex-1 overflow-auto p-2">
-            <BuilderPreview formData={formData} activeSections={activeSections} mode={previewMode} showWhatsapp={showWhatsapp} fontFamily={fontFamily} />
+            <BuilderPreview formData={formData} activeSections={activeSections} mode={previewMode} showWhatsapp={showWhatsapp} fontFamily={fontFamily} businessId={selectedBusinessId || null} />
           </div>
         </div>
       )}

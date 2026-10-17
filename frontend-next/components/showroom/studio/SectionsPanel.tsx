@@ -1,27 +1,27 @@
 'use client';
 import React from 'react';
 import {
-  ArrowDown, ArrowUp, Plus, X, Circle, type LucideIcon,
+  ArrowDown, ArrowUp, Plus, X, Circle, type LucideIcon, UtensilsCrossed, Clock, Wallet,
   Award, Briefcase, CalendarCheck, FolderOpen, GitBranch, Handshake, HelpCircle, Images, Info, Mail, MapPin, Megaphone, MessageSquareQuote, PlayCircle, Send, ShoppingBag, Sparkles, Tag, TrendingUp, Users, Zap, Share2, Building2, Package, Navigation, Bookmark,
 } from 'lucide-react';
 import { SECTION_TYPES, type SectionType } from '@/lib/builderSections';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 // Section icons by the names the catalogue uses (lib/builderSections.ts).
-const ICONS: Record<string, LucideIcon> = { Award, Briefcase, CalendarCheck, FolderOpen, GitBranch, Handshake, HelpCircle, Images, Info, Mail, MapPin, Megaphone, MessageSquareQuote, PlayCircle, Send, ShoppingBag, Sparkles, Tag, TrendingUp, Users, Zap, Share2, Building2, Package, Navigation, Bookmark };
+const ICONS: Record<string, LucideIcon> = { UtensilsCrossed, Clock, Wallet, Award, Briefcase, CalendarCheck, FolderOpen, GitBranch, Handshake, HelpCircle, Images, Info, Mail, MapPin, Megaphone, MessageSquareQuote, PlayCircle, Send, ShoppingBag, Sparkles, Tag, TrendingUp, Users, Zap, Share2, Building2, Package, Navigation, Bookmark };
 
 export const SECTION_GROUPS = [
-  { title: 'Top of the page', desc: 'First impression and the main button', keys: ['hero', 'cta', 'video'] },
+  { title: 'Top of the page', desc: 'First impression and the main button', keys: ['hero', 'offer', 'cta', 'video'] },
   {
     title: 'Middle of the page',
     desc: 'What you sell, proof, and details',
     keys: [
-      'about', 'features', 'items', 'gallery', 'testimonials', 'team', 'faq', 'pricing', 'services', 'portfolio',
+      'about', 'features', 'items', 'menu', 'gallery', 'testimonials', 'team', 'faq', 'pricing', 'services', 'portfolio',
       'stats', 'process', 'caseStudies', 'partners', 'awards', 'booking', 'industries', 'inventory_catalog',
       'live_location_tracking',
     ],
   },
-  { title: 'Bottom of the page', desc: 'How people reach and follow you', keys: ['map', 'contact', 'social', 'newsletter', 'save_showroom'] },
+  { title: 'Bottom of the page', desc: 'How people reach, pay and follow you', keys: ['payment_info', 'hours', 'map', 'contact', 'social', 'newsletter', 'save_showroom'] },
 ];
 
 function TierBadge({ tier }: { tier: SectionType['tier'] }) {

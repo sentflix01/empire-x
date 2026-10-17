@@ -16,6 +16,7 @@ import { isGetQuote, sectionItemBuyPayload } from "@/lib/sectionItemPurchase";
 import client from "@/api/client";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import LiveLocationSection from "@/components/showroom/LiveLocationSection";
+import { MenuSection, OfferSection, OpeningHoursSection, PaymentInfoSection } from "@/components/showroom/NewPieces";
 
 /** Sections that list the business's real products (search, categories, Order). */
 export const CATALOGUE_TYPES = ["products", "featured_products", "inventory_catalog"];
@@ -279,6 +280,19 @@ export default function SectionRenderer({
     );
   }
 
+  // Studio menus (dishes); older template menus fall through to the services layout.
+  if (s.type === "menu" && Array.isArray(s.dishes)) {
+    return <MenuSection s={s} sectionIndex={sectionIndex} onBuy={onBuy} themeColor={themeColor} />;
+  }
+
+  if (s.type === "offer") {
+    return <OfferSection s={s} sectionIndex={sectionIndex} ctaTarget={ctaTarget} isOwner={isOwner} preview={preview} themeColor={themeColor} />;
+  }
+
+  if (s.type === "payment_info") {
+    return <PaymentInfoSection s={s} sectionIndex={sectionIndex} businessId={businessId || biz.business_id || null} isOwner={isOwner} preview={preview} themeColor={themeColor} />;
+  }
+
   if (s.type === "services" || s.type === "menu") {
     // Builder shape: servTitle + services[]{name,desc}; legacy: title + items[]{name|title,description,price}.
     const servTitle = s.servTitle || s.title;
@@ -387,28 +401,7 @@ export default function SectionRenderer({
   }
 
   if (s.type === "hours") {
-    const hourList = hours.length > 0 ? hours : [
-      { day: "Monday", hours: "9:00 AM - 6:00 PM" },
-      { day: "Tuesday", hours: "9:00 AM - 6:00 PM" },
-      { day: "Wednesday", hours: "9:00 AM - 6:00 PM" },
-      { day: "Thursday", hours: "9:00 AM - 6:00 PM" },
-      { day: "Friday", hours: "9:00 AM - 6:00 PM" },
-      { day: "Saturday", hours: "10:00 AM - 4:00 PM" },
-      { day: "Sunday", hours: "Closed" },
-    ];
-    return (
-      <div id={`section-${sectionIndex}`} className="px-5 py-10">
-        <h2 className="font-display text-lg font-bold mb-4 flex items-center gap-2"><Clock className="w-5 h-5" style={{ color: themeColor }} />{s.title}</h2>
-        <div className="space-y-1 max-w-xs">
-          {hourList.map((h, i) => (
-            <div key={i} className="flex justify-between text-sm py-1 border-b border-border/20">
-              <span className="text-muted-foreground">{h.day}</span>
-              <span className="font-medium">{h.hours}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <OpeningHoursSection s={s} sectionIndex={sectionIndex} legacyHours={hours} isOwner={isOwner} preview={preview} themeColor={themeColor} />;
   }
 
   if (s.type === "gallery") {
