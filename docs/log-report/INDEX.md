@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #120 from sentflix01/claude/phase1-chapa-core | [406142032](2026-10-17-406142032-merge-pull-request-120-from-sentflix01-claude-ph.md) |
+| 2026-10-17 | Feature | feat(subscriptions): prepaid ETB plans through Chapa (Phase 1, backend) | [7393065ce](2026-10-17-7393065ce-prepaid-etb-plans-through-chapa-phase-1-backend.md) |
 | 2026-10-17 | Maintenance | Merge pull request #119 from sentflix01/claude/extend-legacy-trial | [c7a8a3663](2026-10-17-c7a8a3663-merge-pull-request-119-from-sentflix01-claude-ex.md) |
 | 2026-10-17 | Documentation | docs: correct the legacy free-period end year (2027) | [db5d3bc62](2026-10-17-db5d3bc62-correct-the-legacy-free-period-end-year-2027.md) |
 | 2026-10-17 | Feature | feat(subscriptions): extend the legacy websites' free period to six months | [2a8ea84ea](2026-10-17-2a8ea84ea-extend-the-legacy-websites-free-period-to-six-mo.md) |

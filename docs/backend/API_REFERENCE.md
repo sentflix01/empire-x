@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **286** across **48** mounted modules · Generated: 2026-10-17
+> Endpoints: **295** across **49** mounted modules · Generated: 2026-10-17
 
 | Legend | Meaning |
 |---|---|
@@ -56,6 +56,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`showrooms`](#showrooms) (9)
 - [`stories`](#stories) (8)
 - [`subscriptions`](#subscriptions) (5)
+- [`subscriptionsEtb`](#subscriptionsetb) (9)
 - [`suggestions`](#suggestions) (2)
 - [`telegram`](#telegram) (4)
 - [`trending`](#trending) (2)
@@ -504,11 +505,25 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/subscriptions/plans` | 🌐 public | routes/subscriptions.ts:82 |
-| `GET` | `/api/subscriptions/my` | 🔒 auth | routes/subscriptions.ts:101 |
-| `POST` | `/api/subscriptions/create` | 🔒 auth | routes/subscriptions.ts:136 |
-| `POST` | `/api/subscriptions/cancel` | 🔒 auth | routes/subscriptions.ts:231 |
-| `POST` | `/api/subscriptions/webhook` | 🌐 public | routes/subscriptions.ts:275 |
+| `GET` | `/api/subscriptions/plans` | 🌐 public | routes/subscriptions.ts:84 |
+| `GET` | `/api/subscriptions/my` | 🔒 auth | routes/subscriptions.ts:113 |
+| `POST` | `/api/subscriptions/create` | 🔒 auth | routes/subscriptions.ts:148 |
+| `POST` | `/api/subscriptions/cancel` | 🔒 auth | routes/subscriptions.ts:243 |
+| `POST` | `/api/subscriptions/webhook` | 🌐 public | routes/subscriptions.ts:287 |
+
+## subscriptionsEtb — Prepaid ETB subscriptions through Chapa (Phase 1).
+
+| Method | Path | Auth | Source |
+|---|---|---|---|
+| `GET` | `/api/subscriptions/quote` | 🌐 public | routes/subscriptionsEtb.ts:56 |
+| `POST` | `/api/subscriptions/checkout` | 🌐 public | routes/subscriptionsEtb.ts:65 |
+| `POST` | `/api/subscriptions/webhook/chapa` | 🌐 public | routes/subscriptionsEtb.ts:82 |
+| `GET` | `/api/subscriptions/chapa/callback` | 🌐 public | routes/subscriptionsEtb.ts:105 |
+| `GET` | `/api/subscriptions/payments` | 🌐 public | routes/subscriptionsEtb.ts:127 |
+| `GET` | `/api/subscriptions/payments/:ref/status` | 🌐 public | routes/subscriptionsEtb.ts:137 |
+| `GET` | `/api/subscriptions/payments/:id/receipt` | 🌐 public | routes/subscriptionsEtb.ts:152 |
+| `GET` | `/api/subscriptions/chapa/sandbox` | 🌐 public | routes/subscriptionsEtb.ts:170 |
+| `POST` | `/api/subscriptions/chapa/sandbox/pay` | 🌐 public | routes/subscriptionsEtb.ts:187 |
 
 ## suggestions — suggestions
 
