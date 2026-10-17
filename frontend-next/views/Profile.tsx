@@ -66,7 +66,7 @@ function Profile() {
       const [profiles, bizList, showroomList] = await Promise.all([
         entities.UserProfile.filter({ user_id: targetUserId }),
         entities.Business.filter({ owner_id: targetUserId }, "-created_at", 50).catch(() => []),
-        entities.Showroom.filter({ owner_id: targetUserId, status: "published" }, "-created_at", 50).catch(() => []),
+        entities.Showroom.filter({ owner_id: targetUserId, status: "published" }, "-updated_at", 50).catch(() => []),
       ]);
 
       if (profiles.length > 0) {
@@ -96,16 +96,28 @@ function Profile() {
           showroom_id: showroom.id,
           showroom_slug: showroom.slug || "",
         };
-        const existing = bizList.find(business => business.business_name?.trim().toLowerCase() === String(showroom.title || "").trim().toLowerCase());
+        // A site belongs to the business it is linked to; older sites without a link match by name.
+        const existing = bizList.find(business => showroom.business_id && business.id === showroom.business_id)
+          ?? bizList.find(business => business.business_name?.trim().toLowerCase() === String(showroom.title || "").trim().toLowerCase());
         return existing ? { ...existing, ...businessFields, id: existing.id } : { ...businessFields, id: `showroom-${showroom.id}` };
       });
       const mergedBusinesses = [...bizList];
+      const mergedIds = new Set<string>();
+      // Sites arrive most recently updated first, so the newest one wins for each business.
       for (const showroom of showroomBusinesses) {
-        const matchIndex = mergedBusinesses.findIndex(business =>
+        const matchIndex = mergedBusinesses.findIndex(business => business.id === showroom.id);
+        const nameIndex = matchIndex >= 0 ? matchIndex : mergedBusinesses.findIndex(business =>
           business.business_name?.trim().toLowerCase() === showroom.business_name?.trim().toLowerCase(),
         );
-        if (matchIndex >= 0) mergedBusinesses[matchIndex] = { ...mergedBusinesses[matchIndex], ...showroom, id: mergedBusinesses[matchIndex].id };
-        else mergedBusinesses.push(showroom);
+        if (nameIndex >= 0) {
+          const target = mergedBusinesses[nameIndex];
+          if (mergedIds.has(target.id)) continue;
+          mergedIds.add(target.id);
+          mergedBusinesses[nameIndex] = { ...target, ...showroom, id: target.id };
+        } else {
+          mergedIds.add(showroom.id);
+          mergedBusinesses.push(showroom);
+        }
       }
       setBusinesses(mergedBusinesses);
       if (mergedBusinesses.length > 0) setSelectedBizId(mergedBusinesses[0].id);
