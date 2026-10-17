@@ -7,6 +7,7 @@ import FieldMapperPanel, { FieldDef } from "./FieldMapperPanel";
 import DataSourceStatusPanel from "./DataSourceStatusPanel";
 import type { ExternalDataSource } from "../../types/externalApi";
 import { apiFetch } from '@/api/client';
+import ProductPicker from "./ProductPicker";
 
 interface Props {
   activeSections: string[];
@@ -54,7 +55,13 @@ function RepeaterField({ field, value, onChange }: any) {
             {field.itemFields.map((sub: any) => (
               <div key={sub.key}>
                 <label htmlFor={`${field.key}-${idx}-${sub.key}`} className="text-[10px] font-semibold text-muted-foreground block mb-0.5">{sub.label}</label>
-                {sub.type === "textarea" ? (
+                {sub.type === "product" ? (
+                  <ProductPicker
+                    id={`${field.key}-${idx}-${sub.key}`}
+                    value={item[sub.key] || ""}
+                    onChange={(productId) => update(idx, sub.key, productId)}
+                  />
+                ) : sub.type === "textarea" ? (
                   <textarea
                     value={item[sub.key] || ""}
                     id={`${field.key}-${idx}-${sub.key}`}

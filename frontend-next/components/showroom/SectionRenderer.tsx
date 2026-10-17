@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BookmarkButton from "@/components/ui/BookmarkButton";
+import { isGetQuote, sectionItemBuyPayload } from "@/lib/sectionItemPurchase";
 
 const parseImages = (img?: string | string[] | null) => { try { return JSON.parse(String(img || "[]")); } catch { return img ? [img].flat() : []; } };
 
@@ -252,16 +253,15 @@ export default function SectionRenderer({
         {servTitle && <h2 className="font-display text-lg font-bold mb-4">{servTitle}</h2>}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {servList.map((item, i) => {
-            const hasPrice = item.price && item.price !== 'Get Quote';
-            const isGetQuote = item.price === 'Get Quote' || (!item.price && item.cta === 'Get Quote');
-            const priceNum = hasPrice ? parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0 : 0;
+            const isQuote = isGetQuote(item);
+            const buy = sectionItemBuyPayload(item, 'Service');
             return (
               <div key={i} className="p-4 rounded-xl border border-border/40 hover:border-border transition-colors hover:shadow-sm">
                 <h3 className="text-sm font-semibold">{item.name || item.title}</h3>
                 {(item.desc || item.description) && <p className="text-xs text-muted-foreground mt-1">{item.desc || item.description}</p>}
-                {item.price && (
+                {(item.price || buy) && (
                   <div className="mt-2 flex items-center justify-between gap-2">
-                    {isGetQuote ? (
+                    {isQuote ? (
                       <button
                         type="button"
                         onClick={() => onGetQuote?.(item.name || item.title || 'Service', item.desc || item.description)}
@@ -270,39 +270,17 @@ export default function SectionRenderer({
                       >
                         Get Quote
                       </button>
-                    ) : (
+                    ) : item.price ? (
                       <button
                         type="button"
-                        onClick={() => onBuy?.({
-                          title: item.name || item.title || 'Service',
-                          description: item.desc || item.description,
-                          price: priceNum,
-                          currency: 'ETB',
-                          // No id: a website item, so the buyer requests it and the seller sets the price.
-                          listed_price: String(item.price),
-                        })}
+                        onClick={() => buy && onBuy?.(buy)}
                         className="text-sm font-bold hover:underline underline-offset-2 transition-opacity hover:opacity-80 active:scale-95"
                         style={{ color: themeColor }}
                       >
                         {item.price}
                       </button>
-                    )}
-                    {hasPrice && onBuy && !isGetQuote && (
-                      <button
-                        type="button"
-                        onClick={() => onBuy({
-                          title: item.name || item.title || 'Service',
-                          description: item.desc || item.description,
-                          price: priceNum,
-                          currency: 'ETB',
-                          listed_price: String(item.price),
-                        })}
-                        className="text-[11px] font-semibold px-2.5 py-1 rounded-full text-white transition-opacity hover:opacity-90 active:scale-95"
-                        style={{ backgroundColor: themeColor }}
-                      >
-                        Buy Now
-                      </button>
-                    )}
+                    ) : <span />}
+                    {buy && onBuy && !isQuote && <CardBuyButton themeColor={themeColor} onClick={() => onBuy(buy)} />}
                   </div>
                 )}
               </div>
@@ -503,6 +481,10 @@ export default function SectionRenderer({
               <h3 className="text-sm font-semibold">{it.name}</h3>
               {it.desc && <p className="text-xs text-muted-foreground mt-1">{it.desc}</p>}
               {it.price && <p className="text-sm font-bold mt-2" style={{ color: themeColor }}>{it.price}</p>}
+              {(() => {
+                const buy = sectionItemBuyPayload(it, 'Item');
+                return buy && onBuy ? <div className="mt-2 flex justify-center"><CardBuyButton themeColor={themeColor} onClick={() => onBuy(buy)} /></div> : null;
+              })()}
             </div>
           ))}
         </div>
@@ -527,6 +509,10 @@ export default function SectionRenderer({
                   {String(p.features).split(",").map((f, j) => f.trim() ? <li key={j}>{f.trim()}</li> : null)}
                 </ul>
               )}
+              {(() => {
+                const buy = sectionItemBuyPayload(p, 'Plan');
+                return buy && onBuy ? <div className="mt-3 flex justify-center"><CardBuyButton themeColor={themeColor} onClick={() => onBuy(buy)} /></div> : null;
+              })()}
             </div>
           ))}
         </div>
@@ -800,3 +786,17 @@ export default function SectionRenderer({
   );
 }
 
+
+/** The small "Buy Now" pill on website cards. */
+function CardBuyButton({ themeColor, onClick }: { themeColor: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-[11px] font-semibold px-2.5 py-1 rounded-full text-white transition-opacity hover:opacity-90 active:scale-95"
+      style={{ backgroundColor: themeColor }}
+    >
+      Buy Now
+    </button>
+  );
+}
