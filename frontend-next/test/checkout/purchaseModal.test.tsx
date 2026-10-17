@@ -77,7 +77,9 @@ describe('PurchaseModal', () => {
   });
 
   it('still buys catalogue products directly', async () => {
-    client.get.mockResolvedValue({ data: { business: null, payment_accounts: accounts } });
+    client.get.mockImplementation(async (url: string) => (url.startsWith('/api/products/')
+      ? { data: { id: 'prod-1', title: 'Fridge', price: 100, currency: 'ETB', status: 'active' } }
+      : { data: { business: null, payment_accounts: accounts } }));
     client.post.mockResolvedValue({ data: { access_token: 'tok9', business: null, payment_accounts: accounts } });
     render(<PurchaseModal item={{ id: 'prod-1', title: 'Fridge', price: 100 }} seller={seller} onClose={() => {}} />);
     expect(await screen.findByRole('heading', { name: 'Buy' })).toBeTruthy();
@@ -85,5 +87,23 @@ describe('PurchaseModal', () => {
     fillContact();
     fireEvent.click(screen.getByRole('button', { name: /Place order/ }));
     await waitFor(() => expect(client.post).toHaveBeenCalledWith('/api/direct-orders', expect.objectContaining({ product_id: 'prod-1', quantity: 1 })));
+  });
+
+  it('shows a linked product as it is now, not the price written on the card', async () => {
+    client.get.mockImplementation(async (url: string) => (url.startsWith('/api/products/')
+      ? { data: { id: 'prod-2', title: 'Fridge 300L', price: 25000, currency: 'ETB', status: 'active' } }
+      : { data: { business: null, payment_accounts: accounts } }));
+    render(<PurchaseModal item={{ id: 'prod-2', title: 'Fridge (card)', price: 20000 }} seller={seller} onClose={() => {}} />);
+    expect(await screen.findByText('Fridge 300L')).toBeTruthy();
+    expect(screen.getByText('25,000 ETB each')).toBeTruthy();
+  });
+
+  it('says so when a linked product is no longer for sale', async () => {
+    client.get.mockImplementation(async (url: string) => (url.startsWith('/api/products/')
+      ? { data: { id: 'prod-3', title: 'Old TV', price: 1, status: 'sold_out' } }
+      : { data: { business: null, payment_accounts: accounts } }));
+    render(<PurchaseModal item={{ id: 'prod-3', title: 'Old TV' }} seller={seller} onClose={() => {}} />);
+    expect(await screen.findByText(/no longer available/)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Continue' })).toBeNull();
   });
 });

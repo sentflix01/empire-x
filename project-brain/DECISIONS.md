@@ -255,6 +255,28 @@ documents when verified; do not copy stale values into new work.
   Renewal reminders and the scheduler checks follow in Phase 1's later PRs.
 - **Related documentation:** [Subscriptions](../docs/backend/SUBSCRIPTIONS.md#prepaid-etb-through-chapa-phase-1)
 
+### 2026-10-17 — Website cards sell through products or requests
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** Buy Now on cards typed into website sections (services,
+  packages, best sellers, pricing plans) opened a dead-end popup, because
+  those cards are not catalogue products and orders need a product.
+- **Decision:** Both paths:
+  - **Linked:** in Showroom Studio a card can be linked to one of the owner's
+    catalogue products ("Sell as product"); Buy Now then sells that product at
+    its current price and stock.
+  - **Not linked but priced:** Buy Now becomes Request to order. The seller
+    sets the price, then it is a normal direct order (the buyer pays the
+    seller directly). The server accepts requests only for items on that
+    seller's own website.
+  - **No price, or "Get Quote":** no Buy Now.
+- **Consequences:** `orders.listed_price_text` and the `requested` status
+  (migrate64), `lib/sectionItemPurchase.ts` (one rule for every card list),
+  and the Studio `ProductPicker`. The popup always reloads a linked product,
+  so a card's typed price never overrides the real one.
+- **Related documentation:** [API](../docs/backend/API.md) (`/api/direct-orders/requests`, `/set-price`) — PRs #123 and this one
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when
