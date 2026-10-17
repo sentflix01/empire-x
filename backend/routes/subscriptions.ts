@@ -52,10 +52,10 @@ import {
 } from '../lib/subscriptionPlans';
 import { getPrimaryFrontendUrl } from '../lib/frontendUrl';
 import { sendPushToUser } from './push';
-import { isStripeConfigured, stripeClientFacade, withVerifiedStripeWebhook } from '../lib/stripeClient';
+import { isStripeConfigured, isStripeTestMode, stripeClientFacade, withVerifiedStripeWebhook } from '../lib/stripeClient';
 import { requireIsolatedPaymentEnvironment } from '../middleware/demoEnvironment';
 import { requireFeatureFlag } from '../middleware/featureFlag';
-import { isChapaConfigured } from '../lib/chapaClient';
+import { isChapaConfigured, isChapaTestMode } from '../lib/chapaClient';
 import { PREPAY_MONTHS } from '../lib/subscriptionBilling';
 
 const router = Router();
@@ -102,6 +102,11 @@ router.get('/plans', (_req: Request, res: Response) => {
           currencyAvailability: { ...publicPlan.currencyAvailability, ETB: etbProvider !== null },
           providers: { ETB: etbProvider, USD: publicPlan.currencyAvailability.USD ? 'stripe' : null },
           prepayMonths: etbProvider === 'chapa' ? PREPAY_MONTHS : [1],
+          // Test keys only: the plan page then lists the providers' published test numbers and cards.
+          testMode: {
+            ETB: etbProvider === 'chapa' ? isChapaTestMode() : etbProvider === 'stripe' && isStripeTestMode(),
+            USD: publicPlan.currencyAvailability.USD && isStripeTestMode(),
+          },
         }];
       }),
     ),

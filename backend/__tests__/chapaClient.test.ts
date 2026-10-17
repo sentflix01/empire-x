@@ -44,3 +44,17 @@ describe('isValidWebhookSignature', () => {
     expect(isValidWebhookSignature(body, { 'x-chapa-signature': sig('hash') })).toBe(false);
   });
 });
+
+describe('isChapaTestMode', () => {
+  it('is on for test keys and the sandbox, off for live keys', async () => {
+    const { isChapaTestMode } = await import('../lib/chapaClient');
+    process.env.CHAPA_SECRET_KEY = 'CHASECK_TEST-abc';
+    expect(isChapaTestMode()).toBe(true);
+    process.env.CHAPA_SECRET_KEY = 'SANDBOX';
+    expect(isChapaTestMode()).toBe(true);
+    process.env.CHAPA_SECRET_KEY = 'CHASECK-live';
+    expect(isChapaTestMode()).toBe(false);
+    delete process.env.CHAPA_SECRET_KEY;
+    expect(isChapaTestMode()).toBe(false);
+  });
+});
