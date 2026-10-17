@@ -171,6 +171,8 @@ CHAPA_WEBHOOK_SECRET=...             # Chapa dashboard → Settings → Webhooks
 API_URL=https://nodbusiness-backend-9psf.onrender.com   # callback and sandbox URLs
 ```
 
+**Owner screens** (frontend): the plan page (`/business/subscription`) opens a prepay panel with the server's quote (`components/business/ChapaCheckoutPanel.tsx`), lists **Billing history** with receipts, shows "Paid until" and **Renew** for prepaid plans (no Cancel: nothing renews automatically). Chapa returns the owner to `/business/subscription/return?tx_ref=…`, which polls the status endpoint ("Payment received, activating…") and links the receipt (`/business/subscription/receipt/:id`, with PDF download) and the newly published website.
+
 Set the Chapa dashboard webhook URL to
 `https://<backend>/api/subscriptions/webhook/chapa`. With
 `CHAPA_SECRET_KEY=SANDBOX` (never in production) the checkout URL opens a local

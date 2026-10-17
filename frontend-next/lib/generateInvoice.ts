@@ -20,7 +20,7 @@ interface Order {
 }
 
 /** Loads the brand emblem as a data URL for the PDF header; null if it can't be fetched. */
-async function loadLogo(): Promise<string | null> {
+export async function loadLogo(): Promise<string | null> {
   try {
     const res = await fetch("/icons/icon-192.png");
     if (!res.ok) return null;
