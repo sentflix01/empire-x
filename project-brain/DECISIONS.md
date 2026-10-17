@@ -216,6 +216,24 @@ documents when verified; do not copy stale values into new work.
   keep working. Owners without a published site are sent to Studio.
 - **Related documentation:** `frontend-next/components/profile/WebsiteSectionsPanel.tsx`, `frontend-next/test/profile/WebsiteSectionsPanel.test.tsx`
 
+### 2026-10-17 — Legacy websites stay free for six months while the platform is in its trial
+
+- **Status:** Accepted (amends decision 1 of the NodBusiness Build Plan, 2026-10-16)
+- **Decision owner:** Project owner (@Sent)
+- **Context:** Decision 1 gave the 12 websites published before paid publishing
+  a Business profile with a 30-day free period, ending about 2026-11-15. The
+  platform is still in a trial with tester-owned sites, much remains to fix
+  before beta registration, and ETB checkout (Phase 1, Chapa) is not live, so
+  those owners could not pay when the period ended.
+- **Decision:** The free period is six months from when each profile was
+  created (about 2027-04-16 for the existing 12). `migrate62.js` extends
+  existing trialing grants; `migrate59.js` now grants six months to any legacy
+  site it still finds.
+- **Consequences:** No legacy site enters the expiry timeline before April
+  2027. Phase 1 is no longer driven by the November date. Paid (active)
+  subscriptions are untouched.
+- **Related documentation:** [Database](../docs/backend/DATABASE.md) (migrate62)
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when
