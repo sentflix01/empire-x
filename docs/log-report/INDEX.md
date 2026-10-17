@@ -5,7 +5,10 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #121 from sentflix01/claude/phase1-chapa-screens | [aba08a2b4](2026-10-17-aba08a2b4-merge-pull-request-121-from-sentflix01-claude-ph.md) |
+| 2026-10-17 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/phase1-chapa-screens | [7c27df76f](2026-10-17-7c27df76f-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-17 | Maintenance | Merge pull request #120 from sentflix01/claude/phase1-chapa-core | [406142032](2026-10-17-406142032-merge-pull-request-120-from-sentflix01-claude-ph.md) |
+| 2026-10-17 | Feature | feat(subscriptions): owner screens for prepaid ETB plans (Phase 1, PR 2) | [6c2128e0f](2026-10-17-6c2128e0f-owner-screens-for-prepaid-etb-plans-phase-1-pr-2.md) |
 | 2026-10-17 | Feature | feat(subscriptions): prepaid ETB plans through Chapa (Phase 1, backend) | [7393065ce](2026-10-17-7393065ce-prepaid-etb-plans-through-chapa-phase-1-backend.md) |
 | 2026-10-17 | Maintenance | Merge pull request #119 from sentflix01/claude/extend-legacy-trial | [c7a8a3663](2026-10-17-c7a8a3663-merge-pull-request-119-from-sentflix01-claude-ex.md) |
 | 2026-10-17 | Documentation | docs: correct the legacy free-period end year (2027) | [db5d3bc62](2026-10-17-db5d3bc62-correct-the-legacy-free-period-end-year-2027.md) |
