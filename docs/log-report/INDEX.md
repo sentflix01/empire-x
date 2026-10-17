@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #127 from sentflix01/fix/fieldmapper-pbt-reserved-keys | [32c7757a3](2026-10-17-32c7757a3-merge-pull-request-127-from-sentflix01-fix-field.md) |
+| 2026-10-17 | Bugfix | fix(external-api): never write reserved field names when mapping external data | [0c3c320c3](2026-10-17-0c3c320c3-never-write-reserved-field-names-when-mapping-ex.md) |
 | 2026-10-17 | Maintenance | Merge pull request #126 from sentflix01/claude/site-status-banner | [be3073d12](2026-10-17-be3073d12-merge-pull-request-126-from-sentflix01-claude-si.md) |
 | 2026-10-17 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/site-status-banner | [7558af5b0](2026-10-17-7558af5b0-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-17 | Maintenance | Merge pull request #125 from sentflix01/claude/profile-shows-studio-site | [7ee365a67](2026-10-17-7ee365a67-merge-pull-request-125-from-sentflix01-claude-pr.md) |
