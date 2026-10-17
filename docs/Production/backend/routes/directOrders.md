@@ -15,19 +15,22 @@ Newly introduced as part of recent development; see source and git history for t
 ## 3. What does it do?
 
 
-### Endpoints (9)
+### Endpoints (12)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/direct-orders/checkout-info` | optional | 138 |
-| `POST` | `/api/direct-orders/` | optional | 169 |
-| `GET` | `/api/direct-orders/link/:token` | public | 281 |
-| `POST` | `/api/direct-orders/link/:token/report-payment` | public | 316 |
-| `POST` | `/api/direct-orders/:id/report-payment` | auth | 324 |
-| `POST` | `/api/direct-orders/:id/confirm-payment` | auth | 334 |
-| `POST` | `/api/direct-orders/:id/reject-payment` | auth | 351 |
-| `GET` | `/api/direct-orders/link/:token/receipt` | public | 375 |
-| `GET` | `/api/direct-orders/:id/receipt` | auth | 383 |
+| `GET` | `/api/direct-orders/checkout-info` | optional | 143 |
+| `POST` | `/api/direct-orders/requests` | optional | 237 |
+| `POST` | `/api/direct-orders/` | optional | 309 |
+| `GET` | `/api/direct-orders/link/:token` | public | 421 |
+| `POST` | `/api/direct-orders/link/:token/report-payment` | public | 456 |
+| `POST` | `/api/direct-orders/:id/report-payment` | auth | 464 |
+| `POST` | `/api/direct-orders/:id/confirm-payment` | auth | 474 |
+| `POST` | `/api/direct-orders/:id/reject-payment` | auth | 491 |
+| `POST` | `/api/direct-orders/:id/set-price` | auth | 510 |
+| `POST` | `/api/direct-orders/:id/decline-request` | auth | 539 |
+| `GET` | `/api/direct-orders/link/:token/receipt` | public | 563 |
+| `GET` | `/api/direct-orders/:id/receipt` | auth | 571 |
 
 ## 4. What does it touch?
 
