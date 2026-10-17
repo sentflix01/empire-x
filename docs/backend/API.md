@@ -302,9 +302,33 @@ The buyer pays the seller using the seller's own payment accounts, reports the p
 the seller confirms it. No account is needed to buy. Unpaid orders expire after 7 days and their
 stock is released.
 
-### GET /api/direct-orders/checkout-info?product_id=uuid | showroom_id=uuid
+### GET /api/direct-orders/checkout-info?product_id=uuid | showroom_id=uuid | business_id=uuid | seller_id=uuid
 Public. The seller's business name, the contact fields the owner chose to show, and active payment
 accounts. Never includes the pickup address. The response adds `payment_window_days`.
+`seller_id` resolves the seller's business when they have exactly one.
+
+### POST /api/direct-orders/requests
+Public (optional auth), same rate limit as orders. **Request to order** a website item that is
+not a catalogue product (a service, package or best seller typed into a website section).
+```json
+{ "showroom_id | business_id | seller_id": "uuid", "item_title": "Delivery", "quantity": 1,
+  "buyer_name": "Abebe", "buyer_phone": "+251911000000", "buyer_email": "buyer@example.com",
+  "delivery_address": "optional", "notes": "optional" }
+```
+The item must appear (by name, case-insensitive) in that seller's published site, Business
+profile or profile business sections; otherwise **404**. **201:** `{ order, access_token,
+order_url, business, payment_accounts }` with `status: "requested"`, no price, and
+`listed_price_text` (the price shown on the website). The private link is emailed. A request
+without an answer expires after 7 days. **422:** invalid contact details, or requesting from
+your own business.
+
+### POST /api/direct-orders/:id/set-price `{ "unit_price": 150 }`
+Seller or admin only. Confirms a `requested` order at that unit price (total = price ×
+quantity), moves it to `awaiting_payment` with a new 7-day payment window, and tells the buyer.
+**409 `NO_PAYMENT_ACCOUNTS`:** add a payment account first. **409:** not a request.
+
+### POST /api/direct-orders/:id/decline-request
+Seller or admin only. Moves a `requested` order to `cancelled` and tells the buyer.
 
 ### POST /api/direct-orders
 Public (optional auth). Rate limited to 10 per 15 minutes per IP.

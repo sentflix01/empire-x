@@ -64,6 +64,7 @@ psql $DATABASE_URL -c "\dt"  # list all tables
 | `migrate61.js` | `posts.edited_at`: set when the author or an admin edits a post's text or photo; drives the feed's "Edited" label |
 | `migrate62.js` | Extends the legacy websites' free (`trialing`) period from 30 days to six months after their Business profile was created (owner decision 2026-10-17); end dates only move later; one in-app notice per owner |
 | `migrate63.js` | `subscription_payments` (provider-neutral prepaid ETB payments: provider_ref unique, kind new/renewal/upgrade, months, amount, status pending/paid/failed/expired, period, receipt_number from `subscription_receipt_seq`, optional draft_id) and `business_subscriptions.billing_provider` |
+| `migrate64.js` | Request to order: `orders.listed_price_text` and the `requested` status (a website item without a catalogue product; the seller sets the price, then it continues as a direct order) |
 
 Mewacho and the other deferred areas are not mounted in the launch app. Their historical schemas and records are retained; see `docs/product/POST_LAUNCH_FEATURES.md` before considering data cleanup or a future rebuild.
 
