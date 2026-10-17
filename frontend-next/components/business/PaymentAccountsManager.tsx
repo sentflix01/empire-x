@@ -88,7 +88,7 @@ export default function PaymentAccountsManager({ businessId }: { businessId: str
   const canAdd = draft.provider_name.trim() && draft.account_name.trim() && draft.account_number.trim();
 
   return (
-    <section className="rounded-2xl border border-border/50 bg-card p-4 space-y-4" aria-labelledby="payment-accounts-heading">
+    <section id="payment-accounts" className="scroll-mt-20 rounded-2xl border border-border/50 bg-card p-4 space-y-4" aria-labelledby="payment-accounts-heading">
       <div className="flex items-center gap-2">
         <CreditCard className="w-5 h-5 text-amber-500" />
         <h2 id="payment-accounts-heading" className="font-semibold">Payment accounts</h2>

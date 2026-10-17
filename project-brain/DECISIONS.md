@@ -366,6 +366,37 @@ documents when verified; do not copy stale values into new work.
   (the older business-template editor) still uses image addresses and is a separate follow-up.
 - **Related documentation:** `frontend-next/lib/builderSections.ts`, `frontend-next/components/showroom/SectionRenderer.tsx`, `frontend-next/components/showroom/BuilderPreview.tsx`, `backend/routes/showrooms.ts`, `backend/db/migrate66.js`, `frontend-next/test/showroom/sectionsLive.test.tsx`, `backend/test/db/newsletterSignups.db.test.js`
 
+### 2026-10-17 — Studio pieces for local businesses: pay, hours, menu, offer
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** Local businesses need four basics the Studio catalogue lacked:
+  - where to send money
+  - when they are open (the renderer's old hours block showed made-up
+    default hours)
+  - a menu
+  - a time-limited offer
+- **Decision:** Four new sections. Keys are registered in
+  `backend/lib/builderSectionRequirements.js`, all on the **free tier**
+  (owner may move them to a paid plan later).
+  - `payment_info` (**How to pay me**) is a living piece. It reads the
+    business's active `business_payment_accounts` through `GET
+    /api/businesses/:id/checkout-info`, the same source as checkout, so it is
+    never retyped and never out of date. Visitors don't see it when there
+    are no accounts. The owner gets a link to add them.
+  - `hours` (**Opening hours**) is a weekly picker. It shows "Open now" or
+    "Closed now" in the visitor's local time, including hours past midnight.
+    No placeholder hours are shown.
+  - `menu` (**Menu**) has dishes grouped by the owner's own group names,
+    with an optional photo. Order uses the existing buy and request-to-order
+    flow.
+  - `offer` (**Today's offer**) has a last day. After it, visitors don't see
+    the offer and the owner sees a notice. The button goes to what the
+    business sells.
+- **Consequences:** Older template menus (`menu` with `items`) still render
+  as before. The business edit page's payment section has a
+  `#payment-accounts` anchor for the owner link.
+- **Related documentation:** `frontend-next/components/showroom/NewPieces.tsx`, `frontend-next/lib/openingHours.ts`, `frontend-next/components/showroom/HoursField.tsx`, `frontend-next/lib/builderSections.ts`, `frontend-next/test/showroom/sectionsLive.test.tsx`
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when
