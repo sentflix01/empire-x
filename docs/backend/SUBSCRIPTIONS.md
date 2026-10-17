@@ -157,8 +157,8 @@ reports for less than the quote is marked `failed` and changes nothing.
 | `POST /api/subscriptions/checkout` `{ business_id, plan, months, draft_id? }` | owner | `{ checkout_url, tx_ref, amount, kind, period_end }`; `503 etb_checkout_unavailable` when Chapa is not configured |
 | `POST /api/subscriptions/webhook/chapa` | Chapa signature | `x-chapa-signature` = HMAC-SHA256 of the raw body with `CHAPA_WEBHOOK_SECRET`; `401` otherwise |
 | `GET /api/subscriptions/chapa/callback?tx_ref=` | none | Chapa's callback; only triggers re-verification |
-| `GET /api/subscriptions/payments?businessId=` | owner | billing history (abandoned checkouts older than a day are hidden) |
-| `GET /api/subscriptions/payments/:tx_ref/status` | owner | re-verifies and returns `status` (`pending`/`paid`/`failed`/`expired`), `receipt_number`, `period_end` |
+| `GET /api/subscriptions/payments?businessId=` | owner | billing history (abandoned checkouts older than a day are hidden); pending rows under a day old carry `checkout_url` |
+| `GET /api/subscriptions/payments/:tx_ref/status` | owner | re-verifies and returns `status` (`pending`/`paid`/`failed`/`expired`), `receipt_number`, `period_end`, `business_id`, and `checkout_url` while the payment is pending and under a day old |
 | `GET /api/subscriptions/payments/:id/receipt` | owner | receipt data for a paid payment |
 
 Demo sessions get `403 DEMO_PAYMENTS_UNAVAILABLE` on all owner endpoints.
@@ -171,12 +171,26 @@ CHAPA_WEBHOOK_SECRET=...             # Chapa dashboard → Settings → Webhooks
 API_URL=https://nodbusiness-backend-9psf.onrender.com   # callback and sandbox URLs
 ```
 
-**Owner screens** (frontend): the plan page (`/business/subscription`) opens a prepay panel with the server's quote (`components/business/ChapaCheckoutPanel.tsx`), lists **Billing history** with receipts, shows "Paid until" and **Renew** for prepaid plans (no Cancel: nothing renews automatically). Chapa returns the owner to `/business/subscription/return?tx_ref=…`, which polls the status endpoint ("Payment received, activating…") and links the receipt (`/business/subscription/receipt/:id`, with PDF download) and the newly published website.
+**Owner screens** (frontend): the plan page (`/business/subscription`) opens a prepay panel with the server's quote (`components/business/ChapaCheckoutPanel.tsx`), lists **Billing history** with receipts, shows "Paid until" and **Renew** for prepaid plans (no Cancel: nothing renews automatically). Chapa returns the owner to `/business/subscription/return?tx_ref=…` (only `tx_ref`: Chapa HTML-escapes `&` in the return URL, so the page takes the business from the status response). The page polls the status endpoint ("Checking your payment…") and links the receipt (`/business/subscription/receipt/:id`, with PDF download) and the newly published website.
 
 Set the Chapa dashboard webhook URL to
 `https://<backend>/api/subscriptions/webhook/chapa`. With
 `CHAPA_SECRET_KEY=SANDBOX` (never in production) the checkout URL opens a local
 sandbox page whose "Pay with test telebirr" button marks the payment paid.
+
+**Unfinished payments.** The Chapa checkout page is stored on the payment
+(`subscription_payments.checkout_url`, migrate65). While a payment is pending
+and under a day old, the return page and the Billing history row show
+**Continue payment** (back to the same Chapa page; Chapa never charges one
+`tx_ref` twice) and the return page also shows **Check again**.
+
+**Test mode.** `GET /api/subscriptions/plans` gives each paid plan
+`testMode: { ETB, USD }`, true only with test keys (`CHAPA_SECRET_KEY` of
+`SANDBOX` or `CHASECK_TEST-…`; Stripe `sk_test_…`, with USD configured). The
+checkout panel and return page then show Chapa's published test phone numbers
+and cards (and, on the USD path, Stripe's test cards) with one-tap Copy
+(`components/business/TestModeHelper.tsx`, `lib/paymentTestData.ts`). They are
+never shown with live keys; no key is exposed.
 
 ### Expiry and unpaid-draft lifecycle
 

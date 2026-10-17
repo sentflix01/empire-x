@@ -46,6 +46,12 @@ function secretKey(): string | null {
   return key ? key : null;
 }
 
+/** Test keys (CHASECK_TEST-…) or the sandbox: no real money moves, so the app may show Chapa's test numbers. */
+export function isChapaTestMode(): boolean {
+  const key = secretKey();
+  return Boolean(key) && (key === 'SANDBOX' || key!.startsWith('CHASECK_TEST'));
+}
+
 export function isChapaSandbox(): boolean {
   return secretKey() === 'SANDBOX' && process.env.NODE_ENV !== 'production';
 }

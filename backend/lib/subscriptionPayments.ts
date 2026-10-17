@@ -93,8 +93,10 @@ export async function startCheckout(input: StartCheckoutInput): Promise<{ checko
       title: 'NodBusiness plan',
       description: `${planForTier(q.tier).label} plan ${q.months ? `${q.months} month${q.months === 1 ? '' : 's'}` : 'upgrade'}`,
       callbackUrl: `${apiBaseUrl()}/api/subscriptions/chapa/callback?tx_ref=${encodeURIComponent(txRef)}`,
-      returnUrl: `${frontend}/business/subscription/return?tx_ref=${encodeURIComponent(txRef)}&businessId=${encodeURIComponent(input.businessId)}`,
+      returnUrl: `${frontend}/business/subscription/return?tx_ref=${encodeURIComponent(txRef)}`,
     });
+    // Kept so an owner who left Chapa's page can come back to it ("Continue payment").
+    await pool.query('UPDATE subscription_payments SET checkout_url = $2 WHERE provider_ref = $1', [txRef, checkoutUrl]);
     return { checkoutUrl, txRef, quote: q };
   } catch (err) {
     await pool.query(
@@ -265,6 +267,8 @@ export interface PaymentHistoryRow {
   status: string;
   provider: string;
   receipt_number: string | null;
+  /** Chapa's page for an unfinished payment (pending, under a day old). */
+  checkout_url: string | null;
   period_start: string | null;
   period_end: string | null;
   paid_at: string | null;
@@ -274,6 +278,7 @@ export interface PaymentHistoryRow {
 export async function paymentHistory(businessId: string, limit = 50): Promise<PaymentHistoryRow[]> {
   const { rows } = await pool.query<PaymentHistoryRow>(
     `SELECT id, kind, tier, months, amount, currency, status, provider, receipt_number,
+            CASE WHEN status = 'pending' AND created_at > NOW() - INTERVAL '1 day' THEN checkout_url END AS checkout_url,
             period_start, period_end, paid_at, created_at
        FROM subscription_payments
       WHERE business_id = $1 AND (status <> 'pending' OR created_at > NOW() - INTERVAL '1 day')

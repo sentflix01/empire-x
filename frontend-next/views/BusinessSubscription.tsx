@@ -24,6 +24,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import ChapaCheckoutPanel from '@/components/business/ChapaCheckoutPanel';
 import BillingHistory from '@/components/business/BillingHistory';
+import TestModeHelper from '@/components/business/TestModeHelper';
 import { formatDate, type PaidTier } from '@/lib/etbBilling';
 
 interface Subscription {
@@ -48,6 +49,8 @@ interface Plan {
   currencyAvailability: Record<BillingCurrency, boolean>;
   /** Which checkout serves each currency: ETB is prepaid through Chapa when it is set up. */
   providers?: Record<BillingCurrency, 'chapa' | 'stripe' | null>;
+  /** Test keys per currency: the page then lists the providers' test details. */
+  testMode?: Record<BillingCurrency, boolean>;
   features: string[];
   limits?: { maxProducts: number; maxStorageGB: number; maxShowrooms: number };
 }
@@ -375,6 +378,9 @@ function BusinessSubscription() {
             <option value="USD">USD — US dollars</option>
           </select>
         </div>
+        {selectedCurrency === 'USD' && PAID_PLAN_KEYS.some(k => plans?.[k]?.testMode?.USD && plans?.[k]?.currencyAvailability.USD) && (
+          <TestModeHelper provider="stripe" />
+        )}
         {PAID_PLAN_KEYS.map((planKey, index) => {
           const plan = plans?.[planKey];
           if (!plan) return null;
@@ -404,6 +410,7 @@ function BusinessSubscription() {
                   businessId={selectedBusinessId}
                   plan={plan.tier as PaidTier}
                   draftId={searchParams.get('draftId')}
+                  testMode={Boolean(plan.testMode?.ETB)}
                   onClose={() => setChapaPlan(null)}
                 />
               )}

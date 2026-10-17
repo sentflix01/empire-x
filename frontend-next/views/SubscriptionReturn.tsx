@@ -2,7 +2,7 @@
 /**
  * /business/subscription/return — where Chapa sends the owner after paying.
  * Polls the payment, which the backend re-verifies with Chapa, so the plan
- * activates even when Chapa's webhook is late ("Payment received, activating").
+ * activates even when Chapa's webhook is late ("Checking your payment").
  */
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -10,7 +10,8 @@ import { useSearchParams } from 'next/navigation';
 import { CheckCircle2, Clock, Loader2, XCircle } from 'lucide-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
-import { TIER_LABEL, formatBirr, formatDate, getPaymentStatus, type PaymentStatusResult } from '@/lib/etbBilling';
+import { TIER_LABEL, formatBirr, formatDate, getPaymentStatus, getTestMode, type PaymentStatusResult } from '@/lib/etbBilling';
+import TestModeHelper from '@/components/business/TestModeHelper';
 
 const POLL_MS = 2500;
 /** After this long without confirmation, stop polling and explain what happens next. */
@@ -23,6 +24,9 @@ function SubscriptionReturn() {
   const [error, setError] = useState('');
   const [timedOut, setTimedOut] = useState(false);
   const started = useRef(Date.now());
+  const [testMode, setTestMode] = useState(false);
+  const [checkNow, setCheckNow] = useState(0);
+  useEffect(() => { void getTestMode().then((m) => setTestMode(m.ETB)); }, []);
 
   useEffect(() => {
     if (!txRef) { setError('This page needs a payment reference.'); return; }
@@ -46,7 +50,20 @@ function SubscriptionReturn() {
     };
     void check();
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
-  }, [txRef]);
+  }, [txRef, checkNow]);
+
+  // "Check again" restarts polling; "Continue payment" reopens Chapa's page.
+  const checkAgain = () => { started.current = Date.now(); setTimedOut(false); setCheckNow((n) => n + 1); };
+  const unfinished = result?.status === 'pending' && result.checkout_url ? (
+    <div className="space-y-3 text-left">
+      <p className="text-sm text-muted-foreground">Didn't finish on Chapa's page? Go back and tap Pay; you won't be charged twice.</p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+        <a href={result.checkout_url} className="inline-flex justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Continue payment</a>
+        <button type="button" onClick={checkAgain} className="inline-flex justify-center rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary">Check again</button>
+      </div>
+      {testMode && <TestModeHelper provider="chapa" />}
+    </div>
+  ) : null;
 
   const businessId = result?.business_id ?? params.get('businessId') ?? '';
   const planHref = `/business/subscription${businessId ? `?businessId=${encodeURIComponent(businessId)}` : ''}`;
@@ -89,14 +106,16 @@ function SubscriptionReturn() {
           <p className="text-sm text-muted-foreground">
             If you completed the payment, your plan activates automatically as soon as Chapa confirms it, and you&apos;ll get a notification. You don&apos;t need to pay again.
           </p>
+          {unfinished}
           <Link href={planHref} className="inline-flex justify-center rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary">Back to plan</Link>
         </div>
       ) : (
         <div className="space-y-3 rounded-2xl border border-border bg-card p-6 text-center" role="status" aria-live="polite">
           <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" aria-hidden="true" />
-          <h1 className="font-display text-xl font-bold text-foreground">Payment received, activating…</h1>
+          <h1 className="font-display text-xl font-bold text-foreground">Checking your payment…</h1>
           <p className="text-sm text-muted-foreground">We&apos;re confirming your payment with Chapa. This usually takes a few seconds. Please keep this page open.</p>
           {error && <p className="text-xs text-muted-foreground">{error}</p>}
+          {unfinished}
         </div>
       )}
     </div>

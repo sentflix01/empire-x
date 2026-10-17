@@ -49,6 +49,11 @@ export default function BillingHistory({ businessId, refreshKey = 0 }: { busines
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-foreground">{formatBirr(p.amount)}</span>
                 <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS[p.status]?.cls ?? ''}`}>{STATUS[p.status]?.label ?? p.status}</span>
+                {p.status === 'pending' && p.checkout_url && (
+                  <a href={p.checkout_url} className="inline-flex items-center rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary/90">
+                    Continue payment
+                  </a>
+                )}
                 {p.status === 'paid' && (
                   <Link href={`/business/subscription/receipt/${p.id}`} className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-foreground hover:bg-secondary">
                     <FileText className="h-3.5 w-3.5" aria-hidden="true" /> Receipt

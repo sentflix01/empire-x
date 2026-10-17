@@ -144,6 +144,8 @@ router.get('/payments/:ref/status', ...ownerOnly, async (req: Request, res: Resp
     res.json({
       outcome, status: fresh.status, amount: fresh.amount, currency: fresh.currency, tier: fresh.tier,
       months: fresh.months, kind: fresh.kind, receipt_number: fresh.receipt_number, period_end: fresh.period_end,
+      // Lets the owner go back to Chapa's page for an unfinished payment (Chapa links expire, so only for a day).
+      checkout_url: fresh.status === 'pending' && Date.now() - new Date(fresh.created_at).getTime() < 86_400_000 ? fresh.checkout_url : null,
       business_id: fresh.business_id, payment_id: fresh.id, draft_id: fresh.draft_id,
     });
   } catch (err) { sendError(res, err, 'Could not check this payment'); }

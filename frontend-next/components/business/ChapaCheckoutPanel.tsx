@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2, ShieldCheck, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import TestModeHelper from '@/components/business/TestModeHelper';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import {
   PREPAY_MONTHS, TIER_LABEL, formatBirr, formatDate, getQuote, startChapaCheckout,
@@ -13,6 +14,8 @@ interface Props {
   plan: PaidTier;
   /** The website draft to publish once the payment is confirmed. */
   draftId?: string | null;
+  /** Chapa test keys: show the published test numbers and cards. */
+  testMode?: boolean;
   onClose: () => void;
 }
 
@@ -20,7 +23,7 @@ interface Props {
  * Step between "Choose plan" and Chapa: the owner picks how many months to
  * prepay and sees the server's exact amount and new end date before paying.
  */
-export default function ChapaCheckoutPanel({ businessId, plan, draftId, onClose }: Props) {
+export default function ChapaCheckoutPanel({ businessId, plan, draftId, testMode = false, onClose }: Props) {
   const [months, setMonths] = useState(1);
   const [quote, setQuote] = useState<EtbQuote | null>(null);
   const [error, setError] = useState('');
@@ -97,6 +100,8 @@ export default function ChapaCheckoutPanel({ businessId, plan, draftId, onClose 
       ) : null}
 
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+
+      {testMode && <TestModeHelper provider="chapa" />}
 
       <Button onClick={pay} disabled={!quote || loading || paying} className="w-full rounded-full">
         {paying ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : quote ? `Pay ${formatBirr(quote.amount)} with Chapa` : 'Pay with Chapa'}
