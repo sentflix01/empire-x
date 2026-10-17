@@ -327,7 +327,7 @@ function ShowroomWizard() {
   ];
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden bg-background">
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden bg-background">
       {/* ── Stepper header ── */}
       <div className="shrink-0 border-b border-border bg-card">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:gap-5">

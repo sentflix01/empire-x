@@ -299,6 +299,31 @@ documents when verified; do not copy stale values into new work.
 - **Related documentation:** `frontend-next/components/profile/BusinessProfile.tsx`, `frontend-next/test/profile/BusinessProfile.site.test.tsx`
 
 
+### 2026-10-17 — Showroom Studio is manual, publish-only, and laid out per device
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** Studio's toolbar held about 25 controls in one sideways-scrolling
+  row with Publish last (off-screen at 768px and below); the phone Sections tab
+  left about 110px for the list; the tablet sections drawer covered the
+  preview. Studio also offered "Export HTML" and "Copy code", and the floating
+  AI assistant sat over the form.
+- **Decision:** (owner) Websites are published **only on NodBusiness**: the
+  HTML export, copy-code and raw-HTML preview are removed (a full-screen
+  in-app preview replaces the last). Studio has **no AI inside**: every word,
+  photo and price is entered by the owner, and the AI assistant is hidden on
+  the Studio route. One top bar on every screen (Back, name and save status,
+  Undo/Redo, Style, More, Publish), with Publish always visible. One layout is
+  rendered at a time, chosen from Studio's own width: phone (under 520px: Edit
+  or Preview, with Sections in a see-through panel over the preview, 40–100%,
+  remembered), tablet (sections or editor beside the preview) and desktop
+  (three columns from 960px). Undo groups typing in one field until a 1s
+  pause; completion counts only the sections on the page.
+- **Consequences:** The Sections list shows the page top to bottom with
+  labelled move and remove buttons, plus an Add catalogue (the dead
+  `resources` entry is gone). The Studio e2e mock now gives the signed-in
+  owner a Business profile, since publishing requires one (#117).
+- **Related documentation:** `frontend-next/views/ShowroomCreate.tsx`, `frontend-next/components/showroom/studio/`, `frontend-next/hooks/useStudioLayout.ts`, `frontend-next/test/showroom/studioDevices.test.tsx`
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when
