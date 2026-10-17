@@ -60,6 +60,9 @@ export function resolveDotPath(obj: unknown, path: unknown): unknown {
   return current;
 }
 
+/** Field names that would change an object's prototype instead of adding a field. */
+export const RESERVED_FIELD_NAMES = new Set(['__proto__', 'constructor', 'prototype']);
+
 export function applyMappings(items: unknown[], mappings: Mapping[]): MappedItem[] {
   if (!Array.isArray(items)) return [];
   if (!Array.isArray(mappings) || !mappings.length) return items.map(() => ({}));
@@ -67,6 +70,7 @@ export function applyMappings(items: unknown[], mappings: Mapping[]): MappedItem
   return items.map(item => {
     const mapped: MappedItem = {};
     for (const { source_path, target_field } of sorted) {
+      if (RESERVED_FIELD_NAMES.has(target_field)) continue;
       const v = resolveDotPath(item, source_path);
       if (v !== undefined) mapped[target_field] = v;
     }
@@ -297,4 +301,4 @@ export async function fetchSection(
   return result;
 }
 
-module.exports = { resolveDotPath, applyMappings, buildCacheKey, injectCredentials, writeHealthRecord, fetchSection, staleCacheKey, readStaleCache };
+module.exports = { resolveDotPath, applyMappings, RESERVED_FIELD_NAMES, buildCacheKey, injectCredentials, writeHealthRecord, fetchSection, staleCacheKey, readStaleCache };
