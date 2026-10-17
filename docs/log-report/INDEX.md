@@ -5,6 +5,9 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #125 from sentflix01/claude/profile-shows-studio-site | [7ee365a67](2026-10-17-7ee365a67-merge-pull-request-125-from-sentflix01-claude-pr.md) |
+| 2026-10-17 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/profile-shows-studio-site | [22e92dccf](2026-10-17-22e92dccf-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-17 | Feature | feat(profile): business profile page shows the published Studio site | [a023c2810](2026-10-17-a023c2810-business-profile-page-shows-the-published-studio.md) |
 | 2026-10-17 | Maintenance | Merge pull request #124 from sentflix01/claude/link-cards-to-products | [db716e37f](2026-10-17-db716e37f-merge-pull-request-124-from-sentflix01-claude-li.md) |
 | 2026-10-17 | Feature | feat(studio): link website cards to catalogue products | [920e27171](2026-10-17-920e27171-link-website-cards-to-catalogue-products.md) |
 | 2026-10-17 | Maintenance | Merge pull request #123 from sentflix01/claude/buy-now-flow | [122fe1050](2026-10-17-122fe1050-merge-pull-request-123-from-sentflix01-claude-bu.md) |
