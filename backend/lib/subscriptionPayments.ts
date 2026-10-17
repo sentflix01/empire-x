@@ -285,10 +285,57 @@ export async function paymentHistory(businessId: string, limit = 50): Promise<Pa
 }
 
 /** Pending checkouts older than a day were abandoned. */
-export async function expireAbandonedCheckouts(): Promise<number> {
-  const { rowCount } = await pool.query(
-    `UPDATE subscription_payments SET status = 'expired', updated_at = NOW()
-      WHERE status = 'pending' AND created_at < NOW() - INTERVAL '1 day'`,
+/**
+ * Before an overdue business is removed: re-check its recent unconfirmed
+ * payments with Chapa. `paid` means a renewal just went through (the period
+ * was extended); `pending` means one may still confirm, so removal waits.
+ */
+export async function settlePendingPayments(businessId: string): Promise<{ paid: boolean; pending: boolean }> {
+  const { rows } = await pool.query<{ provider_ref: string }>(
+    `SELECT provider_ref FROM subscription_payments
+      WHERE business_id = $1 AND status = 'pending' AND created_at > NOW() - INTERVAL '3 days'
+      ORDER BY created_at`,
+    [businessId],
   );
-  return rowCount ?? 0;
+  let paid = false;
+  let pending = false;
+  for (const { provider_ref: txRef } of rows) {
+    const { outcome } = await confirmPayment(txRef);
+    if (outcome === 'paid' || outcome === 'already_paid') paid = true;
+    else if (outcome === 'pending') pending = true;
+  }
+  return { paid, pending };
+}
+
+/**
+ * Checkouts left pending for over a day get one last check with Chapa (a
+ * late payment still counts); the rest are marked expired. Runs on the
+ * subscription-lifecycle schedule.
+ */
+export async function settleAbandonedCheckouts(limit = 50): Promise<{ paid: number; expired: number }> {
+  const { rows } = await pool.query<{ provider_ref: string }>(
+    `SELECT provider_ref FROM subscription_payments
+      WHERE status = 'pending' AND created_at < NOW() - INTERVAL '1 day'
+      ORDER BY created_at LIMIT $1`,
+    [limit],
+  );
+  let paid = 0;
+  let expired = 0;
+  for (const { provider_ref: txRef } of rows) {
+    try {
+      const { outcome } = await confirmPayment(txRef);
+      if (outcome === 'paid' || outcome === 'already_paid') { paid++; continue; }
+      if (outcome !== 'pending') continue;
+    } catch (err) {
+      // Chapa unreachable: leave it pending and try again next run.
+      logger.warn({ err: (err as Error).message, txRef }, 'Could not re-check an abandoned checkout');
+      continue;
+    }
+    const { rowCount } = await pool.query(
+      `UPDATE subscription_payments SET status = 'expired', updated_at = NOW() WHERE provider_ref = $1 AND status = 'pending'`,
+      [txRef],
+    );
+    expired += rowCount ?? 0;
+  }
+  return { paid, expired };
 }
