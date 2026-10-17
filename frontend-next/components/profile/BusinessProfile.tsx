@@ -13,6 +13,7 @@ import { findOrCreateConversation } from "@/lib/messaging";
 import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import SafeImage from "@/components/ui/SafeImage";
+import WebsiteStatusBanner from "@/components/profile/WebsiteStatusBanner";
 
 
 /**
@@ -103,6 +104,11 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
 
   return (
     <div className="space-y-0">
+      {/* Owner only: why the business isn't visible yet, and the one action that fixes it. */}
+      {isOwner && business?.id && (
+        <WebsiteStatusBanner businessId={String(business.id)} ownerId={String(profile.user_id)} businessCategory={biz.business_category} />
+      )}
+
       {/* Mini-Website Container */}
       <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
         {/* Website Navbar — static, not sticky (sticky causes z-index overlap with contact section) */}
