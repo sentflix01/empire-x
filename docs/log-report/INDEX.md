@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #129 from sentflix01/claude/studio-every-device | [8efe81b8a](2026-10-17-8efe81b8a-merge-pull-request-129-from-sentflix01-claude-st.md) |
+| 2026-10-17 | Feature | feat(studio): usable on every device; publish-only, no export | [4add7199c](2026-10-17-4add7199c-usable-on-every-device-publish-only-no-export.md) |
 | 2026-10-17 | Maintenance | Merge pull request #128 from sentflix01/claude/payments-test-helpers | [45d85560f](2026-10-17-45d85560f-merge-pull-request-128-from-sentflix01-claude-pa.md) |
 | 2026-10-17 | Feature | feat(payments): test-mode helper, Continue payment, clean Chapa return URL | [4b61e49b2](2026-10-17-4b61e49b2-test-mode-helper-continue-payment-clean-chapa-re.md) |
 | 2026-10-17 | Maintenance | Merge pull request #127 from sentflix01/fix/fieldmapper-pbt-reserved-keys | [32c7757a3](2026-10-17-32c7757a3-merge-pull-request-127-from-sentflix01-fix-field.md) |
