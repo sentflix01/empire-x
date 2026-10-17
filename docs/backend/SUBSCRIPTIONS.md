@@ -178,10 +178,26 @@ sandbox page whose "Pay with test telebirr" button marks the payment paid.
 
 ### Expiry and unpaid-draft lifecycle
 
-- Subscription notices are sent on days 0, 3, 7, 9, and 10 after the paid period ends.
+Runs every 15 minutes (`subscription-lifecycle` job, `scripts/business-subscription-lifecycle.js`).
+
+- **3 days before** a prepaid plan or a free (trialing) period ends, the owner gets
+  "Your plan ends soon" / "Your free period ends soon" in the app and by email,
+  once per period, with a Renew link. Stripe subscriptions renew themselves and
+  are skipped.
+- Subscription notices are sent on days 0, 3, 7, 9, and 10 after the paid period
+  ends, **in the app and by email**. The in-app notice is claimed separately
+  (`<notice>:app` in `business_subscription_notices`), so it is delivered once even
+  when email fails, while the email is retried on the next run.
 - The website is hidden after the 24-hour grace period. If it remains unpaid after
   the final day-10 notice, the business and its products are permanently deleted,
-  and the owner is blocked from creating a new business for one month.
+  and the owner is blocked from creating a new business for one month. Removal
+  still requires the day-10 email to have been sent.
+- **A payment in flight protects the business.** From day 9, before any removal,
+  the job re-checks the business's unconfirmed payments from the last 3 days with
+  Chapa: a confirmed one extends the period (nothing is removed); one still
+  pending postpones removal to a later run. A failed check also postpones.
+- Each run first gives checkouts left pending for over a day one last check with
+  Chapa (a late payment still counts), then marks the rest `expired`.
 - An unpublished website draft is reminded at 24, 48, and 72 hours; it is deleted
   only after the final reminder succeeds.
 - Draft reminders show the plan price in both ETB and USD.
