@@ -234,6 +234,27 @@ documents when verified; do not copy stale values into new work.
   subscriptions are untouched.
 - **Related documentation:** [Database](../docs/backend/DATABASE.md) (migrate62)
 
+### 2026-10-17 — ETB plans are prepaid through Chapa
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** Decision 3 of the Build Plan chose Chapa for ETB
+  subscriptions. Chapa has no recurring billing; each payment is a one-time
+  checkout.
+- **Decision:**
+  - Owners prepay 1, 3, 6 or 12 months and are reminded before the period
+    ends (no automatic charging).
+  - Upgrading mid-period pays the price difference for the days left (30-day
+    month, rounded up to whole birr) and keeps the end date; months can be
+    added at the new price.
+  - Downgrades take effect when the paid period ends.
+  - A payment counts only after the backend re-verifies it with Chapa;
+    webhooks, callbacks and return pages only trigger that check.
+  - Stripe stays for USD.
+- **Consequences:** `subscription_payments` holds every checkout and receipt.
+  Renewal reminders and the scheduler checks follow in Phase 1's later PRs.
+- **Related documentation:** [Subscriptions](../docs/backend/SUBSCRIPTIONS.md#prepaid-etb-through-chapa-phase-1)
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when

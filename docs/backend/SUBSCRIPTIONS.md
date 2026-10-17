@@ -120,6 +120,62 @@ Verifies `stripe-signature` header using `STRIPE_SUBSCRIPTION_WEBHOOK_SECRET`.
 
 Handles: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
 
+### Prepaid ETB through Chapa (Phase 1)
+
+ETB plans are paid through Chapa (telebirr, CBE Birr, banks and cards in one
+checkout). Chapa has no recurring charges, so owners **prepay** periods. When
+Chapa is configured, `GET /plans` reports `currencyAvailability.ETB: true`,
+`providers.ETB: "chapa"` and `prepayMonths: [1, 3, 6, 12]`. Stripe remains for
+USD. Code: `routes/subscriptionsEtb.ts`, `lib/subscriptionPayments.ts`,
+`lib/subscriptionBilling.ts`, `lib/chapaClient.ts`; table `subscription_payments` (migrate63).
+
+**Pricing rules** (owner decisions 2026-10-17):
+
+| Situation | Kind | Amount | New period |
+|---|---|---|---|
+| No paid period (or it ended) | `new` | monthly price × months | now → now + months |
+| During the free legacy trial | `new` | monthly price × months | trial end → trial end + months (the plan's tier applies from payment) |
+| Same plan, still paid | `renewal` | monthly price × months | current end → current end + months |
+| Higher plan, still paid | `upgrade` | price difference × days left ÷ 30 (rounded up) + new price × added months | end unchanged, plus any added months |
+| Lower plan, still paid | refused (`downgrade_not_allowed`) | — | change at the end of the period |
+
+Months are 1, 3, 6 or 12 (an upgrade may add 0). While a Stripe subscription is
+renewing itself, ETB checkout is refused (`stripe_subscription_active`).
+
+**Confirmation.** A payment counts only after the backend verifies it with
+Chapa's API. The webhook, the checkout `callback_url` and the owner's return
+page (which polls `/payments/:ref/status`) all call the same idempotent
+`confirmPayment`: under row locks it marks the payment paid once, recomputes
+the period from the latest end date (so out-of-order payments extend
+correctly), assigns a receipt number (`NB-YYYY-000001`), notifies the owner and
+publishes the website draft the owner was publishing, if any. A payment Chapa
+reports for less than the quote is marked `failed` and changes nothing.
+
+| Endpoint | Auth | Purpose |
+|---|---|---|
+| `GET /api/subscriptions/quote?businessId=&plan=&months=` | owner | `{ kind, tier, months, amount, periodStart, periodEnd, currency: "ETB" }` |
+| `POST /api/subscriptions/checkout` `{ business_id, plan, months, draft_id? }` | owner | `{ checkout_url, tx_ref, amount, kind, period_end }`; `503 etb_checkout_unavailable` when Chapa is not configured |
+| `POST /api/subscriptions/webhook/chapa` | Chapa signature | `x-chapa-signature` = HMAC-SHA256 of the raw body with `CHAPA_WEBHOOK_SECRET`; `401` otherwise |
+| `GET /api/subscriptions/chapa/callback?tx_ref=` | none | Chapa's callback; only triggers re-verification |
+| `GET /api/subscriptions/payments?businessId=` | owner | billing history (abandoned checkouts older than a day are hidden) |
+| `GET /api/subscriptions/payments/:tx_ref/status` | owner | re-verifies and returns `status` (`pending`/`paid`/`failed`/`expired`), `receipt_number`, `period_end` |
+| `GET /api/subscriptions/payments/:id/receipt` | owner | receipt data for a paid payment |
+
+Demo sessions get `403 DEMO_PAYMENTS_UNAVAILABLE` on all owner endpoints.
+
+**Environment:**
+
+```bash
+CHAPA_SECRET_KEY=CHASECK_TEST-...    # live: CHASECK-...; "SANDBOX" = fake checkout outside production
+CHAPA_WEBHOOK_SECRET=...             # Chapa dashboard → Settings → Webhooks → secret hash
+API_URL=https://nodbusiness-backend-9psf.onrender.com   # callback and sandbox URLs
+```
+
+Set the Chapa dashboard webhook URL to
+`https://<backend>/api/subscriptions/webhook/chapa`. With
+`CHAPA_SECRET_KEY=SANDBOX` (never in production) the checkout URL opens a local
+sandbox page whose "Pay with test telebirr" button marks the payment paid.
+
 ### Expiry and unpaid-draft lifecycle
 
 - Subscription notices are sent on days 0, 3, 7, 9, and 10 after the paid period ends.
