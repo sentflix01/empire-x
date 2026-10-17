@@ -255,6 +255,27 @@ documents when verified; do not copy stale values into new work.
   Renewal reminders and the scheduler checks follow in Phase 1's later PRs.
 - **Related documentation:** [Subscriptions](../docs/backend/SUBSCRIPTIONS.md#prepaid-etb-through-chapa-phase-1)
 
+### 2026-10-17 — The business profile page shows the published website
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** The business profile page (`/profile/<id>?view=business`)
+  rendered the category template's sample sections from `business_sections`
+  (for example "Electronics Appliances Standard · From $16"). Owners cannot
+  edit those cards or link them to products, so they bypassed the Studio
+  site's product links and requests.
+- **Decision:** The page shows the business's published Studio site: the most
+  recently updated published showroom with that `business_id`, read through
+  `GET /api/showrooms` (which applies expiry, private-business and the 24-hour
+  post-plan grace rules for visitors). It uses the same `SectionRenderer` and
+  Buy flow as the site page, and `PurchaseModal` gets the site's id. The
+  template sections are only a fallback when there is no published site.
+- **Consequences:** The owner's Edit and View site buttons open that site.
+  A site with its own contact section replaces the page's built-in contact
+  block. The profile's business list matches a site to its business by
+  `business_id` first (titles may differ), and by name only for sites without
+  a link, so a linked site no longer appears as a second business.
+- **Related documentation:** `frontend-next/components/profile/BusinessProfile.tsx`, `frontend-next/test/profile/BusinessProfile.site.test.tsx`
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when
