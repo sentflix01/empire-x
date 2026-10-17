@@ -32,8 +32,8 @@ describe('WebsiteSectionsPanel', () => {
     showroomApi.filter.mockResolvedValue([publishedSite]);
     showroomApi.update.mockResolvedValue({ ...publishedSite });
     render(<WebsiteSectionsPanel />);
-    expect(await screen.findByText('Hero Banner')).toBeTruthy();
-    expect(screen.getByText('About Us', { selector: 'span' })).toBeTruthy();
+    expect(await screen.findByText('Top of your page')).toBeTruthy();
+    expect(screen.getByText('About us', { selector: 'span' })).toBeTruthy();
     expect(screen.getByRole('link', { name: /View site/ }).getAttribute('href')).toBe('/showrooms/site-1');
 
     const save = screen.getByRole('button', { name: /Save website/ }) as HTMLButtonElement;

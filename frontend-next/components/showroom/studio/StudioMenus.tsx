@@ -4,8 +4,9 @@ import { Check, Expand, FolderOpen, Monitor, MoreHorizontal, Palette, Save, Smar
 import { COLOR_PRESETS } from '@/lib/builderSections';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
+import { FONT_OPTIONS, siteFontFamily } from '@/lib/siteFonts';
 
-export const FONT_OPTIONS = ['Inter', 'Playfair Display', 'Space Grotesk'];
+export { FONT_OPTIONS } from '@/lib/siteFonts';
 export type PreviewMode = 'desktop' | 'tablet' | 'mobile';
 
 const triggerClass = 'inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-3 text-sm font-medium text-foreground hover:bg-secondary';
@@ -66,7 +67,7 @@ export function StyleMenu(p: StyleMenuProps) {
           <div className="space-y-1.5">
             {FONT_OPTIONS.map((f) => (
               <button key={f} type="button" onClick={() => p.onFont(f)} aria-pressed={p.font === f}
-                style={{ fontFamily: `'${f}', sans-serif` }}
+                style={{ fontFamily: siteFontFamily(f) }}
                 className={`flex min-h-11 w-full items-center justify-between rounded-xl border px-3 text-left text-base ${p.font === f ? 'border-primary bg-primary/5' : 'border-border hover:bg-secondary'}`}>
                 {f}{p.font === f && <Check className="h-4 w-4 text-primary" aria-hidden="true" />}
               </button>

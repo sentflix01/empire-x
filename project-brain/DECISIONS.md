@@ -324,6 +324,48 @@ documents when verified; do not copy stale values into new work.
   owner a Business profile, since publishing requires one (#117).
 - **Related documentation:** `frontend-next/views/ShowroomCreate.tsx`, `frontend-next/components/showroom/studio/`, `frontend-next/hooks/useStudioLayout.ts`, `frontend-next/test/showroom/studioDevices.test.tsx`
 
+### 2026-10-17 — Every Studio section works as shown, in words owners already use
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** A strict review of the Studio sections found:
+  - Inventory Catalog and Live Location rendered nothing on published sites
+    (owners could pay for Pro and get an empty section).
+  - Newsletter saved nothing.
+  - The Save button and catalogue were missing from the preview, because the
+    preview was a second, separate renderer.
+  - Every photo was a pasted image address.
+  - The site security policy blocked YouTube and map frames, so Video and Map
+    could not show on a live site.
+  - The Style font choice and WhatsApp button were never saved, and the fonts
+    were never loaded.
+  - The top button disappeared when the page had nothing to sell.
+- **Decision:**
+  - **One renderer.** Studio's preview renders through the published site's
+    `SectionRenderer`.
+  - **Product catalogue.** It lists the business's real products with search,
+    categories and an optional "left in stock".
+  - **Live location.** Visitors see the owner's last shared position (10
+    minutes, by the existing API) on a map; only the owner sees "Share my
+    location now".
+  - **Email sign-up.** Addresses are stored in `showroom_newsletter_signups`
+    (migrate66; public `POST /api/showrooms/:id/newsletter`, rate-limited, only
+    for a published site with that section; owner-only `GET`). The owner sees
+    them on their website page. They are personal data: never shown to
+    anyone but the site owner, and deleted with the site.
+  - **Forms in owners' words.** "Add photo" uploads replace image addresses.
+    No colour, icon or map-embed codes in forms: those fields are hidden but
+    kept, so existing sites are unchanged. Maps come from the typed address.
+  - **Video and maps load.** The policy adds `frame-src` for
+    youtube-nocookie/YouTube, Google Maps and OpenStreetMap.
+  - **Style is saved.** Font and WhatsApp button are stored on the top
+    section, and the fonts are self-hosted with `next/font`.
+  - **The top button always lands.** It goes to the catalogue, then
+    services, items or price list, then contact.
+  - **Plain names.** Every section carries a plain name and a one-line purpose.
+- **Consequences:** Section and field keys are unchanged (sites keep their data). `lib/showroomSectionFields.ts`
+  (the older business-template editor) still uses image addresses and is a separate follow-up.
+- **Related documentation:** `frontend-next/lib/builderSections.ts`, `frontend-next/components/showroom/SectionRenderer.tsx`, `frontend-next/components/showroom/BuilderPreview.tsx`, `backend/routes/showrooms.ts`, `backend/db/migrate66.js`, `frontend-next/test/showroom/sectionsLive.test.tsx`, `backend/test/db/newsletterSignups.db.test.js`
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when

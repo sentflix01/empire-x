@@ -10,7 +10,7 @@ import BrandLogo from "@/components/brand/BrandLogo";
 import { Badge } from "@/components/ui/badge";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
 import { findOrCreateConversation } from "@/lib/messaging";
-import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
+import SectionRenderer, { resolveCtaTarget, firstProductsIndex, isCatalogueSection } from "@/components/showroom/SectionRenderer";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import SafeImage from "@/components/ui/SafeImage";
 import WebsiteStatusBanner from "@/components/profile/WebsiteStatusBanner";
@@ -150,7 +150,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
         {/* Render Sections */}
         <div className="space-y-0">
           {sections.map((section, idx) => {
-            const sectionProducts = section.type === "products" || section.type === "featured_products" ? products : [];
+            const sectionProducts = isCatalogueSection(section.type) ? products : [];
 
             return (
               <SectionRenderer
@@ -165,6 +165,8 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
                 hours={hours}
                 ctaTarget={ctaTarget}
                 isPrimaryProducts={idx === productsIdx}
+                showroomId={site?.id ?? null}
+                businessId={business?.id ? String(business.id) : null}
               />
             );
           })}

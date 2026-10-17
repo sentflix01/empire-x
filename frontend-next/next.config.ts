@@ -92,8 +92,8 @@ const nextConfig: NextConfig = {
       `font-src 'self'`,
       // API calls, Sentry, Stripe, WebSocket (socket.io), Google auth
       `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in`,
-      // Stripe Checkout/Elements + Google Sign-In renders in iframes
-      `frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com`,
+      // Stripe Checkout/Elements + Google Sign-In; website Video (YouTube) and Map / Live location sections
+      `frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://maps.google.com https://www.openstreetmap.org`,
       // No plugins, no base-uri override
       `object-src 'none'`,
       `base-uri 'self'`,

@@ -69,8 +69,9 @@ describe("SectionRenderer — all 24 builder section types", () => {
     );
     expect(container.querySelector("#section-contact")).toBeTruthy();
 
-    const servicesIdx = builderSections.findIndex((s: any) => s.type === "services");
-    expect(resolveCtaTarget(builderSections)).toBe(`#section-${servicesIdx}`);
+    // No catalogue: the first menu, services, items or price list section.
+    const firstOfferIdx = builderSections.findIndex((s: any) => ["menu", "services", "items", "pricing"].includes(s.type));
+    expect(resolveCtaTarget(builderSections)).toBe(`#section-${firstOfferIdx}`);
     expect(firstProductsIndex(builderSections)).toBe(-1);
   });
 
@@ -85,7 +86,9 @@ describe("SectionRenderer — all 24 builder section types", () => {
     expect(secondary.container.querySelector("#section-products")).toBeNull();
     expect(resolveCtaTarget([{ type: "hero" }, { type: "products" }])).toBe("#section-1");
     expect(resolveCtaTarget([{ type: "hero" }, { type: "menu" }])).toBe("#section-1");
-    expect(resolveCtaTarget([{ type: "hero" }])).toBeNull();
+    // A main button with words never disappears: it falls back to the contact block every site has.
+    expect(resolveCtaTarget([{ type: "hero" }])).toBe("#section-contact");
+    expect(resolveCtaTarget([{ type: "hero" }, { type: "inventory_catalog" }])).toBe("#section-1");
   });
 });
 
