@@ -125,7 +125,7 @@ router.get('/my', requireAuth, async (req: Request, res: Response) => {
     }
 
     const { rows } = await pool.query(
-      `SELECT tier, status, currency, current_period_start, current_period_end,
+      `SELECT tier, status, currency, billing_provider, current_period_start, current_period_end,
               cancel_at_period_end, product_count, storage_used_bytes
        FROM business_subscriptions
        WHERE business_id = $1`,

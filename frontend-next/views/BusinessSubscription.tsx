@@ -22,11 +22,16 @@ import { toast } from 'sonner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useAuth } from '@/lib/AuthContext';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import ChapaCheckoutPanel from '@/components/business/ChapaCheckoutPanel';
+import BillingHistory from '@/components/business/BillingHistory';
+import { formatDate, type PaidTier } from '@/lib/etbBilling';
 
 interface Subscription {
   tier: 'freemium' | 'normal' | 'premium' | 'pro';
   status: string;
   currency: BillingCurrency | null;
+  /** 'chapa' for prepaid ETB plans, which have nothing to cancel. */
+  billing_provider?: string | null;
   current_period_end: string | null;
   cancel_at_period_end: boolean;
   product_count: number;
@@ -41,6 +46,8 @@ interface Plan {
   label: string;
   prices: Record<BillingCurrency, number>;
   currencyAvailability: Record<BillingCurrency, boolean>;
+  /** Which checkout serves each currency: ETB is prepaid through Chapa when it is set up. */
+  providers?: Record<BillingCurrency, 'chapa' | 'stripe' | null>;
   features: string[];
   limits?: { maxProducts: number; maxStorageGB: number; maxShowrooms: number };
 }
@@ -123,6 +130,8 @@ function BusinessSubscription() {
   const [upgrading, setUpgrading] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  // The plan whose prepaid ETB checkout panel is open.
+  const [chapaPlan, setChapaPlan] = useState<PaidTier | null>(null);
   const requestedTier = searchParams.get('requiredTier');
   const requiredTier = requestedTier === 'normal' || requestedTier === 'premium' || requestedTier === 'pro' ? requestedTier : null;
   const requiredTierLabel = requiredTier === 'pro' ? 'Pro' : requiredTier === 'premium' ? 'Premium' : 'Normal';
@@ -171,6 +180,11 @@ function BusinessSubscription() {
   async function handleUpgrade(planKey: string) {
     if (!selectedBusinessId) {
       toast.error('Choose the business website for this subscription first.');
+      return;
+    }
+    const plan = plans?.[planKey as keyof Plans] as Plan | undefined;
+    if (selectedCurrency === 'ETB' && plan?.providers?.ETB === 'chapa' && plan.tier !== 'freemium') {
+      setChapaPlan(plan.tier);
       return;
     }
     setUpgrading(planKey);
@@ -267,7 +281,13 @@ function BusinessSubscription() {
             <p className="text-xl font-bold mt-0.5 capitalize">
               {tier === 'freemium' ? 'No active plan' : tier === 'normal' ? 'Normal' : tier === 'premium' ? 'Premium' : 'Pro'}
             </p>
-            {tier !== 'freemium' && (
+            {tier !== 'freemium' && sub?.current_period_end && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {sub.status === 'trialing' ? 'Free until ' : sub.billing_provider === 'chapa' ? 'Paid until ' : 'Renews or ends '}
+                <span className="font-medium text-foreground">{formatDate(sub.current_period_end)}</span>
+              </p>
+            )}
+            {tier !== 'freemium' && sub?.billing_provider !== 'chapa' && sub?.status !== 'trialing' && (
               <p className="text-sm text-muted-foreground mt-1">Billing currency: {sub?.currency ?? 'ETB'}</p>
             )}
           </div>
@@ -305,7 +325,8 @@ function BusinessSubscription() {
           />
         </div>
 
-        {tier !== 'freemium' && !sub?.cancel_at_period_end && (
+        {/* Prepaid ETB plans and free periods never charge again, so there is nothing to cancel. */}
+        {tier !== 'freemium' && !sub?.cancel_at_period_end && sub?.billing_provider !== 'chapa' && sub?.status !== 'trialing' && (
           <button
             onClick={() => setShowCancelConfirm(true)}
             className="text-xs text-muted-foreground hover:text-destructive transition-colors"
@@ -340,7 +361,7 @@ function BusinessSubscription() {
 
       {/* Plan comparison */}
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold">Choose a monthly plan</h2>
+        <h2 className="text-sm font-semibold">Choose a plan</h2>
         <div className="max-w-xs space-y-2">
           <label htmlFor="subscription-currency" className="text-sm font-medium">Billing currency</label>
           <select id="subscription-currency" name="billing_currency" value={selectedCurrency}
@@ -359,6 +380,9 @@ function BusinessSubscription() {
           if (!plan) return null;
           const selected = tier === plan.tier;
           const currencyAvailable = plan.currencyAvailability[selectedCurrency];
+          const prepaid = selectedCurrency === 'ETB' && plan.providers?.ETB === 'chapa';
+          // A prepaid plan is renewed by paying for it again; a free period is turned into a paid one the same way.
+          const canPay = !selected || (prepaid && (sub?.billing_provider === 'chapa' || sub?.status === 'trialing'));
           const accent = index === 0 ? 'border-slate-300/50' : index === 1 ? 'border-amber-400/50' : 'border-violet-400/50';
           return (
             <div key={planKey} className={`bg-card border rounded-2xl p-5 ${selected ? `ring-1 ring-primary/20 ${accent}` : requiredTier === plan.tier ? `ring-1 ring-amber-400/40 ${accent}` : 'border-border/50'}`}>
@@ -368,13 +392,21 @@ function BusinessSubscription() {
                   <p className="text-2xl font-bold mt-0.5">{formatMonthlyPrice(plan.prices[selectedCurrency], selectedCurrency)}<span className="text-sm font-normal text-muted-foreground">/month</span></p>
                 </div>
                 {selected ? <Badge>Current plan</Badge> : requiredTier === plan.tier ? <Badge variant="outline">Required by your sections</Badge> : null}
-                {!selected && (
+                {canPay && (
                   <Button size="sm" onClick={() => handleUpgrade(planKey)} disabled={!!upgrading || !selectedBusinessId || !currencyAvailable}
                     className={index === 2 ? 'bg-violet-600 hover:bg-violet-700 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white'}>
-                    {upgrading === planKey ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Choose plan'}
+                    {upgrading === planKey ? <Loader2 className="w-4 h-4 animate-spin" /> : selected ? 'Renew' : 'Choose plan'}
                   </Button>
                 )}
               </div>
+              {prepaid && chapaPlan === plan.tier && selectedBusinessId && (
+                <ChapaCheckoutPanel
+                  businessId={selectedBusinessId}
+                  plan={plan.tier as PaidTier}
+                  draftId={searchParams.get('draftId')}
+                  onClose={() => setChapaPlan(null)}
+                />
+              )}
               {!currencyAvailable && (
                 <p className="mb-3 text-sm text-muted-foreground" role="status">
                   Checkout is not configured for {selectedCurrency} on this plan yet.
@@ -395,6 +427,8 @@ function BusinessSubscription() {
           </a>
         </div>
       </div>
+
+      {selectedBusinessId && <BillingHistory businessId={selectedBusinessId} />}
     </div>
   );
 }
