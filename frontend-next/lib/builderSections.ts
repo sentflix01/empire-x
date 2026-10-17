@@ -7,7 +7,8 @@
 export interface RepeaterItemField {
   key: string;
   label: string;
-  type: "text" | "textarea";
+  /** "product": pick one of the owner's catalogue products; Buy Now then sells it. */
+  type: "text" | "textarea" | "product";
   placeholder?: string;
 }
 
@@ -59,6 +60,7 @@ export const SECTION_TYPES: SectionType[] = [
           { key: "desc",  label: "Description", type: "text",     placeholder: "Brief description" },
           { key: "price", label: "Price",        type: "text",     placeholder: "29.99" },
           { key: "icon",  label: "Icon",         type: "text",     placeholder: "fa-box" },
+          { key: "product_id", label: "Sell as product (optional)", type: "product" },
         ],
       },
     ],
@@ -86,6 +88,8 @@ export const SECTION_TYPES: SectionType[] = [
           { key: "name", label: "Service Name",  type: "text",     placeholder: "Web Design" },
           { key: "desc", label: "Description",   type: "textarea", placeholder: "What we offer" },
           { key: "icon", label: "Icon (fa-)",    type: "text",     placeholder: "fa-cog" },
+          { key: "price", label: "Price (optional)", type: "text",   placeholder: "From 500 ETB" },
+          { key: "product_id", label: "Sell as product (optional)", type: "product" },
         ],
       },
     ],
@@ -137,6 +141,7 @@ export const SECTION_TYPES: SectionType[] = [
           { key: "price",    label: "Price",     type: "text", placeholder: "49.99" },
           { key: "period",   label: "Period",    type: "text", placeholder: "/mo" },
           { key: "features", label: "Features (comma separated)", type: "text", placeholder: "Feature 1, Feature 2" },
+          { key: "product_id", label: "Sell as product (optional)", type: "product" },
         ],
       },
     ],

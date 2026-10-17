@@ -5,6 +5,10 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #124 from sentflix01/claude/link-cards-to-products | [db716e37f](2026-10-17-db716e37f-merge-pull-request-124-from-sentflix01-claude-li.md) |
+| 2026-10-17 | Feature | feat(studio): link website cards to catalogue products | [920e27171](2026-10-17-920e27171-link-website-cards-to-catalogue-products.md) |
+| 2026-10-17 | Maintenance | Merge pull request #123 from sentflix01/claude/buy-now-flow | [122fe1050](2026-10-17-122fe1050-merge-pull-request-123-from-sentflix01-claude-bu.md) |
+| 2026-10-17 | Bugfix | fix(checkout): Buy Now popup covers the screen; website items can be requested | [adaf29432](2026-10-17-adaf29432-buy-now-popup-covers-the-screen-website-items-ca.md) |
 | 2026-10-17 | Maintenance | Merge pull request #122 from sentflix01/claude/phase1-renewal-reminders | [9bd014134](2026-10-17-9bd014134-merge-pull-request-122-from-sentflix01-claude-ph.md) |
 | 2026-10-17 | Feature | feat(subscriptions): renewal reminders and payment safety (Phase 1, PR 3) | [942ab461f](2026-10-17-942ab461f-renewal-reminders-and-payment-safety-phase-1-pr-.md) |
 | 2026-10-17 | Maintenance | Merge pull request #121 from sentflix01/claude/phase1-chapa-screens | [aba08a2b4](2026-10-17-aba08a2b4-merge-pull-request-121-from-sentflix01-claude-ph.md) |

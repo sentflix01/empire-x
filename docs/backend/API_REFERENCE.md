@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **295** across **49** mounted modules · Generated: 2026-10-17
+> Endpoints: **298** across **49** mounted modules · Generated: 2026-10-17
 
 | Legend | Meaning |
 |---|---|
@@ -27,7 +27,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`coupons`](#coupons) (6)
 - [`delivery`](#delivery) (2)
 - [`devops`](#devops) (15)
-- [`directOrders`](#directorders) (9)
+- [`directOrders`](#directorders) (12)
 - [`docs`](#docs) (1)
 - [`externalSources`](#externalsources) (9)
 - [`flags`](#flags) (3)
@@ -214,15 +214,18 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/direct-orders/checkout-info` | ⚪ optional | routes/directOrders.ts:138 |
-| `POST` | `/api/direct-orders/` | ⚪ optional | routes/directOrders.ts:169 |
-| `GET` | `/api/direct-orders/link/:token` | 🌐 public | routes/directOrders.ts:281 |
-| `POST` | `/api/direct-orders/link/:token/report-payment` | 🌐 public | routes/directOrders.ts:316 |
-| `POST` | `/api/direct-orders/:id/report-payment` | 🔒 auth | routes/directOrders.ts:324 |
-| `POST` | `/api/direct-orders/:id/confirm-payment` | 🔒 auth | routes/directOrders.ts:334 |
-| `POST` | `/api/direct-orders/:id/reject-payment` | 🔒 auth | routes/directOrders.ts:351 |
-| `GET` | `/api/direct-orders/link/:token/receipt` | 🌐 public | routes/directOrders.ts:375 |
-| `GET` | `/api/direct-orders/:id/receipt` | 🔒 auth | routes/directOrders.ts:383 |
+| `GET` | `/api/direct-orders/checkout-info` | ⚪ optional | routes/directOrders.ts:143 |
+| `POST` | `/api/direct-orders/requests` | ⚪ optional | routes/directOrders.ts:237 |
+| `POST` | `/api/direct-orders/` | ⚪ optional | routes/directOrders.ts:309 |
+| `GET` | `/api/direct-orders/link/:token` | 🌐 public | routes/directOrders.ts:421 |
+| `POST` | `/api/direct-orders/link/:token/report-payment` | 🌐 public | routes/directOrders.ts:456 |
+| `POST` | `/api/direct-orders/:id/report-payment` | 🔒 auth | routes/directOrders.ts:464 |
+| `POST` | `/api/direct-orders/:id/confirm-payment` | 🔒 auth | routes/directOrders.ts:474 |
+| `POST` | `/api/direct-orders/:id/reject-payment` | 🔒 auth | routes/directOrders.ts:491 |
+| `POST` | `/api/direct-orders/:id/set-price` | 🔒 auth | routes/directOrders.ts:510 |
+| `POST` | `/api/direct-orders/:id/decline-request` | 🔒 auth | routes/directOrders.ts:539 |
+| `GET` | `/api/direct-orders/link/:token/receipt` | 🌐 public | routes/directOrders.ts:563 |
+| `GET` | `/api/direct-orders/:id/receipt` | 🔒 auth | routes/directOrders.ts:571 |
 
 ## docs — docs
 

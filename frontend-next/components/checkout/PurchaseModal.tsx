@@ -113,9 +113,21 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, busines
     document.body.style.overflow = 'hidden';
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = previous; };
   }, [onClose]);
-  const unitPrice = Number(item.price ?? 0);
+  // A card linked to a product may show an old price: always show the product as it is now.
+  const [live, setLive] = useState<{ title?: string; price?: number | string; currency?: string; status?: string } | null>(null);
+  useEffect(() => {
+    if (!item.id) return;
+    let cancelled = false;
+    client.get(`/api/products/${encodeURIComponent(item.id)}`)
+      .then(({ data }) => { if (!cancelled) setLive(data as typeof live); })
+      .catch(() => { if (!cancelled) setLive({ status: 'unavailable' }); });
+    return () => { cancelled = true; };
+  }, [item.id]);
+  const unavailable = isProduct && live !== null && live.status !== 'active';
+  const title = live?.title ?? item.title;
+  const unitPrice = Number(live?.price ?? item.price ?? 0);
   const total = useMemo(() => Math.round(unitPrice * quantity * 100) / 100, [unitPrice, quantity]);
-  const currency = item.currency ?? 'ETB';
+  const currency = live?.currency ?? item.currency ?? 'ETB';
   const sellerName = details?.business?.business_name ?? seller.business_name ?? seller.display_name ?? 'the seller';
 
   useEffect(() => {
@@ -193,7 +205,7 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, busines
         </div>
 
         <div className="rounded-xl bg-secondary/40 p-3">
-          <p className="font-medium">{item.title}</p>
+          <p className="font-medium">{title}</p>
           {isRequest
             ? <p className="text-sm text-muted-foreground">{item.listed_price ? `Listed: ${item.listed_price} · ` : ''}The seller confirms the price before you pay.</p>
             : unitPrice > 0 && <p className="text-sm text-muted-foreground">{unitPrice.toLocaleString()} {currency} each</p>}
@@ -233,7 +245,11 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, busines
               </>
             )}
 
-            {isProduct && accounts.length > 0 && (
+            {unavailable && (
+              <p role="status" className="text-sm text-destructive">This item is no longer available. Contact {sellerName} for alternatives.</p>
+            )}
+
+            {isProduct && !unavailable && accounts.length > 0 && (
               <>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="purchase-qty">Quantity</Label>
