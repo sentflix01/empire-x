@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #128 from sentflix01/claude/payments-test-helpers | [45d85560f](2026-10-17-45d85560f-merge-pull-request-128-from-sentflix01-claude-pa.md) |
+| 2026-10-17 | Feature | feat(payments): test-mode helper, Continue payment, clean Chapa return URL | [4b61e49b2](2026-10-17-4b61e49b2-test-mode-helper-continue-payment-clean-chapa-re.md) |
 | 2026-10-17 | Maintenance | Merge pull request #127 from sentflix01/fix/fieldmapper-pbt-reserved-keys | [32c7757a3](2026-10-17-32c7757a3-merge-pull-request-127-from-sentflix01-fix-field.md) |
 | 2026-10-17 | Bugfix | fix(external-api): never write reserved field names when mapping external data | [0c3c320c3](2026-10-17-0c3c320c3-never-write-reserved-field-names-when-mapping-ex.md) |
 | 2026-10-17 | Maintenance | Merge pull request #126 from sentflix01/claude/site-status-banner | [be3073d12](2026-10-17-be3073d12-merge-pull-request-126-from-sentflix01-claude-si.md) |

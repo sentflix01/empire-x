@@ -509,10 +509,10 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | Method | Path | Auth | Source |
 |---|---|---|---|
 | `GET` | `/api/subscriptions/plans` | 🌐 public | routes/subscriptions.ts:84 |
-| `GET` | `/api/subscriptions/my` | 🔒 auth | routes/subscriptions.ts:113 |
-| `POST` | `/api/subscriptions/create` | 🔒 auth | routes/subscriptions.ts:148 |
-| `POST` | `/api/subscriptions/cancel` | 🔒 auth | routes/subscriptions.ts:243 |
-| `POST` | `/api/subscriptions/webhook` | 🌐 public | routes/subscriptions.ts:287 |
+| `GET` | `/api/subscriptions/my` | 🔒 auth | routes/subscriptions.ts:118 |
+| `POST` | `/api/subscriptions/create` | 🔒 auth | routes/subscriptions.ts:153 |
+| `POST` | `/api/subscriptions/cancel` | 🔒 auth | routes/subscriptions.ts:248 |
+| `POST` | `/api/subscriptions/webhook` | 🌐 public | routes/subscriptions.ts:292 |
 
 ## subscriptionsEtb — Prepaid ETB subscriptions through Chapa (Phase 1).
 
@@ -524,9 +524,9 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `GET` | `/api/subscriptions/chapa/callback` | 🌐 public | routes/subscriptionsEtb.ts:105 |
 | `GET` | `/api/subscriptions/payments` | 🌐 public | routes/subscriptionsEtb.ts:127 |
 | `GET` | `/api/subscriptions/payments/:ref/status` | 🌐 public | routes/subscriptionsEtb.ts:137 |
-| `GET` | `/api/subscriptions/payments/:id/receipt` | 🌐 public | routes/subscriptionsEtb.ts:152 |
-| `GET` | `/api/subscriptions/chapa/sandbox` | 🌐 public | routes/subscriptionsEtb.ts:170 |
-| `POST` | `/api/subscriptions/chapa/sandbox/pay` | 🌐 public | routes/subscriptionsEtb.ts:187 |
+| `GET` | `/api/subscriptions/payments/:id/receipt` | 🌐 public | routes/subscriptionsEtb.ts:154 |
+| `GET` | `/api/subscriptions/chapa/sandbox` | 🌐 public | routes/subscriptionsEtb.ts:172 |
+| `POST` | `/api/subscriptions/chapa/sandbox/pay` | 🌐 public | routes/subscriptionsEtb.ts:189 |
 
 ## suggestions — suggestions
 
