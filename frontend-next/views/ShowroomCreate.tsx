@@ -21,19 +21,9 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { VisibilitySelect, asVisibility, type BusinessVisibility } from '@/components/business/VisibilityChoice';
 import PublishBusinessDialog, { type NewBusiness } from '@/components/showroom/PublishBusinessDialog';
 import { getBusinessCategoryForBuilder } from '@/lib/showroomCategoryMapping';
+import { getSectionPlanRequirement } from '@/lib/sectionPlanRequirement';
 
 const FONT_OPTIONS = ["Inter", "Playfair Display", "Space Grotesk"];
-
-function getSectionPlanRequirement(sectionKeys: string[]): { tier: 'normal' | 'premium' | 'pro'; label: string; price: number } {
-  const rank = { normal: 1, premium: 2, pro: 3 } as const;
-  let tier: 'normal' | 'premium' | 'pro' = sectionKeys.length > 25 ? 'pro' : sectionKeys.length > 5 ? 'premium' : 'normal';
-  for (const key of sectionKeys) {
-    const sectionTier = getSectionType(key)?.tier;
-    if (sectionTier === 'pro') tier = 'pro';
-    else if (sectionTier === 'premium' && rank[tier] < rank.premium) tier = 'premium';
-  }
-  return { tier, label: tier === 'pro' ? 'Pro' : tier === 'premium' ? 'Premium' : 'Normal', price: tier === 'pro' ? 1000 : tier === 'premium' ? 500 : 100 };
-}
 
 // FA icon map — exactly from use 1.html SECTION_TYPES
 const FA_ICONS: Record<string, string> = {
