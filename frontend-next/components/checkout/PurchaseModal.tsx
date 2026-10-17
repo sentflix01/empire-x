@@ -5,8 +5,17 @@
  * business details and payment accounts, places an order (no account needed),
  * pays the seller directly, then reports the payment from their private order
  * page (/order/<token>). Only the seller confirms the payment.
+ *
+ * Items typed into a website section (a service, a package…) are not catalogue
+ * products, so they are requested instead: the seller sets the price, then the
+ * buyer pays the same way (POST /api/direct-orders/requests).
+ *
+ * Rendered into <body> through a portal: business pages animate their
+ * content with transforms, which would otherwise trap this fixed overlay
+ * inside the page column instead of covering the screen.
  */
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { X, ShoppingBag, Check, Loader2, Copy, Phone, Mail, MapPin, CreditCard } from "lucide-react";
 import client from "@/api/client";
@@ -24,6 +33,8 @@ interface PurchaseModalProps {
     currency?: string;
     images?: string;
     product_type?: string;
+    /** The price as written on the website, e.g. "From $16" (website items only). */
+    listed_price?: string | null;
   };
   seller: {
     user_id: string;
@@ -37,6 +48,8 @@ interface PurchaseModalProps {
   };
   /** Lets items typed into a showroom section (not catalogue products) show the seller's details. */
   showroomId?: string;
+  /** Same, for a business profile page (no showroom). */
+  businessId?: string | null;
   /** Starting quantity, e.g. from the cart. */
   initialQuantity?: number;
   onClose: () => void;
@@ -77,7 +90,7 @@ export function PaymentAccountList({ accounts }: { accounts: PaymentAccount[] })
   );
 }
 
-export default function PurchaseModal({ item, seller, buyer, showroomId, initialQuantity, onClose, onPurchased, partnershipCode }: PurchaseModalProps) {
+export default function PurchaseModal({ item, seller, buyer, showroomId, businessId, initialQuantity, onClose, onPurchased, partnershipCode }: PurchaseModalProps) {
   const [step, setStep] = useState<'details' | 'contact' | 'done'>('details');
   const [details, setDetails] = useState<SellerDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(true);
@@ -87,19 +100,35 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, initial
   const [placed, setPlaced] = useState<{ access_token: string; details: SellerDetails } | null>(null);
 
   const isProduct = !!item.id;
+  // Website items have no product: the buyer requests them and the seller sets the price.
+  const isRequest = !isProduct;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  // Escape closes; the page behind does not scroll while the dialog is open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = previous; };
+  }, [onClose]);
   const unitPrice = Number(item.price ?? 0);
   const total = useMemo(() => Math.round(unitPrice * quantity * 100) / 100, [unitPrice, quantity]);
   const currency = item.currency ?? 'ETB';
   const sellerName = details?.business?.business_name ?? seller.business_name ?? seller.display_name ?? 'the seller';
 
   useEffect(() => {
-    const query = item.id ? `product_id=${encodeURIComponent(item.id)}` : showroomId ? `showroom_id=${encodeURIComponent(showroomId)}` : null;
+    const query = item.id ? `product_id=${encodeURIComponent(item.id)}`
+      : showroomId ? `showroom_id=${encodeURIComponent(showroomId)}`
+      : businessId ? `business_id=${encodeURIComponent(businessId)}`
+      : seller.user_id ? `seller_id=${encodeURIComponent(seller.user_id)}` : null;
     if (!query) { setLoadingDetails(false); return; }
     client.get<SellerDetails>(`/api/direct-orders/checkout-info?${query}`)
       .then(({ data }) => setDetails(data))
       .catch(() => setDetails(null))
       .finally(() => setLoadingDetails(false));
-  }, [item.id, showroomId]);
+  }, [item.id, showroomId, businessId, seller.user_id]);
 
   const accounts = details?.payment_accounts ?? [];
   const contactValid = !!contact.name.trim()
@@ -109,6 +138,22 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, initial
   const placeOrder = async () => {
     setProcessing(true);
     try {
+      const contactFields = {
+        quantity,
+        buyer_name: contact.name.trim(),
+        buyer_phone: contact.phone.trim(),
+        buyer_email: contact.email.trim(),
+        delivery_address: contact.address.trim() || undefined,
+        notes: contact.notes.trim() || undefined,
+      };
+      if (isRequest) {
+        const scope = showroomId ? { showroom_id: showroomId } : businessId ? { business_id: businessId } : { seller_id: seller.user_id };
+        const { data } = await client.post('/api/direct-orders/requests', { ...scope, item_title: item.title, ...contactFields });
+        setPlaced({ access_token: data.access_token, details: { business: data.business, payment_accounts: data.payment_accounts } });
+        setStep('done');
+        onPurchased?.();
+        return;
+      }
       const { data } = await client.post('/api/direct-orders', {
         product_id: item.id,
         quantity,
@@ -123,7 +168,7 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, initial
       setStep('done');
       onPurchased?.();
     } catch (err: any) {
-      toast.error(err?.error ?? 'Could not place the order');
+      toast.error(err?.error ?? (isRequest ? 'Could not send the request' : 'Could not place the order'));
     } finally {
       setProcessing(false);
     }
@@ -131,20 +176,27 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, initial
 
   const business = details?.business;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="purchase-title">
-      <div className="w-full sm:max-w-md max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-card p-5 space-y-4 shadow-xl">
+  if (!mounted) return null;
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
+      role="dialog" aria-modal="true" aria-labelledby="purchase-title"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="w-full sm:max-w-md max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-card text-card-foreground p-5 space-y-4 shadow-xl">
         <div className="flex items-center justify-between">
           <h2 id="purchase-title" className="font-semibold flex items-center gap-2">
             {step === 'done' ? <Check className="w-5 h-5 text-green-600" /> : <ShoppingBag className="w-5 h-5 text-amber-500" />}
-            {step === 'done' ? 'Order placed' : 'Buy'}
+            {step === 'done' ? (isRequest ? 'Request sent' : 'Order placed') : isRequest ? 'Request to order' : 'Buy'}
           </h2>
           <button type="button" onClick={onClose} className="rounded-full p-1.5 hover:bg-secondary" aria-label="Close"><X className="w-5 h-5" /></button>
         </div>
 
         <div className="rounded-xl bg-secondary/40 p-3">
           <p className="font-medium">{item.title}</p>
-          {unitPrice > 0 && <p className="text-sm text-muted-foreground">{unitPrice.toLocaleString()} {currency} each</p>}
+          {isRequest
+            ? <p className="text-sm text-muted-foreground">{item.listed_price ? `Listed: ${item.listed_price} · ` : ''}The seller confirms the price before you pay.</p>
+            : unitPrice > 0 && <p className="text-sm text-muted-foreground">{unitPrice.toLocaleString()} {currency} each</p>}
         </div>
 
         {step === 'details' && (
@@ -170,6 +222,17 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, initial
               )}
             </section>
 
+            {isRequest && !loadingDetails && (
+              <>
+                <p className="text-xs text-muted-foreground">Nothing is charged now. You get a private link; once {sellerName} confirms the price, it shows how to pay them.</p>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="purchase-qty">Quantity</Label>
+                  <Input id="purchase-qty" type="number" min={1} max={10000} value={quantity} onChange={(e) => setQuantity(Math.max(1, Math.min(10000, Number(e.target.value) || 1)))} className="w-24 h-10" />
+                </div>
+                <Button onClick={() => setStep('contact')} className="w-full rounded-full">Continue</Button>
+              </>
+            )}
+
             {isProduct && accounts.length > 0 && (
               <>
                 <div className="flex items-center justify-between">
@@ -185,7 +248,7 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, initial
 
         {step === 'contact' && (
           <>
-            <p className="text-sm text-muted-foreground">No account needed. We email you a private link to your order.</p>
+            <p className="text-sm text-muted-foreground">No account needed. We email you a private link to your {isRequest ? 'request' : 'order'}.</p>
             <div className="space-y-3">
               <div><Label htmlFor="buyer-name">Name</Label><Input id="buyer-name" autoComplete="name" value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} maxLength={200} className="mt-1 h-11" /></div>
               <div><Label htmlFor="buyer-phone">Phone</Label><Input id="buyer-phone" type="tel" autoComplete="tel" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} placeholder="+251 9 12 34 56 78" maxLength={20} className="mt-1 h-11" /></div>
@@ -196,13 +259,25 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, initial
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setStep('details')} className="flex-1 rounded-full" disabled={processing}>Back</Button>
               <Button onClick={placeOrder} disabled={!contactValid || processing} className="flex-1 rounded-full">
-                {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : `Place order${unitPrice > 0 ? ` · ${total.toLocaleString()} ${currency}` : ''}`}
+                {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : isRequest ? 'Send request' : `Place order${unitPrice > 0 ? ` · ${total.toLocaleString()} ${currency}` : ''}`}
               </Button>
             </div>
           </>
         )}
 
-        {step === 'done' && placed && (
+        {step === 'done' && placed && isRequest && (
+          <>
+            <ol className="list-decimal list-inside space-y-1 text-sm">
+              <li>{sellerName} confirms the price of your request.</li>
+              <li>Your request page then shows how to pay them directly.</li>
+              <li>Pay, tap <strong>I&apos;ve paid</strong>, and {sellerName} confirms when the money arrives.</li>
+            </ol>
+            <p className="text-xs text-muted-foreground">We emailed this link to you. Keep it private: anyone with it can see your request.</p>
+            <Link href={`/order/${placed.access_token}`} className="flex w-full items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Open my request</Link>
+          </>
+        )}
+
+        {step === 'done' && placed && !isRequest && (
           <>
             <ol className="list-decimal list-inside space-y-1 text-sm">
               <li>Pay {sellerName}{unitPrice > 0 ? ` ${total.toLocaleString()} ${currency}` : ''} using one of the accounts below.</li>
@@ -218,6 +293,7 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, initial
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

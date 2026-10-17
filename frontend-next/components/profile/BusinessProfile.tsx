@@ -208,6 +208,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
         <PurchaseModal
           item={purchaseItem}
           seller={biz}
+          businessId={business?.id ?? null}
           buyer={user ?? undefined}
           onClose={() => setPurchaseItem(null)}
         />

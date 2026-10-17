@@ -278,7 +278,8 @@ export default function SectionRenderer({
                           description: item.desc || item.description,
                           price: priceNum,
                           currency: 'ETB',
-                          // No id — service items don't have product IDs
+                          // No id: a website item, so the buyer requests it and the seller sets the price.
+                          listed_price: String(item.price),
                         })}
                         className="text-sm font-bold hover:underline underline-offset-2 transition-opacity hover:opacity-80 active:scale-95"
                         style={{ color: themeColor }}
@@ -294,6 +295,7 @@ export default function SectionRenderer({
                           description: item.desc || item.description,
                           price: priceNum,
                           currency: 'ETB',
+                          listed_price: String(item.price),
                         })}
                         className="text-[11px] font-semibold px-2.5 py-1 rounded-full text-white transition-opacity hover:opacity-90 active:scale-95"
                         style={{ backgroundColor: themeColor }}

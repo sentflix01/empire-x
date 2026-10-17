@@ -19,6 +19,7 @@ import { PaymentAccountList, type PaymentAccount } from '@/components/checkout/P
 interface OrderView {
   order: {
     id: string; product_title: string; quantity: number; total_price: string | number; currency: string; status: string;
+    listed_price_text?: string | null;
     payment_reference: string | null; has_receipt: boolean; payment_expires_at: string | null; created_at: string;
   };
   business: { business_name?: string; business_contact_phone?: string | null; business_contact_email?: string | null; pickup_address?: string | null } | null;
@@ -27,6 +28,7 @@ interface OrderView {
 }
 
 const STATUS_TEXT: Record<string, { label: string; tone: 'wait' | 'ok' | 'bad' }> = {
+  requested: { label: 'Request sent — waiting for the seller to confirm the price', tone: 'wait' },
   awaiting_payment: { label: 'Waiting for your payment', tone: 'wait' },
   payment_reported: { label: 'Payment reported — waiting for the seller to confirm', tone: 'wait' },
   paid: { label: 'Payment confirmed by the seller', tone: 'ok' },
@@ -82,18 +84,28 @@ export default function OrderStatus() {
   const { order, business } = view;
   const status = STATUS_TEXT[order.status] ?? { label: order.status, tone: 'wait' as const };
   const canReport = ['awaiting_payment', 'payment_reported'].includes(order.status);
+  const isRequest = order.status === 'requested';
   const Icon = status.tone === 'ok' ? CheckCircle2 : status.tone === 'bad' ? XCircle : Clock;
 
   return (
     <main className="mx-auto max-w-md space-y-4 p-4">
-      <h1 className="text-xl font-bold">Your order</h1>
+      <h1 className="text-xl font-bold">{isRequest ? 'Your request' : 'Your order'}</h1>
       <section className="rounded-2xl border border-border/50 bg-card p-4 space-y-1">
         <p className="font-medium">{order.quantity}× {order.product_title}</p>
-        <p className="text-sm">Total: <strong>{Number(order.total_price).toLocaleString()} {order.currency}</strong></p>
+        {isRequest ? (
+          <p className="text-sm">Price: <strong>to be confirmed by the seller</strong>{order.listed_price_text ? ` (listed as ${order.listed_price_text})` : ''}</p>
+        ) : (
+          <p className="text-sm">Total: <strong>{Number(order.total_price).toLocaleString()} {order.currency}</strong></p>
+        )}
         <p className="text-sm text-muted-foreground">From {business?.business_name ?? 'the seller'}</p>
         <p className={`mt-2 flex items-center gap-2 text-sm font-medium ${status.tone === 'ok' ? 'text-green-600' : status.tone === 'bad' ? 'text-destructive' : 'text-amber-600'}`}>
           <Icon className="w-4 h-4" /> {status.label}
         </p>
+        {isRequest && (
+          <p className="text-xs text-muted-foreground">
+            Nothing is charged now. When the seller confirms the price, this page shows how to pay them{order.payment_expires_at ? `. Without an answer, the request expires on ${new Date(order.payment_expires_at).toLocaleDateString()}` : ''}.
+          </p>
+        )}
         {canReport && order.payment_expires_at && (
           <p className="text-xs text-muted-foreground">Expires on {new Date(order.payment_expires_at).toLocaleDateString()} unless the seller confirms payment.</p>
         )}
