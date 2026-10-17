@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #122 from sentflix01/claude/phase1-renewal-reminders | [9bd014134](2026-10-17-9bd014134-merge-pull-request-122-from-sentflix01-claude-ph.md) |
+| 2026-10-17 | Feature | feat(subscriptions): renewal reminders and payment safety (Phase 1, PR 3) | [942ab461f](2026-10-17-942ab461f-renewal-reminders-and-payment-safety-phase-1-pr-.md) |
 | 2026-10-17 | Maintenance | Merge pull request #121 from sentflix01/claude/phase1-chapa-screens | [aba08a2b4](2026-10-17-aba08a2b4-merge-pull-request-121-from-sentflix01-claude-ph.md) |
 | 2026-10-17 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/phase1-chapa-screens | [7c27df76f](2026-10-17-7c27df76f-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-17 | Maintenance | Merge pull request #120 from sentflix01/claude/phase1-chapa-core | [406142032](2026-10-17-406142032-merge-pull-request-120-from-sentflix01-claude-ph.md) |
