@@ -8,6 +8,77 @@ import DataSourceStatusPanel from "./DataSourceStatusPanel";
 import type { ExternalDataSource } from "../../types/externalApi";
 import { apiFetch } from '@/api/client';
 import ProductPicker from "./ProductPicker";
+import PhotoField from "./PhotoField";
+import { Switch } from "@/components/ui/switch";
+import type { BuilderField, SectionType } from "@/lib/builderSections";
+
+const inputClass = "w-full text-sm px-3 py-2 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400";
+
+/** One section field: write, add a photo, switch on/off. Hidden fields are set elsewhere (e.g. Style). */
+function FieldControl({ id, field, value, onChange }: { id: string; field: BuilderField; value: any; onChange: (v: any) => void }) {
+  if (field.type === "hidden") return null;
+  if (field.type === "toggle") {
+    const on = value === true || value === "true";
+    return (
+      <label htmlFor={id} className="flex min-h-11 items-center justify-between gap-3 text-sm">
+        <span className="font-medium">{field.label}</span>
+        <Switch id={id} checked={on} onCheckedChange={(v: boolean) => onChange(v)} />
+      </label>
+    );
+  }
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1 block text-xs font-semibold text-muted-foreground">{field.label}</label>
+      {field.type === "image" ? (
+        <PhotoField id={id} label={field.label} value={value || ""} onChange={onChange} />
+      ) : field.type === "color" ? (
+        <input type="color" id={id} value={value || "#2563EB"} onChange={e => onChange(e.target.value)} className="h-11 w-16 rounded-lg border border-border/60" />
+      ) : field.type === "textarea" ? (
+        <textarea id={id} value={value || ""} onChange={e => onChange(e.target.value)} placeholder={field.placeholder} rows={3} className={`${inputClass} resize-none`} />
+      ) : (
+        <input type="text" id={id} value={value || ""} onChange={e => onChange(e.target.value)} placeholder={field.placeholder} className={inputClass} />
+      )}
+      {field.hint && <p className="mt-1 text-[11px] text-muted-foreground">{field.hint}</p>}
+    </div>
+  );
+}
+
+/** Section card header: plain name, plan badge, and what the section does. */
+function SectionHeader({ sec }: { sec: SectionType }) {
+  return (
+    <div className="border-b border-border/30 bg-amber-50/50 px-3 py-2.5 dark:bg-amber-500/5">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-bold text-amber-800 dark:text-amber-200">{sec.label}</span>
+        {sec.tier !== "freemium" && (
+          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white ${sec.tier === "pro" ? "bg-violet-500" : "bg-amber-500"}`}>
+            {sec.tier === "pro" ? "Pro" : "Premium"}
+          </span>
+        )}
+      </div>
+      {sec.purpose && <p className="mt-0.5 text-xs text-muted-foreground">{sec.purpose}</p>}
+    </div>
+  );
+}
+
+/** A section's fields: repeaters as lists, everything else through FieldControl. */
+function SectionFields({ sec, secKey, formData, onChange, hideRepeater = false }: {
+  sec: SectionType; secKey: string; formData: Record<string, any>; onChange: (key: string, value: any) => void; hideRepeater?: boolean;
+}) {
+  return (
+    <>
+      {sec.fields.map(field => field.type === "repeater" ? (
+        hideRepeater ? null : (
+          <div key={field.key}>
+            <p className="mb-1 text-xs font-semibold text-muted-foreground">{field.label}</p>
+            <RepeaterField field={field} value={formData[field.key]} onChange={(val: any) => onChange(field.key, val)} />
+          </div>
+        )
+      ) : (
+        <FieldControl key={field.key} id={`builder-${secKey}-${field.key}`} field={field} value={formData[field.key]} onChange={(v) => onChange(field.key, v)} />
+      ))}
+    </>
+  );
+}
 
 interface Props {
   activeSections: string[];
@@ -46,20 +117,27 @@ function RepeaterField({ field, value, onChange }: any) {
           <button
             type="button"
             onClick={() => remove(idx)}
-            className="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200 transition-colors"
+            className="absolute top-1.5 right-1.5 w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200 transition-colors"
             aria-label={`Remove ${field.label} ${idx + 1}`}
           >
             <X className="w-3 h-3" />
           </button>
-          <div className="pr-6 space-y-1.5">
+          <div className="pr-9 space-y-2">
             {field.itemFields.map((sub: any) => (
               <div key={sub.key}>
-                <label htmlFor={`${field.key}-${idx}-${sub.key}`} className="text-[10px] font-semibold text-muted-foreground block mb-0.5">{sub.label}</label>
+                <label htmlFor={`${field.key}-${idx}-${sub.key}`} className="text-xs font-semibold text-muted-foreground block mb-0.5">{sub.label}</label>
                 {sub.type === "product" ? (
                   <ProductPicker
                     id={`${field.key}-${idx}-${sub.key}`}
                     value={item[sub.key] || ""}
                     onChange={(productId) => update(idx, sub.key, productId)}
+                  />
+                ) : sub.type === "image" ? (
+                  <PhotoField
+                    id={`${field.key}-${idx}-${sub.key}`}
+                    label={sub.label}
+                    value={item[sub.key] || ""}
+                    onChange={(url) => update(idx, sub.key, url)}
                   />
                 ) : sub.type === "textarea" ? (
                   <textarea
@@ -68,7 +146,7 @@ function RepeaterField({ field, value, onChange }: any) {
                     onChange={e => update(idx, sub.key, e.target.value)}
                     placeholder={sub.placeholder}
                     rows={2}
-                    className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-border/60 bg-card dark:bg-background resize-none focus:outline-none focus:ring-1 focus:ring-amber-400"
+                    className={`${inputClass} resize-none`}
                   />
                 ) : (
                   <input
@@ -77,7 +155,7 @@ function RepeaterField({ field, value, onChange }: any) {
                     id={`${field.key}-${idx}-${sub.key}`}
                     onChange={e => update(idx, sub.key, e.target.value)}
                     placeholder={sub.placeholder}
-                    className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400"
+                    className={inputClass}
                   />
                 )}
               </div>
@@ -88,9 +166,9 @@ function RepeaterField({ field, value, onChange }: any) {
       <button
         type="button"
         onClick={add}
-        className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border-2 border-dashed border-amber-300 text-amber-700 text-xs font-medium hover:bg-amber-50 transition-colors"
+        className="w-full min-h-11 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border-2 border-dashed border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-50 transition-colors"
       >
-        <Plus className="w-3.5 h-3.5" /> Add {field.label.replace(/s$/, "")}
+        <Plus className="w-4 h-4" /> Add {field.label.replace(/s$/, "").toLowerCase()}
       </button>
     </div>
   );
@@ -177,74 +255,11 @@ function SectionWithExternalSource({
 
   return (
     <div className="bg-card dark:bg-card rounded-2xl border border-border/50 overflow-hidden">
-      {/* Section header */}
-      <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/30 bg-amber-50/50">
-        <span className="text-xs font-bold text-amber-700">{sec.label}</span>
-        {sec.tier !== "freemium" && (
-          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white ${sec.tier === "pro" ? "bg-violet-500" : "bg-amber-500"}`}>
-            {sec.tier === "pro" ? "Pro+" : "Premium"}
-          </span>
-        )}
-      </div>
+      <SectionHeader sec={sec} />
 
-      {/* Manual fields */}
-      <div className="p-3 space-y-2.5">
-        {sec.fields.map(field => {
-          // When source is active and enabled, suppress the repeater field
-          // (external data takes over — Requirement 10.4).
-          // When source is disabled, show the repeater with manual formData.
-          const suppressRepeater = field.type === "repeater" && hasActiveSource && isSourceEnabled;
-          if (suppressRepeater) return null;
-
-          return (
-            <div key={field.key}>
-              <label htmlFor={`builder-${secKey}-${field.key}`} className="text-[11px] font-semibold text-muted-foreground block mb-1">{field.label}</label>
-              {field.type === "repeater" ? (
-                <RepeaterField
-                  field={field}
-                  value={formData[field.key]}
-                  onChange={(val: any) => onChange(field.key, val)}
-                />
-              ) : field.type === "color" ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    id={`builder-${secKey}-${field.key}`}
-                    value={formData[field.key] || (field.key === "heroBg2" ? "#7C3AED" : "#2563EB")}
-                    onChange={e => onChange(field.key, e.target.value)}
-                    className="w-9 h-9 rounded-lg border border-border/60 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    aria-label={`${field.label} color value`}
-                    value={formData[field.key] || (field.key === "heroBg2" ? "#7C3AED" : "#2563EB")}
-                    onChange={e => onChange(field.key, e.target.value)}
-                    className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400"
-                    placeholder={field.key === "heroBg2" ? "#7C3AED" : "#2563EB"}
-                  />
-                </div>
-              ) : field.type === "textarea" ? (
-                <textarea
-                  id={`builder-${secKey}-${field.key}`}
-                  value={formData[field.key] || ""}
-                  onChange={e => onChange(field.key, e.target.value)}
-                  placeholder={field.placeholder}
-                  rows={3}
-                  className="w-full text-xs px-2.5 py-1.5 rounded-xl border border-border/60 bg-card dark:bg-background resize-none focus:outline-none focus:ring-1 focus:ring-amber-400"
-                />
-              ) : (
-                <input
-                  type="text"
-                  id={`builder-${secKey}-${field.key}`}
-                  value={formData[field.key] || ""}
-                  onChange={e => onChange(field.key, e.target.value)}
-                  placeholder={field.placeholder}
-                  className="w-full text-xs px-2.5 py-2 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400"
-                />
-              )}
-            </div>
-          );
-        })}
+      {/* Manual fields; an enabled external source replaces the list (Requirement 10.4). */}
+      <div className="p-3 space-y-3">
+        <SectionFields sec={sec} secKey={secKey} formData={formData} onChange={onChange} hideRepeater={hasActiveSource && isSourceEnabled} />
 
         {/* Disabled source indicator: show which section's data is being used */}
         {hasActiveSource && !isSourceEnabled && repeaterField && (
@@ -291,7 +306,7 @@ export default function BuilderForm({ activeSections, formData, onChange, showro
   if (activeSections.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-16">
-        <p className="text-sm">Enable sections from the left panel</p>
+        <p className="text-sm">Add a section from Sections to start.</p>
       </div>
     );
   }
@@ -358,59 +373,9 @@ export default function BuilderForm({ activeSections, formData, onChange, showro
             // Non-repeater sections (or no showroomId) — render original layout
             return (
               <div key={secKey} className="bg-card dark:bg-card rounded-2xl border border-border/50 overflow-hidden">
-                <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/30 bg-amber-50/50">
-                  <span className="text-xs font-bold text-amber-700">{sec.label}</span>
-                  {sec.tier !== "freemium" && (
-                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white ${sec.tier === "pro" ? "bg-violet-500" : "bg-amber-500"}`}>
-                      {sec.tier === "pro" ? "Pro+" : "Premium"}
-                    </span>
-                  )}
-                </div>
-                <div className="p-3 space-y-2.5">
-                  {sec.fields.map(field => (
-                    <div key={field.key}>
-                      <label className="text-[11px] font-semibold text-muted-foreground block mb-1">{field.label}</label>
-                      {field.type === "repeater" ? (
-                        <RepeaterField
-                          field={field}
-                          value={formData[field.key]}
-                          onChange={(val: any) => onChange(field.key, val)}
-                        />
-                      ) : field.type === "color" ? (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={formData[field.key] || (field.key === "heroBg2" ? "#7C3AED" : "#2563EB")}
-                            onChange={e => onChange(field.key, e.target.value)}
-                            className="w-9 h-9 rounded-lg border border-border/60 cursor-pointer"
-                          />
-                          <input
-                            type="text"
-                            value={formData[field.key] || (field.key === "heroBg2" ? "#7C3AED" : "#2563EB")}
-                            onChange={e => onChange(field.key, e.target.value)}
-                            className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400"
-                            placeholder={field.key === "heroBg2" ? "#7C3AED" : "#2563EB"}
-                          />
-                        </div>
-                      ) : field.type === "textarea" ? (
-                        <textarea
-                          value={formData[field.key] || ""}
-                          onChange={e => onChange(field.key, e.target.value)}
-                          placeholder={field.placeholder}
-                          rows={3}
-                          className="w-full text-xs px-2.5 py-1.5 rounded-xl border border-border/60 bg-card dark:bg-background resize-none focus:outline-none focus:ring-1 focus:ring-amber-400"
-                        />
-                      ) : (
-                        <input
-                          type="text"
-                          value={formData[field.key] || ""}
-                          onChange={e => onChange(field.key, e.target.value)}
-                          placeholder={field.placeholder}
-                          className="w-full text-xs px-2.5 py-2 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400"
-                        />
-                      )}
-                    </div>
-                  ))}
+                <SectionHeader sec={sec} />
+                <div className="p-3 space-y-3">
+                  <SectionFields sec={sec} secKey={secKey} formData={formData} onChange={onChange} />
                 </div>
               </div>
             );

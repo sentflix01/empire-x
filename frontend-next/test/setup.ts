@@ -65,3 +65,11 @@ if (typeof global.ResizeObserver === 'undefined') {
 
   global.ResizeObserver = ResizeObserver as unknown as typeof global.ResizeObserver;
 }
+
+// next/font only works inside the Next.js compiler; tests get a stand-in that keeps the family name.
+const fakeFont = (family: string) => () => ({ className: '', style: { fontFamily: `'${family}', sans-serif` } });
+vi.mock('next/font/google', () => ({
+  Inter: fakeFont('Inter'),
+  Playfair_Display: fakeFont('Playfair Display'),
+  Space_Grotesk: fakeFont('Space Grotesk'),
+}));

@@ -10,6 +10,8 @@ import { recordEvent } from '../lib/telemetry';
 import { canPublishBusinessSite, getBusinessSubscriptionAccess, getRequiredBusinessTier, isBusinessOwnerBlocked } from '../lib/businessSubscriptionPolicy';
 import { announceShowroomPublished, type PublishedShowroom } from '../lib/showroomAnnouncement';
 import { businessViewGate, notPrivateBusinessSql, rejectViewGate } from '../lib/siteVisibility';
+import rateLimit from 'express-rate-limit';
+import { addSignup, hasNewsletterSection, listSignups, normaliseSignupEmail } from '../lib/newsletterSignups';
 
 const router = Router();
 
@@ -153,6 +155,42 @@ router.get('/sitemap-data', async (req: Request, res: Response) => {
     );
     res.json(rows);
   } catch { res.status(500).json({ error: 'Failed to fetch sitemap data' }); }
+});
+
+// ── Newsletter section: visitors sign up, the owner reads the list ─────────────
+const newsletterLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 10, skip: () => process.env.NODE_ENV === 'test', standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many sign-ups. Please try again later.' },
+});
+
+router.post('/:id/newsletter', newsletterLimiter, optionalAuth, async (req: Request, res: Response) => {
+  try {
+    const email = normaliseSignupEmail((req.body as Record<string, unknown> | undefined)?.email);
+    if (!email) { res.status(422).json({ error: 'invalid_email', message: 'Enter a valid email address.' }); return; }
+    const showroom = await getRecord<Record<string, unknown>>('showrooms', req.params.id, { realOnly: req.realOnly });
+    const live = showroom && showroom.status === 'published'
+      && !(showroom.expires_at && new Date(String(showroom.expires_at)).getTime() <= Date.now());
+    if (!showroom || !live || !hasNewsletterSection(showroom.sections)) { res.status(404).json({ error: 'Showroom not found' }); return; }
+    const access = showroom.business_id ? await getBusinessSubscriptionAccess(String(showroom.business_id)) : null;
+    if (showroom.owner_id !== req.user?.id && rejectViewGate(res, businessViewGate(access, req), 'Showroom not found')) return;
+    await addSignup(String(showroom.id), email);
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'newsletter signup failed');
+    res.status(500).json({ error: 'Could not save your sign-up' });
+  }
+});
+
+router.get('/:id/newsletter', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const showroom = await getRecord<Record<string, unknown>>('showrooms', req.params.id, { realOnly: req.realOnly });
+    if (!showroom || showroom.owner_id !== req.user!.id) { res.status(404).json({ error: 'Showroom not found' }); return; }
+    res.set('Cache-Control', 'private, no-store');
+    res.json(await listSignups(String(showroom.id)));
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'newsletter list failed');
+    res.status(500).json({ error: 'Could not load sign-ups' });
+  }
 });
 
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
