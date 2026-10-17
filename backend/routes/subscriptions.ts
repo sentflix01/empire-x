@@ -55,6 +55,8 @@ import { sendPushToUser } from './push';
 import { isStripeConfigured, stripeClientFacade, withVerifiedStripeWebhook } from '../lib/stripeClient';
 import { requireIsolatedPaymentEnvironment } from '../middleware/demoEnvironment';
 import { requireFeatureFlag } from '../middleware/featureFlag';
+import { isChapaConfigured } from '../lib/chapaClient';
+import { PREPAY_MONTHS } from '../lib/subscriptionBilling';
 
 const router = Router();
 
@@ -91,7 +93,17 @@ router.get('/plans', (_req: Request, res: Response) => {
       features: ['5 builder sections', '1 showroom', '50 products', '5GB storage', 'Basic sections'],
     },
     ...Object.fromEntries(
-      Object.entries(PLANS).map(([key, plan]) => [key, getPublicPlan(plan)]),
+      Object.entries(PLANS).map(([key, plan]) => {
+        const publicPlan = getPublicPlan(plan);
+        // ETB is prepaid through Chapa (routes/subscriptionsEtb.ts); USD stays on Stripe.
+        const etbProvider = isChapaConfigured() ? 'chapa' : publicPlan.currencyAvailability.ETB ? 'stripe' : null;
+        return [key, {
+          ...publicPlan,
+          currencyAvailability: { ...publicPlan.currencyAvailability, ETB: etbProvider !== null },
+          providers: { ETB: etbProvider, USD: publicPlan.currencyAvailability.USD ? 'stripe' : null },
+          prepayMonths: etbProvider === 'chapa' ? PREPAY_MONTHS : [1],
+        }];
+      }),
     ),
     enterprise: ENTERPRISE_PLAN,
   });
