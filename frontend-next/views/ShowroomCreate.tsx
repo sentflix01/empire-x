@@ -149,8 +149,6 @@ function ShowroomCreate({
   const [saving, setSaving] = useState(false);
   const [darkBuilder, setDarkBuilder] = useState(false);
   const [previewMode, setPreviewMode] = useState<PreviewMode>("desktop");
-  const [showWhatsapp, setShowWhatsapp] = useState(true);
-  const [fontFamily, setFontFamily] = useState("Inter");
   const studioRef = useRef<HTMLDivElement>(null);
   const layout = useStudioLayout(studioRef);
   // Phone: Edit or Preview fills the screen; Sections slides up over the preview.
@@ -328,6 +326,12 @@ function ShowroomCreate({
     pushUndo(key);
     setFormData(prev => ({ ...prev, [key]: value }));
   };
+
+  // Style choices are saved with the top section, so the published site uses them too.
+  const fontFamily = typeof formData.siteFont === "string" && formData.siteFont ? formData.siteFont : "Inter";
+  const showWhatsapp = formData.whatsappButton !== false;
+  const setFontFamily = (font: string) => updateField("siteFont", font);
+  const setShowWhatsapp = (on: boolean) => updateField("whatsappButton", on);
 
   const updateColors = (c1: string, c2: string) => {
     pushUndo();
@@ -611,7 +615,7 @@ function ShowroomCreate({
         <span className="text-xs text-muted-foreground">{previewMode === "mobile" ? "Phone" : previewMode === "tablet" ? "Tablet" : "Computer"}</span>
       </div>
       <div className="min-h-0 flex-1 overflow-auto p-2">
-        <BuilderPreview formData={formData} activeSections={activeSections} mode={previewMode} showWhatsapp={showWhatsapp} fontFamily={fontFamily} />
+        <BuilderPreview formData={formData} activeSections={activeSections} mode={previewMode} showWhatsapp={showWhatsapp} fontFamily={fontFamily} businessId={selectedBusinessId || null} />
       </div>
     </div>
   );
@@ -689,7 +693,7 @@ function ShowroomCreate({
             </button>
           </div>
           <div className="min-h-0 flex-1 overflow-auto p-2">
-            <BuilderPreview formData={formData} activeSections={activeSections} mode={previewMode} showWhatsapp={showWhatsapp} fontFamily={fontFamily} />
+            <BuilderPreview formData={formData} activeSections={activeSections} mode={previewMode} showWhatsapp={showWhatsapp} fontFamily={fontFamily} businessId={selectedBusinessId || null} />
           </div>
         </div>
       )}

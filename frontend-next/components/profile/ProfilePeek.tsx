@@ -445,7 +445,7 @@ export default function ProfilePeek({
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Link
-                href={`/profile/${authorId}${peekView === "business" ? "?view=business" : ""}`}
+                href={`/profile/${authorId}?view=${peekView === "business" ? "business" : "personal"}`}
                 onClick={onClose}
                 className="text-xs font-medium text-amber-600 hover:underline"
               >

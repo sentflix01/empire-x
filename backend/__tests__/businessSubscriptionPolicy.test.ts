@@ -109,6 +109,10 @@ describe('builder section subscription requirements', () => {
     expect(getRequiredBusinessTier(SECTION_TYPES.slice(0, 6).map(section => ({ type: section.key })))).toBe('premium');
   });
 
+  it('publishes the local-business pieces (pay, hours, menu, offer) on the Normal plan', () => {
+    expect(getRequiredBusinessTier([{ type: 'hero' }, { type: 'payment_info' }, { type: 'hours' }, { type: 'menu' }, { type: 'offer' }])).toBe('normal');
+  });
+
   it('requires Pro if any Pro section is selected or section count exceeds Premium limits', () => {
     expect(getRequiredBusinessTier([{ type: 'hero' }, { type: 'caseStudies' }])).toBe('pro');
     expect(getRequiredBusinessTier(SECTION_TYPES.slice(0, 26).map(section => ({ type: section.key })))).toBe('pro');

@@ -324,6 +324,109 @@ documents when verified; do not copy stale values into new work.
   owner a Business profile, since publishing requires one (#117).
 - **Related documentation:** `frontend-next/views/ShowroomCreate.tsx`, `frontend-next/components/showroom/studio/`, `frontend-next/hooks/useStudioLayout.ts`, `frontend-next/test/showroom/studioDevices.test.tsx`
 
+### 2026-10-17 — Every Studio section works as shown, in words owners already use
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** A strict review of the Studio sections found:
+  - Inventory Catalog and Live Location rendered nothing on published sites
+    (owners could pay for Pro and get an empty section).
+  - Newsletter saved nothing.
+  - The Save button and catalogue were missing from the preview, because the
+    preview was a second, separate renderer.
+  - Every photo was a pasted image address.
+  - The site security policy blocked YouTube and map frames, so Video and Map
+    could not show on a live site.
+  - The Style font choice and WhatsApp button were never saved, and the fonts
+    were never loaded.
+  - The top button disappeared when the page had nothing to sell.
+- **Decision:**
+  - **One renderer.** Studio's preview renders through the published site's
+    `SectionRenderer`.
+  - **Product catalogue.** It lists the business's real products with search,
+    categories and an optional "left in stock".
+  - **Live location.** Visitors see the owner's last shared position (10
+    minutes, by the existing API) on a map; only the owner sees "Share my
+    location now".
+  - **Email sign-up.** Addresses are stored in `showroom_newsletter_signups`
+    (migrate66; public `POST /api/showrooms/:id/newsletter`, rate-limited, only
+    for a published site with that section; owner-only `GET`). The owner sees
+    them on their website page. They are personal data: never shown to
+    anyone but the site owner, and deleted with the site.
+  - **Forms in owners' words.** "Add photo" uploads replace image addresses.
+    No colour, icon or map-embed codes in forms: those fields are hidden but
+    kept, so existing sites are unchanged. Maps come from the typed address.
+  - **Video and maps load.** The policy adds `frame-src` for
+    youtube-nocookie/YouTube, Google Maps and OpenStreetMap.
+  - **Style is saved.** Font and WhatsApp button are stored on the top
+    section, and the fonts are self-hosted with `next/font`.
+  - **The top button always lands.** It goes to the catalogue, then
+    services, items or price list, then contact.
+  - **Plain names.** Every section carries a plain name and a one-line purpose.
+- **Consequences:** Section and field keys are unchanged (sites keep their data). `lib/showroomSectionFields.ts`
+  (the older business-template editor) still uses image addresses and is a separate follow-up.
+- **Related documentation:** `frontend-next/lib/builderSections.ts`, `frontend-next/components/showroom/SectionRenderer.tsx`, `frontend-next/components/showroom/BuilderPreview.tsx`, `backend/routes/showrooms.ts`, `backend/db/migrate66.js`, `frontend-next/test/showroom/sectionsLive.test.tsx`, `backend/test/db/newsletterSignups.db.test.js`
+
+### 2026-10-17 — Studio pieces for local businesses: pay, hours, menu, offer
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** Local businesses need four basics the Studio catalogue lacked:
+  - where to send money
+  - when they are open (the renderer's old hours block showed made-up
+    default hours)
+  - a menu
+  - a time-limited offer
+- **Decision:** Four new sections. Keys are registered in
+  `backend/lib/builderSectionRequirements.js`, all on the **free tier**
+  (owner may move them to a paid plan later).
+  - `payment_info` (**How to pay me**) is a living piece. It reads the
+    business's active `business_payment_accounts` through `GET
+    /api/businesses/:id/checkout-info`, the same source as checkout, so it is
+    never retyped and never out of date. Visitors don't see it when there
+    are no accounts. The owner gets a link to add them.
+  - `hours` (**Opening hours**) is a weekly picker. It shows "Open now" or
+    "Closed now" in the visitor's local time, including hours past midnight.
+    No placeholder hours are shown.
+  - `menu` (**Menu**) has dishes grouped by the owner's own group names,
+    with an optional photo. Order uses the existing buy and request-to-order
+    flow.
+  - `offer` (**Today's offer**) has a last day. After it, visitors don't see
+    the offer and the owner sees a notice. The button goes to what the
+    business sells.
+- **Consequences:** Older template menus (`menu` with `items`) still render
+  as before. The business edit page's payment section has a
+  `#payment-accounts` anchor for the owner link.
+- **Related documentation:** `frontend-next/components/showroom/NewPieces.tsx`, `frontend-next/lib/openingHours.ts`, `frontend-next/components/showroom/HoursField.tsx`, `frontend-next/lib/builderSections.ts`, `frontend-next/test/showroom/sectionsLive.test.tsx`
+
+### 2026-10-18 — People-first interactions on posts, comments and profiles
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** The owner asked for a post menu like other social apps (picture: reaction row + actions), chosen from best practice across platforms but fitted to NodBusiness, on both sides: what you control on your own posts, and how you interact with other people's posts, comments and likes. Posts had a single heart; comment emoji saved nothing; there was no hide, mute or report; blocks only applied to chat; the Privacy page showed settings it never saved.
+- **Decision:**
+  - **Reactions:** one per person per post: ❤️ 👍 😂 😮 😢 👏 🔥. They reuse the `likes` row, so existing likes become ❤️ and `like_count` is the total. They come with a "who reacted" list. Comments get reactions too (`comment_reactions`).
+  - **The More button (bottom-right of the action bar)** opens the reaction row plus actions:
+    - **Your own post:** edit, pin (up to 3, shown first on your profile), who can comment (everyone / followers / no one), hide reaction count, notifications off, copy link, share, delete.
+    - **Someone else's post:** reply, save, copy link, share, save photo, follow, not interested (with Undo), mute, block (asks first), report with plain reasons.
+  - **The top ⋯** keeps only the Personal/Business view switch.
+  - **Comments:**
+    - **Your own comment:** edit (shows "edited") and delete.
+    - **Someone else's comment:** reply, copy, report, mute or block the author.
+    - **On your own post:** restrict a commenter (their comments are seen only by them and you) and delete any comment.
+  - **Blocks work both ways everywhere:** posts, comments, reactions, follows, search and new messages. Blocking ends follows both ways.
+  - **Privacy settings are saved and enforced:**
+    - who can see my posts: everyone / followers / only me (name and photo stay visible)
+    - appear in search
+    - who can comment on my new posts
+    - who can message me: everyone / my followers / nobody
+    - show my reactions
+    - blocked, muted and restricted people are listed with undo
+  - The rules live in `backend/lib/socialGraph.ts` (migrate67).
+- **Consequences:**
+  - Feeds and post lists filter by visibility, blocks, mutes and hidden posts.
+  - The old `POST /api/posts/:id/like` still toggles ❤️.
+  - Reports go to the existing moderation queue.
+  - Not built yet: "turn on notifications for someone else's post" and a reach/insights view.
+- **Related documentation:** `backend/lib/socialGraph.ts`, `backend/routes/social.ts`, `backend/routes/posts.ts`, `backend/db/migrate67.js`, `frontend-next/components/feed/PostMoreMenu.tsx`, `frontend-next/components/feed/CommentMenu.tsx`, `frontend-next/views/PrivacyAndSecurity.tsx`, `backend/test/db/socialInteractions.db.test.js`, `frontend-next/test/feed/PostInteractions.test.tsx`
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when

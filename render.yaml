@@ -92,8 +92,10 @@ services:
       - key: FF_CHAPA_PAYMENTS
         value: "true"
 
+      # Stripe USD plans: safe on before keys exist (no key = USD shown as unavailable).
+      # Test period: STRIPE_SECRET_KEY=sk_test_..., later swap to live keys only.
       - key: FF_STRIPE_PAYMENTS
-        value: "false"   # Set to "true" and add STRIPE_* keys when ready
+        value: "true"
 
       # Optional — add in Render dashboard when you have these services set up:
       #
@@ -101,8 +103,10 @@ services:
       # - key: REDIS_URL
       #   sync: false
       #
-      # Stripe:
+      # Stripe (USD plans need no price IDs; checkout uses the published price):
       # - key: STRIPE_SECRET_KEY
+      #   sync: false
+      # - key: STRIPE_SUBSCRIPTION_WEBHOOK_SECRET   # endpoint: /api/subscriptions/webhook
       #   sync: false
       # - key: STRIPE_WEBHOOK_SECRET
       #   sync: false

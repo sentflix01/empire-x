@@ -25,9 +25,9 @@ Newly introduced as part of recent development; see source and git history for t
 | `GET` | `/api/subscriptions/chapa/callback` | public | 105 |
 | `GET` | `/api/subscriptions/payments` | public | 127 |
 | `GET` | `/api/subscriptions/payments/:ref/status` | public | 137 |
-| `GET` | `/api/subscriptions/payments/:id/receipt` | public | 152 |
-| `GET` | `/api/subscriptions/chapa/sandbox` | public | 170 |
-| `POST` | `/api/subscriptions/chapa/sandbox/pay` | public | 187 |
+| `GET` | `/api/subscriptions/payments/:id/receipt` | public | 154 |
+| `GET` | `/api/subscriptions/chapa/sandbox` | public | 172 |
+| `POST` | `/api/subscriptions/chapa/sandbox/pay` | public | 189 |
 
 ## 4. What does it touch?
 

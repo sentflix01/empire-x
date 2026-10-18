@@ -24,6 +24,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import ChapaCheckoutPanel from '@/components/business/ChapaCheckoutPanel';
 import BillingHistory from '@/components/business/BillingHistory';
+import TestModeHelper from '@/components/business/TestModeHelper';
 import { formatDate, type PaidTier } from '@/lib/etbBilling';
 
 interface Subscription {
@@ -48,6 +49,8 @@ interface Plan {
   currencyAvailability: Record<BillingCurrency, boolean>;
   /** Which checkout serves each currency: ETB is prepaid through Chapa when it is set up. */
   providers?: Record<BillingCurrency, 'chapa' | 'stripe' | null>;
+  /** Test keys per currency: the page then lists the providers' test details. */
+  testMode?: Record<BillingCurrency, boolean>;
   features: string[];
   limits?: { maxProducts: number; maxStorageGB: number; maxShowrooms: number };
 }
@@ -362,6 +365,11 @@ function BusinessSubscription() {
       {/* Plan comparison */}
       <div className="space-y-3">
         <h2 className="text-sm font-semibold">Choose a plan</h2>
+        {PAID_PLAN_KEYS.some(k => plans?.[k]?.testMode?.ETB || plans?.[k]?.testMode?.USD) && (
+          <p role="note" className="rounded-xl border border-sky-300/60 bg-sky-50 px-3 py-2 text-sm text-sky-950 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-100">
+            <strong>Test mode:</strong> payments use test cards and test phone numbers. No real money moves.
+          </p>
+        )}
         <div className="max-w-xs space-y-2">
           <label htmlFor="subscription-currency" className="text-sm font-medium">Billing currency</label>
           <select id="subscription-currency" name="billing_currency" value={selectedCurrency}
@@ -375,6 +383,9 @@ function BusinessSubscription() {
             <option value="USD">USD — US dollars</option>
           </select>
         </div>
+        {selectedCurrency === 'USD' && PAID_PLAN_KEYS.some(k => plans?.[k]?.testMode?.USD && plans?.[k]?.currencyAvailability.USD) && (
+          <TestModeHelper provider="stripe" />
+        )}
         {PAID_PLAN_KEYS.map((planKey, index) => {
           const plan = plans?.[planKey];
           if (!plan) return null;
@@ -404,6 +415,7 @@ function BusinessSubscription() {
                   businessId={selectedBusinessId}
                   plan={plan.tier as PaidTier}
                   draftId={searchParams.get('draftId')}
+                  testMode={Boolean(plan.testMode?.ETB)}
                   onClose={() => setChapaPlan(null)}
                 />
               )}

@@ -8,6 +8,7 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
+import { messageRefusal } from '../lib/socialGraph';
 import { requireAuth } from '../middleware/auth';
 import { getRecord, createRecord, updateRecord, deleteRecord } from '../utils/crud';
 import { emitNewMessage, emitMessageEdited, emitMessageDeleted, emitNotification, emitPresenceUpdated } from '../socket';
@@ -116,6 +117,8 @@ router.post('/conversations/find-or-create', requireAuth, async (req: Request, r
   if (!target_user_id) { apiError.validationError(res, 'target_user_id is required'); return; }
   const userId = String(req.user!.id);
   if (target_user_id === userId) { apiError.validationError(res, 'Cannot DM yourself'); return; }
+  const refusal = await messageRefusal(userId, target_user_id);
+  if (refusal) { res.status(403).json({ error: 'messages_not_allowed', message: refusal }); return; }
   const client = await pool.connect();
   try {
     // Existence probe runs OUTSIDE the transaction: if the junction table is

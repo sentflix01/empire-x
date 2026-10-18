@@ -51,7 +51,10 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
   const uL=lat!=null&&!isNaN(parseFloat(lat))?parseFloat(lat):null, uLon=lon!=null&&!isNaN(parseFloat(lon))?parseFloat(lon):null;
   const sL=uL!=null&&uL>=-90&&uL<=90?uL:null, sLon=uLon!=null&&uLon>=-180&&uLon<=180?uLon:null;
   const radius=radius_km?parseFloat(radius_km):null;
-  const realUserFilter=req.realOnly?'AND u.is_seed=FALSE AND u.is_demo=FALSE':'';
+  // People who turned off "appear in search", and anyone blocked either way, are left out.
+  const viewerId = typeof req.user?.id === 'string' && /^[0-9a-f-]{36}$/i.test(req.user.id) ? req.user.id : null;
+  const realUserFilter=(req.realOnly?'AND u.is_seed=FALSE AND u.is_demo=FALSE':'')
+    + (viewerId ? ` AND (up.user_id='${viewerId}' OR COALESCE(up.searchable, TRUE)) AND NOT EXISTS (SELECT 1 FROM blocks sb WHERE (sb.blocker_id='${viewerId}' AND sb.blocked_id=up.user_id) OR (sb.blocker_id=up.user_id AND sb.blocked_id='${viewerId}'))` : ' AND COALESCE(up.searchable, TRUE)');
   const realProductFilter=req.realOnly?`AND p.seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)
     AND ((p.business_id IS NULL AND p.showroom_id IS NULL) OR EXISTS (
       SELECT 1 FROM business_subscriptions paid_sub

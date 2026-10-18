@@ -13,7 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { QRCodeSVG } from "qrcode.react";
-import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
+import SectionRenderer, { resolveCtaTarget, firstProductsIndex, isCatalogueSection } from "@/components/showroom/SectionRenderer";
+import NewsletterSignupsPanel from "@/components/showroom/NewsletterSignupsPanel";
+import WhatsAppFloat from "@/components/showroom/WhatsAppFloat";
+import { siteFontFamily } from "@/lib/siteFonts";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
 import QRLandingModal from "@/components/showroom/QRLandingModal";
 import TryDemoButton from '@/components/landing/TryDemoButton';
@@ -249,6 +252,11 @@ function ShowroomView() {
   const ctaTarget = resolveCtaTarget(sections);
   const productsIdx = firstProductsIndex(sections);
   const isOwner = user?.id === showroom.owner_id;
+  // Style choices made in Studio travel with the top section (lib/builderSections.ts: siteFont, whatsappButton).
+  const hero = sections.find(sec => sec?.type === "hero") ?? {};
+  const siteFont = typeof hero.siteFont === "string" && hero.siteFont ? hero.siteFont : null;
+  const whatsappNumber = String(sections.find(sec => sec?.type === "contact")?.whatsapp ?? "").replace(/\D/g, "");
+  const showWhatsappFloat = hero.whatsappButton !== false && Boolean(whatsappNumber);
 
   if (showroom.status !== "published" && !(authResolved && isOwner)) {
     if (!authResolved) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
@@ -335,13 +343,15 @@ function ShowroomView() {
           </div>
         )}
 
-        <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
+        {isOwner && sections.some(sec => sec?.type === "newsletter") && <NewsletterSignupsPanel showroomId={String(showroom.id)} />}
+
+        <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm" style={siteFont ? { fontFamily: siteFontFamily(siteFont) } : undefined}>
           {sections.map((section, i) => (
             <SectionRenderer
               key={i}
               section={section}
               sectionIndex={i}
-              products={section.type === "products" || section.type === "featured_products" ? products : []}
+              products={isCatalogueSection(section.type) ? products : []}
               productSearch={productSearch}
               productCategory={productCategory}
               productCategories={productCategories}
@@ -360,11 +370,14 @@ function ShowroomView() {
               onProductCategoryChange={setProductCategory}
               ctaTarget={ctaTarget}
               isPrimaryProducts={i === productsIdx}
+              showroomId={String(showroom.id)}
+              businessId={showroom.business_id ?? null}
             />
           ))}
           {!sections.some(s => s.type === "contact") && (
             <SectionRenderer section={{ type: "contact", title: "Get in Touch" }} sectionIndex={sections.length} themeColor={themeColor} profile={profile} />
           )}
+          {showWhatsappFloat && <WhatsAppFloat number={whatsappNumber} />}
           <div className="px-5 py-6 bg-secondary text-center">
             <p className="inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground">© {new Date().getFullYear()} {showroom.title}. Powered by <BrandLogo className="w-3.5 h-3.5" /> Nodbusiness</p>
           </div>

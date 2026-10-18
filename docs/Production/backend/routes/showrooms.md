@@ -11,19 +11,21 @@ Showroom CRUD: draft/publish lifecycle, layout template selection, section conte
 ## 3. What does it do?
 
 
-### Endpoints (9)
+### Endpoints (11)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/showrooms/` | optional | 16 |
-| `GET` | `/api/showrooms/slug/:slug` | optional | 44 |
-| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | auth | 62 |
-| `GET` | `/api/showrooms/:id/doctor` | auth | 87 |
-| `GET` | `/api/showrooms/sitemap-data` | public | 144 |
-| `GET` | `/api/showrooms/:id` | optional | 158 |
-| `POST` | `/api/showrooms/` | auth | 171 |
-| `PUT` | `/api/showrooms/:id` | auth | 237 |
-| `DELETE` | `/api/showrooms/:id` | auth | 298 |
+| `GET` | `/api/showrooms/` | optional | 18 |
+| `GET` | `/api/showrooms/slug/:slug` | optional | 46 |
+| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | auth | 64 |
+| `GET` | `/api/showrooms/:id/doctor` | auth | 89 |
+| `GET` | `/api/showrooms/sitemap-data` | public | 146 |
+| `POST` | `/api/showrooms/:id/newsletter` | optional | 166 |
+| `GET` | `/api/showrooms/:id/newsletter` | auth | 184 |
+| `GET` | `/api/showrooms/:id` | optional | 196 |
+| `POST` | `/api/showrooms/` | auth | 209 |
+| `PUT` | `/api/showrooms/:id` | auth | 275 |
+| `DELETE` | `/api/showrooms/:id` | auth | 336 |
 
 ## 4. What does it touch?
 

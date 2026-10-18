@@ -5,6 +5,21 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-18 | Maintenance | Merge pull request #135 from sentflix01/claude/social-interactions | [eb2b16180](2026-10-18-eb2b16180-merge-pull-request-135-from-sentflix01-claude-so.md) |
+| 2026-10-18 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/social-interactions | [9357586ab](2026-10-18-9357586ab-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-18 | Maintenance | Merge pull request #134 from sentflix01/claude/feed-profile-photos | [e6f15b517](2026-10-18-e6f15b517-merge-pull-request-134-from-sentflix01-claude-fe.md) |
+| 2026-10-18 | Maintenance | Merge pull request #133 from sentflix01/claude/stripe-test-mode | [22839e81b](2026-10-18-22839e81b-merge-pull-request-133-from-sentflix01-claude-st.md) |
+| 2026-10-18 | Feature | feat(social): reactions, post More menu, comment tools, block/mute/restrict, privacy | [96c18d180](2026-10-18-96c18d180-reactions-post-more-menu-comment-tools-block-mut.md) |
+| 2026-10-18 | Feature | feat(feed): personal feed opens personal profiles; tap a photo for full screen | [bcc2a2316](2026-10-18-bcc2a2316-personal-feed-opens-personal-profiles-tap-a-phot.md) |
+| 2026-10-17 | Bugfix | fix(billing): Stripe USD plans work in test mode in production | [a0a6865c8](2026-10-17-a0a6865c8-stripe-usd-plans-work-in-test-mode-in-production.md) |
+| 2026-10-17 | Maintenance | Merge pull request #132 from sentflix01/claude/studio-new-pieces | [68269cf7b](2026-10-17-68269cf7b-merge-pull-request-132-from-sentflix01-claude-st.md) |
+| 2026-10-17 | Feature | feat(studio): How to pay me, Opening hours, Menu and Today's offer | [587f71f31](2026-10-17-587f71f31-how-to-pay-me-opening-hours-menu-and-today-s-off.md) |
+| 2026-10-17 | Maintenance | Merge pull request #131 from sentflix01/claude/section-fixes-1 | [31af6c434](2026-10-17-31af6c434-merge-pull-request-131-from-sentflix01-claude-se.md) |
+| 2026-10-17 | Feature | feat(studio): every section works as shown, in words owners already use | [a3d80406d](2026-10-17-a3d80406d-every-section-works-as-shown-in-words-owners-alr.md) |
+| 2026-10-17 | Maintenance | Merge pull request #129 from sentflix01/claude/studio-every-device | [8efe81b8a](2026-10-17-8efe81b8a-merge-pull-request-129-from-sentflix01-claude-st.md) |
+| 2026-10-17 | Feature | feat(studio): usable on every device; publish-only, no export | [4add7199c](2026-10-17-4add7199c-usable-on-every-device-publish-only-no-export.md) |
+| 2026-10-17 | Maintenance | Merge pull request #128 from sentflix01/claude/payments-test-helpers | [45d85560f](2026-10-17-45d85560f-merge-pull-request-128-from-sentflix01-claude-pa.md) |
+| 2026-10-17 | Feature | feat(payments): test-mode helper, Continue payment, clean Chapa return URL | [4b61e49b2](2026-10-17-4b61e49b2-test-mode-helper-continue-payment-clean-chapa-re.md) |
 | 2026-10-17 | Maintenance | Merge pull request #127 from sentflix01/fix/fieldmapper-pbt-reserved-keys | [32c7757a3](2026-10-17-32c7757a3-merge-pull-request-127-from-sentflix01-fix-field.md) |
 | 2026-10-17 | Bugfix | fix(external-api): never write reserved field names when mapping external data | [0c3c320c3](2026-10-17-0c3c320c3-never-write-reserved-field-names-when-mapping-ex.md) |
 | 2026-10-17 | Maintenance | Merge pull request #126 from sentflix01/claude/site-status-banner | [be3073d12](2026-10-17-be3073d12-merge-pull-request-126-from-sentflix01-claude-si.md) |

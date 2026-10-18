@@ -32,6 +32,8 @@ export interface SubscriptionPayment {
   status: PaymentStatus;
   provider: string;
   receipt_number: string | null;
+  /** Chapa's page, while the payment is unfinished (under a day old). */
+  checkout_url?: string | null;
   period_start: string | null;
   period_end: string | null;
   paid_at: string | null;
@@ -51,6 +53,7 @@ export interface PaymentStatusResult {
   business_id: string;
   payment_id: string;
   draft_id: string | null;
+  checkout_url?: string | null;
 }
 
 export interface SubscriptionReceipt {
@@ -86,6 +89,17 @@ export function describePayment(p: { kind: PaymentKind; tier: PaidTier; months: 
   const months = p.months ? `${p.months} month${p.months === 1 ? '' : 's'}` : '';
   if (p.kind === 'upgrade') return months ? `Upgrade to ${plan} + ${months}` : `Upgrade to ${plan}`;
   return `${plan} · ${months}${p.kind === 'renewal' ? ' (renewal)' : ''}`;
+}
+
+/** Whether the plan page runs on test keys, per currency (no real money). */
+export async function getTestMode(): Promise<{ ETB: boolean; USD: boolean }> {
+  try {
+    const { data } = await client.get('/api/subscriptions/plans');
+    const plans = Object.values(data as Record<string, { testMode?: { ETB?: boolean; USD?: boolean } }>);
+    return { ETB: plans.some((p) => p?.testMode?.ETB), USD: plans.some((p) => p?.testMode?.USD) };
+  } catch {
+    return { ETB: false, USD: false };
+  }
 }
 
 export async function getQuote(businessId: string, plan: PaidTier, months: number): Promise<EtbQuote> {

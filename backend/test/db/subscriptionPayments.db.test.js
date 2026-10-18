@@ -72,10 +72,18 @@ describe('first payment', () => {
     expect(first).toMatchObject({ amount: 100, currency: 'ETB', kind: 'new' });
   });
 
-  it('stays pending until Chapa confirms it', async () => {
+  it('sends Chapa a return link with only the payment reference', () => {
+    const returnUrl = new URL(first.checkout_url).searchParams.get('return_url');
+    expect(returnUrl).toBe(`http://frontend.test/business/subscription/return?tx_ref=${first.tx_ref}`);
+  });
+
+  it('stays pending until Chapa confirms it, and offers the checkout page again', async () => {
     const res = await status(first.tx_ref);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('pending');
+    expect(res.body.checkout_url).toBe(first.checkout_url);
+    const history = await request(app).get(`/api/subscriptions/payments?businessId=${businessId}`).set(auth(owner));
+    expect(history.body.payments[0]).toMatchObject({ status: 'pending', checkout_url: first.checkout_url });
     expect(await sub()).toBeUndefined();
   });
 
@@ -83,6 +91,7 @@ describe('first payment', () => {
     await payInSandbox(first.tx_ref);
     const res = await status(first.tx_ref);
     expect(res.body).toMatchObject({ status: 'paid', tier: 'normal' });
+    expect(res.body.checkout_url).toBeNull();
     expect(res.body.receipt_number).toMatch(/^NB-\d{4}-\d{6}$/);
     const s = await sub();
     expect(s).toMatchObject({ tier: 'normal', status: 'active', billing_provider: 'chapa' });
