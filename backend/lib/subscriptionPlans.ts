@@ -105,7 +105,21 @@ export function matchesPlanStripePrice(
     && stripePrice.recurring.interval_count === 1;
 }
 
-export function getPublicPlan(plan: PlanDefinition) {
+/**
+ * Public plan listing. `inlineUsd`: Stripe is ready, so USD checkout can use
+ * the published price directly (stripeInlinePrice) when no price ID is set.
+ */
+/** Checkout line item from the published monthly price, for when no Stripe price ID is configured. */
+export function stripeInlinePrice(plan: PlanDefinition, currency: BillingCurrency) {
+  return {
+    currency: currency.toLowerCase(),
+    unit_amount: plan.prices[currency] * 100,
+    recurring: { interval: 'month' as const, interval_count: 1 },
+    product_data: { name: `NodBusiness ${plan.label} plan` },
+  };
+}
+
+export function getPublicPlan(plan: PlanDefinition, opts: { inlineUsd?: boolean } = {}) {
   return {
     tier: plan.tier,
     interval: plan.interval,
@@ -113,7 +127,7 @@ export function getPublicPlan(plan: PlanDefinition) {
     prices: plan.prices,
     currencyAvailability: {
       ETB: Boolean(plan.stripePriceIds.ETB),
-      USD: Boolean(plan.stripePriceIds.USD),
+      USD: Boolean(plan.stripePriceIds.USD) || Boolean(opts.inlineUsd),
     },
     features: plan.features,
     limits: TIER_LIMITS[plan.tier],
