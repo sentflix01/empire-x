@@ -1,469 +1,541 @@
 /**
  * routes/messages.ts — Conversations and real-time messaging
  *
- * Phase 2: conversation_participants junction table (migrate31).
- * Falls back to legacy participant_ids JSON column when table not yet migrated.
- * Phase 3 Task 12: bulk notification INSERT for group messages (N+1 eliminated).
+ * Rules live in lib/messaging.ts (members, who can post, content limits,
+ * notifications) and lib/socialGraph.ts ("who can message me", blocks).
+ * Message actions are served at /api/messages/:id (what the app calls) and at
+ * the older /api/messages/messages/:id.
  */
 import { Router } from 'express';
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import pool from '../db/pool';
 import { messageRefusal } from '../lib/socialGraph';
 import { requireAuth } from '../middleware/auth';
-import { getRecord, createRecord, updateRecord, deleteRecord } from '../utils/crud';
-import { emitNewMessage, emitMessageEdited, emitMessageDeleted, emitNotification, emitPresenceUpdated } from '../socket';
+import {
+  addMember, addRefusal, cleanContent, CONVERSATION_TYPES, DELETE_FOR_EVERYONE_WINDOW_MS, displayNames, EDIT_WINDOW_MS,
+  existingUserIds, getConversation, insertMessageNotifications, isSafeAttachmentUrl, MAX_GROUP_MEMBERS, memberRole,
+  MESSAGE_TYPES, messagePreview, participantIds, postRefusal, refreshLastMessage, removeMember,
+  type ConversationRow, type ConversationType,
+} from '../lib/messaging';
+import {
+  emitNewMessage, emitMessageEdited, emitMessageDeleted, emitNotification, emitPresenceUpdated, removeUserFromConversationRoom,
+} from '../socket';
 import { sendPushToUser } from './push';
 import logger from '../lib/logger';
 import { getRedis } from '../lib/redis';
 import * as apiError from '../lib/apiError';
-import type { PoolClient } from 'pg';
 import type { Redis as RedisClient } from 'ioredis';
 
 const router = Router();
-const memPresence: Record<string, { status: string; last_seen: string }> = {};
+const memPresence = new Map<string, { status: string; last_seen: string }>();
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// ── Junction table helpers ────────────────────────────────────────────────────
+const perUser = (max: number, message: string) => rateLimit({
+  windowMs: 60 * 1000, limit: max, standardHeaders: true, legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+  keyGenerator: (req: Request) => `user:${req.user?.id ?? 'anon'}`,
+  message: { error: 'rate_limited', message },
+});
+const sendLimiter = perUser(30, 'You’re sending messages too quickly. Wait a moment.');
+const startLimiter = perUser(20, 'You’re starting chats too quickly. Wait a moment.');
 
-async function getParticipantIds(conversationId: string): Promise<string[]> {
-  try {
-    const { rows } = await pool.query('SELECT user_id FROM conversation_participants WHERE conversation_id=$1', [conversationId]);
-    if (rows.length) return rows.map((r: {user_id:string}) => String(r.user_id));
-  } catch { /* fall through */ }
-  const { rows } = await pool.query('SELECT participant_ids FROM conversations WHERE id=$1', [conversationId]);
-  if (!rows.length) return [];
-  try { return (JSON.parse((rows[0].participant_ids as string) || '[]') as unknown[]).map(String); } catch { return []; }
+const isAdmin = (req: Request) => req.user!.role === 'admin';
+const refuse = (res: Response, message: string) => res.status(403).json({ error: 'messages_not_allowed', code: 'MESSAGES_NOT_ALLOWED', message });
+const fail = (res: Response, err: unknown, what: string) => {
+  logger.error({ err: (err as Error).message }, `${what} failed`);
+  apiError.serverError(res, `Could not ${what}. Please try again.`);
+};
+
+/** The conversation when the caller is a member (or a site admin): otherwise answers 404/403 and returns null. */
+async function loadForMember(req: Request, res: Response, id: string): Promise<{ conv: ConversationRow; ids: string[]; role: 'admin' | 'member' | null } | null> {
+  if (!UUID.test(id)) { apiError.notFound(res, 'Conversation not found'); return null; }
+  const conv = await getConversation(id);
+  if (!conv) { apiError.notFound(res, 'Conversation not found'); return null; }
+  const role = await memberRole(conv, req.user!.id);
+  if (!role && !isAdmin(req)) { apiError.forbidden(res, 'You’re not in this conversation'); return null; }
+  return { conv, ids: await participantIds(conv), role };
 }
 
-async function isParticipant(conversationId: string, userId: string): Promise<boolean> {
-  try {
-    const { rows } = await pool.query('SELECT 1 FROM conversation_participants WHERE conversation_id=$1 AND user_id=$2', [conversationId, userId]);
-    if (rows.length) return true;
-    const { rows: cnt } = await pool.query('SELECT COUNT(*) FROM conversation_participants WHERE conversation_id=$1', [conversationId]);
-    if (parseInt(cnt[0].count as string) > 0) return false;
-  } catch { /* fall through */ }
-  const ids = await getParticipantIds(conversationId);
-  return ids.includes(String(userId));
-}
+/** Save a message, update the chat list, tell the room, notify the other members. */
+async function deliver(conv: ConversationRow, ids: string[], senderId: string, fields: { content: string; type: string; reply_to_id?: string | null }) {
+  const names = await displayNames([senderId]);
+  const senderName = names.get(senderId) ?? null;
+  const { rows: [message] } = await pool.query(
+    `INSERT INTO messages (conversation_id, sender_id, sender_name, content, type, reply_to_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+    [conv.id, senderId, senderName, fields.content, fields.type, fields.reply_to_id ?? null],
+  );
+  await pool.query('UPDATE conversations SET last_message=$1, last_message_at=NOW(), updated_at=NOW() WHERE id=$2', [messagePreview(fields.type, fields.content), conv.id]);
+  emitNewMessage(conv.id, message as Record<string, unknown>);
 
-async function isConvAdmin(conversationId: string, userId: string): Promise<boolean> {
-  try {
-    const { rows } = await pool.query(`SELECT 1 FROM conversation_participants WHERE conversation_id=$1 AND user_id=$2 AND role='admin'`, [conversationId, userId]);
-    if (rows.length) return true;
-  } catch { /* fall through */ }
-  const { rows } = await pool.query('SELECT admin_id FROM conversations WHERE id=$1', [conversationId]);
-  return !!(rows.length && String(rows[0].admin_id) === String(userId));
-}
-
-async function addParticipant(client: PoolClient, convId: string, uid: string, role='member'): Promise<void> {
-  try { await client.query(`INSERT INTO conversation_participants (conversation_id,user_id,role) VALUES ($1,$2,$3) ON CONFLICT (conversation_id,user_id) DO NOTHING`, [convId, uid, role]); } catch { /* table may not exist */ }
-  const { rows } = await client.query('SELECT participant_ids FROM conversations WHERE id=$1', [convId]);
-  if (rows.length) {
-    try {
-      const ids = JSON.parse((rows[0].participant_ids as string) || '[]') as string[];
-      if (!ids.includes(uid)) { ids.push(uid); await client.query('UPDATE conversations SET participant_ids=$1, updated_at=NOW() WHERE id=$2', [JSON.stringify(ids), convId]); }
-    } catch { /* non-fatal */ }
-  }
-}
-
-async function removeParticipant(client: PoolClient, convId: string, uid: string): Promise<void> {
-  try { await client.query('DELETE FROM conversation_participants WHERE conversation_id=$1 AND user_id=$2', [convId, uid]); } catch { /* fall through */ }
-  const { rows } = await client.query('SELECT participant_ids FROM conversations WHERE id=$1', [convId]);
-  if (rows.length) {
-    try {
-      const ids = (JSON.parse((rows[0].participant_ids as string)||'[]') as string[]).filter(id=>id!==uid);
-      await client.query('UPDATE conversations SET participant_ids=$1, updated_at=NOW() WHERE id=$2', [JSON.stringify(ids), convId]);
-    } catch { /* non-fatal */ }
-  }
+  const recipients = ids.filter((id) => id !== senderId);
+  const preview = messagePreview(fields.type, fields.content).slice(0, 80);
+  const where = conv.type === 'dm' ? '' : ` in ${conv.name ?? 'a group'}`;
+  const title = `${senderName ?? 'Someone'}${where}`;
+  const link = `/messages/${conv.id}`;
+  void insertMessageNotifications(recipients, title, preview, link).then((rows) => {
+    for (const n of rows) emitNotification(String(n.user_id), n);
+    for (const rid of recipients) sendPushToUser(rid, title, preview, link).catch(() => undefined);
+  });
+  return message as Record<string, unknown>;
 }
 
 // ── Conversations ─────────────────────────────────────────────────────────────
 
 router.get('/conversations', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
-    let rows;
-    try {
-      const result = await pool.query(
-        `SELECT c.*,cp.role AS my_role,cp.last_read_at,
-                (SELECT COUNT(*)::int FROM messages m WHERE m.conversation_id=c.id AND m.created_at>COALESCE(cp.last_read_at,'1970-01-01') AND m.sender_id<>$1) AS unread_count
-         FROM conversations c JOIN conversation_participants cp ON cp.conversation_id=c.id AND cp.user_id=$1
-         ORDER BY c.updated_at DESC LIMIT 100`,
-        [userId],
-      );
-      rows = result.rows.length > 0 ? result.rows : null;
-    } catch { rows = null; }
-    if (!rows) {
-      const result = await pool.query(`SELECT * FROM conversations WHERE participant_ids::jsonb@>$1::jsonb ORDER BY updated_at DESC LIMIT 100`, [JSON.stringify([userId])]);
-      rows = result.rows;
-    }
+    const { rows } = await pool.query(
+      `SELECT c.*, cp.role AS my_role, cp.last_read_at,
+              (SELECT COUNT(*)::int FROM messages m
+                WHERE m.conversation_id=c.id AND m.created_at > COALESCE(cp.last_read_at, '-infinity') AND m.sender_id <> $1) AS unread_count
+         FROM conversations c
+         JOIN conversation_participants cp ON cp.conversation_id=c.id AND cp.user_id=$1
+        ORDER BY COALESCE(c.last_message_at, c.updated_at) DESC
+        LIMIT 100`,
+      [req.user!.id],
+    );
     res.json(rows);
-  } catch (err) {
-    logger.error({ err }, 'Failed to fetch conversations');
-    res.status(500).json({ error: 'Failed to fetch conversations' });
-  }
+  } catch (err) { fail(res, err, 'load your chats'); }
 });
 
 router.get('/conversations/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const conv = await getRecord('conversations', req.params.id);
-    if (!conv) { apiError.notFound(res, 'Conversation not found'); return; }
-    if (!(await isParticipant(req.params.id, req.user!.id)) && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
-    res.json(conv);
-  } catch { res.status(500).json({ error: 'Failed to fetch conversation' }); }
+    const found = await loadForMember(req, res, req.params.id); if (!found) return;
+    res.json({ ...found.conv, my_role: found.role });
+  } catch (err) { fail(res, err, 'load this chat'); }
 });
 
-router.post('/conversations/find-or-create', requireAuth, async (req: Request, res: Response) => {
-  const { target_user_id } = req.body as { target_user_id?: string };
-  if (!target_user_id) { apiError.validationError(res, 'target_user_id is required'); return; }
-  const userId = String(req.user!.id);
-  if (target_user_id === userId) { apiError.validationError(res, 'Cannot DM yourself'); return; }
-  const refusal = await messageRefusal(userId, target_user_id);
-  if (refusal) { res.status(403).json({ error: 'messages_not_allowed', message: refusal }); return; }
-  const client = await pool.connect();
+/** Open the one-to-one chat with someone, creating it the first time. */
+router.post('/conversations/find-or-create', requireAuth, startLimiter, async (req: Request, res: Response) => {
+  const { target_user_id } = req.body as { target_user_id?: unknown };
+  if (typeof target_user_id !== 'string' || !UUID.test(target_user_id)) { apiError.validationError(res, 'target_user_id is required'); return; }
+  const me = String(req.user!.id);
+  if (target_user_id === me) { apiError.validationError(res, 'You can’t message yourself'); return; }
   try {
-    // Existence probe runs OUTSIDE the transaction: if the junction table is
-    // missing, its error must not abort the tx used by the create path.
-    // (The old fallback-in-catch pattern always hit "transaction is aborted".)
-    let existing: Record<string,unknown> | null = null;
-    try {
-      const { rows } = await pool.query(`SELECT c.* FROM conversations c JOIN conversation_participants cp1 ON cp1.conversation_id=c.id AND cp1.user_id=$1 JOIN conversation_participants cp2 ON cp2.conversation_id=c.id AND cp2.user_id=$2 WHERE c.type='dm' AND (SELECT COUNT(*) FROM conversation_participants WHERE conversation_id=c.id)=2 LIMIT 1`, [userId, target_user_id]);
-      existing = rows[0] as Record<string,unknown> | undefined ?? null;
-    } catch {
-      const { rows } = await pool.query(`SELECT * FROM conversations WHERE type='dm' AND participant_ids::jsonb @> $1::jsonb`, [JSON.stringify([userId])]);
-      existing = (rows.find((c: Record<string,unknown>) => {
-        try { const ids = JSON.parse(c.participant_ids as string).map(String); return ids.length === 2 && ids.includes(userId) && ids.includes(target_user_id); } catch { return false; }
-      }) ?? null) as Record<string,unknown> | null;
-    }
-    if (existing) { res.json(existing); return; }
-    await client.query('BEGIN');
-    const { rows: profiles } = await client.query('SELECT user_id,display_name FROM user_profiles WHERE user_id=ANY($1::uuid[])', [[userId, target_user_id]]);
-    const myName = (profiles.find((p: Record<string,string>) => String(p.user_id)===userId) as Record<string,string>|undefined)?.display_name ?? 'User';
-    const targetProf = profiles.find((p: Record<string,string>) => String(p.user_id)===target_user_id) as Record<string,string>|undefined;
-    if (!targetProf) { await client.query('ROLLBACK'); apiError.notFound(res, 'User not found'); return; }
-    const { rows:[conv] } = await client.query(`INSERT INTO conversations (type,last_message,participant_ids,participant_names) VALUES ('dm','',$1::text,$2::text) RETURNING *`, [JSON.stringify([userId,target_user_id]), JSON.stringify([myName,targetProf.display_name??'User'])]);
-    await addParticipant(client, conv.id as string, userId);
-    await addParticipant(client, conv.id as string, target_user_id);
-    await client.query('COMMIT');
-    res.status(201).json(conv);
-  } catch (err) {
-    await client.query('ROLLBACK');
-    logger.error({ err: (err as Error).message }, 'Failed to find or create conversation');
-    res.status(500).json({ error: 'Failed to find or create conversation' });
-  } finally { client.release(); }
-});
-
-router.post('/conversations', requireAuth, async (req: Request, res: Response) => {
-  const { participant_ids, type, name, description, avatar_url } = req.body as Record<string,unknown>;
-  if (!participant_ids) { apiError.validationError(res, 'participant_ids is required'); return; }
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-    let ids: string[];
-    try { ids = Array.isArray(participant_ids) ? (participant_ids as unknown[]).map(String) : JSON.parse(participant_ids as string).map(String); }
-    catch { await client.query('ROLLBACK'); apiError.validationError(res, 'participant_ids must be a JSON array'); return; }
-    const creatorId = String(req.user!.id);
-    if (!ids.includes(creatorId)) ids.unshift(creatorId);
-    const { rows:[conv] } = await client.query(
-      `INSERT INTO conversations (type,name,description,avatar_url,admin_id,last_message,participant_ids,participant_names) VALUES ($1,$2,$3,$4,$5,'',  $6::text,$7::text) RETURNING *`,
-      [type??'group', name??null, description??null, avatar_url??null, creatorId, JSON.stringify(ids), JSON.stringify(ids.map(()=>'User'))],
+    const { rows: [existing] } = await pool.query(
+      `SELECT c.* FROM conversations c
+         JOIN conversation_participants a ON a.conversation_id=c.id AND a.user_id=$1
+         JOIN conversation_participants b ON b.conversation_id=c.id AND b.user_id=$2
+        WHERE c.type='dm' AND (SELECT COUNT(*) FROM conversation_participants x WHERE x.conversation_id=c.id)=2
+        LIMIT 1`,
+      [me, target_user_id],
     );
-    for (const uid of ids) await addParticipant(client, conv.id as string, uid, uid===creatorId?'admin':'member');
-    await client.query('COMMIT');
+    if (existing) { res.json(existing); return; }
+    if (!(await existingUserIds([target_user_id])).has(target_user_id)) { apiError.notFound(res, 'User not found'); return; }
+    const refusal = await messageRefusal(me, target_user_id);
+    if (refusal) { refuse(res, refusal); return; }
+    const conv = await createConversation('dm', me, [target_user_id], {});
     res.status(201).json(conv);
-  } catch (err) { await client.query('ROLLBACK'); logger.error({err},'Create group error'); res.status(500).json({ error: 'Failed to create conversation' }); }
-  finally { client.release(); }
+  } catch (err) { fail(res, err, 'open this chat'); }
+});
+
+async function createConversation(type: ConversationType, creatorId: string, others: string[], meta: { name?: string | null; description?: string | null; avatar_url?: string | null }) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: [conv] } = await client.query(
+      `INSERT INTO conversations (type, name, description, avatar_url, admin_id, last_message, participant_ids, participant_names)
+       VALUES ($1, $2, $3, $4, $5, '', '[]', '[]') RETURNING *`,
+      [type, meta.name ?? null, meta.description ?? null, meta.avatar_url ?? null, type === 'dm' ? null : creatorId],
+    );
+    await addMember(client, conv, creatorId, type === 'dm' ? 'member' : 'admin');
+    for (const uid of others) await addMember(client, conv, uid, 'member');
+    await client.query('COMMIT');
+    return (await getConversation(conv.id as string)) as ConversationRow;
+  } catch (err) {
+    try { await client.query('ROLLBACK'); } catch { /* connection gone */ }
+    throw err;
+  } finally { client.release(); }
+}
+
+const textField = (v: unknown, max: number): { ok: true; value: string | null } | { ok: false } => {
+  if (v === undefined || v === null || v === '') return { ok: true, value: null };
+  if (typeof v !== 'string' || v.length > max) return { ok: false };
+  return { ok: true, value: v.trim() || null };
+};
+
+/** Create a group or channel. One-to-one chats only come from find-or-create. */
+router.post('/conversations', requireAuth, startLimiter, async (req: Request, res: Response) => {
+  const body = req.body as Record<string, unknown>;
+  const type = (body.type ?? 'group') as string;
+  if (type === 'dm' || !(CONVERSATION_TYPES as readonly string[]).includes(type)) { apiError.validationError(res, 'type must be group or channel'); return; }
+  let raw: unknown = body.participant_ids ?? [];
+  if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch { raw = null; } }
+  if (!Array.isArray(raw) || raw.some((v) => typeof v !== 'string' || !UUID.test(v))) { apiError.validationError(res, 'participant_ids must be a list of user ids'); return; }
+  const me = String(req.user!.id);
+  const others = [...new Set((raw as string[]).filter((id) => id !== me))];
+  if (others.length + 1 > MAX_GROUP_MEMBERS) { apiError.validationError(res, `Groups can have up to ${MAX_GROUP_MEMBERS} members`); return; }
+  const name = textField(body.name, 100); const description = textField(body.description, 500); const avatar = textField(body.avatar_url, 1000);
+  if (!name.ok || !description.ok || !avatar.ok) { apiError.validationError(res, 'name, description and avatar_url must be short text'); return; }
+  if (!name.value) { apiError.validationError(res, 'Give the group a name'); return; }
+  try {
+    const known = await existingUserIds(others);
+    const missing = others.filter((id) => !known.has(id));
+    if (missing.length) { apiError.validationError(res, 'Some people could not be found'); return; }
+    for (const id of others) {
+      const why = await addRefusal(me, id);
+      if (why) { refuse(res, `${(await displayNames([id])).get(id) ?? 'Someone'} can’t be added: ${why}`); return; }
+    }
+    const conv = await createConversation(type as ConversationType, me, others, { name: name.value, description: description.value, avatar_url: avatar.value });
+    res.status(201).json(conv);
+  } catch (err) { fail(res, err, 'create the group'); }
 });
 
 router.put('/conversations/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const conv = await getRecord('conversations', req.params.id);
-    if (!conv) { apiError.notFound(res, 'Conversation not found'); return; }
-    if (!(await isConvAdmin(req.params.id, req.user!.id)) && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
+    const found = await loadForMember(req, res, req.params.id); if (!found) return;
+    if (found.conv.type === 'dm') { apiError.validationError(res, 'One-to-one chats have no name to change'); return; }
+    if (found.role !== 'admin' && !isAdmin(req)) { apiError.forbidden(res, 'Only group admins can change this'); return; }
     const body = req.body as Record<string, unknown>;
-    const updates = Object.fromEntries(['name', 'description', 'avatar_url']
-      .filter((field) => body[field] !== undefined)
-      .map((field) => [field, body[field]]));
-    if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable conversation fields provided' }); return; }
-    for (const [field, value] of Object.entries(updates)) {
-      if (value !== null && typeof value !== 'string') {
-        apiError.validationError(res, `${field} must be a string or null`); return;
-      }
-      if (typeof value === 'string' && value.length > 500) {
-        apiError.validationError(res, `${field} must be 500 characters or fewer`); return;
-      }
+    const limits: Record<string, number> = { name: 100, description: 500, avatar_url: 1000 };
+    const updates: Record<string, string | null> = {};
+    for (const [field, max] of Object.entries(limits)) {
+      if (body[field] === undefined) continue;
+      const v = textField(body[field], max);
+      if (!v.ok) { apiError.validationError(res, `${field} must be ${max} characters or fewer`); return; }
+      updates[field] = v.value;
     }
-    res.json(await updateRecord('conversations', req.params.id, updates));
-  } catch { res.status(500).json({ error: 'Failed to update conversation' }); }
+    if (!Object.keys(updates).length) { apiError.validationError(res, 'Nothing to change'); return; }
+    if ('name' in updates && !updates.name) { apiError.validationError(res, 'Give the group a name'); return; }
+    const sets = Object.keys(updates).map((f, i) => `${f}=$${i + 1}`).join(', ');
+    const { rows: [conv] } = await pool.query(`UPDATE conversations SET ${sets}, updated_at=NOW() WHERE id=$${Object.keys(updates).length + 1} RETURNING *`, [...Object.values(updates), found.conv.id]);
+    res.json(conv);
+  } catch (err) { fail(res, err, 'update the group'); }
 });
 
 // ── Messages ──────────────────────────────────────────────────────────────────
 
 router.get('/conversations/:convId/messages', requireAuth, async (req: Request, res: Response) => {
   try {
-    if (!(await isParticipant(req.params.convId, req.user!.id)) && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
-    const limit = Math.min(Math.max(parseInt((req.query.limit as string)||'100',10) || 100, 1), 500);
+    const found = await loadForMember(req, res, req.params.convId); if (!found) return;
+    const limit = Math.min(Math.max(parseInt((req.query.limit as string) || '100', 10) || 100, 1), 500);
     const before = req.query.before ? new Date(req.query.before as string) : null;
     if (before && Number.isNaN(before.getTime())) { apiError.validationError(res, 'before must be a valid date'); return; }
-    // Take the newest `limit` messages (older than the cursor when paging back),
-    // then return them oldest-first, the order the chat renders.
+    // The newest `limit` messages (older than the cursor when paging back), returned oldest-first.
     const { rows } = await pool.query(
       `SELECT * FROM (
-         SELECT * FROM messages WHERE conversation_id=$1 ${before?'AND created_at<$3':''} ORDER BY created_at DESC LIMIT $2
-       ) newest ORDER BY created_at ASC`,
-      before ? [req.params.convId, limit, before] : [req.params.convId, limit],
+         SELECT * FROM messages WHERE conversation_id=$1 ${before ? 'AND created_at<$3' : ''} ORDER BY created_at DESC, id DESC LIMIT $2
+       ) newest ORDER BY created_at ASC, id ASC`,
+      before ? [found.conv.id, limit, before] : [found.conv.id, limit],
     );
     res.json(rows);
-  } catch { res.status(500).json({ error: 'Failed to fetch messages' }); }
+  } catch (err) { fail(res, err, 'load messages'); }
 });
 
-router.post('/conversations/:convId/messages', requireAuth, async (req: Request, res: Response) => {
+router.post('/conversations/:convId/messages', requireAuth, sendLimiter, async (req: Request, res: Response) => {
   try {
-    const convId = req.params.convId;
-    const userId = String(req.user!.id);
-    if (!(await isParticipant(convId, userId)) && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden — not a participant' }); return; }
-    const { content, type, reply_to_id } = req.body as Record<string,unknown>;
-    const cleanContent = typeof content === 'string' ? content.trim() : '';
-    if (!cleanContent) { apiError.validationError(res, 'content is required'); return; }
-    if (cleanContent.length > 4000) { apiError.validationError(res, 'Message must be 4,000 characters or fewer'); return; }
-    const msgType = ['text','image','file'].includes(type as string) ? type as string : 'text';
-    const conv = await getRecord('conversations', convId);
-    if (!conv) { apiError.notFound(res, 'Conversation not found'); return; }
-    if ((conv as Record<string,unknown>).type === 'dm') {
-      const allIds = await getParticipantIds(convId);
-      const otherId = allIds.find(id=>id!==userId);
-      if (otherId) {
-        const { rows: blocks } = await pool.query(`SELECT 1 FROM blocks WHERE (blocker_id=$1 AND blocked_id=$2) OR (blocker_id=$2 AND blocked_id=$1) LIMIT 1`, [userId, otherId]);
-        if (blocks.length) { res.status(403).json({ error: 'You cannot send messages in this conversation' }); return; }
-      }
+    const found = await loadForMember(req, res, req.params.convId); if (!found) return;
+    const me = String(req.user!.id);
+    if (!found.role) { apiError.forbidden(res, 'You’re not in this conversation'); return; }
+    const { content, type, reply_to_id } = req.body as Record<string, unknown>;
+    const msgType = (MESSAGE_TYPES as readonly string[]).includes(type as string) ? type as string : 'text';
+    const clean = cleanContent(content);
+    if (!clean.ok) { apiError.validationError(res, clean.message); return; }
+    if (msgType !== 'text' && !isSafeAttachmentUrl(clean.text)) { apiError.validationError(res, 'That photo or file link isn’t valid'); return; }
+    const why = await postRefusal(found.conv, found.ids, me, found.role);
+    if (why) { refuse(res, why); return; }
+    let replyTo: string | null = null;
+    if (reply_to_id !== undefined && reply_to_id !== null) {
+      if (typeof reply_to_id !== 'string' || !UUID.test(reply_to_id)) { apiError.validationError(res, 'reply_to_id is not valid'); return; }
+      const { rows } = await pool.query('SELECT 1 FROM messages WHERE id=$1 AND conversation_id=$2', [reply_to_id, found.conv.id]);
+      if (!rows.length) { apiError.validationError(res, 'The message you’re replying to isn’t in this chat'); return; }
+      replyTo = reply_to_id;
     }
-    const { rows: profiles } = await pool.query('SELECT display_name FROM user_profiles WHERE user_id=$1', [userId]);
-    const senderName = (profiles[0] as Record<string,string>|undefined)?.display_name ?? null;
-    const { rows:[message] } = await pool.query(
-      `INSERT INTO messages (conversation_id,sender_id,sender_name,content,type,reply_to_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-      [convId, userId, senderName, cleanContent, msgType, reply_to_id ?? null],
-    );
-    const preview = msgType==='image'?'📷 Photo':msgType==='file'?'📎 File':cleanContent.slice(0,200);
-    await pool.query('UPDATE conversations SET last_message=$1,last_message_at=NOW(),updated_at=NOW() WHERE id=$2', [preview, convId]);
-    emitNewMessage(convId, message as Record<string,unknown>);
-
-    // Bulk notification INSERT (N+1 fix)
-    const allIds = await getParticipantIds(convId);
-    const recipients = allIds.filter(id=>id!==userId);
-    if (recipients.length > 0) {
-      const previewText = msgType==='image'?'📷 Photo':msgType==='file'?'📎 File':cleanContent.slice(0,80);
-      const convName = (conv as Record<string,unknown>).name ?? senderName ?? 'New message';
-      const notifTitle = `${senderName??'Someone'}: ${previewText}`;
-      const notifBody  = previewText;
-      const notifLink  = `/messages/${convId}`;
-      const placeholders = recipients.map((_,i)=>`($${i*5+1},'message',$${i*5+2},$${i*5+3},$${i*5+4},$${i*5+5},false)`).join(',');
-      const params = recipients.flatMap(rid=>[rid,notifTitle,notifBody,notifLink,'message']);
-      pool.query(`INSERT INTO notifications (user_id,type,title,body,link,is_read) VALUES ${placeholders} RETURNING *`, params)
-        .then(({rows:notifs}) => {
-          for (const n of notifs) { emitNotification(n.user_id as string, n as Record<string,unknown>); }
-          for (const rid of recipients) sendPushToUser(rid, notifTitle, notifBody, notifLink).catch(()=>undefined);
-        }).catch(()=>undefined);
-    }
+    const message = await deliver(found.conv, found.ids, me, { content: clean.text, type: msgType, reply_to_id: replyTo });
     res.status(201).json(message);
-  } catch (err) {
-    logger.error({ err: (err as Error).message, stack: (err as Error).stack }, 'Failed to send message');
-    res.status(500).json({ error: 'Failed to send message' });
-  }
+  } catch (err) { fail(res, err, 'send the message'); }
 });
 
-router.put('/messages/:id', requireAuth, async (req: Request, res: Response) => {
+async function editMessage(req: Request, res: Response) {
   try {
-    const { rows } = await pool.query('SELECT * FROM messages WHERE id=$1', [req.params.id]);
-    if (!rows.length) { apiError.notFound(res, 'Message not found'); return; }
-    if (rows[0].sender_id !== req.user!.id) { res.status(403).json({ error: 'Forbidden' }); return; }
-    const content = (req.body as Record<string,unknown>).content;
-    if (!content || !(content as string).trim()) { apiError.validationError(res, 'content is required'); return; }
-    const { rows:[updated] } = await pool.query('UPDATE messages SET content=$1,edited=TRUE,updated_at=NOW() WHERE id=$2 RETURNING *', [content, req.params.id]);
-    emitMessageEdited(updated.conversation_id as string, updated as Record<string,unknown>);
+    if (!UUID.test(req.params.id)) { apiError.notFound(res, 'Message not found'); return; }
+    const { rows: [msg] } = await pool.query('SELECT * FROM messages WHERE id=$1', [req.params.id]);
+    if (!msg) { apiError.notFound(res, 'Message not found'); return; }
+    const me = String(req.user!.id);
+    if (String(msg.sender_id) !== me) { apiError.forbidden(res, 'You can only edit your own messages'); return; }
+    if (msg.type !== 'text') { apiError.validationError(res, 'Only text messages can be edited'); return; }
+    if (Date.now() - new Date(msg.created_at).getTime() > EDIT_WINDOW_MS) { apiError.validationError(res, 'Messages can be edited for 15 minutes after sending'); return; }
+    const clean = cleanContent((req.body as Record<string, unknown>).content);
+    if (!clean.ok) { apiError.validationError(res, clean.message); return; }
+    const conv = await getConversation(String(msg.conversation_id));
+    if (!conv) { apiError.notFound(res, 'Message not found'); return; }
+    const ids = await participantIds(conv);
+    const role = await memberRole(conv, me);
+    if (!role) { apiError.forbidden(res, 'You’re no longer in this conversation'); return; }
+    const why = await postRefusal(conv, ids, me, role);
+    if (why) { refuse(res, why); return; }
+    const { rows: [updated] } = await pool.query('UPDATE messages SET content=$1, edited=TRUE, updated_at=NOW() WHERE id=$2 RETURNING *', [clean.text, msg.id]);
+    const { rows: [latest] } = await pool.query('SELECT id FROM messages WHERE conversation_id=$1 ORDER BY created_at DESC LIMIT 1', [conv.id]);
+    if (latest && String(latest.id) === String(msg.id)) await refreshLastMessage(pool, conv.id);
+    emitMessageEdited(conv.id, updated as Record<string, unknown>);
     res.json(updated);
-  } catch { res.status(500).json({ error: 'Failed to edit message' }); }
-});
+  } catch (err) { fail(res, err, 'edit the message'); }
+}
 
-router.delete('/messages/:id', requireAuth, async (req: Request, res: Response) => {
+/** Delete for everyone: your own message within 24 hours (site admins: any). */
+async function deleteMessage(req: Request, res: Response) {
   try {
-    const { rows } = await pool.query('SELECT * FROM messages WHERE id=$1', [req.params.id]);
-    if (!rows.length) { apiError.notFound(res, 'Message not found'); return; }
-    if (rows[0].sender_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
-    await deleteRecord('messages', req.params.id);
-    emitMessageDeleted(rows[0].conversation_id as string, req.params.id);
+    if (!UUID.test(req.params.id)) { apiError.notFound(res, 'Message not found'); return; }
+    const { rows: [msg] } = await pool.query('SELECT * FROM messages WHERE id=$1', [req.params.id]);
+    if (!msg) { apiError.notFound(res, 'Message not found'); return; }
+    const mine = String(msg.sender_id) === String(req.user!.id);
+    if (!mine && !isAdmin(req)) { apiError.forbidden(res, 'You can only delete your own messages'); return; }
+    if (mine && !isAdmin(req) && Date.now() - new Date(msg.created_at).getTime() > DELETE_FOR_EVERYONE_WINDOW_MS) {
+      apiError.validationError(res, 'Messages can be deleted for everyone within 24 hours of sending'); return;
+    }
+    await pool.query('DELETE FROM messages WHERE id=$1', [msg.id]);
+    await refreshLastMessage(pool, String(msg.conversation_id));
+    emitMessageDeleted(String(msg.conversation_id), String(msg.id));
     res.json({ success: true });
-  } catch { res.status(500).json({ error: 'Failed to delete message' }); }
-});
+  } catch (err) { fail(res, err, 'delete the message'); }
+}
 
+router.put('/messages/:id', requireAuth, editMessage);
+router.delete('/messages/:id', requireAuth, deleteMessage);
+
+/** Remove your own messages from this chat, for everyone. */
 router.delete('/conversations/:id/history', requireAuth, async (req: Request, res: Response) => {
   try {
-    if (!(await isParticipant(req.params.id, req.user!.id))) { res.status(403).json({ error: 'Forbidden' }); return; }
-    await pool.query('DELETE FROM messages WHERE conversation_id=$1 AND sender_id=$2', [req.params.id, req.user!.id]);
-    res.json({ success: true });
-  } catch { res.status(500).json({ error: 'Failed to clear history' }); }
+    const found = await loadForMember(req, res, req.params.id); if (!found) return;
+    const { rows } = await pool.query('DELETE FROM messages WHERE conversation_id=$1 AND sender_id=$2 RETURNING id', [found.conv.id, req.user!.id]);
+    await refreshLastMessage(pool, found.conv.id);
+    for (const r of rows) emitMessageDeleted(found.conv.id, String(r.id));
+    res.json({ success: true, deleted: rows.length });
+  } catch (err) { fail(res, err, 'clear your messages'); }
 });
 
 router.post('/conversations/:id/leave', requireAuth, async (req: Request, res: Response) => {
-  const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-    if (!(await isParticipant(req.params.id, req.user!.id))) { await client.query('ROLLBACK'); res.status(400).json({ error: 'Not a participant' }); return; }
-    await removeParticipant(client, req.params.id, String(req.user!.id));
-    await client.query('COMMIT');
+    const found = await loadForMember(req, res, req.params.id); if (!found) return;
+    if (!found.role) { apiError.forbidden(res, 'You’re not in this conversation'); return; }
+    if (found.conv.type === 'dm') { apiError.validationError(res, 'You can’t leave a one-to-one chat'); return; }
+    const me = String(req.user!.id);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await removeMember(client, found.conv, me);
+      // The last admin leaving hands the group to the longest-standing member.
+      const { rows: admins } = await client.query("SELECT 1 FROM conversation_participants WHERE conversation_id=$1 AND role='admin'", [found.conv.id]);
+      if (!admins.length) {
+        const { rows: [next] } = await client.query(
+          `UPDATE conversation_participants SET role='admin'
+            WHERE conversation_id=$1 AND user_id=(SELECT user_id FROM conversation_participants WHERE conversation_id=$1 ORDER BY joined_at LIMIT 1)
+            RETURNING user_id`,
+          [found.conv.id],
+        );
+        await client.query('UPDATE conversations SET admin_id=$1 WHERE id=$2', [next?.user_id ?? null, found.conv.id]);
+      }
+      await client.query('COMMIT');
+    } catch (err) { try { await client.query('ROLLBACK'); } catch { /* gone */ } throw err; } finally { client.release(); }
+    removeUserFromConversationRoom(me, found.conv.id);
     res.json({ success: true });
-  } catch (err) { await client.query('ROLLBACK'); res.status(500).json({ error: 'Failed to leave conversation' }); }
-  finally { client.release(); }
+  } catch (err) { fail(res, err, 'leave the group'); }
 });
 
 router.post('/conversations/:id/members', requireAuth, async (req: Request, res: Response) => {
-  const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-    if (!(await isConvAdmin(req.params.id, req.user!.id)) && req.user!.role !== 'admin') { await client.query('ROLLBACK'); res.status(403).json({ error: 'Only group admin can add members' }); return; }
-    const { user_id } = req.body as { user_id?: string };
-    if (!user_id) { await client.query('ROLLBACK'); apiError.validationError(res, 'user_id is required'); return; }
-    if (await isParticipant(req.params.id, user_id)) { await client.query('ROLLBACK'); res.status(409).json({ error: 'Already a member' }); return; }
-    await addParticipant(client, req.params.id, user_id);
-    await client.query('COMMIT');
+    const found = await loadForMember(req, res, req.params.id); if (!found) return;
+    if (found.conv.type === 'dm') { apiError.validationError(res, 'Start a group to chat with more people'); return; }
+    if (found.role !== 'admin' && !isAdmin(req)) { apiError.forbidden(res, 'Only group admins can add people'); return; }
+    const { user_id } = req.body as { user_id?: unknown };
+    if (typeof user_id !== 'string' || !UUID.test(user_id)) { apiError.validationError(res, 'user_id is required'); return; }
+    if (found.ids.includes(user_id)) { res.status(409).json({ error: 'already_member', message: 'Already in this group' }); return; }
+    if (found.ids.length >= MAX_GROUP_MEMBERS) { apiError.validationError(res, `Groups can have up to ${MAX_GROUP_MEMBERS} members`); return; }
+    if (!(await existingUserIds([user_id])).has(user_id)) { apiError.notFound(res, 'User not found'); return; }
+    const why = await addRefusal(String(req.user!.id), user_id);
+    if (why) { refuse(res, why); return; }
+    await addMember(pool, found.conv, user_id);
     res.json({ success: true });
-  } catch (err) { await client.query('ROLLBACK'); res.status(500).json({ error: 'Failed to add member' }); }
-  finally { client.release(); }
+  } catch (err) { fail(res, err, 'add this person'); }
 });
 
 router.delete('/conversations/:id/members/:userId', requireAuth, async (req: Request, res: Response) => {
-  const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-    if (!(await isConvAdmin(req.params.id, req.user!.id)) && req.user!.role !== 'admin') { await client.query('ROLLBACK'); res.status(403).json({ error: 'Only group admin can remove members' }); return; }
-    if (!(await isParticipant(req.params.id, req.params.userId))) { await client.query('ROLLBACK'); apiError.notFound(res, 'Member not found'); return; }
-    await removeParticipant(client, req.params.id, req.params.userId);
-    await client.query('COMMIT');
+    const found = await loadForMember(req, res, req.params.id); if (!found) return;
+    if (found.role !== 'admin' && !isAdmin(req)) { apiError.forbidden(res, 'Only group admins can remove people'); return; }
+    if (!found.ids.includes(req.params.userId)) { apiError.notFound(res, 'Member not found'); return; }
+    await removeMember(pool, found.conv, req.params.userId);
+    removeUserFromConversationRoom(req.params.userId, found.conv.id);
     res.json({ success: true });
-  } catch (err) { await client.query('ROLLBACK'); res.status(500).json({ error: 'Failed to remove member' }); }
-  finally { client.release(); }
+  } catch (err) { fail(res, err, 'remove this person'); }
 });
 
 router.delete('/conversations/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const conv = await getRecord('conversations', req.params.id);
-    if (!conv) { apiError.notFound(res, 'Conversation not found'); return; }
-    if (!(await isConvAdmin(req.params.id, req.user!.id)) && req.user!.role !== 'admin') { res.status(403).json({ error: 'Only group admin can delete' }); return; }
-    await pool.query('DELETE FROM messages WHERE conversation_id=$1', [req.params.id]);
-    await deleteRecord('conversations', req.params.id);
+    const found = await loadForMember(req, res, req.params.id); if (!found) return;
+    if (found.conv.type === 'dm' && !isAdmin(req)) { apiError.validationError(res, 'One-to-one chats can’t be deleted for both people'); return; }
+    if (found.role !== 'admin' && !isAdmin(req)) { apiError.forbidden(res, 'Only group admins can delete the group'); return; }
+    await pool.query('DELETE FROM conversations WHERE id=$1', [found.conv.id]);
+    for (const id of found.ids) removeUserFromConversationRoom(id, found.conv.id);
     res.json({ success: true });
-  } catch { res.status(500).json({ error: 'Failed to delete conversation' }); }
+  } catch (err) { fail(res, err, 'delete the group'); }
 });
 
 // ── Presence ──────────────────────────────────────────────────────────────────
 
 router.put('/presence', requireAuth, async (req: Request, res: Response) => {
   const { status } = req.body as { status?: string };
-  if (!['online','offline','away'].includes(status??'')) { apiError.validationError(res,'status must be online, offline, or away'); return; }
-  const now = new Date().toISOString();
-  const presence = { status: status!, last_seen: now };
-  memPresence[req.user!.id] = presence;
-  const redis = getRedis();
-  if (!redis.isNoOp) (redis as RedisClient).set(`presence:${req.user!.id}`, JSON.stringify(presence), 'EX', 15*60).catch(()=>undefined);
-  if (status==='online'||status==='offline') pool.query('UPDATE users SET updated_at=NOW(),last_seen=NOW() WHERE id=$1', [req.user!.id]).catch(()=>undefined);
-  // presence_visibility='nobody' (Settings › Privacy) keeps the status private.
-  const { rows: vis } = await pool.query('SELECT presence_visibility FROM user_profiles WHERE user_id=$1', [req.user!.id]).catch(() => ({ rows: [] as Array<{ presence_visibility?: string }> }));
-  if (vis[0]?.presence_visibility !== 'nobody') emitPresenceUpdated(req.user!.id, presence as Parameters<typeof emitPresenceUpdated>[1]);
-  res.json({ success: true, ...presence });
+  if (!['online', 'offline', 'away'].includes(status ?? '')) { apiError.validationError(res, 'status must be online, offline, or away'); return; }
+  try {
+    const presence = { status: status!, last_seen: new Date().toISOString() };
+    memPresence.set(req.user!.id, presence);
+    if (memPresence.size > 50_000) memPresence.delete(memPresence.keys().next().value as string);
+    const redis = getRedis();
+    if (!redis.isNoOp) (redis as RedisClient).set(`presence:${req.user!.id}`, JSON.stringify(presence), 'EX', 15 * 60).catch(() => undefined);
+    if (status === 'online' || status === 'offline') pool.query('UPDATE users SET last_seen=NOW() WHERE id=$1', [req.user!.id]).catch(() => undefined);
+    // presence_visibility='nobody' (Settings › Privacy) keeps the status private.
+    const { rows: vis } = await pool.query('SELECT presence_visibility FROM user_profiles WHERE user_id=$1', [req.user!.id]);
+    if (vis[0]?.presence_visibility !== 'nobody') await emitPresenceUpdated(req.user!.id, presence as Parameters<typeof emitPresenceUpdated>[1]);
+    res.json({ success: true, ...presence });
+  } catch (err) { fail(res, err, 'update your status'); }
 });
 
 router.get('/presence/:userId', requireAuth, async (req: Request, res: Response) => {
+  const hidden = { user_id: req.params.userId, status: 'offline', last_seen: null, hidden: true };
   try {
+    if (!UUID.test(req.params.userId)) { res.json(hidden); return; }
     if (String(req.user!.id) !== req.params.userId) {
-      const { rows: bl } = await pool.query('SELECT 1 FROM blocks WHERE blocker_id=$1 AND blocked_id=$2 LIMIT 1', [req.params.userId, req.user!.id]);
-      if (bl.length) { res.json({ user_id: req.params.userId, status:'offline', last_seen:null, hidden:true }); return; }
+      const { rows: bl } = await pool.query(
+        'SELECT 1 FROM blocks WHERE (blocker_id=$1 AND blocked_id=$2) OR (blocker_id=$2 AND blocked_id=$1) LIMIT 1',
+        [req.params.userId, req.user!.id],
+      );
+      if (bl.length) { res.json(hidden); return; }
       const { rows: vis } = await pool.query('SELECT presence_visibility FROM user_profiles WHERE user_id=$1', [req.params.userId]);
-      if (vis[0]?.presence_visibility === 'nobody') { res.json({ user_id: req.params.userId, status:'offline', last_seen:null, hidden:true }); return; }
+      if (vis[0]?.presence_visibility === 'nobody') { res.json(hidden); return; }
     }
+    let status = 'offline'; let last_seen: string | null = null;
     const redis = getRedis();
-    let status='offline', last_seen: string|null=null;
-    if (!redis.isNoOp) { try { const c=await (redis as RedisClient).get(`presence:${req.params.userId}`); if(c) { const p=JSON.parse(c); status=p.status||'offline'; last_seen=p.last_seen||null; } } catch { /* fall through */ } }
-    if (memPresence[req.params.userId]) { const m=memPresence[req.params.userId]; last_seen=m.last_seen; status=Date.now()-new Date(m.last_seen).getTime()<15*60*1000?m.status:'offline'; }
-    if (!last_seen) { try { const { rows }=await pool.query('SELECT last_seen FROM users WHERE id=$1',[req.params.userId]); if(rows[0]?.last_seen) last_seen=rows[0].last_seen; } catch { /* column may not exist */ } }
-    res.json({ user_id: req.params.userId, status, last_seen, hidden:false });
-  } catch { res.status(500).json({ error: 'Failed to get presence' }); }
+    if (!redis.isNoOp) {
+      try { const c = await (redis as RedisClient).get(`presence:${req.params.userId}`); if (c) { const p = JSON.parse(c); status = p.status || 'offline'; last_seen = p.last_seen || null; } } catch { /* use memory / database */ }
+    }
+    const mem = memPresence.get(req.params.userId);
+    if (mem && (!last_seen || mem.last_seen > last_seen)) { last_seen = mem.last_seen; status = mem.status; }
+    if (last_seen && Date.now() - new Date(last_seen).getTime() >= 15 * 60 * 1000) status = 'offline';
+    if (!last_seen) { const { rows } = await pool.query('SELECT last_seen FROM users WHERE id=$1', [req.params.userId]); if (rows[0]?.last_seen) last_seen = rows[0].last_seen; }
+    res.json({ user_id: req.params.userId, status, last_seen, hidden: false });
+  } catch (err) { fail(res, err, 'load their status'); }
 });
 
 router.put('/presence/settings', requireAuth, async (req: Request, res: Response) => {
   const { visibility } = req.body as { visibility?: string };
-  if (!['everyone','nobody'].includes(visibility??'')) { apiError.validationError(res,'visibility must be everyone or nobody'); return; }
-  try { await pool.query('UPDATE user_profiles SET presence_visibility=$1,updated_at=NOW() WHERE user_id=$2', [visibility, req.user!.id]); res.json({ visibility }); }
-  catch { res.status(500).json({ error: 'Failed to update presence settings' }); }
+  if (!['everyone', 'nobody'].includes(visibility ?? '')) { apiError.validationError(res, 'visibility must be everyone or nobody'); return; }
+  try { await pool.query('UPDATE user_profiles SET presence_visibility=$1, updated_at=NOW() WHERE user_id=$2', [visibility, req.user!.id]); res.json({ visibility }); }
+  catch (err) { fail(res, err, 'save your setting'); }
 });
 
-// ── Block ─────────────────────────────────────────────────────────────────────
+// ── Block (same behaviour as /api/social/block) ──────────────────────────────
 
-router.post('/block/:targetId', requireAuth, async (req: Request, res: Response) => {
-  if (req.params.targetId===req.user!.id) { apiError.validationError(res,'Cannot block yourself'); return; }
-  try { await pool.query('INSERT INTO blocks (blocker_id,blocked_id) VALUES ($1,$2) ON CONFLICT DO NOTHING', [req.user!.id, req.params.targetId]); res.json({ success:true, blocked:true }); }
-  catch { res.status(500).json({ error:'Failed to block user' }); }
-});
+async function block(req: Request, res: Response) {
+  const other = req.params.targetId;
+  const me = String(req.user!.id);
+  if (!UUID.test(other)) { apiError.notFound(res, 'User not found'); return; }
+  if (other === me) { apiError.validationError(res, 'You can’t block yourself'); return; }
+  const client = await pool.connect();
+  try {
+    if (!(await existingUserIds([other], client)).has(other)) { apiError.notFound(res, 'User not found'); return; }
+    await client.query('BEGIN');
+    await client.query('INSERT INTO blocks (blocker_id, blocked_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [me, other]);
+    // Blocking ends follows both ways, like /api/social/block.
+    const { rows: ended } = await client.query(
+      'DELETE FROM follows WHERE (follower_id=$1 AND followed_id=$2) OR (follower_id=$2 AND followed_id=$1) RETURNING follower_id, followed_id',
+      [me, other],
+    );
+    for (const f of ended as Array<{ follower_id: string; followed_id: string }>) {
+      await client.query('UPDATE user_profiles SET following_count = GREATEST(0, following_count - 1) WHERE user_id = $1', [f.follower_id]);
+      await client.query('UPDATE user_profiles SET follower_count = GREATEST(0, follower_count - 1) WHERE user_id = $1', [f.followed_id]);
+    }
+    await client.query('COMMIT');
+    res.json({ success: true, blocked: true });
+  } catch (err) {
+    try { await client.query('ROLLBACK'); } catch { /* gone */ }
+    fail(res, err, 'block this person');
+  } finally { client.release(); }
+}
 
+router.post('/block/:targetId', requireAuth, block);
 router.delete('/block/:targetId', requireAuth, async (req: Request, res: Response) => {
-  try { await pool.query('DELETE FROM blocks WHERE blocker_id=$1 AND blocked_id=$2', [req.user!.id, req.params.targetId]); res.json({ success:true, blocked:false }); }
-  catch { res.status(500).json({ error:'Failed to unblock user' }); }
+  try { await pool.query('DELETE FROM blocks WHERE blocker_id=$1 AND blocked_id=$2', [req.user!.id, req.params.targetId]); res.json({ success: true, blocked: false }); }
+  catch (err) { fail(res, err, 'unblock this person'); }
 });
-
+/** `blocked`: I blocked them. `blocked_me`: they blocked me (the chat then can't be used). */
 router.get('/block/:targetId', requireAuth, async (req: Request, res: Response) => {
-  try { const { rows }=await pool.query('SELECT id FROM blocks WHERE blocker_id=$1 AND blocked_id=$2', [req.user!.id, req.params.targetId]); res.json({ blocked:rows.length>0 }); }
-  catch { res.status(500).json({ error:'Failed to check block status' }); }
+  try {
+    if (!UUID.test(req.params.targetId)) { res.json({ blocked: false, blocked_me: false }); return; }
+    const { rows } = await pool.query(
+      'SELECT blocker_id FROM blocks WHERE (blocker_id=$1 AND blocked_id=$2) OR (blocker_id=$2 AND blocked_id=$1)',
+      [req.user!.id, req.params.targetId],
+    );
+    const by = rows.map((r: { blocker_id: string }) => String(r.blocker_id));
+    res.json({ blocked: by.includes(String(req.user!.id)), blocked_me: by.includes(req.params.targetId) });
+  } catch (err) { fail(res, err, 'check this person'); }
 });
 
 // ── Forward ───────────────────────────────────────────────────────────────────
 
-router.post('/messages/:id/forward', requireAuth, async (req: Request, res: Response) => {
+async function forwardMessage(req: Request, res: Response) {
   try {
-    const { rows:[src] } = await pool.query('SELECT * FROM messages WHERE id=$1', [req.params.id]);
-    if (!src) { apiError.notFound(res,'Message not found'); return; }
+    if (!UUID.test(req.params.id)) { apiError.notFound(res, 'Message not found'); return; }
+    const me = String(req.user!.id);
+    const { rows: [src] } = await pool.query('SELECT * FROM messages WHERE id=$1', [req.params.id]);
     // Only someone who can already read the source conversation may copy from it.
     // Answer 404 like a missing message so outsiders cannot probe message IDs.
-    if (req.user!.role !== 'admin' && !(await isParticipant(src.conversation_id as string, req.user!.id))) { apiError.notFound(res,'Message not found'); return; }
-    const { target_conversation_id } = req.body as { target_conversation_id?: string };
-    if (!target_conversation_id) { apiError.validationError(res,'target_conversation_id is required'); return; }
-    if (!(await isParticipant(target_conversation_id, req.user!.id)) && req.user!.role !== 'admin') { res.status(403).json({ error:'Forbidden' }); return; }
-    const { rows:[prof] } = await pool.query('SELECT display_name FROM user_profiles WHERE user_id=$1', [req.user!.id]);
-    const senderName = (prof as Record<string,string>|undefined)?.display_name ?? null;
-    const { rows:[msg] } = await pool.query(`INSERT INTO messages (conversation_id,sender_id,sender_name,content,type) VALUES ($1,$2,$3,$4,$5) RETURNING *`, [target_conversation_id, req.user!.id, senderName, src.content, src.type||'text']);
-    const preview = (src.type as string)==='image'?'📷 Photo':(src.content as string).slice(0,200);
-    await pool.query('UPDATE conversations SET last_message=$1,last_message_at=NOW(),updated_at=NOW() WHERE id=$2', [preview, target_conversation_id]);
-    emitNewMessage(target_conversation_id, msg as Record<string,unknown>);
-    res.status(201).json(msg);
-  } catch (err) { logger.error({ err: (err as Error).message },'Forward error'); res.status(500).json({ error:'Failed to forward message' }); }
-});
+    const srcConv = src ? await getConversation(String(src.conversation_id)) : null;
+    if (!src || !srcConv || (!(await memberRole(srcConv, me)) && !isAdmin(req))) { apiError.notFound(res, 'Message not found'); return; }
+    const { target_conversation_id } = req.body as { target_conversation_id?: unknown };
+    if (typeof target_conversation_id !== 'string') { apiError.validationError(res, 'target_conversation_id is required'); return; }
+    const target = await loadForMember(req, res, target_conversation_id); if (!target) return;
+    if (!target.role) { apiError.forbidden(res, 'You’re not in that conversation'); return; }
+    const why = await postRefusal(target.conv, target.ids, me, target.role);
+    if (why) { refuse(res, why); return; }
+    const message = await deliver(target.conv, target.ids, me, { content: String(src.content), type: String(src.type || 'text') });
+    res.status(201).json(message);
+  } catch (err) { fail(res, err, 'forward the message'); }
+}
+router.post('/messages/:id/forward', requireAuth, sendLimiter, forwardMessage);
 
-// ── Inquiry ───────────────────────────────────────────────────────────────────
+// ── Inquiry ("Get a quote" on a showroom) ────────────────────────────────────
 
-router.post('/inquiry', requireAuth, async (req: Request, res: Response) => {
-  const { receiver_id, subject, body } = req.body as Record<string,string>;
-  if (!receiver_id) { apiError.validationError(res,'receiver_id is required'); return; }
-  if (!body?.trim()) { apiError.validationError(res,'body is required'); return; }
-  if (String(receiver_id)===String(req.user!.id)) { apiError.validationError(res,'Cannot send inquiry to yourself'); return; }
-  const client = await pool.connect();
+router.post('/inquiry', requireAuth, startLimiter, async (req: Request, res: Response) => {
+  const { receiver_id, subject, body } = req.body as Record<string, unknown>;
+  const me = String(req.user!.id);
+  if (typeof receiver_id !== 'string' || !UUID.test(receiver_id)) { apiError.validationError(res, 'receiver_id is required'); return; }
+  if (receiver_id === me) { apiError.validationError(res, 'You can’t send a request to yourself'); return; }
+  const subj = typeof subject === 'string' ? subject.trim().slice(0, 120) : '';
+  const clean = cleanContent(subj && typeof body === 'string' ? `📋 ${subj}\n\n${body.trim()}` : body);
+  if (!clean.ok) { apiError.validationError(res, clean.message); return; }
   try {
-    await client.query('BEGIN');
-    let conv: Record<string,unknown>|null = null;
-    try {
-      const { rows } = await client.query(`SELECT c.* FROM conversations c JOIN conversation_participants cp1 ON cp1.conversation_id=c.id AND cp1.user_id=$1 JOIN conversation_participants cp2 ON cp2.conversation_id=c.id AND cp2.user_id=$2 WHERE c.type='dm' AND (SELECT COUNT(*) FROM conversation_participants WHERE conversation_id=c.id)=2 LIMIT 1`, [req.user!.id, receiver_id]);
-      conv = (rows[0] as Record<string,unknown>|undefined) ?? null;
-    } catch { /* fall through */ }
+    if (!(await existingUserIds([receiver_id])).has(receiver_id)) { apiError.notFound(res, 'Business owner not found'); return; }
+    const { rows: [existing] } = await pool.query(
+      `SELECT c.* FROM conversations c
+         JOIN conversation_participants a ON a.conversation_id=c.id AND a.user_id=$1
+         JOIN conversation_participants b ON b.conversation_id=c.id AND b.user_id=$2
+        WHERE c.type='dm' AND (SELECT COUNT(*) FROM conversation_participants x WHERE x.conversation_id=c.id)=2
+        LIMIT 1`,
+      [me, receiver_id],
+    );
+    let conv = existing as ConversationRow | undefined;
     if (!conv) {
-      const { rows:[created] } = await client.query(`INSERT INTO conversations (type,last_message,participant_ids,participant_names) VALUES ('dm','',$1::text,'[]'::text) RETURNING *`, [JSON.stringify([String(req.user!.id), String(receiver_id)])]);
-      conv = created as Record<string,unknown>;
-      await addParticipant(client, conv.id as string, String(req.user!.id));
-      await addParticipant(client, conv.id as string, String(receiver_id));
+      const refusal = await messageRefusal(me, receiver_id);
+      if (refusal) { refuse(res, refusal); return; }
+      conv = await createConversation('dm', me, [receiver_id], {});
     }
-    const text = subject ? `📋 ${subject}\n\n${body}` : body;
-    const { rows:[msg] } = await client.query(`INSERT INTO messages (conversation_id,sender_id,content,created_at) VALUES ($1,$2,$3,NOW()) RETURNING *`, [conv.id, req.user!.id, text]);
-    await client.query('UPDATE conversations SET updated_at=NOW() WHERE id=$1', [conv.id]);
-    await client.query('COMMIT');
-    pool.query(`INSERT INTO notifications (user_id,type,title,body,link,created_at) VALUES ($1,'inquiry',$2,$3,$4,NOW())`, [receiver_id, subject||'New Inquiry', `${req.user!.email||'Someone'} sent you an inquiry.`, `/messages/${conv.id}`]).then(({rows:[notif]}) => { if(notif) emitNotification(String(receiver_id), notif as Record<string,unknown>); }).catch(()=>undefined);
-    emitNewMessage(String(receiver_id), { ...msg as Record<string,unknown>, conversation_id: conv.id });
-    res.status(201).json({ success:true, conversation_id:conv.id, message_id:(msg as Record<string,unknown>).id });
-  } catch (err) { await client.query('ROLLBACK'); logger.error({err:(err as Error).message},'Inquiry error'); res.status(500).json({ error:'Failed to send inquiry' }); }
-  finally { client.release(); }
+    const ids = await participantIds(conv);
+    const why = await postRefusal(conv, ids, me, 'member');
+    if (why) { refuse(res, why); return; }
+    const msg = await deliver(conv, ids, me, { content: clean.text, type: 'text' });
+    res.status(201).json({ success: true, conversation_id: conv.id, message_id: msg.id });
+  } catch (err) { fail(res, err, 'send your request'); }
 });
+
+// ── /api/messages/:id aliases (what the app calls). Registered last so the
+//    named routes above (/presence, /inquiry, /block/…) always win.
+
+const onlyUuid = (handler: (req: Request, res: Response) => Promise<void>) => (req: Request, res: Response, next: NextFunction) => {
+  if (!UUID.test(req.params.id)) { next(); return; }
+  void handler(req, res);
+};
+router.put('/:id', requireAuth, onlyUuid(editMessage));
+router.delete('/:id', requireAuth, onlyUuid(deleteMessage));
+router.post('/:id/forward', requireAuth, sendLimiter, onlyUuid(forwardMessage));
 
 module.exports = router;

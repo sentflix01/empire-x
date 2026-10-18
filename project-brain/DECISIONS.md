@@ -458,6 +458,45 @@ documents when verified; do not copy stale values into new work.
   - **Open (owner decision):** no product-count limit per plan is enforced anywhere today, for the normal form or for scan-batch.
 - **Related documentation:** `docs/backend/API.md` (Products), `backend/lib/barcode.ts`, `backend/lib/productLookup.ts`, `backend/routes/products.ts`, `backend/db/migrate68.js`, `frontend-next/components/products/BarcodeScanner.tsx`, `frontend-next/views/ProductQuickScan.tsx`, `frontend-next/views/ProductCreate.tsx`, `backend/test/db/productScan.db.test.js`, `frontend-next/test/products/scan.test.tsx`
 
+### 2026-10-18 — Messaging rules (audit part 1: server)
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** The owner asked for a professional, end-to-end audit of Messages on both sides. The server audit found several problems:
+  - No message ever created a notification: the insert was malformed and its error was swallowed.
+  - Edit, delete and forward were served at paths the app didn't call.
+  - Inquiries and group creation skipped "who can message me" and blocks.
+  - People removed from a group kept receiving live messages.
+  - A ban didn't close the socket, and demo sessions couldn't use it.
+- **Decision:**
+  - **One rules module, `backend/lib/messaging.ts`**, used by every route:
+    - **Members:** `conversation_participants` is the source of truth. The legacy JSON columns are still written for older app versions.
+    - **First contact:** starting a chat, inquiries, and adding someone to a group follow the other person's "who can message me" and blocks.
+    - **Blocks:** while either person blocks the other, a one-to-one chat can't be used.
+    - **Channels:** only admins post.
+    - **Messages:** 1–4,000 characters. Photos and files must be https links. Replies must be in the same chat.
+    - **Edit:** your own text messages, within **15 minutes**.
+    - **Delete for everyone:** your own messages, within **24 hours**. "Delete for me" comes with read state in the next part.
+    - **Groups:** up to **256** members. When the last admin leaves, the longest-standing member becomes admin.
+    - **One-to-one chats:** can't be left, renamed, or deleted for both people.
+    - **Rate limits:** 30 messages a minute and 20 new chats a minute per person.
+  - **Paths:** message actions answer at `/api/messages/:id`, and the old paths stay.
+  - **Notifications:** every message creates a `message` notification and push for the other members, never including anyone's email. Failures are logged, not hidden.
+  - **Blocking from a chat:** behaves exactly like the social block, ending follows both ways.
+  - **Socket:**
+    - Removed people leave the chat room at once.
+    - A ban disconnects for real.
+    - A recovered connection is checked again.
+    - Typing is throttled (3 s).
+    - Demo sessions use the demo database.
+- **Consequences:**
+  - Some requests that used to "succeed" while doing nothing now get a clear error, with `messages_not_allowed` carrying the reason to show.
+  - The app's group creation still sends profile IDs, so it now gets a clear error instead of a broken group. Fixed in the groups part (M6).
+  - Site admins can still read any chat (unchanged).
+  - **Found in the browser check:**
+    - The empty toast area was an invisible strip over the bottom-right of every page, including the chat composer and Send button on tablets and desktops. It's now click-through.
+    - The security policy turned an `http` API into `wss://` instead of `ws://`, so live chat never connected on local backends. Production (`https` → `wss`) was unaffected.
+- **Related documentation:** `docs/backend/API.md` (Messages), `backend/lib/messaging.ts`, `backend/routes/messages.ts`, `backend/socket.ts`, `backend/test/db/messaging.db.test.js`, `backend/test/db/messagingSocket.db.test.js`
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when

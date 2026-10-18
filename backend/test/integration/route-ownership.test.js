@@ -32,7 +32,7 @@ jest.mock('../../routes/hashtags', () => ({
 jest.mock('../../routes/push', () => ({ sendPushToUser: jest.fn().mockResolvedValue(undefined) }));
 jest.mock('../../socket', () => ({
   emitNewMessage: jest.fn(), emitMessageEdited: jest.fn(), emitMessageDeleted: jest.fn(),
-  emitNotification: jest.fn(), emitPresenceUpdated: jest.fn(), emitNewPost: jest.fn(),
+  emitNotification: jest.fn(), emitPresenceUpdated: jest.fn(), emitNewPost: jest.fn(), removeUserFromConversationRoom: jest.fn(),
 }));
 
 const crud = require('../../utils/crud');
@@ -157,15 +157,20 @@ describe('route ownership and mass assignment boundaries', () => {
   });
 
   it('does not let conversation admins rewrite participant or admin identity through metadata updates', async () => {
-    crud.getRecord.mockResolvedValue({ id: 'conversation-1' });
-    pool.query.mockResolvedValue({ rows: [{ '?column?': 1 }] });
+    const CONV = '11111111-1111-4111-8111-111111111111';
+    pool.query.mockImplementation((sql) => {
+      if (sql.startsWith('SELECT * FROM conversations')) return Promise.resolve({ rows: [{ id: CONV, type: 'group', participant_ids: '[]', admin_id: 'admin-1' }] });
+      if (sql.startsWith('SELECT role FROM conversation_participants')) return Promise.resolve({ rows: [{ role: 'admin' }] });
+      if (sql.startsWith('SELECT user_id FROM conversation_participants')) return Promise.resolve({ rows: [{ user_id: 'admin-1' }] });
+      return Promise.resolve({ rows: [] });
+    });
 
     const response = await request(buildApp(messages, '/api/messages', { id: 'admin-1', role: 'user' }))
-      .put('/api/messages/conversations/conversation-1')
+      .put(`/api/messages/conversations/${CONV}`)
       .send({ admin_id: 'victim', participant_ids: '["victim"]', last_message: 'spoofed' });
 
-    expect(response.status).toBe(400);
-    expect(crud.updateRecord).not.toHaveBeenCalled();
+    expect(response.status).toBe(422);
+    expect(pool.query.mock.calls.some(([sql]) => sql.startsWith('UPDATE conversations'))).toBe(false);
   });
 
   it('prevents users from sending fabricated notifications to other accounts', async () => {

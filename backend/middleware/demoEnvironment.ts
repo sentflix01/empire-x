@@ -204,6 +204,26 @@ export async function demoEnvironmentMiddleware(req: Request, res: Response, nex
   });
 }
 
+/**
+ * The active demo session behind a `demo_session` cookie value, or null.
+ * Same rules as the HTTP middleware, for callers without a request (the socket).
+ */
+export async function resolveDemoSession(token: string | undefined): Promise<{ id: string; userId: string } | null> {
+  if (!token || process.env.DEMO_ENABLED !== 'true') return null;
+  let claims: DemoSessionClaims;
+  try { claims = verifySessionCookie(token); } catch { return null; }
+  return runWithDatabaseEnvironment({ environment: 'demo', demoSessionId: claims.sid, demoUserId: claims.sub }, async () => {
+    const { rows: [s] } = await pool.query<{ id: string; user_id: string; expires_at: Date; status: string; is_banned: boolean; role: string; is_demo: boolean; is_seed: boolean }>(
+      `SELECT s.id, s.user_id, s.expires_at, s.status, u.is_banned, u.role, u.is_demo, u.is_seed
+         FROM demo_sessions s JOIN users u ON u.id = s.user_id
+        WHERE s.id = $1 AND s.user_id = $2`,
+      [claims.sid, claims.sub],
+    );
+    const active = s && s.status === 'active' && new Date(s.expires_at).getTime() > Date.now() && !s.is_banned && s.role === 'user' && s.is_demo && !s.is_seed;
+    return active ? { id: s.id, userId: s.user_id } : null;
+  });
+}
+
 export function signDemoSessionCookie(sessionId: string, userId: string, expiresAt: Date): string {
   const secret = getDemoSessionSecret();
   return jwt.sign(

@@ -504,21 +504,69 @@ Request withdrawal. Requires auth.
 
 ## Messages
 
+All routes require auth. The rules live in `backend/lib/messaging.ts` and `backend/lib/socialGraph.ts`.
+
+**Error shape:**
+- Refusals return `403 { error: "messages_not_allowed", code, message }`. Show `message` to the person.
+- Validation returns `422 { error, code: "VALIDATION_ERROR" }`.
+- IDs that aren't UUIDs return 404.
+
+**Limits (per person, per minute):** 30 messages or forwards, and 20 new chats, groups or inquiries.
+
 ### GET /api/messages/conversations
-List conversations. Requires auth.
+Your chats, newest activity first (up to 100). Each one has `my_role` and `unread_count`.
+
+### POST /api/messages/conversations/find-or-create
+`{ "target_user_id": "uuid" }`. Opens the one-to-one chat with someone, creating it the first time (201), or returns the existing one (200).
+
+**New chats follow the other person's "who can message me"** (everyone / followers / nobody) and blocks in both directions. An existing chat always reopens, but sending into it stops while either person blocks the other.
 
 ### POST /api/messages/conversations
-Create a conversation. Requires auth.
+Creates a group or channel: `{ "type": "group" | "channel", "name", "participant_ids": ["uuid"], "description"?, "avatar_url"? }`.
+- The creator becomes the admin.
+- A name is required.
+- Up to 256 members.
+- Every person must exist and be someone you could message.
+- `type: "dm"` is refused; one-to-one chats only come from find-or-create.
 
-**Request:** `{ "participant_ids": ["uuid1", "uuid2"], "type": "dm" }`
+### PUT /api/messages/conversations/:id
+Changes a group's `name`, `description` or `avatar_url` (admins only). One-to-one chats can't be renamed.
 
 ### GET /api/messages/conversations/:id/messages
-Get messages in a conversation. Requires auth.
+Members only. `limit` (1–500, default 100) and `before` (an ISO date) page back through older messages. Messages come oldest-first.
 
 ### POST /api/messages/conversations/:id/messages
-Send a message. Requires auth.
+`{ "content": "Hello!", "type": "text" | "image" | "file", "reply_to_id"? }`
+- **Content:** 1–4,000 characters, trimmed. Photos and files must be `https` links.
+- **Replies:** `reply_to_id` must be a message in the same chat.
+- **Who can post:** in a channel, only admins post. A one-to-one chat stops while either person blocks the other.
+- **On send:** updates the chat list summary, emits `new_message` to the chat, and creates a `message` notification (plus web push) for every other member.
 
-**Request:** `{ "content": "Hello!", "type": "text" }`
+### PUT /api/messages/:id · DELETE /api/messages/:id · POST /api/messages/:id/forward
+The older `/api/messages/messages/:id…` paths still work.
+- **Edit:** your own text messages, within 15 minutes. The message is marked `edited`.
+- **Delete for everyone:** your own messages, within 24 hours (site admins: any). The chat list summary is refreshed.
+- **Forward:** `{ "target_conversation_id" }`. You must be in both chats and allowed to post in the target. Otherwise you get 404 for the source and 403 for the target.
+
+### Groups
+- **`POST /conversations/:id/members`** `{ "user_id" }`: admins add people they could message.
+- **`DELETE /conversations/:id/members/:userId`**: admins remove people. Removed people stop receiving live messages at once.
+- **`POST /conversations/:id/leave`**: when the last admin leaves, the longest-standing member becomes admin.
+- **`DELETE /conversations/:id`**: admins delete the group. One-to-one chats can't be left or deleted for both people.
+- **`DELETE /conversations/:id/history`** removes your own messages from the chat.
+
+### POST /api/messages/inquiry
+"Get a quote": `{ "receiver_id", "subject"?, "body" }`. It opens (or reuses) the one-to-one chat with the business owner, under the same rules as any first message. The request shows in the owner's chat list and notifications. The buyer's email is never included.
+
+### Block
+- **`POST` / `DELETE /api/messages/block/:userId`** behave like `/api/social/block`: blocking also ends follows both ways.
+- **`GET /api/messages/block/:userId`** returns `{ blocked, blocked_me }`.
+
+### Live events (Socket.IO)
+- **Connecting:** use an access token (`auth.token`). A demo session's socket uses the demo database. A ban closes the connection, and a recovered connection is checked again.
+- **Joining:** `join_conversation` (members only).
+- **Typing:** `typing { conversationId, isTyping }` reaches only the chat and respects blocks. Repeats are sent at most once every 3 s.
+- **Server events:** `new_message`, `message_edited`, `message_deleted`, `typing_updated`, `presence_updated`, `new_notification`.
 
 ---
 

@@ -28,7 +28,7 @@ jest.mock('../lib/queue', () => ({ queueWebhookDelivery: jest.fn(), queueUsageRe
 jest.mock('../services/ssrfValidator', () => ({ validateUrl: jest.fn().mockResolvedValue({ ok: true }) }));
 jest.mock('../socket', () => ({
   emitNewMessage: jest.fn(), emitMessageEdited: jest.fn(), emitMessageDeleted: jest.fn(),
-  emitNotification: jest.fn(), emitPresenceUpdated: jest.fn(),
+  emitNotification: jest.fn(), emitPresenceUpdated: jest.fn(), removeUserFromConversationRoom: jest.fn(),
 }));
 jest.mock('../routes/push', () => ({ sendPushToUser: jest.fn().mockResolvedValue(undefined) }));
 jest.mock('../lib/redis', () => ({ getRedis: () => null }));
@@ -83,18 +83,24 @@ describe('F-H2 variant ownership', () => {
 });
 
 describe('F-H7 message forward requires access to the source conversation', () => {
-  // conv-private holds user-a and user-b; conv-own holds only user-c.
-  const members: Record<string, string[]> = { 'conv-private': ['user-a', 'user-b'], 'conv-own': ['user-c', 'user-a'] };
+  // The private group holds user-a and user-b; the own group holds user-c and user-a.
+  const PRIVATE = '11111111-1111-4111-8111-111111111111';
+  const OWN = '22222222-2222-4222-8222-222222222222';
+  const MSG = '33333333-3333-4333-8333-333333333333';
+  const members: Record<string, string[]> = { [PRIVATE]: ['user-a', 'user-b'], [OWN]: ['user-c', 'user-a'] };
   beforeEach(() => {
     mockPool.query.mockImplementation((sql: string, params: string[] = []) => {
       if (sql.startsWith('SELECT * FROM messages')) {
-        return Promise.resolve({ rows: [{ id: 'msg-1', conversation_id: 'conv-private', content: 'secret', type: 'text' }] });
+        return Promise.resolve({ rows: [{ id: MSG, conversation_id: PRIVATE, content: 'secret', type: 'text' }] });
       }
-      if (sql.startsWith('SELECT 1 FROM conversation_participants')) {
-        return Promise.resolve({ rows: (members[params[0]] ?? []).includes(params[1]) ? [{ '?column?': 1 }] : [] });
+      if (sql.startsWith('SELECT * FROM conversations')) {
+        return Promise.resolve({ rows: members[params[0]] ? [{ id: params[0], type: 'group', participant_ids: '[]', admin_id: null }] : [] });
       }
-      if (sql.startsWith('SELECT COUNT(*) FROM conversation_participants')) {
-        return Promise.resolve({ rows: [{ count: String((members[params[0]] ?? []).length) }] });
+      if (sql.startsWith('SELECT role FROM conversation_participants')) {
+        return Promise.resolve({ rows: (members[params[0]] ?? []).includes(params[1]) ? [{ role: 'member' }] : [] });
+      }
+      if (sql.startsWith('SELECT user_id FROM conversation_participants')) {
+        return Promise.resolve({ rows: (members[params[0]] ?? []).map((user_id) => ({ user_id })) });
       }
       if (sql.startsWith('INSERT INTO messages')) {
         return Promise.resolve({ rows: [{ id: 'msg-2', conversation_id: params[0], content: params[3] }] });
@@ -104,18 +110,27 @@ describe('F-H7 message forward requires access to the source conversation', () =
   });
 
   it('refuses an outsider who belongs to the target but not the source conversation', async () => {
-    const response = await request(app).post('/api/messages/messages/msg-1/forward')
-      .set('x-user-id', 'user-c').send({ target_conversation_id: 'conv-own' });
+    const response = await request(app).post(`/api/messages/messages/${MSG}/forward`)
+      .set('x-user-id', 'user-c').send({ target_conversation_id: OWN });
     expect(response.status).toBe(404);
     expect(JSON.stringify(response.body)).not.toContain('secret');
     expect(sqlCalls().some((sql) => sql.startsWith('INSERT INTO messages'))).toBe(false);
   });
 
   it('lets a participant of both conversations forward', async () => {
-    const response = await request(app).post('/api/messages/messages/msg-1/forward')
-      .set('x-user-id', 'user-a').send({ target_conversation_id: 'conv-own' });
+    const response = await request(app).post(`/api/messages/messages/${MSG}/forward`)
+      .set('x-user-id', 'user-a').send({ target_conversation_id: OWN });
     expect(response.status).toBe(201);
     expect(response.body.content).toBe('secret');
+  });
+
+  it('serves the same check at /api/messages/:id/forward (the path the app calls)', async () => {
+    const outsider = await request(app).post(`/api/messages/${MSG}/forward`)
+      .set('x-user-id', 'user-c').send({ target_conversation_id: OWN });
+    expect(outsider.status).toBe(404);
+    const member = await request(app).post(`/api/messages/${MSG}/forward`)
+      .set('x-user-id', 'user-a').send({ target_conversation_id: OWN });
+    expect(member.status).toBe(201);
   });
 });
 
