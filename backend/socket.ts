@@ -436,6 +436,11 @@ export async function emitPresenceUpdated(
   ioInstance.to(`user:${userId}`).emit('presence_updated', payload);
 }
 
+/** An event for one person on all their devices (chat list, unread badge, read receipts). */
+export function emitToUser(userId: string, event: string, payload: Record<string, unknown>): void {
+  ioInstance?.to(`user:${userId}`).emit(event, payload);
+}
+
 export function emitNotification(userId: string, notification: Record<string, unknown>): void {
   ioInstance?.to(`user:${userId}`).emit('new_notification', notification);
 }
@@ -471,6 +476,7 @@ module.exports = {
   emitMessageDeleted,
   emitPresenceUpdated,
   emitNotification,
+  emitToUser,
   forceDisconnectUser,
   removeUserFromConversationRoom,
   invalidateFollowerCache,

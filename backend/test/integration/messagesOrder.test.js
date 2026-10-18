@@ -10,7 +10,7 @@ jest.mock('../../middleware/auth', () => ({
 }));
 jest.mock('../../socket', () => ({
   emitNewMessage: jest.fn(), emitMessageEdited: jest.fn(), emitMessageDeleted: jest.fn(),
-  emitNotification: jest.fn(), emitPresenceUpdated: jest.fn(), emitNewPost: jest.fn(), removeUserFromConversationRoom: jest.fn(),
+  emitNotification: jest.fn(), emitPresenceUpdated: jest.fn(), emitNewPost: jest.fn(), removeUserFromConversationRoom: jest.fn(), emitToUser: jest.fn(),
 }));
 jest.mock('../../routes/push', () => ({ sendPushToUser: jest.fn().mockResolvedValue(undefined) }));
 
@@ -37,7 +37,7 @@ function memberOf(messagesRows = []) {
     return Promise.resolve({ rows: messagesRows });
   });
 }
-const messagesCall = () => pool.query.mock.calls.find(([sql]) => /FROM messages WHERE conversation_id/.test(sql));
+const messagesCall = () => pool.query.mock.calls.find(([sql]) => /FROM messages m\b/.test(sql));
 
 describe('GET conversation messages', () => {
   it('loads the newest messages and returns them oldest-first', async () => {
@@ -45,8 +45,8 @@ describe('GET conversation messages', () => {
     const res = await request(buildApp()).get(`/api/messages/conversations/${C1}/messages?limit=2`);
     expect(res.status).toBe(200);
     const [sql, params] = messagesCall();
-    expect(sql).toMatch(/ORDER BY created_at DESC, id DESC LIMIT \$2\s*\)\s*newest ORDER BY created_at ASC/);
-    expect(params).toEqual([C1, 2]);
+    expect(sql).toMatch(/ORDER BY m\.created_at DESC, m\.id DESC LIMIT \$2\s*\)\s*newest ORDER BY created_at ASC/);
+    expect(params).toEqual([C1, 2, 'user-1']);
   });
 
   it('rejects an unparseable before cursor instead of failing in SQL', async () => {
@@ -59,7 +59,7 @@ describe('GET conversation messages', () => {
   it('falls back to the default page size for a non-numeric limit', async () => {
     memberOf();
     await request(buildApp()).get(`/api/messages/conversations/${C1}/messages?limit=abc`);
-    expect(messagesCall()[1]).toEqual([C1, 100]);
+    expect(messagesCall()[1]).toEqual([C1, 100, 'user-1']);
   });
 
   it('answers 404 for an id that is not a conversation id', async () => {

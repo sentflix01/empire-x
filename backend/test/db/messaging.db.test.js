@@ -87,7 +87,8 @@ describe('sending', () => {
     const note = await waitFor(async () => (await pool.query(
       "SELECT * FROM notifications WHERE user_id=$1 AND type='message' AND link=$2", [users.seller.id, `/messages/${conv.id}`],
     )).rows[0]);
-    expect(note).toMatchObject({ title: 'DB Test', body: 'Is the coffee still available?', is_read: false });
+    // The seller doesn't follow the buyer, so this first message is a request.
+    expect(note).toMatchObject({ title: 'Message request from DB Test', body: 'Is the coffee still available?', is_read: false });
     const { rows: own } = await pool.query("SELECT 1 FROM notifications WHERE user_id=$1 AND link=$2", [users.buyer.id, `/messages/${conv.id}`]);
     expect(own).toHaveLength(0);
   });

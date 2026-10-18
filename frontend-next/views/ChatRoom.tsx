@@ -2,11 +2,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from "@/lib/AuthContext";
-import { getSocket } from "@/lib/socket";
-import client, { getAccessToken } from "@/api/client";
+import { getSocket, joinConversation, leaveConversation } from "@/lib/socket";
+import client from "@/api/client";
+import { applyReceipt, tickFor, type MemberReadState } from "@/lib/readReceipts";
+import MessageTicks from "@/components/messaging/MessageTicks";
 import {
   ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
-  CornerUpLeft, Check, CheckCheck, ShieldOff, History, ImagePlus, Forward,
+  CornerUpLeft, Check, ShieldOff, History, ImagePlus, Forward,
   Copy, UserCircle, Pin, Bookmark, Languages,
 } from "lucide-react";
 import { fmtTime, fmtLongDate } from "@/lib/date";
@@ -66,6 +68,10 @@ function ChatRoom() {
   const [presence, setPresence]       = useState<PresenceData | null>(null);
   const [otherTyping, setOtherTyping] = useState(false);
   const [otherProfile, setOtherProfile] = useState<any>(null);
+  // Everyone's "delivered" / "seen" (seen only when both people allow read receipts).
+  const [members, setMembers] = useState<MemberReadState[]>([]);
+  const otherUserIdRef = useRef<string | null>(null);
+  useEffect(() => { otherUserIdRef.current = otherUserId; }, [otherUserId]);
 
   const bottomRef  = useRef(null);
   const inputRef   = useRef(null);
@@ -79,20 +85,37 @@ function ChatRoom() {
   useChatPresence(Boolean(user));
 
   const setTyping = useCallback((isTyping: boolean) => {
-    const convId = id || conversation?.id;
-    if (!convId) return;
-    getSocket().emit('typing', { conversationId: convId, isTyping });
-  }, [id, conversation?.id]);
+    if (!id) return;
+    getSocket().emit('typing', { conversationId: id, isTyping });
+  }, [id]);
 
   // ── Load conversation + messages ──────────────────────────────────────────
   const loadMessages = useCallback(async () => {
-    const convId = id || conversation?.id;
-    if (!convId) return;
+    if (!id) return;
     try {
-      const { data } = await client.get(`/api/messages/conversations/${convId}/messages?limit=200`);
+      const { data } = await client.get(`/api/messages/conversations/${id}/messages?limit=200`);
       setMessages(Array.isArray(data) ? data : (data as any)?.messages ?? []);
     } catch { /* ignore */ }
-  }, [id, conversation?.id]);
+  }, [id]);
+
+  // Mark the chat read while it's on screen: on open, on each new message from
+  // others, and when the tab comes back into view.
+  const lastMarked = useRef<string | null>(null);
+  const markRead = useCallback(() => {
+    if (!id || document.visibilityState !== 'visible') return;
+    client.post(`/api/messages/conversations/${id}/read`).catch(() => undefined);
+  }, [id]);
+  useEffect(() => {
+    const last = messages[messages.length - 1] as any;
+    if (!last || last._temp || String(last.sender_id) === String(user?.id) || lastMarked.current === last.id) return;
+    lastMarked.current = last.id;
+    markRead();
+  }, [messages, markRead, user?.id]);
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === 'visible') markRead(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [markRead]);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,7 +128,11 @@ function ChatRoom() {
           client.get(`/api/messages/conversations/${convId}`),
           loadMessages(),
         ]);
-        if (!cancelled) setConversation(convRes.data);
+        if (!cancelled) {
+          setConversation(convRes.data);
+          setMembers(Array.isArray(convRes.data?.members) ? convRes.data.members : []);
+          markRead();
+        }
       } catch { /* ignore */ } finally {
         if (!cancelled) setLoading(false);
       }
@@ -115,13 +142,7 @@ function ChatRoom() {
     if (!convId) { setLoading(false); return; }
 
     const socket = getSocket();
-    socket.auth = { token: getAccessToken() || '' };
-    if (!socket.connected) {
-      socket.connect();
-      socket.once('connect', () => { socket.emit('join_conversation', convId); });
-    } else {
-      socket.emit('join_conversation', convId);
-    }
+    joinConversation(convId);
 
     const onNew = (msg) => {
       if (msg.conversation_id === convId) {
@@ -145,8 +166,13 @@ function ChatRoom() {
     socket.on('new_message', onNew);
     socket.on('message_edited', onEdited);
     socket.on('message_deleted', onDeleted);
+    const onReceipt = (event) => {
+      if (event?.conversation_id === convId) setMembers(prev => applyReceipt(prev, event));
+    };
+    socket.on('conversation_read', onReceipt);
+    socket.on('conversation_delivered', onReceipt);
     const onPresenceUpdated = (update) => {
-      if (update?.user_id && String(update.user_id) === String(otherUserId)) {
+      if (update?.user_id && String(update.user_id) === String(otherUserIdRef.current)) {
         setPresence({ status: update.status, last_seen: update.last_seen || null });
       }
     };
@@ -167,7 +193,9 @@ function ChatRoom() {
 
     return () => {
       cancelled = true;
-      socket.emit('leave_conversation', convId);
+      leaveConversation(convId);
+      socket.off('conversation_read', onReceipt);
+      socket.off('conversation_delivered', onReceipt);
       socket.off('new_message', onNew);
       socket.off('message_edited', onEdited);
       socket.off('message_deleted', onDeleted);
@@ -176,7 +204,9 @@ function ChatRoom() {
       setTyping(false);
       if (remoteTypingTimer.current) clearTimeout(remoteTypingTimer.current);
     };
-  }, [id, loadMessages, otherUserId, setTyping, user?.id]);
+    // Only the chat id (and who is signed in) restarts this; it used to load three times per open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, user?.id]);
 
   // Resolve other user ID for DM features
   useEffect(() => {
@@ -742,11 +772,7 @@ function ChatRoom() {
                       <span className="text-[10px] text-muted-foreground">
                         {fmtTime(msg.created_at)}
                       </span>
-                      {isMe && (
-                        msg._temp
-                          ? <Check className="w-3.5 h-3.5 text-muted-foreground/50" />
-                          : <CheckCheck className="w-3.5 h-3.5 text-primary opacity-80" />
-                      )}
+                      {isMe && <MessageTicks tick={tickFor(msg, user?.id, members)} />}
                     </div>
                   </div>
                 </div>
