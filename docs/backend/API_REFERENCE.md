@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **319** across **50** mounted modules · Generated: 2026-10-18
+> Endpoints: **322** across **50** mounted modules · Generated: 2026-10-18
 
 | Legend | Meaning |
 |---|---|
@@ -42,7 +42,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`orders`](#orders) (11)
 - [`polls`](#polls) (2)
 - [`posts`](#posts) (19)
-- [`products`](#products) (7)
+- [`products`](#products) (10)
 - [`profilePartnerships`](#profilepartnerships) (10)
 - [`profiles`](#profiles) (11)
 - [`proxy`](#proxy) (1)
@@ -387,13 +387,16 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/products/` | ⚪ optional | routes/products.ts:51 |
-| `GET` | `/api/products/mine` | 🔒 auth | routes/products.ts:155 |
-| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:168 |
-| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:191 |
-| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:224 |
-| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:302 |
-| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:314 |
+| `GET` | `/api/products/` | ⚪ optional | routes/products.ts:71 |
+| `GET` | `/api/products/mine` | 🔒 auth | routes/products.ts:175 |
+| `GET` | `/api/products/lookup/:code` | 🔒 auth | routes/products.ts:195 |
+| `POST` | `/api/products/import-image` | 🔒 auth | routes/products.ts:209 |
+| `POST` | `/api/products/scan-batch` | 🔒 auth | routes/products.ts:225 |
+| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:287 |
+| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:310 |
+| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:350 |
+| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:433 |
+| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:445 |
 
 ## profilePartnerships — profilePartnerships
 

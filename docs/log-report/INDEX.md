@@ -5,6 +5,10 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-18 | Maintenance | Merge pull request #137 from sentflix01/claude/scan-products | [9835747d2](2026-10-18-9835747d2-merge-pull-request-137-from-sentflix01-claude-sc.md) |
+| 2026-10-18 | Feature | feat(products): scan a barcode or QR code to add products, and quick scan mode | [5692c6e8b](2026-10-18-5692c6e8b-scan-a-barcode-or-qr-code-to-add-products-and-qu.md) |
+| 2026-10-18 | Bugfix | fix(products): don't cache an unreachable open database as "not found" | [a9d42e132](2026-10-18-a9d42e132-don-t-cache-an-unreachable-open-database-as-not-.md) |
+| 2026-10-18 | Feature | feat(products): barcode lookup (mine, shared catalogue, open databases) and scan-batch save | [55e172001](2026-10-18-55e172001-barcode-lookup-mine-shared-catalogue-open-databa.md) |
 | 2026-10-18 | Maintenance | Merge pull request #135 from sentflix01/claude/social-interactions | [eb2b16180](2026-10-18-eb2b16180-merge-pull-request-135-from-sentflix01-claude-so.md) |
 | 2026-10-18 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/social-interactions | [9357586ab](2026-10-18-9357586ab-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-18 | Maintenance | Merge pull request #134 from sentflix01/claude/feed-profile-photos | [e6f15b517](2026-10-18-e6f15b517-merge-pull-request-134-from-sentflix01-claude-fe.md) |
