@@ -5,7 +5,9 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-18 | Maintenance | Merge pull request #134 from sentflix01/claude/feed-profile-photos | [e6f15b517](2026-10-18-e6f15b517-merge-pull-request-134-from-sentflix01-claude-fe.md) |
 | 2026-10-18 | Maintenance | Merge pull request #133 from sentflix01/claude/stripe-test-mode | [22839e81b](2026-10-18-22839e81b-merge-pull-request-133-from-sentflix01-claude-st.md) |
+| 2026-10-18 | Feature | feat(feed): personal feed opens personal profiles; tap a photo for full screen | [bcc2a2316](2026-10-18-bcc2a2316-personal-feed-opens-personal-profiles-tap-a-phot.md) |
 | 2026-10-17 | Bugfix | fix(billing): Stripe USD plans work in test mode in production | [a0a6865c8](2026-10-17-a0a6865c8-stripe-usd-plans-work-in-test-mode-in-production.md) |
 | 2026-10-17 | Maintenance | Merge pull request #132 from sentflix01/claude/studio-new-pieces | [68269cf7b](2026-10-17-68269cf7b-merge-pull-request-132-from-sentflix01-claude-st.md) |
 | 2026-10-17 | Feature | feat(studio): How to pay me, Opening hours, Menu and Today's offer | [587f71f31](2026-10-17-587f71f31-how-to-pay-me-opening-hours-menu-and-today-s-off.md) |
