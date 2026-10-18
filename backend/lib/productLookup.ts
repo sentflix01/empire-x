@@ -47,15 +47,22 @@ const OPEN_DATABASES: Array<{ source: LookupSource; host: string; credit: string
 export const ALLOWED_IMAGE_HOSTS = ['images.openfoodfacts.org', 'static.openfoodfacts.org', 'images.openbeautyfacts.org', 'static.openbeautyfacts.org', 'images.openproductsfacts.org', 'static.openproductsfacts.org'];
 const USER_AGENT = 'NodBusiness/1.0 (+https://nodbusiness.vercel.app)';
 const CACHE_DAYS = 30;
+/** Open databases grow: ask again about an unknown barcode after a few days. */
+const NOT_FOUND_CACHE_DAYS = 3;
 
-async function fetchJson(url: string, timeoutMs = 4000): Promise<Record<string, unknown> | null> {
+/**
+ * `answered` is false when the database couldn't be reached (timeout, network
+ * error, 5xx): that is not "not found" and must never be cached as such.
+ */
+async function fetchJson(url: string, timeoutMs = 6000): Promise<{ answered: boolean; body: Record<string, unknown> | null }> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' }, signal: controller.signal });
-    if (!res.ok) return null;
-    return await res.json() as Record<string, unknown>;
-  } catch { return null; } finally { clearTimeout(timer); }
+    if (res.status === 404) return { answered: true, body: null };
+    if (!res.ok) return { answered: false, body: null };
+    return { answered: true, body: await res.json() as Record<string, unknown> };
+  } catch { return { answered: false, body: null }; } finally { clearTimeout(timer); }
 }
 
 const clean = (v: unknown, max = 300): string | null => {
@@ -67,14 +74,19 @@ const clean = (v: unknown, max = 300): string | null => {
 export function suggestionFromOpenFacts(body: Record<string, unknown> | null): Suggestion | null {
   if (!body || Number(body.status) !== 1 || !body.product || typeof body.product !== 'object') return null;
   const p = body.product as Record<string, unknown>;
-  const title = clean(p.product_name) ?? clean(p.generic_name);
+  // English first: the shared database often has a local-language main name.
+  const title = clean(p.product_name_en) ?? clean(p.product_name) ?? clean(p.generic_name_en) ?? clean(p.generic_name);
   if (!title) return null;
   const brand = clean(String(p.brands ?? '').split(',')[0]);
-  const category = clean(String(p.categories ?? '').split(',').map((c) => c.trim()).filter(Boolean).slice(-1)[0] ?? '', 80);
+  // The most specific plain category; "pt:bebidas"-style tags are another language's.
+  const category = clean(String(p.categories ?? '').split(',').map((c) => c.trim()).filter((c) => c && !/^[a-z]{2}:/i.test(c)).slice(-1)[0] ?? '', 80);
   const quantity = clean(p.quantity, 40);
+  // "Coca-Cola Original" already names "COCA-COLA SERVICES SA/NV": don't prefix the company.
+  const brandWord = brand?.split(/\s+/)[0].toLowerCase() ?? '';
+  const named = !brand || title.toLowerCase().includes(brandWord);
   return {
-    title: brand && !title.toLowerCase().includes(brand.toLowerCase()) ? `${brand} ${title}` : title,
-    description: clean(p.generic_name, 500) ?? (quantity ? `${title}, ${quantity}` : null),
+    title: named ? title : `${brand} ${title}`,
+    description: clean(p.generic_name_en, 500) ?? clean(p.generic_name, 500) ?? (quantity ? `${title}, ${quantity}` : null),
     category,
     brand,
     image_url: clean(p.image_front_url, 1000) ?? clean(p.image_url, 1000),
@@ -84,20 +96,25 @@ export function suggestionFromOpenFacts(body: Record<string, unknown> | null): S
 
 async function fromOpenDatabases(gtin: string): Promise<{ source: LookupSource; suggestion: Suggestion | null; credit: string | null }> {
   const { rows: [cached] } = await pool.query(
-    `SELECT source, data FROM barcode_lookups WHERE gtin=$1 AND fetched_at > NOW() - ($2 || ' days')::interval`,
-    [gtin, String(CACHE_DAYS)],
+    `SELECT source, data FROM barcode_lookups
+      WHERE gtin=$1 AND fetched_at > NOW() - (CASE WHEN source='not_found' THEN $3 ELSE $2 END || ' days')::interval`,
+    [gtin, String(CACHE_DAYS), String(NOT_FOUND_CACHE_DAYS)],
   );
   if (cached) {
     const db = OPEN_DATABASES.find((d) => d.source === cached.source);
     return { source: cached.source, suggestion: cached.data ?? null, credit: db?.credit ?? null };
   }
+  // Ask all three at once (their order still decides which answer wins).
+  const answers = await Promise.all(OPEN_DATABASES.map((db) => fetchJson(
+    `https://${db.host}/api/v2/product/${gtin}.json?fields=product_name,product_name_en,generic_name,generic_name_en,brands,categories,quantity,image_front_url,image_url`,
+  )));
   let found: { source: LookupSource; suggestion: Suggestion; credit: string } | null = null;
-  for (const db of OPEN_DATABASES) {
-    const suggestion = suggestionFromOpenFacts(await fetchJson(
-      `https://${db.host}/api/v2/product/${gtin}.json?fields=product_name,generic_name,brands,categories,quantity,image_front_url,image_url`,
-    ));
+  for (const [i, db] of OPEN_DATABASES.entries()) {
+    const suggestion = suggestionFromOpenFacts(answers[i].body);
     if (suggestion) { found = { source: db.source, suggestion, credit: db.credit }; break; }
   }
+  // A database we couldn't reach might still know the product: try again next time.
+  if (!found && answers.some((a) => !a.answered)) return { source: 'not_found', suggestion: null, credit: null };
   await pool.query(
     `INSERT INTO barcode_lookups (gtin, source, data, fetched_at) VALUES ($1, $2, $3, NOW())
      ON CONFLICT (gtin) DO UPDATE SET source=EXCLUDED.source, data=EXCLUDED.data, fetched_at=NOW()`,

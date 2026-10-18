@@ -34,7 +34,7 @@ beforeAll(async () => {
   await pool.query(`UPDATE products SET barcode=$1, title='Coca-Cola 330ml', description='Classic', manufacturer='Coca-Cola', price=40, stock=99 WHERE id=$2`, [COLA, biz.productId]);
   const priv = await createPublicBusiness(privateSeller.id, { visibility: 'private' });
   await pool.query(`UPDATE products SET barcode=$1, title='Secret item' WHERE id=$2`, [LOCAL, priv.productId]);
-  await pool.query('DELETE FROM barcode_lookups WHERE gtin = ANY($1::text[])', [[UNKNOWN, OFF_ONLY, LOCAL]]);
+  await pool.query('DELETE FROM barcode_lookups WHERE gtin = ANY($1::text[])', [[UNKNOWN, OFF_ONLY, LOCAL, '5901234123457']]);
 });
 afterAll(async () => {
   global.fetch = realFetch;
@@ -65,14 +65,14 @@ describe('GET /api/products/lookup/:code', () => {
     expect(res.body.source).toBe('not_found');
   });
 
-  it('asks the open databases once, then serves the cache', async () => {
+  it('asks the open databases (all at once), then serves the cache', async () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ status: 1, product: { product_name: 'Diet Soda', brands: 'Acme', quantity: '355 ml', image_front_url: 'https://images.openfoodfacts.org/a.jpg' } }) });
     const first = await lookup(me, OFF_ONLY);
     expect(first.body).toMatchObject({ source: 'open_food_facts', credit: expect.stringMatching(/Open Food Facts/), suggestion: { title: 'Acme Diet Soda', unit: '355 ml' } });
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledTimes(3);
     const second = await lookup(me, '036000291452'); // same product as 12-digit UPC
     expect(second.body.source).toBe('open_food_facts');
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledTimes(3);
   });
 
   it('caches "not found" too, after asking every open database once', async () => {
@@ -81,6 +81,16 @@ describe('GET /api/products/lookup/:code', () => {
     expect(global.fetch).toHaveBeenCalledTimes(3);
     await lookup(me, UNKNOWN);
     expect(global.fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not remember "not found" when a database could not be reached', async () => {
+    const UNREACHABLE = '5901234123457';
+    global.fetch = jest.fn().mockRejectedValue(Object.assign(new Error('aborted'), { name: 'AbortError' }));
+    expect((await lookup(me, UNREACHABLE)).body.source).toBe('not_found');
+    const { rows } = await pool.query('SELECT 1 FROM barcode_lookups WHERE gtin=$1', [UNREACHABLE]);
+    expect(rows).toHaveLength(0);
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ status: 1, product: { product_name: 'Marker' } }) });
+    expect((await lookup(me, UNREACHABLE)).body.source).toBe('open_food_facts');
   });
 
   it('explains a QR code that is not a product, and rejects a bad barcode on save', async () => {

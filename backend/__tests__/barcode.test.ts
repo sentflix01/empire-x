@@ -29,6 +29,11 @@ describe('product codes from a scan', () => {
     expect(suggestionFromOpenFacts({ status: 1, product: { product_name: 'Highland Water', brands: 'Highland, Other', categories: 'Beverages, Waters', quantity: '500 ml', image_front_url: 'https://images.openfoodfacts.org/x.jpg' } }))
       .toEqual({ title: 'Highland Water', description: 'Highland Water, 500 ml', category: 'Waters', brand: 'Highland', image_url: 'https://images.openfoodfacts.org/x.jpg', unit: '500 ml' });
     expect(suggestionFromOpenFacts({ status: 1, product: { product_name: 'Water', brands: 'Highland' } })?.title).toBe('Highland Water');
+    // Real Open Food Facts answer for Coca-Cola (Portuguese main fields, company as brand).
+    expect(suggestionFromOpenFacts({ status: 1, product: {
+      product_name: 'Coca-Cola Original', product_name_en: 'Coca-Cola Original taste', brands: 'COCA-COLA SERVICES SA/NV',
+      generic_name: 'Bebida refrescante aromatizada', generic_name_en: 'Carbonated soft drink', categories: 'Beverages, Sodas, pt:bebidas cafeína',
+    } })).toMatchObject({ title: 'Coca-Cola Original taste', description: 'Carbonated soft drink', category: 'Sodas' });
     expect(suggestionFromOpenFacts({ status: 0 })).toBeNull();
     expect(suggestionFromOpenFacts(null)).toBeNull();
   });
