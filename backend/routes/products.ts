@@ -19,6 +19,9 @@ import { sendPushToUser } from './push';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache';
 import { getBusinessSubscriptionAccess } from '../lib/businessSubscriptionPolicy';
 import { businessViewGate, productNotPrivateSql, rejectViewGate } from '../lib/siteVisibility';
+import rateLimit from 'express-rate-limit';
+import { parseProductCode } from '../lib/barcode';
+import { gtinVariants, importProductImage, lookupBarcode } from '../lib/productLookup';
 
 const router = Router();
 const LOW_STOCK_THRESHOLD = 5;
@@ -38,8 +41,25 @@ function publicProduct(p: Record<string, unknown>): Record<string, unknown> {
 
 const PRODUCT_FIELDS = [
   'title', 'description', 'price', 'currency', 'stock', 'images', 'category', 'tags',
-  'status', 'business_id', 'showroom_id',
+  'status', 'business_id', 'showroom_id', 'barcode', 'manufacturer', 'unit',
 ] as const;
+
+/** A barcode as stored (13-digit GTIN when it is one), or null; throws 422 text for junk. */
+function normaliseBarcode(raw: unknown): string | null {
+  if (raw === undefined || raw === null || String(raw).trim() === '') return null;
+  const code = parseProductCode(raw);
+  if (!code || code.kind !== 'gtin') throw Object.assign(new Error('barcode must be a valid product barcode (EAN/UPC)'), { status: 422 });
+  return code.gtin;
+}
+
+/** The seller's product that already has this barcode (one barcode = one product per seller). */
+async function ownProductWithBarcode(sellerId: string, gtin: string, exceptId?: string): Promise<string | null> {
+  const { rows } = await pool.query(
+    `SELECT id FROM products WHERE seller_id=$1 AND barcode = ANY($2::text[]) AND status <> 'archived' AND ($3::uuid IS NULL OR id <> $3) LIMIT 1`,
+    [sellerId, gtinVariants(gtin), exceptId ?? null],
+  );
+  return rows[0]?.id ?? null;
+}
 
 function pickProductFields(body: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(PRODUCT_FIELDS.filter(key => body[key] !== undefined).map(key => [key, body[key]]));
@@ -165,6 +185,105 @@ router.get('/mine', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+// ── Scan to add products ─────────────────────────────────────────────────────
+const scanLimiter = rateLimit({
+  windowMs: 60 * 1000, max: 60, skip: () => process.env.NODE_ENV === 'test', standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many scans. Wait a moment and try again.' },
+});
+
+/** What a scanned code is: mine → Add stock; NodBusiness catalogue; open databases; not found. */
+router.get('/lookup/:code', requireAuth, scanLimiter, async (req: Request, res: Response) => {
+  const code = parseProductCode(req.params.code);
+  if (!code) { res.status(422).json({ error: 'invalid_code', message: 'That code is empty or too long.' }); return; }
+  if (code.kind === 'text') { res.json({ kind: 'text', text: code.text, message: 'This QR code isn’t a product barcode.' }); return; }
+  try {
+    res.set('Cache-Control', 'private, no-store');
+    res.json({ kind: 'gtin', ...(await lookupBarcode(req.user!.id, code.gtin)) });
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'barcode lookup failed');
+    res.status(500).json({ error: 'Could not look up this barcode' });
+  }
+});
+
+/** Copy a suggested open-database photo into our storage before saving the product. */
+router.post('/import-image', requireAuth, scanLimiter, async (req: Request, res: Response) => {
+  const url = typeof req.body?.url === 'string' ? req.body.url : '';
+  try {
+    res.json({ url: await importProductImage(url) });
+  } catch (err) {
+    const e = err as Error & { status?: number };
+    if (e.status === 422) { res.status(422).json({ error: 'image_not_imported', message: e.message }); return; }
+    logger.error({ err: e.message }, 'product image import failed');
+    res.status(500).json({ error: 'Could not copy the photo' });
+  }
+});
+
+/**
+ * Quick scan mode: save the whole list in one transaction. Items are either
+ * { product_id, add_stock } (one of mine) or a new product with title + price.
+ */
+router.post('/scan-batch', requireAuth, async (req: Request, res: Response) => {
+  const items = Array.isArray(req.body?.items) ? req.body.items as Array<Record<string, unknown>> : null;
+  const businessId = typeof req.body?.business_id === 'string' ? req.body.business_id : null;
+  if (!items || items.length === 0) { res.status(422).json({ error: 'items must be a non-empty list' }); return; }
+  if (items.length > 200) { res.status(422).json({ error: 'At most 200 items per save' }); return; }
+  const sellerId = req.user!.id;
+  const client = await pool.connect();
+  try {
+    if (businessId) {
+      const { rows } = await client.query('SELECT id FROM businesses WHERE id=$1 AND owner_id=$2', [businessId, sellerId]);
+      if (!rows.length) { res.status(403).json({ error: 'You cannot attach products to this business' }); return; }
+    }
+    await client.query('BEGIN');
+    const created: string[] = []; const updated: string[] = []; const seen = new Set<string>();
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      const fail = (message: string, status = 422) => Object.assign(new Error(message), { status, index: i });
+      if (typeof it.product_id === 'string') {
+        const add = Number(it.add_stock);
+        if (!Number.isInteger(add) || add < 1 || add > 100000) throw fail('add_stock must be a whole number from 1');
+        const { rows } = await client.query('UPDATE products SET stock = stock + $1, updated_at = NOW() WHERE id=$2 AND seller_id=$3 RETURNING id', [add, it.product_id, sellerId]);
+        if (!rows.length) throw fail('Product not found', 404);
+        updated.push(rows[0].id);
+        continue;
+      }
+      const title = typeof it.title === 'string' ? it.title.trim() : '';
+      const price = Number(it.price);
+      const stock = it.stock === undefined ? 1 : Number(it.stock);
+      if (!title || title.length > 200) throw fail('Every new product needs a name');
+      if (!Number.isFinite(price) || price <= 0) throw fail(`Add a price for "${title}"`);
+      if (!Number.isInteger(stock) || stock < 0) throw fail('stock must be a whole number');
+      let barcode: string | null = null;
+      try { barcode = normaliseBarcode(it.barcode); } catch (e) { throw fail((e as Error).message); }
+      if (barcode) {
+        if (seen.has(barcode)) throw fail(`"${title}" is in the list twice`);
+        seen.add(barcode);
+        const existing = await ownProductWithBarcode(sellerId, barcode);
+        if (existing) throw Object.assign(fail(`You already sell "${title}". Add stock to it instead.`, 409), { existing });
+      }
+      const images = Array.isArray(it.images) ? (it.images as unknown[]).filter((x) => typeof x === 'string').slice(0, 10) : [];
+      const { rows: [row] } = await client.query(
+        `INSERT INTO products (seller_id, business_id, title, description, price, currency, stock, category, images, barcode, manufacturer, unit, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, 'pcs'), 'active') RETURNING id`,
+        [sellerId, businessId, title, typeof it.description === 'string' ? it.description.slice(0, 5000) : null, price,
+          typeof it.currency === 'string' ? it.currency : 'ETB', stock, typeof it.category === 'string' ? it.category.slice(0, 80) : null,
+          JSON.stringify(images), barcode, typeof it.manufacturer === 'string' ? it.manufacturer.slice(0, 120) : null,
+          typeof it.unit === 'string' && it.unit.trim() ? it.unit.slice(0, 40) : null],
+      );
+      created.push(row.id);
+    }
+    await client.query('COMMIT');
+    await invalidateCache('products:list').catch(() => undefined);
+    res.status(201).json({ created, updated });
+  } catch (err) {
+    try { await client.query('ROLLBACK'); } catch { /* connection gone */ }
+    const e = err as Error & { status?: number; index?: number; existing?: string };
+    if (e.status && e.status < 500) { res.status(e.status).json({ error: 'scan_batch_invalid', message: e.message, index: e.index, existing_product_id: e.existing }); return; }
+    logger.error({ err: e.message }, 'scan batch failed');
+    res.status(500).json({ error: 'Could not save the scanned products' });
+  } finally { client.release(); }
+});
+
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
     const product = await getRecord('products', req.params.id, { realOnly: req.realOnly });
@@ -204,7 +323,14 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   if (data.status !== undefined && !['active', 'sold_out', 'draft', 'archived'].includes(String(data.status))) {
     res.status(422).json({ error: 'Invalid product status' }); return;
   }
+  if (data.barcode !== undefined) {
+    try { data.barcode = normaliseBarcode(data.barcode); } catch (e) { res.status(422).json({ error: (e as Error).message }); return; }
+  }
   try {
+    if (data.barcode) {
+      const existing = await ownProductWithBarcode(req.user!.id, String(data.barcode));
+      if (existing) { res.status(409).json({ error: 'barcode_exists', message: 'You already sell a product with this barcode.', existing_product_id: existing }); return; }
+    }
     for (const key of ['business_id', 'showroom_id'] as const) {
       if (data[key] != null) {
         const table = key === 'business_id' ? 'businesses' : 'showrooms';
@@ -238,6 +364,11 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     }
     if (updates.status !== undefined && !['active', 'sold_out', 'draft', 'archived'].includes(String(updates.status))) {
       res.status(422).json({ error: 'Invalid product status' }); return;
+    }
+    if (updates.barcode !== undefined) {
+      try { updates.barcode = normaliseBarcode(updates.barcode); } catch (e) { res.status(422).json({ error: (e as Error).message }); return; }
+      const clash = updates.barcode ? await ownProductWithBarcode(String(existing.seller_id), String(updates.barcode), req.params.id) : null;
+      if (clash) { res.status(409).json({ error: 'barcode_exists', message: 'You already sell a product with this barcode.', existing_product_id: clash }); return; }
     }
     for (const key of ['business_id', 'showroom_id'] as const) {
       if (updates[key] != null) {
