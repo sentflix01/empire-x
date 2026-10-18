@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import type { Redis as RedisClient } from 'ioredis';
 import logger from '../lib/logger';
 import pool from '../db/pool';
+import { isBlockedEitherWay } from '../lib/socialGraph';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { SIGN_IN_REQUIRED } from '../lib/siteVisibility';
 import { listRecords, getRecord, createRecord, updateRecord } from '../utils/crud';
@@ -308,6 +309,11 @@ router.patch('/me/ticker', requireAuth, async (req: Request, res: Response) => {
 router.post('/follow/:targetUserId', requireAuth, async (req: Request, res: Response) => {
   const { targetUserId } = req.params;
   if (targetUserId === req.user!.id) { res.status(400).json({ error: 'Cannot follow yourself' }); return; }
+  if (await isBlockedEitherWay(req.user!.id, targetUserId)) {
+    // Unfollowing is always allowed; following someone you blocked (or who blocked you) is not.
+    const { rows: already } = await pool.query('SELECT 1 FROM follows WHERE follower_id=$1 AND followed_id=$2', [req.user!.id, targetUserId]);
+    if (!already.length) { res.status(403).json({ error: 'follow_not_allowed', message: 'You can’t follow this person.' }); return; }
+  }
   const client = await pool.connect();
   try {
     await client.query('BEGIN');

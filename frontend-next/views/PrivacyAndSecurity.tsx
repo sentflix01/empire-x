@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
    Lock, Eye,
@@ -45,7 +45,7 @@ function ToggleRow({ label, description, checked, onChange, disabled }: {
         <p className="text-sm font-semibold">{label}</p>
         <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
       </div>
-      <Switch checked={checked} onCheckedChange={onChange} disabled={disabled}
+      <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} aria-label={label}
         className="shrink-0 data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-secondary" />
     </div>
   );
@@ -63,7 +63,7 @@ function SelectRow({ label, description, value, options, onChange }: {
         <p className="text-sm font-semibold">{label}</p>
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>
-      <select value={value} onChange={e => onChange(e.target.value)}
+      <select value={value} onChange={e => onChange(e.target.value)} aria-label={label}
         className="h-9 rounded-xl border border-border bg-secondary/50 px-3 text-xs font-semibold outline-none shrink-0">
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
@@ -105,13 +105,66 @@ function ButtonRow({ label, description, onClick, danger, loading }: {
   );
 }
 
+interface PrivacySettings {
+  profile_visibility: 'public' | 'followers' | 'private';
+  searchable: boolean;
+  default_comment_policy: 'everyone' | 'followers' | 'off';
+  message_policy: 'everyone' | 'followers' | 'nobody';
+  show_reactions: boolean;
+}
+const DEFAULT_PRIVACY: PrivacySettings = { profile_visibility: 'public', searchable: true, default_comment_policy: 'everyone', message_policy: 'everyone', show_reactions: true };
+
+/** People I blocked / muted / restricted, each with an undo button. */
+function PeopleList({ kind, title, undo, empty }: { kind: 'blocked' | 'muted' | 'restricted'; title: string; undo: string; empty: string }) {
+  const [people, setPeople] = useState<Array<{ user_id: string; display_name?: string | null }> | null>(null);
+  useEffect(() => {
+    client.get('/api/social/people', { params: { kind } }).then(({ data }) => setPeople(Array.isArray(data) ? data : [])).catch(() => setPeople([]));
+  }, [kind]);
+  const path = kind === 'blocked' ? 'block' : kind === 'muted' ? 'mute' : 'restrict';
+  return (
+    <div className="px-4 py-3">
+      <p className="text-sm font-semibold">{title}</p>
+      {people === null ? <p className="text-xs text-muted-foreground">Loading…</p>
+        : people.length === 0 ? <p className="text-xs text-muted-foreground">{empty}</p>
+        : (
+          <ul className="mt-1 divide-y divide-border/40">
+            {people.map((p) => (
+              <li key={p.user_id} className="flex min-h-11 items-center justify-between gap-2">
+                <Link href={`/profile/${p.user_id}?view=personal`} className="truncate text-sm hover:underline">{p.display_name || 'Member'}</Link>
+                <button type="button" onClick={async () => {
+                  try { await client.delete(`/api/social/${path}/${p.user_id}`); setPeople((list) => (list ?? []).filter((x) => x.user_id !== p.user_id)); toast.success(`${undo} done`); }
+                  catch { toast.error('Could not update'); }
+                }} className="min-h-9 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary">{undo}</button>
+              </li>
+            ))}
+          </ul>
+        )}
+    </div>
+  );
+}
+
 function PrivacyAndSecurityView() {
   const { logout } = useAuth();
 
   // Privacy states
   const [lastSeen, setLastSeen] = useState<'everyone' | 'contacts' | 'nobody'>('everyone');
-  const [profileVisibility, setProfileVisibility] = useState<'public' | 'connections' | 'private'>('public');
-  const [searchable, setSearchable] = useState(true);
+  // Saved on the server (/api/social/privacy) and enforced there (lib/socialGraph.ts).
+  const [privacy, setPrivacy] = useState<PrivacySettings>(DEFAULT_PRIVACY);
+  useEffect(() => {
+    client.get('/api/social/privacy').then(({ data }) => setPrivacy({ ...DEFAULT_PRIVACY, ...data })).catch(() => undefined);
+  }, []);
+  const savePrivacy = async (changes: Partial<PrivacySettings>, done: string) => {
+    const before = privacy;
+    setPrivacy({ ...privacy, ...changes });
+    try {
+      const { data } = await client.put('/api/social/privacy', changes);
+      setPrivacy({ ...DEFAULT_PRIVACY, ...data });
+      toast.success(done);
+    } catch {
+      setPrivacy(before);
+      toast.error('Could not save this setting');
+    }
+  };
   const [dataAnalytics, setDataAnalytics] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
   const [twoFactorEnabled] = useState(false);
@@ -195,22 +248,61 @@ function PrivacyAndSecurityView() {
           onChange={v => updatePresence(v as typeof lastSeen)}
         />
         <SelectRow
-          label="Profile Visibility"
-          description="Who can view your full profile"
-          value={profileVisibility}
+          label="Who can message me"
+          description="People who can start a new chat with you"
+          value={privacy.message_policy}
           options={[
-            { value: 'public', label: 'Public' },
-            { value: 'connections', label: 'Connections' },
-            { value: 'private', label: 'Private' },
+            { value: 'everyone', label: 'Everyone' },
+            { value: 'followers', label: 'My followers' },
+            { value: 'nobody', label: 'Nobody' },
           ]}
-          onChange={v => setProfileVisibility(v as typeof profileVisibility)}
+          onChange={v => savePrivacy({ message_policy: v as PrivacySettings['message_policy'] }, 'Message setting saved')}
+        />
+      </Section>
+
+      {/* ── Posts & Profile ── */}
+      <Section title="Posts & Profile" icon={Eye} iconColor="text-emerald-600" iconBg="bg-emerald-50 dark:bg-emerald-900/20">
+        <SelectRow
+          label="Who can see my posts"
+          description="Your name and photo stay visible so people can find you"
+          value={privacy.profile_visibility}
+          options={[
+            { value: 'public', label: 'Everyone' },
+            { value: 'followers', label: 'My followers' },
+            { value: 'private', label: 'Only me' },
+          ]}
+          onChange={v => savePrivacy({ profile_visibility: v as PrivacySettings['profile_visibility'] }, 'Post visibility saved')}
+        />
+        <SelectRow
+          label="Who can comment on my new posts"
+          description="You can change it for any single post from its More menu"
+          value={privacy.default_comment_policy}
+          options={[
+            { value: 'everyone', label: 'Everyone' },
+            { value: 'followers', label: 'My followers' },
+            { value: 'off', label: 'No one' },
+          ]}
+          onChange={v => savePrivacy({ default_comment_policy: v as PrivacySettings['default_comment_policy'] }, 'Comment setting saved')}
         />
         <ToggleRow
           label="Appear in Search"
-          description="Allow other users to find you by name or email"
-          checked={searchable}
-          onChange={setSearchable}
+          description="Let other people find you by name"
+          checked={privacy.searchable}
+          onChange={v => savePrivacy({ searchable: v }, v ? 'You appear in search' : 'You no longer appear in search')}
         />
+        <ToggleRow
+          label="Show my reactions"
+          description="Show your name in a post's “who reacted” list"
+          checked={privacy.show_reactions}
+          onChange={v => savePrivacy({ show_reactions: v }, 'Reaction setting saved')}
+        />
+      </Section>
+
+      {/* ── People you blocked, muted or restricted ── */}
+      <Section title="Blocked, Muted & Restricted" icon={Lock} iconColor="text-red-600" iconBg="bg-red-50 dark:bg-red-900/20">
+        <PeopleList kind="blocked" title="Blocked" undo="Unblock" empty="You haven’t blocked anyone." />
+        <PeopleList kind="muted" title="Muted" undo="Unmute" empty="You haven’t muted anyone." />
+        <PeopleList kind="restricted" title="Restricted" undo="Unrestrict" empty="You haven’t restricted anyone." />
       </Section>
 
       {/* ── Account Security ── */}
