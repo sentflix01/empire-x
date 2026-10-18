@@ -300,7 +300,7 @@ Permissions-Policy: camera=(), microphone=(), geolocation=(self) ✅
 X-Content-Type-Options: nosniff            ✅
 X-Frame-Options: DENY                      ✅
 Referrer-Policy: strict-origin-when-cross-origin ✅
-Permissions-Policy: camera=(), geolocation=(self) ✅
+Permissions-Policy: camera=(self), geolocation=(self) ✅  (camera: barcode scanning, verification selfie)
 Content-Security-Policy: [configured]      ✅
 ```
 

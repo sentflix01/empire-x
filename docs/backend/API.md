@@ -247,12 +247,55 @@ Create product. Requires auth.
   "currency": "ETB",
   "stock": 10,
   "images": "[\"https://...\"]",
-  "category": "Fashion"
+  "category": "Fashion",
+  "barcode": "5449000000996",
+  "manufacturer": "Coca-Cola",
+  "unit": "330 ml"
 }
 ```
 
+`barcode` is optional (EAN-8, EAN-13, UPC-A or EAN-14, checksum checked, stored
+as 13 digits where possible). The same seller can't use one barcode on two
+products: `409 { error: "barcode_exists", existing_product_id }`.
+
 ### PUT /api/products/:id
-Update product. Requires auth (must be seller or admin).
+Update product. Requires auth (must be seller or admin). Same barcode rules as create.
+
+### GET /api/products/lookup/:code
+Scan to add. Requires auth; 60 lookups per minute. `code` is a barcode number or
+the text of a QR code (a GS1 Digital Link `…/01/<GTIN>` counts as a barcode).
+
+Looks in this order and stops at the first answer:
+1. **Your own products** → `source: "mine"`, `existing_product { id, title, stock, price, currency }`.
+2. **Other sellers' active, public products** with that barcode → `source: "nodbusiness"`. Only name,
+   description, category, brand, size and first photo are shared, never price, stock, cost or supplier.
+   Products of private businesses are never shared.
+3. **Open Food / Beauty / Products Facts** (asked together, 6 s limit, cached 30 days in
+   `barcode_lookups`; "not found" is cached 3 days and only when every database answered).
+4. Otherwise `source: "not_found"`.
+
+```json
+{ "kind": "gtin", "gtin": "5449000000996", "source": "open_food_facts",
+  "credit": "Open Food Facts (CC BY-SA)", "existing_product": null,
+  "suggestion": { "title": "Coca-Cola", "description": "…", "category": "Sodas",
+                  "brand": "…", "image_url": "https://images.openfoodfacts.org/…", "unit": "330 ml" } }
+```
+
+A QR code that isn't a product returns `{ "kind": "text", "text": "…", "message": "…" }`.
+An invalid barcode returns 422.
+
+### POST /api/products/import-image
+`{ "url": "https://images.openfoodfacts.org/…" }` → `{ "url": "<our storage>" }`. Copies a
+suggested photo into our storage so products never depend on another site. Only the
+open-database image hosts, https, no redirects, JPEG/PNG/WebP up to 5 MB, bytes checked.
+Any other link: 422.
+
+### POST /api/products/scan-batch
+Quick scan mode's "Save all". `{ "items": [...], "business_id"? }`, up to 200 items, each either
+`{ "product_id", "add_stock" }` (one of yours) or a new product (`title`, `price`, `stock`, `barcode`,
+optional `description`, `category`, `manufacturer`, `unit`, `images`). All or nothing in one
+transaction → `201 { created: [ids], updated: [ids] }`. A bad item → `422 { index, message }`;
+a barcode you already use → `409 { index, existing_product_id }`.
 
 ### DELETE /api/products/:id
 Delete product. Requires auth (must be seller or admin).

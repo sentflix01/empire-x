@@ -427,6 +427,37 @@ documents when verified; do not copy stale values into new work.
   - Not built yet: "turn on notifications for someone else's post" and a reach/insights view.
 - **Related documentation:** `backend/lib/socialGraph.ts`, `backend/routes/social.ts`, `backend/routes/posts.ts`, `backend/db/migrate67.js`, `frontend-next/components/feed/PostMoreMenu.tsx`, `frontend-next/components/feed/CommentMenu.tsx`, `frontend-next/views/PrivacyAndSecurity.tsx`, `backend/test/db/socialInteractions.db.test.js`, `frontend-next/test/feed/PostInteractions.test.tsx`
 
+### 2026-10-18 — Scan a barcode or QR code to add products
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** The owner asked for a supermarket-style way to add products: point the phone at a product's barcode or QR code and have the details fill in by themselves, plus a till-like quick mode for many items. Adding a product used to mean typing everything.
+- **Decision:**
+  - **Where details come from, in order:**
+    1. the seller's own products (offer Add stock instead of a duplicate)
+    2. the shared NodBusiness catalogue
+    3. the free open databases (Open Food Facts, Open Beauty Facts, Open Products Facts)
+    4. not found: the owner types it once
+  - **The shared catalogue shares only the description of the product:** name, description, category, brand, size and first photo, taken from other sellers' active products of public businesses. It **never** shares price, stock, cost, supplier or anything from private businesses.
+  - **Open data is credited where it is used** ("Filled from Open Food Facts"; CC BY-SA).
+    - Their photos are copied into our storage on save. Only from their image hosts, with type, size and bytes checked.
+    - Answers are cached for 30 days.
+    - "Not found" is cached for 3 days, and only when every database actually answered. A timeout is never remembered as "not found".
+  - **One barcode per product per seller.** Scanning a product you already sell offers Add stock.
+  - **Quick scan mode** (`/products/scan`):
+    - The camera stays open; a repeat scan adds +1.
+    - New products need a price.
+    - The list stays on the device until "Save all", which saves everything or nothing.
+  - **No AI:** details come from real product records. The form's existing optional "AI Generate" description button is unchanged.
+  - **Camera permission:** the site's `Permissions-Policy` changes from `camera=()` (camera blocked everywhere, including the verification selfie) to `camera=(self)`. Third-party frames still can't use it.
+  - Without a camera, the owner can type the number or pick a photo of the barcode.
+- **Consequences:**
+  - Products gain `barcode`, `manufacturer` and `unit` in the API.
+  - Migration `migrate68` adds the `barcode_lookups` cache and a barcode index.
+  - The backend makes outbound requests to the three open databases.
+  - Available on every plan.
+  - **Open (owner decision):** no product-count limit per plan is enforced anywhere today, for the normal form or for scan-batch.
+- **Related documentation:** `docs/backend/API.md` (Products), `backend/lib/barcode.ts`, `backend/lib/productLookup.ts`, `backend/routes/products.ts`, `backend/db/migrate68.js`, `frontend-next/components/products/BarcodeScanner.tsx`, `frontend-next/views/ProductQuickScan.tsx`, `frontend-next/views/ProductCreate.tsx`, `backend/test/db/productScan.db.test.js`, `frontend-next/test/products/scan.test.tsx`
+
 ## Adding a decision
 
 For each durable decision, include a date, status, decision owner (only when

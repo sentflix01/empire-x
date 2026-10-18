@@ -5,7 +5,11 @@ import { useAuth } from "@/lib/AuthContext";
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 
-import { ArrowLeft, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, ScanBarcode, Sparkles, X } from "lucide-react";
+import BarcodeScanner from "@/components/products/BarcodeScanner";
+import { importPhoto, lookupCode, productCategory, PRODUCT_CATEGORIES, SOURCE_LABEL, type ExistingProduct } from "@/lib/productScan";
+import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +19,7 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-const CATEGORIES = ["Electronics", "Fashion", "Food", "Services", "Handmade", "Beauty", "Home", "Other"];
+const CATEGORIES = PRODUCT_CATEGORIES;
 
 function ProductCreate() {
   const params = useParams();
@@ -30,6 +34,44 @@ function ProductCreate() {
   const [generating, setGenerating] = useState(false);
   const [images, setImages] = useState([]);
   const [form, setForm] = useState({ title: "", description: "", price: "", stock: "1", category: "", tags: "", status: "active" });
+  // Filled by a scan; saved with the product so the next seller's scan finds it.
+  const [barcode, setBarcode] = useState("");
+  const [brand, setBrand] = useState("");
+  const [unit, setUnit] = useState("");
+  const [scanning, setScanning] = useState(false);
+  const [looking, setLooking] = useState(false);
+  const [scanNote, setScanNote] = useState<{ tone: "info" | "warn"; text: string } | null>(null);
+  const [alreadyMine, setAlreadyMine] = useState<ExistingProduct | null>(null);
+
+  /** A scanned or typed code: fill the form from what the backend knows about it. */
+  const handleCode = async (code: string) => {
+    setScanning(false);
+    setLooking(true);
+    setAlreadyMine(null);
+    setScanNote(null);
+    try {
+      const result = await lookupCode(code);
+      if (result.kind === "text") { setScanNote({ tone: "warn", text: `${result.message} It says: "${result.text.slice(0, 80)}"` }); return; }
+      setBarcode(result.gtin);
+      if (result.source === "mine" && result.existing_product) { setAlreadyMine(result.existing_product); return; }
+      const sug = result.suggestion;
+      if (!sug) {
+        setScanNote({ tone: "info", text: "We don't know this product yet. Fill it in once: the next seller who scans it gets your name and photo (never your price)." });
+        return;
+      }
+      const category = productCategory(sug.category, result.source);
+      setForm(p => ({ ...p, title: sug.title || p.title, description: sug.description || p.description, category: category || p.category }));
+      setBrand(sug.brand ?? "");
+      setUnit(sug.unit ?? "");
+      if (sug.image_url && images.length === 0) {
+        try { setImages([await importPhoto(sug.image_url)] as never[]); }
+        catch { toast.info("We couldn't copy the photo. Add your own."); }
+      }
+      setScanNote({ tone: "info", text: `Filled from ${result.credit || SOURCE_LABEL[result.source]}. Check it, add your price, and save.` });
+    } catch (err) {
+      setScanNote({ tone: "warn", text: apiErrorMessage(err, "Could not look up this barcode. Type the details instead.") });
+    } finally { setLooking(false); }
+  };
 
   useEffect(() => {
     if (isEdit) loadProduct(user);
@@ -48,6 +90,9 @@ function ProductCreate() {
       let imgs = [];
       try { imgs = JSON.parse((p.images as string) || "[]"); } catch { imgs = (p.images as string) ? [(p.images as string)] : []; }
       setImages(imgs);
+      setBarcode((p.barcode as string) || "");
+      setBrand((p.manufacturer as string) || "");
+      setUnit((p.unit as string) && p.unit !== "pcs" ? (p.unit as string) : "");
       setForm({
         title: (p.title as string) || "",
         description: (p.description as string) || "",
@@ -87,6 +132,9 @@ function ProductCreate() {
       tags: form.tags,
       images: JSON.stringify(images),
       status: form.status,
+      ...(barcode ? { barcode } : {}),
+      ...(brand ? { manufacturer: brand } : {}),
+      ...(unit ? { unit } : {}),
     };
     try {
       if (isEdit) {
@@ -97,8 +145,13 @@ function ProductCreate() {
         toast.success("Product listed");
       }
       router.push("/marketplace");
-    } catch {
-      toast.error("Failed to save product");
+    } catch (err) {
+      const body = err as { error?: string; existing_product_id?: string };
+      if (body?.error === "barcode_exists" && body.existing_product_id) {
+        toast.error("You already sell a product with this barcode.", { action: { label: "Open it", onClick: () => router.push(`/products/${body.existing_product_id}`) } });
+      } else {
+        toast.error(apiErrorMessage(err, "Failed to save product"));
+      }
     }
     setSaving(false);
   };
@@ -112,7 +165,42 @@ function ProductCreate() {
         <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <h1 className="font-display text-2xl font-bold mb-6">{isEdit ? "Edit Product" : "List a Product"}</h1>
+        <h1 className="font-display text-2xl font-bold mb-4">{isEdit ? "Edit Product" : "List a Product"}</h1>
+        {!isEdit && (
+          <div className="mb-5 space-y-3 rounded-2xl border border-border/60 bg-card p-4">
+            {scanning ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">Scan the product's barcode</p>
+                  <button type="button" onClick={() => setScanning(false)} aria-label="Close scanner" className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary"><X className="h-4 w-4" aria-hidden="true" /></button>
+                </div>
+                <BarcodeScanner onCode={(c) => { void handleCode(c); }} />
+              </>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2">
+                <button type="button" onClick={() => setScanning(true)} disabled={looking}
+                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-5 text-sm font-bold text-white disabled:opacity-60">
+                  <ScanBarcode className="h-5 w-5" aria-hidden="true" />{looking ? "Looking it up…" : "Scan barcode"}
+                </button>
+                <Link href="/products/scan" className="inline-flex min-h-12 items-center rounded-full border border-border px-4 text-sm font-medium hover:bg-secondary">Scan many</Link>
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">Point your camera at the barcode and we fill in the name, photo and details for you.</p>
+            {alreadyMine && (
+              <div role="status" className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
+                <p className="font-semibold">You already sell this: {alreadyMine.title}</p>
+                <p className="text-xs">In stock: {alreadyMine.stock}</p>
+                <div className="mt-2 flex gap-2">
+                  <Link href={`/products/edit?id=${alreadyMine.id}`} className="inline-flex min-h-10 items-center rounded-full bg-amber-500 px-4 text-sm font-semibold text-white">Add stock</Link>
+                  <Link href={`/products/${alreadyMine.id}`} className="inline-flex min-h-10 items-center rounded-full border border-amber-400 px-4 text-sm">Open it</Link>
+                </div>
+              </div>
+            )}
+            {scanNote && (
+              <p role="status" className={`rounded-xl px-3 py-2 text-xs ${scanNote.tone === "warn" ? "bg-red-50 text-red-900 dark:bg-red-500/10 dark:text-red-100" : "bg-sky-50 text-sky-950 dark:bg-sky-500/10 dark:text-sky-100"}`}>{scanNote.text}</p>
+            )}
+          </div>
+        )}
         <div className="space-y-4">
           <div>
             <Label className="text-sm font-medium mb-2 block">Product Images</Label>
@@ -141,6 +229,22 @@ function ProductCreate() {
               <Input type="number" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} className="mt-1" />
             </div>
           </div>
+          {(barcode || brand || unit) && (
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>Barcode</Label>
+                <Input value={barcode} onChange={e => setBarcode(e.target.value.replace(/[^\d]/g, ""))} inputMode="numeric" className="mt-1 font-mono" />
+              </div>
+              <div>
+                <Label>Brand</Label>
+                <Input value={brand} onChange={e => setBrand(e.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <Label>Size</Label>
+                <Input value={unit} onChange={e => setUnit(e.target.value)} placeholder="500 ml" className="mt-1" />
+              </div>
+            </div>
+          )}
           <div>
             <Label>Category</Label>
             <Select value={form.category} onValueChange={v => setForm({...form, category: v})}>
