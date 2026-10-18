@@ -36,7 +36,8 @@ import PostCard from '@/components/feed/PostCard';
 
 const post = { id: 'post-1', author_id: 'author-1', author_name: 'Mewacho', content: 'Ras hotel vib', post_type: 'text', created_at: new Date().toISOString() };
 
-const openMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Post options' }));
+// Edit and Delete live in the post's More menu (bottom-right); the top ⋯ keeps the profile view switch.
+const openMenu = () => fireEvent.click(screen.getByRole('button', { name: 'More options for this post' }));
 
 describe('PostCard owner actions', () => {
   beforeEach(() => {
@@ -58,6 +59,9 @@ describe('PostCard owner actions', () => {
     openMenu();
     expect(screen.queryByRole('menuitem', { name: 'Edit post' })).toBeNull();
     expect(screen.queryByRole('menuitem', { name: 'Delete post' })).toBeNull();
+    expect(screen.getByRole('menuitem', { name: /Report post/ })).toBeTruthy();
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
+    fireEvent.click(screen.getByRole('button', { name: 'Post options' }));
     expect(screen.getByRole('menuitemradio', { name: /personal profile/i })).toBeTruthy();
   });
 

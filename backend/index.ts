@@ -348,6 +348,7 @@ app.use('/api/stories',      require('./routes/stories'));
 app.use('/api/reviews',      require('./routes/reviews'));
 app.use('/api/saves',        require('./routes/saves'));
 app.use('/api/moderation',   require('./routes/moderation'));
+app.use('/api/social',       require('./routes/social'));        // mute, restrict, block, privacy
 app.use('/api/wallet',       require('./routes/wallet'));
 app.use('/api/push',         require('./routes/push'));
 app.use('/api/trending',     require('./routes/trending'));

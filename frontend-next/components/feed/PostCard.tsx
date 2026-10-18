@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/AuthContext';
 import {
   Heart, MessageCircle, Store, User as UserIcon,
   Tag, Sparkles, MapPin, CalendarDays, BarChart2, Newspaper,
-  Maximize2, X, Reply, ChevronDown, ChevronUp,
+  Maximize2, Reply, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { fromNow } from '@/lib/date';
@@ -41,16 +41,31 @@ interface Post {
   poll_ends_at?: string;
   /** In-app destination, e.g. /showroom/<slug> for a site announcement. */
   link_url?: string | null;
-  like_count?: number;
+  like_count?: number | null;
   comment_count?: number;
   created_at?: string;
   post_type?: string;
   /** Set when the author edited the text or photo. */
   edited_at?: string | null;
+  /** Reactions (one per person): mine, the top three, and the total in like_count (null when the owner hides it). */
+  my_reaction?: Reaction | null;
+  top_reactions?: Reaction[];
+  liked_by_me?: boolean;
+  comment_policy?: CommentPolicy | null;
+  hide_like_count?: boolean | null;
+  notifications_off?: boolean | null;
+  is_pinned?: boolean | null;
 }
 
 import { UserProfile } from '@/api/entities';
 import PhotoViewer from '@/components/feed/PhotoViewer';
+import PostMoreMenu from '@/components/feed/PostMoreMenu';
+import CommentMenu from '@/components/feed/CommentMenu';
+import ReactionPicker from '@/components/feed/ReactionPicker';
+import WhoReactedDialog from '@/components/feed/WhoReactedDialog';
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import { editComment, postLink, react, setMuted, unhidePost, unreact, type CommentPolicy, type Reaction } from '@/lib/socialApi';
 
 interface Profile extends UserProfile {
 }
@@ -74,6 +89,10 @@ interface Comment {
   content?: string;
   parent_id?: string | null;
   reply_count?: number;
+  edited_at?: string | null;
+  my_reaction?: Reaction | null;
+  reaction_count?: number;
+  top_reactions?: Reaction[];
 }
 
 type Variant = 'image' | 'promo' | 'event' | 'location' | 'poll' | 'text';
@@ -114,6 +133,29 @@ function RenderText({ text }: { text?: string }) {
         )
       )}
     </>
+  );
+}
+
+/** Edit a comment in place (Enter saves, Escape cancels). */
+function CommentEditor({ initial, onSave, onCancel }: { initial: string; onSave: (text: string) => Promise<void>; onCancel: () => void }) {
+  const [text, setText] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const save = async () => {
+    const value = text.trim();
+    if (!value || busy) return;
+    setBusy(true);
+    try { await onSave(value); } catch (err) { toast.error(apiErrorMessage(err, 'Could not save your edit.')); setBusy(false); }
+  };
+  return (
+    <div className="mt-1 space-y-1">
+      <textarea autoFocus value={text} onChange={(e) => setText(e.target.value)} rows={2} aria-label="Edit comment"
+        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void save(); } if (e.key === 'Escape') onCancel(); }}
+        className="w-full resize-none rounded-lg border border-border bg-background px-2 py-1 text-sm" />
+      <div className="flex gap-2">
+        <button type="button" onClick={() => void save()} disabled={busy || !text.trim()} className="min-h-8 rounded-full bg-amber-500 px-3 text-xs font-semibold text-white disabled:opacity-50">Save</button>
+        <button type="button" onClick={onCancel} className="min-h-8 rounded-full px-3 text-xs">Cancel</button>
+      </div>
+    </div>
   );
 }
 
@@ -389,9 +431,17 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
       setDeleting(false);
     }
   };
-  const embeddedLikedByMe = (post as unknown as Record<string, unknown>).liked_by_me;
-  const [liked, setLiked] = useState(Boolean((post as unknown as Record<string, unknown>).liked_by_me));
-  const [likeCount, setLikeCount] = useState(post.like_count ?? 0);
+  const embeddedLikedByMe = post.my_reaction !== undefined ? post.my_reaction : post.liked_by_me;
+  const [myReaction, setMyReaction] = useState<Reaction | null>(post.my_reaction ?? (post.liked_by_me ? '❤️' : null));
+  const liked = Boolean(myReaction);
+  const [likeCount, setLikeCount] = useState<number | null>(post.like_count === null ? null : (post.like_count ?? 0));
+  const [topReactions, setTopReactions] = useState<Reaction[]>(post.top_reactions ?? []);
+  const [hiddenNote, setHiddenNote] = useState(false);
+  const [reactionsOpen, setReactionsOpen] = useState(false);
+  const [likePicker, setLikePicker] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const pressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressed = React.useRef(false);
   const [commentCount, setCommentCount] = useState(post.comment_count ?? 0);
   const [showComments, setShowComments] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -415,13 +465,14 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
     // Server embeds liked_by_me on feed/single payloads; per-card lookup only
     // as legacy fallback when the flag is absent.
     if (embeddedLikedByMe !== undefined) {
-      setLiked(Boolean(embeddedLikedByMe));
+      setMyReaction(post.my_reaction ?? (embeddedLikedByMe ? '❤️' : null));
       return;
     }
-    if (!isAuthenticated) { setLiked(false); return; }
+    if (!isAuthenticated) { setMyReaction(null); return; }
     client.get(`/api/posts/${post.id}/like`)
-      .then(({ data }) => setLiked(Boolean(data.liked)))
-      .catch(() => setLiked(false));
+      .then(({ data }) => setMyReaction(data.liked ? '❤️' : null))
+      .catch(() => setMyReaction(null));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [post.id, embeddedLikedByMe, isAuthenticated]);
   useEffect(() => {
     if (!post.author_id) return;
@@ -433,18 +484,37 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
       .catch(() => {});
   }, [post.author_id]);
 
-  const handleLike = async () => {
-    const nl = !liked;
-    setLiked(nl);
-    setLikeCount(c => nl ? c + 1 : Math.max(0, c - 1));
+  /** Set, change or remove my reaction (null removes it). */
+  const applyReaction = async (next: Reaction | null) => {
+    const before = { myReaction, likeCount, topReactions };
+    setMyReaction(next);
+    if (likeCount !== null) setLikeCount((c) => Math.max(0, (c ?? 0) + (!before.myReaction && next ? 1 : before.myReaction && !next ? -1 : 0)));
     try {
-      const result = await entities.Like.create({ target_id: post.id });
-      const r = result as unknown as { like_count?: number };
-      if (typeof r.like_count === 'number') {
-        setLikeCount(r.like_count);
-      }
+      const summary = next ? await react(post.id, next) : await unreact(post.id);
+      setMyReaction(summary.my_reaction);
+      setLikeCount(summary.like_count);
+      setTopReactions(summary.top_reactions);
+    } catch (err) {
+      setMyReaction(before.myReaction); setLikeCount(before.likeCount); setTopReactions(before.topReactions);
+      toast.error(apiErrorMessage(err, 'Could not save your reaction.'));
     }
-    catch { setLiked(!nl); setLikeCount(c => nl ? Math.max(0, c - 1) : c + 1); }
+  };
+  const handleLike = () => applyReaction(myReaction ? null : '❤️');
+  const startLongPress = () => {
+    longPressed.current = false;
+    pressTimer.current = setTimeout(() => { longPressed.current = true; setLikePicker(true); }, 450);
+  };
+  const cancelLongPress = () => { if (pressTimer.current) clearTimeout(pressTimer.current); };
+  const removeFromFeed = (why: 'muted' | 'blocked') => {
+    setDeleted(true);
+    const name = post.author_name ?? 'this person';
+    if (why === 'muted') {
+      toast.success(`Muted ${name}. Their posts won’t show in your feed.`, {
+        action: { label: 'Undo', onClick: () => { void setMuted(post.author_id, false).then(() => setDeleted(false)); } },
+      });
+    } else {
+      toast.success(`Blocked ${name}. You can unblock them in Privacy settings.`);
+    }
   };
 
   const handleShowComments = async () => {
@@ -475,9 +545,10 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
       setCommentCount(count => count + 1);
       setCommentText('');
       setShowAllComments(true); // show all so the new comment is visible
-    } catch {
+    } catch (err) {
       // toast imported at top via sonner — show inline error
       setCommentText(commentText); // keep text so user can retry
+      toast.error(apiErrorMessage(err, 'Could not post your comment.'));
     }
   };
 
@@ -568,6 +639,15 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
   const vb = VBADGE[variant] ?? null;
 
   if (deleted) return null;
+  if (hiddenNote) {
+    return (
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/50 bg-card px-4 py-3 text-sm">
+        <span className="text-muted-foreground">You won’t see this post in your feed.</span>
+        <button type="button" onClick={() => { void unhidePost(post.id).then(() => setHiddenNote(false)).catch(() => toast.error('Could not undo.')); }}
+          className="min-h-9 rounded-full px-3 font-semibold text-primary hover:bg-secondary">Undo</button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-sm transition-shadow">
@@ -662,8 +742,6 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
         <PostCardMenu
           currentView={viewMode}
           onSelect={handleViewChange}
-          onEdit={isAuthor ? () => setEditOpen(true) : undefined}
-          onDelete={isAuthor || isAdmin ? () => setConfirmDelete(true) : undefined}
         />
       </div>
 
@@ -702,15 +780,40 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
       {/* Actions */}
       {viewMode === 'personal' && (
         <div className="flex items-center gap-1 px-4 pb-3 pt-1">
-          <button
-            onClick={handleLike}
-            aria-label={`${liked ? 'Unlike' : 'Like'} post by ${post.author_name ?? 'user'}`}
-            aria-pressed={liked}
-            className={`post-action-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all ${liked ? 'text-red-500 bg-red-50' : 'text-muted-foreground hover:bg-secondary'}`}
-          >
-            <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} aria-hidden="true" />
-            <span className="font-medium">{likeCount}</span>
-          </button>
+          <Popover open={likePicker} onOpenChange={setLikePicker}>
+            <PopoverAnchor asChild>
+              <button
+                type="button"
+                onClick={() => { if (longPressed.current) { longPressed.current = false; return; } void handleLike(); }}
+                onPointerDown={startLongPress}
+                onPointerUp={cancelLongPress}
+                onPointerLeave={cancelLongPress}
+                onContextMenu={(e) => { e.preventDefault(); setLikePicker(true); }}
+                aria-label={`${liked ? 'Unlike' : 'Like'} post by ${post.author_name ?? 'user'}`}
+                aria-pressed={liked}
+                title="Hold for more reactions"
+                className={`post-action-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all select-none ${liked ? 'text-red-500 bg-red-50 dark:bg-red-500/10' : 'text-muted-foreground hover:bg-secondary'}`}
+              >
+                {myReaction && myReaction !== '❤️'
+                  ? <span aria-hidden="true" className="text-base leading-none">{myReaction}</span>
+                  : <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} aria-hidden="true" />}
+              </button>
+            </PopoverAnchor>
+            <PopoverContent side="top" align="start" className="w-auto rounded-full p-1">
+              <ReactionPicker current={myReaction} onPick={(r) => { setLikePicker(false); void applyReaction(myReaction === r ? null : r); }} size="sm" />
+            </PopoverContent>
+          </Popover>
+          {(topReactions.length > 0 || (likeCount ?? 0) > 0) && (
+            <button
+              type="button"
+              onClick={() => setReactionsOpen(true)}
+              aria-label={likeCount === null ? 'See reactions' : `See who reacted (${likeCount})`}
+              className="post-action-btn -ml-1 flex items-center gap-1 rounded-full px-2 py-1.5 text-sm text-muted-foreground hover:bg-secondary"
+            >
+              <span aria-hidden="true" className="flex -space-x-1 text-sm">{topReactions.map((r) => <span key={r}>{r}</span>)}</span>
+              {likeCount !== null && <span className="font-medium">{likeCount}</span>}
+            </button>
+          )}
           <button
             onClick={handleShowComments}
             aria-label={`${showComments ? 'Hide' : 'View'} comments (${commentCount})`}
@@ -723,7 +826,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
           <ShareButton
             title={`${post.author_name ?? 'Nodbusiness'} on Nodbusiness`}
             text={(post.content ?? '').slice(0, 100)}
-            url={`${typeof window !== 'undefined' ? window.location.origin : 'https://nodbusiness.app'}/profile/${post.author_id}`}
+            url={postLink(post.id)}
             label=""
           />
           <BookmarkButton
@@ -735,6 +838,24 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
             }}
             className="p-1.5"
           />
+          <PostMoreMenu
+            post={post}
+            isAuthor={isAuthor}
+            isAdmin={isAdmin}
+            signedIn={Boolean(viewerId)}
+            myReaction={myReaction}
+            onReact={(r) => { void applyReaction(myReaction === r ? null : r); }}
+            onReply={() => { if (!showComments) void handleShowComments(); setTimeout(() => document.getElementById(`comment-input-${post.id}`)?.focus(), 150); }}
+            onEdit={isAuthor ? () => setEditOpen(true) : undefined}
+            onDelete={isAuthor || isAdmin ? () => setConfirmDelete(true) : undefined}
+            onHidden={() => setHiddenNote(true)}
+            onRemoved={removeFromFeed}
+            onSettings={(changes) => {
+              setPost((p) => ({ ...p, ...changes }));
+              if (changes.hide_like_count === false && likeCount === null) setLikeCount(0);
+            }}
+          />
+          <WhoReactedDialog postId={post.id} open={reactionsOpen} onOpenChange={setReactionsOpen} />
         </div>
       )}
 
@@ -746,7 +867,9 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
       {/* Comments */}
       {showComments && viewMode === 'personal' && (
         <div className="border-t border-border/50 px-4 py-3">
-          {/* Comment input */}
+          {post.comment_policy === 'off' && !isAuthor ? (
+            <p className="mb-3 rounded-xl bg-secondary/50 px-3 py-2 text-xs text-muted-foreground">Comments are turned off for this post.</p>
+          ) : (
           <div className="flex gap-2 mb-3 items-center">
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xs font-semibold shrink-0" aria-hidden="true">
               {currentUser?.full_name?.charAt(0) ?? '?'}
@@ -769,6 +892,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
           </div>
+          )}
 
           {loadingComments ? (
             <div className="flex justify-center py-2">
@@ -796,43 +920,21 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                           onClick={() => {}}
                         >
                           <p className="text-xs font-semibold">{c.author_name ?? 'Unknown'}</p>
-                          <p className="text-sm">{c.content}</p>
+                          {editingCommentId === c.id ? (
+                            <CommentEditor initial={c.content ?? ''} onCancel={() => setEditingCommentId(null)}
+                              onSave={async (text) => {
+                                const updated = await editComment(post.id, c.id, text);
+                                setComments(prev => prev.map(x => x.id === c.id ? { ...x, content: updated.content, edited_at: updated.edited_at } : x));
+                                setEditingCommentId(null);
+                              }} />
+                          ) : (
+                            <p className="text-sm">{c.content}{c.edited_at && <span className="ml-1 text-[11px] text-muted-foreground">(edited)</span>}</p>
+                          )}
                         </div>
-                        {/* Emoji + action popup */}
-                        {commentMenuId === c.id && (
-                          <div className="relative z-50">
-                            <div className="absolute left-0 mt-1 w-56 rounded-2xl bg-card border border-border shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                              {/* Emoji row */}
-                              <div className="flex items-center justify-between px-3 py-2 border-b border-border/50">
-                                {['❤️','👏','👍','👎','🔥','🤩','😂'].map(emoji => (
-                                  <button key={emoji} onClick={() => setCommentMenuId(null)}
-                                    className="text-lg hover:scale-125 transition-transform p-0.5" type="button">
-                                    {emoji}
-                                  </button>
-                                ))}
-                              </div>
-                              {/* Action list */}
-                              <div className="py-1">
-                                {[
-                                  { label: 'Reply',    icon: '↩️', action: () => { setReplyingTo(c.id); setCommentMenuId(null); } },
-                                  { label: 'Copy',     icon: '📋', action: () => { navigator.clipboard?.writeText(c.content ?? ''); setCommentMenuId(null); } },
-                                  { label: 'Copy Link',icon: '🔗', action: () => { navigator.clipboard?.writeText(`${window.location.href}#comment-${c.id}`); setCommentMenuId(null); } },
-                                  { label: 'Translate',icon: '🌐', action: () => setCommentMenuId(null) },
-                                  ...((c as any).author_id === viewerId || isAdmin
-                                    ? [{ label: 'Delete', icon: '🗑️', action: () => { handleDeleteComment(c.id, null); setCommentMenuId(null); }, danger: true }]
-                                    : []),
-                                ].map(item => (
-                                  <button key={item.label} onClick={item.action} type="button"
-                                    className={`flex w-full items-center gap-3 px-4 py-2 text-sm hover:bg-secondary/60 transition-colors ${(item as any).danger ? 'text-destructive' : ''}`}>
-                                    <span className="text-base w-5">{item.icon}</span>
-                                    {item.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                            {/* Backdrop */}
-                            <div className="fixed inset-0 z-40" onClick={() => setCommentMenuId(null)} />
-                          </div>
+                        {(c.reaction_count ?? 0) > 0 && (
+                          <span className="ml-2 -mt-1 inline-flex items-center gap-0.5 rounded-full border border-border bg-card px-1.5 text-[11px]" aria-label={`${c.reaction_count} reactions`}>
+                            <span aria-hidden="true">{(c.top_reactions ?? [c.my_reaction]).filter(Boolean).slice(0, 3).join('')}</span>{c.reaction_count}
+                          </span>
                         )}
                         <div className="flex items-center gap-3 mt-0.5 ml-2">
                           <button onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
@@ -840,12 +942,20 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                             <Reply className="w-3 h-3" />
                             {t('common.reply')}
                           </button>
-                          {((c as any).author_id === viewerId || isAdmin) && (
-                            <button onClick={() => handleDeleteComment(c.id, null)}
-                              className="text-[11px] text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all flex items-center gap-0.5">
-                              <X className="w-3 h-3" /> Delete
-                            </button>
-                          )}
+                          <CommentMenu
+                            comment={c}
+                            postId={post.id}
+                            viewerId={viewerId}
+                            isPostAuthor={isAuthor}
+                            isAdmin={isAdmin}
+                            open={commentMenuId === c.id}
+                            onOpenChange={(open) => setCommentMenuId(open ? c.id : null)}
+                            onReply={() => setReplyingTo(c.id)}
+                            onEdit={() => setEditingCommentId(c.id)}
+                            onDelete={() => handleDeleteComment(c.id, null)}
+                            onReacted={(r) => setComments(prev => prev.map(x => x.id === c.id ? { ...x, my_reaction: r.my_reaction, reaction_count: r.reaction_count, top_reactions: r.my_reaction ? Array.from(new Set([r.my_reaction, ...(x.top_reactions ?? [])])).slice(0, 3) : x.top_reactions } : x))}
+                            onAuthorHidden={(authorId) => setComments(prev => prev.filter(x => x.author_id !== authorId))}
+                          />
                         </div>
                         {replyingTo === c.id && (
                           <div className="flex gap-1.5 mt-1.5 ml-2">
@@ -898,14 +1008,38 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                                 <div className="flex-1 min-w-0">
                                   <div className="rounded-xl bg-amber-50/70 dark:bg-amber-950/20 px-3 py-2">
                                     <p className="text-xs font-semibold">{reply.author_name ?? 'Unknown'}</p>
-                                    <p className="text-sm">{reply.content}</p>
+                                    {editingCommentId === reply.id ? (
+                                      <CommentEditor initial={reply.content ?? ''} onCancel={() => setEditingCommentId(null)}
+                                        onSave={async (text) => {
+                                          const updated = await editComment(post.id, reply.id, text);
+                                          setComments(prev => prev.map(x => x.id === reply.id ? { ...x, content: updated.content, edited_at: updated.edited_at } : x));
+                                          setEditingCommentId(null);
+                                        }} />
+                                    ) : (
+                                      <p className="text-sm">{reply.content}{reply.edited_at && <span className="ml-1 text-[11px] text-muted-foreground">(edited)</span>}</p>
+                                    )}
                                   </div>
-                                  {((reply as any).author_id === viewerId || isAdmin) && (
-                                    <button onClick={() => handleDeleteComment(reply.id, c.id)}
-                                      className="mt-0.5 ml-2 text-[11px] text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all flex items-center gap-0.5">
-                                      <X className="w-3 h-3" /> Delete
-                                    </button>
-                                  )}
+                                  <div className="ml-1 mt-0.5 flex items-center gap-2">
+                                    {(reply.reaction_count ?? 0) > 0 && (
+                                      <span className="inline-flex items-center gap-0.5 rounded-full border border-border bg-card px-1.5 text-[11px]" aria-label={`${reply.reaction_count} reactions`}>
+                                        <span aria-hidden="true">{(reply.top_reactions ?? [reply.my_reaction]).filter(Boolean).slice(0, 3).join('')}</span>{reply.reaction_count}
+                                      </span>
+                                    )}
+                                    <CommentMenu
+                                      comment={reply}
+                                      postId={post.id}
+                                      viewerId={viewerId}
+                                      isPostAuthor={isAuthor}
+                                      isAdmin={isAdmin}
+                                      open={commentMenuId === reply.id}
+                                      onOpenChange={(open) => setCommentMenuId(open ? reply.id : null)}
+                                      onReply={() => setReplyingTo(c.id)}
+                                      onEdit={() => setEditingCommentId(reply.id)}
+                                      onDelete={() => handleDeleteComment(reply.id, c.id)}
+                                      onReacted={(r) => setComments(prev => prev.map(x => x.id === reply.id ? { ...x, my_reaction: r.my_reaction, reaction_count: r.reaction_count, top_reactions: r.my_reaction ? Array.from(new Set([r.my_reaction, ...(x.top_reactions ?? [])])).slice(0, 3) : x.top_reactions } : x))}
+                                      onAuthorHidden={(authorId) => setComments(prev => prev.filter(x => x.author_id !== authorId))}
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             ))}
