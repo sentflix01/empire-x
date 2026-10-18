@@ -124,7 +124,7 @@ describe('expiry', () => {
   it('expires open direct orders past their deadline and releases stock', async () => {
     pool.query.mockResolvedValueOnce({ rows: [{ id: 'o1', seller_id: 'seller-1', buyer_id: null, product_title: 'Coffee' }] }).mockResolvedValue({ rows: [] });
     await expect(directOrders.expireStaleDirectOrders()).resolves.toBe(1);
-    expect(pool.query.mock.calls[0][0]).toMatch(/payment_provider='direct' AND status IN \('awaiting_payment','payment_reported'\) AND payment_expires_at < NOW\(\)/);
+    expect(pool.query.mock.calls[0][0]).toMatch(/payment_provider='direct' AND status IN \('requested','awaiting_payment','payment_reported'\) AND payment_expires_at < NOW\(\)/);
     expect(inventory.releaseOrderInventory).toHaveBeenCalledWith(expect.anything(), ['o1']);
   });
 });

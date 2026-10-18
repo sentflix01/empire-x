@@ -8,7 +8,8 @@
  * For each real owner (not demo, not seed) with published sites and no
  * Business profile, this creates one profile from their latest site's title and
  * category, links all their unlinked published sites to it, grants a free
- * period of LEGACY_GRANT_DAYS at the plan tier their sections need, and leaves
+ * period of LEGACY_GRANT_MONTHS (six months since the 2026-10-17 extension; it was
+ * 30 days, see migrate62) at the plan tier their sections need, and leaves
  * an in-app notice. Owners with several Business profiles are left to choose
  * (as migrate49 does); owners with exactly one were already linked by migrate49.
  *
@@ -17,7 +18,7 @@
  */
 const { getRequiredBusinessTier } = require('../lib/builderSectionRequirements');
 
-const LEGACY_GRANT_DAYS = 30;
+const LEGACY_GRANT_MONTHS = 6;
 
 /** Builder category (Showroom Studio) -> business_category (lib/businessTemplates.ts). */
 const BUSINESS_CATEGORY = {
@@ -85,9 +86,9 @@ module.exports = async function migrate59(pool) {
       );
       await client.query(
         `INSERT INTO business_subscriptions (business_id, tier, status, currency, current_period_start, current_period_end)
-         VALUES ($1, $2, 'trialing', 'ETB', NOW(), NOW() + make_interval(days => $3))
+         VALUES ($1, $2, 'trialing', 'ETB', NOW(), NOW() + make_interval(months => $3))
          ON CONFLICT (business_id) DO NOTHING`,
-        [business.id, tier, LEGACY_GRANT_DAYS],
+        [business.id, tier, LEGACY_GRANT_MONTHS],
       );
       await client.query(
         'UPDATE user_profiles SET has_business_profile = TRUE WHERE user_id = $1',
@@ -100,7 +101,7 @@ module.exports = async function migrate59(pool) {
           ownerId,
           'Your website now has a Business profile',
           `We created the Business profile "${business.business_name}" for your website so it stays online. ` +
-            `It is free for ${LEGACY_GRANT_DAYS} days; choose a plan before then to keep it published.`,
+            `It is free for ${LEGACY_GRANT_MONTHS} months; choose a plan before then to keep it published.`,
           `/business/subscription?businessId=${business.id}`,
         ],
       );
@@ -114,5 +115,5 @@ module.exports = async function migrate59(pool) {
   }
 };
 
-module.exports.LEGACY_GRANT_DAYS = LEGACY_GRANT_DAYS;
+module.exports.LEGACY_GRANT_MONTHS = LEGACY_GRANT_MONTHS;
 module.exports.BUSINESS_CATEGORY = BUSINESS_CATEGORY;

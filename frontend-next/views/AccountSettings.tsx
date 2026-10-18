@@ -16,6 +16,7 @@ import { getPushPermission, subscribeToPush, unsubscribeFromPush } from '@/lib/p
 import { BellOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 function ChangePasswordForm() {
   const [current, setCurrent] = useState('');
@@ -36,7 +37,7 @@ function ChangePasswordForm() {
       toast.success('Password changed ✓');
       setCurrent(''); setNext(''); setConfirm(''); setExpanded(false);
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || 'Failed to change password');
+      toast.error(apiErrorMessage(err, 'Failed to change password'));
     }
     setSaving(false);
   }

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
+import { requireSignInForPersonal } from '../lib/siteVisibility';
 
 const router = Router();
 
@@ -12,7 +13,7 @@ const engagementColumns = `
   (SELECT COUNT(*)::int FROM story_reactions sr WHERE sr.story_id = s.id) AS reaction_count,
   (SELECT COUNT(*)::int FROM story_comments sc WHERE sc.story_id = s.id) AS comment_count`;
 
-router.get('/', optionalAuth, async (req: Request, res: Response) => {
+router.get('/', optionalAuth, requireSignInForPersonal, async (req: Request, res: Response) => {
   try {
     const realFilter = req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
     const { rows } = await pool.query(
@@ -26,7 +27,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to fetch stories' }); }
 });
 
-router.get('/user/:userId', optionalAuth, async (req: Request, res: Response) => {
+router.get('/user/:userId', optionalAuth, requireSignInForPersonal, async (req: Request, res: Response) => {
   try {
     const realFilter = req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
     const { rows } = await pool.query(

@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from "@/lib/AuthContext";
 import { auth } from "@/api/auth";
@@ -8,7 +8,8 @@ import { entities } from "@/api/entities";
 import SafeImage from "@/components/ui/SafeImage";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit2, LogOut, MapPin, Crown, Store, Plus, ArrowLeft, User } from "lucide-react";
+import { Edit2, LogOut, MapPin, Store, Plus, ArrowLeft, User } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,6 +25,7 @@ function Profile() {
   const { id } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const viewParam = searchParams.get("view");
   const { user, authChecked } = useAuth();
   const [profile, setProfile] = useState(null);
@@ -64,7 +66,7 @@ function Profile() {
       const [profiles, bizList, showroomList] = await Promise.all([
         entities.UserProfile.filter({ user_id: targetUserId }),
         entities.Business.filter({ owner_id: targetUserId }, "-created_at", 50).catch(() => []),
-        entities.Showroom.filter({ owner_id: targetUserId, status: "published" }, "-created_at", 50).catch(() => []),
+        entities.Showroom.filter({ owner_id: targetUserId, status: "published" }, "-updated_at", 50).catch(() => []),
       ]);
 
       if (profiles.length > 0) {
@@ -94,16 +96,28 @@ function Profile() {
           showroom_id: showroom.id,
           showroom_slug: showroom.slug || "",
         };
-        const existing = bizList.find(business => business.business_name?.trim().toLowerCase() === String(showroom.title || "").trim().toLowerCase());
+        // A site belongs to the business it is linked to; older sites without a link match by name.
+        const existing = bizList.find(business => showroom.business_id && business.id === showroom.business_id)
+          ?? bizList.find(business => business.business_name?.trim().toLowerCase() === String(showroom.title || "").trim().toLowerCase());
         return existing ? { ...existing, ...businessFields, id: existing.id } : { ...businessFields, id: `showroom-${showroom.id}` };
       });
       const mergedBusinesses = [...bizList];
+      const mergedIds = new Set<string>();
+      // Sites arrive most recently updated first, so the newest one wins for each business.
       for (const showroom of showroomBusinesses) {
-        const matchIndex = mergedBusinesses.findIndex(business =>
+        const matchIndex = mergedBusinesses.findIndex(business => business.id === showroom.id);
+        const nameIndex = matchIndex >= 0 ? matchIndex : mergedBusinesses.findIndex(business =>
           business.business_name?.trim().toLowerCase() === showroom.business_name?.trim().toLowerCase(),
         );
-        if (matchIndex >= 0) mergedBusinesses[matchIndex] = { ...mergedBusinesses[matchIndex], ...showroom, id: mergedBusinesses[matchIndex].id };
-        else mergedBusinesses.push(showroom);
+        if (nameIndex >= 0) {
+          const target = mergedBusinesses[nameIndex];
+          if (mergedIds.has(target.id)) continue;
+          mergedIds.add(target.id);
+          mergedBusinesses[nameIndex] = { ...target, ...showroom, id: target.id };
+        } else {
+          mergedIds.add(showroom.id);
+          mergedBusinesses.push(showroom);
+        }
       }
       setBusinesses(mergedBusinesses);
       if (mergedBusinesses.length > 0) setSelectedBizId(mergedBusinesses[0].id);
@@ -151,18 +165,18 @@ function Profile() {
       {!user ? (
         <>
           <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
-            <Crown className="w-7 h-7 text-amber-600" />
+            <BrandLogo className="w-7 h-7 text-amber-600" />
           </div>
           <h2 className="font-display text-xl font-bold">Sign in to view profiles</h2>
           <p className="text-sm text-muted-foreground mt-1 mb-6">Create an account to see profiles, posts, and businesses.</p>
           <div className="flex gap-3 justify-center">
-            <Link href="/login"><Button className="rounded-xl">Sign In</Button></Link>
-            <Link href="/register"><Button variant="outline" className="rounded-xl">Join Free</Button></Link>
+            <Link href={`/login?return=${encodeURIComponent(pathname || "/")}`}><Button className="rounded-xl">Sign In</Button></Link>
+            <Link href={`/register?return=${encodeURIComponent(pathname || "/")}`}><Button variant="outline" className="rounded-xl">Join Free</Button></Link>
           </div>
         </>
       ) : (
         <>
-          <Crown className="w-12 h-12 text-amber-400 mx-auto mb-3" />
+          <BrandLogo className="w-12 h-12 text-amber-400 mx-auto mb-3" />
           <h2 className="font-display text-xl font-bold">Profile not found</h2>
           <p className="text-sm text-muted-foreground mt-1">This user hasn't set up their profile yet.</p>
           <Link href="/"><Button variant="outline" className="mt-4 rounded-full">Go Home</Button></Link>

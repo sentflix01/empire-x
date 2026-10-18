@@ -5,9 +5,108 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-17 | Maintenance | Merge pull request #132 from sentflix01/claude/studio-new-pieces | [68269cf7b](2026-10-17-68269cf7b-merge-pull-request-132-from-sentflix01-claude-st.md) |
+| 2026-10-17 | Feature | feat(studio): How to pay me, Opening hours, Menu and Today's offer | [587f71f31](2026-10-17-587f71f31-how-to-pay-me-opening-hours-menu-and-today-s-off.md) |
+| 2026-10-17 | Maintenance | Merge pull request #131 from sentflix01/claude/section-fixes-1 | [31af6c434](2026-10-17-31af6c434-merge-pull-request-131-from-sentflix01-claude-se.md) |
+| 2026-10-17 | Feature | feat(studio): every section works as shown, in words owners already use | [a3d80406d](2026-10-17-a3d80406d-every-section-works-as-shown-in-words-owners-alr.md) |
+| 2026-10-17 | Maintenance | Merge pull request #129 from sentflix01/claude/studio-every-device | [8efe81b8a](2026-10-17-8efe81b8a-merge-pull-request-129-from-sentflix01-claude-st.md) |
+| 2026-10-17 | Feature | feat(studio): usable on every device; publish-only, no export | [4add7199c](2026-10-17-4add7199c-usable-on-every-device-publish-only-no-export.md) |
+| 2026-10-17 | Maintenance | Merge pull request #128 from sentflix01/claude/payments-test-helpers | [45d85560f](2026-10-17-45d85560f-merge-pull-request-128-from-sentflix01-claude-pa.md) |
+| 2026-10-17 | Feature | feat(payments): test-mode helper, Continue payment, clean Chapa return URL | [4b61e49b2](2026-10-17-4b61e49b2-test-mode-helper-continue-payment-clean-chapa-re.md) |
+| 2026-10-17 | Maintenance | Merge pull request #127 from sentflix01/fix/fieldmapper-pbt-reserved-keys | [32c7757a3](2026-10-17-32c7757a3-merge-pull-request-127-from-sentflix01-fix-field.md) |
+| 2026-10-17 | Bugfix | fix(external-api): never write reserved field names when mapping external data | [0c3c320c3](2026-10-17-0c3c320c3-never-write-reserved-field-names-when-mapping-ex.md) |
+| 2026-10-17 | Maintenance | Merge pull request #126 from sentflix01/claude/site-status-banner | [be3073d12](2026-10-17-be3073d12-merge-pull-request-126-from-sentflix01-claude-si.md) |
+| 2026-10-17 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/site-status-banner | [7558af5b0](2026-10-17-7558af5b0-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-17 | Maintenance | Merge pull request #125 from sentflix01/claude/profile-shows-studio-site | [7ee365a67](2026-10-17-7ee365a67-merge-pull-request-125-from-sentflix01-claude-pr.md) |
+| 2026-10-17 | Feature | feat(profile): owner banner when the business website is a draft or hidden | [145d83fb1](2026-10-17-145d83fb1-owner-banner-when-the-business-website-is-a-draf.md) |
+| 2026-10-17 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/profile-shows-studio-site | [22e92dccf](2026-10-17-22e92dccf-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-17 | Feature | feat(profile): business profile page shows the published Studio site | [a023c2810](2026-10-17-a023c2810-business-profile-page-shows-the-published-studio.md) |
+| 2026-10-17 | Maintenance | Merge pull request #124 from sentflix01/claude/link-cards-to-products | [db716e37f](2026-10-17-db716e37f-merge-pull-request-124-from-sentflix01-claude-li.md) |
+| 2026-10-17 | Feature | feat(studio): link website cards to catalogue products | [920e27171](2026-10-17-920e27171-link-website-cards-to-catalogue-products.md) |
+| 2026-10-17 | Maintenance | Merge pull request #123 from sentflix01/claude/buy-now-flow | [122fe1050](2026-10-17-122fe1050-merge-pull-request-123-from-sentflix01-claude-bu.md) |
+| 2026-10-17 | Bugfix | fix(checkout): Buy Now popup covers the screen; website items can be requested | [adaf29432](2026-10-17-adaf29432-buy-now-popup-covers-the-screen-website-items-ca.md) |
+| 2026-10-17 | Maintenance | Merge pull request #122 from sentflix01/claude/phase1-renewal-reminders | [9bd014134](2026-10-17-9bd014134-merge-pull-request-122-from-sentflix01-claude-ph.md) |
+| 2026-10-17 | Feature | feat(subscriptions): renewal reminders and payment safety (Phase 1, PR 3) | [942ab461f](2026-10-17-942ab461f-renewal-reminders-and-payment-safety-phase-1-pr-.md) |
+| 2026-10-17 | Maintenance | Merge pull request #121 from sentflix01/claude/phase1-chapa-screens | [aba08a2b4](2026-10-17-aba08a2b4-merge-pull-request-121-from-sentflix01-claude-ph.md) |
+| 2026-10-17 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/phase1-chapa-screens | [7c27df76f](2026-10-17-7c27df76f-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-17 | Maintenance | Merge pull request #120 from sentflix01/claude/phase1-chapa-core | [406142032](2026-10-17-406142032-merge-pull-request-120-from-sentflix01-claude-ph.md) |
+| 2026-10-17 | Feature | feat(subscriptions): owner screens for prepaid ETB plans (Phase 1, PR 2) | [6c2128e0f](2026-10-17-6c2128e0f-owner-screens-for-prepaid-etb-plans-phase-1-pr-2.md) |
+| 2026-10-17 | Feature | feat(subscriptions): prepaid ETB plans through Chapa (Phase 1, backend) | [7393065ce](2026-10-17-7393065ce-prepaid-etb-plans-through-chapa-phase-1-backend.md) |
+| 2026-10-17 | Maintenance | Merge pull request #119 from sentflix01/claude/extend-legacy-trial | [c7a8a3663](2026-10-17-c7a8a3663-merge-pull-request-119-from-sentflix01-claude-ex.md) |
+| 2026-10-17 | Documentation | docs: correct the legacy free-period end year (2027) | [db5d3bc62](2026-10-17-db5d3bc62-correct-the-legacy-free-period-end-year-2027.md) |
+| 2026-10-17 | Feature | feat(subscriptions): extend the legacy websites' free period to six months | [2a8ea84ea](2026-10-17-2a8ea84ea-extend-the-legacy-websites-free-period-to-six-mo.md) |
+| 2026-10-17 | Maintenance | Merge pull request #118 from sentflix01/claude/api-error-body | [7ddf2629f](2026-10-17-7ddf2629f-merge-pull-request-118-from-sentflix01-claude-ap.md) |
+| 2026-10-17 | Bugfix | fix(frontend): read API error bodies the way the client rejects them | [1eeb2e70a](2026-10-17-1eeb2e70a-read-api-error-bodies-the-way-the-client-rejects.md) |
+| 2026-10-17 | Maintenance | Merge pull request #117 from sentflix01/claude/publish-business-step | [1cb6a3ed6](2026-10-17-1cb6a3ed6-merge-pull-request-117-from-sentflix01-claude-pu.md) |
+| 2026-10-17 | Bugfix | fix(studio): create or choose the Business profile inside the publish step | [f27c6bd60](2026-10-17-f27c6bd60-create-or-choose-the-business-profile-inside-the.md) |
+| 2026-10-17 | Maintenance | Merge pull request #116 from sentflix01/claude/profile-site-sections | [79d49e3ff](2026-10-17-79d49e3ff-merge-pull-request-116-from-sentflix01-claude-pr.md) |
+| 2026-10-17 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/profile-site-sections | [96988f0fc](2026-10-17-96988f0fc-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-17 | Maintenance | Merge pull request #115 from sentflix01/claude/brand-logo-onboarding | [8fcfe9f71](2026-10-17-8fcfe9f71-merge-pull-request-115-from-sentflix01-claude-br.md) |
+| 2026-10-17 | Maintenance | Merge pull request #114 from sentflix01/claude/post-edit-delete | [518137fb1](2026-10-17-518137fb1-merge-pull-request-114-from-sentflix01-claude-po.md) |
+| 2026-10-16 | Maintenance | Merge pull request #113 from sentflix01/claude/demo-db-migrate | [3b57e3708](2026-10-16-3b57e3708-merge-pull-request-113-from-sentflix01-claude-de.md) |
+| 2026-10-16 | Feature | feat(profile): edit the published website's sections from the profile editor | [2ee21955d](2026-10-16-2ee21955d-edit-the-published-website-s-sections-from-the-p.md) |
+| 2026-10-16 | Bugfix | fix(feed): show the API's error message when a post edit fails | [10407a085](2026-10-16-10407a085-show-the-api-s-error-message-when-a-post-edit-fa.md) |
+| 2026-10-16 | Feature | feat(brand): real Nodbusiness logo instead of crowns; personal-only onboarding | [90a352337](2026-10-16-90a352337-real-nodbusiness-logo-instead-of-crowns-personal.md) |
+| 2026-10-16 | Feature | feat(feed): let authors edit and delete their posts | [54bb32436](2026-10-16-54bb32436-let-authors-edit-and-delete-their-posts.md) |
+| 2026-10-16 | CI/CD | ci(deploy): migrate the Demo database on every production deploy | [eb090c9aa](2026-10-16-eb090c9aa-migrate-the-demo-database-on-every-production-de.md) |
+| 2026-10-16 | Maintenance | Merge pull request #108 from sentflix01/claude/phase0-stabilise | [705930daf](2026-10-16-705930daf-merge-pull-request-108-from-sentflix01-claude-ph.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/phase0-stabilise | [6c2cd6be1](2026-10-16-6c2cd6be1-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-16 | Maintenance | Merge pull request #107 from sentflix01/claude/site-visibility | [60a97cf92](2026-10-16-60a97cf92-merge-pull-request-107-from-sentflix01-claude-si.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/site-visibility | [1de83ff5d](2026-10-16-1de83ff5d-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-16 | Maintenance | Merge pull request #112 from sentflix01/fix/render-js-modules | [556885ee0](2026-10-16-556885ee0-merge-pull-request-112-from-sentflix01-fix-rende.md) |
+| 2026-10-16 | Bugfix | fix(deploy): ship plain JS modules in the image and fail the build if one is missing | [1dd893c5d](2026-10-16-1dd893c5d-ship-plain-js-modules-in-the-image-and-fail-the-.md) |
+| 2026-10-16 | Maintenance | Merge pull request #111 from sentflix01/ci/use-runner-postgres | [e0831f986](2026-10-16-e0831f986-merge-pull-request-111-from-sentflix01-ci-use-ru.md) |
+| 2026-10-16 | CI/CD | ci: use the runner's preinstalled PostgreSQL instead of pulling an image | [6718e5efb](2026-10-16-6718e5efb-use-the-runner-s-preinstalled-postgresql-instead.md) |
+| 2026-10-16 | Maintenance | Merge pull request #110 from sentflix01/fix/review-pbt-generator | [a80d2583f](2026-10-16-a80d2583f-merge-pull-request-110-from-sentflix01-fix-revie.md) |
+| 2026-10-16 | Testing | test: generate only visible reviewer names in the ProductDetail property test | [0d3ed5f14](2026-10-16-0d3ed5f14-generate-only-visible-reviewer-names-in-the-prod.md) |
+| 2026-10-16 | Maintenance | Merge pull request #105 from sentflix01/claude/mvp-phase1 | [2e9072b16](2026-10-16-2e9072b16-merge-pull-request-105-from-sentflix01-claude-mv.md) |
+| 2026-10-16 | Testing | test: give the Marketplace paging test time for the second page on slow CI | [0311fd7e5](2026-10-16-0311fd7e5-give-the-marketplace-paging-test-time-for-the-se.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/mvp-phase1 | [1907df6da](2026-10-16-1907df6da-merge-remote-tracking-branch-origin-main-into-cl.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/site-visibility' into claude/phase0-stabilise | [e913ccb8c](2026-10-16-e913ccb8c-merge-remote-tracking-branch-origin-claude-site-.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [57740a11f](2026-10-16-57740a11f-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
+| 2026-10-16 | Bugfix | fix(ui): Buy view uses theme tokens again now that Tailwind generates them (#106) | [e62aa4c2e](2026-10-16-e62aa4c2e-buy-view-uses-theme-tokens-again-now-that-tailwi.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/main' into claude/mvp-phase1 | [e1c8dc89f](2026-10-16-e1c8dc89f-merge-remote-tracking-branch-origin-main-into-cl.md) |
 | 2026-10-16 | Maintenance | Merge pull request #106 from sentflix01/fix/tailwind-theme-colours | [f2f76943e](2026-10-16-f2f76943e-merge-pull-request-106-from-sentflix01-fix-tailw.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/site-visibility' into claude/phase0-stabilise | [55421d7f4](2026-10-16-55421d7f4-merge-remote-tracking-branch-origin-claude-site-.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [8662858a7](2026-10-16-8662858a7-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
+| 2026-10-16 | Testing | test: give the ProductDetail property test enough time on slow CI runners | [28f5e8d0f](2026-10-16-28f5e8d0f-give-the-productdetail-property-test-enough-time.md) |
+| 2026-10-16 | Documentation | docs: internal scheduled jobs endpoint, migrate60, regenerated API reference | [29a95cb9a](2026-10-16-29a95cb9a-internal-scheduled-jobs-endpoint-migrate60-regen.md) |
+| 2026-10-16 | Bugfix | fix(builder): editing a published site never loads template defaults over it (F-H5) | [22f2c876d](2026-10-16-22f2c876d-editing-a-published-site-never-loads-template-de.md) |
+| 2026-10-16 | Testing | test(db): run routes and migrations against a real Postgres in CI | [87111aec2](2026-10-16-87111aec2-run-routes-and-migrations-against-a-real-postgre.md) |
+| 2026-10-16 | Bugfix | fix(auth): keep sign-in security controls working when Redis is down | [0670ba824](2026-10-16-0670ba824-keep-sign-in-security-controls-working-when-redi.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/site-visibility' into claude/phase0-stabilise | [79ff4c4d2](2026-10-16-79ff4c4d2-merge-remote-tracking-branch-origin-claude-site-.md) |
+| 2026-10-16 | Feature | feat(jobs): run expiry and cleanup jobs on a schedule, not only in-process | [11d2058e3](2026-10-16-11d2058e3-run-expiry-and-cleanup-jobs-on-a-schedule-not-on.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [debdc11a3](2026-10-16-debdc11a3-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
+| 2026-10-16 | Bugfix | fix(jobs): draft reminders failed every run on a SQL type error | [0a7967234](2026-10-16-0a7967234-draft-reminders-failed-every-run-on-a-sql-type-e.md) |
+| 2026-10-16 | Bugfix | fix(feed): page the ranked home feed correctly | [eff32dee6](2026-10-16-eff32dee6-page-the-ranked-home-feed-correctly.md) |
+| 2026-10-16 | Bugfix | fix(api): owners keep full access to an unpaid business until Day 10 | [e9e878d2e](2026-10-16-e9e878d2e-owners-keep-full-access-to-an-unpaid-business-un.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [a70196451](2026-10-16-a70196451-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
+| 2026-10-16 | Feature | feat(db): give legacy websites a Business profile and a 30-day free period | [5a10f3bea](2026-10-16-5a10f3bea-give-legacy-websites-a-business-profile-and-a-30.md) |
+| 2026-10-16 | Bugfix | fix(api): product status filter placeholder, short searches, guest owner profiles | [c5f51d79f](2026-10-16-c5f51d79f-product-status-filter-placeholder-short-searches.md) |
+| 2026-10-16 | Maintenance | Merge remote-tracking branch 'origin/claude/mvp-phase1' into claude/site-visibility | [7f947453a](2026-10-16-7f947453a-merge-remote-tracking-branch-origin-claude-mvp-p.md) |
+| 2026-10-16 | Testing | test: check migrate41 statuses through the shared list | [947038eba](2026-10-16-947038eba-check-migrate41-statuses-through-the-shared-list.md) |
+| 2026-10-16 | Bugfix | fix(db): every migration rebuilds orders_status_check from one list | [079adc41b](2026-10-16-079adc41b-every-migration-rebuilds-orders-status-check-fro.md) |
+| 2026-10-16 | Maintenance | test, docs: public/private businesses and guest access | [e7b976a49](2026-10-16-e7b976a49-test-docs-public-private-businesses-and-guest-ac.md) |
+| 2026-10-16 | Feature | feat(web): owners choose public or private; guests get the business feed | [861186041](2026-10-16-861186041-owners-choose-public-or-private-guests-get-the-b.md) |
+| 2026-10-16 | Feature | feat(api): public or private business sites; guests see business content only | [a58175119](2026-10-16-a58175119-public-or-private-business-sites-guests-see-busi.md) |
+| 2026-10-16 | Documentation | docs: record the Tailwind v4 single-config decision and check:css gate | [c955bc2c6](2026-10-16-c955bc2c6-record-the-tailwind-v4-single-config-decision-an.md) |
 | 2026-10-16 | Bugfix | fix(ui): make globals.css the only Tailwind config and fail CI on missing utilities | [3231d33d5](2026-10-16-3231d33d5-make-globals-css-the-only-tailwind-config-and-fa.md) |
 | 2026-10-16 | Bugfix | fix(ui): generate theme colour utilities under Tailwind v4 | [1a2281146](2026-10-16-1a2281146-generate-theme-colour-utilities-under-tailwind-v.md) |
+| 2026-10-16 | Documentation | docs: document RECEIPTS_SUPABASE_BUCKET in the backend env template | [e687b8cd1](2026-10-16-e687b8cd1-document-receipts-supabase-bucket-in-the-backend.md) |
+| 2026-10-16 | Documentation | docs: direct-payment API, retired collection endpoints and new migrations | [3531e9220](2026-10-16-3531e9220-direct-payment-api-retired-collection-endpoints-.md) |
+| 2026-10-16 | Feature | feat: guests browse Real content; QR page offers Back to Landing and Try Demo | [8d5a6dd12](2026-10-16-8d5a6dd12-guests-browse-real-content-qr-page-offers-back-t.md) |
+| 2026-10-16 | Bugfix | fix: guests can buy everywhere and keep their order link after ordering | [2c39d0169](2026-10-16-2c39d0169-guests-can-buy-everywhere-and-keep-their-order-l.md) |
+| 2026-10-16 | Feature | feat: Buy view, private order page and direct-payment actions in Orders | [7bfa94ac8](2026-10-16-7bfa94ac8-buy-view-private-order-page-and-direct-payment-a.md) |
+| 2026-10-16 | Feature | feat: pre-order seller details and partnership attribution for direct orders | [b4593d865](2026-10-16-b4593d865-pre-order-seller-details-and-partnership-attribu.md) |
+| 2026-10-16 | Feature | feat: guest checkout with direct payment, order links and seller confirmation | [877bb99fc](2026-10-16-877bb99fc-guest-checkout-with-direct-payment-order-links-a.md) |
+| 2026-10-16 | Feature | feat: owners manage payment accounts and contact visibility | [2e2416fac](2026-10-16-2e2416fac-owners-manage-payment-accounts-and-contact-visib.md) |
+| 2026-10-16 | Feature | feat: seller payment accounts and server-enforced contact privacy (API) | [6947803f4](2026-10-16-6947803f4-seller-payment-accounts-and-server-enforced-cont.md) |
+| 2026-10-16 | Feature | feat: stop charging commission and taking money into NodBusiness accounts | [92dd63178](2026-10-16-92dd63178-stop-charging-commission-and-taking-money-into-n.md) |
+| 2026-10-16 | Feature | feat: announce newly published business sites to followers | [670bb2154](2026-10-16-670bb2154-announce-newly-published-business-sites-to-follo.md) |
+| 2026-10-16 | Feature | feat: link previews for shared business and product links | [01c35db4f](2026-10-16-01c35db4f-link-previews-for-shared-business-and-product-li.md) |
+| 2026-10-16 | Documentation | docs: record platform model decisions (2026-10-16) | [fe5517cf9](2026-10-16-fe5517cf9-record-platform-model-decisions-2026-10-16.md) |
+| 2026-10-16 | Bugfix | fix: re-check plan entitlements when a published showroom's sections change (F-H8) | [46557bec7](2026-10-16-46557bec7-re-check-plan-entitlements-when-a-published-show.md) |
+| 2026-10-16 | Feature | feat: demo workspace browse, subscription lifecycle policy, partnership and builder updates | [ba3141b90](2026-10-16-ba3141b90-demo-workspace-browse-subscription-lifecycle-pol.md) |
 | 2026-10-15 | Maintenance | Merge pull request #104 from sentflix01/claude/owner-decision-fixes | [6cbc3063d](2026-10-15-6cbc3063d-merge-pull-request-104-from-sentflix01-claude-ow.md) |
 | 2026-10-15 | Bugfix | fix: mount the sonner Toaster so app messages actually appear | [c9f8d9740](2026-10-15-c9f8d9740-mount-the-sonner-toaster-so-app-messages-actuall.md) |
 | 2026-10-15 | Bugfix | fix: answer a wrong delete-account password with 422, not 401 | [499d0e5e9](2026-10-15-499d0e5e9-answer-a-wrong-delete-account-password-with-422-.md) |

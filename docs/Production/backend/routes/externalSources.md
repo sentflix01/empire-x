@@ -22,8 +22,8 @@ PATENT 4 surface A: tenants register external HTTPS data sources per showroom se
 | `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId` | public | 187 |
 | `GET` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | public | 202 |
 | `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | public | 212 |
-| `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId` | public | 227 |
-| `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/refresh` | public | 239 |
+| `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId` | public | 228 |
+| `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/refresh` | public | 240 |
 
 ## 4. What does it touch?
 

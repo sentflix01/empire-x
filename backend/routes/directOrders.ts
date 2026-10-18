@@ -10,6 +10,11 @@
  *
  * States: awaiting_payment → payment_reported → paid (seller) → existing
  * fulfilment states; awaiting_payment/payment_reported → expired | cancelled.
+ *
+ * Request to order (website items that are not catalogue products, e.g. a
+ * service typed into a website section): requested → (seller sets the price)
+ * awaiting_payment → … as above; requested → cancelled (seller declines) |
+ * expired (no answer within 7 days).
  */
 import crypto from 'crypto';
 import { Router } from 'express';
@@ -21,6 +26,7 @@ import logger from '../lib/logger';
 import * as apiError from '../lib/apiError';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { getBusinessSubscriptionAccess } from '../lib/businessSubscriptionPolicy';
+import { businessViewGate, rejectViewGate } from '../lib/siteVisibility';
 import { getPrimaryFrontendUrl } from '../lib/frontendUrl';
 import { sendCustomEmail } from '../utils/mailer';
 import { emitNotification } from '../socket';
@@ -118,7 +124,7 @@ async function sellerPaymentDetails(businessId: string | null): Promise<Record<s
   };
 }
 
-const PUBLIC_ORDER_COLUMNS = `id, product_id, product_title, quantity, unit_price, total_price, currency, status, buyer_name,
+const PUBLIC_ORDER_COLUMNS = `id, product_id, product_title, listed_price_text, quantity, unit_price, total_price, currency, status, buyer_name,
   delivery_address, notes, payment_reference, receipt_key IS NOT NULL AS has_receipt, payment_reported_at,
   payment_confirmed_at, payment_expires_at, created_at, updated_at, business_id, seller_id, buyer_id, buyer_email`;
 
@@ -136,7 +142,7 @@ function publicOrder(row: Record<string, unknown>): Record<string, unknown> {
  */
 router.get('/checkout-info', optionalAuth, async (req: Request, res: Response) => {
   try {
-    const { product_id: productId, showroom_id: showroomId } = req.query as Record<string, string | undefined>;
+    const { product_id: productId, showroom_id: showroomId, business_id: requestedBusinessId, seller_id: sellerId } = req.query as Record<string, string | undefined>;
     let businessId: string | null = null;
     if (productId) {
       const { rows } = await pool.query(
@@ -150,10 +156,17 @@ router.get('/checkout-info', optionalAuth, async (req: Request, res: Response) =
       const { rows } = await pool.query(`SELECT business_id FROM showrooms WHERE id=$1 AND status='published'`, [showroomId]);
       if (!rows.length) { apiError.notFound(res, 'Showroom not found'); return; }
       businessId = rows[0].business_id ?? null;
-    } else { apiError.validationError(res, 'product_id or showroom_id is required'); return; }
+    } else if (requestedBusinessId && UUID_RE.test(requestedBusinessId)) {
+      const { rows } = await pool.query('SELECT id FROM businesses WHERE id=$1', [requestedBusinessId]);
+      if (!rows.length) { apiError.notFound(res, 'Business not found'); return; }
+      businessId = rows[0].id;
+    } else if (sellerId && UUID_RE.test(sellerId)) {
+      businessId = await primaryBusinessOf(sellerId);
+    } else { apiError.validationError(res, 'product_id, showroom_id, business_id or seller_id is required'); return; }
     if (businessId) {
       const access = await getBusinessSubscriptionAccess(businessId);
-      if (!access || access.hiddenFromPublic) { apiError.notFound(res, 'Business not found'); return; }
+      // A private business sells to signed-in buyers only (decision §7).
+      if (rejectViewGate(res, businessViewGate(access, req), 'Business not found')) return;
     }
     const details = await sellerPaymentDetails(businessId);
     const business = details.business as Record<string, unknown> | null;
@@ -163,6 +176,135 @@ router.get('/checkout-info', optionalAuth, async (req: Request, res: Response) =
 });
 
 // ── Create ────────────────────────────────────────────────────────────────────
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The seller's business when there is exactly one (a profile page names the seller, not the business). */
+async function primaryBusinessOf(sellerId: string): Promise<string | null> {
+  const { rows } = await pool.query<{ id: string }>('SELECT id FROM businesses WHERE owner_id=$1 ORDER BY created_at LIMIT 2', [sellerId]);
+  return rows.length === 1 ? rows[0].id : null;
+}
+
+/**
+ * Finds a priced item (service, package, best seller…) by its title in the
+ * seller's own website content: published sites, Business profiles and the
+ * profile's business sections. Returns the price text shown to buyers, or
+ * null when the seller never offered such an item (requests for made-up
+ * items are refused).
+ */
+export async function findWebsiteItem(sellerId: string, title: string, scope: { showroomId?: string | null; businessId?: string | null }): Promise<{ priceText: string | null } | null> {
+  const sources: unknown[] = [];
+  const { rows: sites } = await pool.query<{ sections: unknown }>(
+    `SELECT sections FROM showrooms WHERE owner_id=$1 AND status='published' AND ($2::uuid IS NULL OR id=$2) AND ($3::uuid IS NULL OR business_id=$3)`,
+    [sellerId, scope.showroomId ?? null, scope.businessId ?? null],
+  );
+  sources.push(...sites.map((r) => r.sections));
+  if (!scope.showroomId) {
+    const { rows: biz } = await pool.query<{ business_sections: unknown }>(
+      `SELECT business_sections FROM businesses WHERE owner_id=$1 AND ($2::uuid IS NULL OR id=$2)`,
+      [sellerId, scope.businessId ?? null],
+    );
+    sources.push(...biz.map((r) => r.business_sections));
+    const { rows: profile } = await pool.query<{ business_sections: unknown }>('SELECT business_sections FROM user_profiles WHERE user_id=$1', [sellerId]);
+    sources.push(...profile.map((r) => r.business_sections));
+  }
+  const wanted = title.trim().toLowerCase();
+  let found: { priceText: string | null } | null = null;
+  const visit = (node: unknown, depth: number): void => {
+    if (found || depth > 8 || node === null || node === undefined) return;
+    if (typeof node === 'string') {
+      if (depth === 0 && node.trim().startsWith('[')) { try { visit(JSON.parse(node), depth + 1); } catch { /* not JSON */ } }
+      return;
+    }
+    if (Array.isArray(node)) { node.forEach((child) => visit(child, depth + 1)); return; }
+    if (typeof node !== 'object') return;
+    const item = node as Record<string, unknown>;
+    const name = typeof item.name === 'string' ? item.name : typeof item.title === 'string' ? item.title : null;
+    if (name && name.trim().toLowerCase() === wanted && ('price' in item || 'cta' in item)) {
+      found = { priceText: typeof item.price === 'string' || typeof item.price === 'number' ? String(item.price).slice(0, 60) : null };
+      return;
+    }
+    Object.values(item).forEach((child) => visit(child, depth + 1));
+  };
+  sources.forEach((source) => visit(source, 0));
+  return found;
+}
+
+/**
+ * POST /api/direct-orders/requests — request a website item that is not a
+ * catalogue product. Guests welcome. No price is taken: the seller sets it.
+ */
+router.post('/requests', guestLimiter, optionalAuth, async (req: Request, res: Response) => {
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const itemTitle = text(body.item_title, 200);
+  const quantity = body.quantity === undefined ? 1 : Number(body.quantity);
+  const buyerName = text(body.buyer_name, 200);
+  const buyerPhone = text(body.buyer_phone, 30);
+  const buyerEmail = text(body.buyer_email, 320)?.toLowerCase() ?? null;
+  if (!itemTitle) { apiError.validationError(res, 'Choose an item to request'); return; }
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10_000) { apiError.validationError(res, 'A valid quantity is required'); return; }
+  if (!buyerName) { apiError.validationError(res, 'Your name is required'); return; }
+  if (!buyerPhone || !PHONE_RE.test(buyerPhone)) { apiError.validationError(res, 'A valid phone number is required'); return; }
+  if (!buyerEmail || !EMAIL_RE.test(buyerEmail)) { apiError.validationError(res, 'A valid email address is required'); return; }
+  const deliveryAddress = body.delivery_address === undefined ? null : text(body.delivery_address, 2000);
+  const notes = body.notes === undefined ? null : text(body.notes, 2000);
+
+  try {
+    // Who sells it: the website's owner, the business's owner, or the named seller.
+    let sellerId: string | null = null;
+    let businessId: string | null = null;
+    let showroomId: string | null = null;
+    if (typeof body.showroom_id === 'string' && UUID_RE.test(body.showroom_id)) {
+      const { rows } = await pool.query(`SELECT id, owner_id, business_id FROM showrooms WHERE id=$1 AND status='published'`, [body.showroom_id]);
+      if (!rows.length) { apiError.notFound(res, 'This website is not available'); return; }
+      ({ id: showroomId, owner_id: sellerId, business_id: businessId } = rows[0]);
+    } else if (typeof body.business_id === 'string' && UUID_RE.test(body.business_id)) {
+      const { rows } = await pool.query('SELECT id, owner_id FROM businesses WHERE id=$1', [body.business_id]);
+      if (!rows.length) { apiError.notFound(res, 'This business is not available'); return; }
+      ({ id: businessId, owner_id: sellerId } = rows[0]);
+    } else if (typeof body.seller_id === 'string' && UUID_RE.test(body.seller_id)) {
+      const { rows } = await pool.query('SELECT id FROM users WHERE id=$1', [body.seller_id]);
+      if (!rows.length) { apiError.notFound(res, 'This seller is not available'); return; }
+      sellerId = rows[0].id;
+      businessId = await primaryBusinessOf(sellerId!);
+    } else { apiError.validationError(res, 'showroom_id, business_id or seller_id is required'); return; }
+    if (!sellerId) { apiError.notFound(res, 'This seller is not available'); return; }
+    if (req.user?.id === sellerId) { apiError.validationError(res, 'You cannot order from your own business'); return; }
+    if (businessId) {
+      const access = await getBusinessSubscriptionAccess(businessId);
+      if (rejectViewGate(res, businessViewGate(access, req), 'This business is not available')) return;
+    }
+
+    const item = await findWebsiteItem(sellerId, itemTitle, { showroomId, businessId: showroomId ? null : businessId });
+    if (!item) { apiError.notFound(res, 'This item is not offered by the seller'); return; }
+
+    const token = crypto.randomBytes(32).toString('base64url');
+    const { rows } = await pool.query(
+      `INSERT INTO orders (product_id, seller_id, business_id, product_title, listed_price_text, product_type, quantity, unit_price, total_price, currency,
+                           buyer_id, buyer_name, buyer_phone, buyer_email, delivery_address, notes,
+                           status, payment_provider, access_token_hash, payment_expires_at)
+       VALUES (NULL,$1,$2,$3,$4,'service',$5,NULL,0,'ETB',$6,$7,$8,$9,$10,$11,'requested','direct',$12, NOW() + make_interval(days => $13))
+       RETURNING ${PUBLIC_ORDER_COLUMNS}`,
+      [sellerId, businessId, itemTitle, item.priceText, quantity, req.user?.id ?? null, buyerName, buyerPhone, buyerEmail,
+        deliveryAddress, notes, hashToken(token), PAYMENT_WINDOW_DAYS],
+    );
+    const order = rows[0] as Record<string, unknown>;
+    const link = orderUrl(token);
+    res.status(201).json({ order: publicOrder(order), access_token: token, order_url: link, ...(await sellerPaymentDetails(businessId)) });
+
+    const listed = item.priceText ? ` (listed as ${item.priceText})` : '';
+    void notifyUser(sellerId, `New request: ${itemTitle}`, `${buyerName} requested ${quantity}× ${itemTitle}${listed}. Set the price to confirm it.`, '/orders');
+    void emailUser(sellerId, `New request: ${itemTitle}`,
+      `<p>${escapeHtml(buyerName)} requested ${quantity}× ${escapeHtml(itemTitle)}${escapeHtml(listed)}.</p><p>Open Orders in NodBusiness to set the price and confirm it, or decline it. Requests without an answer expire after ${PAYMENT_WINDOW_DAYS} days.</p>`);
+    void emailBuyer(order, `Request sent: ${itemTitle}`,
+      `<p>Thank you, ${escapeHtml(buyerName)}. The seller will confirm the price of ${escapeHtml(itemTitle)}. You will then pay them directly.</p>
+       <p><a href="${escapeHtml(link)}">View your request</a></p>
+       <p>Keep this link private: anyone with it can see your request.</p>`);
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'Order request failed');
+    apiError.serverError(res, 'Could not send the request');
+  }
+});
 
 router.post('/', guestLimiter, optionalAuth, async (req: Request, res: Response) => {
   const body = (req.body ?? {}) as Record<string, unknown>;
@@ -194,7 +336,7 @@ router.post('/', guestLimiter, optionalAuth, async (req: Request, res: Response)
     const businessId = typeof product.business_id === 'string' ? product.business_id : null;
     if (businessId) {
       const access = await getBusinessSubscriptionAccess(businessId);
-      if (!access || access.hiddenFromPublic) { apiError.notFound(res, 'This product is not available'); return; }
+      if (rejectViewGate(res, businessViewGate(access, req), 'This product is not available')) return;
     }
     const details = await sellerPaymentDetails(businessId);
     if (!(details.payment_accounts as unknown[]).length) {
@@ -362,6 +504,54 @@ router.post('/:id/reject-payment', requireAuth, async (req: Request, res: Respon
   } catch { apiError.serverError(res, 'Could not update the payment'); }
 });
 
+// ── Seller answers a request ─────────────────────────────────────────────────
+
+/** POST /:id/set-price { unit_price } — confirms a request at a price; the buyer can then pay. */
+router.post('/:id/set-price', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const access = await orderForUser(req);
+    if (!access || access.role === 'buyer') { apiError.notFound(res, 'Order not found'); return; }
+    const unitPrice = Number(req.body?.unit_price);
+    if (!Number.isFinite(unitPrice) || unitPrice <= 0 || unitPrice > 10_000_000) { apiError.validationError(res, 'Enter a price greater than 0'); return; }
+    const details = await sellerPaymentDetails(access.order.business_id as string | null);
+    if (!(details.payment_accounts as unknown[]).length) {
+      res.status(409).json({ error: 'Add a payment account to your business first, so the buyer knows how to pay you.', code: 'NO_PAYMENT_ACCOUNTS' });
+      return;
+    }
+    const { rows } = await pool.query(
+      `UPDATE orders SET unit_price=$2::numeric, total_price=ROUND($2::numeric * quantity, 2), status='awaiting_payment',
+              payment_expires_at=NOW() + make_interval(days => $3), updated_at=NOW()
+        WHERE id=$1 AND status='requested' RETURNING ${PUBLIC_ORDER_COLUMNS}`,
+      [req.params.id, Math.round(unitPrice * 100) / 100, PAYMENT_WINDOW_DAYS],
+    );
+    if (!rows.length) { res.status(409).json({ error: 'Only a request can be priced' }); return; }
+    const order = rows[0] as Record<string, unknown>;
+    res.json({ order: publicOrder(order) });
+    const total = `${Number(order.total_price).toLocaleString('en-US')} ${String(order.currency)}`;
+    void notifyUser(order.buyer_id as string | null, `Price confirmed: ${String(order.product_title)}`, `The seller confirmed ${total}. Pay them directly, then report the payment.`, '/orders');
+    void emailBuyer(order, `Price confirmed: ${String(order.product_title)}`,
+      `<p>The seller confirmed your request for ${escapeHtml(order.product_title)} at <strong>${escapeHtml(total)}</strong>.</p>
+       <p>Open the link we sent when you made the request to see how to pay, then tap "I've paid". Unpaid orders expire after ${PAYMENT_WINDOW_DAYS} days.</p>`);
+  } catch { apiError.serverError(res, 'Could not set the price'); }
+});
+
+/** POST /:id/decline-request — the seller can't take this request. */
+router.post('/:id/decline-request', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const access = await orderForUser(req);
+    if (!access || access.role === 'buyer') { apiError.notFound(res, 'Order not found'); return; }
+    const { rows } = await pool.query(
+      `UPDATE orders SET status='cancelled', updated_at=NOW() WHERE id=$1 AND status='requested' RETURNING ${PUBLIC_ORDER_COLUMNS}`,
+      [req.params.id],
+    );
+    if (!rows.length) { res.status(409).json({ error: 'Only a request can be declined' }); return; }
+    const order = rows[0] as Record<string, unknown>;
+    res.json({ order: publicOrder(order) });
+    void notifyUser(order.buyer_id as string | null, `Request declined: ${String(order.product_title)}`, 'The seller cannot take this request.', '/orders');
+    void emailBuyer(order, `Request declined: ${String(order.product_title)}`, `<p>The seller cannot take your request for ${escapeHtml(order.product_title)}. Nothing was charged.</p>`);
+  } catch { apiError.serverError(res, 'Could not decline the request'); }
+});
+
 // ── Receipt (buyer and seller only, short-lived link) ────────────────────────
 
 async function sendReceipt(res: Response, order: Record<string, unknown>): Promise<void> {
@@ -392,14 +582,14 @@ router.get('/:id/receipt', requireAuth, async (req: Request, res: Response) => {
 export async function expireStaleDirectOrders(): Promise<number> {
   const { rows } = await pool.query(
     `UPDATE orders SET status='expired', updated_at=NOW()
-      WHERE payment_provider='direct' AND status IN ('awaiting_payment','payment_reported') AND payment_expires_at < NOW()
+      WHERE payment_provider='direct' AND status IN ('requested','awaiting_payment','payment_reported') AND payment_expires_at < NOW()
       RETURNING ${PUBLIC_ORDER_COLUMNS}`,
   );
   if (!rows.length) return 0;
   await releaseOrderInventory(pool as never, rows.map((r) => String(r.id))).catch((err) => logger.error({ err }, 'release stock for expired orders failed'));
   for (const order of rows as Array<Record<string, unknown>>) {
     void notifyUser(order.buyer_id as string | null, `Order expired: ${String(order.product_title)}`, 'The payment was not confirmed in time.', '/orders');
-    void notifyUser(String(order.seller_id), `Order expired: ${String(order.product_title)}`, 'No payment was confirmed within 7 days.', '/orders');
+    void notifyUser(String(order.seller_id), `Order expired: ${String(order.product_title)}`, order.unit_price === null ? 'The request got no price within 7 days.' : 'No payment was confirmed within 7 days.', '/orders');
     void emailBuyer(order, `Order expired: ${String(order.product_title)}`, `<p>Your order for ${escapeHtml(order.product_title)} expired because the payment was not confirmed within ${PAYMENT_WINDOW_DAYS} days.</p>`);
   }
   return rows.length;
@@ -408,4 +598,5 @@ export async function expireStaleDirectOrders(): Promise<number> {
 module.exports = router;
 module.exports.expireStaleDirectOrders = expireStaleDirectOrders;
 module.exports.hashToken = hashToken;
+module.exports.findWebsiteItem = findWebsiteItem;
 module.exports.PAYMENT_WINDOW_DAYS = PAYMENT_WINDOW_DAYS;

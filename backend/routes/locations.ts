@@ -19,8 +19,9 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
+import { notPrivateBusinessSql } from '../lib/siteVisibility';
 import logger from '../lib/logger';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, optionalAuth } from '../middleware/auth';
 import { checkTierLimit } from '../middleware/tierLimit';
 import { getIO } from '../socket';
 
@@ -101,7 +102,7 @@ router.post(
 );
 
 // ── GET /:businessId — public latest location (aggregate only) ────────────────
-router.get('/:businessId', async (req: Request, res: Response) => {
+router.get('/:businessId', optionalAuth, async (req: Request, res: Response) => {
   try {
     const realJoin = req.realOnly
       ? 'JOIN businesses b ON b.id=ll.business_id JOIN users u ON u.id=b.owner_id AND u.is_seed=FALSE AND u.is_demo=FALSE'
@@ -110,7 +111,8 @@ router.get('/:businessId', async (req: Request, res: Response) => {
       `SELECT ll.lat, ll.lng, ll.label, ll.updated_at
        FROM live_locations ll ${realJoin}
        WHERE ll.business_id = $1
-         AND ll.updated_at > NOW() - INTERVAL '10 minutes'`,
+         AND ll.updated_at > NOW() - INTERVAL '10 minutes'
+         ${req.user ? '' : `AND ${notPrivateBusinessSql('ll.business_id')}`}`,
       [req.params.businessId],
     );
 

@@ -214,6 +214,7 @@ router.post('/:sourceId/mappings', requirePaidTier, async (req: Request, res: Re
     const { showroomId, sourceId } = req.params;
     const { source_path, target_field } = req.body as Record<string, string>;
     if (!source_path || !target_field) { res.status(422).json({ error: 'validation_failed', detail: 'source_path and target_field are required' }); return; }
+    if (['__proto__', 'constructor', 'prototype'].includes(String(target_field))) { res.status(422).json({ error: 'validation_failed', detail: 'target_field cannot be __proto__, constructor or prototype' }); return; }
     const { rows: src } = await pool.query('SELECT id FROM external_data_sources WHERE id=$1 AND showroom_id=$2', [sourceId, showroomId]);
     if (!src.length) { res.status(404).json({ error: 'External data source not found' }); return; }
     const { rows } = await pool.query(

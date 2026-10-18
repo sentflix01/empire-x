@@ -43,7 +43,7 @@ describe('migrate59', () => {
     const insertBiz = calls.find(([sql]) => /INSERT INTO businesses/.test(sql));
     expect(insertBiz[1].slice(1, 3)).toEqual(['Second Site', 'service']);
     const grant = calls.find(([sql]) => /INSERT INTO business_subscriptions/.test(sql));
-    expect(grant[1]).toEqual(['biz-1', 'pro', migrate59.LEGACY_GRANT_DAYS]);
+    expect(grant[1]).toEqual(['biz-1', 'pro', migrate59.LEGACY_GRANT_MONTHS]);
     expect(grant[0]).toMatch(/ON CONFLICT \(business_id\) DO NOTHING/);
     expect(calls.some(([sql]) => /UPDATE showrooms SET business_id/.test(sql))).toBe(true);
     expect(calls.some(([sql]) => /INSERT INTO notifications/.test(sql))).toBe(true);

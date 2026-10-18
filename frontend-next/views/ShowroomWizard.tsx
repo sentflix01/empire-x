@@ -16,11 +16,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Crown, ArrowLeft, ArrowRight, Search, X, Check, Plus,
-  Store, Heart, UtensilsCrossed, HardHat, Truck, GraduationCap,
-  Briefcase, Sprout, Hotel, Sparkles, Monitor, Smartphone, PenLine,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Search, X, Check, Plus, Store, Heart, UtensilsCrossed, HardHat, Truck, GraduationCap, Briefcase, Sprout, Hotel, Sparkles, Monitor, Smartphone, PenLine } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { BUILDER_CATEGORY_META, BUILDER_TEMPLATES } from "@/lib/builderSections";
 import { getShowroomTemplateSamples } from "@/lib/showroomTemplateSamples";
 import BuilderPreview from "@/components/showroom/BuilderPreview";
@@ -68,7 +65,7 @@ function TemplateMiniPane({ premium }: { premium: boolean }) {
         <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: GOLD }}>
           {premium ? "Premium" : "Starter"}
         </span>
-        {premium && <Crown className="h-2.5 w-2.5 text-white/90" />}
+        {premium && <BrandLogo className="h-2.5 w-2.5 text-white/90" />}
       </div>
       <div className="relative mt-1.5 space-y-1">
         <div className="h-1.5 w-2/3 rounded-full bg-white/80" />
@@ -330,13 +327,13 @@ function ShowroomWizard() {
   ];
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden bg-background">
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden bg-background">
       {/* ── Stepper header ── */}
       <div className="shrink-0 border-b border-border bg-card">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:gap-5">
           <div className="hidden items-center gap-2 md:flex">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 shadow-sm shadow-blue-600/20">
-              <Crown className="h-4 w-4 text-white" />
+              <BrandLogo className="h-4 w-4 text-white" />
             </div>
             <div>
               <p className="font-display text-sm font-bold leading-tight">{t("showroomWizard.title")}</p>
@@ -493,7 +490,7 @@ function ShowroomWizard() {
                 {/* Template grid */}
                 {templates.length === 0 ? (
                   <div className="py-14 text-center text-muted-foreground">
-                    <Crown className="mx-auto mb-3 h-10 w-10 opacity-20" />
+                    <BrandLogo className="mx-auto mb-3 h-10 w-10 opacity-20" />
                     <p className="text-sm">{t("showroomWizard.noResults", { search })}</p>
                   </div>
                 ) : (
@@ -550,7 +547,7 @@ function ShowroomWizard() {
                                 <div>
                                   <div className="flex items-center gap-2">
                                     {sample.id === "premium"
-                                      ? <Crown className="h-4 w-4 text-amber-500" />
+                                      ? <BrandLogo className="h-4 w-4 text-amber-500" />
                                       : <Monitor className="h-4 w-4 text-primary" />}
                                     <h3 className="text-base font-bold">{sample.name}</h3>
                                   </div>

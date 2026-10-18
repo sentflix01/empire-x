@@ -19,7 +19,7 @@ NodBusiness is a storefront and connection platform between business owners and 
 
 ## 2. Customer purchase flow
 
-- Anyone can open a business's public site from its QR code or link and view products and services **without signing in**.
+- Anyone can open a business's public site from its QR code or link and view products and services **without signing in**, unless the owner made the business **private** (§7.5). A private business asks the visitor to sign in first.
 - Choosing **Buy** or **Request service** opens a checkout/contact view with the seller's business details, address details and payment instructions.
 - The seller offers one or both payment options, and controls which options and account details are shown:
   1. **Pay the seller directly**: the seller's own payment account details are shown; the customer pays outside NodBusiness (bank transfer, mobile money).
@@ -84,12 +84,12 @@ Days are counted from the moment the subscription expires.
 | Expiry | Owner notified; can pay to continue. |
 | First 24 hours | Site stays public (grace period). |
 | After 24 hours | Hidden from everyone except the owner: direct URL, feeds, search, trending, showroom and product listings, public profile details. |
-| Day 3 | Warning: blocked and deleted unless the owner pays. |
+| Day 3 | Warning: deleted on Day 10 unless the owner pays. The owner can still view, edit and renew. |
 | Day 7 | Second warning. |
 | Day 9 | Final warning. |
 | Day 10 | Site and Business profile permanently deleted; owner emailed; owner cannot create a new Business profile for 1 month (the account itself remains usable). |
 
-- **Owner access until Day 10 (decided 2026-10-16):** the owner keeps full access to the hidden business (view, edit and renew) until deletion. This replaces the implemented Day-3 owner lockout (`blockedForOwner` at 3 days in `backend/lib/businessSubscriptionPolicy.ts`).
+- **Owner access until Day 10 (decided 2026-10-16):** the owner keeps full access to the hidden business (view, edit and renew) until deletion. This replaced the earlier Day-3 owner lockout, which was removed from the code.
 - Transaction records needed for order history and accounting are kept after deletion.
 - Reminder emails are recorded per billing period so scheduled checks never send duplicates.
 
@@ -97,7 +97,8 @@ Days are counted from the moment the subscription expires.
 
 ### 7.1 Guests browse Real content, read-only (decided 2026-10-16)
 
-- A visitor without an account can browse **Real** businesses, products, services, published showrooms and feeds **read-only**. Any write (follow, like, comment, message, post) requires signing in; buying works through guest checkout (§2.1).
+- A visitor without an account can browse **Real** public businesses, products, services and published showrooms **read-only**. Any write (follow, like, comment, message, post) requires signing in; buying works through guest checkout (§2.1).
+- **Guests see the business feed only** (updated 2026-10-16, §7.5). Personal posts, stories, people and personal profiles need sign-in; signed-in users see both the personal and the business feed.
 - **Guests never connect to Demo accounts or Demo data.** Demo is entered only through **Try Demo**.
 - This replaces the earlier rule "Explore as guest is read-only and shows Demo content only".
 
@@ -108,7 +109,7 @@ Days are counted from the moment the subscription expires.
 
 ### 7.3 Search engines
 
-Real published businesses stay **findable by search engines** (sitemap and public pages kept). Only a business's public page is exposed.
+Real published **public** businesses stay **findable by search engines** (sitemap and public pages kept). Only a business's public page is exposed. **Private** businesses are left out of the sitemap and their pages are marked `noindex` (§7.5).
 
 ### 7.4 Demo / Real separation
 
@@ -116,6 +117,14 @@ Real published businesses stay **findable by search engines** (sitemap and publi
 - Real accounts and guests see only Real users and businesses.
 - Separation applies to API reads and writes, profiles, feeds, search, showroom pages and cache keys. A separation audit covers every one of these paths.
 - **Demo payments never connect to real payment providers.**
+
+### 7.5 Public or private business sites (decided 2026-10-16)
+
+- The owner chooses who can view the business, its sites and its products: **Public** (default) or **Private**. The choice is made in the business settings and in the site builder when publishing, and applies to the whole business.
+- **Public:** anyone can open it from a QR code or link, browse and buy as a guest; it appears in guest feeds, search and search engines.
+- **Private:** only signed-in users can view it and buy. Guests opening its link or QR code see "Sign in to view" and return to the page after signing in. It is hidden from guests in feeds, search, maps and trending, has no link preview, is not in the sitemap, and is marked `noindex`.
+- The server enforces this (`businesses.visibility`, `lib/siteVisibility.ts`); a guest request for a private business gets `401 SIGN_IN_REQUIRED`.
+- This narrows §2 (open without signing in) and §7.3 (findable by search engines) to public businesses.
 
 ## 8. Demo content
 

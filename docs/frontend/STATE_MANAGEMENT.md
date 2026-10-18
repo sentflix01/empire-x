@@ -109,9 +109,16 @@ const createProduct = useMutation({
     queryClient.invalidateQueries({ queryKey: ['products'] })
     toast.success('Product created!')
   },
-  onError: (err) => toast.error(err.message || 'Failed to create product'),
+  onError: (err) => toast.error(apiErrorMessage(err, 'Failed to create product')),
 })
 ```
+
+**Reading API errors:** `@/api/client` (and `entities`, which uses it) rejects
+with the response **body** itself plus the HTTP `status` — not an axios error —
+so `err.response?.data` is always `undefined`. Use `apiErrorMessage(err, fallback)`
+from `@/lib/apiErrorMessage` for the message to show, and `apiErrorBody(err)` when
+branching on a machine code (e.g. `body?.error === 'business_profile_required'`).
+Both also accept raw axios errors.
 
 **Query key conventions:**
 

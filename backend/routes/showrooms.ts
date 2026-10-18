@@ -9,10 +9,13 @@ import { runDoctor } from '../lib/showroomDoctor';
 import { recordEvent } from '../lib/telemetry';
 import { canPublishBusinessSite, getBusinessSubscriptionAccess, getRequiredBusinessTier, isBusinessOwnerBlocked } from '../lib/businessSubscriptionPolicy';
 import { announceShowroomPublished, type PublishedShowroom } from '../lib/showroomAnnouncement';
+import { businessViewGate, notPrivateBusinessSql, rejectViewGate } from '../lib/siteVisibility';
+import rateLimit from 'express-rate-limit';
+import { addSignup, hasNewsletterSection, listSignups, normaliseSignupEmail } from '../lib/newsletterSignups';
 
 const router = Router();
 
-router.get('/', optionalAuth, cacheMiddleware('showrooms:list', 30), async (req: Request, res: Response) => {
+router.get('/', optionalAuth, cacheMiddleware('showrooms:list', 30, { varyByAuth: true }), async (req: Request, res: Response) => {
   try {
     const { owner_id, category, sort = '-created_at', limit = '50' } = req.query as Record<string, string>;
     const requestedStatus = typeof req.query.status === 'string' ? req.query.status : undefined;
@@ -32,6 +35,7 @@ router.get('/', optionalAuth, cacheMiddleware('showrooms:list', 30), async (req:
     res.json(await listRecords('showrooms', {
       filter, sort, limit, realOnly: req.realOnly,
       paidBusinessGrace: status === 'published' && owner_id !== req.user?.id,
+      publicOnly: !req.user,
     }));
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Failed to fetch showrooms');
@@ -49,8 +53,7 @@ router.get('/slug/:slug', optionalAuth, async (req: Request, res: Response) => {
     if (!rows.length) { res.status(404).json({ error: 'Showroom not found' }); return; }
     const access = rows[0].business_id ? await getBusinessSubscriptionAccess(String(rows[0].business_id)) : null;
     const isOwner = rows[0].owner_id === req.user?.id;
-    if (!isOwner && (!access || access.hiddenFromPublic)) { res.status(404).json({ error: 'Showroom not found' }); return; }
-    if (isOwner && access?.blockedForOwner) { res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' }); return; }
+    if (!isOwner && rejectViewGate(res, businessViewGate(access, req), 'Showroom not found')) return;
     await pool.query('UPDATE showrooms SET view_count=view_count+1 WHERE id=$1', [rows[0].id]);
     res.json({ ...rows[0], view_count: rows[0].view_count + 1 });
   } catch { res.status(500).json({ error: 'Failed to fetch showroom' }); }
@@ -147,10 +150,47 @@ router.get('/sitemap-data', async (req: Request, res: Response) => {
         WHERE paid_sub.business_id=showrooms.business_id AND paid_sub.tier <> 'freemium'
           AND paid_sub.current_period_end > NOW() - INTERVAL '24 hours')` : '';
     const { rows } = await pool.query(
-      `SELECT slug, id, updated_at FROM showrooms WHERE status='published' AND (expires_at IS NULL OR expires_at > NOW()) ${realFilter} ORDER BY updated_at DESC LIMIT 5000`
+      `SELECT slug, id, updated_at FROM showrooms WHERE status='published' AND (expires_at IS NULL OR expires_at > NOW()) ${realFilter}
+         AND ${notPrivateBusinessSql('showrooms.business_id')} ORDER BY updated_at DESC LIMIT 5000`
     );
     res.json(rows);
   } catch { res.status(500).json({ error: 'Failed to fetch sitemap data' }); }
+});
+
+// ── Newsletter section: visitors sign up, the owner reads the list ─────────────
+const newsletterLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 10, skip: () => process.env.NODE_ENV === 'test', standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many sign-ups. Please try again later.' },
+});
+
+router.post('/:id/newsletter', newsletterLimiter, optionalAuth, async (req: Request, res: Response) => {
+  try {
+    const email = normaliseSignupEmail((req.body as Record<string, unknown> | undefined)?.email);
+    if (!email) { res.status(422).json({ error: 'invalid_email', message: 'Enter a valid email address.' }); return; }
+    const showroom = await getRecord<Record<string, unknown>>('showrooms', req.params.id, { realOnly: req.realOnly });
+    const live = showroom && showroom.status === 'published'
+      && !(showroom.expires_at && new Date(String(showroom.expires_at)).getTime() <= Date.now());
+    if (!showroom || !live || !hasNewsletterSection(showroom.sections)) { res.status(404).json({ error: 'Showroom not found' }); return; }
+    const access = showroom.business_id ? await getBusinessSubscriptionAccess(String(showroom.business_id)) : null;
+    if (showroom.owner_id !== req.user?.id && rejectViewGate(res, businessViewGate(access, req), 'Showroom not found')) return;
+    await addSignup(String(showroom.id), email);
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'newsletter signup failed');
+    res.status(500).json({ error: 'Could not save your sign-up' });
+  }
+});
+
+router.get('/:id/newsletter', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const showroom = await getRecord<Record<string, unknown>>('showrooms', req.params.id, { realOnly: req.realOnly });
+    if (!showroom || showroom.owner_id !== req.user!.id) { res.status(404).json({ error: 'Showroom not found' }); return; }
+    res.set('Cache-Control', 'private, no-store');
+    res.json(await listSignups(String(showroom.id)));
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'newsletter list failed');
+    res.status(500).json({ error: 'Could not load sign-ups' });
+  }
 });
 
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
@@ -159,8 +199,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
     if (!showroom) { res.status(404).json({ error: 'Showroom not found' }); return; }
     const access = showroom.business_id ? await getBusinessSubscriptionAccess(String(showroom.business_id)) : null;
     const isOwner = showroom.owner_id === req.user?.id;
-    if (showroom.status === 'published' && !isOwner && (!access || access.hiddenFromPublic)) { res.status(404).json({ error: 'Showroom not found' }); return; }
-    if (isOwner && access?.blockedForOwner) { res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' }); return; }
+    if (showroom.status === 'published' && !isOwner && rejectViewGate(res, businessViewGate(access, req), 'Showroom not found')) return;
     if (showroom.status !== 'published' && showroom.owner_id !== req.user?.id) { res.status(404).json({ error: 'Showroom not found' }); return; }
     if (showroom.expires_at && new Date(String(showroom.expires_at)).getTime() <= Date.now()) { res.status(404).json({ error: 'Showroom not found' }); return; }
     res.json(showroom);
@@ -246,7 +285,6 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     const updates = withoutProtectedFields(req.body as Record<string, unknown>, 'owner_id');
     delete updates.expires_at;
     const currentAccess = existing.business_id ? await getBusinessSubscriptionAccess(existing.business_id) : null;
-    if (existing.owner_id === req.user!.id && currentAccess?.blockedForOwner) { res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' }); return; }
     let businessId = typeof updates.business_id === 'string' ? updates.business_id : existing.business_id ?? undefined;
     if (!businessId && !req.user!.is_demo) {
       const { rows } = await pool.query<{ id: string }>('SELECT id FROM businesses WHERE owner_id=$1 ORDER BY created_at ASC LIMIT 2', [req.user!.id]);

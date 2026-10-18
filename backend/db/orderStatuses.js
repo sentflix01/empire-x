@@ -12,6 +12,8 @@ const ORDER_STATUSES = Object.freeze([
   'cancelled', 'disputed', 'payment_failed', 'refunded', 'return_requested', 'return_approved',
   // Direct payment (migrate57): buyer pays the seller, reports it, seller confirms.
   'awaiting_payment', 'payment_reported', 'expired',
+  // Request to order (migrate64): a website item without a catalogue product; the seller sets the price.
+  'requested',
 ]);
 
 /** SQL that replaces orders_status_check with the full current list. */

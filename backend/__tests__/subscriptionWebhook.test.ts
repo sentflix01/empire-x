@@ -1,6 +1,7 @@
 import express from 'express';
 import request from 'supertest';
 import pool from '../db/pool';
+import { invoicePeriod, invoiceSubscriptionId, subscriptionPeriod } from '../lib/stripeSubscriptionPeriod';
 
 type StripeEvent = { id: string; type: string; data: { object: Record<string, unknown> } };
 
@@ -22,9 +23,6 @@ jest.mock('../routes/push', () => ({ sendPushToUser: jest.fn().mockResolvedValue
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const subscriptionsRouter = require('../routes/subscriptions');
-const { subscriptionPeriod } = subscriptionsRouter as {
-  subscriptionPeriod: (sub: unknown) => { start: Date | null; end: Date | null };
-};
 
 const mockPool = pool as unknown as { query: jest.Mock };
 const app = express();
@@ -38,6 +36,7 @@ function routePoolQueries({ claim = true } = {}) {
   mockPool.query.mockImplementation(async (sql: string) => {
     if (sql.includes('INSERT INTO webhook_events')) return { rows: claim ? [{ id: mockEvent.current!.id }] : [] };
     if (sql.includes('SELECT business_id FROM business_subscriptions')) return { rows: [{ business_id: 'biz-1' }] };
+    if (sql.includes('RETURNING business_id')) return { rows: [{ business_id: 'biz-1' }] };
     return { rows: [] };
   });
 }
@@ -67,7 +66,8 @@ describe('subscription webhook idempotency claim (F-C1)', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ received: true });
     const [claim] = callsMatching('INSERT INTO webhook_events');
-    expect(claim[0]).toBe('INSERT INTO webhook_events (id,type) VALUES ($1,$2) ON CONFLICT (id) DO NOTHING RETURNING id');
+    expect(claim[0]).toContain('INSERT INTO webhook_events (id, type, processed_at)');
+    expect(claim[0]).toContain('ON CONFLICT (id) DO NOTHING RETURNING id');
     expect(claim[1]).toEqual(['evt_1', 'customer.subscription.deleted']);
     expect(callsMatching('event_id')).toHaveLength(0);
   });
@@ -94,23 +94,18 @@ describe('subscription webhook idempotency claim (F-C1)', () => {
   });
 });
 
-describe('subscription billing periods (F-C2)', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    routePoolQueries();
-  });
-
-  it('reads the period from subscription items, using the latest item end', () => {
+describe('Stripe billing period helpers (F-C2)', () => {
+  it('reads the period from subscription items (current Stripe API)', () => {
     const period = subscriptionPeriod({
-      items: {
-        data: [
-          { current_period_start: ts('2026-10-01T00:00:00Z'), current_period_end: ts('2026-11-01T00:00:00Z') },
-          { current_period_start: ts('2026-10-15T00:00:00Z'), current_period_end: ts('2026-11-15T00:00:00Z') },
-        ],
-      },
+      items: { data: [{ current_period_start: ts('2026-10-15T00:00:00Z'), current_period_end: ts('2026-11-15T00:00:00Z') }] },
     });
     expect(period.start?.toISOString()).toBe('2026-10-15T00:00:00.000Z');
     expect(period.end?.toISOString()).toBe('2026-11-15T00:00:00.000Z');
+  });
+
+  it('reads legacy subscription-level fields', () => {
+    const period = subscriptionPeriod({ current_period_start: ts('2026-10-01T00:00:00Z'), current_period_end: ts('2026-11-01T00:00:00Z') });
+    expect(period.end?.toISOString()).toBe('2026-11-01T00:00:00.000Z');
   });
 
   it('returns nulls instead of an Invalid Date when Stripe sends no period', () => {
@@ -119,9 +114,20 @@ describe('subscription billing periods (F-C2)', () => {
     expect(subscriptionPeriod(null)).toEqual({ start: null, end: null });
   });
 
-  it('falls back to legacy subscription-level fields', () => {
-    const period = subscriptionPeriod({ current_period_start: ts('2026-10-01T00:00:00Z'), current_period_end: ts('2026-11-01T00:00:00Z') });
-    expect(period.end?.toISOString()).toBe('2026-11-01T00:00:00.000Z');
+  it('finds the subscription and period on old and new invoice shapes', () => {
+    expect(invoiceSubscriptionId({ subscription: 'sub_old' })).toBe('sub_old');
+    expect(invoiceSubscriptionId({ parent: { subscription_details: { subscription: 'sub_new' } } })).toBe('sub_new');
+    expect(invoiceSubscriptionId({ parent: null })).toBeNull();
+    const period = invoicePeriod({ lines: { data: [{ period: { start: ts('2026-11-15T00:00:00Z'), end: ts('2026-12-15T00:00:00Z') } }] } });
+    expect(period.end?.toISOString()).toBe('2026-12-15T00:00:00.000Z');
+    expect(invoicePeriod({ lines: { data: [] } })).toEqual({ start: null, end: null });
+  });
+});
+
+describe('subscription billing periods in the webhook (F-C2)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    routePoolQueries();
   });
 
   it('checkout.session.completed stores the item period from the retrieved subscription', async () => {
@@ -156,7 +162,7 @@ describe('subscription billing periods (F-C2)', () => {
     expect((insert[1] as unknown[]).slice(5)).toEqual([null, null]);
   });
 
-  it('customer.subscription.updated extends the period from items and never moves it back', async () => {
+  it('customer.subscription.updated takes the item period and never moves the end back', async () => {
     await postEvent({
       id: 'evt_updated',
       type: 'customer.subscription.updated',
@@ -171,33 +177,31 @@ describe('subscription billing periods (F-C2)', () => {
     });
 
     const [update] = callsMatching('UPDATE business_subscriptions SET');
-    expect(update[0]).toContain('current_period_end   = GREATEST(current_period_end, $4)');
+    expect(update[0]).toContain('current_period_end   = GREATEST(COALESCE($4, current_period_end), current_period_end)');
     const [status, cancel, start, end, subId] = update[1] as [string, boolean, Date, Date, string];
     expect([status, cancel, subId]).toEqual(['active', false, 'sub_1']);
     expect(start.toISOString()).toBe('2026-11-15T00:00:00.000Z');
     expect(end.toISOString()).toBe('2026-12-15T00:00:00.000Z');
   });
 
-  it('invoice.paid re-reads the subscription and extends current_period_end', async () => {
-    mockStripe.subscriptions.retrieve.mockResolvedValue({
-      id: 'sub_1',
-      status: 'active',
-      items: { data: [{ current_period_start: ts('2026-11-15T00:00:00Z'), current_period_end: ts('2026-12-15T00:00:00Z') }] },
-    });
+  it('invoice.paid extends current_period_end from the invoice line period', async () => {
     const response = await postEvent({
       id: 'evt_invoice_paid',
       type: 'invoice.paid',
-      data: { object: { id: 'in_1', customer: 'cus_1', parent: { type: 'subscription_details', subscription_details: { subscription: 'sub_1' } } } },
+      data: {
+        object: {
+          id: 'in_1',
+          customer: 'cus_1',
+          parent: { type: 'subscription_details', subscription_details: { subscription: 'sub_1' } },
+          lines: { data: [{ period: { start: ts('2026-11-15T00:00:00Z'), end: ts('2026-12-15T00:00:00Z') } }] },
+        },
+      },
     });
 
     expect(response.status).toBe(200);
-    expect(mockStripe.subscriptions.retrieve).toHaveBeenCalledWith('sub_1');
-    const [lookup] = callsMatching('SELECT business_id FROM business_subscriptions');
-    expect(lookup[1]).toEqual(['sub_1']);
     const [update] = callsMatching('UPDATE business_subscriptions SET');
-    expect(update[0]).toContain('current_period_end   = GREATEST(current_period_end, $3)');
-    const [status, start, end, subId] = update[1] as [string, Date, Date, string];
-    expect(status).toBe('active');
+    expect(update[0]).toContain('current_period_end   = GREATEST(COALESCE($2, current_period_end), current_period_end)');
+    const [start, end, subId] = update[1] as [Date, Date, string];
     expect(start.toISOString()).toBe('2026-11-15T00:00:00.000Z');
     expect(end.toISOString()).toBe('2026-12-15T00:00:00.000Z');
     expect(subId).toBe('sub_1');
@@ -206,20 +210,6 @@ describe('subscription billing periods (F-C2)', () => {
   it('invoice.paid ignores invoices that do not belong to a subscription', async () => {
     await postEvent({ id: 'evt_invoice_other', type: 'invoice.paid', data: { object: { id: 'in_2', parent: null } } });
 
-    expect(mockStripe.subscriptions.retrieve).not.toHaveBeenCalled();
     expect(callsMatching('business_subscriptions')).toHaveLength(0);
-  });
-
-  it('invoice.paid releases the claim when Stripe cannot be reached so the renewal is retried', async () => {
-    mockStripe.subscriptions.retrieve.mockRejectedValue(new Error('stripe unavailable'));
-    const response = await postEvent({
-      id: 'evt_invoice_retry',
-      type: 'invoice.paid',
-      data: { object: { id: 'in_3', parent: { subscription_details: { subscription: 'sub_1' } } } },
-    });
-
-    expect(response.status).toBe(500);
-    expect(callsMatching('UPDATE business_subscriptions')).toHaveLength(0);
-    expect(callsMatching('DELETE FROM webhook_events')[0][1]).toEqual(['evt_invoice_retry']);
   });
 });

@@ -5,10 +5,15 @@ import pool from '../db/pool';
 import { optionalAuth } from '../middleware/auth';
 import { cached } from '../lib/redis';
 import { getCurrentDatabaseEnvironment } from '../db/pool';
+import { announcementLiveSql, guestPostSql, notPrivateBusinessSql, productNotPrivateSql } from '../lib/siteVisibility';
 
 const router = Router();
 
-async function loadTrending(isReal: boolean): Promise<Record<string, unknown>> {
+/** guest: signed-out readers see business content only (decision §7). */
+async function loadTrending(isReal: boolean, guest: boolean): Promise<Record<string, unknown>> {
+  const postWhere = guest ? `AND ${guestPostSql('p')}` : `AND ${announcementLiveSql('p')}`;
+  const prodWhere = guest ? `AND ${productNotPrivateSql('products')}` : '';
+  const showWhere = guest ? `AND ${notPrivateBusinessSql('showrooms.business_id')}` : '';
   const realPostJoin  = isReal ? 'JOIN users _pu ON _pu.id=p.author_id AND _pu.is_seed=FALSE AND _pu.is_demo=FALSE' : '';
   const realProdWhere = isReal ? `AND seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)` : '';
   const realShowWhere = isReal ? `AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)
@@ -21,17 +26,17 @@ async function loadTrending(isReal: boolean): Promise<Record<string, unknown>> {
     pool.query(
       `SELECT p.id,p.author_id,p.author_name,p.author_avatar,p.content,p.image_url,p.post_type,p.like_count,p.comment_count,p.created_at,up.display_name,up.avatar_url
        FROM posts p LEFT JOIN user_profiles up ON up.user_id=p.author_id ${realPostJoin}
-       WHERE p.created_at > NOW()-INTERVAL '48 hours' ORDER BY p.like_count DESC, p.comment_count DESC LIMIT 10`,
+       WHERE p.created_at > NOW()-INTERVAL '48 hours' ${postWhere} ORDER BY p.like_count DESC, p.comment_count DESC LIMIT 10`,
     ),
     pool.query(
       `SELECT DISTINCT id,seller_id,title,price,currency,images,category,view_count,average_rating::float8 AS average_rating
-       FROM products WHERE status='active' ${realProdWhere} ORDER BY view_count DESC LIMIT 8`,
+       FROM products WHERE status='active' ${realProdWhere} ${prodWhere} ORDER BY view_count DESC LIMIT 8`,
     ),
     pool.query(
       `SELECT id,owner_id,title,description,category,cover_image,logo_url,view_count
-       FROM showrooms WHERE status='published' AND (expires_at IS NULL OR expires_at > NOW()) ${realShowWhere} ORDER BY view_count DESC LIMIT 6`,
+       FROM showrooms WHERE status='published' AND (expires_at IS NULL OR expires_at > NOW()) ${realShowWhere} ${showWhere} ORDER BY view_count DESC LIMIT 6`,
     ),
-    pool.query(
+    guest ? Promise.resolve({ rows: [] }) : pool.query(
       `SELECT up.user_id,up.display_name,up.avatar_url,up.headline,up.follower_count,up.is_verified
        FROM user_profiles up ${realUserJoin} ORDER BY up.follower_count DESC, up.created_at DESC LIMIT 8`,
     ),
@@ -49,9 +54,10 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
   try {
     const isReal = !!req.realOnly;
     const environment = getCurrentDatabaseEnvironment();
-    const cacheKey = `trending:${environment}:${isReal ? 'real-only' : 'all-users'}`;
+    const guest = !req.user;
+    const cacheKey = `trending:${environment}:${isReal ? 'real-only' : 'all-users'}:${guest ? 'guest' : 'member'}`;
 
-    const data = await cached(cacheKey, 45, () => loadTrending(isReal));
+    const data = await cached(cacheKey, 45, () => loadTrending(isReal, guest));
 
     // This endpoint is account-environment aware. Do not let browser/CDN caches
     // share a response between anonymous, Real, and isolated Demo requests.
@@ -70,8 +76,9 @@ router.get('/warm', optionalAuth, async (req: Request, res: Response) => {
   try {
     const isReal = !!req.realOnly;
     const environment = getCurrentDatabaseEnvironment();
-    const cacheKey = `trending:${environment}:${isReal ? 'real-only' : 'all-users'}`;
-    await cached(cacheKey, 45, () => loadTrending(isReal));
+    const guest = !req.user;
+    const cacheKey = `trending:${environment}:${isReal ? 'real-only' : 'all-users'}:${guest ? 'guest' : 'member'}`;
+    await cached(cacheKey, 45, () => loadTrending(isReal, guest));
     res.vary('X-Account-Mode');
     res.vary('X-Real-Only');
     res.vary('Cookie');

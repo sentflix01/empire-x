@@ -15,16 +15,16 @@ The social feed engine: smart ranked feed (recency + engagement + social boost) 
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/posts/` | optional | 38 |
-| `GET` | `/api/posts/:id` | optional | 102 |
-| `POST` | `/api/posts/` | auth | 111 |
-| `PUT` | `/api/posts/:id` | auth | 143 |
-| `DELETE` | `/api/posts/:id` | auth | 164 |
-| `GET` | `/api/posts/:id/like` | optional | 176 |
-| `POST` | `/api/posts/:id/like` | auth | 184 |
-| `GET` | `/api/posts/:id/comments` | optional | 214 |
-| `POST` | `/api/posts/:id/comments` | auth | 228 |
-| `DELETE` | `/api/posts/:postId/comments/:commentId` | auth | 280 |
+| `GET` | `/api/posts/` | optional | 60 |
+| `GET` | `/api/posts/:id` | optional | 130 |
+| `POST` | `/api/posts/` | auth | 140 |
+| `PUT` | `/api/posts/:id` | auth | 172 |
+| `DELETE` | `/api/posts/:id` | auth | 206 |
+| `GET` | `/api/posts/:id/like` | optional | 227 |
+| `POST` | `/api/posts/:id/like` | auth | 235 |
+| `GET` | `/api/posts/:id/comments` | optional | 265 |
+| `POST` | `/api/posts/:id/comments` | auth | 280 |
+| `DELETE` | `/api/posts/:postId/comments/:commentId` | auth | 332 |
 
 ## 4. What does it touch?
 

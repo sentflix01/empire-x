@@ -2,15 +2,40 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { optionalAuth } from '../middleware/auth';
+import { announcementLiveSql, guestPostSql } from '../lib/siteVisibility';
 
 const router = Router();
 
+export function extractHashtags(content: string): string[] {
+  return [...new Set((content.match(/#([a-zA-Z0-9_\u00C0-\u024F]+)/g) ?? []).map((t) => t.slice(1).toLowerCase()))];
+}
+
 export async function syncHashtags(postId: string, content: string): Promise<void> {
-  const tags = [...new Set((content.match(/#([a-zA-Z0-9_\u00C0-\u024F]+)/g) ?? []).map((t) => t.slice(1).toLowerCase()))];
-  if (!tags.length) return;
+  await linkHashtags(postId, extractHashtags(content));
+}
+
+/** Brings a post's hashtag links (and their post counts) in line with edited content. */
+export async function resyncHashtags(postId: string, content: string): Promise<void> {
+  const tags = extractHashtags(content);
+  const { rows: current } = await pool.query<{ id: string; name: string }>(
+    'SELECT h.id, h.name FROM post_hashtags ph JOIN hashtags h ON h.id = ph.hashtag_id WHERE ph.post_id = $1',
+    [postId],
+  );
+  await unlinkHashtags(postId, current.filter((row) => !tags.includes(row.name)).map((row) => row.id));
+  await linkHashtags(postId, tags.filter((tag) => !current.some((row) => row.name === tag)));
+}
+
+/** Removes a post's links to the given hashtags and decrements their post counts. */
+export async function unlinkHashtags(postId: string, hashtagIds: string[]): Promise<void> {
+  if (!hashtagIds.length) return;
+  await pool.query('DELETE FROM post_hashtags WHERE post_id = $1 AND hashtag_id = ANY($2::uuid[])', [postId, hashtagIds]);
+  await pool.query('UPDATE hashtags SET post_count = GREATEST(post_count - 1, 0) WHERE id = ANY($1::uuid[])', [hashtagIds]);
+}
+
+async function linkHashtags(postId: string, tags: string[]): Promise<void> {
   for (const tag of tags) {
     const { rows } = await pool.query(
-      `INSERT INTO hashtags (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET post_count=hashtags.post_count+1 RETURNING id`,
+      `INSERT INTO hashtags (name, post_count) VALUES ($1, 1) ON CONFLICT (name) DO UPDATE SET post_count=hashtags.post_count+1 RETURNING id`,
       [tag],
     );
     await pool.query(
@@ -68,7 +93,7 @@ router.get('/:name/posts', optionalAuth, async (req: Request, res: Response) => 
   try {
     const tag = req.params.name.toLowerCase().replace(/^#/, '');
     const { rows } = await pool.query(
-      `SELECT p.* FROM posts p JOIN post_hashtags ph ON ph.post_id=p.id JOIN hashtags h ON h.id=ph.hashtag_id JOIN users u ON u.id=p.author_id WHERE h.name=$1 ${req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : ''} ORDER BY p.created_at DESC LIMIT 50`,
+      `SELECT p.* FROM posts p JOIN post_hashtags ph ON ph.post_id=p.id JOIN hashtags h ON h.id=ph.hashtag_id JOIN users u ON u.id=p.author_id WHERE h.name=$1 ${req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : ''} AND ${req.user ? announcementLiveSql('p') : guestPostSql('p')} ORDER BY p.created_at DESC LIMIT 50`,
       [tag],
     );
     res.json(rows);
@@ -77,3 +102,6 @@ router.get('/:name/posts', optionalAuth, async (req: Request, res: Response) => 
 
 module.exports = router;
 module.exports.syncHashtags = syncHashtags;
+module.exports.extractHashtags = extractHashtags;
+module.exports.resyncHashtags = resyncHashtags;
+module.exports.unlinkHashtags = unlinkHashtags;

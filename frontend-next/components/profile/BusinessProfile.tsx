@@ -6,16 +6,31 @@ import { entities } from "@/api/entities";
 
 import { Mail, Phone, MapPin, ShoppingBag, Plus, Edit2, MessageSquare, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { Badge } from "@/components/ui/badge";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
 import { findOrCreateConversation } from "@/lib/messaging";
-import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
+import SectionRenderer, { resolveCtaTarget, firstProductsIndex, isCatalogueSection } from "@/components/showroom/SectionRenderer";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import SafeImage from "@/components/ui/SafeImage";
+import WebsiteStatusBanner from "@/components/profile/WebsiteStatusBanner";
 
+
+/**
+ * The business's published Studio site, if any: the most recently updated
+ * published showroom linked to `businessId`. The API already drops sites that
+ * are expired, private to guests, or past the 24-hour grace after a plan ends.
+ */
+export function pickPublishedSite(showrooms, businessId) {
+  if (!businessId || !Array.isArray(showrooms)) return null;
+  const matches = showrooms.filter(s => s?.status === "published" && String(s.business_id ?? "") === String(businessId));
+  matches.sort((a, b) => String(b.updated_at ?? "").localeCompare(String(a.updated_at ?? "")));
+  return matches[0] ?? null;
+}
 
 export default function BusinessProfile({ profile, business, user, isOwner }) {
   const [products, setProducts] = useState([]);
+  const [site, setSite] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [purchaseItem, setPurchaseItem] = useState(null);
@@ -41,34 +56,59 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [prods, ords] = await Promise.all([
+    const [prods, ords, sites] = await Promise.all([
       entities.Product.filter({ seller_id: profile.user_id, status: "active" }, "-created_at", 50).catch(() => []),
-      isOwner ? entities.Order.filter({ seller_id: profile.user_id }, "-created_at", 10).catch(() => []) : Promise.resolve([])
+      isOwner ? entities.Order.filter({ seller_id: profile.user_id }, "-created_at", 10).catch(() => []) : Promise.resolve([]),
+      business?.id
+        ? entities.Showroom.filter({ owner_id: profile.user_id, status: "published" }, "-updated_at", 50).catch(() => [])
+        : Promise.resolve([]),
     ]);
     setProducts(prods);
     setOrders(ords);
+    setSite(pickPublishedSite(sites, business?.id));
     setLoading(false);
-  }, [profile.user_id, isOwner]);
+  }, [profile.user_id, isOwner, business?.id]);
 
   useEffect(() => {
     loadData();
-  }, [loadData, business?.id]);
+  }, [loadData]);
 
-  const sections = (() => { try { return JSON.parse(biz.business_sections || "[]"); } catch { return []; } })();
+  // Prefer the owner's published Studio site; the category template's sample
+  // sections are only a fallback for businesses without one.
+  const sections = (() => {
+    try {
+      const raw = site ? site.sections : biz.business_sections;
+      const parsed = typeof raw === "string" ? JSON.parse(raw || "[]") : raw;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+  })();
   const ctaTarget = resolveCtaTarget(sections);
   const productsIdx = firstProductsIndex(sections);
-  const themeColor = biz.business_theme_color || "#2563EB";
+  const themeColor = (site && site.theme_color) || biz.business_theme_color || "#2563EB";
+  const siteContactIdx = site ? sections.findIndex(s => s?.type === "contact") : -1;
+  const contactHref = siteContactIdx >= 0 ? `#section-${siteContactIdx}` : "#section-contact";
+  const sectionProfile = site
+    ? { ...biz, ...site, business_name: site.title || biz.business_name, business_description: site.description ?? biz.business_description, display_name: site.title || biz.business_name }
+    : biz;
+  const siteSlug = site ? site.slug : biz.showroom_slug;
+  const siteEditId = site ? site.id : biz.showroom_id;
   const hours = (() => { try { return JSON.parse(biz.business_hours || "[]"); } catch { return []; } })();
 
   const handleBuy = (product) => {
-    // Guests can buy: the Buy view asks for name, phone and email.
-    setPurchaseItem({ ...product, product_type: "product" });
+    // Guests can buy: the Buy view asks for name, phone and email. Studio cards
+    // carry their own product_type (linked product or website item).
+    setPurchaseItem(site ? product : { ...product, product_type: "product" });
   };
 
   if (loading) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-0">
+      {/* Owner only: why the business isn't visible yet, and the one action that fixes it. */}
+      {isOwner && business?.id && (
+        <WebsiteStatusBanner businessId={String(business.id)} ownerId={String(profile.user_id)} businessCategory={biz.business_category} />
+      )}
+
       {/* Mini-Website Container */}
       <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
         {/* Website Navbar — static, not sticky (sticky causes z-index overlap with contact section) */}
@@ -91,8 +131,8 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
             ))}
             {isOwner ? (
               <div className="flex items-center gap-1.5">
-                {biz.showroom_slug && <Link href={`/showroom/${biz.showroom_slug}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><ExternalLink className="w-3 h-3 mr-1" /> View site</Button></Link>}
-                <Link href={biz.showroom_id ? `/showroom/create?edit=${biz.showroom_id}` : `/business/edit?id=${business?.id || ""}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button></Link>
+                {siteSlug && <Link href={`/showroom/${siteSlug}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><ExternalLink className="w-3 h-3 mr-1" /> View site</Button></Link>}
+                <Link href={siteEditId ? `/showroom/create?edit=${siteEditId}` : `/business/edit?id=${business?.id || ""}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button></Link>
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
@@ -100,7 +140,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
                   <MessageSquare className="w-3 h-3 mr-1" /> {messaging ? "..." : "Message"}
                 </Button>
                 <Button size="sm" className="rounded-full h-7 text-xs text-white" style={{ backgroundColor: themeColor }}>
-                  <a href={`#section-contact`}>Contact</a>
+                  <a href={contactHref}>Contact</a>
                 </Button>
               </div>
             )}
@@ -110,7 +150,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
         {/* Render Sections */}
         <div className="space-y-0">
           {sections.map((section, idx) => {
-            const sectionProducts = section.type === "products" || section.type === "featured_products" ? products : [];
+            const sectionProducts = isCatalogueSection(section.type) ? products : [];
 
             return (
               <SectionRenderer
@@ -119,18 +159,20 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
                 sectionIndex={idx}
                 products={sectionProducts}
                 themeColor={themeColor}
-                profile={biz}
+                profile={sectionProfile}
                 isOwner={isOwner}
-                onBuy={handleBuy}
+                onBuy={site && isOwner ? undefined : handleBuy}
                 hours={hours}
                 ctaTarget={ctaTarget}
                 isPrimaryProducts={idx === productsIdx}
+                showroomId={site?.id ?? null}
+                businessId={business?.id ? String(business.id) : null}
               />
             );
           })}
 
-          {/* Contact Section */}
-          <div id="section-contact" className="px-5 py-10 bg-secondary/30 border-t border-border/30">
+          {/* Contact Section (a Studio site with its own contact section skips it) */}
+          {siteContactIdx < 0 && <div id="section-contact" className="px-5 py-10 bg-secondary/30 border-t border-border/30">
             <div className="max-w-md mx-auto text-center">
               <h2 className="font-display text-xl font-bold mb-4">Get in Touch</h2>
               <div className="space-y-2 text-sm">
@@ -151,11 +193,11 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
                 )}
               </div>
             </div>
-          </div>
+          </div>}
 
           {/* Footer */}
           <div className="px-5 py-6 bg-muted text-center">
-            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {biz.business_name}. Powered by Nodbusiness 👑</p>
+            <p className="inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground">© {new Date().getFullYear()} {biz.business_name}. Powered by <BrandLogo className="w-3.5 h-3.5" /> Nodbusiness</p>
           </div>
         </div>
       </div>
@@ -206,7 +248,9 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
       {purchaseItem && (
         <PurchaseModal
           item={purchaseItem}
-          seller={biz}
+          seller={site ? { ...biz, user_id: site.owner_id ?? profile.user_id, business_name: site.title || biz.business_name } : biz}
+          showroomId={site?.id}
+          businessId={business?.id ?? null}
           buyer={user ?? undefined}
           onClose={() => setPurchaseItem(null)}
         />

@@ -15,7 +15,7 @@ jest.mock('../../utils/crud', () => ({
   withoutProtectedFields: (data) => ({ ...data }),
 }));
 jest.mock('../../lib/businessSubscriptionPolicy', () => ({
-  getBusinessSubscriptionAccess: jest.fn().mockResolvedValue({ hiddenFromPublic: false, blockedForOwner: false }),
+  getBusinessSubscriptionAccess: jest.fn().mockResolvedValue({ hiddenFromPublic: false }),
   isBusinessOwnerBlocked: jest.fn().mockResolvedValue(false),
 }));
 
@@ -43,7 +43,7 @@ beforeEach(() => {
   pool.query.mockReset();
   user = null;
   crud.getRecord.mockResolvedValue({ ...BUSINESS });
-  policy.getBusinessSubscriptionAccess.mockResolvedValue({ hiddenFromPublic: false, blockedForOwner: false });
+  policy.getBusinessSubscriptionAccess.mockResolvedValue({ hiddenFromPublic: false });
 });
 
 describe('contact-field privacy', () => {

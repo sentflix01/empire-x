@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import logger from '../lib/logger';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
+import { productNotPrivateSql } from '../lib/siteVisibility';
 
 const router = Router();
 
@@ -14,6 +15,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     if (product_id)  { params.push(product_id);  conditions.push(`r.product_id=$${params.length}`); }
     if (reviewer_id) { params.push(reviewer_id); conditions.push(`r.reviewer_id=$${params.length}`); }
     if (req.realOnly) conditions.push('reviewer.is_seed=FALSE AND reviewer.is_demo=FALSE AND seller.is_seed=FALSE AND seller.is_demo=FALSE');
+    if (!req.user) conditions.push(`(product.id IS NULL OR (${productNotPrivateSql('product')}))`);
     const where    = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const sortDesc = sort.startsWith('-');
     const sortRaw  = sort.replace(/^-/, '').replace(/[^a-z0-9_]/gi, '') || 'created_at';
@@ -33,7 +35,8 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
 
 router.get('/product/:productId', optionalAuth, async (req: Request, res: Response) => {
   try {
-    const realFilter = req.realOnly ? 'AND reviewer.is_seed=FALSE AND reviewer.is_demo=FALSE AND seller.is_seed=FALSE AND seller.is_demo=FALSE' : '';
+    const realFilter = (req.realOnly ? 'AND reviewer.is_seed=FALSE AND reviewer.is_demo=FALSE AND seller.is_seed=FALSE AND seller.is_demo=FALSE' : '')
+      + (req.user ? '' : ` AND (product.id IS NULL OR (${productNotPrivateSql('product')}))`);
     const { rows } = await pool.query(
       `SELECT r.*, up.display_name, up.avatar_url FROM reviews r
        LEFT JOIN users reviewer ON reviewer.id=r.reviewer_id

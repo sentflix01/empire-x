@@ -25,7 +25,8 @@ export interface BusinessSubscriptionAccess {
   expiresAt: Date | null;
   paid: boolean;
   hiddenFromPublic: boolean;
-  blockedForOwner: boolean;
+  /** 'private' sites are for signed-in users only (lib/siteVisibility.ts). */
+  visibility: 'public' | 'private';
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -33,11 +34,12 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export async function getBusinessSubscriptionAccess(businessId: string): Promise<BusinessSubscriptionAccess | null> {
   const { rows } = await pool.query<{
     owner_id: string;
+    visibility: string | null;
     tier: string | null;
     status: string | null;
     current_period_end: Date | null;
   }>(
-    `SELECT b.owner_id, bs.tier, bs.status, bs.current_period_end
+    `SELECT b.owner_id, b.visibility, bs.tier, bs.status, bs.current_period_end
        FROM businesses b
        LEFT JOIN business_subscriptions bs ON bs.business_id = b.id
       WHERE b.id = $1`,
@@ -60,7 +62,9 @@ export async function getBusinessSubscriptionAccess(businessId: string): Promise
     // The 24-hour recovery grace applies to a previously paid subscription
     // only. A site without any billing period has no paid access window.
     hiddenFromPublic: !paid && (!end || expiredFor >= DAY_MS),
-    blockedForOwner: !paid && expiredFor >= 3 * DAY_MS,
+    // The owner keeps full access (view, edit, renew) until the business is
+    // deleted on Day 10 (decision record §6); there is no earlier lockout.
+    visibility: row.visibility === 'private' ? 'private' : 'public',
   };
 }
 

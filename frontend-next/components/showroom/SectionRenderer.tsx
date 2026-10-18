@@ -2,7 +2,7 @@ import SafeImage from '@/components/ui/SafeImage';
 /**
  * Shared section renderer for business mini-websites and showrooms.
  */
-import React from "react";
+import React, { useState } from "react";
 import Link from 'next/link';
 
 import {
@@ -12,6 +12,32 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BookmarkButton from "@/components/ui/BookmarkButton";
+import { isGetQuote, sectionItemBuyPayload } from "@/lib/sectionItemPurchase";
+import client from "@/api/client";
+import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import LiveLocationSection from "@/components/showroom/LiveLocationSection";
+import { MenuSection, OfferSection, OpeningHoursSection, PaymentInfoSection } from "@/components/showroom/NewPieces";
+
+/** Sections that list the business's real products (search, categories, Order). */
+export const CATALOGUE_TYPES = ["products", "featured_products", "inventory_catalog"];
+export const isCatalogueSection = (type: unknown) => CATALOGUE_TYPES.includes(String(type));
+
+/** A YouTube link in any common shape (watch, youtu.be, shorts, live, embed) → privacy-friendly embed URL. */
+export function youtubeEmbedUrl(raw: unknown): string | null {
+  const url = String(raw ?? "").trim();
+  const id = /(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|live\/|embed\/))([\w-]{11})/.exec(url)?.[1];
+  return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
+}
+
+/** Map for a typed address (no key needed); a saved Google "embed" link still works. */
+export function mapEmbedUrl(mapUrl: unknown, address: unknown): string | null {
+  const saved = String(mapUrl ?? "").trim();
+  if (/^https:\/\/www\.google\.com\/maps\/embed/.test(saved)) return saved;
+  const where = String(address ?? "").trim();
+  return where ? `https://www.google.com/maps?q=${encodeURIComponent(where)}&output=embed` : null;
+}
+
+const digits = (v: unknown) => String(v ?? "").replace(/\D/g, "");
 
 const parseImages = (img?: string | string[] | null) => { try { return JSON.parse(String(img || "[]")); } catch { return img ? [img].flat() : []; } };
 
@@ -25,18 +51,19 @@ const parseImages = (img?: string | string[] | null) => { try { return JSON.pars
  * (`section-{index}`), so they resolve even when multiple products-type
  * sections exist (only the first gets the semantic `section-products` alias).
  */
-export function resolveCtaTarget(sections: Array<Record<string, any>>): string | null {
+export function resolveCtaTarget(sections: Array<Record<string, any>>): string {
   const list = Array.isArray(sections) ? sections : [];
-  const productsIdx = list.findIndex(s => s?.type === "products" || s?.type === "featured_products");
+  const productsIdx = list.findIndex(s => isCatalogueSection(s?.type));
   if (productsIdx >= 0) return `#section-${productsIdx}`;
-  const menuIdx = list.findIndex(s => s?.type === "menu" || s?.type === "services");
-  return menuIdx >= 0 ? `#section-${menuIdx}` : null;
+  const menuIdx = list.findIndex(s => ["menu", "services", "items", "pricing"].includes(s?.type));
+  // Every site page ends with a contact block, so this always lands somewhere.
+  return menuIdx >= 0 ? `#section-${menuIdx}` : "#section-contact";
 }
 
 /** Index of the first products/featured_products section, or -1. */
 export function firstProductsIndex(sections: Array<Record<string, any>>): number {
   const list = Array.isArray(sections) ? sections : [];
-  return list.findIndex(s => s?.type === "products" || s?.type === "featured_products");
+  return list.findIndex(s => isCatalogueSection(s?.type));
 }
 
 interface SectionRendererProps {
@@ -67,6 +94,12 @@ interface SectionRendererProps {
    * semantic `section-products` anchor exactly once (no duplicate DOM ids).
    */
   isPrimaryProducts?: boolean;
+  /** The website being shown (sign-ups, Save button); absent in Studio before the first publish. */
+  showroomId?: string | null;
+  /** The business the site belongs to (live location). */
+  businessId?: string | null;
+  /** Studio preview: forms explain they work once published instead of sending. */
+  preview?: boolean;
 }
 
 export default function SectionRenderer({
@@ -92,6 +125,9 @@ export default function SectionRenderer({
   showProductLinks = true,
   ctaTarget = null,
   isPrimaryProducts = false,
+  showroomId = null,
+  businessId = null,
+  preview = false,
 }: SectionRendererProps) {
   const s = section;
   const biz = (profile ?? {}) as Record<string, any>;
@@ -124,14 +160,15 @@ export default function SectionRenderer({
     );
   }
 
-  if (s.type === "products" || s.type === "featured_products") {
+  if (isCatalogueSection(s.type)) {
+    const showStock = s.type !== "inventory_catalog" || s.showStock === true || s.showStock === "true";
     return (
       // Index-based id is the PRIMARY anchor for nav links; the semantic
       // `section-products` id is added ONLY for the first products-type
       // section (via isPrimaryProducts) so the DOM never has duplicate ids.
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         {isPrimaryProducts && <span id="section-products" className="sr-only" aria-hidden="true" />}
-        <h2 className="font-display text-lg font-bold mb-4">{s.title}</h2>
+        <h2 className="font-display text-lg font-bold mb-4">{s.title || s.catalogTitle}</h2>
         {s.enableSearch !== false && onProductSearchChange && (
           <div className="mb-4 flex flex-col gap-2 sm:flex-row">
             <div className="relative min-w-0 flex-1">
@@ -168,7 +205,7 @@ export default function SectionRenderer({
             <p className="text-sm text-muted-foreground">
               {productSearch || productCategory ? 'No matching products. Try a different search or category.' : 'No products available yet'}
             </p>
-            {isOwner && <Link href="/products/create" className="text-xs text-amber-600 hover:underline mt-2 inline-block">Add your first product →</Link>}
+            {(isOwner || preview) && <Link href="/products/create" className="text-xs text-amber-600 hover:underline mt-2 inline-block">Add your first product →</Link>}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3" aria-live="polite">
@@ -188,8 +225,8 @@ export default function SectionRenderer({
                     {p.description && <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{p.description}</p>}
                     <div className="flex items-center justify-between mt-2">
                       <p className="text-sm font-bold" style={{ color: themeColor }}>{p.price?.toLocaleString()} {p.currency || "USD"}</p>
-                      {!isOwner && onBuy && (
-                        <span className="text-xs text-muted-foreground">{Number(p.stock) > 0 ? `${p.stock} in stock` : 'Check availability'}</span>
+                      {!isOwner && onBuy && showStock && (
+                        <span className="text-xs text-muted-foreground">{Number(p.stock) > 0 ? `${p.stock} left` : 'Check availability'}</span>
                       )}
                     </div>
                   </div>
@@ -243,6 +280,19 @@ export default function SectionRenderer({
     );
   }
 
+  // Studio menus (dishes); older template menus fall through to the services layout.
+  if (s.type === "menu" && Array.isArray(s.dishes)) {
+    return <MenuSection s={s} sectionIndex={sectionIndex} onBuy={onBuy} themeColor={themeColor} />;
+  }
+
+  if (s.type === "offer") {
+    return <OfferSection s={s} sectionIndex={sectionIndex} ctaTarget={ctaTarget} isOwner={isOwner} preview={preview} themeColor={themeColor} />;
+  }
+
+  if (s.type === "payment_info") {
+    return <PaymentInfoSection s={s} sectionIndex={sectionIndex} businessId={businessId || biz.business_id || null} isOwner={isOwner} preview={preview} themeColor={themeColor} />;
+  }
+
   if (s.type === "services" || s.type === "menu") {
     // Builder shape: servTitle + services[]{name,desc}; legacy: title + items[]{name|title,description,price}.
     const servTitle = s.servTitle || s.title;
@@ -252,16 +302,15 @@ export default function SectionRenderer({
         {servTitle && <h2 className="font-display text-lg font-bold mb-4">{servTitle}</h2>}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {servList.map((item, i) => {
-            const hasPrice = item.price && item.price !== 'Get Quote';
-            const isGetQuote = item.price === 'Get Quote' || (!item.price && item.cta === 'Get Quote');
-            const priceNum = hasPrice ? parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0 : 0;
+            const isQuote = isGetQuote(item);
+            const buy = sectionItemBuyPayload(item, 'Service');
             return (
               <div key={i} className="p-4 rounded-xl border border-border/40 hover:border-border transition-colors hover:shadow-sm">
                 <h3 className="text-sm font-semibold">{item.name || item.title}</h3>
                 {(item.desc || item.description) && <p className="text-xs text-muted-foreground mt-1">{item.desc || item.description}</p>}
-                {item.price && (
+                {(item.price || buy) && (
                   <div className="mt-2 flex items-center justify-between gap-2">
-                    {isGetQuote ? (
+                    {isQuote ? (
                       <button
                         type="button"
                         onClick={() => onGetQuote?.(item.name || item.title || 'Service', item.desc || item.description)}
@@ -270,37 +319,17 @@ export default function SectionRenderer({
                       >
                         Get Quote
                       </button>
-                    ) : (
+                    ) : item.price ? (
                       <button
                         type="button"
-                        onClick={() => onBuy?.({
-                          title: item.name || item.title || 'Service',
-                          description: item.desc || item.description,
-                          price: priceNum,
-                          currency: 'ETB',
-                          // No id — service items don't have product IDs
-                        })}
+                        onClick={() => buy && onBuy?.(buy)}
                         className="text-sm font-bold hover:underline underline-offset-2 transition-opacity hover:opacity-80 active:scale-95"
                         style={{ color: themeColor }}
                       >
                         {item.price}
                       </button>
-                    )}
-                    {hasPrice && onBuy && !isGetQuote && (
-                      <button
-                        type="button"
-                        onClick={() => onBuy({
-                          title: item.name || item.title || 'Service',
-                          description: item.desc || item.description,
-                          price: priceNum,
-                          currency: 'ETB',
-                        })}
-                        className="text-[11px] font-semibold px-2.5 py-1 rounded-full text-white transition-opacity hover:opacity-90 active:scale-95"
-                        style={{ backgroundColor: themeColor }}
-                      >
-                        Buy Now
-                      </button>
-                    )}
+                    ) : <span />}
+                    {buy && onBuy && !isQuote && <CardBuyButton themeColor={themeColor} onClick={() => onBuy(buy)} />}
                   </div>
                 )}
               </div>
@@ -372,28 +401,7 @@ export default function SectionRenderer({
   }
 
   if (s.type === "hours") {
-    const hourList = hours.length > 0 ? hours : [
-      { day: "Monday", hours: "9:00 AM - 6:00 PM" },
-      { day: "Tuesday", hours: "9:00 AM - 6:00 PM" },
-      { day: "Wednesday", hours: "9:00 AM - 6:00 PM" },
-      { day: "Thursday", hours: "9:00 AM - 6:00 PM" },
-      { day: "Friday", hours: "9:00 AM - 6:00 PM" },
-      { day: "Saturday", hours: "10:00 AM - 4:00 PM" },
-      { day: "Sunday", hours: "Closed" },
-    ];
-    return (
-      <div id={`section-${sectionIndex}`} className="px-5 py-10">
-        <h2 className="font-display text-lg font-bold mb-4 flex items-center gap-2"><Clock className="w-5 h-5" style={{ color: themeColor }} />{s.title}</h2>
-        <div className="space-y-1 max-w-xs">
-          {hourList.map((h, i) => (
-            <div key={i} className="flex justify-between text-sm py-1 border-b border-border/20">
-              <span className="text-muted-foreground">{h.day}</span>
-              <span className="font-medium">{h.hours}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <OpeningHoursSection s={s} sectionIndex={sectionIndex} legacyHours={hours} isOwner={isOwner} preview={preview} themeColor={themeColor} />;
   }
 
   if (s.type === "gallery") {
@@ -474,11 +482,16 @@ export default function SectionRenderer({
         <div className="max-w-md mx-auto text-center">
           <h2 className="font-display text-xl font-bold mb-4">{s.title || "Get in Touch"}</h2>
           <div className="space-y-2 text-sm text-muted-foreground">
-            {(s.email || biz.business_contact_email) && <p className="flex items-center justify-center gap-2"><Mail className="w-4 h-4" /> {s.email || biz.business_contact_email}</p>}
-            {(s.phone || biz.business_contact_phone) && <p className="flex items-center justify-center gap-2"><Phone className="w-4 h-4" /> {s.phone || biz.business_contact_phone}</p>}
+            {(s.email || biz.business_contact_email) && <a href={`mailto:${s.email || biz.business_contact_email}`} className="flex min-h-10 items-center justify-center gap-2 hover:text-foreground"><Mail className="w-4 h-4" /> {s.email || biz.business_contact_email}</a>}
+            {(s.phone || biz.business_contact_phone) && <a href={`tel:${String(s.phone || biz.business_contact_phone).replace(/[^\d+]/g, "")}`} className="flex min-h-10 items-center justify-center gap-2 hover:text-foreground"><Phone className="w-4 h-4" /> {s.phone || biz.business_contact_phone}</a>}
             {(s.location || biz.business_address) && <p className="flex items-center justify-center gap-2"><MapPin className="w-4 h-4" /> {s.location || biz.business_address}</p>}
             {s.hours && <p className="flex items-center justify-center gap-2"><Clock className="w-4 h-4" /> {s.hours}</p>}
-            {s.whatsapp && <p>💬 {s.whatsapp}</p>}
+            {digits(s.whatsapp) && (
+              <a href={`https://wa.me/${digits(s.whatsapp)}`} target="_blank" rel="noopener noreferrer"
+                className="mx-auto mt-2 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#25d366] px-5 text-sm font-semibold text-white">
+                <WhatsAppIcon /> Chat on WhatsApp
+              </a>
+            )}
           </div>
         </div>
       </div>
@@ -501,6 +514,10 @@ export default function SectionRenderer({
               <h3 className="text-sm font-semibold">{it.name}</h3>
               {it.desc && <p className="text-xs text-muted-foreground mt-1">{it.desc}</p>}
               {it.price && <p className="text-sm font-bold mt-2" style={{ color: themeColor }}>{it.price}</p>}
+              {(() => {
+                const buy = sectionItemBuyPayload(it, 'Item');
+                return buy && onBuy ? <div className="mt-2 flex justify-center"><CardBuyButton themeColor={themeColor} onClick={() => onBuy(buy)} /></div> : null;
+              })()}
             </div>
           ))}
         </div>
@@ -525,6 +542,10 @@ export default function SectionRenderer({
                   {String(p.features).split(",").map((f, j) => f.trim() ? <li key={j}>{f.trim()}</li> : null)}
                 </ul>
               )}
+              {(() => {
+                const buy = sectionItemBuyPayload(p, 'Plan');
+                return buy && onBuy ? <div className="mt-3 flex justify-center"><CardBuyButton themeColor={themeColor} onClick={() => onBuy(buy)} /></div> : null;
+              })()}
             </div>
           ))}
         </div>
@@ -575,17 +596,18 @@ export default function SectionRenderer({
   }
 
   if (s.type === "video") {
-    const embedUrl = s.vidUrl ? String(s.vidUrl).replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/") : "";
+    const embedUrl = youtubeEmbedUrl(s.vidUrl);
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         {(s.vidTitle || s.title) && <h2 className="font-display text-lg font-bold mb-4">{s.vidTitle || s.title}</h2>}
         {embedUrl ? (
           <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-xl">
-            <iframe src={embedUrl} title={s.vidTitle || "Video"} className="absolute inset-0 w-full h-full border-none" allowFullScreen />
+            <iframe src={embedUrl} title={s.vidTitle || "Video"} className="absolute inset-0 w-full h-full border-none" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowFullScreen loading="lazy" />
           </div>
         ) : (
-          <div className="rounded-xl bg-black/85 h-32 flex items-center justify-center">
-            <PlayCircle className="w-10 h-10 text-white/80" />
+          <div className="rounded-xl bg-black/85 h-32 flex flex-col items-center justify-center gap-1 text-white/80">
+            <PlayCircle className="w-10 h-10" />
+            {(isOwner || preview) && <p className="text-xs">{s.vidUrl ? "This doesn't look like a YouTube link." : "Paste a YouTube link to show your video."}</p>}
           </div>
         )}
         {s.vidDesc && <p className="text-xs text-muted-foreground text-center mt-2">{s.vidDesc}</p>}
@@ -597,9 +619,20 @@ export default function SectionRenderer({
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/20">
         {(s.mapTitle || s.title) && <h2 className="font-display text-lg font-bold mb-4">{s.mapTitle || s.title}</h2>}
-        {s.mapUrl ? (
-          <div className="rounded-xl overflow-hidden h-48">
-            <iframe src={s.mapUrl} title={s.mapTitle || "Map"} className="w-full h-full border-none" loading="lazy" />
+        {mapEmbedUrl(s.mapUrl, s.address || s.location || biz.business_address) ? (
+          <div className="space-y-2">
+            <div className="rounded-xl overflow-hidden h-48">
+              <iframe src={mapEmbedUrl(s.mapUrl, s.address || s.location || biz.business_address)!} title={s.mapTitle || "Map"} className="w-full h-full border-none" loading="lazy" />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm text-muted-foreground">{s.address || s.location || biz.business_address}</p>
+              {(s.address || s.location || biz.business_address) && (
+                <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(s.address || s.location || biz.business_address)}`} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex min-h-10 items-center gap-1 rounded-full px-4 text-sm font-semibold text-white" style={{ backgroundColor: themeColor }}>
+                  <MapPin className="h-4 w-4" aria-hidden="true" />Directions
+                </a>
+              )}
+            </div>
           </div>
         ) : (
           <div className="rounded-xl bg-card border border-border/40 p-6 text-center">
@@ -753,24 +786,26 @@ export default function SectionRenderer({
       <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/20 text-center">
         <h2 className="font-display text-lg font-bold mb-2">{s.newsTitle || s.title || "Stay Updated"}</h2>
         {(s.newsDesc || s.content) && <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">{s.newsDesc || s.content}</p>}
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          <input type="email" placeholder="Enter your email" aria-label="Email address" className="px-4 py-2 rounded-full border border-border/60 bg-card text-sm w-56 outline-none focus:border-amber-400" />
-          <Button className="rounded-full text-white px-5" style={{ backgroundColor: themeColor }}>
-            <Send className="w-3.5 h-3.5 mr-1" /> {s.newsBtn || "Subscribe"}
-          </Button>
-        </div>
+        <NewsletterForm showroomId={showroomId} preview={preview} buttonLabel={s.newsBtn || "Subscribe"} themeColor={themeColor} />
+      </div>
+    );
+  }
+
+  if (s.type === "live_location_tracking") {
+    return (
+      <div id={`section-${sectionIndex}`}>
+        <LiveLocationSection businessId={businessId || biz.business_id || null} title={s.locationTitle || s.title || "Find us live"} isOwner={isOwner} themeColor={themeColor} />
       </div>
     );
   }
 
   if (s.type === "save_showroom") {
     // The showroom/business ID to bookmark — use profile.id (business entity id)
-    const showroomId = biz.id as string | undefined;
+    const saveId = (showroomId || biz.id) as string | undefined;
     const showroomName = (biz.business_name || biz.title || 'this showroom') as string;
     const title = s.saveTitle || s.title || 'Save this showroom';
     const desc = s.saveDesc || s.content || 'Bookmark us and find us again easily';
 
-    if (!showroomId) return null;
 
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10 text-center bg-secondary/10 border-t border-border/30">
@@ -778,14 +813,20 @@ export default function SectionRenderer({
         <h2 className="font-display text-lg font-bold mb-1">{title}</h2>
         {desc && <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">{desc}</p>}
         <div className="flex items-center justify-center">
-          <BookmarkButton
-            targetId={showroomId}
-            targetType="showroom"
-            itemData={{ title: showroomName }}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 text-sm font-semibold transition-all"
-          />
-          <span className="ml-2 text-sm text-muted-foreground">Double-click to save</span>
+          {saveId && !preview ? (
+            <BookmarkButton
+              targetId={saveId}
+              targetType="showroom"
+              itemData={{ title: showroomName }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 text-sm font-semibold transition-all"
+            />
+          ) : (
+            <span className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 px-5 text-sm font-semibold text-muted-foreground">
+              <Bookmark className="h-4 w-4" aria-hidden="true" /> Save
+            </span>
+          )}
         </div>
+        {(preview || !saveId) && <p className="mt-2 text-xs text-muted-foreground">Visitors can save your website once it is published.</p>}
       </div>
     );
   }
@@ -798,3 +839,60 @@ export default function SectionRenderer({
   );
 }
 
+
+/** Email sign-up that saves to the owner's list (POST /api/showrooms/:id/newsletter). */
+function NewsletterForm({ showroomId, preview, buttonLabel, themeColor }: { showroomId?: string | null; preview: boolean; buttonLabel: string; themeColor: string }) {
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<"idle" | "sending" | "done">("idle");
+  const [error, setError] = useState("");
+  const live = Boolean(showroomId) && !preview;
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!live) return;
+    setError("");
+    setState("sending");
+    try {
+      await client.post(`/api/showrooms/${showroomId}/newsletter`, { email });
+      setState("done");
+    } catch (err) {
+      setError(apiErrorMessage(err, "Could not sign you up. Try again."));
+      setState("idle");
+    }
+  };
+  if (state === "done") return <p role="status" className="text-sm font-medium text-emerald-700">Thanks! You're on the list.</p>;
+  return (
+    <form onSubmit={submit} className="mx-auto max-w-md">
+      <div className="flex items-center justify-center gap-2 flex-wrap">
+        <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter your email" aria-label="Email address"
+          className="min-h-11 px-4 py-2 rounded-full border border-border/60 bg-card text-sm w-56 outline-none focus:border-amber-400" />
+        <Button type="submit" disabled={!live || state === "sending"} className="min-h-11 rounded-full text-white px-5" style={{ backgroundColor: themeColor }}>
+          <Send className="w-3.5 h-3.5 mr-1" /> {buttonLabel}
+        </Button>
+      </div>
+      {!live && <p className="mt-2 text-xs text-muted-foreground">Sign-ups start once your website is published.</p>}
+      {error && <p role="alert" className="mt-2 text-xs text-destructive">{error}</p>}
+    </form>
+  );
+}
+
+function WhatsAppIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+      <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3Z" />
+    </svg>
+  );
+}
+
+/** The small "Buy Now" pill on website cards. */
+function CardBuyButton({ themeColor, onClick }: { themeColor: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-[11px] font-semibold px-2.5 py-1 rounded-full text-white transition-opacity hover:opacity-90 active:scale-95"
+      style={{ backgroundColor: themeColor }}
+    >
+      Buy Now
+    </button>
+  );
+}

@@ -53,22 +53,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
-    services:
-      postgres:
-        # Pull the Docker Official Image from ECR Public to avoid Docker Hub's
-        # anonymous pull limits on GitHub-hosted runners.
-        image: public.ecr.aws/docker/library/postgres:16
-        env:
-          POSTGRES_USER: nodbusiness
-          POSTGRES_PASSWORD: testpassword
-          POSTGRES_DB: nodbusiness_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U nodbusiness -d nodbusiness_test"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    # PostgreSQL comes preinstalled on GitHub's Ubuntu runners. Starting it
+    # avoids pulling a container image: ECR Public returned "toomanyrequests:
+    # Data limit exceeded" repeatedly on 2026-10-16 and blocked production deploys.
 
     env:
       NODE_ENV: test
@@ -89,6 +76,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
+      - name: Start PostgreSQL
+        run: |
+          sudo systemctl start postgresql.service
+          sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE USER nodbusiness WITH PASSWORD 'testpassword' SUPERUSER;"
+          sudo -u postgres createdb -O nodbusiness nodbusiness_test
+          pg_isready -h localhost -p 5432
+          psql --version
+
       - name: Install dependencies
         run: npm ci
 
@@ -97,6 +92,12 @@ jobs:
 
       - name: Run migrations
         run: npm run migrate
+
+      # Same routes and migrations against this real Postgres (no mocked pool):
+      # catches wrong columns, broken placeholders and migrations that would
+      # fail on the next deploy.
+      - name: Database-backed tests (blocking)
+        run: npm run test:db
 
       # Jest unit/integration suites — the proven green gate (257 tests).
       # The live-server e2e script stays out of the blocking path.

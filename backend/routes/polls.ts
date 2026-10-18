@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
+import { requireSignInForPersonal } from '../lib/siteVisibility';
 
 const router = Router();
 
@@ -40,7 +41,7 @@ router.post('/:postId/vote', requireAuth, async (req: Request, res: Response) =>
   } catch { res.status(500).json({ error: 'Failed to vote' }); }
 });
 
-router.get('/:postId/results', optionalAuth, async (req: Request, res: Response) => {
+router.get('/:postId/results', optionalAuth, requireSignInForPersonal, async (req: Request, res: Response) => {
   try {
     const realAuthorFilter = req.realOnly ? 'AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
     const voteJoin = req.realOnly ? 'JOIN users voter ON voter.id=pv.user_id AND voter.is_seed=FALSE AND voter.is_demo=FALSE' : '';

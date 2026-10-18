@@ -1,21 +1,34 @@
 /**
  * builderSections.ts
- * All 25 section types for the Showroom Web Builder.
- * Extracted from use.html and adapted for the React app.
+ * The Showroom Studio section catalogue: what each section is called, which
+ * plan it needs, and the fields its form shows. Owners are everyday social
+ * media users, so fields are things they already do: write, add a photo,
+ * paste a link, switch something on. No colour codes, icon codes or embeds.
+ *
+ * Field and section keys are stored in published sites: rename labels freely,
+ * never keys. A field the form no longer shows becomes "hidden" so saved
+ * values are kept (see serializeShowroomSections).
  */
 
 export interface RepeaterItemField {
   key: string;
   label: string;
-  type: "text" | "textarea";
+  /** "product": pick one of the owner's catalogue products; Buy Now then sells it. "image": Add photo. */
+  type: "text" | "textarea" | "product" | "image";
   placeholder?: string;
 }
 
 export interface BuilderField {
   key: string;
   label: string;
-  type: "text" | "textarea" | "color" | "repeater";
+  /**
+   * "image": Add photo (uploaded); "toggle": on/off switch; "hidden": kept but not shown (set elsewhere, e.g. Style);
+   * "date": a day picker; "hours": the weekly opening-hours picker.
+   */
+  type: "text" | "textarea" | "color" | "repeater" | "image" | "toggle" | "hidden" | "date" | "hours";
   placeholder?: string;
+  /** One line under the field explaining it in plain words. */
+  hint?: string;
   itemFields?: RepeaterItemField[];
 }
 
@@ -24,354 +37,431 @@ export interface SectionType {
   label: string;
   icon: string; // lucide icon name
   tier: "freemium" | "premium" | "pro";
+  /** One plain sentence: what this section does on the website. */
+  purpose?: string;
   tierLabel?: string;     // e.g. "Premium feature" — shown in locked state
   tierFeatures?: string[]; // bullet points shown in upgrade prompt
   fields: BuilderField[];
 }
 
+const TITLE = (placeholder: string): BuilderField => ({ key: "", label: "Section heading", type: "text", placeholder });
+
 export const SECTION_TYPES: SectionType[] = [
   {
-    key: "hero", label: "Hero Banner", icon: "Sparkles", tier: "freemium",
+    key: "hero", label: "Top of your page", icon: "Sparkles", tier: "freemium",
+    purpose: "The first thing visitors see: your name, one line about you, and a button.",
     fields: [
-      { key: "title",    label: "Business Name",  type: "text",     placeholder: "Your Business Name" },
-      { key: "subtitle", label: "Tagline",         type: "text",     placeholder: "A short powerful tagline" },
-      { key: "cta",      label: "Button Text",     type: "text",     placeholder: "Contact Us" },
-      { key: "heroBg",   label: "Gradient Start",  type: "color" },
-      { key: "heroBg2",  label: "Gradient End",    type: "color" },
+      { key: "title",    label: "Business name",          type: "text", placeholder: "Your Business Name" },
+      { key: "subtitle", label: "One line about you",     type: "text", placeholder: "Fresh bread every morning" },
+      { key: "cta",      label: "Button words",           type: "text", placeholder: "Contact Us", hint: "The button takes visitors to what you sell." },
+      { key: "heroBg",   label: "Colour 1", type: "hidden" },
+      { key: "heroBg2",  label: "Colour 2", type: "hidden" },
+      { key: "siteFont", label: "Lettering", type: "hidden" },
+      { key: "whatsappButton", label: "WhatsApp button", type: "hidden" },
     ],
   },
   {
-    key: "about", label: "About Us", icon: "Info", tier: "freemium",
+    key: "about", label: "About us", icon: "Info", tier: "freemium",
+    purpose: "Your story, in your own words, with a photo.",
     fields: [
-      { key: "aboutTitle", label: "Section Title", type: "text",     placeholder: "About Us" },
-      { key: "aboutDesc",  label: "Description",   type: "textarea", placeholder: "Tell your story..." },
-      { key: "aboutImage", label: "Image URL",     type: "text",     placeholder: "https://..." },
+      { ...TITLE("About Us"), key: "aboutTitle" },
+      { key: "aboutDesc",  label: "Your story", type: "textarea", placeholder: "How you started, what you care about…" },
+      { key: "aboutImage", label: "Photo",      type: "image" },
     ],
   },
   {
-    key: "items", label: "Products / Items", icon: "ShoppingBag", tier: "freemium",
+    key: "items", label: "Things you sell", icon: "ShoppingBag", tier: "freemium",
+    purpose: "Cards for your products. Link a card to a product so visitors can buy it.",
     fields: [
-      { key: "itemsTitle", label: "Section Title", type: "text", placeholder: "Our Products" },
+      { ...TITLE("Our Products"), key: "itemsTitle" },
       {
         key: "items", label: "Items", type: "repeater",
         itemFields: [
-          { key: "name",  label: "Name",        type: "text",     placeholder: "Product name" },
-          { key: "desc",  label: "Description", type: "text",     placeholder: "Brief description" },
-          { key: "price", label: "Price",        type: "text",     placeholder: "29.99" },
-          { key: "icon",  label: "Icon",         type: "text",     placeholder: "fa-box" },
+          { key: "name",  label: "Name",        type: "text", placeholder: "Product name" },
+          { key: "desc",  label: "Short description", type: "text", placeholder: "Brief description" },
+          { key: "price", label: "Price",       type: "text", placeholder: "250 ETB" },
+          { key: "product_id", label: "Sell as product (optional)", type: "product" },
         ],
       },
     ],
   },
   {
-    key: "gallery", label: "Gallery", icon: "Images", tier: "freemium",
+    key: "gallery", label: "Photos", icon: "Images", tier: "freemium",
+    purpose: "A grid of your best photos.",
     fields: [
-      { key: "galleryTitle", label: "Section Title", type: "text", placeholder: "Gallery" },
+      { ...TITLE("Gallery"), key: "galleryTitle" },
       {
-        key: "galleryImages", label: "Images", type: "repeater",
+        key: "galleryImages", label: "Photos", type: "repeater",
         itemFields: [
-          { key: "url",     label: "Image URL", type: "text", placeholder: "https://..." },
-          { key: "caption", label: "Caption",   type: "text", placeholder: "Photo caption" },
+          { key: "url",     label: "Photo",   type: "image" },
+          { key: "caption", label: "Caption (optional)", type: "text", placeholder: "Our shop on a busy morning" },
         ],
       },
     ],
   },
   {
     key: "services", label: "Services", icon: "Briefcase", tier: "freemium",
+    purpose: "What you do for customers, with prices. Visitors can order or ask for a price.",
     fields: [
-      { key: "servTitle", label: "Section Title", type: "text", placeholder: "Our Services" },
+      { ...TITLE("Our Services"), key: "servTitle" },
       {
         key: "services", label: "Services", type: "repeater",
         itemFields: [
-          { key: "name", label: "Service Name",  type: "text",     placeholder: "Web Design" },
-          { key: "desc", label: "Description",   type: "textarea", placeholder: "What we offer" },
-          { key: "icon", label: "Icon (fa-)",    type: "text",     placeholder: "fa-cog" },
+          { key: "name", label: "Service name", type: "text",     placeholder: "Haircut" },
+          { key: "desc", label: "What's included", type: "textarea", placeholder: "Wash, cut and style" },
+          { key: "price", label: "Price (optional)", type: "text", placeholder: "From 500 ETB" },
+          { key: "product_id", label: "Sell as product (optional)", type: "product" },
         ],
       },
     ],
   },
   {
-    key: "testimonials", label: "Testimonials", icon: "MessageSquareQuote", tier: "freemium",
+    key: "testimonials", label: "What customers say", icon: "MessageSquareQuote", tier: "freemium",
+    purpose: "Kind words your customers told you, in their words.",
     fields: [
-      { key: "testTitle", label: "Section Title", type: "text", placeholder: "What People Say" },
+      { ...TITLE("What People Say"), key: "testTitle" },
       {
-        key: "testimonials", label: "Reviews", type: "repeater",
+        key: "testimonials", label: "Quotes", type: "repeater",
         itemFields: [
-          { key: "quote",  label: "Quote",       type: "textarea", placeholder: "Amazing experience!" },
-          { key: "author", label: "Author Name", type: "text",     placeholder: "Jane Doe" },
-          { key: "role",   label: "Role/Title",  type: "text",     placeholder: "CEO, Company" },
+          { key: "quote",  label: "What they said", type: "textarea", placeholder: "Amazing experience!" },
+          { key: "author", label: "Their name",     type: "text",     placeholder: "Selam T." },
+          { key: "role",   label: "Who they are (optional)", type: "text", placeholder: "Regular customer" },
         ],
       },
     ],
   },
   {
     key: "contact", label: "Contact", icon: "Mail", tier: "freemium",
+    purpose: "How to reach you. Visitors tap to call, message or email.",
     fields: [
-      { key: "location", label: "Address",       type: "text", placeholder: "Your street address" },
-      { key: "phone",    label: "Phone",         type: "text", placeholder: "+1 234 567 8900" },
-      { key: "email",    label: "Email",         type: "text", placeholder: "hello@example.com" },
-      { key: "hours",    label: "Working Hours", type: "text", placeholder: "Mon-Sat 9AM-6PM" },
-      { key: "whatsapp", label: "WhatsApp No.",  type: "text", placeholder: "+12345678900" },
+      { key: "location", label: "Address or landmark", type: "text", placeholder: "Bole, near Medhanialem church" },
+      { key: "phone",    label: "Phone",          type: "text", placeholder: "+251 91 234 5678" },
+      { key: "email",    label: "Email",          type: "text", placeholder: "hello@example.com" },
+      { key: "hours",    label: "Opening hours",  type: "text", placeholder: "Mon–Sat 8:00–18:00" },
+      { key: "whatsapp", label: "WhatsApp number", type: "text", placeholder: "+251 91 234 5678" },
     ],
   },
   {
-    key: "social", label: "Social Links", icon: "Share2", tier: "freemium",
+    key: "social", label: "Social links", icon: "Share2", tier: "freemium",
+    purpose: "Buttons to your social pages. Paste the link from the app's Share button.",
     fields: [
-      { key: "facebook",  label: "Facebook URL",  type: "text", placeholder: "https://facebook.com/..." },
-      { key: "instagram", label: "Instagram URL", type: "text", placeholder: "https://instagram.com/..." },
-      { key: "telegram",  label: "Telegram URL",  type: "text", placeholder: "https://t.me/..." },
-      { key: "youtube",   label: "YouTube URL",   type: "text", placeholder: "https://youtube.com/..." },
-      { key: "tiktok",    label: "TikTok URL",    type: "text", placeholder: "https://tiktok.com/@..." },
-      { key: "twitter",   label: "Twitter/X URL", type: "text", placeholder: "https://x.com/..." },
-      { key: "linkedin",  label: "LinkedIn URL",  type: "text", placeholder: "https://linkedin.com/in/..." },
+      { key: "facebook",  label: "Facebook page link",  type: "text", placeholder: "https://facebook.com/yourpage" },
+      { key: "instagram", label: "Instagram link",      type: "text", placeholder: "https://instagram.com/yourname" },
+      { key: "telegram",  label: "Telegram link",       type: "text", placeholder: "https://t.me/yourchannel" },
+      { key: "youtube",   label: "YouTube link",        type: "text", placeholder: "https://youtube.com/@yourchannel" },
+      { key: "tiktok",    label: "TikTok link",         type: "text", placeholder: "https://tiktok.com/@yourname" },
+      { key: "twitter",   label: "X (Twitter) link",    type: "text", placeholder: "https://x.com/yourname" },
+      { key: "linkedin",  label: "LinkedIn link",       type: "text", placeholder: "https://linkedin.com/in/yourname" },
     ],
   },
   {
-    key: "pricing", label: "Pricing Plans", icon: "Tag", tier: "freemium",
+    key: "pricing", label: "Price list", icon: "Tag", tier: "freemium",
+    purpose: "Packages side by side with what each includes.",
     fields: [
-      { key: "pricingTitle", label: "Section Title", type: "text", placeholder: "Pricing" },
+      { ...TITLE("Pricing"), key: "pricingTitle" },
       {
-        key: "plans", label: "Plans", type: "repeater",
+        key: "plans", label: "Packages", type: "repeater",
         itemFields: [
-          { key: "name",     label: "Plan Name", type: "text", placeholder: "Basic" },
-          { key: "price",    label: "Price",     type: "text", placeholder: "49.99" },
-          { key: "period",   label: "Period",    type: "text", placeholder: "/mo" },
-          { key: "features", label: "Features (comma separated)", type: "text", placeholder: "Feature 1, Feature 2" },
+          { key: "name",     label: "Package name", type: "text", placeholder: "Basic" },
+          { key: "price",    label: "Price",        type: "text", placeholder: "500 ETB" },
+          { key: "period",   label: "Per (optional)", type: "text", placeholder: "/month" },
+          { key: "features", label: "What's included (separate with commas)", type: "text", placeholder: "Delivery, Gift wrap" },
+          { key: "product_id", label: "Sell as product (optional)", type: "product" },
         ],
       },
     ],
   },
   {
-    key: "team", label: "Team Members", icon: "Users", tier: "freemium",
+    key: "team", label: "Our team", icon: "Users", tier: "freemium",
+    purpose: "The people behind your business, with photos.",
     fields: [
-      { key: "teamTitle", label: "Section Title", type: "text", placeholder: "Our Team" },
+      { ...TITLE("Our Team"), key: "teamTitle" },
       {
-        key: "members", label: "Members", type: "repeater",
+        key: "members", label: "People", type: "repeater",
         itemFields: [
-          { key: "name",  label: "Name",      type: "text",     placeholder: "Alex Rivera" },
-          { key: "role",  label: "Role",      type: "text",     placeholder: "Lead Designer" },
-          { key: "image", label: "Photo URL", type: "text",     placeholder: "https://..." },
-          { key: "bio",   label: "Short Bio", type: "textarea", placeholder: "Brief description" },
+          { key: "name",  label: "Name",  type: "text", placeholder: "Abebe K." },
+          { key: "role",  label: "Job",   type: "text", placeholder: "Head chef" },
+          { key: "image", label: "Photo", type: "image" },
+          { key: "bio",   label: "A few words (optional)", type: "textarea", placeholder: "10 years of experience" },
         ],
       },
     ],
   },
   {
-    key: "faq", label: "FAQ", icon: "HelpCircle", tier: "freemium",
+    key: "faq", label: "Questions & answers", icon: "HelpCircle", tier: "freemium",
+    purpose: "Answers to what customers often ask. Visitors tap a question to open it.",
     fields: [
-      { key: "faqTitle", label: "Section Title", type: "text", placeholder: "Frequently Asked Questions" },
+      { ...TITLE("Frequently Asked Questions"), key: "faqTitle" },
       {
         key: "faqs", label: "Questions", type: "repeater",
         itemFields: [
-          { key: "question", label: "Question", type: "text",     placeholder: "How does it work?" },
-          { key: "answer",   label: "Answer",   type: "textarea", placeholder: "Your answer here..." },
+          { key: "question", label: "Question", type: "text",     placeholder: "Do you deliver?" },
+          { key: "answer",   label: "Answer",   type: "textarea", placeholder: "Yes, across Addis Ababa." },
         ],
       },
     ],
   },
   {
-    key: "features", label: "Key Features", icon: "Zap", tier: "freemium",
+    key: "features", label: "Why choose us", icon: "Zap", tier: "freemium",
+    purpose: "Three or four reasons people pick you.",
     fields: [
-      { key: "featTitle", label: "Section Title", type: "text", placeholder: "Why Choose Us" },
+      { ...TITLE("Why Choose Us"), key: "featTitle" },
       {
-        key: "features", label: "Features", type: "repeater",
+        key: "features", label: "Reasons", type: "repeater",
         itemFields: [
-          { key: "name", label: "Feature",     type: "text", placeholder: "Lightning Fast" },
-          { key: "desc", label: "Description", type: "text", placeholder: "Built for speed" },
-          { key: "icon", label: "Icon (fa-)",  type: "text", placeholder: "fa-bolt" },
+          { key: "name", label: "Reason",       type: "text", placeholder: "Fast delivery" },
+          { key: "desc", label: "A few words",  type: "text", placeholder: "Same day in Addis" },
         ],
       },
     ],
   },
   {
-    key: "stats", label: "Stats / Numbers", icon: "BarChart2", tier: "freemium",
+    key: "stats", label: "Our numbers", icon: "BarChart2", tier: "freemium",
+    purpose: "Big numbers that build trust, like customers served.",
     fields: [
-      { key: "statsTitle", label: "Section Title", type: "text", placeholder: "By the Numbers" },
+      { ...TITLE("By the Numbers"), key: "statsTitle" },
       {
-        key: "stats", label: "Stats", type: "repeater",
+        key: "stats", label: "Numbers", type: "repeater",
         itemFields: [
-          { key: "number", label: "Number",      type: "text", placeholder: "5,000+" },
-          { key: "label",  label: "Label",       type: "text", placeholder: "Happy Customers" },
-          { key: "icon",   label: "Icon (fa-)",  type: "text", placeholder: "fa-users" },
+          { key: "number", label: "Number",       type: "text", placeholder: "5,000+" },
+          { key: "label",  label: "What it counts", type: "text", placeholder: "Happy customers" },
         ],
       },
     ],
   },
   {
-    key: "portfolio", label: "Portfolio / Work", icon: "FolderOpen", tier: "premium",
+    key: "portfolio", label: "Our work", icon: "FolderOpen", tier: "premium",
+    purpose: "Photos of jobs you finished.",
     tierLabel: "Premium feature",
     tierFeatures: ["Showcase projects", "Client logos", "Project details"],
     fields: [
-      { key: "portTitle", label: "Section Title", type: "text", placeholder: "Our Work" },
+      { ...TITLE("Our Work"), key: "portTitle" },
       {
         key: "portfolio", label: "Projects", type: "repeater",
         itemFields: [
-          { key: "title",  label: "Project Title", type: "text",     placeholder: "Brand X" },
-          { key: "desc",   label: "Description",   type: "textarea", placeholder: "What we did" },
-          { key: "image",  label: "Image URL",     type: "text",     placeholder: "https://..." },
-          { key: "client", label: "Client",        type: "text",     placeholder: "Client name" },
+          { key: "title",  label: "Project name", type: "text",     placeholder: "Kitchen renovation" },
+          { key: "desc",   label: "What you did", type: "textarea", placeholder: "New cabinets and tiles" },
+          { key: "image",  label: "Photo",        type: "image" },
+          { key: "client", label: "For (optional)", type: "text",   placeholder: "Client name" },
         ],
       },
     ],
   },
   {
-    key: "newsletter", label: "Newsletter", icon: "Send", tier: "premium",
+    key: "newsletter", label: "Email sign-up", icon: "Send", tier: "premium",
+    purpose: "Visitors leave their email; you see the list on your website page.",
     tierLabel: "Premium feature",
     tierFeatures: ["Email capture", "Subscriber management", "Custom forms"],
     fields: [
-      { key: "newsTitle", label: "Headline",     type: "text", placeholder: "Subscribe for Updates" },
-      { key: "newsDesc",  label: "Description",  type: "text", placeholder: "Get the latest news" },
-      { key: "newsBtn",   label: "Button Text",  type: "text", placeholder: "Subscribe" },
+      { key: "newsTitle", label: "Heading",     type: "text", placeholder: "Get our news" },
+      { key: "newsDesc",  label: "A few words", type: "text", placeholder: "New products and offers, once a month" },
+      { key: "newsBtn",   label: "Button words", type: "text", placeholder: "Sign up" },
     ],
   },
   {
     key: "video", label: "Video", icon: "PlayCircle", tier: "premium",
+    purpose: "Play a YouTube video on your page.",
     tierLabel: "Premium feature",
     tierFeatures: ["Video embedding", "Custom thumbnails", "Playback analytics"],
     fields: [
-      { key: "vidTitle", label: "Section Title",   type: "text", placeholder: "Watch Our Story" },
-      { key: "vidUrl",   label: "YouTube URL",     type: "text", placeholder: "https://youtu.be/..." },
-      { key: "vidDesc",  label: "Caption",         type: "text", placeholder: "Video description" },
+      { ...TITLE("Watch Our Story"), key: "vidTitle" },
+      { key: "vidUrl",   label: "YouTube link", type: "text", placeholder: "https://youtu.be/…", hint: "On YouTube tap Share, then Copy link, and paste it here." },
+      { key: "vidDesc",  label: "Caption (optional)", type: "text", placeholder: "How we make our coffee" },
     ],
   },
   {
-    key: "map", label: "Location Map", icon: "MapPin", tier: "premium",
+    key: "map", label: "Map", icon: "MapPin", tier: "premium",
+    purpose: "A map of where you are, with a Directions button.",
     tierLabel: "Premium feature",
-    tierFeatures: ["Google Maps embed", "Custom markers", "Directions link"],
+    tierFeatures: ["Map from your address", "Directions link"],
     fields: [
-      { key: "mapTitle", label: "Section Title",     type: "text", placeholder: "Find Us" },
-      { key: "mapUrl",   label: "Google Maps Embed", type: "text", placeholder: "https://maps.google.com/embed?..." },
-      { key: "address",  label: "Address Text",      type: "text", placeholder: "Your street address" },
+      { ...TITLE("Find Us"), key: "mapTitle" },
+      { key: "address",  label: "Address or landmark", type: "text", placeholder: "Bole Road, Addis Ababa", hint: "Write it the way you'd tell a taxi driver." },
+      { key: "mapUrl",   label: "Map link", type: "hidden" },
     ],
   },
   {
-    key: "cta", label: "Call to Action", icon: "Megaphone", tier: "premium",
+    key: "cta", label: "Big button", icon: "Megaphone", tier: "premium",
+    purpose: "A bold strip that asks visitors to get in touch.",
     tierLabel: "Premium feature",
     tierFeatures: ["Conversion tracking", "A/B testing", "Custom styling"],
     fields: [
-      { key: "ctaTitle", label: "Headline",     type: "text",  placeholder: "Ready to get started?" },
-      { key: "ctaDesc",  label: "Description",  type: "text",  placeholder: "Contact us today" },
-      { key: "ctaBtn",   label: "Button Text",  type: "text",  placeholder: "Contact Us" },
-      { key: "ctaBg",    label: "Background",   type: "color" },
+      { key: "ctaTitle", label: "Heading",      type: "text", placeholder: "Ready to order?" },
+      { key: "ctaDesc",  label: "A few words",  type: "text", placeholder: "Message us today" },
+      { key: "ctaBtn",   label: "Button words", type: "text", placeholder: "Contact Us", hint: "The button takes visitors to your contact details." },
+      { key: "ctaBg",    label: "Colour", type: "hidden" },
     ],
   },
   {
-    key: "process", label: "How It Works", icon: "GitBranch", tier: "premium",
+    key: "process", label: "Steps", icon: "GitBranch", tier: "premium",
+    purpose: "How working with you goes, step by step.",
     tierLabel: "Premium feature",
     tierFeatures: ["Step-by-step flow", "Custom icons", "Progress tracking"],
     fields: [
-      { key: "processTitle", label: "Section Title", type: "text", placeholder: "How It Works" },
+      { ...TITLE("How It Works"), key: "processTitle" },
       {
         key: "processSteps", label: "Steps", type: "repeater",
         itemFields: [
-          { key: "title", label: "Step Title",   type: "text",     placeholder: "Step 1" },
-          { key: "desc",  label: "Description",  type: "textarea", placeholder: "What happens here" },
-          { key: "icon",  label: "Icon (fa-)",   type: "text",     placeholder: "fa-arrow-right" },
+          { key: "title", label: "Step",         type: "text",     placeholder: "Choose your cake" },
+          { key: "desc",  label: "What happens", type: "textarea", placeholder: "Pick a size and flavour" },
         ],
       },
     ],
   },
   {
-    key: "booking", label: "Booking / Appointment", icon: "CalendarCheck", tier: "premium",
+    key: "booking", label: "Book or request", icon: "CalendarCheck", tier: "premium",
+    purpose: "A button visitors tap to request a booking; you get it as a request.",
     tierLabel: "Premium feature",
-    tierFeatures: ["Calendar integration", "Payment collection", "Reminders"],
+    tierFeatures: ["Booking requests", "Payment collection", "Reminders"],
     fields: [
-      { key: "bookingTitle", label: "Section Title", type: "text",     placeholder: "Book an Appointment" },
-      { key: "bookingDesc",  label: "Description",   type: "textarea", placeholder: "Schedule your session..." },
-      { key: "bookingBtn",   label: "Button Text",   type: "text",     placeholder: "Book Now" },
+      { ...TITLE("Book an Appointment"), key: "bookingTitle" },
+      { key: "bookingDesc",  label: "A few words",  type: "textarea", placeholder: "Tell us the day and time you'd like" },
+      { key: "bookingBtn",   label: "Button words", type: "text",     placeholder: "Request a booking" },
     ],
   },
   {
-    key: "caseStudies", label: "Case Studies", icon: "TrendingUp", tier: "pro",
+    key: "caseStudies", label: "Success stories", icon: "TrendingUp", tier: "pro",
+    purpose: "Short stories of how you helped a customer, with the result.",
     tierLabel: "Pro feature",
     tierFeatures: ["Detailed metrics", "Client quotes", "Visual storytelling"],
     fields: [
-      { key: "caseTitle", label: "Section Title", type: "text", placeholder: "Success Stories" },
+      { ...TITLE("Success Stories"), key: "caseTitle" },
       {
-        key: "caseStudies", label: "Case Studies", type: "repeater",
+        key: "caseStudies", label: "Stories", type: "repeater",
         itemFields: [
-          { key: "title",   label: "Title",   type: "text",     placeholder: "Client success" },
-          { key: "summary", label: "Summary", type: "textarea", placeholder: "What we achieved" },
-          { key: "result",  label: "Result",  type: "text",     placeholder: "300% increase in sales" },
+          { key: "title",   label: "Story title", type: "text",     placeholder: "A wedding for 300 guests" },
+          { key: "summary", label: "What you did", type: "textarea", placeholder: "Catering and decoration" },
+          { key: "result",  label: "The result",  type: "text",     placeholder: "Booked again for 2027" },
         ],
       },
     ],
   },
   {
-    key: "partners", label: "Partners / Clients", icon: "Handshake", tier: "pro",
+    key: "partners", label: "Partners & clients", icon: "Handshake", tier: "pro",
+    purpose: "Logos of businesses you work with.",
     tierLabel: "Pro feature",
     tierFeatures: ["Logo grid", "Partner categories", "Testimonials"],
     fields: [
-      { key: "partnersTitle", label: "Section Title", type: "text", placeholder: "Our Partners" },
+      { ...TITLE("Our Partners"), key: "partnersTitle" },
       {
         key: "partners", label: "Partners", type: "repeater",
         itemFields: [
-          { key: "name", label: "Partner Name", type: "text", placeholder: "Company Name" },
-          { key: "logo", label: "Logo URL",     type: "text", placeholder: "https://..." },
-          { key: "note", label: "Note",         type: "text", placeholder: "Brief description" },
+          { key: "name", label: "Name", type: "text", placeholder: "Company name" },
+          { key: "logo", label: "Logo", type: "image" },
+          { key: "note", label: "A few words (optional)", type: "text", placeholder: "Supplier since 2020" },
         ],
       },
     ],
   },
   {
-    key: "awards", label: "Awards & Recognition", icon: "Award", tier: "pro",
+    key: "awards", label: "Awards & certificates", icon: "Award", tier: "pro",
+    purpose: "Prizes, licences and certificates that show you're trusted.",
     tierLabel: "Pro feature",
     tierFeatures: ["Award showcase", "Year filtering", "Category tags"],
     fields: [
-      { key: "awardsTitle", label: "Section Title", type: "text", placeholder: "Awards & Recognition" },
+      { ...TITLE("Awards & Recognition"), key: "awardsTitle" },
       {
         key: "awards", label: "Awards", type: "repeater",
         itemFields: [
-          { key: "title",  label: "Award Title", type: "text",     placeholder: "Best Business 2024" },
-          { key: "detail", label: "Details",     type: "textarea", placeholder: "Award details" },
+          { key: "title",  label: "Award or certificate", type: "text",     placeholder: "Best Café 2025" },
+          { key: "detail", label: "A few words",          type: "textarea", placeholder: "Given by…" },
         ],
       },
     ],
   },
   {
-    key: "industries", label: "Industries We Serve", icon: "Building2", tier: "pro",
+    key: "industries", label: "Who we serve", icon: "Building2", tier: "pro",
+    purpose: "The kinds of customers you work with.",
     tierLabel: "Pro feature",
     tierFeatures: ["Industry filtering", "Case study links", "Expertise tags"],
     fields: [
-      { key: "industriesTitle", label: "Section Title", type: "text", placeholder: "Industries We Serve" },
+      { ...TITLE("Industries We Serve"), key: "industriesTitle" },
       {
-        key: "industries", label: "Industries", type: "repeater",
+        key: "industries", label: "Customers", type: "repeater",
         itemFields: [
-          { key: "name", label: "Industry",    type: "text",     placeholder: "Healthcare" },
-          { key: "desc", label: "Description", type: "textarea", placeholder: "How we help" },
+          { key: "name", label: "Kind of customer", type: "text",     placeholder: "Restaurants" },
+          { key: "desc", label: "How you help",     type: "textarea", placeholder: "Daily fresh deliveries" },
         ],
       },
     ],
   },
-  // ── Pro-only sections for Enterprise tier ───────────────────────────────────
+  {
+    key: "menu", label: "Menu", icon: "UtensilsCrossed", tier: "freemium",
+    purpose: "Your dishes and drinks by group, with photos and prices. Visitors can order.",
+    fields: [
+      { key: "menuTitle", label: "Section heading", type: "text", placeholder: "Our Menu" },
+      {
+        key: "dishes", label: "Dishes", type: "repeater",
+        itemFields: [
+          { key: "category", label: "Group (optional)", type: "text", placeholder: "Breakfast" },
+          { key: "name",  label: "Dish or drink", type: "text", placeholder: "Special Firfir" },
+          { key: "desc",  label: "A few words (optional)", type: "text", placeholder: "With fresh injera" },
+          { key: "price", label: "Price", type: "text", placeholder: "180 ETB" },
+          { key: "photo", label: "Photo (optional)", type: "image" },
+          { key: "product_id", label: "Sell as product (optional)", type: "product" },
+        ],
+      },
+    ],
+  },
+  {
+    key: "offer", label: "Today's offer", icon: "Megaphone", tier: "freemium",
+    purpose: "A short special offer with an end date. It disappears by itself when it ends.",
+    fields: [
+      { key: "offerTitle", label: "The offer", type: "text", placeholder: "20% off all cakes this weekend" },
+      { key: "offerDesc",  label: "A few words (optional)", type: "textarea", placeholder: "Order before Sunday 6 pm" },
+      { key: "offerPhoto", label: "Photo (optional)", type: "image" },
+      { key: "offerEnds",  label: "Last day", type: "date", hint: "After this day visitors no longer see the offer." },
+      { key: "offerBtn",   label: "Button words", type: "text", placeholder: "Order now", hint: "The button takes visitors to what you sell." },
+    ],
+  },
+  {
+    key: "hours", label: "Opening hours", icon: "Clock", tier: "freemium",
+    purpose: "Your days and times. Visitors see if you are open right now.",
+    fields: [
+      { key: "hoursTitle",   label: "Section heading", type: "text", placeholder: "Opening Hours" },
+      { key: "openingHours", label: "Days and times", type: "hours" },
+    ],
+  },
+  // ── Living sections: fill themselves from the business's real data ─────────
+  {
+    key: "payment_info", label: "How to pay me", icon: "Wallet", tier: "freemium",
+    purpose: "Your telebirr, CBE or bank accounts from your Business settings, with Copy buttons. Always up to date.",
+    fields: [
+      { key: "payTitle", label: "Section heading", type: "text", placeholder: "How to pay" },
+      { key: "payNote",  label: "A note for buyers (optional)", type: "text", placeholder: "Send the receipt on WhatsApp after paying" },
+    ],
+  },
   {
     key: "inventory_catalog",
-    label: "Inventory Catalog",
+    label: "Product catalogue",
     icon: "Package",
     tier: "pro",
+    purpose: "All your products from My Products, with search and categories. Updates by itself.",
     tierLabel: "Pro feature",
-    tierFeatures: ["Live product sync", "Bulk CSV/JSON import", "Stock indicators"],
+    tierFeatures: ["Your live products", "Search and categories", "Stock left"],
     fields: [
-      { key: "catalogTitle", label: "Section Title", type: "text", placeholder: "Our Products" },
-      { key: "showStock",    label: "Show stock levels", type: "text", placeholder: "true" },
+      { ...TITLE("Our Products"), key: "catalogTitle" },
+      { key: "showStock", label: "Show how many are left", type: "toggle" },
     ],
   },
   {
     key: "live_location_tracking",
-    label: "Live Location",
+    label: "Live location",
     icon: "Navigation",
     tier: "pro",
+    purpose: "Shows where you are right now on a map when you share it, like a delivery or a food truck.",
     tierLabel: "Pro feature",
-    tierFeatures: ["Real-time GPS pin on showroom", "Visible to any visitor", "Socket.IO powered"],
+    tierFeatures: ["Your position on a map", "Visible to any visitor", "Updates live"],
     fields: [
-      { key: "locationTitle", label: "Section Title", type: "text", placeholder: "Find us live" },
+      { ...TITLE("Find us live"), key: "locationTitle" },
     ],
   },
   {
     key: "save_showroom",
-    label: "Save / Bookmark Button",
+    label: "Save button",
     icon: "Bookmark",
     tier: "pro",
+    purpose: "A button visitors tap to save your website and find it again in their Saved items.",
     tierLabel: "Pro feature",
     tierFeatures: [
       "Let visitors bookmark your showroom",
@@ -379,8 +469,8 @@ export const SECTION_TYPES: SectionType[] = [
       "Drives repeat visits",
     ],
     fields: [
-      { key: "saveTitle", label: "Section Title", type: "text", placeholder: "Save this showroom" },
-      { key: "saveDesc",  label: "Description",   type: "text", placeholder: "Bookmark us and find us again easily" },
+      { ...TITLE("Save this showroom"), key: "saveTitle" },
+      { key: "saveDesc",  label: "A few words", type: "text", placeholder: "Save us and find us again easily" },
     ],
   },
 ];

@@ -15,9 +15,9 @@ Hashtag engine: extracts/syncs post hashtags into hashtags/post_hashtags, hashta
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/hashtags/trending` | public | 23 |
-| `GET` | `/api/hashtags/:name` | optional | 43 |
-| `GET` | `/api/hashtags/:name/posts` | optional | 67 |
+| `GET` | `/api/hashtags/trending` | public | 48 |
+| `GET` | `/api/hashtags/:name` | optional | 68 |
+| `GET` | `/api/hashtags/:name/posts` | optional | 92 |
 
 ## 4. What does it touch?
 

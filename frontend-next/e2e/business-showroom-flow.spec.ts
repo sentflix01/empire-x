@@ -42,7 +42,8 @@ async function mockShowroomApi(page: Page, options: { signedIn?: boolean; publis
       return;
     }
     if (path === '/api/businesses') {
-      await route.fulfill({ json: [] });
+      // Every live site belongs to a Business profile (#117): a signed-in owner has one.
+      await route.fulfill({ json: options.signedIn ? [{ id: 'e2e-business-id', owner_id: 'e2e-owner-id', business_name: 'Fresh Roots Cooperative', visibility: 'public' }] : [] });
       return;
     }
     if (path === '/api/profiles') {

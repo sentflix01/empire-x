@@ -7,6 +7,7 @@ import { listRecords, getRecord, createRecord, updateRecord, deleteRecord, witho
 import { getBusinessSubscriptionAccess, isBusinessOwnerBlocked } from '../lib/businessSubscriptionPolicy';
 import pool from '../db/pool';
 import { redactContactFields, parsePublicContactFields } from '../lib/contactPrivacy';
+import { businessViewGate, isBusinessVisibility, rejectViewGate } from '../lib/siteVisibility';
 
 const canSeeAll = (req: Request, ownerId: unknown) => !!req.user && (req.user.id === ownerId || req.user.role === 'admin');
 
@@ -17,6 +18,9 @@ function privacyFieldError(updates: Record<string, unknown>): string | null {
     if (!parsed) return 'public_contact_fields must list only business_contact_phone, business_contact_email or business_address';
     updates.public_contact_fields = parsed;
   }
+  if (updates.visibility !== undefined && !isBusinessVisibility(updates.visibility)) {
+    return "visibility must be 'public' or 'private'";
+  }
   if (updates.pickup_address !== undefined && updates.pickup_address !== null && (typeof updates.pickup_address !== 'string' || updates.pickup_address.length > 500)) {
     return 'pickup_address must be text of at most 500 characters';
   }
@@ -25,7 +29,7 @@ function privacyFieldError(updates: Record<string, unknown>): string | null {
 
 const router = Router();
 
-router.get('/', optionalAuth, cacheMiddleware('businesses:list', 30), async (req: Request, res: Response) => {
+router.get('/', optionalAuth, cacheMiddleware('businesses:list', 30, { varyByAuth: true }), async (req: Request, res: Response) => {
   try {
     const { owner_id, sort = '-created_at', limit = '50' } = req.query as Record<string, string>;
     const filter: Record<string, string> = {};
@@ -37,6 +41,7 @@ router.get('/', optionalAuth, cacheMiddleware('businesses:list', 30), async (req
     const rows = await listRecords('businesses', {
       filter, sort, limit, realOnly: req.realOnly,
       paidBusinessGrace: !owner_id || owner_id !== req.user?.id,
+      publicOnly: !req.user,
     }) as Array<Record<string, unknown>>;
     res.json(rows.map((row) => redactContactFields(row, canSeeAll(req, row.owner_id))));
   } catch { res.status(500).json({ error: 'Failed to fetch businesses' }); }
@@ -49,11 +54,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
     const ownerId = String((biz as Record<string, unknown>).owner_id ?? '');
     const access = await getBusinessSubscriptionAccess(req.params.id);
     const isOwner = req.user?.id === ownerId;
-    if (!isOwner && (!access || access.hiddenFromPublic)) { res.status(404).json({ error: 'Business not found' }); return; }
-    if (isOwner && access?.blockedForOwner) {
-      res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' });
-      return;
-    }
+    if (!isOwner && rejectViewGate(res, businessViewGate(access, req), 'Business not found')) return;
     res.json(redactContactFields(biz as Record<string, unknown>, canSeeAll(req, ownerId)));
   } catch { res.status(500).json({ error: 'Failed to fetch business' }); }
 });
@@ -84,11 +85,6 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     const existing = await getRecord<{ owner_id: string }>('businesses', req.params.id);
     if (!existing) { res.status(404).json({ error: 'Business not found' }); return; }
     if (existing.owner_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
-    const access = await getBusinessSubscriptionAccess(req.params.id);
-    if (existing.owner_id === req.user!.id && access?.blockedForOwner) {
-      res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' });
-      return;
-    }
     const updates = withoutProtectedFields(req.body as Record<string, unknown>, 'owner_id');
     if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable business fields provided' }); return; }
     const privacyError = privacyFieldError(updates);
@@ -215,7 +211,7 @@ router.get('/:id/checkout-info', optionalAuth, async (req: Request, res: Respons
     const biz = await getRecord<Record<string, unknown>>('businesses', req.params.id, { realOnly: req.realOnly });
     if (!biz) { res.status(404).json({ error: 'Business not found' }); return; }
     const access = await getBusinessSubscriptionAccess(req.params.id);
-    if (!canSeeAll(req, biz.owner_id) && (!access || access.hiddenFromPublic)) { res.status(404).json({ error: 'Business not found' }); return; }
+    if (!canSeeAll(req, biz.owner_id) && rejectViewGate(res, businessViewGate(access, req), 'Business not found')) return;
     const visible = redactContactFields(biz, false);
     const { rows: accounts } = await pool.query(
       `SELECT id, method, provider_name, account_name, account_number, instructions FROM business_payment_accounts

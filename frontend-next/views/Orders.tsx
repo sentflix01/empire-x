@@ -18,6 +18,8 @@ import { generateInvoice } from "@/lib/generateInvoice";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import RequestPricing from '@/components/orders/RequestPricing';
 
 const STATUS_CONFIG = {
   pending:    { label: "Pending",    icon: Clock,        color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
@@ -26,6 +28,7 @@ const STATUS_CONFIG = {
   completed:  { label: "Completed",  icon: CheckCircle,  color: "text-gray-600 bg-gray-50 border-gray-200" },
   cancelled:  { label: "Cancelled",  icon: XCircle,      color: "text-red-600 bg-red-50 border-red-200" },
   // Direct payment (buyer pays the seller; only the seller confirms)
+  requested:        { label: "Request: price to confirm", icon: Clock, color: "text-amber-700 bg-amber-50 border-amber-200" },
   awaiting_payment: { label: "Awaiting payment", icon: Clock,       color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
   payment_reported: { label: "Payment reported", icon: Clock,       color: "text-amber-700 bg-amber-50 border-amber-200" },
   expired:          { label: "Expired",          icon: XCircle,     color: "text-gray-600 bg-gray-50 border-gray-200" },
@@ -203,7 +206,7 @@ function ReturnRequestForm({ order, onSubmitted }: { order: any; onSubmitted: ()
       await client.post("/api/returns", { order_id: order.id, reason, details });
       onSubmitted();
     } catch (err: any) {
-      setError(err?.response?.data?.error || "Failed to submit request");
+      setError(apiErrorMessage(err, "Failed to submit request"));
     }
     setSaving(false);
   };
@@ -506,7 +509,9 @@ function Orders() {
                       </div>
                     </div>
                     <div className="text-right ml-2 shrink-0">
-                      <p className="font-bold text-amber-600">{order.total_price?.toLocaleString()} {order.currency}</p>
+                      {order.status === "requested"
+                        ? <p className="text-sm font-semibold text-amber-600">{order.listed_price_text ? `Listed: ${order.listed_price_text}` : "Price to confirm"}</p>
+                        : <p className="font-bold text-amber-600">{order.total_price?.toLocaleString()} {order.currency}</p>}
                       <p className="text-xs text-muted-foreground">Qty: {order.quantity}</p>
                     </div>
                   </div>
@@ -523,7 +528,7 @@ function Orders() {
                       {/* Invoice */}
                       {order.status === "completed" && (
                         <button
-                          onClick={() => generateInvoice(order)}
+                          onClick={() => { void generateInvoice(order); }}
                           className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 font-medium px-2 py-1 rounded-full hover:bg-amber-50 transition-colors"
                         >
                           <FileDown className="w-3 h-3" /> Invoice
@@ -536,6 +541,14 @@ function Orders() {
                           onClick={() => updateStatus(order.id, next)}>
                           {NEXT_LABEL[next] ?? next}
                         </Button>
+                      )}
+
+                      {/* Request to order: the seller sets the price or declines; the buyer waits */}
+                      {isSelling && order.status === "requested" && (
+                        <RequestPricing order={order} onUpdated={(updated) => setOrders(prev => prev.map(o => o.id === order.id ? { ...o, ...updated } : o))} />
+                      )}
+                      {!isSelling && order.status === "requested" && (
+                        <span className="text-xs text-muted-foreground">Waiting for the seller&apos;s price</span>
                       )}
 
                       {/* Direct payment: seller confirms; buyer reports */}

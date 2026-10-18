@@ -18,6 +18,7 @@ import { emitNotification } from '../socket';
 import { sendPushToUser } from './push';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache';
 import { getBusinessSubscriptionAccess } from '../lib/businessSubscriptionPolicy';
+import { businessViewGate, productNotPrivateSql, rejectViewGate } from '../lib/siteVisibility';
 
 const router = Router();
 const LOW_STOCK_THRESHOLD = 5;
@@ -112,6 +113,8 @@ router.get('/', optionalAuth, cacheMiddleware('products:list', 90, { varyByQuery
           AND paid_sub.current_period_end > NOW() - INTERVAL '24 hours'
       ))`);
     }
+    // Private businesses are for signed-in users only (decision §7).
+    if (!req.user) conditions.push(productNotPrivateSql('p'));
     if (status)      { values.push(status);      conditions.push(`p.status=$${values.length}`); }
     if (categoryFilter) {
       values.push(categoryFilter);
@@ -178,8 +181,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
     if (businessId) {
       const access = await getBusinessSubscriptionAccess(businessId);
       const isOwner = record.seller_id === req.user?.id;
-      if (!isOwner && (!access || access.hiddenFromPublic)) { res.status(404).json({ error: 'Product not found' }); return; }
-      if (isOwner && access?.blockedForOwner) { res.status(423).json({ error: 'business_profile_blocked', message: 'This business profile is blocked until its subscription is renewed.' }); return; }
+      if (!isOwner && rejectViewGate(res, businessViewGate(access, req), 'Product not found')) return;
     }
     await pool.query('UPDATE products SET view_count=view_count+1 WHERE id=$1', [req.params.id]).catch(()=>undefined);
     res.json((!!req.user?.id && record.seller_id === req.user.id) || req.user?.role === 'admin' ? normalizeProduct(record) : publicProduct(record));

@@ -17,7 +17,7 @@
  */
 
 const fc = require('fast-check');
-const { resolveDotPath, applyMappings } = require('../services/proxyGateway');
+const { resolveDotPath, applyMappings, RESERVED_FIELD_NAMES } = require('../services/proxyGateway');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -129,7 +129,8 @@ describe('Property 5 — Exact output key set', () => {
         // must appear in the output
         for (const { source_path, target_field } of mappings) {
           const value = resolveDotPath(sourceObj, source_path);
-          if (value !== undefined) {
+          // Reserved names (__proto__ …) are never written: they would change the prototype.
+          if (value !== undefined && !RESERVED_FIELD_NAMES.has(target_field)) {
             expect(outputKeys).toContain(target_field);
           }
         }
@@ -142,6 +143,13 @@ describe('Property 5 — Exact output key set', () => {
       { numRuns: 100 },
     );
   });
+});
+
+test('a reserved target field is ignored and never changes the output prototype', () => {
+  const [out] = applyMappings([{ a: { polluted: true } }], [{ source_path: 'a', target_field: '__proto__' }, { source_path: 'a', target_field: 'ok' }]);
+  expect(Object.keys(out)).toEqual(['ok']);
+  expect(Object.getPrototypeOf(out)).toBe(Object.prototype);
+  expect(out.polluted).toBeUndefined();
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

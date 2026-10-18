@@ -130,6 +130,24 @@ documents when verified; do not copy stale values into new work.
   profile rows for the Demo owner.
 - **Related documentation:** [Demo workspace deployment](../docs/operations/DEMO_WORKSPACE_DEPLOYMENT.md)
 
+### 2026-10-16 — Owners choose public or private; guests see the business feed only
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** Every business site was open to anyone, and guests could read
+  personal posts and profiles.
+- **Decision:** Each business is **Public** (default) or **Private**. Private
+  businesses, their sites and products are for signed-in users only and are
+  hidden from guests, the sitemap and search engines. Guests see the business
+  feed only; personal posts, stories, people and personal profiles need
+  sign-in. This narrows "open without signing in" and "findable by search
+  engines" to public businesses.
+- **Consequences:** Guest-facing reads go through `lib/siteVisibility.ts`;
+  a guest request for private or personal content gets `401 SIGN_IN_REQUIRED`
+  and the page shows "Sign in to view". Response caches split guests from
+  members.
+- **Related documentation:** [Platform model decisions](../docs/decisions/platform-model-decisions.md) §2, §7.1, §7.3, §7.5
+
 ### 2026-10-16 — Legacy websites get a Business profile and a 30-day free period
 
 - **Status:** Accepted
@@ -162,6 +180,222 @@ documents when verified; do not copy stale values into new work.
   added to `@theme` in the same change. The checker's allowlist is only for
   strings that are not classes.
 - **Related documentation:** [Engineering Standards](../docs/ENGINEERING_STANDARDS.md#theme-tokens-and-tailwind-v4) (PR #106)
+
+### 2026-10-16 — The Nodbusiness emblem is the only brand mark; onboarding is personal-only
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** A crown (the 👑 emoji and lucide's `Crown` icon) stood in for
+  the brand in the tab title, onboarding, the 404 page, site footers, invoices
+  and the Showroom Studio and Showrooms icons. Onboarding also offered a
+  Business Profile path that wrote business fields to the user profile without
+  creating a business or a website.
+- **Decision:** Use the real emblem (`frontend-next/components/brand/BrandLogo.tsx`,
+  `/brand/nodbusiness-icon.svg`) everywhere a crown was. A test fails if a
+  crown emoji or a lucide `Crown` import returns. Onboarding has a single
+  Personal Information step. Businesses and their websites are created later
+  from Businesses or Showroom Studio.
+- **Consequences:** Invoices draw the emblem as an image. Onboarding never
+  changes an existing profile's business flag.
+- **Related documentation:** `frontend-next/test/brand/noCrownBranding.test.ts`, `frontend-next/test/onboarding.test.tsx`
+
+### 2026-10-16 — A published website is maintained from the business profile editor
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** The business profile editor had a category grid and a link into
+  Showroom Studio, so every content change to a live site meant reopening the
+  full builder.
+- **Decision:** The editor's "Your website" section loads the owner's
+  published site and edits every section it has, saving straight to that site
+  (`PUT /api/showrooms/:id`, which re-checks plan entitlements). Adding,
+  removing or reordering sections and changing the template stay in Studio.
+  Studio and the panel share `lib/showroomSectionsCodec.ts`.
+- **Consequences:** Editing the hero's name or tagline also updates the site's
+  title or description. The slug never changes, so shared links and QR codes
+  keep working. Owners without a published site are sent to Studio.
+- **Related documentation:** `frontend-next/components/profile/WebsiteSectionsPanel.tsx`, `frontend-next/test/profile/WebsiteSectionsPanel.test.tsx`
+
+### 2026-10-17 — Legacy websites stay free for six months while the platform is in its trial
+
+- **Status:** Accepted (amends decision 1 of the NodBusiness Build Plan, 2026-10-16)
+- **Decision owner:** Project owner (@Sent)
+- **Context:** Decision 1 gave the 12 websites published before paid publishing
+  a Business profile with a 30-day free period, ending about 2026-11-15. The
+  platform is still in a trial with tester-owned sites, much remains to fix
+  before beta registration, and ETB checkout (Phase 1, Chapa) is not live, so
+  those owners could not pay when the period ended.
+- **Decision:** The free period is six months from when each profile was
+  created (about 2027-04-16 for the existing 12). `migrate62.js` extends
+  existing trialing grants; `migrate59.js` now grants six months to any legacy
+  site it still finds.
+- **Consequences:** No legacy site enters the expiry timeline before April
+  2027. Phase 1 is no longer driven by the November date. Paid (active)
+  subscriptions are untouched.
+- **Related documentation:** [Database](../docs/backend/DATABASE.md) (migrate62)
+
+### 2026-10-17 — ETB plans are prepaid through Chapa
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** Decision 3 of the Build Plan chose Chapa for ETB
+  subscriptions. Chapa has no recurring billing; each payment is a one-time
+  checkout.
+- **Decision:**
+  - Owners prepay 1, 3, 6 or 12 months and are reminded before the period
+    ends (no automatic charging).
+  - Upgrading mid-period pays the price difference for the days left (30-day
+    month, rounded up to whole birr) and keeps the end date; months can be
+    added at the new price.
+  - Downgrades take effect when the paid period ends.
+  - A payment counts only after the backend re-verifies it with Chapa;
+    webhooks, callbacks and return pages only trigger that check.
+  - Stripe stays for USD.
+- **Consequences:** `subscription_payments` holds every checkout and receipt.
+  Renewal reminders and the scheduler checks follow in Phase 1's later PRs.
+- **Related documentation:** [Subscriptions](../docs/backend/SUBSCRIPTIONS.md#prepaid-etb-through-chapa-phase-1)
+
+### 2026-10-17 — Website cards sell through products or requests
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** Buy Now on cards typed into website sections (services,
+  packages, best sellers, pricing plans) opened a dead-end popup, because
+  those cards are not catalogue products and orders need a product.
+- **Decision:** Both paths:
+  - **Linked:** in Showroom Studio a card can be linked to one of the owner's
+    catalogue products ("Sell as product"); Buy Now then sells that product at
+    its current price and stock.
+  - **Not linked but priced:** Buy Now becomes Request to order. The seller
+    sets the price, then it is a normal direct order (the buyer pays the
+    seller directly). The server accepts requests only for items on that
+    seller's own website.
+  - **No price, or "Get Quote":** no Buy Now.
+- **Consequences:** `orders.listed_price_text` and the `requested` status
+  (migrate64), `lib/sectionItemPurchase.ts` (one rule for every card list),
+  and the Studio `ProductPicker`. The popup always reloads a linked product,
+  so a card's typed price never overrides the real one.
+- **Related documentation:** [API](../docs/backend/API.md) (`/api/direct-orders/requests`, `/set-price`) — PRs #123 and this one
+
+### 2026-10-17 — The business profile page shows the published website
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** The business profile page (`/profile/<id>?view=business`)
+  rendered the category template's sample sections from `business_sections`
+  (for example "Electronics Appliances Standard · From $16"). Owners cannot
+  edit those cards or link them to products, so they bypassed the Studio
+  site's product links and requests.
+- **Decision:** The page shows the business's published Studio site: the most
+  recently updated published showroom with that `business_id`, read through
+  `GET /api/showrooms` (which applies expiry, private-business and the 24-hour
+  post-plan grace rules for visitors). It uses the same `SectionRenderer` and
+  Buy flow as the site page, and `PurchaseModal` gets the site's id. The
+  template sections are only a fallback when there is no published site.
+- **Consequences:** The owner's Edit and View site buttons open that site.
+  A site with its own contact section replaces the page's built-in contact
+  block. The profile's business list matches a site to its business by
+  `business_id` first (titles may differ), and by name only for sites without
+  a link, so a linked site no longer appears as a second business.
+- **Related documentation:** `frontend-next/components/profile/BusinessProfile.tsx`, `frontend-next/test/profile/BusinessProfile.site.test.tsx`
+
+
+### 2026-10-17 — Showroom Studio is manual, publish-only, and laid out per device
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** Studio's toolbar held about 25 controls in one sideways-scrolling
+  row with Publish last (off-screen at 768px and below); the phone Sections tab
+  left about 110px for the list; the tablet sections drawer covered the
+  preview. Studio also offered "Export HTML" and "Copy code", and the floating
+  AI assistant sat over the form.
+- **Decision:** (owner) Websites are published **only on NodBusiness**: the
+  HTML export, copy-code and raw-HTML preview are removed (a full-screen
+  in-app preview replaces the last). Studio has **no AI inside**: every word,
+  photo and price is entered by the owner, and the AI assistant is hidden on
+  the Studio route. One top bar on every screen (Back, name and save status,
+  Undo/Redo, Style, More, Publish), with Publish always visible. One layout is
+  rendered at a time, chosen from Studio's own width: phone (under 520px: Edit
+  or Preview, with Sections in a see-through panel over the preview, 40–100%,
+  remembered), tablet (sections or editor beside the preview) and desktop
+  (three columns from 960px). Undo groups typing in one field until a 1s
+  pause; completion counts only the sections on the page.
+- **Consequences:** The Sections list shows the page top to bottom with
+  labelled move and remove buttons, plus an Add catalogue (the dead
+  `resources` entry is gone). The Studio e2e mock now gives the signed-in
+  owner a Business profile, since publishing requires one (#117).
+- **Related documentation:** `frontend-next/views/ShowroomCreate.tsx`, `frontend-next/components/showroom/studio/`, `frontend-next/hooks/useStudioLayout.ts`, `frontend-next/test/showroom/studioDevices.test.tsx`
+
+### 2026-10-17 — Every Studio section works as shown, in words owners already use
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** A strict review of the Studio sections found:
+  - Inventory Catalog and Live Location rendered nothing on published sites
+    (owners could pay for Pro and get an empty section).
+  - Newsletter saved nothing.
+  - The Save button and catalogue were missing from the preview, because the
+    preview was a second, separate renderer.
+  - Every photo was a pasted image address.
+  - The site security policy blocked YouTube and map frames, so Video and Map
+    could not show on a live site.
+  - The Style font choice and WhatsApp button were never saved, and the fonts
+    were never loaded.
+  - The top button disappeared when the page had nothing to sell.
+- **Decision:**
+  - **One renderer.** Studio's preview renders through the published site's
+    `SectionRenderer`.
+  - **Product catalogue.** It lists the business's real products with search,
+    categories and an optional "left in stock".
+  - **Live location.** Visitors see the owner's last shared position (10
+    minutes, by the existing API) on a map; only the owner sees "Share my
+    location now".
+  - **Email sign-up.** Addresses are stored in `showroom_newsletter_signups`
+    (migrate66; public `POST /api/showrooms/:id/newsletter`, rate-limited, only
+    for a published site with that section; owner-only `GET`). The owner sees
+    them on their website page. They are personal data: never shown to
+    anyone but the site owner, and deleted with the site.
+  - **Forms in owners' words.** "Add photo" uploads replace image addresses.
+    No colour, icon or map-embed codes in forms: those fields are hidden but
+    kept, so existing sites are unchanged. Maps come from the typed address.
+  - **Video and maps load.** The policy adds `frame-src` for
+    youtube-nocookie/YouTube, Google Maps and OpenStreetMap.
+  - **Style is saved.** Font and WhatsApp button are stored on the top
+    section, and the fonts are self-hosted with `next/font`.
+  - **The top button always lands.** It goes to the catalogue, then
+    services, items or price list, then contact.
+  - **Plain names.** Every section carries a plain name and a one-line purpose.
+- **Consequences:** Section and field keys are unchanged (sites keep their data). `lib/showroomSectionFields.ts`
+  (the older business-template editor) still uses image addresses and is a separate follow-up.
+- **Related documentation:** `frontend-next/lib/builderSections.ts`, `frontend-next/components/showroom/SectionRenderer.tsx`, `frontend-next/components/showroom/BuilderPreview.tsx`, `backend/routes/showrooms.ts`, `backend/db/migrate66.js`, `frontend-next/test/showroom/sectionsLive.test.tsx`, `backend/test/db/newsletterSignups.db.test.js`
+
+### 2026-10-17 — Studio pieces for local businesses: pay, hours, menu, offer
+
+- **Status:** Proposed (accepted when its pull request merges)
+- **Context:** Local businesses need four basics the Studio catalogue lacked:
+  - where to send money
+  - when they are open (the renderer's old hours block showed made-up
+    default hours)
+  - a menu
+  - a time-limited offer
+- **Decision:** Four new sections. Keys are registered in
+  `backend/lib/builderSectionRequirements.js`, all on the **free tier**
+  (owner may move them to a paid plan later).
+  - `payment_info` (**How to pay me**) is a living piece. It reads the
+    business's active `business_payment_accounts` through `GET
+    /api/businesses/:id/checkout-info`, the same source as checkout, so it is
+    never retyped and never out of date. Visitors don't see it when there
+    are no accounts. The owner gets a link to add them.
+  - `hours` (**Opening hours**) is a weekly picker. It shows "Open now" or
+    "Closed now" in the visitor's local time, including hours past midnight.
+    No placeholder hours are shown.
+  - `menu` (**Menu**) has dishes grouped by the owner's own group names,
+    with an optional photo. Order uses the existing buy and request-to-order
+    flow.
+  - `offer` (**Today's offer**) has a last day. After it, visitors don't see
+    the offer and the owner sees a notice. The button goes to what the
+    business sells.
+- **Consequences:** Older template menus (`menu` with `items`) still render
+  as before. The business edit page's payment section has a
+  `#payment-accounts` anchor for the owner link.
+- **Related documentation:** `frontend-next/components/showroom/NewPieces.tsx`, `frontend-next/lib/openingHours.ts`, `frontend-next/components/showroom/HoursField.tsx`, `frontend-next/lib/builderSections.ts`, `frontend-next/test/showroom/sectionsLive.test.tsx`
 
 ## Adding a decision
 

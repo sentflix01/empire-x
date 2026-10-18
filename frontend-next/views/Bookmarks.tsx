@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import NextImage from 'next/image';
 import client from "@/api/client";
-import { Bookmark, ShoppingBag, Crown, FileText, Bell, Trash2 } from "lucide-react";
+import { Bookmark, ShoppingBag, FileText, Bell, Trash2 } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import ErrorState from "@/components/ui/ErrorState";
@@ -11,6 +12,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { useAppStore } from "@/store";
 import { useAuth } from "@/lib/AuthContext";
+import { apiErrorMessage } from "@/lib/apiErrorMessage";
 
 function Bookmarks() {
   const { t } = useTranslation();
@@ -18,7 +20,7 @@ function Bookmarks() {
     { key:"all",     label: t('bookmarks.all') },
     { key:"post",    label: t('bookmarks.posts'),     icon:FileText   },
     { key:"product", label: t('bookmarks.products'),  icon:ShoppingBag },
-    { key:"showroom",label: t('bookmarks.showrooms'), icon:Crown       },
+    { key:"showroom",label: t('bookmarks.showrooms'), icon:BrandLogo       },
     { key:"alerts",  label: t('bookmarks.alerts'),    icon:Bell        },
   ];
 
@@ -49,7 +51,7 @@ function Bookmarks() {
       const { data } = await client.get("/api/wishlists/price-alerts");
       setAlerts(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || "Failed to load price alerts");
+      toast.error(apiErrorMessage(err, "Failed to load price alerts"));
     }
     setAlertsLoading(false);
   };

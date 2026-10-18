@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { optionalAuth } from '../middleware/auth';
+import { productNotPrivateSql } from '../lib/siteVisibility';
 
 const router = Router();
 
@@ -42,12 +43,13 @@ router.get('/nearby/product-search', optionalAuth, async (req: Request, res: Res
     return;
   }
 
-  const realOnlyProductFilter = req.realOnly
+  // Guests never see private businesses (decision §7).
+  const realOnlyProductFilter = (req.realOnly
     ? 'AND seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)'
-    : '';
-  const realOnlyBusinessFilter = req.realOnly
+    : '') + (req.user ? '' : ` AND ${productNotPrivateSql('products')}`);
+  const realOnlyBusinessFilter = (req.realOnly
     ? 'AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)'
-    : '';
+    : '') + (req.user ? '' : " AND visibility = 'public'");
   const pattern = `%${query}%`;
 
   try {
@@ -107,8 +109,8 @@ router.get('/nearby', optionalAuth, async (req: Request, res: Response) => {
   const radiusKm = parseFloat(radius) || 10;
   const lim = Math.min(parseInt(limit) || 50, 200);
   const results: Record<string, unknown[]> = {};
-  const realProductFilter = req.realOnly ? 'AND seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '';
-  const realBusinessFilter = req.realOnly ? 'AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '';
+  const realProductFilter = (req.realOnly ? 'AND seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '') + (req.user ? '' : ` AND ${productNotPrivateSql('products')}`);
+  const realBusinessFilter = (req.realOnly ? 'AND owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)' : '') + (req.user ? '' : " AND visibility = 'public'");
   const realPeopleJoin = req.realOnly ? 'JOIN users u ON u.id=up.user_id AND u.is_seed=FALSE AND u.is_demo=FALSE' : '';
 
   try {
@@ -126,7 +128,8 @@ router.get('/nearby', optionalAuth, async (req: Request, res: Response) => {
       );
       results.businesses = attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim);
     }
-    if (type === 'all' || type === 'people') {
+    // People are personal content: signed-in users only.
+    if (req.user && (type === 'all' || type === 'people')) {
       const { rows } = await pool.query(
         `SELECT up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.latitude,up.longitude FROM user_profiles up ${realPeopleJoin} WHERE up.latitude IS NOT NULL AND up.longitude IS NOT NULL LIMIT $1`,
         [lim * 3],

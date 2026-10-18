@@ -7,6 +7,7 @@ import client from "@/api/client";
 import { offlineAnswer } from "@/lib/aiOffline";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/AuthContext";
+import { usePathname } from "next/navigation";
 
 interface Message {
   role: "user" | "assistant";
@@ -93,7 +94,7 @@ function fmtTime(ts: number): string {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${time}`;
 }
 
-export default function AiAssistant() {
+function AiAssistantWidget() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const historyKey = `${STORAGE_KEY}:${user?.id ?? "guest"}:${user?.is_demo ? "demo" : "real"}`;
@@ -422,4 +423,11 @@ export default function AiAssistant() {
       )}
     </>
   );
+}
+
+/** Showroom Studio is fully manual (no AI inside), so the assistant stays out of it. */
+export default function AiAssistant() {
+  const pathname = usePathname();
+  if (pathname === "/showroom/create") return null;
+  return <AiAssistantWidget />;
 }

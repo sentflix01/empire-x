@@ -5,14 +5,8 @@ import client from "@/api/client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Home, Search, MessageCircle, ShoppingBag, Bell, User, UserRound,
-  Plus, Crown, TrendingUp,
-  Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, Tag,
-  Package, ShieldAlert, BarChart3, Store, Flame, Users, ChevronDown,
-  PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield,
-  ArrowLeft, Settings,
-} from "lucide-react";
+import { Home, Search, MessageCircle, ShoppingBag, Bell, User, UserRound, Plus, TrendingUp, Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, Tag, Package, ShieldAlert, BarChart3, Store, Flame, Users, ChevronDown, PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield, ArrowLeft, Settings } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -87,7 +81,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
         <div className="bg-gradient-to-br from-amber-500 to-orange-500 px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-              <Crown className="w-4 h-4 text-white" />
+              <BrandLogo className="w-4 h-4 text-white" />
             </div>
             <div>
               <p className="text-white font-bold text-sm leading-tight">Showroom Studio</p>
@@ -118,7 +112,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
             href={user ? "/showroom/templates" : "/register"}
             className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-semibold transition-all"
           >
-            <Crown className="w-3.5 h-3.5" />
+            <BrandLogo className="w-3.5 h-3.5" />
             {user ? 'Browse Templates' : 'Create an account to build'}
           </Link>
         </div>
@@ -338,7 +332,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     : mainNavItems.filter(item => isGuestBrowsablePath(item.path));
 
   const extraNavItems = [
-    { path: "/showrooms", icon: Crown, label: tr('nav.showrooms') },
+    { path: "/showrooms", icon: BrandLogo, label: tr('nav.showrooms') },
   ];
 
   const accountItems = [
@@ -594,7 +588,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <React.Fragment key={item.path}>
                 <NavLink {...item} />
                 {/* Personal | Business pill — under Home, only when Home is active */}
-                {item.path === '/feed' && !sidebarCollapsed && isActive('/feed') && (
+                {item.path === '/feed' && isAuthenticated && !sidebarCollapsed && isActive('/feed') && (
                   <ViewTogglePill
                     value={homeFeedMode}
                     onChange={(v) => { if (v !== homeFeedMode) setHomeFeedMode(v); }}
@@ -644,7 +638,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}
                 ${isActive('/showroom/templates') ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
             >
-              <Crown className="w-4 h-4 shrink-0 text-amber-500" />
+              <BrandLogo className="w-4 h-4 shrink-0 text-amber-500" />
               {!sidebarCollapsed && <span>{t('common.showroomStudio')}</span>}
               {sidebarCollapsed && (
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
@@ -920,7 +914,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                         <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
                       </Link>
                       {/* Personal | Business pill — under Home in drawer */}
-                      {path === '/feed' && isActive('/feed') && (
+                      {path === '/feed' && isAuthenticated && isActive('/feed') && (
                         <ViewTogglePill
                           value={homeFeedMode}
                           onChange={(v) => { if (v !== homeFeedMode) setHomeFeedMode(v); }}
@@ -952,7 +946,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   </Link>
                   <Link href="/showroom/templates" onClick={() => setDrawerOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/showroom/templates') ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
-                    <Crown className="w-4 h-4 shrink-0 text-amber-500" /><span>{tr('common.showroomStudio')}</span>
+                    <BrandLogo className="w-4 h-4 shrink-0 text-amber-500" /><span>{tr('common.showroomStudio')}</span>
                   </Link>
                   </>}
 

@@ -29,7 +29,7 @@ Push to main branch
 │                                         │
 │  ├── gate (verify CI passed)            │
 │  ├── changes (detect frontend changes)  │
-│  ├── migrate (run DB migrations)        │
+│  ├── migrate (Real DB, then Demo DB)    │
 │  ├── deploy-backend (Render hook)       │
 │  ├── deploy-frontend (Vercel CLI)*      │
 │  └── healthcheck                        │
@@ -45,6 +45,7 @@ Push to main branch
 | Secret | Used by | Value |
 |---|---|---|
 | `DATABASE_URL` | `deploy.yml` migrate job | Supabase pooler URL (port 6543) |
+| `DEMO_DATABASE_URL` | `deploy.yml` migrate job (Demo step) | Demo Supabase project Postgres URI, same value as on Render. Missing → Demo migrations skipped with a notice |
 | `RENDER_DEPLOY_HOOK_URL` | `deploy.yml` deploy-backend job | `https://api.render.com/deploy/srv-...?key=...` |
 | `VERCEL_TOKEN` | `deploy.yml` deploy-frontend job | Vercel personal access token |
 | `BACKEND_URL` | `deploy.yml` healthcheck job | `https://nodbusiness-backend-9psf.onrender.com` |
@@ -118,6 +119,7 @@ Runs `node db/migrate-all.js` against the production Supabase database.
 - Uses `secrets.DATABASE_URL` (pooler URL, port 6543)
 - Verifies the database connection first; missing credentials or a failed connection blocks deployment
 - Idempotent — safe to run on every deploy
+- Then migrates the Demo database with `db/migrate-demo.js` when `secrets.DEMO_DATABASE_URL` is set (skipped with a notice otherwise). The script refuses to run if the Demo URL points at the Real database. A Demo migration failure blocks the deploy, because the new backend runs the same SQL against Demo.
 
 ### 4. deploy-backend
 Runs only after CI and database migrations succeed, then fires the Render deploy hook via HTTP POST.
@@ -213,6 +215,7 @@ git commit -m "docs: update README [skip ci]"
 | CI backend job hangs > 15 min | Open handles in tests | `--forceExit` is set — job will be killed at 15 min timeout |
 | Deploy skipped after CI | CI concluded with `failure` or `cancelled` | Fix failing tests/typecheck, push again |
 | Migrations skipped | `DATABASE_URL` secret missing | Add `DATABASE_URL` to GitHub Secrets |
+| Demo sessions get 500 on feed/trending after a deploy | Demo DB not migrated (`DEMO_DATABASE_URL` secret missing) | Add the secret, then run `migrate:demo` once (see `docs/operations/DEMO_WORKSPACE_DEPLOYMENT.md`) |
 | Render deploy not triggered | `RENDER_DEPLOY_HOOK_URL` missing | Get from Render → service → Settings → Deploy Hook |
 | Vercel deploy fails | `VERCEL_TOKEN` expired | Regenerate in Vercel → Account Settings → Tokens |
 | Health check fails | Render cold start taking >45s | Expected on free tier — health check is non-blocking |

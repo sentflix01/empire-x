@@ -17,6 +17,12 @@ export function isStripeConfigured(): boolean {
   return Boolean(key);
 }
 
+/** Test keys (sk_test_…): the app may show Stripe's test cards. */
+export function isStripeTestMode(): boolean {
+  const key = getCurrentDatabaseEnvironment() === 'demo' ? process.env.STRIPE_TEST_SECRET_KEY : process.env.STRIPE_SECRET_KEY;
+  return Boolean(key && key.startsWith('sk_test_'));
+}
+
 /** Dynamic facade keeps existing call sites while selecting per request. */
 export function stripeClientFacade(): any {
   return new Proxy({}, {

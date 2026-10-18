@@ -11,8 +11,9 @@ import type { Request, Response } from 'express';
 import logger from '../lib/logger';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
+import { announcementLiveSql, guestPostSql, SIGN_IN_REQUIRED } from '../lib/siteVisibility';
 import { getRecord, createRecord, updateRecord, deleteRecord } from '../utils/crud';
-import { syncHashtags } from './hashtags';
+import { syncHashtags, resyncHashtags, unlinkHashtags } from './hashtags';
 import { emitNotification } from '../socket';
 import { sendPushToUser } from './push';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache';
@@ -35,16 +36,40 @@ async function attachLikedByMe(userId: string | undefined, rows: Array<Record<st
 // varyByUser is REQUIRED here: feed=true responses embed per-user social
 // boosts and following=true filters on the caller's follow graph. Caching
 // those under a shared key served one user's personalized feed to another.
+/** Guests may open only announcement posts of live, public business sites. */
+/**
+ * The ranked feed orders by a score, not by time, so it cannot page by
+ * created_at. Its cursor is "<snapshot ISO>|<offset>": every page scores posts
+ * against the same snapshot time and only includes posts created before it, so
+ * the order is stable and no post is skipped or repeated.
+ */
+export function parseFeedCursor(cursor: string | undefined, now = new Date()): { snapshot: Date; offset: number } | null {
+  if (!cursor) return { snapshot: now, offset: 0 };
+  const [iso, rawOffset] = cursor.split('|');
+  const snapshot = new Date(iso);
+  const offset = rawOffset === undefined ? 0 : Number(rawOffset);
+  if (Number.isNaN(snapshot.getTime()) || !Number.isInteger(offset) || offset < 0 || offset > 10_000) return null;
+  return { snapshot, offset };
+}
+
+async function guestMaySeePost(postId: string): Promise<boolean> {
+  const { rows } = await pool.query(`SELECT 1 FROM posts p WHERE p.id=$1 AND ${guestPostSql('p')}`, [postId]);
+  return rows.length > 0;
+}
+
 router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: true }), async (req: Request, res: Response) => {
   try {
     const { sort='-created_at', limit='15', author_id, post_type, feed='false', cursor } = req.query as Record<string,string>;
     const lim = Math.min(parseInt(limit)||15, 50);
-    const cursorTs = cursor ? new Date(cursor) : new Date();
-    if (isNaN(cursorTs.getTime())) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
-    const realFilter = req.realOnly ? `AND p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)` : '';
+    // Announcements of sites that are no longer live are hidden; guests see
+    // only announcements of public businesses (decision §7).
+    const realFilter = (req.realOnly ? `AND p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)` : '')
+      + ` AND ${req.user ? announcementLiveSql('p') : guestPostSql('p')}`;
 
     // Smart feed mode
     if (feed==='true' && !author_id && !post_type) {
+      const page = parseFeedCursor(cursor);
+      if (!page) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
       let followedIds: string[] = [];
       if (req.user?.id) {
         const { rows: fw } = await pool.query('SELECT followed_id FROM follows WHERE follower_id=$1 LIMIT 500', [req.user.id]);
@@ -54,30 +79,33 @@ router.get('/', optionalAuth, cacheMiddleware('posts:list', 60, { varyByUser: tr
       const { rows } = await pool.query(
         `SELECT p.*,
            CASE WHEN p.author_id=ANY($3::uuid[]) THEN 30 ELSE 0 END AS social_boost,
-           GREATEST(0, 168-EXTRACT(EPOCH FROM (NOW()-p.created_at))/3600.0) AS recency_score,
+           GREATEST(0, 168-EXTRACT(EPOCH FROM ($2::timestamptz-p.created_at))/3600.0) AS recency_score,
            (p.like_count*0.4 + p.comment_count*0.3) AS engagement_score
          FROM posts p WHERE p.created_at < $2 ${realFilter}
          ORDER BY
            (CASE WHEN p.author_id=ANY($3::uuid[]) THEN 30 ELSE 0 END
-            + GREATEST(0, 168-EXTRACT(EPOCH FROM (NOW()-p.created_at))/3600.0)
+            + GREATEST(0, 168-EXTRACT(EPOCH FROM ($2::timestamptz-p.created_at))/3600.0)
             + p.like_count*0.4 + p.comment_count*0.3) DESC,
-           p.created_at DESC LIMIT $1`,
-        [lim, cursorTs, idList],
+           p.created_at DESC, p.id DESC LIMIT $1 OFFSET $4`,
+        [lim, page.snapshot, idList, page.offset],
       );
       await attachLikedByMe(req.user?.id, rows as Array<Record<string,unknown>>);
       res.json({
         posts: rows,
-        next_cursor: rows.length===lim ? rows[rows.length-1].created_at : null,
+        next_cursor: rows.length===lim ? `${page.snapshot.toISOString()}|${page.offset + rows.length}` : null,
       });
       return;
     }
 
-    // Default list with keyset pagination
+    // Default list with keyset pagination (time-ordered, so the cursor is a timestamp)
+    const cursorTs = cursor ? new Date(cursor) : new Date();
+    if (isNaN(cursorTs.getTime())) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
     const conditions = [`p.created_at < $1`];
     const params: unknown[] = [cursorTs];
     if (author_id) { params.push(author_id); conditions.push(`p.author_id=$${params.length}`); }
     if (post_type) { params.push(post_type); conditions.push(`p.post_type=$${params.length}`); }
     if (req.realOnly) conditions.push(`p.author_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)`);
+    conditions.push(req.user ? announcementLiveSql('p') : guestPostSql('p'));
     if (req.query.following==='true' && req.user?.id) {
       params.push(req.user.id);
       conditions.push(`p.author_id IN (SELECT followed_id FROM follows WHERE follower_id=$${params.length})`);
@@ -103,6 +131,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
     const post = await getRecord('posts', req.params.id, { realOnly: req.realOnly });
     if (!post) { res.status(404).json({ error: 'Post not found' }); return; }
+    if (!req.user && !(await guestMaySeePost(req.params.id))) { res.status(401).json({ error: 'Sign in to see this post.', code: SIGN_IN_REQUIRED }); return; }
     await attachLikedByMe(req.user?.id, [post as unknown as Record<string,unknown>]);
     res.json(post);
   } catch { res.status(500).json({ error: 'Failed to fetch post' }); }
@@ -142,23 +171,36 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
 
 router.put('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const existing = await getRecord<{author_id:string}>('posts', req.params.id);
+    const existing = await getRecord<{author_id:string; image_url:string|null}>('posts', req.params.id);
     if (!existing) { res.status(404).json({ error: 'Post not found' }); return; }
     if (existing.author_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
     const body = req.body as Record<string, unknown>;
     const allowed = ['content', 'image_url', 'post_type'] as const;
     const updates = Object.fromEntries(allowed.filter(key => body[key] !== undefined).map(key => [key, body[key]]));
     if (!Object.keys(updates).length) { res.status(400).json({ error: 'No updatable post fields provided' }); return; }
-    if (updates.content !== undefined && (typeof updates.content !== 'string' || !updates.content.trim())) {
+    if (updates.image_url !== undefined && updates.image_url !== null && typeof updates.image_url !== 'string') {
+      res.status(422).json({ error: 'image_url must be a string or null' }); return;
+    }
+    // A photo post may have an empty caption; a post with no photo needs text.
+    const imageAfterEdit = updates.image_url !== undefined ? updates.image_url : existing.image_url;
+    if (updates.content !== undefined && (typeof updates.content !== 'string' || (!updates.content.trim() && !imageAfterEdit))) {
       res.status(422).json({ error: 'content must be a non-empty string' }); return;
+    }
+    if (updates.content === undefined && updates.image_url === null && !String((existing as Record<string,unknown>).content ?? '').trim()) {
+      res.status(422).json({ error: 'A post needs text or a photo' }); return;
     }
     if (updates.post_type !== undefined && !['text', 'image', 'product', 'task', 'event', 'poll'].includes(String(updates.post_type))) {
       res.status(422).json({ error: 'Invalid post_type' }); return;
     }
+    if (updates.content !== undefined || updates.image_url !== undefined) (updates as Record<string, unknown>).edited_at = new Date().toISOString();
     const updated = await updateRecord('posts', req.params.id, updates);
+    if (typeof updates.content === 'string') await resyncHashtags(req.params.id, updates.content).catch(() => undefined);
     invalidateCache('posts:list').catch(() => undefined);
     res.json(updated);
-  } catch { res.status(500).json({ error: 'Failed to update post' }); }
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'Failed to update post');
+    res.status(500).json({ error: 'Failed to update post' });
+  }
 });
 
 router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
@@ -166,10 +208,19 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
     const existing = await getRecord<{author_id:string}>('posts', req.params.id);
     if (!existing) { res.status(404).json({ error: 'Post not found' }); return; }
     if (existing.author_id !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: 'Forbidden' }); return; }
+    // Likes and saves point at posts by target_id without a foreign key, and
+    // hashtag post counts are denormalised, so tidy them before the delete.
+    const { rows: tagRows } = await pool.query<{ hashtag_id: string }>('SELECT hashtag_id FROM post_hashtags WHERE post_id = $1', [req.params.id]);
+    await unlinkHashtags(req.params.id, tagRows.map((row) => row.hashtag_id));
+    await pool.query("DELETE FROM likes WHERE target_type = 'post' AND target_id = $1", [req.params.id]);
+    await pool.query("DELETE FROM saves WHERE target_type = 'post' AND target_id = $1", [req.params.id]);
     await deleteRecord('posts', req.params.id);
     invalidateCache('posts:list').catch(()=>undefined);
     res.json({ success: true });
-  } catch { res.status(500).json({ error: 'Failed to delete post' }); }
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'Failed to delete post');
+    res.status(500).json({ error: 'Failed to delete post' });
+  }
 });
 
 // Like toggle — atomic CTE (single round-trip)
@@ -213,6 +264,7 @@ router.post('/:id/like', requireAuth, async (req: Request, res: Response) => {
 // Comments
 router.get('/:id/comments', optionalAuth, async (req: Request, res: Response) => {
   try {
+    if (!req.user && !(await guestMaySeePost(req.params.id))) { res.status(401).json({ error: 'Sign in to see these comments.', code: SIGN_IN_REQUIRED }); return; }
     const realFilter = req.realOnly ? 'AND comment_author.is_seed=FALSE AND comment_author.is_demo=FALSE' : '';
     const realReplyFilter = req.realOnly ? 'AND reply_author.is_seed=FALSE AND reply_author.is_demo=FALSE' : '';
     const { rows } = await pool.query(
@@ -291,3 +343,4 @@ router.delete('/:postId/comments/:commentId', requireAuth, async (req: Request, 
 });
 
 module.exports = router;
+module.exports.parseFeedCursor = parseFeedCursor;

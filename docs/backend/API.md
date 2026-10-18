@@ -205,6 +205,15 @@ Create post. Requires auth.
 }
 ```
 
+### PUT /api/posts/:id
+Edit a post. Only the author or an admin; others get `403`.
+Accepts `content`, `image_url` (string or `null` to remove the photo) and `post_type`. A post with a photo may have an empty caption; a post must keep text or a photo (`422` otherwise).
+Changing `content` or `image_url` sets `edited_at`, which the feed shows as "Edited", and re-syncs the post's hashtags.
+
+### DELETE /api/posts/:id
+Delete a post. Only the author or an admin. This is a hard delete. Comments, hashtag links and poll votes cascade. Likes and saves (bookmarks) of the post are removed, and hashtag post counts are decremented.
+**Response:** `{ "success": true }`
+
 ### POST /api/posts/:id/like
 Like or unlike a post. Requires auth.
 **Response:** `{ "liked": true }` or `{ "liked": false }`
@@ -293,9 +302,33 @@ The buyer pays the seller using the seller's own payment accounts, reports the p
 the seller confirms it. No account is needed to buy. Unpaid orders expire after 7 days and their
 stock is released.
 
-### GET /api/direct-orders/checkout-info?product_id=uuid | showroom_id=uuid
+### GET /api/direct-orders/checkout-info?product_id=uuid | showroom_id=uuid | business_id=uuid | seller_id=uuid
 Public. The seller's business name, the contact fields the owner chose to show, and active payment
 accounts. Never includes the pickup address. The response adds `payment_window_days`.
+`seller_id` resolves the seller's business when they have exactly one.
+
+### POST /api/direct-orders/requests
+Public (optional auth), same rate limit as orders. **Request to order** a website item that is
+not a catalogue product (a service, package or best seller typed into a website section).
+```json
+{ "showroom_id | business_id | seller_id": "uuid", "item_title": "Delivery", "quantity": 1,
+  "buyer_name": "Abebe", "buyer_phone": "+251911000000", "buyer_email": "buyer@example.com",
+  "delivery_address": "optional", "notes": "optional" }
+```
+The item must appear (by name, case-insensitive) in that seller's published site, Business
+profile or profile business sections; otherwise **404**. **201:** `{ order, access_token,
+order_url, business, payment_accounts }` with `status: "requested"`, no price, and
+`listed_price_text` (the price shown on the website). The private link is emailed. A request
+without an answer expires after 7 days. **422:** invalid contact details, or requesting from
+your own business.
+
+### POST /api/direct-orders/:id/set-price `{ "unit_price": 150 }`
+Seller or admin only. Confirms a `requested` order at that unit price (total = price ×
+quantity), moves it to `awaiting_payment` with a new 7-day payment window, and tells the buyer.
+**409 `NO_PAYMENT_ACCOUNTS`:** add a payment account first. **409:** not a request.
+
+### POST /api/direct-orders/:id/decline-request
+Seller or admin only. Moves a `requested` order to `cancelled` and tells the buyer.
 
 ### POST /api/direct-orders
 Public (optional auth). Rate limited to 10 per 15 minutes per IP.
@@ -352,6 +385,37 @@ Businesses and profiles expose only the contact fields listed in `public_contact
 `businesses.pickup_address` is shown to a buyer only after they place an order.
 
 ---
+
+## Business visibility and guest access
+
+A business is `public` (default) or `private`, set with `visibility` on
+`POST /api/businesses` and `PUT /api/businesses/:id` (any other value returns
+`422`). See [platform model decisions](../decisions/platform-model-decisions.md) §7.5.
+
+**Private businesses.** For a signed-out request:
+- Direct reads return `401 { code: "SIGN_IN_REQUIRED" }`: site by slug or id, business, product, checkout-info and `POST /api/direct-orders`.
+- Lists and other surfaces simply leave them out: showrooms, businesses, products, reviews, variants, search, maps, live location, trending and the sitemap.
+- Link previews return `404`.
+
+Signed-in users, owners and admins see private businesses as usual.
+
+**Personal content needs sign-in.** For a signed-out request:
+- `/api/posts` (feed, post, comments) and hashtag posts return only announcement posts of live, public business sites. Any other post returns `401 SIGN_IN_REQUIRED`.
+- Profiles return only business profiles whose owner has a public business. Personal profiles return `401`, and lists leave them out.
+- Search, maps and trending return no people or personal posts.
+- Stories, poll results and `/api/profile-partnerships/profile/:userId` return `401`.
+
+For everyone, an announcement post is hidden once its site is unpublished, expired or hidden by a lapsed subscription.
+
+## Scheduled jobs (internal)
+
+### POST /api/internal/jobs/:name
+Runs one scheduled job now: `subscription-lifecycle`, `direct-order-expiry`,
+`stories-cleanup` or `auth-state-cleanup`. Called every 15 minutes by
+`.github/workflows/scheduled-jobs.yml` because the backend host sleeps when idle.
+Returns `404` unless `JOBS_SECRET` (32+ characters) is set; needs
+`Authorization: Bearer <JOBS_SECRET>` (otherwise `401`). Returns `409` when the
+same job is already running (Postgres advisory lock), `500` without details on failure.
 
 ## Share previews
 

@@ -15,6 +15,8 @@ import ShareButton from "@/components/ui/ShareButton";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
 import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import SignInRequired, { isSignInRequired } from '@/components/auth/SignInRequired';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 function ProductDetail() {
   const params = useParams();
@@ -36,18 +38,20 @@ function ProductDetail() {
   const [showAlertForm, setShowAlertForm] = useState(false);
   const [alertSaving, setAlertSaving] = useState(false);
   const [purchaseItem, setPurchaseItem] = useState<any>(null);
+  const [signInRequired, setSignInRequired] = useState(false);
   const productRequestId = useRef(0);
 
   const loadProduct = useCallback(async () => {
     const requestId = ++productRequestId.current;
     setLoading(true);
     setProduct(null);
+    setSignInRequired(false);
     setSeller(null);
     setWishlisted(false);
     setAlertActive(false);
     setAlertTarget("");
     try {
-      const p = await client.get(`/api/products/${id}`).then(r => r.data).catch(() => null)
+      const p = await client.get(`/api/products/${id}`).then(r => r.data).catch((err) => { if (isSignInRequired(err)) throw err; return null; })
         || await import("@/api/entities").then(m => m.entities.Product.get(id));
       if (requestId !== productRequestId.current) return;
       setProduct(p);
@@ -74,7 +78,10 @@ function ProductDetail() {
       if (p?.id) {
         import("@/api/entities").then(m => m.entities.Product.update(p.id, { view_count: (p.view_count || 0) + 1 })).catch(() => {});
       }
-    } catch { /* surfaced by the empty product state */ }
+    } catch (err) {
+      // Otherwise surfaced by the empty product state.
+      if (requestId === productRequestId.current) setSignInRequired(isSignInRequired(err));
+    }
     if (requestId === productRequestId.current) setLoading(false);
   }, [id]);
 
@@ -108,7 +115,7 @@ function ProductDetail() {
         toast.success("Added to wishlist! ❤️");
       }
     } catch (e) {
-      toast.error(e?.response?.data?.error || "Failed to update wishlist");
+      toast.error(apiErrorMessage(e, "Failed to update wishlist"));
     }
     setWishlistLoading(false);
   };
@@ -125,7 +132,7 @@ function ProductDetail() {
       setAlertInput("");
       toast.success(`🔔 Alert set! We'll notify you when price drops to ${price.toLocaleString()} ${product?.currency || "USD"}`);
     } catch (e) {
-      toast.error(e?.response?.data?.error || "Failed to set alert");
+      toast.error(apiErrorMessage(e, "Failed to set alert"));
     }
     setAlertSaving(false);
   };
@@ -139,6 +146,7 @@ function ProductDetail() {
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
+  if (!product && signInRequired) return <SignInRequired />;
   if (!product) return <div className="text-center py-20"><p>Product not found</p></div>;
 
   const images: string[] = (() => {

@@ -24,24 +24,36 @@ returning Stripe Price IDs.
 
 ## Environment Variables Required
 
-```bash
-# Stripe subscription billing (separate from order processing)
-STRIPE_SUBSCRIPTION_WEBHOOK_SECRET=whsec_...   # from Stripe Dashboard → Webhooks
+USD plans run on Stripe Checkout (subscriptions); ETB plans are prepaid through Chapa (below).
 
-# Stripe price IDs (create in Stripe Dashboard → Products → Prices)
-STRIPE_PRICE_NORMAL_MONTHLY_ETB=price_...
+```bash
+FF_STRIPE_PAYMENTS=true
+STRIPE_SECRET_KEY=sk_test_...                 # test period: sk_test_; later sk_live_
+STRIPE_SUBSCRIPTION_WEBHOOK_SECRET=whsec_...  # Stripe Dashboard → Webhooks, endpoint /api/subscriptions/webhook
+
+# Optional. Without them, USD checkout sends the published price (1 / 5 / 10 USD a month)
+# as inline price_data. When set, the price must match the plan exactly or checkout is refused.
 STRIPE_PRICE_NORMAL_MONTHLY_USD=price_...
-STRIPE_PRICE_PREMIUM_MONTHLY_ETB=price_...
 STRIPE_PRICE_PREMIUM_MONTHLY_USD=price_...
-STRIPE_PRICE_PRO_MONTHLY_ETB=price_...
 STRIPE_PRICE_PRO_MONTHLY_USD=price_...
 ```
 
-Create each recurring price in Stripe for the matching plan amount and currency.
-Test and live mode use separate Stripe keys and Price IDs. The former
-`STRIPE_PRICE_NORMAL_MONTHLY`, `STRIPE_PRICE_PREMIUM_MONTHLY`, and
-`STRIPE_PRICE_PRO_MONTHLY` variables are not used as fallback values; configure
-the currency-specific IDs explicitly.
+Webhook events to send:
+- `checkout.session.completed`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+- `invoice.paid` (renewals extend the period)
+- `invoice.payment_failed`
+
+Older and current Stripe API versions both work: period dates are read from
+the subscription or its first item, and from invoice lines
+(`lib/stripeSubscriptionPeriod.ts`). Each event is processed once
+(`webhook_events.id`).
+
+**Test period (2026-10 → 2027-04):** both providers run on test keys in
+production (`sk_test_…`, `CHASECK_TEST-…`), and no real money moves. The plan
+page shows the providers' test cards and phone numbers. Going live is a key
+swap only.
 
 ---
 
@@ -120,16 +132,104 @@ Verifies `stripe-signature` header using `STRIPE_SUBSCRIPTION_WEBHOOK_SECRET`.
 
 Handles: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`. Subscribe the Stripe webhook endpoint to all five; without `invoice.paid` renewals rely on `customer.subscription.updated` alone.
 
-- **Idempotency:** each event id is claimed with `INSERT INTO webhook_events (id,type) … ON CONFLICT (id) DO NOTHING RETURNING id` (same ledger and pattern as the order webhook). Duplicates get `{ received: true, duplicate: true }`; if handling fails the claim is deleted and a 500 is returned so Stripe redelivers.
-- **Billing period:** the pinned Stripe API (`2026-09-30` via `stripe@23`) reports `current_period_start/end` on subscription items, not on the subscription. The handler uses the item with the latest `current_period_end`; a missing period is stored as "unchanged", never as an invalid date.
-- **Renewals:** `invoice.paid` re-reads the subscription from Stripe and moves `current_period_end` forward (and resets `status` from Stripe, e.g. `past_due` → `active`). If Stripe cannot be reached the event is retried. `customer.subscription.updated` and `invoice.paid` only ever move `current_period_end` forward (`GREATEST`), so a late, out-of-order event cannot pull it back. This matters because the subscription lifecycle job hides, blocks and finally deletes businesses whose `current_period_end` has lapsed.
+- **Idempotency:** each event id is claimed with `INSERT INTO webhook_events (id, type, processed_at) … ON CONFLICT (id) DO NOTHING RETURNING id` (same ledger and pattern as the order webhook). Duplicates get `{ received: true, duplicate: true }`; if handling fails the claim is deleted and a 500 is returned so Stripe redelivers.
+- **Billing period:** newer Stripe API versions (2025-03-31 on; `stripe@23` pins `2026-09-30`) report `current_period_start/end` on subscription items, not on the subscription. `lib/stripeSubscriptionPeriod.ts` reads either shape, and invoice periods from the invoice's subscription line; a missing period is stored as "unchanged", never as an invalid date.
+- **Renewals:** `invoice.paid` sets `status = 'active'` and moves `current_period_end` to the paid line's period end. `customer.subscription.updated` and `invoice.paid` only ever move `current_period_end` forward (`GREATEST`), so a late, out-of-order event cannot pull it back. This matters because the subscription lifecycle job hides, blocks and finally deletes businesses whose `current_period_end` has lapsed.
+
+### Prepaid ETB through Chapa (Phase 1)
+
+ETB plans are paid through Chapa (telebirr, CBE Birr, banks and cards in one
+checkout). Chapa has no recurring charges, so owners **prepay** periods. When
+Chapa is configured, `GET /plans` reports `currencyAvailability.ETB: true`,
+`providers.ETB: "chapa"` and `prepayMonths: [1, 3, 6, 12]`. Stripe remains for
+USD. Code: `routes/subscriptionsEtb.ts`, `lib/subscriptionPayments.ts`,
+`lib/subscriptionBilling.ts`, `lib/chapaClient.ts`; table `subscription_payments` (migrate63).
+
+**Pricing rules** (owner decisions 2026-10-17):
+
+| Situation | Kind | Amount | New period |
+|---|---|---|---|
+| No paid period (or it ended) | `new` | monthly price × months | now → now + months |
+| During the free legacy trial | `new` | monthly price × months | trial end → trial end + months (the plan's tier applies from payment) |
+| Same plan, still paid | `renewal` | monthly price × months | current end → current end + months |
+| Higher plan, still paid | `upgrade` | price difference × days left ÷ 30 (rounded up) + new price × added months | end unchanged, plus any added months |
+| Lower plan, still paid | refused (`downgrade_not_allowed`) | — | change at the end of the period |
+
+Months are 1, 3, 6 or 12 (an upgrade may add 0). While a Stripe subscription is
+renewing itself, ETB checkout is refused (`stripe_subscription_active`).
+
+**Confirmation.** A payment counts only after the backend verifies it with
+Chapa's API. The webhook, the checkout `callback_url` and the owner's return
+page (which polls `/payments/:ref/status`) all call the same idempotent
+`confirmPayment`: under row locks it marks the payment paid once, recomputes
+the period from the latest end date (so out-of-order payments extend
+correctly), assigns a receipt number (`NB-YYYY-000001`), notifies the owner and
+publishes the website draft the owner was publishing, if any. A payment Chapa
+reports for less than the quote is marked `failed` and changes nothing.
+
+| Endpoint | Auth | Purpose |
+|---|---|---|
+| `GET /api/subscriptions/quote?businessId=&plan=&months=` | owner | `{ kind, tier, months, amount, periodStart, periodEnd, currency: "ETB" }` |
+| `POST /api/subscriptions/checkout` `{ business_id, plan, months, draft_id? }` | owner | `{ checkout_url, tx_ref, amount, kind, period_end }`; `503 etb_checkout_unavailable` when Chapa is not configured |
+| `POST /api/subscriptions/webhook/chapa` | Chapa signature | `x-chapa-signature` = HMAC-SHA256 of the raw body with `CHAPA_WEBHOOK_SECRET`; `401` otherwise |
+| `GET /api/subscriptions/chapa/callback?tx_ref=` | none | Chapa's callback; only triggers re-verification |
+| `GET /api/subscriptions/payments?businessId=` | owner | billing history (abandoned checkouts older than a day are hidden); pending rows under a day old carry `checkout_url` |
+| `GET /api/subscriptions/payments/:tx_ref/status` | owner | re-verifies and returns `status` (`pending`/`paid`/`failed`/`expired`), `receipt_number`, `period_end`, `business_id`, and `checkout_url` while the payment is pending and under a day old |
+| `GET /api/subscriptions/payments/:id/receipt` | owner | receipt data for a paid payment |
+
+Demo sessions get `403 DEMO_PAYMENTS_UNAVAILABLE` on all owner endpoints.
+
+**Environment:**
+
+```bash
+CHAPA_SECRET_KEY=CHASECK_TEST-...    # live: CHASECK-...; "SANDBOX" = fake checkout outside production
+CHAPA_WEBHOOK_SECRET=...             # Chapa dashboard → Settings → Webhooks → secret hash
+API_URL=https://nodbusiness-backend-9psf.onrender.com   # callback and sandbox URLs
+```
+
+**Owner screens** (frontend): the plan page (`/business/subscription`) opens a prepay panel with the server's quote (`components/business/ChapaCheckoutPanel.tsx`), lists **Billing history** with receipts, shows "Paid until" and **Renew** for prepaid plans (no Cancel: nothing renews automatically). Chapa returns the owner to `/business/subscription/return?tx_ref=…` (only `tx_ref`: Chapa HTML-escapes `&` in the return URL, so the page takes the business from the status response). The page polls the status endpoint ("Checking your payment…") and links the receipt (`/business/subscription/receipt/:id`, with PDF download) and the newly published website.
+
+Set the Chapa dashboard webhook URL to
+`https://<backend>/api/subscriptions/webhook/chapa`. With
+`CHAPA_SECRET_KEY=SANDBOX` (never in production) the checkout URL opens a local
+sandbox page whose "Pay with test telebirr" button marks the payment paid.
+
+**Unfinished payments.** The Chapa checkout page is stored on the payment
+(`subscription_payments.checkout_url`, migrate65). While a payment is pending
+and under a day old, the return page and the Billing history row show
+**Continue payment** (back to the same Chapa page; Chapa never charges one
+`tx_ref` twice) and the return page also shows **Check again**.
+
+**Test mode.** `GET /api/subscriptions/plans` gives each paid plan
+`testMode: { ETB, USD }`, true only with test keys (`CHAPA_SECRET_KEY` of
+`SANDBOX` or `CHASECK_TEST-…`; Stripe `sk_test_…`, with USD configured). The
+checkout panel and return page then show Chapa's published test phone numbers
+and cards (and, on the USD path, Stripe's test cards) with one-tap Copy
+(`components/business/TestModeHelper.tsx`, `lib/paymentTestData.ts`). They are
+never shown with live keys; no key is exposed.
 
 ### Expiry and unpaid-draft lifecycle
 
-- Subscription notices are sent on days 0, 3, 7, 9, and 10 after the paid period ends.
+Runs every 15 minutes (`subscription-lifecycle` job, `scripts/business-subscription-lifecycle.js`).
+
+- **3 days before** a prepaid plan or a free (trialing) period ends, the owner gets
+  "Your plan ends soon" / "Your free period ends soon" in the app and by email,
+  once per period, with a Renew link. Stripe subscriptions renew themselves and
+  are skipped.
+- Subscription notices are sent on days 0, 3, 7, 9, and 10 after the paid period
+  ends, **in the app and by email**. The in-app notice is claimed separately
+  (`<notice>:app` in `business_subscription_notices`), so it is delivered once even
+  when email fails, while the email is retried on the next run.
 - The website is hidden after the 24-hour grace period. If it remains unpaid after
   the final day-10 notice, the business and its products are permanently deleted,
-  and the owner is blocked from creating a new business for one month.
+  and the owner is blocked from creating a new business for one month. Removal
+  still requires the day-10 email to have been sent.
+- **A payment in flight protects the business.** From day 9, before any removal,
+  the job re-checks the business's unconfirmed payments from the last 3 days with
+  Chapa: a confirmed one extends the period (nothing is removed); one still
+  pending postpones removal to a later run. A failed check also postpones.
+- Each run first gives checkouts left pending for over a day one last check with
+  Chapa (a late payment still counts), then marks the rest `expired`.
 - An unpublished website draft is reminded at 24, 48, and 72 hours; it is deleted
   only after the final reminder succeeds.
 - Draft reminders show the plan price in both ETB and USD.

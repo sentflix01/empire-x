@@ -6,17 +6,22 @@ import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 
-import { ArrowLeft, QrCode, Crown, X, Send, Loader2, Check } from "lucide-react";
+import { ArrowLeft, QrCode, X, Send, Loader2, Check } from "lucide-react";
+import BrandLogo from '@/components/brand/BrandLogo';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { QRCodeSVG } from "qrcode.react";
-import SectionRenderer, { resolveCtaTarget, firstProductsIndex } from "@/components/showroom/SectionRenderer";
+import SectionRenderer, { resolveCtaTarget, firstProductsIndex, isCatalogueSection } from "@/components/showroom/SectionRenderer";
+import NewsletterSignupsPanel from "@/components/showroom/NewsletterSignupsPanel";
+import WhatsAppFloat from "@/components/showroom/WhatsAppFloat";
+import { siteFontFamily } from "@/lib/siteFonts";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
 import QRLandingModal from "@/components/showroom/QRLandingModal";
 import TryDemoButton from '@/components/landing/TryDemoButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import SignInRequired, { isSignInRequired } from '@/components/auth/SignInRequired';
 import { toast } from "sonner";
 
 /* ── Lightweight inquiry / "Get Quote" modal ─────────────────────────────── */
@@ -142,6 +147,7 @@ function ShowroomView() {
   const [productsError, setProductsError] = useState('');
   const catalogRequestId = useRef(0);
   const [loading, setLoading] = useState(true);
+  const [signInRequired, setSignInRequired] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const { user } = useAuth();
   const [authResolved] = useState(true); // auth state from useAuth is synchronous
@@ -150,13 +156,15 @@ function ShowroomView() {
 
   const loadShowroom = useCallback(async () => {
     setLoading(true);
+    setSignInRequired(false);
     try {
       const s = slugParam
         ? (await client.get(`/api/showrooms/slug/${slugParam}`)).data
         : await entities.Showroom.get(id as string);
       setShowroom(s);
-    } catch {
+    } catch (err) {
       setShowroom(null);
+      setSignInRequired(isSignInRequired(err));
     } finally {
       setLoading(false);
     }
@@ -237,12 +245,18 @@ function ShowroomView() {
   }, [showroom?.owner_id, nextProductCursor, productsLoadingMore, productSearch, productCategory]);
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
+  if (!showroom && signInRequired) return <SignInRequired />;
   if (!showroom) return <UnavailableNotice title="Showroom not found" message="This mini-website doesn't exist or has been removed." />;
 
   const sections = (() => { try { return JSON.parse(showroom.sections); } catch { return []; } })();
   const ctaTarget = resolveCtaTarget(sections);
   const productsIdx = firstProductsIndex(sections);
   const isOwner = user?.id === showroom.owner_id;
+  // Style choices made in Studio travel with the top section (lib/builderSections.ts: siteFont, whatsappButton).
+  const hero = sections.find(sec => sec?.type === "hero") ?? {};
+  const siteFont = typeof hero.siteFont === "string" && hero.siteFont ? hero.siteFont : null;
+  const whatsappNumber = String(sections.find(sec => sec?.type === "contact")?.whatsapp ?? "").replace(/\D/g, "");
+  const showWhatsappFloat = hero.whatsappButton !== false && Boolean(whatsappNumber);
 
   if (showroom.status !== "published" && !(authResolved && isOwner)) {
     if (!authResolved) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
@@ -329,13 +343,15 @@ function ShowroomView() {
           </div>
         )}
 
-        <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
+        {isOwner && sections.some(sec => sec?.type === "newsletter") && <NewsletterSignupsPanel showroomId={String(showroom.id)} />}
+
+        <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm" style={siteFont ? { fontFamily: siteFontFamily(siteFont) } : undefined}>
           {sections.map((section, i) => (
             <SectionRenderer
               key={i}
               section={section}
               sectionIndex={i}
-              products={section.type === "products" || section.type === "featured_products" ? products : []}
+              products={isCatalogueSection(section.type) ? products : []}
               productSearch={productSearch}
               productCategory={productCategory}
               productCategories={productCategories}
@@ -354,13 +370,16 @@ function ShowroomView() {
               onProductCategoryChange={setProductCategory}
               ctaTarget={ctaTarget}
               isPrimaryProducts={i === productsIdx}
+              showroomId={String(showroom.id)}
+              businessId={showroom.business_id ?? null}
             />
           ))}
           {!sections.some(s => s.type === "contact") && (
             <SectionRenderer section={{ type: "contact", title: "Get in Touch" }} sectionIndex={sections.length} themeColor={themeColor} profile={profile} />
           )}
+          {showWhatsappFloat && <WhatsAppFloat number={whatsappNumber} />}
           <div className="px-5 py-6 bg-secondary text-center">
-            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {showroom.title}. Powered by Nodbusiness 👑</p>
+            <p className="inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground">© {new Date().getFullYear()} {showroom.title}. Powered by <BrandLogo className="w-3.5 h-3.5" /> Nodbusiness</p>
           </div>
         </div>
 
@@ -421,7 +440,7 @@ function ShowroomView() {
 function UnavailableNotice({ title, message }: { title: string; message: string }) {
   return (
     <div className="max-w-2xl mx-auto text-center py-20">
-      <Crown className="w-12 h-12 text-amber-400/40 mx-auto mb-3" />
+      <BrandLogo className="w-12 h-12 text-amber-400/40 mx-auto mb-3" />
       <h2 className="font-display text-xl font-bold">{title}</h2>
       <p className="text-sm text-muted-foreground mt-1">{message}</p>
       <Link href="/" className="inline-block mt-4">

@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **285** across **47** mounted modules · Generated: 2026-10-16
+> Endpoints: **300** across **49** mounted modules · Generated: 2026-10-17
 
 | Legend | Meaning |
 |---|---|
@@ -27,12 +27,13 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`coupons`](#coupons) (6)
 - [`delivery`](#delivery) (2)
 - [`devops`](#devops) (15)
-- [`directOrders`](#directorders) (9)
+- [`directOrders`](#directorders) (12)
 - [`docs`](#docs) (1)
 - [`externalSources`](#externalsources) (9)
 - [`flags`](#flags) (3)
 - [`friends`](#friends) (1)
 - [`hashtags`](#hashtags) (3)
+- [`internalJobs`](#internaljobs) (1)
 - [`locations`](#locations) (2)
 - [`maps`](#maps) (2)
 - [`messages`](#messages) (22)
@@ -52,9 +53,10 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`saves`](#saves) (3)
 - [`search`](#search) (1)
 - [`sharePreview`](#sharepreview) (2)
-- [`showrooms`](#showrooms) (9)
+- [`showrooms`](#showrooms) (11)
 - [`stories`](#stories) (8)
 - [`subscriptions`](#subscriptions) (5)
+- [`subscriptionsEtb`](#subscriptionsetb) (9)
 - [`suggestions`](#suggestions) (2)
 - [`telegram`](#telegram) (4)
 - [`trending`](#trending) (2)
@@ -101,25 +103,25 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:233 |
-| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:332 |
-| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:432 |
-| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:469 |
-| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:538 |
-| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:558 |
-| `POST` | `/api/auth/workspace` | 🔒 auth | routes/auth.ts:576 |
-| `POST` | `/api/auth/onboarding-mode` | 🌐 public | routes/auth.ts:582 |
-| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:589 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:717 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:871 |
-| `GET` | `/api/auth/me/export` | 🔒 auth | routes/auth.ts:914 |
-| `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:927 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:980 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:1016 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1079 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1131 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1214 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1254 |
+| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:219 |
+| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:318 |
+| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:409 |
+| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:446 |
+| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:515 |
+| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:535 |
+| `POST` | `/api/auth/workspace` | 🔒 auth | routes/auth.ts:553 |
+| `POST` | `/api/auth/onboarding-mode` | 🌐 public | routes/auth.ts:559 |
+| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:566 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:683 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:837 |
+| `GET` | `/api/auth/me/export` | 🔒 auth | routes/auth.ts:880 |
+| `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:893 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:943 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:979 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1033 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1076 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1159 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1199 |
 
 ## businessApiKeys — Business API key management
 
@@ -133,16 +135,16 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/businesses/` | ⚪ optional | routes/businesses.ts:28 |
-| `GET` | `/api/businesses/:id` | ⚪ optional | routes/businesses.ts:45 |
-| `POST` | `/api/businesses/` | 🔒 auth | routes/businesses.ts:61 |
-| `PUT` | `/api/businesses/:id` | 🔒 auth | routes/businesses.ts:82 |
-| `DELETE` | `/api/businesses/:id` | 🔒 auth | routes/businesses.ts:100 |
-| `GET` | `/api/businesses/:id/payment-accounts` | 🔒 auth | routes/businesses.ts:157 |
-| `POST` | `/api/businesses/:id/payment-accounts` | 🔒 auth | routes/businesses.ts:165 |
-| `PUT` | `/api/businesses/:id/payment-accounts/:accountId` | 🔒 auth | routes/businesses.ts:182 |
-| `DELETE` | `/api/businesses/:id/payment-accounts/:accountId` | 🔒 auth | routes/businesses.ts:200 |
-| `GET` | `/api/businesses/:id/checkout-info` | ⚪ optional | routes/businesses.ts:213 |
+| `GET` | `/api/businesses/` | ⚪ optional | routes/businesses.ts:32 |
+| `GET` | `/api/businesses/:id` | ⚪ optional | routes/businesses.ts:50 |
+| `POST` | `/api/businesses/` | 🔒 auth | routes/businesses.ts:62 |
+| `PUT` | `/api/businesses/:id` | 🔒 auth | routes/businesses.ts:83 |
+| `DELETE` | `/api/businesses/:id` | 🔒 auth | routes/businesses.ts:96 |
+| `GET` | `/api/businesses/:id/payment-accounts` | 🔒 auth | routes/businesses.ts:153 |
+| `POST` | `/api/businesses/:id/payment-accounts` | 🔒 auth | routes/businesses.ts:161 |
+| `PUT` | `/api/businesses/:id/payment-accounts/:accountId` | 🔒 auth | routes/businesses.ts:178 |
+| `DELETE` | `/api/businesses/:id/payment-accounts/:accountId` | 🔒 auth | routes/businesses.ts:196 |
+| `GET` | `/api/businesses/:id/checkout-info` | ⚪ optional | routes/businesses.ts:209 |
 
 ## businessWebhooks — Business webhook management
 
@@ -212,15 +214,18 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/direct-orders/checkout-info` | ⚪ optional | routes/directOrders.ts:137 |
-| `POST` | `/api/direct-orders/` | ⚪ optional | routes/directOrders.ts:167 |
-| `GET` | `/api/direct-orders/link/:token` | 🌐 public | routes/directOrders.ts:279 |
-| `POST` | `/api/direct-orders/link/:token/report-payment` | 🌐 public | routes/directOrders.ts:314 |
-| `POST` | `/api/direct-orders/:id/report-payment` | 🔒 auth | routes/directOrders.ts:322 |
-| `POST` | `/api/direct-orders/:id/confirm-payment` | 🔒 auth | routes/directOrders.ts:332 |
-| `POST` | `/api/direct-orders/:id/reject-payment` | 🔒 auth | routes/directOrders.ts:349 |
-| `GET` | `/api/direct-orders/link/:token/receipt` | 🌐 public | routes/directOrders.ts:373 |
-| `GET` | `/api/direct-orders/:id/receipt` | 🔒 auth | routes/directOrders.ts:381 |
+| `GET` | `/api/direct-orders/checkout-info` | ⚪ optional | routes/directOrders.ts:143 |
+| `POST` | `/api/direct-orders/requests` | ⚪ optional | routes/directOrders.ts:237 |
+| `POST` | `/api/direct-orders/` | ⚪ optional | routes/directOrders.ts:309 |
+| `GET` | `/api/direct-orders/link/:token` | 🌐 public | routes/directOrders.ts:421 |
+| `POST` | `/api/direct-orders/link/:token/report-payment` | 🌐 public | routes/directOrders.ts:456 |
+| `POST` | `/api/direct-orders/:id/report-payment` | 🔒 auth | routes/directOrders.ts:464 |
+| `POST` | `/api/direct-orders/:id/confirm-payment` | 🔒 auth | routes/directOrders.ts:474 |
+| `POST` | `/api/direct-orders/:id/reject-payment` | 🔒 auth | routes/directOrders.ts:491 |
+| `POST` | `/api/direct-orders/:id/set-price` | 🔒 auth | routes/directOrders.ts:510 |
+| `POST` | `/api/direct-orders/:id/decline-request` | 🔒 auth | routes/directOrders.ts:539 |
+| `GET` | `/api/direct-orders/link/:token/receipt` | 🌐 public | routes/directOrders.ts:563 |
+| `GET` | `/api/direct-orders/:id/receipt` | 🔒 auth | routes/directOrders.ts:571 |
 
 ## docs — docs
 
@@ -239,8 +244,8 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId` | 🌐 public | routes/externalSources.ts:187 |
 | `GET` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | 🌐 public | routes/externalSources.ts:202 |
 | `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | 🌐 public | routes/externalSources.ts:212 |
-| `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId` | 🌐 public | routes/externalSources.ts:227 |
-| `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/refresh` | 🌐 public | routes/externalSources.ts:239 |
+| `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId` | 🌐 public | routes/externalSources.ts:228 |
+| `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/refresh` | 🌐 public | routes/externalSources.ts:240 |
 
 ## flags — flags
 
@@ -260,23 +265,29 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/hashtags/trending` | 🌐 public | routes/hashtags.ts:23 |
-| `GET` | `/api/hashtags/:name` | ⚪ optional | routes/hashtags.ts:43 |
-| `GET` | `/api/hashtags/:name/posts` | ⚪ optional | routes/hashtags.ts:67 |
+| `GET` | `/api/hashtags/trending` | 🌐 public | routes/hashtags.ts:48 |
+| `GET` | `/api/hashtags/:name` | ⚪ optional | routes/hashtags.ts:68 |
+| `GET` | `/api/hashtags/:name/posts` | ⚪ optional | routes/hashtags.ts:92 |
+
+## internalJobs — run scheduled jobs on request.
+
+| Method | Path | Auth | Source |
+|---|---|---|---|
+| `POST` | `/api/internal/jobs/:name` | 🌐 public | routes/internalJobs.ts:45 |
 
 ## locations — Live GPS location for Enterprise businesses
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/locations/update` | 🔒 auth | routes/locations.ts:30 |
-| `GET` | `/api/locations/:businessId` | 🌐 public | routes/locations.ts:104 |
+| `POST` | `/api/locations/update` | 🔒 auth | routes/locations.ts:31 |
+| `GET` | `/api/locations/:businessId` | ⚪ optional | routes/locations.ts:105 |
 
 ## maps — maps
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/maps/nearby/product-search` | ⚪ optional | routes/maps.ts:25 |
-| `GET` | `/api/maps/nearby` | ⚪ optional | routes/maps.ts:102 |
+| `GET` | `/api/maps/nearby/product-search` | ⚪ optional | routes/maps.ts:26 |
+| `GET` | `/api/maps/nearby` | ⚪ optional | routes/maps.ts:104 |
 
 ## messages — Conversations and real-time messaging
 
@@ -344,66 +355,66 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/polls/:postId/vote` | 🔒 auth | routes/polls.ts:8 |
-| `GET` | `/api/polls/:postId/results` | ⚪ optional | routes/polls.ts:43 |
+| `POST` | `/api/polls/:postId/vote` | 🔒 auth | routes/polls.ts:9 |
+| `GET` | `/api/polls/:postId/results` | ⚪ optional | routes/polls.ts:44 |
 
 ## posts — Social feed posts
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/posts/` | ⚪ optional | routes/posts.ts:38 |
-| `GET` | `/api/posts/:id` | ⚪ optional | routes/posts.ts:102 |
-| `POST` | `/api/posts/` | 🔒 auth | routes/posts.ts:111 |
-| `PUT` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:143 |
-| `DELETE` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:164 |
-| `GET` | `/api/posts/:id/like` | ⚪ optional | routes/posts.ts:176 |
-| `POST` | `/api/posts/:id/like` | 🔒 auth | routes/posts.ts:184 |
-| `GET` | `/api/posts/:id/comments` | ⚪ optional | routes/posts.ts:214 |
-| `POST` | `/api/posts/:id/comments` | 🔒 auth | routes/posts.ts:228 |
-| `DELETE` | `/api/posts/:postId/comments/:commentId` | 🔒 auth | routes/posts.ts:280 |
+| `GET` | `/api/posts/` | ⚪ optional | routes/posts.ts:60 |
+| `GET` | `/api/posts/:id` | ⚪ optional | routes/posts.ts:130 |
+| `POST` | `/api/posts/` | 🔒 auth | routes/posts.ts:140 |
+| `PUT` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:172 |
+| `DELETE` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:206 |
+| `GET` | `/api/posts/:id/like` | ⚪ optional | routes/posts.ts:227 |
+| `POST` | `/api/posts/:id/like` | 🔒 auth | routes/posts.ts:235 |
+| `GET` | `/api/posts/:id/comments` | ⚪ optional | routes/posts.ts:265 |
+| `POST` | `/api/posts/:id/comments` | 🔒 auth | routes/posts.ts:280 |
+| `DELETE` | `/api/posts/:postId/comments/:commentId` | 🔒 auth | routes/posts.ts:332 |
 
 ## products — Marketplace products
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/products/` | ⚪ optional | routes/products.ts:50 |
-| `GET` | `/api/products/mine` | 🔒 auth | routes/products.ts:152 |
-| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:165 |
-| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:189 |
-| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:222 |
-| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:300 |
-| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:312 |
+| `GET` | `/api/products/` | ⚪ optional | routes/products.ts:51 |
+| `GET` | `/api/products/mine` | 🔒 auth | routes/products.ts:155 |
+| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:168 |
+| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:191 |
+| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:224 |
+| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:302 |
+| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:314 |
 
 ## profilePartnerships — profilePartnerships
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/profile-partnerships/mine` | 🔒 auth | routes/profilePartnerships.ts:59 |
-| `GET` | `/api/profile-partnerships/business/:businessId/products` | 🔒 auth | routes/profilePartnerships.ts:72 |
-| `GET` | `/api/profile-partnerships/profile/:userId` | ⚪ optional | routes/profilePartnerships.ts:89 |
-| `POST` | `/api/profile-partnerships/` | 🔒 auth | routes/profilePartnerships.ts:117 |
-| `PUT` | `/api/profile-partnerships/:id/accept` | 🔒 auth | routes/profilePartnerships.ts:163 |
-| `PUT` | `/api/profile-partnerships/:id/decline` | 🔒 auth | routes/profilePartnerships.ts:173 |
-| `PUT` | `/api/profile-partnerships/:id/terminate` | 🔒 auth | routes/profilePartnerships.ts:183 |
-| `GET` | `/api/profile-partnerships/my-commissions` | 🔒 auth | routes/profilePartnerships.ts:193 |
-| `GET` | `/api/profile-partnerships/payouts` | 🔒 auth | routes/profilePartnerships.ts:223 |
-| `POST` | `/api/profile-partnerships/:id/payouts` | 🔒 auth | routes/profilePartnerships.ts:245 |
+| `GET` | `/api/profile-partnerships/mine` | 🔒 auth | routes/profilePartnerships.ts:60 |
+| `GET` | `/api/profile-partnerships/business/:businessId/products` | 🔒 auth | routes/profilePartnerships.ts:73 |
+| `GET` | `/api/profile-partnerships/profile/:userId` | ⚪ optional | routes/profilePartnerships.ts:90 |
+| `POST` | `/api/profile-partnerships/` | 🔒 auth | routes/profilePartnerships.ts:118 |
+| `PUT` | `/api/profile-partnerships/:id/accept` | 🔒 auth | routes/profilePartnerships.ts:164 |
+| `PUT` | `/api/profile-partnerships/:id/decline` | 🔒 auth | routes/profilePartnerships.ts:174 |
+| `PUT` | `/api/profile-partnerships/:id/terminate` | 🔒 auth | routes/profilePartnerships.ts:184 |
+| `GET` | `/api/profile-partnerships/my-commissions` | 🔒 auth | routes/profilePartnerships.ts:194 |
+| `GET` | `/api/profile-partnerships/payouts` | 🔒 auth | routes/profilePartnerships.ts:224 |
+| `POST` | `/api/profile-partnerships/:id/payouts` | 🔒 auth | routes/profilePartnerships.ts:246 |
 
 ## profiles — profiles
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/profiles/me` | 🔒 auth | routes/profiles.ts:116 |
-| `GET` | `/api/profiles/by-user/:userId` | ⚪ optional | routes/profiles.ts:124 |
-| `GET` | `/api/profiles/me/follows` | 🔒 auth | routes/profiles.ts:137 |
-| `GET` | `/api/profiles/follows` | 🔒 auth | routes/profiles.ts:144 |
-| `GET` | `/api/profiles/:id` | ⚪ optional | routes/profiles.ts:151 |
-| `GET` | `/api/profiles/` | ⚪ optional | routes/profiles.ts:169 |
-| `POST` | `/api/profiles/` | 🔒 auth | routes/profiles.ts:211 |
-| `PUT` | `/api/profiles/me/upsert` | 🔒 auth | routes/profiles.ts:228 |
-| `PUT` | `/api/profiles/:id` | 🔒 auth | routes/profiles.ts:248 |
-| `PATCH` | `/api/profiles/me/ticker` | 🔒 auth | routes/profiles.ts:266 |
-| `POST` | `/api/profiles/follow/:targetUserId` | 🔒 auth | routes/profiles.ts:292 |
+| `GET` | `/api/profiles/me` | 🔒 auth | routes/profiles.ts:129 |
+| `GET` | `/api/profiles/by-user/:userId` | ⚪ optional | routes/profiles.ts:137 |
+| `GET` | `/api/profiles/me/follows` | 🔒 auth | routes/profiles.ts:151 |
+| `GET` | `/api/profiles/follows` | 🔒 auth | routes/profiles.ts:158 |
+| `GET` | `/api/profiles/:id` | ⚪ optional | routes/profiles.ts:165 |
+| `GET` | `/api/profiles/` | ⚪ optional | routes/profiles.ts:184 |
+| `POST` | `/api/profiles/` | 🔒 auth | routes/profiles.ts:227 |
+| `PUT` | `/api/profiles/me/upsert` | 🔒 auth | routes/profiles.ts:244 |
+| `PUT` | `/api/profiles/:id` | 🔒 auth | routes/profiles.ts:264 |
+| `PATCH` | `/api/profiles/me/ticker` | 🔒 auth | routes/profiles.ts:282 |
+| `POST` | `/api/profiles/follow/:targetUserId` | 🔒 auth | routes/profiles.ts:308 |
 
 ## proxy — Public Proxy Route
 
@@ -440,10 +451,10 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/reviews/` | ⚪ optional | routes/reviews.ts:9 |
-| `GET` | `/api/reviews/product/:productId` | ⚪ optional | routes/reviews.ts:34 |
-| `POST` | `/api/reviews/` | 🔒 auth | routes/reviews.ts:50 |
-| `DELETE` | `/api/reviews/:id` | 🔒 auth | routes/reviews.ts:83 |
+| `GET` | `/api/reviews/` | ⚪ optional | routes/reviews.ts:10 |
+| `GET` | `/api/reviews/product/:productId` | ⚪ optional | routes/reviews.ts:36 |
+| `POST` | `/api/reviews/` | 🔒 auth | routes/reviews.ts:53 |
+| `DELETE` | `/api/reviews/:id` | 🔒 auth | routes/reviews.ts:86 |
 
 ## saves — saves
 
@@ -457,51 +468,67 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/search/` | ⚪ optional | routes/search.ts:45 |
+| `GET` | `/api/search/` | ⚪ optional | routes/search.ts:46 |
 
 ## sharePreview — Link-preview data for shared business and product links.
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/share-preview/showroom/:slug` | 🌐 public | routes/sharePreview.ts:42 |
-| `GET` | `/api/share-preview/product/:id` | 🌐 public | routes/sharePreview.ts:60 |
+| `GET` | `/api/share-preview/showroom/:slug` | 🌐 public | routes/sharePreview.ts:43 |
+| `GET` | `/api/share-preview/product/:id` | 🌐 public | routes/sharePreview.ts:61 |
 
 ## showrooms — showrooms
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/showrooms/` | ⚪ optional | routes/showrooms.ts:15 |
-| `GET` | `/api/showrooms/slug/:slug` | ⚪ optional | routes/showrooms.ts:42 |
-| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | 🔒 auth | routes/showrooms.ts:61 |
-| `GET` | `/api/showrooms/:id/doctor` | 🔒 auth | routes/showrooms.ts:86 |
-| `GET` | `/api/showrooms/sitemap-data` | 🌐 public | routes/showrooms.ts:143 |
-| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:156 |
-| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:170 |
-| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:236 |
-| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:298 |
+| `GET` | `/api/showrooms/` | ⚪ optional | routes/showrooms.ts:18 |
+| `GET` | `/api/showrooms/slug/:slug` | ⚪ optional | routes/showrooms.ts:46 |
+| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | 🔒 auth | routes/showrooms.ts:64 |
+| `GET` | `/api/showrooms/:id/doctor` | 🔒 auth | routes/showrooms.ts:89 |
+| `GET` | `/api/showrooms/sitemap-data` | 🌐 public | routes/showrooms.ts:146 |
+| `POST` | `/api/showrooms/:id/newsletter` | ⚪ optional | routes/showrooms.ts:166 |
+| `GET` | `/api/showrooms/:id/newsletter` | 🔒 auth | routes/showrooms.ts:184 |
+| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:196 |
+| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:209 |
+| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:275 |
+| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:336 |
 
 ## stories — stories
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/stories/` | ⚪ optional | routes/stories.ts:15 |
-| `GET` | `/api/stories/user/:userId` | ⚪ optional | routes/stories.ts:29 |
-| `POST` | `/api/stories/` | 🔒 auth | routes/stories.ts:42 |
-| `POST` | `/api/stories/:id/view` | 🔒 auth | routes/stories.ts:54 |
-| `POST` | `/api/stories/:id/reactions` | 🔒 auth | routes/stories.ts:62 |
-| `GET` | `/api/stories/:id/comments` | 🔒 auth | routes/stories.ts:77 |
-| `POST` | `/api/stories/:id/comments` | 🔒 auth | routes/stories.ts:84 |
-| `DELETE` | `/api/stories/:id` | 🔒 auth | routes/stories.ts:102 |
+| `GET` | `/api/stories/` | ⚪ optional | routes/stories.ts:16 |
+| `GET` | `/api/stories/user/:userId` | ⚪ optional | routes/stories.ts:30 |
+| `POST` | `/api/stories/` | 🔒 auth | routes/stories.ts:43 |
+| `POST` | `/api/stories/:id/view` | 🔒 auth | routes/stories.ts:55 |
+| `POST` | `/api/stories/:id/reactions` | 🔒 auth | routes/stories.ts:63 |
+| `GET` | `/api/stories/:id/comments` | 🔒 auth | routes/stories.ts:78 |
+| `POST` | `/api/stories/:id/comments` | 🔒 auth | routes/stories.ts:85 |
+| `DELETE` | `/api/stories/:id` | 🔒 auth | routes/stories.ts:103 |
 
 ## subscriptions — Business subscription lifecycle
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/subscriptions/plans` | 🌐 public | routes/subscriptions.ts:82 |
-| `GET` | `/api/subscriptions/my` | 🔒 auth | routes/subscriptions.ts:101 |
-| `POST` | `/api/subscriptions/create` | 🔒 auth | routes/subscriptions.ts:136 |
-| `POST` | `/api/subscriptions/cancel` | 🔒 auth | routes/subscriptions.ts:231 |
-| `POST` | `/api/subscriptions/webhook` | 🌐 public | routes/subscriptions.ts:275 |
+| `GET` | `/api/subscriptions/plans` | 🌐 public | routes/subscriptions.ts:84 |
+| `GET` | `/api/subscriptions/my` | 🔒 auth | routes/subscriptions.ts:118 |
+| `POST` | `/api/subscriptions/create` | 🔒 auth | routes/subscriptions.ts:153 |
+| `POST` | `/api/subscriptions/cancel` | 🔒 auth | routes/subscriptions.ts:248 |
+| `POST` | `/api/subscriptions/webhook` | 🌐 public | routes/subscriptions.ts:292 |
+
+## subscriptionsEtb — Prepaid ETB subscriptions through Chapa (Phase 1).
+
+| Method | Path | Auth | Source |
+|---|---|---|---|
+| `GET` | `/api/subscriptions/quote` | 🌐 public | routes/subscriptionsEtb.ts:56 |
+| `POST` | `/api/subscriptions/checkout` | 🌐 public | routes/subscriptionsEtb.ts:65 |
+| `POST` | `/api/subscriptions/webhook/chapa` | 🌐 public | routes/subscriptionsEtb.ts:82 |
+| `GET` | `/api/subscriptions/chapa/callback` | 🌐 public | routes/subscriptionsEtb.ts:105 |
+| `GET` | `/api/subscriptions/payments` | 🌐 public | routes/subscriptionsEtb.ts:127 |
+| `GET` | `/api/subscriptions/payments/:ref/status` | 🌐 public | routes/subscriptionsEtb.ts:137 |
+| `GET` | `/api/subscriptions/payments/:id/receipt` | 🌐 public | routes/subscriptionsEtb.ts:154 |
+| `GET` | `/api/subscriptions/chapa/sandbox` | 🌐 public | routes/subscriptionsEtb.ts:172 |
+| `POST` | `/api/subscriptions/chapa/sandbox/pay` | 🌐 public | routes/subscriptionsEtb.ts:189 |
 
 ## suggestions — suggestions
 
@@ -523,8 +550,8 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/trending/` | ⚪ optional | routes/trending.ts:48 |
-| `GET` | `/api/trending/warm` | ⚪ optional | routes/trending.ts:69 |
+| `GET` | `/api/trending/` | ⚪ optional | routes/trending.ts:53 |
+| `GET` | `/api/trending/warm` | ⚪ optional | routes/trending.ts:75 |
 
 ## upload — upload
 
@@ -536,10 +563,10 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/variants/product/:productId` | ⚪ optional | routes/variants.ts:20 |
-| `POST` | `/api/variants/product/:productId` | 🔒 auth | routes/variants.ts:34 |
-| `PUT` | `/api/variants/:id` | 🔒 auth | routes/variants.ts:49 |
-| `DELETE` | `/api/variants/:id` | 🔒 auth | routes/variants.ts:64 |
+| `GET` | `/api/variants/product/:productId` | ⚪ optional | routes/variants.ts:21 |
+| `POST` | `/api/variants/product/:productId` | 🔒 auth | routes/variants.ts:39 |
+| `PUT` | `/api/variants/:id` | 🔒 auth | routes/variants.ts:54 |
+| `DELETE` | `/api/variants/:id` | 🔒 auth | routes/variants.ts:69 |
 
 ## verification — verification
 

@@ -34,7 +34,8 @@
     "clean": "node db/cleanup-seed-data.js",
     "backup": "tsx scripts/backup-database.js",
     "backup:verify": "tsx scripts/verify-backup.js",
-    "docs:api": "tsx scripts/generate-api-docs.js"
+    "docs:api": "tsx scripts/generate-api-docs.js",
+    "test:db": "jest --config jest.db.config.js --runInBand --forceExit"
   },
   "jest": {
     "testEnvironment": "node",
@@ -62,7 +63,8 @@
       "test/api.test.js",
       "test/presence.test.js",
       "test/realtime_chat.test.js",
-      "test/profile_picture.test.js"
+      "test/profile_picture.test.js",
+      "/test/db/"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/test/helpers/setupTests.js"

@@ -337,6 +337,7 @@ app.use('/api/products',     require('./routes/products'));
 app.use('/api/orders',       require('./routes/orders'));
 app.use('/api/profile-partnerships', require('./routes/profilePartnerships'));
 app.use('/api/messages',     require('./routes/messages'));
+app.use('/api/internal',     require('./routes/internalJobs'));
 app.use('/api/notifications',require('./routes/notifications'));
 app.use('/api/businesses',   require('./routes/businesses'));
 app.use('/api/showrooms',    require('./routes/showrooms'));
@@ -376,7 +377,8 @@ app.use('/api/devops',       require('./routes/devops'));
 app.use('/api/docs',         require('./routes/docs'));
 
 // ── Subscription tiers & business features ───────────────────────────────────
-app.use('/api/subscriptions',      require('./routes/subscriptions'));
+app.use('/api/subscriptions',      require('./routes/subscriptionsEtb')); // prepaid ETB via Chapa
+app.use('/api/subscriptions',      require('./routes/subscriptions'));    // Stripe (USD)
 app.use('/api/locations',          require('./routes/locations'));
 app.use('/api/business-webhooks',  require('./routes/businessWebhooks'));
 app.use('/api/business-api-keys',  require('./routes/businessApiKeys'));
