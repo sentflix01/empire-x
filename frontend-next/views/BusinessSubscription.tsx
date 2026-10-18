@@ -365,6 +365,11 @@ function BusinessSubscription() {
       {/* Plan comparison */}
       <div className="space-y-3">
         <h2 className="text-sm font-semibold">Choose a plan</h2>
+        {PAID_PLAN_KEYS.some(k => plans?.[k]?.testMode?.ETB || plans?.[k]?.testMode?.USD) && (
+          <p role="note" className="rounded-xl border border-sky-300/60 bg-sky-50 px-3 py-2 text-sm text-sky-950 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-100">
+            <strong>Test mode:</strong> payments use test cards and test phone numbers. No real money moves.
+          </p>
+        )}
         <div className="max-w-xs space-y-2">
           <label htmlFor="subscription-currency" className="text-sm font-medium">Billing currency</label>
           <select id="subscription-currency" name="billing_currency" value={selectedCurrency}

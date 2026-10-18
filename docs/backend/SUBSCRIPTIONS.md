@@ -24,24 +24,36 @@ returning Stripe Price IDs.
 
 ## Environment Variables Required
 
-```bash
-# Stripe subscription billing (separate from order processing)
-STRIPE_SUBSCRIPTION_WEBHOOK_SECRET=whsec_...   # from Stripe Dashboard → Webhooks
+USD plans run on Stripe Checkout (subscriptions); ETB plans are prepaid through Chapa (below).
 
-# Stripe price IDs (create in Stripe Dashboard → Products → Prices)
-STRIPE_PRICE_NORMAL_MONTHLY_ETB=price_...
+```bash
+FF_STRIPE_PAYMENTS=true
+STRIPE_SECRET_KEY=sk_test_...                 # test period: sk_test_; later sk_live_
+STRIPE_SUBSCRIPTION_WEBHOOK_SECRET=whsec_...  # Stripe Dashboard → Webhooks, endpoint /api/subscriptions/webhook
+
+# Optional. Without them, USD checkout sends the published price (1 / 5 / 10 USD a month)
+# as inline price_data. When set, the price must match the plan exactly or checkout is refused.
 STRIPE_PRICE_NORMAL_MONTHLY_USD=price_...
-STRIPE_PRICE_PREMIUM_MONTHLY_ETB=price_...
 STRIPE_PRICE_PREMIUM_MONTHLY_USD=price_...
-STRIPE_PRICE_PRO_MONTHLY_ETB=price_...
 STRIPE_PRICE_PRO_MONTHLY_USD=price_...
 ```
 
-Create each recurring price in Stripe for the matching plan amount and currency.
-Test and live mode use separate Stripe keys and Price IDs. The former
-`STRIPE_PRICE_NORMAL_MONTHLY`, `STRIPE_PRICE_PREMIUM_MONTHLY`, and
-`STRIPE_PRICE_PRO_MONTHLY` variables are not used as fallback values; configure
-the currency-specific IDs explicitly.
+Webhook events to send:
+- `checkout.session.completed`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+- `invoice.paid` (renewals extend the period)
+- `invoice.payment_failed`
+
+Older and current Stripe API versions both work: period dates are read from
+the subscription or its first item, and from invoice lines
+(`lib/stripeSubscriptionPeriod.ts`). Each event is processed once
+(`webhook_events.id`).
+
+**Test period (2026-10 → 2027-04):** both providers run on test keys in
+production (`sk_test_…`, `CHASECK_TEST-…`), and no real money moves. The plan
+page shows the providers' test cards and phone numbers. Going live is a key
+swap only.
 
 ---
 

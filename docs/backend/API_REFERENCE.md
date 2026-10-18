@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **300** across **49** mounted modules · Generated: 2026-10-17
+> Endpoints: **300** across **49** mounted modules · Generated: 2026-10-18
 
 | Legend | Meaning |
 |---|---|
@@ -510,11 +510,11 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/subscriptions/plans` | 🌐 public | routes/subscriptions.ts:84 |
-| `GET` | `/api/subscriptions/my` | 🔒 auth | routes/subscriptions.ts:118 |
-| `POST` | `/api/subscriptions/create` | 🔒 auth | routes/subscriptions.ts:153 |
-| `POST` | `/api/subscriptions/cancel` | 🔒 auth | routes/subscriptions.ts:248 |
-| `POST` | `/api/subscriptions/webhook` | 🌐 public | routes/subscriptions.ts:292 |
+| `GET` | `/api/subscriptions/plans` | 🌐 public | routes/subscriptions.ts:87 |
+| `GET` | `/api/subscriptions/my` | 🔒 auth | routes/subscriptions.ts:123 |
+| `POST` | `/api/subscriptions/create` | 🔒 auth | routes/subscriptions.ts:158 |
+| `POST` | `/api/subscriptions/cancel` | 🔒 auth | routes/subscriptions.ts:258 |
+| `POST` | `/api/subscriptions/webhook` | 🌐 public | routes/subscriptions.ts:302 |
 
 ## subscriptionsEtb — Prepaid ETB subscriptions through Chapa (Phase 1).
 
