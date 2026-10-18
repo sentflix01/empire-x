@@ -15,6 +15,7 @@
  *   backend/routes/products.ts                   (POST /bulk-import)
  */
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import {
   Package, Search, Upload, Loader2, AlertTriangle, CheckCircle2,
   RefreshCw, TrendingDown, X,
@@ -133,6 +134,7 @@ function BusinessInventory() {
           <p className="text-sm text-muted-foreground mt-0.5">Manage your product catalog</p>
         </div>
         <div className="flex gap-2">
+          <Link href="/products/scan" className="inline-flex h-9 items-center rounded-full bg-amber-500 px-4 text-sm font-semibold text-white hover:bg-amber-600">Scan products</Link>
           <Button variant="outline" size="sm" onClick={loadProducts}>
             <RefreshCw className="w-4 h-4" />
           </Button>

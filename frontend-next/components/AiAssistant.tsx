@@ -425,9 +425,12 @@ function AiAssistantWidget() {
   );
 }
 
-/** Showroom Studio is fully manual (no AI inside), so the assistant stays out of it. */
+/**
+ * Showroom Studio is fully manual (no AI inside), so the assistant stays out
+ * of it; quick scan keeps its camera and Save bar clear of the floating button.
+ */
 export default function AiAssistant() {
   const pathname = usePathname();
-  if (pathname === "/showroom/create") return null;
+  if (pathname === "/showroom/create" || pathname === "/products/scan") return null;
   return <AiAssistantWidget />;
 }
