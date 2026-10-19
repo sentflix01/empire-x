@@ -43,8 +43,11 @@ function readSafeAreaBottom(): number {
 
 function clampAssistantPosition(position: { x: number; y: number }, viewportWidth: number, viewportHeight: number, safeAreaBottom = 0) {
   const edgeMargin = 8;
+  // On screens narrower than md (768px) the mobile bottom nav bar is 64px tall.
+  // Reserve that space so the button never lands behind it.
+  const mobileNavHeight = viewportWidth < 768 ? 64 : 0;
   const maxX = Math.max(0, viewportWidth - ASSISTANT_BUTTON_SIZE - edgeMargin);
-  const maxY = Math.max(0, viewportHeight - ASSISTANT_BUTTON_SIZE - safeAreaBottom - edgeMargin);
+  const maxY = Math.max(0, viewportHeight - ASSISTANT_BUTTON_SIZE - safeAreaBottom - mobileNavHeight - edgeMargin);
   return {
     x: Math.min(Math.max(edgeMargin, position.x), maxX),
     y: Math.min(Math.max(edgeMargin, position.y), maxY),
@@ -169,6 +172,10 @@ function AiAssistantWidget() {
   const STORAGE_POS_KEY = "nodbusiness_ai_pos";
   const defaultPos = { x: -1, y: -1 }; // -1 means "use CSS default"
   const [pos, setPos] = useState(defaultPos);
+  // posReady prevents applying a saved position until the layout effect has
+  // clamped it to the current viewport — avoids a flash where the button
+  // is briefly off-screen on a smaller viewport than where it was saved.
+  const [posReady, setPosReady] = useState(false);
   const dragging = useRef(false);
   const didDrag = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -194,6 +201,9 @@ function AiAssistantWidget() {
         }
       }
     } catch {}
+    // Mark position as ready — from this point on it's safe to apply inline
+    // left/top styles because the position has been clamped to the current viewport.
+    setPosReady(true);
   }, []);
 
   // A position saved on a large viewport can be outside a smaller window.
@@ -273,21 +283,24 @@ function AiAssistantWidget() {
     };
   }, []);
 
-  // Compute button style based on drag position
-  const btnStyle: React.CSSProperties = pos.x >= 0 && pos.y >= 0
+  // Compute button style based on drag position.
+  // Only apply inline left/top after posReady — this prevents a flash where a
+  // position saved on a large screen is rendered off-screen before the layout
+  // effect clamps it to the current (smaller) viewport.
+  const btnStyle: React.CSSProperties = posReady && pos.x >= 0 && pos.y >= 0
     ? { position: 'fixed', left: pos.x, top: pos.y, bottom: 'auto', right: 'auto', width: 56, height: 56, paddingInline: 0 }
     : { width: 56, height: 56, paddingInline: 0 };
 
   // Chat panel position — above the button
   const panelStyle: React.CSSProperties = useMemo(() => {
-    if (pos.x < 0 || pos.y < 0) return {};
+    if (!posReady || pos.x < 0 || pos.y < 0) return {};
     const viewport = viewportSize ?? getAssistantViewportSize();
     const panelWidth = Math.min(384, Math.max(0, viewport.width - 32));
     const panelHeight = Math.min(500, Math.max(0, viewport.height - 168));
     const left = Math.max(8, Math.min(pos.x + ASSISTANT_BUTTON_SIZE - panelWidth, viewport.width - panelWidth - 8));
     const top = Math.max(8, Math.min(pos.y - panelHeight - 16, viewport.height - panelHeight - 8));
     return { position: 'fixed', left, top, bottom: 'auto', right: 'auto' };
-  }, [pos, viewportSize]);
+  }, [pos, posReady, viewportSize]);
 
   // Track online/offline and load persisted history after mount
   useEffect(() => {
