@@ -60,9 +60,10 @@ async function openaiComplete(prompt: string, opts: CompletionOptions = {}): Pro
 async function openaiChat(messages: ChatMessage[], opts: CompletionOptions = {}): Promise<string> {
   const { maxTokens = 300, temperature = 0.7, systemPrompt } = opts;
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not set');
+  const recentMessages = messages.slice(-10);
   const allMessages = systemPrompt
-    ? [{ role: 'system' as const, content: systemPrompt }, ...messages]
-    : messages;
+    ? [{ role: 'system' as const, content: systemPrompt }, ...recentMessages]
+    : recentMessages;
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -71,7 +72,7 @@ async function openaiChat(messages: ChatMessage[], opts: CompletionOptions = {})
     },
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL ?? 'gpt-3.5-turbo',
-      messages: allMessages.slice(-10),
+      messages: allMessages,
       max_tokens: maxTokens,
       temperature,
     }),
@@ -108,8 +109,37 @@ async function geminiComplete(prompt: string, _opts: CompletionOptions = {}): Pr
 }
 
 async function geminiChat(messages: ChatMessage[], opts: CompletionOptions = {}): Promise<string> {
-  const lastUserMsg = messages.filter((m) => m.role === 'user').pop()?.content ?? '';
-  return geminiComplete(lastUserMsg, opts);
+  const { maxTokens = 300, temperature = 0.7, systemPrompt } = opts;
+  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not set');
+
+  const recentMessages = messages.slice(-10);
+  if (recentMessages[0]?.role === 'assistant') recentMessages.shift();
+  if (!recentMessages.length) throw new Error('A user message is required');
+
+  const model = process.env.GEMINI_MODEL ?? 'gemini-1.5-flash';
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...(systemPrompt ? { systemInstruction: { parts: [{ text: systemPrompt }] } } : {}),
+        contents: recentMessages.map((message) => ({
+          role: message.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: message.content }],
+        })),
+        generationConfig: { maxOutputTokens: maxTokens, temperature },
+      }),
+    },
+  );
+  if (!res.ok) {
+    const e = await res.json() as { error?: { message?: string } };
+    throw new Error(e.error?.message ?? 'Gemini error');
+  }
+  const data = await res.json() as {
+    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  };
+  return data.candidates?.[0]?.content?.parts?.map((part) => part.text ?? '').join('').trim() ?? '';
 }
 
 // ── Anthropic Claude ──────────────────────────────────────────────────────────
