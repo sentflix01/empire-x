@@ -65,6 +65,7 @@ maintains them.
 |---|---|---|
 | Product purpose and scope | `docs/product/NORTH_STAR.md` | `docs/product/PRD.md`, `docs/product/ROADMAP.md`, `docs/product/USER_RESEARCH.md` |
 | Requirements and experience | `docs/product/PRD.md` | `docs/product/ACCESSIBILITY.md`, `docs/product/LOCALIZATION.md`, `docs/product/DESIGN_SYSTEM.md`, feature-specific specs in `docs/` |
+| AI assistant guidance | `docs/product/AI_ASSISTANT.md` | `backend/lib/aiGuidePrompt.ts` (canonical runtime prompt), dated discovery report in `note/` |
 | System architecture | `docs/architecture/C4.md` | `docs/architecture/ADR.md`, `docs/architecture/SEQUENCE_DIAGRAMS.md`, `docs/architecture/ERD.md`, `docs/architecture/DATA_FLOW.md` |
 | Security and privacy | `SECURITY.md` | `docs/architecture/THREAT_MODEL.md`, `docs/backend/SECURITY.md`, `docs/best-practice/security.md` |
 | Backend/API | `docs/backend/API_REFERENCE.md` | `docs/backend/API.md`, `docs/backend/DATABASE.md`, `docs/backend/PAYMENT_INTEGRATION.md`, `backend/` source and tests |

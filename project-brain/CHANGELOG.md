@@ -1,5 +1,10 @@
 # Project Brain Changelog
 
+## 2026-10-19 — Added AI guide source reference
+
+- Registered the maintained AI assistant guidance document and its runtime prompt source.
+- Added an optional page-scoped conversational tour with localized start/end controls.
+
 ## 2026-10-15 — Documented Demo showcase boundaries
 
 - Recorded the Demo storefront scope: supported orders and inquiries only,

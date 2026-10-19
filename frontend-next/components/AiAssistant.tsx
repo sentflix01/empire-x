@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
-import { X, Send, RotateCcw, Wifi, WifiOff } from "lucide-react";
+import { X, Send, RotateCcw, Wifi, WifiOff, Compass, Square } from "lucide-react";
 import client from "@/api/client";
 import { offlineAnswer } from "@/lib/aiOffline";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,26 @@ interface Message {
 
 const STORAGE_KEY = "nodbusiness_ai_history";
 const MAX_STORED = 60;
+
+function getGuidePage(pathname: string): string {
+  const dynamicRoutes: Array<[RegExp, string]> = [
+    [/^\/products\/[^/]+$/, "/products/[id]"],
+    [/^\/profile\/[^/]+$/, "/profile/[id]"],
+    [/^\/p\/[^/]+$/, "/p/[username]"],
+    [/^\/showrooms\/[^/]+$/, "/showrooms/[id]"],
+    [/^\/showroom\/[^/]+$/, "/showroom/[slug]"],
+    [/^\/hashtag\/[^/]+$/, "/hashtag/[name]"],
+    [/^\/messages\/[^/]+$/, "/messages/[id]"],
+  ];
+  return dynamicRoutes.find(([pattern]) => pattern.test(pathname))?.[1]
+    ?? (pathname.length <= 80 ? pathname : "current app page");
+}
+
+function getViewportClass(): "compact" | "medium" | "wide" {
+  if (window.innerWidth < 640) return "compact";
+  if (window.innerWidth < 1024) return "medium";
+  return "wide";
+}
 
 function AssistantLogo({ size = "sm", animated = false }: { size?: "xs" | "sm" | "md"; animated?: boolean }) {
   const sizeClass = size === "md" ? "w-11 h-11" : size === "sm" ? "w-7 h-7" : "w-6 h-6";
@@ -95,8 +115,9 @@ function fmtTime(ts: number): string {
 }
 
 function AiAssistantWidget() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const pathname = usePathname();
   const historyKey = `${STORAGE_KEY}:${user?.id ?? "guest"}:${user?.is_demo ? "demo" : "real"}`;
   const historyKeyRef = useRef(historyKey);
   historyKeyRef.current = historyKey;
@@ -112,6 +133,9 @@ function AiAssistantWidget() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [online, setOnline] = useState(true);
+  const [tourActive, setTourActive] = useState(false);
+  const tourActiveRef = useRef(false);
+  const previousPathname = useRef(pathname);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -231,42 +255,97 @@ function AiAssistantWidget() {
     if (historyKeyRef.current === expectedKey) setMessages(prev => [...prev, msg]);
   }, []);
 
-  const sendMessage = async (text?: string) => {
+  useEffect(() => {
+    if (previousPathname.current !== pathname && tourActive) {
+      tourActiveRef.current = false;
+      setTourActive(false);
+      addMessage({ role: "assistant", content: t("ai.tourPageChanged"), ts: Date.now() }, historyKey);
+    }
+    previousPathname.current = pathname;
+  }, [addMessage, historyKey, pathname, t, tourActive]);
+
+  useEffect(() => {
+    tourActiveRef.current = false;
+    setTourActive(false);
+  }, [historyKey]);
+
+  const sendMessage = async (text?: string, options?: { tourMode?: boolean }) => {
     const content = (text || input).trim();
     if (!content || loading) return;
     setInput("");
 
+    const endsTour = tourActive && /^(please\s+)?(end|stop|finish|exit|cancel)(\s+the)?\s+(guided\s+)?tour[.!?]*$/i.test(content)
+      || (tourActive && /^(ጉብኝቱን\s*(ጨርስ|አቁም))[።.!?]*$/u.test(content));
+    if (endsTour) {
+      tourActiveRef.current = false;
+      setTourActive(false);
+      setMessages(prev => [...prev,
+        { role: "user", content, ts: Date.now() },
+        { role: "assistant", content: t("ai.tourEnded"), ts: Date.now() },
+      ]);
+      return;
+    }
+
     const userMsg: Message = { role: "user", content, ts: Date.now() };
     const requestHistoryKey = historyKey;
+    const requestPath = pathname;
+    const isTourRequest = options?.tourMode ?? tourActive;
     const next = [...visibleMessages, userMsg];
     setMessages(next);
     setLoading(true);
 
-    // 1. Try offline rule engine first (instant, no network needed)
-    const localAnswer = offlineAnswer(content);
-    if (localAnswer) {
+    // 1. Keep offline answers limited to neutral greeting/identity copy.
+    const guideLanguage = (i18n.resolvedLanguage ?? i18n.language).startsWith("am") ? "am" : "en";
+    if (!online) {
+      const localAnswer = offlineAnswer(content, guideLanguage);
       setTimeout(() => {
-        addMessage({ role: "assistant", content: localAnswer, offline: true, ts: Date.now() }, requestHistoryKey);
+        addMessage({
+          role: "assistant",
+          content: localAnswer ?? t("ai.offlineFallback"),
+          offline: true,
+          ts: Date.now(),
+        }, requestHistoryKey);
         setLoading(false);
       }, 300); // small delay feels more natural
       return;
     }
 
-    // 2. If online, try the API
-    if (online) {
-      try {
-        const { data } = await client.post("/api/ai/chat", {
-          messages: next.map(m => ({ role: m.role, content: m.content })),
-        });
-        addMessage({ role: "assistant", content: data.reply || "Sorry, I couldn't get a response.", ts: Date.now() }, requestHistoryKey);
-        setLoading(false);
-        return;
-      } catch {
-        // API failed — fall through to offline fallback
-      }
+    // The server chat endpoint requires authentication. Explain that clearly
+    // instead of showing an unhelpful API fallback for guests.
+    if (!user) {
+      addMessage({ role: "assistant", content: t("ai.signInRequired"), ts: Date.now() }, requestHistoryKey);
+      setLoading(false);
+      return;
     }
 
-    // 3. Offline/API-failed fallback
+    // 2. Send the conversation and minimal page/device context to the server.
+    try {
+      const { data } = await client.post("/api/ai/chat", {
+        messages: next.slice(-20).map(m => ({ role: m.role, content: m.content })),
+        context: {
+          page: getGuidePage(pathname ?? "/"),
+          viewport: getViewportClass(),
+          language: guideLanguage,
+          tourMode: isTourRequest,
+        },
+      });
+      if (isTourRequest && (!tourActiveRef.current || previousPathname.current !== requestPath)) {
+        setLoading(false);
+        return;
+      }
+      addMessage({ role: "assistant", content: data.reply || data.text || "Sorry, I couldn't get a response.", ts: Date.now() }, requestHistoryKey);
+      setLoading(false);
+      return;
+    } catch {
+      // API failed — fall through to the localized fallback.
+    }
+
+    if (isTourRequest && (!tourActiveRef.current || previousPathname.current !== requestPath)) {
+      setLoading(false);
+      return;
+    }
+
+    // 3. API-failed fallback
     addMessage({
       role: "assistant",
       content: online
@@ -281,6 +360,19 @@ function AiAssistantWidget() {
   const reset = () => {
     setMessages([]);
     localStorage.removeItem(historyKey);
+  };
+
+  const startTour = () => {
+    if (!user || !online || loading) return;
+    tourActiveRef.current = true;
+    setTourActive(true);
+    void sendMessage(t("ai.startTourRequest"), { tourMode: true });
+  };
+
+  const endTour = () => {
+    tourActiveRef.current = false;
+    setTourActive(false);
+    addMessage({ role: "assistant", content: t("ai.tourEnded"), ts: Date.now() }, historyKey);
   };
 
   // AI Assistant is visible on ALL pages — including the showroom builder
@@ -324,10 +416,20 @@ function AiAssistantWidget() {
                 }
               </div>
             </div>
-            <button onClick={reset} title={t('ai.clearHistory')} className="p-1 text-white/70 hover:text-white transition-colors">
+            {tourActive && (
+              <button
+                onClick={endTour}
+                title={t("ai.endTour")}
+                aria-label={t("ai.endTour")}
+                className="min-h-11 min-w-11 shrink-0 rounded-full border border-white/35 px-2 text-[11px] font-medium text-white hover:bg-white/10 transition-colors"
+              >
+                <span className="flex items-center justify-center gap-1.5"><Square className="h-3.5 w-3.5 shrink-0" /><span className="hidden sm:inline">{t("ai.endTour")}</span></span>
+              </button>
+            )}
+            <button onClick={reset} title={t('ai.clearHistory')} aria-label={t('ai.clearHistory')} className="min-h-11 min-w-11 flex items-center justify-center text-white/70 hover:text-white transition-colors">
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
-            <button onClick={() => setOpen(false)} className="p-1 text-white/70 hover:text-white transition-colors">
+            <button onClick={() => setOpen(false)} title={t('ai.close')} aria-label={t('ai.close')} className="min-h-11 min-w-11 flex items-center justify-center text-white/70 hover:text-white transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -341,7 +443,7 @@ function AiAssistantWidget() {
                   <span className="mt-0.5 shrink-0"><AssistantLogo size="sm" animated /></span>
                   <div className="bg-white border border-blue-200/80 rounded-2xl rounded-tl-sm px-3 py-2.5 max-w-[88%] shadow-sm dark:bg-slate-800 dark:border-blue-500/25">
                     <p className="text-sm text-slate-900 leading-relaxed dark:text-slate-100">
-                      {t('ai.welcomeMessage')}
+                      {t(user ? 'ai.welcomeMessage' : 'ai.welcomeGuest')}
                     </p>
                   </div>
                 </div>
@@ -356,6 +458,18 @@ function AiAssistantWidget() {
                     </button>
                   ))}
                 </div>
+                {user && online && (
+                  <div className="pl-9">
+                    <button
+                      type="button"
+                      onClick={startTour}
+                      disabled={loading}
+                      className="min-h-11 w-full rounded-xl border border-blue-300 bg-white px-3 py-2 text-left text-sm font-semibold text-blue-800 shadow-sm transition-colors hover:bg-blue-50 disabled:opacity-50 dark:border-blue-500/40 dark:bg-slate-800 dark:text-blue-200 dark:hover:bg-slate-700"
+                    >
+                      <span className="flex items-center gap-2"><Compass className="h-4 w-4 shrink-0" />{t("ai.startTour")}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               visibleMessages.map((m, i) => (
