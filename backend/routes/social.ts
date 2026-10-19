@@ -139,14 +139,15 @@ const PRIVACY_FIELDS = {
   profile_visibility: ['public', 'followers', 'private'],
   default_comment_policy: ['everyone', 'followers', 'off'],
   message_policy: ['everyone', 'followers', 'nobody'],
+  presence_visibility: ['everyone', 'nobody'],
 } as const;
-const PRIVACY_COLUMNS = 'profile_visibility, searchable, default_comment_policy, message_policy, show_reactions';
+const PRIVACY_COLUMNS = 'profile_visibility, searchable, default_comment_policy, message_policy, show_reactions, presence_visibility, read_receipts';
 
 router.get('/privacy', requireAuth, async (req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(`SELECT ${PRIVACY_COLUMNS} FROM user_profiles WHERE user_id=$1`, [req.user!.id]);
     res.set('Cache-Control', 'private, no-store');
-    res.json(rows[0] ?? { profile_visibility: 'public', searchable: true, default_comment_policy: 'everyone', message_policy: 'everyone', show_reactions: true });
+    res.json(rows[0] ?? { profile_visibility: 'public', searchable: true, default_comment_policy: 'everyone', message_policy: 'everyone', show_reactions: true, presence_visibility: 'everyone', read_receipts: true });
   } catch { res.status(500).json({ error: 'Failed to load privacy settings' }); }
 });
 
@@ -158,7 +159,7 @@ router.put('/privacy', requireAuth, async (req: Request, res: Response) => {
     if (!(allowed as readonly string[]).includes(String(body[key]))) { res.status(422).json({ error: `${key} must be one of: ${allowed.join(', ')}` }); return; }
     values.push(body[key]); sets.push(`${key} = $${values.length}`);
   }
-  for (const key of ['searchable', 'show_reactions']) {
+  for (const key of ['searchable', 'show_reactions', 'read_receipts']) {
     if (body[key] === undefined) continue;
     if (typeof body[key] !== 'boolean') { res.status(422).json({ error: `${key} must be true or false` }); return; }
     values.push(body[key]); sets.push(`${key} = $${values.length}`);

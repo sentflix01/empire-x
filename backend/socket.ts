@@ -13,10 +13,11 @@
  */
 import type { Server as HttpServer } from 'http';
 import type { Socket, Server as IOServer } from 'socket.io';
-import pool from './db/pool';
+import pool, { runWithDatabaseEnvironment, type DatabaseContext } from './db/pool';
 import logger from './lib/logger';
 import { getRedis } from './lib/redis';
 import { verifyAccessToken } from './middleware/auth';
+import { DEMO_SESSION_COOKIE, resolveDemoSession } from './middleware/demoEnvironment';
 import type { Redis as RedisClient } from 'ioredis';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -32,7 +33,26 @@ interface SocketUser {
 
 interface AuthenticatedSocket extends Socket {
   user: SocketUser;
+  /** Set for demo sessions: every query for this socket runs against the demo database. */
+  dbContext?: DatabaseContext;
 }
+
+/** Run a handler in the socket's database (demo sessions use the isolated demo database). */
+function inSocketDb<T>(s: AuthenticatedSocket, fn: () => Promise<T>): Promise<T> {
+  return s.dbContext ? runWithDatabaseEnvironment(s.dbContext, fn) : fn();
+}
+
+function cookieValue(header: string | undefined, name: string): string | undefined {
+  for (const part of (header ?? '').split(';')) {
+    const [k, ...v] = part.trim().split('=');
+    if (k === name) { try { return decodeURIComponent(v.join('=')); } catch { return undefined; } }
+  }
+  return undefined;
+}
+
+/** One typing event per person and chat every few seconds is plenty. */
+const TYPING_INTERVAL_MS = 3000;
+const lastTyping = new Map<string, { at: number; isTyping: boolean }>();
 
 interface ConversationRow {
   id: string;
@@ -196,7 +216,8 @@ export function initSocket(httpServer: HttpServer, corsOrigin: string | string[]
     cors: { origin: origins, credentials: true },
     connectionStateRecovery: {
       maxDisconnectionDuration: 2 * 60 * 1000,
-      skipMiddlewares: true,
+      // A recovered connection is checked again (ban, revoked token).
+      skipMiddlewares: false,
     },
   });
 
@@ -246,17 +267,21 @@ export function initSocket(httpServer: HttpServer, corsOrigin: string | string[]
         (socket.handshake.headers?.authorization as string | undefined)?.replace('Bearer ', '');
       if (!token) return next(new Error('Authentication required'));
 
+      // A demo session (cookie) signs its own access tokens and lives in the demo database.
+      const demo = await resolveDemoSession(cookieValue(socket.handshake.headers?.cookie, DEMO_SESSION_COOKIE));
       // Enforce ACCESS tokens — refresh tokens must never open a socket.
-      const payload = verifyAccessToken(token);
-      if (await isSocketTokenRevoked(payload.jti, payload.sub, payload.iat, payload.demo === true)) {
+      const payload = verifyAccessToken(token, demo ?? undefined);
+      if (!demo && await isSocketTokenRevoked(payload.jti, payload.sub, payload.iat, payload.demo === true)) {
         return next(new Error('Token has been revoked'));
       }
+      const s = socket as AuthenticatedSocket;
+      if (demo) s.dbContext = { environment: 'demo', demoSessionId: demo.id, demoUserId: demo.userId };
 
-      const user = await getSocketUser(payload.sub as string);
+      const user = await inSocketDb(s, () => getSocketUser(payload.sub as string));
       if (!user) return next(new Error('User not found'));
       if (user.is_banned) return next(new Error('Account suspended'));
 
-      (socket as AuthenticatedSocket).user = user;
+      s.user = user;
       next();
     } catch {
       next(new Error('Invalid token'));
@@ -273,7 +298,7 @@ export function initSocket(httpServer: HttpServer, corsOrigin: string | string[]
     socket.on('join_conversation', async (conversationId: unknown) => {
       if (!conversationId || typeof conversationId !== 'string') return;
       try {
-        const conv = await getAuthorizedConversation(s.user.id, conversationId);
+        const conv = await inSocketDb(s, () => getAuthorizedConversation(s.user.id, conversationId));
         if (conv) socket.join(`conv:${conversationId}`);
       } catch { /* never join an unverified room */ }
     });
@@ -286,25 +311,31 @@ export function initSocket(httpServer: HttpServer, corsOrigin: string | string[]
 
     socket.on('typing', async (data: unknown) => {
       const { conversationId, isTyping } = (data ?? {}) as { conversationId?: string; isTyping?: boolean };
-      if (!conversationId || typeof isTyping !== 'boolean') return;
+      if (!conversationId || typeof conversationId !== 'string' || typeof isTyping !== 'boolean') return;
+      // Throttle "is typing" repeats; "stopped typing" always goes through.
+      const key = `${s.user.id}:${conversationId}`;
+      const prev = lastTyping.get(key);
+      if (isTyping && prev?.isTyping && Date.now() - prev.at < TYPING_INTERVAL_MS) return;
+      lastTyping.set(key, { at: Date.now(), isTyping });
+      if (lastTyping.size > 20_000) lastTyping.delete(lastTyping.keys().next().value as string);
       try {
-        const conv = await getAuthorizedConversation(s.user.id, conversationId);
-        if (!conv) return;
-
-        if (conv.type === 'dm') {
+        const allowed = await inSocketDb(s, async () => {
+          const conv = await getAuthorizedConversation(s.user.id, conversationId);
+          if (!conv) return false;
+          if (conv.type !== 'dm') return true;
           const ids = await getConversationParticipantIds(conversationId);
           const otherUserId = ids.find((id) => id !== String(s.user.id));
-          if (otherUserId) {
-            const { rows } = await pool.query(
-              `SELECT 1 FROM blocks
-               WHERE (blocker_id = $1 AND blocked_id = $2)
-                  OR (blocker_id = $2 AND blocked_id = $1)
-               LIMIT 1`,
-              [s.user.id, otherUserId],
-            );
-            if (rows.length) return;
-          }
-        }
+          if (!otherUserId) return true;
+          const { rows } = await pool.query(
+            `SELECT 1 FROM blocks
+             WHERE (blocker_id = $1 AND blocked_id = $2)
+                OR (blocker_id = $2 AND blocked_id = $1)
+             LIMIT 1`,
+            [s.user.id, otherUserId],
+          );
+          return rows.length === 0;
+        });
+        if (!allowed) return;
 
         socket.to(`conv:${conversationId}`).emit('typing_updated', {
           conversation_id: conversationId,
@@ -323,10 +354,10 @@ export function initSocket(httpServer: HttpServer, corsOrigin: string | string[]
       if (!businessId || typeof businessId !== 'string') return;
       try {
         // Verify the business has pro tier before allowing join
-        const { rows } = await pool.query(
+        const { rows } = await inSocketDb(s, () => pool.query(
           `SELECT tier FROM business_subscriptions WHERE business_id = $1`,
           [businessId],
-        );
+        ));
         const tier = rows[0]?.tier ?? 'freemium';
         if (tier === 'pro') {
           socket.join(`business:${businessId}:tracking`);
@@ -405,6 +436,11 @@ export async function emitPresenceUpdated(
   ioInstance.to(`user:${userId}`).emit('presence_updated', payload);
 }
 
+/** An event for one person on all their devices (chat list, unread badge, read receipts). */
+export function emitToUser(userId: string, event: string, payload: Record<string, unknown>): void {
+  ioInstance?.to(`user:${userId}`).emit(event, payload);
+}
+
 export function emitNotification(userId: string, notification: Record<string, unknown>): void {
   ioInstance?.to(`user:${userId}`).emit('new_notification', notification);
 }
@@ -423,6 +459,13 @@ export function forceDisconnectUser(userId: string): void {
   // Also evict the in-memory socket user cache entry so any socket that
   // processes an event before disconnecting re-fetches the banned state.
   socketUserCache.delete(userId);
+  // Close every socket for real instead of relying on the client to comply.
+  ioInstance.in(`user:${userId}`).disconnectSockets(true);
+}
+
+/** Someone left or was removed: stop sending them that chat's live events. */
+export function removeUserFromConversationRoom(userId: string, conversationId: string): void {
+  ioInstance?.in(`user:${userId}`).socketsLeave(`conv:${conversationId}`);
 }
 
 module.exports = {
@@ -433,7 +476,9 @@ module.exports = {
   emitMessageDeleted,
   emitPresenceUpdated,
   emitNotification,
+  emitToUser,
   forceDisconnectUser,
+  removeUserFromConversationRoom,
   invalidateFollowerCache,
   getAuthorizedConversation,
   getConversationParticipantIds,

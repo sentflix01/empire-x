@@ -7,7 +7,9 @@ import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 import { useRealMode } from "@/lib/RealModeContext";
-import { Search, Users, Radio, User as UserIcon, MessageCircle, CheckCheck } from "lucide-react";
+import { Search, Users, Radio, User as UserIcon, MessageCircle } from "lucide-react";
+import MessageTicks from "@/components/messaging/MessageTicks";
+import { tickFor } from "@/lib/readReceipts";
 import { fmtTime } from "@/lib/date";
 import { parseISO, isToday, isYesterday, isAfter, subDays, format as dfFormat } from "date-fns";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
@@ -31,7 +33,7 @@ function Messages() {
   const [unreadByConv, setUnreadByConv]   = useState<Record<string, number>>({});
   const [presence, setPresence]           = useState<Record<string, PresenceData>>({});
   const [typingConvs, setTypingConvs]     = useState<Record<string, boolean>>({});
-  const loadConversationsRef = useRef<((currentUser?: any) => Promise<void>) | null>(null);
+  const loadConversationsRef = useRef<((currentUser?: any, quiet?: boolean) => Promise<void>) | null>(null);
 
   useChatPresence(Boolean(user));
 
@@ -48,14 +50,12 @@ function Messages() {
     connectSocket();
     const socket = getSocket();
 
-    const onNewMessage = (msg: any) => {
-      void loadConversationsRef.current?.();
-      if (msg?.conversation_id) {
-        setUnreadByConv(prev => ({
-          ...prev,
-          [msg.conversation_id]: (prev[msg.conversation_id] || 0) + 1,
-        }));
-      }
+    // Chat list events reach every member's own room, so the list is live
+    // without joining every chat (new message, read, delivered, muted...).
+    let reloadTimer: ReturnType<typeof setTimeout> | null = null;
+    const onNewMessage = () => {
+      if (reloadTimer) clearTimeout(reloadTimer);
+      reloadTimer = setTimeout(() => { void loadConversationsRef.current?.(undefined, true); }, 250);
     };
     const onPresenceUpdated = (update: any) => {
       if (!update?.user_id) return;
@@ -69,13 +69,20 @@ function Messages() {
       setTypingConvs(cur => ({ ...cur, [update.conversation_id]: Boolean(update.is_typing) }));
     };
 
-    socket.on('new_message', onNewMessage);
+    socket.on('conversation_updated', onNewMessage);
+    socket.on('unread_changed', onNewMessage);
+    socket.on('conversation_read', onNewMessage);
+    socket.on('conversation_delivered', onNewMessage);
     socket.on('presence_updated', onPresenceUpdated);
     socket.on('typing_updated', onTyping);
 
     const interval = setInterval(() => { void loadConversationsRef.current?.(); }, 60_000);
     return () => {
-      socket.off('new_message', onNewMessage);
+      if (reloadTimer) clearTimeout(reloadTimer);
+      socket.off('conversation_updated', onNewMessage);
+      socket.off('unread_changed', onNewMessage);
+      socket.off('conversation_read', onNewMessage);
+      socket.off('conversation_delivered', onNewMessage);
       socket.off('presence_updated', onPresenceUpdated);
       socket.off('typing_updated', onTyping);
       clearInterval(interval);
@@ -83,36 +90,16 @@ function Messages() {
   }, [user]);
 
   // ── Data loaders ──────────────────────────────────────────────────────────
-  const loadConversations = async (currentUser?: any) => {
+  const loadConversations = async (currentUser?: any, quiet = false) => {
     const u = currentUser || user;
     if (!u) return;
-    setLoading(true);
+    if (!quiet) setLoading(true);
     try {
-      const data = await entities.Conversation.list("-updated_at", 100);
-      const mine = data.filter((c: any) => {
-        try { return JSON.parse(c.participant_ids || "[]").includes(u.id); } catch { return false; }
-      });
-      const now = Date.now();
-      const cleaned = mine.filter((c: any) => {
-        if (c.type === 'dm' && !c.last_message) {
-          if (now - new Date(c.created_at).getTime() > 5 * 60 * 1000) return false;
-        }
-        return true;
-      });
+      // The server lists only my chats, with unread counts and ticks.
+      const { data } = await client.get('/api/messages/conversations');
+      const cleaned = (Array.isArray(data) ? data : []).filter((c: any) => c.type !== 'dm' || c.last_message_id);
       setConversations(cleaned);
-
-      // Unread counts
-      client.get('/api/notifications?limit=100').then(r => {
-        const notifs = Array.isArray(r.data) ? r.data : [];
-        const counts: Record<string, number> = {};
-        notifs.forEach((n: any) => {
-          if (n.type === 'message' && !n.is_read && n.link) {
-            const convId = n.link.split('/messages/')[1];
-            if (convId) counts[convId] = (counts[convId] || 0) + 1;
-          }
-        });
-        setUnreadByConv(counts);
-      }).catch(() => {});
+      setUnreadByConv(Object.fromEntries(cleaned.map((c: any) => [c.id, Number(c.unread_count) || 0])));
 
       // DM presence
       const dmPartnerIds = cleaned
@@ -132,7 +119,7 @@ function Messages() {
         results.forEach(({ uid, data }) => { map[uid] = data; });
         setPresence(map);
       }
-    } catch {} finally { setLoading(false); }
+    } catch {} finally { if (!quiet) setLoading(false); }
   };
   loadConversationsRef.current = loadConversations;
 
@@ -440,9 +427,11 @@ function Messages() {
                       {name}
                     </p>
                     <div className="flex items-center gap-1 shrink-0">
-                      {/* Delivery tick — only for sent messages when no unread */}
-                      {isDm && !unread && conv.last_message && (
-                        <CheckCheck className="w-3.5 h-3.5 shrink-0" style={{ color: 'hsl(var(--primary))' }} />
+                      {/* Ticks on my own last message: sent, delivered, seen */}
+                      {isDm && conv.last_message_id && String(conv.last_message_sender_id) === String(user?.id) && (
+                        <MessageTicks tick={tickFor({ created_at: conv.last_message_at }, user?.id, [{
+                          user_id: conv.other_user_id, last_read_at: conv.other_last_read_at, last_delivered_at: conv.other_last_delivered_at,
+                        }])} />
                       )}
                       <span
                         className="text-[11px] whitespace-nowrap"

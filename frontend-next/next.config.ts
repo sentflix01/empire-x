@@ -71,7 +71,8 @@ const nextConfig: NextConfig = {
     // - frame-src: Stripe iframe (required for Stripe Elements)
     // Adjust NEXT_PUBLIC_API_BASE_URL as needed for your deployment.
     const apiHost = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
-    const wsHost = apiHost.replace(/^https?:/, 'wss:').replace(/^http:/, 'ws:');
+    // https → wss (production), http → ws (local backends on any port).
+    const wsHost = apiHost.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:');
     const googleScriptSrc = `https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com`;
 
     const csp = [
