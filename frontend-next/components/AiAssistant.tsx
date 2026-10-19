@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { X, Send, RotateCcw, Wifi, WifiOff, Compass, Square } from "lucide-react";
 import client from "@/api/client";
@@ -18,6 +18,38 @@ interface Message {
 
 const STORAGE_KEY = "nodbusiness_ai_history";
 const MAX_STORED = 60;
+const ASSISTANT_BUTTON_SIZE = 56;
+
+function getAssistantViewportSize() {
+  return {
+    width: Math.max(1, Math.min(window.innerWidth, window.visualViewport?.width ?? window.innerWidth)),
+    height: Math.max(1, Math.min(window.innerHeight, window.visualViewport?.height ?? window.innerHeight)),
+  };
+}
+
+function readSafeAreaBottom(): number {
+  try {
+    const probe = document.createElement('div');
+    probe.dataset.aiSafeAreaProbe = 'true';
+    probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding-bottom:env(safe-area-inset-bottom, 0px)';
+    document.body.appendChild(probe);
+    const inset = Number.parseFloat(window.getComputedStyle(probe).paddingBottom);
+    probe.remove();
+    return Number.isFinite(inset) ? inset : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function clampAssistantPosition(position: { x: number; y: number }, viewportWidth: number, viewportHeight: number, safeAreaBottom = 0) {
+  const edgeMargin = 8;
+  const maxX = Math.max(0, viewportWidth - ASSISTANT_BUTTON_SIZE - edgeMargin);
+  const maxY = Math.max(0, viewportHeight - ASSISTANT_BUTTON_SIZE - safeAreaBottom - edgeMargin);
+  return {
+    x: Math.min(Math.max(edgeMargin, position.x), maxX),
+    y: Math.min(Math.max(edgeMargin, position.y), maxY),
+  };
+}
 
 function getGuidePage(pathname: string): string {
   const dynamicRoutes: Array<[RegExp, string]> = [
@@ -66,14 +98,7 @@ function AssistantFlipCoin() {
     <span className="ai-flip-coin" aria-hidden="true">
       <span className="ai-flip-coin-inner">
         <span className="ai-flip-coin-face ai-flip-coin-front">
-          <Image
-            src="/brand/nodbusiness-icon.svg"
-            alt=""
-            width={48}
-            height={48}
-            loading="eager"
-            className="h-10 w-10 rounded-full object-cover"
-          />
+          <Image src="/brand/nodbusiness-icon.svg" alt="" width={48} height={48} loading="eager" className="h-10 w-10 rounded-full object-cover" />
         </span>
         <span className="ai-flip-coin-face ai-flip-coin-back">
           <span className="text-[10px] font-black leading-none text-white">AI</span>
@@ -128,6 +153,7 @@ function AiAssistantWidget() {
     t('ai.suggestion4'),
   ];
   const [open, setOpen] = useState(false);
+  const [viewportSize, setViewportSize] = useState<{ width: number; height: number } | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [historyReadyKey, setHistoryReadyKey] = useState<string | null>(null);
   const [input, setInput] = useState("");
@@ -144,60 +170,108 @@ function AiAssistantWidget() {
   const defaultPos = { x: -1, y: -1 }; // -1 means "use CSS default"
   const [pos, setPos] = useState(defaultPos);
   const dragging = useRef(false);
+  const didDrag = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
+  const dragOrigin = useRef({ x: 0, y: 0 });
+  const posRef = useRef(pos);
+  const safeAreaBottomRef = useRef(0);
+  posRef.current = pos;
   const btnRef = useRef<HTMLButtonElement>(null);
 
   // Load saved position
-  useEffect(() => {
+  useLayoutEffect(() => {
     try {
+      safeAreaBottomRef.current = readSafeAreaBottom();
       const saved = localStorage.getItem(STORAGE_POS_KEY);
-      if (saved) setPos(JSON.parse(saved));
+      if (saved) {
+        const parsed = JSON.parse(saved) as { x?: unknown; y?: unknown };
+        if (typeof parsed.x === 'number' && Number.isFinite(parsed.x) && typeof parsed.y === 'number' && Number.isFinite(parsed.y)) {
+          const viewport = getAssistantViewportSize();
+          const next = clampAssistantPosition({ x: parsed.x, y: parsed.y }, viewport.width, viewport.height, safeAreaBottomRef.current);
+          posRef.current = next;
+          setPos(next);
+          localStorage.setItem(STORAGE_POS_KEY, JSON.stringify(next));
+        }
+      }
     } catch {}
   }, []);
 
-  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (open) return; // don't drag when chat is open
+  // A position saved on a large viewport can be outside a smaller window.
+  // Keep the draggable launcher reachable after resize, rotation, or docking DevTools.
+  useEffect(() => {
+    const keepLauncherVisible = () => {
+      safeAreaBottomRef.current = readSafeAreaBottom();
+      const viewport = getAssistantViewportSize();
+      setViewportSize(viewport);
+      setPos(current => {
+        if (current.x < 0 || current.y < 0) return current;
+        const next = clampAssistantPosition(current, viewport.width, viewport.height, safeAreaBottomRef.current);
+        posRef.current = next;
+        if (next.x !== current.x || next.y !== current.y) {
+          try { localStorage.setItem(STORAGE_POS_KEY, JSON.stringify(next)); } catch {}
+        }
+        return next;
+      });
+    };
+    window.addEventListener('resize', keepLauncherVisible);
+    window.visualViewport?.addEventListener('resize', keepLauncherVisible);
+    return () => {
+      window.removeEventListener('resize', keepLauncherVisible);
+      window.visualViewport?.removeEventListener('resize', keepLauncherVisible);
+    };
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (open || e.button !== 0) return;
     dragging.current = true;
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    didDrag.current = false;
+    dragOrigin.current = { x: e.clientX, y: e.clientY };
     const rect = btnRef.current?.getBoundingClientRect();
     if (rect) {
-      dragOffset.current = { x: clientX - rect.left, y: clientY - rect.top };
+      dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
-    // Prevent scroll while dragging
-    if ('touches' in e) e.preventDefault();
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
   };
 
   useEffect(() => {
-    const onMove = (e: MouseEvent | TouchEvent) => {
+    const onMove = (e: PointerEvent) => {
       if (!dragging.current) return;
-      const clientX = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
-      const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
-      const newX = Math.max(0, Math.min(window.innerWidth - 60, clientX - dragOffset.current.x));
-      const newY = Math.max(0, Math.min(window.innerHeight - 60, clientY - dragOffset.current.y));
-      setPos({ x: newX, y: newY });
+      if (Math.hypot(e.clientX - dragOrigin.current.x, e.clientY - dragOrigin.current.y) > 4) didDrag.current = true;
+      if (!didDrag.current) return;
+      e.preventDefault();
+      const viewport = getAssistantViewportSize();
+      const { x: newX, y: newY } = clampAssistantPosition(
+        { x: e.clientX - dragOffset.current.x, y: e.clientY - dragOffset.current.y },
+        viewport.width,
+        viewport.height,
+        safeAreaBottomRef.current,
+      );
+      const next = { x: newX, y: newY };
+      posRef.current = next;
+      setPos(next);
     };
-    const onUp = () => {
+    const onUp = (cancelled = false) => {
       if (dragging.current) {
         dragging.current = false;
-        // Save current position from state via a ref-based approach
         try {
-          const btn = btnRef.current?.getBoundingClientRect();
-          if (btn) localStorage.setItem(STORAGE_POS_KEY, JSON.stringify({ x: btn.left, y: btn.top }));
+          if (posRef.current.x >= 0 && posRef.current.y >= 0) {
+            localStorage.setItem(STORAGE_POS_KEY, JSON.stringify(posRef.current));
+          }
         } catch {}
+        if (cancelled) didDrag.current = false;
       }
     };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchend', onUp);
+    const onPointerUp = () => onUp();
+    const onPointerCancel = () => onUp(true);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerCancel);
     return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      window.removeEventListener('touchend', onUp);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerCancel);
     };
-  }, [pos]);
+  }, []);
 
   // Compute button style based on drag position
   const btnStyle: React.CSSProperties = pos.x >= 0 && pos.y >= 0
@@ -205,9 +279,15 @@ function AiAssistantWidget() {
     : { width: 56, height: 56, paddingInline: 0 };
 
   // Chat panel position — above the button
-  const panelStyle: React.CSSProperties = pos.x >= 0 && pos.y >= 0
-    ? { position: 'fixed', left: Math.min(pos.x, window.innerWidth - 400), top: Math.max(8, pos.y - 520), bottom: 'auto', right: 'auto' }
-    : {};
+  const panelStyle: React.CSSProperties = useMemo(() => {
+    if (pos.x < 0 || pos.y < 0) return {};
+    const viewport = viewportSize ?? getAssistantViewportSize();
+    const panelWidth = Math.min(384, Math.max(0, viewport.width - 32));
+    const panelHeight = Math.min(500, Math.max(0, viewport.height - 168));
+    const left = Math.max(8, Math.min(pos.x + ASSISTANT_BUTTON_SIZE - panelWidth, viewport.width - panelWidth - 8));
+    const top = Math.max(8, Math.min(pos.y - panelHeight - 16, viewport.height - panelHeight - 8));
+    return { position: 'fixed', left, top, bottom: 'auto', right: 'auto' };
+  }, [pos, viewportSize]);
 
   // Track online/offline and load persisted history after mount
   useEffect(() => {
@@ -381,10 +461,12 @@ function AiAssistantWidget() {
       {/* Floating button — draggable */}
       <button
         ref={btnRef}
-        onClick={() => !dragging.current && setOpen(v => !v)}
-        onMouseDown={handleDragStart}
-        onTouchStart={handleDragStart}
-        className={`fixed bottom-24 right-5 md:bottom-6 md:right-6 z-[2147483647] rounded-full shadow-2xl shadow-blue-950/25 flex items-center justify-center gap-1.5 transition-all duration-200 cursor-grab active:cursor-grabbing
+        onClick={() => {
+          if (didDrag.current) { didDrag.current = false; return; }
+          setOpen(value => !value);
+        }}
+        onPointerDown={handlePointerDown}
+        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+6rem)] right-5 md:bottom-6 md:right-6 z-[2147483647] touch-none rounded-full shadow-2xl shadow-blue-950/25 flex items-center justify-center gap-1.5 transition-transform duration-200 cursor-grab active:cursor-grabbing
           ${open ? "bg-slate-800 dark:bg-slate-700 rotate-6 scale-95"
             : "bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 hover:scale-110 hover:shadow-blue-600/30 hover:shadow-xl"
           }`}
@@ -400,6 +482,7 @@ function AiAssistantWidget() {
       {/* Chat panel */}
       {open && (
         <div
+          data-testid="ai-assistant-panel"
           className="fixed bottom-40 right-4 md:bottom-20 md:right-6 z-[2147483647]
             w-[calc(100vw-2rem)] max-w-sm bg-blue-50 dark:bg-slate-900 border border-blue-300/80 dark:border-blue-500/35 rounded-2xl shadow-2xl shadow-slate-950/30
             flex flex-col overflow-hidden"
@@ -539,12 +622,8 @@ function AiAssistantWidget() {
   );
 }
 
-/**
- * Showroom Studio is fully manual (no AI inside), so the assistant stays out
- * of it; quick scan keeps its camera and Save bar clear of the floating button.
- */
+/** Keep the floating assistant mounted across routes so navigation does not
+ * remove and recreate its animated launcher. */
 export default function AiAssistant() {
-  const pathname = usePathname();
-  if (pathname === "/showroom/create" || pathname === "/products/scan") return null;
   return <AiAssistantWidget />;
 }

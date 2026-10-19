@@ -1,4 +1,5 @@
 import React from "react";
+import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AiAssistant from "./AiAssistant";
@@ -64,6 +65,27 @@ describe("AiAssistant guided tour", () => {
 
     await waitFor(() => expect(screen.getByText("ai.tourPageChanged")).toBeTruthy());
     expect(screen.queryByRole("button", { name: "ai.endTour" })).toBeNull();
+  });
+
+  it("keeps the same launcher mounted and in place during page navigation", async () => {
+    localStorage.setItem("nodbusiness_ai_pos", JSON.stringify({ x: 240, y: 320 }));
+    const { rerender } = render(<AiAssistant />);
+    const launcher = screen.getByRole("button", { name: "ai.title" });
+
+    await waitFor(() => expect(launcher).toHaveStyle({ left: "240px", top: "320px" }));
+    expect(launcher.querySelector(".ai-flip-coin")).not.toBeNull();
+    expect(launcher.className).toContain("z-[2147483647]");
+    mocks.pathname = "/orders";
+    rerender(<AiAssistant />);
+
+    expect(screen.getByRole("button", { name: "ai.title" })).toBe(launcher);
+    expect(launcher).toHaveStyle({ left: "240px", top: "320px" });
+  });
+
+  it("server-renders the animated launcher before client hydration", () => {
+    const html = renderToString(<AiAssistant />);
+    expect(html).toContain('aria-label="ai.title"');
+    expect(html).toContain('class="ai-flip-coin"');
   });
 
   it("ends immediately when the user types a clear stop command", async () => {
