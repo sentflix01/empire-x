@@ -27,8 +27,8 @@ Newly introduced as part of recent development; see source and git history for t
 | `PUT` | `/api/social/block/:userId` | auth | 81 |
 | `DELETE` | `/api/social/block/:userId` | auth | 106 |
 | `GET` | `/api/social/people` | auth | 116 |
-| `GET` | `/api/social/privacy` | auth | 145 |
-| `PUT` | `/api/social/privacy` | auth | 153 |
+| `GET` | `/api/social/privacy` | auth | 146 |
+| `PUT` | `/api/social/privacy` | auth | 154 |
 
 ## 4. What does it touch?
 

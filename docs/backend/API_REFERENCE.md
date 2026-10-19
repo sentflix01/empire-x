@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **323** across **50** mounted modules · Generated: 2026-10-19
+> Endpoints: **335** across **50** mounted modules · Generated: 2026-10-19
 
 | Legend | Meaning |
 |---|---|
@@ -36,7 +36,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`internalJobs`](#internaljobs) (1)
 - [`locations`](#locations) (2)
 - [`maps`](#maps) (2)
-- [`messages`](#messages) (22)
+- [`messages`](#messages) (34)
 - [`moderation`](#moderation) (3)
 - [`notifications`](#notifications) (6)
 - [`orders`](#orders) (11)
@@ -295,28 +295,40 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/messages/conversations` | 🔒 auth | routes/messages.ts:81 |
-| `GET` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:106 |
-| `POST` | `/api/messages/conversations/find-or-create` | 🔒 auth | routes/messages.ts:115 |
-| `POST` | `/api/messages/conversations` | 🔒 auth | routes/messages.ts:155 |
-| `PUT` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:177 |
-| `GET` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:201 |
-| `POST` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:219 |
-| `PUT` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:273 |
-| `DELETE` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:286 |
-| `DELETE` | `/api/messages/conversations/:id/history` | 🔒 auth | routes/messages.ts:297 |
-| `POST` | `/api/messages/conversations/:id/leave` | 🔒 auth | routes/messages.ts:305 |
-| `POST` | `/api/messages/conversations/:id/members` | 🔒 auth | routes/messages.ts:317 |
-| `DELETE` | `/api/messages/conversations/:id/members/:userId` | 🔒 auth | routes/messages.ts:332 |
-| `DELETE` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:345 |
-| `PUT` | `/api/messages/presence` | 🔒 auth | routes/messages.ts:358 |
-| `GET` | `/api/messages/presence/:userId` | 🔒 auth | routes/messages.ts:373 |
-| `PUT` | `/api/messages/presence/settings` | 🔒 auth | routes/messages.ts:390 |
-| `POST` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:399 |
-| `DELETE` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:405 |
-| `GET` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:410 |
-| `POST` | `/api/messages/messages/:id/forward` | 🔒 auth | routes/messages.ts:417 |
-| `POST` | `/api/messages/inquiry` | 🔒 auth | routes/messages.ts:439 |
+| `GET` | `/api/messages/conversations` | 🔒 auth | routes/messages.ts:154 |
+| `GET` | `/api/messages/unread-count` | 🔒 auth | routes/messages.ts:164 |
+| `GET` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:184 |
+| `POST` | `/api/messages/conversations/:id/read` | 🔒 auth | routes/messages.ts:205 |
+| `POST` | `/api/messages/delivered` | 🔒 auth | routes/messages.ts:238 |
+| `PUT` | `/api/messages/conversations/:id/mute` | 🔒 auth | routes/messages.ts:260 |
+| `PUT` | `/api/messages/conversations/:id/archive` | 🔒 auth | routes/messages.ts:277 |
+| `POST` | `/api/messages/conversations/:id/accept` | 🔒 auth | routes/messages.ts:290 |
+| `DELETE` | `/api/messages/conversations/:id/for-me` | 🔒 auth | routes/messages.ts:314 |
+| `POST` | `/api/messages/conversations/find-or-create` | 🔒 auth | routes/messages.ts:317 |
+| `POST` | `/api/messages/conversations` | 🔒 auth | routes/messages.ts:372 |
+| `PUT` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:398 |
+| `GET` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:422 |
+| `POST` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:443 |
+| `PUT` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:525 |
+| `DELETE` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:526 |
+| `DELETE` | `/api/messages/messages/:id/for-me` | 🔒 auth | routes/messages.ts:527 |
+| `DELETE` | `/api/messages/conversations/:id/history` | 🔒 auth | routes/messages.ts:530 |
+| `POST` | `/api/messages/conversations/:id/leave` | 🔒 auth | routes/messages.ts:532 |
+| `POST` | `/api/messages/conversations/:id/members` | 🔒 auth | routes/messages.ts:560 |
+| `DELETE` | `/api/messages/conversations/:id/members/:userId` | 🔒 auth | routes/messages.ts:577 |
+| `DELETE` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:588 |
+| `PUT` | `/api/messages/presence` | 🔒 auth | routes/messages.ts:601 |
+| `GET` | `/api/messages/presence/:userId` | 🔒 auth | routes/messages.ts:618 |
+| `PUT` | `/api/messages/presence/settings` | 🔒 auth | routes/messages.ts:644 |
+| `POST` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:680 |
+| `DELETE` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:681 |
+| `GET` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:686 |
+| `POST` | `/api/messages/messages/:id/forward` | 🔒 auth | routes/messages.ts:719 |
+| `POST` | `/api/messages/inquiry` | 🔒 auth | routes/messages.ts:723 |
+| `PUT` | `/api/messages/:id` | 🔒 auth | routes/messages.ts:762 |
+| `DELETE` | `/api/messages/:id` | 🔒 auth | routes/messages.ts:763 |
+| `DELETE` | `/api/messages/:id/for-me` | 🔒 auth | routes/messages.ts:764 |
+| `POST` | `/api/messages/:id/forward` | 🔒 auth | routes/messages.ts:765 |
 
 ## moderation — moderation
 
@@ -519,8 +531,8 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `PUT` | `/api/social/block/:userId` | 🔒 auth | routes/social.ts:81 |
 | `DELETE` | `/api/social/block/:userId` | 🔒 auth | routes/social.ts:106 |
 | `GET` | `/api/social/people` | 🔒 auth | routes/social.ts:116 |
-| `GET` | `/api/social/privacy` | 🔒 auth | routes/social.ts:145 |
-| `PUT` | `/api/social/privacy` | 🔒 auth | routes/social.ts:153 |
+| `GET` | `/api/social/privacy` | 🔒 auth | routes/social.ts:146 |
+| `PUT` | `/api/social/privacy` | 🔒 auth | routes/social.ts:154 |
 
 ## stories — stories
 
