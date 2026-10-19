@@ -60,16 +60,27 @@ async function sendViaSMTP(to: string, subject: string, html: string): Promise<v
 
 // ── Dispatcher ────────────────────────────────────────────────────────────────
 
+const smtpSettings = () => [process.env.SMTP_HOST, process.env.SMTP_USER, process.env.SMTP_PASS];
+
+/**
+ * One rule for every email (codes, resets, orders, digests): Resend only when
+ * its key is set, falling back to SMTP if Resend fails; otherwise SMTP.
+ */
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   if (process.env.RESEND_API_KEY) {
-    return sendViaResend(to, subject, html);
+    try {
+      return await sendViaResend(to, subject, html);
+    } catch (resendErr) {
+      if (!smtpSettings().every(Boolean)) throw resendErr;
+      logger.warn({ err: (resendErr as Error).message, to }, 'Resend failed — falling back to SMTP');
+      return sendViaSMTP(to, subject, html);
+    }
   }
 
-  const smtpSettings = [process.env.SMTP_HOST, process.env.SMTP_USER, process.env.SMTP_PASS];
-  if (smtpSettings.every(Boolean)) {
+  if (smtpSettings().every(Boolean)) {
     return sendViaSMTP(to, subject, html);
   }
-  if (smtpSettings.some(Boolean)) {
+  if (smtpSettings().some(Boolean)) {
     throw new Error('SMTP is partially configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS.');
   }
 
@@ -157,16 +168,11 @@ export async function sendOrderConfirmation(to: string, order: OrderLike): Promi
 }
 
 /**
- * sendCustomEmail - generic transactional send (Resend first, SMTP fallback).
+ * sendCustomEmail - generic transactional send (same provider rule as every email).
  * Used by operational features (e.g. weekly Showroom Doctor digests).
  */
 export async function sendCustomEmail(to: string, subject: string, html: string): Promise<void> {
-  try {
-    await sendViaResend(to, subject, html);
-  } catch (resendErr) {
-    logger.warn({ err: (resendErr as Error).message, to }, 'Resend failed — falling back to SMTP');
-    await sendViaSMTP(to, subject, html);
-  }
+  await sendEmail(to, subject, html);
 }
 
 module.exports = { sendOtpEmail, sendPasswordResetEmail, sendOrderConfirmation, sendCustomEmail };
