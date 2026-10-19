@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-19 | Feature | feat(onboarding): add responsive page guided tours (#142) | [b1334ffd4](2026-10-19-b1334ffd4-add-responsive-page-guided-tours-142.md) |
 | 2026-10-19 | Maintenance | Merge pull request #141 from sentflix01/codex/ai-tour-guide | [2c9cbe148](2026-10-19-2c9cbe148-merge-pull-request-141-from-sentflix01-codex-ai-.md) |
 | 2026-10-19 | Feature | feat(ai): add conversational in-app tour | [fa3399e97](2026-10-19-fa3399e97-add-conversational-in-app-tour.md) |
 | 2026-10-18 | Maintenance | Merge pull request #137 from sentflix01/claude/scan-products | [9835747d2](2026-10-18-9835747d2-merge-pull-request-137-from-sentflix01-claude-sc.md) |
