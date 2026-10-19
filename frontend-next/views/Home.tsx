@@ -247,7 +247,7 @@ function Home() {
         </div>
       )}
       {/* Mini Website Banner — brand blue-to-purple gradient */}
-      <section className="relative overflow-hidden rounded-2xl text-white shadow-lg shadow-blue-600/25 min-h-[132px]" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }}>
+      <section data-page-guide="feed-banner" className="relative overflow-hidden rounded-2xl text-white shadow-lg shadow-blue-600/25 min-h-[132px]" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.18),transparent_28%),radial-gradient(circle_at_15%_90%,rgba(124,58,237,0.22),transparent_26%)]" />
         <div className="relative z-10 flex min-h-[132px] items-center justify-between gap-4 px-5 py-5 sm:px-6">
           <div className="max-w-[250px]">
@@ -318,7 +318,7 @@ function Home() {
       </section>
 
       {/* Company-owned announcements. This is intentionally separate from user profile/post tickers. */}
-      <CompanyAnnouncementTicker />
+      <div data-page-guide="feed-content"><CompanyAnnouncementTicker /></div>
 
       {/* Filter Bar — feed filter chips */}
       {feedMode === "personal" && (

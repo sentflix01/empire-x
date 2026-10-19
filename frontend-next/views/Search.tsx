@@ -165,7 +165,7 @@ function Search() {
   return (
       <div className="max-w-2xl mx-auto">
         <h1 className="font-display text-2xl font-bold mb-4">{t('search.title')}</h1>
-        <div className="relative mb-3">
+        <div data-page-guide="search-input" className="relative mb-3">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input value={query} onChange={e => setQuery(e.target.value)}
             placeholder={t('search.placeholder')} className="pl-9 pr-24 rounded-full h-11" autoFocus />
@@ -258,7 +258,7 @@ function Search() {
         )}
 
         {/* ── Category tabs ── */}
-        <div className="flex gap-1 overflow-x-auto pb-2 mb-4 no-scrollbar">
+        <div data-page-guide="search-tabs" className="flex gap-1 overflow-x-auto pb-2 mb-4 no-scrollbar">
           {TABS.map(tabItem => {
             const Icon = tabItem.Icon;
             const count = tabItem.key === "all" ? totalResults : (results[tabItem.key]?.length || 0);

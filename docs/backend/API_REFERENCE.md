@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **322** across **50** mounted modules · Generated: 2026-10-19
+> Endpoints: **323** across **50** mounted modules · Generated: 2026-10-19
 
 | Legend | Meaning |
 |---|---|
@@ -30,7 +30,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`directOrders`](#directorders) (12)
 - [`docs`](#docs) (1)
 - [`externalSources`](#externalsources) (9)
-- [`flags`](#flags) (3)
+- [`flags`](#flags) (4)
 - [`friends`](#friends) (1)
 - [`hashtags`](#hashtags) (3)
 - [`internalJobs`](#internaljobs) (1)
@@ -252,9 +252,10 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/flags/` | 🔒 auth | routes/flags.ts:8 |
-| `GET` | `/api/flags/:name` | 🔒 auth | routes/flags.ts:22 |
-| `PUT` | `/api/flags/:name` | 👑 admin | routes/flags.ts:29 |
+| `GET` | `/api/flags/page-guided-tours` | ⚪ optional | routes/flags.ts:10 |
+| `GET` | `/api/flags/` | 🔒 auth | routes/flags.ts:16 |
+| `GET` | `/api/flags/:name` | 🔒 auth | routes/flags.ts:30 |
+| `PUT` | `/api/flags/:name` | 👑 admin | routes/flags.ts:37 |
 
 ## friends — friends
 
