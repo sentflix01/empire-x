@@ -130,7 +130,11 @@ Response: `{ "success": true, "message": "..." }`
 Raw body required — registered BEFORE `express.json()` in `index.ts`.
 Verifies `stripe-signature` header using `STRIPE_SUBSCRIPTION_WEBHOOK_SECRET`.
 
-Handles: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
+Handles: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`. Subscribe the Stripe webhook endpoint to all five; without `invoice.paid` renewals rely on `customer.subscription.updated` alone.
+
+- **Idempotency:** each event id is claimed with `INSERT INTO webhook_events (id, type, processed_at) … ON CONFLICT (id) DO NOTHING RETURNING id` (same ledger and pattern as the order webhook). Duplicates get `{ received: true, duplicate: true }`; if handling fails the claim is deleted and a 500 is returned so Stripe redelivers.
+- **Billing period:** newer Stripe API versions (2025-03-31 on; `stripe@23` pins `2026-09-30`) report `current_period_start/end` on subscription items, not on the subscription. `lib/stripeSubscriptionPeriod.ts` reads either shape, and invoice periods from the invoice's subscription line; a missing period is stored as "unchanged", never as an invalid date.
+- **Renewals:** `invoice.paid` sets `status = 'active'` and moves `current_period_end` to the paid line's period end. `customer.subscription.updated` and `invoice.paid` only ever move `current_period_end` forward (`GREATEST`), so a late, out-of-order event cannot pull it back. This matters because the subscription lifecycle job hides, blocks and finally deletes businesses whose `current_period_end` has lapsed.
 
 ### Prepaid ETB through Chapa (Phase 1)
 
