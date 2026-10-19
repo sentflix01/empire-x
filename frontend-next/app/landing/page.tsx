@@ -60,7 +60,7 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
       {/* ── Top navigation bar ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/8 sm:px-6">
+      <nav data-page-guide="landing-nav" aria-label="Account and display options" className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/8 sm:px-6">
         <div className="flex items-center gap-2">
           <Image src="/brand/nodbusiness-logo-white.svg" alt="Nodbusiness" width={180} height={27} className="h-6 w-auto sm:h-7" priority />
         </div>
@@ -115,7 +115,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-10 pt-16 text-center">
+        <div data-page-guide="landing-actions" className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-10 pt-16 text-center">
           <Image
             src="/brand/nodbusiness-logo-white.svg"
             alt="Nodbusiness"

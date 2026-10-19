@@ -381,7 +381,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* ── Header ── */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+      <header data-page-guide="app-header" className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="w-full px-4 h-14 flex items-center gap-3">
           {/* Sidebar toggle button — desktop only */}
           <button
@@ -526,7 +526,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       <div className="flex flex-1 w-full">
 
         {/* ── Left Sidebar (desktop only) ── */}
-        <nav className={`hidden md:flex fixed left-0 top-14 bottom-0 bg-card border-r border-border flex-col z-40 transition-all duration-200
+        <nav data-page-guide="desktop-navigation" aria-label="Main navigation" className={`hidden md:flex fixed left-0 top-14 bottom-0 bg-card border-r border-border flex-col z-40 transition-all duration-200
           ${sidebarCollapsed ? "w-14" : "w-56"}`}>
 
           {/* ── Profile header — matches mobile drawer ── */}
@@ -826,7 +826,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         </nav>
 
         {/* ── Main content ── */}
-        <main className={`flex-1 min-w-0 transition-all duration-200
+        <main data-page-guide="main-content" className={`flex-1 min-w-0 transition-all duration-200
           ${sidebarCollapsed ? "md:ml-14" : "md:ml-56"}
           xl:mr-72
           ${isImmersiveRoute
@@ -1088,7 +1088,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
           {/* Home sub-tabs tray — REMOVED as per user request */}
 
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50"
+          <nav data-page-guide="mobile-navigation" aria-label="Mobile navigation" className="md:hidden fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="flex items-center h-16 px-1">
               {/* More — LEFT */}

@@ -156,7 +156,7 @@ function Marketplace() {
           </div>
         )}
 
-        <div className="flex items-start justify-between mb-6 gap-3">
+      <div data-page-guide="marketplace-heading" className="flex items-start justify-between mb-6 gap-3">
           <div className="min-w-0">
             <h1 className="font-display text-2xl font-bold">{t('marketplace.title')}</h1>
             <p className="text-sm text-muted-foreground">{t('marketplace.subtitle')}</p>
@@ -169,14 +169,14 @@ function Marketplace() {
         </div>
 
         {/* Search */}
-        <div className="relative mb-4">
+        <div data-page-guide="marketplace-search" className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input value={search} onChange={e => setSearch(e.target.value)}
             placeholder={t('marketplace.search')} className="pl-9 rounded-full bg-card border-border/50" />
         </div>
 
         {/* Categories */}
-        <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
+        <div data-page-guide="marketplace-categories" className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
           {CATEGORIES.map(c => (
             <button
               key={c}
@@ -194,7 +194,7 @@ function Marketplace() {
 
         {/* Products Grid */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div data-page-guide="marketplace-products" className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {Array.from({ length: 6 }).map((_, i) => <ProductSkeleton key={i} />)}
           </div>
         ) : filtered.length === 0 ? (

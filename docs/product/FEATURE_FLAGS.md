@@ -53,6 +53,9 @@ Changing an `FF_*` env var in Render triggers a redeploy — it is *not* the fas
 |------|---------|-------------|
 | `ai_description_gen` | ✅ on (100%) | AI product description generator |
 | `ai_chat` | ✅ on (100%) | AI chat assistant |
+| `page_guided_tours` | ❌ off | Responsive in-page walkthroughs for platform controls |
+
+The public page guide checks only `GET /api/flags/page-guided-tours`; its completion state is stored in the user's browser. See [Page Guided Tours](PAGE_GUIDED_TOURS.md) for behavior and rollout details.
 
 ### Commerce & logistics
 | Flag | Default | Description |

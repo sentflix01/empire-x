@@ -1,9 +1,17 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import { requireAuth, requireAdmin } from '../middleware/auth';
+import { requireAuth, requireAdmin, optionalAuth } from '../middleware/auth';
 import { isEnabled, getAllFlags, setFlag } from '../lib/featureFlags';
 
 const router = Router();
+
+// A single non-sensitive availability check lets public pages decide whether
+// to render the optional onboarding guide without exposing the flag registry.
+router.get('/page-guided-tours', optionalAuth, async (req: Request, res: Response) => {
+  try {
+    res.json({ name: 'page_guided_tours', enabled_for_user: await isEnabled('page_guided_tours', req.user?.id ?? null) });
+  } catch { res.status(500).json({ error: 'Failed to fetch flag' }); }
+});
 
 router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {

@@ -16,6 +16,7 @@ import { CartProvider } from '@/lib/CartContext';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import AiAssistant from '@/components/AiAssistant';
+import PageGuide from '@/components/PageGuide';
 import GlobalErrorReporter from '@/components/GlobalErrorReporter';
 import { initSentry } from '@/lib/sentry';
 // Initialize i18n — must be imported here so it runs before any component renders
@@ -40,6 +41,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               <GlobalErrorReporter />
               {children}
               <AiAssistant />
+              <PageGuide />
               <Toaster />
               {/* Views call toast() from 'sonner'; without this container none of those messages appear. */}
               <SonnerToaster richColors closeButton />
