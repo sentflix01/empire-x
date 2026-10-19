@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-19 | Maintenance | Merge pull request #141 from sentflix01/codex/ai-tour-guide | [2c9cbe148](2026-10-19-2c9cbe148-merge-pull-request-141-from-sentflix01-codex-ai-.md) |
+| 2026-10-19 | Feature | feat(ai): add conversational in-app tour | [fa3399e97](2026-10-19-fa3399e97-add-conversational-in-app-tour.md) |
 | 2026-10-18 | Maintenance | Merge pull request #137 from sentflix01/claude/scan-products | [9835747d2](2026-10-18-9835747d2-merge-pull-request-137-from-sentflix01-claude-sc.md) |
 | 2026-10-18 | Feature | feat(products): scan a barcode or QR code to add products, and quick scan mode | [5692c6e8b](2026-10-18-5692c6e8b-scan-a-barcode-or-qr-code-to-add-products-and-qu.md) |
 | 2026-10-18 | Bugfix | fix(products): don't cache an unreachable open database as "not found" | [a9d42e132](2026-10-18-a9d42e132-don-t-cache-an-unreachable-open-database-as-not-.md) |
