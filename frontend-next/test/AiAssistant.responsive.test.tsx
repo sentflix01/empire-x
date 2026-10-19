@@ -25,8 +25,9 @@ describe('AI assistant responsive launcher', () => {
     render(<AiAssistant />);
 
     const launcher = screen.getByRole('button', { name: 'ai.title' });
-    await waitFor(() => expect(launcher).toHaveStyle({ left: '311px', top: '603px' }));
-    expect(JSON.parse(localStorage.getItem('nodbusiness_ai_pos') || '{}')).toEqual({ x: 311, y: 603 });
+    // maxY = 667 - 56 (btn) - 0 (safe area) - 64 (mobile nav, viewport < 768px) - 8 (margin) = 539
+    await waitFor(() => expect(launcher).toHaveStyle({ left: '311px', top: '539px' }));
+    expect(JSON.parse(localStorage.getItem('nodbusiness_ai_pos') || '{}')).toEqual({ x: 311, y: 539 });
   });
 
   it('keeps the launcher above the device bottom safe area', async () => {
@@ -42,7 +43,8 @@ describe('AI assistant responsive launcher', () => {
     render(<AiAssistant />);
 
     const launcher = screen.getByRole('button', { name: 'ai.title' });
-    await waitFor(() => expect(launcher).toHaveStyle({ left: '300px', top: '579px' }));
+    // maxY = 667 - 56 (btn) - 24 (safe area) - 64 (mobile nav, viewport < 768px) - 8 (margin) = 515
+    await waitFor(() => expect(launcher).toHaveStyle({ left: '300px', top: '515px' }));
   });
 
   it('keeps the launcher and open panel within bounds after a viewport resize', async () => {
@@ -50,12 +52,14 @@ describe('AI assistant responsive launcher', () => {
     render(<AiAssistant />);
     const launcher = screen.getByRole('button', { name: 'ai.title' });
 
-    await waitFor(() => expect(launcher).toHaveStyle({ left: '300px', top: '603px' }));
+    // maxY at 375×667 = 667 - 56 - 64 (mobile nav) - 8 = 539
+    await waitFor(() => expect(launcher).toHaveStyle({ left: '300px', top: '539px' }));
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 320 });
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: 568 });
     fireEvent(window, new Event('resize'));
 
-    await waitFor(() => expect(launcher).toHaveStyle({ left: '256px', top: '504px' }));
+    // maxY at 320×568 = 568 - 56 - 64 (mobile nav) - 8 = 440
+    await waitFor(() => expect(launcher).toHaveStyle({ left: '256px', top: '440px' }));
     fireEvent.click(launcher);
     const panel = screen.getByTestId('ai-assistant-panel');
     expect(Number.parseFloat(panel.style.left)).toBeGreaterThanOrEqual(8);
