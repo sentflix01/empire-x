@@ -24,6 +24,7 @@ The server validates the page, viewport, and locale hints and treats them as unt
 
 ## Access and behavior
 
+- The floating assistant launcher is rendered with the shared root providers, remains present in server-rendered pages before client hydration, and uses the highest app-layer z-index to stay above app overlays. It keeps its animated 3D coin icon and supports pointer dragging across touch, mouse, and pen devices. Saved drag coordinates restore before the first client paint and clamp to the visible viewport with a safe-area margin after resize, browser viewport changes, or device rotation. The open panel is constrained to the available viewport.
 - The chat API requires authentication and the `ai_chat` feature flag. Guests can browse eligible public pages but must sign in to use server-backed AI guidance.
 - The client retains conversation history in local storage per guest/account and demo/real session. It sends at most the most recent 20 messages per request; the API validates message roles, lengths, and total request size. Provider adapters retain up to the latest 10 conversation messages for model context.
 - The online endpoint returns both `reply` (current frontend contract) and `text` (compatibility field).
