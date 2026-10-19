@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-20 | Bugfix | fix: AI assistant button always visible on all screen sizes | [ac2f5977c](2026-10-20-ac2f5977c-ai-assistant-button-always-visible-on-all-screen.md) |
+| 2026-10-20 | Bugfix | fix(ai-assistant): keep draggable launcher visible on compact screens | [79f7e007d](2026-10-20-79f7e007d-keep-draggable-launcher-visible-on-compact-scree.md) |
 | 2026-10-19 | Testing | test(e2e): guest reaches a published showroom from the business feed (#130) | [f1db91678](2026-10-19-f1db91678-guest-reaches-a-published-showroom-from-the-busi.md) |
 | 2026-10-19 | Bugfix | fix(subscriptions): never move the period end back on subscription.updated; webhook regression tests (#102) | [0255d8b5c](2026-10-19-0255d8b5c-never-move-the-period-end-back-on-subscription-u.md) |
 | 2026-10-19 | Bugfix | fix(email): one provider rule for every email; Resend failures fall back to SMTP (#136) | [7008889ad](2026-10-19-7008889ad-one-provider-rule-for-every-email-resend-failure.md) |
