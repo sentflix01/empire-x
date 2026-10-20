@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import NextImage from 'next/image';
@@ -70,10 +70,10 @@ function Explore() {
   );
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div data-page-guide="explore-header" className="max-w-2xl mx-auto space-y-6">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-6 h-6 text-amber-500" />
-          <h1 className="font-display text-2xl font-bold">{t('explore.title')}</h1>
+          <h1 data-page-guide="explore-trending" className="font-display text-2xl font-bold">{t('explore.title')}</h1>
         </div>
         {hashtags.length > 0 && (
           <Section title={t('explore.trendingHashtags')} icon={Hash}>

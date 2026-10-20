@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import NextImage from 'next/image';
@@ -73,10 +73,10 @@ function Bookmarks() {
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
           <Bookmark className="w-6 h-6 text-amber-500"/>
-          <h1 className="font-display text-2xl font-bold">{t('bookmarks.title')}</h1>
+          <h1 data-page-guide="bookmarks-header" className="font-display text-2xl font-bold">{t('bookmarks.title')}</h1>
         </div>
 
-        <div className="flex gap-1 overflow-x-auto pb-2 mb-4">
+        <div data-page-guide="bookmarks-tabs" className="flex gap-1 overflow-x-auto pb-2 mb-4">
           {TABS.map(t=>(
             <button key={t.key} onClick={()=>setTab(t.key)}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${tab===t.key?"bg-amber-500 text-white":"bg-card border border-border/50 text-muted-foreground hover:bg-secondary"}`}>

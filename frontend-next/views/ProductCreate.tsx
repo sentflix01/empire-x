@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/lib/AuthContext";
@@ -161,7 +161,7 @@ function ProductCreate() {
   }
 
   return (
-    <div className="max-w-lg mx-auto">
+    <div data-page-guide="product-create-title" className="max-w-lg mx-auto">
         <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>

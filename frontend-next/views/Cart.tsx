@@ -1,4 +1,4 @@
-
+﻿
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -22,7 +22,7 @@ function Cart() {
   const { items = [], total = 0 } = cart;
 
   return (
-      <div className="max-w-2xl mx-auto">
+      <div data-page-guide="cart-items" className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">

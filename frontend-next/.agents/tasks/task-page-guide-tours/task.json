@@ -1,0 +1,7 @@
+{
+  "task_id": "task-page-guide-tours",
+  "task_description": "Implement Nodbusiness in-app page guide tours: add data-page-guide attributes to all view files, then rewrite PageGuide.tsx with per-tour persistence, full buildSteps() for all 57 routes, complete English and Amharic copy, and wait-for-element retry logic.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002"],
+  "blocked_reason": null
+}

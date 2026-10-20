@@ -130,7 +130,7 @@ function Login() {
       footer={
         <>
           Don&apos;t have an account?{' '}
-      <Link href="/register" className="font-medium text-primary hover:underline">Create account</Link>
+      <Link href="/register" data-page-guide="login-register-link" className="font-medium text-primary hover:underline">Create account</Link>
         </>
       }
     >
@@ -147,7 +147,7 @@ function Login() {
             Google sign-in is not configured for this environment. Use email and password.
           </div>
         )}
-        <div ref={googleRef} className="flex min-h-10 w-full justify-center" aria-label="Sign in with Google" />
+        <div ref={googleRef} data-page-guide="login-google" className="flex min-h-10 w-full justify-center" aria-label="Sign in with Google" />
       </div>
 
       {/* Divider */}
@@ -173,7 +173,7 @@ function Login() {
 
       {/* Email/password form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1.5">
+        <div data-page-guide="login-email" className="space-y-1.5">
           <Label htmlFor="email" className="text-sm font-medium">Email</Label>
           <Input
             id="email"
@@ -188,10 +188,10 @@ function Login() {
           />
         </div>
 
-        <div className="space-y-1.5">
+        <div data-page-guide="login-password" className="space-y-1.5">
           <div className="flex items-center justify-between">
             <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-            <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+            <Link href="/forgot-password" data-page-guide="login-forgot" className="text-xs text-primary hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -218,7 +218,7 @@ function Login() {
           </div>
         </div>
 
-        <Button type="submit" className="w-full h-10 font-medium" disabled={loading}>
+        <Button data-page-guide="login-submit" type="submit" className="w-full h-10 font-medium" disabled={loading}>
           {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{error.includes('waking') ? 'Waking server…' : 'Signing in…'}</> : 'Sign in'}
         </Button>
       </form>

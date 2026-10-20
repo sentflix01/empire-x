@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect } from "react";
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -143,7 +143,7 @@ function Profile() {
   const hasBusinessView = businesses.length > 0 || profile?.has_business_profile;
 
   if (loading) return (
-    <div className="max-w-2xl mx-auto space-y-3">
+    <div data-page-guide="profile-header" className="max-w-2xl mx-auto space-y-3">
       {/* Cover skeleton */}
       <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
         <Skeleton className="h-28 w-full" />
@@ -208,7 +208,7 @@ function Profile() {
           <PhotoViewer photos={[viewerPhoto]} author={view === "business" ? profile.business_name : profile.display_name} onClose={() => setViewerPhoto(null)} />
         )}
         {/* Profile Header Card */}
-        <div className="bg-card rounded-2xl border border-border/50 overflow-hidden mb-4">
+        <div data-page-guide="profile-header" className="bg-card rounded-2xl border border-border/50 overflow-hidden mb-4">
           {/* Cover — personal: primary/accent (blue→purple) · business: gold scheme */}
           <div className={`h-28 relative transition-all duration-300 ${view === "business" ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" : "bg-nodbusiness-gradient"}`}>
             {view === "business" && (
@@ -228,7 +228,7 @@ function Profile() {
             {/* Row 1: Avatar (left) + Toggle + Edit/Logout buttons (right) */}
             <div className="flex items-end justify-between -mt-12">
               <div className="relative">
-                <div className="relative w-24 h-24 rounded-2xl bg-card p-0.5 shadow-lg">
+                <div data-page-guide="profile-avatar" className="relative w-24 h-24 rounded-2xl bg-card p-0.5 shadow-lg">
                   {(view === "personal" ? profile.avatar_url : profile.business_logo_url) && (
                     <button type="button" aria-label={view === "personal" ? 'Open profile photo full screen' : 'Open logo full screen'}
                       className="absolute inset-0 z-10 cursor-zoom-in rounded-2xl"
@@ -256,7 +256,7 @@ function Profile() {
               {/* Personal / Business toggle — between avatar and edit buttons */}
               <div className="flex items-center gap-2 mb-2">
                 {hasBusinessView && (
-                  <div className="flex items-center bg-secondary/60 rounded-full p-0.5 ring-1 ring-border/40 gap-0">
+                  <div data-page-guide="profile-view-toggle" className="flex items-center bg-secondary/60 rounded-full p-0.5 ring-1 ring-border/40 gap-0">
                     <button
                       onClick={() => view !== 'personal' && handleFlip()}
                       aria-pressed={view === 'personal'}
@@ -278,7 +278,7 @@ function Profile() {
 
                 {isOwner && (
                   <div className="flex gap-2 items-center">
-                    <Link href="/profile/edit">
+                    <Link data-page-guide="profile-edit-btn" href="/profile/edit">
                       <Button variant="outline" size="sm" className="rounded-full h-8"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button>
                     </Link>
                     <Button variant="ghost" size="sm" className="rounded-full h-8 text-muted-foreground" onClick={() => auth.logout("/")}>
@@ -305,7 +305,7 @@ function Profile() {
                       <div className="flex items-center gap-2">
                         <h1 className="font-display text-xl font-bold">{profile.display_name}</h1>
                         {profile.is_verified && (
-                          <VerifiedBadge type={profile.verification_type} size="lg" />
+                          <span data-page-guide="profile-verified"><VerifiedBadge type={profile.verification_type} size="lg" /></span>
                         )}
                         {profile.is_seed && <DemoBadge />}
                       </div>
@@ -365,7 +365,7 @@ function Profile() {
                         </div>
                       )}
                       {isOwner && businesses.length === 0 && (
-                        <Link href="/business/create" className="inline-flex items-center gap-1 text-xs text-amber-600 hover:underline mt-3">
+                        <Link data-page-guide="profile-create-showroom" href="/business/create" className="inline-flex items-center gap-1 text-xs text-amber-600 hover:underline mt-3">
                           <Plus className="w-3 h-3" /> Create a business
                         </Link>
                       )}

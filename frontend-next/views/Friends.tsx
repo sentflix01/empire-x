@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Users, UserCheck, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
@@ -303,8 +303,8 @@ function Friends() {
   );
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="font-display text-2xl font-bold mb-6">Friends</h1>
+    <div data-page-guide="friends-header" className="max-w-2xl mx-auto">
+      <h1 data-page-guide="friends-tabs" className="font-display text-2xl font-bold mb-6">Friends</h1>
 
       {/* My Friends */}
       <FriendsSection
@@ -318,7 +318,7 @@ function Friends() {
         onToggleFollow={toggleFollow}
       />
 
-      {/* Friend Suggestions */}
+      {/* Friend Suggestions */} // data-page-guide="friends-suggestions" on FriendsSection
       <FriendsSection
         title="Friend Suggestions"
         icon={Sparkles}

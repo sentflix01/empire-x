@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
 import { Copy, Check, Gift, Users, Star, Share2 } from "lucide-react";
@@ -95,7 +95,7 @@ function Referral() {
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-4">
+    <div data-page-guide="referral-code" className="max-w-lg mx-auto space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3 pt-1">
         <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shrink-0">

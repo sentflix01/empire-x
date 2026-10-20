@@ -1,4 +1,4 @@
-
+﻿
 'use client';
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
@@ -90,7 +90,7 @@ function Wallet() {
   );
 
   return (
-    <div className="max-w-lg mx-auto">
+    <div data-page-guide="wallet-balance" className="max-w-lg mx-auto">
         {/* Payment return banner */}
         {returnBanner === 'success' && (
           <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800">
@@ -126,12 +126,12 @@ function Wallet() {
           <WalletIcon className="w-6 h-6 text-amber-500"/>
           <h1 className="font-display text-2xl font-bold">{t('wallet.title')}</h1>
         </div>
-        <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 text-white mb-6">
+        <div data-page-guide="wallet-balance" className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 text-white mb-6">
           <p className="text-sm text-white/70 mb-1">{t('wallet.availableBalance')}</p>
           <p className="text-4xl font-bold">{wallet?.balance?.toLocaleString() || "0"}</p>
-          <p className="text-sm text-white/70 mt-1">{wallet?.currency || "USD"}</p>
+          <p data-page-guide="wallet-currency" className="text-sm text-white/70 mt-1">{wallet?.currency || "USD"}</p>
         </div>
-        <div className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-5">
+        <div data-page-guide="wallet-filter" className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-5">
           {["overview","withdraw"].map(t2=>(
             <button key={t2} onClick={()=>setTab(t2)}
               className={`flex-1 py-2 rounded-lg text-xs font-medium capitalize transition-all ${tab===t2?"bg-amber-500 text-white":"text-muted-foreground hover:bg-secondary"}`}>
@@ -140,7 +140,7 @@ function Wallet() {
           ))}
         </div>
         {tab === "overview" && (
-          <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+          <div data-page-guide="wallet-transactions" className="bg-card rounded-2xl border border-border/50 overflow-hidden">
             {!wallet?.transactions?.length ? (
               <div className="text-center py-12 text-muted-foreground text-sm">{t('wallet.noTransactions')}</div>
             ) : wallet.transactions.map(tx => {
@@ -166,14 +166,14 @@ function Wallet() {
 
         {/* NodBusiness never holds funds (docs/decisions/platform-model-decisions.md §1):
             the wallet no longer accepts money. Existing balances can still be withdrawn. */}
-        <p className="text-xs text-muted-foreground px-1">The wallet no longer accepts top-ups. NodBusiness never holds your money; buyers pay sellers directly. You can withdraw any existing balance.</p>
+        <p data-page-guide="wallet-topup" className="text-xs text-muted-foreground px-1">The wallet no longer accepts top-ups. NodBusiness never holds your money; buyers pay sellers directly. You can withdraw any existing balance.</p>
         {tab === "withdraw" && (
           <div className="bg-card rounded-2xl border border-border/50 p-5 space-y-4">
             <p className="text-sm text-muted-foreground">{t('wallet.withdrawDesc')}</p>
             <div><Label>{t('wallet.amount')}</Label><Input type="number" value={withdrawAmount} onChange={e=>setWithdrawAmount(e.target.value)} placeholder={t('wallet.amountPlaceholder')} className="mt-1"/></div>
             <div><Label>{t('wallet.bankName')}</Label><Input value={bankName} onChange={e=>setBankName(e.target.value)} placeholder={t('wallet.bankPlaceholder')} className="mt-1"/></div>
             <div><Label>{t('wallet.accountNumber')}</Label><Input value={accountNum} onChange={e=>setAccountNum(e.target.value)} placeholder={t('wallet.accountPlaceholder')} className="mt-1"/></div>
-            <Button onClick={handleWithdraw} disabled={processing||!withdrawAmount||!bankName||!accountNum} className="w-full rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
+            <Button data-page-guide="wallet-payout" onClick={handleWithdraw} disabled={processing||!withdrawAmount||!bankName||!accountNum} className="w-full rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
               {processing ? t('wallet.submitting') : t('wallet.withdrawBtn')}
             </Button>
           </div>

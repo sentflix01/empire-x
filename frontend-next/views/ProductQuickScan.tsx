@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 /**
  * Quick scan mode, like a till: the camera stays open, every scan adds a row
  * (+1 when scanned again). Products you already sell get stock added; new
@@ -103,7 +103,7 @@ function ProductQuickScan() {
   };
 
   return (
-    <div className="mx-auto max-w-lg space-y-4 pb-40 md:pb-24">
+    <div data-page-guide="scan-viewfinder" className="mx-auto max-w-lg space-y-4 pb-40 md:pb-24">
       <Link href="/products/create" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
       </Link>

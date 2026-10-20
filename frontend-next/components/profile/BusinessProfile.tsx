@@ -103,7 +103,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
   if (loading) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
 
   return (
-    <div className="space-y-0">
+    <div data-page-guide="profile-business-tab" className="space-y-0">
       {/* Owner only: why the business isn't visible yet, and the one action that fixes it. */}
       {isOwner && business?.id && (
         <WebsiteStatusBanner businessId={String(business.id)} ownerId={String(profile.user_id)} businessCategory={biz.business_category} />

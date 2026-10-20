@@ -17,7 +17,7 @@ export function LandingPreferences() {
   const nextTheme = isDark ? 'light' : 'dark';
 
   return (
-    <div className="flex items-center gap-1.5" aria-label={String(t('landing.preferences'))}>
+    <div data-page-guide="landing-preferences" className="flex items-center gap-1.5" aria-label={String(t('landing.preferences'))}>
       <button
         type="button"
         onClick={() => setTheme(nextTheme)}

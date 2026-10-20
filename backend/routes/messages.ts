@@ -27,6 +27,7 @@ import logger from '../lib/logger';
 import { getRedis } from '../lib/redis';
 import * as apiError from '../lib/apiError';
 import type { Redis as RedisClient } from 'ioredis';
+import { classify, decide } from '../lib/clef';
 
 const router = Router();
 const memPresence = new Map<string, { status: string; last_seen: string }>();
@@ -44,6 +45,11 @@ const startLimiter = perUser(20, 'You’re starting chats too quickly. Wait a mo
 const isAdmin = (req: Request) => req.user!.role === 'admin';
 const refuse = (res: Response, message: string) => res.status(403).json({ error: 'messages_not_allowed', code: 'MESSAGES_NOT_ALLOWED', message });
 const fail = (res: Response, err: unknown, what: string) => {
+  // Clef blocked the content — surface a clear 400 to the sender
+  if ((err as Error & { clefBlocked?: boolean }).clefBlocked) {
+    res.status(400).json({ error: 'content_blocked', message: 'Your message could not be sent. Please review our content guidelines.' });
+    return;
+  }
   logger.error({ err: (err as Error).message }, `${what} failed`);
   apiError.serverError(res, `Could not ${what}. Please try again.`);
 };
@@ -60,6 +66,41 @@ async function loadForMember(req: Request, res: Response, id: string): Promise<{
 
 /** Save a message, update the chat list, tell the room, notify the other members. */
 async function deliver(conv: ConversationRow, ids: string[], senderId: string, fields: { content: string; type: string; reply_to_id?: string | null }) {
+  // ── Clef-Flash content classification (text messages only, fail-open) ──────
+  // Runs before the DB write. null result = Clef unavailable → proceed normally.
+  if (fields.type === 'text' && fields.content) {
+    try {
+      const clefResult = await classify(fields.content);
+      const decision   = decide(clefResult);
+      if (decision === 'block') {
+        logger.warn(
+          { senderId, convId: conv.id, spam: clefResult?.spam, policy: clefResult?.policy },
+          'Clef blocked message — spam or policy violation',
+        );
+        // Throw so the calling route handler can surface a 400 to the sender.
+        const err = new Error('Message blocked by content policy') as Error & { clefBlocked: true };
+        err.clefBlocked = true;
+        throw err;
+      }
+      if (decision === 'flag') {
+        // Flag for admin review in the background; message still delivers.
+        pool.query(
+          `INSERT INTO reports (reporter_id, target_type, reason, details)
+           VALUES ($1, 'message', 'auto_flagged', $2)
+           ON CONFLICT DO NOTHING`,
+          [
+            senderId,
+            JSON.stringify({ convId: conv.id, spam: clefResult?.spam, policy: clefResult?.policy, confidence: clefResult?.policyConfidence }),
+          ],
+        ).catch((e: unknown) => logger.warn({ err: (e as Error).message }, 'Clef flag: failed to insert message report'));
+      }
+    } catch (clefErr) {
+      // Re-throw intentional blocks; swallow unexpected classifier errors (fail-open).
+      if ((clefErr as Error & { clefBlocked?: boolean }).clefBlocked) throw clefErr;
+      logger.warn({ err: (clefErr as Error).message }, 'Clef message classification error — proceeding');
+    }
+  }
+
   const names = await displayNames([senderId]);
   const senderName = names.get(senderId) ?? null;
   const { rows: [message] } = await pool.query(

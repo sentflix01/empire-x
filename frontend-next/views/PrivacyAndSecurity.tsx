@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
@@ -206,7 +206,7 @@ function PrivacyAndSecurityView() {
   };
 
   return (
-    <div className="max-w-lg mx-auto space-y-5 pb-10">
+    <div data-page-guide="privacy-header" className="max-w-lg mx-auto space-y-5 pb-10">
 
       {/* ── Hero header ── */}
       <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 p-5 text-white">

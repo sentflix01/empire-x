@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -220,7 +220,7 @@ function Messages() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-2xl mx-auto flex flex-col h-full -mx-4 md:mx-auto"
+    <div data-page-guide="messages-header" className="max-w-2xl mx-auto flex flex-col h-full -mx-4 md:mx-auto"
       style={{ backgroundColor: 'hsl(var(--background))' }}>
 
       {/* ── Sticky header ── */}
@@ -228,15 +228,15 @@ function Messages() {
         style={{ backgroundColor: 'hsl(var(--background))' }}>
 
         {/* Title row */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        <div data-page-guide="messages-header" className="flex items-center justify-between px-4 pt-4 pb-2">
           <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--foreground))' }}>
             Messages
           </h1>
-          <NewChatMenu user={user} contacts={contacts} onCreated={() => loadConversations()} />
+          <NewChatMenu data-page-guide="messages-new" user={user} contacts={contacts} onCreated={() => loadConversations()} />
         </div>
 
         {/* Search bar */}
-        <div className="px-4 pb-2">
+        <div data-page-guide="messages-search" className="px-4 pb-2">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
               style={{ color: 'hsl(var(--muted-foreground))' }} />
@@ -281,9 +281,8 @@ function Messages() {
       </div>
 
       {/* ── List ── */}
-      <div className="flex-1 overflow-y-auto">
+      <div data-page-guide="messages-list" className="flex-1 overflow-y-auto">
         {loading && conversations.length === 0 ? (
-          /* Skeleton */
           <div className="px-4 py-2 space-y-1">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="flex items-center gap-3 py-3">

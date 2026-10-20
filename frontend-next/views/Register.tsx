@@ -148,7 +148,7 @@ function Register() {
         {error && (
           <div className="mb-4 rounded-lg bg-destructive/10 px-3 py-2.5 text-sm text-destructive">{error}</div>
         )}
-        <div className="flex flex-col items-center gap-4 mb-6">
+        <div data-page-guide="register-otp" className="flex flex-col items-center gap-4 mb-6">
           <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoComplete="one-time-code">
             <InputOTPGroup>
               {[0,1,2,3,4,5].map(i => <InputOTPSlot key={i} index={i} />)}
@@ -165,6 +165,7 @@ function Register() {
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Didn&apos;t receive it?{' '}
           <button
+            data-page-guide="register-resend"
             onClick={handleResend}
             disabled={resendCooldown > 0}
             className={`font-medium hover:underline ${resendCooldown > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-primary'}`}
@@ -206,7 +207,7 @@ function Register() {
             Google Sign-Up unavailable
           </div>
         )}
-        <div ref={googleRef} className="flex min-h-10 w-full justify-center" aria-label="Sign up with Google" />
+        <div ref={googleRef} data-page-guide="register-google" className="flex min-h-10 w-full justify-center" aria-label="Sign up with Google" />
       </div>
 
       {/* Divider */}
@@ -225,8 +226,8 @@ function Register() {
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1.5">
+      <form data-page-guide="register-page" onSubmit={handleSubmit} className="space-y-4">
+        <div data-page-guide="register-email" className="space-y-1.5">
           <Label htmlFor="email" className="text-sm font-medium">Email</Label>
           <Input
             id="email"
@@ -241,7 +242,7 @@ function Register() {
           />
         </div>
 
-        <div className="space-y-1.5">
+        <div data-page-guide="register-password" className="space-y-1.5">
           <Label htmlFor="password" className="text-sm font-medium">Password</Label>
           <div className="relative">
             <Input
@@ -267,7 +268,7 @@ function Register() {
           </div>
         </div>
 
-        <div className="space-y-1.5">
+        <div data-page-guide="register-confirm" className="space-y-1.5">
           <Label htmlFor="confirm" className="text-sm font-medium">Confirm password</Label>
           <Input
             id="confirm"
@@ -284,7 +285,7 @@ function Register() {
         </div>
 
         {/* Terms checkbox */}
-        <label className="flex items-start gap-3 cursor-pointer select-none">
+        <label data-page-guide="register-terms" className="flex items-start gap-3 cursor-pointer select-none">
           <div className="relative mt-0.5 flex-shrink-0">
             <input
               type="checkbox"
@@ -315,6 +316,7 @@ function Register() {
         </label>
 
         <Button
+          data-page-guide="register-submit"
           type="submit"
           className="w-full h-10 font-medium"
           disabled={loading || !agreed || !email || !password || !confirmPassword}

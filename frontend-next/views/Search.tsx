@@ -278,7 +278,7 @@ function Search() {
         </div>
 
         {query.length < 2 && (
-          <div className="text-center py-16">
+          <div data-page-guide="search-empty" className="text-center py-16">
             <SearchIcon className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
             <p className="text-muted-foreground text-sm">{t('search.typeToSearch')}</p>
           </div>
@@ -297,7 +297,7 @@ function Search() {
         {/* ── Results sections ── */}
 
         {results.users?.length > 0 && (tab === "all" || tab === "users") && (
-          <CollapsibleSection title={t('search.people')} icon={Users} count={results.users.length} sectionKey="users" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
+          <CollapsibleSection data-page-guide="search-results" title={t('search.people')} icon={Users} count={results.users.length} sectionKey="users" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
             {results.users.map(u => (
               <Link key={u.id} href={`/profile/${u.user_id}`}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect } from "react";
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -23,7 +23,7 @@ function HashtagFeed() {
   }, [name]);
 
   return (
-      <div className="max-w-2xl mx-auto">
+      <div data-page-guide="hashtag-header" className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <Link href="/explore" className="p-2 rounded-full hover:bg-secondary transition-colors">
@@ -53,7 +53,7 @@ function HashtagFeed() {
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div data-page-guide="hashtag-posts" className="space-y-3">
             {posts.map(p => (
               <PostCard key={p.id} post={p} currentUserId={user?.id} onDeleted={(id) => setPosts(prev => prev.filter(x => x.id !== id))} />
             ))}

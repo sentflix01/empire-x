@@ -18,6 +18,7 @@ import { emitNotification } from '../socket';
 import { sendPushToUser } from './push';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache';
 import { attachPostViewerState, commentRefusal, feedFilterSql, isBlockedEitherWay, isReaction, notBlockedSql, authorVisibleSql, REACTIONS } from '../lib/socialGraph';
+import { classify, decide } from '../lib/clef';
 
 const router = Router();
 // ── GET / — smart feed with scoring + keyset cursor ──────────────────────────
@@ -157,6 +158,39 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   if (post_type !== undefined && !['text', 'image', 'product', 'task', 'event', 'poll'].includes(String(post_type))) {
     res.status(422).json({ error: 'Invalid post_type' }); return;
   }
+
+  // ── Clef-Flash content classification (fail-open) ─────────────────────────
+  // Runs before the DB write; if Clef is unconfigured or errors it returns null
+  // and we proceed as normal — never block a write due to classifier failure.
+  try {
+    const clefResult = await classify(content as string);
+    const decision   = decide(clefResult);
+    if (decision === 'block') {
+      logger.warn(
+        { userId: req.user!.id, spam: clefResult?.spam, policy: clefResult?.policy },
+        'Clef blocked post — spam or policy violation',
+      );
+      res.status(400).json({ error: 'Your post could not be published. Please review our content guidelines.' });
+      return;
+    }
+    if (decision === 'flag') {
+      // Store a pending moderation report in the background so admins can review it.
+      // The post still goes through — we don't silently drop uncertain content.
+      pool.query(
+        `INSERT INTO reports (reporter_id, target_type, reason, details)
+         VALUES ($1, 'post', 'auto_flagged', $2)
+         ON CONFLICT DO NOTHING`,
+        [
+          req.user!.id,
+          JSON.stringify({ spam: clefResult?.spam, policy: clefResult?.policy, confidence: clefResult?.policyConfidence }),
+        ],
+      ).catch((err: unknown) => logger.warn({ err: (err as Error).message }, 'Clef flag: failed to insert report'));
+    }
+  } catch (clefErr) {
+    // Unexpected error in the classification block — log and continue
+    logger.warn({ err: (clefErr as Error).message }, 'Clef classification block error — proceeding');
+  }
+
   try {
     const { rows: profiles } = await pool.query('SELECT display_name, avatar_url, default_comment_policy FROM user_profiles WHERE user_id=$1', [req.user!.id]);
     const profile = (profiles[0] ?? {}) as Record<string,string>;
