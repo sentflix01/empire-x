@@ -1,4 +1,4 @@
-/**
+﻿/**
  * routes/messages.ts — Conversations and real-time messaging
  *
  * Rules live in lib/messaging.ts (members, who can post, content limits,
@@ -65,7 +65,7 @@ async function loadForMember(req: Request, res: Response, id: string): Promise<{
 }
 
 /** Save a message, update the chat list, tell the room, notify the other members. */
-async function deliver(conv: ConversationRow, ids: string[], senderId: string, fields: { content: string; type: string; reply_to_id?: string | null }) {
+async function deliver(conv: ConversationRow, ids: string[], senderId: string, fields: { content: string; type: string; reply_to_id?: string | null; metadata?: Record<string, unknown> | null }) {
   // ── Clef-Flash content classification (text messages only, fail-open) ──────
   // Runs before the DB write. null result = Clef unavailable → proceed normally.
   if (fields.type === 'text' && fields.content) {
@@ -104,8 +104,8 @@ async function deliver(conv: ConversationRow, ids: string[], senderId: string, f
   const names = await displayNames([senderId]);
   const senderName = names.get(senderId) ?? null;
   const { rows: [message] } = await pool.query(
-    `INSERT INTO messages (conversation_id, sender_id, sender_name, content, type, reply_to_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-    [conv.id, senderId, senderName, fields.content, fields.type, fields.reply_to_id ?? null],
+    `INSERT INTO messages (conversation_id, sender_id, sender_name, content, type, reply_to_id, metadata) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+    [conv.id, senderId, senderName, fields.content, fields.type, fields.reply_to_id ?? null, fields.metadata ?? null],
   );
   const preview = messagePreview(fields.type, fields.content);
   await pool.query('UPDATE conversations SET last_message=$1, last_message_at=NOW(), updated_at=NOW() WHERE id=$2', [preview, conv.id]);
@@ -486,21 +486,52 @@ router.post('/conversations/:convId/messages', requireAuth, sendLimiter, async (
     const found = await loadForMember(req, res, req.params.convId); if (!found) return;
     const me = String(req.user!.id);
     if (!found.role) { apiError.forbidden(res, 'You’re not in this conversation'); return; }
-    const { content, type, reply_to_id } = req.body as Record<string, unknown>;
+    const { content, type, reply_to_id, metadata: rawMetadata } = req.body as Record<string, unknown>;
     const msgType = (MESSAGE_TYPES as readonly string[]).includes(type as string) ? type as string : 'text';
-    const clean = cleanContent(content);
-    if (!clean.ok) { apiError.validationError(res, clean.message); return; }
-    if (msgType !== 'text' && !isSafeAttachmentUrl(clean.text)) { apiError.validationError(res, 'That photo or file link isn’t valid'); return; }
+
+    let msgContent: string;
+    let msgMetadata: Record<string, unknown> | null = null;
+
+    if (msgType === 'product') {
+      // product messages carry their payload in metadata; content is empty
+      if (
+        typeof rawMetadata !== 'object' || rawMetadata === null ||
+        typeof (rawMetadata as Record<string, unknown>).product_id !== 'string' ||
+        !UUID.test((rawMetadata as Record<string, unknown>).product_id as string)
+      ) {
+        apiError.validationError(res, 'metadata.product_id must be a valid UUID for product messages'); return;
+      }
+      msgContent = '';
+      msgMetadata = rawMetadata as Record<string, unknown>;
+    } else if (msgType === 'order_update') {
+      // order_update messages carry their payload in metadata; content is empty
+      if (
+        typeof rawMetadata !== 'object' || rawMetadata === null ||
+        typeof (rawMetadata as Record<string, unknown>).order_id !== 'string' ||
+        typeof (rawMetadata as Record<string, unknown>).status !== 'string'
+      ) {
+        apiError.validationError(res, 'metadata.order_id and metadata.status are required for order_update messages'); return;
+      }
+      msgContent = '';
+      msgMetadata = rawMetadata as Record<string, unknown>;
+    } else {
+      // text / image / file — validate through cleanContent
+      const clean = cleanContent(content);
+      if (!clean.ok) { apiError.validationError(res, clean.message); return; }
+      if (msgType !== 'text' && !isSafeAttachmentUrl(clean.text)) { apiError.validationError(res, 'That photo or file link isn\u2019t valid'); return; }
+      msgContent = clean.text;
+    }
+
     const why = await postRefusal(found.conv, found.ids, me, found.role);
     if (why) { refuse(res, why); return; }
     let replyTo: string | null = null;
     if (reply_to_id !== undefined && reply_to_id !== null) {
       if (typeof reply_to_id !== 'string' || !UUID.test(reply_to_id)) { apiError.validationError(res, 'reply_to_id is not valid'); return; }
       const { rows } = await pool.query('SELECT 1 FROM messages WHERE id=$1 AND conversation_id=$2', [reply_to_id, found.conv.id]);
-      if (!rows.length) { apiError.validationError(res, 'The message you’re replying to isn’t in this chat'); return; }
+      if (!rows.length) { apiError.validationError(res, 'The message you\u2019re replying to isn\u2019t in this chat'); return; }
       replyTo = reply_to_id;
     }
-    const message = await deliver(found.conv, found.ids, me, { content: clean.text, type: msgType, reply_to_id: replyTo });
+    const message = await deliver(found.conv, found.ids, me, { content: msgContent, type: msgType, reply_to_id: replyTo, metadata: msgMetadata });
     res.status(201).json(message);
   } catch (err) { fail(res, err, 'send the message'); }
 });
@@ -1165,6 +1196,56 @@ router.get('/saved', requireAuth, async (req: Request, res: Response) => {
   } catch (err) { fail(res, err, 'load saved messages'); }
 });
 
+
+// ── Share Product ─────────────────────────────────────────────────────────────
+
+/** POST /api/messages/share-product — send a product card message to a conversation */
+router.post('/share-product', requireAuth, sendLimiter, async (req: Request, res: Response) => {
+  try {
+    const { conversation_id, product_id } = req.body as Record<string, unknown>;
+    if (typeof conversation_id !== 'string' || !UUID.test(conversation_id)) {
+      apiError.validationError(res, 'conversation_id must be a valid UUID'); return;
+    }
+    if (typeof product_id !== 'string' || !UUID.test(product_id)) {
+      apiError.validationError(res, 'product_id must be a valid UUID'); return;
+    }
+
+    const found = await loadForMember(req, res, conversation_id); if (!found) return;
+    if (!found.role) { apiError.forbidden(res, 'You\u2019re not in this conversation'); return; }
+
+    const why = await postRefusal(found.conv, found.ids, String(req.user!.id), found.role);
+    if (why) { refuse(res, why); return; }
+
+    const { rows: [product] } = await pool.query<{ id: string; title: string; price: number; images: unknown }>(
+      'SELECT id, title, price, images FROM products WHERE id=$1',
+      [product_id],
+    );
+    if (!product) { apiError.notFound(res, 'Product not found'); return; }
+
+    // Resolve the first image URL from the images column (stored as JSON array or plain string)
+    let firstImage: string | null = null;
+    try {
+      const imgs = typeof product.images === 'string'
+        ? (JSON.parse(product.images) as unknown[])
+        : (Array.isArray(product.images) ? product.images : []);
+      firstImage = typeof imgs[0] === 'string' ? imgs[0] : null;
+    } catch { /* ignore malformed images */ }
+
+    const metadata: Record<string, unknown> = {
+      product_id: product.id,
+      name: product.title,
+      price: product.price,
+      image: firstImage,
+    };
+
+    const message = await deliver(found.conv, found.ids, String(req.user!.id), {
+      content: '',
+      type: 'product',
+      metadata,
+    });
+    res.status(201).json(message);
+  } catch (err) { fail(res, err, 'share the product'); }
+});
 // ── /api/messages/:id aliases (what the app calls). Registered last so the
 //    named routes above (/presence, /inquiry, /block/…) always win.
 

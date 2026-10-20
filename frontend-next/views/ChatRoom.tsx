@@ -8,6 +8,8 @@ import { applyReceipt, tickFor, type MemberReadState } from "@/lib/readReceipts"
 import MessageTicks from "@/components/messaging/MessageTicks";
 import MessageReactions from "@/components/messaging/MessageReactions";
 import MessageSearch from "@/components/messaging/MessageSearch";
+import ProductMessageBubble from "@/components/messaging/ProductMessageBubble";
+import OrderUpdateBubble from "@/components/messaging/OrderUpdateBubble";
 import {
   ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
   CornerUpLeft, Check, ShieldOff, History, ImagePlus, Forward,
@@ -819,6 +821,10 @@ function ChatRoom() {
 
                     {msg.type === 'image' ? (
                       <SafeImage src={msg.content} alt="Shared image" className="max-h-72 max-w-full rounded-xl object-cover" />
+                    ) : msg.type === 'product' ? (
+                      <ProductMessageBubble metadata={(msg as { metadata?: Record<string, unknown> }).metadata ?? {}} isMe={isMe} />
+                    ) : msg.type === 'order_update' ? (
+                      <OrderUpdateBubble metadata={(msg as { metadata?: Record<string, unknown> }).metadata ?? {}} isMe={isMe} />
                     ) : (
                       <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
                     )}

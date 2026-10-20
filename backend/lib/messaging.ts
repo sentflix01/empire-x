@@ -20,7 +20,7 @@ export const EDIT_WINDOW_MS = 15 * 60 * 1000;
 export const DELETE_FOR_EVERYONE_WINDOW_MS = 24 * 60 * 60 * 1000;
 export const MAX_GROUP_MEMBERS = 256;
 export const CONVERSATION_TYPES = ['dm', 'group', 'channel'] as const;
-export const MESSAGE_TYPES = ['text', 'image', 'file'] as const;
+export const MESSAGE_TYPES = ['text', 'image', 'file', 'product', 'order_update'] as const;
 export type ConversationType = typeof CONVERSATION_TYPES[number];
 
 type Queryable = Pick<PoolClient, 'query'>;
@@ -142,6 +142,8 @@ async function syncLegacyColumns(db: Queryable, convId: string): Promise<void> {
 export function messagePreview(type: string, content: string): string {
   if (type === 'image') return '📷 Photo';
   if (type === 'file') return '📎 File';
+  if (type === 'product') return '🛍️ Product';
+  if (type === 'order_update') return '📦 Order update';
   return content.replace(/\s+/g, ' ').trim().slice(0, 200);
 }
 
@@ -157,7 +159,12 @@ export async function refreshLastMessage(db: Queryable, convId: string): Promise
   );
 }
 
-/** Content check shared by send, edit, inquiry and forward. Returns the cleaned text or an error. */
+/**
+ * Content check shared by send, edit, inquiry and forward.
+ * NOTE: cleanContent is NOT called for 'product' and 'order_update' message types —
+ * those carry their payload in metadata and set content to ''.
+ * Returns the cleaned text or an error.
+ */
 export function cleanContent(raw: unknown): { ok: true; text: string } | { ok: false; message: string } {
   if (typeof raw !== 'string') return { ok: false, message: 'Write a message first.' };
   const text = raw.trim();
