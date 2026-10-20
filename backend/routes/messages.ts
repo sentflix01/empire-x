@@ -795,7 +795,7 @@ router.post('/inquiry', requireAuth, startLimiter, async (req: Request, res: Res
 
 // ── Message Reactions ─────────────────────────────────────────────────────────
 
-const reactLimiter = perUser(60, 'You're reacting too quickly. Wait a moment.');
+const reactLimiter = perUser(60, "You're reacting too quickly. Wait a moment.");
 
 /** SQL helper: recompute the JSONB reactions cache for a message from message_reactions rows. */
 const reactionsCacheSql = `
@@ -893,6 +893,155 @@ router.get('/messages/:id/reactions', requireAuth, async (req: Request, res: Res
     }
     res.json(grouped);
   } catch (err) { fail(res, err, 'load reactions'); }
+});
+
+// ── Message Search ────────────────────────────────────────────────────────────
+
+const searchLimiter = perUser(30, "You're searching too quickly. Wait a moment.");
+
+/** GET /api/messages/search?q=…&conversationId=…&limit=…&page=… */
+router.get('/search', requireAuth, searchLimiter, async (req: Request, res: Response) => {
+  try {
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    if (!q || q.length > 200) { apiError.validationError(res, 'q must be 1-200 characters'); return; }
+
+    const rawConvId = typeof req.query.conversationId === 'string' ? req.query.conversationId : undefined;
+    if (rawConvId !== undefined && !UUID.test(rawConvId)) {
+      apiError.validationError(res, 'conversationId must be a valid UUID'); return;
+    }
+
+    const rawLimit = parseInt((req.query.limit as string) || '20', 10);
+    const limit = Math.min(Math.max(Number.isNaN(rawLimit) ? 20 : rawLimit, 1), 50);
+
+    const rawPage = parseInt((req.query.page as string) || '1', 10);
+    const page = Math.max(Number.isNaN(rawPage) ? 1 : rawPage, 1);
+    const offset = (page - 1) * limit;
+
+    const userId = String(req.user!.id);
+
+    // If a specific conversation is requested, verify membership first
+    if (rawConvId) {
+      const found = await loadForMember(req, res, rawConvId);
+      if (!found) return;
+    }
+
+    // Build a safe tsquery for prefix matching; fall back to ILIKE on invalid input
+    let useFullText = true;
+    let tsquery = '';
+    try {
+      // Sanitise: remove characters that break tsquery syntax, then build prefix query
+      const sanitised = q.replace(/[&|!():*]/g, ' ').trim().split(/\s+/).filter(Boolean).join(' & ');
+      tsquery = sanitised ? `${sanitised}:*` : '';
+      if (!tsquery) useFullText = false;
+    } catch {
+      useFullText = false;
+    }
+
+    const params: unknown[] = [userId];
+    let convFilter = '';
+    if (rawConvId) {
+      params.push(rawConvId);
+      convFilter = `AND m.conversation_id = $${params.length}`;
+    }
+
+    let rows: Record<string, unknown>[] = [];
+    let totalCount = 0;
+
+    if (useFullText) {
+      // Attempt full-text search; catch parse errors and retry with ILIKE
+      try {
+        params.push(tsquery);
+        const tsParam = `$${params.length}`;
+        params.push(`%${q}%`);
+        const ilikeParam = `$${params.length}`;
+        params.push(limit);
+        const limitParam = `$${params.length}`;
+        params.push(offset);
+        const offsetParam = `$${params.length}`;
+
+        const { rows: r } = await pool.query<Record<string, unknown>>(
+          `SELECT m.id, m.conversation_id, m.sender_id, m.content, m.type, m.created_at,
+                  c.name AS conversation_name
+             FROM messages m
+             JOIN conversation_participants cp
+               ON cp.conversation_id = m.conversation_id AND cp.user_id = $1
+             LEFT JOIN conversations c ON c.id = m.conversation_id
+            WHERE (
+                    m.search_vector @@ to_tsquery('simple', ${tsParam})
+                    OR m.content ILIKE ${ilikeParam}
+                  )
+              ${convFilter}
+            ORDER BY m.created_at DESC
+            LIMIT ${limitParam} OFFSET ${offsetParam}`,
+          params,
+        );
+
+        // Count query (reuse same filter params minus limit/offset)
+        const countParams = params.slice(0, params.length - 2);
+        const { rows: cnt } = await pool.query<{ total: string }>(
+          `SELECT COUNT(*)::int AS total
+             FROM messages m
+             JOIN conversation_participants cp
+               ON cp.conversation_id = m.conversation_id AND cp.user_id = $1
+            WHERE (
+                    m.search_vector @@ to_tsquery('simple', ${tsParam})
+                    OR m.content ILIKE ${ilikeParam}
+                  )
+              ${convFilter}`,
+          countParams,
+        );
+        rows = r;
+        totalCount = Number(cnt[0]?.total ?? 0);
+      } catch {
+        // tsquery was invalid; fall through to ILIKE-only
+        useFullText = false;
+        rows = [];
+        totalCount = 0;
+      }
+    }
+
+    if (!useFullText) {
+      // Pure ILIKE fallback
+      const ilikeParams: unknown[] = [userId, `%${q}%`];
+      if (rawConvId) ilikeParams.push(rawConvId);
+      const convFilterIlike = rawConvId ? `AND m.conversation_id = $${ilikeParams.length}` : '';
+      ilikeParams.push(limit);
+      const limitParam = `$${ilikeParams.length}`;
+      ilikeParams.push(offset);
+      const offsetParam = `$${ilikeParams.length}`;
+
+      const { rows: r } = await pool.query<Record<string, unknown>>(
+        `SELECT m.id, m.conversation_id, m.sender_id, m.content, m.type, m.created_at,
+                c.name AS conversation_name
+           FROM messages m
+           JOIN conversation_participants cp
+             ON cp.conversation_id = m.conversation_id AND cp.user_id = $1
+           LEFT JOIN conversations c ON c.id = m.conversation_id
+          WHERE m.content ILIKE $2
+            ${convFilterIlike}
+          ORDER BY m.created_at DESC
+          LIMIT ${limitParam} OFFSET ${offsetParam}`,
+        ilikeParams,
+      );
+
+      const countIlikeParams = ilikeParams.slice(0, ilikeParams.length - 2);
+      const { rows: cnt } = await pool.query<{ total: string }>(
+        `SELECT COUNT(*)::int AS total
+           FROM messages m
+           JOIN conversation_participants cp
+             ON cp.conversation_id = m.conversation_id AND cp.user_id = $1
+          WHERE m.content ILIKE $2
+            ${convFilterIlike}`,
+        countIlikeParams,
+      );
+      rows = r;
+      totalCount = Number(cnt[0]?.total ?? 0);
+    }
+
+    const nextPage = offset + limit < totalCount ? page + 1 : null;
+    res.set('Cache-Control', 'private, no-store');
+    res.json({ messages: rows, total: totalCount, nextPage });
+  } catch (err) { fail(res, err, 'search messages'); }
 });
 
 // ── /api/messages/:id aliases (what the app calls). Registered last so the

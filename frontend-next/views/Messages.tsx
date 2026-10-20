@@ -13,6 +13,7 @@ import { tickFor } from "@/lib/readReceipts";
 import { fmtTime } from "@/lib/date";
 import { parseISO, isToday, isYesterday, isAfter, subDays, format as dfFormat } from "date-fns";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
+import MessageSearch from "@/components/messaging/MessageSearch";
 import {  isUserOnline } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
 import { getSocket, connectSocket } from "@/lib/socket";
@@ -33,6 +34,7 @@ function Messages() {
   const [unreadByConv, setUnreadByConv]   = useState<Record<string, number>>({});
   const [presence, setPresence]           = useState<Record<string, PresenceData>>({});
   const [typingConvs, setTypingConvs]     = useState<Record<string, boolean>>({});
+  const [showSearch, setShowSearch]       = useState(false);
   const loadConversationsRef = useRef<((currentUser?: any, quiet?: boolean) => Promise<void>) | null>(null);
 
   useChatPresence(Boolean(user));
@@ -220,6 +222,7 @@ function Messages() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
+    <>
     <div data-page-guide="messages-header" className="max-w-2xl mx-auto flex flex-col h-full -mx-4 md:mx-auto"
       style={{ backgroundColor: 'hsl(var(--background))' }}>
 
@@ -232,7 +235,19 @@ function Messages() {
           <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--foreground))' }}>
             Messages
           </h1>
-          <NewChatMenu data-page-guide="messages-new" user={user} contacts={contacts} onCreated={() => loadConversations()} />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowSearch(true)}
+              className="p-2 rounded-full transition-colors"
+              style={{ color: 'hsl(var(--muted-foreground))' }}
+              aria-label="Search messages"
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary))')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              <Search className="w-5 h-5" />
+            </button>
+            <NewChatMenu data-page-guide="messages-new" user={user} contacts={contacts} onCreated={() => loadConversations()} />
+          </div>
         </div>
 
         {/* Search bar */}
@@ -471,6 +486,10 @@ function Messages() {
         )}
       </div>
     </div>
+    {showSearch && (
+      <MessageSearch conversationId={undefined} onClose={() => setShowSearch(false)} />
+    )}
+    </>
   );
 }
 

@@ -7,10 +7,11 @@ import client from "@/api/client";
 import { applyReceipt, tickFor, type MemberReadState } from "@/lib/readReceipts";
 import MessageTicks from "@/components/messaging/MessageTicks";
 import MessageReactions from "@/components/messaging/MessageReactions";
+import MessageSearch from "@/components/messaging/MessageSearch";
 import {
   ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
   CornerUpLeft, Check, ShieldOff, History, ImagePlus, Forward,
-  Copy, UserCircle, Pin, Bookmark, Languages,
+  Copy, UserCircle, Pin, Bookmark, Languages, Search,
 } from "lucide-react";
 import { fmtTime, fmtLongDate } from "@/lib/date";
 import { parseISO, isToday, isYesterday, format as fmtDate } from "date-fns";
@@ -62,6 +63,7 @@ function ChatRoom() {
 
   // Header menu
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   // Block status & online status
   const [isBlocked, setIsBlocked]     = useState(false);
@@ -625,12 +627,20 @@ function ChatRoom() {
           </p>
         </div>
 
+        {/* Search button */}
+        <button
+          onClick={() => setShowSearch(true)}
+          className="p-1 rounded-full hover:bg-white/10 transition-colors"
+          aria-label="Search messages"
+        >
+          <Search className="w-5 h-5 text-white" />
+        </button>
+
         {/* "..." menu */}
         <div className="relative">
           <button onClick={() => setHeaderMenuOpen(v => !v)} className="p-1 rounded-full hover:bg-white/10 transition-colors">
             <MoreVertical className="w-5 h-5 text-white" />
-          </button>
-          {headerMenuOpen && (
+          </button>          {headerMenuOpen && (
             <div className="absolute top-full right-0 mt-1 w-52 bg-card rounded-2xl shadow-lg border border-border/30 z-50 overflow-hidden">
               {/* DM: View Profile */}
               {isDm && otherUserId && (
@@ -1072,6 +1082,9 @@ function ChatRoom() {
           </div>
         </div>
       </div>
+    )}
+    {showSearch && (
+      <MessageSearch conversationId={id} onClose={() => setShowSearch(false)} />
     )}
     </>
   );
