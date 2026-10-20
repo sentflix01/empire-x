@@ -20,7 +20,7 @@ import {
 } from '../lib/messaging';
 import {
   emitNewMessage, emitMessageEdited, emitMessageDeleted, emitNotification, emitPresenceUpdated, emitToUser,
-  removeUserFromConversationRoom,
+  removeUserFromConversationRoom, emitReactionAdded, emitReactionRemoved,
 } from '../socket';
 import { sendPushToUser } from './push';
 import logger from '../lib/logger';
@@ -791,6 +791,108 @@ router.post('/inquiry', requireAuth, startLimiter, async (req: Request, res: Res
     const msg = await deliver(conv, ids, me, { content: clean.text, type: 'text' });
     res.status(201).json({ success: true, conversation_id: conv.id, message_id: msg.id });
   } catch (err) { fail(res, err, 'send your request'); }
+});
+
+// ── Message Reactions ─────────────────────────────────────────────────────────
+
+const reactLimiter = perUser(60, 'You're reacting too quickly. Wait a moment.');
+
+/** SQL helper: recompute the JSONB reactions cache for a message from message_reactions rows. */
+const reactionsCacheSql = `
+  SELECT COALESCE(
+    (
+      SELECT jsonb_object_agg(emoji, jsonb_build_object('count', cnt, 'users', users))
+        FROM (
+          SELECT emoji,
+                 COUNT(*)::int              AS cnt,
+                 jsonb_agg(user_id::text)   AS users
+            FROM message_reactions
+           WHERE message_id = $1
+           GROUP BY emoji
+        ) agg
+    ),
+    '{}'::jsonb
+  ) AS reactions
+`;
+
+/** POST /api/messages/messages/:id/reactions — add a reaction */
+router.post('/messages/:id/reactions', requireAuth, reactLimiter, async (req: Request, res: Response) => {
+  try {
+    if (!UUID.test(req.params.id)) { apiError.notFound(res, 'Message not found'); return; }
+    const { emoji } = req.body as { emoji?: unknown };
+    if (typeof emoji !== 'string' || emoji.trim().length === 0 || emoji.length > 20) {
+      apiError.validationError(res, 'emoji must be a non-empty string of at most 20 characters'); return;
+    }
+    const { rows: [msg] } = await pool.query<{ id: string; conversation_id: string }>('SELECT id, conversation_id FROM messages WHERE id=$1', [req.params.id]);
+    if (!msg) { apiError.notFound(res, 'Message not found'); return; }
+    const found = await loadForMember(req, res, String(msg.conversation_id)); if (!found) return;
+    await pool.query(
+      'INSERT INTO message_reactions (message_id, user_id, emoji) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+      [msg.id, req.user!.id, emoji],
+    );
+    const { rows: [cache] } = await pool.query<{ reactions: Record<string, unknown> }>(reactionsCacheSql, [msg.id]);
+    await pool.query('UPDATE messages SET reactions=$1 WHERE id=$2', [cache.reactions, msg.id]);
+    emitReactionAdded(String(msg.conversation_id), {
+      message_id: String(msg.id),
+      user_id: String(req.user!.id),
+      emoji,
+      reactions: cache.reactions,
+    });
+    res.status(201).json({ reactions: cache.reactions });
+  } catch (err) { fail(res, err, 'add reaction'); }
+});
+
+/** DELETE /api/messages/messages/:id/reactions — remove a reaction */
+router.delete('/messages/:id/reactions', requireAuth, reactLimiter, async (req: Request, res: Response) => {
+  try {
+    if (!UUID.test(req.params.id)) { apiError.notFound(res, 'Message not found'); return; }
+    const { emoji } = req.body as { emoji?: unknown };
+    if (typeof emoji !== 'string' || emoji.trim().length === 0) {
+      apiError.validationError(res, 'emoji is required'); return;
+    }
+    const { rows: [msg] } = await pool.query<{ id: string; conversation_id: string }>('SELECT id, conversation_id FROM messages WHERE id=$1', [req.params.id]);
+    if (!msg) { apiError.notFound(res, 'Message not found'); return; }
+    const found = await loadForMember(req, res, String(msg.conversation_id)); if (!found) return;
+    await pool.query(
+      'DELETE FROM message_reactions WHERE message_id=$1 AND user_id=$2 AND emoji=$3',
+      [msg.id, req.user!.id, emoji],
+    );
+    const { rows: [cache] } = await pool.query<{ reactions: Record<string, unknown> }>(reactionsCacheSql, [msg.id]);
+    await pool.query('UPDATE messages SET reactions=$1 WHERE id=$2', [cache.reactions, msg.id]);
+    emitReactionRemoved(String(msg.conversation_id), {
+      message_id: String(msg.id),
+      user_id: String(req.user!.id),
+      emoji,
+      reactions: cache.reactions,
+    });
+    res.json({ reactions: cache.reactions });
+  } catch (err) { fail(res, err, 'remove reaction'); }
+});
+
+/** GET /api/messages/messages/:id/reactions — list reactions grouped by emoji */
+router.get('/messages/:id/reactions', requireAuth, async (req: Request, res: Response) => {
+  try {
+    if (!UUID.test(req.params.id)) { apiError.notFound(res, 'Message not found'); return; }
+    const { rows: [msg] } = await pool.query<{ id: string; conversation_id: string }>('SELECT id, conversation_id FROM messages WHERE id=$1', [req.params.id]);
+    if (!msg) { apiError.notFound(res, 'Message not found'); return; }
+    const found = await loadForMember(req, res, String(msg.conversation_id)); if (!found) return;
+    const { rows } = await pool.query(
+      `SELECT mr.emoji, mr.user_id::text, up.display_name, up.avatar_url
+         FROM message_reactions mr
+         LEFT JOIN user_profiles up ON up.user_id = mr.user_id
+        WHERE mr.message_id = $1
+        ORDER BY mr.emoji, mr.created_at`,
+      [msg.id],
+    );
+    // Group by emoji
+    const grouped: Record<string, { count: number; users: Array<{ user_id: string; display_name: string | null; avatar_url: string | null }> }> = {};
+    for (const row of rows as Array<{ emoji: string; user_id: string; display_name: string | null; avatar_url: string | null }>) {
+      if (!grouped[row.emoji]) grouped[row.emoji] = { count: 0, users: [] };
+      grouped[row.emoji].count += 1;
+      grouped[row.emoji].users.push({ user_id: row.user_id, display_name: row.display_name, avatar_url: row.avatar_url });
+    }
+    res.json(grouped);
+  } catch (err) { fail(res, err, 'load reactions'); }
 });
 
 // ── /api/messages/:id aliases (what the app calls). Registered last so the

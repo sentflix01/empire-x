@@ -6,6 +6,7 @@ import { getSocket, joinConversation, leaveConversation } from "@/lib/socket";
 import client from "@/api/client";
 import { applyReceipt, tickFor, type MemberReadState } from "@/lib/readReceipts";
 import MessageTicks from "@/components/messaging/MessageTicks";
+import MessageReactions from "@/components/messaging/MessageReactions";
 import {
   ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
   CornerUpLeft, Check, ShieldOff, History, ImagePlus, Forward,
@@ -191,6 +192,15 @@ function ChatRoom() {
     };
     socket.on('typing_updated', onTypingUpdated);
 
+    const onReactionUpdate = (payload: { message_id: string; reactions: Record<string, number> }) => {
+      setMessages((prev: unknown[]) => prev.map((m: unknown) => {
+        const message = m as { id: string };
+        return message.id === payload.message_id ? { ...message, reactions: payload.reactions } : m;
+      }));
+    };
+    socket.on('reaction_added', onReactionUpdate);
+    socket.on('reaction_removed', onReactionUpdate);
+
     return () => {
       cancelled = true;
       leaveConversation(convId);
@@ -201,6 +211,8 @@ function ChatRoom() {
       socket.off('message_deleted', onDeleted);
       socket.off('presence_updated', onPresenceUpdated);
       socket.off('typing_updated', onTypingUpdated);
+      socket.off('reaction_added', onReactionUpdate);
+      socket.off('reaction_removed', onReactionUpdate);
       setTyping(false);
       if (remoteTypingTimer.current) clearTimeout(remoteTypingTimer.current);
     };
@@ -478,11 +490,14 @@ function ChatRoom() {
     setForwardMsg(msg);
     dismissContextMenu();
   };
-  const handleReaction = async (msg, emoji: string) => {
+  const handleReact = async (msg: { id: string; conversation_id: string; reactions?: Record<string, number> }, emoji: string) => {
     dismissContextMenu();
     try {
-      await client.post(`/api/messages/${msg.id}/react`, { emoji });
-      toast.success(`Reacted with ${emoji}`);
+      const { data } = await client.post(`/api/messages/messages/${msg.id}/reactions`, { emoji });
+      setMessages((prev: unknown[]) => prev.map((m: unknown) => {
+        const message = m as { id: string };
+        return message.id === msg.id ? { ...message, reactions: (data as { reactions: Record<string, number> }).reactions } : m;
+      }));
     } catch { toast.error('Failed to add reaction'); }
   };
   const handlePin = (msg) => {
@@ -776,6 +791,13 @@ function ChatRoom() {
                       {isMe && <MessageTicks tick={tickFor(msg, user?.id, members)} />}
                     </div>
                   </div>
+                  {Object.keys((msg as { reactions?: Record<string, number> }).reactions ?? {}).length > 0 && (
+                    <MessageReactions
+                      reactions={(msg as { reactions: Record<string, number> }).reactions}
+                      messageId={(msg as { id: string }).id}
+                      onReact={(emoji) => handleReact(msg, emoji)}
+                    />
+                  )}
                 </div>
               );
             })}
@@ -897,7 +919,7 @@ function ChatRoom() {
               {['❤️','👏','👍','👎','🔥','🤩','😂'].map(emoji => (
                 <button
                   key={emoji}
-                  onClick={() => handleReaction(selectedMsg, emoji)}
+                  onClick={() => handleReact(selectedMsg, emoji)}
                   className="text-2xl active:scale-125 transition-transform hover:scale-110 select-none"
                   style={{ lineHeight: 1 }}
                 >

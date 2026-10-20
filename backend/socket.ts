@@ -468,6 +468,21 @@ export function removeUserFromConversationRoom(userId: string, conversationId: s
   ioInstance?.in(`user:${userId}`).socketsLeave(`conv:${conversationId}`);
 }
 
+export interface ReactionPayload {
+  message_id: string;
+  user_id: string;
+  emoji: string;
+  reactions: Record<string, unknown>;
+}
+
+export function emitReactionAdded(conversationId: string, payload: ReactionPayload): void {
+  ioInstance?.to(`conv:${conversationId}`).emit('reaction_added', payload);
+}
+
+export function emitReactionRemoved(conversationId: string, payload: ReactionPayload): void {
+  ioInstance?.to(`conv:${conversationId}`).emit('reaction_removed', payload);
+}
+
 module.exports = {
   initSocket,
   getIO,
@@ -482,4 +497,6 @@ module.exports = {
   invalidateFollowerCache,
   getAuthorizedConversation,
   getConversationParticipantIds,
+  emitReactionAdded,
+  emitReactionRemoved,
 };
