@@ -51,12 +51,8 @@ function ChatRoom() {
   const [forwardMsg, setForwardMsg]     = useState(null);
   const [forwardSearch, setForwardSearch] = useState('');
   const [conversations, setConversations] = useState([]);
-  const [pinnedMsgs, setPinnedMsgs]     = useState<Set<string>>(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('pinnedMsgs') || '[]')); } catch { return new Set(); }
-  });
-  const [savedMsgs, setSavedMsgs]       = useState<Set<string>>(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('savedMsgs') || '[]')); } catch { return new Set(); }
-  });
+  const [pinnedMsgs, setPinnedMsgs]     = useState<Set<string>>(new Set());
+  const [savedMsgs, setSavedMsgs]       = useState<Set<string>>(new Set());
 
   // Legacy hover state (desktop) — still used to determine visual selection
   const [hoveredMsg, setHoveredMsg]     = useState(null);
@@ -203,6 +199,23 @@ function ChatRoom() {
     socket.on('reaction_added', onReactionUpdate);
     socket.on('reaction_removed', onReactionUpdate);
 
+    const onMessagePinned = (p: { message_id: string; conversation_id: string }) => {
+      if (p.conversation_id === convId) {
+        setPinnedMsgs(prev => new Set([...prev, p.message_id]));
+      }
+    };
+    const onMessageUnpinned = (p: { message_id: string; conversation_id: string }) => {
+      if (p.conversation_id === convId) {
+        setPinnedMsgs(prev => {
+          const s = new Set(prev);
+          s.delete(p.message_id);
+          return s;
+        });
+      }
+    };
+    socket.on('message_pinned', onMessagePinned);
+    socket.on('message_unpinned', onMessageUnpinned);
+
     return () => {
       cancelled = true;
       leaveConversation(convId);
@@ -215,6 +228,8 @@ function ChatRoom() {
       socket.off('typing_updated', onTypingUpdated);
       socket.off('reaction_added', onReactionUpdate);
       socket.off('reaction_removed', onReactionUpdate);
+      socket.off('message_pinned', onMessagePinned);
+      socket.off('message_unpinned', onMessageUnpinned);
       setTyping(false);
       if (remoteTypingTimer.current) clearTimeout(remoteTypingTimer.current);
     };
@@ -265,10 +280,17 @@ function ChatRoom() {
     return () => { cancelled = true; };
   }, [otherUserId]);
 
+  // Load pinned message IDs for this conversation
+  useEffect(() => {
+    if (!id) return;
+    client.get(`/api/messages/conversations/${id}/pins`)
+      .then(r => setPinnedMsgs(new Set((r.data as Array<{ message_id: string }>).map(p => p.message_id))))
+      .catch(() => {});
+  }, [id]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
   // Focus input when reply/edit changes
   useEffect(() => {
     inputRef.current?.focus();
@@ -502,23 +524,33 @@ function ChatRoom() {
       }));
     } catch { toast.error('Failed to add reaction'); }
   };
-  const handlePin = (msg) => {
-    setPinnedMsgs(prev => {
-      const next = new Set(prev);
-      if (next.has(msg.id)) { next.delete(msg.id); toast.success('Unpinned'); }
-      else { next.add(msg.id); toast.success('Pinned message'); }
-      return next;
-    });
+  const handlePin = async (msg: { id: string }) => {
     dismissContextMenu();
+    try {
+      if (pinnedMsgs.has(msg.id)) {
+        await client.delete(`/api/messages/messages/${msg.id}/pin`);
+        setPinnedMsgs(prev => { const s = new Set(prev); s.delete(msg.id); return s; });
+        toast.success('Unpinned');
+      } else {
+        await client.post(`/api/messages/messages/${msg.id}/pin`);
+        setPinnedMsgs(prev => new Set([...prev, msg.id]));
+        toast.success('Pinned message');
+      }
+    } catch { toast.error('Failed to update pin'); }
   };
-  const handleSave = (msg) => {
-    setSavedMsgs(prev => {
-      const next = new Set(prev);
-      if (next.has(msg.id)) { next.delete(msg.id); toast.success('Removed from saved'); }
-      else { next.add(msg.id); toast.success('Added to saved messages'); }
-      return next;
-    });
+  const handleSave = async (msg: { id: string }) => {
     dismissContextMenu();
+    try {
+      if (savedMsgs.has(msg.id)) {
+        await client.delete(`/api/messages/saved/${msg.id}`);
+        setSavedMsgs(prev => { const s = new Set(prev); s.delete(msg.id); return s; });
+        toast.success('Removed from saved');
+      } else {
+        await client.post(`/api/messages/saved/${msg.id}`);
+        setSavedMsgs(prev => new Set([...prev, msg.id]));
+        toast.success('Added to saved messages');
+      }
+    } catch { toast.error('Failed to update saved'); }
   };
   const handleTranslate = async (msg) => {
     dismissContextMenu();

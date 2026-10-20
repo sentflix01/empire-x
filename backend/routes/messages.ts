@@ -20,7 +20,7 @@ import {
 } from '../lib/messaging';
 import {
   emitNewMessage, emitMessageEdited, emitMessageDeleted, emitNotification, emitPresenceUpdated, emitToUser,
-  removeUserFromConversationRoom, emitReactionAdded, emitReactionRemoved,
+  removeUserFromConversationRoom, emitReactionAdded, emitReactionRemoved, emitMessagePinned, emitMessageUnpinned,
 } from '../socket';
 import { sendPushToUser } from './push';
 import logger from '../lib/logger';
@@ -1042,6 +1042,127 @@ router.get('/search', requireAuth, searchLimiter, async (req: Request, res: Resp
     res.set('Cache-Control', 'private, no-store');
     res.json({ messages: rows, total: totalCount, nextPage });
   } catch (err) { fail(res, err, 'search messages'); }
+});
+
+// ── Pin & Save ────────────────────────────────────────────────────────────────
+
+const pinLimiter = perUser(30, "You're pinning too quickly. Wait a moment.");
+const saveLimiter = perUser(60, "You're saving too quickly. Wait a moment.");
+
+/** POST /api/messages/messages/:id/pin — pin a message in its conversation */
+router.post('/messages/:id/pin', requireAuth, pinLimiter, async (req: Request, res: Response) => {
+  try {
+    if (!UUID.test(req.params.id)) { apiError.notFound(res, 'Message not found'); return; }
+    const { rows: [msg] } = await pool.query<{ id: string; conversation_id: string }>(
+      'SELECT id, conversation_id FROM messages WHERE id=$1',
+      [req.params.id],
+    );
+    if (!msg) { apiError.notFound(res, 'Message not found'); return; }
+    const found = await loadForMember(req, res, String(msg.conversation_id)); if (!found) return;
+    const pinnedAt = new Date().toISOString();
+    await pool.query(
+      `INSERT INTO pinned_messages (conversation_id, message_id, pinned_by, pinned_at)
+       VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`,
+      [msg.conversation_id, msg.id, req.user!.id, pinnedAt],
+    );
+    emitMessagePinned(String(msg.conversation_id), {
+      message_id: String(msg.id),
+      pinned_by: String(req.user!.id),
+      pinned_at: pinnedAt,
+      conversation_id: String(msg.conversation_id),
+    });
+    res.status(201).json({ success: true });
+  } catch (err) { fail(res, err, 'pin the message'); }
+});
+
+/** DELETE /api/messages/messages/:id/pin — unpin a message */
+router.delete('/messages/:id/pin', requireAuth, pinLimiter, async (req: Request, res: Response) => {
+  try {
+    if (!UUID.test(req.params.id)) { apiError.notFound(res, 'Message not found'); return; }
+    const { rows: [msg] } = await pool.query<{ id: string; conversation_id: string }>(
+      'SELECT id, conversation_id FROM messages WHERE id=$1',
+      [req.params.id],
+    );
+    if (!msg) { apiError.notFound(res, 'Message not found'); return; }
+    const found = await loadForMember(req, res, String(msg.conversation_id)); if (!found) return;
+    await pool.query(
+      'DELETE FROM pinned_messages WHERE message_id=$1 AND conversation_id=$2',
+      [msg.id, msg.conversation_id],
+    );
+    emitMessageUnpinned(String(msg.conversation_id), {
+      message_id: String(msg.id),
+      conversation_id: String(msg.conversation_id),
+    });
+    res.json({ success: true });
+  } catch (err) { fail(res, err, 'unpin the message'); }
+});
+
+/** GET /api/messages/conversations/:convId/pins — list pinned messages for a conversation */
+router.get('/conversations/:convId/pins', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const found = await loadForMember(req, res, req.params.convId); if (!found) return;
+    const { rows } = await pool.query(
+      `SELECT pm.id, pm.conversation_id, pm.message_id, pm.pinned_by, pm.pinned_at,
+              m.content, m.type, m.sender_id, m.created_at AS message_created_at,
+              up.display_name AS pinned_by_name
+         FROM pinned_messages pm
+         JOIN messages m ON m.id = pm.message_id
+         LEFT JOIN user_profiles up ON up.user_id = pm.pinned_by
+        WHERE pm.conversation_id = $1
+        ORDER BY pm.pinned_at DESC
+        LIMIT 50`,
+      [found.conv.id],
+    );
+    res.set('Cache-Control', 'private, no-store');
+    res.json(rows);
+  } catch (err) { fail(res, err, 'load pinned messages'); }
+});
+
+/** POST /api/messages/saved/:id — save a message */
+router.post('/saved/:id', requireAuth, saveLimiter, async (req: Request, res: Response) => {
+  try {
+    if (!UUID.test(req.params.id)) { apiError.notFound(res, 'Message not found'); return; }
+    const { rows: [msg] } = await pool.query<{ id: string }>(
+      'SELECT id FROM messages WHERE id=$1',
+      [req.params.id],
+    );
+    if (!msg) { apiError.notFound(res, 'Message not found'); return; }
+    await pool.query(
+      'INSERT INTO saved_messages (user_id, message_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [req.user!.id, msg.id],
+    );
+    res.status(201).json({ success: true });
+  } catch (err) { fail(res, err, 'save the message'); }
+});
+
+/** DELETE /api/messages/saved/:id — unsave a message */
+router.delete('/saved/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    if (!UUID.test(req.params.id)) { apiError.notFound(res, 'Message not found'); return; }
+    await pool.query(
+      'DELETE FROM saved_messages WHERE user_id=$1 AND message_id=$2',
+      [req.user!.id, req.params.id],
+    );
+    res.json({ success: true });
+  } catch (err) { fail(res, err, 'unsave the message'); }
+});
+
+/** GET /api/messages/saved — list saved messages for the caller */
+router.get('/saved', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT sm.id, sm.user_id, sm.message_id, sm.saved_at,
+              m.content, m.type, m.sender_id, m.conversation_id, m.created_at AS message_created_at
+         FROM saved_messages sm
+         JOIN messages m ON m.id = sm.message_id
+        WHERE sm.user_id = $1
+        ORDER BY sm.saved_at DESC
+        LIMIT 100`,
+      [req.user!.id],
+    );
+    res.set('Cache-Control', 'private, no-store');
+    res.json(rows);
+  } catch (err) { fail(res, err, 'load saved messages'); }
 });
 
 // ── /api/messages/:id aliases (what the app calls). Registered last so the

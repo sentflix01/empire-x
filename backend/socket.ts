@@ -483,6 +483,26 @@ export function emitReactionRemoved(conversationId: string, payload: ReactionPay
   ioInstance?.to(`conv:${conversationId}`).emit('reaction_removed', payload);
 }
 
+export interface MessagePinnedPayload {
+  message_id: string;
+  pinned_by: string;
+  pinned_at: string;
+  conversation_id: string;
+}
+
+export interface MessageUnpinnedPayload {
+  message_id: string;
+  conversation_id: string;
+}
+
+export function emitMessagePinned(conversationId: string, payload: MessagePinnedPayload): void {
+  ioInstance?.to(`conv:${conversationId}`).emit('message_pinned', payload);
+}
+
+export function emitMessageUnpinned(conversationId: string, payload: MessageUnpinnedPayload): void {
+  ioInstance?.to(`conv:${conversationId}`).emit('message_unpinned', payload);
+}
+
 module.exports = {
   initSocket,
   getIO,
@@ -499,4 +519,6 @@ module.exports = {
   getConversationParticipantIds,
   emitReactionAdded,
   emitReactionRemoved,
+  emitMessagePinned,
+  emitMessageUnpinned,
 };
