@@ -25,6 +25,13 @@ import SafeImage from "@/components/ui/SafeImage";
 import { uploadFile } from '@/lib/uploadFile';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import {
+  enqueuePendingMessage,
+  removePendingMessage,
+  getPendingMessages,
+  getAllPendingMessages,
+  type PendingMessage,
+} from '@/lib/messageSendQueue';
 
 
 
@@ -55,6 +62,9 @@ function ChatRoom() {
   const [conversations, setConversations] = useState([]);
   const [pinnedMsgs, setPinnedMsgs]     = useState<Set<string>>(new Set());
   const [savedMsgs, setSavedMsgs]       = useState<Set<string>>(new Set());
+
+  // Offline queue — pending messages awaiting a network connection
+  const [offlineQueue, setOfflineQueue] = useState<PendingMessage[]>([]);
 
   // Legacy hover state (desktop) — still used to determine visual selection
   const [hoveredMsg, setHoveredMsg]     = useState(null);
@@ -137,6 +147,35 @@ function ChatRoom() {
       } catch { /* ignore */ } finally {
         if (!cancelled) setLoading(false);
       }
+
+      // Restore any messages that were queued while offline
+      if (!cancelled) {
+        getPendingMessages(convId).then((pending) => {
+          if (cancelled) return;
+          setOfflineQueue(pending);
+          // Show queued messages as pending bubbles so the user sees what is
+          // waiting to send.  They are replaced by real messages once the
+          // socket reconnects and flushes the queue.
+          if (pending.length > 0) {
+            setMessages((prev: unknown[]) => [
+              ...prev,
+              ...pending.map((p) => ({
+                id: p.id,
+                conversation_id: p.conversationId,
+                sender_id: user?.id,
+                sender_name: user?.full_name || 'You',
+                content: p.content,
+                type: p.type,
+                created_at: p.createdAt,
+                edited: false,
+                reply_to_id: p.replyToId,
+                _temp: true,
+                _pending: true,
+              })),
+            ]);
+          }
+        }).catch(() => {});
+      }
     }
     init();
 
@@ -218,6 +257,32 @@ function ChatRoom() {
     socket.on('message_pinned', onMessagePinned);
     socket.on('message_unpinned', onMessageUnpinned);
 
+    // On reconnect, flush any messages that were queued while offline
+    const onReconnect = () => {
+      getAllPendingMessages().then((pending) => {
+        pending.forEach((qMsg) => {
+          client
+            .post(`/api/messages/conversations/${qMsg.conversationId}/messages`, {
+              content: qMsg.content,
+              type: qMsg.type,
+              ...(qMsg.replyToId ? { reply_to_id: qMsg.replyToId } : {}),
+            })
+            .then(() => {
+              removePendingMessage(qMsg.id).catch(() => {});
+              setOfflineQueue((prev) => prev.filter((m) => m.id !== qMsg.id));
+              // Remove the pending bubble from the messages list
+              setMessages((prev: unknown[]) =>
+                prev.filter((m) => (m as { id: string }).id !== qMsg.id),
+              );
+            })
+            .catch(() => {
+              // Leave in queue — will retry on next reconnect
+            });
+        });
+      }).catch(() => {});
+    };
+    socket.on('connect', onReconnect);
+
     return () => {
       cancelled = true;
       leaveConversation(convId);
@@ -232,6 +297,7 @@ function ChatRoom() {
       socket.off('reaction_removed', onReactionUpdate);
       socket.off('message_pinned', onMessagePinned);
       socket.off('message_unpinned', onMessageUnpinned);
+      socket.off('connect', onReconnect);
       setTyping(false);
       if (remoteTypingTimer.current) clearTimeout(remoteTypingTimer.current);
     };
@@ -311,7 +377,7 @@ function ChatRoom() {
       return;
     }
 
-    // Optimistic update — add message to UI immediately
+    const replyId = replyingTo?.id || null;
     const tempId = `temp-${Date.now()}`;
     const tempMsg = {
       id: tempId,
@@ -322,13 +388,52 @@ function ChatRoom() {
       type: 'text',
       created_at: new Date().toISOString(),
       edited: false,
-      reply_to_id: replyingTo?.id || null,
+      reply_to_id: replyId,
       _temp: true,
     };
+
+    // ── Offline path ───────────────────────────────────────────────────
+    if (!navigator.onLine) {
+      const pendingBubble = { ...tempMsg, _pending: true };
+      setMessages(prev => [...prev, pendingBubble]);
+      setText('');
+      textRef.current = '';
+      setReplyingTo(null);
+
+      enqueuePendingMessage({
+        conversationId: convId,
+        content,
+        type: 'text',
+        replyToId: replyId,
+        createdAt: pendingBubble.created_at,
+      }).then((queuedId) => {
+        // Replace the temp id with the durable queue id so we can remove it
+        // from both the messages list and the queue when it is eventually sent.
+        setMessages(prev =>
+          prev.map(m => (m as { id: string }).id === tempId ? { ...pendingBubble, id: queuedId } : m),
+        );
+        setOfflineQueue(prev => [
+          ...prev,
+          {
+            id: queuedId,
+            conversationId: convId,
+            content,
+            type: 'text',
+            replyToId: replyId,
+            createdAt: pendingBubble.created_at,
+          },
+        ]);
+      }).catch(() => {
+        // Could not persist — leave as temp bubble, it will disappear on refresh
+      });
+      return;
+    }
+
+    // ── Online path (existing logic) ───────────────────────────────────
+    // Optimistic update — add message to UI immediately
     setMessages(prev => [...prev, tempMsg]);
     setText('');
     textRef.current = '';
-    const replyId = replyingTo?.id || null;
     setReplyingTo(null);
     setSending(true);
     setTyping(false);
@@ -341,7 +446,7 @@ function ChatRoom() {
       });
       // Replace temp message with real one from server
       setMessages(prev => prev.map(m => m.id === tempId ? sent : m));
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Remove optimistic message on failure
       setMessages(prev => prev.filter(m => m.id !== tempId));
       setText(content);
@@ -744,6 +849,8 @@ function ChatRoom() {
               const showSender = (isGroup || isChannel) && !isMe && (!prev || prev.sender_id !== msg.sender_id);
               const isHovered  = hoveredMsg === msg.id;
               const isConfirming = deletingMsg?.id === msg.id;
+              // Pending (offline-queued) messages shown at reduced opacity with ⏳
+              const isPending = Boolean((msg as { _pending?: boolean })._pending);
 
               return (
                 <div
@@ -803,6 +910,7 @@ function ChatRoom() {
                         ? 'rounded-2xl rounded-br-md bg-primary/15 dark:bg-primary/25'
                         : 'rounded-2xl rounded-bl-md bg-card'
                     } ${selectedMsg?.id === msg.id ? 'ring-2 ring-primary/50 scale-[0.98]' : ''} transition-transform`}
+                    style={isPending ? { opacity: 0.5 } : undefined}
                   >
                     {showSender && (
                       <p className="text-xs font-semibold mb-0.5 text-primary">
@@ -836,7 +944,10 @@ function ChatRoom() {
                       <span className="text-[10px] text-muted-foreground">
                         {fmtTime(msg.created_at)}
                       </span>
-                      {isMe && <MessageTicks tick={tickFor(msg, user?.id, members)} />}
+                      {isMe && (isPending
+                        ? <span className="text-[10px]" aria-label="Pending">⏳</span>
+                        : <MessageTicks tick={tickFor(msg, user?.id, members)} />
+                      )}
                     </div>
                   </div>
                   {Object.keys((msg as { reactions?: Record<string, number> }).reactions ?? {}).length > 0 && (
