@@ -5,6 +5,9 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-22 | Bugfix | fix(messages): fix duplicate chats, missing business names, ghost convs on nav | [bdefe3c6a](2026-10-22-bdefe3c6a-fix-duplicate-chats-missing-business-names-ghost.md) |
+| 2026-10-22 | Maintenance | Merge pull request #139: fix(messages): server rules, notifications, live events (messaging audit 1/7) | [0ee189153](2026-10-22-0ee189153-merge-pull-request-139-fix-messages-server-rules.md) |
+| 2026-10-22 | Bugfix | fix(messages): merge origin/main into messaging-backend (resolve conflicts) | [9c6f000d8](2026-10-22-9c6f000d8-merge-origin-main-into-messaging-backend-resolve.md) |
 | 2026-10-22 | Bugfix | fix(messages): restore sort toggle + online indicator on contact cards | [097641703](2026-10-22-097641703-restore-sort-toggle-online-indicator-on-contact-.md) |
 | 2026-10-22 | Feature | feat: shared UserIdentity + messaging UX polish on all devices | [4063ef34f](2026-10-22-4063ef34f-shared-useridentity-messaging-ux-polish-on-all-d.md) |
 | 2026-10-22 | Feature | feat: add UserIdentity component and roll out to all display sites | [b20113f26](2026-10-22-b20113f26-add-useridentity-component-and-roll-out-to-all-d.md) |
@@ -35,6 +38,7 @@
 | 2026-10-19 | Feature | feat(onboarding): add responsive page guided tours (#142) | [b1334ffd4](2026-10-19-b1334ffd4-add-responsive-page-guided-tours-142.md) |
 | 2026-10-19 | Maintenance | Merge pull request #141 from sentflix01/codex/ai-tour-guide | [2c9cbe148](2026-10-19-2c9cbe148-merge-pull-request-141-from-sentflix01-codex-ai-.md) |
 | 2026-10-19 | Feature | feat(ai): add conversational in-app tour | [fa3399e97](2026-10-19-fa3399e97-add-conversational-in-app-tour.md) |
+| 2026-10-18 | Bugfix | fix(messages): server rules, notifications, live events (messaging audit part 1) | [4bdfb9cc0](2026-10-18-4bdfb9cc0-server-rules-notifications-live-events-messaging.md) |
 | 2026-10-18 | Maintenance | Merge pull request #137 from sentflix01/claude/scan-products | [9835747d2](2026-10-18-9835747d2-merge-pull-request-137-from-sentflix01-claude-sc.md) |
 | 2026-10-18 | Feature | feat(products): scan a barcode or QR code to add products, and quick scan mode | [5692c6e8b](2026-10-18-5692c6e8b-scan-a-barcode-or-qr-code-to-add-products-and-qu.md) |
 | 2026-10-18 | Bugfix | fix(products): don't cache an unreachable open database as "not found" | [a9d42e132](2026-10-18-a9d42e132-don-t-cache-an-unreachable-open-database-as-not-.md) |
