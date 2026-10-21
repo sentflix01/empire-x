@@ -6,7 +6,7 @@ interface MessageReactionsProps {
   onReact: (emoji: string) => void;
 }
 
-/** Renders per-message emoji reaction pills. Tap a pill to react/toggle. */
+/** Renders per-message emoji reaction pills below the bubble. */
 export default function MessageReactions({ reactions, messageId: _messageId, onReact }: MessageReactionsProps) {
   const entries = Object.entries(reactions);
   if (entries.length === 0) return null;
@@ -17,8 +17,7 @@ export default function MessageReactions({ reactions, messageId: _messageId, onR
         <button
           key={emoji}
           onClick={() => onReact(emoji)}
-          className="inline-flex items-center gap-0.5 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium transition-colors hover:bg-secondary/80 active:scale-95"
-          style={{ color: 'hsl(var(--foreground))' }}
+          className="inline-flex min-h-8 items-center gap-0.5 rounded-full bg-secondary px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary/80 active:scale-95"
           aria-label={`React with ${emoji}, ${count} ${count === 1 ? 'reaction' : 'reactions'}`}
         >
           <span aria-hidden="true">{emoji}</span>

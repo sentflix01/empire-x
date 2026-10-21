@@ -347,6 +347,13 @@ html {
   transform: rotateY(180deg);
 }
 
+/* New-message bubble entrance — disabled by the prefers-reduced-motion guard below. */
+@keyframes msg-bubble-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+.animate-bubble-in { animation: msg-bubble-in 0.18s ease-out; }
+
 /* Respect users who request reduced motion: neutralise animations, transitions
    and smooth scrolling app-wide (context-menu slide, send scale, typing dots,
    bubble entrance, marquee, AI orb). FEAT-002's bubble-in is also covered. */

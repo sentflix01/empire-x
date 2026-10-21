@@ -13,7 +13,7 @@ import OrderUpdateBubble from "@/components/messaging/OrderUpdateBubble";
 import {
   ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
   CornerUpLeft, Check, ShieldOff, History, ImagePlus, Forward,
-  Copy, UserCircle, Pin, Bookmark, Languages, Search,
+  Copy, UserCircle, Pin, Bookmark, Languages, Search, ChevronDown,
 } from "lucide-react";
 import { fmtTime, fmtLongDate } from "@/lib/date";
 import { parseISO, isToday, isYesterday, format as fmtDate } from "date-fns";
@@ -22,6 +22,7 @@ import { formatLastSeen, isUserOnline } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
 import { useChatPresence } from "@/lib/useChatPresence";
 import SafeImage from "@/components/ui/SafeImage";
+import { cn } from "@/lib/utils";
 import { uploadFile } from '@/lib/uploadFile';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
@@ -63,7 +64,9 @@ function ChatRoom() {
   const [pinnedMsgs, setPinnedMsgs]     = useState<Set<string>>(new Set());
   const [savedMsgs, setSavedMsgs]       = useState<Set<string>>(new Set());
 
-  // Offline queue — pending messages awaiting a network connection
+  // Offline queue — pending messages awaiting a network connection.
+  // The value is unused today; the setters still maintain pending-send bookkeeping.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [offlineQueue, setOfflineQueue] = useState<PendingMessage[]>([]);
 
   // Legacy hover state (desktop) — still used to determine visual selection
@@ -92,6 +95,10 @@ function ChatRoom() {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remoteTypingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nearBottomRef = useRef(true);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
+  const [liveAnnouncement, setLiveAnnouncement] = useState('');
 
   useChatPresence(Boolean(user));
 
@@ -99,6 +106,19 @@ function ChatRoom() {
     if (!id) return;
     getSocket().emit('typing', { conversationId: id, isTyping });
   }, [id]);
+
+  const handleMessagesScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    nearBottomRef.current = near;
+    setShowScrollBtn(!near);
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    nearBottomRef.current = true;
+    setShowScrollBtn(false);
+  }, []);
 
   // ── Load conversation + messages ──────────────────────────────────────────
   const loadMessages = useCallback(async () => {
@@ -146,6 +166,9 @@ function ChatRoom() {
         }
       } catch { /* ignore */ } finally {
         if (!cancelled) setLoading(false);
+        if (!cancelled && typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches) {
+          inputRef.current?.focus({ preventScroll: true });
+        }
       }
 
       // Restore any messages that were queued while offline
@@ -191,6 +214,11 @@ function ChatRoom() {
           const withoutTemp = prev.filter(m => !(m._temp && m.sender_id === msg.sender_id && m.content === msg.content));
           return [...withoutTemp, msg];
         });
+        if (String(msg.sender_id) !== String(user?.id) && typeof document !== 'undefined' && document.visibilityState === 'visible') {
+          const who = msg.sender_name || 'New message';
+          const snippetText = msg.type === 'image' ? 'photo' : String(msg.content || '').slice(0, 60);
+          setLiveAnnouncement(`${who}: ${snippetText}`);
+        }
       }
     };
     const onEdited = (msg) => {
@@ -357,7 +385,7 @@ function ChatRoom() {
   }, [id]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (nearBottomRef.current) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
   // Focus input when reply/edit changes
   useEffect(() => {
@@ -734,11 +762,12 @@ function ChatRoom() {
   return (
     <>
     <div className="flex flex-col h-[calc(100dvh-3.5rem)] overflow-hidden">
+      <span className="sr-only" aria-live="polite">{liveAnnouncement}</span>
 
       {/* Header */}
-      <div data-page-guide="chat-header" className="px-4 py-2.5 flex items-center gap-3 shrink-0 shadow-sm z-10" style={{ backgroundColor: 'hsl(var(--primary))' }}>
-        <button onClick={handleBack} className="p-1 rounded-full hover:bg-white/10 transition-colors">
-          <ArrowLeft className="w-5 h-5 text-white" />
+      <div data-page-guide="chat-header" className="px-2 sm:px-4 py-2.5 flex items-center gap-2 sm:gap-3 shrink-0 shadow-sm z-10 bg-primary">
+        <button onClick={handleBack} aria-label="Back" className="inline-flex size-11 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0">
+          <ArrowLeft className="w-5 h-5" />
         </button>
 
         {/* Avatar — clickable → profile (DM only) */}
@@ -746,7 +775,7 @@ function ChatRoom() {
           className={`relative shrink-0 ${isDm && otherUserId ? 'cursor-pointer' : ''}`}
           onClick={() => { if (isDm && otherUserId) router.push(`/profile/${otherUserId}`); }}
         >
-          <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-white font-semibold" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex items-center justify-center text-white font-semibold bg-white/20">
             {isChannel ? <Radio className="w-5 h-5" /> : isGroup ? <Users className="w-5 h-5" /> : (
               <SafeImage src={otherAvatarUrl} alt={getDisplayName()} className="h-full w-full object-cover" fallback={avatarLetter} />
             )}
@@ -769,18 +798,18 @@ function ChatRoom() {
         {/* Search button */}
         <button
           onClick={() => setShowSearch(true)}
-          className="p-1 rounded-full hover:bg-white/10 transition-colors"
           aria-label="Search messages"
+          className="inline-flex size-11 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0"
         >
-          <Search className="w-5 h-5 text-white" />
+          <Search className="w-5 h-5" />
         </button>
 
         {/* "..." menu */}
         <div className="relative">
-          <button onClick={() => setHeaderMenuOpen(v => !v)} className="p-1 rounded-full hover:bg-white/10 transition-colors">
-            <MoreVertical className="w-5 h-5 text-white" />
+          <button onClick={() => setHeaderMenuOpen(v => !v)} aria-label="More options" className="inline-flex size-11 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0">
+            <MoreVertical className="w-5 h-5" />
           </button>          {headerMenuOpen && (
-            <div className="absolute top-full right-0 mt-1 w-52 bg-card rounded-2xl shadow-lg border border-border/30 z-50 overflow-hidden">
+            <div className="absolute top-full end-0 mt-1 w-52 bg-card rounded-2xl shadow-lg border border-border/30 z-50 overflow-hidden">
               {/* DM: View Profile */}
               {isDm && otherUserId && (
                 <button
@@ -813,175 +842,210 @@ function ChatRoom() {
       </div>
 
       {/* Messages area */}
-      <div
-        data-page-guide="chat-messages"
-        className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5"
-        style={{ backgroundColor: 'hsl(var(--chat-bg))' }}
-        onClick={() => { setHeaderMenuOpen(false); setHoveredMsg(null); dismissContextMenu(); }}
-      >
-        {loading && (
-          <div className="flex justify-center py-8">
-            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          </div>
-        )}
-
-        {!loading && grouped.length === 0 && (
-          <div className="flex items-center justify-center h-full">
-            <div className="bg-black/10 backdrop-blur-sm rounded-2xl px-6 py-3 text-center">
-              <p className="text-sm text-foreground/80">
-                {isBlocked ? 'You have blocked this user.' : 'No messages yet. Say hello!'}
-              </p>
+      <div className="relative flex-1 overflow-hidden">
+        <div
+          data-page-guide="chat-messages"
+          className="h-full overflow-y-auto px-3 py-4 space-y-0.5 bg-[hsl(var(--chat-bg))]"
+          role="log"
+          aria-label="Conversation messages"
+          onScroll={handleMessagesScroll}
+          onClick={() => { setHeaderMenuOpen(false); setHoveredMsg(null); dismissContextMenu(); }}
+        >
+          {loading && (
+            <div className="flex justify-center py-8">
+              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             </div>
-          </div>
-        )}
+          )}
 
-        {grouped.map(([dateKey, msgs]) => (
-          <div key={dateKey}>
-            <div className="flex justify-center my-3">
-              <span className="bg-black/10 backdrop-blur-sm text-foreground/80 text-xs font-medium px-3 py-1 rounded-full">
-                {dateLabel(dateKey)}
-              </span>
+          {!loading && grouped.length === 0 && (
+            <div className="flex items-center justify-center h-full">
+              <div className="bg-card shadow-sm rounded-2xl px-6 py-3 text-center">
+                <p className="text-sm text-foreground/80">
+                  {isBlocked ? 'You have blocked this user.' : 'No messages yet. Say hello!'}
+                </p>
+              </div>
             </div>
+          )}
 
-            {(msgs as any[]).map((msg, idx) => {
-              const isMe = msg.sender_id === user?.id;
-              const prev = msgs[idx - 1] as any;
-              const showSender = (isGroup || isChannel) && !isMe && (!prev || prev.sender_id !== msg.sender_id);
-              const isHovered  = hoveredMsg === msg.id;
-              const isConfirming = deletingMsg?.id === msg.id;
-              // Pending (offline-queued) messages shown at reduced opacity with ⏳
-              const isPending = Boolean((msg as { _pending?: boolean })._pending);
+          {grouped.map(([dateKey, msgs]) => (
+            <div key={dateKey}>
+              <div className="flex justify-center my-3">
+                <span className="bg-card text-muted-foreground shadow-sm text-xs font-medium px-3 py-1 rounded-full">
+                  {dateLabel(dateKey)}
+                </span>
+              </div>
 
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-0.5 relative group`}
-                  onMouseEnter={() => setHoveredMsg(msg.id)}
-                  onMouseLeave={() => setHoveredMsg(null)}
-                  /* Long-press for mobile */
-                  onTouchStart={(e) => { e.stopPropagation(); startLongPress(msg); }}
-                  onTouchEnd={cancelLongPress}
-                  onTouchMove={cancelLongPress}
-                  /* Desktop: right-click context menu */
-                  onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedMsg(msg); }}
-                  /* Desktop: click outside closes menu (handled by messages area onClick) */
-                >
-                  {/* Desktop hover quick-actions (hidden on touch screens) */}
-                  {isHovered && !selectedMsg && (
-                    <div className={`hidden sm:flex absolute top-0 items-center gap-1 z-10 ${isMe ? 'right-full mr-2' : 'left-full ml-2'}`}>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleContextReply(msg); }}
-                        className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
-                        title="Reply"
-                      >
-                        <CornerUpLeft className="w-3.5 h-3.5 text-foreground" />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleContextForward(msg); }}
-                        className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
-                        title="Forward"
-                      >
-                        <Forward className="w-3.5 h-3.5 text-foreground" />
-                      </button>
-                      {isMe && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleContextEdit(msg); }}
-                          className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
-                          title="Edit"
-                        >
-                          <Pencil className="w-3.5 h-3.5 text-foreground" />
-                        </button>
-                      )}
-                      {isMe && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleContextDelete(msg); }}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors border ${isConfirming ? 'bg-red-500 hover:bg-red-600 border-red-500 text-white' : 'bg-secondary/80 hover:bg-secondary border-border/50 text-foreground'}`}
-                          title={isConfirming ? 'Click again to confirm delete' : 'Delete'}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  )}
+              {(msgs as any[]).map((msg, idx) => {
+                const isMe = msg.sender_id === user?.id;
+                const prev = msgs[idx - 1] as any;
+                const showSender = (isGroup || isChannel) && !isMe && (!prev || prev.sender_id !== msg.sender_id);
+                const isHovered  = hoveredMsg === msg.id;
+                const isConfirming = deletingMsg?.id === msg.id;
+                const isPending = Boolean((msg as { _pending?: boolean })._pending);
 
+                return (
                   <div
-                    className={`relative max-w-[80%] px-3 py-1.5 text-sm shadow-sm select-none ${
-                      isMe
-                        ? 'rounded-2xl rounded-br-md bg-primary/15 dark:bg-primary/25'
-                        : 'rounded-2xl rounded-bl-md bg-card'
-                    } ${selectedMsg?.id === msg.id ? 'ring-2 ring-primary/50 scale-[0.98]' : ''} transition-transform`}
-                    style={isPending ? { opacity: 0.5 } : undefined}
+                    key={msg.id}
+                    className={cn('flex mb-0.5 items-end gap-1.5', isMe ? 'justify-end' : 'justify-start')}
+                    onMouseEnter={() => setHoveredMsg(msg.id)}
+                    onMouseLeave={() => setHoveredMsg(null)}
+                    onTouchStart={(e) => { e.stopPropagation(); startLongPress(msg); }}
+                    onTouchEnd={cancelLongPress}
+                    onTouchMove={cancelLongPress}
+                    onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedMsg(msg); }}
                   >
-                    {showSender && (
-                      <p className="text-xs font-semibold mb-0.5 text-primary">
-                        {msg.sender_name}
-                      </p>
+                    {/* Leading avatar/spacer for incoming group + channel messages */}
+                    {!isMe && (isGroup || isChannel) && (
+                      showSender ? (
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-primary-foreground text-xs font-semibold shrink-0 bg-primary">
+                          {String(msg.sender_name || '?').charAt(0).toUpperCase()}
+                        </div>
+                      ) : (
+                        <div className="w-8 shrink-0" />
+                      )
                     )}
 
-                    {/* Reply quote */}
-                    {msg.reply_to_id && (
-                      <div className={`border-l-2 pl-2 mb-1 rounded-r ${isMe ? 'border-amber-500' : 'border-blue-400'}`}>
-                        <p className="text-[10px] text-muted-foreground italic truncate">
-                          {messages.find(m => m.id === msg.reply_to_id)?.content || 'Quoted message'}
-                        </p>
-                      </div>
-                    )}
-
-                    {msg.type === 'image' ? (
-                      <SafeImage src={msg.content} alt="Shared image" className="max-h-72 max-w-full rounded-xl object-cover" />
-                    ) : msg.type === 'product' ? (
-                      <ProductMessageBubble metadata={(msg as { metadata?: Record<string, unknown> }).metadata ?? {}} isMe={isMe} />
-                    ) : msg.type === 'order_update' ? (
-                      <OrderUpdateBubble metadata={(msg as { metadata?: Record<string, unknown> }).metadata ?? {}} isMe={isMe} />
-                    ) : (
-                      <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
-                    )}
-
-                    <div className="flex items-center justify-end gap-1 mt-0.5 -mb-0.5">
-                      {msg.edited && (
-                        <span className="text-[10px] text-muted-foreground italic">edited</span>
+                    <div className={cn('relative group flex flex-col gap-0.5 max-w-[75%] md:max-w-[60%]', isMe ? 'items-end' : 'items-start')}>
+                      {/* Desktop hover quick-actions (hidden on touch screens) */}
+                      {isHovered && !selectedMsg && (
+                        <div className={cn('hidden sm:flex absolute top-0 items-center gap-1 z-10', isMe ? 'end-full me-2' : 'start-full ms-2')}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleContextReply(msg); }}
+                            className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
+                            title="Reply"
+                          >
+                            <CornerUpLeft className="w-3.5 h-3.5 text-foreground" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleContextForward(msg); }}
+                            className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
+                            title="Forward"
+                          >
+                            <Forward className="w-3.5 h-3.5 text-foreground" />
+                          </button>
+                          {isMe && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleContextEdit(msg); }}
+                              className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
+                              title="Edit"
+                            >
+                              <Pencil className="w-3.5 h-3.5 text-foreground" />
+                            </button>
+                          )}
+                          {isMe && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleContextDelete(msg); }}
+                              className={cn('w-7 h-7 rounded-full flex items-center justify-center transition-colors border', isConfirming ? 'bg-red-500 hover:bg-red-600 border-red-500 text-white' : 'bg-secondary/80 hover:bg-secondary border-border/50 text-foreground')}
+                              title={isConfirming ? 'Click again to confirm delete' : 'Delete'}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       )}
-                      <span className="text-[10px] text-muted-foreground">
-                        {fmtTime(msg.created_at)}
-                      </span>
-                      {isMe && (isPending
-                        ? <span className="text-[10px]" aria-label="Pending">⏳</span>
-                        : <MessageTicks tick={tickFor(msg, user?.id, members)} />
+
+                      <div
+                        className={cn(
+                          'text-sm shadow-sm select-none rounded-2xl',
+                          msg.type === 'image' ? 'p-1' : 'px-3 py-1.5',
+                          isMe ? 'rounded-br-md bg-primary/15 dark:bg-primary/25' : 'rounded-bl-md bg-card',
+                          selectedMsg?.id === msg.id && 'ring-2 ring-primary/50 scale-[0.98]',
+                          'transition-transform animate-bubble-in',
+                        )}
+                        style={isPending ? { opacity: 0.5 } : undefined}
+                      >
+                        {showSender && (
+                          <p className="text-xs font-semibold mb-0.5 text-primary">
+                            {msg.sender_name}
+                          </p>
+                        )}
+
+                        {/* Reply quote */}
+                        {msg.reply_to_id && (
+                          <div className={cn('border-s-2 ps-2 mb-1 rounded-s', isMe ? 'border-amber-500' : 'border-blue-400')}>
+                            <p className="text-[10px] text-muted-foreground italic truncate">
+                              {messages.find(m => m.id === msg.reply_to_id)?.content || 'Quoted message'}
+                            </p>
+                          </div>
+                        )}
+
+                        {msg.type === 'image' ? (
+                          <SafeImage fill={false} src={msg.content} alt="Shared image" width={320} height={240} className="block max-h-72 w-full h-auto rounded-xl object-cover cursor-zoom-in" onClick={() => setFullscreenImage(msg.content)} />
+                        ) : msg.type === 'product' ? (
+                          <ProductMessageBubble metadata={(msg as { metadata?: Record<string, unknown> }).metadata ?? {}} isMe={isMe} />
+                        ) : msg.type === 'order_update' ? (
+                          <OrderUpdateBubble metadata={(msg as { metadata?: Record<string, unknown> }).metadata ?? {}} isMe={isMe} />
+                        ) : (
+                          <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
+                        )}
+
+                        <div className={cn('flex items-center justify-end gap-1', msg.type === 'image' ? 'px-2 pb-1' : 'mt-0.5 -mb-0.5')}>
+                          {msg.edited && (
+                            <span className="text-[10px] text-muted-foreground italic">edited</span>
+                          )}
+                          <span className="text-[10px] text-muted-foreground">
+                            {fmtTime(msg.created_at)}
+                          </span>
+                          {isMe && (isPending
+                            ? <span className="text-[10px]" aria-label="Pending">⏳</span>
+                            : <MessageTicks tick={tickFor(msg, user?.id, members)} />
+                          )}
+                        </div>
+                      </div>
+                      {Object.keys((msg as { reactions?: Record<string, number> }).reactions ?? {}).length > 0 && (
+                        <MessageReactions
+                          reactions={(msg as { reactions: Record<string, number> }).reactions}
+                          messageId={(msg as { id: string }).id}
+                          onReact={(emoji) => handleReact(msg, emoji)}
+                        />
                       )}
                     </div>
                   </div>
-                  {Object.keys((msg as { reactions?: Record<string, number> }).reactions ?? {}).length > 0 && (
-                    <MessageReactions
-                      reactions={(msg as { reactions: Record<string, number> }).reactions}
-                      messageId={(msg as { id: string }).id}
-                      onReact={(emoji) => handleReact(msg, emoji)}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-        <div ref={bottomRef} />
+                );
+              })}
+            </div>
+          ))}
+          {otherTyping && (
+            <div className="flex justify-start mb-0.5" aria-live="polite">
+              <div className="bg-card rounded-2xl rounded-bl-md px-3 py-2 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="sr-only">typing…</span>
+              </div>
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+        {showScrollBtn && (
+          <button
+            type="button"
+            onClick={scrollToBottom}
+            aria-label="Scroll to bottom"
+            className="absolute bottom-4 end-4 z-10 size-11 rounded-full bg-card shadow-lg border border-border flex items-center justify-center"
+          >
+            <ChevronDown className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Input area */}
       {!canSend ? (
-        <div className="bg-card border-t border-border/30 px-4 py-4 flex items-center justify-center shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="bg-card border-t border-border/30 px-4 py-4 flex items-center justify-center shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))] text-muted-foreground">
           <p className="text-sm text-muted-foreground">
             {isBlocked ? '🚫 You have blocked this user.' : '🔊 Only admins can post in this channel.'}
           </p>
         </div>
       ) : (
-        <div className="bg-card border-t border-border/30 shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="bg-card border-t border-border/30 shrink-0">
           {/* Reply preview */}
           {replyingTo && !editingMsg && (
             <div className="flex items-start gap-2 px-4 py-2 border-b border-border/20 bg-secondary/30">
-              <div className="border-l-2 border-primary pl-2 flex-1 min-w-0">
+              <div className="border-s-2 border-primary ps-2 flex-1 min-w-0">
                 <p className="text-xs font-semibold text-primary">Reply to {replyingTo.sender_name || 'message'}</p>
                 <p className="text-xs text-muted-foreground truncate">{replyingTo.content}</p>
               </div>
-              <button onClick={() => setReplyingTo(null)} className="p-1 hover:bg-secondary rounded">
+              <button onClick={() => setReplyingTo(null)} aria-label="Cancel reply" className="inline-flex min-h-8 size-8 items-center justify-center rounded hover:bg-secondary">
                 <X className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
@@ -991,17 +1055,17 @@ function ChatRoom() {
           {editingMsg && (
             <div className="flex items-center gap-2 px-4 py-2 border-b border-border/20 bg-amber-50 dark:bg-amber-900/20">
               <Pencil className="w-4 h-4 text-amber-600 shrink-0" />
-              <p className="text-xs font-semibold text-amber-700 flex-1">Editing message</p>
-              <button onClick={() => { setEditingMsg(null); setEditText(''); }} className="p-1 hover:bg-amber-100 rounded">
-                <X className="w-4 h-4 text-amber-600" />
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 flex-1">Editing message</p>
+              <button onClick={() => { setEditingMsg(null); setEditText(''); }} aria-label="Cancel edit" className="inline-flex min-h-8 size-8 items-center justify-center rounded hover:bg-amber-100 dark:hover:bg-amber-900/30">
+                <X className="w-4 h-4 text-amber-600 dark:text-amber-300" />
               </button>
             </div>
           )}
 
           {/* Text input row */}
-          <div className="px-3 py-2 flex items-end gap-2 sm:px-4" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
+          <div className="px-3 py-2 flex items-end gap-2 sm:px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
             <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-            <button data-page-guide="chat-attachments" type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage || sending} className="h-11 w-11 shrink-0 rounded-full text-primary hover:bg-primary/10 disabled:opacity-40" aria-label="Send picture">
+            <button data-page-guide="chat-attachments" type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage || sending} className="h-11 w-11 shrink-0 rounded-full text-primary hover:bg-primary/10 disabled:opacity-40" aria-label="Attach image">
               {uploadingImage ? <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" /> : <ImagePlus className="mx-auto h-5 w-5" />}
             </button>
             <div data-page-guide="chat-input" className="flex-1 bg-secondary rounded-2xl px-4 py-2 flex items-center min-h-11 border border-transparent focus-within:border-primary/30 focus-within:ring-2 focus-within:ring-primary/10">
@@ -1018,6 +1082,8 @@ function ChatRoom() {
                     if (typingTimer.current) clearTimeout(typingTimer.current);
                     typingTimer.current = setTimeout(() => setTyping(false), 1500);
                   }
+                  const el = inputRef.current;
+                  if (el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 96) + 'px'; }
                 }}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
@@ -1034,10 +1100,11 @@ function ChatRoom() {
             </div>
             <button
               onClick={handleSend}
-              className={`w-11 h-11 rounded-full flex items-center justify-center text-white shrink-0 transition-transform active:scale-90 outline-none focus:outline-none ${
-                (!(editingMsg ? editText.trim() : text.trim()) || sending) ? 'opacity-40' : 'opacity-100'
-              }`}
-              style={{ backgroundColor: 'hsl(var(--primary))' }}
+              aria-label={editingMsg ? 'Save edit' : 'Send message'}
+              className={cn(
+                'w-11 h-11 rounded-full flex items-center justify-center text-primary-foreground shrink-0 transition-transform active:scale-90 outline-none focus:outline-none bg-primary',
+                (!(editingMsg ? editText.trim() : text.trim()) || sending) ? 'opacity-40' : 'opacity-100',
+              )}
             >
               {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
             </button>
@@ -1055,8 +1122,7 @@ function ChatRoom() {
         {/* Sheet — slides up from bottom */}
         <div className="fixed bottom-0 left-0 right-0 z-[61] animate-in slide-in-from-bottom-4 duration-200">
           <div
-            className="max-w-lg mx-auto rounded-t-3xl shadow-2xl overflow-hidden"
-            style={{ backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }}
+            className="max-w-lg mx-auto rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto bg-card text-foreground"
           >
             {/* ── Message preview strip ── */}
             <div
@@ -1088,8 +1154,7 @@ function ChatRoom() {
               {/* More reactions */}
               <button
                 onClick={() => toast('More reactions coming soon')}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-lg transition-colors"
-                style={{ backgroundColor: 'hsl(var(--secondary))' }}
+                className="size-11 rounded-full flex items-center justify-center text-lg transition-colors bg-secondary"
               >
                 ＋
               </button>
@@ -1165,7 +1230,8 @@ function ChatRoom() {
 
     {/* ── Forward Message Modal ─────────────────────────────────────────── */}
     {forwardMsg && (
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-4">        <div className="bg-card rounded-2xl w-full max-w-sm shadow-xl border border-border/50 overflow-hidden">
+      <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
+        <div role="dialog" aria-label="Forward message" className="h-full sm:h-auto sm:max-h-[90vh] w-full sm:max-w-sm rounded-none sm:rounded-2xl bg-card shadow-xl border border-border/50 flex flex-col overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
             <div className="flex items-center gap-2">
@@ -1173,7 +1239,7 @@ function ChatRoom() {
               <p className="font-semibold text-sm">Forward message</p>
             </div>
             <button onClick={() => { setForwardMsg(null); setForwardSearch(''); }}
-              className="p-1.5 rounded-full hover:bg-secondary transition-colors">
+              aria-label="Close forward" className="size-9 min-h-9 rounded-full hover:bg-secondary transition-colors flex items-center justify-center">
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>
@@ -1192,7 +1258,7 @@ function ChatRoom() {
             />
           </div>
           {/* Conversation list */}
-          <div className="px-2 py-2 max-h-64 overflow-y-auto space-y-0.5">
+          <div className="flex-1 min-h-0 overflow-y-auto px-2 py-2 space-y-0.5">
             {conversations
               .filter(c => c.id !== (id || conversation?.id))
               .filter(c => {
@@ -1232,6 +1298,14 @@ function ChatRoom() {
         </div>
       </div>
     )}
+    {fullscreenImage && (
+      <div className="fixed inset-0 z-[70] bg-black/90 flex items-center justify-center" role="dialog" aria-label="Image preview" onClick={() => setFullscreenImage(null)}>
+        <SafeImage fill={false} src={fullscreenImage} alt="Image preview" className="max-h-full max-w-full object-contain" />
+        <button type="button" onClick={(e) => { e.stopPropagation(); setFullscreenImage(null); }} aria-label="Close image preview" className="absolute top-4 end-4 size-11 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+    )}
     {showSearch && (
       <MessageSearch conversationId={id} onClose={() => setShowSearch(false)} />
     )}
@@ -1249,12 +1323,9 @@ function CtxItem({ icon, label, onClick, destructive = false }: {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-4 w-full px-5 py-3.5 text-sm font-medium transition-colors active:scale-[0.98] text-left"
-      style={{ color: destructive ? '#ef4444' : 'hsl(var(--foreground))' }}
-      onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary)/0.6)')}
-      onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+      className={cn('flex items-center gap-4 w-full px-5 py-3.5 text-sm font-medium text-left hover:bg-secondary/60 active:scale-[0.98]', destructive && 'text-destructive')}
     >
-      <span style={{ color: destructive ? '#ef4444' : 'hsl(var(--muted-foreground))' }}>{icon}</span>
+      <span className={destructive ? 'text-destructive' : 'text-muted-foreground'}>{icon}</span>
       {label}
     </button>
   );
