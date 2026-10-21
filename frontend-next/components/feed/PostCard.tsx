@@ -715,7 +715,11 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                     <span className="text-muted-foreground text-[10px] select-none" aria-hidden="true">|</span>
                   )}
                   <Link
-                    href={`/profile/${post.author_id}?view=business`}
+                    href={
+                      (b.business_slug ?? (b as { slug?: string }).slug)
+                        ? `/showroom/${b.business_slug ?? (b as { slug?: string }).slug}`
+                        : `/profile/${post.author_id}?view=business`
+                    }
                     className="text-[10px] text-muted-foreground font-medium hover:text-primary hover:underline flex items-center gap-0.5"
                   >
                     <Store className="w-2.5 h-2.5 text-primary" />{b.business_name}

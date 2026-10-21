@@ -13,6 +13,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import ProfilePeek from "@/components/profile/ProfilePeek";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import UserIdentity from '@/components/ui/UserIdentity';
 
 // Leaflet modules — assigned after dynamic import inside loadLeaflet()
 // We CANNOT use require() or static import because Turbopack processes CSS imports at build time
@@ -133,22 +134,20 @@ function MarkerHoverCard({ data, onClose: _onClose }) {
       >
         <div style={{ height:3, background:accentColor, borderRadius:"12px 12px 0 0" }} />
 
-        <div className="flex items-center gap-2.5 px-3 pt-2.5 pb-2">
-          <div className="w-9 h-9 rounded-xl shrink-0 overflow-hidden flex items-center justify-center text-white font-bold text-sm"
-            style={{ background:`linear-gradient(135deg, ${accentColor}cc, ${accentColor})` }}>
-            {profile?.avatar_url
-              ? <Image src={profile.avatar_url} alt={`${data.name || 'User'}'s avatar`} width={40} height={40} className="w-full h-full object-cover" unoptimized />
-              : (data.name?.charAt(0) ?? "?")}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold truncate leading-tight">{data.name}</p>
-            {data.category && <p className="text-[10px] text-muted-foreground truncate">{data.category}</p>}
-            {data.distanceKm != null && (
-              <p className="text-[10px] font-semibold" style={{ color:accentColor }}>
-                📍 {data.distanceKm < 1 ? `${Math.round(data.distanceKm*1000)}m` : `${data.distanceKm.toFixed(1)} km`} away
-              </p>
-            )}
-          </div>
+        <div className="px-3 pt-2.5 pb-2">
+          <UserIdentity
+            size="sm"
+            displayName={data.name ?? '?'}
+            avatarUrl={profile?.avatar_url ?? null}
+            businessName={data.category ?? null}
+            subtitle={
+              data.distanceKm != null
+                ? data.distanceKm < 1
+                  ? `${Math.round(data.distanceKm * 1000)}m away`
+                  : `${data.distanceKm.toFixed(1)} km away`
+                : undefined
+            }
+          />
         </div>
 
         {loading ? (

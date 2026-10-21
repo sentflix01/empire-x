@@ -11,6 +11,21 @@ import { fromNow } from "@/lib/date";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import UserIdentity from '@/components/ui/UserIdentity';
+
+// ── Notification item type ────────────────────────────────────────────────────
+interface NotificationItem {
+  id: string;
+  title: string;
+  body?: string | null;
+  type: string;
+  created_at: string;
+  is_read: boolean;
+  link?: string | null;
+  actor_name?: string | null;
+  actor_avatar?: string | null;
+  group_count?: number | null;
+}
 
 const TYPE_ICONS = {
   like:        Heart,
@@ -34,7 +49,7 @@ const TYPE_COLORS = {
 
 function NotificationsView() {
   const { t } = useTranslation();
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, authChecked } = useAuth();
   const [markingAll, setMarkingAll] = useState(false);
@@ -54,14 +69,14 @@ function NotificationsView() {
   useEffect(() => {
     connectSocket();
     const s = getSocket();
-    const handler = (notif) => {
+    const handler = (notif: NotificationItem) => {
       setNotifications(prev => [notif, ...prev]);
     };
     s.on("new_notification", handler);
     return () => { s.off("new_notification", handler); };
   }, []);
 
-  const loadNotifications = async (currentUser) => {
+  const loadNotifications = async (currentUser: { id?: string } | null | undefined) => {
     const u = currentUser || user;
     if (!u) return;
     try {
@@ -74,7 +89,7 @@ function NotificationsView() {
     setLoading(false);
   };
 
-  const markRead = async (notif) => {
+  const markRead = async (notif: NotificationItem) => {
     if (!notif.is_read) {
       try {
         await client.put(`/api/notifications/${notif.id}/read`);
@@ -115,7 +130,7 @@ function NotificationsView() {
     setMarkingAll(false);
   };
 
-  const deleteNotif = async (e, id) => {
+  const deleteNotif = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     try {
       await client.delete(`/api/notifications/${id}`);
@@ -166,8 +181,9 @@ function NotificationsView() {
       ) : (
         <div className="space-y-1">
           {notifications.map(n => {
-            const Icon = TYPE_ICONS[n.type] || Bell;
-            const color = TYPE_COLORS[n.type] || "text-muted-foreground bg-secondary/50";
+            const Icon = TYPE_ICONS[n.type as keyof typeof TYPE_ICONS] || Bell;
+            const color = TYPE_COLORS[n.type as keyof typeof TYPE_COLORS] || "text-muted-foreground bg-secondary/50";
+            const hasSenderIdentity = ['like', 'comment', 'follow'].includes(n.type) && Boolean(n.actor_name);
             return (
               <div
                 key={n.id}
@@ -178,16 +194,25 @@ function NotificationsView() {
                     : "bg-card border border-border/50 hover:bg-secondary/50 notif-unread-item"
                   }`}
               >
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${color}`}>
-                  <Icon className="w-4 h-4" />
-                </div>
+                {hasSenderIdentity ? (
+                  <UserIdentity
+                    size="xs"
+                    displayName={n.actor_name ?? ''}
+                    avatarUrl={n.actor_avatar ?? null}
+                    className="shrink-0"
+                  />
+                ) : (
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${color}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0 pr-6">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="text-sm font-medium leading-snug">{n.title}</p>
                     {/* Group count badge — e.g. "5 people liked your post" */}
-                    {(n as any).group_count > 1 && (
+                    {(n.group_count ?? 0) > 1 && (
                       <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                        ×{(n as any).group_count}
+                        ×{n.group_count}
                       </span>
                     )}
                   </div>

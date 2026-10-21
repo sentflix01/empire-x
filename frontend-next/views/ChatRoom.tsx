@@ -23,6 +23,7 @@ import type { PresenceData } from "@/lib/presence";
 import { useChatPresence } from "@/lib/useChatPresence";
 import SafeImage from "@/components/ui/SafeImage";
 import { cn } from "@/lib/utils";
+import UserIdentity from "@/components/ui/UserIdentity";
 import { uploadFile } from '@/lib/uploadFile';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
@@ -770,30 +771,35 @@ function ChatRoom() {
           <ArrowLeft className="w-5 h-5" />
         </button>
 
-        {/* Avatar — clickable → profile (DM only) */}
-        <div
-          className={`relative shrink-0 ${isDm && otherUserId ? 'cursor-pointer' : ''}`}
-          onClick={() => { if (isDm && otherUserId) router.push(`/profile/${otherUserId}`); }}
-        >
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex items-center justify-center text-white font-semibold bg-white/20">
-            {isChannel ? <Radio className="w-5 h-5" /> : isGroup ? <Users className="w-5 h-5" /> : (
-              <SafeImage src={otherAvatarUrl} alt={getDisplayName()} className="h-full w-full object-cover" fallback={avatarLetter} />
-            )}
-          </div>
-          {isDm && isOnline && (
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-primary rounded-full" />
-          )}
-        </div>
-
-        <div
-          className={`flex-1 min-w-0 ${isDm && otherUserId ? 'cursor-pointer' : ''}`}
-          onClick={() => { if (isDm && otherUserId) router.push(`/profile/${otherUserId}`); }}
-        >
-          <p className="text-sm font-semibold text-white truncate">{getDisplayName()}</p>
-          <p className={`text-xs truncate ${isOnline && isDm ? 'text-green-300 font-medium' : 'text-white/70'}`}>
-            {getSubtitle()}
-          </p>
-        </div>
+        {/* Avatar / Identity — DM uses UserIdentity; group/channel keep icon avatar */}
+        {isDm ? (
+          <UserIdentity
+            displayName={getDisplayName()}
+            avatarUrl={isDm ? otherAvatarUrl : null}
+            businessName={isDm && otherProfile?.business_name ? String(otherProfile.business_name) : null}
+            businessSlug={isDm && otherProfile?.business_slug ? String(otherProfile.business_slug) : null}
+            showBusinessLink={isDm}
+            isVerified={isDm && Boolean(otherProfile?.is_verified)}
+            subtitle={getSubtitle()}
+            onlineIndicator={isDm && isOnline}
+            size="sm"
+            variant="white"
+            onClick={isDm && otherUserId ? () => router.push(`/profile/${otherUserId}`) : undefined}
+            className="flex-1 min-w-0"
+          />
+        ) : (
+          <>
+            <div className="relative shrink-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex items-center justify-center text-white font-semibold bg-white/20">
+                {isChannel ? <Radio className="w-5 h-5" /> : <Users className="w-5 h-5" />}
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-white truncate">{getDisplayName()}</p>
+              <p className="text-xs truncate text-white/70">{getSubtitle()}</p>
+            </div>
+          </>
+        )}
 
         {/* Search button */}
         <button

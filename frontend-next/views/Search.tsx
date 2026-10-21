@@ -9,10 +9,10 @@ import BrandLogo from '@/components/brand/BrandLogo';
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { toast } from "sonner";
-import { DemoBadge } from "@/components/profile/DemoBadge";
 import { fromNow } from "@/lib/date";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import UserIdentity from '@/components/ui/UserIdentity';
 
 // ── Category tabs ────────────────────────────────────────────────────────────
 const SORT_OPTIONS = [
@@ -301,18 +301,22 @@ function Search() {
             {results.users.map(u => (
               <Link key={u.id} href={`/profile/${u.user_id}`}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold shrink-0 overflow-hidden">
-                  {u.avatar_url ? <Image src={u.avatar_url} alt={u.display_name || ''} width={40} height={40} className="w-full h-full object-cover" unoptimized /> : u.display_name?.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-sm font-medium truncate">{u.display_name}</p>
-                    {u.is_verified && <span className="text-blue-500 text-xs">✓</span>}
-                    {u.is_seed && <DemoBadge />}
-                    <DistanceBadge km={u.distance_km} />
-                  </div>
-                  {u.headline && <p className="text-xs text-muted-foreground truncate">{u.headline}</p>}
-                  {u.location && <p className="text-xs text-muted-foreground flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{u.location}</p>}
+                <UserIdentity
+                  size="sm"
+                  displayName={u.display_name ?? ''}
+                  avatarUrl={u.avatar_url ?? null}
+                  businessName={u.business_name ?? null}
+                  isVerified={Boolean(u.is_verified)}
+                  isDemo={Boolean(u.is_seed)}
+                  className="flex-1 min-w-0"
+                />
+                <div className="flex flex-col items-end gap-0.5 shrink-0">
+                  <DistanceBadge km={u.distance_km} />
+                  {u.location && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-0.5">
+                      <MapPin className="w-2.5 h-2.5" />{u.location}
+                    </p>
+                  )}
                 </div>
               </Link>
             ))}
