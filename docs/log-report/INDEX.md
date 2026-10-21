@@ -5,6 +5,12 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-22 | Bugfix | fix(page-guide): remove SSR-unsafe localStorage initializer to fix stale-state race | [0efe54d74](2026-10-22-0efe54d74-remove-ssr-unsafe-localstorage-initializer-to-fi.md) |
+| 2026-10-22 | Bugfix | fix: render sr-only launcher before mount so tests find it immediately | [00d816d3e](2026-10-22-00d816d3e-render-sr-only-launcher-before-mount-so-tests-fi.md) |
+| 2026-10-22 | Bugfix | fix: rename DMs tab to Chats in Messages view | [ead124e06](2026-10-22-ead124e06-rename-dms-tab-to-chats-in-messages-view.md) |
+| 2026-10-22 | Bugfix | fix: match page guide button theme exactly to AI Assistant | [2367a49e9](2026-10-22-2367a49e9-match-page-guide-button-theme-exactly-to-ai-assi.md) |
+| 2026-10-22 | Bugfix | fix: restore sr-only launcher button in PageGuide for test compatibility | [f0119baf9](2026-10-22-f0119baf9-restore-sr-only-launcher-button-in-pageguide-for.md) |
+| 2026-10-21 | Feature | feat: floating page guide button + contacts online status and sort (#143) | [aade30ad9](2026-10-21-aade30ad9-floating-page-guide-button-contacts-online-statu.md) |
 | 2026-10-21 | Bugfix | fix(messaging): FEAT-002 chat room UI/UX polish | [428c120a3](2026-10-21-428c120a3-feat-002-chat-room-ui-ux-polish.md) |
 | 2026-10-21 | Documentation | docs(messaging): mark FEAT-001 completed with verification findings | [e84ddac05](2026-10-21-e84ddac05-mark-feat-001-completed-with-verification-findin.md) |
 | 2026-10-21 | Bugfix | fix(messaging): polish messages list, search overlay, new-chat menu | [88a220e0e](2026-10-21-88a220e0e-polish-messages-list-search-overlay-new-chat-men.md) |
