@@ -112,6 +112,24 @@ function AssistantFlipCoin() {
   );
 }
 
+/** Floating Page Guide launcher — stacks above the AI Assistant button and shares its drag position. */
+function PageGuideFlipCoin() {
+  return (
+    <span className="pg-flip-coin" aria-hidden="true">
+      <span className="pg-flip-coin-inner">
+        <span className="pg-flip-coin-face pg-flip-coin-front">
+          {/* Question mark face */}
+          <span className="text-2xl font-black leading-none text-slate-700">?</span>
+        </span>
+        <span className="pg-flip-coin-face pg-flip-coin-back">
+          <span className="text-[9px] font-black leading-none text-white">Page</span>
+          <span className="mt-0.5 text-[8px] font-bold uppercase leading-none tracking-wide text-teal-100">Guide</span>
+        </span>
+      </span>
+    </span>
+  );
+}
+
 /** Load persisted messages from localStorage */
 function loadHistory(storageKey: string): Message[] {
   try {
@@ -184,6 +202,21 @@ function AiAssistantWidget() {
   const safeAreaBottomRef = useRef(0);
   posRef.current = pos;
   const btnRef = useRef<HTMLButtonElement>(null);
+
+  // Track whether the Page Guide feature is enabled.
+  // We read a persisted flag from localStorage (written by PageGuide on mount)
+  // so we don't depend on event ordering, and also listen for live updates.
+  const [pageGuideEnabled, setPageGuideEnabled] = useState(() => {
+    try { return localStorage.getItem('nodbusiness_page_guide_enabled') === 'true'; } catch { return false; }
+  });
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const val = (e as CustomEvent<{ enabled: boolean }>).detail?.enabled ?? false;
+      setPageGuideEnabled(val);
+    };
+    window.addEventListener('nodbusiness:page-guide-enabled', handler);
+    return () => window.removeEventListener('nodbusiness:page-guide-enabled', handler);
+  }, []);
 
   // Load saved position
   useLayoutEffect(() => {
@@ -471,6 +504,26 @@ function AiAssistantWidget() {
   // AI Assistant is visible on ALL pages — including the showroom builder
   return (
     <>
+      {/* Page Guide floating button — stacked above the AI Assistant, shares drag position */}
+      {pageGuideEnabled && (
+        <button
+          type="button"
+          onClick={() => {
+            if (didDrag.current) { didDrag.current = false; return; }
+            window.dispatchEvent(new Event('nodbusiness:open-page-guide'));
+          }}
+          onPointerDown={handlePointerDown}
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+10.5rem)] right-5 md:bottom-[calc(4rem)] md:right-6 z-[2147483646] touch-none rounded-full shadow-2xl shadow-teal-950/20 flex items-center justify-center transition-transform duration-200 cursor-grab active:cursor-grabbing bg-gradient-to-br from-teal-500 via-cyan-500 to-indigo-500 hover:scale-110 hover:shadow-teal-600/30 hover:shadow-xl"
+          style={posReady && pos.x >= 0 && pos.y >= 0
+            ? { position: 'fixed', left: pos.x, top: pos.y - 64, bottom: 'auto', right: 'auto', width: 56, height: 56, paddingInline: 0 }
+            : { width: 56, height: 56, paddingInline: 0 }}
+          title="Page guide (drag to move)"
+          aria-label="Page guide"
+        >
+          <PageGuideFlipCoin />
+        </button>
+      )}
+
       {/* Floating button — draggable */}
       <button
         ref={btnRef}

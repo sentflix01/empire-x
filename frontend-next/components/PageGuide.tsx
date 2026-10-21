@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
-import { HelpCircle, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import client from '@/api/client';
 
 type GuideStep = { target: string; title: string; description: string };
@@ -933,7 +933,6 @@ export default function PageGuide() {
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [card, setCard] = useState({ top: 0, left: 0 });
   const dialogRef = useRef<HTMLElement>(null);
-  const launcherRef = useRef<HTMLButtonElement>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryCountRef = useRef(0);
 
@@ -966,6 +965,13 @@ export default function PageGuide() {
     return () => { active = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tourKey, tourId]);
+
+  // Listen for open requests dispatched by the floating Page guide launcher button
+  useEffect(() => {
+    const handler = () => { setIndex(0); setOpen(true); };
+    window.addEventListener('nodbusiness:open-page-guide', handler);
+    return () => window.removeEventListener('nodbusiness:open-page-guide', handler);
+  }, []);
 
   const current = steps[index];
 
@@ -1046,7 +1052,6 @@ export default function PageGuide() {
     setOpen(false);
     if (retryRef.current) { clearTimeout(retryRef.current); retryRef.current = null; }
     try { localStorage.setItem(tourKey, 'true'); } catch { /* storage disabled */ }
-    launcherRef.current?.focus();
   }, [tourKey]);
 
   const advanceStep = () => {
@@ -1077,19 +1082,15 @@ export default function PageGuide() {
     return () => { document.body.style.overflow = previousOverflow; };
   }, [open]);
 
-  if (!mounted || !enabled) return null;
+  // Broadcast enabled state so the floating launcher button knows whether to render
+  useEffect(() => {
+    try { localStorage.setItem('nodbusiness_page_guide_enabled', String(mounted && enabled)); } catch {}
+    window.dispatchEvent(new CustomEvent('nodbusiness:page-guide-enabled', { detail: { enabled: mounted && enabled } }));
+  }, [mounted, enabled]);
+
+  if (!mounted) return null;
 
   return <>
-    <button
-      ref={launcherRef}
-      type="button"
-      onClick={() => { setIndex(0); setOpen(true); }}
-      className="fixed bottom-6 left-4 z-[900] inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm font-semibold text-foreground shadow-lg transition hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:bottom-[calc(env(safe-area-inset-bottom)+5.5rem)]"
-      aria-label={words.launcher}
-    >
-      <HelpCircle className="h-4 w-4" aria-hidden="true" />{words.launcher}
-    </button>
-
     {open && mounted && createPortal(
       <div className="fixed inset-0 z-[1000]" aria-label="Page guide">
         <svg className="absolute inset-0 h-full w-full" aria-hidden="true" onClick={event => event.preventDefault()}>
