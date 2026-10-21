@@ -387,7 +387,7 @@ html {
 
 .pg-flip-coin-back {
   flex-direction: column;
-  background: linear-gradient(135deg, #0f766e 0%, #0891b2 50%, #6366f1 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 48%, #7c3aed 100%);
   transform: rotateY(180deg);
 }
 
