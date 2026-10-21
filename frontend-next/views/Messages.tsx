@@ -102,8 +102,9 @@ function Messages() {
     if (!u) return;
     if (!quiet) setLoading(true);
     try {
-      // The server lists only my chats, with unread counts and ticks.
-      const { data } = await client.get('/api/messages/conversations');
+      // ?box=chats only returns accepted, non-archived chats — no empty requests or ghost DMs.
+      const { data } = await client.get('/api/messages/conversations?box=chats');
+      // Extra client-side guard: drop DMs with no messages (empty find-or-create shells).
       const cleaned = (Array.isArray(data) ? data : []).filter((c: any) => c.type !== 'dm' || c.last_message_id);
       setConversations(cleaned);
       setUnreadByConv(Object.fromEntries(cleaned.map((c: any) => [c.id, Number(c.unread_count) || 0])));
@@ -132,6 +133,7 @@ function Messages() {
 
   const loadContacts = async (u: any) => {
     try {
+      // followers/following only — people the current user actually knows
       const all = await entities.UserProfile.list("-created_at", 50);
       const visible = all.filter((c: any) => String(c.user_id) !== String(u.id));
       setContacts(visible);
@@ -152,10 +154,15 @@ function Messages() {
   const getDisplayName = useCallback((conv: any) => {
     if (conv.type === "group" || conv.type === "channel")
       return conv.name || (conv.type === "channel" ? "Channel" : "Group");
+    // Prefer server-resolved other_name (from listConversations JOIN); fall back to
+    // parsing the legacy JSON columns only when the JOIN field is absent.
+    if (conv.other_name) return conv.other_name;
     try {
       const names = JSON.parse(conv.participant_names || '[]');
       const ids   = JSON.parse(conv.participant_ids   || '[]');
       const idx   = ids.findIndex((id: string) => String(id) === String(user?.id));
+      // idx === -1 means the legacy column is stale; pick the non-empty name
+      if (idx === -1) return names.find((n: string) => n) || "Chat";
       return names[idx === 0 ? 1 : 0] || names[0] || "Chat";
     } catch { return "Chat"; }
   }, [user?.id]);
@@ -163,6 +170,8 @@ function Messages() {
   const getDmAvatarUrl = (conv: any) => {
     if (conv.avatar_url) return conv.avatar_url;
     if (conv.type !== 'dm') return '';
+    // Prefer server-resolved other_avatar
+    if (conv.other_avatar) return conv.other_avatar;
     try {
       const ids = JSON.parse(conv.participant_ids || '[]');
       const otherId = ids.find((id: string) => String(id) !== String(user?.id));
@@ -174,6 +183,8 @@ function Messages() {
   };
 
   const getDmOtherId = (conv: any) => {
+    // Prefer server-resolved other_user_id (from listConversations JOIN)
+    if (conv.other_user_id) return String(conv.other_user_id);
     try {
       const ids = JSON.parse(conv.participant_ids || '[]');
       return ids.find((id: string) => String(id) !== String(user?.id)) || null;
@@ -405,10 +416,10 @@ function Messages() {
                       } catch {}
                     }}
                     onPointerEnter={async () => {
+                      // Only prefetch if a conv already exists — don't create one on hover
                       try {
-                        const { findOrCreateConversation } = await import('@/lib/messaging');
-                        const foundConv = await findOrCreateConversation(user, contact.user_id, name);
-                        if (foundConv) router.prefetch(`/messages/${foundConv.id}`);
+                        const existing = getContactConv(uid);
+                        if (existing) router.prefetch(`/messages/${existing.id}`);
                       } catch {}
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3 min-h-[68px] text-left transition-colors hover:bg-secondary/50 active:bg-secondary/80 border-b border-border/40"
@@ -457,7 +468,6 @@ function Messages() {
               {filtered.map(conv => {
                 const name        = getDisplayName(conv);
                 const isChannel   = conv.type === 'channel';
-                const isGroup     = conv.type === 'group';
                 const isDm        = conv.type === 'dm';
                 const avatarUrl   = getDmAvatarUrl(conv);
                 const otherId     = isDm ? getDmOtherId(conv) : null;
@@ -466,6 +476,11 @@ function Messages() {
                 const unread      = unreadByConv[conv.id] || 0;
                 const isTyping    = isDm && typingConvs[conv.id];
                 const timeStr     = formatTime(conv.last_message_at || conv.updated_at);
+                // Look up the other person's profile for business name (DMs only)
+                const otherProfile = otherId
+                  ? contacts.find((c: any) => String(c.user_id) === String(otherId) || String(c.id) === String(otherId))
+                  : null;
+                const otherBusinessName: string | null = otherProfile?.business_name ?? null;
 
                 return (
                   <Link
@@ -479,97 +494,78 @@ function Messages() {
                     }}
                     className="flex items-center gap-3 px-4 py-3 min-h-[68px] transition-colors hover:bg-secondary/50 active:bg-secondary/80 border-b border-border/40"
                   >
-                    {/* Avatar */}
-                    <div className="relative shrink-0">
-                      <div
-                        className="w-[52px] h-[52px] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg"
-                        style={{
-                          background: isChannel
-                            ? 'linear-gradient(135deg,#2563eb,#1d4ed8)'
-                            : isGroup
-                            ? 'linear-gradient(135deg,#7c3aed,#6d28d9)'
-                            : 'linear-gradient(135deg,#3b82f6,#7c3aed)',
-                        }}
-                      >
-                        {avatarUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={avatarUrl}
-                            alt={name}
-                            width={52}
-                            height={52}
-                            className="w-full h-full object-cover"
-                            onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                          />
-                        ) : isChannel ? (
-                          <Radio className="w-5 h-5" />
-                        ) : isGroup ? (
-                          <Users className="w-5 h-5" />
-                        ) : (
-                          name.charAt(0).toUpperCase()
-                        )}
-                      </div>
-                      {/* Online dot */}
-                      {online && (
-                        <span
-                          className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border-2"
-                          style={{
-                            backgroundColor: '#22c55e',
-                            borderColor: 'hsl(var(--background))',
-                          }}
+                    {/* Avatar (groups/channels keep the gradient+icon; DMs use UserIdentity avatar) */}
+                    {isDm ? (
+                      /* DM: full UserIdentity for avatar + name + business name */
+                      <div className="flex flex-1 min-w-0 items-center gap-3">
+                        <UserIdentity
+                          displayName={name}
+                          avatarUrl={avatarUrl || null}
+                          businessName={otherBusinessName}
+                          showBusinessLink={false}
+                          onlineIndicator={online}
+                          size="md"
+                          className="flex-1 min-w-0"
                         />
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      {/* Row 1: name + time */}
-                      <div className="flex items-center justify-between gap-2 mb-0.5">
-                        <p
-                          className={cn(
-                            'text-sm truncate text-foreground',
-                            unread > 0 ? 'font-bold' : 'font-semibold',
+                        {/* Right column: ticks + time + unread */}
+                        <div className="flex flex-col items-end gap-0.5 shrink-0">
+                          <div className="flex items-center gap-1">
+                            {conv.last_message_id && String(conv.last_message_sender_id) === String(user?.id) && (
+                              <MessageTicks tick={tickFor({ created_at: conv.last_message_at }, user?.id, [{
+                                user_id: conv.other_user_id, last_read_at: conv.other_last_read_at, last_delivered_at: conv.other_last_delivered_at,
+                              }])} />
+                            )}
+                            <span className={cn('text-[11px] whitespace-nowrap', unread > 0 ? 'text-primary' : 'text-muted-foreground')}>
+                              {timeStr}
+                            </span>
+                          </div>
+                          {unread > 0 && (
+                            <span className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-destructive-foreground bg-destructive px-1.5">
+                              {unread > 99 ? '99+' : unread}
+                            </span>
                           )}
-                        >
-                          {name}
-                        </p>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {/* Ticks on my own last message: sent, delivered, seen */}
-                          {isDm && conv.last_message_id && String(conv.last_message_sender_id) === String(user?.id) && (
-                            <MessageTicks tick={tickFor({ created_at: conv.last_message_at }, user?.id, [{
-                              user_id: conv.other_user_id, last_read_at: conv.other_last_read_at, last_delivered_at: conv.other_last_delivered_at,
-                            }])} />
-                          )}
-                          <span
-                            className={cn('text-[11px] whitespace-nowrap', unread > 0 ? 'text-primary' : 'text-muted-foreground')}
-                          >
-                            {timeStr}
-                          </span>
+                          <p className={cn('text-xs truncate max-w-[120px] text-right', isTyping ? 'text-primary italic' : 'text-muted-foreground', unread > 0 ? 'font-semibold' : 'font-normal')}>
+                            {isTyping ? 'typing…' : conv.last_message || ''}
+                          </p>
                         </div>
                       </div>
-
-                      {/* Row 2: last message + unread badge */}
-                      <div className="flex items-center justify-between gap-2">
-                        <p
-                          className={cn(
-                            'text-xs truncate flex-1',
-                            isTyping ? 'text-primary italic' : 'text-muted-foreground',
-                            unread > 0 ? 'font-semibold' : 'font-normal',
-                          )}
-                        >
-                          {isTyping
-                            ? 'typing…'
-                            : conv.last_message || 'No messages yet'}
-                        </p>
-                        {unread > 0 && (
-                          <span
-                            className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-destructive-foreground bg-destructive px-1.5 shrink-0"
+                    ) : (
+                      /* Group / Channel: icon avatar + name row + last message row */
+                      <>
+                        <div className="relative shrink-0">
+                          <div
+                            className="w-[52px] h-[52px] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg"
+                            style={{ background: isChannel ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : 'linear-gradient(135deg,#7c3aed,#6d28d9)' }}
                           >
-                            {unread > 99 ? '99+' : unread}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                            {avatarUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={avatarUrl} alt={name} width={52} height={52} className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                            ) : isChannel ? (
+                              <Radio className="w-5 h-5" />
+                            ) : (
+                              <Users className="w-5 h-5" />
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-0.5">
+                            <p className={cn('text-sm truncate text-foreground', unread > 0 ? 'font-bold' : 'font-semibold')}>{name}</p>
+                            <span className={cn('text-[11px] whitespace-nowrap shrink-0', unread > 0 ? 'text-primary' : 'text-muted-foreground')}>{timeStr}</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className={cn('text-xs truncate flex-1', isTyping ? 'text-primary italic' : 'text-muted-foreground', unread > 0 ? 'font-semibold' : 'font-normal')}>
+                              {isTyping ? 'typing…' : conv.last_message || 'No messages yet'}
+                            </p>
+                            {unread > 0 && (
+                              <span className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-destructive-foreground bg-destructive px-1.5 shrink-0">
+                                {unread > 99 ? '99+' : unread}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </Link>
                 );
               })}
