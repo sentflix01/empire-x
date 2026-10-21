@@ -118,12 +118,12 @@ function PageGuideFlipCoin() {
     <span className="pg-flip-coin" aria-hidden="true">
       <span className="pg-flip-coin-inner">
         <span className="pg-flip-coin-face pg-flip-coin-front">
-          {/* Question mark face */}
-          <span className="text-2xl font-black leading-none text-slate-700">?</span>
+          {/* Question mark face — white background, same as AI coin front */}
+          <span className="text-2xl font-black leading-none text-indigo-600">?</span>
         </span>
         <span className="pg-flip-coin-face pg-flip-coin-back">
-          <span className="text-[9px] font-black leading-none text-white">Page</span>
-          <span className="mt-0.5 text-[8px] font-bold uppercase leading-none tracking-wide text-teal-100">Guide</span>
+          <span className="text-[10px] font-black leading-none text-white">Page</span>
+          <span className="mt-0.5 text-[7px] font-bold uppercase leading-none tracking-wide text-blue-100">Guide</span>
         </span>
       </span>
     </span>
@@ -513,7 +513,7 @@ function AiAssistantWidget() {
             window.dispatchEvent(new Event('nodbusiness:open-page-guide'));
           }}
           onPointerDown={handlePointerDown}
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+10.5rem)] right-5 md:bottom-[calc(4rem)] md:right-6 z-[2147483646] touch-none rounded-full shadow-2xl shadow-teal-950/20 flex items-center justify-center transition-transform duration-200 cursor-grab active:cursor-grabbing bg-gradient-to-br from-teal-500 via-cyan-500 to-indigo-500 hover:scale-110 hover:shadow-teal-600/30 hover:shadow-xl"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+10.5rem)] right-5 md:bottom-[calc(4rem)] md:right-6 z-[2147483646] touch-none rounded-full shadow-2xl shadow-blue-950/25 flex items-center justify-center transition-transform duration-200 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 hover:scale-110 hover:shadow-blue-600/30 hover:shadow-xl"
           style={posReady && pos.x >= 0 && pos.y >= 0
             ? { position: 'fixed', left: pos.x, top: pos.y - 64, bottom: 'auto', right: 'auto', width: 56, height: 56, paddingInline: 0 }
             : { width: 56, height: 56, paddingInline: 0 }}
