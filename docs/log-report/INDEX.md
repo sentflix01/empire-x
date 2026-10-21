@@ -5,6 +5,9 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-21 | Bugfix | fix(messaging): FEAT-002 chat room UI/UX polish | [428c120a3](2026-10-21-428c120a3-feat-002-chat-room-ui-ux-polish.md) |
+| 2026-10-21 | Documentation | docs(messaging): mark FEAT-001 completed with verification findings | [e84ddac05](2026-10-21-e84ddac05-mark-feat-001-completed-with-verification-findin.md) |
+| 2026-10-21 | Bugfix | fix(messaging): polish messages list, search overlay, new-chat menu | [88a220e0e](2026-10-21-88a220e0e-polish-messages-list-search-overlay-new-chat-men.md) |
 | 2026-10-21 | Bugfix | fix: upgrade follow-redirects in frontend package-lock (GHSA-q3jh / GHSA-8r9p) | [71724de59](2026-10-21-71724de59-upgrade-follow-redirects-in-frontend-package-loc.md) |
 | 2026-10-21 | Bugfix | fix: CI failures — follow-redirects audit + WebsiteStatusBanner test date | [4a8248048](2026-10-21-4a8248048-ci-failures-follow-redirects-audit-websitestatus.md) |
 | 2026-10-21 | Feature | feat: offline send queue with IndexedDB persistence (FEAT-005) | [673389240](2026-10-21-673389240-offline-send-queue-with-indexeddb-persistence-fe.md) |
