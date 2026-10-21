@@ -933,6 +933,7 @@ export default function PageGuide() {
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [card, setCard] = useState({ top: 0, left: 0 });
   const dialogRef = useRef<HTMLElement>(null);
+  const launcherRef = useRef<HTMLButtonElement>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryCountRef = useRef(0);
 
@@ -1052,6 +1053,7 @@ export default function PageGuide() {
     setOpen(false);
     if (retryRef.current) { clearTimeout(retryRef.current); retryRef.current = null; }
     try { localStorage.setItem(tourKey, 'true'); } catch { /* storage disabled */ }
+    launcherRef.current?.focus();
   }, [tourKey]);
 
   const advanceStep = () => {
@@ -1091,6 +1093,16 @@ export default function PageGuide() {
   if (!mounted) return null;
 
   return <>
+    {/* Visually hidden launcher — kept for accessibility and tests.
+        The visible launcher is the floating coin in AiAssistant.tsx. */}
+    <button
+      ref={launcherRef}
+      type="button"
+      onClick={() => { setIndex(0); setOpen(true); }}
+      className="sr-only"
+      aria-label={words.launcher}
+    />
+
     {open && mounted && createPortal(
       <div className="fixed inset-0 z-[1000]" aria-label="Page guide">
         <svg className="absolute inset-0 h-full w-full" aria-hidden="true" onClick={event => event.preventDefault()}>
