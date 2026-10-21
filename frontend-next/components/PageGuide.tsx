@@ -1090,7 +1090,18 @@ export default function PageGuide() {
     window.dispatchEvent(new CustomEvent('nodbusiness:page-guide-enabled', { detail: { enabled: mounted && enabled } }));
   }, [mounted, enabled]);
 
-  if (!mounted) return null;
+  if (!mounted) return (
+    /* Render the accessible launcher even before mount so tests and
+       screen readers can find it immediately after the component tree
+       is inserted — before the useEffect that sets mounted=true runs. */
+    <button
+      ref={launcherRef}
+      type="button"
+      onClick={() => { setIndex(0); setOpen(true); }}
+      className="sr-only"
+      aria-label={words.launcher}
+    />
+  );
 
   return <>
     {/* Visually hidden launcher — kept for accessibility and tests.
