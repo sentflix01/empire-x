@@ -245,7 +245,7 @@ function Messages() {
 
   const TABS: { id: Tab; label: string; icon?: any }[] = [
     { id: 'all',      label: 'All' },
-    { id: 'dm',       label: 'DMs',      icon: UserIcon },
+    { id: 'dm',       label: 'Chats',    icon: UserIcon },
     { id: 'groups',   label: 'Groups',   icon: Users },
     { id: 'channels', label: 'Channels', icon: Radio },
   ];
@@ -330,7 +330,7 @@ function Messages() {
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={tab === 'channels' ? Radio : tab === 'groups' ? Users : tab === 'all' ? UserIcon : MessageCircle}
-            title={search ? `No results for "${search}"` : tab === 'channels' ? 'No channels yet' : tab === 'groups' ? 'No groups yet' : tab === 'dm' ? 'No DMs yet' : 'No contacts found'}
+            title={search ? `No results for "${search}"` : tab === 'channels' ? 'No channels yet' : tab === 'groups' ? 'No groups yet' : tab === 'dm' ? 'No chats yet' : 'No contacts found'}
             subtitle={!search ? (tab === 'all' ? 'People you follow will appear here' : 'Tap the pencil icon to start a new chat') : undefined}
           />
         ) : tab === 'all' ? (
