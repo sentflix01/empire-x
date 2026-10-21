@@ -5,6 +5,15 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-21 | Bugfix | fix: upgrade follow-redirects in frontend package-lock (GHSA-q3jh / GHSA-8r9p) | [71724de59](2026-10-21-71724de59-upgrade-follow-redirects-in-frontend-package-loc.md) |
+| 2026-10-21 | Bugfix | fix: CI failures — follow-redirects audit + WebsiteStatusBanner test date | [4a8248048](2026-10-21-4a8248048-ci-failures-follow-redirects-audit-websitestatus.md) |
+| 2026-10-21 | Feature | feat: offline send queue with IndexedDB persistence (FEAT-005) | [673389240](2026-10-21-673389240-offline-send-queue-with-indexeddb-persistence-fe.md) |
+| 2026-10-21 | Feature | feat: FEAT-004 product/order_update card message types | [e856a7710](2026-10-21-e856a7710-feat-004-product-order-update-card-message-types.md) |
+| 2026-10-20 | Feature | feat: server-side pin & save for messages (FEAT-003) | [366e4492f](2026-10-20-366e4492f-server-side-pin-save-for-messages-feat-003.md) |
+| 2026-10-20 | Feature | feat: FEAT-002 message search — migration, search endpoint, MessageSearch component, Messages and ChatRoom wiring | [5a3831a27](2026-10-20-5a3831a27-feat-002-message-search-migration-search-endpoin.md) |
+| 2026-10-20 | Feature | feat: FEAT-001 message reactions — migration, REST endpoints, socket emitters, MessageReactions component, ChatRoom wiring | [b209fd018](2026-10-20-b209fd018-feat-001-message-reactions-migration-rest-endpoi.md) |
+| 2026-10-20 | Documentation | docs: add professional messaging system audit and specification | [fccc02477](2026-10-20-fccc02477-add-professional-messaging-system-audit-and-spec.md) |
+| 2026-10-20 | Feature | feat: implement full in-app page guide tours across all 53 routes | [36096073b](2026-10-20-36096073b-implement-full-in-app-page-guide-tours-across-al.md) |
 | 2026-10-20 | Bugfix | fix: AI assistant button always visible on all screen sizes | [ac2f5977c](2026-10-20-ac2f5977c-ai-assistant-button-always-visible-on-all-screen.md) |
 | 2026-10-20 | Bugfix | fix(ai-assistant): keep draggable launcher visible on compact screens | [79f7e007d](2026-10-20-79f7e007d-keep-draggable-launcher-visible-on-compact-scree.md) |
 | 2026-10-19 | Testing | test(e2e): guest reaches a published showroom from the business feed (#130) | [f1db91678](2026-10-19-f1db91678-guest-reaches-a-published-showroom-from-the-busi.md) |

@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **335** across **50** mounted modules · Generated: 2026-10-19
+> Endpoints: **346** across **50** mounted modules · Generated: 2026-10-21
 
 | Legend | Meaning |
 |---|---|
@@ -36,7 +36,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`internalJobs`](#internaljobs) (1)
 - [`locations`](#locations) (2)
 - [`maps`](#maps) (2)
-- [`messages`](#messages) (34)
+- [`messages`](#messages) (45)
 - [`moderation`](#moderation) (3)
 - [`notifications`](#notifications) (6)
 - [`orders`](#orders) (11)
@@ -295,40 +295,51 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/messages/conversations` | 🔒 auth | routes/messages.ts:154 |
-| `GET` | `/api/messages/unread-count` | 🔒 auth | routes/messages.ts:164 |
-| `GET` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:184 |
-| `POST` | `/api/messages/conversations/:id/read` | 🔒 auth | routes/messages.ts:205 |
-| `POST` | `/api/messages/delivered` | 🔒 auth | routes/messages.ts:238 |
-| `PUT` | `/api/messages/conversations/:id/mute` | 🔒 auth | routes/messages.ts:260 |
-| `PUT` | `/api/messages/conversations/:id/archive` | 🔒 auth | routes/messages.ts:277 |
-| `POST` | `/api/messages/conversations/:id/accept` | 🔒 auth | routes/messages.ts:290 |
-| `DELETE` | `/api/messages/conversations/:id/for-me` | 🔒 auth | routes/messages.ts:314 |
-| `POST` | `/api/messages/conversations/find-or-create` | 🔒 auth | routes/messages.ts:317 |
-| `POST` | `/api/messages/conversations` | 🔒 auth | routes/messages.ts:372 |
-| `PUT` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:398 |
-| `GET` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:422 |
-| `POST` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:443 |
-| `PUT` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:525 |
-| `DELETE` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:526 |
-| `DELETE` | `/api/messages/messages/:id/for-me` | 🔒 auth | routes/messages.ts:527 |
-| `DELETE` | `/api/messages/conversations/:id/history` | 🔒 auth | routes/messages.ts:530 |
-| `POST` | `/api/messages/conversations/:id/leave` | 🔒 auth | routes/messages.ts:532 |
-| `POST` | `/api/messages/conversations/:id/members` | 🔒 auth | routes/messages.ts:560 |
-| `DELETE` | `/api/messages/conversations/:id/members/:userId` | 🔒 auth | routes/messages.ts:577 |
-| `DELETE` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:588 |
-| `PUT` | `/api/messages/presence` | 🔒 auth | routes/messages.ts:601 |
-| `GET` | `/api/messages/presence/:userId` | 🔒 auth | routes/messages.ts:618 |
-| `PUT` | `/api/messages/presence/settings` | 🔒 auth | routes/messages.ts:644 |
-| `POST` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:680 |
-| `DELETE` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:681 |
-| `GET` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:686 |
-| `POST` | `/api/messages/messages/:id/forward` | 🔒 auth | routes/messages.ts:719 |
-| `POST` | `/api/messages/inquiry` | 🔒 auth | routes/messages.ts:723 |
-| `PUT` | `/api/messages/:id` | 🔒 auth | routes/messages.ts:762 |
-| `DELETE` | `/api/messages/:id` | 🔒 auth | routes/messages.ts:763 |
-| `DELETE` | `/api/messages/:id/for-me` | 🔒 auth | routes/messages.ts:764 |
-| `POST` | `/api/messages/:id/forward` | 🔒 auth | routes/messages.ts:765 |
+| `GET` | `/api/messages/conversations` | 🔒 auth | routes/messages.ts:195 |
+| `GET` | `/api/messages/unread-count` | 🔒 auth | routes/messages.ts:205 |
+| `GET` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:225 |
+| `POST` | `/api/messages/conversations/:id/read` | 🔒 auth | routes/messages.ts:246 |
+| `POST` | `/api/messages/delivered` | 🔒 auth | routes/messages.ts:279 |
+| `PUT` | `/api/messages/conversations/:id/mute` | 🔒 auth | routes/messages.ts:301 |
+| `PUT` | `/api/messages/conversations/:id/archive` | 🔒 auth | routes/messages.ts:318 |
+| `POST` | `/api/messages/conversations/:id/accept` | 🔒 auth | routes/messages.ts:331 |
+| `DELETE` | `/api/messages/conversations/:id/for-me` | 🔒 auth | routes/messages.ts:355 |
+| `POST` | `/api/messages/conversations/find-or-create` | 🔒 auth | routes/messages.ts:358 |
+| `POST` | `/api/messages/conversations` | 🔒 auth | routes/messages.ts:413 |
+| `PUT` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:439 |
+| `GET` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:463 |
+| `POST` | `/api/messages/conversations/:convId/messages` | 🔒 auth | routes/messages.ts:484 |
+| `PUT` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:597 |
+| `DELETE` | `/api/messages/messages/:id` | 🔒 auth | routes/messages.ts:598 |
+| `DELETE` | `/api/messages/messages/:id/for-me` | 🔒 auth | routes/messages.ts:599 |
+| `DELETE` | `/api/messages/conversations/:id/history` | 🔒 auth | routes/messages.ts:602 |
+| `POST` | `/api/messages/conversations/:id/leave` | 🔒 auth | routes/messages.ts:604 |
+| `POST` | `/api/messages/conversations/:id/members` | 🔒 auth | routes/messages.ts:632 |
+| `DELETE` | `/api/messages/conversations/:id/members/:userId` | 🔒 auth | routes/messages.ts:649 |
+| `DELETE` | `/api/messages/conversations/:id` | 🔒 auth | routes/messages.ts:660 |
+| `PUT` | `/api/messages/presence` | 🔒 auth | routes/messages.ts:673 |
+| `GET` | `/api/messages/presence/:userId` | 🔒 auth | routes/messages.ts:690 |
+| `PUT` | `/api/messages/presence/settings` | 🔒 auth | routes/messages.ts:716 |
+| `POST` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:752 |
+| `DELETE` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:753 |
+| `GET` | `/api/messages/block/:targetId` | 🔒 auth | routes/messages.ts:758 |
+| `POST` | `/api/messages/messages/:id/forward` | 🔒 auth | routes/messages.ts:791 |
+| `POST` | `/api/messages/inquiry` | 🔒 auth | routes/messages.ts:795 |
+| `POST` | `/api/messages/messages/:id/reactions` | 🔒 auth | routes/messages.ts:850 |
+| `DELETE` | `/api/messages/messages/:id/reactions` | 🔒 auth | routes/messages.ts:877 |
+| `GET` | `/api/messages/messages/:id/reactions` | 🔒 auth | routes/messages.ts:904 |
+| `GET` | `/api/messages/search` | 🔒 auth | routes/messages.ts:934 |
+| `POST` | `/api/messages/messages/:id/pin` | 🔒 auth | routes/messages.ts:1084 |
+| `DELETE` | `/api/messages/messages/:id/pin` | 🔒 auth | routes/messages.ts:1110 |
+| `GET` | `/api/messages/conversations/:convId/pins` | 🔒 auth | routes/messages.ts:1132 |
+| `POST` | `/api/messages/saved/:id` | 🔒 auth | routes/messages.ts:1153 |
+| `DELETE` | `/api/messages/saved/:id` | 🔒 auth | routes/messages.ts:1170 |
+| `GET` | `/api/messages/saved` | 🔒 auth | routes/messages.ts:1182 |
+| `POST` | `/api/messages/share-product` | 🔒 auth | routes/messages.ts:1203 |
+| `PUT` | `/api/messages/:id` | 🔒 auth | routes/messages.ts:1256 |
+| `DELETE` | `/api/messages/:id` | 🔒 auth | routes/messages.ts:1257 |
+| `DELETE` | `/api/messages/:id/for-me` | 🔒 auth | routes/messages.ts:1258 |
+| `POST` | `/api/messages/:id/forward` | 🔒 auth | routes/messages.ts:1259 |
 
 ## moderation — moderation
 
@@ -376,25 +387,25 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/posts/` | ⚪ optional | routes/posts.ts:58 |
-| `GET` | `/api/posts/:id` | ⚪ optional | routes/posts.ts:143 |
-| `POST` | `/api/posts/` | 🔒 auth | routes/posts.ts:154 |
-| `PUT` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:188 |
-| `DELETE` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:222 |
-| `GET` | `/api/posts/:id/like` | ⚪ optional | routes/posts.ts:243 |
-| `POST` | `/api/posts/:id/like` | 🔒 auth | routes/posts.ts:251 |
-| `PUT` | `/api/posts/:id/reaction` | 🔒 auth | routes/posts.ts:298 |
-| `DELETE` | `/api/posts/:id/reaction` | 🔒 auth | routes/posts.ts:328 |
-| `GET` | `/api/posts/:id/reactions` | 🔒 auth | routes/posts.ts:338 |
-| `POST` | `/api/posts/:id/hide` | 🔒 auth | routes/posts.ts:358 |
-| `DELETE` | `/api/posts/:id/hide` | 🔒 auth | routes/posts.ts:365 |
-| `PUT` | `/api/posts/:id/settings` | 🔒 auth | routes/posts.ts:374 |
-| `GET` | `/api/posts/:id/comments` | ⚪ optional | routes/posts.ts:413 |
-| `POST` | `/api/posts/:id/comments` | 🔒 auth | routes/posts.ts:438 |
-| `DELETE` | `/api/posts/:postId/comments/:commentId` | 🔒 auth | routes/posts.ts:493 |
-| `PUT` | `/api/posts/:postId/comments/:commentId` | 🔒 auth | routes/posts.ts:508 |
-| `PUT` | `/api/posts/:postId/comments/:commentId/reaction` | 🔒 auth | routes/posts.ts:521 |
-| `DELETE` | `/api/posts/:postId/comments/:commentId/reaction` | 🔒 auth | routes/posts.ts:539 |
+| `GET` | `/api/posts/` | ⚪ optional | routes/posts.ts:59 |
+| `GET` | `/api/posts/:id` | ⚪ optional | routes/posts.ts:144 |
+| `POST` | `/api/posts/` | 🔒 auth | routes/posts.ts:155 |
+| `PUT` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:222 |
+| `DELETE` | `/api/posts/:id` | 🔒 auth | routes/posts.ts:256 |
+| `GET` | `/api/posts/:id/like` | ⚪ optional | routes/posts.ts:277 |
+| `POST` | `/api/posts/:id/like` | 🔒 auth | routes/posts.ts:285 |
+| `PUT` | `/api/posts/:id/reaction` | 🔒 auth | routes/posts.ts:332 |
+| `DELETE` | `/api/posts/:id/reaction` | 🔒 auth | routes/posts.ts:362 |
+| `GET` | `/api/posts/:id/reactions` | 🔒 auth | routes/posts.ts:372 |
+| `POST` | `/api/posts/:id/hide` | 🔒 auth | routes/posts.ts:392 |
+| `DELETE` | `/api/posts/:id/hide` | 🔒 auth | routes/posts.ts:399 |
+| `PUT` | `/api/posts/:id/settings` | 🔒 auth | routes/posts.ts:408 |
+| `GET` | `/api/posts/:id/comments` | ⚪ optional | routes/posts.ts:447 |
+| `POST` | `/api/posts/:id/comments` | 🔒 auth | routes/posts.ts:472 |
+| `DELETE` | `/api/posts/:postId/comments/:commentId` | 🔒 auth | routes/posts.ts:527 |
+| `PUT` | `/api/posts/:postId/comments/:commentId` | 🔒 auth | routes/posts.ts:542 |
+| `PUT` | `/api/posts/:postId/comments/:commentId/reaction` | 🔒 auth | routes/posts.ts:555 |
+| `DELETE` | `/api/posts/:postId/comments/:commentId/reaction` | 🔒 auth | routes/posts.ts:573 |
 
 ## products — Marketplace products
 
