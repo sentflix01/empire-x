@@ -7,7 +7,7 @@ import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 import { useRealMode } from "@/lib/RealModeContext";
-import { Search, Users, Radio, User as UserIcon, MessageCircle } from "lucide-react";
+import { Search, Users, Radio, User as UserIcon, MessageCircle, ArrowUpDown } from "lucide-react";
 import MessageTicks from "@/components/messaging/MessageTicks";
 import { tickFor } from "@/lib/readReceipts";
 import { fmtTime } from "@/lib/date";
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { parseISO, isToday, isYesterday, isAfter, subDays, format as dfFormat } from "date-fns";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
 import MessageSearch from "@/components/messaging/MessageSearch";
-import {  isUserOnline } from "@/lib/presence";
+import {  isUserOnline, getPresenceCategory, presenceDotClass, formatLastSeen } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
 import { getSocket, connectSocket } from "@/lib/socket";
 import { useChatPresence } from "@/lib/useChatPresence";
@@ -36,6 +36,7 @@ function Messages() {
   const [presence, setPresence]           = useState<Record<string, PresenceData>>({});
   const [typingConvs, setTypingConvs]     = useState<Record<string, boolean>>({});
   const [showSearch, setShowSearch]       = useState(false);
+  const [contactSort, setContactSort]     = useState<'name' | 'time'>('time');
   const loadConversationsRef = useRef<((currentUser?: any, quiet?: boolean) => Promise<void>) | null>(null);
 
   useChatPresence(Boolean(user));
@@ -131,6 +132,16 @@ function Messages() {
       const all = await entities.UserProfile.list("-created_at", 50);
       const visible = all.filter((c: any) => String(c.user_id) !== String(u.id));
       setContacts(visible);
+      // Fetch presence for all contacts in parallel
+      const results = await Promise.all(visible.map((c: any) => {
+        const uid = c.user_id || c.id;
+        return client.get(`/api/messages/presence/${uid}`)
+          .then(r => ({ uid, data: { status: r.data.status, last_seen: r.data.last_seen || null } as PresenceData }))
+          .catch(() => ({ uid, data: { status: 'offline', last_seen: null } as PresenceData }));
+      }));
+      const map: Record<string, PresenceData> = {};
+      results.forEach(({ uid, data }) => { map[uid] = data; });
+      setPresence(prev => ({ ...prev, ...map }));
     } catch {}
   };
 
@@ -188,6 +199,24 @@ function Messages() {
           (c.headline || '').toLowerCase().includes(q)
         );
       }
+      // Sort by name or by online-first then last_seen time
+      if (contactSort === 'name') {
+        list = [...list].sort((a, b) =>
+          (a.display_name || '').localeCompare(b.display_name || '')
+        );
+      } else {
+        // time: online first, then by last_seen descending
+        list = [...list].sort((a, b) => {
+          const pa = presence[a.user_id || a.id];
+          const pb = presence[b.user_id || b.id];
+          const aOnline = pa?.status === 'online' ? 2 : pa?.status === 'away' ? 1 : 0;
+          const bOnline = pb?.status === 'online' ? 2 : pb?.status === 'away' ? 1 : 0;
+          if (aOnline !== bOnline) return bOnline - aOnline;
+          const aTime = pa?.last_seen ? new Date(pa.last_seen).getTime() : 0;
+          const bTime = pb?.last_seen ? new Date(pb.last_seen).getTime() : 0;
+          return bTime - aTime;
+        });
+      }
       return list; // contacts list, rendered differently below
     }
 
@@ -212,7 +241,7 @@ function Messages() {
       list = list.filter(c => getDisplayName(c).toLowerCase().includes(q));
     }
     return list;
-  }, [conversations, contacts, tab, realMode, search, user, getDisplayName]);
+  }, [conversations, contacts, tab, realMode, search, user, getDisplayName, contactSort, presence]);
 
   const TABS: { id: Tab; label: string; icon?: any }[] = [
     { id: 'all',      label: 'All' },
@@ -307,15 +336,49 @@ function Messages() {
         ) : tab === 'all' ? (
           /* ── All tab: contacts list ── */
           <div>
-            <p className="px-4 py-2 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-              People · {filtered.length}
-            </p>
+            <div className="flex items-center justify-between px-4 py-2">
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                People · {filtered.length}
+              </p>
+              {/* Sort toggle */}
+              <button
+                onClick={() => setContactSort(s => s === 'name' ? 'time' : 'name')}
+                className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={`Sort by ${contactSort === 'name' ? 'time' : 'name'}`}
+              >
+                <ArrowUpDown className="w-3 h-3" />
+                {contactSort === 'name' ? 'A–Z' : 'Activity'}
+              </button>
+            </div>
             {(filtered as any[]).map((contact: any) => {
               const avatarUrl = Array.isArray(contact.avatar_url) ? contact.avatar_url[0] : contact.avatar_url;
               const name = contact.display_name || 'User';
+              const businessName = contact.business_name || null;
+              const uid = contact.user_id || contact.id;
+              const presenceData = presence[uid] ?? null;
+              const category = getPresenceCategory(presenceData);
+              const dotClass = presenceDotClass(category);
+              const online = category === 'online' || category === 'recent';
+              // Compact time label: "Online", "2m ago", "3h ago", "Yesterday", "Mon", "12/03"
+              const timeLabel = (() => {
+                if (!presenceData) return '';
+                if (online) return 'Online';
+                const ls = presenceData.last_seen;
+                if (!ls) return '';
+                const d = parseISO(ls);
+                const diffSec = (Date.now() - d.getTime()) / 1000;
+                if (diffSec < 60) return 'just now';
+                const diffMin = Math.floor(diffSec / 60);
+                if (diffMin < 60) return `${diffMin}m ago`;
+                const diffHr = Math.floor(diffMin / 60);
+                if (diffHr < 24) return `${diffHr}h ago`;
+                if (isYesterday(d)) return 'Yesterday';
+                if (isAfter(d, subDays(new Date(), 7))) return dfFormat(d, 'EEE');
+                return dfFormat(d, 'dd/MM');
+              })();
               return (
                 <button
-                  key={contact.user_id || contact.id}
+                  key={uid}
                   onClick={async () => {
                     try {
                       const { findOrCreateConversation } = await import('@/lib/messaging');
@@ -325,19 +388,33 @@ function Messages() {
                   }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/50 active:scale-[0.99] border-b border-border/40"
                 >
-                  <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg shrink-0"
-                    style={{ background: 'linear-gradient(135deg,#3b82f6,#7c3aed)' }}>
-                    {avatarUrl
-                      ? <Image src={avatarUrl} alt={name} width={52} height={52} className="w-full h-full object-cover" unoptimized />
-                      : name.charAt(0).toUpperCase()}
+                  {/* Avatar with online dot */}
+                  <div className="relative shrink-0">
+                    <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg"
+                      style={{ background: 'linear-gradient(135deg,#3b82f6,#7c3aed)' }}>
+                      {avatarUrl
+                        ? <Image src={avatarUrl} alt={name} width={52} height={52} className="w-full h-full object-cover" unoptimized />
+                        : name.charAt(0).toUpperCase()}
+                    </div>
+                    <span
+                      className={cn('absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border-2 border-background', dotClass)}
+                      aria-hidden="true"
+                    />
                   </div>
+                  {/* Name + business name */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate text-foreground">{name}</p>
-                    {contact.headline && (
-                      <p className="text-xs truncate text-muted-foreground">{contact.headline}</p>
+                    {businessName && (
+                      <p className="text-xs truncate text-muted-foreground">{businessName}</p>
                     )}
                   </div>
-                  <MessageCircle className="w-4 h-4 shrink-0 text-muted-foreground" />
+                  {/* Last seen time */}
+                  {timeLabel && (
+                    <span className={cn('text-[11px] font-medium shrink-0', online ? 'text-green-500' : 'text-muted-foreground')}>
+                      {timeLabel}
+                    </span>
+                  )}
+                  <MessageCircle className="w-4 h-4 shrink-0 text-muted-foreground ml-1" />
                 </button>
               );
             })}
