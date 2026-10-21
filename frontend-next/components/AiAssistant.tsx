@@ -204,12 +204,20 @@ function AiAssistantWidget() {
   const btnRef = useRef<HTMLButtonElement>(null);
 
   // Track whether the Page Guide feature is enabled.
-  // We read a persisted flag from localStorage (written by PageGuide on mount)
-  // so we don't depend on event ordering, and also listen for live updates.
-  const [pageGuideEnabled, setPageGuideEnabled] = useState(() => {
-    try { return localStorage.getItem('nodbusiness_page_guide_enabled') === 'true'; } catch { return false; }
-  });
+  // Start false (safe for SSR), then read localStorage after mount so we pick
+  // up whatever PageGuide already persisted, and keep in sync via the custom
+  // event for future changes.  This removes the timing dependency: it doesn't
+  // matter which component mounts first — the localStorage read wins if
+  // PageGuide's effect already fired, and the event wins if it fires later.
+  const [pageGuideEnabled, setPageGuideEnabled] = useState(false);
   useEffect(() => {
+    // Sync from storage first (covers: PageGuide ran its effect before us).
+    try {
+      if (localStorage.getItem('nodbusiness_page_guide_enabled') === 'true') {
+        setPageGuideEnabled(true);
+      }
+    } catch {}
+    // Keep in sync via the live event (covers: PageGuide fires after us).
     const handler = (e: Event) => {
       const val = (e as CustomEvent<{ enabled: boolean }>).detail?.enabled ?? false;
       setPageGuideEnabled(val);
