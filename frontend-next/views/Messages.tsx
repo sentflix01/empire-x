@@ -1,8 +1,8 @@
 ﻿'use client'
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from 'framer-motion';
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
@@ -20,6 +20,7 @@ import type { PresenceData } from "@/lib/presence";
 import { getSocket, connectSocket } from "@/lib/socket";
 import { useChatPresence } from "@/lib/useChatPresence";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import UserIdentity from "@/components/ui/UserIdentity";
 
 type Tab = 'all' | 'dm' | 'groups' | 'channels';
 
@@ -36,7 +37,7 @@ function Messages() {
   const [presence, setPresence]           = useState<Record<string, PresenceData>>({});
   const [typingConvs, setTypingConvs]     = useState<Record<string, boolean>>({});
   const [showSearch, setShowSearch]       = useState(false);
-  const [contactSort, setContactSort]     = useState<'name' | 'time'>('time');
+  const [navigating, setNavigating]       = useState(false);
   const loadConversationsRef = useRef<((currentUser?: any, quiet?: boolean) => Promise<void>) | null>(null);
 
   useChatPresence(Boolean(user));
@@ -186,6 +187,24 @@ function Messages() {
     return dfFormat(d, 'dd/MM/yy');
   };
 
+  /** Find the DM conversation for a given contact user id. */
+  const getContactConv = useCallback((contactUserId: string) => {
+    return conversations.find(c => {
+      if (c.type !== 'dm') return false;
+      try {
+        const ids: string[] = JSON.parse(c.participant_ids || '[]');
+        return ids.some(id => String(id) === String(contactUserId));
+      } catch { return false; }
+    }) || null;
+  }, [conversations]);
+
+  /** Navigate to a conversation with a slide-left exit animation. */
+  const handleConvClick = useCallback((href: string) => {
+    setNavigating(true);
+    router.prefetch(href);
+    setTimeout(() => router.push(href), 150);
+  }, [router]);
+
   // ── Filter ────────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     // "All" tab now shows contacts (people), not conversations
@@ -298,10 +317,18 @@ function Messages() {
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 className={cn(
-                  'flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0',
-                  active ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground',
+                  'relative flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors shrink-0',
+                  active ? 'text-primary-foreground' : 'bg-secondary text-muted-foreground',
                 )}
               >
+                {active && (
+                  <motion.span
+                    layoutId="messages-tab-indicator"
+                    className="absolute inset-0 rounded-full bg-primary"
+                    style={{ zIndex: -1 }}
+                    transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+                  />
+                )}
                 {Icon && <Icon className="w-3.5 h-3.5" />}
                 {t.label}
               </button>
@@ -335,207 +362,203 @@ function Messages() {
           />
         ) : tab === 'all' ? (
           /* ── All tab: contacts list ── */
-          <div>
-            <div className="flex items-center justify-between px-4 py-2">
-              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={navigating ? 'out' : 'in'}
+              initial={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.15 }}
+            >
+              <p className="px-4 py-2 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                 People · {filtered.length}
               </p>
-              {/* Sort toggle */}
-              <button
-                onClick={() => setContactSort(s => s === 'name' ? 'time' : 'name')}
-                className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                aria-label={`Sort by ${contactSort === 'name' ? 'time' : 'name'}`}
-              >
-                <ArrowUpDown className="w-3 h-3" />
-                {contactSort === 'name' ? 'A–Z' : 'Activity'}
-              </button>
-            </div>
-            {(filtered as any[]).map((contact: any) => {
-              const avatarUrl = Array.isArray(contact.avatar_url) ? contact.avatar_url[0] : contact.avatar_url;
-              const name = contact.display_name || 'User';
-              const businessName = contact.business_name || null;
-              const uid = contact.user_id || contact.id;
-              const presenceData = presence[uid] ?? null;
-              const category = getPresenceCategory(presenceData);
-              const dotClass = presenceDotClass(category);
-              const online = category === 'online' || category === 'recent';
-              // Compact time label: "Online", "2m ago", "3h ago", "Yesterday", "Mon", "12/03"
-              const timeLabel = (() => {
-                if (!presenceData) return '';
-                if (online) return 'Online';
-                const ls = presenceData.last_seen;
-                if (!ls) return '';
-                const d = parseISO(ls);
-                const diffSec = (Date.now() - d.getTime()) / 1000;
-                if (diffSec < 60) return 'just now';
-                const diffMin = Math.floor(diffSec / 60);
-                if (diffMin < 60) return `${diffMin}m ago`;
-                const diffHr = Math.floor(diffMin / 60);
-                if (diffHr < 24) return `${diffHr}h ago`;
-                if (isYesterday(d)) return 'Yesterday';
-                if (isAfter(d, subDays(new Date(), 7))) return dfFormat(d, 'EEE');
-                return dfFormat(d, 'dd/MM');
-              })();
-              return (
-                <button
-                  key={uid}
-                  onClick={async () => {
-                    try {
-                      const { findOrCreateConversation } = await import('@/lib/messaging');
-                      const conv = await findOrCreateConversation(user, contact.user_id, name);
-                      if (conv) router.push(`/messages/${conv.id}`);
-                    } catch {}
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/50 active:scale-[0.99] border-b border-border/40"
-                >
-                  {/* Avatar with online dot */}
-                  <div className="relative shrink-0">
-                    <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg"
-                      style={{ background: 'linear-gradient(135deg,#3b82f6,#7c3aed)' }}>
-                      {avatarUrl
-                        ? <Image src={avatarUrl} alt={name} width={52} height={52} className="w-full h-full object-cover" unoptimized />
-                        : name.charAt(0).toUpperCase()}
-                    </div>
-                    <span
-                      className={cn('absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border-2 border-background', dotClass)}
-                      aria-hidden="true"
-                    />
-                  </div>
-                  {/* Name + business name */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate text-foreground">{name}</p>
-                    {businessName && (
-                      <p className="text-xs truncate text-muted-foreground">{businessName}</p>
-                    )}
-                  </div>
-                  {/* Last seen time */}
-                  {timeLabel && (
-                    <span className={cn('text-[11px] font-medium shrink-0', online ? 'text-green-500' : 'text-muted-foreground')}>
-                      {timeLabel}
-                    </span>
-                  )}
-                  <MessageCircle className="w-4 h-4 shrink-0 text-muted-foreground ml-1" />
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          filtered.map(conv => {
-            const name        = getDisplayName(conv);
-            const isChannel   = conv.type === 'channel';
-            const isGroup     = conv.type === 'group';
-            const isDm        = conv.type === 'dm';
-            const avatarUrl   = getDmAvatarUrl(conv);
-            const otherId     = isDm ? getDmOtherId(conv) : null;
-            const presenceData = otherId ? presence[otherId] : null;
-            const online      = isDm && isUserOnline(presenceData);
-            const unread      = unreadByConv[conv.id] || 0;
-            const isTyping    = isDm && typingConvs[conv.id];
-            const timeStr     = formatTime(conv.last_message_at || conv.updated_at);
-
-            return (
-              <Link
-                key={conv.id}
-                href={`/messages/${conv.id}`}
-                prefetch
-                onPointerEnter={() => router.prefetch(`/messages/${conv.id}`)}
-                onClick={() => setUnreadByConv(prev => { const n = { ...prev }; delete n[conv.id]; return n; })}
-                className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/50 active:scale-[0.99] border-b border-border/40"
-              >
-                {/* Avatar */}
-                <div className="relative shrink-0">
-                  <div
-                    className="w-[52px] h-[52px] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg"
-                    style={{
-                      background: isChannel
-                        ? 'linear-gradient(135deg,#2563eb,#1d4ed8)'
-                        : isGroup
-                        ? 'linear-gradient(135deg,#7c3aed,#6d28d9)'
-                        : 'linear-gradient(135deg,#3b82f6,#7c3aed)',
+              {(filtered as any[]).map((contact: any) => {
+                const avatarUrl = Array.isArray(contact.avatar_url) ? contact.avatar_url[0] : contact.avatar_url;
+                const name = contact.display_name || 'User';
+                const conv = getContactConv(contact.user_id || contact.id);
+                const unread = conv ? (unreadByConv[conv.id] || 0) : 0;
+                const hasUnread = unread > 0;
+                const lastMsgTime = conv?.last_message_at ? formatTime(conv.last_message_at) : null;
+                return (
+                  <button
+                    key={contact.user_id || contact.id}
+                    onClick={async () => {
+                      try {
+                        const { findOrCreateConversation } = await import('@/lib/messaging');
+                        const foundConv = await findOrCreateConversation(user, contact.user_id, name);
+                        if (foundConv) handleConvClick(`/messages/${foundConv.id}`);
+                      } catch {}
                     }}
+                    onPointerEnter={async () => {
+                      try {
+                        const { findOrCreateConversation } = await import('@/lib/messaging');
+                        const foundConv = await findOrCreateConversation(user, contact.user_id, name);
+                        if (foundConv) router.prefetch(`/messages/${foundConv.id}`);
+                      } catch {}
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 min-h-[68px] text-left transition-colors hover:bg-secondary/50 active:bg-secondary/80 border-b border-border/40"
                   >
-                    {avatarUrl ? (
-                      <Image
-                        src={avatarUrl}
-                        alt={name}
-                        width={52}
-                        height={52}
-                        className="w-full h-full object-cover"
-                        onError={e => { e.currentTarget.style.display = 'none'; }}
-                        unoptimized
-                      />
-                    ) : isChannel ? (
-                      <Radio className="w-5 h-5" />
-                    ) : isGroup ? (
-                      <Users className="w-5 h-5" />
-                    ) : (
-                      name.charAt(0).toUpperCase()
-                    )}
-                  </div>
-                  {/* Online dot */}
-                  {online && (
-                    <span
-                      className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border-2"
-                      style={{
-                        backgroundColor: '#22c55e',
-                        borderColor: 'hsl(var(--background))',
-                      }}
+                    <UserIdentity
+                      displayName={name}
+                      avatarUrl={avatarUrl ?? null}
+                      businessName={(contact as any).business_name ?? null}
+                      businessSlug={(contact as any).business_slug ?? null}
+                      showBusinessLink={false}
+                      size="sm"
+                      className="flex-1 min-w-0"
                     />
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  {/* Row 1: name + time */}
-                  <div className="flex items-center justify-between gap-2 mb-0.5">
-                    <p
-                      className={cn(
-                        'text-sm truncate text-foreground',
-                        unread > 0 ? 'font-bold' : 'font-semibold',
+                    <div className="flex flex-col items-center gap-0.5 shrink-0 ml-2">
+                      <MessageCircle
+                        className={cn(
+                          'w-5 h-5',
+                          hasUnread ? 'fill-primary text-primary' : 'text-muted-foreground',
+                        )}
+                      />
+                      {hasUnread && (
+                        <span className="min-w-[18px] h-[18px] bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                          {unread > 99 ? '99+' : unread}
+                        </span>
                       )}
-                    >
-                      {name}
-                    </p>
-                    <div className="flex items-center gap-1 shrink-0">
-                      {/* Ticks on my own last message: sent, delivered, seen */}
-                      {isDm && conv.last_message_id && String(conv.last_message_sender_id) === String(user?.id) && (
-                        <MessageTicks tick={tickFor({ created_at: conv.last_message_at }, user?.id, [{
-                          user_id: conv.other_user_id, last_read_at: conv.other_last_read_at, last_delivered_at: conv.other_last_delivered_at,
-                        }])} />
+                      {lastMsgTime && (
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                          {lastMsgTime}
+                        </span>
                       )}
-                      <span
-                        className={cn('text-[11px] whitespace-nowrap', unread > 0 ? 'text-primary' : 'text-muted-foreground')}
-                      >
-                        {timeStr}
-                      </span>
                     </div>
-                  </div>
+                  </button>
+                );
+              })}
+            </motion.div>
+          </AnimatePresence>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={navigating ? 'out' : 'in'}
+              initial={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.15 }}
+            >
+              {filtered.map(conv => {
+                const name        = getDisplayName(conv);
+                const isChannel   = conv.type === 'channel';
+                const isGroup     = conv.type === 'group';
+                const isDm        = conv.type === 'dm';
+                const avatarUrl   = getDmAvatarUrl(conv);
+                const otherId     = isDm ? getDmOtherId(conv) : null;
+                const presenceData = otherId ? presence[otherId] : null;
+                const online      = isDm && isUserOnline(presenceData);
+                const unread      = unreadByConv[conv.id] || 0;
+                const isTyping    = isDm && typingConvs[conv.id];
+                const timeStr     = formatTime(conv.last_message_at || conv.updated_at);
 
-                  {/* Row 2: last message + unread badge */}
-                  <div className="flex items-center justify-between gap-2">
-                    <p
-                      className={cn(
-                        'text-xs truncate flex-1',
-                        isTyping ? 'text-primary italic' : 'text-muted-foreground',
-                        unread > 0 ? 'font-semibold' : 'font-normal',
-                      )}
-                    >
-                      {isTyping
-                        ? 'typing…'
-                        : conv.last_message || 'No messages yet'}
-                    </p>
-                    {unread > 0 && (
-                      <span
-                        className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-destructive-foreground bg-destructive px-1.5 shrink-0"
+                return (
+                  <Link
+                    key={conv.id}
+                    href={`/messages/${conv.id}`}
+                    prefetch
+                    onPointerEnter={() => router.prefetch(`/messages/${conv.id}`)}
+                    onClick={() => {
+                      setUnreadByConv(prev => { const n = { ...prev }; delete n[conv.id]; return n; });
+                      handleConvClick(`/messages/${conv.id}`);
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 min-h-[68px] transition-colors hover:bg-secondary/50 active:bg-secondary/80 border-b border-border/40"
+                  >
+                    {/* Avatar */}
+                    <div className="relative shrink-0">
+                      <div
+                        className="w-[52px] h-[52px] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg"
+                        style={{
+                          background: isChannel
+                            ? 'linear-gradient(135deg,#2563eb,#1d4ed8)'
+                            : isGroup
+                            ? 'linear-gradient(135deg,#7c3aed,#6d28d9)'
+                            : 'linear-gradient(135deg,#3b82f6,#7c3aed)',
+                        }}
                       >
-                        {unread > 99 ? '99+' : unread}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            );
-          })
+                        {avatarUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={avatarUrl}
+                            alt={name}
+                            width={52}
+                            height={52}
+                            className="w-full h-full object-cover"
+                            onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        ) : isChannel ? (
+                          <Radio className="w-5 h-5" />
+                        ) : isGroup ? (
+                          <Users className="w-5 h-5" />
+                        ) : (
+                          name.charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      {/* Online dot */}
+                      {online && (
+                        <span
+                          className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border-2"
+                          style={{
+                            backgroundColor: '#22c55e',
+                            borderColor: 'hsl(var(--background))',
+                          }}
+                        />
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      {/* Row 1: name + time */}
+                      <div className="flex items-center justify-between gap-2 mb-0.5">
+                        <p
+                          className={cn(
+                            'text-sm truncate text-foreground',
+                            unread > 0 ? 'font-bold' : 'font-semibold',
+                          )}
+                        >
+                          {name}
+                        </p>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {/* Ticks on my own last message: sent, delivered, seen */}
+                          {isDm && conv.last_message_id && String(conv.last_message_sender_id) === String(user?.id) && (
+                            <MessageTicks tick={tickFor({ created_at: conv.last_message_at }, user?.id, [{
+                              user_id: conv.other_user_id, last_read_at: conv.other_last_read_at, last_delivered_at: conv.other_last_delivered_at,
+                            }])} />
+                          )}
+                          <span
+                            className={cn('text-[11px] whitespace-nowrap', unread > 0 ? 'text-primary' : 'text-muted-foreground')}
+                          >
+                            {timeStr}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Row 2: last message + unread badge */}
+                      <div className="flex items-center justify-between gap-2">
+                        <p
+                          className={cn(
+                            'text-xs truncate flex-1',
+                            isTyping ? 'text-primary italic' : 'text-muted-foreground',
+                            unread > 0 ? 'font-semibold' : 'font-normal',
+                          )}
+                        >
+                          {isTyping
+                            ? 'typing…'
+                            : conv.last_message || 'No messages yet'}
+                        </p>
+                        {unread > 0 && (
+                          <span
+                            className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-destructive-foreground bg-destructive px-1.5 shrink-0"
+                          >
+                            {unread > 99 ? '99+' : unread}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </motion.div>
+          </AnimatePresence>
         )}
       </div>
     </div>

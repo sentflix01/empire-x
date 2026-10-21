@@ -27,6 +27,7 @@ import UserIdentity from "@/components/ui/UserIdentity";
 import { uploadFile } from '@/lib/uploadFile';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   enqueuePendingMessage,
   removePendingMessage,
@@ -43,6 +44,11 @@ function ChatRoom() {
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id as string);
   const router = useRouter();
   const { user } = useAuth();
+
+  // Detect reduced-motion preference once — safe for SSR (window check)
+  const reducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const [messages, setMessages]       = useState([]);
   const [conversation, setConversation] = useState(null);
@@ -76,6 +82,7 @@ function ChatRoom() {
   // Header menu
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   // Block status & online status
   const [isBlocked, setIsBlocked]     = useState(false);
@@ -461,6 +468,7 @@ function ChatRoom() {
     // ── Online path (existing logic) ───────────────────────────────────
     // Optimistic update — add message to UI immediately
     setMessages(prev => [...prev, tempMsg]);
+    scrollToBottom();   // always scroll when I send
     setText('');
     textRef.current = '';
     setReplyingTo(null);
@@ -603,7 +611,8 @@ function ChatRoom() {
         try { await client.delete(`/api/messages/conversations/${id}`); } catch { /* ignore */ }
       }
     }
-    router.push('/messages');
+    setIsExiting(true);
+    setTimeout(() => router.push('/messages'), 160);
   };
 
   // ── Long-press / context menu helpers ────────────────────────────────────
@@ -754,7 +763,6 @@ function ChatRoom() {
     return fmtLongDate(d);
   };
 
-  const avatarLetter = getDisplayName().charAt(0).toUpperCase();
   const otherAvatarUrl = Array.isArray(otherProfile?.avatar_url)
     ? otherProfile.avatar_url[0]
     : otherProfile?.avatar_url;
@@ -762,7 +770,12 @@ function ChatRoom() {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-    <div className="flex flex-col h-[calc(100dvh-3.5rem)] overflow-hidden">
+    <motion.div
+      className="flex flex-col h-[calc(100dvh-3.5rem)] overflow-hidden"
+      initial={{ opacity: 0, x: 20 }}
+      animate={isExiting ? { opacity: 0, x: 20 } : { opacity: 1, x: 0 }}
+      transition={{ duration: 0.2 }}
+    >
       <span className="sr-only" aria-live="polite">{liveAnnouncement}</span>
 
       {/* Header */}
@@ -851,7 +864,7 @@ function ChatRoom() {
       <div className="relative flex-1 overflow-hidden">
         <div
           data-page-guide="chat-messages"
-          className="h-full overflow-y-auto px-3 py-4 space-y-0.5 bg-[hsl(var(--chat-bg))]"
+          className="h-full overflow-y-auto px-3 py-4 space-y-0.5 bg-[hsl(var(--chat-bg))] overscroll-contain"
           role="log"
           aria-label="Conversation messages"
           onScroll={handleMessagesScroll}
@@ -890,8 +903,12 @@ function ChatRoom() {
                 const isPending = Boolean((msg as { _pending?: boolean })._pending);
 
                 return (
-                  <div
+                  <motion.div
                     key={msg.id}
+                    initial={reducedMotion ? false : { opacity: 0, x: isMe ? 8 : -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.15 }}
+                    layout={false}
                     className={cn('flex mb-0.5 items-end gap-1.5', isMe ? 'justify-end' : 'justify-start')}
                     onMouseEnter={() => setHoveredMsg(msg.id)}
                     onMouseLeave={() => setHoveredMsg(null)}
@@ -956,7 +973,7 @@ function ChatRoom() {
                           msg.type === 'image' ? 'p-1' : 'px-3 py-1.5',
                           isMe ? 'rounded-br-md bg-primary/15 dark:bg-primary/25' : 'rounded-bl-md bg-card',
                           selectedMsg?.id === msg.id && 'ring-2 ring-primary/50 scale-[0.98]',
-                          'transition-transform animate-bubble-in',
+                          'transition-transform',
                         )}
                         style={isPending ? { opacity: 0.5 } : undefined}
                       >
@@ -1006,7 +1023,7 @@ function ChatRoom() {
                         />
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -1023,16 +1040,22 @@ function ChatRoom() {
           )}
           <div ref={bottomRef} />
         </div>
-        {showScrollBtn && (
-          <button
-            type="button"
-            onClick={scrollToBottom}
-            aria-label="Scroll to bottom"
-            className="absolute bottom-4 end-4 z-10 size-11 rounded-full bg-card shadow-lg border border-border flex items-center justify-center"
-          >
-            <ChevronDown className="w-5 h-5" />
-          </button>
-        )}
+        <AnimatePresence>
+          {showScrollBtn && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.15 }}
+              type="button"
+              onClick={scrollToBottom}
+              aria-label="Scroll to bottom"
+              className="absolute bottom-4 end-4 z-10 size-11 rounded-full bg-card shadow-lg border border-border flex items-center justify-center"
+            >
+              <ChevronDown className="w-5 h-5" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Input area */}
@@ -1074,7 +1097,7 @@ function ChatRoom() {
             <button data-page-guide="chat-attachments" type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage || sending} className="h-11 w-11 shrink-0 rounded-full text-primary hover:bg-primary/10 disabled:opacity-40" aria-label="Attach image">
               {uploadingImage ? <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" /> : <ImagePlus className="mx-auto h-5 w-5" />}
             </button>
-            <div data-page-guide="chat-input" className="flex-1 bg-secondary rounded-2xl px-4 py-2 flex items-center min-h-11 border border-transparent focus-within:border-primary/30 focus-within:ring-2 focus-within:ring-primary/10">
+            <div data-page-guide="chat-input" className="flex-1 bg-secondary rounded-2xl px-4 py-2 flex items-end min-h-11 border border-transparent focus-within:border-primary/30 focus-within:ring-2 focus-within:ring-primary/10 transition-[height] duration-100">
               <textarea
                 ref={inputRef}
                 value={editingMsg ? editText : text}
@@ -1098,35 +1121,62 @@ function ChatRoom() {
                     if (replyingTo) setReplyingTo(null);
                   }
                 }}
+                onFocus={() => {
+                  // On mobile, after keyboard animation, scroll thread to bottom
+                  setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
+                }}
                 placeholder={editingMsg ? 'Edit message...' : 'Message'}
                 rows={1}
-                className="flex-1 bg-transparent text-sm outline-none resize-none max-h-24 self-center leading-5"
+                className="flex-1 bg-transparent text-sm outline-none resize-none max-h-24 self-end leading-5 overflow-y-auto scrollbar-thin"
                 style={{ minHeight: '20px' }}
               />
             </div>
-            <button
-              onClick={handleSend}
-              aria-label={editingMsg ? 'Save edit' : 'Send message'}
-              className={cn(
-                'w-11 h-11 rounded-full flex items-center justify-center text-primary-foreground shrink-0 transition-transform active:scale-90 outline-none focus:outline-none bg-primary',
-                (!(editingMsg ? editText.trim() : text.trim()) || sending) ? 'opacity-40' : 'opacity-100',
-              )}
-            >
-              {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
-            </button>
+            {(() => {
+              const hasContent = Boolean((editingMsg ? editText : text).trim());
+              return (
+                <button
+                  onClick={handleSend}
+                  aria-label={editingMsg ? 'Save edit' : 'Send message'}
+                  className={cn(
+                    'w-11 h-11 rounded-full flex items-center justify-center text-primary-foreground shrink-0 outline-none focus:outline-none bg-primary',
+                    'transition-all duration-150',
+                    hasContent
+                      ? 'opacity-100 scale-100'
+                      : 'opacity-40 scale-90 cursor-not-allowed pointer-events-none',
+                    sending && 'scale-95',
+                  )}
+                >
+                  {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                </button>
+              );
+            })()}
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
 
     {/* ── Message Context Menu — Telegram style ───────────────────────── */}
-    {selectedMsg && (
-      <>
-        {/* Backdrop */}
-        <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-[3px]" onClick={dismissContextMenu} />
+    <AnimatePresence>
+      {selectedMsg && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-[3px]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            onClick={dismissContextMenu}
+          />
 
-        {/* Sheet — slides up from bottom */}
-        <div className="fixed bottom-0 left-0 right-0 z-[61] animate-in slide-in-from-bottom-4 duration-200">
+          {/* Sheet — spring slides up from bottom */}
+          <motion.div
+            className="fixed bottom-0 left-0 right-0 z-[61]"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+          >
           <div
             className="max-w-lg mx-auto rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto bg-card text-foreground"
           >
@@ -1230,9 +1280,10 @@ function ChatRoom() {
             {/* Safe area */}
             <div className="pb-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} />
           </div>
-        </div>
-      </>
-    )}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
 
     {/* ── Forward Message Modal ─────────────────────────────────────────── */}
     {forwardMsg && (
