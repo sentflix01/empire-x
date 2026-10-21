@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import SafeImage from '@/components/ui/SafeImage';
 import React, { useState } from 'react';
 import { Users } from 'lucide-react';
@@ -95,6 +95,7 @@ export function UserCard({
 
         {/* Follow / Unfollow button */}
         <button
+          data-page-guide="friends-follow-btn"
           onClick={handleToggleFollow}
           className={`mt-2 text-xs font-semibold px-3 py-1 rounded-full transition-colors ${
             localFollowing

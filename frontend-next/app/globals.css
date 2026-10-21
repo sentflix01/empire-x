@@ -311,6 +311,7 @@ html {
   height: 46px;
   display: inline-block;
   perspective: 900px;
+  -webkit-perspective: 900px;
 }
 
 .ai-flip-coin-inner {
@@ -319,6 +320,7 @@ html {
   height: 100%;
   display: block;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   animation: ai-coin-flip 4.8s ease-in-out infinite;
 }
 
@@ -331,6 +333,7 @@ html {
   overflow: hidden;
   border-radius: 9999px;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35), 0 10px 24px rgb(15 23 42 / 0.25);
 }
 
@@ -342,4 +345,67 @@ html {
   flex-direction: column;
   background: linear-gradient(135deg, #2563eb 0%, #4f46e5 48%, #7c3aed 100%);
   transform: rotateY(180deg);
+}
+
+/* Page guide flip coin — same animation as the AI assistant coin */
+.pg-flip-coin {
+  width: 46px;
+  height: 46px;
+  display: inline-block;
+  perspective: 900px;
+  -webkit-perspective: 900px;
+}
+
+.pg-flip-coin-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  animation: ai-coin-flip 4.8s ease-in-out infinite;
+  /* slight offset so the two coins don't flip in perfect sync */
+  animation-delay: -2.4s;
+}
+
+.pg-flip-coin-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 9999px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35), 0 10px 24px rgb(15 23 42 / 0.25);
+}
+
+.pg-flip-coin-front {
+  background: white;
+}
+
+.pg-flip-coin-back {
+  flex-direction: column;
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 48%, #7c3aed 100%);
+  transform: rotateY(180deg);
+}
+
+/* New-message bubble entrance — disabled by the prefers-reduced-motion guard below. */
+@keyframes msg-bubble-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+.animate-bubble-in { animation: msg-bubble-in 0.18s ease-out; }
+
+/* Respect users who request reduced motion: neutralise animations, transitions
+   and smooth scrolling app-wide (context-menu slide, send scale, typing dots,
+   bubble entrance, marquee, AI orb). FEAT-002's bubble-in is also covered. */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

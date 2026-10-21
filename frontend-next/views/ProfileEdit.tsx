@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 /**
  * ProfileEdit — LinkedIn/Facebook-style profile editor.
  *
@@ -401,7 +401,7 @@ function ProfileEdit() {
                       <Image src={p.cover_url} alt="Cover" fill className="object-cover" unoptimized
                         style={{ objectPosition: p.cover_position || 'center' }} />
                     )}
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div data-page-guide="profile-edit-cover" className="absolute inset-0 flex items-center justify-center">
                       <ImageUpload value={p.cover_url} onChange={url => { sp('cover_url', url); sp('cover_position', ''); }}
                         placeholder="" aspectRatio="aspect-video"
                         className="opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
@@ -425,7 +425,7 @@ function ProfileEdit() {
                       ? <Image src={p.avatar_url} alt="Avatar" width={80} height={80} className="w-full h-full object-cover" unoptimized />
                       : (p.display_name?.charAt(0) || 'U')}
                   </div>
-                  <div className="absolute inset-0 rounded-2xl overflow-hidden">
+                  <div data-page-guide="profile-edit-avatar" className="absolute inset-0 rounded-2xl overflow-hidden">
                     <ImageUpload value={p.avatar_url} onChange={url => sp('avatar_url', url)}
                       placeholder="" aspectRatio="aspect-square"
                       className="opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
@@ -442,7 +442,7 @@ function ProfileEdit() {
           <Section icon={User} title="Basic Information">
             <div>
               <Label>Full Name *</Label>
-              <Input value={p.display_name} onChange={e => sp('display_name', e.target.value)} placeholder="Your full name" className="mt-1 h-11" />
+              <Input data-page-guide="profile-edit-name" value={p.display_name} onChange={e => sp('display_name', e.target.value)} placeholder="Your full name" className="mt-1 h-11" />
             </div>
             <div>
               <Label>Headline</Label>
@@ -451,7 +451,7 @@ function ProfileEdit() {
             </div>
             <div>
               <Label>Bio / About</Label>
-              <Textarea value={p.bio} onChange={e => sp('bio', e.target.value)}
+              <Textarea data-page-guide="profile-edit-bio" value={p.bio} onChange={e => sp('bio', e.target.value)}
                 placeholder="Tell people who you are, what you do, and what you're passionate about..." rows={4} className="mt-1" />
             </div>
           </Section>
@@ -461,7 +461,7 @@ function ProfileEdit() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>Location</Label>
-                <Input value={p.location} onChange={e => sp('location', e.target.value)} placeholder="City, Country" className="mt-1 h-11" />
+                <Input data-page-guide="profile-edit-location" value={p.location} onChange={e => sp('location', e.target.value)} placeholder="City, Country" className="mt-1 h-11" />
               </div>
               <div>
                 <Label>Phone</Label>
@@ -518,7 +518,7 @@ function ProfileEdit() {
           <Section icon={Radio} title="Post Ticker Bar" defaultOpen={false}>
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs text-muted-foreground">Scrolls under every post you make</p>
-              <button type="button" role="switch" aria-checked={p.ticker_type !== 'none'}
+              <button data-page-guide="profile-edit-ticker" type="button" role="switch" aria-checked={p.ticker_type !== 'none'}
                 onClick={() => sp('ticker_type', p.ticker_type === 'none' ? 'auto' : 'none')}
                 className={`relative inline-flex h-6 w-11 rounded-full transition-colors ${p.ticker_type !== 'none' ? 'bg-amber-500' : 'bg-secondary'}`}>
                 <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${p.ticker_type !== 'none' ? 'translate-x-5' : 'translate-x-0.5'}`} />

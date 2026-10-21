@@ -514,7 +514,33 @@ All routes require auth. The rules live in `backend/lib/messaging.ts` and `backe
 **Limits (per person, per minute):** 30 messages or forwards, and 20 new chats, groups or inquiries.
 
 ### GET /api/messages/conversations
-Your chats, newest activity first (up to 100). Each one has `my_role` and `unread_count`.
+Your chats, newest activity first (up to 100). `?box=` is `chats`, `requests` or `archived`; without it you get chats and requests, which older app versions expect.
+
+**Each chat includes:**
+- **About the chat:** `my_role`, `unread_count`, `is_request`, `muted`, `muted_until`, `archived_at`.
+- **The last message you can see:** `last_message`, `last_message_id`, `last_message_sender_id`, `last_message_at`.
+- **One-to-one chats only:** `other_user_id`, `other_name`, `other_avatar`, `other_last_delivered_at`, and `other_last_read_at`. The last one is `null` unless both people allow read receipts.
+
+**Requests:** a first message from someone you don't follow waits in Requests until you accept or reply.
+
+**Archived chats** come back when a new message arrives, unless they're muted.
+
+### GET /api/messages/unread-count
+`{ chats, messages, requests }` for the Messages badge. Muted and archived chats don't count.
+
+### GET /api/messages/conversations/:id
+The chat plus `members: [{ user_id, role, display_name, avatar_url, last_delivered_at, last_read_at }]`. Other people's `last_read_at` is `null` unless both of you allow read receipts.
+
+### POST /api/messages/conversations/:id/read · POST /api/messages/delivered
+- **Read:** marks the chat read up to now, along with its message notifications. It emits `conversation_read`, only to members who share read receipts with you, and `conversation_delivered`.
+- **Delivered:** `{ conversation_ids? }`. The app calls it whenever it receives messages, which gives the sender ✓✓.
+
+### Mute, archive, requests, delete for me
+- **`PUT /conversations/:id/mute`** `{ duration: "8h" | "1w" | "always" | "off" }`: no notifications, and the chat leaves the badge.
+- **`PUT /conversations/:id/archive`** `{ archived }`.
+- **`POST /conversations/:id/accept`** accepts a request.
+- **`DELETE /conversations/:id/for-me`** (also `/history`): hides the chat and its older messages for you only, until someone writes again. It also declines a request.
+- **`DELETE /api/messages/:id/for-me`**: hides one message for you only.
 
 ### POST /api/messages/conversations/find-or-create
 `{ "target_user_id": "uuid" }`. Opens the one-to-one chat with someone, creating it the first time (201), or returns the existing one (200).
@@ -553,7 +579,6 @@ The older `/api/messages/messages/:id…` paths still work.
 - **`DELETE /conversations/:id/members/:userId`**: admins remove people. Removed people stop receiving live messages at once.
 - **`POST /conversations/:id/leave`**: when the last admin leaves, the longest-standing member becomes admin.
 - **`DELETE /conversations/:id`**: admins delete the group. One-to-one chats can't be left or deleted for both people.
-- **`DELETE /conversations/:id/history`** removes your own messages from the chat.
 
 ### POST /api/messages/inquiry
 "Get a quote": `{ "receiver_id", "subject"?, "body" }`. It opens (or reuses) the one-to-one chat with the business owner, under the same rules as any first message. The request shows in the owner's chat list and notifications. The buyer's email is never included.
@@ -566,7 +591,8 @@ The older `/api/messages/messages/:id…` paths still work.
 - **Connecting:** use an access token (`auth.token`). A demo session's socket uses the demo database. A ban closes the connection, and a recovered connection is checked again.
 - **Joining:** `join_conversation` (members only).
 - **Typing:** `typing { conversationId, isTyping }` reaches only the chat and respects blocks. Repeats are sent at most once every 3 s.
-- **Server events:** `new_message`, `message_edited`, `message_deleted`, `typing_updated`, `presence_updated`, `new_notification`.
+- **Server events, to the chat room:** `new_message`, `message_edited`, `message_deleted`, `typing_updated`.
+- **Server events, to each person's own room (all their devices):** `conversation_updated` (the new list summary), `unread_changed`, `conversation_read`, `conversation_delivered`, `message_hidden`, `presence_updated`, `new_notification`.
 
 ---
 

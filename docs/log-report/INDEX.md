@@ -5,6 +5,27 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-21 | Bugfix | fix(messaging): FEAT-002 chat room UI/UX polish | [428c120a3](2026-10-21-428c120a3-feat-002-chat-room-ui-ux-polish.md) |
+| 2026-10-21 | Documentation | docs(messaging): mark FEAT-001 completed with verification findings | [e84ddac05](2026-10-21-e84ddac05-mark-feat-001-completed-with-verification-findin.md) |
+| 2026-10-21 | Bugfix | fix(messaging): polish messages list, search overlay, new-chat menu | [88a220e0e](2026-10-21-88a220e0e-polish-messages-list-search-overlay-new-chat-men.md) |
+| 2026-10-21 | Bugfix | fix: upgrade follow-redirects in frontend package-lock (GHSA-q3jh / GHSA-8r9p) | [71724de59](2026-10-21-71724de59-upgrade-follow-redirects-in-frontend-package-loc.md) |
+| 2026-10-21 | Bugfix | fix: CI failures — follow-redirects audit + WebsiteStatusBanner test date | [4a8248048](2026-10-21-4a8248048-ci-failures-follow-redirects-audit-websitestatus.md) |
+| 2026-10-21 | Feature | feat: offline send queue with IndexedDB persistence (FEAT-005) | [673389240](2026-10-21-673389240-offline-send-queue-with-indexeddb-persistence-fe.md) |
+| 2026-10-21 | Feature | feat: FEAT-004 product/order_update card message types | [e856a7710](2026-10-21-e856a7710-feat-004-product-order-update-card-message-types.md) |
+| 2026-10-20 | Feature | feat: server-side pin & save for messages (FEAT-003) | [366e4492f](2026-10-20-366e4492f-server-side-pin-save-for-messages-feat-003.md) |
+| 2026-10-20 | Feature | feat: FEAT-002 message search — migration, search endpoint, MessageSearch component, Messages and ChatRoom wiring | [5a3831a27](2026-10-20-5a3831a27-feat-002-message-search-migration-search-endpoin.md) |
+| 2026-10-20 | Feature | feat: FEAT-001 message reactions — migration, REST endpoints, socket emitters, MessageReactions component, ChatRoom wiring | [b209fd018](2026-10-20-b209fd018-feat-001-message-reactions-migration-rest-endpoi.md) |
+| 2026-10-20 | Documentation | docs: add professional messaging system audit and specification | [fccc02477](2026-10-20-fccc02477-add-professional-messaging-system-audit-and-spec.md) |
+| 2026-10-20 | Feature | feat: implement full in-app page guide tours across all 53 routes | [36096073b](2026-10-20-36096073b-implement-full-in-app-page-guide-tours-across-al.md) |
+| 2026-10-20 | Bugfix | fix: AI assistant button always visible on all screen sizes | [ac2f5977c](2026-10-20-ac2f5977c-ai-assistant-button-always-visible-on-all-screen.md) |
+| 2026-10-20 | Bugfix | fix(ai-assistant): keep draggable launcher visible on compact screens | [79f7e007d](2026-10-20-79f7e007d-keep-draggable-launcher-visible-on-compact-scree.md) |
+| 2026-10-19 | Testing | test(e2e): guest reaches a published showroom from the business feed (#130) | [f1db91678](2026-10-19-f1db91678-guest-reaches-a-published-showroom-from-the-busi.md) |
+| 2026-10-19 | Bugfix | fix(subscriptions): never move the period end back on subscription.updated; webhook regression tests (#102) | [0255d8b5c](2026-10-19-0255d8b5c-never-move-the-period-end-back-on-subscription-u.md) |
+| 2026-10-19 | Bugfix | fix(email): one provider rule for every email; Resend failures fall back to SMTP (#136) | [7008889ad](2026-10-19-7008889ad-one-provider-rule-for-every-email-resend-failure.md) |
+| 2026-10-19 | Feature | feat(messages): unread counts, real ticks, requests, mute, archive (messaging audit 2/7) (#140) | [3c2001db9](2026-10-19-3c2001db9-unread-counts-real-ticks-requests-mute-archive-m.md) |
+| 2026-10-19 | Feature | feat(onboarding): add responsive page guided tours (#142) | [b1334ffd4](2026-10-19-b1334ffd4-add-responsive-page-guided-tours-142.md) |
+| 2026-10-19 | Maintenance | Merge pull request #141 from sentflix01/codex/ai-tour-guide | [2c9cbe148](2026-10-19-2c9cbe148-merge-pull-request-141-from-sentflix01-codex-ai-.md) |
+| 2026-10-19 | Feature | feat(ai): add conversational in-app tour | [fa3399e97](2026-10-19-fa3399e97-add-conversational-in-app-tour.md) |
 | 2026-10-18 | Maintenance | Merge pull request #137 from sentflix01/claude/scan-products | [9835747d2](2026-10-18-9835747d2-merge-pull-request-137-from-sentflix01-claude-sc.md) |
 | 2026-10-18 | Feature | feat(products): scan a barcode or QR code to add products, and quick scan mode | [5692c6e8b](2026-10-18-5692c6e8b-scan-a-barcode-or-qr-code-to-add-products-and-qu.md) |
 | 2026-10-18 | Bugfix | fix(products): don't cache an unreachable open database as "not found" | [a9d42e132](2026-10-18-a9d42e132-don-t-cache-an-unreachable-open-database-as-not-.md) |

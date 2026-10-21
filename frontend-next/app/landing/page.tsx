@@ -60,16 +60,16 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
       {/* ── Top navigation bar ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/8 sm:px-6">
+      <nav data-page-guide="landing-nav" aria-label="Account and display options" className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/8 sm:px-6">
         <div className="flex items-center gap-2">
           <Image src="/brand/nodbusiness-logo-white.svg" alt="Nodbusiness" width={180} height={27} className="h-6 w-auto sm:h-7" priority />
         </div>
         <div className="flex items-center gap-2">
           <LandingPreferences />
-          <Link href="/register" className="hidden sm:inline-flex h-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-xl hover:bg-white/20 transition-all">
+          <Link data-page-guide="landing-register" href="/register" className="hidden sm:inline-flex h-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-xl hover:bg-white/20 transition-all">
             Create Account
           </Link>
-          <Link href="/login" className="inline-flex h-9 items-center justify-center rounded-xl bg-white px-4 text-sm font-bold text-blue-700 shadow-lg hover:bg-blue-50 transition-all">
+          <Link data-page-guide="landing-signin" href="/login" className="inline-flex h-9 items-center justify-center rounded-xl bg-white px-4 text-sm font-bold text-blue-700 shadow-lg hover:bg-blue-50 transition-all">
             Sign In
           </Link>
         </div>
@@ -115,7 +115,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-10 pt-16 text-center">
+        <div data-page-guide="landing-actions" className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-10 pt-16 text-center">
           <Image
             src="/brand/nodbusiness-logo-white.svg"
             alt="Nodbusiness"
@@ -150,6 +150,7 @@ export default function LandingPage() {
             <TryDemoButton />
             {/* Read-only public browsing, with no account required */}
             <Link
+              data-page-guide="landing-guest"
               href="/feed"
               className="inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/30 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 sm:w-auto"
             >
@@ -173,7 +174,7 @@ export default function LandingPage() {
       </section>
 
       <section className="-mt-14 px-4 pb-20 sm:px-6">
-        <div className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-3 rounded-3xl border border-white/10 bg-slate-900/90 p-3 shadow-2xl shadow-slate-950/35 backdrop-blur-xl md:grid-cols-4">
+        <div data-page-guide="landing-stats" className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-3 rounded-3xl border border-white/10 bg-slate-900/90 p-3 shadow-2xl shadow-slate-950/35 backdrop-blur-xl md:grid-cols-4">
           {stats.map(([value, label]) => (
             <div key={label} className="rounded-2xl bg-white/[0.06] px-4 py-5 text-center">
               <p className="text-3xl font-black text-white">{value}</p>
@@ -193,7 +194,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div data-page-guide="landing-modules" className="grid gap-4 md:grid-cols-3">
             {modules.map(({ title, desc, Icon }) => (
               <article key={title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl">
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
@@ -276,7 +277,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-slate-950 px-6 py-20 text-white">
+      <section data-page-guide="landing-cta-section" className="bg-slate-950 px-6 py-20 text-white">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-4xl font-black tracking-normal sm:text-5xl">One account. Endless possibilities.</h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-white/65">

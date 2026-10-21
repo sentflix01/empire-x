@@ -40,6 +40,7 @@ export default function TryDemoButton() {
 
   return (
     <button
+      data-page-guide="landing-demo-btn"
       type="button"
       onClick={() => void enterDemo()}
       disabled={!authChecked || starting}

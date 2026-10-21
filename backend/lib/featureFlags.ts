@@ -41,6 +41,7 @@ const DEFAULT_FLAGS = {
   community_groups:      { enabled: false, rollout: 0,   description: 'Community groups feature' },
   ai_description_gen:    { enabled: true,  rollout: 100, description: 'AI product description generator' },
   ai_chat:               { enabled: true,  rollout: 100, description: 'AI chat assistant' },
+  page_guided_tours:     { enabled: true,  rollout: 100, description: 'Interactive page-by-page onboarding tours' },
   map_clustering:        { enabled: true,  rollout: 100, description: 'Map pin clustering' },
   delivery_tracking:     { enabled: true,  rollout: 100, description: 'Delivery timeline tracking' },
   return_requests:       { enabled: true,  rollout: 100, description: 'Return and refund requests' },

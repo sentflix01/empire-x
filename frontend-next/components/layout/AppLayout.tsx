@@ -14,6 +14,7 @@ import { toggleLanguage } from "@/lib/i18n";
 import { useCart } from "@/lib/CartContext";
 import { useAuth } from "@/lib/AuthContext";
 import { connectSocket, disconnectSocket, resetSocket, getSocket } from "@/lib/socket";
+import { useMessagesBadge } from "@/lib/useMessagesBadge";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import WorkspaceSwitcher from "@/components/layout/WorkspaceSwitcher";
 import { useProfileView } from "@/lib/ProfileViewContext";
@@ -255,9 +256,26 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   // Once user is available: check profile, set up socket, load unread count, hydrate bookmarks
   const hydrateBookmarks = useAppStore(s => s.hydrate);
+  const messagesBadge = useMessagesBadge(user?.id);
+  // Signed out: close the live connection (listeners stay; logout resets the socket).
+  useEffect(() => { if (!user) disconnectSocket(); }, [user]);
   useEffect(() => {
     if (!user) return;
     let active = true;
+    const isChatNote = (n: { type?: string }) => n?.type === 'message' || n?.type === 'inquiry';
+    // Message notifications count on the Messages badge, not the bell, and stay
+    // quiet while that chat is already open.
+    const onNotification = (notif: { type?: string; title: string; body?: string; link?: string }) => {
+      if (isChatNote(notif) && notif.link && pathnameRef.current === notif.link) return;
+      if (!isChatNote(notif)) setUnreadCount(c => c + 1);
+      toast(notif.title, {
+        description: notif.body || undefined,
+        duration: 5000,
+        action: notif.link
+          ? { label: "View", onClick: () => { router.push(notif.link!); } }
+          : undefined,
+      });
+    };
     // Hydrate bookmark state so bookmark buttons show correct saved state immediately
     hydrateBookmarks();
     entities.UserProfile.filter({ user_id: user.id }).then(profiles => {
@@ -268,17 +286,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       }
       loadUnreadCount(user);
       connectSocket();
-      const s = getSocket();
-      s.on("new_notification", (notif) => {
-        setUnreadCount(c => c + 1);
-        toast(notif.title, {
-          description: notif.body || undefined,
-          duration: 5000,
-          action: notif.link
-            ? { label: "View", onClick: () => { window.location.href = notif.link; } }
-            : undefined,
-        });
-      });
+      getSocket().on("new_notification", onNotification);
     });
 
     // Warm backend cache in background — don't await, don't block
@@ -298,7 +306,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
     return () => {
       active = false;
-      disconnectSocket();
+      getSocket().off("new_notification", onNotification);
     };
   }, [user, hydrateBookmarks, router]);
 
@@ -314,7 +322,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       // Use direct client call — backend uses req.user.id from JWT, not a query param
       const { data } = await client.get('/api/notifications?limit=60');
       const notifications = Array.isArray(data) ? data : [];
-      setUnreadCount(notifications.filter((notif: any) => !notif.is_read).length);
+      setUnreadCount(notifications.filter((notif: any) => !notif.is_read && notif.type !== 'message' && notif.type !== 'inquiry').length);
     } catch {}
   };
 
@@ -324,7 +332,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     { path: "/friends", icon: Users, label: tr('nav.friends') },
     { path: "/businesses", icon: Store, label: tr('nav.businesses') },
     { path: "/marketplace", icon: ShoppingBag, label: tr('nav.marketplace') },
-    { path: "/messages", icon: MessageCircle, label: tr('nav.messages') },
+    { path: "/messages", icon: MessageCircle, label: tr('nav.messages'), badge: messagesBadge.chats || null },
     { path: "/profile", icon: User, label: tr('nav.profile') },
   ];
   const visibleMainNavItems = hasSignedInUser
@@ -381,7 +389,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* ── Header ── */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+      <header data-page-guide="app-header" className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="w-full px-4 h-14 flex items-center gap-3">
           {/* Sidebar toggle button — desktop only */}
           <button
@@ -487,6 +495,11 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   <ShoppingCart className="w-5 h-5 text-muted-foreground" />
                   {cart.count > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{cart.count > 9 ? "9+" : cart.count}</span>}
                 </Link>
+                <Link href="/messages" className="relative p-2 rounded-full hover:bg-secondary transition-colors md:hidden"
+                  aria-label={messagesBadge.chats ? `Messages, ${messagesBadge.chats} unread` : "Messages"}>
+                  <MessageCircle className="w-5 h-5 text-muted-foreground" />
+                  {messagesBadge.chats > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{messagesBadge.chats > 9 ? "9+" : messagesBadge.chats}</span>}
+                </Link>
                 <Link href="/notifications" className="relative p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Notifications">
                   <Bell className="w-5 h-5 text-muted-foreground" />
                   {unreadCount > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{unreadCount > 9 ? "9+" : unreadCount}</span>}
@@ -526,7 +539,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       <div className="flex flex-1 w-full">
 
         {/* ── Left Sidebar (desktop only) ── */}
-        <nav className={`hidden md:flex fixed left-0 top-14 bottom-0 bg-card border-r border-border flex-col z-40 transition-all duration-200
+        <nav data-page-guide="desktop-navigation" aria-label="Main navigation" className={`hidden md:flex fixed left-0 top-14 bottom-0 bg-card border-r border-border flex-col z-40 transition-all duration-200
           ${sidebarCollapsed ? "w-14" : "w-56"}`}>
 
           {/* ── Profile header — matches mobile drawer ── */}
@@ -826,7 +839,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         </nav>
 
         {/* ── Main content ── */}
-        <main className={`flex-1 min-w-0 transition-all duration-200
+        <main data-page-guide="main-content" className={`flex-1 min-w-0 transition-all duration-200
           ${sidebarCollapsed ? "md:ml-14" : "md:ml-56"}
           xl:mr-72
           ${isImmersiveRoute
@@ -907,11 +920,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5 bg-white dark:bg-card">
 
                   {/* Main nav items */}
-                  {visibleMainNavItems.map(({ path, icon: Icon, label }) => (
+                  {visibleMainNavItems.map(({ path, icon: Icon, label, badge }) => (
                     <React.Fragment key={path}>
                       <Link href={path} onClick={() => setDrawerOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
-                        <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
+                        <Icon className="w-4 h-4 shrink-0" /><span className="flex-1">{label}</span>
+                        {badge ? <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span> : null}
                       </Link>
                       {/* Personal | Business pill — under Home in drawer */}
                       {path === '/feed' && isAuthenticated && isActive('/feed') && (
@@ -1088,7 +1102,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
           {/* Home sub-tabs tray — REMOVED as per user request */}
 
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50"
+          <nav data-page-guide="mobile-navigation" aria-label="Mobile navigation" className="md:hidden fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="flex items-center h-16 px-1">
               {/* More — LEFT */}

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
@@ -65,7 +65,7 @@ function Showrooms() {
   });
 
   return (
-      <div className="max-w-4xl mx-auto">
+      <div data-page-guide="showrooms-header" className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-2xl font-bold">Showrooms</h1>

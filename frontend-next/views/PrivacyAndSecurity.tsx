@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
@@ -111,8 +111,13 @@ interface PrivacySettings {
   default_comment_policy: 'everyone' | 'followers' | 'off';
   message_policy: 'everyone' | 'followers' | 'nobody';
   show_reactions: boolean;
+  presence_visibility: 'everyone' | 'nobody';
+  read_receipts: boolean;
 }
-const DEFAULT_PRIVACY: PrivacySettings = { profile_visibility: 'public', searchable: true, default_comment_policy: 'everyone', message_policy: 'everyone', show_reactions: true };
+const DEFAULT_PRIVACY: PrivacySettings = {
+  profile_visibility: 'public', searchable: true, default_comment_policy: 'everyone', message_policy: 'everyone',
+  show_reactions: true, presence_visibility: 'everyone', read_receipts: true,
+};
 
 /** People I blocked / muted / restricted, each with an undo button. */
 function PeopleList({ kind, title, undo, empty }: { kind: 'blocked' | 'muted' | 'restricted'; title: string; undo: string; empty: string }) {
@@ -146,8 +151,6 @@ function PeopleList({ kind, title, undo, empty }: { kind: 'blocked' | 'muted' | 
 function PrivacyAndSecurityView() {
   const { logout } = useAuth();
 
-  // Privacy states
-  const [lastSeen, setLastSeen] = useState<'everyone' | 'contacts' | 'nobody'>('everyone');
   // Saved on the server (/api/social/privacy) and enforced there (lib/socialGraph.ts).
   const [privacy, setPrivacy] = useState<PrivacySettings>(DEFAULT_PRIVACY);
   useEffect(() => {
@@ -170,18 +173,6 @@ function PrivacyAndSecurityView() {
   const [twoFactorEnabled] = useState(false);
   const [loadingExport, setLoadingExport] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
-
-  const updatePresence = async (val: 'everyone' | 'contacts' | 'nobody') => {
-    const prev = lastSeen;
-    setLastSeen(val);
-    try {
-      await client.put('/api/messages/presence/settings', { visibility: val });
-      toast.success('Last seen setting updated');
-    } catch {
-      setLastSeen(prev);
-      toast.error('Could not update setting');
-    }
-  };
 
   const handleExportData = async () => {
     setLoadingExport(true);
@@ -215,7 +206,7 @@ function PrivacyAndSecurityView() {
   };
 
   return (
-    <div className="max-w-lg mx-auto space-y-5 pb-10">
+    <div data-page-guide="privacy-header" className="max-w-lg mx-auto space-y-5 pb-10">
 
       {/* ── Hero header ── */}
       <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 p-5 text-white">
@@ -239,13 +230,18 @@ function PrivacyAndSecurityView() {
         <SelectRow
           label="Last Seen & Online"
           description="Who can see when you were last active"
-          value={lastSeen}
+          value={privacy.presence_visibility}
           options={[
             { value: 'everyone', label: 'Everyone' },
-            { value: 'contacts', label: 'Contacts only' },
             { value: 'nobody', label: 'Nobody' },
           ]}
-          onChange={v => updatePresence(v as typeof lastSeen)}
+          onChange={v => savePrivacy({ presence_visibility: v as PrivacySettings['presence_visibility'] }, 'Last seen setting saved')}
+        />
+        <ToggleRow
+          label="Read receipts"
+          description="Show “Seen” when you read a message. If you turn this off, you won’t see when others read yours either."
+          checked={privacy.read_receipts}
+          onChange={v => savePrivacy({ read_receipts: v }, v ? 'Read receipts on' : 'Read receipts off')}
         />
         <SelectRow
           label="Who can message me"

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -433,12 +433,12 @@ function Orders() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
+      <div data-page-guide="orders-header" className="flex items-center gap-3 mb-6">
         <ShoppingBag className="w-6 h-6 text-amber-500" />
         <h1 className="font-display text-2xl font-bold">Orders</h1>
       </div>
 
-      <div className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-5">
+      <div data-page-guide="orders-tabs" className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-5">
         {/* Loop var is `mode` — `t` would shadow the translation function */}
         {["selling", "buying"].map(mode => (
           <button key={mode} onClick={() => switchTab(mode)}
@@ -463,7 +463,7 @@ function Orders() {
           <p className="text-muted-foreground text-sm">{isSelling ? t('orders.noSales') : t('orders.noPurchases')}</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div data-page-guide="orders-list" className="space-y-3">
           {orders.map(order => {
             const cfg  = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const Icon = cfg.icon;
@@ -518,7 +518,7 @@ function Orders() {
 
                   {/* Status row */}
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className={`text-xs ${cfg.color}`}>
+                    <Badge data-page-guide="orders-status-badge" variant="outline" className={`text-xs ${cfg.color}`}>
                       <Icon className="w-3 h-3 mr-1" />{cfg.label}
                     </Badge>
 
@@ -530,14 +530,14 @@ function Orders() {
                         <button
                           onClick={() => { void generateInvoice(order); }}
                           className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 font-medium px-2 py-1 rounded-full hover:bg-amber-50 transition-colors"
-                        >
+                          data-page-guide="orders-invoice-btn"                        >
                           <FileDown className="w-3 h-3" /> Invoice
                         </button>
                       )}
 
                       {/* Seller: advance status */}
                       {isSelling && next && (
-                        <Button size="sm" variant="outline" className="h-7 text-xs rounded-full"
+                        <Button data-page-guide="orders-seller-actions" size="sm" variant="outline" className="h-7 text-xs rounded-full"
                           onClick={() => updateStatus(order.id, next)}>
                           {NEXT_LABEL[next] ?? next}
                         </Button>
@@ -585,6 +585,7 @@ function Orders() {
                       {canReturn && (
                         <button
                           onClick={() => toggleReturn(order.id)}
+                          data-page-guide="orders-return-btn"
                           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-full hover:bg-secondary transition-colors"
                         >
                           <RotateCcw className="w-3 h-3" /> Return
@@ -594,6 +595,7 @@ function Orders() {
                       {/* Expand tracking / details */}
                       <button
                         onClick={() => toggleExpand(order.id)}
+                        data-page-guide="orders-detail-expand"
                         className="p-1 rounded-full hover:bg-secondary transition-colors text-muted-foreground"
                       >
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -627,7 +629,9 @@ function Orders() {
                       className="overflow-hidden px-4 pb-4"
                     >
                       {/* Delivery tracking */}
+                      <div data-page-guide="orders-delivery-timeline">
                       <DeliveryTimeline orderId={order.id} isSeller={isSelling} />
+                      </div>
 
                       {/* Seller: return action panel */}
                       {isSelling && (

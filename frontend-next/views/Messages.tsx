@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -7,11 +7,15 @@ import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 import { useRealMode } from "@/lib/RealModeContext";
-import { Search, Users, Radio, User as UserIcon, MessageCircle, CheckCheck } from "lucide-react";
+import { Search, Users, Radio, User as UserIcon, MessageCircle, ArrowUpDown } from "lucide-react";
+import MessageTicks from "@/components/messaging/MessageTicks";
+import { tickFor } from "@/lib/readReceipts";
 import { fmtTime } from "@/lib/date";
+import { cn } from "@/lib/utils";
 import { parseISO, isToday, isYesterday, isAfter, subDays, format as dfFormat } from "date-fns";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
-import {  isUserOnline } from "@/lib/presence";
+import MessageSearch from "@/components/messaging/MessageSearch";
+import {  isUserOnline, getPresenceCategory, presenceDotClass, formatLastSeen } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
 import { getSocket, connectSocket } from "@/lib/socket";
 import { useChatPresence } from "@/lib/useChatPresence";
@@ -31,7 +35,9 @@ function Messages() {
   const [unreadByConv, setUnreadByConv]   = useState<Record<string, number>>({});
   const [presence, setPresence]           = useState<Record<string, PresenceData>>({});
   const [typingConvs, setTypingConvs]     = useState<Record<string, boolean>>({});
-  const loadConversationsRef = useRef<((currentUser?: any) => Promise<void>) | null>(null);
+  const [showSearch, setShowSearch]       = useState(false);
+  const [contactSort, setContactSort]     = useState<'name' | 'time'>('time');
+  const loadConversationsRef = useRef<((currentUser?: any, quiet?: boolean) => Promise<void>) | null>(null);
 
   useChatPresence(Boolean(user));
 
@@ -48,14 +54,12 @@ function Messages() {
     connectSocket();
     const socket = getSocket();
 
-    const onNewMessage = (msg: any) => {
-      void loadConversationsRef.current?.();
-      if (msg?.conversation_id) {
-        setUnreadByConv(prev => ({
-          ...prev,
-          [msg.conversation_id]: (prev[msg.conversation_id] || 0) + 1,
-        }));
-      }
+    // Chat list events reach every member's own room, so the list is live
+    // without joining every chat (new message, read, delivered, muted...).
+    let reloadTimer: ReturnType<typeof setTimeout> | null = null;
+    const onNewMessage = () => {
+      if (reloadTimer) clearTimeout(reloadTimer);
+      reloadTimer = setTimeout(() => { void loadConversationsRef.current?.(undefined, true); }, 250);
     };
     const onPresenceUpdated = (update: any) => {
       if (!update?.user_id) return;
@@ -69,13 +73,20 @@ function Messages() {
       setTypingConvs(cur => ({ ...cur, [update.conversation_id]: Boolean(update.is_typing) }));
     };
 
-    socket.on('new_message', onNewMessage);
+    socket.on('conversation_updated', onNewMessage);
+    socket.on('unread_changed', onNewMessage);
+    socket.on('conversation_read', onNewMessage);
+    socket.on('conversation_delivered', onNewMessage);
     socket.on('presence_updated', onPresenceUpdated);
     socket.on('typing_updated', onTyping);
 
     const interval = setInterval(() => { void loadConversationsRef.current?.(); }, 60_000);
     return () => {
-      socket.off('new_message', onNewMessage);
+      if (reloadTimer) clearTimeout(reloadTimer);
+      socket.off('conversation_updated', onNewMessage);
+      socket.off('unread_changed', onNewMessage);
+      socket.off('conversation_read', onNewMessage);
+      socket.off('conversation_delivered', onNewMessage);
       socket.off('presence_updated', onPresenceUpdated);
       socket.off('typing_updated', onTyping);
       clearInterval(interval);
@@ -83,36 +94,16 @@ function Messages() {
   }, [user]);
 
   // ── Data loaders ──────────────────────────────────────────────────────────
-  const loadConversations = async (currentUser?: any) => {
+  const loadConversations = async (currentUser?: any, quiet = false) => {
     const u = currentUser || user;
     if (!u) return;
-    setLoading(true);
+    if (!quiet) setLoading(true);
     try {
-      const data = await entities.Conversation.list("-updated_at", 100);
-      const mine = data.filter((c: any) => {
-        try { return JSON.parse(c.participant_ids || "[]").includes(u.id); } catch { return false; }
-      });
-      const now = Date.now();
-      const cleaned = mine.filter((c: any) => {
-        if (c.type === 'dm' && !c.last_message) {
-          if (now - new Date(c.created_at).getTime() > 5 * 60 * 1000) return false;
-        }
-        return true;
-      });
+      // The server lists only my chats, with unread counts and ticks.
+      const { data } = await client.get('/api/messages/conversations');
+      const cleaned = (Array.isArray(data) ? data : []).filter((c: any) => c.type !== 'dm' || c.last_message_id);
       setConversations(cleaned);
-
-      // Unread counts
-      client.get('/api/notifications?limit=100').then(r => {
-        const notifs = Array.isArray(r.data) ? r.data : [];
-        const counts: Record<string, number> = {};
-        notifs.forEach((n: any) => {
-          if (n.type === 'message' && !n.is_read && n.link) {
-            const convId = n.link.split('/messages/')[1];
-            if (convId) counts[convId] = (counts[convId] || 0) + 1;
-          }
-        });
-        setUnreadByConv(counts);
-      }).catch(() => {});
+      setUnreadByConv(Object.fromEntries(cleaned.map((c: any) => [c.id, Number(c.unread_count) || 0])));
 
       // DM presence
       const dmPartnerIds = cleaned
@@ -132,7 +123,7 @@ function Messages() {
         results.forEach(({ uid, data }) => { map[uid] = data; });
         setPresence(map);
       }
-    } catch {} finally { setLoading(false); }
+    } catch {} finally { if (!quiet) setLoading(false); }
   };
   loadConversationsRef.current = loadConversations;
 
@@ -141,6 +132,16 @@ function Messages() {
       const all = await entities.UserProfile.list("-created_at", 50);
       const visible = all.filter((c: any) => String(c.user_id) !== String(u.id));
       setContacts(visible);
+      // Fetch presence for all contacts in parallel
+      const results = await Promise.all(visible.map((c: any) => {
+        const uid = c.user_id || c.id;
+        return client.get(`/api/messages/presence/${uid}`)
+          .then(r => ({ uid, data: { status: r.data.status, last_seen: r.data.last_seen || null } as PresenceData }))
+          .catch(() => ({ uid, data: { status: 'offline', last_seen: null } as PresenceData }));
+      }));
+      const map: Record<string, PresenceData> = {};
+      results.forEach(({ uid, data }) => { map[uid] = data; });
+      setPresence(prev => ({ ...prev, ...map }));
     } catch {}
   };
 
@@ -198,6 +199,24 @@ function Messages() {
           (c.headline || '').toLowerCase().includes(q)
         );
       }
+      // Sort by name or by online-first then last_seen time
+      if (contactSort === 'name') {
+        list = [...list].sort((a, b) =>
+          (a.display_name || '').localeCompare(b.display_name || '')
+        );
+      } else {
+        // time: online first, then by last_seen descending
+        list = [...list].sort((a, b) => {
+          const pa = presence[a.user_id || a.id];
+          const pb = presence[b.user_id || b.id];
+          const aOnline = pa?.status === 'online' ? 2 : pa?.status === 'away' ? 1 : 0;
+          const bOnline = pb?.status === 'online' ? 2 : pb?.status === 'away' ? 1 : 0;
+          if (aOnline !== bOnline) return bOnline - aOnline;
+          const aTime = pa?.last_seen ? new Date(pa.last_seen).getTime() : 0;
+          const bTime = pb?.last_seen ? new Date(pb.last_seen).getTime() : 0;
+          return bTime - aTime;
+        });
+      }
       return list; // contacts list, rendered differently below
     }
 
@@ -222,47 +241,49 @@ function Messages() {
       list = list.filter(c => getDisplayName(c).toLowerCase().includes(q));
     }
     return list;
-  }, [conversations, contacts, tab, realMode, search, user, getDisplayName]);
+  }, [conversations, contacts, tab, realMode, search, user, getDisplayName, contactSort, presence]);
 
   const TABS: { id: Tab; label: string; icon?: any }[] = [
     { id: 'all',      label: 'All' },
-    { id: 'dm',       label: 'DMs',      icon: UserIcon },
+    { id: 'dm',       label: 'Chats',    icon: UserIcon },
     { id: 'groups',   label: 'Groups',   icon: Users },
     { id: 'channels', label: 'Channels', icon: Radio },
   ];
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-2xl mx-auto flex flex-col h-full -mx-4 md:mx-auto"
-      style={{ backgroundColor: 'hsl(var(--background))' }}>
+    <>
+    <div data-page-guide="messages-header" className="max-w-2xl mx-auto flex flex-col h-full -mx-4 md:mx-auto bg-background">
 
       {/* ── Sticky header ── */}
-      <div className="sticky top-0 z-20 shrink-0"
-        style={{ backgroundColor: 'hsl(var(--background))' }}>
+      <div className="sticky top-0 z-20 shrink-0 bg-background">
 
         {/* Title row */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-2">
-          <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--foreground))' }}>
+        <div data-page-guide="messages-header" className="flex items-center justify-between px-4 pt-4 pb-2">
+          <h1 className="text-xl font-bold text-foreground">
             Messages
           </h1>
-          <NewChatMenu user={user} contacts={contacts} onCreated={() => loadConversations()} />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowSearch(true)}
+              className="inline-flex size-11 items-center justify-center rounded-full transition-colors hover:bg-secondary text-muted-foreground"
+              aria-label="Search messages"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+            <NewChatMenu data-page-guide="messages-new" user={user} contacts={contacts} onCreated={() => loadConversations()} />
+          </div>
         </div>
 
         {/* Search bar */}
-        <div className="px-4 pb-2">
+        <div data-page-guide="messages-search" className="px-4 pb-2">
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-              style={{ color: 'hsl(var(--muted-foreground))' }} />
+            <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-muted-foreground" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search conversations…"
-              className="w-full h-10 pl-10 pr-4 rounded-xl text-sm outline-none"
-              style={{
-                backgroundColor: 'hsl(var(--secondary))',
-                color: 'hsl(var(--foreground))',
-                border: '1px solid hsl(var(--border))',
-              }}
+              className="w-full h-10 ps-10 pe-4 rounded-xl text-sm outline-none bg-secondary text-foreground border border-border"
             />
           </div>
         </div>
@@ -276,11 +297,10 @@ function Messages() {
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0"
-                style={{
-                  backgroundColor: active ? 'hsl(var(--primary))' : 'hsl(var(--secondary))',
-                  color: active ? '#fff' : 'hsl(var(--muted-foreground))',
-                }}
+                className={cn(
+                  'flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0',
+                  active ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground',
+                )}
               >
                 {Icon && <Icon className="w-3.5 h-3.5" />}
                 {t.label}
@@ -290,23 +310,19 @@ function Messages() {
         </div>
 
         {/* Divider */}
-        <div style={{ height: 1, backgroundColor: 'hsl(var(--border))' }} />
+        <div className="h-px bg-border" />
       </div>
 
       {/* ── List ── */}
-      <div className="flex-1 overflow-y-auto">
+      <div data-page-guide="messages-list" className="flex-1 overflow-y-auto pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-4">
         {loading && conversations.length === 0 ? (
-          /* Skeleton */
           <div className="px-4 py-2 space-y-1">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="flex items-center gap-3 py-3">
-                <div className="w-12 h-12 rounded-full shrink-0 animate-pulse"
-                  style={{ backgroundColor: 'hsl(var(--secondary))' }} />
+                <div className="w-12 h-12 rounded-full shrink-0 animate-pulse bg-secondary" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3.5 rounded-full w-32 animate-pulse"
-                    style={{ backgroundColor: 'hsl(var(--secondary))' }} />
-                  <div className="h-3 rounded-full w-48 animate-pulse"
-                    style={{ backgroundColor: 'hsl(var(--secondary))' }} />
+                  <div className="h-3.5 rounded-full w-32 animate-pulse bg-secondary" />
+                  <div className="h-3 rounded-full w-48 animate-pulse bg-secondary" />
                 </div>
               </div>
             ))}
@@ -314,21 +330,55 @@ function Messages() {
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={tab === 'channels' ? Radio : tab === 'groups' ? Users : tab === 'all' ? UserIcon : MessageCircle}
-            title={search ? `No results for "${search}"` : tab === 'channels' ? 'No channels yet' : tab === 'groups' ? 'No groups yet' : tab === 'dm' ? 'No DMs yet' : 'No contacts found'}
+            title={search ? `No results for "${search}"` : tab === 'channels' ? 'No channels yet' : tab === 'groups' ? 'No groups yet' : tab === 'dm' ? 'No chats yet' : 'No contacts found'}
             subtitle={!search ? (tab === 'all' ? 'People you follow will appear here' : 'Tap the pencil icon to start a new chat') : undefined}
           />
         ) : tab === 'all' ? (
           /* ── All tab: contacts list ── */
           <div>
-            <p className="px-4 py-2 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-              People · {filtered.length}
-            </p>
+            <div className="flex items-center justify-between px-4 py-2">
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                People · {filtered.length}
+              </p>
+              {/* Sort toggle */}
+              <button
+                onClick={() => setContactSort(s => s === 'name' ? 'time' : 'name')}
+                className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={`Sort by ${contactSort === 'name' ? 'time' : 'name'}`}
+              >
+                <ArrowUpDown className="w-3 h-3" />
+                {contactSort === 'name' ? 'A–Z' : 'Activity'}
+              </button>
+            </div>
             {(filtered as any[]).map((contact: any) => {
               const avatarUrl = Array.isArray(contact.avatar_url) ? contact.avatar_url[0] : contact.avatar_url;
               const name = contact.display_name || 'User';
+              const businessName = contact.business_name || null;
+              const uid = contact.user_id || contact.id;
+              const presenceData = presence[uid] ?? null;
+              const category = getPresenceCategory(presenceData);
+              const dotClass = presenceDotClass(category);
+              const online = category === 'online' || category === 'recent';
+              // Compact time label: "Online", "2m ago", "3h ago", "Yesterday", "Mon", "12/03"
+              const timeLabel = (() => {
+                if (!presenceData) return '';
+                if (online) return 'Online';
+                const ls = presenceData.last_seen;
+                if (!ls) return '';
+                const d = parseISO(ls);
+                const diffSec = (Date.now() - d.getTime()) / 1000;
+                if (diffSec < 60) return 'just now';
+                const diffMin = Math.floor(diffSec / 60);
+                if (diffMin < 60) return `${diffMin}m ago`;
+                const diffHr = Math.floor(diffMin / 60);
+                if (diffHr < 24) return `${diffHr}h ago`;
+                if (isYesterday(d)) return 'Yesterday';
+                if (isAfter(d, subDays(new Date(), 7))) return dfFormat(d, 'EEE');
+                return dfFormat(d, 'dd/MM');
+              })();
               return (
                 <button
-                  key={contact.user_id || contact.id}
+                  key={uid}
                   onClick={async () => {
                     try {
                       const { findOrCreateConversation } = await import('@/lib/messaging');
@@ -336,24 +386,35 @@ function Messages() {
                       if (conv) router.push(`/messages/${conv.id}`);
                     } catch {}
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors active:scale-[0.99]"
-                  style={{ borderBottom: '1px solid hsl(var(--border)/0.4)' }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary)/0.5)')}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/50 active:scale-[0.99] border-b border-border/40"
                 >
-                  <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg shrink-0"
-                    style={{ background: 'linear-gradient(135deg,#3b82f6,#7c3aed)' }}>
-                    {avatarUrl
-                      ? <Image src={avatarUrl} alt={name} width={52} height={52} className="w-full h-full object-cover" unoptimized />
-                      : name.charAt(0).toUpperCase()}
+                  {/* Avatar with online dot */}
+                  <div className="relative shrink-0">
+                    <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg"
+                      style={{ background: 'linear-gradient(135deg,#3b82f6,#7c3aed)' }}>
+                      {avatarUrl
+                        ? <Image src={avatarUrl} alt={name} width={52} height={52} className="w-full h-full object-cover" unoptimized />
+                        : name.charAt(0).toUpperCase()}
+                    </div>
+                    <span
+                      className={cn('absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border-2 border-background', dotClass)}
+                      aria-hidden="true"
+                    />
                   </div>
+                  {/* Name + business name */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: 'hsl(var(--foreground))' }}>{name}</p>
-                    {contact.headline && (
-                      <p className="text-xs truncate" style={{ color: 'hsl(var(--muted-foreground))' }}>{contact.headline}</p>
+                    <p className="text-sm font-semibold truncate text-foreground">{name}</p>
+                    {businessName && (
+                      <p className="text-xs truncate text-muted-foreground">{businessName}</p>
                     )}
                   </div>
-                  <MessageCircle className="w-4 h-4 shrink-0" style={{ color: 'hsl(var(--muted-foreground))' }} />
+                  {/* Last seen time */}
+                  {timeLabel && (
+                    <span className={cn('text-[11px] font-medium shrink-0', online ? 'text-green-500' : 'text-muted-foreground')}>
+                      {timeLabel}
+                    </span>
+                  )}
+                  <MessageCircle className="w-4 h-4 shrink-0 text-muted-foreground ml-1" />
                 </button>
               );
             })}
@@ -379,10 +440,7 @@ function Messages() {
                 prefetch
                 onPointerEnter={() => router.prefetch(`/messages/${conv.id}`)}
                 onClick={() => setUnreadByConv(prev => { const n = { ...prev }; delete n[conv.id]; return n; })}
-                className="flex items-center gap-3 px-4 py-3 transition-colors active:scale-[0.99]"
-                style={{ borderBottom: '1px solid hsl(var(--border)/0.4)' }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary)/0.5)')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/50 active:scale-[0.99] border-b border-border/40"
               >
                 {/* Avatar */}
                 <div className="relative shrink-0">
@@ -431,22 +489,22 @@ function Messages() {
                   {/* Row 1: name + time */}
                   <div className="flex items-center justify-between gap-2 mb-0.5">
                     <p
-                      className="text-sm truncate"
-                      style={{
-                        fontWeight: unread > 0 ? 700 : 600,
-                        color: 'hsl(var(--foreground))',
-                      }}
+                      className={cn(
+                        'text-sm truncate text-foreground',
+                        unread > 0 ? 'font-bold' : 'font-semibold',
+                      )}
                     >
                       {name}
                     </p>
                     <div className="flex items-center gap-1 shrink-0">
-                      {/* Delivery tick — only for sent messages when no unread */}
-                      {isDm && !unread && conv.last_message && (
-                        <CheckCheck className="w-3.5 h-3.5 shrink-0" style={{ color: 'hsl(var(--primary))' }} />
+                      {/* Ticks on my own last message: sent, delivered, seen */}
+                      {isDm && conv.last_message_id && String(conv.last_message_sender_id) === String(user?.id) && (
+                        <MessageTicks tick={tickFor({ created_at: conv.last_message_at }, user?.id, [{
+                          user_id: conv.other_user_id, last_read_at: conv.other_last_read_at, last_delivered_at: conv.other_last_delivered_at,
+                        }])} />
                       )}
                       <span
-                        className="text-[11px] whitespace-nowrap"
-                        style={{ color: unread > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))' }}
+                        className={cn('text-[11px] whitespace-nowrap', unread > 0 ? 'text-primary' : 'text-muted-foreground')}
                       >
                         {timeStr}
                       </span>
@@ -456,12 +514,11 @@ function Messages() {
                   {/* Row 2: last message + unread badge */}
                   <div className="flex items-center justify-between gap-2">
                     <p
-                      className="text-xs truncate flex-1"
-                      style={{
-                        color: isTyping ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                        fontStyle: isTyping ? 'italic' : 'normal',
-                        fontWeight: unread > 0 ? 600 : 400,
-                      }}
+                      className={cn(
+                        'text-xs truncate flex-1',
+                        isTyping ? 'text-primary italic' : 'text-muted-foreground',
+                        unread > 0 ? 'font-semibold' : 'font-normal',
+                      )}
                     >
                       {isTyping
                         ? 'typing…'
@@ -469,8 +526,7 @@ function Messages() {
                     </p>
                     {unread > 0 && (
                       <span
-                        className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-white px-1.5 shrink-0"
-                        style={{ backgroundColor: '#ef4444' }}
+                        className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-destructive-foreground bg-destructive px-1.5 shrink-0"
                       >
                         {unread > 99 ? '99+' : unread}
                       </span>
@@ -483,6 +539,10 @@ function Messages() {
         )}
       </div>
     </div>
+    {showSearch && (
+      <MessageSearch conversationId={undefined} onClose={() => setShowSearch(false)} />
+    )}
+    </>
   );
 }
 

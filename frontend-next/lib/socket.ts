@@ -2,6 +2,8 @@ import { io, Socket } from "socket.io-client";
 import { getAccessToken } from "@/api/client";
 
 let socket: Socket | null = null;
+/** Chat rooms this tab is in, joined again after every reconnect. */
+const joinedConversations = new Set<string>();
 
 // SSR guard — socket.io-client must never initialize during server render
 export function getSocket(): Socket {
@@ -19,13 +21,19 @@ export function getSocket(): Socket {
   }
   if (!socket) {
     socket = io(process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001", {
-      auth: { token: getAccessToken() || "" },
+      // A function, so every (re)connect uses the current access token — tokens
+      // refresh while the app is open and a stale one would be refused.
+      auth: (cb) => cb({ token: getAccessToken() || "" }),
       transports: ["websocket", "polling"],
       autoConnect: false,
       // Reconnection settings — back off slowly to avoid HMR WebSocket interference
       reconnectionDelay: 2000,
       reconnectionDelayMax: 10000,
-      reconnectionAttempts: 10,
+      reconnectionAttempts: Infinity,
+    });
+    // The server forgets rooms when a connection drops: join them again.
+    socket.on("connect", () => {
+      for (const id of joinedConversations) socket?.emit("join_conversation", id);
     });
   }
   return socket;
@@ -37,24 +45,30 @@ export function connectSocket(): void {
   // Only connect if not already connected or connecting.
   // React Strict Mode double-invokes effects — this guard prevents
   // creating duplicate connections that flood the console.
-  if (s.connected || (s as any).connecting) return;
-  // Refresh the auth token before connecting
-  (s as any).auth = { token: getAccessToken() || "" };
+  if (s.connected || (s as unknown as { connecting?: boolean }).connecting) return;
   s.connect();
 }
 
+/** Receive a chat's live events (new messages, typing, edits) until left. */
+export function joinConversation(id: string): void {
+  joinedConversations.add(id);
+  const s = getSocket();
+  if (s.connected) s.emit("join_conversation", id);
+  else connectSocket();
+}
+
+export function leaveConversation(id: string): void {
+  joinedConversations.delete(id);
+  const s = getSocket();
+  if (s.connected) s.emit("leave_conversation", id);
+}
+
+/**
+ * Kept for older callers: closes the connection but leaves every listener in
+ * place (removing them all used to silence open chats). Logout uses resetSocket.
+ */
 export function disconnectSocket(): void {
-  if (!socket) return;
-  // Remove all app-level listeners but keep the socket instance alive.
-  // Destroying the singleton on every unmount (React Strict Mode runs
-  // mount → unmount → remount) creates rapid WebSocket churn which
-  // disrupts Next.js HMR and causes [HMR] connected spam.
-  socket.removeAllListeners();
-  if (socket.connected) {
-    socket.disconnect();
-  }
-  // Only null the singleton on deliberate logout — not on every unmount.
-  // resetSocket() below is the logout path.
+  if (socket?.connected) socket.disconnect();
 }
 
 /**
@@ -62,6 +76,7 @@ export function disconnectSocket(): void {
  * This ensures the next login gets a fresh socket with the new auth token.
  */
 export function resetSocket(): void {
+  joinedConversations.clear();
   if (socket) {
     socket.removeAllListeners();
     socket.disconnect();

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -161,7 +161,7 @@ function ProductDetail() {
   const inStock = product.stock === null || product.stock > 0;
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div data-page-guide="product-title" className="max-w-2xl mx-auto">
       <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Back
       </button>

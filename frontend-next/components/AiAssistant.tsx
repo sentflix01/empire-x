@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
-import { X, Send, RotateCcw, Wifi, WifiOff } from "lucide-react";
+import { X, Send, RotateCcw, Wifi, WifiOff, Compass, Square } from "lucide-react";
 import client from "@/api/client";
 import { offlineAnswer } from "@/lib/aiOffline";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,61 @@ interface Message {
 
 const STORAGE_KEY = "nodbusiness_ai_history";
 const MAX_STORED = 60;
+const ASSISTANT_BUTTON_SIZE = 56;
+
+function getAssistantViewportSize() {
+  return {
+    width: Math.max(1, Math.min(window.innerWidth, window.visualViewport?.width ?? window.innerWidth)),
+    height: Math.max(1, Math.min(window.innerHeight, window.visualViewport?.height ?? window.innerHeight)),
+  };
+}
+
+function readSafeAreaBottom(): number {
+  try {
+    const probe = document.createElement('div');
+    probe.dataset.aiSafeAreaProbe = 'true';
+    probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding-bottom:env(safe-area-inset-bottom, 0px)';
+    document.body.appendChild(probe);
+    const inset = Number.parseFloat(window.getComputedStyle(probe).paddingBottom);
+    probe.remove();
+    return Number.isFinite(inset) ? inset : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function clampAssistantPosition(position: { x: number; y: number }, viewportWidth: number, viewportHeight: number, safeAreaBottom = 0) {
+  const edgeMargin = 8;
+  // On screens narrower than md (768px) the mobile bottom nav bar is 64px tall.
+  // Reserve that space so the button never lands behind it.
+  const mobileNavHeight = viewportWidth < 768 ? 64 : 0;
+  const maxX = Math.max(0, viewportWidth - ASSISTANT_BUTTON_SIZE - edgeMargin);
+  const maxY = Math.max(0, viewportHeight - ASSISTANT_BUTTON_SIZE - safeAreaBottom - mobileNavHeight - edgeMargin);
+  return {
+    x: Math.min(Math.max(edgeMargin, position.x), maxX),
+    y: Math.min(Math.max(edgeMargin, position.y), maxY),
+  };
+}
+
+function getGuidePage(pathname: string): string {
+  const dynamicRoutes: Array<[RegExp, string]> = [
+    [/^\/products\/[^/]+$/, "/products/[id]"],
+    [/^\/profile\/[^/]+$/, "/profile/[id]"],
+    [/^\/p\/[^/]+$/, "/p/[username]"],
+    [/^\/showrooms\/[^/]+$/, "/showrooms/[id]"],
+    [/^\/showroom\/[^/]+$/, "/showroom/[slug]"],
+    [/^\/hashtag\/[^/]+$/, "/hashtag/[name]"],
+    [/^\/messages\/[^/]+$/, "/messages/[id]"],
+  ];
+  return dynamicRoutes.find(([pattern]) => pattern.test(pathname))?.[1]
+    ?? (pathname.length <= 80 ? pathname : "current app page");
+}
+
+function getViewportClass(): "compact" | "medium" | "wide" {
+  if (window.innerWidth < 640) return "compact";
+  if (window.innerWidth < 1024) return "medium";
+  return "wide";
+}
 
 function AssistantLogo({ size = "sm", animated = false }: { size?: "xs" | "sm" | "md"; animated?: boolean }) {
   const sizeClass = size === "md" ? "w-11 h-11" : size === "sm" ? "w-7 h-7" : "w-6 h-6";
@@ -46,18 +101,29 @@ function AssistantFlipCoin() {
     <span className="ai-flip-coin" aria-hidden="true">
       <span className="ai-flip-coin-inner">
         <span className="ai-flip-coin-face ai-flip-coin-front">
-          <Image
-            src="/brand/nodbusiness-icon.svg"
-            alt=""
-            width={48}
-            height={48}
-            loading="eager"
-            className="h-10 w-10 rounded-full object-cover"
-          />
+          <Image src="/brand/nodbusiness-icon.svg" alt="" width={48} height={48} loading="eager" className="h-10 w-10 rounded-full object-cover" />
         </span>
         <span className="ai-flip-coin-face ai-flip-coin-back">
           <span className="text-[10px] font-black leading-none text-white">AI</span>
           <span className="mt-0.5 text-[7px] font-bold uppercase leading-none tracking-wide text-blue-100">Assistant</span>
+        </span>
+      </span>
+    </span>
+  );
+}
+
+/** Floating Page Guide launcher — stacks above the AI Assistant button and shares its drag position. */
+function PageGuideFlipCoin() {
+  return (
+    <span className="pg-flip-coin" aria-hidden="true">
+      <span className="pg-flip-coin-inner">
+        <span className="pg-flip-coin-face pg-flip-coin-front">
+          {/* Question mark face — white background, same as AI coin front */}
+          <span className="text-2xl font-black leading-none text-indigo-600">?</span>
+        </span>
+        <span className="pg-flip-coin-face pg-flip-coin-back">
+          <span className="text-[10px] font-black leading-none text-white">Page</span>
+          <span className="mt-0.5 text-[7px] font-bold uppercase leading-none tracking-wide text-blue-100">Guide</span>
         </span>
       </span>
     </span>
@@ -95,8 +161,9 @@ function fmtTime(ts: number): string {
 }
 
 function AiAssistantWidget() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const pathname = usePathname();
   const historyKey = `${STORAGE_KEY}:${user?.id ?? "guest"}:${user?.is_demo ? "demo" : "real"}`;
   const historyKeyRef = useRef(historyKey);
   historyKeyRef.current = historyKey;
@@ -107,11 +174,15 @@ function AiAssistantWidget() {
     t('ai.suggestion4'),
   ];
   const [open, setOpen] = useState(false);
+  const [viewportSize, setViewportSize] = useState<{ width: number; height: number } | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [historyReadyKey, setHistoryReadyKey] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [online, setOnline] = useState(true);
+  const [tourActive, setTourActive] = useState(false);
+  const tourActiveRef = useRef(false);
+  const previousPathname = useRef(pathname);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -119,71 +190,158 @@ function AiAssistantWidget() {
   const STORAGE_POS_KEY = "nodbusiness_ai_pos";
   const defaultPos = { x: -1, y: -1 }; // -1 means "use CSS default"
   const [pos, setPos] = useState(defaultPos);
+  // posReady prevents applying a saved position until the layout effect has
+  // clamped it to the current viewport — avoids a flash where the button
+  // is briefly off-screen on a smaller viewport than where it was saved.
+  const [posReady, setPosReady] = useState(false);
   const dragging = useRef(false);
+  const didDrag = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
+  const dragOrigin = useRef({ x: 0, y: 0 });
+  const posRef = useRef(pos);
+  const safeAreaBottomRef = useRef(0);
+  posRef.current = pos;
   const btnRef = useRef<HTMLButtonElement>(null);
 
-  // Load saved position
+  // Track whether the Page Guide feature is enabled.
+  // Start false (safe for SSR), then read localStorage after mount so we pick
+  // up whatever PageGuide already persisted, and keep in sync via the custom
+  // event for future changes.  This removes the timing dependency: it doesn't
+  // matter which component mounts first — the localStorage read wins if
+  // PageGuide's effect already fired, and the event wins if it fires later.
+  const [pageGuideEnabled, setPageGuideEnabled] = useState(false);
   useEffect(() => {
+    // Sync from storage first (covers: PageGuide ran its effect before us).
     try {
-      const saved = localStorage.getItem(STORAGE_POS_KEY);
-      if (saved) setPos(JSON.parse(saved));
+      if (localStorage.getItem('nodbusiness_page_guide_enabled') === 'true') {
+        setPageGuideEnabled(true);
+      }
     } catch {}
+    // Keep in sync via the live event (covers: PageGuide fires after us).
+    const handler = (e: Event) => {
+      const val = (e as CustomEvent<{ enabled: boolean }>).detail?.enabled ?? false;
+      setPageGuideEnabled(val);
+    };
+    window.addEventListener('nodbusiness:page-guide-enabled', handler);
+    return () => window.removeEventListener('nodbusiness:page-guide-enabled', handler);
   }, []);
 
-  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (open) return; // don't drag when chat is open
+  // Load saved position
+  useLayoutEffect(() => {
+    try {
+      safeAreaBottomRef.current = readSafeAreaBottom();
+      const saved = localStorage.getItem(STORAGE_POS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as { x?: unknown; y?: unknown };
+        if (typeof parsed.x === 'number' && Number.isFinite(parsed.x) && typeof parsed.y === 'number' && Number.isFinite(parsed.y)) {
+          const viewport = getAssistantViewportSize();
+          const next = clampAssistantPosition({ x: parsed.x, y: parsed.y }, viewport.width, viewport.height, safeAreaBottomRef.current);
+          posRef.current = next;
+          setPos(next);
+          localStorage.setItem(STORAGE_POS_KEY, JSON.stringify(next));
+        }
+      }
+    } catch {}
+    // Mark position as ready — from this point on it's safe to apply inline
+    // left/top styles because the position has been clamped to the current viewport.
+    setPosReady(true);
+  }, []);
+
+  // A position saved on a large viewport can be outside a smaller window.
+  // Keep the draggable launcher reachable after resize, rotation, or docking DevTools.
+  useEffect(() => {
+    const keepLauncherVisible = () => {
+      safeAreaBottomRef.current = readSafeAreaBottom();
+      const viewport = getAssistantViewportSize();
+      setViewportSize(viewport);
+      setPos(current => {
+        if (current.x < 0 || current.y < 0) return current;
+        const next = clampAssistantPosition(current, viewport.width, viewport.height, safeAreaBottomRef.current);
+        posRef.current = next;
+        if (next.x !== current.x || next.y !== current.y) {
+          try { localStorage.setItem(STORAGE_POS_KEY, JSON.stringify(next)); } catch {}
+        }
+        return next;
+      });
+    };
+    window.addEventListener('resize', keepLauncherVisible);
+    window.visualViewport?.addEventListener('resize', keepLauncherVisible);
+    return () => {
+      window.removeEventListener('resize', keepLauncherVisible);
+      window.visualViewport?.removeEventListener('resize', keepLauncherVisible);
+    };
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (open || e.button !== 0) return;
     dragging.current = true;
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    didDrag.current = false;
+    dragOrigin.current = { x: e.clientX, y: e.clientY };
     const rect = btnRef.current?.getBoundingClientRect();
     if (rect) {
-      dragOffset.current = { x: clientX - rect.left, y: clientY - rect.top };
+      dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
-    // Prevent scroll while dragging
-    if ('touches' in e) e.preventDefault();
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
   };
 
   useEffect(() => {
-    const onMove = (e: MouseEvent | TouchEvent) => {
+    const onMove = (e: PointerEvent) => {
       if (!dragging.current) return;
-      const clientX = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
-      const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
-      const newX = Math.max(0, Math.min(window.innerWidth - 60, clientX - dragOffset.current.x));
-      const newY = Math.max(0, Math.min(window.innerHeight - 60, clientY - dragOffset.current.y));
-      setPos({ x: newX, y: newY });
+      if (Math.hypot(e.clientX - dragOrigin.current.x, e.clientY - dragOrigin.current.y) > 4) didDrag.current = true;
+      if (!didDrag.current) return;
+      e.preventDefault();
+      const viewport = getAssistantViewportSize();
+      const { x: newX, y: newY } = clampAssistantPosition(
+        { x: e.clientX - dragOffset.current.x, y: e.clientY - dragOffset.current.y },
+        viewport.width,
+        viewport.height,
+        safeAreaBottomRef.current,
+      );
+      const next = { x: newX, y: newY };
+      posRef.current = next;
+      setPos(next);
     };
-    const onUp = () => {
+    const onUp = (cancelled = false) => {
       if (dragging.current) {
         dragging.current = false;
-        // Save current position from state via a ref-based approach
         try {
-          const btn = btnRef.current?.getBoundingClientRect();
-          if (btn) localStorage.setItem(STORAGE_POS_KEY, JSON.stringify({ x: btn.left, y: btn.top }));
+          if (posRef.current.x >= 0 && posRef.current.y >= 0) {
+            localStorage.setItem(STORAGE_POS_KEY, JSON.stringify(posRef.current));
+          }
         } catch {}
+        if (cancelled) didDrag.current = false;
       }
     };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchend', onUp);
+    const onPointerUp = () => onUp();
+    const onPointerCancel = () => onUp(true);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerCancel);
     return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      window.removeEventListener('touchend', onUp);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerCancel);
     };
-  }, [pos]);
+  }, []);
 
-  // Compute button style based on drag position
-  const btnStyle: React.CSSProperties = pos.x >= 0 && pos.y >= 0
+  // Compute button style based on drag position.
+  // Only apply inline left/top after posReady — this prevents a flash where a
+  // position saved on a large screen is rendered off-screen before the layout
+  // effect clamps it to the current (smaller) viewport.
+  const btnStyle: React.CSSProperties = posReady && pos.x >= 0 && pos.y >= 0
     ? { position: 'fixed', left: pos.x, top: pos.y, bottom: 'auto', right: 'auto', width: 56, height: 56, paddingInline: 0 }
     : { width: 56, height: 56, paddingInline: 0 };
 
   // Chat panel position — above the button
-  const panelStyle: React.CSSProperties = pos.x >= 0 && pos.y >= 0
-    ? { position: 'fixed', left: Math.min(pos.x, window.innerWidth - 400), top: Math.max(8, pos.y - 520), bottom: 'auto', right: 'auto' }
-    : {};
+  const panelStyle: React.CSSProperties = useMemo(() => {
+    if (!posReady || pos.x < 0 || pos.y < 0) return {};
+    const viewport = viewportSize ?? getAssistantViewportSize();
+    const panelWidth = Math.min(384, Math.max(0, viewport.width - 32));
+    const panelHeight = Math.min(500, Math.max(0, viewport.height - 168));
+    const left = Math.max(8, Math.min(pos.x + ASSISTANT_BUTTON_SIZE - panelWidth, viewport.width - panelWidth - 8));
+    const top = Math.max(8, Math.min(pos.y - panelHeight - 16, viewport.height - panelHeight - 8));
+    return { position: 'fixed', left, top, bottom: 'auto', right: 'auto' };
+  }, [pos, posReady, viewportSize]);
 
   // Track online/offline and load persisted history after mount
   useEffect(() => {
@@ -231,42 +389,97 @@ function AiAssistantWidget() {
     if (historyKeyRef.current === expectedKey) setMessages(prev => [...prev, msg]);
   }, []);
 
-  const sendMessage = async (text?: string) => {
+  useEffect(() => {
+    if (previousPathname.current !== pathname && tourActive) {
+      tourActiveRef.current = false;
+      setTourActive(false);
+      addMessage({ role: "assistant", content: t("ai.tourPageChanged"), ts: Date.now() }, historyKey);
+    }
+    previousPathname.current = pathname;
+  }, [addMessage, historyKey, pathname, t, tourActive]);
+
+  useEffect(() => {
+    tourActiveRef.current = false;
+    setTourActive(false);
+  }, [historyKey]);
+
+  const sendMessage = async (text?: string, options?: { tourMode?: boolean }) => {
     const content = (text || input).trim();
     if (!content || loading) return;
     setInput("");
 
+    const endsTour = tourActive && /^(please\s+)?(end|stop|finish|exit|cancel)(\s+the)?\s+(guided\s+)?tour[.!?]*$/i.test(content)
+      || (tourActive && /^(ጉብኝቱን\s*(ጨርስ|አቁም))[።.!?]*$/u.test(content));
+    if (endsTour) {
+      tourActiveRef.current = false;
+      setTourActive(false);
+      setMessages(prev => [...prev,
+        { role: "user", content, ts: Date.now() },
+        { role: "assistant", content: t("ai.tourEnded"), ts: Date.now() },
+      ]);
+      return;
+    }
+
     const userMsg: Message = { role: "user", content, ts: Date.now() };
     const requestHistoryKey = historyKey;
+    const requestPath = pathname;
+    const isTourRequest = options?.tourMode ?? tourActive;
     const next = [...visibleMessages, userMsg];
     setMessages(next);
     setLoading(true);
 
-    // 1. Try offline rule engine first (instant, no network needed)
-    const localAnswer = offlineAnswer(content);
-    if (localAnswer) {
+    // 1. Keep offline answers limited to neutral greeting/identity copy.
+    const guideLanguage = (i18n.resolvedLanguage ?? i18n.language).startsWith("am") ? "am" : "en";
+    if (!online) {
+      const localAnswer = offlineAnswer(content, guideLanguage);
       setTimeout(() => {
-        addMessage({ role: "assistant", content: localAnswer, offline: true, ts: Date.now() }, requestHistoryKey);
+        addMessage({
+          role: "assistant",
+          content: localAnswer ?? t("ai.offlineFallback"),
+          offline: true,
+          ts: Date.now(),
+        }, requestHistoryKey);
         setLoading(false);
       }, 300); // small delay feels more natural
       return;
     }
 
-    // 2. If online, try the API
-    if (online) {
-      try {
-        const { data } = await client.post("/api/ai/chat", {
-          messages: next.map(m => ({ role: m.role, content: m.content })),
-        });
-        addMessage({ role: "assistant", content: data.reply || "Sorry, I couldn't get a response.", ts: Date.now() }, requestHistoryKey);
-        setLoading(false);
-        return;
-      } catch {
-        // API failed — fall through to offline fallback
-      }
+    // The server chat endpoint requires authentication. Explain that clearly
+    // instead of showing an unhelpful API fallback for guests.
+    if (!user) {
+      addMessage({ role: "assistant", content: t("ai.signInRequired"), ts: Date.now() }, requestHistoryKey);
+      setLoading(false);
+      return;
     }
 
-    // 3. Offline/API-failed fallback
+    // 2. Send the conversation and minimal page/device context to the server.
+    try {
+      const { data } = await client.post("/api/ai/chat", {
+        messages: next.slice(-20).map(m => ({ role: m.role, content: m.content })),
+        context: {
+          page: getGuidePage(pathname ?? "/"),
+          viewport: getViewportClass(),
+          language: guideLanguage,
+          tourMode: isTourRequest,
+        },
+      });
+      if (isTourRequest && (!tourActiveRef.current || previousPathname.current !== requestPath)) {
+        setLoading(false);
+        return;
+      }
+      addMessage({ role: "assistant", content: data.reply || data.text || "Sorry, I couldn't get a response.", ts: Date.now() }, requestHistoryKey);
+      setLoading(false);
+      return;
+    } catch {
+      // API failed — fall through to the localized fallback.
+    }
+
+    if (isTourRequest && (!tourActiveRef.current || previousPathname.current !== requestPath)) {
+      setLoading(false);
+      return;
+    }
+
+    // 3. API-failed fallback
     addMessage({
       role: "assistant",
       content: online
@@ -283,16 +496,51 @@ function AiAssistantWidget() {
     localStorage.removeItem(historyKey);
   };
 
+  const startTour = () => {
+    if (!user || !online || loading) return;
+    tourActiveRef.current = true;
+    setTourActive(true);
+    void sendMessage(t("ai.startTourRequest"), { tourMode: true });
+  };
+
+  const endTour = () => {
+    tourActiveRef.current = false;
+    setTourActive(false);
+    addMessage({ role: "assistant", content: t("ai.tourEnded"), ts: Date.now() }, historyKey);
+  };
+
   // AI Assistant is visible on ALL pages — including the showroom builder
   return (
     <>
+      {/* Page Guide floating button — stacked above the AI Assistant, shares drag position */}
+      {pageGuideEnabled && (
+        <button
+          type="button"
+          onClick={() => {
+            if (didDrag.current) { didDrag.current = false; return; }
+            window.dispatchEvent(new Event('nodbusiness:open-page-guide'));
+          }}
+          onPointerDown={handlePointerDown}
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+10.5rem)] right-5 md:bottom-[calc(4rem)] md:right-6 z-[2147483646] touch-none rounded-full shadow-2xl shadow-blue-950/25 flex items-center justify-center transition-transform duration-200 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 hover:scale-110 hover:shadow-blue-600/30 hover:shadow-xl"
+          style={posReady && pos.x >= 0 && pos.y >= 0
+            ? { position: 'fixed', left: pos.x, top: pos.y - 64, bottom: 'auto', right: 'auto', width: 56, height: 56, paddingInline: 0 }
+            : { width: 56, height: 56, paddingInline: 0 }}
+          title="Page guide (drag to move)"
+          aria-label="Page guide"
+        >
+          <PageGuideFlipCoin />
+        </button>
+      )}
+
       {/* Floating button — draggable */}
       <button
         ref={btnRef}
-        onClick={() => !dragging.current && setOpen(v => !v)}
-        onMouseDown={handleDragStart}
-        onTouchStart={handleDragStart}
-        className={`fixed bottom-24 right-5 md:bottom-6 md:right-6 z-[2147483647] rounded-full shadow-2xl shadow-blue-950/25 flex items-center justify-center gap-1.5 transition-all duration-200 cursor-grab active:cursor-grabbing
+        onClick={() => {
+          if (didDrag.current) { didDrag.current = false; return; }
+          setOpen(value => !value);
+        }}
+        onPointerDown={handlePointerDown}
+        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+6rem)] right-5 md:bottom-6 md:right-6 z-[2147483647] touch-none rounded-full shadow-2xl shadow-blue-950/25 flex items-center justify-center gap-1.5 transition-transform duration-200 cursor-grab active:cursor-grabbing
           ${open ? "bg-slate-800 dark:bg-slate-700 rotate-6 scale-95"
             : "bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 hover:scale-110 hover:shadow-blue-600/30 hover:shadow-xl"
           }`}
@@ -308,6 +556,7 @@ function AiAssistantWidget() {
       {/* Chat panel */}
       {open && (
         <div
+          data-testid="ai-assistant-panel"
           className="fixed bottom-40 right-4 md:bottom-20 md:right-6 z-[2147483647]
             w-[calc(100vw-2rem)] max-w-sm bg-blue-50 dark:bg-slate-900 border border-blue-300/80 dark:border-blue-500/35 rounded-2xl shadow-2xl shadow-slate-950/30
             flex flex-col overflow-hidden"
@@ -324,10 +573,20 @@ function AiAssistantWidget() {
                 }
               </div>
             </div>
-            <button onClick={reset} title={t('ai.clearHistory')} className="p-1 text-white/70 hover:text-white transition-colors">
+            {tourActive && (
+              <button
+                onClick={endTour}
+                title={t("ai.endTour")}
+                aria-label={t("ai.endTour")}
+                className="min-h-11 min-w-11 shrink-0 rounded-full border border-white/35 px-2 text-[11px] font-medium text-white hover:bg-white/10 transition-colors"
+              >
+                <span className="flex items-center justify-center gap-1.5"><Square className="h-3.5 w-3.5 shrink-0" /><span className="hidden sm:inline">{t("ai.endTour")}</span></span>
+              </button>
+            )}
+            <button onClick={reset} title={t('ai.clearHistory')} aria-label={t('ai.clearHistory')} className="min-h-11 min-w-11 flex items-center justify-center text-white/70 hover:text-white transition-colors">
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
-            <button onClick={() => setOpen(false)} className="p-1 text-white/70 hover:text-white transition-colors">
+            <button onClick={() => setOpen(false)} title={t('ai.close')} aria-label={t('ai.close')} className="min-h-11 min-w-11 flex items-center justify-center text-white/70 hover:text-white transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -341,7 +600,7 @@ function AiAssistantWidget() {
                   <span className="mt-0.5 shrink-0"><AssistantLogo size="sm" animated /></span>
                   <div className="bg-white border border-blue-200/80 rounded-2xl rounded-tl-sm px-3 py-2.5 max-w-[88%] shadow-sm dark:bg-slate-800 dark:border-blue-500/25">
                     <p className="text-sm text-slate-900 leading-relaxed dark:text-slate-100">
-                      {t('ai.welcomeMessage')}
+                      {t(user ? 'ai.welcomeMessage' : 'ai.welcomeGuest')}
                     </p>
                   </div>
                 </div>
@@ -356,6 +615,18 @@ function AiAssistantWidget() {
                     </button>
                   ))}
                 </div>
+                {user && online && (
+                  <div className="pl-9">
+                    <button
+                      type="button"
+                      onClick={startTour}
+                      disabled={loading}
+                      className="min-h-11 w-full rounded-xl border border-blue-300 bg-white px-3 py-2 text-left text-sm font-semibold text-blue-800 shadow-sm transition-colors hover:bg-blue-50 disabled:opacity-50 dark:border-blue-500/40 dark:bg-slate-800 dark:text-blue-200 dark:hover:bg-slate-700"
+                    >
+                      <span className="flex items-center gap-2"><Compass className="h-4 w-4 shrink-0" />{t("ai.startTour")}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               visibleMessages.map((m, i) => (
@@ -425,12 +696,8 @@ function AiAssistantWidget() {
   );
 }
 
-/**
- * Showroom Studio is fully manual (no AI inside), so the assistant stays out
- * of it; quick scan keeps its camera and Save bar clear of the floating button.
- */
+/** Keep the floating assistant mounted across routes so navigation does not
+ * remove and recreate its animated launcher. */
 export default function AiAssistant() {
-  const pathname = usePathname();
-  if (pathname === "/showroom/create" || pathname === "/products/scan") return null;
   return <AiAssistantWidget />;
 }

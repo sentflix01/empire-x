@@ -7,6 +7,7 @@ import { complete, chat, isConfigured } from '../lib/ai';
 import { isEnabled } from '../lib/featureFlags';
 import { getRedis } from '../lib/redis';
 import type { ChatMessage } from '../lib/ai';
+import { buildAiGuideSystemPrompt, type AiGuideContext } from '../lib/aiGuidePrompt';
 
 const router = Router();
 
@@ -72,22 +73,50 @@ router.post('/chat', requireAuth, async (req: Request, res: Response) => {
     res.status(503).json({ error: 'AI chat is not enabled' }); return;
   }
   if (!(await checkAiRateLimit(req.user!.id, 'chat', res))) return;
-  const { messages, system_prompt, max_tokens } = req.body as {
-    messages?: ChatMessage[]; system_prompt?: string; max_tokens?: number;
+  const { messages, context, max_tokens } = req.body as {
+    messages?: ChatMessage[]; context?: Record<string, unknown>; max_tokens?: number;
   };
   if (!Array.isArray(messages) || !messages.length) {
     res.status(400).json({ error: 'messages (array) is required' }); return;
   }
   if (messages.length > 20) { res.status(400).json({ error: 'Maximum 20 messages per request' }); return; }
+  if (messages.some((message) => !message || !['user', 'assistant'].includes(message.role)
+    || typeof message.content !== 'string' || !message.content.trim() || message.content.length > 4_000)) {
+    res.status(400).json({ error: 'Each message must have a user or assistant role and contain 1 to 4,000 characters.' }); return;
+  }
+  const totalCharacters = messages.reduce((total, message) => total + message.content.length, 0);
+  if (totalCharacters > 16_000) { res.status(400).json({ error: 'Conversation is too long. Clear some history and try again.' }); return; }
+  if (messages[messages.length - 1].role !== 'user') {
+    res.status(400).json({ error: 'The final conversation message must be from the user.' }); return;
+  }
+
+  const page = typeof context?.page === 'string' && context.page.length <= 80
+    && /^[a-z0-9/_\[\]-]+$/i.test(context.page) ? context.page : undefined;
+  const viewport = ['compact', 'medium', 'wide'].includes(String(context?.viewport))
+    ? context!.viewport as AiGuideContext['viewport'] : undefined;
+  const language = ['en', 'am'].includes(String(context?.language))
+    ? context!.language as AiGuideContext['language'] : undefined;
+  const guideContext: AiGuideContext = {
+    page,
+    viewport,
+    language,
+    sessionMode: req.user!.is_demo ? 'demo' : 'real',
+    tourMode: context?.tourMode === true,
+  };
+  const requestedMaxTokens = Number(max_tokens);
+  const maxTokens = Number.isFinite(requestedMaxTokens)
+    ? Math.max(150, Math.min(700, Math.floor(requestedMaxTokens)))
+    : 500;
   try {
     const text = await chat(messages, {
-      systemPrompt: system_prompt ?? 'You are a helpful assistant for Nodbusiness, a global marketplace and social platform.',
-      maxTokens: max_tokens ?? 300,
+      systemPrompt: buildAiGuideSystemPrompt(guideContext),
+      maxTokens,
     });
-    res.json({ text });
+    // `reply` is the frontend contract; `text` is retained for older clients.
+    res.json({ reply: text, text });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'AI chat error');
-    res.status(500).json({ error: (err as Error).message ?? 'AI chat failed' });
+    res.status(500).json({ error: 'AI chat failed. Please try again.' });
   }
 });
 

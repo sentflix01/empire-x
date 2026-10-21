@@ -27,7 +27,7 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
   const education = (() => { try { return JSON.parse(profile.education || "[]"); } catch { return []; } })();
 
   return (
-    <div className="space-y-4">
+    <div data-page-guide="profile-personal-tab" className="space-y-4">
       {/* Quick Actions for Owner */}
       {isOwner && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

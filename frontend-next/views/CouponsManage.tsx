@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
 import { Tag, Plus, Trash2, Copy, Check, Loader2, ToggleLeft, ToggleRight } from "lucide-react";
@@ -94,7 +94,7 @@ function CouponsManage() {
   };
 
   return (
-      <div className="max-w-2xl mx-auto">
+      <div data-page-guide="coupons-header" className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">

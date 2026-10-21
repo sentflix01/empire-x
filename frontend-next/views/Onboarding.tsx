@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
@@ -65,7 +65,7 @@ function Onboarding() {
   const inputClass = "mt-1.5 bg-background text-foreground placeholder:text-muted-foreground border-input";
 
   return (
-    <div className="min-h-screen bg-background bg-gradient-to-br from-primary/10 via-background to-background flex items-center justify-center p-4 text-foreground">
+    <div data-page-guide="onboard-welcome" className="min-h-screen bg-background bg-gradient-to-br from-primary/10 via-background to-background flex items-center justify-center p-4 text-foreground">
       <div className="w-full max-w-lg">
         <Link href="/feed" className="mb-5 inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -86,12 +86,12 @@ function Onboarding() {
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-1">
               <User className="w-5 h-5 text-primary" aria-hidden="true" />
-              <h1 className="font-display text-xl font-bold text-foreground">Personal Information</h1>
+              <h1 data-page-guide="onboard-name" className="font-display text-xl font-bold text-foreground">Personal Information</h1>
             </div>
             <p className="text-sm text-muted-foreground">Set up your personal identity on Nodbusiness. You can add a business later.</p>
           </div>
           <div className="space-y-4">
-            <div>
+            <div data-page-guide="onboard-type">
               <Label htmlFor="onboarding-display_name" className={labelClass}>Full Name</Label>
               <Input {...field("display_name")} placeholder="Your name" className={`${inputClass} h-11`} />
             </div>
@@ -113,7 +113,7 @@ function Onboarding() {
                 <Input {...field("phone")} type="tel" placeholder="+251 9xx xxx xxx" className={`${inputClass} h-11`} />
               </div>
             </div>
-            <Button onClick={handleFinish} disabled={saving || !personal.display_name.trim()} className="w-full h-11 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button data-page-guide="onboard-continue" onClick={handleFinish} disabled={saving || !personal.display_name.trim()} className="w-full h-11 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
               {saving ? "Creating..." : "Create My Profile"} <Check className="w-4 h-4 ml-2" aria-hidden="true" />
             </Button>
           </div>

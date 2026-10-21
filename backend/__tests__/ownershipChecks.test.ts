@@ -28,7 +28,7 @@ jest.mock('../lib/queue', () => ({ queueWebhookDelivery: jest.fn(), queueUsageRe
 jest.mock('../services/ssrfValidator', () => ({ validateUrl: jest.fn().mockResolvedValue({ ok: true }) }));
 jest.mock('../socket', () => ({
   emitNewMessage: jest.fn(), emitMessageEdited: jest.fn(), emitMessageDeleted: jest.fn(),
-  emitNotification: jest.fn(), emitPresenceUpdated: jest.fn(), removeUserFromConversationRoom: jest.fn(),
+  emitNotification: jest.fn(), emitPresenceUpdated: jest.fn(), removeUserFromConversationRoom: jest.fn(), emitToUser: jest.fn(),
 }));
 jest.mock('../routes/push', () => ({ sendPushToUser: jest.fn().mockResolvedValue(undefined) }));
 jest.mock('../lib/redis', () => ({ getRedis: () => null }));

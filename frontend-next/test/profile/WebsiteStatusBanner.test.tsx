@@ -15,7 +15,9 @@ import WebsiteStatusBanner, { websiteStatus } from '@/components/profile/Website
 
 const BIZ = 'biz-1';
 const now = new Date('2026-10-17T12:00:00Z').getTime();
-const later = '2026-10-20T13:00:00Z';
+// expires_at is intentionally set far in the future so the draft is never
+// considered expired regardless of when the test suite runs.
+const later = '2030-12-31T23:59:59Z';
 const draft = { id: 'site-1', title: 'Accounting Tax', status: 'draft', business_id: BIZ, sections: JSON.stringify([{ type: 'hero' }, { type: 'contact' }]), expires_at: later };
 const paid = { tier: 'normal', status: 'active', current_period_end: '2026-11-17T00:00:00Z' };
 

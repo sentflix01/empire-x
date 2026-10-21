@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import SafeImage from '@/components/ui/SafeImage';
 /**
  * AccountSettings — clean single-tab account settings.
@@ -130,7 +130,7 @@ function AccountSettingsView() {
   };
 
   return (
-    <div className="max-w-lg mx-auto space-y-5 pb-8">
+    <div data-page-guide="settings-header" className="max-w-lg mx-auto space-y-5 pb-8">
 
       {/* ── Profile card at top ── */}
       <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">

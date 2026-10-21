@@ -1,0 +1,29 @@
+{
+  "project_type": "Next.js 16 App Router + React 19 monorepo, TypeScript, Tailwind CSS v4",
+  "language": "TypeScript / TSX",
+  "build_system": "npm workspaces; Next.js App Router (app/ dir) + views/ pattern",
+  "test_framework": "No unit tests for UI tour component; verification is tsc + build only",
+  "build_command": "cd frontend-next && npm run build",
+  "test_command": "cd frontend-next && npx tsc --noEmit --pretty false",
+  "verification_instructions": "1. cd frontend-next  2. npm run lint  3. npx tsc --noEmit --pretty false  4. npm run build  All must pass with zero errors.",
+  "snapshot_or_generated_files": null,
+  "environment_constraints": "Windows host (pwsh shell). Do NOT restart dev server. All edits are in frontend-next/. Run all commands from frontend-next/ directory. Never push to remote.",
+  "contribution_requirements": "Per CONTRIBUTING.md: run lint + tsc + build before PR. Per frontend-next/AGENTS.md: read relevant Next.js docs before editing Next.js code.",
+  "key_patterns": "data-page-guide attributes are plain HTML data attributes added to existing JSX elements. Exceptions: one <div data-page-guide='feed-posts'> wrapper in Home.tsx (AnimatePresence has no DOM parent) and a <div data-page-guide='orders-delivery-timeline'> wrapper around the DeliveryTimeline component. PageGuide.tsx uses 'use client', usePathname, useTranslation, createPortal. Copy object uses 'as const' tuples [title, body]. buildSteps() and getTourId() are pure functions before the component.",
+  "relevant_files": [
+    "frontend-next/components/PageGuide.tsx",
+    "frontend-next/app/landing/page.tsx",
+    "frontend-next/components/landing/LandingControls.tsx",
+    "frontend-next/components/landing/TryDemoButton.tsx",
+    "frontend-next/views/Home.tsx",
+    "frontend-next/views/Register.tsx",
+    "frontend-next/views/Login.tsx",
+    "frontend-next/views/Profile.tsx",
+    "frontend-next/views/Orders.tsx",
+    "frontend-next/views/Wallet.tsx",
+    "frontend-next/views/Messages.tsx",
+    "frontend-next/views/Search.tsx",
+    "frontend-next/project-brain/MASTER_TOUR_PROMPT.md"
+  ],
+  "directory_structure": "frontend-next/app/ = Next.js App Router pages; frontend-next/views/ = page-level React components; frontend-next/components/ = shared components; frontend-next/.agents/tasks/ = planning artifacts only (not committed)"
+}

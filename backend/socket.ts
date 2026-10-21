@@ -436,6 +436,11 @@ export async function emitPresenceUpdated(
   ioInstance.to(`user:${userId}`).emit('presence_updated', payload);
 }
 
+/** An event for one person on all their devices (chat list, unread badge, read receipts). */
+export function emitToUser(userId: string, event: string, payload: Record<string, unknown>): void {
+  ioInstance?.to(`user:${userId}`).emit(event, payload);
+}
+
 export function emitNotification(userId: string, notification: Record<string, unknown>): void {
   ioInstance?.to(`user:${userId}`).emit('new_notification', notification);
 }
@@ -463,6 +468,41 @@ export function removeUserFromConversationRoom(userId: string, conversationId: s
   ioInstance?.in(`user:${userId}`).socketsLeave(`conv:${conversationId}`);
 }
 
+export interface ReactionPayload {
+  message_id: string;
+  user_id: string;
+  emoji: string;
+  reactions: Record<string, unknown>;
+}
+
+export function emitReactionAdded(conversationId: string, payload: ReactionPayload): void {
+  ioInstance?.to(`conv:${conversationId}`).emit('reaction_added', payload);
+}
+
+export function emitReactionRemoved(conversationId: string, payload: ReactionPayload): void {
+  ioInstance?.to(`conv:${conversationId}`).emit('reaction_removed', payload);
+}
+
+export interface MessagePinnedPayload {
+  message_id: string;
+  pinned_by: string;
+  pinned_at: string;
+  conversation_id: string;
+}
+
+export interface MessageUnpinnedPayload {
+  message_id: string;
+  conversation_id: string;
+}
+
+export function emitMessagePinned(conversationId: string, payload: MessagePinnedPayload): void {
+  ioInstance?.to(`conv:${conversationId}`).emit('message_pinned', payload);
+}
+
+export function emitMessageUnpinned(conversationId: string, payload: MessageUnpinnedPayload): void {
+  ioInstance?.to(`conv:${conversationId}`).emit('message_unpinned', payload);
+}
+
 module.exports = {
   initSocket,
   getIO,
@@ -471,9 +511,14 @@ module.exports = {
   emitMessageDeleted,
   emitPresenceUpdated,
   emitNotification,
+  emitToUser,
   forceDisconnectUser,
   removeUserFromConversationRoom,
   invalidateFollowerCache,
   getAuthorizedConversation,
   getConversationParticipantIds,
+  emitReactionAdded,
+  emitReactionRemoved,
+  emitMessagePinned,
+  emitMessageUnpinned,
 };

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 /**
  * BusinessInventory.tsx — Inventory management dashboard for business owners
  *
@@ -127,7 +127,7 @@ function BusinessInventory() {
   const outOfStock = products.filter(p => p.stock === 0).length;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div data-page-guide="inventory-header" className="max-w-4xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold">Inventory</h1>

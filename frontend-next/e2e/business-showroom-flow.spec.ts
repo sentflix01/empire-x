@@ -136,8 +136,9 @@ test('a scratch showroom publishes without sample content and appears to other v
   const guestContext = await browser.newContext({ baseURL: process.env.E2E_FRONTEND_URL ?? 'http://localhost:3002' });
   const guestPage = await guestContext.newPage();
   await mockShowroomApi(guestPage, { publishedByDefault: true });
+  // A signed-out visitor stays on /feed, which always shows them the business feed (no mode toggle).
   await guestPage.goto('/feed');
-  await guestPage.getByRole('button', { name: 'Business', exact: true }).first().click();
+  await expect(guestPage).toHaveURL(/\/feed$/);
   await expect(guestPage.getByText('Fresh Roots Cooperative').first()).toBeVisible();
   await guestPage.getByRole('link', { name: /Visit/ }).first().click();
   await expect(guestPage).toHaveURL(/\/showroom\/fresh-roots-cooperative$/);

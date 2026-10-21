@@ -241,13 +241,13 @@ function Home() {
     <div className="max-w-xl mx-auto space-y-4">
       {/* Guest read-only banner — only shown after auth fully resolves to unauthenticated */}
       {authChecked && !isAuthenticated && (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/80 px-4 py-3 dark:border-amber-500/25 dark:bg-amber-950/30">
+        <div data-page-guide="feed-guest-banner" className="flex items-center justify-between gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/80 px-4 py-3 dark:border-amber-500/25 dark:bg-amber-950/30">
           <p className="text-xs font-medium text-amber-900 dark:text-amber-200">👋 Browsing as a guest: you see public businesses. Sign in to see personal posts, like and follow.</p>
           <Link href="/register" className="shrink-0 rounded-xl bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600 transition-colors">Join Free</Link>
         </div>
       )}
       {/* Mini Website Banner — brand blue-to-purple gradient */}
-      <section className="relative overflow-hidden rounded-2xl text-white shadow-lg shadow-blue-600/25 min-h-[132px]" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }}>
+      <section data-page-guide="feed-banner" className="relative overflow-hidden rounded-2xl text-white shadow-lg shadow-blue-600/25 min-h-[132px]" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.18),transparent_28%),radial-gradient(circle_at_15%_90%,rgba(124,58,237,0.22),transparent_26%)]" />
         <div className="relative z-10 flex min-h-[132px] items-center justify-between gap-4 px-5 py-5 sm:px-6">
           <div className="max-w-[250px]">
@@ -318,11 +318,11 @@ function Home() {
       </section>
 
       {/* Company-owned announcements. This is intentionally separate from user profile/post tickers. */}
-      <CompanyAnnouncementTicker />
+      <div data-page-guide="feed-content"><CompanyAnnouncementTicker /></div>
 
       {/* Filter Bar — feed filter chips */}
       {feedMode === "personal" && (
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide items-center">
+        <div data-page-guide="feed-filters" className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide items-center">
           {FILTERS.map(f => {
             const Icon = f.icon;
             return (
@@ -336,7 +336,7 @@ function Home() {
             );
           })}
           {!isNearbyActive && (
-            <button onClick={() => loadPosts(true)} disabled={loading}
+            <button data-page-guide="feed-refresh" onClick={() => loadPosts(true)} disabled={loading}
               className="ml-auto shrink-0 p-2 rounded-full bg-card border border-border/50 text-muted-foreground hover:bg-secondary transition-all"
               title={t('feed.refreshFeed')}>
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -358,7 +358,9 @@ function Home() {
 
           {/* Create Post — always visible */}
           {user && (
-            <CreatePostForm user={user} onPostCreated={handlePostCreated} />
+            <div data-page-guide="feed-create-post">
+              <CreatePostForm user={user} onPostCreated={handlePostCreated} />
+            </div>
           )}
 
           {/* Business Showroom Feed */}
@@ -384,6 +386,7 @@ function Home() {
                   <p className="text-sm mt-1">{t('feed.beFirst')}</p>
                 </div>
               ) : (
+                <div data-page-guide="feed-posts">
                 <AnimatePresence>
                   {posts.map((post, i) => (
                     <motion.div
@@ -418,6 +421,7 @@ function Home() {
                     <p key="feed-end-of-list" className="text-center text-xs text-muted-foreground py-4">You've seen all posts</p>
                   )}
                 </AnimatePresence>
+                </div>
               )}
             </>
           )}

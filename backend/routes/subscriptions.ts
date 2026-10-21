@@ -405,11 +405,13 @@ async function handleSubscriptionEvent(
         unpaid: 'past_due',
       };
 
+      // Like invoice.paid, never move the end back: a late, out-of-order event
+      // would otherwise let the lifecycle job treat a paying business as lapsed.
       await pool.query(
         `UPDATE business_subscriptions SET
            status = $1, cancel_at_period_end = $2,
            current_period_start = COALESCE($3, current_period_start),
-           current_period_end   = COALESCE($4, current_period_end),
+           current_period_end   = GREATEST(COALESCE($4, current_period_end), current_period_end),
            updated_at = NOW()
          WHERE stripe_subscription_id = $5`,
         [mappedStatus[status] ?? 'active', cancelAtPeriodEnd, periodStart, periodEnd, stripeSubId],

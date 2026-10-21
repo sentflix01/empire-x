@@ -20,7 +20,7 @@ export const EDIT_WINDOW_MS = 15 * 60 * 1000;
 export const DELETE_FOR_EVERYONE_WINDOW_MS = 24 * 60 * 60 * 1000;
 export const MAX_GROUP_MEMBERS = 256;
 export const CONVERSATION_TYPES = ['dm', 'group', 'channel'] as const;
-export const MESSAGE_TYPES = ['text', 'image', 'file'] as const;
+export const MESSAGE_TYPES = ['text', 'image', 'file', 'product', 'order_update'] as const;
 export type ConversationType = typeof CONVERSATION_TYPES[number];
 
 type Queryable = Pick<PoolClient, 'query'>;
@@ -87,14 +87,37 @@ export async function displayNames(ids: string[], db: Queryable = pool): Promise
   return new Map(rows.map((r: { user_id: string; display_name: string | null }) => [String(r.user_id), r.display_name || 'User']));
 }
 
-export async function addMember(db: Queryable, conv: Pick<ConversationRow, 'id'>, userId: string, role: 'admin' | 'member' = 'member'): Promise<void> {
+/**
+ * Add someone to a chat. `accepted: false` puts it in their Requests (a first
+ * message from someone they don't follow) until they accept or reply.
+ */
+export async function addMember(
+  db: Queryable, conv: Pick<ConversationRow, 'id'>, userId: string,
+  { role = 'member', accepted = true }: { role?: 'admin' | 'member'; accepted?: boolean } = {},
+): Promise<void> {
   await db.query(
-    `INSERT INTO conversation_participants (conversation_id, user_id, role) VALUES ($1, $2, $3)
+    `INSERT INTO conversation_participants (conversation_id, user_id, role, accepted_at) VALUES ($1, $2, $3, ${accepted ? 'NOW()' : 'NULL'})
      ON CONFLICT (conversation_id, user_id) DO NOTHING`,
     [conv.id, userId, role],
   );
   await syncLegacyColumns(db, conv.id);
 }
+
+/** SQL for one member's unread messages in conversation `c` (participant row `cp`, user `$me`). */
+export function unreadCountSql(me: string): string {
+  return `(SELECT COUNT(*)::int FROM messages m
+            WHERE m.conversation_id = c.id AND m.sender_id <> ${me}
+              AND m.created_at > GREATEST(COALESCE(cp.last_read_at, '-infinity'), COALESCE(cp.hidden_before, '-infinity'))
+              AND NOT EXISTS (SELECT 1 FROM message_hidden h WHERE h.user_id = ${me} AND h.message_id = m.id))`;
+}
+
+/** SQL: message `m` is visible to `$me` (not before "delete chat for me", not deleted for me). */
+export function visibleToSql(me: string, cpAlias = 'cp', mAlias = 'm'): string {
+  return `${mAlias}.created_at > COALESCE(${cpAlias}.hidden_before, '-infinity')
+          AND NOT EXISTS (SELECT 1 FROM message_hidden h WHERE h.user_id = ${me} AND h.message_id = ${mAlias}.id)`;
+}
+
+export const MUTE_DURATIONS: Record<string, string | null> = { '8h': "NOW() + INTERVAL '8 hours'", '1w': "NOW() + INTERVAL '7 days'", always: "'infinity'", off: null };
 
 export async function removeMember(db: Queryable, conv: Pick<ConversationRow, 'id'>, userId: string): Promise<void> {
   await db.query('DELETE FROM conversation_participants WHERE conversation_id=$1 AND user_id=$2', [conv.id, userId]);
@@ -119,6 +142,8 @@ async function syncLegacyColumns(db: Queryable, convId: string): Promise<void> {
 export function messagePreview(type: string, content: string): string {
   if (type === 'image') return '📷 Photo';
   if (type === 'file') return '📎 File';
+  if (type === 'product') return '🛍️ Product';
+  if (type === 'order_update') return '📦 Order update';
   return content.replace(/\s+/g, ' ').trim().slice(0, 200);
 }
 
@@ -134,7 +159,12 @@ export async function refreshLastMessage(db: Queryable, convId: string): Promise
   );
 }
 
-/** Content check shared by send, edit, inquiry and forward. Returns the cleaned text or an error. */
+/**
+ * Content check shared by send, edit, inquiry and forward.
+ * NOTE: cleanContent is NOT called for 'product' and 'order_update' message types —
+ * those carry their payload in metadata and set content to ''.
+ * Returns the cleaned text or an error.
+ */
 export function cleanContent(raw: unknown): { ok: true; text: string } | { ok: false; message: string } {
   if (typeof raw !== 'string') return { ok: false, message: 'Write a message first.' };
   const text = raw.trim();

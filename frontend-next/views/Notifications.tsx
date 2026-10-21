@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from "react";
 import client from "@/api/client";
@@ -130,7 +130,7 @@ function NotificationsView() {
   return (
     <div className="max-w-xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div data-page-guide="notif-header" className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <h1 className="font-display text-2xl font-bold">{t('notifications.title')}</h1>
           {unreadCount > 0 && (
@@ -138,7 +138,7 @@ function NotificationsView() {
           )}
         </div>
         {unreadCount > 0 && (
-          <Button size="sm" variant="outline" onClick={markAllRead} disabled={markingAll} className="rounded-full text-xs gap-1.5">
+          <Button data-page-guide="notif-mark-all" size="sm" variant="outline" onClick={markAllRead} disabled={markingAll} className="rounded-full text-xs gap-1.5">
             <Check className="w-3 h-3" />
             {markingAll ? t('notifications.marking') : t('notifications.markAllRead')}
           </Button>
@@ -172,10 +172,10 @@ function NotificationsView() {
               <div
                 key={n.id}
                 onClick={() => markRead(n)}
-                className={`relative flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors group
+                data-page-guide="notif-list" className={`relative flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors group
                   ${n.is_read
                     ? "opacity-60 hover:opacity-100 hover:bg-secondary/30"
-                    : "bg-card border border-border/50 hover:bg-secondary/50"
+                    : "bg-card border border-border/50 hover:bg-secondary/50 notif-unread-item"
                   }`}
               >
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${color}`}>
@@ -198,7 +198,7 @@ function NotificationsView() {
                 </div>
                 {/* Unread dot */}
                 {!n.is_read && (
-                  <div className="w-2 h-2 rounded-full bg-amber-500 mt-2 shrink-0" />
+                  <div data-page-guide="notif-unread" className="w-2 h-2 rounded-full bg-amber-500 mt-2 shrink-0" />
                 )}
                 {/* Delete button — shows on hover */}
                 <button onClick={(e) => deleteNotif(e, n.id)}
