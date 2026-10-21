@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { parseISO, isToday, isYesterday, isAfter, subDays, format as dfFormat } from "date-fns";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
 import MessageSearch from "@/components/messaging/MessageSearch";
-import {  isUserOnline, getPresenceCategory, presenceDotClass, formatLastSeen } from "@/lib/presence";
+import { isUserOnline } from "@/lib/presence";
 import type { PresenceData } from "@/lib/presence";
 import { getSocket, connectSocket } from "@/lib/socket";
 import { useChatPresence } from "@/lib/useChatPresence";
@@ -38,6 +38,8 @@ function Messages() {
   const [typingConvs, setTypingConvs]     = useState<Record<string, boolean>>({});
   const [showSearch, setShowSearch]       = useState(false);
   const [navigating, setNavigating]       = useState(false);
+  // Sort contacts: 'time' = online-first then last_seen (default), 'name' = A-Z
+  const [contactSort, setContactSort]     = useState<'name' | 'time'>('time');
   const loadConversationsRef = useRef<((currentUser?: any, quiet?: boolean) => Promise<void>) | null>(null);
 
   useChatPresence(Boolean(user));
@@ -369,19 +371,32 @@ function Messages() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.15 }}
             >
-              <p className="px-4 py-2 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                People · {filtered.length}
-              </p>
+              <div className="flex items-center justify-between px-4 py-2">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  People · {filtered.length}
+                </p>
+                <button
+                  onClick={() => setContactSort(s => s === 'name' ? 'time' : 'name')}
+                  className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={`Sort by ${contactSort === 'name' ? 'time' : 'name'}`}
+                >
+                  <ArrowUpDown className="w-3 h-3" />
+                  {contactSort === 'name' ? 'A–Z' : 'Activity'}
+                </button>
+              </div>
               {(filtered as any[]).map((contact: any) => {
                 const avatarUrl = Array.isArray(contact.avatar_url) ? contact.avatar_url[0] : contact.avatar_url;
                 const name = contact.display_name || 'User';
-                const conv = getContactConv(contact.user_id || contact.id);
+                const uid = contact.user_id || contact.id;
+                const conv = getContactConv(uid);
                 const unread = conv ? (unreadByConv[conv.id] || 0) : 0;
                 const hasUnread = unread > 0;
                 const lastMsgTime = conv?.last_message_at ? formatTime(conv.last_message_at) : null;
+                const presenceData = presence[uid] ?? null;
+                const isOnlineContact = isUserOnline(presenceData);
                 return (
                   <button
-                    key={contact.user_id || contact.id}
+                    key={uid}
                     onClick={async () => {
                       try {
                         const { findOrCreateConversation } = await import('@/lib/messaging');
@@ -404,6 +419,7 @@ function Messages() {
                       businessName={(contact as any).business_name ?? null}
                       businessSlug={(contact as any).business_slug ?? null}
                       showBusinessLink={false}
+                      onlineIndicator={isOnlineContact}
                       size="sm"
                       className="flex-1 min-w-0"
                     />
