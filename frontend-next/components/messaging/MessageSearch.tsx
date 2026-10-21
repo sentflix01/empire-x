@@ -86,59 +86,44 @@ export default function MessageSearch({ conversationId, onClose }: MessageSearch
     content.length > 80 ? `${content.slice(0, 80)}…` : content;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col p-4" style={{ backgroundColor: 'hsl(var(--background))' }}>
+    <div className="fixed top-0 left-0 right-0 z-50 flex flex-col h-[100dvh] p-4 pt-[max(1rem,env(safe-area-inset-top))] bg-background">
       {/* Search input row */}
       <div className="flex items-center gap-2 mb-3">
         <div className="relative flex-1">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-            style={{ color: 'hsl(var(--muted-foreground))' }}
-          />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-muted-foreground" />
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search messages…"
-            className="w-full h-10 pl-10 pr-4 rounded-xl text-sm outline-none"
-            style={{
-              backgroundColor: 'hsl(var(--secondary))',
-              color: 'hsl(var(--foreground))',
-              border: '1px solid hsl(var(--border))',
-            }}
+            className="w-full h-10 ps-10 pe-4 rounded-xl text-sm outline-none bg-secondary text-foreground border border-border"
           />
         </div>
         <button
           onClick={onClose}
-          className="h-10 w-10 rounded-xl flex items-center justify-center transition-colors shrink-0"
-          style={{ backgroundColor: 'hsl(var(--secondary))' }}
+          className="size-11 rounded-xl flex items-center justify-center transition-colors shrink-0 bg-secondary text-foreground"
           aria-label="Close search"
         >
-          <X className="w-4 h-4" style={{ color: 'hsl(var(--foreground))' }} />
+          <X className="w-4 h-4" />
         </button>
       </div>
 
       {/* Results */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
         {loading && (
           <div className="flex justify-center py-8">
-            <div
-              className="w-5 h-5 border-2 rounded-full animate-spin"
-              style={{
-                borderColor: 'hsl(var(--border))',
-                borderTopColor: 'hsl(var(--primary))',
-              }}
-            />
+            <div className="w-5 h-5 border-2 border-muted border-t-primary rounded-full animate-spin" />
           </div>
         )}
 
         {!loading && error && (
-          <p className="text-sm text-center py-6" style={{ color: 'hsl(var(--destructive))' }}>
+          <p className="text-sm text-center py-6 text-destructive">
             {error}
           </p>
         )}
 
         {!loading && !error && query.trim() && results.length === 0 && (
-          <p className="text-sm text-center py-6" style={{ color: 'hsl(var(--muted-foreground))' }}>
+          <p className="text-sm text-center py-6 text-muted-foreground">
             No messages found for &ldquo;{query}&rdquo;
           </p>
         )}
@@ -147,23 +132,20 @@ export default function MessageSearch({ conversationId, onClose }: MessageSearch
           <button
             key={msg.id}
             onClick={() => handleResultClick(msg)}
-            className="w-full text-left px-3 py-3 rounded-xl mb-1 transition-colors"
-            style={{ borderBottom: '1px solid hsl(var(--border)/0.4)' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'hsl(var(--secondary)/0.5)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+            className="w-full text-left px-3 py-3 rounded-xl mb-1 transition-colors border-b border-border/40 hover:bg-secondary/50"
           >
             {/* Conversation name (cross-chat only) */}
             {!conversationId && msg.conversation_name && (
-              <p className="text-[11px] font-semibold mb-0.5 truncate" style={{ color: 'hsl(var(--primary))' }}>
+              <p className="text-[11px] font-semibold mb-0.5 truncate text-primary">
                 {msg.conversation_name}
               </p>
             )}
             {/* Message content snippet */}
-            <p className="text-sm truncate" style={{ color: 'hsl(var(--foreground))' }}>
+            <p className="text-sm truncate text-foreground">
               {msg.type === 'image' ? '📷 Photo' : snippet(msg.content ?? '')}
             </p>
             {/* Timestamp */}
-            <p className="text-[11px] mt-0.5" style={{ color: 'hsl(var(--muted-foreground))' }}>
+            <p className="text-[11px] mt-0.5 text-muted-foreground">
               {formatTime(msg.created_at)}
             </p>
           </button>

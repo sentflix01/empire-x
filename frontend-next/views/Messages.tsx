@@ -11,6 +11,7 @@ import { Search, Users, Radio, User as UserIcon, MessageCircle } from "lucide-re
 import MessageTicks from "@/components/messaging/MessageTicks";
 import { tickFor } from "@/lib/readReceipts";
 import { fmtTime } from "@/lib/date";
+import { cn } from "@/lib/utils";
 import { parseISO, isToday, isYesterday, isAfter, subDays, format as dfFormat } from "date-fns";
 import NewChatMenu from "@/components/messaging/NewChatMenu";
 import MessageSearch from "@/components/messaging/MessageSearch";
@@ -223,26 +224,21 @@ function Messages() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-    <div data-page-guide="messages-header" className="max-w-2xl mx-auto flex flex-col h-full -mx-4 md:mx-auto"
-      style={{ backgroundColor: 'hsl(var(--background))' }}>
+    <div data-page-guide="messages-header" className="max-w-2xl mx-auto flex flex-col h-full -mx-4 md:mx-auto bg-background">
 
       {/* ── Sticky header ── */}
-      <div className="sticky top-0 z-20 shrink-0"
-        style={{ backgroundColor: 'hsl(var(--background))' }}>
+      <div className="sticky top-0 z-20 shrink-0 bg-background">
 
         {/* Title row */}
         <div data-page-guide="messages-header" className="flex items-center justify-between px-4 pt-4 pb-2">
-          <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--foreground))' }}>
+          <h1 className="text-xl font-bold text-foreground">
             Messages
           </h1>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowSearch(true)}
-              className="p-2 rounded-full transition-colors"
-              style={{ color: 'hsl(var(--muted-foreground))' }}
+              className="inline-flex size-11 items-center justify-center rounded-full transition-colors hover:bg-secondary text-muted-foreground"
               aria-label="Search messages"
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary))')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
               <Search className="w-5 h-5" />
             </button>
@@ -253,18 +249,12 @@ function Messages() {
         {/* Search bar */}
         <div data-page-guide="messages-search" className="px-4 pb-2">
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-              style={{ color: 'hsl(var(--muted-foreground))' }} />
+            <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-muted-foreground" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search conversations…"
-              className="w-full h-10 pl-10 pr-4 rounded-xl text-sm outline-none"
-              style={{
-                backgroundColor: 'hsl(var(--secondary))',
-                color: 'hsl(var(--foreground))',
-                border: '1px solid hsl(var(--border))',
-              }}
+              className="w-full h-10 ps-10 pe-4 rounded-xl text-sm outline-none bg-secondary text-foreground border border-border"
             />
           </div>
         </div>
@@ -278,11 +268,10 @@ function Messages() {
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0"
-                style={{
-                  backgroundColor: active ? 'hsl(var(--primary))' : 'hsl(var(--secondary))',
-                  color: active ? '#fff' : 'hsl(var(--muted-foreground))',
-                }}
+                className={cn(
+                  'flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0',
+                  active ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground',
+                )}
               >
                 {Icon && <Icon className="w-3.5 h-3.5" />}
                 {t.label}
@@ -292,22 +281,19 @@ function Messages() {
         </div>
 
         {/* Divider */}
-        <div style={{ height: 1, backgroundColor: 'hsl(var(--border))' }} />
+        <div className="h-px bg-border" />
       </div>
 
       {/* ── List ── */}
-      <div data-page-guide="messages-list" className="flex-1 overflow-y-auto">
+      <div data-page-guide="messages-list" className="flex-1 overflow-y-auto pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-4">
         {loading && conversations.length === 0 ? (
           <div className="px-4 py-2 space-y-1">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="flex items-center gap-3 py-3">
-                <div className="w-12 h-12 rounded-full shrink-0 animate-pulse"
-                  style={{ backgroundColor: 'hsl(var(--secondary))' }} />
+                <div className="w-12 h-12 rounded-full shrink-0 animate-pulse bg-secondary" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3.5 rounded-full w-32 animate-pulse"
-                    style={{ backgroundColor: 'hsl(var(--secondary))' }} />
-                  <div className="h-3 rounded-full w-48 animate-pulse"
-                    style={{ backgroundColor: 'hsl(var(--secondary))' }} />
+                  <div className="h-3.5 rounded-full w-32 animate-pulse bg-secondary" />
+                  <div className="h-3 rounded-full w-48 animate-pulse bg-secondary" />
                 </div>
               </div>
             ))}
@@ -337,10 +323,7 @@ function Messages() {
                       if (conv) router.push(`/messages/${conv.id}`);
                     } catch {}
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors active:scale-[0.99]"
-                  style={{ borderBottom: '1px solid hsl(var(--border)/0.4)' }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary)/0.5)')}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/50 active:scale-[0.99] border-b border-border/40"
                 >
                   <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg shrink-0"
                     style={{ background: 'linear-gradient(135deg,#3b82f6,#7c3aed)' }}>
@@ -349,12 +332,12 @@ function Messages() {
                       : name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: 'hsl(var(--foreground))' }}>{name}</p>
+                    <p className="text-sm font-semibold truncate text-foreground">{name}</p>
                     {contact.headline && (
-                      <p className="text-xs truncate" style={{ color: 'hsl(var(--muted-foreground))' }}>{contact.headline}</p>
+                      <p className="text-xs truncate text-muted-foreground">{contact.headline}</p>
                     )}
                   </div>
-                  <MessageCircle className="w-4 h-4 shrink-0" style={{ color: 'hsl(var(--muted-foreground))' }} />
+                  <MessageCircle className="w-4 h-4 shrink-0 text-muted-foreground" />
                 </button>
               );
             })}
@@ -380,10 +363,7 @@ function Messages() {
                 prefetch
                 onPointerEnter={() => router.prefetch(`/messages/${conv.id}`)}
                 onClick={() => setUnreadByConv(prev => { const n = { ...prev }; delete n[conv.id]; return n; })}
-                className="flex items-center gap-3 px-4 py-3 transition-colors active:scale-[0.99]"
-                style={{ borderBottom: '1px solid hsl(var(--border)/0.4)' }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'hsl(var(--secondary)/0.5)')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/50 active:scale-[0.99] border-b border-border/40"
               >
                 {/* Avatar */}
                 <div className="relative shrink-0">
@@ -432,11 +412,10 @@ function Messages() {
                   {/* Row 1: name + time */}
                   <div className="flex items-center justify-between gap-2 mb-0.5">
                     <p
-                      className="text-sm truncate"
-                      style={{
-                        fontWeight: unread > 0 ? 700 : 600,
-                        color: 'hsl(var(--foreground))',
-                      }}
+                      className={cn(
+                        'text-sm truncate text-foreground',
+                        unread > 0 ? 'font-bold' : 'font-semibold',
+                      )}
                     >
                       {name}
                     </p>
@@ -448,8 +427,7 @@ function Messages() {
                         }])} />
                       )}
                       <span
-                        className="text-[11px] whitespace-nowrap"
-                        style={{ color: unread > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))' }}
+                        className={cn('text-[11px] whitespace-nowrap', unread > 0 ? 'text-primary' : 'text-muted-foreground')}
                       >
                         {timeStr}
                       </span>
@@ -459,12 +437,11 @@ function Messages() {
                   {/* Row 2: last message + unread badge */}
                   <div className="flex items-center justify-between gap-2">
                     <p
-                      className="text-xs truncate flex-1"
-                      style={{
-                        color: isTyping ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                        fontStyle: isTyping ? 'italic' : 'normal',
-                        fontWeight: unread > 0 ? 600 : 400,
-                      }}
+                      className={cn(
+                        'text-xs truncate flex-1',
+                        isTyping ? 'text-primary italic' : 'text-muted-foreground',
+                        unread > 0 ? 'font-semibold' : 'font-normal',
+                      )}
                     >
                       {isTyping
                         ? 'typing…'
@@ -472,8 +449,7 @@ function Messages() {
                     </p>
                     {unread > 0 && (
                       <span
-                        className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-white px-1.5 shrink-0"
-                        style={{ backgroundColor: '#ef4444' }}
+                        className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-destructive-foreground bg-destructive px-1.5 shrink-0"
                       >
                         {unread > 99 ? '99+' : unread}
                       </span>

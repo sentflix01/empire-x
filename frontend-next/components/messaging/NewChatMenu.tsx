@@ -25,13 +25,13 @@ export default function NewChatMenu({ user, contacts, onCreated }) {
           aria-label="New group or channel"
           aria-expanded={open}
           onClick={() => setOpen(o => !o)}
-          className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-secondary transition-colors text-primary"
+          className="size-11 rounded-full flex items-center justify-center hover:bg-secondary transition-colors text-primary"
         >
           <Menu className="w-5 h-5" />
         </button>
 
         {open && (
-          <div className="absolute top-full right-0 mt-2 bg-card dark:bg-card rounded-2xl shadow-xl border border-border/50 z-[200] w-60 overflow-hidden">
+          <div className="absolute top-full end-0 mt-2 bg-card dark:bg-card rounded-2xl shadow-xl border border-border/50 z-[200] w-60 overflow-hidden">
             <button
               onClick={() => { setOpen(false); setGroupOpen(true); }}
               className="flex items-center gap-3 px-4 py-3.5 hover:bg-secondary transition-colors text-sm font-medium w-full text-left text-foreground"
