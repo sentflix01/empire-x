@@ -5,6 +5,9 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-22 | Bugfix | fix(messages): restore sort toggle + online indicator on contact cards | [097641703](2026-10-22-097641703-restore-sort-toggle-online-indicator-on-contact-.md) |
+| 2026-10-22 | Feature | feat: shared UserIdentity + messaging UX polish on all devices | [4063ef34f](2026-10-22-4063ef34f-shared-useridentity-messaging-ux-polish-on-all-d.md) |
+| 2026-10-22 | Feature | feat: add UserIdentity component and roll out to all display sites | [b20113f26](2026-10-22-b20113f26-add-useridentity-component-and-roll-out-to-all-d.md) |
 | 2026-10-22 | Bugfix | fix(page-guide): remove SSR-unsafe localStorage initializer to fix stale-state race | [0efe54d74](2026-10-22-0efe54d74-remove-ssr-unsafe-localstorage-initializer-to-fi.md) |
 | 2026-10-22 | Bugfix | fix: render sr-only launcher before mount so tests find it immediately | [00d816d3e](2026-10-22-00d816d3e-render-sr-only-launcher-before-mount-so-tests-fi.md) |
 | 2026-10-22 | Bugfix | fix: rename DMs tab to Chats in Messages view | [ead124e06](2026-10-22-ead124e06-rename-dms-tab-to-chats-in-messages-view.md) |
