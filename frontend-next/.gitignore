@@ -43,4 +43,5 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
+# next-env.d.ts is committed so CI has it before `next dev` runs.
+# It must NOT import .next/dev/types — those only exist after dev server starts.
