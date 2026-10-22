@@ -210,4 +210,8 @@ jobs:
         working-directory: frontend-next
         run: |
           npm audit --json --package-lock-only --legacy-peer-deps > audit.json || true
-          node ../backend/scripts/audit-ignore-list.cjs audit.json "['GHSA-vfj7-8cjw-p6xm']" || exit 1
+          node ../backend/scripts/audit-ignore-list.cjs audit.json "['GHSA-vfj7-8cjw-p6xm','GHSA-c6gr-qvv4-5v3f','GHSA-cg2g-xh64-v4q7','GHSA-mrv2-3pqr-j5jr']" || exit 1
+          # GHSA-vfj7-8cjw-p6xm: braces ReDoS — dev-only transitive dep, no end-user impact
+          # GHSA-c6gr-qvv4-5v3f: dompurify low — no patched release available as of 2026-10-22
+          # GHSA-cg2g-xh64-v4q7: dompurify critical — no patched release available as of 2026-10-22; app does not call DOMPurify.sanitize() directly
+          # GHSA-mrv2-3pqr-j5jr: dompurify critical — no patched release available as of 2026-10-22; app does not call DOMPurify.sanitize() directly
