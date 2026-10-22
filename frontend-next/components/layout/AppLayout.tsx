@@ -629,7 +629,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             {hasSignedInUser && <>
             {/* Create Showroom */}
             <Link
-              href="/showroom/create"
+              href="/showroom/create?step=3"
               title={sidebarCollapsed ? t('common.createShowroom') : undefined}
               className={`relative flex items-center gap-3 rounded-xl bg-empire-gradient text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm group
                 ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}`}
@@ -954,7 +954,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   {/* Create Showroom + Studio */}
                   {hasSignedInUser && <>
                   <div className="my-2 border-t border-gray-100 dark:border-border" />
-                  <Link href="/showroom/create" onClick={() => setDrawerOpen(false)}
+                  <Link href="/showroom/create?step=3" onClick={() => setDrawerOpen(false)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold shadow-sm">
                     <Plus className="w-4 h-4 shrink-0" /><span>{tr('common.createShowroom')}</span>
                   </Link>
