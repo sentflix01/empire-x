@@ -65,7 +65,7 @@ import ReactionPicker from '@/components/feed/ReactionPicker';
 import WhoReactedDialog from '@/components/feed/WhoReactedDialog';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
-import { editComment, postLink, react, setMuted, unhidePost, unreact, type CommentPolicy, type Reaction } from '@/lib/socialApi';
+import { editComment, postLink, react, reactToComment, REACTIONS, setMuted, unhidePost, unreact, type CommentPolicy, type Reaction } from '@/lib/socialApi';
 
 interface Profile extends UserProfile {
 }
@@ -89,10 +89,13 @@ interface Comment {
   content?: string;
   parent_id?: string | null;
   reply_count?: number;
+  created_at?: string;
   edited_at?: string | null;
   my_reaction?: Reaction | null;
   reaction_count?: number;
   top_reactions?: Reaction[];
+  /** True while the server round-trip is in flight (optimistic entry). */
+  _pending?: boolean;
 }
 
 type Variant = 'image' | 'promo' | 'event' | 'location' | 'poll' | 'text';
@@ -458,6 +461,10 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
   const [showAllComments, setShowAllComments] = useState(false);
   const [commentMenuId, setCommentMenuId] = useState<string | null>(null); // emoji+action popup
   const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
+  // Controlled text for each reply input, keyed by comment id
+  const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
+  // Cached profile data for comment authors (business_name + is_verified)
+  const [commentAuthorProfiles, setCommentAuthorProfiles] = useState<Record<string, { business_name?: string; is_verified?: boolean }>>({});
 
   useEffect(() => { if (feedMode) setViewMode(feedMode); }, [feedMode]);
   useEffect(() => { if (isAuthenticated && !currentUserData && !currentUser) auth.me().then(setCurrentUserData).catch(() => {}); }, [currentUser, currentUserData, isAuthenticated]);
@@ -524,6 +531,21 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
         // Fetch oldest-first so root comments appear in chronological order
         const rows = await entities.Comment.filter({ post_id: post.id }, 'created_at', 100);
         setComments(rows);
+        // Batch-fetch business profiles for comment authors
+        const uniqueAuthorIds = [...new Set((rows as Comment[]).map(c => c.author_id).filter((id): id is string => Boolean(id)))];
+        Promise.all(
+          uniqueAuthorIds.map(id =>
+            entities.UserProfile.filter({ user_id: id })
+              .then((p: Profile[]) => ({ id, profile: p[0] ?? null }))
+              .catch(() => ({ id, profile: null }))
+          )
+        ).then(results => {
+          const map: Record<string, { business_name?: string; is_verified?: boolean }> = {};
+          results.forEach(({ id, profile }) => {
+            if (profile) map[id] = { business_name: (profile as any).business_name ?? undefined, is_verified: (profile as any).is_verified ?? undefined };
+          });
+          setCommentAuthorProfiles(map);
+        }).catch(() => {});
       } catch {
         setComments([]);
       }
@@ -536,18 +558,31 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
 
   const handleAddComment = async () => {
     if (!commentText.trim()) return;
+    const text = commentText.trim();
+    const optimisticId = `pending-${Date.now()}`;
+    const optimistic: Comment = {
+      id: optimisticId,
+      author_id: viewerId,
+      author_name: currentUser?.full_name ?? currentUserData?.full_name ?? 'You',
+      author_avatar: undefined,
+      content: text,
+      created_at: new Date().toISOString(),
+      parent_id: null,
+      reply_count: 0,
+      reaction_count: 0,
+      _pending: true,
+    };
+    setComments(prev => [...prev, optimistic]);
+    setCommentCount(count => count + 1);
+    setCommentText('');
+    setShowAllComments(true);
     try {
-      const c = await entities.Comment.create({
-        post_id: post.id,
-        content: commentText.trim(),
-      });
-      setComments(prev => [...prev, c]);
-      setCommentCount(count => count + 1);
-      setCommentText('');
-      setShowAllComments(true); // show all so the new comment is visible
+      const c = await entities.Comment.create({ post_id: post.id, content: text });
+      setComments(prev => prev.map(x => x.id === optimisticId ? { ...c, _pending: false } : x));
     } catch (err) {
-      // toast imported at top via sonner — show inline error
-      setCommentText(commentText); // keep text so user can retry
+      setComments(prev => prev.filter(x => x.id !== optimisticId));
+      setCommentCount(count => Math.max(0, count - 1));
+      setCommentText(text);
       toast.error(apiErrorMessage(err, 'Could not post your comment.'));
     }
   };
@@ -885,8 +920,18 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleAddComment()}
               placeholder={t('feed.postComment')}
               aria-label={t('feed.postComment')}
+              maxLength={500}
               className="flex-1 min-w-0 text-sm bg-secondary/50 rounded-full px-4 py-2 outline-none focus:ring-1 focus:ring-amber-500/30"
             />
+            {commentText.length > 0 && (
+              <span
+                className={`text-[11px] shrink-0 tabular-nums ${commentText.length > 200 ? 'text-amber-500' : 'text-muted-foreground'}`}
+                aria-live="polite"
+                aria-label={`${commentText.length} of 500 characters`}
+              >
+                {commentText.length}/500
+              </span>
+            )}
             <button
               onClick={handleAddComment}
               disabled={!commentText.trim()}
@@ -907,23 +952,43 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
               {/* Show 3 root comments by default, rest on demand */}
               <div className="space-y-2">
                 {(showAllComments ? rootComments : rootComments.slice(0, 3)).map(c => (
-                  <div key={c.id} className="space-y-1.5">
+                  <div key={c.id} className={`space-y-1.5 ${c._pending ? 'opacity-60' : ''}`}>
                     <div className="flex gap-2 group">
-                      <div className="relative w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden">
+                      {/* Avatar — clickable link to commenter's profile */}
+                      <Link
+                        href={`/profile/${c.author_id ?? ''}`}
+                        className="relative w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden"
+                        aria-label={`View ${c.author_name ?? 'user'}'s profile`}
+                      >
                         <SafeAvatar
                           src={(c as any).author_avatar}
                           alt={`${c.author_name ?? 'User'} avatar`}
                           className="w-full h-full object-cover rounded-full"
                           fallback={c.author_name?.charAt(0) ?? '?'}
                         />
-                      </div>
+                      </Link>
                       <div className="flex-1 min-w-0">
                         <div
-                          className="bg-secondary/50 rounded-xl px-3 py-2 cursor-pointer select-none"
+                          className="bg-secondary/60 dark:bg-secondary/40 rounded-2xl px-3 py-2 select-none"
                           onContextMenu={e => { e.preventDefault(); setCommentMenuId(commentMenuId === c.id ? null : c.id); }}
-                          onClick={() => {}}
                         >
-                          <p className="text-xs font-semibold">{c.author_name ?? 'Unknown'}</p>
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <Link
+                              href={`/profile/${c.author_id ?? ''}`}
+                              className="text-xs font-semibold hover:underline"
+                            >
+                              {c.author_name ?? 'Unknown'}
+                            </Link>
+                            {commentAuthorProfiles[c.author_id ?? '']?.is_verified && (
+                              <VerifiedBadge type={undefined as any} size="sm" />
+                            )}
+                          </div>
+                          {commentAuthorProfiles[c.author_id ?? '']?.business_name && (
+                            <p className="text-[10px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                              <Store className="w-2.5 h-2.5 text-primary shrink-0" />
+                              {commentAuthorProfiles[c.author_id ?? ''].business_name}
+                            </p>
+                          )}
                           {editingCommentId === c.id ? (
                             <CommentEditor initial={c.content ?? ''} onCancel={() => setEditingCommentId(null)}
                               onSave={async (text) => {
@@ -932,20 +997,42 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                                 setEditingCommentId(null);
                               }} />
                           ) : (
-                            <p className="text-sm">{c.content}{c.edited_at && <span className="ml-1 text-[11px] text-muted-foreground">(edited)</span>}</p>
+                            <p className="text-sm leading-relaxed">{c.content}{c.edited_at && <span className="ml-1 text-[11px] text-muted-foreground">(edited)</span>}</p>
                           )}
                         </div>
+                        {/* Reaction bubble */}
                         {(c.reaction_count ?? 0) > 0 && (
                           <span className="ml-2 -mt-1 inline-flex items-center gap-0.5 rounded-full border border-border bg-card px-1.5 text-[11px]" aria-label={`${c.reaction_count} reactions`}>
                             <span aria-hidden="true">{(c.top_reactions ?? [c.my_reaction]).filter(Boolean).slice(0, 3).join('')}</span>{c.reaction_count}
                           </span>
                         )}
-                        <div className="flex items-center gap-3 mt-0.5 ml-2">
+                        {/* Action row */}
+                        <div className="flex items-center gap-3 mt-1 ml-1 text-[11px] text-muted-foreground">
+                          {/* Quick heart react */}
+                          <button
+                            onClick={async () => {
+                              const next = c.my_reaction ? null : '❤️';
+                              const result = await reactToComment(post.id, c.id, next).catch(() => null);
+                              if (result) setComments(prev => prev.map(x => x.id === c.id ? { ...x, my_reaction: result.my_reaction, reaction_count: result.reaction_count, top_reactions: result.my_reaction ? Array.from(new Set([result.my_reaction, ...(x.top_reactions ?? [])])).slice(0, 3) as typeof REACTIONS[number][] : x.top_reactions } : x));
+                            }}
+                            className={`flex items-center gap-0.5 transition-colors ${c.my_reaction ? 'text-red-500' : 'hover:text-red-500'}`}
+                            aria-label={c.my_reaction ? 'Unlike comment' : 'Like comment'}
+                            aria-pressed={Boolean(c.my_reaction)}
+                          >
+                            <Heart className={`w-3 h-3 ${c.my_reaction ? 'fill-current' : ''}`} aria-hidden="true" />
+                            {(c.reaction_count ?? 0) > 0 && <span>{c.reaction_count}</span>}
+                          </button>
+                          {/* Reply */}
                           <button onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
-                            className="text-[11px] text-muted-foreground hover:text-amber-600 flex items-center gap-0.5 transition-colors">
+                            className="hover:text-amber-600 flex items-center gap-0.5 transition-colors">
                             <Reply className="w-3 h-3" />
                             {t('common.reply')}
                           </button>
+                          {/* Timestamp */}
+                          {c.created_at && (
+                            <span className="text-[11px] text-muted-foreground">{fromNow(c.created_at)}</span>
+                          )}
+                          {/* ⋯ menu */}
                           <CommentMenu
                             comment={c}
                             postId={post.id}
@@ -957,40 +1044,45 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                             onReply={() => setReplyingTo(c.id)}
                             onEdit={() => setEditingCommentId(c.id)}
                             onDelete={() => handleDeleteComment(c.id, null)}
-                            onReacted={(r) => setComments(prev => prev.map(x => x.id === c.id ? { ...x, my_reaction: r.my_reaction, reaction_count: r.reaction_count, top_reactions: r.my_reaction ? Array.from(new Set([r.my_reaction, ...(x.top_reactions ?? [])])).slice(0, 3) : x.top_reactions } : x))}
+                            onReacted={(r) => setComments(prev => prev.map(x => x.id === c.id ? { ...x, my_reaction: r.my_reaction, reaction_count: r.reaction_count, top_reactions: r.my_reaction ? Array.from(new Set([r.my_reaction, ...(x.top_reactions ?? [])])).slice(0, 3) as typeof REACTIONS[number][] : x.top_reactions } : x))}
                             onAuthorHidden={(authorId) => setComments(prev => prev.filter(x => x.author_id !== authorId))}
                           />
                         </div>
+                        {/* Controlled reply input */}
                         {replyingTo === c.id && (
                           <div className="flex gap-1.5 mt-1.5 ml-2">
-                            <input autoFocus
+                            <input
+                              autoFocus
+                              value={replyTexts[c.id] ?? ''}
+                              onChange={e => setReplyTexts(prev => ({ ...prev, [c.id]: e.target.value }))}
                               placeholder={t('feed.replyTo', { name: c.author_name })}
                               aria-label={t('feed.replyTo', { name: c.author_name })}
                               className="flex-1 text-xs bg-secondary/50 rounded-full px-3 py-1.5 outline-none focus:ring-1 focus:ring-amber-500/30"
                               onKeyDown={async e => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
-                                  const val = (e.target as HTMLInputElement).value.trim();
+                                  const val = replyTexts[c.id]?.trim();
                                   if (!val) return;
                                   await handleAddReply(c, val);
-                                  (e.target as HTMLInputElement).value = '';
+                                  setReplyTexts(prev => ({ ...prev, [c.id]: '' }));
                                 }
                                 if (e.key === 'Escape') setReplyingTo(null);
                               }}
                             />
                             <button
-                              onClick={async e => {
-                                const input = (e.currentTarget.previousSibling as HTMLInputElement);
-                                const val = input?.value?.trim();
+                              onClick={async () => {
+                                const val = replyTexts[c.id]?.trim();
                                 if (!val) return;
                                 await handleAddReply(c, val);
-                                if (input) input.value = '';
+                                setReplyTexts(prev => ({ ...prev, [c.id]: '' }));
                               }}
                               className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-amber-500 text-white text-xs"
+                              aria-label="Send reply"
                             >↑</button>
                           </div>
                         )}
                       </div>
                     </div>
+                    {/* Replies section */}
                     {((c.reply_count ?? 0) > 0 || (repliesByParent[c.id]?.length ?? 0) > 0) && (
                       <div className="ml-9 pt-0.5">
                         <button
@@ -1002,53 +1094,95 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                             : <><ChevronDown className="w-3 h-3" /> View {repliesByParent[c.id]?.length || c.reply_count} repl{(repliesByParent[c.id]?.length || c.reply_count) === 1 ? 'y' : 'ies'}</>
                           }
                         </button>
-                        {expandedReplies[c.id] && (
-                          <div className="mt-2 space-y-2 border-l-2 border-amber-200 pl-3">
-                            {(repliesByParent[c.id] ?? []).map(reply => (
-                              <div key={reply.id} className="flex gap-2 group">
-                                <div className="relative w-6 h-6 rounded-full bg-secondary shrink-0 overflow-hidden text-[10px] font-semibold flex items-center justify-center">
-                                  <SafeAvatar src={(reply as any).author_avatar} alt={`${reply.author_name ?? 'User'} avatar`} className="w-full h-full object-cover" fallback={reply.author_name?.charAt(0) ?? '?'} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="rounded-xl bg-amber-50/70 dark:bg-amber-950/20 px-3 py-2">
-                                    <p className="text-xs font-semibold">{reply.author_name ?? 'Unknown'}</p>
-                                    {editingCommentId === reply.id ? (
-                                      <CommentEditor initial={reply.content ?? ''} onCancel={() => setEditingCommentId(null)}
-                                        onSave={async (text) => {
-                                          const updated = await editComment(post.id, reply.id, text);
-                                          setComments(prev => prev.map(x => x.id === reply.id ? { ...x, content: updated.content, edited_at: updated.edited_at } : x));
-                                          setEditingCommentId(null);
-                                        }} />
-                                    ) : (
-                                      <p className="text-sm">{reply.content}{reply.edited_at && <span className="ml-1 text-[11px] text-muted-foreground">(edited)</span>}</p>
-                                    )}
-                                  </div>
-                                  <div className="ml-1 mt-0.5 flex items-center gap-2">
+                        <div className="overflow-hidden transition-all duration-200">
+                          {expandedReplies[c.id] && (
+                            <div className="mt-2 space-y-2 border-l-2 border-amber-200 pl-3">
+                              {(repliesByParent[c.id] ?? []).map(reply => (
+                                <div key={reply.id} className="flex gap-2 group">
+                                  <Link
+                                    href={`/profile/${reply.author_id ?? ''}`}
+                                    className="relative w-6 h-6 rounded-full bg-secondary shrink-0 overflow-hidden text-[10px] font-semibold flex items-center justify-center"
+                                    aria-label={`View ${reply.author_name ?? 'user'}'s profile`}
+                                  >
+                                    <SafeAvatar src={(reply as any).author_avatar} alt={`${reply.author_name ?? 'User'} avatar`} className="w-full h-full object-cover" fallback={reply.author_name?.charAt(0) ?? '?'} />
+                                  </Link>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 px-3 py-2">
+                                      <div className="flex items-center gap-1 flex-wrap">
+                                        <Link
+                                          href={`/profile/${reply.author_id ?? ''}`}
+                                          className="text-xs font-semibold hover:underline"
+                                        >
+                                          {reply.author_name ?? 'Unknown'}
+                                        </Link>
+                                        {commentAuthorProfiles[reply.author_id ?? '']?.is_verified && (
+                                          <VerifiedBadge type={undefined as any} size="sm" />
+                                        )}
+                                      </div>
+                                      {commentAuthorProfiles[reply.author_id ?? '']?.business_name && (
+                                        <p className="text-[10px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                                          <Store className="w-2.5 h-2.5 text-primary shrink-0" />
+                                          {commentAuthorProfiles[reply.author_id ?? ''].business_name}
+                                        </p>
+                                      )}
+                                      {editingCommentId === reply.id ? (
+                                        <CommentEditor initial={reply.content ?? ''} onCancel={() => setEditingCommentId(null)}
+                                          onSave={async (text) => {
+                                            const updated = await editComment(post.id, reply.id, text);
+                                            setComments(prev => prev.map(x => x.id === reply.id ? { ...x, content: updated.content, edited_at: updated.edited_at } : x));
+                                            setEditingCommentId(null);
+                                          }} />
+                                      ) : (
+                                        <p className="text-sm leading-relaxed">{reply.content}{reply.edited_at && <span className="ml-1 text-[11px] text-muted-foreground">(edited)</span>}</p>
+                                      )}
+                                    </div>
+                                    {/* Reaction bubble on reply */}
                                     {(reply.reaction_count ?? 0) > 0 && (
-                                      <span className="inline-flex items-center gap-0.5 rounded-full border border-border bg-card px-1.5 text-[11px]" aria-label={`${reply.reaction_count} reactions`}>
+                                      <span className="ml-1 inline-flex items-center gap-0.5 rounded-full border border-border bg-card px-1.5 text-[11px]" aria-label={`${reply.reaction_count} reactions`}>
                                         <span aria-hidden="true">{(reply.top_reactions ?? [reply.my_reaction]).filter(Boolean).slice(0, 3).join('')}</span>{reply.reaction_count}
                                       </span>
                                     )}
-                                    <CommentMenu
-                                      comment={reply}
-                                      postId={post.id}
-                                      viewerId={viewerId}
-                                      isPostAuthor={isAuthor}
-                                      isAdmin={isAdmin}
-                                      open={commentMenuId === reply.id}
-                                      onOpenChange={(open) => setCommentMenuId(open ? reply.id : null)}
-                                      onReply={() => setReplyingTo(c.id)}
-                                      onEdit={() => setEditingCommentId(reply.id)}
-                                      onDelete={() => handleDeleteComment(reply.id, c.id)}
-                                      onReacted={(r) => setComments(prev => prev.map(x => x.id === reply.id ? { ...x, my_reaction: r.my_reaction, reaction_count: r.reaction_count, top_reactions: r.my_reaction ? Array.from(new Set([r.my_reaction, ...(x.top_reactions ?? [])])).slice(0, 3) : x.top_reactions } : x))}
-                                      onAuthorHidden={(authorId) => setComments(prev => prev.filter(x => x.author_id !== authorId))}
-                                    />
+                                    {/* Reply action row */}
+                                    <div className="ml-1 mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                                      {/* Quick heart react on reply */}
+                                      <button
+                                        onClick={async () => {
+                                          const next = reply.my_reaction ? null : '❤️';
+                                          const result = await reactToComment(post.id, reply.id, next).catch(() => null);
+                                          if (result) setComments(prev => prev.map(x => x.id === reply.id ? { ...x, my_reaction: result.my_reaction, reaction_count: result.reaction_count, top_reactions: result.my_reaction ? Array.from(new Set([result.my_reaction, ...(x.top_reactions ?? [])])).slice(0, 3) as typeof REACTIONS[number][] : x.top_reactions } : x));
+                                        }}
+                                        className={`flex items-center gap-0.5 transition-colors ${reply.my_reaction ? 'text-red-500' : 'hover:text-red-500'}`}
+                                        aria-label={reply.my_reaction ? 'Unlike reply' : 'Like reply'}
+                                        aria-pressed={Boolean(reply.my_reaction)}
+                                      >
+                                        <Heart className={`w-3 h-3 ${reply.my_reaction ? 'fill-current' : ''}`} aria-hidden="true" />
+                                        {(reply.reaction_count ?? 0) > 0 && <span>{reply.reaction_count}</span>}
+                                      </button>
+                                      {/* Timestamp */}
+                                      {reply.created_at && (
+                                        <span>{fromNow(reply.created_at)}</span>
+                                      )}
+                                      <CommentMenu
+                                        comment={reply}
+                                        postId={post.id}
+                                        viewerId={viewerId}
+                                        isPostAuthor={isAuthor}
+                                        isAdmin={isAdmin}
+                                        open={commentMenuId === reply.id}
+                                        onOpenChange={(open) => setCommentMenuId(open ? reply.id : null)}
+                                        onReply={() => setReplyingTo(c.id)}
+                                        onEdit={() => setEditingCommentId(reply.id)}
+                                        onDelete={() => handleDeleteComment(reply.id, c.id)}
+                                        onReacted={(r) => setComments(prev => prev.map(x => x.id === reply.id ? { ...x, my_reaction: r.my_reaction, reaction_count: r.reaction_count, top_reactions: r.my_reaction ? Array.from(new Set([r.my_reaction, ...(x.top_reactions ?? [])])).slice(0, 3) as typeof REACTIONS[number][] : x.top_reactions } : x))}
+                                        onAuthorHidden={(authorId) => setComments(prev => prev.filter(x => x.author_id !== authorId))}
+                                      />
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
