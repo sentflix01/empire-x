@@ -463,8 +463,8 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
   const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
   // Controlled text for each reply input, keyed by comment id
   const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
-  // Cached profile data for comment authors (business_name + is_verified)
-  const [commentAuthorProfiles, setCommentAuthorProfiles] = useState<Record<string, { business_name?: string; is_verified?: boolean }>>({});
+  // Cached profile data for comment authors (business_name + is_verified + verification_type)
+  const [commentAuthorProfiles, setCommentAuthorProfiles] = useState<Record<string, { business_name?: string; is_verified?: boolean; verification_type?: string }>>({});
 
   useEffect(() => { if (feedMode) setViewMode(feedMode); }, [feedMode]);
   useEffect(() => { if (isAuthenticated && !currentUserData && !currentUser) auth.me().then(setCurrentUserData).catch(() => {}); }, [currentUser, currentUserData, isAuthenticated]);
@@ -540,9 +540,9 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
               .catch(() => ({ id, profile: null }))
           )
         ).then(results => {
-          const map: Record<string, { business_name?: string; is_verified?: boolean }> = {};
+          const map: Record<string, { business_name?: string; is_verified?: boolean; verification_type?: string }> = {};
           results.forEach(({ id, profile }) => {
-            if (profile) map[id] = { business_name: (profile as any).business_name ?? undefined, is_verified: (profile as any).is_verified ?? undefined };
+            if (profile) map[id] = { business_name: (profile as any).business_name ?? undefined, is_verified: (profile as any).is_verified ?? undefined, verification_type: (profile as any).verification_type ?? undefined };
           });
           setCommentAuthorProfiles(map);
         }).catch(() => {});
@@ -579,6 +579,18 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
     try {
       const c = await entities.Comment.create({ post_id: post.id, content: text });
       setComments(prev => prev.map(x => x.id === optimisticId ? { ...c, _pending: false } : x));
+      // Seed profile cache for the current user if not already present
+      if (viewerId) {
+        setCommentAuthorProfiles(prev => {
+          if (prev[viewerId]) return prev;
+          entities.UserProfile.filter({ user_id: viewerId })
+            .then((p: Profile[]) => {
+              if (p[0]) setCommentAuthorProfiles(m => ({ ...m, [viewerId]: { business_name: (p[0] as any).business_name ?? undefined, is_verified: (p[0] as any).is_verified ?? undefined, verification_type: (p[0] as any).verification_type ?? undefined } }));
+            })
+            .catch(() => {});
+          return prev;
+        });
+      }
     } catch (err) {
       setComments(prev => prev.filter(x => x.id !== optimisticId));
       setCommentCount(count => Math.max(0, count - 1));
@@ -604,7 +616,22 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
       ));
       setExpandedReplies(prev => ({ ...prev, [parent.id]: true }));
       setReplyingTo(null);
-    } catch { /* ignore */ }
+      // Seed profile cache for the reply author if not already present
+      const authorId = (reply as Comment).author_id;
+      if (authorId) {
+        setCommentAuthorProfiles(prev => {
+          if (prev[authorId]) return prev;
+          entities.UserProfile.filter({ user_id: authorId })
+            .then((p: Profile[]) => {
+              if (p[0]) setCommentAuthorProfiles(m => ({ ...m, [authorId]: { business_name: (p[0] as any).business_name ?? undefined, is_verified: (p[0] as any).is_verified ?? undefined, verification_type: (p[0] as any).verification_type ?? undefined } }));
+            })
+            .catch(() => {});
+          return prev;
+        });
+      }
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Could not post your reply.'));
+    }
   };
 
   const handleDeleteComment = async (commentId: string, parentId?: string | null) => {
@@ -955,32 +982,47 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                   <div key={c.id} className={`space-y-1.5 ${c._pending ? 'opacity-60' : ''}`}>
                     <div className="flex gap-2 group">
                       {/* Avatar — clickable link to commenter's profile */}
-                      <Link
-                        href={`/profile/${c.author_id ?? ''}`}
-                        className="relative w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden"
-                        aria-label={`View ${c.author_name ?? 'user'}'s profile`}
-                      >
-                        <SafeAvatar
-                          src={(c as any).author_avatar}
-                          alt={`${c.author_name ?? 'User'} avatar`}
-                          className="w-full h-full object-cover rounded-full"
-                          fallback={c.author_name?.charAt(0) ?? '?'}
-                        />
-                      </Link>
+                      {c.author_id ? (
+                        <Link
+                          href={`/profile/${c.author_id}`}
+                          className="relative w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden"
+                          aria-label={`View ${c.author_name ?? 'user'}'s profile`}
+                        >
+                          <SafeAvatar
+                            src={(c as any).author_avatar}
+                            alt={`${c.author_name ?? 'User'} avatar`}
+                            className="w-full h-full object-cover rounded-full"
+                            fallback={c.author_name?.charAt(0) ?? '?'}
+                          />
+                        </Link>
+                      ) : (
+                        <span className="relative w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden">
+                          <SafeAvatar
+                            src={(c as any).author_avatar}
+                            alt={`${c.author_name ?? 'User'} avatar`}
+                            className="w-full h-full object-cover rounded-full"
+                            fallback={c.author_name?.charAt(0) ?? '?'}
+                          />
+                        </span>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div
                           className="bg-secondary/60 dark:bg-secondary/40 rounded-2xl px-3 py-2 select-none"
                           onContextMenu={e => { e.preventDefault(); setCommentMenuId(commentMenuId === c.id ? null : c.id); }}
                         >
                           <div className="flex items-center gap-1 flex-wrap">
-                            <Link
-                              href={`/profile/${c.author_id ?? ''}`}
-                              className="text-xs font-semibold hover:underline"
-                            >
-                              {c.author_name ?? 'Unknown'}
-                            </Link>
+                            {c.author_id ? (
+                              <Link
+                                href={`/profile/${c.author_id}`}
+                                className="text-xs font-semibold hover:underline"
+                              >
+                                {c.author_name ?? 'Unknown'}
+                              </Link>
+                            ) : (
+                              <span className="text-xs font-semibold">{c.author_name ?? 'Unknown'}</span>
+                            )}
                             {commentAuthorProfiles[c.author_id ?? '']?.is_verified && (
-                              <VerifiedBadge type={undefined as any} size="sm" />
+                              <VerifiedBadge type={commentAuthorProfiles[c.author_id ?? '']?.verification_type as VerificationType} size="sm" />
                             )}
                           </div>
                           {commentAuthorProfiles[c.author_id ?? '']?.business_name && (
@@ -1094,29 +1136,41 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                             : <><ChevronDown className="w-3 h-3" /> View {repliesByParent[c.id]?.length || c.reply_count} repl{(repliesByParent[c.id]?.length || c.reply_count) === 1 ? 'y' : 'ies'}</>
                           }
                         </button>
-                        <div className="overflow-hidden transition-all duration-200">
-                          {expandedReplies[c.id] && (
-                            <div className="mt-2 space-y-2 border-l-2 border-amber-200 pl-3">
-                              {(repliesByParent[c.id] ?? []).map(reply => (
+                        <div
+                          className="overflow-hidden transition-[max-height] duration-200 ease-in-out"
+                          style={{ maxHeight: expandedReplies[c.id] ? '9999px' : '0px' }}
+                        >
+                          <div className="mt-2 space-y-2 border-l-2 border-amber-200 pl-3">
+                            {(repliesByParent[c.id] ?? []).map(reply => (
                                 <div key={reply.id} className="flex gap-2 group">
-                                  <Link
-                                    href={`/profile/${reply.author_id ?? ''}`}
-                                    className="relative w-6 h-6 rounded-full bg-secondary shrink-0 overflow-hidden text-[10px] font-semibold flex items-center justify-center"
-                                    aria-label={`View ${reply.author_name ?? 'user'}'s profile`}
-                                  >
-                                    <SafeAvatar src={(reply as any).author_avatar} alt={`${reply.author_name ?? 'User'} avatar`} className="w-full h-full object-cover" fallback={reply.author_name?.charAt(0) ?? '?'} />
-                                  </Link>
+                                  {reply.author_id ? (
+                                    <Link
+                                      href={`/profile/${reply.author_id}`}
+                                      className="relative w-6 h-6 rounded-full bg-secondary shrink-0 overflow-hidden text-[10px] font-semibold flex items-center justify-center"
+                                      aria-label={`View ${reply.author_name ?? 'user'}'s profile`}
+                                    >
+                                      <SafeAvatar src={(reply as any).author_avatar} alt={`${reply.author_name ?? 'User'} avatar`} className="w-full h-full object-cover" fallback={reply.author_name?.charAt(0) ?? '?'} />
+                                    </Link>
+                                  ) : (
+                                    <span className="relative w-6 h-6 rounded-full bg-secondary shrink-0 overflow-hidden text-[10px] font-semibold flex items-center justify-center">
+                                      <SafeAvatar src={(reply as any).author_avatar} alt={`${reply.author_name ?? 'User'} avatar`} className="w-full h-full object-cover" fallback={reply.author_name?.charAt(0) ?? '?'} />
+                                    </span>
+                                  )}
                                   <div className="flex-1 min-w-0">
                                     <div className="rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 px-3 py-2">
                                       <div className="flex items-center gap-1 flex-wrap">
-                                        <Link
-                                          href={`/profile/${reply.author_id ?? ''}`}
-                                          className="text-xs font-semibold hover:underline"
-                                        >
-                                          {reply.author_name ?? 'Unknown'}
-                                        </Link>
+                                        {reply.author_id ? (
+                                          <Link
+                                            href={`/profile/${reply.author_id}`}
+                                            className="text-xs font-semibold hover:underline"
+                                          >
+                                            {reply.author_name ?? 'Unknown'}
+                                          </Link>
+                                        ) : (
+                                          <span className="text-xs font-semibold">{reply.author_name ?? 'Unknown'}</span>
+                                        )}
                                         {commentAuthorProfiles[reply.author_id ?? '']?.is_verified && (
-                                          <VerifiedBadge type={undefined as any} size="sm" />
+                                          <VerifiedBadge type={commentAuthorProfiles[reply.author_id ?? '']?.verification_type as VerificationType} size="sm" />
                                         )}
                                       </div>
                                       {commentAuthorProfiles[reply.author_id ?? '']?.business_name && (
@@ -1181,7 +1235,6 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                                 </div>
                               ))}
                             </div>
-                          )}
                         </div>
                       </div>
                     )}
