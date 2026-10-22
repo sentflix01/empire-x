@@ -5,6 +5,15 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-23 | Bugfix | fix(security): upgrade next 16.3.8→16.4.1, add dompurify advisories to CI ignore list | [efc6c7fd4](2026-10-23-efc6c7fd4-upgrade-next-16-3-8-16-4-1-add-dompurify-advisor.md) |
+| 2026-10-23 | Bugfix | fix(ci): commit next-env.d.ts and remove .next/dev/types from tsconfig include | [120890bbd](2026-10-23-120890bbd-commit-next-env-d-ts-and-remove-next-dev-types-f.md) |
+| 2026-10-23 | Bugfix | fix: address 4 feed spotlight review findings | [43a4410cb](2026-10-23-43a4410cb-address-4-feed-spotlight-review-findings.md) |
+| 2026-10-22 | Feature | feat: implement Feed Spotlight for business showrooms | [15587cd32](2026-10-22-15587cd32-implement-feed-spotlight-for-business-showrooms.md) |
+| 2026-10-22 | Bugfix | fix(comments): fix state-updater side-effects, animation range, Escape draft, reply send guard | [df6ac4190](2026-10-22-df6ac4190-fix-state-updater-side-effects-animation-range-e.md) |
+| 2026-10-22 | Bugfix | fix(comments): auth guard on heart reacts, reply button, maxLength, optimistic replies | [cfafee923](2026-10-22-cfafee923-auth-guard-on-heart-reacts-reply-button-maxlengt.md) |
+| 2026-10-22 | Bugfix | fix(comments): verification type, profile cache for new entries, reply error toast, animated expand, safe profile links | [9f91d6103](2026-10-22-9f91d6103-verification-type-profile-cache-for-new-entries-.md) |
+| 2026-10-22 | Feature | feat(nav): Create Showroom goes directly to builder (step 3) | [90c5c7e66](2026-10-22-90c5c7e66-create-showroom-goes-directly-to-builder-step-3.md) |
+| 2026-10-22 | Feature | feat(comments): profile links, timestamps, reactions, business names, optimistic UI | [958e7e62c](2026-10-22-958e7e62c-profile-links-timestamps-reactions-business-name.md) |
 | 2026-10-22 | Bugfix | fix(ui): business names everywhere, unread badge on contacts, smooth transitions | [283f34858](2026-10-22-283f34858-business-names-everywhere-unread-badge-on-contac.md) |
 | 2026-10-22 | Bugfix | fix(messages): fix duplicate chats, missing business names, ghost convs on nav | [bdefe3c6a](2026-10-22-bdefe3c6a-fix-duplicate-chats-missing-business-names-ghost.md) |
 | 2026-10-22 | Maintenance | Merge pull request #139: fix(messages): server rules, notifications, live events (messaging audit 1/7) | [0ee189153](2026-10-22-0ee189153-merge-pull-request-139-fix-messages-server-rules.md) |

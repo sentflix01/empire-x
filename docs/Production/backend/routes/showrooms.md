@@ -11,7 +11,7 @@ Showroom CRUD: draft/publish lifecycle, layout template selection, section conte
 ## 3. What does it do?
 
 
-### Endpoints (11)
+### Endpoints (12)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
@@ -22,10 +22,11 @@ Showroom CRUD: draft/publish lifecycle, layout template selection, section conte
 | `GET` | `/api/showrooms/sitemap-data` | public | 146 |
 | `POST` | `/api/showrooms/:id/newsletter` | optional | 166 |
 | `GET` | `/api/showrooms/:id/newsletter` | auth | 184 |
-| `GET` | `/api/showrooms/:id` | optional | 196 |
-| `POST` | `/api/showrooms/` | auth | 209 |
-| `PUT` | `/api/showrooms/:id` | auth | 275 |
-| `DELETE` | `/api/showrooms/:id` | auth | 336 |
+| `PATCH` | `/api/showrooms/:id/spotlight` | auth | 197 |
+| `GET` | `/api/showrooms/:id` | optional | 232 |
+| `POST` | `/api/showrooms/` | auth | 245 |
+| `PUT` | `/api/showrooms/:id` | auth | 311 |
+| `DELETE` | `/api/showrooms/:id` | auth | 372 |
 
 ## 4. What does it touch?
 
