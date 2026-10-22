@@ -525,10 +525,17 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `GET` | `/api/showrooms/sitemap-data` | 🌐 public | routes/showrooms.ts:146 |
 | `POST` | `/api/showrooms/:id/newsletter` | ⚪ optional | routes/showrooms.ts:166 |
 | `GET` | `/api/showrooms/:id/newsletter` | 🔒 auth | routes/showrooms.ts:184 |
+| `PATCH` | `/api/showrooms/:id/spotlight` | 🔒 auth | routes/showrooms.ts |
 | `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:196 |
 | `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:209 |
 | `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:275 |
 | `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:336 |
+
+### PATCH /api/showrooms/:id/spotlight
+
+Updates the Feed Spotlight configuration for a published or draft showroom.
+Owner-only. Body: `{ spotlight_mode: 'single' | 'carousel' | null, spotlight_section_ids: string[], spotlight_carousel_count: number }`.
+Returns the full updated showroom row.
 
 ## social — how you relate to another person, and your privacy.
 

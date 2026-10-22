@@ -279,6 +279,46 @@ async function seed() {
         businessId: userBiz ? userBiz.id : null,
       });
 
+      // Spotlight config for the first 4 showrooms (demo data)
+      const idx = showroomRecords.length - 1;
+      if (idx <= 3) {
+        let spotlightMode, spotlightSectionIds, spotlightCarouselCount;
+        switch (idx) {
+          case 0:
+            spotlightMode = 'single';
+            spotlightSectionIds = JSON.stringify([sections[0].type]);
+            spotlightCarouselCount = 1;
+            break;
+          case 1: {
+            const hasItems = sections.some(s => s.type === 'items');
+            spotlightMode = 'single';
+            spotlightSectionIds = JSON.stringify([hasItems ? 'items' : 'services']);
+            spotlightCarouselCount = 1;
+            break;
+          }
+          case 2:
+            spotlightMode = 'single';
+            spotlightSectionIds = JSON.stringify(['contact']);
+            spotlightCarouselCount = 1;
+            break;
+          case 3:
+            spotlightMode = 'carousel';
+            spotlightSectionIds = JSON.stringify(sections.slice(0, 3).map(s => s.type));
+            spotlightCarouselCount = 2;
+            break;
+          default:
+            break;
+        }
+        if (spotlightMode) {
+          await client.query(
+            `UPDATE showrooms
+             SET spotlight_mode=$1, spotlight_section_ids=$2, spotlight_carousel_count=$3
+             WHERE id=$4`,
+            [spotlightMode, spotlightSectionIds, spotlightCarouselCount, showroom.id]
+          );
+        }
+      }
+
       // Update user_profile to reflect business profile status
       await client.query(
         `UPDATE user_profiles

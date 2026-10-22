@@ -530,3 +530,19 @@ For each durable decision, include a date, status, decision owner (only when
 known), context, chosen option, rationale, and consequences. Link the affected
 ADR/spec/runbook. Do not turn an assumption into a decision; keep unresolved
 items in the open list until confirmed.
+
+### 2026-10-18 — Feed Spotlight
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (@Sent)
+- **Context:** Business owners wanted a way to show followers one or more of their showroom sections directly in the feed, below the business card, so that followers can interact with products, services, and contact info without navigating to the full showroom page.
+- **Decision points:**
+  1. Three new columns on `showrooms` (`migrate74`): `spotlight_mode TEXT CHECK('single','carousel')`, `spotlight_section_ids JSONB DEFAULT '[]'`, `spotlight_carousel_count INTEGER DEFAULT 1`.
+  2. Only showrooms with `spotlight_mode IS NOT NULL` render a widget in the feed. Business owners who do not configure spotlight are unaffected.
+  3. Dedicated `PATCH /api/showrooms/:id/spotlight` endpoint (owner-only) for targeted field updates; the existing `PUT` also writes these fields naturally.
+  4. Feed widget (`FeedSpotlightWidget.tsx`) is a lightweight bespoke renderer — does not import the full `SectionRenderer` to avoid carrying map/video/live-location dependencies into the feed bundle.
+  5. Product quick-view uses a bottom drawer (`SpotlightProductDrawer.tsx`) with framer-motion slide-up; purchase flow delegates to `PurchaseModal`. Contact Seller delegates to `findOrCreateConversation` (same pattern as the main feed).
+  6. Carousel auto-play is fixed at 4 seconds, not configurable by the business owner.
+  7. Studio config panel (`FeedSpotlightPanel.tsx`) lives in the `MoreMenu` popover overlay to avoid restructuring the Studio layout columns. A live preview (`FeedSpotlightPreview.tsx`) shows below the config panel so the owner can see the result before publishing.
+  8. Seed data: the first four seed showrooms get spotlight configs (single/hero, single/items, single/contact, carousel/3 sections) for visual demo and testing without manual setup.
+- **Related documentation:** `backend/db/migrate74.js`, `backend/routes/showrooms.ts`, `frontend-next/components/feed/FeedSpotlightWidget.tsx`, `frontend-next/components/feed/SpotlightProductDrawer.tsx`, `frontend-next/components/feed/BusinessShowroomFeed.tsx`, `frontend-next/components/showroom/studio/FeedSpotlightPanel.tsx`, `frontend-next/components/showroom/studio/FeedSpotlightPreview.tsx`, `frontend-next/views/ShowroomCreate.tsx`

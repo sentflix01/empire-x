@@ -22,6 +22,8 @@ import { VisibilitySelect, asVisibility, type BusinessVisibility } from '@/compo
 import PublishBusinessDialog, { type NewBusiness } from '@/components/showroom/PublishBusinessDialog';
 import { getBusinessCategoryForBuilder } from '@/lib/showroomCategoryMapping';
 import { getSectionPlanRequirement } from '@/lib/sectionPlanRequirement';
+import FeedSpotlightPanel from '@/components/showroom/studio/FeedSpotlightPanel';
+import FeedSpotlightPreview from '@/components/showroom/studio/FeedSpotlightPreview';
 
 // Smart category-aware default form data — ported from use 1.html
 function getSmartDefaults(templateName: string, category: string): Record<string, any> {
@@ -157,6 +159,11 @@ function ShowroomCreate({
   // Tablet: the left column shows Sections or Edit, the preview stays on the right.
   const [tabletPane, setTabletPane] = useState<"sections"|"content">("content");
   const [fullPreview, setFullPreview] = useState(false);
+  // Feed Spotlight config
+  const [spotlightOpen, setSpotlightOpen] = useState(false);
+  const [spotlightMode, setSpotlightMode] = useState<'single' | 'carousel' | null>(null);
+  const [spotlightSectionIds, setSpotlightSectionIds] = useState<string[]>([]);
+  const [spotlightCarouselCount, setSpotlightCarouselCount] = useState(1);
   // Every change bumps version; the auto-save marks the version it wrote.
   const [version, setVersion] = useState(0);
   const [savedVersion, setSavedVersion] = useState(0);
@@ -213,6 +220,14 @@ function ShowroomCreate({
             ...sectionFields,
           },
         });
+        // Load spotlight config from existing showroom
+        setSpotlightMode(data.spotlight_mode ?? null);
+        setSpotlightSectionIds(
+          Array.isArray(data.spotlight_section_ids)
+            ? data.spotlight_section_ids as string[]
+            : (() => { try { return JSON.parse(String(data.spotlight_section_ids || '[]')) as string[]; } catch { return []; } })()
+        );
+        setSpotlightCarouselCount(typeof data.spotlight_carousel_count === 'number' ? data.spotlight_carousel_count : 1);
       } catch (error) {
         if (!cancelled) toast.error(error instanceof Error ? error.message : 'We could not load this site for editing.');
       }
@@ -658,6 +673,7 @@ function ShowroomCreate({
           onLoad={loadDraft}
           onClear={clearDraft}
           onFullPreview={() => setFullPreview(true)}
+          onFeedSpotlight={() => setSpotlightOpen(true)}
         />
         <button
           type="button"
@@ -770,6 +786,51 @@ function ShowroomCreate({
           </div>
         )}
       </div>
+
+      {/* ── Feed Spotlight overlay ── */}
+      {spotlightOpen && serverDraftId && (
+        <div className="absolute inset-0 z-[60] flex flex-col bg-card overflow-y-auto">
+          <FeedSpotlightPanel
+            showroomId={serverDraftId}
+            activeSections={activeSections}
+            initialMode={spotlightMode}
+            initialSectionIds={spotlightSectionIds}
+            initialCarouselCount={spotlightCarouselCount}
+            themeColor={String(formData.heroBg ?? '#2563EB')}
+            onClose={() => setSpotlightOpen(false)}
+            onSaved={(mode, ids, count) => {
+              setSpotlightMode(mode);
+              setSpotlightSectionIds(ids);
+              setSpotlightCarouselCount(count);
+            }}
+          />
+          <FeedSpotlightPreview
+            activeSections={activeSections}
+            spotlightMode={spotlightMode ?? 'off'}
+            spotlightSectionIds={spotlightSectionIds}
+            spotlightCarouselCount={spotlightCarouselCount}
+            themeColor={String(formData.heroBg ?? '#2563EB')}
+            businessName={String(formData.title ?? 'Your Business')}
+          />
+        </div>
+      )}
+      {spotlightOpen && !serverDraftId && (
+        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-card/90">
+          <div className="rounded-2xl border border-border p-6 text-center max-w-xs">
+            <p className="font-semibold mb-2">Save first</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Save your draft before configuring the Feed Spotlight so your settings can be stored.
+            </p>
+            <button
+              type="button"
+              onClick={() => { setSpotlightOpen(false); void handleSaveDraft(); }}
+              className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white"
+            >
+              Save draft
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

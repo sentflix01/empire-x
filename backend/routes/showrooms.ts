@@ -193,6 +193,42 @@ router.get('/:id/newsletter', requireAuth, async (req: Request, res: Response) =
   }
 });
 
+// ── Feed Spotlight config (owner-only) ───────────────────────────────────────
+router.patch('/:id/spotlight', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const showroom = await getRecord<Record<string, unknown>>('showrooms', req.params.id);
+    if (!showroom) { res.status(404).json({ error: 'Showroom not found' }); return; }
+    if (showroom.owner_id !== req.user!.id && req.user!.role !== 'admin') {
+      res.status(403).json({ error: 'Forbidden' }); return;
+    }
+    const { spotlight_mode, spotlight_section_ids, spotlight_carousel_count } = req.body as Record<string, unknown>;
+    if (spotlight_mode !== null && spotlight_mode !== undefined &&
+        spotlight_mode !== 'single' && spotlight_mode !== 'carousel') {
+      res.status(422).json({ error: 'spotlight_mode must be "single", "carousel", or null' }); return;
+    }
+    if (spotlight_section_ids !== undefined &&
+        (!Array.isArray(spotlight_section_ids) ||
+         !(spotlight_section_ids as unknown[]).every(x => typeof x === 'string'))) {
+      res.status(422).json({ error: 'spotlight_section_ids must be an array of strings' }); return;
+    }
+    const count = spotlight_carousel_count !== undefined
+      ? parseInt(String(spotlight_carousel_count), 10) : 1;
+    if (isNaN(count) || count < 1) {
+      res.status(422).json({ error: 'spotlight_carousel_count must be an integer >= 1' }); return;
+    }
+    const updates: Record<string, unknown> = {
+      spotlight_mode: spotlight_mode ?? null,
+      spotlight_section_ids: spotlight_section_ids ?? [],
+      spotlight_carousel_count: count,
+    };
+    const updated = await updateRecord('showrooms', req.params.id, updates);
+    res.json(updated);
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'spotlight update failed');
+    res.status(500).json({ error: 'Failed to update spotlight config' });
+  }
+});
+
 router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   try {
     const showroom = await getRecord<Record<string, unknown>>('showrooms', req.params.id, { realOnly: req.realOnly });

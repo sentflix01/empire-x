@@ -18,6 +18,8 @@ import { getCategoryByValue } from '@/lib/businessTemplates';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
 import PurchaseModal from '@/components/checkout/PurchaseModal';
 import SharedBookmarkButton from '@/components/ui/BookmarkButton';
+import FeedSpotlightWidget, { type SpotlightItem, type FeedSpotlightWidgetProps } from './FeedSpotlightWidget';
+import SpotlightProductDrawer from './SpotlightProductDrawer';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface SectionItem {
@@ -63,6 +65,9 @@ interface Business {
   business_hours?: string;
   showroom_id?: string;
   showroom_slug?: string;
+  spotlight_mode?: string | null;
+  spotlight_section_ids?: string;
+  spotlight_carousel_count?: number;
   [key: string]: unknown;
 }
 
@@ -396,6 +401,15 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     seller: { user_id: string; business_name?: string; display_name?: string };
   } | null>(null);
 
+  // ── Spotlight drawer state ─────────────────────────────────────────
+  const [spotlightDrawer, setSpotlightDrawer] = useState<{
+    item: SpotlightItem;
+    businessName: string;
+    ownerId: string;
+    showroomSlug: string;
+    themeColor: string;
+  } | null>(null);
+
   // ── Global feed mode (no profile prop) ────────────────────────────
   const isFeedMode = !profile;
 
@@ -427,6 +441,12 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           business_sections: sectionsJson,
           showroom_id: String(showroom.id),
           showroom_slug: String(showroom.slug ?? ''),
+          spotlight_mode: (showroom.spotlight_mode as string | null) ?? null,
+          spotlight_section_ids: typeof showroom.spotlight_section_ids === 'string'
+            ? showroom.spotlight_section_ids
+            : JSON.stringify(showroom.spotlight_section_ids ?? []),
+          spotlight_carousel_count: typeof showroom.spotlight_carousel_count === 'number'
+            ? showroom.spotlight_carousel_count : 1,
         };
       });
       const nameKey = (value?: string) => String(value ?? '').trim().toLocaleLowerCase();
@@ -743,6 +763,31 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                   />
                 </div>
               )}
+
+              {/* Feed Spotlight widget */}
+              {biz.spotlight_mode && biz.showroom_id && (
+                <FeedSpotlightWidget
+                  sections={sections as FeedSpotlightWidgetProps['sections']}
+                  spotlightMode={biz.spotlight_mode as 'single' | 'carousel'}
+                  spotlightSectionIds={(() => {
+                    try { return JSON.parse(biz.spotlight_section_ids as string ?? '[]') as string[]; }
+                    catch { return []; }
+                  })()}
+                  spotlightCarouselCount={typeof biz.spotlight_carousel_count === 'number'
+                    ? biz.spotlight_carousel_count : 1}
+                  themeColor={color}
+                  businessName={bizName}
+                  showroomSlug={showroomSlug}
+                  ownerId={ownerId}
+                  onProductClick={(item) => setSpotlightDrawer({
+                    item,
+                    businessName: bizName,
+                    ownerId,
+                    showroomSlug,
+                    themeColor: color,
+                  })}
+                />
+              )}
             </div>
           );
         })}
@@ -755,6 +800,35 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           seller={purchaseModal.seller}
           buyer={viewer ? { id: viewer.id as string } : undefined}
           onClose={() => setPurchaseModal(null)}
+        />
+      )}
+
+      {/* Spotlight product drawer */}
+      {spotlightDrawer && (
+        <SpotlightProductDrawer
+          item={spotlightDrawer.item}
+          businessName={spotlightDrawer.businessName}
+          ownerId={spotlightDrawer.ownerId}
+          showroomSlug={spotlightDrawer.showroomSlug}
+          themeColor={spotlightDrawer.themeColor}
+          currentUserId={viewer?.id as string | undefined}
+          onClose={() => setSpotlightDrawer(null)}
+          onBuy={(item) => {
+            setSpotlightDrawer(null);
+            const priceNum = parseFloat(String(item.price ?? '').replace(/[^0-9.]/g, '')) || 0;
+            setPurchaseModal({
+              item: {
+                title: item.name ?? item.title ?? 'Item',
+                description: item.desc ?? item.description,
+                price: priceNum,
+                currency: 'ETB',
+              },
+              seller: {
+                user_id: spotlightDrawer.ownerId,
+                business_name: spotlightDrawer.businessName,
+              },
+            });
+          }}
         />
       )}
     </>
