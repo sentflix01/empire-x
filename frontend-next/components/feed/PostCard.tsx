@@ -602,20 +602,34 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
   const handleAddReply = async (parent: Comment, value: string) => {
     const content = value.trim();
     if (!content) return;
+    // Optimistic reply entry
+    const optimisticId = `pending-reply-${Date.now()}`;
+    const optimistic: Comment = {
+      id: optimisticId,
+      author_id: viewerId,
+      author_name: currentUser?.full_name ?? currentUserData?.full_name ?? 'You',
+      author_avatar: undefined,
+      content,
+      created_at: new Date().toISOString(),
+      parent_id: parent.id,
+      reply_count: 0,
+      reaction_count: 0,
+      _pending: true,
+    };
+    setComments(prev => [...prev, optimistic]);
+    setCommentCount(count => count + 1);
+    setComments(prev => prev.map(c =>
+      c.id === parent.id ? { ...c, reply_count: (c.reply_count ?? 0) + 1 } : c
+    ));
+    setExpandedReplies(prev => ({ ...prev, [parent.id]: true }));
+    setReplyingTo(null);
     try {
       const reply = await entities.Comment.create({
         post_id: post.id,
         parent_id: parent.id,
         content,
       }) as Comment;
-      setComments(prev => [...prev, reply]);
-      setCommentCount(count => count + 1);
-      // Increment reply_count on the parent comment immediately
-      setComments(prev => prev.map(c =>
-        c.id === parent.id ? { ...c, reply_count: (c.reply_count ?? 0) + 1 } : c
-      ));
-      setExpandedReplies(prev => ({ ...prev, [parent.id]: true }));
-      setReplyingTo(null);
+      setComments(prev => prev.map(x => x.id === optimisticId ? { ...reply, _pending: false } : x));
       // Seed profile cache for the reply author if not already present
       const authorId = (reply as Comment).author_id;
       if (authorId) {
@@ -630,6 +644,12 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
         });
       }
     } catch (err) {
+      // Roll back the optimistic entry
+      setComments(prev => prev.filter(x => x.id !== optimisticId));
+      setCommentCount(count => Math.max(0, count - 1));
+      setComments(prev => prev.map(c =>
+        c.id === parent.id ? { ...c, reply_count: Math.max(0, (c.reply_count ?? 1) - 1) } : c
+      ));
       toast.error(apiErrorMessage(err, 'Could not post your reply.'));
     }
   };
@@ -1053,6 +1073,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                           {/* Quick heart react */}
                           <button
                             onClick={async () => {
+                              if (!viewerId) return;
                               const next = c.my_reaction ? null : '❤️';
                               const result = await reactToComment(post.id, c.id, next).catch(() => null);
                               if (result) setComments(prev => prev.map(x => x.id === c.id ? { ...x, my_reaction: result.my_reaction, reaction_count: result.reaction_count, top_reactions: result.my_reaction ? Array.from(new Set([result.my_reaction, ...(x.top_reactions ?? [])])).slice(0, 3) as typeof REACTIONS[number][] : x.top_reactions } : x));
@@ -1099,6 +1120,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                               onChange={e => setReplyTexts(prev => ({ ...prev, [c.id]: e.target.value }))}
                               placeholder={t('feed.replyTo', { name: c.author_name })}
                               aria-label={t('feed.replyTo', { name: c.author_name })}
+                              maxLength={500}
                               className="flex-1 text-xs bg-secondary/50 rounded-full px-3 py-1.5 outline-none focus:ring-1 focus:ring-amber-500/30"
                               onKeyDown={async e => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -1110,6 +1132,15 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                                 if (e.key === 'Escape') setReplyingTo(null);
                               }}
                             />
+                            {(replyTexts[c.id]?.length ?? 0) > 0 && (
+                              <span
+                                className={`text-[11px] shrink-0 self-center tabular-nums ${(replyTexts[c.id]?.length ?? 0) > 200 ? 'text-amber-500' : 'text-muted-foreground'}`}
+                                aria-live="polite"
+                                aria-label={`${replyTexts[c.id]?.length ?? 0} of 500 characters`}
+                              >
+                                {replyTexts[c.id]?.length ?? 0}/500
+                              </span>
+                            )}
                             <button
                               onClick={async () => {
                                 const val = replyTexts[c.id]?.trim();
@@ -1201,6 +1232,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                                       {/* Quick heart react on reply */}
                                       <button
                                         onClick={async () => {
+                                          if (!viewerId) return;
                                           const next = reply.my_reaction ? null : '❤️';
                                           const result = await reactToComment(post.id, reply.id, next).catch(() => null);
                                           if (result) setComments(prev => prev.map(x => x.id === reply.id ? { ...x, my_reaction: result.my_reaction, reaction_count: result.reaction_count, top_reactions: result.my_reaction ? Array.from(new Set([result.my_reaction, ...(x.top_reactions ?? [])])).slice(0, 3) as typeof REACTIONS[number][] : x.top_reactions } : x));
@@ -1211,6 +1243,12 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                                       >
                                         <Heart className={`w-3 h-3 ${reply.my_reaction ? 'fill-current' : ''}`} aria-hidden="true" />
                                         {(reply.reaction_count ?? 0) > 0 && <span>{reply.reaction_count}</span>}
+                                      </button>
+                                      {/* Reply */}
+                                      <button onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
+                                        className="hover:text-amber-600 flex items-center gap-0.5 transition-colors">
+                                        <Reply className="w-3 h-3" />
+                                        {t('common.reply')}
                                       </button>
                                       {/* Timestamp */}
                                       {reply.created_at && (
