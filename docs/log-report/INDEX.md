@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-22 | Bugfix | fix(ui): business names everywhere, unread badge on contacts, smooth transitions | [283f34858](2026-10-22-283f34858-business-names-everywhere-unread-badge-on-contac.md) |
 | 2026-10-22 | Bugfix | fix(messages): fix duplicate chats, missing business names, ghost convs on nav | [bdefe3c6a](2026-10-22-bdefe3c6a-fix-duplicate-chats-missing-business-names-ghost.md) |
 | 2026-10-22 | Maintenance | Merge pull request #139: fix(messages): server rules, notifications, live events (messaging audit 1/7) | [0ee189153](2026-10-22-0ee189153-merge-pull-request-139-fix-messages-server-rules.md) |
 | 2026-10-22 | Bugfix | fix(messages): merge origin/main into messaging-backend (resolve conflicts) | [9c6f000d8](2026-10-22-9c6f000d8-merge-origin-main-into-messaging-backend-resolve.md) |
