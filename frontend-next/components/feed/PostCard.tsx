@@ -579,17 +579,14 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
     try {
       const c = await entities.Comment.create({ post_id: post.id, content: text });
       setComments(prev => prev.map(x => x.id === optimisticId ? { ...c, _pending: false } : x));
-      // Seed profile cache for the current user if not already present
-      if (viewerId) {
-        setCommentAuthorProfiles(prev => {
-          if (prev[viewerId]) return prev;
-          entities.UserProfile.filter({ user_id: viewerId })
-            .then((p: Profile[]) => {
-              if (p[0]) setCommentAuthorProfiles(m => ({ ...m, [viewerId]: { business_name: (p[0] as any).business_name ?? undefined, is_verified: (p[0] as any).is_verified ?? undefined, verification_type: (p[0] as any).verification_type ?? undefined } }));
-            })
-            .catch(() => {});
-          return prev;
-        });
+      // Seed profile cache for the current user if not already present — read state
+      // directly from the closure to avoid side effects inside a state updater.
+      if (viewerId && !commentAuthorProfiles[viewerId]) {
+        entities.UserProfile.filter({ user_id: viewerId })
+          .then((p: Profile[]) => {
+            if (p[0]) setCommentAuthorProfiles(m => ({ ...m, [viewerId]: { business_name: (p[0] as any).business_name ?? undefined, is_verified: (p[0] as any).is_verified ?? undefined, verification_type: (p[0] as any).verification_type ?? undefined } }));
+          })
+          .catch(() => {});
       }
     } catch (err) {
       setComments(prev => prev.filter(x => x.id !== optimisticId));
@@ -630,19 +627,18 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
         content,
       }) as Comment;
       setComments(prev => prev.map(x => x.id === optimisticId ? { ...reply, _pending: false } : x));
-      // Seed profile cache for the reply author if not already present
+      // Seed profile cache for the reply author if not already present — read state
+      // directly from the closure to avoid side effects inside a state updater.
       const authorId = (reply as Comment).author_id;
-      if (authorId) {
-        setCommentAuthorProfiles(prev => {
-          if (prev[authorId]) return prev;
-          entities.UserProfile.filter({ user_id: authorId })
-            .then((p: Profile[]) => {
-              if (p[0]) setCommentAuthorProfiles(m => ({ ...m, [authorId]: { business_name: (p[0] as any).business_name ?? undefined, is_verified: (p[0] as any).is_verified ?? undefined, verification_type: (p[0] as any).verification_type ?? undefined } }));
-            })
-            .catch(() => {});
-          return prev;
-        });
+      if (authorId && !commentAuthorProfiles[authorId]) {
+        entities.UserProfile.filter({ user_id: authorId })
+          .then((p: Profile[]) => {
+            if (p[0]) setCommentAuthorProfiles(m => ({ ...m, [authorId]: { business_name: (p[0] as any).business_name ?? undefined, is_verified: (p[0] as any).is_verified ?? undefined, verification_type: (p[0] as any).verification_type ?? undefined } }));
+          })
+          .catch(() => {});
       }
+      // Reply succeeded — signal success so the caller can clear the draft
+      return true;
     } catch (err) {
       // Roll back the optimistic entry
       setComments(prev => prev.filter(x => x.id !== optimisticId));
@@ -651,6 +647,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
         c.id === parent.id ? { ...c, reply_count: Math.max(0, (c.reply_count ?? 1) - 1) } : c
       ));
       toast.error(apiErrorMessage(err, 'Could not post your reply.'));
+      return false;
     }
   };
 
@@ -1126,10 +1123,10 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                   const val = replyTexts[c.id]?.trim();
                                   if (!val) return;
-                                  await handleAddReply(c, val);
-                                  setReplyTexts(prev => ({ ...prev, [c.id]: '' }));
+                                  const ok = await handleAddReply(c, val);
+                                  if (ok) setReplyTexts(prev => ({ ...prev, [c.id]: '' }));
                                 }
-                                if (e.key === 'Escape') setReplyingTo(null);
+                                if (e.key === 'Escape') { setReplyingTo(null); setReplyTexts(prev => ({ ...prev, [c.id]: '' })); }
                               }}
                             />
                             {(replyTexts[c.id]?.length ?? 0) > 0 && (
@@ -1145,8 +1142,8 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                               onClick={async () => {
                                 const val = replyTexts[c.id]?.trim();
                                 if (!val) return;
-                                await handleAddReply(c, val);
-                                setReplyTexts(prev => ({ ...prev, [c.id]: '' }));
+                                const ok = await handleAddReply(c, val);
+                                if (ok) setReplyTexts(prev => ({ ...prev, [c.id]: '' }));
                               }}
                               className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-amber-500 text-white text-xs"
                               aria-label="Send reply"
@@ -1169,7 +1166,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                         </button>
                         <div
                           className="overflow-hidden transition-[max-height] duration-200 ease-in-out"
-                          style={{ maxHeight: expandedReplies[c.id] ? '9999px' : '0px' }}
+                          style={{ maxHeight: expandedReplies[c.id] ? '2000px' : '0px' }}
                         >
                           <div className="mt-2 space-y-2 border-l-2 border-amber-200 pl-3">
                             {(repliesByParent[c.id] ?? []).map(reply => (
