@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { apiFetch } from '@/api/client';
@@ -31,12 +31,14 @@ export default function FeedSpotlightPanel({
   const [sectionIds, setSectionIds] = useState<string[]>(initialSectionIds);
   const [carouselCount, setCarouselCount] = useState(initialCarouselCount || 1);
   const [saving, setSaving] = useState(false);
+  const isDirty = useRef(false);
 
   const maxCount = Math.max(1, sectionIds.length);
 
-  // Auto-save with 800ms debounce
+  // Auto-save with 800ms debounce — only fires after user has changed something
   useEffect(() => {
     if (!showroomId) return;
+    if (!isDirty.current) return;
     const timer = setTimeout(async () => {
       setSaving(true);
       try {
@@ -62,12 +64,14 @@ export default function FeedSpotlightPanel({
   }, [mode, sectionIds, carouselCount, showroomId]);
 
   const toggleSection = (key: string) => {
+    isDirty.current = true;
     setSectionIds(prev =>
       prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
     );
   };
 
   const handleCarouselCount = (v: number) => {
+    isDirty.current = true;
     setCarouselCount(Math.min(Math.max(1, v), maxCount));
   };
 
@@ -95,7 +99,7 @@ export default function FeedSpotlightPanel({
           </span>
           <Switch
             checked={mode !== 'off'}
-            onCheckedChange={(v) => setMode(v ? 'single' : 'off')}
+            onCheckedChange={(v) => { isDirty.current = true; setMode(v ? 'single' : 'off'); }}
             aria-label="Enable Feed Spotlight"
           />
         </label>
@@ -111,7 +115,7 @@ export default function FeedSpotlightPanel({
                   name="spotlight-mode"
                   value="single"
                   checked={mode === 'single'}
-                  onChange={() => setMode('single')}
+                  onChange={() => { isDirty.current = true; setMode('single'); }}
                   className="accent-primary"
                 />
                 <span>
@@ -125,7 +129,7 @@ export default function FeedSpotlightPanel({
                   name="spotlight-mode"
                   value="carousel"
                   checked={mode === 'carousel'}
-                  onChange={() => setMode('carousel')}
+                  onChange={() => { isDirty.current = true; setMode('carousel'); }}
                   className="accent-primary"
                 />
                 <span>

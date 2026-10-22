@@ -196,7 +196,7 @@ router.get('/:id/newsletter', requireAuth, async (req: Request, res: Response) =
 // ── Feed Spotlight config (owner-only) ───────────────────────────────────────
 router.patch('/:id/spotlight', requireAuth, async (req: Request, res: Response) => {
   try {
-    const showroom = await getRecord<Record<string, unknown>>('showrooms', req.params.id);
+    const showroom = await getRecord<Record<string, unknown>>('showrooms', req.params.id, { realOnly: req.realOnly });
     if (!showroom) { res.status(404).json({ error: 'Showroom not found' }); return; }
     if (showroom.owner_id !== req.user!.id && req.user!.role !== 'admin') {
       res.status(403).json({ error: 'Forbidden' }); return;

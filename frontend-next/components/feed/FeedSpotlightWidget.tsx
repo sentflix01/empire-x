@@ -285,14 +285,14 @@ export default function FeedSpotlightWidget({
 
   const matched = sections.filter(s => spotlightSectionIds.includes(s.type));
 
-  // Auto-advance carousel
+  // Auto-advance carousel — stable interval, no restart on every tick
   useEffect(() => {
     if (spotlightMode !== 'carousel' || matched.length <= 1) return;
     const id = setInterval(() => {
       setActiveIndex(prev => (prev + 1) % matched.length);
     }, 4000);
     return () => clearInterval(id);
-  }, [spotlightMode, matched.length, activeIndex]);
+  }, [spotlightMode, matched.length]);
 
   if (!matched.length) return null;
 
@@ -318,16 +318,22 @@ export default function FeedSpotlightWidget({
         renderSpotlightSection(matched[0], themeColor, showroomSlug, onProductClick)
       ) : (
         <div>
-          {/* Carousel panels */}
-          <div>
-            {Array.from({ length: visibleCount }).map((_, offset) => {
-              const idx = (activeIndex + offset) % matched.length;
-              return (
-                <div key={idx}>
-                  {renderSpotlightSection(matched[idx], themeColor, showroomSlug, onProductClick)}
+          {/* Carousel panels — horizontal sliding track */}
+          <div className="overflow-hidden">
+            <div
+              className="flex transition-transform duration-300 ease-in-out"
+              style={{ transform: `translateX(-${(activeIndex * 100) / visibleCount}%)` }}
+            >
+              {matched.map((section, idx) => (
+                <div
+                  key={idx}
+                  className="shrink-0"
+                  style={{ width: `${100 / visibleCount}%` }}
+                >
+                  {renderSpotlightSection(section, themeColor, showroomSlug, onProductClick)}
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
 
           {/* Controls */}
