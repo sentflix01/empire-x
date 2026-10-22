@@ -24,6 +24,7 @@ interface NotificationItem {
   link?: string | null;
   actor_name?: string | null;
   actor_avatar?: string | null;
+  actor_business_name?: string | null;
   group_count?: number | null;
 }
 
@@ -199,6 +200,7 @@ function NotificationsView() {
                     size="xs"
                     displayName={n.actor_name ?? ''}
                     avatarUrl={n.actor_avatar ?? null}
+                    businessName={n.actor_business_name ?? null}
                     className="shrink-0"
                   />
                 ) : (

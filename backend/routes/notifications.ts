@@ -28,7 +28,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     values.push(lim);
 
     const { rows } = await pool.query(
-      `SELECT id, user_id, type, title, body, link, is_read, created_at
+      `SELECT id, user_id, type, title, body, link, is_read, created_at, actor_name, actor_avatar
        FROM notifications WHERE ${conditions.join(' AND ')}
        ORDER BY ${orderClause} LIMIT $${values.length}`,
       values,

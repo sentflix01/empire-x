@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
@@ -37,7 +37,6 @@ function Messages() {
   const [presence, setPresence]           = useState<Record<string, PresenceData>>({});
   const [typingConvs, setTypingConvs]     = useState<Record<string, boolean>>({});
   const [showSearch, setShowSearch]       = useState(false);
-  const [navigating, setNavigating]       = useState(false);
   // Sort contacts: 'time' = online-first then last_seen (default), 'name' = A-Z
   const [contactSort, setContactSort]     = useState<'name' | 'time'>('time');
   const loadConversationsRef = useRef<((currentUser?: any, quiet?: boolean) => Promise<void>) | null>(null);
@@ -211,11 +210,9 @@ function Messages() {
     }) || null;
   }, [conversations]);
 
-  /** Navigate to a conversation with a slide-left exit animation. */
+  /** Navigate to a conversation (instant; no exit animation). */
   const handleConvClick = useCallback((href: string) => {
-    setNavigating(true);
-    router.prefetch(href);
-    setTimeout(() => router.push(href), 150);
+    router.push(href);
   }, [router]);
 
   // ── Filter ────────────────────────────────────────────────────────────────
@@ -375,13 +372,7 @@ function Messages() {
           />
         ) : tab === 'all' ? (
           /* ── All tab: contacts list ── */
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={navigating ? 'out' : 'in'}
-              initial={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.15 }}
-            >
+          <div key={tab} className="transition-opacity duration-150">
               <div className="flex items-center justify-between px-4 py-2">
                 <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                   People · {filtered.length}
@@ -435,36 +426,22 @@ function Messages() {
                       className="flex-1 min-w-0"
                     />
                     <div className="flex flex-col items-center gap-0.5 shrink-0 ml-2">
-                      <MessageCircle
-                        className={cn(
-                          'w-5 h-5',
-                          hasUnread ? 'fill-primary text-primary' : 'text-muted-foreground',
+                      <div className="relative">
+                        <MessageCircle className={cn('w-5 h-5', hasUnread ? 'fill-primary text-primary' : 'text-muted-foreground')} />
+                        {hasUnread && (
+                          <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+                            {unread > 99 ? '99+' : unread}
+                          </span>
                         )}
-                      />
-                      {hasUnread && (
-                        <span className="min-w-[18px] h-[18px] bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1">
-                          {unread > 99 ? '99+' : unread}
-                        </span>
-                      )}
-                      {lastMsgTime && (
-                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                          {lastMsgTime}
-                        </span>
-                      )}
+                      </div>
+                      {lastMsgTime && <span className="text-[10px] text-muted-foreground whitespace-nowrap">{lastMsgTime}</span>}
                     </div>
                   </button>
                 );
               })}
-            </motion.div>
-          </AnimatePresence>
+          </div>
         ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={navigating ? 'out' : 'in'}
-              initial={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.15 }}
-            >
+          <div key={tab} className="transition-opacity duration-150">
               {filtered.map(conv => {
                 const name        = getDisplayName(conv);
                 const isChannel   = conv.type === 'channel';
@@ -569,8 +546,7 @@ function Messages() {
                   </Link>
                 );
               })}
-            </motion.div>
-          </AnimatePresence>
+          </div>
         )}
       </div>
     </div>
