@@ -391,6 +391,8 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   const [loading, setLoading] = useState(true);
   const [messaging, setMessaging] = useState(false);
   const [qrOpenId, setQrOpenId] = useState<string | null>(null); // QR popup
+  // Owner display names for feed-mode cards — keyed by owner_id
+  const [ownerProfiles, setOwnerProfiles] = useState<Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean }>>({});
   const router = useRouter();
   const { user: signedInUser } = useAuth();
   const viewer = currentUser ?? signedInUser;
@@ -466,6 +468,30 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
       setFeedBusinesses([...showroomItems, ...businessItems]
         .sort((left, right) => Date.parse(String(right.created_at ?? '')) - Date.parse(String(left.created_at ?? '')))
         .slice(0, 50));
+      // Batch-fetch owner display names so each card shows who runs the business
+      const combined = [...showroomItems, ...businessItems];
+      const uniqueOwnerIds = [...new Set(combined.map(b => b.owner_id as string).filter(Boolean))];
+      if (uniqueOwnerIds.length > 0) {
+        const profileResults = await Promise.allSettled(
+          uniqueOwnerIds.map(id =>
+            entities.UserProfile.filter({ user_id: id }, 'created_at', 1)
+              .then((rows: unknown[]) => ({ id, p: (rows[0] as Profile | undefined) ?? null }))
+              .catch(() => ({ id, p: null }))
+          )
+        );
+        const map: Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean }> = {};
+        for (const result of profileResults) {
+          if (result.status === 'fulfilled' && result.value.p) {
+            const p = result.value.p;
+            map[result.value.id] = {
+              display_name: p.display_name,
+              avatar_url: Array.isArray(p.avatar_url) ? (p.avatar_url[0] ?? '') : p.avatar_url,
+              is_verified: p.is_verified,
+            };
+          }
+        }
+        setOwnerProfiles(map);
+      }
     } catch {
       setFeedBusinesses([]);
       setFeedError('We could not load business profiles. Check your connection and try again.');
@@ -725,6 +751,36 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                   </div>
                 </div>
                 <h3 className="mt-2 font-display text-base font-bold" style={{ color }}>{bizName}</h3>
+                {/* Owner identity — "by Display Name" */}
+                {ownerProfiles[ownerId]?.display_name && (
+                  <Link
+                    href={`/profile/${ownerId}`}
+                    className="flex items-center gap-1 mt-0.5 group w-fit"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    {ownerProfiles[ownerId].avatar_url ? (
+                      <NextImage
+                        src={ownerProfiles[ownerId].avatar_url!}
+                        alt={ownerProfiles[ownerId].display_name!}
+                        width={16}
+                        height={16}
+                        className="w-4 h-4 rounded-full object-cover shrink-0"
+                        unoptimized
+                      />
+                    ) : (
+                      <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
+                        style={{ backgroundColor: color }}>
+                        {ownerProfiles[ownerId].display_name!.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors truncate max-w-[140px]">
+                      {ownerProfiles[ownerId].display_name}
+                    </span>
+                    {ownerProfiles[ownerId].is_verified && (
+                      <VerifiedBadge type="personal" size="sm" />
+                    )}
+                  </Link>
+                )}
                 {heroSection?.subtitle && (
                   <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{heroSection.subtitle}</p>
                 )}
@@ -764,30 +820,52 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                 </div>
               )}
 
-              {/* Feed Spotlight widget */}
-              {biz.spotlight_mode && biz.showroom_id && (
-                <FeedSpotlightWidget
-                  sections={sections as FeedSpotlightWidgetProps['sections']}
-                  spotlightMode={biz.spotlight_mode as 'single' | 'carousel'}
-                  spotlightSectionIds={(() => {
-                    try { return JSON.parse(biz.spotlight_section_ids as string ?? '[]') as string[]; }
-                    catch { return []; }
-                  })()}
-                  spotlightCarouselCount={typeof biz.spotlight_carousel_count === 'number'
-                    ? biz.spotlight_carousel_count : 1}
-                  themeColor={color}
-                  businessName={bizName}
-                  showroomSlug={showroomSlug}
-                  ownerId={ownerId}
-                  onProductClick={(item) => setSpotlightDrawer({
-                    item,
-                    businessName: bizName,
-                    ownerId,
-                    showroomSlug,
-                    themeColor: color,
-                  })}
-                />
-              )}
+              {/* Feed Spotlight — three states:
+                  null  = never configured → auto-show hero section
+                  'single'/'carousel' = owner configured → show their setting
+                  'off' = owner explicitly disabled → show nothing */}
+              {biz.showroom_id && biz.spotlight_mode !== 'off' && (() => {
+                let resolvedMode: 'single' | 'carousel';
+                let resolvedIds: string[];
+                let resolvedCount: number;
+
+                if (biz.spotlight_mode === 'single' || biz.spotlight_mode === 'carousel') {
+                  // Owner configured
+                  resolvedMode = biz.spotlight_mode;
+                  try { resolvedIds = JSON.parse(biz.spotlight_section_ids as string ?? '[]') as string[]; }
+                  catch { resolvedIds = []; }
+                  resolvedCount = typeof biz.spotlight_carousel_count === 'number' ? biz.spotlight_carousel_count : 1;
+                } else {
+                  // null = never configured → default to hero section
+                  const heroSection = sections.find(s => s.type === 'hero');
+                  if (!heroSection) return null;
+                  resolvedMode = 'single';
+                  resolvedIds = ['hero'];
+                  resolvedCount = 1;
+                }
+
+                if (resolvedIds.length === 0) return null;
+
+                return (
+                  <FeedSpotlightWidget
+                    sections={sections as FeedSpotlightWidgetProps['sections']}
+                    spotlightMode={resolvedMode}
+                    spotlightSectionIds={resolvedIds}
+                    spotlightCarouselCount={resolvedCount}
+                    themeColor={color}
+                    businessName={bizName}
+                    showroomSlug={showroomSlug}
+                    ownerId={ownerId}
+                    onProductClick={(item) => setSpotlightDrawer({
+                      item,
+                      businessName: bizName,
+                      ownerId,
+                      showroomSlug,
+                      themeColor: color,
+                    })}
+                  />
+                );
+              })()}
             </div>
           );
         })}

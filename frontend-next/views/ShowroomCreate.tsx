@@ -161,7 +161,7 @@ function ShowroomCreate({
   const [fullPreview, setFullPreview] = useState(false);
   // Feed Spotlight config
   const [spotlightOpen, setSpotlightOpen] = useState(false);
-  const [spotlightMode, setSpotlightMode] = useState<'single' | 'carousel' | null>(null);
+  const [spotlightMode, setSpotlightMode] = useState<'single' | 'carousel' | 'off' | null>(null);
   const [spotlightSectionIds, setSpotlightSectionIds] = useState<string[]>([]);
   const [spotlightCarouselCount, setSpotlightCarouselCount] = useState(1);
   // Every change bumps version; the auto-save marks the version it wrote.

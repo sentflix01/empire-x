@@ -203,8 +203,8 @@ router.patch('/:id/spotlight', requireAuth, async (req: Request, res: Response) 
     }
     const { spotlight_mode, spotlight_section_ids, spotlight_carousel_count } = req.body as Record<string, unknown>;
     if (spotlight_mode !== null && spotlight_mode !== undefined &&
-        spotlight_mode !== 'single' && spotlight_mode !== 'carousel') {
-      res.status(422).json({ error: 'spotlight_mode must be "single", "carousel", or null' }); return;
+        spotlight_mode !== 'single' && spotlight_mode !== 'carousel' && spotlight_mode !== 'off') {
+      res.status(422).json({ error: 'spotlight_mode must be "single", "carousel", "off", or null' }); return;
     }
     if (spotlight_section_ids !== undefined &&
         (!Array.isArray(spotlight_section_ids) ||

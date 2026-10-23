@@ -8,12 +8,12 @@ import { getSectionType } from '@/lib/builderSections';
 export interface FeedSpotlightPanelProps {
   showroomId: string;
   activeSections: string[];
-  initialMode: 'single' | 'carousel' | null;
+  initialMode: 'single' | 'carousel' | 'off' | null;
   initialSectionIds: string[];
   initialCarouselCount: number;
   themeColor: string;
   onClose: () => void;
-  onSaved: (mode: 'single' | 'carousel' | null, sectionIds: string[], carouselCount: number) => void;
+  onSaved: (mode: 'single' | 'carousel' | 'off' | null, sectionIds: string[], carouselCount: number) => void;
 }
 
 type SpotlightMode = 'off' | 'single' | 'carousel';
@@ -47,12 +47,12 @@ export default function FeedSpotlightPanel({
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            spotlight_mode: mode === 'off' ? null : mode,
+            spotlight_mode: mode,  // send 'off' explicitly when owner disables
             spotlight_section_ids: sectionIds,
             spotlight_carousel_count: carouselCount,
           }),
         });
-        onSaved(mode === 'off' ? null : mode, sectionIds, carouselCount);
+        onSaved(mode === 'off' ? 'off' : mode, sectionIds, carouselCount);
       } catch {
         // best-effort: the user can retry by toggling
       } finally {
