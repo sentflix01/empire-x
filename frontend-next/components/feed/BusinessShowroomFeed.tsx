@@ -821,26 +821,58 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               )}
 
               {/* Feed Spotlight — three states:
-                  null  = never configured → auto-show hero section
+                  null  = never configured → auto-pick best section by priority rank
                   'single'/'carousel' = owner configured → show their setting
-                  'off' = owner explicitly disabled → show nothing */}
+                  'off' = owner explicitly disabled → show nothing
+                  Priority (business selling POV, highest → lowest):
+                  products/featured_products → services/menu → courses →
+                  gallery → contact → features/about → hours → hero */}
               {biz.showroom_id && biz.spotlight_mode !== 'off' && (() => {
                 let resolvedMode: 'single' | 'carousel';
                 let resolvedIds: string[];
                 let resolvedCount: number;
 
                 if (biz.spotlight_mode === 'single' || biz.spotlight_mode === 'carousel') {
-                  // Owner configured
+                  // Owner explicitly configured — respect their choice
                   resolvedMode = biz.spotlight_mode;
                   try { resolvedIds = JSON.parse(biz.spotlight_section_ids as string ?? '[]') as string[]; }
                   catch { resolvedIds = []; }
                   resolvedCount = typeof biz.spotlight_carousel_count === 'number' ? biz.spotlight_carousel_count : 1;
                 } else {
-                  // null = never configured → default to hero section
-                  const heroSection = sections.find(s => s.type === 'hero');
-                  if (!heroSection) return null;
+                  // null = never configured → auto-pick by priority rank
+                  // A section is "meaningful" if it has items with content, or
+                  // is a contact/gallery section (content lives elsewhere in the showroom).
+                  const hasItems = (type: string) =>
+                    sections.some(s => s.type === type && s.items && s.items.length > 0);
+                  const hasSection = (type: string) =>
+                    sections.some(s => s.type === type);
+
+                  const PRIORITY: string[] = [
+                    // Rank 1 — direct purchase / product discovery
+                    ...(hasItems('products') ? ['products'] : []),
+                    ...(hasItems('featured_products') ? ['featured_products'] : []),
+                    // Rank 2 — services / menu with pricing
+                    ...(hasItems('services') ? ['services'] : []),
+                    ...(hasItems('menu') ? ['menu'] : []),
+                    // Rank 3 — courses / programmes
+                    ...(hasItems('courses') ? ['courses'] : []),
+                    // Rank 4 — gallery (visual proof)
+                    ...(hasSection('gallery') ? ['gallery'] : []),
+                    // Rank 5 — contact (direct action)
+                    ...(hasSection('contact') ? ['contact'] : []),
+                    // Rank 6 — features / about (credibility)
+                    ...(hasItems('features') ? ['features'] : []),
+                    ...(hasSection('about') ? ['about'] : []),
+                    // Rank 7 — hours
+                    ...(hasSection('hours') ? ['hours'] : []),
+                    // Rank 8 — hero (last resort brand identity)
+                    ...(hasSection('hero') ? ['hero'] : []),
+                  ];
+
+                  const autoId = PRIORITY[0];
+                  if (!autoId) return null; // no sections at all
                   resolvedMode = 'single';
-                  resolvedIds = ['hero'];
+                  resolvedIds = [autoId];
                   resolvedCount = 1;
                 }
 
