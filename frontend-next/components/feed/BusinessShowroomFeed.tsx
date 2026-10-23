@@ -821,12 +821,12 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               )}
 
               {/* Feed Spotlight — three states:
-                  null  = never configured → auto-pick best section by priority rank
+                  null  = never configured → auto-pick best selling section by priority
                   'single'/'carousel' = owner configured → show their setting
                   'off' = owner explicitly disabled → show nothing
-                  Priority (business selling POV, highest → lowest):
-                  products/featured_products → services/menu → courses →
-                  gallery → contact → features/about → hours → hero */}
+                  Priority (selling-first, contact/hours never auto-selected — already on card):
+                  items/menu → services → event_schedule → pricing → gallery →
+                  testimonials → features → stats → about → hero */}
               {biz.showroom_id && biz.spotlight_mode !== 'off' && (() => {
                 let resolvedMode: 'single' | 'carousel';
                 let resolvedIds: string[];
@@ -839,38 +839,52 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
                   catch { resolvedIds = []; }
                   resolvedCount = typeof biz.spotlight_carousel_count === 'number' ? biz.spotlight_carousel_count : 1;
                 } else {
-                  // null = never configured → auto-pick by priority rank
-                  // A section is "meaningful" if it has items with content, or
-                  // is a contact/gallery section (content lives elsewhere in the showroom).
+                  // null = never configured → auto-pick by selling priority
+                  // "has content" = section exists AND has at least 1 item/dish/service/etc.
                   const hasItems = (type: string) =>
-                    sections.some(s => s.type === type && s.items && s.items.length > 0);
-                  const hasSection = (type: string) =>
-                    sections.some(s => s.type === type);
+                    sections.some(s =>
+                      s.type === type && (
+                        (s.items && (s.items as unknown[]).length > 0) ||
+                        (s.dishes && (s.dishes as unknown[]).length > 0) ||
+                        (s.services && (s.services as unknown[]).length > 0) ||
+                        (s.events && (s.events as unknown[]).length > 0) ||
+                        (s.plans && (s.plans as unknown[]).length > 0) ||
+                        (s.features && (s.features as unknown[]).length > 0) ||
+                        (s.stats && (s.stats as unknown[]).length > 0) ||
+                        (s.testimonials && (s.testimonials as unknown[]).length > 0)
+                      )
+                    );
+                  const hasImages = (type: string) =>
+                    sections.some(s =>
+                      s.type === type && s.galleryImages && (s.galleryImages as unknown[]).length > 0
+                    );
 
                   const PRIORITY: string[] = [
-                    // Rank 1 — direct purchase / product discovery
-                    ...(hasItems('products') ? ['products'] : []),
-                    ...(hasItems('featured_products') ? ['featured_products'] : []),
-                    // Rank 2 — services / menu with pricing
-                    ...(hasItems('services') ? ['services'] : []),
+                    // Rank 1 — what they sell (direct conversion)
+                    ...(hasItems('items') ? ['items'] : []),
                     ...(hasItems('menu') ? ['menu'] : []),
-                    // Rank 3 — courses / programmes
-                    ...(hasItems('courses') ? ['courses'] : []),
-                    // Rank 4 — gallery (visual proof)
-                    ...(hasSection('gallery') ? ['gallery'] : []),
-                    // Rank 5 — contact (direct action)
-                    ...(hasSection('contact') ? ['contact'] : []),
-                    // Rank 6 — features / about (credibility)
+                    // Rank 2 — services with prices
+                    ...(hasItems('services') ? ['services'] : []),
+                    // Rank 3 — events / classes with tickets
+                    ...(hasItems('event_schedule') ? ['event_schedule'] : []),
+                    // Rank 4 — pricing packages
+                    ...(hasItems('pricing') ? ['pricing'] : []),
+                    // Rank 5 — gallery (visual proof, only if has photos)
+                    ...(hasImages('gallery') ? ['gallery'] : []),
+                    // Rank 6 — social proof
+                    ...(hasItems('testimonials') ? ['testimonials'] : []),
+                    // Rank 7 — differentiation
                     ...(hasItems('features') ? ['features'] : []),
-                    ...(hasSection('about') ? ['about'] : []),
-                    // Rank 7 — hours
-                    ...(hasSection('hours') ? ['hours'] : []),
-                    // Rank 8 — hero (last resort brand identity)
-                    ...(hasSection('hero') ? ['hero'] : []),
+                    ...(hasItems('stats') ? ['stats'] : []),
+                    // Rank 8 — about (story)
+                    ...(sections.some(s => s.type === 'about') ? ['about'] : []),
+                    // Rank 9 — hero last resort
+                    ...(sections.some(s => s.type === 'hero') ? ['hero'] : []),
+                    // contact and hours intentionally excluded — already shown on card
                   ];
 
                   const autoId = PRIORITY[0];
-                  if (!autoId) return null; // no sections at all
+                  if (!autoId) return null;
                   resolvedMode = 'single';
                   resolvedIds = [autoId];
                   resolvedCount = 1;

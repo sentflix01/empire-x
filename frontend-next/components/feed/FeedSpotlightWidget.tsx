@@ -31,6 +31,11 @@ interface Section {
   services?: SpotlightItem[];
   galleryImages?: Array<{ url?: string; caption?: string }>;
   dishes?: SpotlightItem[];
+  testimonials?: Array<{ quote?: string; author?: string; role?: string }>;
+  features?: Array<{ name?: string; desc?: string }>;
+  stats?: Array<{ number?: string; label?: string }>;
+  plans?: Array<{ name?: string; price?: string; period?: string; features?: string; product_id?: string }>;
+  events?: Array<{ title?: string; date?: string; price?: string; seats?: string; product_id?: string }>;
   [key: string]: unknown;
 }
 
@@ -73,7 +78,9 @@ function HeroPanel({ section, themeColor, showroomSlug }: { section: Section; th
 }
 
 function ItemsPanel({ section, themeColor, onProductClick }: { section: Section; themeColor: string; onProductClick: (item: SpotlightItem) => void }) {
-  const items: SpotlightItem[] = (section.items ?? section.dishes ?? []).slice(0, 4);
+  // 3 items max with image slots — keeps the feed card compact
+  const raw: SpotlightItem[] = section.items ?? section.dishes ?? [];
+  const items = raw.slice(0, 3);
   if (!items.length) {
     return (
       <div className="p-3 text-xs text-muted-foreground italic">No items to show</div>
@@ -126,26 +133,8 @@ function ItemsPanel({ section, themeColor, onProductClick }: { section: Section;
   );
 }
 
-function ContactPanel({ section, themeColor, showroomSlug }: { section: Section; themeColor: string; showroomSlug: string }) {
-  const href = section.phone ? `tel:${section.phone}` : `/showroom/${showroomSlug}`;
-  return (
-    <div className="p-3 flex items-center justify-between gap-2">
-      <div className="min-w-0">
-        {section.title && <p className="text-xs font-semibold truncate">{section.title}</p>}
-        {section.location && (
-          <p className="text-xs text-muted-foreground truncate">{section.location}</p>
-        )}
-      </div>
-      <Link
-        href={href}
-        className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-80"
-        style={{ backgroundColor: themeColor }}
-      >
-        Contact Us
-      </Link>
-    </div>
-  );
-}
+// ContactPanel intentionally removed — address is already visible on the business card above the spotlight.
+// Rendering it here would duplicate the location that appears under the business name.
 
 function AboutPanel({ section, showroomSlug, themeColor }: { section: Section; showroomSlug: string; themeColor: string }) {
   const text = section.aboutDesc ?? section.subtitle ?? '';
@@ -169,7 +158,8 @@ function AboutPanel({ section, showroomSlug, themeColor }: { section: Section; s
 }
 
 function GalleryPanel({ section }: { section: Section }) {
-  const images = (section.galleryImages ?? []).slice(0, 4);
+  // 3 max with images — keeps the card compact
+  const images = (section.galleryImages ?? []).slice(0, 3);
   if (!images.length) {
     return <div className="p-3 text-xs text-muted-foreground italic">No photos</div>;
   }
@@ -177,7 +167,7 @@ function GalleryPanel({ section }: { section: Section }) {
     <div className="overflow-x-auto overscroll-x-contain">
       <div className="flex gap-2 p-3" style={{ width: 'max-content' }}>
         {images.map((img, i) => (
-          <div key={i} className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-secondary/30">
+          <div key={i} className="w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-secondary/30">
             {img.url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -197,7 +187,8 @@ function GalleryPanel({ section }: { section: Section }) {
 }
 
 function ServicesPanel({ section, themeColor, onProductClick }: { section: Section; themeColor: string; onProductClick: (item: SpotlightItem) => void }) {
-  const services: SpotlightItem[] = (section.services ?? section.items ?? []).slice(0, 3);
+  // 5 max — text-only rows are compact
+  const services: SpotlightItem[] = (section.services ?? section.items ?? []).slice(0, 5);
   if (!services.length) {
     return <div className="p-3 text-xs text-muted-foreground italic">No services listed</div>;
   }
@@ -207,6 +198,9 @@ function ServicesPanel({ section, themeColor, onProductClick }: { section: Secti
         <div key={i} className="flex items-center justify-between gap-2 px-3 py-2">
           <div className="min-w-0">
             <p className="text-xs font-semibold truncate">{svc.name ?? svc.title}</p>
+            {(svc.desc ?? svc.description) && (
+              <p className="text-[11px] text-muted-foreground truncate">{svc.desc ?? svc.description}</p>
+            )}
             {svc.price && <p className="text-[11px] font-bold" style={{ color: themeColor }}>{svc.price}</p>}
           </div>
           <button
@@ -217,6 +211,112 @@ function ServicesPanel({ section, themeColor, onProductClick }: { section: Secti
           >
             Request
           </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TestimonialsPanel({ section }: { section: Section }) {
+  type Testimonial = { quote?: string; author?: string; role?: string };
+  const list = ((section.testimonials ?? []) as Testimonial[]).slice(0, 3);
+  if (!list.length) return <div className="p-3 text-xs text-muted-foreground italic">No testimonials yet</div>;
+  return (
+    <div className="divide-y divide-border/30">
+      {list.map((t, i) => (
+        <div key={i} className="px-3 py-2">
+          <p className="text-xs text-muted-foreground italic line-clamp-2">"{t.quote}"</p>
+          <p className="text-[11px] font-semibold mt-0.5">{t.author}{t.role ? ` · ${t.role}` : ''}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FeaturesPanel({ section, themeColor }: { section: Section; themeColor: string }) {
+  type Feature = { name?: string; desc?: string };
+  const list = ((section.features ?? []) as Feature[]).slice(0, 5);
+  if (!list.length) return <div className="p-3 text-xs text-muted-foreground italic">No features listed</div>;
+  return (
+    <div className="divide-y divide-border/30">
+      {list.map((f, i) => (
+        <div key={i} className="flex items-start gap-2 px-3 py-2">
+          <span className="mt-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{ backgroundColor: themeColor }}>{i + 1}</span>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold truncate">{f.name}</p>
+            {f.desc && <p className="text-[11px] text-muted-foreground truncate">{f.desc}</p>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StatsPanel({ section, themeColor }: { section: Section; themeColor: string }) {
+  type Stat = { number?: string; label?: string };
+  const list = ((section.stats ?? []) as Stat[]).slice(0, 4);
+  if (!list.length) return <div className="p-3 text-xs text-muted-foreground italic">No stats listed</div>;
+  return (
+    <div className="grid grid-cols-2 gap-px bg-border/30 overflow-hidden">
+      {list.map((s, i) => (
+        <div key={i} className="flex flex-col items-center justify-center py-3 bg-card">
+          <p className="text-base font-bold" style={{ color: themeColor }}>{s.number}</p>
+          <p className="text-[11px] text-muted-foreground text-center px-1">{s.label}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PricingPanel({ section, themeColor, onProductClick }: { section: Section; themeColor: string; onProductClick: (item: SpotlightItem) => void }) {
+  type Plan = { name?: string; price?: string; period?: string; features?: string; product_id?: string };
+  // 3 max — pricing cards need breathing room
+  const plans = ((section.plans ?? []) as Plan[]).slice(0, 3);
+  if (!plans.length) return <div className="p-3 text-xs text-muted-foreground italic">No pricing listed</div>;
+  return (
+    <div className="flex gap-2 p-3 overflow-x-auto overscroll-x-contain" style={{ width: 'max-content' }}>
+      {plans.map((p, i) => (
+        <div key={i} className="w-28 shrink-0 rounded-lg border border-border/40 bg-background p-2 flex flex-col gap-1">
+          <p className="text-[11px] font-semibold truncate">{p.name}</p>
+          <p className="text-sm font-bold" style={{ color: themeColor }}>{p.price}<span className="text-[10px] font-normal text-muted-foreground">{p.period}</span></p>
+          <button
+            type="button"
+            className="mt-auto rounded text-[10px] font-semibold py-0.5 px-1 text-white"
+            style={{ backgroundColor: themeColor }}
+            onClick={() => onProductClick({ name: p.name, price: p.price, product_id: p.product_id })}
+          >
+            Choose
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EventSchedulePanel({ section, themeColor, onProductClick }: { section: Section; themeColor: string; onProductClick: (item: SpotlightItem) => void }) {
+  type Ev = { title?: string; date?: string; price?: string; seats?: string; product_id?: string };
+  // 5 max — text rows
+  const events = ((section.events ?? []) as Ev[]).slice(0, 5);
+  if (!events.length) return <div className="p-3 text-xs text-muted-foreground italic">No upcoming events</div>;
+  return (
+    <div className="divide-y divide-border/30">
+      {events.map((ev, i) => (
+        <div key={i} className="flex items-center justify-between gap-2 px-3 py-2">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold truncate">{ev.title}</p>
+            <p className="text-[11px] text-muted-foreground truncate">{ev.date}{ev.seats ? ` · ${ev.seats} seats` : ''}</p>
+          </div>
+          <div className="flex flex-col items-end gap-0.5 shrink-0">
+            {ev.price && <p className="text-[11px] font-bold" style={{ color: themeColor }}>{ev.price}</p>}
+            <button
+              type="button"
+              className="rounded-full px-2 py-0.5 text-[10px] font-semibold text-white"
+              style={{ backgroundColor: themeColor }}
+              onClick={() => onProductClick({ name: ev.title, price: ev.price, product_id: ev.product_id })}
+            >
+              Book
+            </button>
+          </div>
         </div>
       ))}
     </div>
@@ -255,18 +355,31 @@ function renderSpotlightSection(
     case 'menu':
       return <ItemsPanel section={section} themeColor={themeColor} onProductClick={onProductClick} />;
 
-    case 'contact':
-      return <ContactPanel section={section} themeColor={themeColor} showroomSlug={showroomSlug} />;
-
-    case 'about':
-      return <AboutPanel section={section} showroomSlug={showroomSlug} themeColor={themeColor} />;
-
     case 'gallery':
       return <GalleryPanel section={section} />;
 
     case 'services':
       return <ServicesPanel section={section} themeColor={themeColor} onProductClick={onProductClick} />;
 
+    case 'testimonials':
+      return <TestimonialsPanel section={section} />;
+
+    case 'features':
+      return <FeaturesPanel section={section} themeColor={themeColor} />;
+
+    case 'stats':
+      return <StatsPanel section={section} themeColor={themeColor} />;
+
+    case 'pricing':
+      return <PricingPanel section={section} themeColor={themeColor} onProductClick={onProductClick} />;
+
+    case 'event_schedule':
+      return <EventSchedulePanel section={section} themeColor={themeColor} onProductClick={onProductClick} />;
+
+    case 'about':
+      return <AboutPanel section={section} showroomSlug={showroomSlug} themeColor={themeColor} />;
+
+    // contact is intentionally not rendered here — address is already visible on the card
     default:
       return <DefaultPanel section={section} themeColor={themeColor} showroomSlug={showroomSlug} />;
   }
