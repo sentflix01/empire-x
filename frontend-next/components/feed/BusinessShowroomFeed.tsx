@@ -36,6 +36,16 @@ interface Section {
   subtitle?: string;
   location?: string;
   items?: SectionItem[];
+  // Additional fields accessed by spotlight auto-pick logic
+  dishes?: SectionItem[];
+  services?: SectionItem[];
+  events?: Array<{ title?: string; date?: string; price?: string; seats?: string; product_id?: string }>;
+  plans?: Array<{ name?: string; price?: string; period?: string; features?: string; product_id?: string }>;
+  features?: Array<{ name?: string; desc?: string }>;
+  stats?: Array<{ number?: string; label?: string }>;
+  testimonials?: Array<{ quote?: string; author?: string; role?: string }>;
+  galleryImages?: Array<{ url?: string; caption?: string }>;
+  [key: string]: unknown;
 }
 
 interface HourEntry {

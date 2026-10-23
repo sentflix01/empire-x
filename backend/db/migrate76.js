@@ -12,12 +12,9 @@
  *   pos % 5 === 3 → single (contact or testimonials)
  *   pos % 5 === 4 → off
  *
- * Run: node db/migrate76.js
+ * Exported as a function so migrate-all.js can call it directly.
  */
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const pool = require('./poolJsShim.cjs');
-
-async function migrate() {
+module.exports = async function migrate76(pool) {
   const client = await pool.connect();
   console.log('\n🔧 migrate76: patching spotlight on seed showrooms\n');
   try {
@@ -86,15 +83,7 @@ async function migrate() {
       patched++;
     }
     console.log(`  ✅ Patched ${patched} showrooms`);
-  } catch (err) {
-    console.error('❌ migrate76 failed:', err.message);
-    if (err.stack) console.error(err.stack);
-    process.exit(1);
   } finally {
     client.release();
-    await pool.end();
   }
-}
-
-if (require.main === module) migrate();
-module.exports = { migrate };
+};
