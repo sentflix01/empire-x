@@ -91,31 +91,22 @@ function Marketplace() {
     }
   }, [loadProducts, paymentResult]);
 
-  // Infinite scroll sentinel — observer is created once; a stable ref holds
-  // the current load function so the callback never goes stale.
+  // Infinite scroll sentinel — created once, reads current state through refs.
+  // loadMore already guards against concurrent calls (loadingMore flag).
+  // We only skip when loadMore itself says not to — no extra loading guard needed.
   const loadMoreRef = useRef(loadMore);
-  const hasMoreRef  = useRef(hasMore);
-  const loadingMoreRef = useRef(loadingMore);
-  const loadingRef  = useRef(loading);
   useEffect(() => { loadMoreRef.current = loadMore; }, [loadMore]);
-  useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
-  useEffect(() => { loadingMoreRef.current = loadingMore; }, [loadingMore]);
-  useEffect(() => { loadingRef.current = loading; }, [loading]);
 
   useEffect(() => {
     if (!sentinelRef.current) return;
     const obs = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && hasMoreRef.current && !loadingMoreRef.current && !loadingRef.current) {
-          void loadMoreRef.current();
-        }
-      },
+      entries => { if (entries[0].isIntersecting) void loadMoreRef.current(); },
       { rootMargin: '400px' }
     );
     obs.observe(sentinelRef.current);
     return () => obs.disconnect();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // observer created once; state accessed through refs above
+  }, []); // observer created once; loadMore is the single authority on whether to proceed
 
   const filtered = products.filter(p => {
     const matchSearch = !search || p.title?.toLowerCase().includes(search.toLowerCase());
