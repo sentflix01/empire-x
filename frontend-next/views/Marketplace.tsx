@@ -42,7 +42,7 @@ function Marketplace() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [paymentBanner, setPaymentBanner] = useState<"success"|"failed"|"cancelled"|null>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const obsRef = useRef<IntersectionObserver | null>(null);
   const cursorRef = useRef<string | null>(null);
   const PAGE_SIZE = 24;
 
@@ -91,22 +91,24 @@ function Marketplace() {
     }
   }, [loadProducts, paymentResult]);
 
-  // Infinite scroll sentinel — created once, reads current state through refs.
-  // loadMore already guards against concurrent calls (loadingMore flag).
-  // We only skip when loadMore itself says not to — no extra loading guard needed.
+  // Infinite scroll sentinel — use a callback ref so the observer is attached
+  // the moment the sentinel element mounts (which happens after loading=false).
+  // A plain useRef + [] effect misses the element because it mounts after the
+  // first render when loading=true, by which time the [] effect has already run.
   const loadMoreRef = useRef(loadMore);
   useEffect(() => { loadMoreRef.current = loadMore; }, [loadMore]);
-
-  useEffect(() => {
-    if (!sentinelRef.current) return;
+  const obsRef = useRef<IntersectionObserver | null>(null);
+  const sentinelCallbackRef = useCallback((el: HTMLDivElement | null) => {
+    if (obsRef.current) { obsRef.current.disconnect(); obsRef.current = null; }
+    if (!el) return;
     const obs = new IntersectionObserver(
       entries => { if (entries[0].isIntersecting) void loadMoreRef.current(); },
       { rootMargin: '400px' }
     );
-    obs.observe(sentinelRef.current);
-    return () => obs.disconnect();
+    obs.observe(el);
+    obsRef.current = obs;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // observer created once; loadMore is the single authority on whether to proceed
+  }, []); // stable — observer recreated only when element mounts/unmounts
 
   const filtered = products.filter(p => {
     const matchSearch = !search || p.title?.toLowerCase().includes(search.toLowerCase());
@@ -222,7 +224,7 @@ function Marketplace() {
           {/* Infinite scroll sentinel — only when not filtering locally */}
           {!search && category === t('marketplace.categories.all') && (
             <>
-              <div ref={sentinelRef} className="h-4" />
+              <div ref={sentinelCallbackRef} className="h-4" />
               {loadingMore && (
                 <div className="flex justify-center py-4">
                   <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
