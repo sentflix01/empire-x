@@ -21,7 +21,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import BusinessShowroomFeed from './BusinessShowroomFeed';
+import { BusinessFeedCard } from './BusinessShowroomFeed';
 import ShareButton from '@/components/ui/ShareButton';
 import BookmarkButton from '@/components/ui/BookmarkButton';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
@@ -846,18 +846,26 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
               </div>
             )}
           </>
-        ) : authorProfile ? (
-          <BusinessShowroomFeed
-            profile={authorProfile as never}
-            currentUser={currentUser as never}
-            businesses={authorBusinesses as never}
-          />
-        ) : (
-          <div className="px-4 py-6 text-center">
-            <Store className="w-8 h-8 text-muted-foreground/20 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">{t('feed.loadingShowroom')}</p>
-          </div>
-        )}
+        ) : (() => {
+          const biz = authorBusinesses[0];
+          if (!biz || !authorProfile) {
+            return (
+              <div className="px-4 py-6 text-center">
+                <Store className="w-8 h-8 text-muted-foreground/20 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">{t('feed.loadingShowroom')}</p>
+              </div>
+            );
+          }
+          return (
+            <BusinessFeedCard
+              biz={biz}
+              ownerName={post.author_name}
+              ownerAvatarUrl={post.author_avatar}
+              ownerIsVerified={authorProfile?.is_verified ?? false}
+              viewer={viewerId ? { id: viewerId } : null}
+            />
+          );
+        })()}
       </div>
 
       {/* Actions */}

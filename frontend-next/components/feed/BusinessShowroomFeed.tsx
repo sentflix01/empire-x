@@ -385,6 +385,392 @@ function CategoryContent({ biz, sections, products, themeColor, profileUserId, o
   }
 }
 
+/* ── BusinessFeedCard (extracted per-card component for feed mode) ── */
+export interface BusinessFeedCardProps {
+  biz: Business;
+  ownerName?: string | null;
+  ownerAvatarUrl?: string | null;
+  ownerIsVerified?: boolean;
+  ownerIsSeed?: boolean;
+  viewer?: { id?: string } | null;
+  onMessage?: (ownerId: string, bizName: string) => void;
+}
+
+export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, ownerIsSeed, viewer, onMessage }: BusinessFeedCardProps) {
+  const router = useRouter();
+  const [qrOpen, setQrOpen] = useState(false);
+  const [messaging, setMessaging] = useState(false);
+  const [purchaseModal, setPurchaseModal] = useState<{
+    item: { id?: string; title: string; description?: string; price?: number; currency?: string; images?: string };
+    seller: { user_id: string; business_name?: string; display_name?: string };
+  } | null>(null);
+  const [spotlightDrawer, setSpotlightDrawer] = useState<{
+    item: SpotlightItem;
+    businessName: string;
+    ownerId: string;
+    showroomSlug: string;
+    themeColor: string;
+  } | null>(null);
+
+  const color      = (biz.business_theme_color as string) || '#2563EB';
+  const bizName    = (biz.business_name as string)        || 'Business';
+  const category   = (biz.business_category as string)    || 'other';
+  const CatIcon    = CAT_ICONS[category] ?? Store;
+  const sections   = parseSections(biz.business_sections as string | undefined);
+  const heroSection= sections.find(s => s.type === 'hero');
+  const servSection= sections.find(s => s.type === 'services');
+  const logoUrl    = biz.business_logo_url as string | undefined;
+  const coverUrl   = biz.business_cover_url as string | undefined;
+  const ownerId    = biz.owner_id as string || '';
+  const showroomSlug = typeof biz.showroom_slug === 'string' ? biz.showroom_slug : '';
+  const showroomId = typeof biz.showroom_id === 'string' ? biz.showroom_id : '';
+  const visitPath = showroomSlug
+    ? `/showroom/${showroomSlug}`
+    : showroomId
+      ? `/showrooms/${showroomId}`
+      : `/profile/${ownerId}?view=business`;
+  const qrUrl = typeof window !== 'undefined'
+    ? showroomSlug
+      ? `${window.location.origin}/showroom/${showroomSlug}`
+      : showroomId
+        ? `${window.location.origin}/showrooms/${showroomId}`
+        : `${window.location.origin}/profile/${ownerId}?view=business`
+    : showroomSlug
+      ? `https://nodbusiness.vercel.app/showroom/${showroomSlug}`
+      : showroomId
+        ? `https://nodbusiness.vercel.app/showrooms/${showroomId}`
+        : `https://nodbusiness.vercel.app/profile/${ownerId}?view=business`;
+
+  const handleMessage = async (targetUserId: string, targetName: string) => {
+    if (messaging) return;
+    if (onMessage) {
+      onMessage(targetUserId, targetName);
+      return;
+    }
+    setMessaging(true);
+    try {
+      const conv = await findOrCreateConversation({ id: viewer?.id } as any, targetUserId, targetName);
+      if (conv) router.push(`/messages/${conv.id}`);
+    } catch (e) { console.error(e); }
+    setMessaging(false);
+  };
+
+  return (
+    <div className="rounded-2xl border border-border/50 overflow-hidden bg-card shadow-sm">
+      {/* Cover */}
+      <div className="relative h-24 overflow-hidden">
+        {coverUrl
+          ? <NextImage src={coverUrl} alt={`${bizName}'s cover`} fill className="object-cover" unoptimized />
+          : <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${color}, ${color}99)` }}>
+              <div className="w-full h-full opacity-10" style={{
+                backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)',
+                backgroundSize: '12px 12px',
+              }} />
+            </div>}
+        <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium text-white bg-black/35 backdrop-blur-sm">
+          <CatIcon className="w-3 h-3" />
+          {category}
+        </span>
+      </div>
+
+      {/* Header */}
+      <div className="px-4 pb-3 -mt-6 relative">
+        <div className="flex items-end justify-between">
+          <div className="flex items-end gap-2">
+            <div className="w-14 h-14 rounded-xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
+              style={{ backgroundColor: color }}>
+              {logoUrl
+                ? <NextImage src={logoUrl} alt={`${bizName}'s logo`} width={40} height={40} className="w-full h-full object-cover" unoptimized />
+                : <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
+                    {bizName.charAt(0)}
+                  </div>}
+            </div>
+            {/* QR code button */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setQrOpen(v => !v)}
+                className="w-14 h-14 rounded-xl border-4 border-white bg-white flex items-center justify-center hover:border-amber-400/60 transition-all shadow-sm overflow-hidden"
+                aria-label={`Show QR code for ${bizName}`}
+                title="Scan to open this business profile"
+              >
+                <QRCodeSVG
+                  value={qrUrl}
+                  size={46}
+                  level="L"
+                  includeMargin={false}
+                  style={{ display: 'block' }}
+                />
+              </button>
+              {qrOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-6"
+                    onClick={() => setQrOpen(false)}
+                  >
+                    <div
+                      className="relative bg-white rounded-3xl shadow-2xl p-6 max-w-xs w-full animate-in fade-in zoom-in-95 duration-200"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => setQrOpen(false)}
+                        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
+                        type="button"
+                        aria-label="Close QR code"
+                      >
+                        ✕
+                      </button>
+                      <div className="flex flex-col items-center mb-4">
+                        <div className="w-14 h-14 rounded-xl border-2 overflow-hidden mb-2 shadow-sm" style={{ borderColor: color, backgroundColor: color }}>
+                          {logoUrl
+                            ? <NextImage src={logoUrl} alt={bizName} width={56} height={56} className="w-full h-full object-cover" unoptimized />
+                            : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">{bizName.charAt(0)}</div>}
+                        </div>
+                        <h3 className="font-bold text-sm text-center text-slate-800 leading-tight px-2">{bizName}</h3>
+                        {biz.business_address && (
+                          <p className="text-xs text-slate-400 text-center mt-0.5">{biz.business_address as string}</p>
+                        )}
+                      </div>
+                      <div className="flex justify-center">
+                        <div className="p-3 bg-white rounded-2xl border border-slate-100 shadow-inner">
+                          <QRCodeSVG
+                            value={qrUrl}
+                            size={220}
+                            level="H"
+                            includeMargin
+                            imageSettings={{
+                              src: '/brand/nodbusiness-icon.svg',
+                              height: 36,
+                              width: 36,
+                              excavate: true,
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-center text-slate-400 mt-3 px-4">
+                        Scan with your phone camera to open this business showroom — no account needed
+                      </p>
+                      <Link
+                        href={visitPath}
+                        className="mt-3 flex items-center justify-center gap-2 w-full h-9 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90"
+                        style={{ backgroundColor: color }}
+                        onClick={() => setQrOpen(false)}
+                      >
+                        Visit Business Profile
+                      </Link>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            <SharedBookmarkButton
+              targetId={showroomId || biz.id}
+              targetType="showroom"
+              itemData={{ title: bizName }}
+              className="w-8 h-8 rounded-full border border-border/40 bg-card/80 backdrop-blur-sm shadow-sm hover:scale-110 active:scale-95 transition-all"
+            />
+          </div>
+          <div className="flex gap-2 mb-1">
+            {viewer && ownerId && ownerId !== viewer.id && (
+              <Button size="sm" variant="outline" className="rounded-full h-7 text-xs"
+                onClick={() => handleMessage(ownerId, bizName)} disabled={messaging}>
+                <MessageSquare className="w-3 h-3 mr-1" />Message
+              </Button>
+            )}
+            <Link href={visitPath}>
+              <Button size="sm" className="rounded-full h-7 text-xs text-white"
+                style={{ backgroundColor: color }}>
+                Visit <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+        <h3 className="mt-2 font-display text-base font-bold" style={{ color }}>{bizName}</h3>
+        {/* Owner identity */}
+        {ownerName && (
+          <Link
+            href={`/profile/${ownerId}`}
+            className="flex items-center gap-1 mt-0.5 group w-fit"
+            onClick={e => e.stopPropagation()}
+          >
+            {ownerAvatarUrl ? (
+              <NextImage
+                src={ownerAvatarUrl}
+                alt={ownerName}
+                width={16}
+                height={16}
+                className="w-4 h-4 rounded-full object-cover shrink-0"
+                unoptimized
+              />
+            ) : (
+              <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
+                style={{ backgroundColor: color }}>
+                {ownerName.charAt(0).toUpperCase()}
+              </span>
+            )}
+            <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors truncate max-w-[140px]">
+              {ownerName}
+            </span>
+            {ownerIsVerified && (
+              <VerifiedBadge type="personal" size="sm" />
+            )}
+          </Link>
+        )}
+        {heroSection?.subtitle && (
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{heroSection.subtitle}</p>
+        )}
+        {biz.business_address && (
+          <p className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+            <MapPin className="w-3 h-3 shrink-0" />
+            {biz.business_address as string}
+          </p>
+        )}
+      </div>
+
+      {/* Services preview */}
+      {servSection?.items && servSection.items.length > 0 && (
+        <div className="px-4 pb-4">
+          <ServicesList
+            title={servSection.title}
+            items={servSection.items}
+            themeColor={color}
+            onBuy={(svcItem) => {
+              const priceStr = svcItem.price ?? '';
+              const priceNum = parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 0;
+              setPurchaseModal({
+                item: {
+                  title: svcItem.name ?? svcItem.title ?? 'Service',
+                  description: svcItem.description ?? svcItem.desc,
+                  price: priceNum,
+                  currency: 'ETB',
+                },
+                seller: {
+                  user_id: ownerId,
+                  business_name: bizName,
+                },
+              });
+            }}
+          />
+        </div>
+      )}
+
+      {/* Feed Spotlight */}
+      {biz.showroom_id && biz.spotlight_mode !== 'off' && (() => {
+        let resolvedMode: 'single' | 'carousel';
+        let resolvedIds: string[];
+        let resolvedCount: number;
+
+        if (biz.spotlight_mode === 'single' || biz.spotlight_mode === 'carousel') {
+          resolvedMode = biz.spotlight_mode;
+          try { resolvedIds = JSON.parse(biz.spotlight_section_ids as string ?? '[]') as string[]; }
+          catch { resolvedIds = []; }
+          resolvedCount = typeof biz.spotlight_carousel_count === 'number' ? biz.spotlight_carousel_count : 1;
+        } else {
+          // null = never configured → auto-pick by account type
+          const hasItems = (type: string) =>
+            sections.some(s =>
+              s.type === type && (
+                (s.items && (s.items as unknown[]).length > 0) ||
+                (s.dishes && (s.dishes as unknown[]).length > 0) ||
+                (s.services && (s.services as unknown[]).length > 0) ||
+                (s.events && (s.events as unknown[]).length > 0) ||
+                (s.plans && (s.plans as unknown[]).length > 0) ||
+                (s.features && (s.features as unknown[]).length > 0) ||
+                (s.stats && (s.stats as unknown[]).length > 0) ||
+                (s.testimonials && (s.testimonials as unknown[]).length > 0)
+              )
+            );
+
+          const isDemoAccount = ownerIsSeed === true || (biz as any).owner_is_seed === true;
+
+          let autoId: string | undefined;
+
+          if (isDemoAccount) {
+            // Demo accounts: services OR about only, no carousel
+            // Diversify: alternate between services and about using biz.id hash
+            const idSum = biz.id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+            const preferServices = idSum % 2 === 0;
+            if (preferServices) {
+              autoId = hasItems('services') ? 'services' : (sections.some(s => s.type === 'about') ? 'about' : undefined);
+            } else {
+              autoId = sections.some(s => s.type === 'about') ? 'about' : (hasItems('services') ? 'services' : undefined);
+            }
+          } else {
+            // Real accounts: items or menu only (products)
+            autoId = hasItems('items') ? 'items' : (hasItems('menu') ? 'menu' : undefined);
+          }
+
+          if (!autoId) return null;
+          resolvedMode = 'single';  // always single, never carousel in auto mode
+          resolvedIds = [autoId];
+          resolvedCount = 1;
+        }
+
+        if (resolvedIds.length === 0) return null;
+
+        return (
+          <FeedSpotlightWidget
+            sections={sections as FeedSpotlightWidgetProps['sections']}
+            spotlightMode={resolvedMode}
+            spotlightSectionIds={resolvedIds}
+            spotlightCarouselCount={resolvedCount}
+            themeColor={color}
+            businessName={bizName}
+            showroomSlug={showroomSlug}
+            ownerId={ownerId}
+            onProductClick={(item) => setSpotlightDrawer({
+              item,
+              businessName: bizName,
+              ownerId,
+              showroomSlug,
+              themeColor: color,
+            })}
+          />
+        );
+      })()}
+
+      {/* Inline PurchaseModal */}
+      {purchaseModal && (
+        <PurchaseModal
+          item={purchaseModal.item}
+          seller={purchaseModal.seller}
+          buyer={viewer ? { id: viewer.id as string } : undefined}
+          onClose={() => setPurchaseModal(null)}
+        />
+      )}
+
+      {/* Spotlight product drawer */}
+      {spotlightDrawer && (
+        <SpotlightProductDrawer
+          item={spotlightDrawer.item}
+          businessName={spotlightDrawer.businessName}
+          ownerId={spotlightDrawer.ownerId}
+          showroomSlug={spotlightDrawer.showroomSlug}
+          themeColor={spotlightDrawer.themeColor}
+          currentUserId={viewer?.id as string | undefined}
+          onClose={() => setSpotlightDrawer(null)}
+          onBuy={(item) => {
+            setSpotlightDrawer(null);
+            const priceNum = parseFloat(String(item.price ?? '').replace(/[^0-9.]/g, '')) || 0;
+            setPurchaseModal({
+              item: {
+                title: item.name ?? item.title ?? 'Item',
+                description: item.desc ?? item.description,
+                price: priceNum,
+                currency: 'ETB',
+              },
+              seller: {
+                user_id: spotlightDrawer.ownerId,
+                business_name: spotlightDrawer.businessName,
+              },
+            });
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 /* ── Main export ─────────────────────────────────────────────────── */
 interface BusinessShowroomFeedProps {
   profile?: Profile;
@@ -399,27 +785,17 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   const [feedError, setFeedError] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [messaging, setMessaging] = useState(false);
-  const [qrOpenId, setQrOpenId] = useState<string | null>(null); // QR popup
+  const [messaging, setMessaging] = useState(false); // used by profile-mode message button
   // Owner display names for feed-mode cards — keyed by owner_id
-  const [ownerProfiles, setOwnerProfiles] = useState<Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean }>>({});
+  const [ownerProfiles, setOwnerProfiles] = useState<Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean }>>({});
   const router = useRouter();
   const { user: signedInUser } = useAuth();
   const viewer = currentUser ?? signedInUser;
 
-  // ── Purchase modal state ───────────────────────────────────────────
-  const [purchaseModal, setPurchaseModal] = useState<{
+  // ── Purchase modal state for single-profile mode ───────────────────
+  const [singlePurchaseModal, setSinglePurchaseModal] = useState<{
     item: { id?: string; title: string; description?: string; price?: number; currency?: string; images?: string };
     seller: { user_id: string; business_name?: string; display_name?: string };
-  } | null>(null);
-
-  // ── Spotlight drawer state ─────────────────────────────────────────
-  const [spotlightDrawer, setSpotlightDrawer] = useState<{
-    item: SpotlightItem;
-    businessName: string;
-    ownerId: string;
-    showroomSlug: string;
-    themeColor: string;
   } | null>(null);
 
   // ── Global feed mode (no profile prop) ────────────────────────────
@@ -489,7 +865,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               .catch(() => ({ id, p: null }))
           )
         );
-        const map: Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean }> = {};
+        const map: Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean }> = {};
         for (const result of profileResults) {
           if (result.status === 'fulfilled' && result.value.p) {
             const p = result.value.p;
@@ -497,6 +873,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               display_name: p.display_name,
               avatar_url: Array.isArray(p.avatar_url) ? (p.avatar_url[0] ?? '') : p.avatar_url,
               is_verified: p.is_verified,
+              is_seed: (p as any).is_seed === true,
             };
           }
         }
@@ -594,377 +971,22 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     <>
       <div className="space-y-4">
         {feedBusinesses.map((biz) => {
-          const color      = (biz.business_theme_color as string) || '#2563EB';
-          const bizName    = (biz.business_name as string)        || 'Business';
-          const category   = (biz.business_category as string)    || 'other';
-          const CatIcon    = CAT_ICONS[category] ?? Store;
-          const sections   = parseSections(biz.business_sections as string | undefined);
-          const heroSection= sections.find(s => s.type === 'hero');
-          const servSection= sections.find(s => s.type === 'services');
-          const logoUrl    = biz.business_logo_url as string | undefined;
-          const coverUrl   = biz.business_cover_url as string | undefined;
-          const ownerId    = biz.owner_id as string || '';
-          const showroomSlug = typeof biz.showroom_slug === 'string' ? biz.showroom_slug : '';
-          const showroomId = typeof biz.showroom_id === 'string' ? biz.showroom_id : '';
-          const visitPath = showroomSlug
-            ? `/showroom/${showroomSlug}`
-            : showroomId
-              ? `/showrooms/${showroomId}`
-              : `/profile/${ownerId}?view=business`;
-          const qrUrl = typeof window !== 'undefined'
-            ? showroomSlug
-              ? `${window.location.origin}/showroom/${showroomSlug}`
-              : showroomId
-                ? `${window.location.origin}/showrooms/${showroomId}`
-                : `${window.location.origin}/profile/${ownerId}?view=business`
-            : showroomSlug
-              ? `https://nodbusiness.vercel.app/showroom/${showroomSlug}`
-              : showroomId
-                ? `https://nodbusiness.vercel.app/showrooms/${showroomId}`
-                : `https://nodbusiness.vercel.app/profile/${ownerId}?view=business`;
-
+          const ownerId = biz.owner_id as string || '';
+          const op = ownerProfiles[ownerId];
           return (
-            <div key={biz.id} className="rounded-2xl border border-border/50 overflow-hidden bg-card shadow-sm">
-              {/* Cover */}
-              <div className="relative h-24 overflow-hidden">
-                {coverUrl
-                  ? <NextImage src={coverUrl} alt={`${bizName}'s cover`} fill className="object-cover" unoptimized />
-                  : <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${color}, ${color}99)` }}>
-                      <div className="w-full h-full opacity-10" style={{
-                        backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)',
-                        backgroundSize: '12px 12px',
-                      }} />
-                    </div>}
-                <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium text-white bg-black/35 backdrop-blur-sm">
-                  <CatIcon className="w-3 h-3" />
-                  {category}
-                </span>
-              </div>
-
-              {/* Header */}
-              <div className="px-4 pb-3 -mt-6 relative">
-                <div className="flex items-end justify-between">
-                  <div className="flex items-end gap-2">
-                    <div className="w-14 h-14 rounded-xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
-                      style={{ backgroundColor: color }}>
-                      {logoUrl
-                        ? <NextImage src={logoUrl} alt={`${bizName}'s logo`} width={40} height={40} className="w-full h-full object-cover" unoptimized />
-                        : <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
-                            {bizName.charAt(0)}
-                          </div>}
-                    </div>
-                    {/* QR code button — same size as logo square (w-14 h-14 rounded-xl) */}
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setQrOpenId(qrOpenId === biz.id ? null : biz.id)}
-                        className="w-14 h-14 rounded-xl border-4 border-white bg-white flex items-center justify-center hover:border-amber-400/60 transition-all shadow-sm overflow-hidden"
-                        aria-label={`Show QR code for ${bizName}`}
-                        title="Scan to open this business profile"
-                      >
-                        {/* Preview QR at button size — actual scannable QR in popup */}
-                        <QRCodeSVG
-                          value={qrUrl}
-                          size={46}
-                          level="L"
-                          includeMargin={false}
-                          style={{ display: 'block' }}
-                        />
-                      </button>
-                      {/* Full-screen centered modal QR popup */}
-                      {qrOpenId === biz.id && (
-                        <>
-                          {/* Backdrop */}
-                          <div
-                            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-6"
-                            onClick={() => setQrOpenId(null)}
-                          >
-                            {/* Modal — stopPropagation so clicking inside doesn't close */}
-                            <div
-                              className="relative bg-white rounded-3xl shadow-2xl p-6 max-w-xs w-full animate-in fade-in zoom-in-95 duration-200"
-                              onClick={e => e.stopPropagation()}
-                            >
-                              {/* Close button */}
-                              <button
-                                onClick={() => setQrOpenId(null)}
-                                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
-                                type="button"
-                                aria-label="Close QR code"
-                              >
-                                ✕
-                              </button>
-                              {/* Business logo + name */}
-                              <div className="flex flex-col items-center mb-4">
-                                <div className="w-14 h-14 rounded-xl border-2 overflow-hidden mb-2 shadow-sm" style={{ borderColor: color, backgroundColor: color }}>
-                                  {logoUrl
-                                    ? <NextImage src={logoUrl} alt={bizName} width={56} height={56} className="w-full h-full object-cover" unoptimized />
-                                    : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">{bizName.charAt(0)}</div>}
-                                </div>
-                                <h3 className="font-bold text-sm text-center text-slate-800 leading-tight px-2">{bizName}</h3>
-                                {biz.business_address && (
-                                  <p className="text-xs text-slate-400 text-center mt-0.5">{biz.business_address as string}</p>
-                                )}
-                              </div>
-                              {/* Large scannable QR */}
-                              <div className="flex justify-center">
-                                <div className="p-3 bg-white rounded-2xl border border-slate-100 shadow-inner">
-                                  <QRCodeSVG
-                                    value={qrUrl}
-                                    size={220}
-                                    level="H"
-                                    includeMargin
-                                    imageSettings={{
-                                      src: '/brand/nodbusiness-icon.svg',
-                                      height: 36,
-                                      width: 36,
-                                      excavate: true,
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                              <p className="text-xs text-center text-slate-400 mt-3 px-4">
-                                Scan with your phone camera to open this business showroom — no account needed
-                              </p>
-                              <Link
-                                href={visitPath}
-                                className="mt-3 flex items-center justify-center gap-2 w-full h-9 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90"
-                                style={{ backgroundColor: color }}
-                                onClick={() => setQrOpenId(null)}
-                              >
-                                Visit Business Profile
-                              </Link>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    <SharedBookmarkButton
-                      targetId={showroomId || biz.id}
-                      targetType="showroom"
-                      itemData={{ title: bizName }}
-                      className="w-8 h-8 rounded-full border border-border/40 bg-card/80 backdrop-blur-sm shadow-sm hover:scale-110 active:scale-95 transition-all"
-                    />
-                  </div>
-                  <div className="flex gap-2 mb-1">
-                    {viewer && ownerId && ownerId !== viewer.id && (
-                      <Button size="sm" variant="outline" className="rounded-full h-7 text-xs"
-                        onClick={() => handleMessage(ownerId, bizName)} disabled={messaging}>
-                        <MessageSquare className="w-3 h-3 mr-1" />Message
-                      </Button>
-                    )}
-                    <Link href={visitPath}>
-                      <Button size="sm" className="rounded-full h-7 text-xs text-white"
-                        style={{ backgroundColor: color }}>
-                        Visit <ArrowRight className="w-3 h-3 ml-1" />
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-                <h3 className="mt-2 font-display text-base font-bold" style={{ color }}>{bizName}</h3>
-                {/* Owner identity — "by Display Name" */}
-                {ownerProfiles[ownerId]?.display_name && (
-                  <Link
-                    href={`/profile/${ownerId}`}
-                    className="flex items-center gap-1 mt-0.5 group w-fit"
-                    onClick={e => e.stopPropagation()}
-                  >
-                    {ownerProfiles[ownerId].avatar_url ? (
-                      <NextImage
-                        src={ownerProfiles[ownerId].avatar_url!}
-                        alt={ownerProfiles[ownerId].display_name!}
-                        width={16}
-                        height={16}
-                        className="w-4 h-4 rounded-full object-cover shrink-0"
-                        unoptimized
-                      />
-                    ) : (
-                      <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
-                        style={{ backgroundColor: color }}>
-                        {ownerProfiles[ownerId].display_name!.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                    <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors truncate max-w-[140px]">
-                      {ownerProfiles[ownerId].display_name}
-                    </span>
-                    {ownerProfiles[ownerId].is_verified && (
-                      <VerifiedBadge type="personal" size="sm" />
-                    )}
-                  </Link>
-                )}
-                {heroSection?.subtitle && (
-                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{heroSection.subtitle}</p>
-                )}
-                {biz.business_address && (
-                  <p className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                    <MapPin className="w-3 h-3 shrink-0" />
-                    {biz.business_address as string}
-                  </p>
-                )}
-              </div>
-
-              {/* Services preview */}
-              {servSection?.items && servSection.items.length > 0 && (
-                <div className="px-4 pb-4">
-                  <ServicesList
-                    title={servSection.title}
-                    items={servSection.items}
-                    themeColor={color}
-                    onBuy={(svcItem) => {
-                      // Parse price string like "ETB 500" or "From 30,000 ETB" → number
-                      const priceStr = svcItem.price ?? '';
-                      const priceNum = parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 0;
-                      setPurchaseModal({
-                        item: {
-                          title: svcItem.name ?? svcItem.title ?? 'Service',
-                          description: svcItem.description ?? svcItem.desc,
-                          price: priceNum,
-                          currency: 'ETB',
-                        },
-                        seller: {
-                          user_id: ownerId,
-                          business_name: bizName,
-                        },
-                      });
-                    }}
-                  />
-                </div>
-              )}
-
-              {/* Feed Spotlight — three states:
-                  null  = never configured → auto-pick best selling section by priority
-                  'single'/'carousel' = owner configured → show their setting
-                  'off' = owner explicitly disabled → show nothing
-                  Priority (selling-first, contact/hours never auto-selected — already on card):
-                  items/menu → services → event_schedule → pricing → gallery →
-                  testimonials → features → stats → about → hero */}
-              {biz.showroom_id && biz.spotlight_mode !== 'off' && (() => {
-                let resolvedMode: 'single' | 'carousel';
-                let resolvedIds: string[];
-                let resolvedCount: number;
-
-                if (biz.spotlight_mode === 'single' || biz.spotlight_mode === 'carousel') {
-                  // Owner explicitly configured — respect their choice
-                  resolvedMode = biz.spotlight_mode;
-                  try { resolvedIds = JSON.parse(biz.spotlight_section_ids as string ?? '[]') as string[]; }
-                  catch { resolvedIds = []; }
-                  resolvedCount = typeof biz.spotlight_carousel_count === 'number' ? biz.spotlight_carousel_count : 1;
-                } else {
-                  // null = never configured → auto-pick by selling priority
-                  // "has content" = section exists AND has at least 1 item/dish/service/etc.
-                  const hasItems = (type: string) =>
-                    sections.some(s =>
-                      s.type === type && (
-                        (s.items && (s.items as unknown[]).length > 0) ||
-                        (s.dishes && (s.dishes as unknown[]).length > 0) ||
-                        (s.services && (s.services as unknown[]).length > 0) ||
-                        (s.events && (s.events as unknown[]).length > 0) ||
-                        (s.plans && (s.plans as unknown[]).length > 0) ||
-                        (s.features && (s.features as unknown[]).length > 0) ||
-                        (s.stats && (s.stats as unknown[]).length > 0) ||
-                        (s.testimonials && (s.testimonials as unknown[]).length > 0)
-                      )
-                    );
-                  const hasImages = (type: string) =>
-                    sections.some(s =>
-                      s.type === type && s.galleryImages && (s.galleryImages as unknown[]).length > 0
-                    );
-
-                  const PRIORITY: string[] = [
-                    // Rank 1 — what they sell (direct conversion)
-                    ...(hasItems('items') ? ['items'] : []),
-                    ...(hasItems('menu') ? ['menu'] : []),
-                    // Rank 2 — services with prices
-                    ...(hasItems('services') ? ['services'] : []),
-                    // Rank 3 — events / classes with tickets
-                    ...(hasItems('event_schedule') ? ['event_schedule'] : []),
-                    // Rank 4 — pricing packages
-                    ...(hasItems('pricing') ? ['pricing'] : []),
-                    // Rank 5 — gallery (visual proof, only if has photos)
-                    ...(hasImages('gallery') ? ['gallery'] : []),
-                    // Rank 6 — social proof
-                    ...(hasItems('testimonials') ? ['testimonials'] : []),
-                    // Rank 7 — differentiation
-                    ...(hasItems('features') ? ['features'] : []),
-                    ...(hasItems('stats') ? ['stats'] : []),
-                    // Rank 8 — about (story)
-                    ...(sections.some(s => s.type === 'about') ? ['about'] : []),
-                    // Rank 9 — hero last resort
-                    ...(sections.some(s => s.type === 'hero') ? ['hero'] : []),
-                    // contact and hours intentionally excluded — already shown on card
-                  ];
-
-                  const autoId = PRIORITY[0];
-                  if (!autoId) return null;
-                  resolvedMode = 'single';
-                  resolvedIds = [autoId];
-                  resolvedCount = 1;
-                }
-
-                if (resolvedIds.length === 0) return null;
-
-                return (
-                  <FeedSpotlightWidget
-                    sections={sections as FeedSpotlightWidgetProps['sections']}
-                    spotlightMode={resolvedMode}
-                    spotlightSectionIds={resolvedIds}
-                    spotlightCarouselCount={resolvedCount}
-                    themeColor={color}
-                    businessName={bizName}
-                    showroomSlug={showroomSlug}
-                    ownerId={ownerId}
-                    onProductClick={(item) => setSpotlightDrawer({
-                      item,
-                      businessName: bizName,
-                      ownerId,
-                      showroomSlug,
-                      themeColor: color,
-                    })}
-                  />
-                );
-              })()}
-            </div>
+            <BusinessFeedCard
+              key={biz.id}
+              biz={biz}
+              ownerName={op?.display_name}
+              ownerAvatarUrl={op?.avatar_url}
+              ownerIsVerified={op?.is_verified}
+              ownerIsSeed={op?.is_seed}
+              viewer={viewer}
+              onMessage={handleMessage}
+            />
           );
         })}
       </div>
-
-      {/* Purchase modal — shared across all feed-mode business cards */}
-      {purchaseModal && (
-        <PurchaseModal
-          item={purchaseModal.item}
-          seller={purchaseModal.seller}
-          buyer={viewer ? { id: viewer.id as string } : undefined}
-          onClose={() => setPurchaseModal(null)}
-        />
-      )}
-
-      {/* Spotlight product drawer */}
-      {spotlightDrawer && (
-        <SpotlightProductDrawer
-          item={spotlightDrawer.item}
-          businessName={spotlightDrawer.businessName}
-          ownerId={spotlightDrawer.ownerId}
-          showroomSlug={spotlightDrawer.showroomSlug}
-          themeColor={spotlightDrawer.themeColor}
-          currentUserId={viewer?.id as string | undefined}
-          onClose={() => setSpotlightDrawer(null)}
-          onBuy={(item) => {
-            setSpotlightDrawer(null);
-            const priceNum = parseFloat(String(item.price ?? '').replace(/[^0-9.]/g, '')) || 0;
-            setPurchaseModal({
-              item: {
-                title: item.name ?? item.title ?? 'Item',
-                description: item.desc ?? item.description,
-                price: priceNum,
-                currency: 'ETB',
-              },
-              seller: {
-                user_id: spotlightDrawer.ownerId,
-                business_name: spotlightDrawer.businessName,
-              },
-            });
-          }}
-        />
-      )}
     </>
     );
   }
@@ -1095,7 +1117,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           onBuyService={(svcItem) => {
             const priceStr = svcItem.price ?? '';
             const priceNum = parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 0;
-            setPurchaseModal({
+            setSinglePurchaseModal({
               item: {
                 title: svcItem.name ?? svcItem.title ?? 'Service',
                 description: svcItem.description ?? svcItem.desc,
@@ -1110,7 +1132,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
             });
           }}
           onBuyProduct={(product) => {
-            setPurchaseModal({
+            setSinglePurchaseModal({
               item: {
                 id: product.id,
                 title: product.title ?? 'Product',
@@ -1129,14 +1151,15 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
       </div>
 
       {/* Purchase modal */}
-      {purchaseModal && (
+      {singlePurchaseModal && (
         <PurchaseModal
-          item={purchaseModal.item}
-          seller={purchaseModal.seller}
+          item={singlePurchaseModal.item}
+          seller={singlePurchaseModal.seller}
           buyer={currentUser ? { id: currentUser.id as string } : undefined}
-          onClose={() => setPurchaseModal(null)}
+          onClose={() => setSinglePurchaseModal(null)}
         />
       )}
     </div>
   );
+
 }
