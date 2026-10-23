@@ -1276,13 +1276,52 @@ async function seed() {
 
 if (require.main === module) seed();
 
-// Backward-compat exports
-// BUILDER_CATEGORY and BUILDER_SECTIONS derived from SHOWROOM_CONFIGS
+// ── Backward-compat exports (used by seedShowroomFlow.test.js) ───────────────
+// The test iterates Object.keys(BUSINESS_CONFIGS) with internal short names
+// (restaurant, shop, service, health, course, event) then calls:
+//   buildSections(shortKey, businessObject)
+//   BUILDER_CATEGORY[shortKey]  → builder category string
+//   BUILDER_SECTIONS[shortKey]  → section key array
+//
+// Map internal short keys → builder category names (matches showroomCategoryMapping.ts)
+const SHORT_TO_BUILDER = {
+  restaurant: 'Food & Beverage',
+  shop:       'Business & Commerce',
+  service:    'Professional Services',
+  health:     'Health & Medical',
+  course:     'Education',
+  event:      'Hospitality & Tourism',
+};
+// One representative SHOWROOM_CONFIG per internal category key (first match)
+const BUSINESS_CONFIGS = Object.fromEntries(
+  Object.entries(SHORT_TO_BUILDER).map(([short, builderCat]) => {
+    const cfg = SHOWROOM_CONFIGS.find(c => c.category === builderCat) || SHOWROOM_CONFIGS[0];
+    return [short, cfg];
+  })
+);
 const BUILDER_CATEGORY = Object.fromEntries(
-  SHOWROOM_CONFIGS.map(cfg => [cfg.name, cfg.category])
+  Object.entries(SHORT_TO_BUILDER).map(([short, builderCat]) => [short, builderCat])
 );
 const BUILDER_SECTIONS = Object.fromEntries(
-  SHOWROOM_CONFIGS.map(cfg => [cfg.name, cfg.sectionKeys])
+  Object.entries(BUSINESS_CONFIGS).map(([short, cfg]) => [short, cfg.sectionKeys])
 );
-
-module.exports = { BUSINESS_CONFIGS: SHOWROOM_CONFIGS, BUILDER_CATEGORY, BUILDER_SECTIONS, buildSections };
+// Two-arg shim: buildSections(shortKey, business) — converts to new single-arg form
+function buildSectionsCompat(categoryOrConfig, business) {
+  if (typeof categoryOrConfig === 'string') {
+    // Old two-arg call from tests: merge business fields into the representative config
+    const cfg = BUSINESS_CONFIGS[categoryOrConfig] || SHOWROOM_CONFIGS[0];
+    const merged = {
+      ...cfg,
+      name:        (business && business.business_name)          || cfg.name,
+      address:     (business && business.business_address)       || cfg.address,
+      phone:       (business && business.business_contact_phone) || cfg.phone,
+      email:       (business && business.business_contact_email) || cfg.email,
+      description: (business && business.business_description)   || cfg.description,
+      themeColor:  (business && business.business_theme_color)   || cfg.themeColor,
+    };
+    return buildSections(merged);
+  }
+  // New single-arg call
+  return buildSections(categoryOrConfig);
+}
+module.exports = { BUSINESS_CONFIGS, BUILDER_CATEGORY, BUILDER_SECTIONS, buildSections: buildSectionsCompat };

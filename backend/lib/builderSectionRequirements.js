@@ -1,9 +1,22 @@
 // Shared server-side section entitlement rules. Keep the tier labels aligned
 // with frontend-next/lib/builderSections.ts; the policy test enforces parity.
 const BUILDER_SECTION_TIERS = Object.freeze({
-  freemium: Object.freeze(['hero', 'about', 'items', 'gallery', 'services', 'testimonials', 'contact', 'social', 'pricing', 'team', 'faq', 'features', 'stats', 'payment_info', 'hours', 'menu', 'offer']),
-  premium: Object.freeze(['portfolio', 'newsletter', 'video', 'map', 'cta', 'process', 'booking']),
-  pro: Object.freeze(['caseStudies', 'partners', 'awards', 'industries', 'inventory_catalog', 'live_location_tracking', 'save_showroom']),
+  freemium: Object.freeze([
+    'hero', 'about', 'items', 'gallery', 'services', 'testimonials',
+    'contact', 'social', 'pricing', 'team', 'faq', 'features', 'stats',
+    'payment_info', 'hours', 'menu', 'offer',
+    // sections added in builder overhaul
+    'delivery', 'certifications', 'brands', 'event_schedule',
+  ]),
+  premium: Object.freeze([
+    'portfolio', 'newsletter', 'video', 'map', 'cta', 'process', 'booking',
+    // sections added in builder overhaul
+    'before_after', 'job_openings',
+  ]),
+  pro: Object.freeze([
+    'caseStudies', 'partners', 'awards', 'industries',
+    'inventory_catalog', 'live_location_tracking', 'save_showroom',
+  ]),
 });
 const KNOWN_SECTIONS = new Set(Object.values(BUILDER_SECTION_TIERS).flat());
 const PREMIUM_SECTIONS = new Set(BUILDER_SECTION_TIERS.premium);
