@@ -137,19 +137,19 @@ function ItemsPanel({ section, themeColor, onProductClick }: { section: Section;
 // Rendering it here would duplicate the location that appears under the business name.
 
 function AboutPanel({ section, showroomSlug, themeColor }: { section: Section; showroomSlug: string; themeColor: string }) {
-  const text = section.aboutDesc ?? section.subtitle ?? '';
+  const text = section.aboutDesc ?? section.subtitle ?? section.title ?? '';
   return (
-    <div className="p-3 flex flex-col gap-1">
+    <div className="p-3 flex flex-col gap-1.5 w-full">
       {section.aboutTitle && (
         <p className="text-xs font-semibold">{section.aboutTitle}</p>
       )}
       {text && (
-        <p className="text-xs text-muted-foreground line-clamp-2">{text}</p>
+        <p className="text-xs text-muted-foreground w-full line-clamp-4 leading-relaxed">{text}</p>
       )}
       <Link
         href={`/showroom/${showroomSlug}`}
         className="text-[11px] font-medium mt-0.5"
-        style={{ color: themeColor }}
+        style={{color: themeColor}}
       >
         Read more →
       </Link>
