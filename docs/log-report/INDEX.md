@@ -5,6 +5,7 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-23 | Feature | feat(feed): smart auto-spotlight — priority-ranked section fallback | [f86cd63fa](2026-10-23-f86cd63fa-smart-auto-spotlight-priority-ranked-section-fal.md) |
 | 2026-10-23 | Feature | feat(feed): spotlight auto-shows hero by default; add off state; owner name on feed cards | [9731cbda3](2026-10-23-9731cbda3-spotlight-auto-shows-hero-by-default-add-off-sta.md) |
 | 2026-10-23 | Bugfix | fix(security): upgrade next 16.3.8→16.4.1, add dompurify advisories to CI ignore list | [efc6c7fd4](2026-10-23-efc6c7fd4-upgrade-next-16-3-8-16-4-1-add-dompurify-advisor.md) |
 | 2026-10-23 | Bugfix | fix(ci): commit next-env.d.ts and remove .next/dev/types from tsconfig include | [120890bbd](2026-10-23-120890bbd-commit-next-env-d-ts-and-remove-next-dev-types-f.md) |
