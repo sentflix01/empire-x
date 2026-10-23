@@ -248,6 +248,42 @@ export const SECTION_TYPES: SectionType[] = [
     ],
   },
   {
+    key: "before_after", label: "Before & after", icon: "ArrowLeftRight", tier: "premium",
+    purpose: "Show the change you made. Side-by-side photos that speak for themselves.",
+    tierLabel: "Premium feature",
+    tierFeatures: ["Side-by-side transformation photos", "Great for salons, clinics, construction"],
+    fields: [
+      { key: "baTitle", label: "Section heading", type: "text", placeholder: "Before & After" },
+      {
+        key: "baPairs", label: "Pairs", type: "repeater",
+        itemFields: [
+          { key: "label",  label: "Label (optional)", type: "text",  placeholder: "Kitchen renovation" },
+          { key: "before", label: "Before photo",     type: "image" },
+          { key: "after",  label: "After photo",      type: "image" },
+        ],
+      },
+    ],
+  },
+  {
+    key: "job_openings", label: "We're hiring", icon: "UserPlus", tier: "premium",
+    purpose: "Open positions at your business. Visitors see the role and tap to apply.",
+    tierLabel: "Premium feature",
+    tierFeatures: ["Post open positions", "Applicants contact you directly"],
+    fields: [
+      { key: "jobsTitle", label: "Section heading", type: "text", placeholder: "We're Hiring" },
+      {
+        key: "jobs", label: "Positions", type: "repeater",
+        itemFields: [
+          { key: "title",      label: "Job title",                    type: "text",     placeholder: "Barista" },
+          { key: "type",       label: "Type",                         type: "text",     placeholder: "Full-time / Part-time" },
+          { key: "desc",       label: "What the job involves",        type: "textarea", placeholder: "What the job involves" },
+          { key: "salary",     label: "Salary (optional)",            type: "text",     placeholder: "Salary range or negotiable" },
+          { key: "product_id", label: "Collect application fee (optional)", type: "product" },
+        ],
+      },
+    ],
+  },
+  {
     key: "newsletter", label: "Email sign-up", icon: "Send", tier: "premium",
     purpose: "Visitors leave their email; you see the list on your website page.",
     tierLabel: "Premium feature",
@@ -386,6 +422,69 @@ export const SECTION_TYPES: SectionType[] = [
     ],
   },
   {
+    key: "delivery", label: "Delivery options", icon: "Truck", tier: "freemium",
+    purpose: "Your delivery zones, fees and estimated times. Visitors know before they order.",
+    fields: [
+      { key: "deliveryTitle", label: "Section heading", type: "text", placeholder: "Delivery Options" },
+      {
+        key: "deliveryZones", label: "Delivery zones", type: "repeater",
+        itemFields: [
+          { key: "zone", label: "Zone or area", type: "text", placeholder: "Bole" },
+          { key: "fee",  label: "Delivery fee", type: "text", placeholder: "0 ETB or 50 ETB" },
+          { key: "time", label: "Estimated time", type: "text", placeholder: "30\u201360 min" },
+        ],
+      },
+      { key: "deliveryNote", label: "Extra note (optional)", type: "textarea", placeholder: "We deliver Mon\u2013Sat 8am\u20138pm" },
+    ],
+  },
+  {
+    key: "certifications", label: "Licences & certificates", icon: "BadgeCheck", tier: "freemium",
+    purpose: "Your trade licence, medical registration, or any certificate that shows you are qualified.",
+    fields: [
+      { key: "certsTitle", label: "Section heading", type: "text", placeholder: "Our Credentials" },
+      {
+        key: "certs", label: "Certificates", type: "repeater",
+        itemFields: [
+          { key: "name",   label: "Certificate or licence name", type: "text", placeholder: "Certificate or licence name" },
+          { key: "issuer", label: "Issued by",                   type: "text", placeholder: "Issued by" },
+          { key: "year",   label: "Year",                        type: "text", placeholder: "Year" },
+        ],
+      },
+    ],
+  },
+  {
+    key: "brands", label: "Brands we carry", icon: "Tag", tier: "freemium",
+    purpose: "The brands your shop stocks. Helps visitors find what they are looking for.",
+    fields: [
+      { key: "brandsTitle", label: "Section heading", type: "text", placeholder: "Brands We Carry" },
+      {
+        key: "brands", label: "Brands", type: "repeater",
+        itemFields: [
+          { key: "name", label: "Brand name",              type: "text",  placeholder: "Brand name" },
+          { key: "logo", label: "Logo",                    type: "image" },
+          { key: "note", label: "A note (optional)",       type: "text",  placeholder: "Authorised dealer" },
+        ],
+      },
+    ],
+  },
+  {
+    key: "event_schedule", label: "Events & schedule", icon: "CalendarDays", tier: "freemium",
+    purpose: "Upcoming classes, events or sessions with date, time and price.",
+    fields: [
+      { key: "eventsTitle", label: "Section heading", type: "text", placeholder: "Upcoming Events" },
+      {
+        key: "events", label: "Events", type: "repeater",
+        itemFields: [
+          { key: "title",      label: "Event or class name",      type: "text",    placeholder: "Event or class name" },
+          { key: "date",       label: "Date & time",              type: "text",    placeholder: "Sat 10 Jan, 9am" },
+          { key: "price",      label: "Price",                    type: "text",    placeholder: "500 ETB or Free" },
+          { key: "seats",      label: "Seats left (optional)",    type: "text",    placeholder: "Seats left" },
+          { key: "product_id", label: "Sell a ticket (optional)", type: "product" },
+        ],
+      },
+    ],
+  },
+  {
     key: "menu", label: "Menu", icon: "UtensilsCrossed", tier: "freemium",
     purpose: "Your dishes and drinks by group, with photos and prices. Visitors can order.",
     fields: [
@@ -477,16 +576,16 @@ export const SECTION_TYPES: SectionType[] = [
 
 // Default sections per category
 export const CATEGORY_DEFAULT_SECTIONS: Record<string, string[]> = {
-  "Business & Commerce":    ["hero", "items", "gallery", "testimonials", "contact", "social"],
-  "Health & Medical":       ["hero", "services", "testimonials", "team", "contact"],
-  "Food & Beverage":        ["hero", "items", "gallery", "testimonials", "contact", "social"],
-  "Construction & Trade":   ["hero", "services", "portfolio", "testimonials", "contact"],
+  "Business & Commerce":    ["hero", "items", "brands", "gallery", "testimonials", "contact", "social"],
+  "Health & Medical":       ["hero", "services", "certifications", "testimonials", "team", "contact"],
+  "Food & Beverage":        ["hero", "menu", "gallery", "delivery", "offer", "testimonials", "contact", "social"],
+  "Construction & Trade":   ["hero", "services", "before_after", "certifications", "portfolio", "testimonials", "contact"],
   "Transport & Logistics":  ["hero", "services", "pricing", "contact"],
-  "Education":              ["hero", "services", "features", "testimonials", "contact"],
-  "Professional Services":  ["hero", "services", "portfolio", "team", "testimonials", "contact"],
+  "Education":              ["hero", "services", "event_schedule", "features", "testimonials", "contact"],
+  "Professional Services":  ["hero", "services", "certifications", "portfolio", "team", "testimonials", "contact"],
   "Agriculture & Farming":  ["hero", "items", "about", "contact"],
-  "Hospitality & Tourism":  ["hero", "gallery", "services", "testimonials", "contact", "social"],
-  "Beauty & Personal Care": ["hero", "services", "gallery", "pricing", "contact", "social"],
+  "Hospitality & Tourism":  ["hero", "gallery", "services", "event_schedule", "testimonials", "contact", "social"],
+  "Beauty & Personal Care": ["hero", "services", "gallery", "before_after", "pricing", "contact", "social"],
 };
 
 // Color presets [gradient start, end]
