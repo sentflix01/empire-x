@@ -883,6 +883,10 @@ SHOWROOM_CONFIGS.forEach((cfg, i) => {
 
 // ── buildSections: generate section data for each key in config.sectionKeys ─
 function buildSections(config) {
+  if (!config || !Array.isArray(config.sectionKeys)) {
+    // Guard: if sectionKeys is missing, return an empty array rather than crashing
+    return [];
+  }
   return config.sectionKeys.map(type => {
     switch (type) {
       case 'hero':
@@ -898,7 +902,7 @@ function buildSections(config) {
       case 'testimonials':
         return { type, testTitle: 'What People Say', testimonials: [] };
       case 'contact':
-        return { type, location: config.address, phone: config.phone, email: config.email, hours: 'Mon-Sat 8am-6pm', whatsapp: config.phone };
+        return { type, location: config.address, phone: config.phone, email: config.email, hours: config.hours || 'Mon-Sat 8am-6pm', whatsapp: config.phone };
       case 'social':
         return { type, facebook: '', instagram: '', telegram: '', youtube: '', tiktok: '', twitter: '', linkedin: '' };
       case 'team':
@@ -1318,6 +1322,7 @@ function buildSectionsCompat(categoryOrConfig, business) {
       email:       (business && business.business_contact_email) || cfg.email,
       description: (business && business.business_description)   || cfg.description,
       themeColor:  (business && business.business_theme_color)   || cfg.themeColor,
+      hours:       (business && business.business_hours)         || cfg.hours,
     };
     return buildSections(merged);
   }
