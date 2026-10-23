@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 import {
   Clock, ShoppingBag, Star, Mail, Phone, MapPin, PlayCircle, CalendarCheck, Search,
-  Medal, Send, Share2, Bookmark,
+  Medal, Send, Share2, Bookmark, Truck, BadgeCheck, Tag, CalendarDays, ArrowLeftRight, UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -827,6 +827,178 @@ export default function SectionRenderer({
           )}
         </div>
         {(preview || !saveId) && <p className="mt-2 text-xs text-muted-foreground">Visitors can save your website once it is published.</p>}
+      </div>
+    );
+  }
+
+  // ── Delivery options ──────────────────────────────────────────────
+  if (s.type === "delivery") {
+    const zones = Array.isArray(s.deliveryZones) ? s.deliveryZones : [];
+    return (
+      <div id={`section-${sectionIndex}`} className="px-5 py-10">
+        <div className="flex items-center gap-2 mb-4">
+          <Truck className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
+          <h2 className="font-display text-lg font-bold">{s.deliveryTitle || s.title || "Delivery Options"}</h2>
+        </div>
+        {zones.length > 0 && (
+          <div className="divide-y divide-border/40 rounded-xl border border-border/40 overflow-hidden mb-3">
+            {zones.map((z: { zone?: string; fee?: string; time?: string }, i: number) => (
+              <div key={i} className="flex items-center justify-between gap-4 px-4 py-3 bg-card">
+                <div>
+                  <p className="text-sm font-semibold">{z.zone}</p>
+                  {z.time && <p className="text-xs text-muted-foreground">{z.time}</p>}
+                </div>
+                {z.fee && <p className="text-sm font-bold" style={{ color: themeColor }}>{z.fee}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {s.deliveryNote && <p className="text-xs text-muted-foreground">{s.deliveryNote as string}</p>}
+      </div>
+    );
+  }
+
+  // ── Licences & certificates ────────────────────────────────────────
+  if (s.type === "certifications") {
+    const certs = Array.isArray(s.certs) ? s.certs : [];
+    return (
+      <div id={`section-${sectionIndex}`} className="px-5 py-10">
+        <div className="flex items-center gap-2 mb-4">
+          <BadgeCheck className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
+          <h2 className="font-display text-lg font-bold">{s.certsTitle || s.title || "Our Credentials"}</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {certs.map((c: { name?: string; issuer?: string; year?: string }, i: number) => (
+            <div key={i} className="flex items-start gap-3 rounded-xl border border-border/40 bg-card p-4">
+              <BadgeCheck className="w-5 h-5 mt-0.5 shrink-0" style={{ color: themeColor }} />
+              <div>
+                <p className="text-sm font-semibold">{c.name}</p>
+                {c.issuer && <p className="text-xs text-muted-foreground">{c.issuer}</p>}
+                {c.year && <p className="text-xs text-muted-foreground">{c.year}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Brands we carry ────────────────────────────────────────────────
+  if (s.type === "brands") {
+    const brandList = Array.isArray(s.brands) ? s.brands : [];
+    return (
+      <div id={`section-${sectionIndex}`} className="px-5 py-10">
+        <div className="flex items-center gap-2 mb-4">
+          <Tag className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
+          <h2 className="font-display text-lg font-bold">{s.brandsTitle || s.title || "Brands We Carry"}</h2>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {brandList.map((b: { name?: string; logo?: string; note?: string }, i: number) => (
+            <div key={i} className="flex flex-col items-center gap-1 rounded-xl border border-border/40 bg-card px-4 py-3 min-w-[80px]">
+              {b.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={b.logo} alt={b.name || ""} className="h-8 w-auto object-contain" loading="lazy" />
+              ) : (
+                <Tag className="w-6 h-6" style={{ color: themeColor }} />
+              )}
+              <p className="text-xs font-semibold text-center">{b.name}</p>
+              {b.note && <p className="text-[10px] text-muted-foreground text-center">{b.note}</p>}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Events & schedule ──────────────────────────────────────────────
+  if (s.type === "event_schedule") {
+    const eventList = Array.isArray(s.events) ? s.events : [];
+    return (
+      <div id={`section-${sectionIndex}`} className="px-5 py-10">
+        <div className="flex items-center gap-2 mb-4">
+          <CalendarDays className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
+          <h2 className="font-display text-lg font-bold">{s.eventsTitle || s.title || "Upcoming Events"}</h2>
+        </div>
+        <div className="space-y-3">
+          {eventList.map((ev: { title?: string; date?: string; price?: string; seats?: string; product_id?: string }, i: number) => (
+            <div key={i} className="flex items-center justify-between gap-4 rounded-xl border border-border/40 bg-card px-4 py-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold truncate">{ev.title}</p>
+                <p className="text-xs text-muted-foreground">{ev.date}{ev.seats ? ` · ${ev.seats} seats` : ''}</p>
+              </div>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                {ev.price && <p className="text-sm font-bold" style={{ color: themeColor }}>{ev.price}</p>}
+                <Button size="sm" className="h-8 rounded-full text-xs text-white px-3"
+                  style={{ backgroundColor: themeColor }}
+                  onClick={() => onBuy?.({ title: ev.title || 'Event', listed_price: ev.price, product_id: ev.product_id })}>
+                  Book
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Before & after ─────────────────────────────────────────────────
+  if (s.type === "before_after") {
+    const pairs = Array.isArray(s.baPairs) ? s.baPairs : [];
+    return (
+      <div id={`section-${sectionIndex}`} className="px-5 py-10">
+        <div className="flex items-center gap-2 mb-4">
+          <ArrowLeftRight className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
+          <h2 className="font-display text-lg font-bold">{s.baTitle || s.title || "Before & After"}</h2>
+        </div>
+        <div className="space-y-4">
+          {pairs.map((p: { label?: string; before?: string; after?: string }, i: number) => (
+            <div key={i} className="rounded-xl border border-border/40 overflow-hidden bg-card">
+              {p.label && <p className="px-4 pt-3 text-sm font-semibold">{p.label}</p>}
+              <div className="grid grid-cols-2 gap-0.5 p-3">
+                <div className="relative rounded-lg overflow-hidden aspect-square bg-secondary/30">
+                  {p.before
+                    ? <SafeImage fill={false} width={400} height={400} src={p.before} alt="Before" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">Before</div>}
+                  <span className="absolute bottom-1 left-1 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white">Before</span>
+                </div>
+                <div className="relative rounded-lg overflow-hidden aspect-square bg-secondary/30">
+                  {p.after
+                    ? <SafeImage fill={false} width={400} height={400} src={p.after} alt="After" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">After</div>}
+                  <span className="absolute bottom-1 right-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white" style={{ backgroundColor: themeColor }}>After</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── We're hiring ───────────────────────────────────────────────────
+  if (s.type === "job_openings") {
+    const jobList = Array.isArray(s.jobs) ? s.jobs : [];
+    return (
+      <div id={`section-${sectionIndex}`} className="px-5 py-10">
+        <div className="flex items-center gap-2 mb-4">
+          <UserPlus className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
+          <h2 className="font-display text-lg font-bold">{s.jobsTitle || s.title || "We're Hiring"}</h2>
+        </div>
+        <div className="space-y-3">
+          {jobList.map((j: { title?: string; type?: string; desc?: string; salary?: string }, i: number) => (
+            <div key={i} className="rounded-xl border border-border/40 bg-card p-4">
+              <div className="flex items-start justify-between gap-3 mb-1">
+                <p className="text-sm font-semibold">{j.title}</p>
+                {j.type && <span className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-[11px] text-muted-foreground">{j.type}</span>}
+              </div>
+              {j.desc && <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{j.desc}</p>}
+              <div className="flex items-center justify-between gap-2">
+                {j.salary && <p className="text-xs font-medium" style={{ color: themeColor }}>{j.salary}</p>}
+                <span className="text-xs text-muted-foreground">Contact us to apply</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

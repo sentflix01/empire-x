@@ -57,6 +57,13 @@ const FILLED: Record<string, unknown> = {
   offerTitle: '20% off all cakes', offerEnds: '2099-12-31', offerBtn: 'Order now',
   hoursTitle: 'When we are open', openingHours: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(day => ({ day, open: day !== 'Sunday', from: '07:00', to: '19:00' })),
   payTitle: 'How to pay', payNote: 'Send the receipt on WhatsApp',
+  // New sections added in builder overhaul
+  deliveryTitle: 'Delivery Options', deliveryZones: [{ zone: 'Bole', fee: '50 ETB', time: '30 min' }], deliveryNote: 'Mon–Sat 8am–8pm',
+  certsTitle: 'Our Credentials', certs: [{ name: 'Food Safety Licence', issuer: 'Addis Health Bureau', year: '2024' }],
+  brandsTitle: 'Brands We Carry', brands: [{ name: 'Anchor', note: 'Official dealer' }],
+  eventsTitle: 'Upcoming Events', events: [{ title: 'Sourdough Workshop', date: 'Sat 10 Jan, 9am', price: '500 ETB', seats: '12 seats' }],
+  baTitle: 'Before & After', baPairs: [{ label: 'Kitchen renovation', before: 'https://cdn.example.test/before.jpg', after: 'https://cdn.example.test/after.jpg' }],
+  jobsTitle: "We're Hiring", jobs: [{ title: 'Baker', type: 'Full-time', desc: 'Early morning shifts', salary: '8,000 ETB/month' }],
 };
 
 /** Text each section must show on the live site once filled. */
@@ -68,6 +75,9 @@ const SHOWS: Record<string, string> = {
   caseStudies: 'Daily order since 2024', partners: 'Hotel Lalibela', awards: 'Best Bakery 2025', industries: 'Cafés',
   inventory_catalog: 'Injera pack', live_location_tracking: 'Our van today', save_showroom: 'Save Selam Bakery',
   menu: 'Special Firfir', offer: '20% off all cakes', hours: 'Closed', payment_info: 'Send the receipt on WhatsApp',
+  // New sections
+  delivery: 'Bole', certifications: 'Food Safety Licence', brands: 'Anchor',
+  event_schedule: 'Sourdough Workshop', before_after: 'Kitchen renovation', job_openings: 'Baker',
 };
 
 const product = { id: 'p1', title: 'Injera pack', price: 80, currency: 'ETB', stock: 4, category: 'Bread', images: '[]' };
