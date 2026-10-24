@@ -354,11 +354,11 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | Method | Path | Auth | Source |
 |---|---|---|---|
 | `GET` | `/api/notifications/` | 🔒 auth | routes/notifications.ts:12 |
-| `POST` | `/api/notifications/` | 🔒 auth | routes/notifications.ts:73 |
-| `PUT` | `/api/notifications/read-all` | 🔒 auth | routes/notifications.ts:92 |
-| `POST` | `/api/notifications/mark-read` | 🔒 auth | routes/notifications.ts:99 |
-| `PUT` | `/api/notifications/:id/read` | 🔒 auth | routes/notifications.ts:114 |
-| `DELETE` | `/api/notifications/:id` | 🔒 auth | routes/notifications.ts:125 |
+| `POST` | `/api/notifications/` | 🔒 auth | routes/notifications.ts:77 |
+| `PUT` | `/api/notifications/read-all` | 🔒 auth | routes/notifications.ts:96 |
+| `POST` | `/api/notifications/mark-read` | 🔒 auth | routes/notifications.ts:103 |
+| `PUT` | `/api/notifications/:id/read` | 🔒 auth | routes/notifications.ts:118 |
+| `DELETE` | `/api/notifications/:id` | 🔒 auth | routes/notifications.ts:129 |
 
 ## orders — Orders, Stripe + Chapa payments, webhooks
 
