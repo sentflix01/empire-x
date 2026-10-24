@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-24 | Maintenance | Merge pull request #153 from sentflix01/chore/protect-main | [328a3f2c3](2026-10-24-328a3f2c3-merge-pull-request-153-from-sentflix01-chore-pro.md) |
+| 2026-10-24 | CI/CD | ci: prepare main for branch protection | [f4be29ff2](2026-10-24-f4be29ff2-prepare-main-for-branch-protection.md) |
 | 2026-10-24 | Maintenance | Merge pull request #152 from sentflix01/fix/legal-identity-and-test-listings | [e77d15743](2026-10-24-e77d15743-merge-pull-request-152-from-sentflix01-fix-legal.md) |
 | 2026-10-24 | Bugfix | fix(legal): name sellers as recipients; state transfers without unverified safeguards | [4bba3bab5](2026-10-24-4bba3bab5-name-sellers-as-recipients-state-transfers-witho.md) |
 | 2026-10-24 | Bugfix | fix(legal): real operator details and a working contact; archive test listings | [e24012a41](2026-10-24-e24012a41-real-operator-details-and-a-working-contact-arch.md) |
