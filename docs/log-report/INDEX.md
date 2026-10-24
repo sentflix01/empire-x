@@ -5,6 +5,8 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-24 | Maintenance | Merge pull request #151 from sentflix01/fix/legal-claims | [bdbb9a704](2026-10-24-bdbb9a704-merge-pull-request-151-from-sentflix01-fix-legal.md) |
+| 2026-10-24 | Bugfix | fix(legal): no invented claims on sellers' pages or in the sidebar | [dc288755d](2026-10-24-dc288755d-no-invented-claims-on-sellers-pages-or-in-the-si.md) |
 | 2026-10-24 | Maintenance | Merge pull request #150 from sentflix01/dependabot/npm_and_yarn/frontend-next/minor-and-patch-9d01a53f8f | [9b34e8b83](2026-10-24-9b34e8b83-merge-pull-request-150-from-sentflix01-dependabo.md) |
 | 2026-10-24 | Maintenance | Merge pull request #148 from sentflix01/fix/e2e-local-only | [e6d241f6d](2026-10-24-e6d241f6d-merge-pull-request-148-from-sentflix01-fix-e2e-l.md) |
 | 2026-10-24 | Maintenance | Merge remote-tracking branch 'origin/main' into fix/e2e-local-only | [7bc50a69e](2026-10-24-7bc50a69e-merge-remote-tracking-branch-origin-main-into-fi.md) |
