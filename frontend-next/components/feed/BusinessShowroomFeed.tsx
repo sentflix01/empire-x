@@ -19,6 +19,7 @@ import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
 import PurchaseModal from '@/components/checkout/PurchaseModal';
 import SharedBookmarkButton from '@/components/ui/BookmarkButton';
 import FeedSpotlightWidget, { type SpotlightItem, type FeedSpotlightWidgetProps } from './FeedSpotlightWidget';
+import { spotlightSectionIds } from '@/lib/spotlightSections';
 import SpotlightProductDrawer from './SpotlightProductDrawer';
 
 /* ── Types ───────────────────────────────────────────────────────── */
@@ -662,8 +663,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
 
         if (biz.spotlight_mode === 'single' || biz.spotlight_mode === 'carousel') {
           resolvedMode = biz.spotlight_mode;
-          try { resolvedIds = JSON.parse(biz.spotlight_section_ids as string ?? '[]') as string[]; }
-          catch { resolvedIds = []; }
+          resolvedIds = spotlightSectionIds(biz.spotlight_section_ids);
           resolvedCount = typeof biz.spotlight_carousel_count === 'number' ? biz.spotlight_carousel_count : 1;
         } else {
           // null = never configured → auto-pick by account type
@@ -830,9 +830,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           showroom_id: String(showroom.id),
           showroom_slug: String(showroom.slug ?? ''),
           spotlight_mode: (showroom.spotlight_mode as string | null) ?? null,
-          spotlight_section_ids: typeof showroom.spotlight_section_ids === 'string'
-            ? showroom.spotlight_section_ids
-            : JSON.stringify(showroom.spotlight_section_ids ?? []),
+          spotlight_section_ids: JSON.stringify(spotlightSectionIds(showroom.spotlight_section_ids)),
           spotlight_carousel_count: typeof showroom.spotlight_carousel_count === 'number'
             ? showroom.spotlight_carousel_count : 1,
         };
