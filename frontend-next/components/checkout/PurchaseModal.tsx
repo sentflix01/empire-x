@@ -17,7 +17,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { X, ShoppingBag, Check, Loader2, Copy, Phone, Mail, MapPin, CreditCard } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { X, ShoppingBag, Check, Loader2, Copy, Phone, Mail, MapPin, CreditCard, MessageCircle } from "lucide-react";
+import { findOrCreateConversation } from "@/lib/messaging";
 import client from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,7 +61,7 @@ interface PurchaseModalProps {
 
 export interface PaymentAccount { id: string; method: string; provider_name: string; account_name: string; account_number: string; instructions: string | null }
 interface SellerDetails {
-  business: { business_name?: string; business_logo_url?: string | null; business_contact_phone?: string | null; business_contact_email?: string | null; business_address?: string | null; pickup_address?: string | null } | null;
+  business: { id?: string; business_name?: string; business_logo_url?: string | null; business_contact_phone?: string | null; business_contact_email?: string | null; business_address?: string | null; pickup_address?: string | null } | null;
   payment_accounts: PaymentAccount[];
   payment_window_days?: number;
 }
@@ -99,6 +101,9 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, busines
   const [contact, setContact] = useState({ name: buyer?.full_name ?? '', phone: '', email: buyer?.email ?? '', address: '', notes: '' });
   const [placed, setPlaced] = useState<{ access_token: string; details: SellerDetails } | null>(null);
 
+  const router = useRouter();
+  const pathname = usePathname();
+  const [messaging, setMessaging] = useState(false);
   const isProduct = !!item.id;
   // Website items have no product: the buyer requests them and the seller sets the price.
   const isRequest = !isProduct;
@@ -187,6 +192,21 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, busines
   };
 
   const business = details?.business;
+  const isOwnItem = !!buyer?.id && buyer.id === seller.user_id;
+
+  // No payment method yet: the buyer can still reach the seller instead of a dead end (audit UX-08).
+  const messageSeller = async () => {
+    if (!buyer?.id || messaging) return;
+    setMessaging(true);
+    try {
+      const conv = await findOrCreateConversation({ id: buyer.id }, seller.user_id, sellerName);
+      if (conv) { onClose(); router.push(`/messages/${conv.id}`); }
+    } catch {
+      toast.error(`Could not open a chat with ${sellerName}`);
+    } finally {
+      setMessaging(false);
+    }
+  };
 
   if (!mounted) return null;
   return createPortal(
@@ -230,7 +250,32 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, busines
                   <p className="text-xs text-muted-foreground">NodBusiness never receives your money. You pay {sellerName} and they confirm it.</p>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">{sellerName} has not added payment details yet. Contact them to arrange payment.</p>
+                <div role="status" className="space-y-3 rounded-xl border border-border/60 bg-secondary/30 p-3">
+                  {isOwnItem ? (
+                    <>
+                      <p className="text-sm">Buyers can't order this yet because your business has no payment method.</p>
+                      <Button asChild className="w-full rounded-full">
+                        <Link href={business?.id ? `/business/edit?id=${encodeURIComponent(business.id)}` : '/business/create'} onClick={onClose}>
+                          {business?.id ? 'Add a payment method' : 'Create your business'}
+                        </Link>
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm">{sellerName} hasn't added a way to pay yet, so this can't be ordered here. Message them to arrange it.</p>
+                      {buyer?.id ? (
+                        <Button onClick={messageSeller} disabled={messaging} className="w-full rounded-full">
+                          {messaging ? <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" /> : <MessageCircle className="w-4 h-4 mr-2" aria-hidden="true" />}
+                          Message {sellerName}
+                        </Button>
+                      ) : (
+                        <Button asChild className="w-full rounded-full">
+                          <Link href={`/login?return=${encodeURIComponent(pathname || '/')}`} onClick={onClose}>Sign in to message {sellerName}</Link>
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
               )}
             </section>
 

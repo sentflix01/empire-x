@@ -258,6 +258,20 @@ Create product. Requires auth.
 as 13 digits where possible). The same seller can't use one barcode on two
 products: `409 { error: "barcode_exists", existing_product_id }`.
 
+**Selling business.** `business_id` and `showroom_id` are optional and must belong
+to the caller (`403` otherwise). With neither, the product is attached to the
+seller's business when they own exactly one. A seller with several businesses
+should send `business_id`; without it the product has no business and can't be
+ordered.
+
+**201** returns the product plus:
+
+| Field | Meaning |
+|---|---|
+| `selling_business_id` | The business buyers pay (own business, then the showroom's, then the seller's only business), or `null`. |
+| `payment_ready` | `true` when buyers can order it now. |
+| `checkout_blocker` | Why not, when `payment_ready` is `false`: `no_business`, `no_plan` (the business has no active paid plan, so its products are hidden from buyers) or `no_payment_method` (no active payment account). |
+
 ### PUT /api/products/:id
 Update product. Requires auth (must be seller or admin). Same barcode rules as create.
 
@@ -348,7 +362,9 @@ stock is released.
 ### GET /api/direct-orders/checkout-info?product_id=uuid | showroom_id=uuid | business_id=uuid | seller_id=uuid
 Public. The seller's business name, the contact fields the owner chose to show, and active payment
 accounts. Never includes the pickup address. The response adds `payment_window_days`.
-`seller_id` resolves the seller's business when they have exactly one.
+`seller_id` resolves the seller's business when they have exactly one. A product with no
+business of its own (or through its showroom) uses the seller's business the same way;
+`POST /api/direct-orders` resolves the business with the same rule.
 
 ### POST /api/direct-orders/requests
 Public (optional auth), same rate limit as orders. **Request to order** a website item that is

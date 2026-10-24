@@ -13,6 +13,10 @@ vi.mock('next/link', () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a>,
 }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+const nav = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: nav.push }), usePathname: () => '/products/p1' }));
+const messaging = vi.hoisted(() => ({ findOrCreateConversation: vi.fn() }));
+vi.mock('@/lib/messaging', () => messaging);
 
 import PurchaseModal from '@/components/checkout/PurchaseModal';
 
@@ -105,5 +109,38 @@ describe('PurchaseModal', () => {
     render(<PurchaseModal item={{ id: 'prod-3', title: 'Old TV' }} seller={seller} onClose={() => {}} />);
     expect(await screen.findByText(/no longer available/)).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Continue' })).toBeNull();
+  });
+
+  describe('when the seller has no payment method yet (audit UX-08)', () => {
+    const noAccounts = (url: string) => Promise.resolve(url.startsWith('/api/products/')
+      ? { data: { title: 'Beans', price: 120, currency: 'ETB', status: 'active' } }
+      : { data: { business: { id: 'biz-1', business_name: 'Abebe Coffee' }, payment_accounts: [] } });
+
+    it('lets a signed-in buyer message the seller instead of a dead end', async () => {
+      client.get.mockImplementation(noAccounts);
+      messaging.findOrCreateConversation.mockResolvedValue({ id: 'conv-9' });
+      const onClose = vi.fn();
+      render(<PurchaseModal item={{ id: 'p1', title: 'Beans', price: 120 }} seller={seller} buyer={{ id: 'buyer-1' }} onClose={onClose} />);
+
+      expect(await screen.findByText(/hasn't added a way to pay yet/)).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Message Abebe Coffee' }));
+      await waitFor(() => expect(nav.push).toHaveBeenCalledWith('/messages/conv-9'));
+      expect(messaging.findOrCreateConversation).toHaveBeenCalledWith({ id: 'buyer-1' }, 'seller-1', 'Abebe Coffee');
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('asks a guest to sign in first and brings them back', async () => {
+      client.get.mockImplementation(noAccounts);
+      render(<PurchaseModal item={{ id: 'p1', title: 'Beans', price: 120 }} seller={seller} onClose={() => {}} />);
+      const link = await screen.findByRole('link', { name: 'Sign in to message Abebe Coffee' });
+      expect(link.getAttribute('href')).toBe('/login?return=%2Fproducts%2Fp1');
+    });
+
+    it('sends the seller to add a payment method on their own product', async () => {
+      client.get.mockImplementation(noAccounts);
+      render(<PurchaseModal item={{ id: 'p1', title: 'Beans', price: 120 }} seller={seller} buyer={{ id: 'seller-1' }} onClose={() => {}} />);
+      const link = await screen.findByRole('link', { name: 'Add a payment method' });
+      expect(link.getAttribute('href')).toBe('/business/edit?id=biz-1');
+    });
   });
 });
