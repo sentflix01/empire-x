@@ -218,7 +218,10 @@ router.patch('/:id/spotlight', requireAuth, async (req: Request, res: Response) 
     }
     const updates: Record<string, unknown> = {
       spotlight_mode: spotlight_mode ?? null,
-      spotlight_section_ids: spotlight_section_ids ?? [],
+      // JSON text, not a JS array: node-pg sends arrays as Postgres array
+      // syntax, so [] was stored as the object {} (which crashed the feed) and
+      // ['menu'] as {"menu"}, which isn't JSON and failed with a 500.
+      spotlight_section_ids: JSON.stringify(spotlight_section_ids ?? []),
       spotlight_carousel_count: count,
     };
     const updated = await updateRecord('showrooms', req.params.id, updates);

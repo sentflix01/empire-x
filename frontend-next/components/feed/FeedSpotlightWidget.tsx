@@ -396,7 +396,9 @@ export default function FeedSpotlightWidget({
 }: FeedSpotlightWidgetProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const matched = sections.filter(s => spotlightSectionIds.includes(s.type));
+  // Guard against a stored value that isn't a list (it crashed the feed).
+  const ids = Array.isArray(spotlightSectionIds) ? spotlightSectionIds : [];
+  const matched = (Array.isArray(sections) ? sections : []).filter(s => ids.includes(s.type));
 
   // Auto-advance carousel — stable interval, no restart on every tick
   useEffect(() => {

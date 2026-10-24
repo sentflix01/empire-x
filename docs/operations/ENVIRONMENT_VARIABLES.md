@@ -49,7 +49,7 @@ Set at: Render → nodbusiness-backend → Environment
 
 | Variable | Value | Required | Notes |
 |---|---|---|---|
-| `FRONTEND_URL` | `https://nodbusiness.vercel.app` | ✅ Yes | Used for CORS allowed origins. Separate multiple URLs with comma. |
+| `FRONTEND_URL` | `https://nodbusiness.vercel.app` | ✅ Yes | **The only origins trusted with credentials** (CORS, Socket.IO, and the origin check on `/api/auth/refresh`); there is no built-in fallback. Separate multiple URLs with commas. A `*` matches inside one host label only (`https://nodbusiness-*.vercel.app`); avoid wildcards on shared hosts such as `vercel.app`, where anyone can create a matching project. The first plain URL is used for links in emails. |
 | `API_URL` | `https://nodbusiness-backend-9psf.onrender.com` | No | Used as self-reference in Chapa callback URLs and self-ping. |
 | `BACKEND_URL` | `https://nodbusiness-backend-9psf.onrender.com` | No | Alias for API_URL. Used in health check self-ping. |
 

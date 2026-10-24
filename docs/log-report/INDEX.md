@@ -5,7 +5,14 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-24 | Maintenance | Merge pull request #147 from sentflix01/fix/cors-payments-notifications | [8db45b7cc](2026-10-24-8db45b7cc-merge-pull-request-147-from-sentflix01-fix-cors-.md) |
+| 2026-10-24 | Maintenance | Merge remote-tracking branch 'origin/main' into fix/cors-payments-notifications | [15738feae](2026-10-24-15738feae-merge-remote-tracking-branch-origin-main-into-fi.md) |
+| 2026-10-24 | Maintenance | Merge pull request #149 from sentflix01/fix/feed-spotlight-crash | [9eae4a3ad](2026-10-24-9eae4a3ad-merge-pull-request-149-from-sentflix01-fix-feed-.md) |
+| 2026-10-24 | Maintenance | Merge remote-tracking branch 'origin/main' into fix/cors-payments-notifications | [65e066fb9](2026-10-24-65e066fb9-merge-remote-tracking-branch-origin-main-into-fi.md) |
+| 2026-10-24 | Maintenance | Merge remote-tracking branch 'origin/main' into fix/feed-spotlight-crash | [001fe7cfd](2026-10-24-001fe7cfd-merge-remote-tracking-branch-origin-main-into-fi.md) |
 | 2026-10-24 | Maintenance | Merge pull request #146 from sentflix01/fix/buy-normal-products | [1578d135c](2026-10-24-1578d135c-merge-pull-request-146-from-sentflix01-fix-buy-n.md) |
+| 2026-10-24 | Bugfix | fix(feed): Feed Spotlight no longer crashes the feed; save section lists as JSON | [b21c2f55e](2026-10-24-b21c2f55e-feed-spotlight-no-longer-crashes-the-feed-save-s.md) |
+| 2026-10-24 | Bugfix | fix(security): trust only configured origins; fix payment-account edits and notifications | [0cca632e8](2026-10-24-0cca632e8-trust-only-configured-origins-fix-payment-accoun.md) |
 | 2026-10-24 | Bugfix | fix(deps): patch high-severity frontend advisories blocking CI | [04e33f2f2](2026-10-24-04e33f2f2-patch-high-severity-frontend-advisories-blocking.md) |
 | 2026-10-24 | Bugfix | fix(deps): patch high-severity backend advisories blocking CI | [785592fad](2026-10-24-785592fad-patch-high-severity-backend-advisories-blocking-.md) |
 | 2026-10-24 | Bugfix | fix(buying): products from the normal form are buyable; Buy sheet never dead-ends | [39114d92c](2026-10-24-39114d92c-products-from-the-normal-form-are-buyable-buy-sh.md) |

@@ -354,11 +354,11 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | Method | Path | Auth | Source |
 |---|---|---|---|
 | `GET` | `/api/notifications/` | 🔒 auth | routes/notifications.ts:12 |
-| `POST` | `/api/notifications/` | 🔒 auth | routes/notifications.ts:73 |
-| `PUT` | `/api/notifications/read-all` | 🔒 auth | routes/notifications.ts:92 |
-| `POST` | `/api/notifications/mark-read` | 🔒 auth | routes/notifications.ts:99 |
-| `PUT` | `/api/notifications/:id/read` | 🔒 auth | routes/notifications.ts:114 |
-| `DELETE` | `/api/notifications/:id` | 🔒 auth | routes/notifications.ts:125 |
+| `POST` | `/api/notifications/` | 🔒 auth | routes/notifications.ts:77 |
+| `PUT` | `/api/notifications/read-all` | 🔒 auth | routes/notifications.ts:96 |
+| `POST` | `/api/notifications/mark-read` | 🔒 auth | routes/notifications.ts:103 |
+| `PUT` | `/api/notifications/:id/read` | 🔒 auth | routes/notifications.ts:118 |
+| `DELETE` | `/api/notifications/:id` | 🔒 auth | routes/notifications.ts:129 |
 
 ## orders — Orders, Stripe + Chapa payments, webhooks
 
@@ -526,10 +526,10 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `POST` | `/api/showrooms/:id/newsletter` | ⚪ optional | routes/showrooms.ts:166 |
 | `GET` | `/api/showrooms/:id/newsletter` | 🔒 auth | routes/showrooms.ts:184 |
 | `PATCH` | `/api/showrooms/:id/spotlight` | 🔒 auth | routes/showrooms.ts:197 |
-| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:232 |
-| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:245 |
-| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:311 |
-| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:372 |
+| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:235 |
+| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:248 |
+| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:314 |
+| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:375 |
 
 ## social — how you relate to another person, and your privacy.
 

@@ -16,11 +16,11 @@ In-app notification inbox: list newest-first, unread count badge, mark-read sing
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/notifications/` | auth | 12 |
-| `POST` | `/api/notifications/` | auth | 73 |
-| `PUT` | `/api/notifications/read-all` | auth | 92 |
-| `POST` | `/api/notifications/mark-read` | auth | 99 |
-| `PUT` | `/api/notifications/:id/read` | auth | 114 |
-| `DELETE` | `/api/notifications/:id` | auth | 125 |
+| `POST` | `/api/notifications/` | auth | 77 |
+| `PUT` | `/api/notifications/read-all` | auth | 96 |
+| `POST` | `/api/notifications/mark-read` | auth | 103 |
+| `PUT` | `/api/notifications/:id/read` | auth | 118 |
+| `DELETE` | `/api/notifications/:id` | auth | 129 |
 
 ## 4. What does it touch?
 
