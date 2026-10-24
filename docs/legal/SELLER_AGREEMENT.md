@@ -134,7 +134,7 @@ You may not:
 - You must own or have rights to all images, text, and trademarks in your listings
 - You grant Nodbusiness a license to display your content on the platform and in marketing
 - Nodbusiness may use your seller name and product images in "Featured Seller" promotions
-- You may opt out of promotional use by emailing sellers@nodbusiness.app
+- You may opt out of promotional use by emailing nodbusinesses@gmail.com
 
 ---
 
@@ -158,7 +158,7 @@ Nodbusiness may suspend or terminate your seller account for:
 - Harassment of buyers
 - Violation of this agreement
 
-**Appeal process:** You may appeal any suspension by emailing sellers@nodbusiness.app within 14 days.
+**Appeal process:** You may appeal any suspension by emailing nodbusinesses@gmail.com within 14 days.
 
 ---
 

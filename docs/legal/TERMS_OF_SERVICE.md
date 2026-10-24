@@ -2,7 +2,7 @@
 
 > **Classification:** Confidential — Internal Use Only (Public when published)
 > **Version:** 1.0
-> **Effective Date:** [Date]
+> **Effective Date:** October 2026
 > **Last Updated:** August 2026
 
 ---
@@ -23,12 +23,12 @@
 
 ## 1. Agreement Overview
 
-These Terms of Service ("ToS") govern your access to and use of the Nodbusiness platform ("Platform"), including all websites, applications, APIs, and services operated by Nodbusiness Technologies PLC ("Nodbusiness," "we," "us," or "our").
+These Terms of Service ("ToS") govern your access to and use of the Nodbusiness platform ("Platform"), including all websites, applications, APIs, and services operated by Nodbusiness ("Nodbusiness," "we," "us," or "our").
 
 By creating an account, accessing the Platform, or using any services, you agree to be bound by these ToS. If you do not agree, do not use the Platform.
 
-**Entity:** Nodbusiness Technologies PLC, registered in Ethiopia (Registration No. [TBD])
-**Contact:** legal@nodbusiness.app
+**Entity:** Nodbusiness, Addis Ababa, Ethiopia (business registration pending)
+**Contact:** nodbusinesses@gmail.com
 
 ---
 
@@ -295,7 +295,7 @@ You **indemnify and hold harmless** Nodbusiness from claims arising from:
 
 ### 14.2 Dispute Resolution
 1. **Good faith negotiation** (30 days)
-2. **Mediation** (ICC Mediation Rules, [City] seat)
+2. **Mediation** (ICC Mediation Rules, Addis Ababa seat)
 3. **Arbitration** (ICC Rules, 1 arbitrator, English language)
 4. **Court:** Only for injunctive relief, IP enforcement
 
@@ -317,10 +317,10 @@ You **indemnify and hold harmless** Nodbusiness from claims arising from:
 
 ## 16. Contact
 
-**Nodbusiness Technologies PLC**  
-[Address, Addis Ababa, Ethiopia]  
-**Email:** legal@nodbusiness.app  
-**Support:** support@nodbusiness.app  
+**Nodbusiness**  
+Addis Ababa, Ethiopia  
+**Email:** nodbusinesses@gmail.com  
+**Support:** nodbusinesses@gmail.com  
 
 ---
 

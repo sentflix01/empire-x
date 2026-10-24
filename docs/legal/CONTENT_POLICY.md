@@ -103,14 +103,14 @@
 | Serious violation (fraud, harassment) | Permanent ban + possible legal referral |
 | CSAM or terrorism | Immediate permanent ban + mandatory legal reporting |
 
-Appeals: appeals@nodbusiness.app (response within 7 business days)
+Appeals: nodbusinesses@gmail.com (response within 7 business days)
 
 ---
 
 ## Reporting
 
 To report a violation: use the "Report" button on any post, product, or profile.
-Urgent reports (CSAM, threats of violence): safety@nodbusiness.app — monitored 24/7
+Urgent reports (CSAM, threats of violence): nodbusinesses@gmail.com (mark the subject URGENT; we act on these first, and report illegal content to the police)
 
 ---
 

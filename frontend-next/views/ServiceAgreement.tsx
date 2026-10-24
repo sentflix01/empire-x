@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FileText, Shield, Cookie, Scale, ChevronDown, ChevronUp } from 'lucide-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { CONTACT_EMAIL, LEGAL_ADDRESS, LEGAL_NAME, LEGAL_REGISTRATION, POLICIES_UPDATED, mailto } from '@/lib/legalIdentity';
 
 type TabId = 'terms' | 'privacy' | 'cookies' | 'seller';
 
@@ -60,13 +61,13 @@ function TermsContent() {
         <p>Sellers are responsible for the accuracy of product listings, pricing, and delivery. Nodbusiness is a platform — we are not a party to buyer-seller transactions. Payment processing is handled by Stripe (international) and Chapa (Ethiopia).</p>
       </Accordion>
       <Accordion title="6. Intellectual Property">
-        <p>The Nodbusiness name, logo, brand identity, and codebase are proprietary. Users may not reproduce or redistribute without written permission. DMCA/copyright takedown: <a href="mailto:legal@nodbusiness.app" className="text-blue-600 hover:underline">legal@nodbusiness.app</a></p>
+        <p>The Nodbusiness name, logo, brand identity, and codebase are proprietary. Users may not reproduce or redistribute without written permission. DMCA/copyright takedown: <a href={mailto("Legal question")} className="text-blue-600 hover:underline">{CONTACT_EMAIL}</a></p>
       </Accordion>
       <Accordion title="7. Limitation of Liability">
         <p>Nodbusiness is not liable for user-generated content or losses from platform outages. Our maximum liability to any user shall not exceed fees paid to us in the 12 months preceding the claim.</p>
       </Accordion>
       <Accordion title="8. Governing Law">
-        <p>These Terms are governed by the laws applicable in your jurisdiction. Disputes shall be submitted to the courts of City, Country.</p>
+        <p>These Terms are governed by the laws of Ethiopia, and disputes go to the courts of Addis Ababa. If you are a consumer, this does not take away the protection of the mandatory consumer laws of the country where you live.</p>
       </Accordion>
       <Accordion title="9. Changes to Terms">
         <p>We may update these Terms with 30 days' notice via in-app notification. Continued use after the effective date constitutes acceptance.</p>
@@ -96,7 +97,21 @@ function PrivacyContent() {
         </ul>
       </Accordion>
       <Accordion title="3. Data Sharing">
-        <p>We share data with: Stripe (payments), Chapa (payments), Resend (emails), Sentry (error tracking, no PII), Render/Vercel/Supabase (hosting and database). We <strong>do not sell</strong> your personal data to advertisers or data brokers.</p>
+        <p>We share only what each service needs to work:</p>
+        <ul className="list-disc list-inside space-y-1">
+          <li><strong>Hosting and database:</strong> Supabase (database and file storage), Render (API), Vercel (website), Cloudflare (network in front of the API: your IP address and requests)</li>
+          <li><strong>Payments:</strong> Chapa and Stripe receive the payer name, phone or card details and amount. Card details never reach Nodbusiness.</li>
+          <li><strong>Email:</strong> Google Gmail sends sign-in codes, receipts and order emails (your email address and the message)</li>
+          <li><strong>Sign-in:</strong> Google, if you choose &ldquo;Sign in with Google&rdquo;</li>
+          <li><strong>AI assistant and AI-written descriptions:</strong> what you type is sent to Google Gemini (or OpenAI or Anthropic when we switch providers) to produce the answer</li>
+          <li><strong>Maps:</strong> OpenStreetMap tile servers see your IP address and the map area you view</li>
+          <li><strong>Barcode lookups:</strong> Open Food Facts receives the scanned barcode only, no personal data</li>
+          <li><strong>Error monitoring:</strong> Sentry receives technical error details from our servers</li>
+        </ul>
+        <p><strong>On your device:</strong> we keep your language, page-guide choice and AI-assistant chat history in your browser&rsquo;s storage. You can clear them in your browser settings.</p>
+        <p><strong>Legal basis:</strong> we process data to provide the service you signed up for (contract), to keep the platform secure and prevent fraud (legitimate interest), to meet tax and accounting duties (legal obligation), and for marketing emails only with your consent.</p>
+        <p><strong>International transfers:</strong> these services run servers in the European Union and the United States, so your data leaves Ethiopia. We use providers that apply standard contractual safeguards.</p>
+        <p>We <strong>do not sell</strong> your personal data to advertisers or data brokers.</p>
       </Accordion>
       <Accordion title="4. Data Retention">
         <ul className="list-disc list-inside space-y-1">
@@ -107,7 +122,7 @@ function PrivacyContent() {
         </ul>
       </Accordion>
       <Accordion title="5. Your Rights">
-        <p>You have the right to: access your data, correct inaccurate data, delete your account, export your data, object to marketing, and withdraw consent. Contact: <a href="mailto:privacy@nodbusiness.app" className="text-blue-600 hover:underline">privacy@nodbusiness.app</a>. We respond within 30 days.</p>
+        <p>You have the right to: access your data, correct inaccurate data, delete your account, export your data, object to marketing, and withdraw consent. Contact: <a href={mailto("Privacy request")} className="text-blue-600 hover:underline">{CONTACT_EMAIL}</a>. We respond within 30 days.</p>
       </Accordion>
       <Accordion title="6. Security Measures">
         <ul className="list-disc list-inside space-y-1">
@@ -122,7 +137,7 @@ function PrivacyContent() {
         <p>Nodbusiness is not intended for users under 18. We do not knowingly collect data from minors. Contact us immediately if you believe a minor has registered.</p>
       </Accordion>
       <Accordion title="8. Contact & DPO">
-        <p>Email: <a href="mailto:privacy@nodbusiness.app" className="text-blue-600 hover:underline">privacy@nodbusiness.app</a><br />Address: City, Country</p>
+        <p>Email: <a href={mailto("Privacy request")} className="text-blue-600 hover:underline">{CONTACT_EMAIL}</a><br />Operator: {LEGAL_NAME} · {LEGAL_ADDRESS}<br />{LEGAL_REGISTRATION}</p>
       </Accordion>
     </div>
   );
@@ -185,7 +200,7 @@ function SellerContent() {
         <p>We may suspend or terminate seller accounts for: fraudulent activity, repeated policy violations, sustained negative reviews, or legal violations. Pending payouts will be held during investigation.</p>
       </Accordion>
       <Accordion title="8. Contact">
-        <p>Seller support: <a href="mailto:sellers@nodbusiness.app" className="text-blue-600 hover:underline">sellers@nodbusiness.app</a></p>
+        <p>Seller support: <a href={mailto("Seller support")} className="text-blue-600 hover:underline">{CONTACT_EMAIL}</a></p>
       </Accordion>
     </div>
   );
@@ -215,7 +230,7 @@ function ServiceAgreementView() {
           </div>
           <div>
             <h1 className="font-bold text-lg leading-tight">Service Agreement</h1>
-            <p className="text-white/70 text-xs">Nodbusiness · City, Country · Last updated August 2026</p>
+            <p className="text-white/70 text-xs">{LEGAL_NAME} · {LEGAL_ADDRESS} · Last updated {POLICIES_UPDATED}</p>
           </div>
         </div>
       </div>
@@ -249,7 +264,7 @@ function ServiceAgreementView() {
       {CONTENT[activeTab]}
 
       <p className="text-center text-[10px] text-muted-foreground">
-        Questions? <a href="mailto:legal@nodbusiness.app" className="text-blue-600 hover:underline">legal@nodbusiness.app</a>
+        Questions? <a href={mailto("Legal question")} className="text-blue-600 hover:underline">{CONTACT_EMAIL}</a>
       </p>
     </div>
   );

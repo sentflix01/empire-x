@@ -2,7 +2,7 @@
 
 > **Classification:** Confidential — Internal Use Only (Public when published)
 > **Version:** 1.0
-> **Effective Date:** [Date]
+> **Effective Date:** October 2026
 > **Last Updated:** August 2026
 
 ---
@@ -23,8 +23,8 @@
 
 This Refund Policy explains when and how refunds are issued for purchases made through the Nodbusiness Platform ("Platform").
 
-**Platform Operator:** Nodbusiness Technologies PLC  
-**Contact:** refunds@nodbusiness.app
+**Platform Operator:** Nodbusiness  
+**Contact:** nodbusinesses@gmail.com
 
 ---
 
@@ -161,7 +161,7 @@ This Refund Policy explains when and how refunds are issued for purchases made t
 
 ### 8.1 How to Request
 1. **Dashboard:** Orders → Select order → "Request Refund"
-2. **Email:** refunds@nodbusiness.app (include order ID, reason, evidence)
+2. **Email:** nodbusinesses@gmail.com (include order ID, reason, evidence)
 3. **Support Chat:** In-app support widget
 
 ### 8.2 Required Information
@@ -201,10 +201,10 @@ This Refund Policy explains when and how refunds are issued for purchases made t
 
 | Channel | Contact | SLA |
 |---------|---------|-----|
-| **Primary** | refunds@nodbusiness.app | 24h acknowledgment |
+| **Primary** | nodbusinesses@gmail.com | 24h acknowledgment |
 | **Dashboard** | Orders → Request Refund | Immediate |
 | **Support Chat** | In-app widget | Business hours |
-| **Escalation** | legal@nodbusiness.app | 48h |
+| **Escalation** | nodbusinesses@gmail.com | 48h |
 
 **Unresolved disputes:** Per ToS Section 14 (Governing Law & Disputes)
 
@@ -222,17 +222,17 @@ This Refund Policy explains when and how refunds are issued for purchases made t
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0 | [Date] | Initial release |
+| 1.0 | October 2026 | Initial release |
 
 ---
 
 ## Contact
 
-**Nodbusiness Technologies PLC**  
-[Address, Addis Ababa, Ethiopia]  
-**Refunds Email:** refunds@nodbusiness.app  
-**Support:** support@nodbusiness.app  
-**Legal:** legal@nodbusiness.app  
+**Nodbusiness**  
+Addis Ababa, Ethiopia  
+**Refunds Email:** nodbusinesses@gmail.com  
+**Support:** nodbusinesses@gmail.com  
+**Legal:** nodbusinesses@gmail.com  
 
 ---
 

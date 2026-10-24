@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { CONTACT_EMAIL, LEGAL_ADDRESS, LEGAL_NAME, POLICIES_UPDATED, mailto } from '@/lib/legalIdentity';
 
 /* ── Section wrapper ── */
 function Section({ title, icon: Icon, iconColor = 'text-blue-600', iconBg = 'bg-blue-50 dark:bg-blue-900/20', children }: {
@@ -353,7 +354,7 @@ function PrivacyAndSecurityView() {
           <Mail className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground">
             Privacy questions? Contact us at{' '}
-            <a href="mailto:privacy@nodbusiness.app" className="text-blue-600 hover:underline">privacy@nodbusiness.app</a>
+            <a href={mailto("Privacy request")} className="text-blue-600 underline">{CONTACT_EMAIL}</a>
           </p>
         </div>
       </Section>
@@ -408,8 +409,8 @@ function PrivacyAndSecurityView() {
       </Dialog>
 
       <p className="text-center text-[10px] text-muted-foreground px-4">
-        Nodbusiness · City, Country · privacy@nodbusiness.app
-        <br />Last updated August 2026
+        {LEGAL_NAME} · {LEGAL_ADDRESS} · {CONTACT_EMAIL}
+        <br />Last updated {POLICIES_UPDATED}
       </p>
     </div>
   );

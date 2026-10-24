@@ -2,7 +2,7 @@
 
 > **Classification:** Confidential — Internal Use Only (Public when published)
 > **Version:** 1.0
-> **Effective Date:** [Date]
+> **Effective Date:** October 2026
 > **Last Updated:** August 2026
 
 ---
@@ -23,11 +23,11 @@
 
 ## 1. Overview
 
-This Privacy Policy explains how Nodbusiness Technologies PLC ("Nodbusiness," "we," "us," "our") collects, uses, shares, and protects your personal information when you use the Nodbusiness Platform ("Platform").
+This Privacy Policy explains how Nodbusiness ("Nodbusiness," "we," "us," "our") collects, uses, shares, and protects your personal information when you use the Nodbusiness Platform ("Platform").
 
-**Controller:** Nodbusiness Technologies PLC, [Address, Addis Ababa, Ethiopia]  
-**DPO:** dpo@nodbusiness.app  
-**Contact:** privacy@nodbusiness.app
+**Controller:** Nodbusiness, Addis Ababa, Ethiopia  
+**DPO:** nodbusinesses@gmail.com  
+**Contact:** nodbusinesses@gmail.com
 
 ---
 
@@ -220,7 +220,7 @@ This Privacy Policy explains how Nodbusiness Technologies PLC ("Nodbusiness," "w
 ## 11. Data Protection Officer
 
 **DPO:** [Name]  
-**Email:** dpo@nodbusiness.app  
+**Email:** nodbusinesses@gmail.com  
 **Phone:** +251-XXX-XXXX  
 
 **Responsibilities:** GDPR compliance, DPIAs, breach response, training, regulator liaison.
@@ -229,7 +229,7 @@ This Privacy Policy explains how Nodbusiness Technologies PLC ("Nodbusiness," "w
 
 ## 12. Complaints & Supervisory Authority
 
-**Internal:** privacy@nodbusiness.app (30-day response)
+**Internal:** nodbusinesses@gmail.com (30-day response)
 
 **Supervisory Authorities:**
 - **Ethiopia:** Ethiopian Communications Authority / Personal Data Protection Office
@@ -251,11 +251,11 @@ This Privacy Policy explains how Nodbusiness Technologies PLC ("Nodbusiness," "w
 
 ## 14. Contact
 
-**Nodbusiness Technologies PLC**  
-[Address, Addis Ababa, Ethiopia]  
-**Privacy Email:** privacy@nodbusiness.app  
-**DPO Email:** dpo@nodbusiness.app  
-**General:** legal@nodbusiness.app  
+**Nodbusiness**  
+Addis Ababa, Ethiopia  
+**Privacy Email:** nodbusinesses@gmail.com  
+**DPO Email:** nodbusinesses@gmail.com  
+**General:** nodbusinesses@gmail.com  
 
 ---
 
