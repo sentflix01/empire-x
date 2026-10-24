@@ -23,10 +23,10 @@ Showroom CRUD: draft/publish lifecycle, layout template selection, section conte
 | `POST` | `/api/showrooms/:id/newsletter` | optional | 166 |
 | `GET` | `/api/showrooms/:id/newsletter` | auth | 184 |
 | `PATCH` | `/api/showrooms/:id/spotlight` | auth | 197 |
-| `GET` | `/api/showrooms/:id` | optional | 232 |
-| `POST` | `/api/showrooms/` | auth | 245 |
-| `PUT` | `/api/showrooms/:id` | auth | 311 |
-| `DELETE` | `/api/showrooms/:id` | auth | 372 |
+| `GET` | `/api/showrooms/:id` | optional | 235 |
+| `POST` | `/api/showrooms/` | auth | 248 |
+| `PUT` | `/api/showrooms/:id` | auth | 314 |
+| `DELETE` | `/api/showrooms/:id` | auth | 375 |
 
 ## 4. What does it touch?
 

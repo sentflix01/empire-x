@@ -24,6 +24,7 @@ import { getBusinessCategoryForBuilder } from '@/lib/showroomCategoryMapping';
 import { getSectionPlanRequirement } from '@/lib/sectionPlanRequirement';
 import FeedSpotlightPanel from '@/components/showroom/studio/FeedSpotlightPanel';
 import FeedSpotlightPreview from '@/components/showroom/studio/FeedSpotlightPreview';
+import { spotlightSectionIds as spotlightSectionIdsFrom } from '@/lib/spotlightSections';
 
 // Smart category-aware default form data — ported from use 1.html
 function getSmartDefaults(templateName: string, category: string): Record<string, any> {
@@ -222,11 +223,7 @@ function ShowroomCreate({
         });
         // Load spotlight config from existing showroom
         setSpotlightMode(data.spotlight_mode ?? null);
-        setSpotlightSectionIds(
-          Array.isArray(data.spotlight_section_ids)
-            ? data.spotlight_section_ids as string[]
-            : (() => { try { return JSON.parse(String(data.spotlight_section_ids || '[]')) as string[]; } catch { return []; } })()
-        );
+        setSpotlightSectionIds(spotlightSectionIdsFrom(data.spotlight_section_ids));
         setSpotlightCarouselCount(typeof data.spotlight_carousel_count === 'number' ? data.spotlight_carousel_count : 1);
       } catch (error) {
         if (!cancelled) toast.error(error instanceof Error ? error.message : 'We could not load this site for editing.');
