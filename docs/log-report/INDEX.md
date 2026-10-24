@@ -5,6 +5,23 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-24 | Maintenance | Merge pull request #146 from sentflix01/fix/buy-normal-products | [1578d135c](2026-10-24-1578d135c-merge-pull-request-146-from-sentflix01-fix-buy-n.md) |
+| 2026-10-24 | Bugfix | fix(deps): patch high-severity frontend advisories blocking CI | [04e33f2f2](2026-10-24-04e33f2f2-patch-high-severity-frontend-advisories-blocking.md) |
+| 2026-10-24 | Bugfix | fix(deps): patch high-severity backend advisories blocking CI | [785592fad](2026-10-24-785592fad-patch-high-severity-backend-advisories-blocking-.md) |
+| 2026-10-24 | Bugfix | fix(buying): products from the normal form are buyable; Buy sheet never dead-ends | [39114d92c](2026-10-24-39114d92c-products-from-the-normal-form-are-buyable-buy-sh.md) |
+| 2026-10-24 | Bugfix | fix(marketplace): remove duplicate obsRef declaration that broke the build | [59ea159b3](2026-10-24-59ea159b3-remove-duplicate-obsref-declaration-that-broke-t.md) |
+| 2026-10-23 | Bugfix | fix(spotlight): demo shows services/about only, real shows products only, full-width panels | [d04d46602](2026-10-23-d04d46602-demo-shows-services-about-only-real-shows-produc.md) |
+| 2026-10-23 | Feature | feat(feed): show full business card in personal feed via BusinessFeedCard component | [72a44925a](2026-10-23-72a44925a-show-full-business-card-in-personal-feed-via-bus.md) |
+| 2026-10-23 | Bugfix | fix(ci): marketplace pagination — use callback ref so observer attaches when sentinel mounts | [a83158786](2026-10-23-a83158786-marketplace-pagination-use-callback-ref-so-obser.md) |
+| 2026-10-23 | Bugfix | fix(ci): fix marketplace pagination — delegate all guards to loadMore, not observer | [82f6c80b3](2026-10-23-82f6c80b3-fix-marketplace-pagination-delegate-all-guards-t.md) |
+| 2026-10-23 | Bugfix | fix(ci): fix marketplace pagination stale closure — IntersectionObserver timeout | [de9492438](2026-10-23-de9492438-fix-marketplace-pagination-stale-closure-interse.md) |
+| 2026-10-23 | Bugfix | fix(ci): fix seedShowroomFlow test — hours field and buildSections guard | [a27bc3029](2026-10-23-a27bc3029-fix-seedshowroomflow-test-hours-field-and-builds.md) |
+| 2026-10-23 | Bugfix | fix(ci): add new sections to BUILDER_SECTION_TIERS and fix seed backward-compat exports | [6191b7f02](2026-10-23-6191b7f02-add-new-sections-to-builder-section-tiers-and-fi.md) |
+| 2026-10-23 | Bugfix | fix(ci): correct migrate76 export shape and Section type in BusinessShowroomFeed | [bbe46c172](2026-10-23-bbe46c172-correct-migrate76-export-shape-and-section-type-.md) |
+| 2026-10-23 | Bugfix | fix(ci): add SectionRenderer blocks + test entries for 6 new builder sections | [ec0debf01](2026-10-23-ec0debf01-add-sectionrenderer-blocks-test-entries-for-6-ne.md) |
+| 2026-10-23 | Bugfix | fix(feed): selling-first spotlight — remove contact/hours from auto-pick, cap items at 3 (images) / 5 (text), add testimonials/features/stats/pricing/events panels | [db751eceb](2026-10-23-db751eceb-selling-first-spotlight-remove-contact-hours-fro.md) |
+| 2026-10-23 | Feature | feat(seed): rewrite with real 10 categories, correct section keys, spotlight variety, announce on publish | [545decdb9](2026-10-23-545decdb9-rewrite-with-real-10-categories-correct-section-.md) |
+| 2026-10-23 | Feature | feat(builder): add delivery, certifications, brands, event_schedule, before_after, job_openings sections | [29051eddc](2026-10-23-29051eddc-add-delivery-certifications-brands-event-schedul.md) |
 | 2026-10-23 | Feature | feat(feed): smart auto-spotlight — priority-ranked section fallback | [f86cd63fa](2026-10-23-f86cd63fa-smart-auto-spotlight-priority-ranked-section-fal.md) |
 | 2026-10-23 | Feature | feat(feed): spotlight auto-shows hero by default; add off state; owner name on feed cards | [9731cbda3](2026-10-23-9731cbda3-spotlight-auto-shows-hero-by-default-add-off-sta.md) |
 | 2026-10-23 | Bugfix | fix(security): upgrade next 16.3.8→16.4.1, add dompurify advisories to CI ignore list | [efc6c7fd4](2026-10-23-efc6c7fd4-upgrade-next-16-3-8-16-4-1-add-dompurify-advisor.md) |

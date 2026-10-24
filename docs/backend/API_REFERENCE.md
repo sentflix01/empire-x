@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **347** across **50** mounted modules · Generated: 2026-10-23
+> Endpoints: **347** across **50** mounted modules · Generated: 2026-10-24
 
 | Legend | Meaning |
 |---|---|
@@ -215,18 +215,18 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/direct-orders/checkout-info` | ⚪ optional | routes/directOrders.ts:143 |
-| `POST` | `/api/direct-orders/requests` | ⚪ optional | routes/directOrders.ts:237 |
-| `POST` | `/api/direct-orders/` | ⚪ optional | routes/directOrders.ts:309 |
-| `GET` | `/api/direct-orders/link/:token` | 🌐 public | routes/directOrders.ts:421 |
-| `POST` | `/api/direct-orders/link/:token/report-payment` | 🌐 public | routes/directOrders.ts:456 |
-| `POST` | `/api/direct-orders/:id/report-payment` | 🔒 auth | routes/directOrders.ts:464 |
-| `POST` | `/api/direct-orders/:id/confirm-payment` | 🔒 auth | routes/directOrders.ts:474 |
-| `POST` | `/api/direct-orders/:id/reject-payment` | 🔒 auth | routes/directOrders.ts:491 |
-| `POST` | `/api/direct-orders/:id/set-price` | 🔒 auth | routes/directOrders.ts:510 |
-| `POST` | `/api/direct-orders/:id/decline-request` | 🔒 auth | routes/directOrders.ts:539 |
-| `GET` | `/api/direct-orders/link/:token/receipt` | 🌐 public | routes/directOrders.ts:563 |
-| `GET` | `/api/direct-orders/:id/receipt` | 🔒 auth | routes/directOrders.ts:571 |
+| `GET` | `/api/direct-orders/checkout-info` | ⚪ optional | routes/directOrders.ts:144 |
+| `POST` | `/api/direct-orders/requests` | ⚪ optional | routes/directOrders.ts:238 |
+| `POST` | `/api/direct-orders/` | ⚪ optional | routes/directOrders.ts:310 |
+| `GET` | `/api/direct-orders/link/:token` | 🌐 public | routes/directOrders.ts:422 |
+| `POST` | `/api/direct-orders/link/:token/report-payment` | 🌐 public | routes/directOrders.ts:457 |
+| `POST` | `/api/direct-orders/:id/report-payment` | 🔒 auth | routes/directOrders.ts:465 |
+| `POST` | `/api/direct-orders/:id/confirm-payment` | 🔒 auth | routes/directOrders.ts:475 |
+| `POST` | `/api/direct-orders/:id/reject-payment` | 🔒 auth | routes/directOrders.ts:492 |
+| `POST` | `/api/direct-orders/:id/set-price` | 🔒 auth | routes/directOrders.ts:511 |
+| `POST` | `/api/direct-orders/:id/decline-request` | 🔒 auth | routes/directOrders.ts:540 |
+| `GET` | `/api/direct-orders/link/:token/receipt` | 🌐 public | routes/directOrders.ts:564 |
+| `GET` | `/api/direct-orders/:id/receipt` | 🔒 auth | routes/directOrders.ts:572 |
 
 ## docs — docs
 
@@ -411,16 +411,16 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/products/` | ⚪ optional | routes/products.ts:71 |
-| `GET` | `/api/products/mine` | 🔒 auth | routes/products.ts:175 |
-| `GET` | `/api/products/lookup/:code` | 🔒 auth | routes/products.ts:195 |
-| `POST` | `/api/products/import-image` | 🔒 auth | routes/products.ts:209 |
-| `POST` | `/api/products/scan-batch` | 🔒 auth | routes/products.ts:225 |
-| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:287 |
-| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:310 |
-| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:350 |
-| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:433 |
-| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:445 |
+| `GET` | `/api/products/` | ⚪ optional | routes/products.ts:72 |
+| `GET` | `/api/products/mine` | 🔒 auth | routes/products.ts:176 |
+| `GET` | `/api/products/lookup/:code` | 🔒 auth | routes/products.ts:196 |
+| `POST` | `/api/products/import-image` | 🔒 auth | routes/products.ts:210 |
+| `POST` | `/api/products/scan-batch` | 🔒 auth | routes/products.ts:226 |
+| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:288 |
+| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:311 |
+| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:364 |
+| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:447 |
+| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:459 |
 
 ## profilePartnerships — profilePartnerships
 
