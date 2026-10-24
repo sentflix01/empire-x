@@ -1,6 +1,8 @@
 /** Expiry notices and cleanup for paid business websites. */
 const pool = require('../db/poolJsShim.cjs');
 const logger = require('../lib/logger');
+// Links in emails only ever point at a configured frontend (audit SEC-08).
+const { getPrimaryFrontendUrl } = require('../lib/frontendUrl');
 const { getRequiredBusinessTier } = require('../lib/builderSectionRequirements');
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -71,7 +73,7 @@ async function sendDraftNotice(draft, hours, sendEmail) {
     return { complete: Boolean(existing.rows[0]?.sent_at), sent: false };
   }
   try {
-    const url = `${(process.env.FRONTEND_URL || 'https://nodbusiness.app').split(',')[0]}/showroom/create?edit=${encodeURIComponent(draft.id)}`;
+    const url = `${getPrimaryFrontendUrl()}/showroom/create?edit=${encodeURIComponent(draft.id)}`;
     const subject = hours === 72
       ? `Final reminder: your ${draft.title || 'website'} draft is due to expire`
       : `Reminder: your ${draft.title || 'website'} draft expires in ${72 - hours} hours`;
@@ -133,7 +135,7 @@ async function processDraftNotices(now, sendEmail) {
 }
 
 function subscriptionUrl(businessId) {
-  return `${(process.env.FRONTEND_URL || 'https://nodbusiness.app').split(',')[0]}/business/subscription?businessId=${encodeURIComponent(businessId)}`;
+  return `${getPrimaryFrontendUrl()}/business/subscription?businessId=${encodeURIComponent(businessId)}`;
 }
 
 function formatDay(date) {
@@ -332,7 +334,7 @@ async function processLegacyGrantNotices(sendEmail) {
     );
     if (!claim.rowCount) continue;
     try {
-      const url = `${(process.env.FRONTEND_URL || 'https://nodbusiness.app').split(',')[0]}/business/subscription?businessId=${encodeURIComponent(row.business_id)}`;
+      const url = `${getPrimaryFrontendUrl()}/business/subscription?businessId=${encodeURIComponent(row.business_id)}`;
       await send(row.email, `Your website now has a Business profile: ${row.business_name}`, buildLegacyGrantHtml(row.business_name, row.current_period_end, url));
       sent++;
     } catch (err) {

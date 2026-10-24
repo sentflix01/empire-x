@@ -12,6 +12,8 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const logger = require('../lib/logger');
+// Links in emails only ever point at a configured frontend (audit SEC-08).
+const { getPrimaryFrontendUrl } = require('../lib/frontendUrl');
 const pool = require('../db/poolJsShim.cjs');
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -109,7 +111,7 @@ async function runDigests() {
 
       const result = await runDoctor(pool, sh.id);
       if (!result) continue;
-      const builderUrl = `${process.env.FRONTEND_URL?.split(',')[0] ?? 'https://nodbusiness.app'}/showroom/create?edit=${sh.id}`;
+      const builderUrl = `${getPrimaryFrontendUrl()}/showroom/create?edit=${sh.id}`;
       const html = buildDigestHtml(result.report, sh.title ?? sh.id, builderUrl);
       await sendCustomEmail(sh.email, `?? Your "${sh.title ?? 'showroom'}" weekly health report ? ${result.report.score}/100`, html);
       recordEvent('showroom_digest_sent', { showroomId: sh.id, score: result.report.score, email: sh.email });

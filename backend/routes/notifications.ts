@@ -28,7 +28,11 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     values.push(lim);
 
     const { rows } = await pool.query(
-      `SELECT id, user_id, type, title, body, link, is_read, created_at, actor_name, actor_avatar
+      // Notifications don't record who caused them yet, so there is no sender
+      // to show. Selecting the missing columns made every request fail with
+      // a 500 (audit FUNC-01); the page shows its default icon for null.
+      `SELECT id, user_id, type, title, body, link, is_read, created_at,
+              NULL::text AS actor_name, NULL::text AS actor_avatar
        FROM notifications WHERE ${conditions.join(' AND ')}
        ORDER BY ${orderClause} LIMIT $${values.length}`,
       values,

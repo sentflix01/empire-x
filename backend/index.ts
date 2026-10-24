@@ -42,7 +42,7 @@ import { startWorkers, closeQueues } from './lib/queue';
 import { attachSentryToApp, getSentryErrorHandler } from './lib/sentry';
 import { errorMiddleware, installProcessHandlers } from './lib/errorCollector';
 import { getRedis, cached } from './lib/redis';
-import { parseFrontendUrls } from './lib/frontendUrl';
+import { allowedOrigins, originMatcher, requireTrustedOrigin } from './lib/corsOrigins';
 import { isConfigured as aiIsConfigured, provider as aiProvider } from './lib/ai';
 import requestId from './middleware/requestId';
 import httpLogger from './middleware/httpLogger';
@@ -208,28 +208,19 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 });
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-const allowedOrigins = parseFrontendUrls();
-// Always include the production domain as a fallback when FRONTEND_URL is not set
-const PROD_FRONTEND = 'https://nodbusiness.app';
-if (!allowedOrigins.includes(PROD_FRONTEND)) allowedOrigins.push(PROD_FRONTEND);
-if (process.env.NODE_ENV !== 'production') {
-  if (!allowedOrigins.includes('http://localhost:3002')) allowedOrigins.push('http://localhost:3002');
-}
-
-const wildcardOrigins = allowedOrigins
-  .filter((o) => o.includes('*'))
-  .map((p) => new RegExp(`^${p.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '.*')}$`));
-const exactOrigins = allowedOrigins.filter((o) => !o.includes('*'));
+// Only configured origins are trusted with credentials (audit SEC-08).
+const trustedOrigins = allowedOrigins();
+const isTrustedOrigin = originMatcher(trustedOrigins);
 
 app.use(cors({
   origin: (origin: string | undefined, cb: (e: Error | null, ok?: boolean) => void) => {
     if (!origin) return cb(null, true);
-    if (exactOrigins.includes(origin)) return cb(null, true);
-    if (wildcardOrigins.some((rx) => rx.test(origin))) return cb(null, true);
-    cb(null, false);
+    cb(null, isTrustedOrigin(origin));
   },
   credentials: true,
 }));
+// The refresh cookie is SameSite=None in production: a foreign page must not rotate it.
+app.use('/api/auth/refresh', requireTrustedOrigin(isTrustedOrigin));
 
 // ── In-memory rate limiting ───────────────────────────────────────────────────
 const isDev = process.env.NODE_ENV !== 'production';
@@ -416,7 +407,7 @@ const { startDigestSchedule } = require('./scripts/showroom-digests') as { start
 const { startBusinessSubscriptionLifecycle } = require('./scripts/business-subscription-lifecycle') as { startBusinessSubscriptionLifecycle: () => void };
 import { startDirectOrderExpiry } from './lib/directOrderExpiry';
 
-initSocket(server, allowedOrigins);
+initSocket(server, trustedOrigins);
 
 void verifySharedDatabaseIsolation().then(verifyDemoStorageIsolation).then(() => server.listen(PORT, () => {
   logger.info(`👑 Nodbusiness backend running on http://localhost:${PORT}`);
