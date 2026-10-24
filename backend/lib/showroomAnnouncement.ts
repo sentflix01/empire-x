@@ -23,8 +23,11 @@ export async function announceShowroomPublished(showroom: PublishedShowroom): Pr
     const link = `/showroom/${encodeURIComponent(showroom.slug)}`;
     const blurb = showroom.description?.trim() ? `\n\n${showroom.description.trim().slice(0, 280)}` : '';
     const { rows } = await pool.query<{ id: string }>(
-      `INSERT INTO posts (author_id, content, image_url, post_type, link_url, showroom_id)
-       VALUES ($1, $2, $3, 'text', $4, $5)
+      // The author's name and picture come from their profile, as for any post
+      // (they were left empty, so the feed showed "Unknown").
+      `INSERT INTO posts (author_id, author_name, author_avatar, content, image_url, post_type, link_url, showroom_id)
+       SELECT $1, up.display_name, up.avatar_url, $2, $3, 'text', $4, $5
+         FROM (SELECT 1) one LEFT JOIN user_profiles up ON up.user_id = $1
        ON CONFLICT (showroom_id) WHERE showroom_id IS NOT NULL DO NOTHING
        RETURNING id`,
       [showroom.owner_id, `${showroom.title} is now live on Nodbusiness.${blurb}`, showroom.cover_image ?? null, link, showroom.id],

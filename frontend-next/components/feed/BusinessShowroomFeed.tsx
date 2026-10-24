@@ -8,9 +8,9 @@ import { useAuth } from '@/lib/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
 
 import {
-  Store, ShoppingBag, MapPin, MessageSquare, ArrowRight, Clock,
+  Store, ShoppingBag, MapPin, MessageSquare, ArrowRight,
   UtensilsCrossed, Briefcase, HeartPulse, Palette, CalendarDays,
-  Home as HomeIcon, GraduationCap, LucideProps, ShoppingCart,
+  Home as HomeIcon, GraduationCap, LucideProps,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { findOrCreateConversation } from '@/lib/messaging';
@@ -18,9 +18,8 @@ import { getCategoryByValue } from '@/lib/businessTemplates';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
 import PurchaseModal from '@/components/checkout/PurchaseModal';
 import SharedBookmarkButton from '@/components/ui/BookmarkButton';
-import FeedSpotlightWidget, { type SpotlightItem, type FeedSpotlightWidgetProps } from './FeedSpotlightWidget';
-import { spotlightSectionIds } from '@/lib/spotlightSections';
-import SpotlightProductDrawer from './SpotlightProductDrawer';
+import BusinessSpotlight from './BusinessSpotlight';
+import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface SectionItem {
@@ -49,18 +48,7 @@ interface Section {
   [key: string]: unknown;
 }
 
-interface HourEntry {
-  day: string;
-  hours: string;
-}
 
-interface Product {
-  id: string;
-  title?: string;
-  price?: number;
-  currency?: string;
-  images?: string;
-}
 
 interface Business {
   id: string;
@@ -100,13 +88,7 @@ interface User {
 }
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
-const parseImages = (v?: string): string[] => {
-  try { return JSON.parse(v ?? '[]'); } catch { return v ? [v] : []; }
-};
 const parseSections = (v?: string): Section[] => {
-  try { return JSON.parse(v ?? '[]'); } catch { return []; }
-};
-const parseHours = (v?: string): HourEntry[] => {
   try { return JSON.parse(v ?? '[]'); } catch { return []; }
 };
 
@@ -119,273 +101,6 @@ const CAT_ICONS: Record<string, CatIconType> = {
 };
 
 /* ── Sub-components ──────────────────────────────────────────────── */
-function ServicesList({ title, items, themeColor, onBuy }: {
-  title?: string;
-  items?: SectionItem[];
-  themeColor: string;
-  onBuy?: (item: SectionItem) => void;
-}) {
-  if (!items?.length) return null;
-  return (
-    <div>
-      {title && <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">{title}</p>}
-      <div className="space-y-1.5">
-        {items.slice(0, 3).map((item, i) => (
-          <div key={i} className="flex items-start justify-between gap-2 py-1.5 border-b border-border/30 last:border-0">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold truncate">{item.name ?? item.title}</p>
-              {(item.description ?? item.desc) && (
-                <p className="text-xs text-muted-foreground truncate">{item.description ?? item.desc}</p>
-              )}
-            </div>
-            {item.price && (
-              <button
-                onClick={() => onBuy?.(item)}
-                className={`text-xs font-bold shrink-0 rounded-full px-2 py-0.5 transition-all ${
-                  onBuy
-                    ? 'hover:opacity-80 active:scale-95 cursor-pointer underline-offset-2 hover:underline'
-                    : 'cursor-default'
-                }`}
-                style={{ color: themeColor }}
-                aria-label={`Buy ${item.name ?? item.title} — ${item.price}`}
-                type="button"
-              >
-                {item.price}
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function HoursPreview({ hours }: { hours: HourEntry[] }) {
-  if (!hours.length) return null;
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-  const row = hours.find(h => h.day === today);
-  return (
-    <div className="flex items-center gap-1.5">
-      <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
-      <span className="text-xs text-muted-foreground">
-        {row
-          ? row.hours === 'Closed'
-            ? <span className="text-red-500 font-medium">Closed today</span>
-            : <><span className="text-green-600 font-medium">Open</span> · {row.hours}</>
-          : 'Hours not set'}
-      </span>
-    </div>
-  );
-}
-
-function FeatureChips({ items, themeColor }: { items?: SectionItem[]; themeColor: string }) {
-  if (!items?.length) return null;
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {items.slice(0, 3).map((item, i) => (
-        <span key={i} className="text-xs px-2.5 py-1 rounded-full"
-          style={{ backgroundColor: themeColor + '18', color: themeColor }}>
-          {item.title}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function SectionChips({ sections, themeColor }: { sections: Section[]; themeColor: string }) {
-  const chips = sections.filter(s => s.title && s.type !== 'hero').slice(0, 4);
-  if (!chips.length) return null;
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {chips.map((s, i) => (
-        <span key={i} className="text-xs px-2.5 py-1 rounded-full"
-          style={{ backgroundColor: themeColor + '18', color: themeColor }}>
-          {s.title}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function ProductsGrid({ products, themeColor, profileUserId, onBuy }: {
-  products: Product[];
-  themeColor: string;
-  profileUserId: string;
-  onBuy?: (product: Product) => void;
-}) {
-  if (!products.length) return null;
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Products</p>
-        <Link href={`/profile/${profileUserId}?view=business`} className="text-xs font-medium" style={{ color: themeColor }}>
-          View all
-        </Link>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        {products.slice(0, 4).map(p => {
-          const imgs = parseImages(p.images);
-          return (
-            <div key={p.id} className="rounded-lg border border-border/40 overflow-hidden hover:shadow-sm transition-all relative group">
-              <Link href={`/products/${p.id}`}>
-                <div className="aspect-square bg-secondary/20 relative overflow-hidden">
-                  {imgs[0]
-                    ? <NextImage src={imgs[0]} alt={p.title ?? ''} fill className="object-cover" unoptimized />
-                    : <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
-                        <ShoppingBag className="w-5 h-5" />
-                      </div>}
-                </div>
-                <div className="p-2">
-                  <p className="text-xs font-medium truncate">{p.title}</p>
-                  <p className="text-xs font-bold mt-0.5" style={{ color: themeColor }}>
-                    {p.price?.toLocaleString()} {p.currency ?? 'ETB'}
-                  </p>
-                </div>
-              </Link>
-              {/* Quick-buy button — appears on hover */}
-              {onBuy && p.price && (
-                <button
-                  onClick={() => onBuy(p)}
-                  className="absolute bottom-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity active:scale-95"
-                  style={{ backgroundColor: themeColor }}
-                  aria-label={`Buy ${p.title}`}
-                  type="button"
-                >
-                  <ShoppingCart className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function PropertyGrid({ products, themeColor }: { products: Product[]; themeColor: string }) {
-  if (!products.length) return null;
-  return (
-    <div>
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Listings</p>
-      <div className="grid grid-cols-2 gap-2">
-        {products.slice(0, 2).map(p => {
-          const imgs = parseImages(p.images);
-          return (
-            <Link href={`/products/${p.id}`} key={p.id}
-              className="rounded-lg border border-border/40 overflow-hidden hover:shadow-sm transition-all">
-              <div className="aspect-video bg-secondary/20 relative overflow-hidden">
-                {imgs[0]
-                  ? <NextImage src={imgs[0]} alt={p.title} fill className="object-cover" unoptimized />
-                  : <div className="w-full h-full flex items-center justify-center">
-                      <HomeIcon className="w-5 h-5 text-muted-foreground/20" />
-                    </div>}
-              </div>
-              <div className="p-2">
-                <p className="text-xs font-medium truncate">{p.title}</p>
-                <p className="text-xs font-bold mt-0.5" style={{ color: themeColor }}>
-                  {p.price?.toLocaleString()} ETB
-                </p>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/* ── Category-specific content ───────────────────────────────────── */
-interface CategoryContentProps {
-  biz: Business | Profile;
-  sections: Section[];
-  products: Product[];
-  themeColor: string;
-  profileUserId: string;
-  onBuyService?: (item: SectionItem) => void;
-  onBuyProduct?: (product: Product) => void;
-}
-
-function CategoryContent({ biz, sections, products, themeColor, profileUserId, onBuyService, onBuyProduct }: CategoryContentProps) {
-  const cat = (biz.business_category as string | undefined) ?? 'other';
-  const get = (type: string) => sections.find(s => s.type === type);
-  const servicesSection = get('services') ?? get('menu');
-  const featuresSection = get('features');
-  const hours = parseHours(biz.business_hours as string | undefined);
-
-  switch (cat) {
-    case 'restaurant':
-      return (
-        <div className="space-y-2.5">
-          {(servicesSection?.items?.length ?? 0) > 0 && (
-            <ServicesList title={servicesSection!.title ?? 'Menu Highlights'} items={servicesSection!.items} themeColor={themeColor} onBuy={onBuyService} />
-          )}
-          <HoursPreview hours={hours} />
-        </div>
-      );
-    case 'shop':
-      return (
-        <div className="space-y-2.5">
-          {products.length > 0
-            ? <ProductsGrid products={products} themeColor={themeColor} profileUserId={profileUserId} onBuy={onBuyProduct} />
-            : <FeatureChips items={featuresSection?.items} themeColor={themeColor} />}
-        </div>
-      );
-    case 'service':
-      return (
-        <div className="space-y-2.5">
-          {(servicesSection?.items?.length ?? 0) > 0
-            ? <ServicesList title={servicesSection!.title ?? 'Services'} items={servicesSection!.items} themeColor={themeColor} onBuy={onBuyService} />
-            : <FeatureChips items={featuresSection?.items} themeColor={themeColor} />}
-        </div>
-      );
-    case 'health':
-      return (
-        <div className="space-y-2.5">
-          {(servicesSection?.items?.length ?? 0) > 0 && (
-            <ServicesList title={servicesSection!.title ?? 'Services'} items={servicesSection!.items} themeColor={themeColor} onBuy={onBuyService} />
-          )}
-          <HoursPreview hours={hours} />
-        </div>
-      );
-    case 'course': {
-      const coursesSec = get('courses') ?? servicesSection;
-      return (
-        <div className="space-y-2.5">
-          {(coursesSec?.items?.length ?? 0) > 0
-            ? <ServicesList title="Programs" items={coursesSec!.items} themeColor={themeColor} onBuy={onBuyService} />
-            : <FeatureChips items={featuresSection?.items} themeColor={themeColor} />}
-        </div>
-      );
-    }
-    case 'event':
-      return (
-        <div className="space-y-2.5">
-          {(servicesSection?.items?.length ?? 0) > 0 && (
-            <ServicesList title={servicesSection!.title ?? 'Packages'} items={servicesSection!.items} themeColor={themeColor} onBuy={onBuyService} />
-          )}
-        </div>
-      );
-    case 'realestate':
-      return (
-        <div className="space-y-2.5">
-          {products.length > 0
-            ? <PropertyGrid products={products} themeColor={themeColor} />
-            : <FeatureChips items={featuresSection?.items} themeColor={themeColor} />}
-        </div>
-      );
-    case 'portfolio':
-      return (
-        <div className="space-y-2.5">
-          {(servicesSection?.items?.length ?? 0) > 0
-            ? <ServicesList title={servicesSection!.title} items={servicesSection!.items} themeColor={themeColor} onBuy={onBuyService} />
-            : <SectionChips sections={sections} themeColor={themeColor} />}
-        </div>
-      );
-    default:
-      return <SectionChips sections={sections} themeColor={themeColor} />;
-  }
-}
-
 /* ── BusinessFeedCard (extracted per-card component for feed mode) ── */
 export interface BusinessFeedCardProps {
   biz: Business;
@@ -397,20 +112,13 @@ export interface BusinessFeedCardProps {
   onMessage?: (ownerId: string, bizName: string) => void;
 }
 
-export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, ownerIsSeed, viewer, onMessage }: BusinessFeedCardProps) {
+export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, viewer, onMessage }: BusinessFeedCardProps) {
   const router = useRouter();
   const [qrOpen, setQrOpen] = useState(false);
   const [messaging, setMessaging] = useState(false);
   const [purchaseModal, setPurchaseModal] = useState<{
     item: { id?: string; title: string; description?: string; price?: number; currency?: string; images?: string };
     seller: { user_id: string; business_name?: string; display_name?: string };
-  } | null>(null);
-  const [spotlightDrawer, setSpotlightDrawer] = useState<{
-    item: SpotlightItem;
-    businessName: string;
-    ownerId: string;
-    showroomSlug: string;
-    themeColor: string;
   } | null>(null);
 
   const color      = (biz.business_theme_color as string) || '#2563EB';
@@ -419,12 +127,15 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
   const CatIcon    = CAT_ICONS[category] ?? Store;
   const sections   = parseSections(biz.business_sections as string | undefined);
   const heroSection= sections.find(s => s.type === 'hero');
-  const servSection= sections.find(s => s.type === 'services');
   const logoUrl    = biz.business_logo_url as string | undefined;
   const coverUrl   = biz.business_cover_url as string | undefined;
   const ownerId    = biz.owner_id as string || '';
   const showroomSlug = typeof biz.showroom_slug === 'string' ? biz.showroom_slug : '';
   const showroomId = typeof biz.showroom_id === 'string' ? biz.showroom_id : '';
+  // Products are linked to the business: a showroom card carries business_id, a business card is the business.
+  const businessIdForCard = typeof biz.business_id === 'string' && biz.business_id
+    ? biz.business_id
+    : (!biz.showroom_slug && typeof biz.id === 'string' ? biz.id : null);
   const visitPath = showroomSlug
     ? `/showroom/${showroomSlug}`
     : showroomId
@@ -628,106 +339,22 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
         )}
       </div>
 
-      {/* Services preview */}
-      {servSection?.items && servSection.items.length > 0 && (
-        <div className="px-4 pb-4">
-          <ServicesList
-            title={servSection.title}
-            items={servSection.items}
-            themeColor={color}
-            onBuy={(svcItem) => {
-              const priceStr = svcItem.price ?? '';
-              const priceNum = parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 0;
-              setPurchaseModal({
-                item: {
-                  title: svcItem.name ?? svcItem.title ?? 'Service',
-                  description: svcItem.description ?? svcItem.desc,
-                  price: priceNum,
-                  currency: 'ETB',
-                },
-                seller: {
-                  user_id: ownerId,
-                  business_name: bizName,
-                },
-              });
-            }}
-          />
-        </div>
-      )}
-
-      {/* Feed Spotlight */}
-      {biz.showroom_id && biz.spotlight_mode !== 'off' && (() => {
-        let resolvedMode: 'single' | 'carousel';
-        let resolvedIds: string[];
-        let resolvedCount: number;
-
-        if (biz.spotlight_mode === 'single' || biz.spotlight_mode === 'carousel') {
-          resolvedMode = biz.spotlight_mode;
-          resolvedIds = spotlightSectionIds(biz.spotlight_section_ids);
-          resolvedCount = typeof biz.spotlight_carousel_count === 'number' ? biz.spotlight_carousel_count : 1;
-        } else {
-          // null = never configured → auto-pick by account type
-          const hasItems = (type: string) =>
-            sections.some(s =>
-              s.type === type && (
-                (s.items && (s.items as unknown[]).length > 0) ||
-                (s.dishes && (s.dishes as unknown[]).length > 0) ||
-                (s.services && (s.services as unknown[]).length > 0) ||
-                (s.events && (s.events as unknown[]).length > 0) ||
-                (s.plans && (s.plans as unknown[]).length > 0) ||
-                (s.features && (s.features as unknown[]).length > 0) ||
-                (s.stats && (s.stats as unknown[]).length > 0) ||
-                (s.testimonials && (s.testimonials as unknown[]).length > 0)
-              )
-            );
-
-          const isDemoAccount = ownerIsSeed === true || (biz as any).owner_is_seed === true;
-
-          let autoId: string | undefined;
-
-          if (isDemoAccount) {
-            // Demo accounts: services OR about only, no carousel
-            // Diversify: alternate between services and about using biz.id hash
-            const idSum = biz.id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-            const preferServices = idSum % 2 === 0;
-            if (preferServices) {
-              autoId = hasItems('services') ? 'services' : (sections.some(s => s.type === 'about') ? 'about' : undefined);
-            } else {
-              autoId = sections.some(s => s.type === 'about') ? 'about' : (hasItems('services') ? 'services' : undefined);
-            }
-          } else {
-            // Real accounts: items or menu only (products)
-            autoId = hasItems('items') ? 'items' : (hasItems('menu') ? 'menu' : undefined);
-          }
-
-          if (!autoId) return null;
-          resolvedMode = 'single';  // always single, never carousel in auto mode
-          resolvedIds = [autoId];
-          resolvedCount = 1;
-        }
-
-        if (resolvedIds.length === 0) return null;
-
-        return (
-          <FeedSpotlightWidget
-            sections={sections as FeedSpotlightWidgetProps['sections']}
-            spotlightMode={resolvedMode}
-            spotlightSectionIds={resolvedIds}
-            spotlightCarouselCount={resolvedCount}
-            themeColor={color}
-            businessName={bizName}
-            showroomSlug={showroomSlug}
-            ownerId={ownerId}
-            onProductClick={(item) => setSpotlightDrawer({
-              item,
-              businessName: bizName,
-              ownerId,
-              showroomSlug,
-              themeColor: color,
-            })}
-          />
-        );
-      })()}
+      {/* Spotlight: one selling section at its real size (lib/spotlight.ts) */}
+      <BusinessSpotlight
+        sections={sections as unknown as Array<Record<string, any>>}
+        spotlightMode={(biz.spotlight_mode as string | null | undefined) ?? null}
+        spotlightSectionIds={biz.spotlight_section_ids}
+        themeColor={color}
+        ownerId={ownerId}
+        businessId={businessIdForCard}
+        showroomId={showroomId || null}
+        profile={{ ...biz, business_name: bizName, display_name: bizName }}
+        isOwner={!!viewer?.id && viewer.id === ownerId}
+        onBuy={(item) => setPurchaseModal({
+          item: item as { id?: string; title: string; description?: string; price?: number; currency?: string; images?: string },
+          seller: { user_id: ownerId, business_name: bizName },
+        })}
+      />
 
       {/* Inline PurchaseModal */}
       {purchaseModal && (
@@ -735,38 +362,12 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
           item={purchaseModal.item}
           seller={purchaseModal.seller}
           buyer={viewer ? { id: viewer.id as string } : undefined}
+          showroomId={showroomId || undefined}
+          businessId={businessIdForCard}
           onClose={() => setPurchaseModal(null)}
         />
       )}
 
-      {/* Spotlight product drawer */}
-      {spotlightDrawer && (
-        <SpotlightProductDrawer
-          item={spotlightDrawer.item}
-          businessName={spotlightDrawer.businessName}
-          ownerId={spotlightDrawer.ownerId}
-          showroomSlug={spotlightDrawer.showroomSlug}
-          themeColor={spotlightDrawer.themeColor}
-          currentUserId={viewer?.id as string | undefined}
-          onClose={() => setSpotlightDrawer(null)}
-          onBuy={(item) => {
-            setSpotlightDrawer(null);
-            const priceNum = parseFloat(String(item.price ?? '').replace(/[^0-9.]/g, '')) || 0;
-            setPurchaseModal({
-              item: {
-                title: item.name ?? item.title ?? 'Item',
-                description: item.desc ?? item.description,
-                price: priceNum,
-                currency: 'ETB',
-              },
-              seller: {
-                user_id: spotlightDrawer.ownerId,
-                business_name: spotlightDrawer.businessName,
-              },
-            });
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -783,7 +384,8 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   const [selectedBizId, setSelectedBizId] = useState<string | null>(null);
   const [feedBusinesses, setFeedBusinesses] = useState<Business[]>([]); // global feed mode
   const [feedError, setFeedError] = useState('');
-  const [products, setProducts] = useState<Product[]>([]);
+  // Profile mode: the owner's published sites carry the sections and spotlight settings.
+  const [ownerShowrooms, setOwnerShowrooms] = useState<Array<Record<string, any>>>([]);
   const [loading, setLoading] = useState(true);
   const [messaging, setMessaging] = useState(false); // used by profile-mode message button
   // Owner display names for feed-mode cards — keyed by owner_id
@@ -810,31 +412,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
         entities.Showroom.filter({ status: 'published' }, '-created_at', 50) as Promise<Array<Record<string, unknown>>>,
       ]);
       const publishedShowrooms = showroomRows.filter(showroom => showroom.status === 'published');
-      const showroomItems: Business[] = publishedShowrooms.map(showroom => {
-        const sectionsJson = typeof showroom.sections === 'string'
-          ? showroom.sections
-          : JSON.stringify(showroom.sections ?? []);
-        const contact = parseSections(sectionsJson).find(section => section.type === 'contact');
-        return {
-          ...showroom,
-          id: String(showroom.id),
-          owner_id: String(showroom.owner_id ?? ''),
-          business_name: String(showroom.title ?? 'Business'),
-          business_category: String(showroom.category ?? 'other'),
-          business_theme_color: String(showroom.theme_color ?? '#2563EB'),
-          business_logo_url: String(showroom.logo_url ?? ''),
-          business_cover_url: String(showroom.cover_image ?? ''),
-          business_description: String(showroom.description ?? ''),
-          business_address: String(contact?.location ?? ''),
-          business_sections: sectionsJson,
-          showroom_id: String(showroom.id),
-          showroom_slug: String(showroom.slug ?? ''),
-          spotlight_mode: (showroom.spotlight_mode as string | null) ?? null,
-          spotlight_section_ids: JSON.stringify(spotlightSectionIds(showroom.spotlight_section_ids)),
-          spotlight_carousel_count: typeof showroom.spotlight_carousel_count === 'number'
-            ? showroom.spotlight_carousel_count : 1,
-        };
-      });
+      const showroomItems = publishedShowrooms.map((showroom) => showroomToFeedBusiness(showroom) as Business);
       const nameKey = (value?: string) => String(value ?? '').trim().toLocaleLowerCase();
       const showroomKeys = new Set(publishedShowrooms.map(showroom =>
         `${showroom.owner_id}:${nameKey(String(showroom.title ?? ''))}`,
@@ -913,15 +491,13 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   }, [isFeedMode, profile?.user_id, propBusinesses, loadData, loadFeedBusinesses]);
 
   useEffect(() => {
-    if (isFeedMode || !selectedBizId) return;
-    const biz = allBusinesses.find(b => b.id === selectedBizId);
-    const filter = biz
-      ? { business_id: biz.id, status: 'active' }
-      : { seller_id: profile!.user_id, status: 'active' };
-    entities.Product.filter(filter, '-created_at', 4)
-      .then((p) => setProducts(p as unknown as Product[]))
-      .catch(() => setProducts([]));
-  }, [selectedBizId, isFeedMode, allBusinesses, profile]);
+    if (isFeedMode || !profile?.user_id) return;
+    let cancelled = false;
+    (entities.Showroom.filter({ owner_id: profile.user_id, status: 'published' }, '-created_at', 20) as Promise<Array<Record<string, any>>>)
+      .then((rows) => { if (!cancelled) setOwnerShowrooms((rows ?? []).filter((r) => r.status === 'published')); })
+      .catch(() => { if (!cancelled) setOwnerShowrooms([]); });
+    return () => { cancelled = true; };
+  }, [isFeedMode, profile?.user_id]);
 
   const handleMessage = async (targetUserId: string, targetName: string) => {
     if (!currentUser || messaging) return;
@@ -1104,49 +680,29 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
         </div>
       </div>
 
-      {/* Category-specific content */}
-      <div className="px-4 pb-4">
-        <CategoryContent
-          biz={biz}
-          sections={sections}
-          products={products}
-          themeColor={themeColor}
-          profileUserId={profile!.user_id}
-          onBuyService={(svcItem) => {
-            const priceStr = svcItem.price ?? '';
-            const priceNum = parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 0;
-            setSinglePurchaseModal({
-              item: {
-                title: svcItem.name ?? svcItem.title ?? 'Service',
-                description: svcItem.description ?? svcItem.desc,
-                price: priceNum,
-                currency: 'ETB',
-              },
-              seller: {
-                user_id: profile!.user_id,
-                business_name: bizName,
-                display_name: profile!.display_name,
-              },
-            });
-          }}
-          onBuyProduct={(product) => {
-            setSinglePurchaseModal({
-              item: {
-                id: product.id,
-                title: product.title ?? 'Product',
-                price: product.price,
-                currency: product.currency ?? 'ETB',
-                images: product.images,
-              },
-              seller: {
-                user_id: profile!.user_id,
-                business_name: bizName,
-                display_name: profile!.display_name,
-              },
-            });
-          }}
-        />
-      </div>
+      {/* Spotlight: the same one-section showcase as on the feed card (lib/spotlight.ts) */}
+      {(() => {
+        const card = business ? businessToFeedBusiness(business, ownerShowrooms) : null;
+        const cardSections = card ? parseSections(card.business_sections as string | undefined) : sections;
+        const cardShowroomId = card && typeof card.showroom_id === 'string' ? card.showroom_id : null;
+        return (
+          <BusinessSpotlight
+            sections={cardSections as unknown as Array<Record<string, any>>}
+            spotlightMode={(card?.spotlight_mode as string | null | undefined) ?? null}
+            spotlightSectionIds={card?.spotlight_section_ids}
+            themeColor={themeColor}
+            ownerId={profile!.user_id}
+            businessId={business?.id ?? null}
+            showroomId={cardShowroomId}
+            profile={{ ...(card ?? biz), business_name: bizName, display_name: bizName }}
+            isOwner={!!viewer?.id && viewer.id === profile!.user_id}
+            onBuy={(item) => setSinglePurchaseModal({
+              item: item as { id?: string; title: string; description?: string; price?: number; currency?: string; images?: string },
+              seller: { user_id: profile!.user_id, business_name: bizName, display_name: profile!.display_name },
+            })}
+          />
+        );
+      })()}
 
       {/* Purchase modal */}
       {singlePurchaseModal && (
@@ -1154,6 +710,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           item={singlePurchaseModal.item}
           seller={singlePurchaseModal.seller}
           buyer={currentUser ? { id: currentUser.id as string } : undefined}
+          businessId={business?.id ?? null}
           onClose={() => setSinglePurchaseModal(null)}
         />
       )}

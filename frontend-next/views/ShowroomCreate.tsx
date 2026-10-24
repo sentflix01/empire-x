@@ -802,12 +802,13 @@ function ShowroomCreate({
             }}
           />
           <FeedSpotlightPreview
-            activeSections={activeSections}
-            spotlightMode={spotlightMode ?? 'off'}
+            sections={serializeShowroomSections(activeSections, formData) as Array<Record<string, any>>}
+            spotlightMode={spotlightMode}
             spotlightSectionIds={spotlightSectionIds}
-            spotlightCarouselCount={spotlightCarouselCount}
             themeColor={String(formData.heroBg ?? '#2563EB')}
             businessName={String(formData.title ?? 'Your Business')}
+            ownerId={String(user?.id ?? '')}
+            businessId={selectedBusinessId ?? null}
           />
         </div>
       )}
