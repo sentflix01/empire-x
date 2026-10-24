@@ -100,7 +100,8 @@ function PrivacyContent() {
         <p>We share only what each service needs to work:</p>
         <ul className="list-disc list-inside space-y-1">
           <li><strong>Hosting and database:</strong> Supabase (database and file storage), Render (API), Vercel (website), Cloudflare (network in front of the API: your IP address and requests)</li>
-          <li><strong>Payments:</strong> Chapa and Stripe receive the payer name, phone or card details and amount. Card details never reach Nodbusiness.</li>
+          <li><strong>Sellers you order from:</strong> your name, phone, email and delivery address, so they can confirm and deliver your order. You pay the seller directly; Nodbusiness never holds the money.</li>
+          <li><strong>Plan payments:</strong> Chapa and Stripe receive the payer name, phone or card details and amount when a business pays for a plan. Card details never reach Nodbusiness.</li>
           <li><strong>Email:</strong> Google Gmail sends sign-in codes, receipts and order emails (your email address and the message)</li>
           <li><strong>Sign-in:</strong> Google, if you choose &ldquo;Sign in with Google&rdquo;</li>
           <li><strong>AI assistant and AI-written descriptions:</strong> what you type is sent to Google Gemini (or OpenAI or Anthropic when we switch providers) to produce the answer</li>
@@ -110,7 +111,7 @@ function PrivacyContent() {
         </ul>
         <p><strong>On your device:</strong> we keep your language, page-guide choice and AI-assistant chat history in your browser&rsquo;s storage. You can clear them in your browser settings.</p>
         <p><strong>Legal basis:</strong> we process data to provide the service you signed up for (contract), to keep the platform secure and prevent fraud (legitimate interest), to meet tax and accounting duties (legal obligation), and for marketing emails only with your consent.</p>
-        <p><strong>International transfers:</strong> these services run servers in the European Union and the United States, so your data leaves Ethiopia. We use providers that apply standard contractual safeguards.</p>
+        <p><strong>International transfers:</strong> these services run servers in the European Union and the United States, so your data is transferred outside Ethiopia when you use Nodbusiness.</p>
         <p>We <strong>do not sell</strong> your personal data to advertisers or data brokers.</p>
       </Accordion>
       <Accordion title="4. Data Retention">

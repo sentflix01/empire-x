@@ -1,6 +1,6 @@
 /**
- * Who operates Nodbusiness, as shown on legal pages, receipts of contact and
- * policy footers. Change these in one place when the company is registered.
+ * Who operates Nodbusiness, as shown on legal pages, contact links and policy
+ * footers. Change these in one place when the company is registered.
  *
  * Audit LEGAL-02 / LEGAL-03: the pages showed "City, Country" and addresses on
  * nodbusiness.app, a domain the project doesn't own, so no mail arrived.
