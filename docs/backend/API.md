@@ -563,6 +563,18 @@ The chat plus `members: [{ user_id, role, display_name, avatar_url, last_deliver
 
 **New chats follow the other person's "who can message me"** (everyone / followers / nobody) and blocks in both directions. An existing chat always reopens, but sending into it stops while either person blocks the other.
 
+### POST /api/messages/conversations/business
+Opens the **business chat** between a customer and a business: one per customer and business, separate from any personal chat with the owner. It reopens if it already exists.
+
+`{ "business_id": "uuid", "context"?: { "kind": "product" | "order" | "showroom", "id": "uuid" }, "customer_id"?: "uuid" }`
+- **As a customer:** `business_id` is enough. The owner's personal "who can message me" setting doesn't apply; blocks still do.
+- **As the owner:** pass `customer_id` and an `order` context. Owners can only start chats from one of the customer's orders.
+- **Context:** the item must belong to that business, otherwise 422 "That item isn't from this business". It adds a `context` card (a title and photo snapshot linking to the live page, never a price) to the chat.
+- **Who sees whom:** the customer sees the business (name and logo, no personal "last seen"); the owner sees the customer, under their **Business** tab. Rows carry `business_id`, `business_name`, `business_logo` and `is_business_side`.
+
+### GET /api/messages/quick-replies?business_id= · PUT /api/messages/quick-replies
+The owner's saved answers, tapped to fill the message box in business chats. PUT replaces the list: `{ "business_id": "uuid", "replies": ["…"] }`, with up to 20 replies of 1–500 characters each. Owner only (403 otherwise).
+
 ### POST /api/messages/conversations
 Creates a group or channel: `{ "type": "group" | "channel", "name", "participant_ids": ["uuid"], "description"?, "avatar_url"? }`.
 - The creator becomes the admin.
@@ -579,6 +591,7 @@ Members only. `limit` (1–500, default 100) and `before` (an ISO date) page bac
 
 ### POST /api/messages/conversations/:id/messages
 `{ "content": "Hello!", "type": "text" | "image" | "file", "reply_to_id"? }`
+- **Cards are made by the server:** `product`, `order_update` and `context` messages get **422** here. Share a product with `POST /api/messages/share-product` (`{ conversation_id, product_id }`), which builds the card from the real product.
 - **Content:** 1–4,000 characters, trimmed. Photos and files must be `https` links.
 - **Replies:** `reply_to_id` must be a message in the same chat.
 - **Who can post:** in a channel, only admins post. A one-to-one chat stops while either person blocks the other.

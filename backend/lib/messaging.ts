@@ -20,7 +20,15 @@ export const EDIT_WINDOW_MS = 15 * 60 * 1000;
 export const DELETE_FOR_EVERYONE_WINDOW_MS = 24 * 60 * 60 * 1000;
 export const MAX_GROUP_MEMBERS = 256;
 export const CONVERSATION_TYPES = ['dm', 'group', 'channel'] as const;
-export const MESSAGE_TYPES = ['text', 'image', 'file', 'product', 'order_update'] as const;
+/** Message types a person may send through the normal send route. */
+export const MESSAGE_TYPES = ['text', 'image', 'file'] as const;
+/**
+ * Card types only the server creates, from real records: 'product' (POST
+ * /share-product builds it from the product), 'order_update' and 'context'
+ * (the item a chat was started from). Accepting them from the send route let
+ * a sender invent a product price or an order status.
+ */
+export const SERVER_MESSAGE_TYPES = ['product', 'order_update', 'context'] as const;
 export type ConversationType = typeof CONVERSATION_TYPES[number];
 
 type Queryable = Pick<PoolClient, 'query'>;
@@ -138,12 +146,72 @@ async function syncLegacyColumns(db: Queryable, convId: string): Promise<void> {
   );
 }
 
+// ── Business chats ────────────────────────────────────────────────────────────
+
+export interface BusinessRow { id: string; owner_id: string; business_name: string; business_logo_url: string | null }
+
+export async function getBusiness(id: string, db: Queryable = pool): Promise<BusinessRow | null> {
+  const { rows } = await db.query('SELECT id, owner_id, business_name, business_logo_url FROM businesses WHERE id=$1', [id]);
+  return (rows[0] as BusinessRow | undefined) ?? null;
+}
+
+export type ContextKind = 'product' | 'order' | 'showroom' | 'quote';
+export interface ContextCard { kind: ContextKind; id?: string; title: string; image?: string | null; url?: string; status?: string; note?: string }
+
+const firstImage = (raw: unknown): string | null => {
+  try {
+    const list = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    return Array.isArray(list) && typeof list[0] === 'string' ? list[0] : null;
+  } catch { return typeof raw === 'string' && raw.startsWith('http') ? raw : null; }
+};
+
+/**
+ * What a business chat is about, checked against the business: its own
+ * product or showroom, or an order between this customer and this business.
+ * A snapshot (title, photo, link), never a price, so the card can't go stale.
+ * Returns null when it doesn't belong to this chat.
+ */
+export async function contextCard(
+  kind: unknown, id: unknown, business: BusinessRow, customerId: string, extra: { note?: string } = {},
+): Promise<ContextCard | null> {
+  if (kind === 'quote') return { kind: 'quote', title: (extra.note ?? 'Quote request').slice(0, 120) };
+  if (typeof id !== 'string' || !/^[0-9a-f-]{36}$/i.test(id)) return null;
+  if (kind === 'product') {
+    const { rows: [p] } = await pool.query('SELECT id, title, images, business_id, seller_id FROM products WHERE id=$1', [id]);
+    if (!p || !(String(p.business_id) === business.id || (!p.business_id && String(p.seller_id) === business.owner_id))) return null;
+    return { kind, id: p.id, title: p.title, image: firstImage(p.images), url: `/products/${p.id}` };
+  }
+  if (kind === 'showroom') {
+    const { rows: [s] } = await pool.query("SELECT id, title, slug, cover_image, logo_url, business_id FROM showrooms WHERE id=$1 AND status='published'", [id]);
+    if (!s || String(s.business_id) !== business.id) return null;
+    return { kind, id: s.id, title: s.title, image: s.cover_image || s.logo_url || null, url: s.slug ? `/showroom/${s.slug}` : undefined };
+  }
+  if (kind === 'order') {
+    const { rows: [o] } = await pool.query('SELECT id, buyer_id, seller_id, business_id, product_title, product_id, status FROM orders WHERE id=$1', [id]);
+    const sameBusiness = o && (String(o.business_id) === business.id || (!o.business_id && String(o.seller_id) === business.owner_id));
+    if (!o || !sameBusiness || String(o.buyer_id) !== customerId) return null;
+    let image: string | null = null;
+    if (o.product_id) { const { rows: [p] } = await pool.query('SELECT images FROM products WHERE id=$1', [o.product_id]); image = firstImage(p?.images); }
+    return { kind, id: o.id, title: o.product_title, image, url: `/orders?order=${o.id}`, status: o.status };
+  }
+  return null;
+}
+
+const CONTEXT_ICON: Record<string, string> = { product: '🛍️', order: '📦', showroom: '🏪', quote: '📋' };
+
 /** The one-line summary shown in the chat list. */
 export function messagePreview(type: string, content: string): string {
   if (type === 'image') return '📷 Photo';
   if (type === 'file') return '📎 File';
   if (type === 'product') return '🛍️ Product';
   if (type === 'order_update') return '📦 Order update';
+  if (type === 'context') {
+    try {
+      const card = JSON.parse(content) as ContextCard;
+      const label = card.kind === 'order' ? `Order: ${card.title}` : card.kind === 'quote' ? `Quote request: ${card.title}` : card.title;
+      return `${CONTEXT_ICON[card.kind] ?? '📌'} ${label}`.slice(0, 200);
+    } catch { return '📌 Shared item'; }
+  }
   return content.replace(/\s+/g, ' ').trim().slice(0, 200);
 }
 

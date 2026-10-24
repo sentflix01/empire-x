@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import SignInRequired, { isSignInRequired } from '@/components/auth/SignInRequired';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import { useStartChat } from '@/lib/messaging';
 
 function ProductDetail() {
   const params = useParams();
@@ -25,6 +26,7 @@ function ProductDetail() {
   const router = useRouter();
   const { addItem } = useCart();
   const { user } = useAuth();
+  const chat = useStartChat();
   const userId = user?.id;
   const [product, setProduct] = useState<any>(null);
   const [seller, setSeller] = useState<any>(null);
@@ -241,16 +243,28 @@ function ProductDetail() {
           )}
 
           {seller && (
-            <Link href={`/profile/${product.seller_id}`} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
-                {seller.display_name?.charAt(0) || "?"}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold">{seller.display_name}</p>
-                <p className="text-xs text-muted-foreground">{seller.headline || "Seller on Nodbusiness"}</p>
-              </div>
-              <MessageCircle className="w-4 h-4 text-muted-foreground" />
-            </Link>
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary/30">
+              <Link href={`/profile/${product.seller_id}`} className="flex flex-1 min-w-0 items-center gap-3 rounded-lg hover:opacity-80 transition-opacity">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                  {seller.display_name?.charAt(0) || "?"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{seller.display_name}</p>
+                  <p className="text-xs text-muted-foreground">{seller.headline || "Seller on Nodbusiness"}</p>
+                </div>
+              </Link>
+              {String(user?.id) !== String(product.seller_id) && (
+                // Opens the chat with the business, with this product's card at the top.
+                <Button type="button" size="sm" variant="outline" className="rounded-full min-h-9 shrink-0" disabled={chat.busy}
+                  onClick={() => void chat.start({
+                    businessId: product.business_id ?? null,
+                    userId: product.seller_id,
+                    context: product.business_id ? { kind: 'product', id: product.id } : undefined,
+                  })}>
+                  <MessageCircle className="w-4 h-4 mr-1" aria-hidden="true" />Message seller
+                </Button>
+              )}
+            </div>
           )}
 
           <div className="flex gap-3 text-xs text-muted-foreground">

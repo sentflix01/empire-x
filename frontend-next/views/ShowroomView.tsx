@@ -23,13 +23,15 @@ import TryDemoButton from '@/components/landing/TryDemoButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import SignInRequired, { isSignInRequired } from '@/components/auth/SignInRequired';
 import { toast } from "sonner";
+import { apiErrorMessage } from "@/lib/apiErrorMessage";
 
 /* ── Lightweight inquiry / "Get Quote" modal ─────────────────────────────── */
-function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, isAuthenticated, onClose }: {
+function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, businessId, isAuthenticated, onClose }: {
   serviceName: string;
   serviceDesc?: string;
   businessName: string;
   ownerId: string;
+  businessId?: string | null;
   isAuthenticated: boolean;
   onClose: () => void;
 }) {
@@ -48,15 +50,17 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, isAuth
     setSending(true);
     try {
       // Send inquiry as a direct message to the business owner
+      // With a business, the request opens a business chat with a quote card.
       await client.post('/api/messages/inquiry', {
         receiver_id: ownerId,
+        ...(businessId ? { business_id: businessId } : {}),
         subject: `Service request: ${serviceName}`,
         body: `Name: ${name}\nPhone: ${phone}${email ? `\nEmail: ${email}` : ''}\n\n${message}`,
       });
       toast.success('Request sent. The business will follow up; this is not a confirmed booking.');
       onClose();
-    } catch {
-      toast.error('Could not send the request. Please sign in again or contact the business directly.');
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Could not send the request. Please sign in again or contact the business directly.'));
     } finally {
       setSending(false);
     }
@@ -401,6 +405,7 @@ function ShowroomView() {
             serviceDesc={quoteItem.desc}
             businessName={showroom.title}
             ownerId={showroom.owner_id}
+            businessId={showroom.business_id ?? null}
             isAuthenticated={Boolean(user)}
             onClose={() => setQuoteItem(null)}
           />

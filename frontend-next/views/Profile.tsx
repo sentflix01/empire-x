@@ -8,7 +8,8 @@ import { entities } from "@/api/entities";
 import SafeImage from "@/components/ui/SafeImage";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit2, LogOut, MapPin, Store, Plus, ArrowLeft, User } from "lucide-react";
+import { Edit2, LogOut, MapPin, Store, Plus, ArrowLeft, User, MessageCircle } from "lucide-react";
+import { useStartChat } from "@/lib/messaging";
 import BrandLogo from '@/components/brand/BrandLogo';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -139,6 +140,7 @@ function Profile() {
   };
 
   const isOwner = user?.id === profile?.user_id;
+  const chat = useStartChat();
   const selectedBusiness = businesses.find(b => b.id === selectedBizId) || null;
   const hasBusinessView = businesses.length > 0 || profile?.has_business_profile;
 
@@ -276,6 +278,13 @@ function Profile() {
                   </div>
                 )}
 
+                {!isOwner && profile?.user_id && view !== 'business' && (
+                  // A personal chat (it follows their "who can message me"; the reason shows if not).
+                  <Button size="sm" className="rounded-full h-8" disabled={chat.busy}
+                    onClick={() => void chat.start({ userId: profile.user_id })}>
+                    <MessageCircle className="w-3 h-3 mr-1" aria-hidden="true" /> Message
+                  </Button>
+                )}
                 {isOwner && (
                   <div className="flex gap-2 items-center">
                     <Link data-page-guide="profile-edit-btn" href="/profile/edit">
