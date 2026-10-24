@@ -7,8 +7,8 @@
 
 const DEFAULT_FRONTEND_URL = 'http://localhost:3002';
 
-export function parseFrontendUrls(): string[] {
-  const raw = process.env.FRONTEND_URL ?? DEFAULT_FRONTEND_URL;
+export function parseFrontendUrls(env: NodeJS.ProcessEnv = process.env): string[] {
+  const raw = env.FRONTEND_URL ?? DEFAULT_FRONTEND_URL;
   return raw
     .split(',')
     .map((v) => v.trim())

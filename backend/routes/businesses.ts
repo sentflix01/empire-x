@@ -183,7 +183,7 @@ router.put('/:id/payment-accounts/:accountId', requireAuth, async (req: Request,
     const entries = Object.entries(parsed.values);
     if (!entries.length) { res.status(422).json({ error: 'No updatable fields provided' }); return; }
     // Keys come from paymentAccountInput's fixed list, never from the request.
-    const sets = entries.map(([key], i) => `${key}=${i + 3}`).join(', ');
+    const sets = entries.map(([key], i) => `${key}=$${i + 3}`).join(', ');
     const { rows } = await pool.query(
       `UPDATE business_payment_accounts SET ${sets}, updated_at=NOW() WHERE id=$1 AND business_id=$2 RETURNING ${PAYMENT_ACCOUNT_COLUMNS}`,
       [req.params.accountId, req.params.id, ...entries.map(([, value]) => value)],
