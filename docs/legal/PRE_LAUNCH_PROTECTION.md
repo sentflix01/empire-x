@@ -699,7 +699,7 @@ Already in `docs/legal/PRIVACY_POLICY.md` — ensure it covers:
 ✅ User rights: access, correction, deletion, export, objection
 ✅ Cookie policy
 ✅ GDPR/CCPA compliance statement
-✅ Contact for data requests: privacy@nodbusiness.app
+✅ Contact for data requests: nodbusinesses@gmail.com
 ```
 
 ---
@@ -742,7 +742,7 @@ Step 4: Data Processing Agreement (DPA) with vendors
   → Any vendor processing EU user data needs a DPA signed
 
 Step 5: Appoint a Data Protection Contact
-  → Even if not required, list privacy@nodbusiness.app as the contact
+  → Even if not required, list nodbusinesses@gmail.com as the contact
   → Respond to data requests within 30 days (GDPR requirement)
 ```
 

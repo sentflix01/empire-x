@@ -2,7 +2,7 @@
 
 > **Classification:** Confidential — Internal Use Only (Public when published)
 > **Version:** 1.0
-> **Effective Date:** [Date]
+> **Effective Date:** October 2026
 > **Last Updated:** August 2026
 
 ---
@@ -156,7 +156,7 @@ Cookies are small text files stored on your device (computer, phone, tablet) whe
 | **Withdraw Consent** | Anytime via dashboard → Privacy → Cookies |
 | **Delete Cookies** | Browser settings → Clear site data; or our "Clear All Data" button |
 | **Block Cookies** | Browser settings (may break Essential functions) |
-| **Access Logs** | Request via privacy@nodbusiness.app |
+| **Access Logs** | Request via nodbusinesses@gmail.com |
 
 ---
 
@@ -170,10 +170,10 @@ Cookies are small text files stored on your device (computer, phone, tablet) whe
 
 ## 9. Contact
 
-**Nodbusiness Technologies PLC**  
-[Address, Addis Ababa, Ethiopia]  
-**Privacy Email:** privacy@nodbusiness.app  
-**DPO Email:** dpo@nodbusiness.app  
+**Nodbusiness**  
+Addis Ababa, Ethiopia  
+**Privacy Email:** nodbusinesses@gmail.com  
+**DPO Email:** nodbusinesses@gmail.com  
 
 ---
 
@@ -181,7 +181,7 @@ Cookies are small text files stored on your device (computer, phone, tablet) whe
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0 | [Date] | Initial release |
+| 1.0 | October 2026 | Initial release |
 
 ---
 

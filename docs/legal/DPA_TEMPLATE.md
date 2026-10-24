@@ -25,7 +25,7 @@
 
 **Controller:** [Customer Business Name], [Address], [Registration Number] ("Controller")
 
-**Processor:** Nodbusiness Technologies PLC, [Address, Addis Ababa, Ethiopia], Registration No. [TBD] ("Processor")
+**Processor:** Nodbusiness, Addis Ababa, Ethiopia (business registration pending) ("Processor")
 
 ---
 
@@ -210,7 +210,7 @@ Processor maintains **records of processing activities** per GDPR Art. 30, avail
 ## Annex B: Technical & Organizational Measures (Detailed)
 
 ### B.1 Organizational
-- **Data Protection Officer** appointed (dpo@nodbusiness.app)
+- **Data Protection Officer** appointed (nodbusinesses@gmail.com)
 - **Staff Training** annual GDPR/security training mandatory
 - **Background Checks** for personnel with data access
 - **Confidentiality Agreements** signed by all personnel
@@ -242,7 +242,7 @@ Title: _________________________
 Date: _________________________  
 Signature: _________________________  
 
-**Processor (Nodbusiness Technologies PLC)**  
+**Processor (Nodbusiness)**  
 Name: _________________________  
 Title: _________________________  
 Date: _________________________  
