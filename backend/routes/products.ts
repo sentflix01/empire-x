@@ -22,6 +22,7 @@ import { businessViewGate, productNotPrivateSql, rejectViewGate } from '../lib/s
 import rateLimit from 'express-rate-limit';
 import { parseProductCode } from '../lib/barcode';
 import { gtinVariants, importProductImage, lookupBarcode } from '../lib/productLookup';
+import { checkoutReadiness, resolveProductBusiness, soleBusinessOf } from '../lib/productBusiness';
 
 const router = Router();
 const LOW_STOCK_THRESHOLD = 5;
@@ -338,9 +339,22 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
         if (!rows.length && req.user!.role !== 'admin') { res.status(403).json({ error: `You cannot attach a product to this ${key === 'business_id' ? 'business' : 'showroom'}` }); return; }
       }
     }
-    const product = await createRecord('products', { ...data, seller_id: req.user!.id });
+    // A product with no business or showroom belongs to the seller's only
+    // business, so checkout can find its payment details (audit FUNC-03).
+    if (data.business_id == null && data.showroom_id == null) {
+      data.business_id = await soleBusinessOf(req.user!.id);
+    }
+    const product = await createRecord('products', { ...data, seller_id: req.user!.id }) as Record<string, unknown>;
     await invalidateCache('products:list').catch(()=>undefined);
-    res.status(201).json(normalizeProduct(product as Record<string,unknown>));
+    // Tells the seller straight away when buyers cannot pay for this product yet.
+    const sellingBusiness = await resolveProductBusiness(product);
+    const readiness = await checkoutReadiness(sellingBusiness);
+    res.status(201).json({
+      ...normalizeProduct(product),
+      selling_business_id: sellingBusiness,
+      payment_ready: readiness.ready,
+      checkout_blocker: readiness.blocker,
+    });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Create product error');
     res.status(500).json({ error: 'Failed to create product' });

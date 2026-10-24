@@ -93,6 +93,8 @@ describe('product visibility and field authorization', () => {
 
   it('creates products using only permitted fields and the authenticated seller id', async () => {
     createRecord.mockResolvedValueOnce({ id: 'product-new', seller_id: 'seller-1', status: 'draft' });
+    // The seller has no business yet: no business to attach, so buyers cannot pay.
+    pool.query.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({ rows: [] });
 
     const response = await request(buildApp({ id: 'seller-1', role: 'user' }))
       .post('/api/products')
@@ -103,8 +105,10 @@ describe('product visibility and field authorization', () => {
 
     expect(response.status).toBe(201);
     expect(createRecord).toHaveBeenCalledWith('products', {
-      title: 'New item', price: 12.5, stock: 0, status: 'draft', seller_id: 'seller-1',
+      title: 'New item', price: 12.5, stock: 0, status: 'draft', seller_id: 'seller-1', business_id: null,
     });
+    expect(response.body.payment_ready).toBe(false);
+    expect(response.body.checkout_blocker).toBe('no_business');
   });
 
   it('rejects fractional stock instead of truncating it during bulk import', async () => {

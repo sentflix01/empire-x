@@ -34,6 +34,7 @@ import { reserveOrderInventory, releaseOrderInventory, InventoryUnavailableError
 import { validateFileBytes } from '../middleware/upload';
 import { resolvePartnerAttribution } from './profilePartnerships';
 import { RECEIPT_MIME_TYPES, receiptUploadsAvailable, signedReceiptUrl, uploadReceipt } from '../lib/privateReceipts';
+import { resolveProductBusiness, soleBusinessOf } from '../lib/productBusiness';
 
 const router = Router();
 
@@ -146,12 +147,13 @@ router.get('/checkout-info', optionalAuth, async (req: Request, res: Response) =
     let businessId: string | null = null;
     if (productId) {
       const { rows } = await pool.query(
-        `SELECT COALESCE(p.business_id, s.business_id) AS business_id FROM products p
+        `SELECT COALESCE(p.business_id, s.business_id) AS business_id, p.seller_id FROM products p
            LEFT JOIN showrooms s ON s.id = p.showroom_id WHERE p.id=$1 AND p.status IN ('active','sold_out')`,
         [productId],
       );
       if (!rows.length) { apiError.notFound(res, 'Product not found'); return; }
-      businessId = rows[0].business_id ?? null;
+      // Unlinked products fall back to the seller's only business (audit FUNC-03).
+      businessId = await resolveProductBusiness(rows[0]);
     } else if (showroomId) {
       const { rows } = await pool.query(`SELECT business_id FROM showrooms WHERE id=$1 AND status='published'`, [showroomId]);
       if (!rows.length) { apiError.notFound(res, 'Showroom not found'); return; }
@@ -181,8 +183,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 /** The seller's business when there is exactly one (a profile page names the seller, not the business). */
 async function primaryBusinessOf(sellerId: string): Promise<string | null> {
-  const { rows } = await pool.query<{ id: string }>('SELECT id FROM businesses WHERE owner_id=$1 ORDER BY created_at LIMIT 2', [sellerId]);
-  return rows.length === 1 ? rows[0].id : null;
+  return soleBusinessOf(sellerId);
 }
 
 /**
@@ -333,7 +334,7 @@ router.post('/', guestLimiter, optionalAuth, async (req: Request, res: Response)
     if (product.stock !== null && product.stock !== undefined && Number(product.stock) < quantity) {
       apiError.validationError(res, `Only ${product.stock} of this product are in stock`); return;
     }
-    const businessId = typeof product.business_id === 'string' ? product.business_id : null;
+    const businessId = await resolveProductBusiness(product);
     if (businessId) {
       const access = await getBusinessSubscriptionAccess(businessId);
       if (rejectViewGate(res, businessViewGate(access, req), 'This product is not available')) return;

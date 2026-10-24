@@ -546,3 +546,19 @@ items in the open list until confirmed.
   7. Studio config panel (`FeedSpotlightPanel.tsx`) lives in the `MoreMenu` popover overlay to avoid restructuring the Studio layout columns. A live preview (`FeedSpotlightPreview.tsx`) shows below the config panel so the owner can see the result before publishing.
   8. Seed data: the first four seed showrooms get spotlight configs (single/hero, single/items, single/contact, carousel/3 sections) for visual demo and testing without manual setup.
 - **Related documentation:** `backend/db/migrate74.js`, `backend/routes/showrooms.ts`, `frontend-next/components/feed/FeedSpotlightWidget.tsx`, `frontend-next/components/feed/SpotlightProductDrawer.tsx`, `frontend-next/components/feed/BusinessShowroomFeed.tsx`, `frontend-next/components/showroom/studio/FeedSpotlightPanel.tsx`, `frontend-next/components/showroom/studio/FeedSpotlightPreview.tsx`, `frontend-next/views/ShowroomCreate.tsx`
+
+### 2026-10-24 — Every product belongs to a business; the plan rule applies to all of them
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (chosen in the launch-audit fix session, 24 Oct 2026)
+- **Context:** The launch audit (FUNC-03, UX-08) found that products listed from the normal "Add Product" form were saved without a `business_id`. Checkout looks up payment details through the product's business, so these products could never be ordered, and the Buy sheet showed no action at all. Unlinked products also skipped the existing rule that a business's products are listed and sold only while the business has a paid plan.
+- **Decision points:**
+  1. A product belongs to its own `business_id`, else its showroom's business, else the seller's business when the seller owns exactly one. Product creation stores that business; checkout and `POST /api/direct-orders` resolve it the same way at read time (`backend/lib/productBusiness.ts`).
+  2. A seller with several businesses picks one on the product form ("Sold by").
+  3. **The paid-plan rule applies to every business product.** Products of a business without an active paid plan are hidden from buyers until the owner chooses a plan, as for showroom products. (Rejected: keeping unpaid owners' products listed but unbuyable.)
+  4. `POST /api/products` returns `payment_ready` and `checkout_blocker` (`no_business`, `no_plan`, `no_payment_method`). The form tells the seller what is missing, with a link to fix it.
+  5. When a seller has no payment method, the Buy sheet offers "Message <seller>" (or "Sign in to message" for guests) instead of a dead end; the seller viewing their own product gets "Add a payment method".
+- **Consequences:**
+  - `migrate77` backfills `business_id` for existing products with no business and no showroom whose seller owns exactly one business. On production this links existing listings, and listings of unpaid businesses disappear from the marketplace.
+  - Sellers with several businesses keep unlinked older products until they edit them.
+- **Related documentation:** `docs/backend/API.md` (POST /api/products, checkout-info), `backend/lib/productBusiness.ts`, `backend/db/migrate77.js`, `backend/routes/products.ts`, `backend/routes/directOrders.ts`, `frontend-next/views/ProductCreate.tsx`, `frontend-next/components/checkout/PurchaseModal.tsx`, `backend/test/db/productBusiness.db.test.js`, `frontend-next/e2e/buy-normal-product.spec.ts`

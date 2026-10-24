@@ -21,6 +21,19 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 
 const CATEGORIES = PRODUCT_CATEGORIES;
 
+type CheckoutBlocker = "no_business" | "no_plan" | "no_payment_method";
+
+/** What the seller must do before buyers can order (the API's checkout_blocker). */
+function blockerAdvice(blocker: CheckoutBlocker, businessId: string | null | undefined) {
+  if (blocker === "no_plan") {
+    return { description: "Your business needs an active plan before buyers can see and order its products.", label: "Choose a plan", href: "/business/subscription" };
+  }
+  if (blocker === "no_payment_method" && businessId) {
+    return { description: "Add a payment method so buyers know how to pay you.", label: "Add payment method", href: `/business/edit?id=${encodeURIComponent(businessId)}` };
+  }
+  return { description: "Create a business and add a payment method so buyers know how to pay you.", label: "Create business", href: "/business/create" };
+}
+
 function ProductCreate() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -42,6 +55,23 @@ function ProductCreate() {
   const [looking, setLooking] = useState(false);
   const [scanNote, setScanNote] = useState<{ tone: "info" | "warn"; text: string } | null>(null);
   const [alreadyMine, setAlreadyMine] = useState<ExistingProduct | null>(null);
+  // The business that sells the product: checkout shows its payment details (audit FUNC-03).
+  const [businesses, setBusinesses] = useState<Array<{ id: string; business_name?: string }>>([]);
+  const [businessId, setBusinessId] = useState(searchParams.get("business") || "");
+
+  useEffect(() => {
+    if (isEdit || !user?.id) return;
+    let cancelled = false;
+    entities.Business.filter({ owner_id: user.id }, "created_at", 50)
+      .then((rows) => {
+        if (cancelled) return;
+        const list = (rows as Array<{ id: string; business_name?: string }>) ?? [];
+        setBusinesses(list);
+        setBusinessId((current) => (current && list.some((b) => b.id === current)) ? current : list.length === 1 ? list[0].id : "");
+      })
+      .catch(() => { if (!cancelled) setBusinesses([]); });
+    return () => { cancelled = true; };
+  }, [isEdit, user?.id]);
 
   /** A scanned or typed code: fill the form from what the backend knows about it. */
   const handleCode = async (code: string) => {
@@ -121,6 +151,10 @@ function ProductCreate() {
 
   const handleSubmit = async () => {
     if (!form.title || !form.price) return;
+    if (!isEdit && businesses.length > 1 && !businessId) {
+      toast.error("Choose which business sells this product.");
+      return;
+    }
     setSaving(true);
     const payload = {
       seller_id: user?.id || "",
@@ -141,8 +175,20 @@ function ProductCreate() {
         await entities.Product.update(id, payload);
         toast.success("Product updated");
       } else {
-        await entities.Product.create({ ...payload, status: "active" });
-        toast.success("Product listed");
+        const created = await entities.Product.create({ ...payload, status: "active", ...(businessId ? { business_id: businessId } : {}) }) as {
+          selling_business_id?: string | null; payment_ready?: boolean; checkout_blocker?: CheckoutBlocker | null;
+        };
+        if (created?.payment_ready === false) {
+          // Listed, but buyers cannot order yet: say why and where to fix it.
+          const next = blockerAdvice(created.checkout_blocker ?? "no_business", created.selling_business_id || businessId);
+          toast.warning("Product listed, but buyers can't order it yet", {
+            description: next.description,
+            duration: 12000,
+            action: { label: next.label, onClick: () => router.push(next.href) },
+          });
+        } else {
+          toast.success("Product listed");
+        }
       }
       router.push("/marketplace");
     } catch (err) {
@@ -252,6 +298,16 @@ function ProductCreate() {
               <SelectContent>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
+          {!isEdit && businesses.length > 1 && (
+            <div>
+              <Label htmlFor="product-business">Sold by</Label>
+              <Select value={businessId} onValueChange={setBusinessId}>
+                <SelectTrigger id="product-business" className="mt-1"><SelectValue placeholder="Choose a business" /></SelectTrigger>
+                <SelectContent>{businesses.map(b => <SelectItem key={b.id} value={b.id}>{b.business_name || "Untitled business"}</SelectItem>)}</SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-muted-foreground">Buyers pay into this business's payment methods.</p>
+            </div>
+          )}
           {isEdit && (
             <div>
               <Label>Status</Label>

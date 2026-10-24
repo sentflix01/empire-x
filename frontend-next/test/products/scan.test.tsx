@@ -11,7 +11,8 @@ const http = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), dele
 vi.mock('@/api/client', () => ({ default: http }));
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ user: { id: 'seller-1' } }) }));
 const products = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), get: vi.fn() }));
-vi.mock('@/api/entities', () => ({ entities: { Product: products } }));
+const businesses = vi.hoisted(() => ({ filter: vi.fn().mockResolvedValue([]) }));
+vi.mock('@/api/entities', () => ({ entities: { Product: products, Business: businesses } }));
 vi.mock('next/navigation', () => ({ useParams: () => ({}), useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push: vi.fn(), back: vi.fn() }) }));
 vi.mock('next/link', () => ({ default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a> }));
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() }));

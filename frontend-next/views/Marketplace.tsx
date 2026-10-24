@@ -97,7 +97,6 @@ function Marketplace() {
   // first render when loading=true, by which time the [] effect has already run.
   const loadMoreRef = useRef(loadMore);
   useEffect(() => { loadMoreRef.current = loadMore; }, [loadMore]);
-  const obsRef = useRef<IntersectionObserver | null>(null);
   const sentinelCallbackRef = useCallback((el: HTMLDivElement | null) => {
     if (obsRef.current) { obsRef.current.disconnect(); obsRef.current = null; }
     if (!el) return;
