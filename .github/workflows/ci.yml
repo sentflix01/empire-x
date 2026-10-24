@@ -8,11 +8,10 @@ on:
       - '**/*.md'
       - '.github/workflows/docs-sync.yml'
       - '.github/workflows/db-migrate-to-supabase.yml'
+  # Every pull request runs CI, docs-only ones too: main requires these checks,
+  # so a PR that never reports them could never be merged.
   pull_request:
     branches: [main, develop]
-    paths-ignore:
-      - 'docs/**'
-      - '**/*.md'
   workflow_dispatch: {}
 
 concurrency:

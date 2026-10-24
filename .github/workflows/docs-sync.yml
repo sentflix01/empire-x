@@ -1,7 +1,10 @@
 name: Nodbusiness Docs Sync
 
 # Keeps docs/Production/ and the generated API reference in lockstep with code.
-# Runs AFTER CI succeeds on main; auto-commits doc updates with [skip ci].
+# Runs AFTER CI succeeds on main and force-pushes the regenerated docs to the
+# "docs-sync" branch. main is protected (PR + green CI), and a personal-account
+# repository cannot exempt this bot, so docs reach main through a pull request:
+# open one from docs-sync when you want them (opening it yourself starts CI).
 on:
   workflow_run:
     workflows: ["Nodbusiness CI"]
@@ -61,6 +64,7 @@ jobs:
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Push
+      - name: Push to the docs-sync branch
         if: steps.commit.outputs.changed == 'true'
-        run: git push origin HEAD:main
+        # The branch is rebuilt from main on every run, so a force push is safe.
+        run: git push --force origin HEAD:refs/heads/docs-sync
