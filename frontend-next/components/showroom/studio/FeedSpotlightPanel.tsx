@@ -1,203 +1,143 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+/**
+ * Studio: choose what the business card's Spotlight shows in the feeds and on
+ * the owner's profile. Three choices (lib/spotlight.ts):
+ *   - Automatic (default): the best selling section, picked by priority.
+ *   - Choose sections: one shows on its own; several play as a carousel in
+ *     priority order.
+ *   - Off: no spotlight.
+ * Only selling sections are offered (products, menu, services, packages,
+ * offers, events, gallery, portfolio, about with a picture).
+ */
+import React, { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
 import { apiFetch } from '@/api/client';
 import { getSectionType } from '@/lib/builderSections';
+import { SPOTLIGHT_LABELS, SPOTLIGHT_PRIORITY } from '@/lib/spotlight';
+
+type StoredMode = 'single' | 'carousel' | 'off' | null;
+type Choice = 'auto' | 'chosen' | 'off';
 
 export interface FeedSpotlightPanelProps {
   showroomId: string;
   activeSections: string[];
-  initialMode: 'single' | 'carousel' | 'off' | null;
+  initialMode: StoredMode;
   initialSectionIds: string[];
   initialCarouselCount: number;
   themeColor: string;
   onClose: () => void;
-  onSaved: (mode: 'single' | 'carousel' | 'off' | null, sectionIds: string[], carouselCount: number) => void;
+  onSaved: (mode: StoredMode, sectionIds: string[], carouselCount: number) => void;
 }
 
-type SpotlightMode = 'off' | 'single' | 'carousel';
+const choiceOf = (mode: StoredMode, ids: string[]): Choice =>
+  mode === 'off' ? 'off' : (mode === 'single' || mode === 'carousel') && ids.length > 0 ? 'chosen' : 'auto';
 
 export default function FeedSpotlightPanel({
-  showroomId,
-  activeSections,
-  initialMode,
-  initialSectionIds,
-  initialCarouselCount,
-  onClose,
-  onSaved,
+  showroomId, activeSections, initialMode, initialSectionIds, onClose, onSaved,
 }: FeedSpotlightPanelProps) {
-  const [mode, setMode] = useState<SpotlightMode>(initialMode ?? 'off');
-  const [sectionIds, setSectionIds] = useState<string[]>(initialSectionIds);
-  const [carouselCount, setCarouselCount] = useState(initialCarouselCount || 1);
+  const options = SPOTLIGHT_PRIORITY.filter((t) => activeSections.includes(t));
+  const [choice, setChoice] = useState<Choice>(choiceOf(initialMode, initialSectionIds));
+  const [sectionIds, setSectionIds] = useState<string[]>(initialSectionIds.filter((id) => options.includes(id)));
   const [saving, setSaving] = useState(false);
-  const isDirty = useRef(false);
+  const [error, setError] = useState('');
+  const dirty = useRef(false);
 
-  const maxCount = Math.max(1, sectionIds.length);
+  const stored = (): { mode: StoredMode; ids: string[] } => {
+    if (choice === 'off') return { mode: 'off', ids: [] };
+    if (choice === 'auto' || sectionIds.length === 0) return { mode: null, ids: [] };
+    const ordered = SPOTLIGHT_PRIORITY.filter((t) => sectionIds.includes(t));
+    return { mode: ordered.length > 1 ? 'carousel' : 'single', ids: ordered };
+  };
 
-  // Auto-save with 800ms debounce — only fires after user has changed something
+  // Saves 800 ms after the last change.
   useEffect(() => {
-    if (!showroomId) return;
-    if (!isDirty.current) return;
+    if (!showroomId || !dirty.current) return;
     const timer = setTimeout(async () => {
+      const { mode, ids } = stored();
       setSaving(true);
+      setError('');
       try {
         await apiFetch(`/api/showrooms/${showroomId}/spotlight`, {
           method: 'PATCH',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            spotlight_mode: mode,  // send 'off' explicitly when owner disables
-            spotlight_section_ids: sectionIds,
-            spotlight_carousel_count: carouselCount,
-          }),
+          body: JSON.stringify({ spotlight_mode: mode, spotlight_section_ids: ids, spotlight_carousel_count: 1 }),
         });
-        onSaved(mode === 'off' ? 'off' : mode, sectionIds, carouselCount);
+        onSaved(mode, ids, 1);
       } catch {
-        // best-effort: the user can retry by toggling
+        setError('Could not save. Check your connection and change the setting again.');
       } finally {
         setSaving(false);
       }
     }, 800);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, sectionIds, carouselCount, showroomId]);
+  }, [choice, sectionIds, showroomId]);
 
-  const toggleSection = (key: string) => {
-    isDirty.current = true;
-    setSectionIds(prev =>
-      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-    );
+  const pick = (next: Choice) => { dirty.current = true; setChoice(next); };
+  const toggle = (type: string) => {
+    dirty.current = true;
+    setSectionIds((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]));
   };
+  const labelFor = (type: string) => getSectionType(type)?.label ?? SPOTLIGHT_LABELS[type] ?? type;
 
-  const handleCarouselCount = (v: number) => {
-    isDirty.current = true;
-    setCarouselCount(Math.min(Math.max(1, v), maxCount));
-  };
+  const radio = (value: Choice, title: string, hint: string) => (
+    <label className="flex items-start gap-3 min-h-11 text-sm cursor-pointer rounded-xl px-2 py-1.5 hover:bg-secondary">
+      <input type="radio" name="spotlight-choice" value={value} checked={choice === value}
+        onChange={() => pick(value)} className="accent-primary mt-1" />
+      <span>
+        <span className="font-medium">{title}</span>
+        <span className="block text-xs text-muted-foreground">{hint}</span>
+      </span>
+    </label>
+  );
 
   return (
     <div className="flex flex-col h-full bg-card overflow-y-auto">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-        <h2 className="text-base font-bold">Feed Spotlight</h2>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close Feed Spotlight"
-          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-secondary transition-colors"
-        >
+        <h2 className="text-base font-bold">Spotlight</h2>
+        <button type="button" onClick={onClose} aria-label="Close Spotlight settings"
+          className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-secondary transition-colors">
           <X className="w-4 h-4" />
         </button>
       </div>
 
       <div className="flex-1 p-4 space-y-5">
-        {/* On/off toggle */}
-        <label className="flex min-h-11 items-center justify-between gap-3 text-sm">
-          <span>
-            <span className="font-medium">Spotlight on</span>
-            <span className="block text-xs text-muted-foreground">Show a section preview below your feed card</span>
-          </span>
-          <Switch
-            checked={mode !== 'off'}
-            onCheckedChange={(v) => { isDirty.current = true; setMode(v ? 'single' : 'off'); }}
-            aria-label="Enable Feed Spotlight"
-          />
-        </label>
+        <p className="text-xs text-muted-foreground">
+          Your Spotlight shows what you sell on your business card in the feeds and on your profile, at the same size as on your site.
+        </p>
 
-        {mode !== 'off' && (
-          <>
-            {/* Mode picker */}
-            <fieldset className="space-y-2">
-              <legend className="text-sm font-semibold">Display mode</legend>
-              <label className="flex items-center gap-3 min-h-10 text-sm cursor-pointer">
-                <input
-                  type="radio"
-                  name="spotlight-mode"
-                  value="single"
-                  checked={mode === 'single'}
-                  onChange={() => { isDirty.current = true; setMode('single'); }}
-                  className="accent-primary"
-                />
-                <span>
-                  <span className="font-medium">Single section</span>
-                  <span className="block text-xs text-muted-foreground">Show one section only</span>
-                </span>
-              </label>
-              <label className="flex items-center gap-3 min-h-10 text-sm cursor-pointer">
-                <input
-                  type="radio"
-                  name="spotlight-mode"
-                  value="carousel"
-                  checked={mode === 'carousel'}
-                  onChange={() => { isDirty.current = true; setMode('carousel'); }}
-                  className="accent-primary"
-                />
-                <span>
-                  <span className="font-medium">Carousel</span>
-                  <span className="block text-xs text-muted-foreground">Cycle through multiple sections automatically</span>
-                </span>
-              </label>
-            </fieldset>
+        <fieldset className="space-y-1">
+          <legend className="text-sm font-semibold mb-1">What to show</legend>
+          {radio('auto', 'Automatic', 'We show your best selling section: products first, then menu, services, packages, offers, events, gallery and about.')}
+          {radio('chosen', 'Choose sections', 'Pick one to always show it, or several to play them one after another.')}
+          {radio('off', 'Off', 'No Spotlight on your card.')}
+        </fieldset>
 
-            {/* Section checkboxes */}
-            <fieldset className="space-y-2">
-              <legend className="text-sm font-semibold">Sections to spotlight</legend>
-              <p className="text-xs text-muted-foreground">Check the sections you want to show followers.</p>
-              {activeSections.length === 0 && (
-                <p className="text-xs text-muted-foreground italic">No sections active yet.</p>
-              )}
-              <div className="space-y-1">
-                {activeSections.map((key) => {
-                  const st = getSectionType(key);
-                  const label = st?.label ?? key;
-                  return (
-                    <label
-                      key={key}
-                      className="flex items-center gap-3 min-h-10 text-sm cursor-pointer rounded-xl px-2 hover:bg-secondary transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={sectionIds.includes(key)}
-                        onChange={() => toggleSection(key)}
-                        className="accent-primary w-4 h-4 shrink-0"
-                      />
-                      <span className="font-medium">{label}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </fieldset>
-
-            {/* Carousel count — only shown in carousel mode */}
-            {mode === 'carousel' && (
-              <label className="flex items-center justify-between gap-3 text-sm min-h-10">
-                <span>
-                  <span className="font-medium">Visible at once</span>
-                  <span className="block text-xs text-muted-foreground">Number of panels shown per screen (max {maxCount})</span>
-                </span>
-                <input
-                  type="number"
-                  min={1}
-                  max={maxCount}
-                  value={carouselCount}
-                  onChange={(e) => handleCarouselCount(parseInt(e.target.value, 10) || 1)}
-                  className="w-16 h-9 rounded-xl border border-border bg-background px-2 text-sm text-center"
-                />
-              </label>
+        {choice === 'chosen' && (
+          <fieldset className="space-y-1">
+            <legend className="text-sm font-semibold mb-1">Sections, shown in this order</legend>
+            {options.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Add a section that shows what you sell (products, menu, services, packages, an offer, events or a gallery) to choose it here.
+              </p>
             )}
-
-            {/* Save indicator */}
-            <p className="text-xs text-muted-foreground" aria-live="polite">
-              {saving ? 'Saving…' : 'Saved automatically'}
-            </p>
-          </>
+            {options.map((type) => (
+              <label key={type} className="flex items-center gap-3 min-h-11 text-sm cursor-pointer rounded-xl px-2 hover:bg-secondary">
+                <input type="checkbox" checked={sectionIds.includes(type)} onChange={() => toggle(type)}
+                  className="accent-primary w-4 h-4 shrink-0" />
+                <span className="font-medium">{labelFor(type)}</span>
+              </label>
+            ))}
+            {options.length > 0 && sectionIds.length === 0 && (
+              <p className="text-xs text-muted-foreground">Nothing chosen yet, so Automatic applies.</p>
+            )}
+          </fieldset>
         )}
 
-        {mode === 'off' && (
-          <p className="text-sm text-muted-foreground">
-            Turn on spotlight to highlight a section of your showroom directly in the business feed.
-          </p>
-        )}
+        <p className="text-xs text-muted-foreground" aria-live="polite">
+          {error || (saving ? 'Saving…' : 'Saved automatically')}
+        </p>
       </div>
     </div>
   );

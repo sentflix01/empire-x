@@ -66,6 +66,7 @@ import WhoReactedDialog from '@/components/feed/WhoReactedDialog';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import { editComment, postLink, react, reactToComment, REACTIONS, setMuted, unhidePost, unreact, type CommentPolicy, type Reaction } from '@/lib/socialApi';
+import { loadOwnerFeedBusinesses } from '@/lib/feedBusiness';
 
 interface Profile extends UserProfile {
 }
@@ -453,6 +454,8 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
   const [loadingComments, setLoadingComments] = useState(false);
   const [authorProfile, setAuthorProfile] = useState<Profile | null>(null);
   const [authorBusinesses, setAuthorBusinesses] = useState<Business[]>([]);
+  // The business view shows the same full card as the business feed (site sections and spotlight).
+  const [authorCard, setAuthorCard] = useState<Business | null | undefined>(undefined);
   const [viewMode, setViewMode] = useState('personal');
   const [flipping, setFlipping] = useState(false);
   const [currentUserData, setCurrentUserData] = useState<{ full_name?: string } | null>(null);
@@ -490,6 +493,15 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
       .then((b: Business[]) => setAuthorBusinesses(b ?? []))
       .catch(() => {});
   }, [post.author_id]);
+
+  useEffect(() => {
+    if (viewMode !== 'business' || authorCard !== undefined || !post.author_id) return;
+    let cancelled = false;
+    loadOwnerFeedBusinesses(post.author_id)
+      .then((entries) => { if (!cancelled) setAuthorCard((entries[0] as Business | undefined) ?? null); })
+      .catch(() => { if (!cancelled) setAuthorCard(null); });
+    return () => { cancelled = true; };
+  }, [viewMode, authorCard, post.author_id]);
 
   /** Set, change or remove my reaction (null removes it). */
   const applyReaction = async (next: Reaction | null) => {
@@ -847,7 +859,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
             )}
           </>
         ) : (() => {
-          const biz = authorBusinesses[0];
+          const biz = authorCard ?? (authorCard === null ? authorBusinesses[0] : undefined);
           if (!biz || !authorProfile) {
             return (
               <div className="px-4 py-6 text-center">

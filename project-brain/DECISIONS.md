@@ -581,3 +581,31 @@ items in the open list until confirmed.
   - The sidebar trending card uses `GET /api/hashtags/trending` (real users' posts only) and stays hidden until real posts use hashtags.
   - None of the 8 publicly listed businesses carried the old template claims (read-only check), so no data cleanup was needed.
 - **Related documentation:** `frontend-next/lib/businessTemplates.ts`, `frontend-next/components/layout/AppLayout.tsx`, `frontend-next/views/ProductDetail.tsx`, `frontend-next/test/businessTemplateClaims.test.ts`
+
+### 2026-10-24 — Business Spotlight: one selling section, at its real size, on every card
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (requirements given 24 Oct 2026)
+- **Context:**
+  - The spotlight only appeared on business-feed cards built from a published showroom, and used its own cut-down mini panels.
+  - The personal feed's business view and the user-profile business card showed no spotlight.
+  - Demo businesses never qualified, because they are shown from their business profile, and a demo-only rule limited the pick to "services" or "about".
+- **Decision:**
+  1. **Same card everywhere:** the business feed, the personal feed's business view and the user profile show the same card. It merges the business with its published site (`frontend-next/lib/feedBusiness.ts`).
+  2. **Same rules for every account:** the spotlight follows one set of rules (`frontend-next/lib/spotlight.ts`), demo or real, showroom or business profile.
+  3. **Real size:** a spotlight shows one section at a time, at its real size and layout, rendered by the site's `SectionRenderer`. Catalogue sections show the business's real products.
+  4. **Fallback:** when no section has anything to show, the spotlight shows the business's own products (unless the owner turned it off).
+  5. **Three modes:**
+     - **Automatic (default):** the highest-priority selling section with content.
+     - **Off.**
+     - **Chosen sections:** one shows alone; several play as a carousel in priority order. Chosen sections that are empty or aren't selling sections fall back to Automatic.
+  6. **Priority:** product catalogue → items → menu → services → packages/pricing → offer → events → gallery → portfolio → about/story (about only with a picture).
+  7. **Selling points only:** never the hero, contact, location/map, hours or other details the card already shows.
+- **Consequences:**
+  - The Studio "Spotlight" panel offers Automatic / Choose sections / Off, lists only selling sections, and previews the real sections. The "visible at once" counter was removed.
+  - The old `FeedSpotlightWidget` and `SpotlightProductDrawer` were deleted, along with the feed card's separate services preview and the profile's category lists.
+  - Automatic launch posts now store the author's name and picture; `migrate80` backfills older posts that showed "Unknown".
+- **Related documentation:**
+  - Code: `frontend-next/lib/spotlight.ts`, `frontend-next/lib/feedBusiness.ts`, `frontend-next/components/feed/BusinessSpotlight.tsx`, `frontend-next/components/feed/BusinessShowroomFeed.tsx`, `frontend-next/components/feed/PostCard.tsx`, `frontend-next/components/showroom/studio/FeedSpotlightPanel.tsx`
+  - Migrations: `backend/db/migrate80.js`
+  - Tests: `frontend-next/test/feed/spotlight.test.ts`, `frontend-next/test/feed/businessSpotlight.test.tsx`
