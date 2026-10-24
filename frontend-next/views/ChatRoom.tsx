@@ -10,6 +10,8 @@ import MessageReactions from "@/components/messaging/MessageReactions";
 import MessageSearch from "@/components/messaging/MessageSearch";
 import ProductMessageBubble from "@/components/messaging/ProductMessageBubble";
 import OrderUpdateBubble from "@/components/messaging/OrderUpdateBubble";
+import ContextCard from "@/components/messaging/ContextCard";
+import QuickReplies from "@/components/messaging/QuickReplies";
 import {
   ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
   CornerUpLeft, Check, ShieldOff, History, ImagePlus, Forward,
@@ -713,8 +715,14 @@ function ChatRoom() {
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+  // Business chats: the customer sees the business; the owner sees the customer.
+  const businessChat = Boolean(conversation?.business_id);
+  const customerSide = businessChat && !conversation?.is_business_side;
+
   const getDisplayName = () => {
     if (!conversation) return 'Chat';
+    if (customerSide && conversation.business_name) return conversation.business_name;
+    if (conversation.type === 'dm' && conversation.other_name) return conversation.other_name;
     if (conversation.type === 'group' || conversation.type === 'channel') {
       return conversation.name || (conversation.type === 'channel' ? 'Channel' : 'Group');
     }
@@ -734,8 +742,12 @@ function ChatRoom() {
         return `${count} ${conversation.type === 'channel' ? 'subscriber' : 'member'}${count !== 1 ? 's' : ''}`;
       } catch { return ''; }
     }
+    if (otherTyping) return 'typing…';
+    // A business shows as a business, never the owner's personal "last seen".
+    if (customerSide) return 'Business';
+    if (businessChat) return `Customer · ${conversation.business_name ?? 'your business'}`;
     // DM — show online or last seen
-    return otherTyping ? 'typing…' : formatLastSeen(presence);
+    return formatLastSeen(presence);
   };
 
   const isOnline  = isUserOnline(presence);
@@ -763,9 +775,10 @@ function ChatRoom() {
     return fmtLongDate(d);
   };
 
-  const otherAvatarUrl = Array.isArray(otherProfile?.avatar_url)
+  const otherAvatarUrl = customerSide ? conversation?.business_logo : Array.isArray(otherProfile?.avatar_url)
     ? otherProfile.avatar_url[0]
     : otherProfile?.avatar_url;
+  const profileHref = customerSide ? `/profile/${otherUserId}?view=business` : `/profile/${otherUserId}`;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -789,15 +802,15 @@ function ChatRoom() {
           <UserIdentity
             displayName={getDisplayName()}
             avatarUrl={isDm ? otherAvatarUrl : null}
-            businessName={isDm && otherProfile?.business_name ? String(otherProfile.business_name) : null}
-            businessSlug={isDm && otherProfile?.business_slug ? String(otherProfile.business_slug) : null}
-            showBusinessLink={isDm}
+            businessName={isDm && !customerSide && otherProfile?.business_name ? String(otherProfile.business_name) : null}
+            businessSlug={isDm && !customerSide && otherProfile?.business_slug ? String(otherProfile.business_slug) : null}
+            showBusinessLink={isDm && !customerSide}
             isVerified={isDm && Boolean(otherProfile?.is_verified)}
             subtitle={getSubtitle()}
-            onlineIndicator={isDm && isOnline}
+            onlineIndicator={isDm && isOnline && !customerSide}
             size="sm"
             variant="white"
-            onClick={isDm && otherUserId ? () => router.push(`/profile/${otherUserId}`) : undefined}
+            onClick={isDm && otherUserId ? () => router.push(profileHref) : undefined}
             className="flex-1 min-w-0"
           />
         ) : (
@@ -832,7 +845,7 @@ function ChatRoom() {
               {/* DM: View Profile */}
               {isDm && otherUserId && (
                 <button
-                  onClick={() => { setHeaderMenuOpen(false); router.push(`/profile/${otherUserId}`); }}
+                  onClick={() => { setHeaderMenuOpen(false); router.push(profileHref); }}
                   className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary/50 transition-colors text-left"
                 >
                   <UserCircle className="w-4 h-4 text-muted-foreground" /> View Profile
@@ -901,6 +914,15 @@ function ChatRoom() {
                 const isHovered  = hoveredMsg === msg.id;
                 const isConfirming = deletingMsg?.id === msg.id;
                 const isPending = Boolean((msg as { _pending?: boolean })._pending);
+
+                // What the chat is about (product, order, showroom, quote): a card, not a bubble.
+                if (msg.type === 'context') {
+                  return (
+                    <div key={msg.id} className={`my-2 flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                      <ContextCard content={msg.content} mine={isMe} />
+                    </div>
+                  );
+                }
 
                 return (
                   <motion.div
@@ -1067,6 +1089,9 @@ function ChatRoom() {
         </div>
       ) : (
         <div className="bg-card border-t border-border/30 shrink-0">
+          {businessChat && conversation?.is_business_side && !editingMsg && (
+            <QuickReplies businessId={conversation.business_id} onPick={(t) => { setText(t); textRef.current = t; inputRef.current?.focus(); }} />
+          )}
           {/* Reply preview */}
           {replyingTo && !editingMsg && (
             <div className="flex items-start gap-2 px-4 py-2 border-b border-border/20 bg-secondary/30">

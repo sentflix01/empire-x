@@ -609,3 +609,23 @@ items in the open list until confirmed.
   - Code: `frontend-next/lib/spotlight.ts`, `frontend-next/lib/feedBusiness.ts`, `frontend-next/components/feed/BusinessSpotlight.tsx`, `frontend-next/components/feed/BusinessShowroomFeed.tsx`, `frontend-next/components/feed/PostCard.tsx`, `frontend-next/components/showroom/studio/FeedSpotlightPanel.tsx`
   - Migrations: `backend/db/migrate80.js`
   - Tests: `frontend-next/test/feed/spotlight.test.ts`, `frontend-next/test/feed/businessSpotlight.test.tsx`
+
+### 2026-10-25 — Messages M3: the business inbox
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (messaging plan, Oct 2026: "Business inbox")
+- **Context:** Customers messaging a business reached the owner's personal chat and saw their personal "last seen". Owners mixed customer questions with personal chats. Nothing in the chat showed which product or order a question was about.
+- **Decision:**
+  1. **Separate chat:** a customer-to-business chat is its own conversation (`conversations.business_id`), one per customer and business, apart from any personal chat with the owner.
+  2. **Business identity:** the customer sees the business (name, logo, "Business"), never the owner's personal presence. The owner answers from a **Business** tab, and each row is badged with the business name.
+  3. **Privacy:** the owner's personal "who can message me" doesn't block customers from reaching the business. Blocks still apply. Owners can only start a chat with a customer from one of that customer's orders.
+  4. **Context cards:** a chat opened from a product, showroom or order gets a card snapshotting the item's title and photo, linking to the live page, never a price. The server checks that the item belongs to the business.
+  5. **Quick replies:** owners keep up to 20 saved replies.
+  6. **Server-made cards only:** `product`, `order_update` and `context` messages are created only by the server from real records. The send route refuses them, because before a sender could invent a product price or a paid order status. Products are shared through `POST /api/messages/share-product`.
+- **Consequences:**
+  - `migrate81` adds `conversations.business_id`, `business_quick_replies` and the message types `product`, `order_update` and `context`. The old CHECK allowed only text/image/file, so FEAT-004 product sharing failed in production until this change.
+  - "Message" buttons on products, showrooms, orders and business cards open the business chat (`useStartChat`).
+- **Related documentation:**
+  - Docs and migration: `docs/backend/API.md` (Messages), `backend/db/migrate81.js`
+  - Code: `backend/routes/messages.ts`, `backend/lib/messaging.ts`, `frontend-next/lib/messaging.ts`, `frontend-next/components/messaging/ContextCard.tsx`, `frontend-next/components/messaging/QuickReplies.tsx`
+  - Tests: `backend/test/db/messagingBusiness.db.test.js`, `backend/test/db/messageCards.db.test.js`

@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
-import { useRouter } from 'next/navigation';
 import { entities } from '@/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
@@ -13,7 +12,7 @@ import {
   Home as HomeIcon, GraduationCap, LucideProps,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { findOrCreateConversation } from '@/lib/messaging';
+import { useStartChat } from '@/lib/messaging';
 import { getCategoryByValue } from '@/lib/businessTemplates';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
 import PurchaseModal from '@/components/checkout/PurchaseModal';
@@ -113,9 +112,7 @@ export interface BusinessFeedCardProps {
 }
 
 export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, viewer, onMessage }: BusinessFeedCardProps) {
-  const router = useRouter();
   const [qrOpen, setQrOpen] = useState(false);
-  const [messaging, setMessaging] = useState(false);
   const [purchaseModal, setPurchaseModal] = useState<{
     item: { id?: string; title: string; description?: string; price?: number; currency?: string; images?: string };
     seller: { user_id: string; business_name?: string; display_name?: string };
@@ -153,18 +150,15 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
         ? `https://nodbusiness.vercel.app/showrooms/${showroomId}`
         : `https://nodbusiness.vercel.app/profile/${ownerId}?view=business`;
 
-  const handleMessage = async (targetUserId: string, targetName: string) => {
-    if (messaging) return;
-    if (onMessage) {
-      onMessage(targetUserId, targetName);
-      return;
-    }
-    setMessaging(true);
-    try {
-      const conv = await findOrCreateConversation({ id: viewer?.id } as any, targetUserId, targetName);
-      if (conv) router.push(`/messages/${conv.id}`);
-    } catch (e) { console.error(e); }
-    setMessaging(false);
+  // "Message" opens the business chat (shown as the business), with the site as context.
+  const chat = useStartChat();
+  const handleMessage = () => {
+    if (onMessage) { onMessage(ownerId, bizName); return; }
+    void chat.start({
+      businessId: businessIdForCard,
+      userId: ownerId,
+      context: showroomId ? { kind: 'showroom', id: showroomId } : undefined,
+    });
   };
 
   return (
@@ -285,7 +279,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
           <div className="flex gap-2 mb-1">
             {viewer && ownerId && ownerId !== viewer.id && (
               <Button size="sm" variant="outline" className="rounded-full h-7 text-xs"
-                onClick={() => handleMessage(ownerId, bizName)} disabled={messaging}>
+                onClick={handleMessage} disabled={chat.busy}>
                 <MessageSquare className="w-3 h-3 mr-1" />Message
               </Button>
             )}
@@ -387,10 +381,8 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   // Profile mode: the owner's published sites carry the sections and spotlight settings.
   const [ownerShowrooms, setOwnerShowrooms] = useState<Array<Record<string, any>>>([]);
   const [loading, setLoading] = useState(true);
-  const [messaging, setMessaging] = useState(false); // used by profile-mode message button
   // Owner display names for feed-mode cards — keyed by owner_id
   const [ownerProfiles, setOwnerProfiles] = useState<Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean }>>({});
-  const router = useRouter();
   const { user: signedInUser } = useAuth();
   const viewer = currentUser ?? signedInUser;
 
@@ -499,14 +491,9 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     return () => { cancelled = true; };
   }, [isFeedMode, profile?.user_id]);
 
-  const handleMessage = async (targetUserId: string, targetName: string) => {
-    if (!currentUser || messaging) return;
-    setMessaging(true);
-    try {
-      const conv = await findOrCreateConversation(currentUser, targetUserId, targetName);
-      if (conv) router.push(`/messages/${conv.id}`);
-    } catch (e) { console.error(e); }
-    setMessaging(false);
+  const chat = useStartChat();
+  const handleMessage = (target: { businessId?: string | null; userId?: string | null }) => {
+    void chat.start({ businessId: target.businessId, userId: target.userId });
   };
 
   if (loading) {
@@ -556,7 +543,6 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               ownerIsVerified={op?.is_verified}
               ownerIsSeed={op?.is_seed}
               viewer={viewer}
-              onMessage={handleMessage}
             />
           );
         })}
@@ -632,9 +618,9 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           </div>
           <div className="flex gap-2 mb-1">
             <Button size="sm" variant="outline" className="rounded-full h-8 text-xs"
-              onClick={() => handleMessage(profile!.user_id, bizName)} disabled={messaging}>
+              onClick={() => handleMessage({ businessId: business?.id ?? null, userId: profile!.user_id })} disabled={chat.busy}>
               <MessageSquare className="w-3 h-3 mr-1" />
-              {messaging ? '...' : 'Message'}
+              {chat.busy ? '...' : 'Message'}
             </Button>
             <Link href={`/profile/${profile!.user_id}?view=business`}>
               <Button size="sm" className="rounded-full h-8 text-xs text-white"

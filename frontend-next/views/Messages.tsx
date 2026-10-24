@@ -7,7 +7,7 @@ import { entities } from "@/api/entities";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 import { useRealMode } from "@/lib/RealModeContext";
-import { Search, Users, Radio, User as UserIcon, MessageCircle, ArrowUpDown } from "lucide-react";
+import { Search, Users, Radio, User as UserIcon, MessageCircle, ArrowUpDown, Store } from "lucide-react";
 import MessageTicks from "@/components/messaging/MessageTicks";
 import { tickFor } from "@/lib/readReceipts";
 import { fmtTime } from "@/lib/date";
@@ -22,7 +22,7 @@ import { useChatPresence } from "@/lib/useChatPresence";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import UserIdentity from "@/components/ui/UserIdentity";
 
-type Tab = 'all' | 'dm' | 'groups' | 'channels';
+type Tab = 'all' | 'dm' | 'business' | 'groups' | 'channels';
 
 function Messages() {
   const router = useRouter();
@@ -153,6 +153,8 @@ function Messages() {
   const getDisplayName = useCallback((conv: any) => {
     if (conv.type === "group" || conv.type === "channel")
       return conv.name || (conv.type === "channel" ? "Channel" : "Group");
+    // A customer sees the business; everyone else sees the person.
+    if (conv.business_id && !conv.is_business_side && conv.business_name) return conv.business_name;
     // Prefer server-resolved other_name (from listConversations JOIN); fall back to
     // parsing the legacy JSON columns only when the JOIN field is absent.
     if (conv.other_name) return conv.other_name;
@@ -169,8 +171,9 @@ function Messages() {
   const getDmAvatarUrl = (conv: any) => {
     if (conv.avatar_url) return conv.avatar_url;
     if (conv.type !== 'dm') return '';
+    if (conv.business_id && !conv.is_business_side) return conv.business_logo || '';
     // Prefer server-resolved other_avatar
-    if (conv.other_avatar) return conv.other_avatar;
+    if (conv.other_avatar) return Array.isArray(conv.other_avatar) ? (conv.other_avatar[0] ?? '') : conv.other_avatar;
     try {
       const ids = JSON.parse(conv.participant_ids || '[]');
       const otherId = ids.find((id: string) => String(id) !== String(user?.id));
@@ -250,7 +253,9 @@ function Messages() {
     }
 
     let list = conversations;
-    if (tab === 'dm')       list = list.filter(c => c.type === 'dm');
+    // Customers' chats with my businesses live in Business; my own chats (with people or businesses) in DMs.
+    if (tab === 'dm')       list = list.filter(c => c.type === 'dm' && !c.is_business_side);
+    if (tab === 'business') list = list.filter(c => c.is_business_side);
     if (tab === 'groups')   list = list.filter(c => c.type === 'group');
     if (tab === 'channels') list = list.filter(c => c.type === 'channel');
     if (realMode) {
@@ -272,9 +277,11 @@ function Messages() {
     return list;
   }, [conversations, contacts, tab, realMode, search, user, getDisplayName, contactSort, presence]);
 
+  const hasBusinessInbox = conversations.some((c: any) => c.is_business_side);
   const TABS: { id: Tab; label: string; icon?: any }[] = [
     { id: 'all',      label: 'All' },
     { id: 'dm',       label: 'Chats',    icon: UserIcon },
+    ...(hasBusinessInbox ? [{ id: 'business' as Tab, label: 'Business', icon: Store }] : []),
     { id: 'groups',   label: 'Groups',   icon: Users },
     { id: 'channels', label: 'Channels', icon: Radio },
   ];
@@ -527,7 +534,13 @@ function Messages() {
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-0.5">
-                            <p className={cn('text-sm truncate text-foreground', unread > 0 ? 'font-bold' : 'font-semibold')}>{name}</p>
+                            <p className={cn('text-sm truncate text-foreground', unread > 0 ? 'font-bold' : 'font-semibold')}>{name}
+                              {conv.is_business_side && conv.business_name && (
+                                <span className="ml-1.5 inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-px align-middle text-[10px] font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+                                  <Store className="h-2.5 w-2.5" aria-hidden="true" />{conv.business_name}
+                                </span>
+                              )}
+                            </p>
                             <span className={cn('text-[11px] whitespace-nowrap shrink-0', unread > 0 ? 'text-primary' : 'text-muted-foreground')}>{timeStr}</span>
                           </div>
                           <div className="flex items-center justify-between gap-2">

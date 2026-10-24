@@ -1,6 +1,5 @@
 'use client'
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useCallback } from "react";
 import { entities } from "@/api/entities";
 
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { Badge } from "@/components/ui/badge";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
-import { findOrCreateConversation } from "@/lib/messaging";
+import { useStartChat } from "@/lib/messaging";
 import SectionRenderer, { resolveCtaTarget, firstProductsIndex, isCatalogueSection } from "@/components/showroom/SectionRenderer";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import SafeImage from "@/components/ui/SafeImage";
@@ -34,25 +33,14 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [purchaseItem, setPurchaseItem] = useState(null);
-  const [messaging, setMessaging] = useState(false);
-  const router = useRouter();
 
   // Merge: prefer business entity fields, fall back to profile's embedded business fields
   const biz = { ...profile, ...business };
 
-  const handleMessage = async () => {
-    if (!user || messaging) return;
-    setMessaging(true);
-    try {
-      const conv = await findOrCreateConversation(
-        user,
-        profile.user_id,
-        biz.business_name || profile.display_name
-      );
-      if (conv) router.push(`/messages/${conv.id}`);
-    } catch (e) { console.error(e); }
-    setMessaging(false);
-  };
+  // Opens the chat with this business (or the person, when there's no business record).
+  const chat = useStartChat();
+  const handleMessage = () => { void chat.start({ businessId: business?.id ?? null, userId: profile.user_id }); };
+  const messaging = chat.busy;
 
   const loadData = useCallback(async () => {
     setLoading(true);

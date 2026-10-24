@@ -24,7 +24,7 @@ vi.mock('@/api/entities', () => ({
 vi.mock('next/link', () => ({
   default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
 }));
-vi.mock('@/lib/messaging', () => ({ findOrCreateConversation: vi.fn() }));
+vi.mock('@/lib/messaging', () => ({ findOrCreateConversation: vi.fn(), useStartChat: () => ({ start: vi.fn(), busy: false }) }));
 vi.mock('@/components/checkout/PurchaseModal', () => ({
   default: (props: Record<string, unknown>) => {
     purchaseProps.push(props);

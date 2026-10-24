@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import RequestPricing from '@/components/orders/RequestPricing';
+import { MessageCircle } from 'lucide-react';
+import { useStartChat } from '@/lib/messaging';
 
 const STATUS_CONFIG = {
   pending:    { label: "Pending",    icon: Clock,        color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
@@ -357,6 +359,24 @@ function Orders() {
   const [showReturn, setShowReturn] = useState<Record<string, boolean>>({});
   // Map of user_id → display_name for orders counterparty
   const [nameMap, setNameMap] = useState<Record<string, string>>({});
+  const chat = useStartChat();
+  // An order card in a chat links to /orders?order=<id>: show it.
+  const [focusOrder] = useState(() => (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('order')));
+  useEffect(() => {
+    if (!focusOrder || !orders.length) return;
+    const el = document.getElementById(`order-${focusOrder}`);
+    if (el) { el.scrollIntoView({ block: 'center' }); setExpanded(e => ({ ...e, [focusOrder]: true })); }
+    else if (tab === 'selling') { setTab('buying'); loadOrders(user, 'buying'); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusOrder, orders]);
+  /** Buyer: the business (with this order's card). Seller: the customer about this order. */
+  const messageAbout = (order) => {
+    const counterpart = isSelling ? order.buyer_id : order.seller_id;
+    if (!counterpart) return;
+    void chat.start(order.business_id
+      ? { businessId: order.business_id, context: { kind: 'order', id: order.id }, customerId: isSelling ? order.buyer_id : undefined }
+      : { userId: counterpart });
+  };
 
   useEffect(() => {
     if (userId) loadOrders({ id: userId }, "selling");
@@ -473,7 +493,7 @@ function Orders() {
             const canReturn  = !isSelling && ["completed", "paid"].includes(order.status);
 
             return (
-              <div key={order.id} className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+              <div key={order.id} id={`order-${order.id}`} className={`bg-card rounded-2xl border overflow-hidden ${focusOrder === order.id ? "border-blue-400 ring-2 ring-blue-200" : "border-border/50"}`}>
                 {/* Order header — always visible */}
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-3">
@@ -525,6 +545,12 @@ function Orders() {
                     <ReturnBadge orderId={order.id} isSeller={isSelling} />
 
                     <div className="ml-auto flex items-center gap-2 flex-wrap">
+                      {(isSelling ? order.buyer_id : order.seller_id) && (
+                        <button type="button" onClick={() => messageAbout(order)} disabled={chat.busy}
+                          className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium px-2 py-1 rounded-full hover:bg-blue-50 transition-colors">
+                          <MessageCircle className="w-3 h-3" aria-hidden="true" /> {isSelling ? 'Message buyer' : 'Message seller'}
+                        </button>
+                      )}
                       {/* Invoice */}
                       {order.status === "completed" && (
                         <button

@@ -10,12 +10,12 @@ import { Router } from 'express';
 import type { NextFunction, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import pool from '../db/pool';
-import { follows, messageRefusal } from '../lib/socialGraph';
+import { follows, isBlockedEitherWay, messageRefusal } from '../lib/socialGraph';
 import { requireAuth } from '../middleware/auth';
 import {
-  addMember, addRefusal, cleanContent, CONVERSATION_TYPES, DELETE_FOR_EVERYONE_WINDOW_MS, displayNames, EDIT_WINDOW_MS,
+  addMember, addRefusal, cleanContent, contextCard, getBusiness, type BusinessRow, CONVERSATION_TYPES, DELETE_FOR_EVERYONE_WINDOW_MS, displayNames, EDIT_WINDOW_MS,
   existingUserIds, getConversation, insertMessageNotifications, isSafeAttachmentUrl, MAX_GROUP_MEMBERS, memberRole,
-  MESSAGE_TYPES, messagePreview, MUTE_DURATIONS, participantIds, postRefusal, refreshLastMessage, removeMember,
+  MESSAGE_TYPES, SERVER_MESSAGE_TYPES, messagePreview, MUTE_DURATIONS, participantIds, postRefusal, refreshLastMessage, removeMember,
   unreadCountSql, visibleToSql, type ConversationRow, type ConversationType,
 } from '../lib/messaging';
 import {
@@ -102,7 +102,10 @@ async function deliver(conv: ConversationRow, ids: string[], senderId: string, f
   }
 
   const names = await displayNames([senderId]);
-  const senderName = names.get(senderId) ?? null;
+  // In a business chat the owner speaks as the business; the customer is named.
+  const business = conv.business_id ? await getBusiness(String(conv.business_id)) : null;
+  const ownerSpeaks = Boolean(business && business.owner_id === senderId);
+  const senderName = ownerSpeaks ? business!.business_name : names.get(senderId) ?? null;
   const { rows: [message] } = await pool.query(
     `INSERT INTO messages (conversation_id, sender_id, sender_name, content, type, reply_to_id, metadata) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
     [conv.id, senderId, senderName, fields.content, fields.type, fields.reply_to_id ?? null, fields.metadata ?? null],
@@ -128,7 +131,7 @@ async function deliver(conv: ConversationRow, ids: string[], senderId: string, f
 
   const short = preview.slice(0, 80);
   const link = `/messages/${conv.id}`;
-  const where = conv.type === 'dm' ? '' : ` in ${conv.name ?? 'a group'}`;
+  const where = business && !ownerSpeaks ? ` · ${business.business_name}` : conv.type === 'dm' ? '' : ` in ${conv.name ?? 'a group'}`;
   const notify = async (recipients: string[], title: string) => {
     const rows = await insertMessageNotifications(recipients, title, short, link);
     for (const n of rows) emitNotification(String(n.user_id), n);
@@ -141,19 +144,27 @@ async function deliver(conv: ConversationRow, ids: string[], senderId: string, f
   return message as Record<string, unknown>;
 }
 
+const NOT_ARCHIVED = `(cp.archived_at IS NULL OR (last.created_at > cp.archived_at AND NOT (cp.muted_until IS NOT NULL AND cp.muted_until > NOW())))`;
+const MY_BUSINESS = 'b.owner_id = $1';
 const BOXES: Record<string, string> = {
-  // New messages bring an archived chat back, unless it's muted.
-  chats: `cp.accepted_at IS NOT NULL AND (cp.archived_at IS NULL OR (last.created_at > cp.archived_at AND NOT (cp.muted_until IS NOT NULL AND cp.muted_until > NOW())))`,
+  // New messages bring an archived chat back, unless it's muted. Customers'
+  // chats with my businesses live in Business, not Chats.
+  chats: `cp.accepted_at IS NOT NULL AND ${NOT_ARCHIVED} AND (b.id IS NULL OR NOT (${MY_BUSINESS}))`,
+  business: `${MY_BUSINESS} AND ${NOT_ARCHIVED}`,
   requests: 'cp.accepted_at IS NULL',
   archived: `cp.accepted_at IS NOT NULL AND cp.archived_at IS NOT NULL AND (last.created_at IS NULL OR last.created_at <= cp.archived_at OR (cp.muted_until IS NOT NULL AND cp.muted_until > NOW()))`,
 };
 // Older app versions ask without a box: everything that isn't archived (requests included).
-BOXES.all = `(${BOXES.chats}) OR (${BOXES.requests})`;
+BOXES.all = `(${BOXES.chats}) OR (${BOXES.requests}) OR (${BOXES.business})`;
 
 /** One person's view of their chats: last visible message, unread, the other person, ticks. */
-async function listConversations(me: string, box: string, onlyId?: string) {
+async function listConversations(me: string, box: string, onlyId?: string, businessId?: string) {
+  const params: unknown[] = [me];
+  if (onlyId) params.push(onlyId);
+  if (businessId) params.push(businessId);
   const { rows } = await pool.query(
     `SELECT c.id, c.type, c.name, c.description, c.avatar_url, c.admin_id, c.created_at, c.updated_at, c.participant_ids, c.participant_names,
+            c.business_id, b.business_name, b.business_logo_url AS business_logo, (b.owner_id = $1) AS is_business_side,
             cp.role AS my_role, cp.last_read_at, cp.accepted_at, cp.muted_until, cp.archived_at,
             (cp.accepted_at IS NULL) AS is_request,
             (cp.muted_until IS NOT NULL AND cp.muted_until > NOW()) AS muted,
@@ -166,6 +177,7 @@ async function listConversations(me: string, box: string, onlyId?: string) {
        FROM conversations c
        JOIN conversation_participants cp ON cp.conversation_id = c.id AND cp.user_id = $1
        LEFT JOIN user_profiles mine ON mine.user_id = $1
+       LEFT JOIN businesses b ON b.id = c.business_id
        LEFT JOIN LATERAL (
          SELECT m.id, m.sender_id, m.type, m.content, m.created_at FROM messages m
           WHERE m.conversation_id = c.id AND ${visibleToSql('$1')}
@@ -179,9 +191,10 @@ async function listConversations(me: string, box: string, onlyId?: string) {
       WHERE (cp.hidden_before IS NULL OR last.id IS NOT NULL)
         AND (${BOXES[box] ?? BOXES.all})
         ${onlyId ? 'AND c.id = $2' : ''}
+        ${businessId ? `AND c.business_id = ${params.length}` : ''}
       ORDER BY COALESCE(last.created_at, c.created_at) DESC
       LIMIT 100`,
-    onlyId ? [me, onlyId] : [me],
+    params,
   );
   return rows.map((r) => {
     const { last_message_content, ...rest } = r as Record<string, unknown>;
@@ -194,10 +207,11 @@ async function listConversations(me: string, box: string, onlyId?: string) {
 /** `?box=chats|requests|archived` (no box: chats and requests, for older app versions). */
 router.get('/conversations', requireAuth, async (req: Request, res: Response) => {
   const box = typeof req.query.box === 'string' ? req.query.box : 'all';
-  if (!BOXES[box]) { apiError.validationError(res, 'box must be chats, requests or archived'); return; }
+  if (!BOXES[box]) { apiError.validationError(res, 'box must be chats, business, requests or archived'); return; }
+  const businessId = typeof req.query.business_id === 'string' && UUID.test(req.query.business_id) ? req.query.business_id : undefined;
   try {
     res.set('Cache-Control', 'private, no-store');
-    res.json(await listConversations(String(req.user!.id), box));
+    res.json(await listConversations(String(req.user!.id), box, undefined, businessId));
   } catch (err) { fail(res, err, 'load your chats'); }
 });
 
@@ -207,9 +221,11 @@ router.get('/unread-count', requireAuth, async (req: Request, res: Response) => 
     const { rows: [counts] } = await pool.query(
       `SELECT COUNT(*) FILTER (WHERE x.unread > 0 AND x.accepted AND NOT x.muted AND NOT x.archived)::int AS chats,
               COALESCE(SUM(x.unread) FILTER (WHERE x.accepted AND NOT x.muted AND NOT x.archived), 0)::int AS messages,
-              COUNT(*) FILTER (WHERE x.unread > 0 AND NOT x.accepted)::int AS requests
+              COUNT(*) FILTER (WHERE x.unread > 0 AND NOT x.accepted)::int AS requests,
+              COUNT(*) FILTER (WHERE x.unread > 0 AND x.accepted AND NOT x.muted AND NOT x.archived AND x.business_side)::int AS business
          FROM (
            SELECT ${unreadCountSql('$1')} AS unread, cp.accepted_at IS NOT NULL AS accepted,
+                  EXISTS (SELECT 1 FROM businesses bz WHERE bz.id = c.business_id AND bz.owner_id = $1) AS business_side,
                   (cp.muted_until IS NOT NULL AND cp.muted_until > NOW()) AS muted,
                   (cp.archived_at IS NOT NULL AND NOT EXISTS (SELECT 1 FROM messages lm WHERE lm.conversation_id = c.id AND lm.created_at > cp.archived_at)) AS archived
              FROM conversations c JOIN conversation_participants cp ON cp.conversation_id = c.id AND cp.user_id = $1
@@ -365,7 +381,7 @@ router.post('/conversations/find-or-create', requireAuth, startLimiter, async (r
       `SELECT c.* FROM conversations c
          JOIN conversation_participants a ON a.conversation_id=c.id AND a.user_id=$1
          JOIN conversation_participants b ON b.conversation_id=c.id AND b.user_id=$2
-        WHERE c.type='dm' AND (SELECT COUNT(*) FROM conversation_participants x WHERE x.conversation_id=c.id)=2
+        WHERE c.type='dm' AND c.business_id IS NULL AND (SELECT COUNT(*) FROM conversation_participants x WHERE x.conversation_id=c.id)=2
         LIMIT 1`,
       [me, target_user_id],
     );
@@ -382,16 +398,16 @@ router.post('/conversations/find-or-create', requireAuth, startLimiter, async (r
 
 async function createConversation(
   type: ConversationType, creatorId: string, others: string[],
-  meta: { name?: string | null; description?: string | null; avatar_url?: string | null },
+  meta: { name?: string | null; description?: string | null; avatar_url?: string | null; business_id?: string | null },
   requestFor: Set<string> = new Set(),
 ) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const { rows: [conv] } = await client.query(
-      `INSERT INTO conversations (type, name, description, avatar_url, admin_id, last_message, participant_ids, participant_names)
-       VALUES ($1, $2, $3, $4, $5, '', '[]', '[]') RETURNING *`,
-      [type, meta.name ?? null, meta.description ?? null, meta.avatar_url ?? null, type === 'dm' ? null : creatorId],
+      `INSERT INTO conversations (type, name, description, avatar_url, admin_id, business_id, last_message, participant_ids, participant_names)
+       VALUES ($1, $2, $3, $4, $5, $6, '', '[]', '[]') RETURNING *`,
+      [type, meta.name ?? null, meta.description ?? null, meta.avatar_url ?? null, type === 'dm' ? null : creatorId, meta.business_id ?? null],
     );
     await addMember(client, conv, creatorId, { role: type === 'dm' ? 'member' : 'admin' });
     for (const uid of others) await addMember(client, conv, uid, { accepted: !requestFor.has(uid) });
@@ -402,6 +418,110 @@ async function createConversation(
     throw err;
   } finally { client.release(); }
 }
+
+/** The customer's chat with a business (one per customer and business). */
+async function findBusinessChat(business: BusinessRow, customerId: string): Promise<ConversationRow | null> {
+  const { rows: [c] } = await pool.query(
+    `SELECT c.* FROM conversations c
+       JOIN conversation_participants a ON a.conversation_id = c.id AND a.user_id = $2
+       JOIN conversation_participants o ON o.conversation_id = c.id AND o.user_id = $3
+      WHERE c.business_id = $1 AND c.type = 'dm' LIMIT 1`,
+    [business.id, customerId, business.owner_id],
+  );
+  return (c as ConversationRow | undefined) ?? null;
+}
+
+/** Post the card for what the chat is about, unless the last card already shows it. */
+async function postContextCard(conv: ConversationRow, ids: string[], senderId: string, card: Awaited<ReturnType<typeof contextCard>>) {
+  if (!card) return;
+  const { rows: [last] } = await pool.query("SELECT content FROM messages WHERE conversation_id=$1 AND type='context' ORDER BY created_at DESC LIMIT 1", [conv.id]);
+  try {
+    const prev = last ? JSON.parse(last.content) : null;
+    if (prev && prev.kind === card.kind && prev.id === card.id && card.kind !== 'quote') return;
+  } catch { /* post a fresh card */ }
+  await deliver(conv, ids, senderId, { content: JSON.stringify(card), type: 'context' });
+}
+
+/**
+ * Open a business chat: a customer messages a business (from a product,
+ * showroom, profile or order), or the owner messages a customer about their
+ * order. Business chats skip the owner's personal "who can message me";
+ * blocks still apply. Body: { business_id, customer_id?, context?: { kind, id } }.
+ */
+async function openBusinessChat(me: string, body: Record<string, unknown>, res: Response, quote?: { subject: string }) {
+  const businessId = body.business_id;
+  if (typeof businessId !== 'string' || !UUID.test(businessId)) { apiError.validationError(res, 'business_id is required'); return null; }
+  const business = await getBusiness(businessId);
+  if (!business) { apiError.notFound(res, 'Business not found'); return null; }
+  const ownerSide = business.owner_id === me;
+  const customerId = ownerSide ? body.customer_id : me;
+  if (typeof customerId !== 'string' || !UUID.test(customerId)) { apiError.validationError(res, ownerSide ? 'customer_id is required' : 'business_id is required'); return null; }
+  if (customerId === business.owner_id) { apiError.validationError(res, 'This is your own business'); return null; }
+  if (!ownerSide && body.customer_id && body.customer_id !== me) { apiError.forbidden(res, 'You can only message a business as yourself'); return null; }
+  if (await isBlockedEitherWay(customerId, business.owner_id)) { refuse(res, 'You can’t message this business.'); return null; }
+  const ctx = (body.context ?? null) as { kind?: unknown; id?: unknown } | null;
+  const card = quote ? await contextCard('quote', null, business, customerId, { note: quote.subject })
+    : ctx ? await contextCard(ctx.kind, ctx.id, business, customerId) : null;
+  if (ctx && !card && !quote) { apiError.validationError(res, 'That item isn’t from this business'); return null; }
+  let conv = await findBusinessChat(business, customerId);
+  if (!conv) {
+    // An owner can start a chat only about a real order with this customer.
+    if (ownerSide && card?.kind !== 'order') { apiError.forbidden(res, 'Message customers from one of their orders'); return null; }
+    if (!(await existingUserIds([customerId])).has(customerId)) { apiError.notFound(res, 'Customer not found'); return null; }
+    conv = await createConversation('dm', me, [ownerSide ? customerId : business.owner_id], { business_id: business.id });
+  }
+  const ids = await participantIds(conv);
+  await postContextCard(conv, ids, me, card);
+  return { conv, ids, business };
+}
+
+router.post('/conversations/business', requireAuth, startLimiter, async (req: Request, res: Response) => {
+  try {
+    const opened = await openBusinessChat(String(req.user!.id), req.body as Record<string, unknown>, res);
+    if (!opened) return;
+    const [row] = await listConversations(String(req.user!.id), 'all', opened.conv.id);
+    res.status(201).json(row ?? opened.conv);
+  } catch (err) { fail(res, err, 'open the chat'); }
+});
+
+// ── Quick replies (business owners) ──────────────────────────────────────────
+
+async function ownedBusiness(req: Request, res: Response, id: unknown): Promise<BusinessRow | null> {
+  if (typeof id !== 'string' || !UUID.test(id)) { apiError.validationError(res, 'business_id is required'); return null; }
+  const business = await getBusiness(id);
+  if (!business || business.owner_id !== String(req.user!.id)) { apiError.forbidden(res, 'Only the business owner can do this'); return null; }
+  return business;
+}
+
+router.get('/quick-replies', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const business = await ownedBusiness(req, res, req.query.business_id); if (!business) return;
+    const { rows } = await pool.query('SELECT id, text, position FROM business_quick_replies WHERE business_id=$1 ORDER BY position, created_at', [business.id]);
+    res.json(rows);
+  } catch (err) { fail(res, err, 'load quick replies'); }
+});
+
+/** Replace the whole list: { business_id, replies: ["…", …] } (up to 20, 500 characters each). */
+router.put('/quick-replies', requireAuth, async (req: Request, res: Response) => {
+  const { business_id, replies } = req.body as { business_id?: unknown; replies?: unknown };
+  if (!Array.isArray(replies) || replies.length > 20 || replies.some((r) => typeof r !== 'string' || !r.trim() || r.trim().length > 500)) {
+    apiError.validationError(res, 'Up to 20 quick replies, each 1–500 characters'); return;
+  }
+  try {
+    const business = await ownedBusiness(req, res, business_id); if (!business) return;
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('DELETE FROM business_quick_replies WHERE business_id=$1', [business.id]);
+      for (const [i, text] of (replies as string[]).entries()) {
+        await client.query('INSERT INTO business_quick_replies (business_id, text, position) VALUES ($1, $2, $3)', [business.id, text.trim(), i]);
+      }
+      await client.query('COMMIT');
+    } catch (err) { try { await client.query('ROLLBACK'); } catch { /* gone */ } throw err; } finally { client.release(); }
+    const { rows } = await pool.query('SELECT id, text, position FROM business_quick_replies WHERE business_id=$1 ORDER BY position', [business.id]);
+    res.json(rows);
+  } catch (err) { fail(res, err, 'save quick replies'); }
+});
 
 const textField = (v: unknown, max: number): { ok: true; value: string | null } | { ok: false } => {
   if (v === undefined || v === null || v === '') return { ok: true, value: null };
@@ -486,41 +606,19 @@ router.post('/conversations/:convId/messages', requireAuth, sendLimiter, async (
     const found = await loadForMember(req, res, req.params.convId); if (!found) return;
     const me = String(req.user!.id);
     if (!found.role) { apiError.forbidden(res, 'You’re not in this conversation'); return; }
-    const { content, type, reply_to_id, metadata: rawMetadata } = req.body as Record<string, unknown>;
+    const { content, type, reply_to_id } = req.body as Record<string, unknown>;
+    // Product, order-update and context cards are made by the server from real records.
+    if ((SERVER_MESSAGE_TYPES as readonly string[]).includes(type as string)) {
+      apiError.validationError(res, 'Share a product with the share button; order updates come from the order itself.'); return;
+    }
     const msgType = (MESSAGE_TYPES as readonly string[]).includes(type as string) ? type as string : 'text';
 
-    let msgContent: string;
-    let msgMetadata: Record<string, unknown> | null = null;
-
-    if (msgType === 'product') {
-      // product messages carry their payload in metadata; content is empty
-      if (
-        typeof rawMetadata !== 'object' || rawMetadata === null ||
-        typeof (rawMetadata as Record<string, unknown>).product_id !== 'string' ||
-        !UUID.test((rawMetadata as Record<string, unknown>).product_id as string)
-      ) {
-        apiError.validationError(res, 'metadata.product_id must be a valid UUID for product messages'); return;
-      }
-      msgContent = '';
-      msgMetadata = rawMetadata as Record<string, unknown>;
-    } else if (msgType === 'order_update') {
-      // order_update messages carry their payload in metadata; content is empty
-      if (
-        typeof rawMetadata !== 'object' || rawMetadata === null ||
-        typeof (rawMetadata as Record<string, unknown>).order_id !== 'string' ||
-        typeof (rawMetadata as Record<string, unknown>).status !== 'string'
-      ) {
-        apiError.validationError(res, 'metadata.order_id and metadata.status are required for order_update messages'); return;
-      }
-      msgContent = '';
-      msgMetadata = rawMetadata as Record<string, unknown>;
-    } else {
-      // text / image / file — validate through cleanContent
-      const clean = cleanContent(content);
-      if (!clean.ok) { apiError.validationError(res, clean.message); return; }
-      if (msgType !== 'text' && !isSafeAttachmentUrl(clean.text)) { apiError.validationError(res, 'That photo or file link isn\u2019t valid'); return; }
-      msgContent = clean.text;
-    }
+    // text / image / file — validate through cleanContent
+    const clean = cleanContent(content);
+    if (!clean.ok) { apiError.validationError(res, clean.message); return; }
+    if (msgType !== 'text' && !isSafeAttachmentUrl(clean.text)) { apiError.validationError(res, 'That photo or file link isn’t valid'); return; }
+    const msgContent = clean.text;
+    const msgMetadata: Record<string, unknown> | null = null;
 
     const why = await postRefusal(found.conv, found.ids, me, found.role);
     if (why) { refuse(res, why); return; }
@@ -798,6 +896,21 @@ router.post('/inquiry', requireAuth, startLimiter, async (req: Request, res: Res
   if (typeof receiver_id !== 'string' || !UUID.test(receiver_id)) { apiError.validationError(res, 'receiver_id is required'); return; }
   if (receiver_id === me) { apiError.validationError(res, 'You can’t send a request to yourself'); return; }
   const subj = typeof subject === 'string' ? subject.trim().slice(0, 120) : '';
+  const businessId = (req.body as Record<string, unknown>).business_id;
+  if (businessId) {
+    // From a business showroom: the request goes to the Business inbox, with a quote card.
+    const text = cleanContent(body);
+    if (!text.ok) { apiError.validationError(res, text.message); return; }
+    try {
+      const business = typeof businessId === 'string' && UUID.test(businessId) ? await getBusiness(businessId) : null;
+      if (business && business.owner_id !== receiver_id) { apiError.validationError(res, 'receiver_id is not this business’s owner'); return; }
+      const opened = await openBusinessChat(me, { business_id: businessId }, res, { subject: subj || 'Quote request' });
+      if (!opened) return;
+      const msg = await deliver(opened.conv, opened.ids, me, { content: text.text, type: 'text' });
+      res.status(201).json({ success: true, conversation_id: opened.conv.id, message_id: msg.id });
+    } catch (err) { fail(res, err, 'send your request'); }
+    return;
+  }
   const clean = cleanContent(subj && typeof body === 'string' ? `📋 ${subj}\n\n${body.trim()}` : body);
   if (!clean.ok) { apiError.validationError(res, clean.message); return; }
   try {
@@ -806,7 +919,7 @@ router.post('/inquiry', requireAuth, startLimiter, async (req: Request, res: Res
       `SELECT c.* FROM conversations c
          JOIN conversation_participants a ON a.conversation_id=c.id AND a.user_id=$1
          JOIN conversation_participants b ON b.conversation_id=c.id AND b.user_id=$2
-        WHERE c.type='dm' AND (SELECT COUNT(*) FROM conversation_participants x WHERE x.conversation_id=c.id)=2
+        WHERE c.type='dm' AND c.business_id IS NULL AND (SELECT COUNT(*) FROM conversation_participants x WHERE x.conversation_id=c.id)=2
         LIMIT 1`,
       [me, receiver_id],
     );
