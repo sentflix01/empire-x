@@ -1,17 +1,26 @@
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
+import { e2eTargetProblem } from './e2e/target-guard';
 
 /**
  * Playwright E2E — TD-003 (critical user flows)
  *
  * Full-stack local run:
- *   backend/.env must exist (DATABASE_URL etc.) and the DB should be seeded:
- *     cd ../backend && npm run migrate && npm run seed
+ *   backend/.env must exist with a LOCAL DATABASE_URL, and the DB seeded:
+ *     cd ../backend && npm run migrate && ALLOW_E2E_SEED=1 npm run seed:e2e
  *   Then: npm run test:e2e   (from frontend-next/)
+ *
+ * The specs write data. e2e/target-guard.ts refuses to start when the backend
+ * URL or its DATABASE_URL points anywhere but this machine (audit DATA-03).
  *
  * The two web servers below reuse already-running instances locally
  * (reuseExistingServer) so you can keep `npm run dev` sessions up.
  */
+
+// Checked when the config loads, before Playwright starts any web server: a
+// backend started against a hosted database would already run its jobs there.
+const targetProblem = e2eTargetProblem();
+if (targetProblem) throw new Error(`E2E refused: ${targetProblem}`);
 
 const BACKEND_URL = process.env.E2E_BACKEND_URL ?? 'http://localhost:3001';
 const FRONTEND_URL = process.env.E2E_FRONTEND_URL ?? 'http://localhost:3002';

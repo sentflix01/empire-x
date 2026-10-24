@@ -17,14 +17,23 @@ nodbusiness/
 
 ## Quick Start
 
-**Prerequisites:** Node.js 18+, PostgreSQL 14+ running locally.
+**Prerequisites:** Node.js 20.9+ (required by Next.js 16), PostgreSQL 14+ running locally.
+
+### 0. Install dependencies
+
+```bash
+cd backend && npm ci && cd ..
+cd frontend-next && npm ci --legacy-peer-deps && cd ..
+```
 
 ### 1. Configure environment
 
 ```bash
 # Backend
 cp backend/.env.example backend/.env
-# Edit backend/.env — set DATABASE_URL and JWT_SECRET at minimum
+# Edit backend/.env — set DATABASE_URL and JWT_SECRET at minimum.
+# Use a LOCAL database here. Never point a development .env at the hosted
+# (production) database: dev servers, seeds and tests write to it.
 
 # Next.js Frontend
 cp frontend-next/.env.local.example frontend-next/.env.local
@@ -56,6 +65,16 @@ npm run dev
 ```
 
 Then open http://localhost:3002
+
+### Optional: end-to-end tests
+
+```bash
+cd backend && ALLOW_E2E_SEED=1 npm run seed:e2e   # test accounts in the local DB
+cd ../frontend-next && npm run test:e2e
+```
+
+The E2E suite creates products, orders and chats, so it refuses to start unless
+the backend and its `DATABASE_URL` are on this machine (`frontend-next/e2e/target-guard.ts`).
 
 ### 4. Register your first account
 

@@ -41,10 +41,12 @@ let token: string | null = null;
 let productId: string | null = null;
 let sellerId: string | null = null;
 let seeded = false;
+let sellerToken: string | null = null;
 
 test.beforeAll(async () => {
   token = await apiLogin(A.email, A.password);
   const adminToken = await apiLogin(ADMIN.email, ADMIN.password);
+  sellerToken = adminToken;
   if (!token || !adminToken) return;
 
   const adminMe = await fetch(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${adminToken}` } });
@@ -73,6 +75,16 @@ test.beforeAll(async () => {
     sellerId = created.seller_id ?? adminBody.id;
     seeded = Boolean(productId);
   }
+});
+
+// Take the product off sale so runs don't leave listings behind (audit DATA-03).
+test.afterAll(async () => {
+  if (!productId || !sellerToken) return;
+  await fetch(`${API}/api/products/${productId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sellerToken}` },
+    body: JSON.stringify({ status: 'archived' }),
+  }).catch(() => undefined);
 });
 
 test.describe('Checkout flow', () => {
