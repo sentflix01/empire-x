@@ -19,18 +19,18 @@ Newly introduced as part of recent development; see source and git history for t
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/direct-orders/checkout-info` | optional | 143 |
-| `POST` | `/api/direct-orders/requests` | optional | 237 |
-| `POST` | `/api/direct-orders/` | optional | 309 |
-| `GET` | `/api/direct-orders/link/:token` | public | 421 |
-| `POST` | `/api/direct-orders/link/:token/report-payment` | public | 456 |
-| `POST` | `/api/direct-orders/:id/report-payment` | auth | 464 |
-| `POST` | `/api/direct-orders/:id/confirm-payment` | auth | 474 |
-| `POST` | `/api/direct-orders/:id/reject-payment` | auth | 491 |
-| `POST` | `/api/direct-orders/:id/set-price` | auth | 510 |
-| `POST` | `/api/direct-orders/:id/decline-request` | auth | 539 |
-| `GET` | `/api/direct-orders/link/:token/receipt` | public | 563 |
-| `GET` | `/api/direct-orders/:id/receipt` | auth | 571 |
+| `GET` | `/api/direct-orders/checkout-info` | optional | 144 |
+| `POST` | `/api/direct-orders/requests` | optional | 238 |
+| `POST` | `/api/direct-orders/` | optional | 310 |
+| `GET` | `/api/direct-orders/link/:token` | public | 422 |
+| `POST` | `/api/direct-orders/link/:token/report-payment` | public | 457 |
+| `POST` | `/api/direct-orders/:id/report-payment` | auth | 465 |
+| `POST` | `/api/direct-orders/:id/confirm-payment` | auth | 475 |
+| `POST` | `/api/direct-orders/:id/reject-payment` | auth | 492 |
+| `POST` | `/api/direct-orders/:id/set-price` | auth | 511 |
+| `POST` | `/api/direct-orders/:id/decline-request` | auth | 540 |
+| `GET` | `/api/direct-orders/link/:token/receipt` | public | 564 |
+| `GET` | `/api/direct-orders/:id/receipt` | auth | 572 |
 
 ## 4. What does it touch?
 
