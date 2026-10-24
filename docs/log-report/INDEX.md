@@ -5,6 +5,9 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-24 | Maintenance | Merge pull request #152 from sentflix01/fix/legal-identity-and-test-listings | [e77d15743](2026-10-24-e77d15743-merge-pull-request-152-from-sentflix01-fix-legal.md) |
+| 2026-10-24 | Bugfix | fix(legal): name sellers as recipients; state transfers without unverified safeguards | [4bba3bab5](2026-10-24-4bba3bab5-name-sellers-as-recipients-state-transfers-witho.md) |
+| 2026-10-24 | Bugfix | fix(legal): real operator details and a working contact; archive test listings | [e24012a41](2026-10-24-e24012a41-real-operator-details-and-a-working-contact-arch.md) |
 | 2026-10-24 | Maintenance | Merge pull request #151 from sentflix01/fix/legal-claims | [bdbb9a704](2026-10-24-bdbb9a704-merge-pull-request-151-from-sentflix01-fix-legal.md) |
 | 2026-10-24 | Bugfix | fix(legal): no invented claims on sellers' pages or in the sidebar | [dc288755d](2026-10-24-dc288755d-no-invented-claims-on-sellers-pages-or-in-the-si.md) |
 | 2026-10-24 | Maintenance | Merge pull request #150 from sentflix01/dependabot/npm_and_yarn/frontend-next/minor-and-patch-9d01a53f8f | [9b34e8b83](2026-10-24-9b34e8b83-merge-pull-request-150-from-sentflix01-dependabo.md) |
