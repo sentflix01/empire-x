@@ -24,6 +24,18 @@ import { isGuestBrowsablePath } from "@/lib/publicPaths";
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
 function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string } | null }) {
+  // Real hashtag counts only (audit LEGAL-04: the panel used to show invented numbers).
+  const [trending, setTrending] = useState<Array<{ name: string; post_count: number }>>([]);
+  useEffect(() => {
+    let cancelled = false;
+    client.get('/api/hashtags/trending')
+      .then(({ data }) => {
+        if (cancelled || !Array.isArray(data)) return;
+        setTrending(data.filter((t) => t && typeof t.name === 'string' && Number(t.post_count) > 0).slice(0, 5));
+      })
+      .catch(() => { /* no trending panel without data */ });
+    return () => { cancelled = true; };
+  }, []);
   const quickLinks = [
     { path: "/showrooms",  icon: Store,        label: "Showrooms",   color: "#2563EB" },
     { path: "/marketplace",icon: ShoppingBag,  label: "Marketplace", color: "#7c3aed" },
@@ -69,7 +81,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
         </div>
         <div className="rounded-xl bg-empire-gradient p-3 mb-3 shadow-md shadow-primary/20">
           <p className="text-white font-bold text-sm">Nodbusiness Pro</p>
-          <p className="text-white/85 text-xs mt-1 leading-relaxed">Boost your business visibility to 10,000+ users.</p>
+          <p className="text-white/85 text-xs mt-1 leading-relaxed">Get your business in front of more customers on Nodbusiness.</p>
         </div>
         <Link href={user ? "/analytics" : "/register"} className="block text-center py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold shadow-sm shadow-primary/20 transition-colors">
           {user ? 'Promote Now' : 'Join Free'}
@@ -86,7 +98,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
             </div>
             <div>
               <p className="text-white font-bold text-sm leading-tight">Showroom Studio</p>
-              <p className="text-white/75 text-[10px]">27 templates · 9 categories</p>
+              <p className="text-white/75 text-[10px]">Ready-made website templates</p>
             </div>
           </div>
         </div>
@@ -119,27 +131,32 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
         </div>
       </div>
 
-      {/* Trending topics */}
+      {/* Trending topics: hidden until real posts use hashtags */}
+      {trending.length > 0 && (
       <div className="bg-card dark:bg-card rounded-2xl border border-border/50 p-4">
         <div className="flex items-center gap-2 mb-3">
           <TrendingUp className="w-4 h-4 text-blue-500" />
           <span className="text-sm font-semibold">Trending</span>
         </div>
         <div className="space-y-2">
-          {["#AddisAbaba","#EthiopianBusiness","#Nodbusiness","#HabeshaLife","#EthioTech"].map((tag, i) => (
+          {trending.map(({ name, post_count }) => {
+            const tag = name.startsWith("#") ? name : `#${name}`;
+            return (
             <Link key={tag} href={`/hashtag/${tag.slice(1)}`} className="flex items-center justify-between hover:bg-secondary px-2 py-1.5 rounded-lg transition-all group">
               <div>
                 <p className="text-xs font-semibold group-hover:text-amber-600 transition-colors">{tag}</p>
-                <p className="text-[10px] text-muted-foreground">{[234, 189, 156, 132, 98][i]} posts</p>
+                <p className="text-[10px] text-muted-foreground">{post_count} {post_count === 1 ? 'post' : 'posts'}</p>
               </div>
               <Flame className="w-3.5 h-3.5 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
-          ))}
+          );
+          })}
         </div>
         <Link href="/explore" className="block text-center mt-2 text-xs text-amber-600 hover:underline font-medium">
           See all trending →
         </Link>
       </div>
+      )}
 
       {/* Footer links */}
       <div className="px-2">

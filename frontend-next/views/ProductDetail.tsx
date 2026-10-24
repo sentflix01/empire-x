@@ -7,7 +7,7 @@ import ReviewsSection from "@/components/product/ReviewsSection";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 
-import { ArrowLeft, Heart, ShoppingCart, MapPin, Star, Truck, Shield, MessageCircle, Bell, Zap } from "lucide-react";
+import { ArrowLeft, Heart, ShoppingCart, MapPin, Star, Shield, MessageCircle, Bell, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/lib/CartContext";
@@ -255,7 +255,6 @@ function ProductDetail() {
 
           <div className="flex gap-3 text-xs text-muted-foreground">
             <div className="flex items-center gap-1"><Shield className="w-3.5 h-3.5 text-green-500" /> Pay the seller directly</div>
-            <div className="flex items-center gap-1"><Truck className="w-3.5 h-3.5 text-blue-500" /> Delivery available</div>
           </div>
 
           <div className="flex gap-2 pt-1">

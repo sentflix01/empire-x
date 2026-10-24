@@ -20,7 +20,6 @@ import {
             { type: "featured_products", title: "Featured Products" },
             { type: "products", title: "All Products" },
             { type: "about", title: "About Our Shop" },
-            { type: "features", title: "Why Shop With Us", items: [{ icon: "truck", title: "Fast Delivery", desc: "Nationwide shipping" }, { icon: "shield", title: "Secure Payment", desc: "Protected transactions" }, { icon: "refresh", title: "Easy Returns", desc: "7-day return policy" }] },
             { type: "contact", title: "Contact Us" }
           ]
         },
@@ -42,10 +41,8 @@ import {
           desc: "Large catalog with featured banner and categories",
           sections: [
             { type: "hero", title: "Everything You Need", subtitle: "Thousands of products at your fingertips", cta: "Start Shopping" },
-            { type: "features", title: "Shop With Confidence", items: [{ title: "Quality Guaranteed", desc: "Verified sellers only" }, { title: "Best Prices", desc: "Competitive pricing" }, { title: "24/7 Support", desc: "Always here to help" }] },
             { type: "featured_products", title: "Trending Now" },
             { type: "products", title: "Browse All" },
-            { type: "faq", title: "Shopping FAQ", items: [{ question: "How long does delivery take?", answer: "2-5 business days nationwide" }, { question: "What payment methods are accepted?", answer: "Cash on delivery, bank transfer, and mobile money" }] },
             { type: "contact", title: "Customer Support" }
           ]
         },
@@ -54,10 +51,9 @@ import {
           name: "Flash Sale Store",
           desc: "Bold, urgent layout for promotions and deals",
           sections: [
-            { type: "hero", title: "Limited Time Deals", subtitle: "Up to 70% off — today only!", cta: "Grab Deals" },
+            { type: "hero", title: "Limited Time Deals", subtitle: "Our latest offers", cta: "Grab Deals" },
             { type: "featured_products", title: "🔥 Hot Deals" },
             { type: "products", title: "All Sale Items" },
-            { type: "features", title: "Why Shop With Us", items: [{ title: "Lightning Fast", desc: "Same-day dispatch" }, { title: "Best Price", desc: "Price match guarantee" }, { title: "Secure", desc: "Safe checkout" }] },
             { type: "contact", title: "Need Help?" }
           ]
         }
@@ -88,7 +84,7 @@ import {
           name: "Coach & Mentor",
           desc: "Personal coaching page with booking focus",
           sections: [
-            { type: "hero", title: "Transform Your Life", subtitle: "1-on-1 coaching with proven results", cta: "Book a Session" },
+            { type: "hero", title: "Transform Your Life", subtitle: "1-on-1 coaching sessions", cta: "Book a Session" },
             { type: "instructor", title: "Your Coach" },
             { type: "services", title: "Coaching Programs", items: [{ name: "1-on-1 Session", description: "60-minute private coaching call", price: "From 2,000 ETB" }, { name: "Group Workshop", description: "Join a cohort of motivated learners", price: "From 1,000 ETB" }, { name: "Mentorship Package", description: "12-week transformation program", price: "From 15,000 ETB" }] },
             { type: "testimonials", title: "Client Transformations" },
@@ -100,10 +96,9 @@ import {
           name: "Mini Course Landing",
           desc: "Single-product landing page optimized for conversion",
           sections: [
-            { type: "hero", title: "Master a New Skill in 7 Days", subtitle: "Step-by-step video course", cta: "Enroll Now" },
+            { type: "hero", title: "Master a New Skill", subtitle: "Step-by-step video course", cta: "Enroll Now" },
             { type: "features", title: "What You'll Learn", items: [{ title: "Module 1", desc: "Foundations" }, { title: "Module 2", desc: "Core Skills" }, { title: "Module 3", desc: "Advanced Techniques" }, { title: "Module 4", desc: "Real-World Projects" }] },
             { type: "testimonials", title: "What Students Say" },
-            { type: "faq", title: "Before You Enroll", items: [{ question: "Do I need experience?", answer: "No, this course starts from the basics." }, { question: "How long do I have access?", answer: "Lifetime access including future updates." }] },
             { type: "contact", title: "Questions?" }
           ]
         }
@@ -179,8 +174,7 @@ import {
           name: "Food Delivery Hub",
           desc: "Delivery-focused layout with promo banner",
           sections: [
-            { type: "hero", title: "Hot Meals, Delivered Fast", subtitle: "Order online in 2 minutes", cta: "Order Delivery" },
-            { type: "features", title: "Why Order From Us", items: [{ title: "30-Min Delivery", desc: "Hot food at your door" }, { title: "Free Delivery", desc: "On orders over 500 ETB" }, { title: "Pay on Delivery", desc: "Cash or mobile money" }] },
+            { type: "hero", title: "Hot Meals, Delivered Fast", subtitle: "Order online", cta: "Order Delivery" },
             { type: "menu", title: "Popular Dishes" },
             { type: "gallery", title: "From Our Kitchen" },
             { type: "hours", title: "Delivery Hours" },
@@ -283,9 +277,8 @@ import {
           desc: "Promote a conference or summit with speakers",
           sections: [
             { type: "hero", title: "Join the Summit", subtitle: "3 days of learning & networking", cta: "Register Now" },
-            { type: "features", title: "What to Expect", items: [{ title: "30+ Speakers", desc: "Industry leaders" }, { title: "Workshops", desc: "Hands-on sessions" }, { title: "Networking", desc: "Connect with peers" }] },
+            { type: "features", title: "What to Expect", items: [{ title: "Speakers", desc: "Talks from people in the field" }, { title: "Workshops", desc: "Hands-on sessions" }, { title: "Networking", desc: "Connect with peers" }] },
             { type: "team", title: "Featured Speakers" },
-            { type: "faq", title: "Event FAQ", items: [{ question: "Where is it held?", answer: "At the main conference center in the city" }, { question: "Is lunch included?", answer: "Yes, all tickets include lunch and refreshments" }] },
             { type: "contact", title: "Get Your Ticket" }
           ]
         }
@@ -318,7 +311,6 @@ import {
             { type: "hero", title: "Your Trusted Property Advisor", subtitle: "Helping you find the perfect home", cta: "Contact Me" },
             { type: "instructor", title: "About the Agent" },
             { type: "products", title: "My Listings" },
-            { type: "features", title: "Why Work With Me", items: [{ title: "10+ Years", desc: "Market expertise" }, { title: "500+ Deals", desc: "Successful closings" }, { title: "Full Service", desc: "From search to keys" }] },
             { type: "testimonials", title: "Client Stories" },
             { type: "contact", title: "Schedule a Viewing" }
           ]
@@ -331,7 +323,6 @@ import {
             { type: "hero", title: "Building the Future", subtitle: "Premium developments across the city", cta: "Explore Projects" },
             { type: "gallery", title: "Our Projects" },
             { type: "products", title: "Available Units" },
-            { type: "features", title: "Why Choose Us", items: [{ title: "Quality Build", desc: "Premium materials" }, { title: "Prime Locations", desc: "Best neighborhoods" }, { title: "Flexible Payment", desc: "Mortgage options" }] },
             { type: "contact", title: "Book a Site Visit" }
           ]
         }
@@ -408,9 +399,8 @@ import {
           desc: "Conversion-focused single-page layout",
           sections: [
             { type: "hero", title: "Your Big Idea Starts Here", subtitle: "Let's make it happen together", cta: "Get Started" },
-            { type: "features", title: "What Sets Us Apart", items: [{ title: "Innovation", desc: "Fresh approaches" }, { title: "Quality", desc: "No compromises" }, { title: "Support", desc: "Always available" }] },
+            { type: "features", title: "What Sets Us Apart", items: [{ title: "Innovation", desc: "Fresh approaches" }, { title: "Quality", desc: "No compromises" }, { title: "Support", desc: "Here to help" }] },
             { type: "testimonials", title: "What People Say" },
-            { type: "faq", title: "Questions?", items: [{ question: "How do I get started?", answer: "Just reach out and we'll guide you through the process." }, { question: "What are your hours?", answer: "We're available Monday to Saturday, 9 AM to 6 PM." }] },
             { type: "contact", title: "Let's Connect" }
           ]
         },

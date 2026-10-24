@@ -562,3 +562,22 @@ items in the open list until confirmed.
   - `migrate77` backfills `business_id` for existing products with no business and no showroom whose seller owns exactly one business. On production this links existing listings, and listings of unpaid businesses disappear from the marketplace.
   - Sellers with several businesses keep unlinked older products until they edit them.
 - **Related documentation:** `docs/backend/API.md` (POST /api/products, checkout-info), `backend/lib/productBusiness.ts`, `backend/db/migrate77.js`, `backend/routes/products.ts`, `backend/routes/directOrders.ts`, `frontend-next/views/ProductCreate.tsx`, `frontend-next/components/checkout/PurchaseModal.tsx`, `backend/test/db/productBusiness.db.test.js`, `frontend-next/e2e/buy-normal-product.spec.ts`
+
+### 2026-10-24 — The platform never makes factual claims on a seller's behalf
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (approved the launch-audit fixes, 24 Oct 2026)
+- **Context:** The launch audit (LEGAL-01, LEGAL-04) found the platform stating things as fact that nobody had entered or measured:
+  - business templates promised "Nationwide shipping", "7-day return policy", "Pay on Delivery", "10+ Years", "500+ Deals", opening hours and "Up to 70% off — today only!" on new businesses' public pages
+  - the product page always said "Delivery available"
+  - the sidebar showed hard-coded "trending" post counts and a "10,000+ users" claim
+
+  These are misleading commercial claims under the EU UCPD, the FTC Act §5 and Ethiopia Proclamation 813/2013.
+- **Decision:**
+  1. Templates may hold layout and neutral headings, but no facts about delivery, payment, returns, guarantees, experience, counts, hours or discounts. The owner adds those. `test/businessTemplateClaims.test.ts` enforces this.
+  2. Product and business pages only show delivery, returns or payment promises the seller set.
+  3. Any number shown as a fact (trending counts, user totals) must come from real data. With no data, the block is hidden.
+- **Consequences:**
+  - The sidebar trending card uses `GET /api/hashtags/trending` (real users' posts only) and stays hidden until real posts use hashtags.
+  - None of the 8 publicly listed businesses carried the old template claims (read-only check), so no data cleanup was needed.
+- **Related documentation:** `frontend-next/lib/businessTemplates.ts`, `frontend-next/components/layout/AppLayout.tsx`, `frontend-next/views/ProductDetail.tsx`, `frontend-next/test/businessTemplateClaims.test.ts`
