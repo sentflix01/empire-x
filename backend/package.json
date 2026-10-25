@@ -27,6 +27,7 @@
     "migrate:demo": "node db/migrate-demo.js",
     "seed": "node db/seed.js",
     "seed:e2e": "node db/seed-e2e.js",
+    "seed:e2e:messaging": "node db/seed-e2e-messaging.js",
     "seed:demo": "node db/seed-demo.js",
     "seed:showrooms": "node db/seed-showrooms.js",
     "seed:patch-media": "node db/seed-patch-media.js",
