@@ -20,6 +20,7 @@ import pool from '../db/pool';
 import logger from '../lib/logger';
 import { requireAuth } from '../middleware/auth';
 import { invalidateCache } from '../middleware/cache';
+import { personProfileJoin } from '../lib/personProfile';
 
 const router = Router();
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -126,7 +127,7 @@ router.get('/people', requireAuth, async (req: Request, res: Response) => {
     // Table and column names come from the fixed map above, never from the request.
     const { rows } = await pool.query(
       `SELECT t.${s[2]} AS user_id, up.display_name, up.avatar_url FROM ${s[0]} t
-         LEFT JOIN user_profiles up ON up.user_id = t.${s[2]}
+         ${personProfileJoin(`t.${s[2]}`, 'up')}
         WHERE t.${s[1]} = $1 ORDER BY t.created_at DESC LIMIT 500`,
       [req.user!.id],
     );

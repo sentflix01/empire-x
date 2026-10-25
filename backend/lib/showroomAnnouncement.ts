@@ -6,6 +6,7 @@
  */
 import pool from '../db/pool';
 import logger from './logger';
+import { personProfileJoin } from './personProfile';
 
 export interface PublishedShowroom {
   id: string;
@@ -27,7 +28,7 @@ export async function announceShowroomPublished(showroom: PublishedShowroom): Pr
       // (they were left empty, so the feed showed "Unknown").
       `INSERT INTO posts (author_id, author_name, author_avatar, content, image_url, post_type, link_url, showroom_id)
        SELECT $1, up.display_name, up.avatar_url, $2, $3, 'text', $4, $5
-         FROM (SELECT 1) one LEFT JOIN user_profiles up ON up.user_id = $1
+         FROM (SELECT 1) one ${personProfileJoin('$1', 'up')}
        ON CONFLICT (showroom_id) WHERE showroom_id IS NOT NULL DO NOTHING
        RETURNING id`,
       [showroom.owner_id, `${showroom.title} is now live on Nodbusiness.${blurb}`, showroom.cover_image ?? null, link, showroom.id],

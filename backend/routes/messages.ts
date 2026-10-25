@@ -16,7 +16,7 @@ import {
   addMember, addRefusal, cleanContent, contextCard, getBusiness, type BusinessRow, CONVERSATION_TYPES, DELETE_FOR_EVERYONE_WINDOW_MS, displayNames, EDIT_WINDOW_MS,
   existingUserIds, getConversation, insertMessageNotifications, isSafeAttachmentUrl, MAX_GROUP_MEMBERS, memberRole,
   MESSAGE_TYPES, SERVER_MESSAGE_TYPES, messagePreview, MUTE_DURATIONS, participantIds, postRefusal, refreshLastMessage, removeMember,
-  unreadCountSql, visibleToSql, type ConversationRow, type ConversationType,
+  personProfileJoin, unreadCountSql, visibleToSql, type ConversationRow, type ConversationType,
 } from '../lib/messaging';
 import {
   emitNewMessage, emitMessageEdited, emitMessageDeleted, emitNotification, emitPresenceUpdated, emitToUser,
@@ -177,7 +177,7 @@ async function listConversations(me: string, box: string, onlyId?: string, busin
             CASE WHEN COALESCE(mine.read_receipts, TRUE) AND COALESCE(other.read_receipts, TRUE) THEN other.last_read_at END AS other_last_read_at
        FROM conversations c
        JOIN conversation_participants cp ON cp.conversation_id = c.id AND cp.user_id = $1
-       LEFT JOIN user_profiles mine ON mine.user_id = $1
+       ${personProfileJoin('$1', 'mine')}
        LEFT JOIN businesses b ON b.id = c.business_id
        LEFT JOIN LATERAL (
          SELECT m.id, m.sender_id, m.type, m.content, m.created_at FROM messages m
@@ -186,7 +186,7 @@ async function listConversations(me: string, box: string, onlyId?: string, busin
        ) last ON TRUE
        LEFT JOIN LATERAL (
          SELECT op.user_id, op.last_read_at, op.last_delivered_at, up.display_name, up.avatar_url, up.read_receipts
-           FROM conversation_participants op LEFT JOIN user_profiles up ON up.user_id = op.user_id
+           FROM conversation_participants op ${personProfileJoin('op.user_id', 'up')}
           WHERE c.type = 'dm' AND op.conversation_id = c.id AND op.user_id <> $1 LIMIT 1
        ) other ON TRUE
       WHERE (cp.hidden_before IS NULL OR last.id IS NOT NULL)
@@ -247,8 +247,8 @@ router.get('/conversations/:id', requireAuth, async (req: Request, res: Response
       `SELECT cp.user_id, cp.role, cp.last_delivered_at, cp.joined_at, up.display_name, up.avatar_url,
               CASE WHEN cp.user_id = $2 OR (COALESCE(up.read_receipts, TRUE) AND COALESCE(mine.read_receipts, TRUE)) THEN cp.last_read_at END AS last_read_at
          FROM conversation_participants cp
-         LEFT JOIN user_profiles up ON up.user_id = cp.user_id
-         LEFT JOIN user_profiles mine ON mine.user_id = $2
+         ${personProfileJoin('cp.user_id', 'up')}
+         ${personProfileJoin('$2', 'mine')}
         WHERE cp.conversation_id = $1
         ORDER BY cp.joined_at`,
       [found.conv.id, me],
@@ -280,9 +280,10 @@ router.post('/conversations/:id/read', requireAuth, async (req: Request, res: Re
     // "Seen" reaches only people who share read receipts with me (both switched on).
     const { rows: receipts } = await pool.query(
       `SELECT cp.user_id FROM conversation_participants cp
-         LEFT JOIN user_profiles up ON up.user_id = cp.user_id
+         ${personProfileJoin('cp.user_id', 'up')}
+         ${personProfileJoin('$2', 'mine')}
         WHERE cp.conversation_id = $1 AND cp.user_id <> $2 AND COALESCE(up.read_receipts, TRUE)
-          AND COALESCE((SELECT read_receipts FROM user_profiles WHERE user_id = $2), TRUE)`,
+          AND COALESCE(mine.read_receipts, TRUE)`,
       [found.conv.id, me],
     );
     for (const r of receipts) emitToUser(String(r.user_id), 'conversation_read', { conversation_id: found.conv.id, user_id: me, last_read_at: row.last_read_at });
@@ -1055,7 +1056,7 @@ router.get('/messages/:id/reactions', requireAuth, async (req: Request, res: Res
     const { rows } = await pool.query(
       `SELECT mr.emoji, mr.user_id::text, up.display_name, up.avatar_url
          FROM message_reactions mr
-         LEFT JOIN user_profiles up ON up.user_id = mr.user_id
+         ${personProfileJoin('mr.user_id', 'up')}
         WHERE mr.message_id = $1
         ORDER BY mr.emoji, mr.created_at`,
       [msg.id],
@@ -1283,7 +1284,7 @@ router.get('/conversations/:convId/pins', requireAuth, async (req: Request, res:
               up.display_name AS pinned_by_name
          FROM pinned_messages pm
          JOIN messages m ON m.id = pm.message_id
-         LEFT JOIN user_profiles up ON up.user_id = pm.pinned_by
+         ${personProfileJoin('pm.pinned_by', 'up')}
         WHERE pm.conversation_id = $1
         ORDER BY pm.pinned_at DESC
         LIMIT 50`,

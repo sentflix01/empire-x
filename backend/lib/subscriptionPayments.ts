@@ -23,6 +23,7 @@ import { apiBaseUrl, initializeCheckout, verifyTransaction } from './chapaClient
 import { canPublishBusinessSite } from './businessSubscriptionPolicy';
 import { announceShowroomPublished, type PublishedShowroom } from './showroomAnnouncement';
 import { invalidateSubCache } from '../middleware/tierLimit';
+import { personProfileJoin } from './personProfile';
 
 export class CheckoutError extends Error {
   constructor(public status: number, public code: string, message: string, public details: Record<string, unknown> = {}) {
@@ -67,7 +68,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<{ checko
   const { rows: [owner] } = await pool.query<{ email: string | null; full_name: string | null; phone: string | null; business_name: string }>(
     `SELECT u.email, u.full_name, up.phone, b.business_name
        FROM businesses b JOIN users u ON u.id = b.owner_id
-       LEFT JOIN user_profiles up ON up.user_id = u.id
+       ${personProfileJoin('u.id', 'up')}
       WHERE b.id = $1`,
     [input.businessId],
   );

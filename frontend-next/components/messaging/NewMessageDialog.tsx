@@ -9,6 +9,7 @@ import { X, Search } from 'lucide-react';
 import client from '@/api/client';
 import { useStartChat } from '@/lib/messaging';
 import UserIdentity from '@/components/ui/UserIdentity';
+import { uniquePeople } from '@/lib/chatDisplay';
 
 interface Person { user_id: string; display_name?: string | null; avatar_url?: string | string[] | null; headline?: string | null; is_verified?: boolean }
 
@@ -39,14 +40,14 @@ export default function NewMessageDialog({ suggestions, me, onClose }: {
     setSearching(true);
     const t = setTimeout(() => {
       client.get('/api/search', { params: { q: query, type: 'users', limit: 20 } })
-        .then(({ data }) => { if (!cancelled) setResults(Array.isArray(data?.users) ? data.users : []); })
+        .then(({ data }) => { if (!cancelled) setResults(Array.isArray(data?.users) ? uniquePeople(data.users as Person[]) : []); })
         .catch(() => { if (!cancelled) setResults([]); })
         .finally(() => { if (!cancelled) setSearching(false); });
     }, 250);
     return () => { cancelled = true; clearTimeout(t); };
   }, [q]);
 
-  const people = (results ?? suggestions).filter((p) => p.user_id && String(p.user_id) !== String(me));
+  const people = uniquePeople(results ?? suggestions).filter((p) => String(p.user_id) !== String(me));
 
   return (
     <div className="fixed inset-0 z-[65] flex items-stretch justify-center bg-black/50 sm:items-center sm:p-4" onClick={onClose}>

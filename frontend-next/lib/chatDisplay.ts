@@ -70,3 +70,27 @@ export function inboxTime(ts?: string | null): string {
   if (isAfter(d, subDays(new Date(), 7))) return format(d, 'EEE');
   return format(d, 'dd/MM/yy');
 }
+
+/**
+ * One entry per person. Profile lists hold a row per profile (personal and
+ * each business), so the same person appeared several times among contacts.
+ * Keeps the personal profile when there is one, else the first.
+ */
+export function uniquePeople<T extends { user_id?: string | null; profile_type?: string | null }>(rows: T[]): T[] {
+  const best = new Map<string, T>();
+  for (const r of rows) {
+    if (!r?.user_id) continue;
+    const key = String(r.user_id);
+    const current = best.get(key);
+    if (!current || (current.profile_type !== 'personal' && r.profile_type === 'personal')) best.set(key, r);
+  }
+  // Keep the original order of first appearance.
+  const order = [...new Set(rows.filter((r) => r?.user_id).map((r) => String(r.user_id)))];
+  return order.map((k) => best.get(k)!);
+}
+
+/** One row per chat, whatever the server sends. */
+export function uniqueChats<T extends { id: string }>(rows: T[]): T[] {
+  const seen = new Set<string>();
+  return rows.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)));
+}

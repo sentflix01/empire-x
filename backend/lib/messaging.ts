@@ -14,6 +14,9 @@ import type { PoolClient } from 'pg';
 import pool from '../db/pool';
 import logger from './logger';
 import { isBlockedEitherWay, messageRefusal } from './socialGraph';
+import { PERSON_PROFILE_ORDER, personProfileJoin } from './personProfile';
+
+export { personProfileJoin, PERSON_PROFILE_ORDER };
 
 export const MAX_MESSAGE_LENGTH = 4000;
 export const EDIT_WINDOW_MS = 15 * 60 * 1000;
@@ -91,7 +94,11 @@ export async function existingUserIds(ids: string[], db: Queryable = pool): Prom
 
 export async function displayNames(ids: string[], db: Queryable = pool): Promise<Map<string, string>> {
   if (!ids.length) return new Map();
-  const { rows } = await db.query('SELECT user_id, display_name FROM user_profiles WHERE user_id = ANY($1::uuid[])', [ids]);
+  const { rows } = await db.query(
+    `SELECT DISTINCT ON (pp.user_id) pp.user_id, pp.display_name FROM user_profiles pp
+      WHERE pp.user_id = ANY($1::uuid[]) ORDER BY pp.user_id, ${PERSON_PROFILE_ORDER}`,
+    [ids],
+  );
   return new Map(rows.map((r: { user_id: string; display_name: string | null }) => [String(r.user_id), r.display_name || 'User']));
 }
 
@@ -138,7 +145,7 @@ async function syncLegacyColumns(db: Queryable, convId: string): Promise<void> {
     `UPDATE conversations c SET
        participant_ids = COALESCE((SELECT json_agg(cp.user_id::text ORDER BY cp.joined_at)::text FROM conversation_participants cp WHERE cp.conversation_id = c.id), '[]'),
        participant_names = COALESCE((SELECT json_agg(COALESCE(up.display_name, 'User') ORDER BY cp.joined_at)::text
-                                       FROM conversation_participants cp LEFT JOIN user_profiles up ON up.user_id = cp.user_id
+                                       FROM conversation_participants cp ${personProfileJoin('cp.user_id', 'up')}
                                       WHERE cp.conversation_id = c.id), '[]'),
        updated_at = NOW()
      WHERE c.id = $1`,

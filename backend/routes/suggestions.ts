@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { requireAuth } from '../middleware/auth';
 import { cacheMiddleware } from '../middleware/cache';
+import { personProfileJoin } from '../lib/personProfile';
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.get(
     try {
       const { rows: scored } = await pool.query(
         `WITH requester AS (
-           SELECT u.id, up.location FROM users u JOIN user_profiles up ON up.user_id=u.id WHERE u.id=$1
+           SELECT u.id, up.location FROM users u ${personProfileJoin('u.id', 'up', true)} WHERE u.id=$1
          ),
          mutual AS (
            SELECT f2.follower_id AS candidate_id, COUNT(*) AS mutual_count
@@ -32,7 +33,7 @@ router.get(
                + CASE WHEN up.location=(SELECT location FROM requester) AND up.location IS NOT NULL AND up.location<>'' THEN 10 ELSE 0 END
                + CASE WHEN u.updated_at>=NOW()-INTERVAL '30 days' THEN 5 ELSE 0 END AS suggestion_score
            FROM users u
-           LEFT JOIN user_profiles up ON up.user_id=u.id
+           ${personProfileJoin('u.id', 'up')}
            LEFT JOIN mutual m ON m.candidate_id=u.id
            WHERE u.id<>$1
              AND u.id NOT IN (SELECT followed_id FROM follows WHERE follower_id=$1)
@@ -55,7 +56,7 @@ router.get(
         const fallbackSql = `
           SELECT u.id AS user_id, COALESCE(up.display_name,u.full_name,u.email) AS display_name,
                  up.avatar_url, up.location, COALESCE(up.follower_count,0) AS follower_count, u.is_seed, 0 AS mutual_count
-          FROM users u LEFT JOIN user_profiles up ON up.user_id=u.id
+          FROM users u ${personProfileJoin('u.id', 'up')}
           WHERE u.is_seed=FALSE AND u.is_demo=FALSE AND u.id<>$1
             AND u.id NOT IN (SELECT followed_id FROM follows WHERE follower_id=$1)
             AND u.id NOT IN (SELECT target_id FROM dismissed_suggestions WHERE requester_id=$1)

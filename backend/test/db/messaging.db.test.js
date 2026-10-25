@@ -36,6 +36,7 @@ beforeAll(async () => {
   app = express();
   app.use(express.json());
   app.use('/api/messages', require('../../routes/messages'));
+  app.use('/api/search', require('../../routes/search'));
   for (const name of ['buyer', 'seller', 'friend', 'stranger', 'quiet', 'fan']) users[name] = await createUser();
 });
 
@@ -297,6 +298,42 @@ describe('reactions and pins (M4)', () => {
     expect((await api('delete', `/messages/${second.id}/pin`, users.fan)).status).toBe(200);
     pins = (await api('get', `/conversations/${conv.id}/pins`, users.seller)).body;
     expect(pins.map((p) => p.message_id)).toEqual([first.id]);
+  });
+});
+
+describe('people with several profiles (personal + businesses)', () => {
+  it('shows each chat, member and person once, by their personal name', async () => {
+    const multi = await createUser();
+    await pool.query("UPDATE user_profiles SET display_name='Alazar Personal' WHERE user_id=$1", [multi.id]);
+    for (const n of ['Alazar Shop', 'Alazar Cafe']) {
+      await pool.query("INSERT INTO user_profiles (user_id, display_name, profile_type) VALUES ($1, $2, 'business')", [multi.id, n]);
+    }
+    try {
+      const conv = await dm(multi, users.friend);
+      expect((await send(multi, conv.id, 'one row please')).status).toBe(201);
+      const group = (await api('post', '/conversations', multi).send({ name: 'Multi', participant_ids: [users.friend.id] })).body;
+
+      // My own list: each chat once (it was repeated once per profile I have).
+      const mine = (await api('get', '/conversations?box=chats', multi)).body;
+      expect(mine.filter((c) => c.id === conv.id)).toHaveLength(1);
+      expect(mine.filter((c) => c.id === group.id)).toHaveLength(1);
+      // The other side sees me once, by my personal name.
+      // A first message from someone they don't follow is a request, so read all of their chats.
+      const theirs = (await api('get', '/conversations', users.friend)).body.filter((c) => c.id === conv.id);
+      expect(theirs).toHaveLength(1);
+      expect(theirs[0].other_name).toBe('Alazar Personal');
+
+      // Members once each; the group's legacy name list too.
+      const info = (await api('get', `/conversations/${group.id}`, users.friend)).body;
+      expect(info.members.filter((m) => m.user_id === multi.id)).toHaveLength(1);
+      expect(JSON.parse(info.participant_names)).toEqual(['Alazar Personal', 'DB Test']);
+
+      // People search: one result per person.
+      const found = (await request(app).get('/api/search').query({ q: 'Alazar', type: 'users' }).set(auth(users.friend))).body.users;
+      expect(found.filter((u) => u.user_id === multi.id)).toHaveLength(1);
+    } finally {
+      await deleteUser(multi.id);
+    }
   });
 });
 

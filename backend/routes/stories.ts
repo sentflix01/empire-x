@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { requireSignInForPersonal } from '../lib/siteVisibility';
+import { personProfileJoin } from '../lib/personProfile';
 
 const router = Router();
 
@@ -19,7 +20,7 @@ router.get('/', optionalAuth, requireSignInForPersonal, async (req: Request, res
     const { rows } = await pool.query(
       `SELECT s.*, up.display_name, up.avatar_url, ${engagementColumns},
               EXISTS(SELECT 1 FROM story_reactions mine WHERE mine.story_id=s.id AND mine.user_id=$1) AS reacted
-       FROM stories s LEFT JOIN user_profiles up ON up.user_id=s.user_id JOIN users u ON u.id=s.user_id
+       FROM stories s ${personProfileJoin('s.user_id', 'up')} JOIN users u ON u.id=s.user_id
        WHERE s.expires_at > NOW() ${realFilter} ORDER BY s.created_at DESC LIMIT 200`,
       [req.user?.id ?? null],
     );
