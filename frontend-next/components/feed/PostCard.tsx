@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { entities } from '@/api/entities';
 import client from '@/api/client';
@@ -67,6 +67,7 @@ import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import { editComment, postLink, react, reactToComment, REACTIONS, setMuted, unhidePost, unreact, type CommentPolicy, type Reaction } from '@/lib/socialApi';
 import { loadOwnerFeedBusinesses } from '@/lib/feedBusiness';
+import EmojiInsertButton from '@/components/ui/EmojiInsertButton';
 
 interface Profile extends UserProfile {
 }
@@ -454,6 +455,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
   const [loadingComments, setLoadingComments] = useState(false);
   const [authorProfile, setAuthorProfile] = useState<Profile | null>(null);
   const [authorBusinesses, setAuthorBusinesses] = useState<Business[]>([]);
+  const commentInputRef = useRef<HTMLInputElement | null>(null);
   // The business view shows the same full card as the business feed (site sections and spotlight).
   const [authorCard, setAuthorCard] = useState<Business | null | undefined>(undefined);
   const [viewMode, setViewMode] = useState('personal');
@@ -979,6 +981,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
             </div>
             <input
               id={`comment-input-${post.id}`}
+              ref={commentInputRef}
               value={commentText}
               onChange={e => setCommentText(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleAddComment()}
@@ -987,6 +990,8 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
               maxLength={500}
               className="flex-1 min-w-0 text-sm bg-secondary/50 rounded-full px-4 py-2 outline-none focus:ring-1 focus:ring-amber-500/30"
             />
+            <EmojiInsertButton value={commentText} inputRef={commentInputRef} placement="above"
+              onChange={(next) => setCommentText(next.slice(0, 500))} />
             {commentText.length > 0 && (
               <span
                 className={`text-[11px] shrink-0 tabular-nums ${commentText.length > 200 ? 'text-amber-500' : 'text-muted-foreground'}`}

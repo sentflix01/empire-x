@@ -218,6 +218,11 @@ Delete a post. Only the author or an admin. This is a hard delete. Comments, has
 Like or unlike a post. Requires auth.
 **Response:** `{ "liked": true }` or `{ "liked": false }`
 
+### Reactions on posts and comments
+- **`PUT /api/posts/:id/reaction`** and **`PUT /api/posts/:postId/comments/:commentId/reaction`** take `{ "reaction" }`: any single emoji, including skin tones, flags and family emojis (up to 32 characters). One reaction per person; a new one replaces the old.
+- Words, two emojis or an empty value get `422 { "error": "invalid_reaction", "message": "React with a single emoji." }`.
+- **`DELETE`** on the same paths removes yours. **`GET /api/posts/:id/reactions`** lists counts and the people who reacted, except people who hide their reactions.
+
 ### GET /api/posts/:id/comments
 Get comments for a post. Public.
 
@@ -602,6 +607,10 @@ The older `/api/messages/messages/:id…` paths still work.
 - **Edit:** your own text messages, within 15 minutes. The message is marked `edited`.
 - **Delete for everyone:** your own messages, within 24 hours (site admins: any). The chat list summary is refreshed.
 - **Forward:** `{ "target_conversation_id" }`. You must be in both chats and allowed to post in the target. Otherwise you get 404 for the source and 403 for the target.
+
+### Reactions and pins
+- **`POST /api/messages/messages/:id/reactions`** `{ "emoji" }`: any single emoji (as for posts); anything else gets `422`. A person can add several different emojis to one message. **`DELETE`** with the same body removes yours. Both return `{ reactions }`, where each emoji maps to `{ count, users }`, and send `reaction_added` / `reaction_removed` to the chat.
+- **`POST` / `DELETE /api/messages/messages/:id/pin`**: any member pins or unpins a message, sending `message_pinned` / `message_unpinned`. **`GET /conversations/:id/pins`** lists up to 50 pins, newest first, with each message's `content` and `type`. The chat shows the newest pin in a bar at the top.
 
 ### Groups
 - **`POST /conversations/:id/members`** `{ "user_id" }`: admins add people they could message.

@@ -9,10 +9,12 @@
  *   - Who can comment on a post: everyone / followers / off.
  */
 import pool from '../db/pool';
+import { isEmoji } from './emoji';
 
+/** The quick row shown first; any single emoji is accepted (lib/emoji.ts). */
 export const REACTIONS = ['❤️', '👍', '😂', '😮', '😢', '👏', '🔥'] as const;
-export type Reaction = typeof REACTIONS[number];
-export const isReaction = (v: unknown): v is Reaction => typeof v === 'string' && (REACTIONS as readonly string[]).includes(v);
+export type Reaction = string;
+export const isReaction = (v: unknown): v is Reaction => isEmoji(v);
 
 /** SQL: no block between the viewer ($viewer) and the user in `userCol`, either way. */
 export function notBlockedSql(viewer: string, userCol: string): string {

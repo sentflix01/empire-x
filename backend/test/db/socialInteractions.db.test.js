@@ -49,7 +49,15 @@ describe('reactions', () => {
     expect(res.body.people.map((x) => x.user_id).sort()).toEqual([bob.id, carol.id].sort());
     res = await request(app).delete(`/api/posts/${p.id}/reaction`).set(auth(bob));
     expect(res.body).toMatchObject({ my_reaction: null, like_count: 1 });
-    expect((await request(app).put(`/api/posts/${p.id}/reaction`).set(auth(bob)).send({ reaction: '💩' })).status).toBe(422);
+    // Any single emoji works (M4); words, two emojis or empty don't.
+    res = await request(app).put(`/api/posts/${p.id}/reaction`).set(auth(bob)).send({ reaction: '🦄' });
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ my_reaction: '🦄' });
+    for (const bad of ['like', '😂😂', '', '1', 'x'.repeat(40)]) {
+      const r = await request(app).put(`/api/posts/${p.id}/reaction`).set(auth(bob)).send({ reaction: bad });
+      expect(r.status).toBe(422);
+      expect(r.body.error).toBe('invalid_reaction');
+    }
   });
 
   it('the old like toggle still works and becomes ❤️', async () => {
@@ -151,6 +159,10 @@ describe('comments', () => {
     expect((await request(app).put(`/api/posts/${p.id}/comments/${c.id}/reaction`).set(auth(carol)).send({ reaction: '👏' })).body).toEqual({ my_reaction: '👏', reaction_count: 1 });
     const list = (await request(app).get(`/api/posts/${p.id}/comments`).set(auth(carol))).body;
     expect(list.find((x) => x.id === c.id)).toMatchObject({ my_reaction: '👏', reaction_count: 1, top_reactions: ['👏'] });
+    // Skin tones and flags are single emojis too.
+    expect((await request(app).put(`/api/posts/${p.id}/comments/${c.id}/reaction`).set(auth(alice)).send({ reaction: '👍🏽' })).status).toBe(200);
+    expect((await request(app).put(`/api/posts/${p.id}/comments/${c.id}/reaction`).set(auth(bob)).send({ reaction: '🇪🇹' })).status).toBe(200);
+    expect((await request(app).put(`/api/posts/${p.id}/comments/${c.id}/reaction`).set(auth(bob)).send({ reaction: 'ok' })).status).toBe(422);
     expect((await request(app).delete(`/api/posts/${p.id}/comments/${c.id}`).set(auth(alice))).status).toBe(200);
   });
 });

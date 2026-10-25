@@ -629,3 +629,21 @@ items in the open list until confirmed.
   - Docs and migration: `docs/backend/API.md` (Messages), `backend/db/migrate81.js`
   - Code: `backend/routes/messages.ts`, `backend/lib/messaging.ts`, `frontend-next/lib/messaging.ts`, `frontend-next/components/messaging/ContextCard.tsx`, `frontend-next/components/messaging/QuickReplies.tsx`
   - Tests: `backend/test/db/messagingBusiness.db.test.js`, `backend/test/db/messageCards.db.test.js`
+
+### 2026-10-25 — Messages M4: every emoji, and pins on screen
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (messaging plan, Oct 2026: "full emoji everywhere"; picker choice: "Use emoji-mart")
+- **Context:** Post and comment reactions were limited to seven emojis by database CHECKs. Message reactions accepted any string up to 20 characters, and their chips showed "[object Object]". The chat's "+" only said "coming soon", the chat and comment boxes had no emoji button, and pinned messages had no bar to see them.
+- **Decision:**
+  1. **Any single emoji** is a valid reaction on posts, comments and messages. The server checks it (`backend/lib/emoji.ts`: one grapheme that is an emoji, flag or keycap, at most 32 characters); the database keeps only a length guard.
+  2. **Picker:** emoji-mart (MIT), using the device's own emoji. It is loaded only when someone opens it, so no page bundle grows. The quick row of seven stays first, with "+" for everything else.
+  3. **Typing emoji:** a smiley button in the chat box and the comment box inserts at the cursor.
+  4. **Pins:** a bar at the top of the chat shows the newest pin; each tap jumps to a pin and moves to the next older one.
+- **Consequences:**
+  - `migrate82` drops the old reaction CHECKs on `likes` and `comment_reactions` and adds length checks there and on `message_reactions`.
+  - Tapping your own reaction chip in a chat removes it.
+- **Related documentation:**
+  - Docs: `docs/backend/API.md` (Posts → Reactions, Messages → Reactions and pins)
+  - Code: `backend/lib/emoji.ts`, `backend/db/migrate82.js`, `frontend-next/components/ui/EmojiPicker.tsx`, `frontend-next/components/ui/EmojiInsertButton.tsx`, `frontend-next/components/feed/ReactionPicker.tsx`, `frontend-next/components/messaging/MessageReactions.tsx`, `frontend-next/components/messaging/PinnedBar.tsx`
+  - Tests: `backend/__tests__/emoji.test.ts`, `backend/test/db/socialInteractions.db.test.js`, `backend/test/db/messaging.db.test.js`, `frontend-next/test/messaging/emojiReactions.test.tsx`
