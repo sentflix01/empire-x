@@ -713,6 +713,23 @@ items in the open list until confirmed.
   - Code: `backend/routes/messages.ts`, `backend/socket.ts`, `frontend-next/components/messaging/CreateGroupDialog.tsx`, `frontend-next/components/messaging/PeoplePicker.tsx`, `frontend-next/views/ChatMembers.tsx`
   - Tests: `backend/test/db/messaging.db.test.js`, `backend/test/db/messagingSocket.db.test.js`, `frontend-next/test/messaging/groups.test.tsx`
 
+### 2026-10-25 — Messages M7: two-person end-to-end proof
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (messaging plan, Oct 2026: "M7: two-person tests on phone, tablet and desktop")
+- **Context:** Messaging had unit and database tests, but nothing proved two people could actually talk through the real screens on real devices.
+- **Decision:**
+  1. **One suite** (`frontend-next/e2e/messaging.spec.ts`) drives three people at once through the real UI. It runs on a phone, an iPhone (WebKit), a tablet (WebKit) and a computer.
+  2. **Fresh accounts:** each device run reseeds its own accounts (`backend/db/seed-e2e-messaging.js`). The seed refuses any non-local database and needs `ALLOW_E2E_SEED=1`.
+  3. **CI:** `.github/workflows/e2e-messaging.yml` runs on messaging changes and on demand, against a Postgres on the runner and a production build. It isn't a required check yet.
+- **Consequences:** the suite found three bugs, fixed in the same change:
+  - a message sent while a chat was still loading vanished
+  - "Message" tapped before the sign-in was restored sent a signed-in person to the login page
+  - a message written offline wasn't sent if the live connection survived the blip
+- **Related documentation:**
+  - Docs: `docs/Production/frontend-next/e2e.md`
+  - Code: `frontend-next/e2e/messaging.spec.ts`, `frontend-next/playwright.config.ts`, `backend/db/seed-e2e-messaging.js`, `frontend-next/views/ChatRoom.tsx`, `frontend-next/lib/messaging.ts`
+
 ### 2026-10-25 — One profile per person in every list
 
 - **Status:** Accepted

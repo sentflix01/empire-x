@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import client from '@/api/client';
@@ -33,10 +33,22 @@ export async function openBusinessChat(businessId: string, context?: ChatContext
  */
 export function useStartChat() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoadingAuth } = useAuth();
   const [busy, setBusy] = useState(false);
+  // A tap right after the page opens can come before the sign-in is restored:
+  // wait for it instead of sending a signed-in person to the login page.
+  const auth = useRef({ user, isLoadingAuth });
+  auth.current = { user, isLoadingAuth };
+  const waiting = useRef<Array<() => void>>([]);
+  useEffect(() => {
+    if (isLoadingAuth) return;
+    waiting.current.forEach((resolve) => resolve());
+    waiting.current = [];
+  }, [isLoadingAuth]);
   const start = useCallback(async (target: { businessId?: string | null; userId?: string | null; context?: ChatContext; customerId?: string }) => {
     if (busy) return;
+    if (auth.current.isLoadingAuth) await new Promise<void>((resolve) => { waiting.current.push(resolve); });
+    const user = auth.current.user;
     if (!user) { router.push(`/login?return=${encodeURIComponent(window.location.pathname + window.location.search)}`); return; }
     setBusy(true);
     try {
@@ -47,6 +59,6 @@ export function useStartChat() {
     } catch (err) {
       toast.error(apiErrorMessage(err, 'Could not open the chat. Please try again.'));
     } finally { setBusy(false); }
-  }, [busy, router, user]);
+  }, [busy, router]);
   return { start, busy };
 }

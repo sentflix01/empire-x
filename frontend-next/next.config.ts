@@ -102,7 +102,9 @@ const nextConfig: NextConfig = {
       `frame-ancestors 'none'`,
       `manifest-src 'self'`,
       `worker-src 'self' blob:`,
-      `upgrade-insecure-requests`,
+      // Upgrade to https only when the API is https. Safari/WebKit also upgrades
+      // http://localhost, which broke every API call on a local http backend.
+      apiHost.startsWith('https:') ? `upgrade-insecure-requests` : '',
     ].filter(Boolean).join('; ');
 
     return [

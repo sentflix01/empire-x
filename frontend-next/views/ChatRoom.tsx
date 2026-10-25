@@ -43,6 +43,8 @@ import {
 } from '@/lib/messageSendQueue';
 
 const PAGE = 50;
+/** Queued (offline) messages being sent right now, so two "back online" signals don't send one twice. */
+const flushing = new Set<string>();
 const MAX_PINS = 3;
 const MAX_PHOTOS = 10;
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
@@ -140,6 +142,8 @@ function ChatRoom() {
     if (!id) return;
     let cancelled = false;
     setLoading(true);
+    // Switching chats: drop the previous chat's messages straight away.
+    setMessages((prev) => prev.filter((m) => m.conversation_id === id));
     (async () => {
       try {
         const [{ data: conv }, { data: rows }] = await Promise.all([
@@ -157,10 +161,11 @@ function ChatRoom() {
           : list.find((m) => String(m.sender_id) !== String(me) && new Date(m.created_at).getTime() > lastRead);
         setFirstUnreadId(firstUnread?.id ?? null);
         const pending = await getPendingMessages(id).catch(() => []);
-        setMessages(mergeById(list, pending.map((p) => ({
+        // Keep anything sent while the chat was still loading (it would vanish otherwise).
+        setMessages((prev) => mergeById(mergeById(list, pending.map((p) => ({
           id: p.id, conversation_id: p.conversationId, sender_id: me, content: p.content, type: p.type,
           created_at: p.createdAt, reply_to_id: p.replyToId, _temp: true, _pending: true,
-        }))));
+        }))), prev.filter((m) => m.conversation_id === id)));
         markRead();
       } catch (err) {
         if (!cancelled) setNotFound(apiErrorMessage(err, 'This chat could not be opened.'));
@@ -254,7 +259,6 @@ function ChatRoom() {
     };
     const onPinned = (p: { message_id: string; conversation_id: string }) => { if (p.conversation_id === id) setPins((prev) => [p.message_id, ...prev.filter((x) => x !== p.message_id)]); };
     const onUnpinned = (p: { message_id: string; conversation_id: string }) => { if (p.conversation_id === id) setPins((prev) => prev.filter((x) => x !== p.message_id)); };
-    // Back online: send what was queued, and fetch anything missed while away.
     // Members, roles or the name changed: reload them. If you were removed, the chat closes.
     const onMembers = (p: { conversation_id?: string }) => {
       if (p?.conversation_id !== id) return;
@@ -262,14 +266,18 @@ function ChatRoom() {
         .then(({ data }) => { setConversation(data as Conversation); setMembers(Array.isArray(data?.members) ? data.members : []); })
         .catch(() => { toast.info('You’re no longer in this chat'); router.push('/messages'); });
     };
+    // Back online (the browser says so, or the live connection reconnects):
+    // send what was queued, once each, and fetch anything missed while away.
     const onConnect = () => {
       getAllPendingMessages().then((queued) => queued.forEach((q) => {
+        if (flushing.has(q.id)) return;
+        flushing.add(q.id);
         client.post(`/api/messages/conversations/${q.conversationId}/messages`, { content: q.content, type: q.type, ...(q.replyToId ? { reply_to_id: q.replyToId } : {}) })
           .then(({ data }) => {
             void removePendingMessage(q.id);
             if (q.conversationId === id) setMessages((prev) => mergeById(prev.filter((m) => m.id !== q.id), [data as ChatMessage]));
           })
-          .catch(() => undefined);
+          .catch(() => { flushing.delete(q.id); });
       })).catch(() => undefined);
       client.get(`/api/messages/conversations/${id}/messages`, { params: { limit: PAGE } })
         .then(({ data }) => { if (Array.isArray(data)) setMessages((prev) => mergeById(prev, data)); })
@@ -285,7 +293,9 @@ function ChatRoom() {
     for (const [name, fn] of events) socket.on(name, fn as (...a: unknown[]) => void);
     const onVisible = () => { if (document.visibilityState === 'visible') markRead(); };
     document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('online', onConnect);
     return () => {
+      window.removeEventListener('online', onConnect);
       leaveConversation(id);
       for (const [name, fn] of events) socket.off(name, fn as (...a: unknown[]) => void);
       document.removeEventListener('visibilitychange', onVisible);
