@@ -124,3 +124,23 @@ it('a ban closes the connection for real', async () => {
   socketModule.forceDisconnectUser(users.banned.id);
   await expect(closed).resolves.toBe('io server disconnect');
 });
+
+it('tells members and the removed person when the group changes (M6)', async () => {
+  const group = (await http_('post', '/conversations', users.a).send({ name: 'Live roles', participant_ids: [users.b.id, users.c.id] })).body;
+  const [b, c] = [await open(users.b), await open(users.c)];
+  b.emit('join_conversation', group.id);
+  c.emit('join_conversation', group.id);
+  await settle();
+  const bHearsRole = next(b, 'members_changed');
+  expect((await http_('put', `/conversations/${group.id}/members/${users.b.id}`, users.a).send({ role: 'admin' })).status).toBe(200);
+  expect(await bHearsRole).toEqual({ conversation_id: group.id });
+  const cHearsRemoval = next(c, 'members_changed');
+  const cListRefresh = next(c, 'conversation_updated');
+  expect((await http_('delete', `/conversations/${group.id}/members/${users.c.id}`, users.b)).status).toBe(200);
+  expect(await cHearsRemoval).toEqual({ conversation_id: group.id });
+  expect(await cListRefresh).toEqual({ conversation_id: group.id });
+  // c no longer hears the chat itself.
+  const cHearsMessage = next(c, 'new_message');
+  await http_('post', `/conversations/${group.id}/messages`, users.a).send({ content: 'after removal' });
+  expect(await cHearsMessage).toBeNull();
+});

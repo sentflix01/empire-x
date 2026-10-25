@@ -255,6 +255,13 @@ function ChatRoom() {
     const onPinned = (p: { message_id: string; conversation_id: string }) => { if (p.conversation_id === id) setPins((prev) => [p.message_id, ...prev.filter((x) => x !== p.message_id)]); };
     const onUnpinned = (p: { message_id: string; conversation_id: string }) => { if (p.conversation_id === id) setPins((prev) => prev.filter((x) => x !== p.message_id)); };
     // Back online: send what was queued, and fetch anything missed while away.
+    // Members, roles or the name changed: reload them. If you were removed, the chat closes.
+    const onMembers = (p: { conversation_id?: string }) => {
+      if (p?.conversation_id !== id) return;
+      client.get(`/api/messages/conversations/${id}`)
+        .then(({ data }) => { setConversation(data as Conversation); setMembers(Array.isArray(data?.members) ? data.members : []); })
+        .catch(() => { toast.info('You’re no longer in this chat'); router.push('/messages'); });
+    };
     const onConnect = () => {
       getAllPendingMessages().then((queued) => queued.forEach((q) => {
         client.post(`/api/messages/conversations/${q.conversationId}/messages`, { content: q.content, type: q.type, ...(q.replyToId ? { reply_to_id: q.replyToId } : {}) })
@@ -273,7 +280,7 @@ function ChatRoom() {
       ['new_message', onNew], ['message_edited', onEdited], ['message_deleted', onDeleted], ['message_hidden', onHidden],
       ['conversation_read', onReceipt], ['conversation_delivered', onReceipt], ['presence_updated', onPresence],
       ['typing_updated', onTyping], ['reaction_added', onReaction], ['reaction_removed', onReaction],
-      ['message_pinned', onPinned], ['message_unpinned', onUnpinned], ['connect', onConnect],
+      ['message_pinned', onPinned], ['message_unpinned', onUnpinned], ['connect', onConnect], ['members_changed', onMembers],
     ];
     for (const [name, fn] of events) socket.on(name, fn as (...a: unknown[]) => void);
     const onVisible = () => { if (document.visibilityState === 'visible') markRead(); };
@@ -285,7 +292,7 @@ function ChatRoom() {
       if (typingOff) clearTimeout(typingOff);
       socket.emit('typing', { conversationId: id, isTyping: false });
     };
-  }, [id, me, markRead]);
+  }, [id, me, markRead, router]);
 
   const setTyping = useCallback((typing: boolean) => {
     if (!id) return;
@@ -486,6 +493,7 @@ function ChatRoom() {
       ? { label: 'Unblock', icon: <ShieldOff className="h-4 w-4" />, onClick: () => void setBlocked(false) }
       : { label: 'Block', icon: <ShieldOff className="h-4 w-4" />, onClick: () => setDialog({ kind: 'block' }), destructive: true }] : []),
     ...(isDm && otherUserId ? [{ label: 'Report', icon: <Flag className="h-4 w-4" />, onClick: () => setDialog({ kind: 'report-chat' }), destructive: true }] : []),
+    ...(groupLike ? [{ label: isChannel ? 'Channel info' : 'Group info', icon: <Users className="h-4 w-4" />, onClick: () => router.push(`/messages/${id}/members`) }] : []),
     ...(groupLike ? [{ label: isChannel ? 'Leave channel' : 'Leave group', icon: <LogOut className="h-4 w-4" />, onClick: () => setDialog({ kind: 'leave' }), destructive: true }] : []),
     { label: 'Delete chat for me', icon: <Trash2 className="h-4 w-4" />, onClick: () => setDialog({ kind: 'delete-chat' }), destructive: true },
   ];

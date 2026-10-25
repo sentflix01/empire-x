@@ -463,6 +463,20 @@ export function forceDisconnectUser(userId: string): void {
   ioInstance.in(`user:${userId}`).disconnectSockets(true);
 }
 
+/**
+ * A group's members, roles, name or picture changed: tell everyone affected
+ * (open chats reload the member list) and refresh their chat lists, including
+ * people who just left or were removed.
+ */
+export function emitMembersChanged(conversationId: string, userIds: string[]): void {
+  // Each person's own room, so people who were just removed hear it too.
+  const payload = { conversation_id: conversationId };
+  for (const id of new Set(userIds)) {
+    ioInstance?.to(`user:${id}`).emit('members_changed', payload);
+    ioInstance?.to(`user:${id}`).emit('conversation_updated', payload);
+  }
+}
+
 /** Someone left or was removed: stop sending them that chat's live events. */
 export function removeUserFromConversationRoom(userId: string, conversationId: string): void {
   ioInstance?.in(`user:${userId}`).socketsLeave(`conv:${conversationId}`);
@@ -514,6 +528,7 @@ module.exports = {
   emitToUser,
   forceDisconnectUser,
   removeUserFromConversationRoom,
+  emitMembersChanged,
   invalidateFollowerCache,
   getAuthorizedConversation,
   getConversationParticipantIds,
