@@ -338,7 +338,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     try {
       // Use direct client call — backend uses req.user.id from JWT, not a query param
       const { data } = await client.get('/api/notifications?limit=60');
-      const notifications = Array.isArray(data) ? data : [];
+      // The endpoint answers { notifications, next_cursor }; reading it as a list kept the badge at 0.
+      const notifications = Array.isArray(data) ? data : Array.isArray(data?.notifications) ? data.notifications : [];
       setUnreadCount(notifications.filter((notif: any) => !notif.is_read && notif.type !== 'message' && notif.type !== 'inquiry').length);
     } catch {}
   };

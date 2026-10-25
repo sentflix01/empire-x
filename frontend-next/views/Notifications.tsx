@@ -7,7 +7,8 @@ import { Bell, Heart, MessageCircle, UserPlus, ShoppingBag, ClipboardList, Check
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { connectSocket, getSocket } from "@/lib/socket";
-import { fromNow } from "@/lib/date";
+import { fromNow, fmtLongDate } from "@/lib/date";
+import { isToday, isYesterday, parseISO } from "date-fns";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
@@ -48,12 +49,38 @@ const TYPE_COLORS = {
   referral:    "text-amber-500 bg-amber-50 dark:bg-amber-900/20",
 };
 
+/**
+ * The list endpoint answers { notifications, next_cursor }. The page used to
+ * expect a bare list, so it always showed "all caught up" with nothing in it.
+ */
+export function notificationRows(data: unknown): NotificationItem[] {
+  if (Array.isArray(data)) return data as NotificationItem[];
+  const rows = (data as { notifications?: unknown } | null)?.notifications;
+  return Array.isArray(rows) ? (rows as NotificationItem[]) : [];
+}
+
+/** The history shown at once; older ones load with "Show older". */
+const HISTORY_DAYS = 7;
+const OLDER_PAGE = 50;
+
+/** Today, Yesterday, or the date. */
+function dayHeading(iso: string): string {
+  const d = parseISO(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  if (isToday(d)) return 'Today';
+  if (isYesterday(d)) return 'Yesterday';
+  return fmtLongDate(d);
+}
+
 function NotificationsView() {
   const { t } = useTranslation();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, authChecked } = useAuth();
   const [markingAll, setMarkingAll] = useState(false);
+  // Older than the first 7 days: loaded on request, a page at a time.
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [noOlder, setNoOlder] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -81,13 +108,30 @@ function NotificationsView() {
     const u = currentUser || user;
     if (!u) return;
     try {
-      // Fetch unread first, limit 30 for fast initial load
-      const { data } = await client.get("/api/notifications?limit=30&sort=unread_first");
-      setNotifications(Array.isArray(data) ? data : []);
+      // The full last 7 days, newest first (it used to show only the 30 newest).
+      const { data } = await client.get("/api/notifications", { params: { days: HISTORY_DAYS, limit: 500 } });
+      setNotifications(notificationRows(data));
+      setNoOlder(false);
     } catch (err: any) {
       toast.error(apiErrorMessage(err, "Failed to load notifications"));
     }
     setLoading(false);
+  };
+
+  const loadOlder = async () => {
+    const oldest = notifications[notifications.length - 1];
+    setLoadingOlder(true);
+    try {
+      const cursor = oldest?.created_at ?? new Date(Date.now() - HISTORY_DAYS * 86_400_000).toISOString();
+      const { data } = await client.get("/api/notifications", { params: { cursor, limit: OLDER_PAGE } });
+      const rows = notificationRows(data);
+      setNotifications(prev => [...prev, ...rows.filter(r => !prev.some(p => p.id === r.id))]);
+      // No more when this page came back empty or the server says there's no next page.
+      if (rows.length === 0 || (data && !Array.isArray(data) && !data.next_cursor)) setNoOlder(true);
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err, "Could not load older notifications"));
+    }
+    setLoadingOlder(false);
   };
 
   const markRead = async (notif: NotificationItem) => {
@@ -178,16 +222,25 @@ function NotificationsView() {
           <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
           <h3 className="font-display text-lg font-bold">{t('notifications.allCaughtUp')}</h3>
           <p className="text-sm text-muted-foreground mt-1">{t('notifications.noNotifications')}</p>
+          {!noOlder && (
+            <Button size="sm" variant="outline" onClick={() => void loadOlder()} disabled={loadingOlder} className="mt-4 rounded-full text-xs">
+              {loadingOlder ? 'Loading…' : 'Show older'}
+            </Button>
+          )}
+          {noOlder && <p className="mt-4 text-xs text-muted-foreground">No older notifications</p>}
         </div>
       ) : (
         <div className="space-y-1">
-          {notifications.map(n => {
+          {notifications.map((n, i) => {
+            const day = dayHeading(n.created_at);
+            const newDay = i === 0 || dayHeading(notifications[i - 1].created_at) !== day;
             const Icon = TYPE_ICONS[n.type as keyof typeof TYPE_ICONS] || Bell;
             const color = TYPE_COLORS[n.type as keyof typeof TYPE_COLORS] || "text-muted-foreground bg-secondary/50";
             const hasSenderIdentity = ['like', 'comment', 'follow'].includes(n.type) && Boolean(n.actor_name);
             return (
+              <React.Fragment key={n.id}>
+              {newDay && <h2 className="px-1 pb-1 pt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground first:pt-0">{day}</h2>}
               <div
-                key={n.id}
                 onClick={() => markRead(n)}
                 data-page-guide="notif-list" className={`relative flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors group
                   ${n.is_read
@@ -234,8 +287,18 @@ function NotificationsView() {
                   <Trash2 className="w-3 h-3" />
                 </button>
               </div>
+              </React.Fragment>
             );
           })}
+          <div className="flex justify-center pt-4">
+            {noOlder ? (
+              <p className="text-xs text-muted-foreground">No older notifications</p>
+            ) : (
+              <Button size="sm" variant="outline" onClick={() => void loadOlder()} disabled={loadingOlder} className="rounded-full text-xs">
+                {loadingOlder ? 'Loading…' : 'Show older'}
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </div>

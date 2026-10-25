@@ -11,13 +11,22 @@ const router = Router();
 // GET — keyset cursor pagination (cursor = ISO timestamp, defaults to now)
 router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { is_read, limit = '20', sort, cursor } = req.query as Record<string, string>;
-    const lim      = Math.min(parseInt(limit, 10) || 20, 200);
+    const { is_read, limit = '20', sort, cursor, days } = req.query as Record<string, string>;
+    // `days`: everything from the last N days (the history page asks for 7), up to 500.
+    const dayCount = days === undefined ? null : Number.parseInt(days, 10);
+    if (dayCount !== null && (!Number.isFinite(dayCount) || dayCount < 1 || dayCount > 90)) {
+      res.status(422).json({ error: 'days must be between 1 and 90' }); return;
+    }
+    const lim      = Math.min(parseInt(limit, 10) || 20, dayCount ? 500 : 200);
     const cursorTs = cursor ? new Date(cursor) : new Date();
     if (isNaN(cursorTs.getTime())) { res.status(400).json({ error: 'Invalid cursor value' }); return; }
 
     const conditions = [`user_id = $1`, `created_at < $2`];
     const values: unknown[]    = [req.user!.id, cursorTs];
+    if (dayCount) {
+      values.push(dayCount);
+      conditions.push(`created_at >= NOW() - make_interval(days => $${values.length}::int)`);
+    }
 
     if (is_read !== undefined) {
       values.push(is_read === 'true' || (is_read as unknown) === true);

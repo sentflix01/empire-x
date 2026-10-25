@@ -760,3 +760,20 @@ items in the open list until confirmed.
   - Code: `backend/middleware/upload.ts`, `backend/routes/upload.ts`, `frontend-next/views/ChatRoom.tsx`
   - Tests: `backend/__tests__/uploadValidation.test.ts`
 
+### 2026-10-26 — Notification history: at least 7 days
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (26 Oct 2026: "I need notification history at least 7 days")
+- **Context:** Notifications were stored, but the page never showed them.
+  - The list endpoint answers `{ notifications, next_cursor }`, and the page and the bell badge read it as a bare list. So the page always said "all caught up" and the badge stayed at 0.
+  - Before 24 Oct the request failed outright (FUNC-01).
+  - The page also asked for only the 30 newest, with no way back.
+- **Decision:**
+  1. **Page:** the Notifications page shows the whole last 7 days (`days=7`, up to 500), newest first and grouped by day. "Show older" pages further back with the cursor.
+  2. **Bell badge:** it reads the real response.
+  3. **Storage:** notifications are kept. Nothing deletes them except the person themselves or deleting their account.
+- **Related documentation:**
+  - Docs: `docs/backend/API.md` (Notifications)
+  - Code: `backend/routes/notifications.ts`, `frontend-next/views/Notifications.tsx`, `frontend-next/components/layout/AppLayout.tsx`
+  - Tests: `backend/test/db/notificationHistory.db.test.js`, `frontend-next/test/notifications.history.test.tsx`
+
