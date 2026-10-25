@@ -706,7 +706,12 @@ Update a flag in Redis. **Requires admin.**
 ## Notifications
 
 ### GET /api/notifications
-Get notifications. Requires auth. Optional: `is_read=true|false`, `limit`
+Your notifications, newest first: `{ notifications: [...], next_cursor }`.
+- **`days=1..90`:** everything from the last N days, up to 500 (the Notifications page asks for 7).
+- **`cursor=<created_at>`:** older than that; `next_cursor` is null when there's nothing more.
+- **Also:** `limit` (default 20, max 200), `is_read`, `sort=unread_first`.
+
+Notifications are kept; nothing deletes them except you (`DELETE /api/notifications/:id`) or deleting your account.
 
 ### PUT /api/notifications/read-all
 Mark all notifications as read. Requires auth.
