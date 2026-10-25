@@ -647,3 +647,24 @@ items in the open list until confirmed.
   - Docs: `docs/backend/API.md` (Posts → Reactions, Messages → Reactions and pins)
   - Code: `backend/lib/emoji.ts`, `backend/db/migrate82.js`, `frontend-next/components/ui/EmojiPicker.tsx`, `frontend-next/components/ui/EmojiInsertButton.tsx`, `frontend-next/components/feed/ReactionPicker.tsx`, `frontend-next/components/messaging/MessageReactions.tsx`, `frontend-next/components/messaging/PinnedBar.tsx`
   - Tests: `backend/__tests__/emoji.test.ts`, `backend/test/db/socialInteractions.db.test.js`, `backend/test/db/messaging.db.test.js`, `frontend-next/test/messaging/emojiReactions.test.tsx`
+
+### 2026-10-25 — Business cards: one size, with a sliding Spotlight strip
+
+- **Status:** Accepted. Replaces the "real section size" part of "Business Spotlight" (24 Oct 2026); its selection rules stay.
+- **Decision owner:** Project owner (25 Oct 2026: "every business profile has the same size … slidable … not exceed the red rectangle")
+- **Context:** Showing a section at its real site size made feed cards very different heights, from a short About block to a long product grid.
+- **Decision:**
+  1. **Same size:** every business card in the business feed and in the personal feed's Business Profile view has the same size (480 px on phones). The header has fixed rows: name, owner, tagline and address, each on one line.
+  2. **Fixed strip:** the Spotlight is one strip, 248 px tall. It shows the chosen section as small cards (picture, name, price, Order/Book, or View for products).
+  3. **Sliding:** more cards than fit slide sideways. Arrows sit on the sides, dots below, and touch screens swipe; it snaps to each card and respects reduced motion.
+  4. **Section types:** About, story and offers show as one wide card (picture and shortened text). Gallery and portfolio show as picture cards.
+  5. **Several sections:** chosen sections switch with labels at the top of the same frame. They no longer rotate on their own.
+  6. **Empty or off:** when the Spotlight is off or has nothing to show, the same space shows the business description and a Visit link.
+- **Consequences:**
+  - The feed no longer uses `SectionRenderer` for spotlights. `lib/spotlightTiles.ts` turns each section into cards.
+  - Catalogue spotlights load up to 12 products, which slide.
+  - On phones under 400 px wide, the card's Message button shows only its icon, so the action row fits.
+- **Related documentation:**
+  - Code: `frontend-next/components/feed/BusinessSpotlight.tsx`, `frontend-next/lib/spotlightTiles.ts`, `frontend-next/components/feed/BusinessShowroomFeed.tsx`
+  - Tests: `frontend-next/test/feed/businessSpotlight.test.tsx`
+
