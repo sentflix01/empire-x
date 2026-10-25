@@ -18,7 +18,7 @@ import { useChatPresence } from '@/lib/useChatPresence';
 import { isUserOnline, type PresenceData } from '@/lib/presence';
 import { tickFor } from '@/lib/readReceipts';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
-import { chatTitle, chatAvatar, chatOtherUserId, inboxTime, type ChatSummary } from '@/lib/chatDisplay';
+import { chatTitle, chatAvatar, chatOtherUserId, inboxTime, uniqueChats, uniquePeople, type ChatSummary } from '@/lib/chatDisplay';
 import { cn } from '@/lib/utils';
 import MessageTicks from '@/components/messaging/MessageTicks';
 import MessageSearch from '@/components/messaging/MessageSearch';
@@ -67,7 +67,7 @@ export default function Inbox({ selectedId }: { selectedId?: string | null }) {
         .catch(() => [box, null] as const)));
       setBoxes((prev) => {
         const next = { ...prev };
-        for (const [box, rows] of results) if (rows) next[box] = (rows as Row[]).filter((c) => c.type !== 'dm' || c.last_message_id || box === 'requests');
+        for (const [box, rows] of results) if (rows) next[box] = uniqueChats((rows as Row[]).filter((c) => c.type !== 'dm' || c.last_message_id || box === 'requests'));
         return next;
       });
     } finally { if (!quiet) setLoading(false); }
@@ -79,7 +79,7 @@ export default function Inbox({ selectedId }: { selectedId?: string | null }) {
   useEffect(() => { if (tab === 'archived' && !boxes.archived) void load(['archived']); }, [tab, boxes.archived, load]);
   useEffect(() => {
     if (!user) return;
-    entities.UserProfile.list('-created_at', 20).then((rows: Array<{ user_id: string }>) => setSuggestions(rows)).catch(() => undefined);
+    entities.UserProfile.list('-created_at', 40).then((rows: Array<{ user_id: string }>) => setSuggestions(uniquePeople(rows).slice(0, 20))).catch(() => undefined);
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Live: the server sends list events to each person's own room.

@@ -6,6 +6,7 @@ import { optionalAuth } from '../middleware/auth';
 import { cached } from '../lib/redis';
 import { getCurrentDatabaseEnvironment } from '../db/pool';
 import { announcementLiveSql, guestPostSql, notPrivateBusinessSql, productNotPrivateSql } from '../lib/siteVisibility';
+import { personProfileJoin } from '../lib/personProfile';
 
 const router = Router();
 
@@ -25,7 +26,7 @@ async function loadTrending(isReal: boolean, guest: boolean): Promise<Record<str
   const [posts, products, showrooms, users] = await Promise.all([
     pool.query(
       `SELECT p.id,p.author_id,p.author_name,p.author_avatar,p.content,p.image_url,p.post_type,p.like_count,p.comment_count,p.created_at,up.display_name,up.avatar_url
-       FROM posts p LEFT JOIN user_profiles up ON up.user_id=p.author_id ${realPostJoin}
+       FROM posts p ${personProfileJoin('p.author_id', 'up')} ${realPostJoin}
        WHERE p.created_at > NOW()-INTERVAL '48 hours' ${postWhere} ORDER BY p.like_count DESC, p.comment_count DESC LIMIT 10`,
     ),
     pool.query(

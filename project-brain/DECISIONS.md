@@ -730,3 +730,19 @@ items in the open list until confirmed.
   - Docs: `docs/Production/frontend-next/e2e.md`
   - Code: `frontend-next/e2e/messaging.spec.ts`, `frontend-next/playwright.config.ts`, `backend/db/seed-e2e-messaging.js`, `frontend-next/views/ChatRoom.tsx`, `frontend-next/lib/messaging.ts`
 
+### 2026-10-25 — One profile per person in every list
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (25 Oct 2026: "why repeatedly show one user more than one in contacts list and chat list … fix from the root cause")
+- **Context:** A person can have several `user_profiles` rows: a personal one and one per business. Production had 52 such people with up to 3 rows each, and nothing enforces one row per person. Every query that joined `user_profiles ON user_id` repeated rows once per profile. Chats appeared three times in the chat list, and people repeated in contacts and search, friends, stories, "who reacted", the blocked list, reviews and returns. Partner payout order counts were multiplied the same way.
+- **Decision:**
+  1. **Shared rule:** every backend query reads a person's profile through `backend/lib/personProfile.ts` (`personProfileJoin`): exactly one row, the personal profile if there is one, else the oldest.
+  2. **People search:** results are one per person.
+  3. **Frontend:** contact suggestions and search results are reduced to one entry per person, and the chat list to one row per chat (`uniquePeople`, `uniqueChats` in `frontend-next/lib/chatDisplay.ts`).
+- **Consequences:**
+  - **Data untouched:** existing profile rows are left as they are.
+  - **Open decision:** whether business profiles should stay separate rows, and whether to merge duplicate personal profiles, is still to be decided. A unique index would need that decision first.
+- **Related documentation:**
+  - Code: `backend/lib/personProfile.ts`, `backend/routes/messages.ts`, `backend/lib/messaging.ts`, `backend/routes/search.ts` and the routes that join profiles
+  - Tests: `backend/test/db/messaging.db.test.js` ("people with several profiles"), `backend/test/db/personProfiles.db.test.js`, `frontend-next/test/messaging/uniquePeople.test.ts`
+
