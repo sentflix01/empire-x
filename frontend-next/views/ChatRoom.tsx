@@ -31,6 +31,7 @@ import UserIdentity from "@/components/ui/UserIdentity";
 import { uploadFile } from '@/lib/uploadFile';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import { useChatViewport } from '@/lib/useChatViewport';
 import PinnedBar, { pinPreviewText, type PinnedPreview } from '@/components/messaging/PinnedBar';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -90,6 +91,7 @@ function ChatRoom() {
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  useChatViewport();
 
   // Block status & online status
   const [isBlocked, setIsBlocked]     = useState(false);
@@ -615,16 +617,16 @@ function ChatRoom() {
     } catch { toast.error('Failed to update block status'); }
   };
 
-  const handleBack = async () => {
-    // Delete empty conversation created < 5 min ago
+  const handleBack = () => {
+    if (isExiting) return;
+    // Delete an empty chat opened in the last 5 minutes, without making Back wait for it.
     if (messages.length === 0 && conversation) {
       const age = Date.now() - new Date(conversation.created_at).getTime();
-      if (age < 5 * 60 * 1000) {
-        try { await client.delete(`/api/messages/conversations/${id}`); } catch { /* ignore */ }
-      }
+      if (age < 5 * 60 * 1000) void client.delete(`/api/messages/conversations/${id}`).catch(() => { /* ignore */ });
     }
+    // Leave once the slide-out finishes (onAnimationComplete), or at once with reduced motion.
+    if (reducedMotion) { router.push('/messages'); return; }
     setIsExiting(true);
-    setTimeout(() => router.push('/messages'), 160);
   };
 
   // ── Long-press / context menu helpers ────────────────────────────────────
@@ -810,15 +812,18 @@ function ChatRoom() {
   return (
     <>
     <motion.div
-      className="flex flex-col h-[calc(100dvh-3.5rem)] overflow-hidden"
-      initial={{ opacity: 0, x: 20 }}
-      animate={isExiting ? { opacity: 0, x: 20 } : { opacity: 1, x: 0 }}
-      transition={{ duration: 0.2 }}
+      // Phones: a full-screen layer over the app bar, exactly the visible area
+      // (it follows the keyboard; see useChatViewport). Larger screens: in the page.
+      className="fixed inset-x-0 top-[var(--chat-top,0px)] z-[55] flex h-[var(--chat-vh,100dvh)] flex-col overflow-hidden bg-[hsl(var(--chat-bg))] md:static md:z-auto md:h-[calc(100dvh-3.5rem)]"
+      initial={reducedMotion ? false : { opacity: 0, x: 24 }}
+      animate={isExiting && !reducedMotion ? { opacity: 0, x: 24 } : { opacity: 1, x: 0 }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      onAnimationComplete={() => { if (isExiting) router.push('/messages'); }}
     >
       <span className="sr-only" aria-live="polite">{liveAnnouncement}</span>
 
       {/* Header */}
-      <div data-page-guide="chat-header" className="px-2 sm:px-4 py-2.5 flex items-center gap-2 sm:gap-3 shrink-0 shadow-sm z-10 bg-primary">
+      <div data-page-guide="chat-header" className="px-2 sm:px-4 pb-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] md:pt-2.5 flex items-center gap-2 sm:gap-3 shrink-0 shadow-sm z-10 bg-primary">
         <button onClick={handleBack} aria-label="Back" className="inline-flex size-11 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0">
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -1334,7 +1339,7 @@ function ChatRoom() {
 
     {/* ── Forward Message Modal ─────────────────────────────────────────── */}
     {forwardMsg && (
-      <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
+      <div className="fixed inset-0 z-[65] flex items-stretch sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
         <div role="dialog" aria-label="Forward message" className="h-full sm:h-auto sm:max-h-[90vh] w-full sm:max-w-sm rounded-none sm:rounded-2xl bg-card shadow-xl border border-border/50 flex flex-col overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
