@@ -2,7 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import logger from '../lib/logger';
 import { requireAuth } from '../middleware/auth';
-import upload, { uploadFile, isCloudStorageConfigured, validateFileBytes } from '../middleware/upload';
+import upload, { uploadFile, isCloudStorageConfigured, validateFileBytes, SIGNATURE_BYTES } from '../middleware/upload';
 import { signDemoAssetToken } from '../middleware/demoEnvironment';
 
 const router = Router();
@@ -22,8 +22,8 @@ router.post('/', requireAuth, upload.single('file'), async (req: Request, res: R
       try {
         const fs = require('fs') as typeof import('fs');
         const fd = fs.openSync(file.path, 'r');
-        const head = Buffer.alloc(12);
-        fs.readSync(fd, head, 0, 12, 0);
+        const head = Buffer.alloc(SIGNATURE_BYTES);
+        fs.readSync(fd, head, 0, SIGNATURE_BYTES, 0);
         fs.closeSync(fd);
         bufferForCheck = head;
       } catch { /* non-fatal — skip magic-byte check for disk files */ }

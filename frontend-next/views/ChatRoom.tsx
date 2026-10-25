@@ -361,15 +361,20 @@ function ChatRoom() {
     setReplyTo(null);
     setUploading({ done: 0, total: ok.length });
     let failed = 0;
+    let reason = '';
     for (let i = 0; i < ok.length; i++) {
       try {
         const url = await uploadFile(ok[i]);
         await send(url, 'image', i === 0 ? replyId : null);
-      } catch { failed++; }
+      } catch (err) {
+        failed++;
+        // Say why (the server's reason), not only that it failed.
+        reason ||= apiErrorMessage(err, '');
+      }
       setUploading({ done: i + 1, total: ok.length });
     }
     setUploading(null);
-    if (failed) toast.error(`${failed} photo${failed === 1 ? '' : 's'} couldn't be sent`);
+    if (failed) toast.error(`${failed} photo${failed === 1 ? '' : 's'} couldn't be sent${reason ? `: ${reason}` : ''}`);
   };
 
   const onSaveEdit = async (text: string) => {
