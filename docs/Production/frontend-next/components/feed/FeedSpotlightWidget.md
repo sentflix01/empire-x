@@ -1,3 +1,5 @@
+> ⚠️ **HISTORICAL** — corresponding source file was removed from the codebase on 2026-10-25. Kept for reference.
+
 # frontend-next/components/feed/FeedSpotlightWidget
 
 <!-- AUTO-STUB  2026-10-22 — curate narrative below -->

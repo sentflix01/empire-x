@@ -19,16 +19,16 @@ Newly introduced as part of recent development; see source and git history for t
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/social/relationship/:userId` | auth | 34 |
-| `PUT` | `/api/social/mute/:userId` | auth | 73 |
-| `DELETE` | `/api/social/mute/:userId` | auth | 74 |
-| `PUT` | `/api/social/restrict/:userId` | auth | 77 |
-| `DELETE` | `/api/social/restrict/:userId` | auth | 78 |
-| `PUT` | `/api/social/block/:userId` | auth | 81 |
-| `DELETE` | `/api/social/block/:userId` | auth | 106 |
-| `GET` | `/api/social/people` | auth | 116 |
-| `GET` | `/api/social/privacy` | auth | 146 |
-| `PUT` | `/api/social/privacy` | auth | 154 |
+| `GET` | `/api/social/relationship/:userId` | auth | 35 |
+| `PUT` | `/api/social/mute/:userId` | auth | 74 |
+| `DELETE` | `/api/social/mute/:userId` | auth | 75 |
+| `PUT` | `/api/social/restrict/:userId` | auth | 78 |
+| `DELETE` | `/api/social/restrict/:userId` | auth | 79 |
+| `PUT` | `/api/social/block/:userId` | auth | 82 |
+| `DELETE` | `/api/social/block/:userId` | auth | 107 |
+| `GET` | `/api/social/people` | auth | 117 |
+| `GET` | `/api/social/privacy` | auth | 147 |
+| `PUT` | `/api/social/privacy` | auth | 155 |
 
 ## 4. What does it touch?
 

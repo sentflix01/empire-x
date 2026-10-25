@@ -5,6 +5,21 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-10-26 | Feature | feat(notifications): 7-day history, and the page finally shows notifications (#165) | [56a743681](2026-10-26-56a743681-7-day-history-and-the-page-finally-shows-notific.md) |
+| 2026-10-26 | Bugfix | fix(upload): photos refused — check real content by file signature (#164) | [35be28716](2026-10-26-35be28716-photos-refused-check-real-content-by-file-signat.md) |
+| 2026-10-25 | Maintenance | Messages M7: two-person E2E on phone, iPhone, tablet and desktop (+3 bug fixes) (#161) | [b8a5b1f40](2026-10-25-b8a5b1f40-messages-m7-two-person-e2e-on-phone-iphone-table.md) |
+| 2026-10-25 | Bugfix | fix: show each person and chat once — one profile per person in every query (#162) | [71cde8877](2026-10-25-71cde8877-show-each-person-and-chat-once-one-profile-per-p.md) |
+| 2026-10-25 | Feature | feat(messages): M6 — groups and channels work end to end (#160) | [7e6421742](2026-10-25-7e6421742-m6-groups-and-channels-work-end-to-end-160.md) |
+| 2026-10-25 | Feature | feat(messages): M5 — rebuilt chat and inbox screens, split view, cleaner actions (#159) | [94d9ca2ae](2026-10-25-94d9ca2ae-m5-rebuilt-chat-and-inbox-screens-split-view-cle.md) |
+| 2026-10-25 | Bugfix | fix(chat): full-screen chat on phones sized to the visible screen; smooth Back (#158) | [4db6ba0b1](2026-10-25-4db6ba0b1-full-screen-chat-on-phones-sized-to-the-visible-.md) |
+| 2026-10-25 | Feature | feat(feed): same-size business cards with a sliding Spotlight strip (#157) | [d2dbb3d2e](2026-10-25-d2dbb3d2e-same-size-business-cards-with-a-sliding-spotligh.md) |
+| 2026-10-25 | Feature | feat(messages): M4 — every emoji for reactions, emoji in chat and comments, pinned bar (#156) | [2d2d0c310](2026-10-25-2d2d0c310-m4-every-emoji-for-reactions-emoji-in-chat-and-c.md) |
+| 2026-10-25 | Maintenance | Merge pull request #155 from sentflix01/feat/messages-business-inbox | [c3806da50](2026-10-25-c3806da50-merge-pull-request-155-from-sentflix01-feat-mess.md) |
+| 2026-10-25 | Feature | feat(messages): business inbox, context cards and quick replies (messaging M3) | [57b950e0d](2026-10-25-57b950e0d-business-inbox-context-cards-and-quick-replies-m.md) |
+| 2026-10-25 | Maintenance | Merge pull request #154 from sentflix01/feat/spotlight-redesign | [f60ed0cc0](2026-10-25-f60ed0cc0-merge-pull-request-154-from-sentflix01-feat-spot.md) |
+| 2026-10-24 | Feature | feat(spotlight): one selling section at its real size on every business card | [b8b9bfcfa](2026-10-24-b8b9bfcfa-one-selling-section-at-its-real-size-on-every-bu.md) |
+| 2026-10-24 | Maintenance | Merge pull request #153 from sentflix01/chore/protect-main | [328a3f2c3](2026-10-24-328a3f2c3-merge-pull-request-153-from-sentflix01-chore-pro.md) |
+| 2026-10-24 | CI/CD | ci: prepare main for branch protection | [f4be29ff2](2026-10-24-f4be29ff2-prepare-main-for-branch-protection.md) |
 | 2026-10-24 | Maintenance | Merge pull request #152 from sentflix01/fix/legal-identity-and-test-listings | [e77d15743](2026-10-24-e77d15743-merge-pull-request-152-from-sentflix01-fix-legal.md) |
 | 2026-10-24 | Bugfix | fix(legal): name sellers as recipients; state transfers without unverified safeguards | [4bba3bab5](2026-10-24-4bba3bab5-name-sellers-as-recipients-state-transfers-witho.md) |
 | 2026-10-24 | Bugfix | fix(legal): real operator details and a working contact; archive test listings | [e24012a41](2026-10-24-e24012a41-real-operator-details-and-a-working-contact-arch.md) |

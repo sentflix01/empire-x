@@ -15,25 +15,25 @@ Platform administration: dashboard stats aggregation, user ban/unban + role chan
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/admin/stats` | public | 24 |
-| `GET` | `/api/admin/users` | public | 52 |
-| `PUT` | `/api/admin/users/:id/role` | public | 85 |
-| `DELETE` | `/api/admin/users/:id` | public | 106 |
-| `POST` | `/api/admin/users/:id/ban` | public | 134 |
-| `POST` | `/api/admin/users/:id/unban` | public | 160 |
-| `GET` | `/api/admin/verifications` | public | 173 |
-| `POST` | `/api/admin/verifications/:userId` | public | 188 |
-| `DELETE` | `/api/admin/verifications/:userId` | public | 207 |
-| `GET` | `/api/admin/posts` | public | 219 |
-| `DELETE` | `/api/admin/posts/:id` | public | 233 |
-| `GET` | `/api/admin/products` | public | 246 |
-| `DELETE` | `/api/admin/products/:id` | public | 260 |
-| `GET` | `/api/admin/orders` | public | 266 |
-| `GET` | `/api/admin/reports` | public | 281 |
-| `PUT` | `/api/admin/reports/:id` | public | 290 |
-| `PUT` | `/api/admin/users/:id/verify` | public | 298 |
-| `GET` | `/api/admin/stats/revenue` | public | 306 |
-| `GET` | `/api/admin/audit-logs` | public | 326 |
+| `GET` | `/api/admin/stats` | public | 25 |
+| `GET` | `/api/admin/users` | public | 53 |
+| `PUT` | `/api/admin/users/:id/role` | public | 86 |
+| `DELETE` | `/api/admin/users/:id` | public | 107 |
+| `POST` | `/api/admin/users/:id/ban` | public | 135 |
+| `POST` | `/api/admin/users/:id/unban` | public | 161 |
+| `GET` | `/api/admin/verifications` | public | 174 |
+| `POST` | `/api/admin/verifications/:userId` | public | 189 |
+| `DELETE` | `/api/admin/verifications/:userId` | public | 208 |
+| `GET` | `/api/admin/posts` | public | 220 |
+| `DELETE` | `/api/admin/posts/:id` | public | 234 |
+| `GET` | `/api/admin/products` | public | 247 |
+| `DELETE` | `/api/admin/products/:id` | public | 261 |
+| `GET` | `/api/admin/orders` | public | 267 |
+| `GET` | `/api/admin/reports` | public | 282 |
+| `PUT` | `/api/admin/reports/:id` | public | 291 |
+| `PUT` | `/api/admin/users/:id/verify` | public | 299 |
+| `GET` | `/api/admin/stats/revenue` | public | 307 |
+| `GET` | `/api/admin/audit-logs` | public | 327 |
 
 ## 4. What does it touch?
 

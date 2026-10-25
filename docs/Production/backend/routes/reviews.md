@@ -15,10 +15,10 @@ Product reviews and star ratings: create/update with purchase-bias checks, per-p
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/reviews/` | optional | 10 |
-| `GET` | `/api/reviews/product/:productId` | optional | 36 |
-| `POST` | `/api/reviews/` | auth | 53 |
-| `DELETE` | `/api/reviews/:id` | auth | 86 |
+| `GET` | `/api/reviews/` | optional | 11 |
+| `GET` | `/api/reviews/product/:productId` | optional | 37 |
+| `POST` | `/api/reviews/` | auth | 54 |
+| `DELETE` | `/api/reviews/:id` | auth | 87 |
 
 ## 4. What does it touch?
 
