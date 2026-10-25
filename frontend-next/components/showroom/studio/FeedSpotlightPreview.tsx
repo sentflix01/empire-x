@@ -21,7 +21,7 @@ export default function FeedSpotlightPreview({
   sections, spotlightMode, spotlightSectionIds, themeColor, businessName, ownerId, businessId,
 }: FeedSpotlightPreviewProps) {
   if (spotlightMode === 'off') {
-    return <p className="p-4 text-center text-sm text-muted-foreground">Spotlight is off, so your card shows no section.</p>;
+    return <p className="p-4 text-center text-sm text-muted-foreground">Spotlight is off, so your card shows your description in its place.</p>;
   }
   return (
     <div className="p-4 space-y-2">
@@ -42,7 +42,7 @@ export default function FeedSpotlightPreview({
         />
       </div>
       <p className="text-[11px] text-muted-foreground text-center">
-        If nothing shows, none of your sections has something to sell yet (for example products, prices or pictures).
+        If you see your description instead, none of your sections has something to sell yet (for example products, prices or pictures). Every card is the same size; more items slide sideways.
       </p>
     </div>
   );

@@ -276,11 +276,12 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
               className="w-8 h-8 rounded-full border border-border/40 bg-card/80 backdrop-blur-sm shadow-sm hover:scale-110 active:scale-95 transition-all"
             />
           </div>
-          <div className="flex gap-2 mb-1">
+          <div className="flex shrink-0 gap-1.5 mb-1">
             {viewer && ownerId && ownerId !== viewer.id && (
-              <Button size="sm" variant="outline" className="rounded-full h-7 text-xs"
-                onClick={handleMessage} disabled={chat.busy}>
-                <MessageSquare className="w-3 h-3 mr-1" />Message
+              <Button size="sm" variant="outline" className="rounded-full h-7 px-2.5 text-xs"
+                onClick={handleMessage} disabled={chat.busy} aria-label={`Message ${bizName}`}>
+                {/* Icon only on small phones so the row fits inside the card. */}
+                <MessageSquare className="w-3 h-3 min-[400px]:mr-1" aria-hidden="true" /><span className="hidden min-[400px]:inline">Message</span>
               </Button>
             )}
             <Link href={visitPath}>
@@ -291,8 +292,10 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
             </Link>
           </div>
         </div>
-        <h3 className="mt-2 font-display text-base font-bold" style={{ color }}>{bizName}</h3>
+        {/* Fixed rows (name, owner, tagline, address) so every card is the same height. */}
+        <h3 className="mt-2 h-6 truncate font-display text-base font-bold leading-6" style={{ color }} title={bizName}>{bizName}</h3>
         {/* Owner identity */}
+        <div className="h-5">
         {ownerName && (
           <Link
             href={`/profile/${ownerId}`}
@@ -322,19 +325,21 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
             )}
           </Link>
         )}
-        {heroSection?.subtitle && (
-          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{heroSection.subtitle}</p>
-        )}
-        {biz.business_address && (
-          <p className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-            <MapPin className="w-3 h-3 shrink-0" />
-            {biz.business_address as string}
-          </p>
-        )}
+        </div>
+        <p className="h-4 truncate text-xs leading-4 text-muted-foreground">
+          {heroSection?.subtitle || (biz.business_description as string | undefined) || ''}
+        </p>
+        <p className="mt-1 flex h-4 items-center gap-1 text-xs leading-4 text-muted-foreground">
+          {biz.business_address && (<>
+            <MapPin className="w-3 h-3 shrink-0" aria-hidden="true" />
+            <span className="truncate">{biz.business_address as string}</span>
+          </>)}
+        </p>
       </div>
 
-      {/* Spotlight: one selling section at its real size (lib/spotlight.ts) */}
+      {/* Spotlight: a fixed-height sliding strip of one selling section (lib/spotlight.ts) */}
       <BusinessSpotlight
+        visitHref={visitPath}
         sections={sections as unknown as Array<Record<string, any>>}
         spotlightMode={(biz.spotlight_mode as string | null | undefined) ?? null}
         spotlightSectionIds={biz.spotlight_section_ids}
@@ -673,6 +678,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
         const cardShowroomId = card && typeof card.showroom_id === 'string' ? card.showroom_id : null;
         return (
           <BusinessSpotlight
+            visitHref={`/profile/${profile!.user_id}?view=business`}
             sections={cardSections as unknown as Array<Record<string, any>>}
             spotlightMode={(card?.spotlight_mode as string | null | undefined) ?? null}
             spotlightSectionIds={card?.spotlight_section_ids}
