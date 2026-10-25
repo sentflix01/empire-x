@@ -1,1442 +1,703 @@
 'use client';
-import React, { useState, useEffect, useRef, useCallback } from "react";
+/**
+ * One chat. Pieces live in components/messaging (header, list, bubble,
+ * actions, composer); this screen holds the chat's data and live updates.
+ *
+ * Phones: a full-screen layer sized to the visible area (useChatViewport).
+ * Tablets and computers: the right-hand pane beside the chat list.
+ */
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAuth } from "@/lib/AuthContext";
-import { getSocket, joinConversation, leaveConversation } from "@/lib/socket";
-import client from "@/api/client";
-import { applyReceipt, tickFor, type MemberReadState } from "@/lib/readReceipts";
-import MessageTicks from "@/components/messaging/MessageTicks";
-import MessageReactions, { reactedByMe, type MessageReactionMap } from "@/components/messaging/MessageReactions";
-import ReactionPicker from "@/components/feed/ReactionPicker";
-import EmojiInsertButton from "@/components/ui/EmojiInsertButton";
-import MessageSearch from "@/components/messaging/MessageSearch";
-import ProductMessageBubble from "@/components/messaging/ProductMessageBubble";
-import OrderUpdateBubble from "@/components/messaging/OrderUpdateBubble";
-import ContextCard from "@/components/messaging/ContextCard";
-import QuickReplies from "@/components/messaging/QuickReplies";
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 import {
-  ArrowLeft, Send, Radio, Users, MoreVertical, X, Pencil, Trash2,
-  CornerUpLeft, Check, ShieldOff, History, ImagePlus, Forward,
-  Copy, UserCircle, Pin, Bookmark, Languages, Search, ChevronDown,
-} from "lucide-react";
-import { fmtTime, fmtLongDate } from "@/lib/date";
-import { parseISO, isToday, isYesterday, format as fmtDate } from "date-fns";
-import { toast } from "sonner";
-import { formatLastSeen, isUserOnline } from "@/lib/presence";
-import type { PresenceData } from "@/lib/presence";
-import { useChatPresence } from "@/lib/useChatPresence";
-import SafeImage from "@/components/ui/SafeImage";
-import { cn } from "@/lib/utils";
-import UserIdentity from "@/components/ui/UserIdentity";
-import { uploadFile } from '@/lib/uploadFile';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { apiErrorMessage } from '@/lib/apiErrorMessage';
-import { useChatViewport } from '@/lib/useChatViewport';
+  UserCircle, BellOff, Bell, Archive, ArchiveRestore, ShieldOff, Flag, Trash2, LogOut, Users, Radio,
+} from 'lucide-react';
+import client from '@/api/client';
+import { useAuth } from '@/lib/AuthContext';
+import { getSocket, joinConversation, leaveConversation } from '@/lib/socket';
+import { applyReceipt, tickFor, type MemberReadState } from '@/lib/readReceipts';
+import { reactedByMe, type MessageReactionMap } from '@/components/messaging/MessageReactions';
+import ChatHeader, { type HeaderMenuItem } from '@/components/messaging/ChatHeader';
+import MessageList from '@/components/messaging/MessageList';
+import MessageBubble from '@/components/messaging/MessageBubble';
+import MessageActions from '@/components/messaging/MessageActions';
+import Composer, { type ComposerHandle } from '@/components/messaging/Composer';
+import ChoiceDialog, { type Choice } from '@/components/messaging/ChoiceDialog';
+import ForwardDialog from '@/components/messaging/ForwardDialog';
+import MessageSearch from '@/components/messaging/MessageSearch';
+import QuickReplies from '@/components/messaging/QuickReplies';
 import PinnedBar, { pinPreviewText, type PinnedPreview } from '@/components/messaging/PinnedBar';
-import { motion, AnimatePresence } from 'framer-motion';
+import PhotoViewer from '@/components/feed/PhotoViewer';
+import UserIdentity from '@/components/ui/UserIdentity';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { formatLastSeen, isUserOnline, type PresenceData } from '@/lib/presence';
+import { useChatPresence } from '@/lib/useChatPresence';
+import { useChatViewport } from '@/lib/useChatViewport';
+import { uploadFile } from '@/lib/uploadFile';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import { chatTitle, chatAvatar, chatOtherUserId, isCustomerSide, isGroupLike, type ChatSummary } from '@/lib/chatDisplay';
+import { messagePreview, type ChatMessage } from '@/lib/chatRules';
 import {
-  enqueuePendingMessage,
-  removePendingMessage,
-  getPendingMessages,
-  getAllPendingMessages,
-  type PendingMessage,
+  enqueuePendingMessage, removePendingMessage, getPendingMessages, getAllPendingMessages,
 } from '@/lib/messageSendQueue';
 
+const PAGE = 50;
+const MAX_PINS = 3;
+const MAX_PHOTOS = 10;
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 
+type Conversation = ChatSummary & {
+  created_at?: string;
+  admin_id?: string;
+  my_role?: string | null;
+  is_request?: boolean;
+  muted?: boolean;
+  archived_at?: string | null;
+  last_read_at?: string | null;
+  members?: Array<MemberReadState & { display_name?: string; role?: string }>;
+};
+
+type Dialog =
+  | { kind: 'mute' }
+  | { kind: 'report-message'; message: ChatMessage }
+  | { kind: 'report-chat' }
+  | { kind: 'delete-chat' }
+  | { kind: 'leave' }
+  | { kind: 'block' };
+
+const REPORT_REASONS: Choice[] = [
+  { label: 'Spam or scam', value: 'spam' },
+  { label: 'Harassment or hate', value: 'harassment' },
+  { label: 'Inappropriate content', value: 'inappropriate' },
+  { label: 'Something else', value: 'other' },
+];
+
+function mergeById(list: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] {
+  const seen = new Map(list.map((m) => [m.id, m]));
+  for (const m of incoming) seen.set(m.id, { ...seen.get(m.id), ...m });
+  return [...seen.values()].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+}
 
 function ChatRoom() {
   const params = useParams();
-  // Ensure id is always a plain string — Next.js can return string[] for catch-all routes
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id as string);
   const router = useRouter();
   const { user } = useAuth();
+  const me = user?.id ? String(user.id) : null;
+  const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-  // Detect reduced-motion preference once — safe for SSR (window check)
-  const reducedMotion =
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  const [messages, setMessages]       = useState([]);
-  const [conversation, setConversation] = useState(null);
-  const [text, setText]               = useState("");
-  const [sending, setSending]         = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [loading, setLoading]         = useState(true);
-
-  // Edit / reply mode
-  const [editingMsg, setEditingMsg]   = useState(null); // { id, content }
-  const [replyingTo, setReplyingTo]   = useState(null); // message object
-  const [editText, setEditText]       = useState("");
-
-  // Long-press context menu
-  const [selectedMsg, setSelectedMsg]   = useState(null);
-  const [deletingMsg, setDeletingMsg]   = useState(null);
-  const [forwardMsg, setForwardMsg]     = useState(null);
-  const [forwardSearch, setForwardSearch] = useState('');
-  const [conversations, setConversations] = useState([]);
-  const [pinnedMsgs, setPinnedMsgs]     = useState<Set<string>>(new Set());
-  // Preview text of pins loaded from the server (pinned messages may be older than what's on screen).
-  const [pinTexts, setPinTexts]         = useState<Record<string, string>>({});
-  const [savedMsgs, setSavedMsgs]       = useState<Set<string>>(new Set());
-
-  // Offline queue — pending messages awaiting a network connection.
-  // The value is unused today; the setters still maintain pending-send bookkeeping.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [offlineQueue, setOfflineQueue] = useState<PendingMessage[]>([]);
-
-  // Legacy hover state (desktop) — still used to determine visual selection
-  const [hoveredMsg, setHoveredMsg]     = useState(null);
-
-  // Header menu
-  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
   useChatViewport();
-
-  // Block status & online status
-  const [isBlocked, setIsBlocked]     = useState(false);
-  const [otherUserId, setOtherUserId] = useState(null);
-  const [presence, setPresence]       = useState<PresenceData | null>(null);
-  const [otherTyping, setOtherTyping] = useState(false);
-  const [otherProfile, setOtherProfile] = useState<any>(null);
-  // Everyone's "delivered" / "seen" (seen only when both people allow read receipts).
-  const [members, setMembers] = useState<MemberReadState[]>([]);
-  const otherUserIdRef = useRef<string | null>(null);
-  useEffect(() => { otherUserIdRef.current = otherUserId; }, [otherUserId]);
-
-  const bottomRef  = useRef(null);
-  const inputRef   = useRef(null);
-  const deleteTimer = useRef(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const textRef    = useRef(""); // mirrors text state for reliable mobile access
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const remoteTypingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const nearBottomRef = useRef(true);
-  const [showScrollBtn, setShowScrollBtn] = useState(false);
-  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
-  const [liveAnnouncement, setLiveAnnouncement] = useState('');
-
   useChatPresence(Boolean(user));
 
-  const setTyping = useCallback((isTyping: boolean) => {
-    if (!id) return;
-    getSocket().emit('typing', { conversationId: id, isTyping });
-  }, [id]);
+  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState<string | null>(null);
+  const [hasOlder, setHasOlder] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [firstUnreadId, setFirstUnreadId] = useState<string | null>(null);
+  const [members, setMembers] = useState<MemberReadState[]>([]);
+  const [presence, setPresence] = useState<PresenceData | null>(null);
+  const [otherProfile, setOtherProfile] = useState<Record<string, unknown> | null>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [otherTyping, setOtherTyping] = useState(false);
+  const [pins, setPins] = useState<string[]>([]);
+  const [pinTexts, setPinTexts] = useState<Record<string, string>>({});
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  const [editing, setEditing] = useState<ChatMessage | null>(null);
+  const [actionsFor, setActionsFor] = useState<ChatMessage | null>(null);
+  const [forwarding, setForwarding] = useState<ChatMessage | null>(null);
+  const [dialog, setDialog] = useState<Dialog | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState<number | null>(null);
+  const [uploading, setUploading] = useState<{ done: number; total: number } | null>(null);
+  const [newWhileAway, setNewWhileAway] = useState(0);
+  const [scrollSignal, setScrollSignal] = useState(0);
+  const [announcement, setAnnouncement] = useState('');
+  const [isExiting, setIsExiting] = useState(false);
 
-  const handleMessagesScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
-    nearBottomRef.current = near;
-    setShowScrollBtn(!near);
-  }, []);
+  const composer = useRef<ComposerHandle | null>(null);
+  const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const otherIdRef = useRef<string | null>(null);
 
-  const scrollToBottom = useCallback(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    nearBottomRef.current = true;
-    setShowScrollBtn(false);
-  }, []);
+  const isDm = conversation?.type === 'dm';
+  const isChannel = conversation?.type === 'channel';
+  const groupLike = conversation ? isGroupLike(conversation) : false;
+  const customerSide = conversation ? isCustomerSide(conversation) : false;
+  const otherUserId = conversation ? chatOtherUserId(conversation, me) : null;
+  useEffect(() => { otherIdRef.current = otherUserId; }, [otherUserId]);
+  const isAdmin = conversation?.my_role === 'admin' || (Boolean(me) && String(conversation?.admin_id) === me);
+  const canSend = !isBlocked && (!isChannel || isAdmin);
 
-  // ── Load conversation + messages ──────────────────────────────────────────
-  const loadMessages = useCallback(async () => {
-    if (!id) return;
-    try {
-      const { data } = await client.get(`/api/messages/conversations/${id}/messages?limit=200`);
-      setMessages(Array.isArray(data) ? data : (data as any)?.messages ?? []);
-    } catch { /* ignore */ }
-  }, [id]);
-
-  // Mark the chat read while it's on screen: on open, on each new message from
-  // others, and when the tab comes back into view.
-  const lastMarked = useRef<string | null>(null);
+  // ── Loading ───────────────────────────────────────────────────────────────
   const markRead = useCallback(() => {
     if (!id || document.visibilityState !== 'visible') return;
     client.post(`/api/messages/conversations/${id}/read`).catch(() => undefined);
   }, [id]);
-  useEffect(() => {
-    const last = messages[messages.length - 1] as any;
-    if (!last || last._temp || String(last.sender_id) === String(user?.id) || lastMarked.current === last.id) return;
-    lastMarked.current = last.id;
-    markRead();
-  }, [messages, markRead, user?.id]);
-  useEffect(() => {
-    const onVisible = () => { if (document.visibilityState === 'visible') markRead(); };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [markRead]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const convId = id;
-
-    async function init() {
-      if (!convId) return;
-      try {
-        const [convRes] = await Promise.all([
-          client.get(`/api/messages/conversations/${convId}`),
-          loadMessages(),
-        ]);
-        if (!cancelled) {
-          setConversation(convRes.data);
-          setMembers(Array.isArray(convRes.data?.members) ? convRes.data.members : []);
-          markRead();
-        }
-      } catch { /* ignore */ } finally {
-        if (!cancelled) setLoading(false);
-        if (!cancelled && typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches) {
-          inputRef.current?.focus({ preventScroll: true });
-        }
-      }
-
-      // Restore any messages that were queued while offline
-      if (!cancelled) {
-        getPendingMessages(convId).then((pending) => {
-          if (cancelled) return;
-          setOfflineQueue(pending);
-          // Show queued messages as pending bubbles so the user sees what is
-          // waiting to send.  They are replaced by real messages once the
-          // socket reconnects and flushes the queue.
-          if (pending.length > 0) {
-            setMessages((prev: unknown[]) => [
-              ...prev,
-              ...pending.map((p) => ({
-                id: p.id,
-                conversation_id: p.conversationId,
-                sender_id: user?.id,
-                sender_name: user?.full_name || 'You',
-                content: p.content,
-                type: p.type,
-                created_at: p.createdAt,
-                edited: false,
-                reply_to_id: p.replyToId,
-                _temp: true,
-                _pending: true,
-              })),
-            ]);
-          }
-        }).catch(() => {});
-      }
-    }
-    init();
-
-    if (!convId) { setLoading(false); return; }
-
-    const socket = getSocket();
-    joinConversation(convId);
-
-    const onNew = (msg) => {
-      if (msg.conversation_id === convId) {
-        setMessages(prev => {
-          if (prev.some(m => m.id === msg.id)) return prev;
-          const withoutTemp = prev.filter(m => !(m._temp && m.sender_id === msg.sender_id && m.content === msg.content));
-          return [...withoutTemp, msg];
-        });
-        if (String(msg.sender_id) !== String(user?.id) && typeof document !== 'undefined' && document.visibilityState === 'visible') {
-          const who = msg.sender_name || 'New message';
-          const snippetText = msg.type === 'image' ? 'photo' : String(msg.content || '').slice(0, 60);
-          setLiveAnnouncement(`${who}: ${snippetText}`);
-        }
-      }
-    };
-    const onEdited = (msg) => {
-      if (msg.conversation_id === convId) {
-        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, ...msg } : m));
-      }
-    };
-    const onDeleted = (payload) => {
-      const deletedId = payload.id || payload.message_id;
-      setMessages(prev => prev.filter(m => m.id !== deletedId));
-    };
-
-    socket.on('new_message', onNew);
-    socket.on('message_edited', onEdited);
-    socket.on('message_deleted', onDeleted);
-    const onReceipt = (event) => {
-      if (event?.conversation_id === convId) setMembers(prev => applyReceipt(prev, event));
-    };
-    socket.on('conversation_read', onReceipt);
-    socket.on('conversation_delivered', onReceipt);
-    const onPresenceUpdated = (update) => {
-      if (update?.user_id && String(update.user_id) === String(otherUserIdRef.current)) {
-        setPresence({ status: update.status, last_seen: update.last_seen || null });
-      }
-    };
-    socket.on('presence_updated', onPresenceUpdated);
-    const onTypingUpdated = (update) => {
-      if (update?.conversation_id === convId && String(update.user_id) !== String(user?.id)) {
-        const isTyping = Boolean(update.is_typing);
-        setOtherTyping(isTyping);
-        if (remoteTypingTimer.current) clearTimeout(remoteTypingTimer.current);
-        if (isTyping) {
-          // Clear a stale indicator if a phone loses connectivity before it can
-          // send its final typing=false event.
-          remoteTypingTimer.current = setTimeout(() => setOtherTyping(false), 3000);
-        }
-      }
-    };
-    socket.on('typing_updated', onTypingUpdated);
-
-    const onReactionUpdate = (payload: { message_id: string; reactions: MessageReactionMap }) => {
-      setMessages((prev: unknown[]) => prev.map((m: unknown) => {
-        const message = m as { id: string };
-        return message.id === payload.message_id ? { ...message, reactions: payload.reactions } : m;
-      }));
-    };
-    socket.on('reaction_added', onReactionUpdate);
-    socket.on('reaction_removed', onReactionUpdate);
-
-    const onMessagePinned = (p: { message_id: string; conversation_id: string }) => {
-      if (p.conversation_id === convId) {
-        // Newest pin first.
-        setPinnedMsgs(prev => new Set([p.message_id, ...prev]));
-      }
-    };
-    const onMessageUnpinned = (p: { message_id: string; conversation_id: string }) => {
-      if (p.conversation_id === convId) {
-        setPinnedMsgs(prev => {
-          const s = new Set(prev);
-          s.delete(p.message_id);
-          return s;
-        });
-      }
-    };
-    socket.on('message_pinned', onMessagePinned);
-    socket.on('message_unpinned', onMessageUnpinned);
-
-    // On reconnect, flush any messages that were queued while offline
-    const onReconnect = () => {
-      getAllPendingMessages().then((pending) => {
-        pending.forEach((qMsg) => {
-          client
-            .post(`/api/messages/conversations/${qMsg.conversationId}/messages`, {
-              content: qMsg.content,
-              type: qMsg.type,
-              ...(qMsg.replyToId ? { reply_to_id: qMsg.replyToId } : {}),
-            })
-            .then(() => {
-              removePendingMessage(qMsg.id).catch(() => {});
-              setOfflineQueue((prev) => prev.filter((m) => m.id !== qMsg.id));
-              // Remove the pending bubble from the messages list
-              setMessages((prev: unknown[]) =>
-                prev.filter((m) => (m as { id: string }).id !== qMsg.id),
-              );
-            })
-            .catch(() => {
-              // Leave in queue — will retry on next reconnect
-            });
-        });
-      }).catch(() => {});
-    };
-    socket.on('connect', onReconnect);
-
-    return () => {
-      cancelled = true;
-      leaveConversation(convId);
-      socket.off('conversation_read', onReceipt);
-      socket.off('conversation_delivered', onReceipt);
-      socket.off('new_message', onNew);
-      socket.off('message_edited', onEdited);
-      socket.off('message_deleted', onDeleted);
-      socket.off('presence_updated', onPresenceUpdated);
-      socket.off('typing_updated', onTypingUpdated);
-      socket.off('reaction_added', onReactionUpdate);
-      socket.off('reaction_removed', onReactionUpdate);
-      socket.off('message_pinned', onMessagePinned);
-      socket.off('message_unpinned', onMessageUnpinned);
-      socket.off('connect', onReconnect);
-      setTyping(false);
-      if (remoteTypingTimer.current) clearTimeout(remoteTypingTimer.current);
-    };
-    // Only the chat id (and who is signed in) restarts this; it used to load three times per open.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, user?.id]);
-
-  // Resolve other user ID for DM features
-  useEffect(() => {
-    if (!conversation || !user) return;
-    if (conversation.type === 'dm') {
-      try {
-        const ids = JSON.parse(conversation.participant_ids || '[]');
-        const other = ids.find(uid => String(uid) !== String(user.id));
-        setOtherUserId(other || null);
-      } catch { /* ignore */ }
-    }
-  }, [conversation, user]);
-
-  // Check block status + presence when other user resolves
-  useEffect(() => {
-    if (!otherUserId) return;
-    client.get(`/api/messages/block/${otherUserId}`)
-      .then(r => setIsBlocked(r.data.blocked))
-      .catch(() => {});
-    const fetchPresence = () => {
-      client.get(`/api/messages/presence/${otherUserId}`)
-        .then(r => setPresence({ status: r.data.status, last_seen: r.data.last_seen || null }))
-        .catch(() => {});
-    };
-    fetchPresence();
-    const interval = setInterval(fetchPresence, 30_000); // poll every 30s
-    return () => clearInterval(interval);
-  }, [otherUserId]);
-
-  // Load the partner avatar independently of the conversation record. Older
-  // conversations do not contain profile media, which used to leave only an
-  // initial in the chat header.
-  useEffect(() => {
-    if (!otherUserId) { setOtherProfile(null); return; }
-    let cancelled = false;
-    client.get(`/api/profiles?user_id=${otherUserId}&limit=1`)
-      .then(({ data }) => {
-        const profile = Array.isArray(data) ? data[0] : data?.data?.[0];
-        if (!cancelled) setOtherProfile(profile || null);
-      })
-      .catch(() => { if (!cancelled) setOtherProfile(null); });
-    return () => { cancelled = true; };
-  }, [otherUserId]);
-
-  // Load pinned message IDs for this conversation
   useEffect(() => {
     if (!id) return;
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      try {
+        const [{ data: conv }, { data: rows }] = await Promise.all([
+          client.get(`/api/messages/conversations/${id}`),
+          client.get(`/api/messages/conversations/${id}/messages`, { params: { limit: PAGE } }),
+        ]);
+        if (cancelled) return;
+        const list: ChatMessage[] = Array.isArray(rows) ? rows : [];
+        setConversation(conv as Conversation);
+        setMembers(Array.isArray(conv?.members) ? conv.members : []);
+        setHasOlder(list.length >= PAGE);
+        // Where your unread part starts, before this visit marks everything read.
+        const lastRead = conv?.last_read_at ? new Date(conv.last_read_at).getTime() : null;
+        const firstUnread = lastRead === null ? null
+          : list.find((m) => String(m.sender_id) !== String(me) && new Date(m.created_at).getTime() > lastRead);
+        setFirstUnreadId(firstUnread?.id ?? null);
+        const pending = await getPendingMessages(id).catch(() => []);
+        setMessages(mergeById(list, pending.map((p) => ({
+          id: p.id, conversation_id: p.conversationId, sender_id: me, content: p.content, type: p.type,
+          created_at: p.createdAt, reply_to_id: p.replyToId, _temp: true, _pending: true,
+        }))));
+        markRead();
+      } catch (err) {
+        if (!cancelled) setNotFound(apiErrorMessage(err, 'This chat could not be opened.'));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
     client.get(`/api/messages/conversations/${id}/pins`)
-      .then(r => {
-        const pins = r.data as Array<{ message_id: string; content?: unknown; type?: string }>;
-        setPinnedMsgs(new Set(pins.map(p => p.message_id)));
-        setPinTexts(Object.fromEntries(pins.map(p => [p.message_id, pinPreviewText(p)])));
+      .then(({ data }) => {
+        if (cancelled) return;
+        const rows = Array.isArray(data) ? data as Array<{ message_id: string; content?: unknown; type?: string }> : [];
+        setPins(rows.map((p) => p.message_id));
+        setPinTexts(Object.fromEntries(rows.map((p) => [p.message_id, pinPreviewText(p)])));
       })
-      .catch(() => {});
-  }, [id]);
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [id, me, markRead]);
 
+  const loadOlder = useCallback(async () => {
+    const oldest = messages.find((m) => !m._temp);
+    if (!id || !oldest || loadingOlder) return;
+    setLoadingOlder(true);
+    try {
+      const { data } = await client.get(`/api/messages/conversations/${id}/messages`, { params: { limit: PAGE, before: oldest.created_at } });
+      const older: ChatMessage[] = Array.isArray(data) ? data : [];
+      setHasOlder(older.length >= PAGE);
+      setMessages((prev) => mergeById(prev, older));
+    } catch { toast.error('Could not load earlier messages'); }
+    finally { setLoadingOlder(false); }
+  }, [id, messages, loadingOlder]);
+
+  // The other person: profile picture, presence and whether you blocked them.
   useEffect(() => {
-    if (nearBottomRef.current) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-  // Focus input when reply/edit changes
+    if (!otherUserId) return;
+    let cancelled = false;
+    client.get(`/api/messages/block/${otherUserId}`).then((r) => { if (!cancelled) setIsBlocked(Boolean(r.data?.blocked)); }).catch(() => undefined);
+    client.get('/api/profiles', { params: { user_id: otherUserId, limit: 1 } })
+      .then(({ data }) => { if (!cancelled) setOtherProfile((Array.isArray(data) ? data[0] : data?.data?.[0]) ?? null); })
+      .catch(() => undefined);
+    const fetchPresence = () => client.get(`/api/messages/presence/${otherUserId}`)
+      .then((r) => { if (!cancelled) setPresence({ status: r.data.status, last_seen: r.data.last_seen || null }); })
+      .catch(() => undefined);
+    void fetchPresence();
+    const t = setInterval(fetchPresence, 60_000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [otherUserId]);
+
+  // ── Live updates ──────────────────────────────────────────────────────────
   useEffect(() => {
-    inputRef.current?.focus();
-  }, [replyingTo, editingMsg]);
+    if (!id) return;
+    const socket = getSocket();
+    joinConversation(id);
+    let typingOff: ReturnType<typeof setTimeout> | null = null;
 
-  // ── Actions ───────────────────────────────────────────────────────────────
-  const handleSend = async () => {
-    if (editingMsg) { await handleSaveEdit(); return; }
-    const content = (textRef.current || text).trim();
-    if (!content) return;
-
-    // Use conversation id from state as final fallback if params not yet hydrated
-    const convId = id || conversation?.id;
-    if (!convId) {
-      toast.error('Chat not ready — please try again');
-      return;
-    }
-
-    const replyId = replyingTo?.id || null;
-    const tempId = `temp-${Date.now()}`;
-    const tempMsg = {
-      id: tempId,
-      conversation_id: convId,
-      sender_id: user?.id,
-      sender_name: user?.full_name || 'You',
-      content,
-      type: 'text',
-      created_at: new Date().toISOString(),
-      edited: false,
-      reply_to_id: replyId,
-      _temp: true,
+    const onNew = (msg: ChatMessage) => {
+      if (msg.conversation_id !== id) return;
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id)) return prev;
+        const withoutTemp = prev.filter((m) => !(m._temp && !m._failed && String(m.sender_id) === String(msg.sender_id) && m.content === msg.content));
+        return [...withoutTemp, msg];
+      });
+      if (String(msg.sender_id) !== String(me)) {
+        setNewWhileAway((n) => n + 1);
+        setOtherTyping(false);
+        if (document.visibilityState === 'visible') {
+          markRead();
+          setAnnouncement(`${msg.sender_name || 'New message'}: ${messagePreview(msg)}`);
+        }
+      }
+    };
+    const onEdited = (msg: ChatMessage) => { if (msg.conversation_id === id) setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, ...msg } : m))); };
+    const onDeleted = (p: { id?: string; message_id?: string }) => {
+      const gone = p.id || p.message_id;
+      setMessages((prev) => prev.filter((m) => m.id !== gone));
+    };
+    const onHidden = (p: { message_id?: string }) => setMessages((prev) => prev.filter((m) => m.id !== p.message_id));
+    const onReceipt = (e: { conversation_id?: string; user_id: string; last_read_at?: string; last_delivered_at?: string }) => {
+      if (e?.conversation_id === id) setMembers((prev) => applyReceipt(prev, e));
+    };
+    const onPresence = (u: { user_id?: string; status: PresenceData['status']; last_seen?: string }) => {
+      if (u?.user_id && String(u.user_id) === String(otherIdRef.current)) setPresence({ status: u.status, last_seen: u.last_seen || null });
+    };
+    const onTyping = (u: { conversation_id?: string; user_id?: string; is_typing?: boolean }) => {
+      if (u?.conversation_id !== id || String(u.user_id) === String(me)) return;
+      setOtherTyping(Boolean(u.is_typing));
+      if (typingOff) clearTimeout(typingOff);
+      if (u.is_typing) typingOff = setTimeout(() => setOtherTyping(false), 4000);
+    };
+    const onReaction = (p: { message_id: string; reactions: MessageReactionMap }) => {
+      setMessages((prev) => prev.map((m) => (m.id === p.message_id ? { ...m, reactions: p.reactions } : m)));
+    };
+    const onPinned = (p: { message_id: string; conversation_id: string }) => { if (p.conversation_id === id) setPins((prev) => [p.message_id, ...prev.filter((x) => x !== p.message_id)]); };
+    const onUnpinned = (p: { message_id: string; conversation_id: string }) => { if (p.conversation_id === id) setPins((prev) => prev.filter((x) => x !== p.message_id)); };
+    // Back online: send what was queued, and fetch anything missed while away.
+    const onConnect = () => {
+      getAllPendingMessages().then((queued) => queued.forEach((q) => {
+        client.post(`/api/messages/conversations/${q.conversationId}/messages`, { content: q.content, type: q.type, ...(q.replyToId ? { reply_to_id: q.replyToId } : {}) })
+          .then(({ data }) => {
+            void removePendingMessage(q.id);
+            if (q.conversationId === id) setMessages((prev) => mergeById(prev.filter((m) => m.id !== q.id), [data as ChatMessage]));
+          })
+          .catch(() => undefined);
+      })).catch(() => undefined);
+      client.get(`/api/messages/conversations/${id}/messages`, { params: { limit: PAGE } })
+        .then(({ data }) => { if (Array.isArray(data)) setMessages((prev) => mergeById(prev, data)); })
+        .catch(() => undefined);
     };
 
-    // ── Offline path ───────────────────────────────────────────────────
-    if (!navigator.onLine) {
-      const pendingBubble = { ...tempMsg, _pending: true };
-      setMessages(prev => [...prev, pendingBubble]);
-      setText('');
-      textRef.current = '';
-      setReplyingTo(null);
+    const events: Array<[string, (...a: never[]) => void]> = [
+      ['new_message', onNew], ['message_edited', onEdited], ['message_deleted', onDeleted], ['message_hidden', onHidden],
+      ['conversation_read', onReceipt], ['conversation_delivered', onReceipt], ['presence_updated', onPresence],
+      ['typing_updated', onTyping], ['reaction_added', onReaction], ['reaction_removed', onReaction],
+      ['message_pinned', onPinned], ['message_unpinned', onUnpinned], ['connect', onConnect],
+    ];
+    for (const [name, fn] of events) socket.on(name, fn as (...a: unknown[]) => void);
+    const onVisible = () => { if (document.visibilityState === 'visible') markRead(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      leaveConversation(id);
+      for (const [name, fn] of events) socket.off(name, fn as (...a: unknown[]) => void);
+      document.removeEventListener('visibilitychange', onVisible);
+      if (typingOff) clearTimeout(typingOff);
+      socket.emit('typing', { conversationId: id, isTyping: false });
+    };
+  }, [id, me, markRead]);
 
-      enqueuePendingMessage({
-        conversationId: convId,
-        content,
-        type: 'text',
-        replyToId: replyId,
-        createdAt: pendingBubble.created_at,
-      }).then((queuedId) => {
-        // Replace the temp id with the durable queue id so we can remove it
-        // from both the messages list and the queue when it is eventually sent.
-        setMessages(prev =>
-          prev.map(m => (m as { id: string }).id === tempId ? { ...pendingBubble, id: queuedId } : m),
-        );
-        setOfflineQueue(prev => [
-          ...prev,
-          {
-            id: queuedId,
-            conversationId: convId,
-            content,
-            type: 'text',
-            replyToId: replyId,
-            createdAt: pendingBubble.created_at,
-          },
-        ]);
-      }).catch(() => {
-        // Could not persist — leave as temp bubble, it will disappear on refresh
+  const setTyping = useCallback((typing: boolean) => {
+    if (!id) return;
+    if (typingTimer.current) clearTimeout(typingTimer.current);
+    getSocket().emit('typing', { conversationId: id, isTyping: typing });
+  }, [id]);
+
+  // ── Sending ───────────────────────────────────────────────────────────────
+  const deliver = useCallback(async (temp: ChatMessage) => {
+    setMessages((prev) => prev.map((m) => (m.id === temp.id ? { ...m, _failed: false } : m)));
+    try {
+      const { data } = await client.post(`/api/messages/conversations/${id}/messages`, {
+        content: temp.content, type: temp.type ?? 'text', ...(temp.reply_to_id ? { reply_to_id: temp.reply_to_id } : {}),
       });
+      setMessages((prev) => mergeById(prev.filter((m) => m.id !== temp.id), [data as ChatMessage]));
+      // Replying to a message request accepts it.
+      setConversation((c) => (c?.is_request ? { ...c, is_request: false } : c));
+    } catch (err) {
+      setMessages((prev) => prev.map((m) => (m.id === temp.id ? { ...m, _failed: true } : m)));
+      toast.error(apiErrorMessage(err, 'Message not sent'));
+    }
+  }, [id]);
+
+  const send = useCallback(async (content: string, type: 'text' | 'image' = 'text', replyId?: string | null) => {
+    if (!id) return;
+    const temp: ChatMessage = {
+      id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, conversation_id: id, sender_id: me,
+      sender_name: user?.full_name || 'You', content, type, created_at: new Date().toISOString(), reply_to_id: replyId ?? null, _temp: true,
+    };
+    setScrollSignal((n) => n + 1);
+    setNewWhileAway(0);
+    if (typeof navigator !== 'undefined' && !navigator.onLine && type === 'text') {
+      setMessages((prev) => [...prev, { ...temp, _pending: true }]);
+      const queuedId = await enqueuePendingMessage({ conversationId: id, content, type, replyToId: replyId ?? null, createdAt: temp.created_at }).catch(() => null);
+      if (queuedId) setMessages((prev) => prev.map((m) => (m.id === temp.id ? { ...m, id: queuedId } : m)));
       return;
     }
+    setMessages((prev) => [...prev, temp]);
+    await deliver(temp);
+  }, [id, me, user?.full_name, deliver]);
 
-    // ── Online path (existing logic) ───────────────────────────────────
-    // Optimistic update — add message to UI immediately
-    setMessages(prev => [...prev, tempMsg]);
-    scrollToBottom();   // always scroll when I send
-    setText('');
-    textRef.current = '';
-    setReplyingTo(null);
-    setSending(true);
-    setTyping(false);
+  const onSend = (text: string) => {
+    const replyId = replyTo?.id ?? null;
+    setReplyTo(null);
+    void send(text, 'text', replyId);
+  };
 
+  const onPickPhotos = async (files: File[]) => {
+    const photos = files.filter((f) => f.type.startsWith('image/'));
+    const tooBig = photos.filter((f) => f.size > MAX_PHOTO_BYTES);
+    if (tooBig.length) toast.error(`${tooBig.length === 1 ? 'One photo is' : `${tooBig.length} photos are`} larger than 10 MB and won't be sent`);
+    const ok = photos.filter((f) => f.size <= MAX_PHOTO_BYTES).slice(0, MAX_PHOTOS);
+    if (photos.length > MAX_PHOTOS) toast.info(`Up to ${MAX_PHOTOS} photos at a time`);
+    if (!ok.length) return;
+    const replyId = replyTo?.id ?? null;
+    setReplyTo(null);
+    setUploading({ done: 0, total: ok.length });
+    let failed = 0;
+    for (let i = 0; i < ok.length; i++) {
+      try {
+        const url = await uploadFile(ok[i]);
+        await send(url, 'image', i === 0 ? replyId : null);
+      } catch { failed++; }
+      setUploading({ done: i + 1, total: ok.length });
+    }
+    setUploading(null);
+    if (failed) toast.error(`${failed} photo${failed === 1 ? '' : 's'} couldn't be sent`);
+  };
+
+  const onSaveEdit = async (text: string) => {
+    const target = editing;
+    if (!target) return;
+    setEditing(null);
     try {
-      const { data: sent } = await client.post(`/api/messages/conversations/${convId}/messages`, {
-        content,
-        type: 'text',
-        ...(replyId ? { reply_to_id: replyId } : {}),
-      });
-      // Replace temp message with real one from server
-      setMessages(prev => prev.map(m => m.id === tempId ? sent : m));
-    } catch (err: unknown) {
-      // Remove optimistic message on failure
-      setMessages(prev => prev.filter(m => m.id !== tempId));
-      setText(content);
-      textRef.current = content;
-      const errMsg = apiErrorMessage(err, 'Failed to send');
-      toast.error(errMsg);
-      console.error('Send failed:', errMsg, err);
-    }
-    setSending(false);
+      const { data } = await client.put(`/api/messages/${target.id}`, { content: text });
+      setMessages((prev) => prev.map((m) => (m.id === target.id ? { ...m, ...(data as ChatMessage), content: text, edited: true } : m)));
+    } catch (err) { toast.error(apiErrorMessage(err, 'Could not edit the message')); }
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Choose an image smaller than 10 MB');
-      event.target.value = '';
-      return;
-    }
-    const convId = id || conversation?.id;
-    if (!convId) return;
-    setUploadingImage(true);
-    try {
-      const url = await uploadFile(file);
-      const { data: sent } = await client.post(`/api/messages/conversations/${convId}/messages`, {
-        content: url,
-        type: 'image',
-      });
-      setMessages(prev => prev.some(message => message.id === sent.id) ? prev : [...prev, sent]);
-    } catch {
-      toast.error('Could not send the picture. Please try again.');
-    } finally {
-      setUploadingImage(false);
-      event.target.value = '';
-    }
-  };
-
-  const startEdit = (msg) => {
-    setEditingMsg(msg);
-    setEditText(msg.content);
-    setReplyingTo(null);
-    setHoveredMsg(null);
-    setSelectedMsg(null);
-    inputRef.current?.focus();
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editText.trim() || !editingMsg) return;
-    try {
-      await client.put(`/api/messages/${editingMsg.id}`, { content: editText.trim() });
-      setMessages(prev => prev.map(m => m.id === editingMsg.id ? { ...m, content: editText.trim(), edited: true } : m));
-    } catch { toast.error('Failed to edit message'); }
-    setEditingMsg(null);
-    setEditText('');
-    setText('');
-  };
-
-  const handleDelete = (msg) => {
-    if (deletingMsg?.id === msg.id) {
-      // Confirmed
-      clearTimeout(deleteTimer.current);
-      client.delete(`/api/messages/${msg.id}`)
-        .then(() => setMessages(prev => prev.filter(m => m.id !== msg.id)))
-        .catch(() => toast.error('Failed to delete'));
-      setDeletingMsg(null);
-    } else {
-      setDeletingMsg(msg);
-      deleteTimer.current = setTimeout(() => setDeletingMsg(null), 3000);
-    }
-  };
-
-  const handleForward = async (targetConvId: string) => {
-    if (!forwardMsg) return;
-    try {
-      await client.post(`/api/messages/${forwardMsg.id}/forward`, {
-        target_conversation_id: targetConvId,
-      });
-      toast.success('Message forwarded');
-    } catch {
-      toast.error('Failed to forward message');
-    }
-    setForwardMsg(null);
-    setForwardSearch('');
-  };
-
-  // Load conversations for forward picker (lazy)
-  useEffect(() => {
-    if (forwardMsg && conversations.length === 0) {
-      client.get('/api/messages/conversations').then(r => {
-        setConversations(Array.isArray(r.data) ? r.data : []);
-      }).catch(() => {});
-    }
-  }, [forwardMsg, conversations.length]);
-
-  const handleClearHistory = async () => {
-    setHeaderMenuOpen(false);
-    try {
-      await client.delete(`/api/messages/conversations/${id}/history`);
-      setMessages([]);
-      toast.success('Chat history cleared');
-    } catch { toast.error('Failed to clear history'); }
-  };
-
-  const handleBlock = async () => {
-    setHeaderMenuOpen(false);
-    if (!otherUserId) return;
-    try {
-      if (isBlocked) {
-        await client.delete(`/api/messages/block/${otherUserId}`);
-        setIsBlocked(false);
-        toast.success('User unblocked');
-      } else {
-        await client.post(`/api/messages/block/${otherUserId}`);
-        setIsBlocked(true);
-        toast.success('User blocked');
-      }
-    } catch { toast.error('Failed to update block status'); }
-  };
-
-  const handleBack = () => {
-    if (isExiting) return;
-    // Delete an empty chat opened in the last 5 minutes, without making Back wait for it.
-    if (messages.length === 0 && conversation) {
-      const age = Date.now() - new Date(conversation.created_at).getTime();
-      if (age < 5 * 60 * 1000) void client.delete(`/api/messages/conversations/${id}`).catch(() => { /* ignore */ });
-    }
-    // Leave once the slide-out finishes (onAnimationComplete), or at once with reduced motion.
-    if (reducedMotion) { router.push('/messages'); return; }
-    setIsExiting(true);
-  };
-
-  // ── Long-press / context menu helpers ────────────────────────────────────
-  const startLongPress = (msg) => {
-    longPressTimer.current = setTimeout(() => {
-      // Haptic feedback on supported devices
-      if (navigator?.vibrate) navigator.vibrate(40);
-      setSelectedMsg(msg);
-    }, 280);
-  };
-  const cancelLongPress = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  };
-  const dismissContextMenu = () => {
-    setSelectedMsg(null);
-    setDeletingMsg(null);
-  };
-  const handleCopy = (msg) => {
-    navigator.clipboard?.writeText(msg.content || '')
-      .then(() => toast.success('Copied to clipboard'))
-      .catch(() => toast.error('Could not copy'));
-    dismissContextMenu();
-  };
-  const handleContextReply = (msg) => {
-    setReplyingTo(msg);
-    setEditingMsg(null);
-    setText('');
-    dismissContextMenu();
-    setTimeout(() => inputRef.current?.focus(), 100);
-  };
-  const handleContextEdit = (msg) => {
-    startEdit(msg);
-    dismissContextMenu();
-  };
-  const handleContextDelete = (msg) => {
-    dismissContextMenu();
-    // Two-tap confirm via deletingMsg
-    handleDelete(msg);
-  };
-  const handleContextForward = (msg) => {
-    setForwardMsg(msg);
-    dismissContextMenu();
-  };
-  /** Adds a reaction, or removes it when it's already yours (tap again to undo). */
-  const handleReact = async (msg: { id: string; conversation_id: string; reactions?: MessageReactionMap }, emoji: string, mine?: boolean) => {
-    dismissContextMenu();
-    const already = mine ?? reactedByMe(msg.reactions?.[emoji], user?.id);
+  // ── Message actions ───────────────────────────────────────────────────────
+  const react = async (msg: ChatMessage, emoji: string, mine?: boolean) => {
+    setActionsFor(null);
+    const already = mine ?? reactedByMe((msg.reactions as MessageReactionMap | undefined)?.[emoji], me);
     try {
       const { data } = already
         ? await client.delete(`/api/messages/messages/${msg.id}/reactions`, { data: { emoji } })
         : await client.post(`/api/messages/messages/${msg.id}/reactions`, { emoji });
-      setMessages((prev: unknown[]) => prev.map((m: unknown) => {
-        const message = m as { id: string };
-        return message.id === msg.id ? { ...message, reactions: (data as { reactions: MessageReactionMap }).reactions } : m;
-      }));
+      setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, reactions: (data as { reactions: MessageReactionMap }).reactions } : m)));
     } catch (err) { toast.error(apiErrorMessage(err, already ? 'Could not remove the reaction' : 'Could not add the reaction')); }
   };
-  const handlePin = async (msg: { id: string }) => {
-    dismissContextMenu();
+
+  const togglePin = async (msg: ChatMessage) => {
+    setActionsFor(null);
+    const pinned = pins.includes(msg.id);
+    if (!pinned && pins.length >= MAX_PINS) { toast.info(`You can pin up to ${MAX_PINS} messages. Unpin one first.`); return; }
     try {
-      if (pinnedMsgs.has(msg.id)) {
+      if (pinned) {
         await client.delete(`/api/messages/messages/${msg.id}/pin`);
-        setPinnedMsgs(prev => { const s = new Set(prev); s.delete(msg.id); return s; });
-        toast.success('Unpinned');
+        setPins((prev) => prev.filter((x) => x !== msg.id));
       } else {
         await client.post(`/api/messages/messages/${msg.id}/pin`);
-        setPinnedMsgs(prev => new Set([msg.id, ...prev]));
-        toast.success('Pinned message');
+        setPins((prev) => [msg.id, ...prev.filter((x) => x !== msg.id)]);
       }
-    } catch { toast.error('Failed to update pin'); }
+    } catch (err) { toast.error(apiErrorMessage(err, 'Could not update the pin')); }
   };
-  const pinnedList: PinnedPreview[] = [...pinnedMsgs].map(pid => {
-    const loaded = (messages as Array<{ id: string; type?: string; content?: unknown }>).find(m => m.id === pid);
+
+  const deleteMessage = async (msg: ChatMessage, scope: 'me' | 'everyone') => {
+    setActionsFor(null);
+    try {
+      await client.delete(scope === 'everyone' ? `/api/messages/${msg.id}` : `/api/messages/${msg.id}/for-me`);
+      setMessages((prev) => prev.filter((m) => m.id !== msg.id));
+    } catch (err) { toast.error(apiErrorMessage(err, 'Could not delete the message')); }
+  };
+
+  const copy = (msg: ChatMessage) => {
+    setActionsFor(null);
+    navigator.clipboard?.writeText(msg.content ?? '').then(() => toast.success('Copied')).catch(() => toast.error('Could not copy'));
+  };
+
+  const forward = async (targetId: string) => {
+    const msg = forwarding;
+    setForwarding(null);
+    if (!msg) return;
+    try {
+      await client.post(`/api/messages/${msg.id}/forward`, { target_conversation_id: targetId });
+      toast.success('Forwarded');
+    } catch (err) { toast.error(apiErrorMessage(err, 'Could not forward the message')); }
+  };
+
+  const report = async (targetType: 'message' | 'user', targetId: string, reason: string) => {
+    setDialog(null);
+    try {
+      await client.post('/api/moderation/report', { target_type: targetType, target_id: targetId, reason });
+      toast.success('Thanks. We’ll review it.');
+    } catch (err) { toast.error(apiErrorMessage(err, 'Could not send the report')); }
+  };
+
+  // ── Chat menu ─────────────────────────────────────────────────────────────
+  const leaveToInbox = () => router.push('/messages');
+  const handleBack = () => {
+    if (isExiting) return;
+    if (reducedMotion || window.matchMedia?.('(min-width: 768px)').matches) { leaveToInbox(); return; }
+    setIsExiting(true);
+  };
+
+  const setMute = async (duration: string) => {
+    setDialog(null);
+    try {
+      const { data } = await client.put(`/api/messages/conversations/${id}/mute`, { duration });
+      setConversation((c) => (c ? { ...c, muted: Boolean(data?.muted) } : c));
+      toast.success(data?.muted ? 'Notifications muted' : 'Notifications on');
+    } catch (err) { toast.error(apiErrorMessage(err, 'Could not change notifications')); }
+  };
+  const setArchived = async (archived: boolean) => {
+    try {
+      await client.put(`/api/messages/conversations/${id}/archive`, { archived });
+      toast.success(archived ? 'Chat archived' : 'Chat moved back to Chats');
+      if (archived) leaveToInbox(); else setConversation((c) => (c ? { ...c, archived_at: null } : c));
+    } catch (err) { toast.error(apiErrorMessage(err, 'Could not update the chat')); }
+  };
+  const setBlocked = async (block: boolean) => {
+    setDialog(null);
+    if (!otherUserId) return;
+    try {
+      if (block) await client.post(`/api/messages/block/${otherUserId}`);
+      else await client.delete(`/api/messages/block/${otherUserId}`);
+      setIsBlocked(block);
+      toast.success(block ? 'Blocked. They can’t message you.' : 'Unblocked');
+    } catch (err) { toast.error(apiErrorMessage(err, 'Could not update the block')); }
+  };
+  const deleteChat = async () => {
+    setDialog(null);
+    try { await client.delete(`/api/messages/conversations/${id}/for-me`); leaveToInbox(); }
+    catch (err) { toast.error(apiErrorMessage(err, 'Could not delete the chat')); }
+  };
+  const leaveGroup = async () => {
+    setDialog(null);
+    try { await client.post(`/api/messages/conversations/${id}/leave`); leaveToInbox(); }
+    catch (err) { toast.error(apiErrorMessage(err, 'Could not leave')); }
+  };
+  const acceptRequest = async () => {
+    try {
+      await client.post(`/api/messages/conversations/${id}/accept`);
+      setConversation((c) => (c ? { ...c, is_request: false } : c));
+    } catch (err) { toast.error(apiErrorMessage(err, 'Could not accept the request')); }
+  };
+
+  const profileHref = otherUserId ? (customerSide ? `/profile/${otherUserId}?view=business` : `/profile/${otherUserId}`) : null;
+  const menu: HeaderMenuItem[] = [
+    ...(isDm && profileHref ? [{ label: customerSide ? 'View business' : 'View profile', icon: <UserCircle className="h-4 w-4" />, onClick: () => router.push(profileHref) }] : []),
+    conversation?.muted
+      ? { label: 'Unmute notifications', icon: <Bell className="h-4 w-4" />, onClick: () => void setMute('off') }
+      : { label: 'Mute notifications', icon: <BellOff className="h-4 w-4" />, onClick: () => setDialog({ kind: 'mute' }) },
+    conversation?.archived_at
+      ? { label: 'Unarchive', icon: <ArchiveRestore className="h-4 w-4" />, onClick: () => void setArchived(false) }
+      : { label: 'Archive', icon: <Archive className="h-4 w-4" />, onClick: () => void setArchived(true) },
+    ...(isDm && otherUserId ? [isBlocked
+      ? { label: 'Unblock', icon: <ShieldOff className="h-4 w-4" />, onClick: () => void setBlocked(false) }
+      : { label: 'Block', icon: <ShieldOff className="h-4 w-4" />, onClick: () => setDialog({ kind: 'block' }), destructive: true }] : []),
+    ...(isDm && otherUserId ? [{ label: 'Report', icon: <Flag className="h-4 w-4" />, onClick: () => setDialog({ kind: 'report-chat' }), destructive: true }] : []),
+    ...(groupLike ? [{ label: isChannel ? 'Leave channel' : 'Leave group', icon: <LogOut className="h-4 w-4" />, onClick: () => setDialog({ kind: 'leave' }), destructive: true }] : []),
+    { label: 'Delete chat for me', icon: <Trash2 className="h-4 w-4" />, onClick: () => setDialog({ kind: 'delete-chat' }), destructive: true },
+  ];
+
+  // ── Display ───────────────────────────────────────────────────────────────
+  const title = chatTitle(conversation, me);
+  const memberCount = members.length;
+  const subtitle = !conversation ? ''
+    : groupLike ? `${memberCount} ${isChannel ? 'subscriber' : 'member'}${memberCount === 1 ? '' : 's'}`
+    : otherTyping ? 'typing…'
+    : customerSide ? 'Business'
+    : conversation.business_id ? `Customer · ${conversation.business_name ?? 'your business'}`
+    : formatLastSeen(presence);
+  const avatar = customerSide ? chatAvatar(conversation)
+    : (() => { const a = otherProfile?.avatar_url; return (Array.isArray(a) ? a[0] : a) as string | undefined ?? chatAvatar(conversation); })();
+
+  const identity = isDm ? (
+    <UserIdentity
+      displayName={title}
+      avatarUrl={avatar ?? null}
+      businessName={!customerSide && otherProfile?.business_name ? String(otherProfile.business_name) : null}
+      businessSlug={!customerSide && otherProfile?.business_slug ? String(otherProfile.business_slug) : null}
+      showBusinessLink={!customerSide}
+      isVerified={Boolean(otherProfile?.is_verified)}
+      subtitle={subtitle}
+      onlineIndicator={isUserOnline(presence) && !customerSide}
+      size="sm"
+      variant="white"
+      onClick={profileHref ? () => router.push(profileHref) : undefined}
+      className="min-w-0 flex-1"
+    />
+  ) : (
+    <>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white" aria-hidden="true">
+        {isChannel ? <Radio className="h-5 w-5" /> : <Users className="h-5 w-5" />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold text-white">{title}</span>
+        <span className="block truncate text-xs text-white/75">{subtitle}</span>
+      </span>
+    </>
+  );
+
+  const byId = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
+  const photos = useMemo(() => messages.filter((m) => m.type === 'image' && m.content && !m._temp).map((m) => ({ src: String(m.content), alt: 'Photo' })), [messages]);
+  const pinnedList: PinnedPreview[] = pins.map((pid) => {
+    const loaded = byId.get(pid);
     return { id: pid, text: loaded ? pinPreviewText(loaded) : (pinTexts[pid] ?? 'Pinned message') };
   });
-  const jumpToMessage = (mid: string) => {
+
+  const jumpTo = (mid: string) => {
     const el = document.getElementById(`msg-${mid}`);
     if (!el) { toast.info('Scroll up to load older messages to see this one'); return false; }
     el.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
-    el.classList.add('ring-2', 'ring-primary/50', 'rounded-xl');
-    setTimeout(() => el.classList.remove('ring-2', 'ring-primary/50', 'rounded-xl'), 1600);
+    el.classList.add('bg-primary/10');
+    setTimeout(() => el.classList.remove('bg-primary/10'), 1600);
     return true;
   };
-  const handleSave = async (msg: { id: string }) => {
-    dismissContextMenu();
-    try {
-      if (savedMsgs.has(msg.id)) {
-        await client.delete(`/api/messages/saved/${msg.id}`);
-        setSavedMsgs(prev => { const s = new Set(prev); s.delete(msg.id); return s; });
-        toast.success('Removed from saved');
-      } else {
-        await client.post(`/api/messages/saved/${msg.id}`);
-        setSavedMsgs(prev => new Set([...prev, msg.id]));
-        toast.success('Added to saved messages');
-      }
-    } catch { toast.error('Failed to update saved'); }
-  };
-  const handleTranslate = async (msg) => {
-    dismissContextMenu();
-    try {
-      const { data } = await client.post('/api/messages/translate', { text: msg.content });
-      toast(data.translated || 'Translation unavailable', { duration: 6000 });
-    } catch { toast.error('Translation not available'); }
-  };
-  const handleCopyLink = (msg) => {
-    const url = `${window.location.origin}/messages/${id}?msg=${msg.id}`;
-    navigator.clipboard?.writeText(url)
-      .then(() => toast.success('Link copied'))
-      .catch(() => toast.error('Could not copy link'));
-    dismissContextMenu();
+
+  const renderMessage = (msg: ChatMessage, prev?: ChatMessage) => {
+    const mine = String(msg.sender_id) === String(me);
+    const firstOfRun = !prev || String(prev.sender_id) !== String(msg.sender_id) || prev.type === 'context';
+    const quoted = msg.reply_to_id ? byId.get(msg.reply_to_id) : null;
+    return (
+      <MessageBubble
+        msg={msg}
+        isMe={mine}
+        showSender={groupLike && !mine && firstOfRun}
+        groupAvatar={groupLike && !mine ? (firstOfRun ? 'avatar' : 'space') : null}
+        quote={msg.reply_to_id ? {
+          name: quoted ? (String(quoted.sender_id) === String(me) ? 'You' : quoted.sender_name || title) : 'Message',
+          text: quoted ? messagePreview(quoted) : 'Earlier message',
+        } : null}
+        tick={tickFor(msg, me ?? undefined, members)}
+        selected={actionsFor?.id === msg.id}
+        currentUserId={me}
+        onOpenActions={setActionsFor}
+        onToggleReaction={(emoji, isMine) => void react(msg, emoji, isMine)}
+        onOpenPhoto={(url) => setPhotoIndex(Math.max(0, photos.findIndex((p) => p.src === url)))}
+        onRetry={(m) => void deliver(m)}
+        onQuoteClick={jumpTo}
+      />
+    );
   };
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
-  // Business chats: the customer sees the business; the owner sees the customer.
-  const businessChat = Boolean(conversation?.business_id);
-  const customerSide = businessChat && !conversation?.is_business_side;
+  if (notFound) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
+        <p className="text-sm text-muted-foreground">{notFound}</p>
+        <button type="button" onClick={leaveToInbox} className="h-10 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground">Back to messages</button>
+      </div>
+    );
+  }
 
-  const getDisplayName = () => {
-    if (!conversation) return 'Chat';
-    if (customerSide && conversation.business_name) return conversation.business_name;
-    if (conversation.type === 'dm' && conversation.other_name) return conversation.other_name;
-    if (conversation.type === 'group' || conversation.type === 'channel') {
-      return conversation.name || (conversation.type === 'channel' ? 'Channel' : 'Group');
-    }
-    try {
-      const names = JSON.parse(conversation.participant_names || '[]');
-      const ids   = JSON.parse(conversation.participant_ids   || '[]');
-      const idx   = ids.indexOf(user?.id);
-      return names[idx === 0 ? 1 : 0] || names[0] || 'Chat';
-    } catch { return 'Chat'; }
-  };
-
-  const getSubtitle = () => {
-    if (!conversation) return '';
-    if (conversation.type === 'channel' || conversation.type === 'group') {
-      try {
-        const count = JSON.parse(conversation.participant_ids || '[]').length;
-        return `${count} ${conversation.type === 'channel' ? 'subscriber' : 'member'}${count !== 1 ? 's' : ''}`;
-      } catch { return ''; }
-    }
-    if (otherTyping) return 'typing…';
-    // A business shows as a business, never the owner's personal "last seen".
-    if (customerSide) return 'Business';
-    if (businessChat) return `Customer · ${conversation.business_name ?? 'your business'}`;
-    // DM — show online or last seen
-    return formatLastSeen(presence);
-  };
-
-  const isOnline  = isUserOnline(presence);
-  const isAdmin   = conversation?.admin_id === user?.id;
-  const isChannel = conversation?.type === 'channel';
-  const isGroup   = conversation?.type === 'group';
-  const isDm      = conversation?.type === 'dm';
-  const canSend   = !isBlocked && (!isChannel || isAdmin);
-
-  // Group messages by date
-  const grouped = (() => {
-    const groups: Record<string, unknown[]> = {};
-    messages.forEach(msg => {
-      const key = fmtDate(parseISO(msg.created_at), 'yyyy-MM-dd');
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(msg);
-    });
-    return Object.entries(groups);
-  })();
-
-  const dateLabel = (key: string) => {
-    const d = parseISO(key);
-    if (isToday(d)) return 'Today';
-    if (isYesterday(d)) return 'Yesterday';
-    return fmtLongDate(d);
-  };
-
-  const otherAvatarUrl = customerSide ? conversation?.business_logo : Array.isArray(otherProfile?.avatar_url)
-    ? otherProfile.avatar_url[0]
-    : otherProfile?.avatar_url;
-  const profileHref = customerSide ? `/profile/${otherUserId}?view=business` : `/profile/${otherUserId}`;
-
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-    <motion.div
-      // Phones: a full-screen layer over the app bar, exactly the visible area
-      // (it follows the keyboard; see useChatViewport). Larger screens: in the page.
-      className="fixed inset-x-0 top-[var(--chat-top,0px)] z-[55] flex h-[var(--chat-vh,100dvh)] flex-col overflow-hidden bg-[hsl(var(--chat-bg))] md:static md:z-auto md:h-[calc(100dvh-3.5rem)]"
-      initial={reducedMotion ? false : { opacity: 0, x: 24 }}
-      animate={isExiting && !reducedMotion ? { opacity: 0, x: 24 } : { opacity: 1, x: 0 }}
-      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      onAnimationComplete={() => { if (isExiting) router.push('/messages'); }}
-    >
-      <span className="sr-only" aria-live="polite">{liveAnnouncement}</span>
+      <motion.div
+        className="fixed inset-x-0 top-[var(--chat-top,0px)] z-[55] flex h-[var(--chat-vh,100dvh)] flex-col overflow-hidden bg-[hsl(var(--chat-bg))] md:static md:z-auto md:h-full"
+        initial={reducedMotion ? false : { opacity: 0, x: 24 }}
+        animate={isExiting ? { opacity: 0, x: 24 } : { opacity: 1, x: 0 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        onAnimationComplete={() => { if (isExiting) leaveToInbox(); }}
+      >
+        <span className="sr-only" aria-live="polite">{announcement}</span>
+        <ChatHeader identity={identity} menu={menu} onBack={handleBack} onSearch={() => setShowSearch(true)} />
+        <PinnedBar pins={pinnedList} onJump={jumpTo} />
 
-      {/* Header */}
-      <div data-page-guide="chat-header" className="px-2 sm:px-4 pb-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] md:pt-2.5 flex items-center gap-2 sm:gap-3 shrink-0 shadow-sm z-10 bg-primary">
-        <button onClick={handleBack} aria-label="Back" className="inline-flex size-11 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-
-        {/* Avatar / Identity — DM uses UserIdentity; group/channel keep icon avatar */}
-        {isDm ? (
-          <UserIdentity
-            displayName={getDisplayName()}
-            avatarUrl={isDm ? otherAvatarUrl : null}
-            businessName={isDm && !customerSide && otherProfile?.business_name ? String(otherProfile.business_name) : null}
-            businessSlug={isDm && !customerSide && otherProfile?.business_slug ? String(otherProfile.business_slug) : null}
-            showBusinessLink={isDm && !customerSide}
-            isVerified={isDm && Boolean(otherProfile?.is_verified)}
-            subtitle={getSubtitle()}
-            onlineIndicator={isDm && isOnline && !customerSide}
-            size="sm"
-            variant="white"
-            onClick={isDm && otherUserId ? () => router.push(profileHref) : undefined}
-            className="flex-1 min-w-0"
-          />
-        ) : (
-          <>
-            <div className="relative shrink-0">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex items-center justify-center text-white font-semibold bg-white/20">
-                {isChannel ? <Radio className="w-5 h-5" /> : <Users className="w-5 h-5" />}
-              </div>
+        {conversation?.is_request && (
+          <div className="flex flex-wrap items-center gap-2 border-b border-border/40 bg-card px-4 py-3" role="region" aria-label="Message request">
+            <p className="min-w-0 flex-1 text-sm"><span className="font-semibold">{title}</span> wants to message you. Accept to move this chat to Chats, or reply.</p>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => void acceptRequest()} className="h-9 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground">Accept</button>
+              {otherUserId && <button type="button" onClick={() => setDialog({ kind: 'block' })} className="h-9 rounded-full border border-border px-4 text-sm font-semibold text-destructive">Block</button>}
+              <button type="button" onClick={() => setDialog({ kind: 'delete-chat' })} className="h-9 rounded-full border border-border px-4 text-sm font-semibold">Delete</button>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white truncate">{getDisplayName()}</p>
-              <p className="text-xs truncate text-white/70">{getSubtitle()}</p>
-            </div>
-          </>
+          </div>
         )}
 
-        {/* Search button */}
-        <button
-          onClick={() => setShowSearch(true)}
-          aria-label="Search messages"
-          className="inline-flex size-11 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0"
-        >
-          <Search className="w-5 h-5" />
-        </button>
+        <MessageList
+          messages={messages}
+          loading={loading}
+          hasOlder={hasOlder}
+          loadingOlder={loadingOlder}
+          onLoadOlder={() => void loadOlder()}
+          firstUnreadId={firstUnreadId}
+          typing={otherTyping}
+          newFromOthers={newWhileAway}
+          scrollSignal={scrollSignal}
+          onAtBottom={() => setNewWhileAway(0)}
+          renderMessage={renderMessage}
+          empty={
+            <p className="rounded-2xl bg-card px-6 py-3 text-center text-sm text-foreground/80 shadow-sm">
+              {isBlocked ? 'You blocked this person.' : 'No messages yet. Say hello!'}
+            </p>
+          }
+        />
 
-        {/* "..." menu */}
-        <div className="relative">
-          <button onClick={() => setHeaderMenuOpen(v => !v)} aria-label="More options" className="inline-flex size-11 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0">
-            <MoreVertical className="w-5 h-5" />
-          </button>          {headerMenuOpen && (
-            <div className="absolute top-full end-0 mt-1 w-52 bg-card rounded-2xl shadow-lg border border-border/30 z-50 overflow-hidden">
-              {/* DM: View Profile */}
-              {isDm && otherUserId && (
-                <button
-                  onClick={() => { setHeaderMenuOpen(false); router.push(profileHref); }}
-                  className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary/50 transition-colors text-left"
-                >
-                  <UserCircle className="w-4 h-4 text-muted-foreground" /> View Profile
-                </button>
-              )}
-              {/* Group/Channel: Members (admin) */}
-              {(isGroup || isChannel) && (
-                <button
-                  onClick={() => { setHeaderMenuOpen(false); router.push(`/messages/${id}/members`); }}
-                  className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary/50 transition-colors text-left"
-                >
-                  <Users className="w-4 h-4 text-muted-foreground" /> Members
-                </button>
-              )}
-              <button onClick={handleClearHistory} className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary/50 transition-colors text-left">
-                <History className="w-4 h-4 text-muted-foreground" /> Clear History
-              </button>
-              {isDm && otherUserId && (
-                <button onClick={handleBlock} className={`flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-secondary/50 transition-colors text-left ${isBlocked ? 'text-green-600' : 'text-red-500'}`}>
-                  <ShieldOff className="w-4 h-4" /> {isBlocked ? 'Unblock User' : 'Block User'}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <PinnedBar pins={pinnedList} onJump={jumpToMessage} />
-
-      {/* Messages area */}
-      <div className="relative flex-1 overflow-hidden">
-        <div
-          data-page-guide="chat-messages"
-          className="h-full overflow-y-auto px-3 py-4 space-y-0.5 bg-[hsl(var(--chat-bg))] overscroll-contain"
-          role="log"
-          aria-label="Conversation messages"
-          onScroll={handleMessagesScroll}
-          onClick={() => { setHeaderMenuOpen(false); setHoveredMsg(null); dismissContextMenu(); }}
-        >
-          {loading && (
-            <div className="flex justify-center py-8">
-              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            </div>
-          )}
-
-          {!loading && grouped.length === 0 && (
-            <div className="flex items-center justify-center h-full">
-              <div className="bg-card shadow-sm rounded-2xl px-6 py-3 text-center">
-                <p className="text-sm text-foreground/80">
-                  {isBlocked ? 'You have blocked this user.' : 'No messages yet. Say hello!'}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {grouped.map(([dateKey, msgs]) => (
-            <div key={dateKey}>
-              <div className="flex justify-center my-3">
-                <span className="bg-card text-muted-foreground shadow-sm text-xs font-medium px-3 py-1 rounded-full">
-                  {dateLabel(dateKey)}
-                </span>
-              </div>
-
-              {(msgs as any[]).map((msg, idx) => {
-                const isMe = msg.sender_id === user?.id;
-                const prev = msgs[idx - 1] as any;
-                const showSender = (isGroup || isChannel) && !isMe && (!prev || prev.sender_id !== msg.sender_id);
-                const isHovered  = hoveredMsg === msg.id;
-                const isConfirming = deletingMsg?.id === msg.id;
-                const isPending = Boolean((msg as { _pending?: boolean })._pending);
-
-                // What the chat is about (product, order, showroom, quote): a card, not a bubble.
-                if (msg.type === 'context') {
-                  return (
-                    <div key={msg.id} className={`my-2 flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                      <ContextCard content={msg.content} mine={isMe} />
-                    </div>
-                  );
-                }
-
-                return (
-                  <motion.div
-                    key={msg.id}
-                    id={`msg-${msg.id}`}
-                    initial={reducedMotion ? false : { opacity: 0, x: isMe ? 8 : -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.15 }}
-                    layout={false}
-                    className={cn('flex mb-0.5 items-end gap-1.5', isMe ? 'justify-end' : 'justify-start')}
-                    onMouseEnter={() => setHoveredMsg(msg.id)}
-                    onMouseLeave={() => setHoveredMsg(null)}
-                    onTouchStart={(e) => { e.stopPropagation(); startLongPress(msg); }}
-                    onTouchEnd={cancelLongPress}
-                    onTouchMove={cancelLongPress}
-                    onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedMsg(msg); }}
-                  >
-                    {/* Leading avatar/spacer for incoming group + channel messages */}
-                    {!isMe && (isGroup || isChannel) && (
-                      showSender ? (
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-primary-foreground text-xs font-semibold shrink-0 bg-primary">
-                          {String(msg.sender_name || '?').charAt(0).toUpperCase()}
-                        </div>
-                      ) : (
-                        <div className="w-8 shrink-0" />
-                      )
-                    )}
-
-                    <div className={cn('relative group flex flex-col gap-0.5 max-w-[75%] md:max-w-[60%]', isMe ? 'items-end' : 'items-start')}>
-                      {/* Desktop hover quick-actions (hidden on touch screens) */}
-                      {isHovered && !selectedMsg && (
-                        <div className={cn('hidden sm:flex absolute top-0 items-center gap-1 z-10', isMe ? 'end-full me-2' : 'start-full ms-2')}>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleContextReply(msg); }}
-                            className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
-                            title="Reply"
-                          >
-                            <CornerUpLeft className="w-3.5 h-3.5 text-foreground" />
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleContextForward(msg); }}
-                            className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
-                            title="Forward"
-                          >
-                            <Forward className="w-3.5 h-3.5 text-foreground" />
-                          </button>
-                          {isMe && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleContextEdit(msg); }}
-                              className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/50 flex items-center justify-center transition-colors"
-                              title="Edit"
-                            >
-                              <Pencil className="w-3.5 h-3.5 text-foreground" />
-                            </button>
-                          )}
-                          {isMe && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleContextDelete(msg); }}
-                              className={cn('w-7 h-7 rounded-full flex items-center justify-center transition-colors border', isConfirming ? 'bg-red-500 hover:bg-red-600 border-red-500 text-white' : 'bg-secondary/80 hover:bg-secondary border-border/50 text-foreground')}
-                              title={isConfirming ? 'Click again to confirm delete' : 'Delete'}
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      )}
-
-                      <div
-                        className={cn(
-                          'text-sm shadow-sm select-none rounded-2xl',
-                          msg.type === 'image' ? 'p-1' : 'px-3 py-1.5',
-                          isMe ? 'rounded-br-md bg-primary/15 dark:bg-primary/25' : 'rounded-bl-md bg-card',
-                          selectedMsg?.id === msg.id && 'ring-2 ring-primary/50 scale-[0.98]',
-                          'transition-transform',
-                        )}
-                        style={isPending ? { opacity: 0.5 } : undefined}
-                      >
-                        {showSender && (
-                          <p className="text-xs font-semibold mb-0.5 text-primary">
-                            {msg.sender_name}
-                          </p>
-                        )}
-
-                        {/* Reply quote */}
-                        {msg.reply_to_id && (
-                          <div className={cn('border-s-2 ps-2 mb-1 rounded-s', isMe ? 'border-amber-500' : 'border-blue-400')}>
-                            <p className="text-[10px] text-muted-foreground italic truncate">
-                              {messages.find(m => m.id === msg.reply_to_id)?.content || 'Quoted message'}
-                            </p>
-                          </div>
-                        )}
-
-                        {msg.type === 'image' ? (
-                          <SafeImage fill={false} src={msg.content} alt="Shared image" width={320} height={240} className="block max-h-72 w-full h-auto rounded-xl object-cover cursor-zoom-in" onClick={() => setFullscreenImage(msg.content)} />
-                        ) : msg.type === 'product' ? (
-                          <ProductMessageBubble metadata={(msg as { metadata?: Record<string, unknown> }).metadata ?? {}} isMe={isMe} />
-                        ) : msg.type === 'order_update' ? (
-                          <OrderUpdateBubble metadata={(msg as { metadata?: Record<string, unknown> }).metadata ?? {}} isMe={isMe} />
-                        ) : (
-                          <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
-                        )}
-
-                        <div className={cn('flex items-center justify-end gap-1', msg.type === 'image' ? 'px-2 pb-1' : 'mt-0.5 -mb-0.5')}>
-                          {msg.edited && (
-                            <span className="text-[10px] text-muted-foreground italic">edited</span>
-                          )}
-                          <span className="text-[10px] text-muted-foreground">
-                            {fmtTime(msg.created_at)}
-                          </span>
-                          {isMe && (isPending
-                            ? <span className="text-[10px]" aria-label="Pending">⏳</span>
-                            : <MessageTicks tick={tickFor(msg, user?.id, members)} />
-                          )}
-                        </div>
-                      </div>
-                      {Object.keys((msg as { reactions?: MessageReactionMap }).reactions ?? {}).length > 0 && (
-                        <MessageReactions
-                          reactions={(msg as { reactions: MessageReactionMap }).reactions}
-                          messageId={(msg as { id: string }).id}
-                          currentUserId={user?.id}
-                          onToggle={(emoji, mine) => handleReact(msg, emoji, mine)}
-                        />
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          ))}
-          {otherTyping && (
-            <div className="flex justify-start mb-0.5" aria-live="polite">
-              <div className="bg-card rounded-2xl rounded-bl-md px-3 py-2 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: '300ms' }} />
-                <span className="sr-only">typing…</span>
-              </div>
-            </div>
-          )}
-          <div ref={bottomRef} />
-        </div>
-        <AnimatePresence>
-          {showScrollBtn && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.15 }}
-              type="button"
-              onClick={scrollToBottom}
-              aria-label="Scroll to bottom"
-              className="absolute bottom-4 end-4 z-10 size-11 rounded-full bg-card shadow-lg border border-border flex items-center justify-center"
-            >
-              <ChevronDown className="w-5 h-5" />
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Input area */}
-      {!canSend ? (
-        <div className="bg-card border-t border-border/30 px-4 py-4 flex items-center justify-center shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))] text-muted-foreground">
-          <p className="text-sm text-muted-foreground">
-            {isBlocked ? '🚫 You have blocked this user.' : '🔊 Only admins can post in this channel.'}
-          </p>
-        </div>
-      ) : (
-        <div className="bg-card border-t border-border/30 shrink-0">
-          {businessChat && conversation?.is_business_side && !editingMsg && (
-            <QuickReplies businessId={conversation.business_id} onPick={(t) => { setText(t); textRef.current = t; inputRef.current?.focus(); }} />
-          )}
-          {/* Reply preview */}
-          {replyingTo && !editingMsg && (
-            <div className="flex items-start gap-2 px-4 py-2 border-b border-border/20 bg-secondary/30">
-              <div className="border-s-2 border-primary ps-2 flex-1 min-w-0">
-                <p className="text-xs font-semibold text-primary">Reply to {replyingTo.sender_name || 'message'}</p>
-                <p className="text-xs text-muted-foreground truncate">{replyingTo.content}</p>
-              </div>
-              <button onClick={() => setReplyingTo(null)} aria-label="Cancel reply" className="inline-flex min-h-8 size-8 items-center justify-center rounded hover:bg-secondary">
-                <X className="w-4 h-4 text-muted-foreground" />
-              </button>
-            </div>
-          )}
-
-          {/* Edit mode banner */}
-          {editingMsg && (
-            <div className="flex items-center gap-2 px-4 py-2 border-b border-border/20 bg-amber-50 dark:bg-amber-900/20">
-              <Pencil className="w-4 h-4 text-amber-600 shrink-0" />
-              <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 flex-1">Editing message</p>
-              <button onClick={() => { setEditingMsg(null); setEditText(''); }} aria-label="Cancel edit" className="inline-flex min-h-8 size-8 items-center justify-center rounded hover:bg-amber-100 dark:hover:bg-amber-900/30">
-                <X className="w-4 h-4 text-amber-600 dark:text-amber-300" />
-              </button>
-            </div>
-          )}
-
-          {/* Text input row */}
-          <div className="px-3 py-2 flex items-end gap-2 sm:px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-            <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-            <button data-page-guide="chat-attachments" type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage || sending} className="h-11 w-11 shrink-0 rounded-full text-primary hover:bg-primary/10 disabled:opacity-40" aria-label="Attach image">
-              {uploadingImage ? <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" /> : <ImagePlus className="mx-auto h-5 w-5" />}
-            </button>
-            <div data-page-guide="chat-input" className="flex-1 bg-secondary rounded-2xl px-4 py-2 flex items-end min-h-11 border border-transparent focus-within:border-primary/30 focus-within:ring-2 focus-within:ring-primary/10 transition-[height] duration-100">
-              <textarea
-                ref={inputRef}
-                value={editingMsg ? editText : text}
-                onChange={e => {
-                  if (editingMsg) {
-                    setEditText(e.target.value);
-                  } else {
-                    setText(e.target.value);
-                    textRef.current = e.target.value;
-                    setTyping(e.target.value.trim().length > 0);
-                    if (typingTimer.current) clearTimeout(typingTimer.current);
-                    typingTimer.current = setTimeout(() => setTyping(false), 1500);
-                  }
-                  const el = inputRef.current;
-                  if (el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 96) + 'px'; }
-                }}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
-                  if (e.key === 'Escape') {
-                    if (editingMsg) { setEditingMsg(null); setEditText(''); }
-                    if (replyingTo) setReplyingTo(null);
-                  }
-                }}
-                onFocus={() => {
-                  // On mobile, after keyboard animation, scroll thread to bottom
-                  setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
-                }}
-                placeholder={editingMsg ? 'Edit message...' : 'Message'}
-                rows={1}
-                className="flex-1 bg-transparent text-sm outline-none resize-none max-h-24 self-end leading-5 overflow-y-auto scrollbar-thin"
-                style={{ minHeight: '20px' }}
-              />
-            </div>
-            <EmojiInsertButton
-              value={editingMsg ? editText : text}
-              inputRef={inputRef}
-              onChange={(next) => {
-                if (editingMsg) { setEditText(next); return; }
-                setText(next); textRef.current = next;
-              }}
-            />
-            {(() => {
-              const hasContent = Boolean((editingMsg ? editText : text).trim());
-              return (
-                <button
-                  onClick={handleSend}
-                  aria-label={editingMsg ? 'Save edit' : 'Send message'}
-                  className={cn(
-                    'w-11 h-11 rounded-full flex items-center justify-center text-primary-foreground shrink-0 outline-none focus:outline-none bg-primary',
-                    'transition-all duration-150',
-                    hasContent
-                      ? 'opacity-100 scale-100'
-                      : 'opacity-40 scale-90 cursor-not-allowed pointer-events-none',
-                    sending && 'scale-95',
-                  )}
-                >
-                  {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
-                </button>
-              );
-            })()}
-          </div>
-        </div>
-      )}
-    </motion.div>
-
-    {/* ── Message Context Menu — Telegram style ───────────────────────── */}
-    <AnimatePresence>
-      {selectedMsg && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-[3px]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            onClick={dismissContextMenu}
+        {canSend ? (
+          <Composer
+            key={id}
+            ref={composer}
+            conversationId={id}
+            replyTo={replyTo ? { name: String(replyTo.sender_id) === String(me) ? 'yourself' : replyTo.sender_name || title, text: messagePreview(replyTo) } : null}
+            editing={editing ? { text: editing.content ?? '' } : null}
+            uploading={uploading}
+            extras={conversation?.business_id && conversation.is_business_side
+              ? <QuickReplies businessId={String(conversation.business_id)} onPick={(t) => composer.current?.setText(t)} />
+              : null}
+            onSend={onSend}
+            onSaveEdit={(t) => void onSaveEdit(t)}
+            onCancelReply={() => setReplyTo(null)}
+            onCancelEdit={() => setEditing(null)}
+            onTyping={setTyping}
+            onPickPhotos={(f) => void onPickPhotos(f)}
           />
-
-          {/* Sheet — spring slides up from bottom */}
-          <motion.div
-            className="fixed bottom-0 left-0 right-0 z-[61]"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-          >
-          <div
-            className="max-w-lg mx-auto rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto bg-card text-foreground"
-          >
-            {/* ── Message preview strip ── */}
-            <div
-              className="px-4 pt-4 pb-3 mx-4 mt-4 mb-1 rounded-2xl text-sm line-clamp-2"
-              style={{
-                backgroundColor: selectedMsg.sender_id === user?.id
-                  ? 'hsl(var(--primary)/0.15)'
-                  : 'hsl(var(--secondary))',
-                color: 'hsl(var(--foreground))',
-              }}
-            >
-              {selectedMsg.type === 'image'
-                ? '📷 Photo'
-                : selectedMsg.content}
-            </div>
-
-            {/* ── Reactions: quick row, and "+" for every emoji ── */}
-            <div className="px-3 py-3 border-b border-border/20">
-              <ReactionPicker onPick={(emoji) => handleReact(selectedMsg, emoji)} />
-            </div>
-
-            {/* ── Action list ── */}
-            <div className="py-1">
-              {/* Reply */}
-              <CtxItem icon={<CornerUpLeft className="w-5 h-5" />} label="Reply"
-                onClick={() => handleContextReply(selectedMsg)} />
-
-              {/* Copy */}
-              {selectedMsg.type !== 'image' && (
-                <CtxItem icon={<Copy className="w-5 h-5" />} label="Copy"
-                  onClick={() => handleCopy(selectedMsg)} />
-              )}
-
-              {/* Copy Link */}
-              <CtxItem icon={<UserCircle className="w-5 h-5" />} label="Copy Link"
-                onClick={() => handleCopyLink(selectedMsg)} />
-
-              {/* Forward */}
-              <CtxItem icon={<Forward className="w-5 h-5" />} label="Forward"
-                onClick={() => handleContextForward(selectedMsg)} />
-
-              {/* Save */}
-              <CtxItem
-                icon={<Bookmark className="w-5 h-5" />}
-                label={savedMsgs.has(selectedMsg.id) ? 'Remove from saved' : 'Add to saved messages'}
-                onClick={() => handleSave(selectedMsg)}
-              />
-
-              {/* Pin */}
-              <CtxItem
-                icon={<Pin className="w-5 h-5" />}
-                label={pinnedMsgs.has(selectedMsg.id) ? 'Unpin' : 'Pin'}
-                onClick={() => handlePin(selectedMsg)}
-              />
-
-              {/* Translate */}
-              {selectedMsg.type !== 'image' && (
-                <CtxItem icon={<Languages className="w-5 h-5" />} label="Translate"
-                  onClick={() => handleTranslate(selectedMsg)} />
-              )}
-
-              {/* Edit — own text only */}
-              {selectedMsg.sender_id === user?.id && selectedMsg.type !== 'image' && (
-                <CtxItem icon={<Pencil className="w-5 h-5" />} label="Edit"
-                  onClick={() => handleContextEdit(selectedMsg)} />
-              )}
-
-              {/* Delete — own messages, destructive */}
-              {selectedMsg.sender_id === user?.id && (
-                <CtxItem
-                  icon={<Trash2 className="w-5 h-5" />}
-                  label={deletingMsg?.id === selectedMsg.id ? 'Tap again to confirm delete' : 'Delete'}
-                  onClick={() => {
-                    const confirming = deletingMsg?.id === selectedMsg.id;
-                    handleContextDelete(selectedMsg);
-                    if (confirming) dismissContextMenu();
-                  }}
-                  destructive
-                />
-              )}
-            </div>
-
-            {/* Safe area */}
-            <div className="pb-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} />
+        ) : (
+          <div className="shrink-0 border-t border-border/30 bg-card px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-center text-sm text-muted-foreground">
+            {isBlocked
+              ? <>You blocked this person. <button type="button" onClick={() => void setBlocked(false)} className="font-semibold text-primary underline-offset-2 hover:underline">Unblock</button></>
+              : 'Only admins can post in this channel.'}
           </div>
-          </motion.div>
-        </>
+        )}
+      </motion.div>
+
+      <MessageActions
+        message={actionsFor}
+        me={me}
+        pinned={actionsFor ? pins.includes(actionsFor.id) : false}
+        reducedMotion={reducedMotion}
+        onClose={() => setActionsFor(null)}
+        onReact={(emoji) => actionsFor && void react(actionsFor, emoji)}
+        onReply={() => { setReplyTo(actionsFor); setEditing(null); setActionsFor(null); }}
+        onCopy={() => actionsFor && copy(actionsFor)}
+        onForward={() => { setForwarding(actionsFor); setActionsFor(null); }}
+        onPin={() => actionsFor && void togglePin(actionsFor)}
+        onEdit={() => { setEditing(actionsFor); setReplyTo(null); setActionsFor(null); }}
+        onDelete={(scope) => actionsFor && void deleteMessage(actionsFor, scope)}
+        onReport={() => { if (actionsFor) setDialog({ kind: 'report-message', message: actionsFor }); setActionsFor(null); }}
+      />
+
+      {forwarding && <ForwardDialog message={forwarding} currentChatId={id} me={me} onForward={(t) => void forward(t)} onClose={() => setForwarding(null)} />}
+
+      {dialog?.kind === 'mute' && (
+        <ChoiceDialog title="Mute notifications" description="You’ll still get the messages, without alerts." onClose={() => setDialog(null)} onChoose={(v) => void setMute(v)}
+          choices={[{ label: 'For 8 hours', value: '8h' }, { label: 'For 1 week', value: '1w' }, { label: 'Always', value: 'always' }]} />
       )}
-    </AnimatePresence>
+      {dialog?.kind === 'report-message' && (
+        <ChoiceDialog title="Report this message" description="Tell us what’s wrong. The sender won’t know who reported it." onClose={() => setDialog(null)}
+          choices={REPORT_REASONS} onChoose={(reason) => void report('message', dialog.message.id, reason)} />
+      )}
+      {dialog?.kind === 'report-chat' && otherUserId && (
+        <ChoiceDialog title={`Report ${title}`} description="They won’t know who reported them." onClose={() => setDialog(null)}
+          choices={REPORT_REASONS} onChoose={(reason) => void report('user', otherUserId, reason)} />
+      )}
+      {dialog?.kind === 'block' && (
+        <ChoiceDialog title={`Block ${title}?`} description="They won’t be able to message you, and you’ll stop following each other." onClose={() => setDialog(null)}
+          choices={[{ label: 'Block', value: 'block', destructive: true }]} onChoose={() => void setBlocked(true)} />
+      )}
+      {dialog?.kind === 'delete-chat' && (
+        <ChoiceDialog title="Delete this chat for you?" description="The messages disappear for you only. A new message brings the chat back." onClose={() => setDialog(null)}
+          choices={[{ label: 'Delete chat', value: 'delete', destructive: true }]} onChoose={() => void deleteChat()} />
+      )}
+      {dialog?.kind === 'leave' && (
+        <ChoiceDialog title={isChannel ? 'Leave this channel?' : 'Leave this group?'} onClose={() => setDialog(null)}
+          choices={[{ label: 'Leave', value: 'leave', destructive: true }]} onChoose={() => void leaveGroup()} />
+      )}
 
-    {/* ── Forward Message Modal ─────────────────────────────────────────── */}
-    {forwardMsg && (
-      <div className="fixed inset-0 z-[65] flex items-stretch sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
-        <div role="dialog" aria-label="Forward message" className="h-full sm:h-auto sm:max-h-[90vh] w-full sm:max-w-sm rounded-none sm:rounded-2xl bg-card shadow-xl border border-border/50 flex flex-col overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
-            <div className="flex items-center gap-2">
-              <Forward className="w-4 h-4 text-primary" />
-              <p className="font-semibold text-sm">Forward message</p>
-            </div>
-            <button onClick={() => { setForwardMsg(null); setForwardSearch(''); }}
-              aria-label="Close forward" className="size-9 min-h-9 rounded-full hover:bg-secondary transition-colors flex items-center justify-center">
-              <X className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </div>
-          {/* Preview of message being forwarded */}
-          <div className="mx-4 mt-3 bg-secondary/50 rounded-xl px-3 py-2">
-            <p className="text-xs text-muted-foreground mb-0.5">Forwarding</p>
-            <p className="text-sm line-clamp-2">{forwardMsg.content}</p>
-          </div>
-          {/* Search */}
-          <div className="px-4 pt-3">
-            <input
-              value={forwardSearch}
-              onChange={e => setForwardSearch(e.target.value)}
-              placeholder="Search conversations…"
-              className="w-full text-sm bg-secondary/50 rounded-full px-4 py-2 outline-none focus:ring-1 focus:ring-primary/30"
-            />
-          </div>
-          {/* Conversation list */}
-          <div className="flex-1 min-h-0 overflow-y-auto px-2 py-2 space-y-0.5">
-            {conversations
-              .filter(c => c.id !== (id || conversation?.id))
-              .filter(c => {
-                if (!forwardSearch) return true;
-                const name = c.name || c.participant_names || '';
-                return name.toLowerCase().includes(forwardSearch.toLowerCase());
-              })
-              .map(c => {
-                const dispName = c.type === 'group' || c.type === 'channel'
-                  ? (c.name || c.type)
-                  : (() => {
-                      try {
-                        const names = JSON.parse(c.participant_names || '[]');
-                        const ids = JSON.parse(c.participant_ids || '[]');
-                        const idx = ids.indexOf(user?.id);
-                        return names[idx === 0 ? 1 : 0] || names[0] || 'Chat';
-                      } catch { return 'Chat'; }
-                    })();
-                return (
-                  <button key={c.id} onClick={() => handleForward(c.id)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-secondary transition-colors text-left">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0"
-                      style={{ background: c.type === 'channel' ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : c.type === 'group' ? 'linear-gradient(135deg,#7c3aed,#6d28d9)' : 'linear-gradient(135deg,var(--ex-blue),var(--ex-purple))' }}>
-                      {dispName.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{dispName}</p>
-                      {c.last_message && <p className="text-xs text-muted-foreground truncate">{c.last_message}</p>}
-                    </div>
-                  </button>
-                );
-              })}
-            {conversations.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">No other conversations</p>
-            )}
-          </div>
-        </div>
-      </div>
-    )}
-    {fullscreenImage && (
-      <div className="fixed inset-0 z-[70] bg-black/90 flex items-center justify-center" role="dialog" aria-label="Image preview" onClick={() => setFullscreenImage(null)}>
-        <SafeImage fill={false} src={fullscreenImage} alt="Image preview" className="max-h-full max-w-full object-contain" />
-        <button type="button" onClick={(e) => { e.stopPropagation(); setFullscreenImage(null); }} aria-label="Close image preview" className="absolute top-4 end-4 size-11 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-    )}
-    {showSearch && (
-      <MessageSearch conversationId={id} onClose={() => setShowSearch(false)} />
-    )}
+      {photoIndex !== null && photos.length > 0 && (
+        <PhotoViewer photos={photos} startIndex={photoIndex} onClose={() => setPhotoIndex(null)} />
+      )}
+      {showSearch && <MessageSearch conversationId={id} onClose={() => setShowSearch(false)} />}
     </>
-  );
-}
-
-/* ── Context menu row item ──────────────────────────────────────────────── */
-function CtxItem({ icon, label, onClick, destructive = false }: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  destructive?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn('flex items-center gap-4 w-full px-5 py-3.5 text-sm font-medium text-left hover:bg-secondary/60 active:scale-[0.98]', destructive && 'text-destructive')}
-    >
-      <span className={destructive ? 'text-destructive' : 'text-muted-foreground'}>{icon}</span>
-      {label}
-    </button>
   );
 }
 

@@ -668,3 +668,30 @@ items in the open list until confirmed.
   - Code: `frontend-next/components/feed/BusinessSpotlight.tsx`, `frontend-next/lib/spotlightTiles.ts`, `frontend-next/components/feed/BusinessShowroomFeed.tsx`
   - Tests: `frontend-next/test/feed/businessSpotlight.test.tsx`
 
+### 2026-10-25 — Messages M5: chat screens rebuilt
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (messaging plan, Oct 2026: "M5: rebuild the messages screens and remove Save and Copy link")
+- **Context:** The chat screen was one 1,400-line file. Its message menu had Save, Copy link and Translate, which did nothing useful. Delete needed a confusing "tap again". The inbox opened on a contacts list, and its Business tab filtered a list that never contained business chats, so it was always empty. Requests and Archived had no place in the app, and tablets and computers showed one screen at a time.
+- **Decision:**
+  1. **Parts:** the chat is built from parts in `components/messaging/`: `ChatHeader`, `MessageList`, `MessageBubble`, `MessageActions`, `Composer`, `ForwardDialog`, `ChoiceDialog`, `NewMessageDialog`, `Inbox` and `MessagesShell`. Naming rules live in `lib/chatDisplay.ts` and action rules in `lib/chatRules.ts`.
+  2. **Message actions:** react, Reply, Copy, Forward, Pin (up to 3 per chat), Edit (own text, 15 minutes), Delete (for me, or for everyone on your own message within 24 hours) and Report. Save, Copy link and Translate are removed.
+  3. **Chat menu:** View profile, Mute (8 hours, 1 week, always), Archive, Block, Report, Leave (groups and channels) and Delete chat for me. A message request shows Accept / Block / Delete at the top.
+  4. **Reading:** the chat opens on the newest 50 messages and older ones load as you scroll up, keeping your place. A "New messages" line, day separators, "Jump to latest" with a count, clickable links, and photos in the full-screen viewer.
+  5. **Writing:**
+     - The box grows with the text and keeps a draft per chat.
+     - On a computer Enter sends and Shift+Enter adds a new line; on a phone Enter adds a new line.
+     - Up to 10 photos at once, with progress.
+     - A failed send stays as "Not sent · Tap to retry".
+  6. **Inbox:** opens on Chats. Tabs are Business (when you have customers), Requests (when there are any), Groups and Archived. Long-press or right-click a chat to mute, archive or delete it. "New message" searches people.
+  7. **Layout:** phones show the list or a full-screen chat. Tablets and computers show the list on the left and the chat on the right.
+- **Consequences:**
+  - No backend change. The UI uses existing endpoints: `box=business|requests|archived`, mute, archive, accept, delete for me, `before` paging and `/api/moderation/report`.
+  - Not done yet:
+    - Strings are not yet moved to `locales/` (they're English in the components).
+    - The message list is paged, not virtualised.
+    - The Members screen is M6, so its menu item is hidden until then.
+- **Related documentation:**
+  - Code: `frontend-next/views/ChatRoom.tsx`, `frontend-next/views/Messages.tsx`, `frontend-next/app/(app)/messages/layout.tsx`, `frontend-next/components/messaging/*`, `frontend-next/lib/chatDisplay.ts`, `frontend-next/lib/chatRules.ts`, `frontend-next/lib/useMediaQuery.ts`
+  - Tests: `frontend-next/test/messaging/chatUi.test.tsx`
+
