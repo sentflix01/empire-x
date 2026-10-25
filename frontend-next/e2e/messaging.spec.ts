@@ -96,6 +96,8 @@ async function send(page: Page, text: string) {
   await box.fill(text);
   await page.getByRole('button', { name: 'Send message' }).click();
   await expect(bubble(page, text)).toBeVisible();
+  // Confirmed by the server (actions such as Edit only appear then).
+  await expect(bubble(page, text).locator('[data-tick]')).not.toHaveAttribute('data-tick', 'sending');
 }
 
 async function openActions(page: Page, text: string) {
@@ -115,7 +117,8 @@ const chatIdOf = (page: Page) => new URL(page.url()).pathname.split('/')[2];
 
 // ── The suite ─────────────────────────────────────────────────────────────────
 test.describe.configure({ mode: 'serial' });
-test.setTimeout(120_000);
+// WebKit (iPhone, iPad) is slower, especially against a dev server.
+test.beforeEach(() => { test.setTimeout(/iphone|tablet/.test(test.info().project.name) ? 180_000 : 120_000); });
 
 let ids: Awaited<ReturnType<typeof seedModule.seed>>;
 let buyer: { context: BrowserContext; page: Page };
@@ -229,9 +232,15 @@ test('requests, blocking with retry, and "nobody can message me"', async () => {
   await third.page.goto(`/messages/${req.data.id}`);
   await third.page.getByRole('textbox', { name: 'Message' }).fill('Hello?');
   await third.page.getByRole('button', { name: 'Send message' }).click();
-  await expect(third.page.getByText('You can’t send messages in this chat.').first()).toBeVisible();
+  // The reason shows briefly as a toast; the lasting state is the bubble's retry.
   const retry = third.page.getByRole('button', { name: /Not sent · Tap to retry/ });
   await expect(retry).toBeVisible();
+  // On small phones the "Blocked" toast sits over the Unblock button for a few
+  // seconds. Toasts pause while hovered (the test pointer rests where Block was)
+  // or while their page is in the background; a finger does neither.
+  await owner.page.bringToFront();
+  await owner.page.mouse.move(1, 1);
+  await expect(owner.page.getByText('Blocked. They can’t message you.')).toBeHidden({ timeout: 15_000 });
   await owner.page.getByRole('button', { name: 'Unblock' }).click();
   await expect(owner.page.getByRole('textbox', { name: 'Message' })).toBeVisible();
   await retry.click();
