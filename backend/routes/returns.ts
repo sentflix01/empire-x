@@ -4,6 +4,7 @@ import pool from '../db/pool';
 import { requireAuth } from '../middleware/auth';
 import { emitNotification } from '../socket';
 import { sendPushToUser } from './push';
+import { personProfileJoin } from '../lib/personProfile';
 
 const router = Router();
 
@@ -16,7 +17,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       `SELECT rr.*,o.product_title,o.total_price,o.currency,o.payment_provider,o.status AS order_status,
               o.seller_id,o.buyer_id,up.display_name AS buyer_name
        FROM return_requests rr JOIN orders o ON o.id=rr.order_id
-       LEFT JOIN user_profiles up ON up.user_id=o.buyer_id
+       ${personProfileJoin('o.buyer_id', 'up')}
        WHERE o.${sellerView ? 'seller_id' : 'buyer_id'}=$1 ORDER BY rr.created_at DESC`,
       [req.user!.id],
     );
@@ -33,7 +34,7 @@ router.get('/seller', requireAuth, async (req: Request, res: Response) => {
       `SELECT rr.*,o.product_title,o.total_price,o.currency,o.payment_provider,o.status AS order_status,
               o.seller_id,o.buyer_id,up.display_name AS buyer_name
        FROM return_requests rr JOIN orders o ON o.id=rr.order_id
-       LEFT JOIN user_profiles up ON up.user_id=o.buyer_id
+       ${personProfileJoin('o.buyer_id', 'up')}
        WHERE o.seller_id=$1 ORDER BY rr.created_at DESC`,
       [req.user!.id],
     );

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { requireAuth, requireAdmin } from '../middleware/auth';
+import { personProfileJoin } from '../lib/personProfile';
 
 const router = Router();
 
@@ -83,7 +84,7 @@ router.get('/', requireAuth, requireAdmin, async (req: Request, res: Response) =
     const { status = 'pending', limit = '50', offset = '0' } = req.query as Record<string, string>;
     const { rows } = await pool.query(
       `SELECT vr.*,u.email,up.display_name,up.avatar_url FROM verification_requests vr
-       JOIN users u ON u.id=vr.user_id LEFT JOIN user_profiles up ON up.user_id=vr.user_id
+       JOIN users u ON u.id=vr.user_id ${personProfileJoin('vr.user_id', 'up')}
        WHERE vr.status=$1 ORDER BY vr.created_at DESC LIMIT $2 OFFSET $3`,
       [status, parseInt(limit), parseInt(offset)],
     );

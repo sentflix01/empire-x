@@ -4,6 +4,7 @@ import logger from '../lib/logger';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { productNotPrivateSql } from '../lib/siteVisibility';
+import { personProfileJoin } from '../lib/personProfile';
 
 const router = Router();
 
@@ -25,7 +26,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
        LEFT JOIN users reviewer ON reviewer.id=r.reviewer_id
        LEFT JOIN products product ON product.id=r.product_id
        LEFT JOIN users seller ON seller.id=product.seller_id
-       LEFT JOIN user_profiles up ON up.user_id=r.reviewer_id
+       ${personProfileJoin('r.reviewer_id', 'up')}
        ${where} ORDER BY r.${sortRaw} ${sortDesc ? 'DESC' : 'ASC'} LIMIT $${params.length}`,
       params,
     );
@@ -42,7 +43,7 @@ router.get('/product/:productId', optionalAuth, async (req: Request, res: Respon
        LEFT JOIN users reviewer ON reviewer.id=r.reviewer_id
        LEFT JOIN products product ON product.id=r.product_id
        LEFT JOIN users seller ON seller.id=product.seller_id
-       LEFT JOIN user_profiles up ON up.user_id=r.reviewer_id
+       ${personProfileJoin('r.reviewer_id', 'up')}
        WHERE r.product_id=$1 ${realFilter} ORDER BY r.created_at DESC`,
       [req.params.productId],
     );

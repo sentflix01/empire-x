@@ -4,6 +4,7 @@ import pool from '../db/pool';
 import logger from '../lib/logger';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { requireSignInForPersonal } from '../lib/siteVisibility';
+import { personProfileJoin } from '../lib/personProfile';
 
 const router = Router();
 const RATE_MAX = 0.5;
@@ -55,7 +56,7 @@ const AGREEMENT_SELECT = `SELECT p.*,CASE WHEN p.status='active' AND p.ends_at<=
   up.display_name AS profile_owner_name,
   (SELECT COUNT(*)::int FROM profile_partnership_products pp WHERE pp.partnership_id=p.id) AS product_count
   FROM profile_partnerships p JOIN businesses b ON b.id=p.business_id
-  JOIN user_profiles up ON up.user_id=p.profile_owner_id`;
+  ${personProfileJoin('p.profile_owner_id', 'up', true)}`;
 
 router.get('/mine', requireAuth, async (req: Request, res: Response) => {
   try {
@@ -97,7 +98,7 @@ router.get('/profile/:userId', optionalAuth, requireSignInForPersonal, async (re
                 'price',pr.price,'currency',pr.currency,'images',pr.images)) FILTER (WHERE pr.id IS NOT NULL),'[]') AS products
        FROM profile_partnerships p
        JOIN businesses b ON b.id=p.business_id
-       JOIN user_profiles up ON up.user_id=p.profile_owner_id
+       ${personProfileJoin('p.profile_owner_id', 'up', true)}
        JOIN users creator_user ON creator_user.id=p.profile_owner_id
        JOIN users merchant_user ON merchant_user.id=p.business_owner_id
        JOIN profile_partnership_products pp ON pp.partnership_id=p.id
@@ -229,7 +230,7 @@ router.get('/payouts', requireAuth, async (req: Request, res: Response) => {
          FROM profile_owner_payouts p
          JOIN profile_partnerships a ON a.id=p.partnership_id
          JOIN businesses b ON b.id=a.business_id
-         JOIN user_profiles up ON up.user_id=p.profile_owner_id
+         ${personProfileJoin('p.profile_owner_id', 'up', true)}
          LEFT JOIN profile_owner_payout_items pi ON pi.payout_id=p.id
         WHERE p.profile_owner_id=$1 OR p.business_owner_id=$1
         GROUP BY p.id,b.business_name,up.display_name

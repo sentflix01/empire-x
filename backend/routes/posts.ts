@@ -19,6 +19,7 @@ import { sendPushToUser } from './push';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache';
 import { attachPostViewerState, commentRefusal, feedFilterSql, isBlockedEitherWay, isReaction, notBlockedSql, authorVisibleSql } from '../lib/socialGraph';
 import { classify, decide } from '../lib/clef';
+import { personProfileJoin } from '../lib/personProfile';
 
 const router = Router();
 // ── GET / — smart feed with scoring + keyset cursor ──────────────────────────
@@ -377,7 +378,7 @@ router.get('/:id/reactions', requireAuth, async (req: Request, res: Response) =>
     const filter = isReaction(req.query.reaction) ? req.query.reaction : null;
     const { rows } = await pool.query(
       `SELECT l.user_id, l.reaction, up.display_name, up.avatar_url FROM likes l
-         LEFT JOIN user_profiles up ON up.user_id = l.user_id
+         ${personProfileJoin('l.user_id', 'up')}
         WHERE l.target_type='post' AND l.target_id=$1 AND ($2::text IS NULL OR l.reaction=$2)
           AND (l.user_id=$3 OR COALESCE(up.show_reactions, TRUE))
           AND ${notBlockedSql('$3', 'l.user_id')}

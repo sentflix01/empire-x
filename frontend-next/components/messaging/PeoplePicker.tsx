@@ -9,6 +9,7 @@ import { Search, Check, X } from 'lucide-react';
 import client from '@/api/client';
 import { entities } from '@/api/entities';
 import { cn } from '@/lib/utils';
+import { uniquePeople } from '@/lib/chatDisplay';
 
 export interface Person { user_id: string; display_name?: string | null; avatar_url?: string | string[] | null; headline?: string | null }
 
@@ -39,7 +40,7 @@ export default function PeoplePicker({ me, exclude = [], selected, onChange, max
   const [searching, setSearching] = useState(false);
 
   useEffect(() => {
-    entities.UserProfile.list('-created_at', 30).then((rows: Person[]) => setSuggested(Array.isArray(rows) ? rows : [])).catch(() => undefined);
+    entities.UserProfile.list('-created_at', 60).then((rows: Person[]) => setSuggested(Array.isArray(rows) ? uniquePeople(rows).slice(0, 30) : [])).catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function PeoplePicker({ me, exclude = [], selected, onChange, max
     setSearching(true);
     const t = setTimeout(() => {
       client.get('/api/search', { params: { q: query, type: 'users', limit: 20 } })
-        .then(({ data }) => { if (!cancelled) setResults(Array.isArray(data?.users) ? data.users : []); })
+        .then(({ data }) => { if (!cancelled) setResults(Array.isArray(data?.users) ? uniquePeople(data.users as Person[]) : []); })
         .catch(() => { if (!cancelled) setResults([]); })
         .finally(() => { if (!cancelled) setSearching(false); });
     }, 250);

@@ -7,6 +7,7 @@ import { requireAuth, requireAdmin, invalidateUserCache } from '../middleware/au
 import { getRedis } from '../lib/redis';
 import * as apiError from '../lib/apiError';
 import { forceDisconnectUser } from '../socket';
+import { personProfileJoin } from '../lib/personProfile';
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
@@ -177,7 +178,7 @@ router.get('/verifications', async (req: Request, res: Response) => {
     const { rows } = await pool.query(
       `SELECT u.id,u.email,u.full_name,u.role,u.created_at,up.display_name,up.avatar_url,up.location,
               up.is_verified,up.verification_type,up.verified_at,up.verification_note,up.follower_count,up.has_business_profile
-       FROM users u LEFT JOIN user_profiles up ON up.user_id=u.id ${where}
+       FROM users u ${personProfileJoin('u.id', 'up')} ${where}
        ORDER BY up.follower_count DESC NULLS LAST, u.created_at DESC LIMIT $1 OFFSET $2`,
       [parseInt(limit), parseInt(offset)],
     );
