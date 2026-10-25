@@ -746,3 +746,17 @@ items in the open list until confirmed.
   - Code: `backend/lib/personProfile.ts`, `backend/routes/messages.ts`, `backend/lib/messaging.ts`, `backend/routes/search.ts` and the routes that join profiles
   - Tests: `backend/test/db/messaging.db.test.js` ("people with several profiles"), `backend/test/db/personProfiles.db.test.js`, `frontend-next/test/messaging/uniquePeople.test.ts`
 
+### 2026-10-26 — Photo uploads: checked by file signature
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (26 Oct 2026: "I can't … post multiple pictures")
+- **Context:** The upload check (SEC-005) asked the `sharp` image library to read each photo. That refused every photo whenever uploads were stored on disk, because only 12 bytes were passed. It also refused HEIC photos from phones, which the prebuilt `sharp` can't read. Separately, the type filter refused photos sent without a file extension, which happens when a phone picks from its gallery. In a chat, several of a batch of photos failed with only "couldn't be sent".
+- **Decision:**
+  1. **Signature check:** the real content is checked by its format signature (JPEG, PNG, GIF, WebP, HEIC/HEIF/AVIF, PDF) from its first 32 bytes. Something that isn't one of these is still refused.
+  2. **Type and extension:** the declared type decides. An extension only has to agree when there is one.
+  3. **Error message:** the chat shows the server's reason when a photo fails.
+- **Consequences:** HEIC photos upload, but some browsers (Chrome) can't display HEIC. Converting HEIC to JPEG is a possible follow-up.
+- **Related documentation:**
+  - Code: `backend/middleware/upload.ts`, `backend/routes/upload.ts`, `frontend-next/views/ChatRoom.tsx`
+  - Tests: `backend/__tests__/uploadValidation.test.ts`
+

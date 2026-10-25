@@ -52,6 +52,14 @@ function unsupportedFileTypeError(): Error & { code: string; statusCode: number 
   return error;
 }
 
+const allowedMimeTypes = new Set([...allowedMimeTypesByExtension.values()].flatMap((set) => [...set]));
+
+/**
+ * Accept an allowed type. The declared MIME type decides; the file name's
+ * extension only has to agree when there is one. Phones often send photos
+ * with no extension (picked from a gallery), and those were all refused.
+ * The real content is checked after upload (validateFileBytes).
+ */
 export const fileFilter: multer.Options['fileFilter'] = (
   _req: Request,
   file: Express.Multer.File,
@@ -59,63 +67,65 @@ export const fileFilter: multer.Options['fileFilter'] = (
 ): void => {
   const ext = path.extname(file.originalname).toLowerCase();
   const mime = (file.mimetype ?? '').toLowerCase();
-  const allowed = allowedMimeTypesByExtension.get(ext);
-  if (!allowed?.has(mime)) {
-    cb(unsupportedFileTypeError());
-    return;
-  }
+  if (!allowedMimeTypes.has(mime)) { cb(unsupportedFileTypeError()); return; }
+  const forExt = allowedMimeTypesByExtension.get(ext);
+  // A known extension that contradicts the type (photo.png sent as a PDF) is refused.
+  if (ext && forExt && !forExt.has(mime)) { cb(unsupportedFileTypeError()); return; }
   cb(null, true);
 };
 
 // ── Magic-byte validator (SEC-005) ────────────────────────────────────────────
-// Called AFTER multer writes the buffer (memoryStorage) or disk file so the
-// actual file bytes are available. The fileFilter above only checks the
-// client-declared MIME type + extension; this function checks the real content.
+// Called after multer stores the file, with its first bytes. The fileFilter
+// above trusts the client's declared type; this checks the real content by
+// each format's signature, which needs only the first few dozen bytes.
 //
-// Strategy per format:
-//   Images (JPEG/PNG/GIF/WebP/AVIF/HEIC) — attempt a sharp metadata decode.
-//     sharp is already a dependency and reads just enough bytes to identify
-//     the format without decoding the full image.
-//   PDF — check the 4-byte magic header (%PDF).
-//   Videos (MP4/WebM/MOV) — skip content check; video containers are complex
-//     and sharp cannot read them. The MIME/extension gate is sufficient for
-//     the current threat model.
-//
-// Returns null on success, or an error message string on failure.
+// It used to ask sharp to decode the image. That failed for every photo
+// stored on disk (only 12 bytes were passed in) and for HEIC photos (sharp's
+// prebuilt binary can't read them), so those uploads were all refused.
+
+/** How many leading bytes validateFileBytes needs. */
+export const SIGNATURE_BYTES = 32;
+
+type Family = 'jpeg' | 'png' | 'gif' | 'webp' | 'heif' | 'pdf';
+
+/** The format the bytes really are, or null when unknown. */
+export function sniffFormat(head: Buffer): Family | null {
+  if (head.length >= 3 && head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff) return 'jpeg';
+  if (head.length >= 8 && head.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'png';
+  if (head.length >= 6 && /^GIF8[79]a$/.test(head.subarray(0, 6).toString('latin1'))) return 'gif';
+  if (head.length >= 12 && head.subarray(0, 4).toString('latin1') === 'RIFF' && head.subarray(8, 12).toString('latin1') === 'WEBP') return 'webp';
+  if (head.length >= 4 && head.subarray(0, 4).toString('latin1') === '%PDF') return 'pdf';
+  // ISO base media (HEIC, HEIF, AVIF): an "ftyp" box with an image brand.
+  if (head.length >= 12 && head.subarray(4, 8).toString('latin1') === 'ftyp') {
+    const brands = head.subarray(8, Math.min(head.length, 32)).toString('latin1');
+    if (/heic|heix|hevc|heim|heis|mif1|msf1|avif|avis/.test(brands)) return 'heif';
+  }
+  return null;
+}
+
+const FAMILY_BY_MIME: Record<string, Family> = {
+  'image/jpeg': 'jpeg', 'image/jpg': 'jpeg', 'image/pjpeg': 'jpeg',
+  'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp',
+  'image/avif': 'heif', 'image/heic': 'heif', 'image/heif': 'heif',
+  'application/pdf': 'pdf',
+};
 
 export async function validateFileBytes(
   buffer: Buffer,
   mimeType: string,
 ): Promise<string | null> {
   const mime = mimeType.toLowerCase();
-
-  // PDF: must start with %PDF
-  if (mime === 'application/pdf') {
-    if (buffer.length < 4 || buffer.slice(0, 4).toString('ascii') !== '%PDF') {
-      return 'File content does not match PDF format';
-    }
-    return null;
-  }
-
-  // Videos: skip magic-byte check — complex container formats
+  // Videos: complex containers; the type gate is enough for the threat model.
   if (mime.startsWith('video/')) return null;
-
-  // Images: use sharp to attempt metadata extraction
-  if (mime.startsWith('image/')) {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sharpLib = require('sharp') as any;
-      // sharp's default export is the callable constructor
-      const sharpFn = typeof sharpLib === 'function' ? sharpLib : sharpLib.default;
-      await sharpFn(buffer).metadata();
-      return null; // sharp decoded it successfully — it's a real image
-    } catch {
-      return 'File content does not match the declared image format';
-    }
-  }
-
-  // Unknown category — pass through (fileFilter already whitelisted the type)
-  return null;
+  const expected = FAMILY_BY_MIME[mime];
+  if (!expected) return null; // fileFilter already allowed only known types
+  const actual = sniffFormat(buffer.subarray(0, SIGNATURE_BYTES));
+  if (actual === expected) return null;
+  // Phones sometimes label a JPEG as PNG (or the reverse): accept any real image for an image type.
+  if (expected !== 'pdf' && actual && actual !== 'pdf') return null;
+  return expected === 'pdf'
+    ? 'File content does not match PDF format'
+    : 'That file isn’t a photo we can read. Try a JPEG or PNG.';
 }
 
 // ── Supabase Storage ──────────────────────────────────────────────────────────
@@ -344,6 +354,12 @@ if (!fs.existsSync(uploadDir)) {
   try { fs.mkdirSync(uploadDir, { recursive: true }); } catch { /* already exists or Supabase/R2 in use */ }
 }
 
+const EXT_BY_MIME: Record<string, string> = {
+  'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/pjpeg': '.jpg', 'image/png': '.png', 'image/gif': '.gif',
+  'image/webp': '.webp', 'image/avif': '.avif', 'image/heic': '.heic', 'image/heif': '.heif',
+  'application/pdf': '.pdf', 'video/mp4': '.mp4', 'video/webm': '.webm', 'video/quicktime': '.mov',
+};
+
 const diskStorage = multer.diskStorage({
   destination: (req: Request, _file: Express.Multer.File, cb: (err: Error | null, dest: string) => void) => {
     try {
@@ -355,7 +371,8 @@ const diskStorage = multer.diskStorage({
   },
   filename: (_req: Request, file: Express.Multer.File, cb: (err: Error | null, name: string) => void) => {
     const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${unique}${path.extname(file.originalname)}`);
+    // Files on disk are served by extension, so give extensionless photos one from their type.
+    cb(null, `${unique}${path.extname(file.originalname) || EXT_BY_MIME[(file.mimetype ?? '').toLowerCase()] || ''}`);
   },
 });
 
@@ -379,6 +396,8 @@ module.exports.isCloudStorageConfigured = isCloudStorageConfigured;
 module.exports.activeStorageProvider    = activeStorageProvider;
 module.exports.fileFilter               = fileFilter;
 module.exports.validateFileBytes        = validateFileBytes;
+module.exports.sniffFormat              = sniffFormat;
+module.exports.SIGNATURE_BYTES          = SIGNATURE_BYTES;
 module.exports.allowedMimeTypesByExtension = allowedMimeTypesByExtension;
 module.exports.createStorageKey         = createStorageKey;
 module.exports.getUploadDirectory       = getUploadDirectory;
