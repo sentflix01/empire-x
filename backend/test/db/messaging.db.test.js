@@ -237,6 +237,44 @@ describe('inquiries ("Get a quote")', () => {
   });
 });
 
+describe('reactions and pins (M4)', () => {
+  it('reacts with any single emoji, toggles off, and keeps outsiders out', async () => {
+    const conv = await dm(users.fan, users.friend);
+    const msg = (await send(users.fan, conv.id, 'Pin me')).body;
+    let res = await api('post', `/messages/${msg.id}/reactions`, users.friend).send({ emoji: '🦒' });
+    expect(res.status).toBe(201);
+    expect(res.body.reactions['🦒']).toMatchObject({ count: 1, users: [users.friend.id] });
+    res = await api('post', `/messages/${msg.id}/reactions`, users.fan).send({ emoji: '👨‍👩‍👧' });
+    expect(res.status).toBe(201);
+    for (const bad of ['hello', '🔥🔥', '', 42]) {
+      expect((await api('post', `/messages/${msg.id}/reactions`, users.friend).send({ emoji: bad })).status).toBe(422);
+    }
+    expect((await api('post', `/messages/${msg.id}/reactions`, users.stranger).send({ emoji: '🔥' })).status).toBe(403);
+    res = await api('delete', `/messages/${msg.id}/reactions`, users.friend).send({ emoji: '🦒' });
+    expect(res.status).toBe(200);
+    expect(res.body.reactions['🦒']).toBeUndefined();
+    const { rows: [row] } = await pool.query('SELECT reactions FROM messages WHERE id=$1', [msg.id]);
+    expect(Object.keys(row.reactions)).toEqual(['👨‍👩‍👧']);
+  });
+
+  it('pins and unpins; the pins list shows newest first with a preview', async () => {
+    const conv = await dm(users.fan, users.seller);
+    const first = (await send(users.fan, conv.id, 'Opening hours: 9 to 5')).body;
+    const second = (await send(users.fan, conv.id, 'Address: Bole road')).body;
+    expect((await api('post', `/messages/${first.id}/pin`, users.fan)).status).toBe(201);
+    await new Promise((r) => setTimeout(r, 10));
+    expect((await api('post', `/messages/${second.id}/pin`, users.seller)).status).toBe(201);
+    let pins = (await api('get', `/conversations/${conv.id}/pins`, users.fan)).body;
+    expect(pins.map((p) => p.message_id)).toEqual([second.id, first.id]);
+    expect(pins[0]).toMatchObject({ content: 'Address: Bole road', type: 'text' });
+    expect((await api('post', `/messages/${first.id}/pin`, users.stranger)).status).toBe(403);
+    expect((await api('get', `/conversations/${conv.id}/pins`, users.stranger)).status).toBe(403);
+    expect((await api('delete', `/messages/${second.id}/pin`, users.fan)).status).toBe(200);
+    pins = (await api('get', `/conversations/${conv.id}/pins`, users.seller)).body;
+    expect(pins.map((p) => p.message_id)).toEqual([first.id]);
+  });
+});
+
 describe('forwarding and blocking', () => {
   it('does not forward into a chat where you are blocked', async () => {
     const source = await dm(users.buyer, users.seller);

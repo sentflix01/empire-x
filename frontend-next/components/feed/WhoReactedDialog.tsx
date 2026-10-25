@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import SafeImage from '@/components/ui/SafeImage';
-import { REACTION_LABEL, whoReacted, type Reaction, type Reactor } from '@/lib/socialApi';
+import { reactionLabel, whoReacted, type Reaction, type Reactor } from '@/lib/socialApi';
 
 /** "Who reacted", with a tab for all and one per reaction. */
 export default function WhoReactedDialog({ postId, open, onOpenChange }: { postId: string; open: boolean; onOpenChange: (open: boolean) => void }) {
@@ -45,7 +45,7 @@ export default function WhoReactedDialog({ postId, open, onOpenChange }: { postI
                 All {total}
               </button>
               {tabs.map((r) => (
-                <button key={r} type="button" role="tab" aria-selected={tab === r} aria-label={`${REACTION_LABEL[r]} ${counts[r]}`} onClick={() => setTab(r)}
+                <button key={r} type="button" role="tab" aria-selected={tab === r} aria-label={`${reactionLabel(r)} ${counts[r]}`} onClick={() => setTab(r)}
                   className={`min-h-9 shrink-0 rounded-full px-3 text-sm ${tab === r ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}>
                   {r} {counts[r]}
                 </button>

@@ -6,7 +6,9 @@ import { getSocket, joinConversation, leaveConversation } from "@/lib/socket";
 import client from "@/api/client";
 import { applyReceipt, tickFor, type MemberReadState } from "@/lib/readReceipts";
 import MessageTicks from "@/components/messaging/MessageTicks";
-import MessageReactions from "@/components/messaging/MessageReactions";
+import MessageReactions, { reactedByMe, type MessageReactionMap } from "@/components/messaging/MessageReactions";
+import ReactionPicker from "@/components/feed/ReactionPicker";
+import EmojiInsertButton from "@/components/ui/EmojiInsertButton";
 import MessageSearch from "@/components/messaging/MessageSearch";
 import ProductMessageBubble from "@/components/messaging/ProductMessageBubble";
 import OrderUpdateBubble from "@/components/messaging/OrderUpdateBubble";
@@ -29,6 +31,7 @@ import UserIdentity from "@/components/ui/UserIdentity";
 import { uploadFile } from '@/lib/uploadFile';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import PinnedBar, { pinPreviewText, type PinnedPreview } from '@/components/messaging/PinnedBar';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   enqueuePendingMessage,
@@ -71,6 +74,8 @@ function ChatRoom() {
   const [forwardSearch, setForwardSearch] = useState('');
   const [conversations, setConversations] = useState([]);
   const [pinnedMsgs, setPinnedMsgs]     = useState<Set<string>>(new Set());
+  // Preview text of pins loaded from the server (pinned messages may be older than what's on screen).
+  const [pinTexts, setPinTexts]         = useState<Record<string, string>>({});
   const [savedMsgs, setSavedMsgs]       = useState<Set<string>>(new Set());
 
   // Offline queue — pending messages awaiting a network connection.
@@ -269,7 +274,7 @@ function ChatRoom() {
     };
     socket.on('typing_updated', onTypingUpdated);
 
-    const onReactionUpdate = (payload: { message_id: string; reactions: Record<string, number> }) => {
+    const onReactionUpdate = (payload: { message_id: string; reactions: MessageReactionMap }) => {
       setMessages((prev: unknown[]) => prev.map((m: unknown) => {
         const message = m as { id: string };
         return message.id === payload.message_id ? { ...message, reactions: payload.reactions } : m;
@@ -280,7 +285,8 @@ function ChatRoom() {
 
     const onMessagePinned = (p: { message_id: string; conversation_id: string }) => {
       if (p.conversation_id === convId) {
-        setPinnedMsgs(prev => new Set([...prev, p.message_id]));
+        // Newest pin first.
+        setPinnedMsgs(prev => new Set([p.message_id, ...prev]));
       }
     };
     const onMessageUnpinned = (p: { message_id: string; conversation_id: string }) => {
@@ -390,7 +396,11 @@ function ChatRoom() {
   useEffect(() => {
     if (!id) return;
     client.get(`/api/messages/conversations/${id}/pins`)
-      .then(r => setPinnedMsgs(new Set((r.data as Array<{ message_id: string }>).map(p => p.message_id))))
+      .then(r => {
+        const pins = r.data as Array<{ message_id: string; content?: unknown; type?: string }>;
+        setPinnedMsgs(new Set(pins.map(p => p.message_id)));
+        setPinTexts(Object.fromEntries(pins.map(p => [p.message_id, pinPreviewText(p)])));
+      })
       .catch(() => {});
   }, [id]);
 
@@ -661,15 +671,19 @@ function ChatRoom() {
     setForwardMsg(msg);
     dismissContextMenu();
   };
-  const handleReact = async (msg: { id: string; conversation_id: string; reactions?: Record<string, number> }, emoji: string) => {
+  /** Adds a reaction, or removes it when it's already yours (tap again to undo). */
+  const handleReact = async (msg: { id: string; conversation_id: string; reactions?: MessageReactionMap }, emoji: string, mine?: boolean) => {
     dismissContextMenu();
+    const already = mine ?? reactedByMe(msg.reactions?.[emoji], user?.id);
     try {
-      const { data } = await client.post(`/api/messages/messages/${msg.id}/reactions`, { emoji });
+      const { data } = already
+        ? await client.delete(`/api/messages/messages/${msg.id}/reactions`, { data: { emoji } })
+        : await client.post(`/api/messages/messages/${msg.id}/reactions`, { emoji });
       setMessages((prev: unknown[]) => prev.map((m: unknown) => {
         const message = m as { id: string };
-        return message.id === msg.id ? { ...message, reactions: (data as { reactions: Record<string, number> }).reactions } : m;
+        return message.id === msg.id ? { ...message, reactions: (data as { reactions: MessageReactionMap }).reactions } : m;
       }));
-    } catch { toast.error('Failed to add reaction'); }
+    } catch (err) { toast.error(apiErrorMessage(err, already ? 'Could not remove the reaction' : 'Could not add the reaction')); }
   };
   const handlePin = async (msg: { id: string }) => {
     dismissContextMenu();
@@ -680,10 +694,22 @@ function ChatRoom() {
         toast.success('Unpinned');
       } else {
         await client.post(`/api/messages/messages/${msg.id}/pin`);
-        setPinnedMsgs(prev => new Set([...prev, msg.id]));
+        setPinnedMsgs(prev => new Set([msg.id, ...prev]));
         toast.success('Pinned message');
       }
     } catch { toast.error('Failed to update pin'); }
+  };
+  const pinnedList: PinnedPreview[] = [...pinnedMsgs].map(pid => {
+    const loaded = (messages as Array<{ id: string; type?: string; content?: unknown }>).find(m => m.id === pid);
+    return { id: pid, text: loaded ? pinPreviewText(loaded) : (pinTexts[pid] ?? 'Pinned message') };
+  });
+  const jumpToMessage = (mid: string) => {
+    const el = document.getElementById(`msg-${mid}`);
+    if (!el) { toast.info('Scroll up to load older messages to see this one'); return false; }
+    el.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
+    el.classList.add('ring-2', 'ring-primary/50', 'rounded-xl');
+    setTimeout(() => el.classList.remove('ring-2', 'ring-primary/50', 'rounded-xl'), 1600);
+    return true;
   };
   const handleSave = async (msg: { id: string }) => {
     dismissContextMenu();
@@ -873,6 +899,8 @@ function ChatRoom() {
         </div>
       </div>
 
+      <PinnedBar pins={pinnedList} onJump={jumpToMessage} />
+
       {/* Messages area */}
       <div className="relative flex-1 overflow-hidden">
         <div
@@ -927,6 +955,7 @@ function ChatRoom() {
                 return (
                   <motion.div
                     key={msg.id}
+                    id={`msg-${msg.id}`}
                     initial={reducedMotion ? false : { opacity: 0, x: isMe ? 8 : -8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.15 }}
@@ -1037,11 +1066,12 @@ function ChatRoom() {
                           )}
                         </div>
                       </div>
-                      {Object.keys((msg as { reactions?: Record<string, number> }).reactions ?? {}).length > 0 && (
+                      {Object.keys((msg as { reactions?: MessageReactionMap }).reactions ?? {}).length > 0 && (
                         <MessageReactions
-                          reactions={(msg as { reactions: Record<string, number> }).reactions}
+                          reactions={(msg as { reactions: MessageReactionMap }).reactions}
                           messageId={(msg as { id: string }).id}
-                          onReact={(emoji) => handleReact(msg, emoji)}
+                          currentUserId={user?.id}
+                          onToggle={(emoji, mine) => handleReact(msg, emoji, mine)}
                         />
                       )}
                     </div>
@@ -1156,6 +1186,14 @@ function ChatRoom() {
                 style={{ minHeight: '20px' }}
               />
             </div>
+            <EmojiInsertButton
+              value={editingMsg ? editText : text}
+              inputRef={inputRef}
+              onChange={(next) => {
+                if (editingMsg) { setEditText(next); return; }
+                setText(next); textRef.current = next;
+              }}
+            />
             {(() => {
               const hasContent = Boolean((editingMsg ? editText : text).trim());
               return (
@@ -1220,25 +1258,9 @@ function ChatRoom() {
                 : selectedMsg.content}
             </div>
 
-            {/* ── Emoji reaction row ── */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border/20">
-              {['❤️','👏','👍','👎','🔥','🤩','😂'].map(emoji => (
-                <button
-                  key={emoji}
-                  onClick={() => handleReact(selectedMsg, emoji)}
-                  className="text-2xl active:scale-125 transition-transform hover:scale-110 select-none"
-                  style={{ lineHeight: 1 }}
-                >
-                  {emoji}
-                </button>
-              ))}
-              {/* More reactions */}
-              <button
-                onClick={() => toast('More reactions coming soon')}
-                className="size-11 rounded-full flex items-center justify-center text-lg transition-colors bg-secondary"
-              >
-                ＋
-              </button>
+            {/* ── Reactions: quick row, and "+" for every emoji ── */}
+            <div className="px-3 py-3 border-b border-border/20">
+              <ReactionPicker onPick={(emoji) => handleReact(selectedMsg, emoji)} />
             </div>
 
             {/* ── Action list ── */}

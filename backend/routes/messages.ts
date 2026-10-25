@@ -28,6 +28,7 @@ import { getRedis } from '../lib/redis';
 import * as apiError from '../lib/apiError';
 import type { Redis as RedisClient } from 'ioredis';
 import { classify, decide } from '../lib/clef';
+import { isEmoji } from '../lib/emoji';
 
 const router = Router();
 const memPresence = new Map<string, { status: string; last_seen: string }>();
@@ -964,9 +965,7 @@ router.post('/messages/:id/reactions', requireAuth, reactLimiter, async (req: Re
   try {
     if (!UUID.test(req.params.id)) { apiError.notFound(res, 'Message not found'); return; }
     const { emoji } = req.body as { emoji?: unknown };
-    if (typeof emoji !== 'string' || emoji.trim().length === 0 || emoji.length > 20) {
-      apiError.validationError(res, 'emoji must be a non-empty string of at most 20 characters'); return;
-    }
+    if (!isEmoji(emoji)) { apiError.validationError(res, 'React with a single emoji.'); return; }
     const { rows: [msg] } = await pool.query<{ id: string; conversation_id: string }>('SELECT id, conversation_id FROM messages WHERE id=$1', [req.params.id]);
     if (!msg) { apiError.notFound(res, 'Message not found'); return; }
     const found = await loadForMember(req, res, String(msg.conversation_id)); if (!found) return;

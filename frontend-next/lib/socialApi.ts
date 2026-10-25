@@ -5,11 +5,14 @@
  */
 import client from '@/api/client';
 
+/** The quick row; any single emoji is a valid reaction (the server checks). */
 export const REACTIONS = ['❤️', '👍', '😂', '😮', '😢', '👏', '🔥'] as const;
-export type Reaction = typeof REACTIONS[number];
-export const REACTION_LABEL: Record<Reaction, string> = {
+export type Reaction = string;
+export const REACTION_LABEL: Record<string, string> = {
   '❤️': 'Love', '👍': 'Like', '😂': 'Haha', '😮': 'Wow', '😢': 'Sad', '👏': 'Clap', '🔥': 'Fire',
 };
+/** A name for screen readers: the quick ones have words; others read as "React with <emoji>". */
+export const reactionLabel = (r: string) => REACTION_LABEL[r] ?? `React with ${r}`;
 
 export interface ReactionSummary {
   my_reaction: Reaction | null;

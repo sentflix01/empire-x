@@ -17,7 +17,7 @@ import { syncHashtags, resyncHashtags, unlinkHashtags } from './hashtags';
 import { emitNotification } from '../socket';
 import { sendPushToUser } from './push';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache';
-import { attachPostViewerState, commentRefusal, feedFilterSql, isBlockedEitherWay, isReaction, notBlockedSql, authorVisibleSql, REACTIONS } from '../lib/socialGraph';
+import { attachPostViewerState, commentRefusal, feedFilterSql, isBlockedEitherWay, isReaction, notBlockedSql, authorVisibleSql } from '../lib/socialGraph';
 import { classify, decide } from '../lib/clef';
 
 const router = Router();
@@ -331,7 +331,7 @@ async function reactionSummary(postId: string, viewer?: string) {
 
 router.put('/:id/reaction', requireAuth, async (req: Request, res: Response) => {
   const { reaction } = req.body as { reaction?: unknown };
-  if (!isReaction(reaction)) { res.status(422).json({ error: 'invalid_reaction', allowed: REACTIONS }); return; }
+  if (!isReaction(reaction)) { res.status(422).json({ error: 'invalid_reaction', message: 'React with a single emoji.' }); return; }
   try {
     if (!(await viewerMaySeePost(req.params.id, req.user!.id))) { res.status(404).json({ error: 'Post not found' }); return; }
     const { rows } = await pool.query(
@@ -554,7 +554,7 @@ router.put('/:postId/comments/:commentId', requireAuth, async (req: Request, res
 
 router.put('/:postId/comments/:commentId/reaction', requireAuth, async (req: Request, res: Response) => {
   const { reaction } = req.body as { reaction?: unknown };
-  if (!isReaction(reaction)) { res.status(422).json({ error: 'invalid_reaction', allowed: REACTIONS }); return; }
+  if (!isReaction(reaction)) { res.status(422).json({ error: 'invalid_reaction', message: 'React with a single emoji.' }); return; }
   try {
     const { rows: [comment] } = await pool.query('SELECT author_id FROM comments WHERE id=$1 AND post_id=$2', [req.params.commentId, req.params.postId]);
     if (!comment || !(await viewerMaySeePost(req.params.postId, req.user!.id)) || await isBlockedEitherWay(comment.author_id, req.user!.id)) {
