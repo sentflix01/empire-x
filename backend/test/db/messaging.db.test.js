@@ -203,6 +203,31 @@ describe('groups and channels', () => {
     expect((await send(other, group.id, 'still here?')).status).toBe(403);
   });
 
+  it('admins make others admin and take it back; a group always keeps an admin', async () => {
+    const group = (await api('post', '/conversations', users.buyer).send({ name: 'Roles', participant_ids: [users.seller.id, users.friend.id] })).body;
+    const role = (who, target, r) => api('put', `/conversations/${group.id}/members/${target.id}`, who).send({ role: r });
+    expect((await role(users.seller, users.friend, 'admin')).status).toBe(403); // members can't
+    expect((await role(users.buyer, users.seller, 'boss')).status).toBe(422);
+    expect((await role(users.buyer, users.stranger, 'admin')).status).toBe(404);
+    expect((await role(users.buyer, users.buyer, 'member')).status).toBe(422); // the only admin
+    expect((await role(users.buyer, users.seller, 'admin')).body).toEqual({ user_id: users.seller.id, role: 'admin' });
+    expect((await role(users.seller, users.buyer, 'member')).status).toBe(200);
+    const { rows } = await pool.query('SELECT user_id, role FROM conversation_participants WHERE conversation_id=$1', [group.id]);
+    expect(Object.fromEntries(rows.map((r) => [r.user_id, r.role]))).toMatchObject({ [users.buyer.id]: 'member', [users.seller.id]: 'admin' });
+    const { rows: [c] } = await pool.query('SELECT admin_id FROM conversations WHERE id=$1', [group.id]);
+    expect(c.admin_id).toBe(users.seller.id);
+    // Admins leave with Leave, not by removing themselves.
+    expect((await api('delete', `/conversations/${group.id}/members/${users.seller.id}`, users.seller)).status).toBe(422);
+    expect((await api('put', `/conversations/${(await dm(users.buyer, users.friend)).id}/members/${users.friend.id}`, users.buyer).send({ role: 'admin' })).status).toBe(422);
+  });
+
+  it('admins rename the group; members can’t', async () => {
+    const group = (await api('post', '/conversations', users.buyer).send({ name: 'Old name', participant_ids: [users.seller.id] })).body;
+    expect((await api('put', `/conversations/${group.id}`, users.seller).send({ name: 'Mine now' })).status).toBe(403);
+    const res = await api('put', `/conversations/${group.id}`, users.buyer).send({ name: 'New name', description: 'Weekend market' });
+    expect(res.body).toMatchObject({ name: 'New name', description: 'Weekend market' });
+  });
+
   it('lets only admins post in a channel', async () => {
     const channel = (await api('post', '/conversations', users.seller).send({ type: 'channel', name: 'Deals', participant_ids: [users.buyer.id] })).body;
     expect((await send(users.buyer, channel.id, 'me too')).status).toBe(403);

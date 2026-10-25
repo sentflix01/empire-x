@@ -20,7 +20,7 @@ import {
 } from '../lib/messaging';
 import {
   emitNewMessage, emitMessageEdited, emitMessageDeleted, emitNotification, emitPresenceUpdated, emitToUser,
-  removeUserFromConversationRoom, emitReactionAdded, emitReactionRemoved, emitMessagePinned, emitMessageUnpinned,
+  removeUserFromConversationRoom, emitReactionAdded, emitReactionRemoved, emitMessagePinned, emitMessageUnpinned, emitMembersChanged,
 } from '../socket';
 import { sendPushToUser } from './push';
 import logger from '../lib/logger';
@@ -575,6 +575,7 @@ router.put('/conversations/:id', requireAuth, async (req: Request, res: Response
     if ('name' in updates && !updates.name) { apiError.validationError(res, 'Give the group a name'); return; }
     const sets = Object.keys(updates).map((f, i) => `${f}=$${i + 1}`).join(', ');
     const { rows: [conv] } = await pool.query(`UPDATE conversations SET ${sets}, updated_at=NOW() WHERE id=$${Object.keys(updates).length + 1} RETURNING *`, [...Object.values(updates), found.conv.id]);
+    emitMembersChanged(found.conv.id, found.ids);
     res.json(conv);
   } catch (err) { fail(res, err, 'update the group'); }
 });
@@ -724,6 +725,7 @@ router.post('/conversations/:id/leave', requireAuth, async (req: Request, res: R
       await client.query('COMMIT');
     } catch (err) { try { await client.query('ROLLBACK'); } catch { /* gone */ } throw err; } finally { client.release(); }
     removeUserFromConversationRoom(me, found.conv.id);
+    emitMembersChanged(found.conv.id, found.ids);
     res.json({ success: true });
   } catch (err) { fail(res, err, 'leave the group'); }
 });
@@ -741,6 +743,7 @@ router.post('/conversations/:id/members', requireAuth, async (req: Request, res:
     const why = await addRefusal(String(req.user!.id), user_id);
     if (why) { refuse(res, why); return; }
     await addMember(pool, found.conv, user_id);
+    emitMembersChanged(found.conv.id, [...found.ids, user_id]);
     res.json({ success: true });
   } catch (err) { fail(res, err, 'add this person'); }
 });
@@ -750,10 +753,39 @@ router.delete('/conversations/:id/members/:userId', requireAuth, async (req: Req
     const found = await loadForMember(req, res, req.params.id); if (!found) return;
     if (found.role !== 'admin' && !isAdmin(req)) { apiError.forbidden(res, 'Only group admins can remove people'); return; }
     if (!found.ids.includes(req.params.userId)) { apiError.notFound(res, 'Member not found'); return; }
+    if (req.params.userId === String(req.user!.id)) { apiError.validationError(res, 'Use Leave to leave the group'); return; }
     await removeMember(pool, found.conv, req.params.userId);
     removeUserFromConversationRoom(req.params.userId, found.conv.id);
+    emitMembersChanged(found.conv.id, found.ids);
     res.json({ success: true });
   } catch (err) { fail(res, err, 'remove this person'); }
+});
+
+/** Body: { role: 'admin' | 'member' }. Admins make others admins or take it back; a group always keeps one admin. */
+router.put('/conversations/:id/members/:userId', requireAuth, async (req: Request, res: Response) => {
+  const role = (req.body as { role?: unknown }).role;
+  if (role !== 'admin' && role !== 'member') { apiError.validationError(res, 'role must be admin or member'); return; }
+  try {
+    const found = await loadForMember(req, res, req.params.id); if (!found) return;
+    if (found.conv.type === 'dm') { apiError.validationError(res, 'One-to-one chats have no admins'); return; }
+    if (found.role !== 'admin' && !isAdmin(req)) { apiError.forbidden(res, 'Only group admins can change roles'); return; }
+    if (!found.ids.includes(req.params.userId)) { apiError.notFound(res, 'Member not found'); return; }
+    if (role === 'member') {
+      const { rows: [{ n }] } = await pool.query<{ n: number }>(
+        "SELECT COUNT(*)::int AS n FROM conversation_participants WHERE conversation_id=$1 AND role='admin' AND user_id<>$2",
+        [found.conv.id, req.params.userId],
+      );
+      if (n === 0) { apiError.validationError(res, 'A group needs at least one admin. Make someone else admin first.'); return; }
+    }
+    await pool.query('UPDATE conversation_participants SET role=$1 WHERE conversation_id=$2 AND user_id=$3', [role, found.conv.id, req.params.userId]);
+    // The original admin_id column follows the first admin, for older app versions.
+    await pool.query(
+      `UPDATE conversations SET admin_id = (SELECT user_id FROM conversation_participants WHERE conversation_id=$1 AND role='admin' ORDER BY joined_at LIMIT 1) WHERE id=$1`,
+      [found.conv.id],
+    );
+    emitMembersChanged(found.conv.id, found.ids);
+    res.json({ user_id: req.params.userId, role });
+  } catch (err) { fail(res, err, 'change the role'); }
 });
 
 router.delete('/conversations/:id', requireAuth, async (req: Request, res: Response) => {
@@ -762,6 +794,7 @@ router.delete('/conversations/:id', requireAuth, async (req: Request, res: Respo
     if (found.conv.type === 'dm' && !isAdmin(req)) { apiError.validationError(res, 'One-to-one chats can’t be deleted for both people'); return; }
     if (found.role !== 'admin' && !isAdmin(req)) { apiError.forbidden(res, 'Only group admins can delete the group'); return; }
     await pool.query('DELETE FROM conversations WHERE id=$1', [found.conv.id]);
+    emitMembersChanged(found.conv.id, found.ids);
     for (const id of found.ids) removeUserFromConversationRoom(id, found.conv.id);
     res.json({ success: true });
   } catch (err) { fail(res, err, 'delete the group'); }

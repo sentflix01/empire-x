@@ -616,7 +616,11 @@ The older `/api/messages/messages/:id…` paths still work.
 - **`POST /conversations/:id/members`** `{ "user_id" }`: admins add people they could message.
 - **`DELETE /conversations/:id/members/:userId`**: admins remove people. Removed people stop receiving live messages at once.
 - **`POST /conversations/:id/leave`**: when the last admin leaves, the longest-standing member becomes admin.
+- **`PUT /conversations/:id/members/:userId`** `{ "role": "admin" | "member" }`: admins make someone admin or take it back. A group always keeps at least one admin (`422` otherwise). Admins leave with Leave, not by removing themselves.
+- **`PUT /conversations/:id`** `{ name?, description?, avatar_url? }`: admins rename the group or channel.
 - **`DELETE /conversations/:id`**: admins delete the group. One-to-one chats can't be left or deleted for both people.
+- **Limits and rules:** up to 256 members. In a channel only admins post. You can add only people you could message.
+- **Live:** every member change, role change and rename sends `members_changed` and `conversation_updated` (`{ conversation_id }`) to each affected person's own room, including someone who was just removed.
 
 ### POST /api/messages/inquiry
 "Get a quote": `{ "receiver_id", "subject"?, "body" }`. It opens (or reuses) the one-to-one chat with the business owner, under the same rules as any first message. The request shows in the owner's chat list and notifications. The buyer's email is never included.

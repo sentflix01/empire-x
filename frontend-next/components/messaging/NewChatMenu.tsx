@@ -2,10 +2,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Menu, Users, Radio, ShieldCheck } from "lucide-react";
-import CreateGroupModal from "@/components/messaging/CreateGroupModal";
-import CreateChannelModal from "@/components/messaging/CreateChannelModal";
+import CreateGroupDialog from "@/components/messaging/CreateGroupDialog";
 
-export default function NewChatMenu({ user, contacts, onCreated }) {
+export default function NewChatMenu({ onCreated }: { user?: unknown; contacts?: unknown; onCreated?: () => void }) {
   const [open, setOpen] = useState(false);
   const [groupOpen, setGroupOpen] = useState(false);
   const [channelOpen, setChannelOpen] = useState(false);
@@ -64,19 +63,8 @@ export default function NewChatMenu({ user, contacts, onCreated }) {
         )}
       </div>
 
-      <CreateGroupModal
-        open={groupOpen}
-        onClose={() => setGroupOpen(false)}
-        user={user}
-        contacts={contacts}
-        onCreated={onCreated}
-      />
-      <CreateChannelModal
-        open={channelOpen}
-        onClose={() => setChannelOpen(false)}
-        user={user}
-        onCreated={onCreated}
-      />
+      {groupOpen && <CreateGroupDialog type="group" onClose={() => setGroupOpen(false)} onCreated={onCreated} />}
+      {channelOpen && <CreateGroupDialog type="channel" onClose={() => setChannelOpen(false)} onCreated={onCreated} />}
     </>
   );
 }

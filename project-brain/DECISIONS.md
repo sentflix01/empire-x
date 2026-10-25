@@ -695,3 +695,21 @@ items in the open list until confirmed.
   - Code: `frontend-next/views/ChatRoom.tsx`, `frontend-next/views/Messages.tsx`, `frontend-next/app/(app)/messages/layout.tsx`, `frontend-next/components/messaging/*`, `frontend-next/lib/chatDisplay.ts`, `frontend-next/lib/chatRules.ts`, `frontend-next/lib/useMediaQuery.ts`
   - Tests: `frontend-next/test/messaging/chatUi.test.tsx`
 
+### 2026-10-25 — Messages M6: groups and channels
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (messaging plan, Oct 2026: "fix and keep groups and channels")
+- **Context:** Creating a group or channel sent profile ids instead of user ids through a generic helper, so it failed. There was no Members screen, and the chat menu link to one led nowhere. There was no way to make someone admin, and open chats didn't notice member changes.
+- **Decision:**
+  1. **Creating:** one dialog for groups and channels, with a name, a description for channels, and people picked by name. A group needs at least one other person; a channel can start with only its admin. The server's reason is shown when someone can't be added.
+  2. **Group info screen** (`/messages/[id]/members`):
+     - name, description and members with their roles
+     - **Admins:** rename, add people (only people they could message), remove, make admin or take it back, and delete the group
+     - **Everyone:** leave; the last admin leaving hands the group to the longest-standing member
+  3. **Roles:** `PUT /conversations/:id/members/:userId` changes a role, and a group always keeps one admin. In channels only admins post. Up to 256 members.
+  4. **Live:** member, role and name changes send `members_changed` to each affected person's own room. Open chats and the info screen reload, and a removed person's chat closes.
+- **Related documentation:**
+  - Docs: `docs/backend/API.md` (Messages → Groups)
+  - Code: `backend/routes/messages.ts`, `backend/socket.ts`, `frontend-next/components/messaging/CreateGroupDialog.tsx`, `frontend-next/components/messaging/PeoplePicker.tsx`, `frontend-next/views/ChatMembers.tsx`
+  - Tests: `backend/test/db/messaging.db.test.js`, `backend/test/db/messagingSocket.db.test.js`, `frontend-next/test/messaging/groups.test.tsx`
+
