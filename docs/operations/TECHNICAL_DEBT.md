@@ -62,7 +62,11 @@
 
 ---
 
-## Medium Priority
+### TD-025: Frontend test suite full-run parallelism flakes
+**Status:** Known — workaround available  
+**Problem:** Running all 54 Vitest test files in parallel spawns ~54 workers simultaneously. Under constrained resources the transform step races and one or two files report a transform error that does not reproduce in isolation. Every test file passes when run alone.  
+**Fix:** Add `isolate: false` to `vitest.config.ts` to reuse workers across files (~178s faster per the Vitest output). Alternatively run CI with `--reporter=dot` and retry once on any transform failure.  
+**Impact:** Occasional false-red CI runs; no real test regressions.
 
 ### TD-004: TypeScript migration (backend)
 **Status:** Not started  
@@ -167,7 +171,7 @@ Removed the old Vite frontend folder entirely. `frontend-next/` is the only fron
 | TD-019 | CI deploy gate — deploys now chained to CI pass, not raw push | September 2026 |
 | TD-020 | Jest hung in CI — added `--forceExit` + 15min job timeout | September 22, 2026 |
 | TD-021 | `showroom-digests.js` dynamic imports missing `.js` extension (Node ESM Docker fail) | September 22, 2026 |
-| TD-0xx | Duplicate PUT /me/upsert in profiles.js | July 2026 |
+| TD-0xx | `frontend-next/test/onboarding.test.tsx` queried `getByRole('img')` but `BrandLogoVideo` renders a `<div aria-label>` + `<video>`, not an `<img>` — test updated to `getByLabelText('Nodbusiness')` | October 2026 |
 | TD-0xx | Missing ticker_type column in migrate7.js | July 2026 |
 | TD-0xx | Wrong column in migrate8.js stories index | July 2026 |
 | TD-0xx | updateRecord null not checked by callers | July 2026 |
