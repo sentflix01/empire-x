@@ -21,7 +21,7 @@ export const SECTION_GROUPS = [
       'live_location_tracking',
     ],
   },
-  { title: 'Bottom of the page', desc: 'How people reach, pay and follow you', keys: ['payment_info', 'hours', 'map', 'contact', 'social', 'newsletter', 'save_showroom'] },
+  { title: 'Bottom of the page', desc: 'How people reach, pay and follow you', keys: ['payment_info', 'hours', 'map', 'contact', 'social', 'newsletter', 'save_showroom', 'feed_ticker'] },
 ];
 
 function TierBadge({ tier }: { tier: SectionType['tier'] }) {

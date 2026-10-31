@@ -81,6 +81,14 @@ async function seed() {
         phone: fixture.phone,
         location: fixture.location,
       });
+      // Feed announcement ticker — renders at the bottom of the business card in the feed.
+      if (fixture.ticker?.text) {
+        sections.push({
+          type: 'feed_ticker',
+          tickerText: fixture.ticker.text,
+          tickerType: fixture.ticker.type || 'auto',
+        });
+      }
       const { rows: userRows } = await client.query(
         `INSERT INTO users (email, full_name, role, is_verified, is_demo, is_seed, provider)
          VALUES ($1, $2, 'user', TRUE, TRUE, FALSE, 'local')

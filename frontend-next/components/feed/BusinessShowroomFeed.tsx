@@ -18,6 +18,7 @@ import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
 import PurchaseModal from '@/components/checkout/PurchaseModal';
 import SharedBookmarkButton from '@/components/ui/BookmarkButton';
 import BusinessSpotlight from './BusinessSpotlight';
+import TickerBar from './TickerBar';
 import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
 
 /* ── Types ───────────────────────────────────────────────────────── */
@@ -354,6 +355,18 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
           seller: { user_id: ownerId, business_name: bizName },
         })}
       />
+
+      {/* Feed announcement ticker — shown when the owner has added a feed_ticker section */}
+      {(() => {
+        const tickerSection = sections.find((s: Record<string, any>) => s.type === 'feed_ticker');
+        if (!tickerSection?.tickerText) return null;
+        return (
+          <TickerBar
+            text={String(tickerSection.tickerText)}
+            type={tickerSection.tickerType ? String(tickerSection.tickerType) : 'auto'}
+          />
+        );
+      })()}
 
       {/* Inline PurchaseModal */}
       {purchaseModal && (

@@ -30,6 +30,7 @@ const fixtures = [
     themeColor: '#7C3AED',
     description: 'Thoughtful apparel, accessories, and locally designed pieces for everyday wear.',
     about: 'Bole Fashion House brings together locally designed clothing and useful accessories. Browse the sample collection, check the listed prices, and place a demo order.',
+    ticker: { text: '🛍 New arrivals this week — woven cotton shirts, leather bags & more. Browse the collection now!', type: 'promo' },
     products: [
       product('Woven cotton shirt', 'Lightweight, locally woven cotton shirt.', 1800, 'Clothing'),
       product('Everyday linen dress', 'A breathable, relaxed-fit dress for warm days.', 3200, 'Clothing'),
@@ -59,6 +60,7 @@ const fixtures = [
     themeColor: '#B45309',
     description: 'A neighborhood kitchen serving Ethiopian favorites and fresh seasonal dishes.',
     about: 'Kategna Kitchen is a sample restaurant storefront. Menu entries are demo listings; orders are practice transactions and do not represent a live restaurant.',
+    ticker: { text: '🍽 Today\'s special: Vegetarian tasting plate + Ethiopian coffee service — order now!', type: 'promo' },
     products: [
       product('Vegetarian tasting plate', 'A shareable selection of seasonal vegetarian dishes.', 780, 'Main dishes'),
       product('Spiced lentil stew', 'Slow-cooked lentils with a warm berbere spice blend.', 360, 'Main dishes'),
@@ -90,6 +92,7 @@ const fixtures = [
     themeColor: '#0F766E',
     description: 'Brand identity, digital design, and content services for growing teams.',
     about: 'Addis Creative Studio offers project-based creative services. Choose a service and send a request; the studio will follow up in the Demo inbox.',
+    ticker: { text: '✨ Project slots open for brand identity & landing page design — send a request today', type: 'news' },
     services: [
       service('Brand identity starter', 'Logo direction, colors, and a concise visual identity guide.'),
       service('Social media design pack', 'A reusable set of branded social media templates.'),
@@ -119,6 +122,7 @@ const fixtures = [
     themeColor: '#2563EB',
     description: 'A sample outpatient clinic profile with general service information and appointment requests.',
     about: 'This clinic is a fictional Demo business. Requests are inquiries only, not confirmed appointments or medical advice. Do not submit real health information.',
+    ticker: { text: '📞 Bole Wellness Clinic · +251 000 000 104 · Mon–Sat 8am–6pm · Appointments by request', type: 'contact' },
     booking: {
       title: 'Request an appointment',
       description: 'Send a preferred date and service in your message. The Demo clinic will not confirm a real appointment.',
@@ -154,6 +158,7 @@ const fixtures = [
     themeColor: '#1D4ED8',
     description: 'IT equipment, setup, and support services for small and growing organizations.',
     about: 'EthioTech Solutions combines a small equipment catalog with service requests. Product orders are Demo transactions; support services are inquiries.',
+    ticker: { text: '🔧 IT support visits available this week · Office networking & device setup · Get Quote', type: 'custom' },
     products: [
       product('Wireless office router', 'Dual-band router for a small office network.', 4800, 'Networking'),
       product('Business laptop stand', 'Adjustable aluminum stand for a desk setup.', 1350, 'Accessories'),
@@ -188,6 +193,7 @@ const fixtures = [
     themeColor: '#059669',
     description: 'A searchable sample catalog of general wellness and over-the-counter essentials.',
     about: 'This fictional pharmacy demo lists sample over-the-counter and wellness items only. Confirm real stock with a licensed pharmacist. No prescription or controlled medicines are sold through this Demo.',
+    ticker: { text: '💊 First-aid kits, vitamins & personal care essentials in stock · Browse the full catalog', type: 'promo' },
     products: [
       product('Digital thermometer', 'Digital thermometer for general home use.', 650, 'Health devices'),
       product('First-aid dressing kit', 'A compact kit with basic dressings and plasters.', 420, 'First aid'),
@@ -221,6 +227,7 @@ const fixtures = [
     themeColor: '#15803D',
     description: 'A searchable neighborhood grocery catalog with fresh food and household essentials.',
     about: 'Merkato Fresh Market is a fictional sample shop. Search by item name or category to browse its sample inventory.',
+    ticker: { text: '🛒 Fresh produce, pantry & household · Tomatoes 110 ETB/kg · Eggs 240 ETB/tray · Order now', type: 'promo' },
     products: [
       product('Fresh tomatoes', 'Locally sourced tomatoes, sold by the kilogram.', 110, 'Fresh produce'),
       product('Red onions', 'Red onions, sold by the kilogram.', 95, 'Fresh produce'),
@@ -254,6 +261,7 @@ const fixtures = [
     themeColor: '#0E7490',
     description: 'A mobility service showcase with ride options and a request-to-contact flow.',
     about: 'This ride-service prototype demonstrates a vehicle and service catalog. Trip requests go to the Demo inbox; there is no live driver matching, GPS dispatch, or ride confirmation.',
+    ticker: { text: '🚗 City rides · Airport transfers · Family vehicles · Request a ride now', type: 'custom' },
     booking: {
       title: 'Request a ride',
       description: 'Include pickup, destination, and preferred time in your message. This sends an inquiry only; no driver is dispatched.',
@@ -289,6 +297,7 @@ const fixtures = [
     themeColor: '#4338CA',
     description: 'A telecom plan and connectivity service showcase with inquiry-based requests.',
     about: 'Nile Connect is a fictional telecom storefront. Compare sample plans and send a request for information; the Demo does not activate SIMs, numbers, or network service.',
+    ticker: { text: '📶 Home internet · Business connection · Prepaid bundles · Compare plans & send a request', type: 'custom' },
     services: [
       service('Home internet plan', 'Request information about a home internet plan.'),
       service('Small business connection', 'Ask about internet service for a small office.'),
@@ -318,6 +327,7 @@ const fixtures = [
     themeColor: '#A16207',
     description: 'A sample hospitality storefront for rooms, local tours, and guest services.',
     about: 'Highland Stay & Tours is a fictional travel showcase. Requests are inquiries only, not confirmed reservations or tickets.',
+    ticker: { text: '🏔 Lalibela stays & local tours · Garden rooms · Heritage walks · Ask about availability', type: 'news' },
     booking: {
       title: 'Request availability',
       description: 'Send your preferred dates and room or tour choice. The Demo does not reserve rooms or issue tickets.',
@@ -353,6 +363,7 @@ const fixtures = [
     themeColor: '#475569',
     description: 'A fictional civic information website prototype for service discovery and contact requests.',
     about: 'This is not a government website. Service cards demonstrate information architecture only. No official applications, payments, identity documents, or records are accepted.',
+    ticker: { text: '📍 Addis Ababa Civic Service Desk · Business permits · Public office directory · Open Mon–Fri', type: 'location' },
     services: [
       service('Business permit information', 'Read about the kinds of information a permit page could provide. Do not send real documents.'),
       service('Public office directory', 'Request help finding a public office contact page.'),
