@@ -116,14 +116,36 @@ export default function LandingPage() {
         </div>
 
         <div data-page-guide="landing-actions" className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-10 pt-16 text-center">
-          <Image
-            src="/brand/nodbusiness-logo-white.svg"
-            alt="Nodbusiness"
-            width={280}
-            height={42}
-            className="mb-6 h-10 w-auto"
-            priority
-          />
+          {/* ── Brand video circle — hero focal point ── */}
+          <div
+            className="mb-5 mx-auto"
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              backgroundColor: '#0a0a0a',
+              overflow: 'hidden',
+              boxShadow: '0 0 0 3px rgba(255,255,255,0.18), 0 8px 32px rgba(0,0,0,0.45)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+            <video
+              src="/brand/nodbusiness-intro.mp4"
+              autoPlay
+              muted
+              playsInline
+              loop
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              aria-hidden="true"
+            />
+          </div>
+          {/* Brand name below the video circle */}
+          <p className="mb-3 text-lg font-black tracking-tight text-white/90 sm:text-xl">
+            Nodbusiness
+          </p>
           <p className="mb-4 inline-flex max-w-[22rem] flex-wrap items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-2 text-center text-xs font-semibold text-white/85 backdrop-blur-xl sm:max-w-full sm:text-sm">
             <Sparkles className="h-4 w-4 text-emerald-300" />
             <span>Social, commerce, payments, services, and AI</span>
