@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
-import BrandLogo from "@/components/brand/BrandLogo";
+import BrandLogoVideo from "@/components/brand/BrandLogoVideo";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 /**
@@ -73,8 +73,9 @@ function Onboarding() {
         </Link>
 
         <div className="text-center mb-8">
-          <BrandLogo className="w-14 h-14 mx-auto shadow-md" size={56} label="Nodbusiness" />
-          <p className="font-display text-xl font-bold mt-2 text-foreground">Nodbusiness</p>
+          {/* Brand video logo — loops silently while the user fills in their profile */}
+          <BrandLogoVideo size={72} className="w-[72px] h-[72px] mx-auto shadow-lg" label="Nodbusiness" />
+          <p className="font-display text-xl font-bold mt-3 text-foreground">Nodbusiness</p>
           {(user?.is_demo || user?.demo_session_active) && (
             <div role="status" className="mt-4 rounded-xl border border-amber-300/50 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
               <p>You are practicing in the Demo workspace. Your Real account and its data stay separate.</p>
