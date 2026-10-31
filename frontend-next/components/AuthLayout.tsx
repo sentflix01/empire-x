@@ -27,7 +27,6 @@ export default function AuthLayout({ title, subtitle, footer, children, icon: Ic
                   className="w-16 h-16 rounded-full bg-[#0a0a0a] overflow-hidden flex items-center justify-center"
                   style={{ boxShadow: '0 0 0 2px rgba(0,0,0,0.08), 0 4px 20px rgba(0,0,0,0.15)' }}
                 >
-                  {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                   <video
                     src="/brand/nodbusiness-intro.mp4"
                     autoPlay

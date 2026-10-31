@@ -121,7 +121,6 @@ export default function LandingPage() {
             className="mb-4 mx-auto w-20 h-20 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-full bg-[#0a0a0a] overflow-hidden flex items-center justify-center"
             style={{ boxShadow: '0 0 0 3px rgba(255,255,255,0.18), 0 8px 40px rgba(0,0,0,0.5)' }}
           >
-            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
             <video
               src="/brand/nodbusiness-intro.mp4"
               autoPlay
