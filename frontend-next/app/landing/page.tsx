@@ -60,7 +60,7 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
       {/* ── Top navigation bar ── */}
-      <nav data-page-guide="landing-nav" aria-label="Account and display options" className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/8 sm:px-6">
+      <nav data-page-guide="landing-nav" aria-label="Account and display options" className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-3 bg-slate-950/80 backdrop-blur-xl border-b border-white/8 sm:px-6 sm:py-4">
         <div className="flex items-center gap-2">
           <Image src="/brand/nodbusiness-logo-white.svg" alt="Nodbusiness" width={180} height={27} className="h-6 w-auto sm:h-7" priority />
         </div>
@@ -69,7 +69,7 @@ export default function LandingPage() {
           <Link data-page-guide="landing-register" href="/register" className="hidden sm:inline-flex h-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-xl hover:bg-white/20 transition-all">
             Create Account
           </Link>
-          <Link data-page-guide="landing-signin" href="/login" className="inline-flex h-9 items-center justify-center rounded-xl bg-white px-4 text-sm font-bold text-blue-700 shadow-lg hover:bg-blue-50 transition-all">
+          <Link data-page-guide="landing-signin" href="/login" className="inline-flex h-8 items-center justify-center rounded-xl bg-white px-3 text-xs font-bold text-blue-700 shadow-lg hover:bg-blue-50 transition-all sm:h-9 sm:px-4 sm:text-sm whitespace-nowrap">
             Sign In
           </Link>
         </div>
@@ -115,20 +115,31 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div data-page-guide="landing-actions" className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-10 pt-16 text-center">
-          <Image
-            src="/brand/nodbusiness-logo-white.svg"
-            alt="Nodbusiness"
-            width={280}
-            height={42}
-            className="mb-6 h-10 w-auto"
-            priority
-          />
-          <p className="mb-4 inline-flex max-w-[22rem] flex-wrap items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-2 text-center text-xs font-semibold text-white/85 backdrop-blur-xl sm:max-w-full sm:text-sm">
+        <div data-page-guide="landing-actions" className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-6 pt-10 text-center sm:pb-10 sm:pt-14">
+          {/* ── Brand video circle — responsive: 80px → 120px → 160px ── */}
+          <div
+            className="mb-4 mx-auto w-20 h-20 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-full bg-[#0a0a0a] overflow-hidden flex items-center justify-center"
+            style={{ boxShadow: '0 0 0 3px rgba(255,255,255,0.18), 0 8px 40px rgba(0,0,0,0.5)' }}
+          >
+            <video
+              src="/brand/nodbusiness-intro.mp4"
+              autoPlay
+              muted
+              playsInline
+              loop
+              className="w-full h-full object-cover block"
+              aria-hidden="true"
+            />
+          </div>
+          {/* Brand name — scales with the logo */}
+          <p className="mb-2 text-base font-black tracking-tight text-white/90 sm:text-xl lg:text-2xl">
+            Nodbusiness
+          </p>
+          <p className="mb-3 inline-flex max-w-[22rem] flex-wrap items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-1.5 text-center text-xs font-semibold text-white/85 backdrop-blur-xl sm:max-w-full sm:text-sm sm:py-2">
             <Sparkles className="h-4 w-4 text-emerald-300" />
             <span>Social, commerce, payments, services, and AI</span>
           </p>
-          <h1 className="max-w-5xl text-4xl font-black leading-tight tracking-normal sm:text-7xl lg:text-8xl">
+          <h1 className="max-w-5xl text-3xl font-black leading-tight tracking-normal sm:text-7xl lg:text-8xl">
             Nodbusiness
             <span className="block text-white/78">
               <span className="block sm:inline">Merchant</span>
@@ -136,28 +147,27 @@ export default function LandingPage() {
               <span className="block sm:inline">Commerce</span>
             </span>
           </h1>
-          <p className="mt-6 max-w-[21rem] text-sm font-medium leading-7 text-white/76 sm:max-w-2xl sm:text-xl">
+          <p className="mt-4 max-w-[21rem] text-sm font-medium leading-7 text-white/76 sm:max-w-2xl sm:mt-6 sm:text-xl">
             One simple platform where local businesses create showrooms, connect with customers, and manage orders.
           </p>
-          <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
-            {/* Primary: create or sign in */}
+          {/* CTA buttons — always visible, stack on mobile */}
+          <div className="mt-6 flex w-full flex-col items-center justify-center gap-2.5 sm:mt-8 sm:w-auto sm:flex-row sm:gap-3">
             <Link
               href="/register"
-              className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700 shadow-lg hover:bg-blue-50 transition sm:w-auto"
+              className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700 shadow-lg hover:bg-blue-50 transition sm:h-12 sm:w-auto"
             >
               Create Account
             </Link>
             <TryDemoButton />
-            {/* Read-only public browsing, with no account required */}
             <Link
               data-page-guide="landing-guest"
               href="/feed"
-              className="inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/30 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 sm:w-auto"
+              className="inline-flex h-11 w-full items-center justify-center rounded-2xl border border-white/30 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 sm:h-12 sm:w-auto"
             >
               Explore as Guest
             </Link>
           </div>
-          <p className="mt-4 text-xs font-medium text-white/65">Try the practice workspace without signing in. Demo activity stays separate from Real accounts.</p>
+          <p className="mt-3 text-xs font-medium text-white/65">Try the practice workspace without signing in. Demo activity stays separate from Real accounts.</p>
         </div>
 
         <div className="relative z-10 mx-auto hidden w-[min(82vw,860px)] grid-cols-3 gap-3 px-6 pb-16 opacity-95 md:grid">

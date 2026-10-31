@@ -28,16 +28,14 @@ documents when verified; do not copy stale values into new work.
 
 | Topic | Conflicting evidence | Required action |
 |---|---|---|
-| Backend Express version | Root `README.md` describes Express 4; `backend/package.json` currently declares Express 5. | Treat the package manifest as the installed dependency declaration; update the overview after maintainers verify compatibility and deployment state. |
-| Frontend hosting | `frontend-next/README.md` mentions Cloudflare Pages, while root project docs describe Vercel. | Verify the active deployment target and update deployment docs before changing deployment configuration. |
-| Local developer setup | `docs/ONBOARDING.md` and root `README.md` have differing and partially duplicated setup instructions. | Confirm the supported local database/env path, then consolidate the docs without changing credentials or live resources. |
+| Backend Express version | Root `README.md` describes Express 4; `backend/package.json` currently declares Express 5. | ✅ Resolved 2026-10-31 — `README.md` updated to Express 5. Treat `package.json` as authoritative. |
+| Frontend hosting | `frontend-next/README.md` mentions Cloudflare Pages, while root project docs describe Vercel. | ✅ Resolved 2026-10-31 — `frontend-next/README.md` updated to Vercel throughout. Active deployment is Vercel as confirmed by `ENVIRONMENT_VARIABLES.md` and CI/CD workflows. |
+| Local developer setup | `docs/ONBOARDING.md` and root `README.md` have differing and partially duplicated setup instructions. | ✅ Resolved 2026-10-31 — `docs/ONBOARDING.md` is the canonical local setup guide. Root `README.md` links to it for detail. |
 
 ## Open decisions
 
-- Confirm and document one canonical local setup path (database, env templates,
-  package installation, migration workflow, and startup commands).
-- Confirm the active frontend hosting target and make all deployment guidance
-  consistent with the live project.
+- ~~Confirm and document one canonical local setup path~~ ✅ Resolved 2026-10-31 — `docs/ONBOARDING.md` is canonical.
+- ~~Confirm the active frontend hosting target~~ ✅ Resolved 2026-10-31 — Vercel confirmed; `frontend-next/README.md` updated.
 - Decide whether the engineering handbook's broad statements (for example,
   mandatory feature flags or endpoint versioning) are universal requirements
   or recommendations, then align them with actual practice.

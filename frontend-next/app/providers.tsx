@@ -18,6 +18,7 @@ import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import AiAssistant from '@/components/AiAssistant';
 import PageGuide from '@/components/PageGuide';
 import GlobalErrorReporter from '@/components/GlobalErrorReporter';
+import SplashScreen from '@/components/brand/SplashScreen';
 import { initSentry } from '@/lib/sentry';
 // Initialize i18n — must be imported here so it runs before any component renders
 import i18n from '@/lib/i18n';
@@ -34,6 +35,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <I18nextProvider i18n={i18n}>
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <AuthProvider>
+          {/* SplashScreen reads isLoadingAuth from AuthProvider and dismisses
+              itself once auth resolves and the video finishes playing. */}
+          <SplashScreen />
           <CartProvider>
             <QueryClientProvider client={queryClient}>
               {/* Global error reporter — captures window.onerror + unhandledrejection */}
@@ -45,7 +49,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               <Toaster />
               {/* Views call toast() from 'sonner'; without this container none of those messages appear. */}
               <SonnerToaster richColors closeButton />
-
             </QueryClientProvider>
           </CartProvider>
         </AuthProvider>
