@@ -22,10 +22,17 @@ export default function AuthLayout({ title, subtitle, footer, children, icon: Ic
               </div>
             ) : (
               <>
-                {/* Brand video circle — matches the landing hero style */}
+                {/* Brand video circle — SVG background renders instantly,
+                    video covers it once first frame is decoded. */}
                 <div
-                  className="w-16 h-16 rounded-full bg-[#0a0a0a] overflow-hidden flex items-center justify-center"
-                  style={{ boxShadow: '0 0 0 2px rgba(0,0,0,0.08), 0 4px 20px rgba(0,0,0,0.15)' }}
+                  className="relative w-16 h-16 rounded-full overflow-hidden"
+                  style={{
+                    backgroundColor: '#0a0a0a',
+                    backgroundImage: 'url(/brand/nodbusiness-icon.svg)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    boxShadow: '0 0 0 2px rgba(0,0,0,0.08), 0 4px 20px rgba(0,0,0,0.15)',
+                  }}
                 >
                   <video
                     src="/brand/nodbusiness-intro.mp4"
@@ -33,7 +40,7 @@ export default function AuthLayout({ title, subtitle, footer, children, icon: Ic
                     muted
                     playsInline
                     loop
-                    className="w-full h-full object-cover block"
+                    className="absolute inset-0 w-full h-full object-cover block"
                     aria-hidden="true"
                   />
                 </div>

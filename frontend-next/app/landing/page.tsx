@@ -116,10 +116,19 @@ export default function LandingPage() {
         </div>
 
         <div data-page-guide="landing-actions" className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-6 pt-10 text-center sm:pb-10 sm:pt-14">
-          {/* ── Brand video circle — responsive: 80px → 120px → 160px ── */}
+          {/* ── Brand video circle — responsive: 80px → 112px → 160px ──
+               The SVG icon is set as background-image so it paints
+               instantly (no JS needed in this Server Component). The video
+               covers it once its first frame is decoded. */}
           <div
-            className="mb-4 mx-auto w-20 h-20 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-full bg-[#0a0a0a] overflow-hidden flex items-center justify-center"
-            style={{ boxShadow: '0 0 0 3px rgba(255,255,255,0.18), 0 8px 40px rgba(0,0,0,0.5)' }}
+            className="relative mb-4 mx-auto w-20 h-20 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-full overflow-hidden"
+            style={{
+              backgroundColor: '#0a0a0a',
+              backgroundImage: 'url(/brand/nodbusiness-icon.svg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              boxShadow: '0 0 0 3px rgba(255,255,255,0.18), 0 8px 40px rgba(0,0,0,0.5)',
+            }}
           >
             <video
               src="/brand/nodbusiness-intro.mp4"
@@ -127,7 +136,7 @@ export default function LandingPage() {
               muted
               playsInline
               loop
-              className="w-full h-full object-cover block"
+              className="absolute inset-0 w-full h-full object-cover block"
               aria-hidden="true"
             />
           </div>
