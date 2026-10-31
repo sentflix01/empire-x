@@ -1,6 +1,5 @@
 'use client'
 import React from "react";
-import Image from "next/image";
 
 interface AuthLayoutProps {
   title: string
@@ -14,27 +13,50 @@ export default function AuthLayout({ title, subtitle, footer, children, icon: Ic
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-md">
-        {/* Header: Logo or Icon */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-8">
-            {Icon
-              ? <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10"><Icon className="w-7 h-7 text-primary" /></div>
-              : <Image src="/brand/nodbusiness-logo.svg" alt="Nodbusiness" width={200} height={30} className="h-7 w-auto" priority />
-            }
+        {/* Header: brand video circle or custom icon */}
+        <div className="text-center mb-6">
+          <div className="flex flex-col items-center gap-2 mb-5">
+            {Icon ? (
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10">
+                <Icon className="w-7 h-7 text-primary" />
+              </div>
+            ) : (
+              <>
+                {/* Brand video circle — matches the landing hero style */}
+                <div
+                  className="w-16 h-16 rounded-full bg-[#0a0a0a] overflow-hidden flex items-center justify-center"
+                  style={{ boxShadow: '0 0 0 2px rgba(0,0,0,0.08), 0 4px 20px rgba(0,0,0,0.15)' }}
+                >
+                  {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                  <video
+                    src="/brand/nodbusiness-intro.mp4"
+                    autoPlay
+                    muted
+                    playsInline
+                    loop
+                    className="w-full h-full object-cover block"
+                    aria-hidden="true"
+                  />
+                </div>
+                <span className="text-base font-black tracking-tight text-foreground">
+                  Nodbusiness
+                </span>
+              </>
+            )}
           </div>
-          
+
           {/* Title */}
           <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-2">{title}</h1>
-          
+
           {/* Subtitle */}
           {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </div>
-        
+
         {/* Form Card */}
         <div className="bg-card rounded-xl shadow-sm border border-border/40 p-8 mb-6">
           {children}
         </div>
-        
+
         {/* Footer Link */}
         {footer && (
           <p className="text-center text-sm text-muted-foreground">{footer}</p>
