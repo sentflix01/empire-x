@@ -374,8 +374,9 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
           );
         }
         // Source 2: profile-level ticker (existing for all users who set it in ProfileEdit)
-        if (ownerTickerText && ownerTickerType && ownerTickerType !== 'none') {
-          return <TickerBar text={ownerTickerText} type={ownerTickerType} />;
+        // Only require text — default to 'auto' if type is missing or empty
+        if (ownerTickerText && ownerTickerType !== 'none') {
+          return <TickerBar text={ownerTickerText} type={ownerTickerType && ownerTickerType !== 'none' ? ownerTickerType : 'auto'} />;
         }
         return null;
       })()}
@@ -412,7 +413,14 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   const [ownerShowrooms, setOwnerShowrooms] = useState<Array<Record<string, any>>>([]);
   const [loading, setLoading] = useState(true);
   // Owner display names for feed-mode cards — keyed by owner_id
-  const [ownerProfiles, setOwnerProfiles] = useState<Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean }>>({});
+  const [ownerProfiles, setOwnerProfiles] = useState<Record<string, {
+    display_name?: string;
+    avatar_url?: string;
+    is_verified?: boolean;
+    is_seed?: boolean;
+    ticker_text?: string;
+    ticker_type?: string;
+  }>>({});
   const { user: signedInUser } = useAuth();
   const viewer = currentUser ?? signedInUser;
 

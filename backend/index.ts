@@ -420,6 +420,15 @@ void verifySharedDatabaseIsolation().then(verifyDemoStorageIsolation).then(() =>
   startBusinessSubscriptionLifecycle();
   startDirectOrderExpiry();
 
+  // ── One-time data patch: backfill feed_ticker into business_sections ──────
+  // Runs asynchronously after startup — safe to run every deploy (idempotent).
+  setTimeout(() => {
+    const migrate77 = require('./db/migrate77') as (p: typeof pool) => Promise<void>;
+    migrate77(pool).catch((err: Error) =>
+      logger.warn({ err: err.message }, 'feed-ticker-backfill: non-critical startup patch failed'),
+    );
+  }, 5_000); // 5s after server ready so it doesn't compete with initial requests
+
   // ── Auto-create Supabase Storage bucket ──────────────────────────────────
   setTimeout(async () => {
     try {
