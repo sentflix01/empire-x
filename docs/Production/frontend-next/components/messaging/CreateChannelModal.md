@@ -1,3 +1,5 @@
+> ⚠️ **HISTORICAL** — corresponding source file was removed from the codebase on 2026-11-01. Kept for reference.
+
 # frontend-next/components/messaging/CreateChannelModal
 
 <!-- AUTO-STUB  2026-08-23 — curate narrative below -->
