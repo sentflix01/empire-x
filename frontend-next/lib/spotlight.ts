@@ -33,9 +33,14 @@ export const SPOTLIGHT_PRIORITY: readonly string[] = [
 ];
 
 export const SPOTLIGHT_LABELS: Record<string, string> = {
-  products: 'Products', featured_products: 'Featured products', inventory_catalog: 'Catalogue',
+  products: 'Products', featured_products: 'Featured', inventory_catalog: 'Catalogue',
   items: 'Items', menu: 'Menu', services: 'Services', pricing: 'Packages', offer: 'Offer',
   event_schedule: 'Events', gallery: 'Gallery', portfolio: 'Portfolio', about: 'About', story: 'Our story',
+  testimonials: 'Reviews', team: 'Team', faq: 'FAQ', features: 'Why us', stats: 'Numbers',
+  before_after: 'Before & After', job_openings: 'Hiring', delivery: 'Delivery',
+  certifications: 'Certified', brands: 'Brands', caseStudies: 'Case studies',
+  partners: 'Partners', awards: 'Awards', industries: 'Industries', process: 'Process',
+  booking: 'Booking', video: 'Video',
 };
 
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
@@ -60,12 +65,33 @@ export function sectionHasContent(s: SpotlightSection, productCount: number, now
     case 'gallery': return list(s.galleryImages).some((g) => g?.url);
     case 'portfolio': return list(s.portfolio).length > 0;
     case 'about': case 'story': return Boolean(s.aboutImage) && Boolean(s.aboutDesc || s.content);
+    // Extended sections — show if they have any content
+    case 'testimonials': return list(s.testimonials).length > 0 || list(s.items).length > 0;
+    case 'team': return list(s.members).length > 0;
+    case 'faq': return list(s.faqs).length > 0 || list(s.items).length > 0;
+    case 'features': return list(s.features).length > 0 || list(s.items).length > 0;
+    case 'stats': return list(s.stats).length > 0;
+    case 'before_after': return list(s.baPairs).length > 0;
+    case 'job_openings': return list(s.jobs).length > 0;
+    case 'delivery': return list(s.deliveryZones).length > 0 || Boolean(s.deliveryNote);
+    case 'certifications': return list(s.certs).length > 0;
+    case 'brands': return list(s.brands).length > 0;
+    case 'caseStudies': return list(s.caseStudies).length > 0;
+    case 'partners': return list(s.partners).length > 0;
+    case 'awards': return list(s.awards).length > 0;
+    case 'industries': return list(s.industries).length > 0;
+    case 'process': return list(s.processSteps).length > 0;
+    case 'booking': return Boolean(s.bookingTitle || s.bookingDesc);
+    case 'video': return Boolean(s.vidUrl);
     default: return false;
   }
 }
 
 export const isSpotlightType = (type: unknown) => SPOTLIGHT_PRIORITY.includes(String(type));
-const rank = (type: unknown) => SPOTLIGHT_PRIORITY.indexOf(String(type));
+const rank = (type: unknown) => {
+  const idx = SPOTLIGHT_PRIORITY.indexOf(String(type));
+  return idx === -1 ? 999 : idx; // unknown types sort last
+};
 
 export interface ResolvedSpotlight {
   /** Sections to show, with their index in the full section list, best first. */
@@ -85,22 +111,48 @@ export function resolveSpotlight(
   now = new Date(),
 ): ResolvedSpotlight {
   if (mode === 'off') return { slides: [], carousel: false };
-  const candidates = (Array.isArray(sections) ? sections : [])
-    .map((section, index) => ({ section, index }))
-    .filter(({ section }) => isSpotlightType(section?.type) && sectionHasContent(section, productCount, now))
-    // One slide per type: the first section of that type on the site.
-    .filter(({ section }, i, all) => all.findIndex((c) => c.section.type === section.type) === i)
-    .sort((a, b) => rank(a.section.type) - rank(b.section.type));
 
+  const allSections = Array.isArray(sections) ? sections : [];
+
+  // ── Chosen mode: use EXACTLY the sections the owner picked, in their order ──
+  // We look up sections directly from the raw array — NOT filtered by isSpotlightType —
+  // so ANY section type the user chose (about, testimonials, faq, stats, pricing etc.)
+  // appears in the spotlight, not just the 13 selling-point types.
   const chosenTypes = spotlightSectionIds(chosen);
   if ((mode === 'single' || mode === 'carousel') && chosenTypes.length > 0) {
-    const picked = candidates.filter(({ section }) => chosenTypes.includes(String(section.type)));
+    // Build one slide per chosen type, preserving the user's selection order.
+    // Deduplicate so the same type appearing twice on a page only shows once.
+    const seen = new Set<string>();
+    const picked: Array<{ section: SpotlightSection; index: number }> = [];
+    for (const chosenType of chosenTypes) {
+      if (seen.has(chosenType)) continue;
+      seen.add(chosenType);
+      const idx = allSections.findIndex((s) => String(s?.type) === chosenType);
+      if (idx === -1) continue; // section was removed from the page
+      const section = allSections[idx];
+      // Include section if it has content OR if it's a catalogue type (products load async)
+      if (sectionHasContent(section, productCount, now) || isCatalogueSection(String(section?.type))) {
+        picked.push({ section, index: idx });
+      }
+    }
     if (picked.length > 0) {
       const slides = mode === 'single' ? picked.slice(0, 1) : picked;
       return { slides, carousel: slides.length > 1 };
     }
-    // The chosen sections are empty or gone: fall back to automatic rather than show nothing.
+    // All chosen sections are empty or gone → fall through to automatic
   }
+
+  // ── Automatic mode: single best section, no tabs (correct behaviour) ──
+  // Priority-sorted; only SPOTLIGHT_PRIORITY types qualify for automatic.
+  const candidates = allSections
+    .map((section, index) => ({ section, index }))
+    .filter(({ section }) => isSpotlightType(section?.type) && (sectionHasContent(section, productCount, now) || isCatalogueSection(String(section?.type))))
+    // One slide per type: the first section of that type on the site.
+    .filter(({ section }, i, all) => all.findIndex((c) => c.section.type === section.type) === i)
+    .sort((a, b) => rank(a.section.type) - rank(b.section.type));
+
+  if (candidates.length === 0) return { slides: [], carousel: false };
+  // Automatic: single best section only — no tabs
   return { slides: candidates.slice(0, 1), carousel: false };
 }
 

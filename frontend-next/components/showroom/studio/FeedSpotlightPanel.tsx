@@ -1,19 +1,16 @@
 'use client';
 /**
  * Studio: choose what the business card's Spotlight shows in the feeds and on
- * the owner's profile. Three choices (lib/spotlight.ts):
+ * the owner's profile. Three choices:
  *   - Automatic (default): the best selling section, picked by priority.
- *   - Choose sections: one shows on its own; several play as a carousel in
- *     priority order.
+ *   - Choose sections: pick ANY section the user has added to the page.
  *   - Off: no spotlight.
- * Only selling sections are offered (products, menu, services, packages,
- * offers, events, gallery, portfolio, about with a picture).
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { apiFetch } from '@/api/client';
 import { getSectionType } from '@/lib/builderSections';
-import { SPOTLIGHT_LABELS, SPOTLIGHT_PRIORITY } from '@/lib/spotlight';
+import { SPOTLIGHT_LABELS } from '@/lib/spotlight';
 
 type StoredMode = 'single' | 'carousel' | 'off' | null;
 type Choice = 'auto' | 'chosen' | 'off';
@@ -32,12 +29,19 @@ export interface FeedSpotlightPanelProps {
 const choiceOf = (mode: StoredMode, ids: string[]): Choice =>
   mode === 'off' ? 'off' : (mode === 'single' || mode === 'carousel') && ids.length > 0 ? 'chosen' : 'auto';
 
+// Sections that don't make sense in a spotlight card (purely structural/utility)
+const SPOTLIGHT_EXCLUDED = new Set(['feed_ticker', 'save_showroom', 'hero', 'cta', 'payment_info', 'social', 'newsletter', 'map', 'contact', 'hours']);
+
 export default function FeedSpotlightPanel({
   showroomId, activeSections, initialMode, initialSectionIds, onClose, onSaved,
 }: FeedSpotlightPanelProps) {
-  const options = SPOTLIGHT_PRIORITY.filter((t) => activeSections.includes(t));
+  // Show ALL active sections except structural ones — not just the old SPOTLIGHT_PRIORITY subset
+  const options = activeSections.filter((t) => !SPOTLIGHT_EXCLUDED.has(t));
+
   const [choice, setChoice] = useState<Choice>(choiceOf(initialMode, initialSectionIds));
-  const [sectionIds, setSectionIds] = useState<string[]>(initialSectionIds.filter((id) => options.includes(id)));
+  const [sectionIds, setSectionIds] = useState<string[]>(
+    initialSectionIds.filter((id) => options.includes(id)),
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const dirty = useRef(false);
@@ -45,11 +49,10 @@ export default function FeedSpotlightPanel({
   const stored = (): { mode: StoredMode; ids: string[] } => {
     if (choice === 'off') return { mode: 'off', ids: [] };
     if (choice === 'auto' || sectionIds.length === 0) return { mode: null, ids: [] };
-    const ordered = SPOTLIGHT_PRIORITY.filter((t) => sectionIds.includes(t));
-    return { mode: ordered.length > 1 ? 'carousel' : 'single', ids: ordered };
+    // Preserve the order the user checked them
+    return { mode: sectionIds.length > 1 ? 'carousel' : 'single', ids: sectionIds };
   };
 
-  // Saves 800 ms after the last change.
   useEffect(() => {
     if (!showroomId || !dirty.current) return;
     const timer = setTimeout(async () => {
@@ -77,9 +80,12 @@ export default function FeedSpotlightPanel({
   const pick = (next: Choice) => { dirty.current = true; setChoice(next); };
   const toggle = (type: string) => {
     dirty.current = true;
-    setSectionIds((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]));
+    setSectionIds((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
+    );
   };
-  const labelFor = (type: string) => getSectionType(type)?.label ?? SPOTLIGHT_LABELS[type] ?? type;
+  const labelFor = (type: string) =>
+    getSectionType(type)?.label ?? SPOTLIGHT_LABELS[type] ?? type;
 
   const radio = (value: Choice, title: string, hint: string) => (
     <label className="flex items-start gap-3 min-h-11 text-sm cursor-pointer rounded-xl px-2 py-1.5 hover:bg-secondary">
@@ -104,22 +110,25 @@ export default function FeedSpotlightPanel({
 
       <div className="flex-1 p-4 space-y-5">
         <p className="text-xs text-muted-foreground">
-          Your Spotlight shows what you sell on your business card in the feeds and on your profile, at the same size as on your site.
+          Your Spotlight shows a preview of your page on your business card in the feeds. Pick any section you want visitors to see first.
         </p>
 
         <fieldset className="space-y-1">
           <legend className="text-sm font-semibold mb-1">What to show</legend>
-          {radio('auto', 'Automatic', 'We show your best selling section: products first, then menu, services, packages, offers, events, gallery and about.')}
-          {radio('chosen', 'Choose sections', 'Pick one to always show it, or several to play them one after another.')}
+          {radio('auto', 'Automatic', 'We show your best section automatically — products first, then menu, services, gallery, and more.')}
+          {radio('chosen', 'Choose sections', 'Pick one to always show it, or several to play as a slideshow.')}
           {radio('off', 'Off', 'No Spotlight on your card.')}
         </fieldset>
 
         {choice === 'chosen' && (
           <fieldset className="space-y-1">
-            <legend className="text-sm font-semibold mb-1">Sections, shown in this order</legend>
+            <legend className="text-sm font-semibold mb-1">
+              Sections from your page
+              <span className="ml-2 text-xs font-normal text-muted-foreground">({options.length} available)</span>
+            </legend>
             {options.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                Add a section that shows what you sell (products, menu, services, packages, an offer, events or a gallery) to choose it here.
+                Add sections to your page first — then choose which ones to spotlight here.
               </p>
             )}
             {options.map((type) => (
@@ -130,7 +139,7 @@ export default function FeedSpotlightPanel({
               </label>
             ))}
             {options.length > 0 && sectionIds.length === 0 && (
-              <p className="text-xs text-muted-foreground">Nothing chosen yet, so Automatic applies.</p>
+              <p className="text-xs text-muted-foreground">Nothing chosen yet — Automatic applies.</p>
             )}
           </fieldset>
         )}

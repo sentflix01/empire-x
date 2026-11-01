@@ -129,6 +129,172 @@ export function spotlightTiles(section: Record<string, any>, products: Array<Rec
         subtitle: text(section.aboutDesc, section.content),
         image: text(section.aboutImage),
       }];
+
+    // ── All other section types: renderers for chosen-mode spotlight ────────
+
+    case 'testimonials': {
+      const reviews = [...list(section.testimonials), ...list(section.items)]
+        .filter((r) => text(r.quote, r.text, r.review));
+      return reviews.map((r, i) => ({
+        key: `rev-${i}`, kind: 'wide' as const,
+        title: text(r.author, r.name) ?? 'Customer',
+        subtitle: text(r.quote, r.text, r.review),
+        image: text(r.image),
+      }));
+    }
+
+    case 'team': {
+      const members = list(section.members).filter((m) => text(m.name));
+      return members.map((m, i) => ({
+        key: `tm-${i}`, kind: 'picture' as const,
+        title: text(m.name) ?? 'Team member',
+        subtitle: text(m.role),
+        image: text(m.image),
+      }));
+    }
+
+    case 'faq': {
+      const faqs = [...list(section.faqs), ...list(section.items)]
+        .filter((f) => text(f.question, f.title));
+      return faqs.map((f, i) => ({
+        key: `faq-${i}`, kind: 'wide' as const,
+        title: text(f.question, f.title) ?? 'Question',
+        subtitle: text(f.answer, f.desc),
+      }));
+    }
+
+    case 'features': {
+      const features = [...list(section.features), ...list(section.items)]
+        .filter((f) => text(f.name, f.title));
+      return features.map((f, i) => ({
+        key: `feat-${i}`, kind: 'item' as const,
+        title: text(f.name, f.title) ?? 'Feature',
+        subtitle: text(f.desc, f.description),
+        image: text(f.image),
+      }));
+    }
+
+    case 'stats': {
+      const stats = list(section.stats).filter((s) => text(s.number));
+      return stats.map((s, i) => ({
+        key: `st-${i}`, kind: 'item' as const,
+        title: text(s.number) ?? '',
+        subtitle: text(s.label),
+      }));
+    }
+
+    case 'before_after': {
+      const pairs = list(section.baPairs).filter((p) => text(p.after, p.before));
+      return pairs.map((p, i) => ({
+        key: `ba-${i}`, kind: 'picture' as const,
+        title: text(p.label) ?? 'After',
+        image: text(p.after, p.before),
+      }));
+    }
+
+    case 'certifications': {
+      const certs = list(section.certs).filter((c) => text(c.name));
+      return certs.map((c, i) => ({
+        key: `cert-${i}`, kind: 'item' as const,
+        title: text(c.name) ?? 'Certificate',
+        subtitle: [text(c.issuer), text(c.year)].filter(Boolean).join(' · ') || undefined,
+      }));
+    }
+
+    case 'brands': {
+      const brands = list(section.brands).filter((b) => text(b.name));
+      return brands.map((b, i) => ({
+        key: `br-${i}`, kind: 'picture' as const,
+        title: text(b.name) ?? 'Brand',
+        image: text(b.logo),
+      }));
+    }
+
+    case 'caseStudies': {
+      const cases = list(section.caseStudies).filter((c) => text(c.title));
+      return cases.map((c, i) => ({
+        key: `cs-${i}`, kind: 'wide' as const,
+        title: text(c.title) ?? 'Case study',
+        subtitle: text(c.result, c.summary),
+      }));
+    }
+
+    case 'partners': {
+      const partners = list(section.partners).filter((p) => text(p.name));
+      return partners.map((p, i) => ({
+        key: `pt-${i}`, kind: 'picture' as const,
+        title: text(p.name) ?? 'Partner',
+        image: text(p.logo),
+      }));
+    }
+
+    case 'awards': {
+      const awards = list(section.awards).filter((a) => text(a.title));
+      return awards.map((a, i) => ({
+        key: `aw-${i}`, kind: 'item' as const,
+        title: text(a.title) ?? 'Award',
+        subtitle: text(a.detail),
+      }));
+    }
+
+    case 'industries': {
+      const industries = list(section.industries).filter((ind) => text(ind.name));
+      return industries.map((ind, i) => ({
+        key: `ind-${i}`, kind: 'item' as const,
+        title: text(ind.name) ?? 'Industry',
+        subtitle: text(ind.desc),
+      }));
+    }
+
+    case 'process': {
+      const steps = list(section.processSteps).filter((s) => text(s.title));
+      return steps.map((s, i) => ({
+        key: `pr-${i}`, kind: 'item' as const,
+        title: text(s.title) ?? `Step ${i + 1}`,
+        subtitle: text(s.desc),
+      }));
+    }
+
+    case 'delivery': {
+      const zones = list(section.deliveryZones).filter((z) => text(z.zone));
+      if (zones.length > 0) {
+        return zones.map((z, i) => ({
+          key: `dz-${i}`, kind: 'item' as const,
+          title: text(z.zone) ?? 'Zone',
+          subtitle: text(z.time),
+          price: text(z.fee),
+        }));
+      }
+      return section.deliveryNote ? [{
+        key: 'del-note', kind: 'wide' as const,
+        title: 'Delivery',
+        subtitle: text(section.deliveryNote),
+      }] : [];
+    }
+
+    case 'job_openings': {
+      const jobs = list(section.jobs).filter((j) => text(j.title));
+      return jobs.map((j, i) => ({
+        key: `job-${i}`, kind: 'item' as const,
+        title: text(j.title) ?? 'Position',
+        subtitle: [text(j.type), text(j.salary)].filter(Boolean).join(' · ') || text(j.desc),
+      }));
+    }
+
+    case 'booking':
+      return section.bookingTitle || section.bookingDesc ? [{
+        key: 'book', kind: 'wide' as const,
+        title: text(section.bookingTitle, section.title) ?? 'Book an appointment',
+        subtitle: text(section.bookingDesc, section.content),
+      }] : [];
+
+    case 'video':
+      return section.vidUrl ? [{
+        key: 'vid', kind: 'wide' as const,
+        title: text(section.vidTitle, section.title) ?? 'Watch',
+        subtitle: text(section.vidDesc),
+      }] : [];
+
     default:
       return [];
   }
