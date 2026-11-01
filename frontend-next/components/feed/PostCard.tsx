@@ -699,19 +699,22 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
   const variant = detectVariant(post);
   const isPromo = variant === 'promo';
 
-  // Ticker is fully opt-in:
-  // - 'none' (or no profile yet) → never show ticker
-  // - 'auto' → show ticker_text if set; if blank, auto-generate from business contact info
-  // - any other type → show ticker_text directly (no auto-generation)
-  const rawTickerType = (authorProfile?.ticker_type as string | undefined) ?? 'none';
-  const tickerType = rawTickerType;
+  // Ticker display logic:
+  // - ticker_type 'none' → never show (user explicitly turned it off)
+  // - ticker_type null/undefined but ticker_text set → show with 'auto' (new accounts default)
+  // - ticker_type 'auto' → show ticker_text if set; if blank, auto-generate from business contact info
+  // - any other type → show ticker_text directly
+  const rawTickerType = (authorProfile?.ticker_type as string | undefined);
+  const profileTickerText = (authorProfile?.ticker_text as string | undefined)?.trim();
+
+  // Explicitly off → never show. Everything else (including null) shows if text is present.
+  const tickerType = rawTickerType === 'none' ? 'none' : (rawTickerType || (profileTickerText ? 'auto' : 'none'));
 
   const tickerText = (() => {
-    if (rawTickerType === 'none') return undefined;
-    const profileText = authorProfile?.ticker_text as string | undefined;
-    if (profileText?.trim()) return profileText;
-    // Only auto-generate from business info when the user chose 'auto'
-    if (rawTickerType === 'auto') {
+    if (tickerType === 'none') return undefined;
+    if (profileTickerText) return profileTickerText;
+    // Auto-generate from business contact info when no text is set and type is auto
+    if (tickerType === 'auto') {
       return (
         (primaryBiz?.business_contact_phone ? `Call: ${primaryBiz.business_contact_phone}  |  ${primaryBiz.business_name ?? ''}` : undefined) ??
         (primaryBiz?.business_contact_email ? `Email: ${primaryBiz.business_contact_email}` : undefined) ??

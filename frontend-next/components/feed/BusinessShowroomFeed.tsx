@@ -373,10 +373,21 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
             />
           );
         }
-        // Source 2: profile-level ticker (existing for all users who set it in ProfileEdit)
-        // Only require text — default to 'auto' if type is missing or empty
+        // Source 2: profile-level ticker (from ProfileEdit — ticker_text + ticker_type)
+        // null/missing ticker_type is treated as 'auto', only explicit 'none' hides it
         if (ownerTickerText && ownerTickerType !== 'none') {
           return <TickerBar text={ownerTickerText} type={ownerTickerType && ownerTickerType !== 'none' ? ownerTickerType : 'auto'} />;
+        }
+        // Source 3: auto-generate from business contact data (works even with no ticker_text set)
+        // Only shows if owner hasn't explicitly turned ticker off ('none')
+        if (ownerTickerType !== 'none') {
+          const bizPhone   = biz.business_contact_phone as string | undefined;
+          const bizEmail   = biz.business_contact_email as string | undefined;
+          const bizAddress = biz.business_address as string | undefined;
+          const autoText   = (bizPhone   ? `📞 ${bizPhone}  ·  ${bizName}` : undefined)
+            ?? (bizEmail   ? `✉️ ${bizEmail}` : undefined)
+            ?? (bizAddress ? `📍 ${bizAddress}` : undefined);
+          if (autoText) return <TickerBar text={autoText} type="contact" />;
         }
         return null;
       })()}
