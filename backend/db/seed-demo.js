@@ -182,18 +182,33 @@ async function seed() {
       // workspace. Deterministic slugs/content make reruns idempotent and keep
       // these fixtures distinct from real accounts and production seed rows.
       const slug = `demo-${fixture.business.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
+      // Determine spotlight section IDs from the sections we just built
+      // (exclude structural sections so all content tabs show as carousel)
+      const SPOTLIGHT_EXCLUDED_TYPES = new Set([
+        'hero', 'cta', 'contact', 'map', 'hours', 'social', 'newsletter',
+        'payment_info', 'save_showroom', 'feed_ticker', 'banner',
+      ]);
+      const spotlightTypes = [...new Set(
+        sections.filter(s => s.type && !SPOTLIGHT_EXCLUDED_TYPES.has(s.type)).map(s => s.type)
+      )];
+      const spotlightMode = spotlightTypes.length > 1 ? 'carousel' : spotlightTypes.length === 1 ? 'single' : null;
+
       const { rows: showroomRows } = await client.query(
         `INSERT INTO showrooms (owner_id, business_id, title, description, slug, category, template, sections,
-           cover_image, logo_url, theme_color, status)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'published')
+           cover_image, logo_url, theme_color, status, spotlight_mode, spotlight_section_ids, spotlight_carousel_count)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'published',$12,$13,1)
          ON CONFLICT (slug) DO UPDATE SET business_id=EXCLUDED.business_id, title=EXCLUDED.title,
            description=EXCLUDED.description, category=EXCLUDED.category, template=EXCLUDED.template,
            sections=EXCLUDED.sections, cover_image=EXCLUDED.cover_image, logo_url=EXCLUDED.logo_url,
-           theme_color=EXCLUDED.theme_color, status='published', updated_at=NOW()
+           theme_color=EXCLUDED.theme_color, status='published',
+           spotlight_mode=EXCLUDED.spotlight_mode, spotlight_section_ids=EXCLUDED.spotlight_section_ids,
+           spotlight_carousel_count=1, updated_at=NOW()
          RETURNING id`,
         [
           userId, businessId, fixture.business, fixture.description, slug, fixture.category,
           fixture.template, JSON.stringify(sections), fixture.cover, fixture.logo, fixture.themeColor,
+          spotlightMode, JSON.stringify(spotlightTypes),
         ],
       );
       const showroomId = showroomRows[0].id;

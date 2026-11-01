@@ -149,7 +149,7 @@ describe('SeeThroughPanel', () => {
 describe('MoreMenu', () => {
   it('asks before clearing the draft', async () => {
     const onClear = vi.fn();
-    render(<MoreMenu onSave={() => {}} onLoad={() => {}} onClear={onClear} onFullPreview={() => {}} />);
+    render(<MoreMenu onLoad={() => {}} onClear={onClear} onFullPreview={() => {}} />);
     fireEvent.click(screen.getByRole('button', { name: 'More options' }));
     fireEvent.click(screen.getByRole('button', { name: /Clear draft/ }));
     expect(onClear).not.toHaveBeenCalled();

@@ -115,13 +115,8 @@ export function resolveSpotlight(
   const allSections = Array.isArray(sections) ? sections : [];
 
   // ── Chosen mode: use EXACTLY the sections the owner picked, in their order ──
-  // We look up sections directly from the raw array — NOT filtered by isSpotlightType —
-  // so ANY section type the user chose (about, testimonials, faq, stats, pricing etc.)
-  // appears in the spotlight, not just the 13 selling-point types.
   const chosenTypes = spotlightSectionIds(chosen);
   if ((mode === 'single' || mode === 'carousel') && chosenTypes.length > 0) {
-    // Build one slide per chosen type, preserving the user's selection order.
-    // Deduplicate so the same type appearing twice on a page only shows once.
     const seen = new Set<string>();
     const picked: Array<{ section: SpotlightSection; index: number }> = [];
     for (const chosenType of chosenTypes) {
@@ -130,10 +125,11 @@ export function resolveSpotlight(
       const idx = allSections.findIndex((s) => String(s?.type) === chosenType);
       if (idx === -1) continue; // section was removed from the page
       const section = allSections[idx];
-      // Include section if it has content OR if it's a catalogue type (products load async)
-      if (sectionHasContent(section, productCount, now) || isCatalogueSection(String(section?.type))) {
-        picked.push({ section, index: idx });
-      }
+      // In chosen mode: always include the section the owner explicitly picked.
+      // Only exclude catalogue sections with zero products (they'd show blank).
+      const isCatalogue = isCatalogueSection(String(section?.type));
+      if (isCatalogue && productCount === 0) continue; // products not loaded yet, skip
+      picked.push({ section, index: idx });
     }
     if (picked.length > 0) {
       const slides = mode === 'single' ? picked.slice(0, 1) : picked;

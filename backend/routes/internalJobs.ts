@@ -25,6 +25,8 @@ const { runBusinessSubscriptionLifecycle } = require('../scripts/business-subscr
 
 // One-time data patch: backfill feed_ticker sections from profile ticker_text
 const migrate77 = require('../db/migrate77') as (pool: typeof import('../db/pool').default) => Promise<void>;
+// One-time data patch: set carousel spotlight on demo/seed showrooms
+const migrate78 = require('../db/migrate78') as (pool: typeof import('../db/pool').default) => Promise<void>;
 
 export const JOBS: Record<string, { lockKey: number; run: () => Promise<unknown> }> = {
   'subscription-lifecycle': { lockKey: 7_401_001, run: () => runBusinessSubscriptionLifecycle() },
@@ -32,6 +34,7 @@ export const JOBS: Record<string, { lockKey: number; run: () => Promise<unknown>
   'stories-cleanup': { lockKey: 7_401_003, run: () => deleteExpiredStories() },
   'auth-state-cleanup': { lockKey: 7_401_004, run: () => deleteExpiredAuthState() },
   'feed-ticker-backfill': { lockKey: 7_401_005, run: () => migrate77(pool) },
+  'demo-spotlight-carousel': { lockKey: 7_401_006, run: () => migrate78(pool) },
 };
 
 const MIN_SECRET_LENGTH = 32;

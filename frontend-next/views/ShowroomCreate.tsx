@@ -165,6 +165,7 @@ function ShowroomCreate({
   const [spotlightMode, setSpotlightMode] = useState<'single' | 'carousel' | 'off' | null>(null);
   const [spotlightSectionIds, setSpotlightSectionIds] = useState<string[]>([]);
   const [spotlightCarouselCount, setSpotlightCarouselCount] = useState(1);
+  const [spotlightSaving, setSpotlightSaving] = useState(false);
   // Every change bumps version; the auto-save marks the version it wrote.
   const [version, setVersion] = useState(0);
   const [savedVersion, setSavedVersion] = useState(0);
@@ -384,7 +385,7 @@ function ShowroomCreate({
     };
   };
 
-  const handleSaveDraft = async () => {
+  const handleSaveDraft = async (): Promise<string | null> => {
     const title = String(formData.title ?? '').trim();
     const createdAt = (() => {
       try { return Number(JSON.parse(localStorage.getItem(draftKey) ?? '{}').createdAt) || Date.now(); }
@@ -406,12 +407,32 @@ function ShowroomCreate({
         localStorage.setItem(serverDraftKey, id);
         setServerDraftId(id);
         toast.success('Draft saved. It will be kept for three days.');
+        return id;
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Could not save this draft to your account.');
+        return null;
       } finally { setSaving(false); }
-      return;
     }
     toast.success('Draft saved on this device. Add a website title to save it to your account.');
+    return null;
+  };
+
+  // Open the Feed Spotlight panel. If a server draft or existing showroom
+  // already exists, open immediately. Otherwise auto-save the draft first
+  // so spotlight config has a showroom to attach to — never block the user.
+  const openFeedSpotlight = async () => {
+    if (serverDraftId || editId) {
+      setSpotlightOpen(true);
+      return;
+    }
+    setSpotlightSaving(true);
+    const id = await handleSaveDraft();
+    setSpotlightSaving(false);
+    if (id) {
+      setSpotlightOpen(true);
+    } else {
+      toast.info('Add a website title to save your site, then Feed Spotlight becomes available.');
+    }
   };
 
   const completion = (() => {
@@ -666,11 +687,10 @@ function ShowroomCreate({
         />
         <MoreMenu
           businessControls={businessControls}
-          onSave={() => { void handleSaveDraft(); }}
           onLoad={loadDraft}
           onClear={clearDraft}
           onFullPreview={() => setFullPreview(true)}
-          onFeedSpotlight={() => setSpotlightOpen(true)}
+          onFeedSpotlight={() => { void openFeedSpotlight(); }}
         />
         <button
           type="button"
@@ -785,10 +805,10 @@ function ShowroomCreate({
       </div>
 
       {/* ── Feed Spotlight overlay ── */}
-      {spotlightOpen && serverDraftId && (
+      {spotlightOpen && (serverDraftId || editId) && (
         <div className="absolute inset-0 z-[60] flex flex-col bg-card overflow-y-auto">
           <FeedSpotlightPanel
-            showroomId={serverDraftId}
+            showroomId={serverDraftId || editId}
             activeSections={activeSections}
             initialMode={spotlightMode}
             initialSectionIds={spotlightSectionIds}
@@ -812,20 +832,11 @@ function ShowroomCreate({
           />
         </div>
       )}
-      {spotlightOpen && !serverDraftId && (
+      {spotlightSaving && (
         <div className="absolute inset-0 z-[60] flex items-center justify-center bg-card/90">
-          <div className="rounded-2xl border border-border p-6 text-center max-w-xs">
-            <p className="font-semibold mb-2">Save first</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Save your draft before configuring the Feed Spotlight so your settings can be stored.
-            </p>
-            <button
-              type="button"
-              onClick={() => { setSpotlightOpen(false); void handleSaveDraft(); }}
-              className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white"
-            >
-              Save draft
-            </button>
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+            <p className="text-sm font-medium">Saving draft…</p>
           </div>
         </div>
       )}
