@@ -359,11 +359,12 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
         })}
       />
 
-      {/* Feed announcement ticker — two sources:
+      {/* Feed announcement ticker — sources checked in priority order:
            1. feed_ticker builder section (set in Showroom Studio)
-           2. profile-level ticker_text/ticker_type (set in ProfileEdit → used as fallback) */}
+           2. profile-level ticker_text (set in ProfileEdit)
+           3. contact section phone/email inside the showroom sections (auto-generated) */}
       {(() => {
-        // Source 1: builder section
+        // Source 1: explicit feed_ticker builder section
         const tickerSection = sections.find((s: Record<string, any>) => s.type === 'feed_ticker');
         if (tickerSection?.tickerText) {
           return (
@@ -373,22 +374,42 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
             />
           );
         }
-        // Source 2: profile-level ticker (from ProfileEdit — ticker_text + ticker_type)
-        // null/missing ticker_type is treated as 'auto', only explicit 'none' hides it
+
+        // Source 2: profile-level ticker_text (set in ProfileEdit)
         if (ownerTickerText && ownerTickerType !== 'none') {
-          return <TickerBar text={ownerTickerText} type={ownerTickerType && ownerTickerType !== 'none' ? ownerTickerType : 'auto'} />;
+          return <TickerBar text={ownerTickerText} type={ownerTickerType || 'auto'} />;
         }
-        // Source 3: auto-generate from business contact data (works even with no ticker_text set)
-        // Only shows if owner hasn't explicitly turned ticker off ('none')
-        if (ownerTickerType !== 'none') {
-          const bizPhone   = biz.business_contact_phone as string | undefined;
-          const bizEmail   = biz.business_contact_email as string | undefined;
-          const bizAddress = biz.business_address as string | undefined;
-          const autoText   = (bizPhone   ? `📞 ${bizPhone}  ·  ${bizName}` : undefined)
-            ?? (bizEmail   ? `✉️ ${bizEmail}` : undefined)
-            ?? (bizAddress ? `📍 ${bizAddress}` : undefined);
+
+        // Source 3: auto-generate from the contact section inside the showroom sections
+        // This shows for ALL businesses that have a contact section — no user action needed
+        const contactSection = sections.find((s: Record<string, any>) => s.type === 'contact');
+        if (contactSection) {
+          const phone   = (contactSection.phone   as string | undefined)?.trim();
+          const email   = (contactSection.email   as string | undefined)?.trim();
+          const address = (contactSection.location as string | undefined)?.trim();
+          const autoText = phone
+            ? `📞 ${phone}  ·  ${bizName}`
+            : email
+            ? `✉️ ${email}  ·  ${bizName}`
+            : address
+            ? `📍 ${address}  ·  ${bizName}`
+            : null;
           if (autoText) return <TickerBar text={autoText} type="contact" />;
         }
+
+        // Source 4: fallback to business-level contact fields on the biz object itself
+        const bizPhone   = (biz.business_contact_phone as string | undefined)?.trim();
+        const bizEmail   = (biz.business_contact_email as string | undefined)?.trim();
+        const bizAddress = (biz.business_address       as string | undefined)?.trim();
+        const fallback = bizPhone
+          ? `📞 ${bizPhone}  ·  ${bizName}`
+          : bizEmail
+          ? `✉️ ${bizEmail}  ·  ${bizName}`
+          : bizAddress
+          ? `📍 ${bizAddress}  ·  ${bizName}`
+          : null;
+        if (fallback) return <TickerBar text={fallback} type="contact" />;
+
         return null;
       })()}
 
