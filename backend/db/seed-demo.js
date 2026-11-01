@@ -105,13 +105,14 @@ async function seed() {
              business_name=$9, business_category=$10, business_template=$11, business_description=$12,
              business_logo_url=$13, business_cover_url=$14, business_sections=$15, business_theme_color=$16,
              business_contact_email=$17, business_contact_phone=$8, business_address=$7,
-             business_hours=$18, updated_at=NOW()
+             business_hours=$18, ticker_text=$19, ticker_type=$20, updated_at=NOW()
            WHERE id=$1`,
           [
             profiles[0].id, fixture.name, fixture.bio, fixture.avatar, fixture.cover, fixture.headline,
             fixture.location, fixture.phone, fixture.business, fixture.category, fixture.template,
             fixture.description, fixture.logo, fixture.cover, JSON.stringify(sections), fixture.themeColor,
             fixture.email, JSON.stringify(fixture.hours || []),
+            fixture.ticker?.text || null, fixture.ticker?.type || null,
           ],
         );
       } else {
@@ -119,13 +120,15 @@ async function seed() {
           `INSERT INTO user_profiles (user_id, display_name, profile_type, has_business_profile, business_name,
              business_category, business_template, business_description, bio, avatar_url, cover_url, headline,
              location, phone, business_logo_url, business_cover_url, business_sections, business_theme_color,
-             business_contact_email, business_contact_phone, business_address, business_hours)
-           VALUES ($1, $2, 'personal', TRUE, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $12, $11, $18)`,
+             business_contact_email, business_contact_phone, business_address, business_hours,
+             ticker_text, ticker_type)
+           VALUES ($1, $2, 'personal', TRUE, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $12, $11, $18, $19, $20)`,
           [
             userId, fixture.name, fixture.business, fixture.category, fixture.template, fixture.description,
             fixture.bio, fixture.avatar, fixture.cover, fixture.headline, fixture.location, fixture.phone,
             fixture.logo, fixture.cover, JSON.stringify(sections), fixture.themeColor, fixture.email,
             JSON.stringify(fixture.hours || []),
+            fixture.ticker?.text || null, fixture.ticker?.type || null,
           ],
         );
       }

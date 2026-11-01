@@ -108,11 +108,14 @@ export interface BusinessFeedCardProps {
   ownerAvatarUrl?: string | null;
   ownerIsVerified?: boolean;
   ownerIsSeed?: boolean;
+  /** Profile-level ticker — fallback when no feed_ticker builder section is set */
+  ownerTickerText?: string | null;
+  ownerTickerType?: string | null;
   viewer?: { id?: string } | null;
   onMessage?: (ownerId: string, bizName: string) => void;
 }
 
-export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, viewer, onMessage }: BusinessFeedCardProps) {
+export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, viewer, onMessage, ownerTickerText, ownerTickerType }: BusinessFeedCardProps) {
   const [qrOpen, setQrOpen] = useState(false);
   const [purchaseModal, setPurchaseModal] = useState<{
     item: { id?: string; title: string; description?: string; price?: number; currency?: string; images?: string };
@@ -356,16 +359,25 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
         })}
       />
 
-      {/* Feed announcement ticker — shown when the owner has added a feed_ticker section */}
+      {/* Feed announcement ticker — two sources:
+           1. feed_ticker builder section (set in Showroom Studio)
+           2. profile-level ticker_text/ticker_type (set in ProfileEdit → used as fallback) */}
       {(() => {
+        // Source 1: builder section
         const tickerSection = sections.find((s: Record<string, any>) => s.type === 'feed_ticker');
-        if (!tickerSection?.tickerText) return null;
-        return (
-          <TickerBar
-            text={String(tickerSection.tickerText)}
-            type={tickerSection.tickerType ? String(tickerSection.tickerType) : 'auto'}
-          />
-        );
+        if (tickerSection?.tickerText) {
+          return (
+            <TickerBar
+              text={String(tickerSection.tickerText)}
+              type={tickerSection.tickerType ? String(tickerSection.tickerType) : 'auto'}
+            />
+          );
+        }
+        // Source 2: profile-level ticker (existing for all users who set it in ProfileEdit)
+        if (ownerTickerText && ownerTickerType && ownerTickerType !== 'none') {
+          return <TickerBar text={ownerTickerText} type={ownerTickerType} />;
+        }
+        return null;
       })()}
 
       {/* Inline PurchaseModal */}
@@ -451,7 +463,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               .catch(() => ({ id, p: null }))
           )
         );
-        const map: Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean }> = {};
+        const map: Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean; ticker_text?: string; ticker_type?: string }> = {};
         for (const result of profileResults) {
           if (result.status === 'fulfilled' && result.value.p) {
             const p = result.value.p;
@@ -460,6 +472,8 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               avatar_url: Array.isArray(p.avatar_url) ? (p.avatar_url[0] ?? '') : p.avatar_url,
               is_verified: p.is_verified,
               is_seed: (p as any).is_seed === true,
+              ticker_text: (p as any).ticker_text || undefined,
+              ticker_type: (p as any).ticker_type || undefined,
             };
           }
         }
@@ -560,6 +574,8 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               ownerAvatarUrl={op?.avatar_url}
               ownerIsVerified={op?.is_verified}
               ownerIsSeed={op?.is_seed}
+              ownerTickerText={op?.ticker_text ?? null}
+              ownerTickerType={op?.ticker_type ?? null}
               viewer={viewer}
             />
           );
