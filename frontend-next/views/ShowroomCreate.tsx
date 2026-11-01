@@ -166,6 +166,10 @@ function ShowroomCreate({
   const [spotlightSectionIds, setSpotlightSectionIds] = useState<string[]>([]);
   const [spotlightCarouselCount, setSpotlightCarouselCount] = useState(1);
   const [spotlightSaving, setSpotlightSaving] = useState(false);
+  // Separate "live" state updated immediately on every panel interaction
+  // so FeedSpotlightPreview reacts without waiting for the server round-trip.
+  const [liveSpotlightMode, setLiveSpotlightMode] = useState<'single' | 'carousel' | 'off' | null>(null);
+  const [liveSpotlightIds, setLiveSpotlightIds] = useState<string[]>([]);
   // Every change bumps version; the auto-save marks the version it wrote.
   const [version, setVersion] = useState(0);
   const [savedVersion, setSavedVersion] = useState(0);
@@ -422,6 +426,9 @@ function ShowroomCreate({
   // so spotlight config has a showroom to attach to — never block the user.
   const openFeedSpotlight = async () => {
     if (serverDraftId || editId) {
+      // Mirror the persisted values so the preview starts correct on open.
+      setLiveSpotlightMode(spotlightMode);
+      setLiveSpotlightIds(spotlightSectionIds);
       setSpotlightOpen(true);
       return;
     }
@@ -429,9 +436,15 @@ function ShowroomCreate({
     const id = await handleSaveDraft();
     setSpotlightSaving(false);
     if (id) {
+      setLiveSpotlightMode(spotlightMode);
+      setLiveSpotlightIds(spotlightSectionIds);
       setSpotlightOpen(true);
     } else {
-      toast.info('Add a website title to save your site, then Feed Spotlight becomes available.');
+      // Demo users or users without a title: open in preview-only mode.
+      // The panel works without a showroomId — it just can't persist settings.
+      setLiveSpotlightMode(spotlightMode);
+      setLiveSpotlightIds(spotlightSectionIds);
+      setSpotlightOpen(true);
     }
   };
 
@@ -804,39 +817,57 @@ function ShowroomCreate({
         )}
       </div>
 
-      {/* ── Feed Spotlight overlay ── */}
-      {spotlightOpen && (serverDraftId || editId) && (
-        <div className="absolute inset-0 z-[60] flex flex-col bg-card overflow-y-auto">
-          <FeedSpotlightPanel
-            showroomId={serverDraftId || editId}
-            activeSections={activeSections}
-            initialMode={spotlightMode}
-            initialSectionIds={spotlightSectionIds}
-            initialCarouselCount={spotlightCarouselCount}
-            themeColor={String(formData.heroBg ?? '#2563EB')}
-            onClose={() => setSpotlightOpen(false)}
-            onSaved={(mode, ids, count) => {
-              setSpotlightMode(mode);
-              setSpotlightSectionIds(ids);
-              setSpotlightCarouselCount(count);
-            }}
-          />
-          <FeedSpotlightPreview
-            sections={serializeShowroomSections(activeSections, formData) as Array<Record<string, any>>}
-            spotlightMode={spotlightMode}
-            spotlightSectionIds={spotlightSectionIds}
-            themeColor={String(formData.heroBg ?? '#2563EB')}
-            businessName={String(formData.title ?? 'Your Business')}
-            ownerId={String(user?.id ?? '')}
-            businessId={selectedBusinessId ?? null}
-          />
+      {/* ── Feed Spotlight overlay ──────────────────────────────────────────
+           Layout: fixed full-screen overlay split into two halves.
+           Top half (auto-height, scrollable): panel settings.
+           Bottom half (remaining space): live business card preview.
+           Works in demo mode (showroomId='') — settings are preview-only. ── */}
+      {spotlightOpen && (
+        <div className="absolute inset-0 z-60 flex flex-col bg-card">
+          {/* Settings panel — shrinks to content, scrolls if needed */}
+          <div className="shrink-0 overflow-y-auto border-b border-border max-h-[55%]">
+            <FeedSpotlightPanel
+              showroomId={serverDraftId || editId}
+              activeSections={activeSections}
+              initialMode={spotlightMode}
+              initialSectionIds={spotlightSectionIds}
+              initialCarouselCount={spotlightCarouselCount}
+              themeColor={String(formData.heroBg ?? '#2563EB')}
+              onClose={() => setSpotlightOpen(false)}
+              onSaved={(mode, ids, count) => {
+                setSpotlightMode(mode);
+                setSpotlightSectionIds(ids);
+                setSpotlightCarouselCount(count);
+                // Keep live state in sync with the persisted state.
+                setLiveSpotlightMode(mode);
+                setLiveSpotlightIds(ids);
+              }}
+              onPreviewChange={(mode, ids) => {
+                setLiveSpotlightMode(mode);
+                setLiveSpotlightIds(ids);
+              }}
+            />
+          </div>
+          {/* Live preview — fills remaining space, always visible */}
+          <div className="min-h-0 flex-1 overflow-y-auto bg-muted/30">
+            <FeedSpotlightPreview
+              sections={serializeShowroomSections(activeSections, formData) as Array<Record<string, any>>}
+              spotlightMode={liveSpotlightMode}
+              spotlightSectionIds={liveSpotlightIds}
+              themeColor={String(formData.heroBg ?? '#2563EB')}
+              businessName={String(formData.title ?? 'Your Business')}
+              ownerId={String(user?.id ?? '')}
+              businessId={selectedBusinessId ?? null}
+            />
+          </div>
         </div>
       )}
+      {/* Draft auto-save spinner (shown while saving before opening panel) */}
       {spotlightSaving && (
-        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-card/90">
+        <div className="absolute inset-0 z-60 flex items-center justify-center bg-card/90 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
-            <p className="text-sm font-medium">Saving draft…</p>
+            <p className="text-sm font-medium text-muted-foreground">Saving draft…</p>
           </div>
         </div>
       )}

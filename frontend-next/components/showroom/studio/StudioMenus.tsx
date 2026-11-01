@@ -120,7 +120,7 @@ export function MoreMenu({ businessControls, onLoad, onClear, onFullPreview, onF
         {businessControls && <div className="space-y-2 border-b border-border pb-3">{businessControls}</div>}
         {onFeedSpotlight && (
           <button type="button" className={item} onClick={run(onFeedSpotlight)}>
-            <Zap className="h-4 w-4" aria-hidden="true" />Feed Spotlight
+            <Zap className="h-4 w-4" aria-hidden="true" />Feed Spotlight Preview
           </button>
         )}
         <button type="button" className={item} onClick={run(onLoad)}><FolderOpen className="h-4 w-4" aria-hidden="true" />Load saved draft</button>

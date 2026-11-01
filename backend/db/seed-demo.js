@@ -74,6 +74,12 @@ async function seed() {
           requestName: fixture.booking.requestName,
         });
       }
+      // Extra pre-built sections (items, pricing, offer, gallery, etc.)
+      // supplied explicitly by the fixture for richer spotlight tabs.
+      if (Array.isArray(fixture.extraSections)) {
+        sections.push(...fixture.extraSections);
+      }
+
       sections.push({
         type: 'contact',
         title: 'Contact',

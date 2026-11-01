@@ -43,6 +43,14 @@ const fixtures = [
       'New arrivals are on the rack this week. Explore the collection in our showroom.',
       'We are highlighting locally woven fabrics and the makers behind them.',
     ],
+    extraSections: [
+      {
+        type: 'offer',
+        offerTitle: 'Weekend Sale — 20% Off All Clothing',
+        offerDesc: 'This weekend only: woven shirts, linen dresses and tailored jackets are 20% off. Demo discount applied at checkout.',
+        offerPhoto: image('photo-1441986300917-64674bd600d8'),
+      },
+    ],
   },
   {
     email: 'seed.tigist@demo.nodbusiness.app',
@@ -75,6 +83,19 @@ const fixtures = [
       'Today’s kitchen highlight is our seasonal vegetarian tasting plate.',
       'Fresh coffee and a warm welcome are waiting at Kategna Kitchen.',
     ],
+    extraSections: [
+      {
+        type: 'menu',
+        servTitle: 'Today\'s Menu',
+        dishes: [
+          { name: 'Vegetarian tasting plate', desc: 'Seasonal vegetarian selection', price: '780 ETB', photo: image('photo-1517248135467-4c7edcad34c4') },
+          { name: 'Spiced lentil stew', desc: 'Slow-cooked with berbere spice', price: '360 ETB', photo: image('photo-1512621776951-a57141f2eefd') },
+          { name: 'Grilled chicken plate', desc: 'Grilled chicken with side salad', price: '620 ETB', photo: image('photo-1432139555190-58524dae6a55') },
+          { name: 'Fresh mango juice', desc: 'Freshly blended', price: '180 ETB', photo: image('photo-1546173159-315724a31696') },
+          { name: 'Ethiopian coffee service', desc: 'Roasted and prepared tableside', price: '250 ETB', photo: image('photo-1447933601403-0c6688de566e') },
+        ],
+      },
+    ],
   },
   {
     email: 'seed.dawit@demo.nodbusiness.app',
@@ -104,6 +125,17 @@ const fixtures = [
     posts: [
       'We have opened a few project slots for teams planning a brand refresh.',
       'Our latest studio note: start with a clear message before choosing a visual style.',
+    ],
+    extraSections: [
+      {
+        type: 'pricing',
+        pricingTitle: 'Project Packages',
+        plans: [
+          { name: 'Starter', features: 'Logo, color palette, one-page style guide', price: '15,000', period: ' ETB' },
+          { name: 'Growth', features: 'Full brand identity, social templates, landing page', price: '38,000', period: ' ETB' },
+          { name: 'Studio', features: 'Complete brand system, photography, monthly retainer', price: '75,000', period: ' ETB/mo' },
+        ],
+      },
     ],
   },
   {
@@ -210,6 +242,19 @@ const fixtures = [
       'Browse the sample wellness and first-aid catalog using the search box.',
       'This Demo does not replace a pharmacist or medical professional. Please confirm product suitability and availability directly.',
     ],
+    extraSections: [
+      {
+        type: 'items',
+        itemsTitle: 'Quick Pick Items',
+        items: [
+          { name: 'Vitamin C 1000mg', desc: 'General wellness supplement', price: '280 ETB', image: image('photo-1587854692152-cbe660dbde88') },
+          { name: 'Paracetamol 500mg', desc: 'Over-the-counter pain relief; check label', price: '55 ETB', image: image('photo-1584308666744-24d5c474f2ae') },
+          { name: 'Hand sanitizer 200ml', desc: 'Pocket-size antiseptic', price: '85 ETB', image: image('photo-1584308666744-24d5c474f2ae') },
+          { name: 'SPF 30 sunscreen', desc: 'Daily broad-spectrum protection', price: '540 ETB', image: image('photo-1556228720-195a672e8a03') },
+          { name: 'Elastic bandage roll', desc: 'Reusable support bandage', price: '140 ETB', image: image('photo-1587854692152-cbe660dbde88') },
+        ],
+      },
+    ],
   },
   {
     email: 'seed.daniel@demo.nodbusiness.app',
@@ -243,6 +288,14 @@ const fixtures = [
     posts: [
       'Our sample produce list is ready to browse. Search for fruit, pantry items, or household goods.',
       'The Demo catalog is a product showcase; please confirm actual stock before making a purchase.',
+    ],
+    extraSections: [
+      {
+        type: 'offer',
+        offerTitle: 'Weekly Bundle — Save 15%',
+        offerDesc: 'Buy tomatoes, onions, lentils and cooking oil together and save 15%. This week only. Demo discount.',
+        offerPhoto: image('photo-1542838132-92c53300491e'),
+      },
     ],
   },
   {
@@ -310,6 +363,17 @@ const fixtures = [
       'Compare our sample connectivity plans before choosing a service.',
       'All plan details are illustrative. This Demo cannot activate telecom accounts or services.',
     ],
+    extraSections: [
+      {
+        type: 'pricing',
+        pricingTitle: 'Sample Plans',
+        plans: [
+          { name: 'Home Basic', features: 'Up to 20 Mbps, unlimited data, standard support', price: '1,200', period: ' ETB/mo' },
+          { name: 'Home Plus', features: 'Up to 50 Mbps, unlimited data, priority support', price: '2,100', period: ' ETB/mo' },
+          { name: 'Business Pro', features: 'Up to 100 Mbps, static IP, SLA guarantee', price: '4,500', period: ' ETB/mo' },
+        ],
+      },
+    ],
   },
   {
     email: 'seed.abel@demo.nodbusiness.app',
@@ -375,6 +439,19 @@ const fixtures = [
     posts: [
       'This fictional prototype demonstrates a searchable, accessible civic information layout.',
       'No real government services or official transactions are available in this Demo.',
+    ],
+    extraSections: [
+      {
+        type: 'items',
+        itemsTitle: 'Service Directory',
+        items: [
+          { name: 'Business Permit Info', desc: 'Sample information about permit types and requirements' },
+          { name: 'Public Office Directory', desc: 'Find sample contact pages for public offices' },
+          { name: 'Community Programs', desc: 'Information about fictional community programs' },
+          { name: 'Public Notice Board', desc: 'Sample layout for public notices and updates' },
+          { name: 'Accessibility Info', desc: 'Sample accessibility details for public services' },
+        ],
+      },
     ],
   },
 ];

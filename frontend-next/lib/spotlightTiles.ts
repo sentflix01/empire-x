@@ -119,9 +119,9 @@ export function spotlightTiles(section: Record<string, any>, products: Array<Rec
         key: `w-${i}`, kind: 'picture' as const, title: text(p.title) ?? '', subtitle: text(p.client), image: text(p.image),
       }));
     case 'offer':
-      return section.offerTitle ? [{
-        key: 'offer', kind: 'wide', title: String(section.offerTitle), subtitle: text(section.offerDesc), image: text(section.offerPhoto),
-      }] : [];
+      return section.offerTitle
+        ? [{ key: 'offer', kind: 'wide' as const, title: String(section.offerTitle), subtitle: text(section.offerDesc), image: text(section.offerPhoto) }]
+        : [{ key: 'offer-empty', kind: 'wide' as const, title: 'Current Offer', subtitle: 'Add an offer title and description in your site editor to show it here.' }];
     case 'about': case 'story':
       return [{
         key: 'about', kind: 'wide',
@@ -282,20 +282,28 @@ export function spotlightTiles(section: Record<string, any>, products: Array<Rec
     }
 
     case 'booking':
-      return section.bookingTitle || section.bookingDesc ? [{
-        key: 'book', kind: 'wide' as const,
+      return [{
+        key: 'book',
+        kind: 'wide' as const,
         title: text(section.bookingTitle, section.title) ?? 'Book an appointment',
-        subtitle: text(section.bookingDesc, section.content),
-      }] : [];
+        subtitle: text(section.bookingDesc, section.content) ?? 'Add a description in your site editor to show it here.',
+      }];
 
     case 'video':
-      return section.vidUrl ? [{
-        key: 'vid', kind: 'wide' as const,
+      return [{
+        key: 'vid',
+        kind: 'wide' as const,
         title: text(section.vidTitle, section.title) ?? 'Watch',
-        subtitle: text(section.vidDesc),
-      }] : [];
+        subtitle: text(section.vidDesc) ?? (section.vidUrl ? undefined : 'Add a video URL in your site editor to show it here.'),
+      }];
 
     default:
-      return [];
+      // Unknown section type — return a placeholder so the tab still renders
+      return [{
+        key: `${type}-placeholder`,
+        kind: 'wide' as const,
+        title: type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+        subtitle: 'Add content to this section to see it here.',
+      }];
   }
 }
