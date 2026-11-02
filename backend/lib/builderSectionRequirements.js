@@ -7,6 +7,8 @@ const BUILDER_SECTION_TIERS = Object.freeze({
     'payment_info', 'hours', 'menu', 'offer',
     // sections added in builder overhaul
     'delivery', 'certifications', 'brands', 'event_schedule',
+    // feed announcement bar (scrolling ticker on the business feed card)
+    'feed_ticker',
   ]),
   premium: Object.freeze([
     'portfolio', 'newsletter', 'video', 'map', 'cta', 'process', 'booking',

@@ -165,6 +165,11 @@ function ShowroomCreate({
   const [spotlightMode, setSpotlightMode] = useState<'single' | 'carousel' | 'off' | null>(null);
   const [spotlightSectionIds, setSpotlightSectionIds] = useState<string[]>([]);
   const [spotlightCarouselCount, setSpotlightCarouselCount] = useState(1);
+  const [spotlightSaving, setSpotlightSaving] = useState(false);
+  // Separate "live" state updated immediately on every panel interaction
+  // so FeedSpotlightPreview reacts without waiting for the server round-trip.
+  const [liveSpotlightMode, setLiveSpotlightMode] = useState<'single' | 'carousel' | 'off' | null>(null);
+  const [liveSpotlightIds, setLiveSpotlightIds] = useState<string[]>([]);
   // Every change bumps version; the auto-save marks the version it wrote.
   const [version, setVersion] = useState(0);
   const [savedVersion, setSavedVersion] = useState(0);
@@ -384,7 +389,7 @@ function ShowroomCreate({
     };
   };
 
-  const handleSaveDraft = async () => {
+  const handleSaveDraft = async (): Promise<string | null> => {
     const title = String(formData.title ?? '').trim();
     const createdAt = (() => {
       try { return Number(JSON.parse(localStorage.getItem(draftKey) ?? '{}').createdAt) || Date.now(); }
@@ -406,12 +411,41 @@ function ShowroomCreate({
         localStorage.setItem(serverDraftKey, id);
         setServerDraftId(id);
         toast.success('Draft saved. It will be kept for three days.');
+        return id;
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Could not save this draft to your account.');
+        return null;
       } finally { setSaving(false); }
-      return;
     }
     toast.success('Draft saved on this device. Add a website title to save it to your account.');
+    return null;
+  };
+
+  // Open the Feed Spotlight panel. If a server draft or existing showroom
+  // already exists, open immediately. Otherwise auto-save the draft first
+  // so spotlight config has a showroom to attach to — never block the user.
+  const openFeedSpotlight = async () => {
+    if (serverDraftId || editId) {
+      // Mirror the persisted values so the preview starts correct on open.
+      setLiveSpotlightMode(spotlightMode);
+      setLiveSpotlightIds(spotlightSectionIds);
+      setSpotlightOpen(true);
+      return;
+    }
+    setSpotlightSaving(true);
+    const id = await handleSaveDraft();
+    setSpotlightSaving(false);
+    if (id) {
+      setLiveSpotlightMode(spotlightMode);
+      setLiveSpotlightIds(spotlightSectionIds);
+      setSpotlightOpen(true);
+    } else {
+      // Demo users or users without a title: open in preview-only mode.
+      // The panel works without a showroomId — it just can't persist settings.
+      setLiveSpotlightMode(spotlightMode);
+      setLiveSpotlightIds(spotlightSectionIds);
+      setSpotlightOpen(true);
+    }
   };
 
   const completion = (() => {
@@ -666,11 +700,10 @@ function ShowroomCreate({
         />
         <MoreMenu
           businessControls={businessControls}
-          onSave={() => { void handleSaveDraft(); }}
           onLoad={loadDraft}
           onClear={clearDraft}
           onFullPreview={() => setFullPreview(true)}
-          onFeedSpotlight={() => setSpotlightOpen(true)}
+          onFeedSpotlight={() => { void openFeedSpotlight(); }}
         />
         <button
           type="button"
@@ -784,48 +817,57 @@ function ShowroomCreate({
         )}
       </div>
 
-      {/* ── Feed Spotlight overlay ── */}
-      {spotlightOpen && serverDraftId && (
-        <div className="absolute inset-0 z-[60] flex flex-col bg-card overflow-y-auto">
-          <FeedSpotlightPanel
-            showroomId={serverDraftId}
-            activeSections={activeSections}
-            initialMode={spotlightMode}
-            initialSectionIds={spotlightSectionIds}
-            initialCarouselCount={spotlightCarouselCount}
-            themeColor={String(formData.heroBg ?? '#2563EB')}
-            onClose={() => setSpotlightOpen(false)}
-            onSaved={(mode, ids, count) => {
-              setSpotlightMode(mode);
-              setSpotlightSectionIds(ids);
-              setSpotlightCarouselCount(count);
-            }}
-          />
-          <FeedSpotlightPreview
-            sections={serializeShowroomSections(activeSections, formData) as Array<Record<string, any>>}
-            spotlightMode={spotlightMode}
-            spotlightSectionIds={spotlightSectionIds}
-            themeColor={String(formData.heroBg ?? '#2563EB')}
-            businessName={String(formData.title ?? 'Your Business')}
-            ownerId={String(user?.id ?? '')}
-            businessId={selectedBusinessId ?? null}
-          />
+      {/* ── Feed Spotlight overlay ──────────────────────────────────────────
+           Layout: fixed full-screen overlay split into two halves.
+           Top half (auto-height, scrollable): panel settings.
+           Bottom half (remaining space): live business card preview.
+           Works in demo mode (showroomId='') — settings are preview-only. ── */}
+      {spotlightOpen && (
+        <div className="absolute inset-0 z-60 flex flex-col bg-card">
+          {/* Settings panel — shrinks to content, scrolls if needed */}
+          <div className="shrink-0 overflow-y-auto border-b border-border max-h-[55%]">
+            <FeedSpotlightPanel
+              showroomId={serverDraftId || editId}
+              activeSections={activeSections}
+              initialMode={spotlightMode}
+              initialSectionIds={spotlightSectionIds}
+              initialCarouselCount={spotlightCarouselCount}
+              themeColor={String(formData.heroBg ?? '#2563EB')}
+              onClose={() => setSpotlightOpen(false)}
+              onSaved={(mode, ids, count) => {
+                setSpotlightMode(mode);
+                setSpotlightSectionIds(ids);
+                setSpotlightCarouselCount(count);
+                // Keep live state in sync with the persisted state.
+                setLiveSpotlightMode(mode);
+                setLiveSpotlightIds(ids);
+              }}
+              onPreviewChange={(mode, ids) => {
+                setLiveSpotlightMode(mode);
+                setLiveSpotlightIds(ids);
+              }}
+            />
+          </div>
+          {/* Live preview — fills remaining space, always visible */}
+          <div className="min-h-0 flex-1 overflow-y-auto bg-muted/30">
+            <FeedSpotlightPreview
+              sections={serializeShowroomSections(activeSections, formData) as Array<Record<string, any>>}
+              spotlightMode={liveSpotlightMode}
+              spotlightSectionIds={liveSpotlightIds}
+              themeColor={String(formData.heroBg ?? '#2563EB')}
+              businessName={String(formData.title ?? 'Your Business')}
+              ownerId={String(user?.id ?? '')}
+              businessId={selectedBusinessId ?? null}
+            />
+          </div>
         </div>
       )}
-      {spotlightOpen && !serverDraftId && (
-        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-card/90">
-          <div className="rounded-2xl border border-border p-6 text-center max-w-xs">
-            <p className="font-semibold mb-2">Save first</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Save your draft before configuring the Feed Spotlight so your settings can be stored.
-            </p>
-            <button
-              type="button"
-              onClick={() => { setSpotlightOpen(false); void handleSaveDraft(); }}
-              className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white"
-            >
-              Save draft
-            </button>
+      {/* Draft auto-save spinner (shown while saving before opening panel) */}
+      {spotlightSaving && (
+        <div className="absolute inset-0 z-60 flex items-center justify-center bg-card/90 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+            <p className="text-sm font-medium text-muted-foreground">Saving draft…</p>
           </div>
         </div>
       )}

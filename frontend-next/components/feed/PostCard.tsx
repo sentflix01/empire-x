@@ -699,25 +699,48 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
   const variant = detectVariant(post);
   const isPromo = variant === 'promo';
 
-  // Ticker is fully opt-in:
-  // - 'none' (or no profile yet) → never show ticker
-  // - 'auto' → show ticker_text if set; if blank, auto-generate from business contact info
-  // - any other type → show ticker_text directly (no auto-generation)
-  const rawTickerType = (authorProfile?.ticker_type as string | undefined) ?? 'none';
-  const tickerType = rawTickerType;
+  // Ticker display logic:
+  // - ticker_type 'none' with empty ticker_text = never touched, skip auto-gen
+  // - ticker_type 'none' with ticker_text set = user explicitly turned off, hide
+  // - ticker_type null/undefined = not configured, auto-generate from business contact info
+  // - ticker_type 'auto' = auto-generate from ticker_text or business contact info
+  // - any other type = show ticker_text directly
+  const rawTickerType = (authorProfile?.ticker_type as string | undefined);
+  const profileTickerText = (authorProfile?.ticker_text as string | undefined)?.trim();
+
+  // Resolve effective type: null means "not configured" → auto-generate
+  const tickerType = rawTickerType === 'none'
+    ? 'none'
+    : rawTickerType || 'auto';   // null/undefined → treat as 'auto'
 
   const tickerText = (() => {
-    if (rawTickerType === 'none') return undefined;
-    const profileText = authorProfile?.ticker_text as string | undefined;
-    if (profileText?.trim()) return profileText;
-    // Only auto-generate from business info when the user chose 'auto'
-    if (rawTickerType === 'auto') {
-      return (
-        (primaryBiz?.business_contact_phone ? `Call: ${primaryBiz.business_contact_phone}  |  ${primaryBiz.business_name ?? ''}` : undefined) ??
-        (primaryBiz?.business_contact_email ? `Email: ${primaryBiz.business_contact_email}` : undefined) ??
-        (primaryBiz?.business_address ? `Visit: ${primaryBiz.business_address}` : undefined)
-      );
-    }
+    if (tickerType === 'none') return undefined;
+    // Use explicitly set text first
+    if (profileTickerText) return profileTickerText;
+    // Auto-generate from business contact info — check direct columns first
+    const phone   = (primaryBiz?.business_contact_phone as string | undefined)?.trim();
+    const email   = (primaryBiz?.business_contact_email as string | undefined)?.trim();
+    const address = (primaryBiz?.business_address       as string | undefined)?.trim();
+    const bizName = (primaryBiz?.business_name          as string | undefined)?.trim();
+    if (phone)   return `📞 ${phone}  ·  ${bizName ?? ''}`;
+    if (email)   return `✉️ ${email}`;
+    if (address) return `📍 ${address}`;
+    // Fallback: read from the contact section inside business_sections JSON
+    try {
+      const sectionsRaw = primaryBiz?.business_sections as string | undefined;
+      if (sectionsRaw) {
+        const parsed: Array<Record<string, unknown>> = JSON.parse(sectionsRaw);
+        const contact = parsed.find(s => s.type === 'contact');
+        if (contact) {
+          const p = (contact.phone    as string | undefined)?.trim();
+          const e = (contact.email    as string | undefined)?.trim();
+          const a = (contact.location as string | undefined)?.trim();
+          if (p) return `📞 ${p}  ·  ${bizName ?? ''}`;
+          if (e) return `✉️ ${e}`;
+          if (a) return `📍 ${a}`;
+        }
+      }
+    } catch { /* ignore JSON parse errors */ }
     return undefined;
   })();
 

@@ -1003,6 +1003,56 @@ export default function SectionRenderer({
     );
   }
 
+  // ── Feed announcement ticker ───────────────────────────────────────
+  // This section type does NOT render inside the showroom page itself —
+  // its content is read by BusinessFeedCard and shown as a TickerBar at
+  // the bottom of the business card in the feed.  Inside the Studio
+  // preview we show a small info card so the owner can see what they typed.
+  if (s.type === "feed_ticker") {
+    const text = (s.tickerText as string | undefined) ?? '';
+    const type = (s.tickerType as string | undefined) ?? 'auto';
+    return (
+      <div id={`section-${sectionIndex}`} className="px-5 py-6">
+        <div className="rounded-xl border border-border/40 bg-secondary/30 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm font-semibold">📢 Feed announcement bar</span>
+            {preview && (
+              <span className="ml-auto rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                Preview only
+              </span>
+            )}
+          </div>
+          {text ? (
+            /* Show a live preview of the TickerBar so the owner sees exactly
+               how it will look at the bottom of their feed card */
+            <div className="rounded-lg overflow-hidden border border-border/40">
+              {/* Inline mini ticker — same colours as the real TickerBar */}
+              <div className="flex items-center overflow-hidden bg-card">
+                <div className={`shrink-0 flex items-center gap-1 px-3 py-2 text-white text-[10px] font-bold tracking-widest uppercase ${
+                  type === 'promo' ? 'bg-orange-500' :
+                  type === 'news'  ? 'bg-red-600' :
+                  type === 'contact' ? 'bg-blue-500' :
+                  type === 'location' ? 'bg-cyan-500' :
+                  'bg-purple-500'
+                }`}>
+                  {type === 'promo' ? '🏷 PROMO' : type === 'news' ? '🔴 LIVE' : type === 'contact' ? '📞 CONTACT' : type === 'location' ? '📍 LOCATION' : '📢 INFO'}
+                </div>
+                <p className="flex-1 truncate px-3 text-xs font-medium text-foreground">{text}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Type your message above. It will scroll across the bottom of your business card in the feed.
+            </p>
+          )}
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            This bar appears at the bottom of your business card in the feed — not on this page.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div id={`section-${sectionIndex}`} className="px-5 py-8">
       <h2 className="font-display text-lg font-bold mb-2">{s.title}</h2>

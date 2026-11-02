@@ -3,9 +3,10 @@
 /**
  * BrandLogoVideo — drop-in replacement for BrandLogo for focal-point placements.
  *
- * Plays the brand intro video looped and muted inside a black circle,
- * matching the brand identity (reference logo: black circle, globe network).
- * Falls back to the static BrandLogo SVG if video fails to load.
+ * Plays the brand intro video looped and muted inside a black circle.
+ * The static SVG icon is shown instantly as a placeholder until the video's
+ * first frame is ready — prevents a plain black circle flash on slow
+ * connections or mobile devices.
  *
  * Accepts the same props as BrandLogo so it can be used anywhere BrandLogo
  * is used as a visual centerpiece (not tiny inline icons).
@@ -33,12 +34,13 @@ export default function BrandLogoVideo({
   label,
   style,
 }: BrandLogoVideoProps) {
-  const [errored, setErrored] = useState(false);
+  const [errored, setErrored]   = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const px = size;
 
+  // Hard error fallback — video completely failed to load
   if (errored) {
-    // Graceful fallback to static SVG icon
     return (
       <Image
         src="/brand/nodbusiness-icon.svg"
@@ -57,6 +59,7 @@ export default function BrandLogoVideo({
       aria-label={label}
       aria-hidden={label ? undefined : true}
       style={{
+        position: 'relative',
         width: px,
         height: px,
         borderRadius: '50%',
@@ -70,6 +73,25 @@ export default function BrandLogoVideo({
       }}
       className={cn('shrink-0', className)}
     >
+      {/* Static SVG placeholder — visible instantly, fades out once video is ready */}
+      <Image
+        src="/brand/nodbusiness-icon.svg"
+        alt=""
+        aria-hidden
+        width={px}
+        height={px}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          opacity: videoReady ? 0 : 1,
+          transition: videoReady ? 'opacity 0.25s ease-out' : 'none',
+        }}
+      />
+
+      {/* Video — fades in when first frame is ready */}
       <video
         ref={videoRef}
         src="/brand/nodbusiness-intro.mp4"
@@ -77,12 +99,17 @@ export default function BrandLogoVideo({
         muted
         playsInline
         loop
+        onCanPlay={() => setVideoReady(true)}
         onError={() => setErrored(true)}
         style={{
+          position: 'absolute',
+          inset: 0,
           width: '100%',
           height: '100%',
           objectFit: 'cover',
           display: 'block',
+          opacity: videoReady ? 1 : 0,
+          transition: videoReady ? 'opacity 0.25s ease-in' : 'none',
         }}
         aria-hidden="true"
       />

@@ -18,6 +18,7 @@ import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
 import PurchaseModal from '@/components/checkout/PurchaseModal';
 import SharedBookmarkButton from '@/components/ui/BookmarkButton';
 import BusinessSpotlight from './BusinessSpotlight';
+import TickerBar from './TickerBar';
 import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
 
 /* ── Types ───────────────────────────────────────────────────────── */
@@ -107,11 +108,14 @@ export interface BusinessFeedCardProps {
   ownerAvatarUrl?: string | null;
   ownerIsVerified?: boolean;
   ownerIsSeed?: boolean;
+  /** Profile-level ticker — fallback when no feed_ticker builder section is set */
+  ownerTickerText?: string | null;
+  ownerTickerType?: string | null;
   viewer?: { id?: string } | null;
   onMessage?: (ownerId: string, bizName: string) => void;
 }
 
-export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, viewer, onMessage }: BusinessFeedCardProps) {
+export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, viewer, onMessage, ownerTickerText, ownerTickerType }: BusinessFeedCardProps) {
   const [qrOpen, setQrOpen] = useState(false);
   const [purchaseModal, setPurchaseModal] = useState<{
     item: { id?: string; title: string; description?: string; price?: number; currency?: string; images?: string };
@@ -355,6 +359,60 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
         })}
       />
 
+      {/* Feed announcement ticker — sources checked in priority order:
+           1. feed_ticker builder section (set in Showroom Studio)
+           2. profile-level ticker_text (set in ProfileEdit)
+           3. contact section phone/email inside the showroom sections (auto-generated) */}
+      {(() => {
+        // Source 1: explicit feed_ticker builder section
+        const tickerSection = sections.find((s: Record<string, any>) => s.type === 'feed_ticker');
+        if (tickerSection?.tickerText) {
+          return (
+            <TickerBar
+              text={String(tickerSection.tickerText)}
+              type={tickerSection.tickerType ? String(tickerSection.tickerType) : 'auto'}
+            />
+          );
+        }
+
+        // Source 2: profile-level ticker_text (set in ProfileEdit)
+        if (ownerTickerText && ownerTickerType !== 'none') {
+          return <TickerBar text={ownerTickerText} type={ownerTickerType || 'auto'} />;
+        }
+
+        // Source 3: auto-generate from the contact section inside the showroom sections
+        // This shows for ALL businesses that have a contact section — no user action needed
+        const contactSection = sections.find((s: Record<string, any>) => s.type === 'contact');
+        if (contactSection) {
+          const phone   = (contactSection.phone   as string | undefined)?.trim();
+          const email   = (contactSection.email   as string | undefined)?.trim();
+          const address = (contactSection.location as string | undefined)?.trim();
+          const autoText = phone
+            ? `📞 ${phone}  ·  ${bizName}`
+            : email
+            ? `✉️ ${email}  ·  ${bizName}`
+            : address
+            ? `📍 ${address}  ·  ${bizName}`
+            : null;
+          if (autoText) return <TickerBar text={autoText} type="contact" />;
+        }
+
+        // Source 4: fallback to business-level contact fields on the biz object itself
+        const bizPhone   = (biz.business_contact_phone as string | undefined)?.trim();
+        const bizEmail   = (biz.business_contact_email as string | undefined)?.trim();
+        const bizAddress = (biz.business_address       as string | undefined)?.trim();
+        const fallback = bizPhone
+          ? `📞 ${bizPhone}  ·  ${bizName}`
+          : bizEmail
+          ? `✉️ ${bizEmail}  ·  ${bizName}`
+          : bizAddress
+          ? `📍 ${bizAddress}  ·  ${bizName}`
+          : null;
+        if (fallback) return <TickerBar text={fallback} type="contact" />;
+
+        return null;
+      })()}
+
       {/* Inline PurchaseModal */}
       {purchaseModal && (
         <PurchaseModal
@@ -387,7 +445,14 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   const [ownerShowrooms, setOwnerShowrooms] = useState<Array<Record<string, any>>>([]);
   const [loading, setLoading] = useState(true);
   // Owner display names for feed-mode cards — keyed by owner_id
-  const [ownerProfiles, setOwnerProfiles] = useState<Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean }>>({});
+  const [ownerProfiles, setOwnerProfiles] = useState<Record<string, {
+    display_name?: string;
+    avatar_url?: string;
+    is_verified?: boolean;
+    is_seed?: boolean;
+    ticker_text?: string;
+    ticker_type?: string;
+  }>>({});
   const { user: signedInUser } = useAuth();
   const viewer = currentUser ?? signedInUser;
 
@@ -438,7 +503,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               .catch(() => ({ id, p: null }))
           )
         );
-        const map: Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean }> = {};
+        const map: Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean; ticker_text?: string; ticker_type?: string }> = {};
         for (const result of profileResults) {
           if (result.status === 'fulfilled' && result.value.p) {
             const p = result.value.p;
@@ -447,6 +512,8 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               avatar_url: Array.isArray(p.avatar_url) ? (p.avatar_url[0] ?? '') : p.avatar_url,
               is_verified: p.is_verified,
               is_seed: (p as any).is_seed === true,
+              ticker_text: (p as any).ticker_text || undefined,
+              ticker_type: (p as any).ticker_type || undefined,
             };
           }
         }
@@ -547,6 +614,8 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               ownerAvatarUrl={op?.avatar_url}
               ownerIsVerified={op?.is_verified}
               ownerIsSeed={op?.is_seed}
+              ownerTickerText={op?.ticker_text ?? null}
+              ownerTickerType={op?.ticker_type ?? null}
               viewer={viewer}
             />
           );
