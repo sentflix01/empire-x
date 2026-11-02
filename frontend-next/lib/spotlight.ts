@@ -126,9 +126,8 @@ export function resolveSpotlight(
       if (idx === -1) continue; // section was removed from the page
       const section = allSections[idx];
       // In chosen mode: always include the section the owner explicitly picked.
-      // Only exclude catalogue sections with zero products (they'd show blank).
-      const isCatalogue = isCatalogueSection(String(section?.type));
-      if (isCatalogue && productCount === 0) continue; // products not loaded yet, skip
+      // Catalogue sections (products) are included even before products load
+      // so the tab appears immediately; the tile strip handles the empty state.
       picked.push({ section, index: idx });
     }
     if (picked.length > 0) {

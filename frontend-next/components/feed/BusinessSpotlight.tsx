@@ -112,11 +112,18 @@ export default function BusinessSpotlight({
   if (!productsLoaded) {
     return <section ref={rootRef} aria-hidden="true" className={`${frame} animate-pulse bg-secondary/20`} style={{ height: SPOTLIGHT_HEIGHT }} />;
   }
-  if (!current || tiles.length === 0) {
+  // No slides at all → show the business description.
+  if (!current) {
     return <EmptySpotlight rootRef={rootRef} profile={profile} visitHref={visitHref} themeColor={themeColor} />;
   }
 
   const label = (s: SpotlightSection) => SPOTLIGHT_LABELS[String(s.type)] ?? 'Spotlight';
+
+  // Current tab has no renderable tiles (e.g. products section before products
+  // load, or an empty section the owner explicitly chose). Show the tab strip
+  // so the user can switch to another tab, with a brief placeholder below.
+  const noContent = tiles.length === 0;
+
   return (
     <section ref={rootRef} aria-label={`Spotlight: ${label(current.section)}`} className={frame} style={{ height: SPOTLIGHT_HEIGHT }}>
       <div className="flex h-9 items-center justify-between gap-2 px-4">
@@ -140,13 +147,23 @@ export default function BusinessSpotlight({
           </Link>
         )}
       </div>
-      <TileStrip
-        key={`${current.index}-${current.section.type}`}
-        tiles={tiles}
-        label={label(current.section)}
-        themeColor={themeColor}
-        onBuy={isOwner ? undefined : onBuy}
-      />
+      {noContent ? (
+        <div className="flex h-[212px] items-center justify-center px-4">
+          <p className="text-xs text-muted-foreground text-center">
+            {isCatalogueSection(current.section.type)
+              ? 'Products loading…'
+              : 'No content added to this section yet.'}
+          </p>
+        </div>
+      ) : (
+        <TileStrip
+          key={`${current.index}-${current.section.type}`}
+          tiles={tiles}
+          label={label(current.section)}
+          themeColor={themeColor}
+          onBuy={isOwner ? undefined : onBuy}
+        />
+      )}
     </section>
   );
 }
