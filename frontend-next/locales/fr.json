@@ -1,0 +1,40 @@
+{
+  "__note": "French (West Africa) — stub file. All missing keys fall back to English (fallbackLng: 'en'). Replace values with proper French translations.",
+  "nav": {
+    "home": "Accueil",
+    "explore": "Explorer",
+    "friends": "Amis",
+    "businesses": "Entreprises",
+    "marketplace": "Marché",
+    "messages": "Messages",
+    "profile": "Profil",
+    "notifications": "Notifications",
+    "orders": "Commandes",
+    "bookmarks": "Favoris",
+    "wallet": "Portefeuille",
+    "showrooms": "Showrooms",
+    "search": "Rechercher"
+  },
+  "auth": {
+    "login": "Se connecter",
+    "loginTitle": "Bon retour",
+    "register": "S'inscrire",
+    "logout": "Se déconnecter"
+  },
+  "common": {
+    "loading": "Chargement…",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "back": "Retour",
+    "search": "Rechercher",
+    "retry": "Réessayer",
+    "createShowroom": "Créer un Showroom",
+    "showroomStudio": "Showroom Studio",
+    "discover": "Découvrir",
+    "myAccount": "Mon Compte",
+    "searchPlaceholder": "Rechercher personnes, produits et showrooms..."
+  }
+}

@@ -19,6 +19,7 @@ import AiAssistant from '@/components/AiAssistant';
 import PageGuide from '@/components/PageGuide';
 import GlobalErrorReporter from '@/components/GlobalErrorReporter';
 import SplashScreen from '@/components/brand/SplashScreen';
+import NavigationProgress from '@/components/NavigationProgress';
 import { initSentry } from '@/lib/sentry';
 // Initialize i18n — must be imported here so it runs before any component renders
 import i18n from '@/lib/i18n';
@@ -38,6 +39,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           {/* SplashScreen reads isLoadingAuth from AuthProvider and dismisses
               itself once auth resolves and the video finishes playing. */}
           <SplashScreen />
+          {/* NavigationProgress shows a thin top bar on every route transition */}
+          <React.Suspense fallback={null}>
+            <NavigationProgress />
+          </React.Suspense>
           <CartProvider>
             <QueryClientProvider client={queryClient}>
               {/* Global error reporter — captures window.onerror + unhandledrejection */}

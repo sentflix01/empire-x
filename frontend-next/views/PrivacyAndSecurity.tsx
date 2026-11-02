@@ -369,7 +369,7 @@ function PrivacyAndSecurityView() {
         />
         <ButtonRow
           label="Delete Account"
-          description="Permanently delete your account and all data. This cannot be undone."
+          description="Remove your personal data. Orders and payment records are kept for accounting with your identity removed."
           onClick={() => { setDeletePassword(''); setDeleteConfirm(''); setDeleteOpen(true); }}
           danger
           loading={loadingDelete}

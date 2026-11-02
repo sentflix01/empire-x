@@ -83,7 +83,7 @@ function Register() {
       setShowOtp(true);
     } catch (err: unknown) {
       const e = err as { status?: number; response?: { status?: number }; error?: string; message?: string };
-      if (e?.status === 404 || e?.response?.status === 404) { window.location.href = '/404'; return; }
+      if (e?.status === 404 || e?.response?.status === 404) { router.push('/not-found'); return; }
       setError(e?.error || e?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
@@ -291,9 +291,9 @@ function Register() {
               type="checkbox"
               checked={agreed}
               onChange={e => setAgreed(e.target.checked)}
-              className="sr-only"
+              className="sr-only peer"
             />
-            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-1 ${
               agreed ? 'bg-primary border-primary' : 'border-input bg-background'
             }`}>
               {agreed && (

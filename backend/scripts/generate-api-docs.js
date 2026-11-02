@@ -37,6 +37,14 @@ function parseRoutes(file) {
   const src = fs.readFileSync(path.join(ROUTES_DIR, `${file}.ts`), 'utf8');
   const lines = src.split(/\r?\n/);
   const routes = [];
+
+  // Detect router-level middleware applied to ALL routes in this file via
+  // router.use(requireAuth, requireAdmin) or router.use(requireAuth).
+  // These appear before any route handler and elevate every route in the file.
+  const routerUseAdmin = /router\.use\([^)]*requireAdmin[^)]*\)/.test(src);
+  const routerUseAuth  = !routerUseAdmin && /router\.use\([^)]*requireAuth[^)]*\)/.test(src);
+  const routerLevelAuth = routerUseAdmin ? 'admin' : routerUseAuth ? 'auth' : null;
+
   // Matches router.get('/path', ... up to the end of the registration line.
   const re = /router\.(get|post|put|patch|delete|all)\(\s*'([^']*)'/g;
   let m;
@@ -46,10 +54,13 @@ function parseRoutes(file) {
     // in this codebase, but wrap points exist).
     const startLine = src.slice(0, m.index).split('\n').length;
     const snippet = lines.slice(startLine - 1, startLine + 2).join(' ');
-    const auth = snippet.includes('requireAdmin') ? 'admin'
+    const perRouteAuth = snippet.includes('requireAdmin') ? 'admin'
       : snippet.includes('requireAuth') ? 'auth'
       : snippet.includes('optionalAuth') ? 'optional'
-      : 'public';
+      : null;
+    // Router-level auth takes effect when no per-route middleware is present,
+    // unless the per-route middleware is weaker (e.g. optional vs auth).
+    const auth = perRouteAuth ?? routerLevelAuth ?? 'public';
     routes.push({ method: method.toUpperCase(), path: routePath, auth, line: startLine });
   }
   return routes;

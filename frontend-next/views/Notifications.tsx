@@ -241,8 +241,12 @@ function NotificationsView() {
               <React.Fragment key={n.id}>
               {newDay && <h2 className="px-1 pb-1 pt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground first:pt-0">{day}</h2>}
               <div
+                role="button"
+                tabIndex={0}
                 onClick={() => markRead(n)}
-                data-page-guide="notif-list" className={`relative flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors group
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); markRead(n); } }}
+                data-page-guide="notif-list"
+                className={`relative flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors group focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none
                   ${n.is_read
                     ? "opacity-60 hover:opacity-100 hover:bg-secondary/30"
                     : "bg-card border border-border/50 hover:bg-secondary/50 notif-unread-item"
