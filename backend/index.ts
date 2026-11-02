@@ -420,6 +420,24 @@ void verifySharedDatabaseIsolation().then(verifyDemoStorageIsolation).then(() =>
   startBusinessSubscriptionLifecycle();
   startDirectOrderExpiry();
 
+  // ── One-time data patches: run asynchronously after startup (all idempotent) ──
+  setTimeout(() => {
+    const migrate83 = require('./db/migrate83') as (p: typeof pool) => Promise<void>;
+    const migrate84 = require('./db/migrate84') as (p: typeof pool) => Promise<void>;
+    const migrate85 = require('./db/migrate85') as (p: typeof pool) => Promise<void>;
+    Promise.all([
+      migrate83(pool).catch((err: Error) =>
+        logger.warn({ err: err.message }, 'feed-ticker-backfill: non-critical startup patch failed'),
+      ),
+      migrate84(pool).catch((err: Error) =>
+        logger.warn({ err: err.message }, 'demo-spotlight-carousel: non-critical startup patch failed'),
+      ),
+      migrate85(pool).catch((err: Error) =>
+        logger.warn({ err: err.message }, 'demo-spotlight-refresh: non-critical startup patch failed'),
+      ),
+    ]);
+  }, 5_000);
+
   // ── Auto-create Supabase Storage bucket ──────────────────────────────────
   setTimeout(async () => {
     try {

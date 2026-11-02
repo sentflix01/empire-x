@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { Check, Expand, FolderOpen, Monitor, MoreHorizontal, Palette, Save, Smartphone, Tablet, Trash2, Zap } from 'lucide-react';
+import { Check, Expand, FolderOpen, Monitor, MoreHorizontal, Palette, Smartphone, Tablet, Trash2, Zap } from 'lucide-react';
 import { COLOR_PRESETS } from '@/lib/builderSections';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
@@ -97,7 +97,6 @@ export function StyleMenu(p: StyleMenuProps) {
 export interface MoreMenuProps {
   /** Business picker and visibility, when the owner has them. */
   businessControls?: React.ReactNode;
-  onSave: () => void;
   onLoad: () => void;
   onClear: () => void;
   onFullPreview: () => void;
@@ -105,7 +104,7 @@ export interface MoreMenuProps {
 }
 
 /** Less frequent actions. Websites are published only on NodBusiness, so there is no export. */
-export function MoreMenu({ businessControls, onSave, onLoad, onClear, onFullPreview, onFeedSpotlight }: MoreMenuProps) {
+export function MoreMenu({ businessControls, onLoad, onClear, onFullPreview, onFeedSpotlight }: MoreMenuProps) {
   const [open, setOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const item = 'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm hover:bg-secondary';
@@ -121,10 +120,9 @@ export function MoreMenu({ businessControls, onSave, onLoad, onClear, onFullPrev
         {businessControls && <div className="space-y-2 border-b border-border pb-3">{businessControls}</div>}
         {onFeedSpotlight && (
           <button type="button" className={item} onClick={run(onFeedSpotlight)}>
-            <Zap className="h-4 w-4" aria-hidden="true" />Feed Spotlight
+            <Zap className="h-4 w-4" aria-hidden="true" />Feed Spotlight Preview
           </button>
         )}
-        <button type="button" className={item} onClick={run(onSave)}><Save className="h-4 w-4" aria-hidden="true" />Save draft</button>
         <button type="button" className={item} onClick={run(onLoad)}><FolderOpen className="h-4 w-4" aria-hidden="true" />Load saved draft</button>
         <button type="button" className={item} onClick={run(onFullPreview)}><Expand className="h-4 w-4" aria-hidden="true" />Full-screen preview</button>
         {confirmClear ? (

@@ -3,15 +3,17 @@
 /**
  * SplashScreen — full-screen brand intro that plays once on app load.
  *
- * Renders a white overlay with the brand video centered in a black circle,
- * matching the app icon visual identity (white background, circular black
- * frame, globe network video). Dismisses when BOTH:
+ * Renders a white overlay with the brand video centered in a black circle.
+ * The static SVG icon is shown instantly as a placeholder until the video's
+ * first frame is ready — this prevents a plain black circle flash on slow
+ * connections or mobile devices where video buffering takes time.
+ *
+ * Dismisses when BOTH:
  *   - the auth check completes (isLoadingAuth becomes false), AND
  *   - the video has finished playing
  * …or after 4 seconds maximum so it never blocks the app indefinitely.
  *
- * Skipped entirely on auth pages (/login, /register, /landing, etc.) where
- * there is never a session to check and a splash would be confusing.
+ * Skipped entirely on auth/landing pages where a splash would be confusing.
  */
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
@@ -30,9 +32,11 @@ export default function SplashScreen() {
   const { isLoadingAuth } = useAuth();
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const [videoEnded, setVideoEnded] = useState(false);
-  const [fading, setFading] = useState(false);
-  const [gone, setGone] = useState(false);
+  const [videoEnded, setVideoEnded]     = useState(false);
+  // true once the video has its first frame ready to paint
+  const [videoReady, setVideoReady]     = useState(false);
+  const [fading, setFading]             = useState(false);
+  const [gone, setGone]                 = useState(false);
 
   const isAuthPage = AUTH_PREFIXES.some(p => pathname.startsWith(p));
 
@@ -55,7 +59,6 @@ export default function SplashScreen() {
     if (!isLoadingAuth && videoEnded) dismiss();
   }, [isAuthPage, isLoadingAuth, videoEnded, dismiss]);
 
-  // If skipped or removed, render nothing
   if (isAuthPage || gone) return null;
 
   return (
@@ -77,20 +80,37 @@ export default function SplashScreen() {
         pointerEvents: fading ? 'none' : 'auto',
       }}
     >
-      {/* ── Brand circle — matches the reference logo photo ── */}
+      {/* ── Brand circle ── */}
       <div
         style={{
+          position: 'relative',
           width: 200,
           height: 200,
           borderRadius: '50%',
           backgroundColor: '#0a0a0a',
           overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
         }}
       >
+        {/* Static SVG placeholder — visible instantly, fades out once video is ready */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/brand/nodbusiness-icon.svg"
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            // Fade out once video first frame is ready; instant hide otherwise
+            opacity: videoReady ? 0 : 1,
+            transition: videoReady ? 'opacity 0.25s ease-out' : 'none',
+          }}
+        />
+
+        {/* Video — starts invisible, fades in when first frame is ready */}
         <video
           ref={videoRef}
           src="/brand/nodbusiness-intro.mp4"
@@ -98,12 +118,17 @@ export default function SplashScreen() {
           muted
           playsInline
           loop={false}
+          onCanPlay={() => setVideoReady(true)}
           onEnded={() => setVideoEnded(true)}
-          onError={() => setVideoEnded(true)}
+          onError={() => { setVideoReady(true); setVideoEnded(true); }}
           style={{
+            position: 'absolute',
+            inset: 0,
             width: '100%',
             height: '100%',
             objectFit: 'cover',
+            opacity: videoReady ? 1 : 0,
+            transition: videoReady ? 'opacity 0.25s ease-in' : 'none',
           }}
           aria-hidden="true"
         />

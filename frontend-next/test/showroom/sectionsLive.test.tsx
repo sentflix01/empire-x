@@ -64,6 +64,7 @@ const FILLED: Record<string, unknown> = {
   eventsTitle: 'Upcoming Events', events: [{ title: 'Sourdough Workshop', date: 'Sat 10 Jan, 9am', price: '500 ETB', seats: '12 seats' }],
   baTitle: 'Before & After', baPairs: [{ label: 'Kitchen renovation', before: 'https://cdn.example.test/before.jpg', after: 'https://cdn.example.test/after.jpg' }],
   jobsTitle: "We're Hiring", jobs: [{ title: 'Baker', type: 'Full-time', desc: 'Early morning shifts', salary: '8,000 ETB/month' }],
+  tickerText: 'New arrivals this week — browse now!', tickerType: 'promo',
 };
 
 /** Text each section must show on the live site once filled. */
@@ -78,6 +79,7 @@ const SHOWS: Record<string, string> = {
   // New sections
   delivery: 'Bole', certifications: 'Food Safety Licence', brands: 'Anchor',
   event_schedule: 'Sourdough Workshop', before_after: 'Kitchen renovation', job_openings: 'Baker',
+  feed_ticker: 'New arrivals this week — browse now!',
 };
 
 const product = { id: 'p1', title: 'Injera pack', price: 80, currency: 'ETB', stock: 4, category: 'Bread', images: '[]' };

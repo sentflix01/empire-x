@@ -74,6 +74,12 @@ async function seed() {
           requestName: fixture.booking.requestName,
         });
       }
+      // Extra pre-built sections (items, pricing, offer, gallery, etc.)
+      // supplied explicitly by the fixture for richer spotlight tabs.
+      if (Array.isArray(fixture.extraSections)) {
+        sections.push(...fixture.extraSections);
+      }
+
       sections.push({
         type: 'contact',
         title: 'Contact',
@@ -81,6 +87,14 @@ async function seed() {
         phone: fixture.phone,
         location: fixture.location,
       });
+      // Feed announcement ticker — renders at the bottom of the business card in the feed.
+      if (fixture.ticker?.text) {
+        sections.push({
+          type: 'feed_ticker',
+          tickerText: fixture.ticker.text,
+          tickerType: fixture.ticker.type || 'auto',
+        });
+      }
       const { rows: userRows } = await client.query(
         `INSERT INTO users (email, full_name, role, is_verified, is_demo, is_seed, provider)
          VALUES ($1, $2, 'user', TRUE, TRUE, FALSE, 'local')
@@ -97,13 +111,14 @@ async function seed() {
              business_name=$9, business_category=$10, business_template=$11, business_description=$12,
              business_logo_url=$13, business_cover_url=$14, business_sections=$15, business_theme_color=$16,
              business_contact_email=$17, business_contact_phone=$8, business_address=$7,
-             business_hours=$18, updated_at=NOW()
+             business_hours=$18, ticker_text=$19, ticker_type=$20, updated_at=NOW()
            WHERE id=$1`,
           [
             profiles[0].id, fixture.name, fixture.bio, fixture.avatar, fixture.cover, fixture.headline,
             fixture.location, fixture.phone, fixture.business, fixture.category, fixture.template,
             fixture.description, fixture.logo, fixture.cover, JSON.stringify(sections), fixture.themeColor,
             fixture.email, JSON.stringify(fixture.hours || []),
+            fixture.ticker?.text || null, fixture.ticker?.type || null,
           ],
         );
       } else {
@@ -111,13 +126,15 @@ async function seed() {
           `INSERT INTO user_profiles (user_id, display_name, profile_type, has_business_profile, business_name,
              business_category, business_template, business_description, bio, avatar_url, cover_url, headline,
              location, phone, business_logo_url, business_cover_url, business_sections, business_theme_color,
-             business_contact_email, business_contact_phone, business_address, business_hours)
-           VALUES ($1, $2, 'personal', TRUE, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $12, $11, $18)`,
+             business_contact_email, business_contact_phone, business_address, business_hours,
+             ticker_text, ticker_type)
+           VALUES ($1, $2, 'personal', TRUE, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $12, $11, $18, $19, $20)`,
           [
             userId, fixture.name, fixture.business, fixture.category, fixture.template, fixture.description,
             fixture.bio, fixture.avatar, fixture.cover, fixture.headline, fixture.location, fixture.phone,
             fixture.logo, fixture.cover, JSON.stringify(sections), fixture.themeColor, fixture.email,
             JSON.stringify(fixture.hours || []),
+            fixture.ticker?.text || null, fixture.ticker?.type || null,
           ],
         );
       }
@@ -171,18 +188,33 @@ async function seed() {
       // workspace. Deterministic slugs/content make reruns idempotent and keep
       // these fixtures distinct from real accounts and production seed rows.
       const slug = `demo-${fixture.business.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
+      // Determine spotlight section IDs from the sections we just built
+      // (exclude structural sections so all content tabs show as carousel)
+      const SPOTLIGHT_EXCLUDED_TYPES = new Set([
+        'hero', 'cta', 'contact', 'map', 'hours', 'social', 'newsletter',
+        'payment_info', 'save_showroom', 'feed_ticker', 'banner',
+      ]);
+      const spotlightTypes = [...new Set(
+        sections.filter(s => s.type && !SPOTLIGHT_EXCLUDED_TYPES.has(s.type)).map(s => s.type)
+      )];
+      const spotlightMode = spotlightTypes.length > 1 ? 'carousel' : spotlightTypes.length === 1 ? 'single' : null;
+
       const { rows: showroomRows } = await client.query(
         `INSERT INTO showrooms (owner_id, business_id, title, description, slug, category, template, sections,
-           cover_image, logo_url, theme_color, status)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'published')
+           cover_image, logo_url, theme_color, status, spotlight_mode, spotlight_section_ids, spotlight_carousel_count)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'published',$12,$13,1)
          ON CONFLICT (slug) DO UPDATE SET business_id=EXCLUDED.business_id, title=EXCLUDED.title,
            description=EXCLUDED.description, category=EXCLUDED.category, template=EXCLUDED.template,
            sections=EXCLUDED.sections, cover_image=EXCLUDED.cover_image, logo_url=EXCLUDED.logo_url,
-           theme_color=EXCLUDED.theme_color, status='published', updated_at=NOW()
+           theme_color=EXCLUDED.theme_color, status='published',
+           spotlight_mode=EXCLUDED.spotlight_mode, spotlight_section_ids=EXCLUDED.spotlight_section_ids,
+           spotlight_carousel_count=1, updated_at=NOW()
          RETURNING id`,
         [
           userId, businessId, fixture.business, fixture.description, slug, fixture.category,
           fixture.template, JSON.stringify(sections), fixture.cover, fixture.logo, fixture.themeColor,
+          spotlightMode, JSON.stringify(spotlightTypes),
         ],
       );
       const showroomId = showroomRows[0].id;
