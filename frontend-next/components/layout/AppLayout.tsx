@@ -5,7 +5,7 @@ import client from "@/api/client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Home, Search, MessageCircle, ShoppingBag, Bell, User, UserRound, Plus, TrendingUp, Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, Tag, Package, ShieldAlert, BarChart3, Store, Flame, Users, ChevronDown, PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield, ArrowLeft, Settings, Loader2 } from "lucide-react";
+import { Home, Search, MessageCircle, ShoppingBag, Bell, User, UserRound, Plus, TrendingUp, Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, Tag, Package, ShieldAlert, BarChart3, Store, Flame, Users, ChevronDown, PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield, ArrowLeft, Settings, Loader2, Briefcase, Newspaper } from "lucide-react";
 import BrandLogo from '@/components/brand/BrandLogo';
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -1145,24 +1145,71 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <nav data-page-guide="mobile-navigation" aria-label="Mobile navigation" className="md:hidden fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="flex items-center h-16 px-1">
-              {/* More — LEFT */}
-              <button onClick={() => { setDrawerOpen(v => !v); }}
-                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${drawerOpen ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                <Menu className="w-5 h-5" /><span className="text-[10px] font-medium">More</span>
+
+              {/* 1 — More: opens the full drawer menu */}
+              <button
+                onClick={() => { setDrawerOpen(v => !v); }}
+                aria-label="Open menu"
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${drawerOpen ? 'text-amber-600' : 'text-muted-foreground'}`}
+              >
+                <Menu className="w-5 h-5" />
+                <span className="text-[10px] font-medium">More</span>
               </button>
-              <Link href="/explore" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/explore') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                <TrendingUp className={`w-5 h-5 ${isActive('/explore') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Explore</span>
+
+              {/* 2 — Businesses: browse the business directory */}
+              <Link
+                href="/businesses"
+                aria-label="Businesses"
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/businesses') ? 'text-amber-600' : 'text-muted-foreground'}`}
+              >
+                <Store className={`w-5 h-5 ${isActive('/businesses') ? 'stroke-[2.5]' : ''}`} />
+                <span className="text-[10px] font-medium">Businesses</span>
               </Link>
-              <Link href={hasSignedInUser ? '/friends' : '/marketplace'} className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive(hasSignedInUser ? '/friends' : '/marketplace') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                {hasSignedInUser ? <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} /> : <Store className="w-5 h-5" />}<span className="text-[10px] font-medium">{hasSignedInUser ? 'Friends' : 'Marketplace'}</span>
+
+              {/* 3 — Friends: social connections */}
+              <Link
+                href={hasSignedInUser ? '/friends' : '/login?return=/friends'}
+                aria-label="Friends"
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/friends') ? 'text-amber-600' : 'text-muted-foreground'}`}
+              >
+                <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} />
+                <span className="text-[10px] font-medium">Friends</span>
               </Link>
-              <Link href="/businesses" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/businesses') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                <Store className={`w-5 h-5 ${isActive('/businesses') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Businesses</span>
-              </Link>
-              {/* Home — RIGHT, plain link, no chevron */}
-              <Link href="/feed" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/feed') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                <Home className={`w-5 h-5 ${isActive('/feed') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Home</span>
-              </Link>
+
+              {/* 4 — Social-Feed: personal content feed (Newspaper icon = posts/articles) */}
+              <button
+                onClick={() => {
+                  setHomeFeedMode('personal');
+                  router.push('/feed');
+                }}
+                aria-label="Social Feed"
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${
+                  isActive('/feed') && homeFeedMode === 'personal'
+                    ? 'text-amber-600'
+                    : 'text-muted-foreground'
+                }`}
+              >
+                <Newspaper className={`w-5 h-5 ${isActive('/feed') && homeFeedMode === 'personal' ? 'stroke-[2.5]' : ''}`} />
+                <span className="text-[10px] font-medium">Social-Feed</span>
+              </button>
+
+              {/* 5 — Business-Feed: business/commerce feed (Briefcase icon) */}
+              <button
+                onClick={() => {
+                  setHomeFeedMode('business');
+                  router.push('/feed');
+                }}
+                aria-label="Business Feed"
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${
+                  isActive('/feed') && homeFeedMode === 'business'
+                    ? 'text-amber-600'
+                    : 'text-muted-foreground'
+                }`}
+              >
+                <Briefcase className={`w-5 h-5 ${isActive('/feed') && homeFeedMode === 'business' ? 'stroke-[2.5]' : ''}`} />
+                <span className="text-[10px] font-medium">Business-Feed</span>
+              </button>
+
             </div>
           </nav>
         </>
