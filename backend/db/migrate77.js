@@ -1,122 +1,34 @@
 /**
- * migrate77.js — Backfill feed_ticker sections from profile ticker_text/ticker_type
+ * migrate77.js - Attach unlinked products to their seller's business.
  *
- * Any user_profile that has ticker_text set (from ProfileEdit) will now also
- * have a feed_ticker section injected into:
- *   1. user_profiles.business_sections  — shown on BusinessFeedCard directly
- *   2. businesses.business_sections     — the business row used by the API
- *   3. showrooms.sections               — the published showroom site sections
+ * Products listed from the normal "Add Product" form were saved without a
+ * business_id, so checkout found no payment details (audit FUNC-03). New
+ * products are now attached on create; this backfills existing ones.
  *
- * The injection is idempotent: profiles that already have a feed_ticker section
- * (added through the builder) are skipped.
- *
- * This makes existing accounts' tickers visible in the business feed without
- * requiring any user action or re-seed.
+ * Only products with no business and no showroom are touched, and only when
+ * the seller owns exactly one business (otherwise the choice is the seller's).
+ * Idempotent: a second run finds nothing to update. No down step is needed:
+ * checkout resolves the same business at read time either way.
  */
 module.exports = async function migrate77(pool) {
   const client = await pool.connect();
-  console.log('\n🔧 migrate77: backfill feed_ticker sections from profile ticker data\n');
   try {
     await client.query('BEGIN');
-
-    // ── 1. Fetch all profiles that have ticker_text set ──────────────────────
-    const { rows: profiles } = await client.query(`
-      SELECT id, user_id, ticker_text, ticker_type, business_sections
-      FROM user_profiles
-      WHERE ticker_text IS NOT NULL
-        AND ticker_text <> ''
+    const { rowCount } = await client.query(`
+      UPDATE products p
+         SET business_id = sole.id, updated_at = NOW()
+        FROM (
+          SELECT owner_id, (ARRAY_AGG(id))[1] AS id
+            FROM businesses
+           GROUP BY owner_id
+          HAVING COUNT(*) = 1
+        ) sole
+       WHERE p.business_id IS NULL
+         AND p.showroom_id IS NULL
+         AND p.seller_id = sole.owner_id
     `);
-    console.log(`  Found ${profiles.length} profiles with ticker_text set`);
-
-    let profilesPatched = 0;
-    let businessesPatched = 0;
-    let showroomsPatched = 0;
-
-    for (const profile of profiles) {
-      const tickerSection = {
-        type: 'feed_ticker',
-        tickerText: profile.ticker_text,
-        tickerType: profile.ticker_type && profile.ticker_type !== 'none'
-          ? profile.ticker_type
-          : 'auto',
-      };
-
-      // ── 1a. Patch user_profiles.business_sections ─────────────────────────
-      let sections = [];
-      try {
-        const raw = typeof profile.business_sections === 'string'
-          ? profile.business_sections
-          : JSON.stringify(profile.business_sections ?? []);
-        sections = JSON.parse(raw);
-        if (!Array.isArray(sections)) sections = [];
-      } catch { sections = []; }
-
-      const alreadyHasTicker = sections.some(s => s && s.type === 'feed_ticker');
-      if (!alreadyHasTicker) {
-        sections.push(tickerSection);
-        await client.query(
-          `UPDATE user_profiles SET business_sections = $1 WHERE id = $2`,
-          [JSON.stringify(sections), profile.id],
-        );
-        profilesPatched++;
-      }
-
-      // ── 1b. Patch businesses.business_sections for the same owner ─────────
-      const { rows: businesses } = await client.query(
-        `SELECT id, business_sections FROM businesses WHERE owner_id = $1`,
-        [profile.user_id],
-      );
-      for (const biz of businesses) {
-        let bizSections = [];
-        try {
-          const raw = typeof biz.business_sections === 'string'
-            ? biz.business_sections
-            : JSON.stringify(biz.business_sections ?? []);
-          bizSections = JSON.parse(raw);
-          if (!Array.isArray(bizSections)) bizSections = [];
-        } catch { bizSections = []; }
-
-        if (!bizSections.some(s => s && s.type === 'feed_ticker')) {
-          bizSections.push(tickerSection);
-          await client.query(
-            `UPDATE businesses SET business_sections = $1 WHERE id = $2`,
-            [JSON.stringify(bizSections), biz.id],
-          );
-          businessesPatched++;
-        }
-      }
-
-      // ── 1c. Patch showrooms.sections for the same owner ───────────────────
-      const { rows: showrooms } = await client.query(
-        `SELECT id, sections FROM showrooms WHERE owner_id = $1 AND status = 'published'`,
-        [profile.user_id],
-      );
-      for (const showroom of showrooms) {
-        let srmSections = [];
-        try {
-          const raw = typeof showroom.sections === 'string'
-            ? showroom.sections
-            : JSON.stringify(showroom.sections ?? []);
-          srmSections = JSON.parse(raw);
-          if (!Array.isArray(srmSections)) srmSections = [];
-        } catch { srmSections = []; }
-
-        if (!srmSections.some(s => s && s.type === 'feed_ticker')) {
-          srmSections.push(tickerSection);
-          await client.query(
-            `UPDATE showrooms SET sections = $1 WHERE id = $2`,
-            [JSON.stringify(srmSections), showroom.id],
-          );
-          showroomsPatched++;
-        }
-      }
-    }
-
     await client.query('COMMIT');
-    console.log(`  ✅ user_profiles patched: ${profilesPatched}`);
-    console.log(`  ✅ businesses patched:    ${businessesPatched}`);
-    console.log(`  ✅ showrooms patched:     ${showroomsPatched}`);
-    console.log(`  ℹ️  Skipped profiles already having feed_ticker: ${profiles.length - profilesPatched}`);
+    console.log(`migrate77: linked ${rowCount} product(s) to their seller's business`);
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;

@@ -121,7 +121,7 @@ export function spotlightTiles(section: Record<string, any>, products: Array<Rec
     case 'offer':
       return section.offerTitle
         ? [{ key: 'offer', kind: 'wide' as const, title: String(section.offerTitle), subtitle: text(section.offerDesc), image: text(section.offerPhoto) }]
-        : [{ key: 'offer-empty', kind: 'wide' as const, title: 'Current Offer', subtitle: 'Add an offer title and description in your site editor to show it here.' }];
+        : [];
     case 'about': case 'story':
       return [{
         key: 'about', kind: 'wide',
@@ -282,28 +282,20 @@ export function spotlightTiles(section: Record<string, any>, products: Array<Rec
     }
 
     case 'booking':
-      return [{
-        key: 'book',
-        kind: 'wide' as const,
+      return section.bookingTitle || section.bookingDesc ? [{
+        key: 'book', kind: 'wide' as const,
         title: text(section.bookingTitle, section.title) ?? 'Book an appointment',
-        subtitle: text(section.bookingDesc, section.content) ?? 'Add a description in your site editor to show it here.',
-      }];
+        subtitle: text(section.bookingDesc, section.content),
+      }] : [];
 
     case 'video':
-      return [{
-        key: 'vid',
-        kind: 'wide' as const,
+      return section.vidUrl ? [{
+        key: 'vid', kind: 'wide' as const,
         title: text(section.vidTitle, section.title) ?? 'Watch',
-        subtitle: text(section.vidDesc) ?? (section.vidUrl ? undefined : 'Add a video URL in your site editor to show it here.'),
-      }];
+        subtitle: text(section.vidDesc),
+      }] : [];
 
     default:
-      // Unknown section type — return a placeholder so the tab still renders
-      return [{
-        key: `${type}-placeholder`,
-        kind: 'wide' as const,
-        title: type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-        subtitle: 'Add content to this section to see it here.',
-      }];
+      return [];
   }
 }

@@ -422,20 +422,17 @@ void verifySharedDatabaseIsolation().then(verifyDemoStorageIsolation).then(() =>
 
   // ── One-time data patches: run asynchronously after startup (all idempotent) ──
   setTimeout(() => {
-    const migrate77 = require('./db/migrate77') as (p: typeof pool) => Promise<void>;
-    const migrate78 = require('./db/migrate78') as (p: typeof pool) => Promise<void>;
-    // migrate79: force-refreshes spotlight tabs on ALL demo/seed showrooms so
-    // that existing DB rows pick up the enriched extraSections from the latest
-    // fixture data without requiring a full re-seed.
-    const migrate79 = require('./db/migrate79') as (p: typeof pool) => Promise<void>;
+    const migrate83 = require('./db/migrate83') as (p: typeof pool) => Promise<void>;
+    const migrate84 = require('./db/migrate84') as (p: typeof pool) => Promise<void>;
+    const migrate85 = require('./db/migrate85') as (p: typeof pool) => Promise<void>;
     Promise.all([
-      migrate77(pool).catch((err: Error) =>
+      migrate83(pool).catch((err: Error) =>
         logger.warn({ err: err.message }, 'feed-ticker-backfill: non-critical startup patch failed'),
       ),
-      migrate78(pool).catch((err: Error) =>
+      migrate84(pool).catch((err: Error) =>
         logger.warn({ err: err.message }, 'demo-spotlight-carousel: non-critical startup patch failed'),
       ),
-      migrate79(pool).catch((err: Error) =>
+      migrate85(pool).catch((err: Error) =>
         logger.warn({ err: err.message }, 'demo-spotlight-refresh: non-critical startup patch failed'),
       ),
     ]);
