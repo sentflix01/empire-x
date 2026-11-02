@@ -839,12 +839,12 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
     const { rows } = await pool.query(
       `SELECT u.id, u.email,
               COALESCE(NULLIF(TRIM(u.full_name), ''), up.display_name) AS full_name,
-              u.role, u.is_verified, u.is_demo, u.onboarding_mode, u.created_at
+              u.role, u.is_verified, u.is_demo, u.onboarding_mode, u.created_at,
+              up.avatar_url, up.cover_url
        FROM users u
        LEFT JOIN LATERAL (
-         SELECT display_name FROM user_profiles
+         SELECT display_name, avatar_url, cover_url FROM user_profiles
          WHERE user_id = u.id
-           AND display_name IS NOT NULL AND TRIM(display_name) <> ''
          ORDER BY updated_at DESC NULLS LAST, created_at DESC
          LIMIT 1
        ) up ON TRUE

@@ -109,10 +109,10 @@ function Login() {
       clearTimeout(slowTimer);
       const e = err as { code?: string; status?: number; response?: { status?: number }; error?: string; message?: string; isTimeout?: boolean };
       if (e?.code === 'email_not_verified') {
-        window.location.href = `/register?verify=${encodeURIComponent(email.trim().toLowerCase())}`;
+        router.replace(`/register?verify=${encodeURIComponent(email.trim().toLowerCase())}`);
         return;
       }
-      if (e?.status === 404 || e?.response?.status === 404) { window.location.href = '/404'; return; }
+      if (e?.status === 404 || e?.response?.status === 404) { router.push('/not-found'); return; }
       if (e?.isTimeout) {
         setError('Server is taking too long to respond. Please try again in a few seconds.');
         return;

@@ -62,6 +62,15 @@
 
 ---
 
+### TD-026: Rate limiting is per-instance only (in-memory)
+**Status:** Known limitation — acceptable for current single-instance Render deployment  
+**File:** `backend/index.ts` — `buildRateLimitStore()` function  
+**Problem:** `buildRateLimitStore()` always returns `undefined`, so `express-rate-limit` uses an in-memory store. Per-IP rate limits (login 20/15min, register 20/15min, forgot-password 5/15min, etc.) do NOT aggregate across multiple backend instances. A distributed brute-force attack hitting different instances could bypass the limits. Rate limiting is also entirely disabled in dev (`skip: () => isDev`).  
+**Fix when needed:** Switch to `rate-limit-redis` store using the existing Upstash connection. The `buildRateLimitStore(prefix)` function signature is already abstracted for this — replace `return undefined` with `return new RedisStore({ prefix, sendCommand: (...args) => redis.call(...args) })`. Import and conditional on Redis availability.  
+**Impact at current scale:** Not a problem on a single Render instance. Becomes a gap at horizontal scale or under targeted credential-stuffing.
+
+---
+
 ### TD-025: Frontend test suite full-run parallelism flakes
 **Status:** Known — workaround available  
 **Problem:** Running all 54 Vitest test files in parallel spawns ~54 workers simultaneously. Under constrained resources the transform step races and one or two files report a transform error that does not reproduce in isolation. Every test file passes when run alone.  

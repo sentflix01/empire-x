@@ -83,6 +83,19 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to fetch notifications' }); }
 });
 
+// GET /unread-count — lightweight unread badge count (no notification payload)
+router.get('/unread-count', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query<{ count: number }>(
+      `SELECT COUNT(*)::int AS count FROM notifications
+       WHERE user_id = $1 AND is_read = FALSE
+         AND type NOT IN ('message', 'inquiry')`,
+      [req.user!.id],
+    );
+    res.json({ count: rows[0]?.count ?? 0 });
+  } catch { res.status(500).json({ error: 'Failed to fetch unread count' }); }
+});
+
 router.post('/', requireAuth, async (req: Request, res: Response) => {
   const { user_id, type, title, body, link } = req.body as Record<string, string>;
   if (!user_id || !type || !title) { res.status(400).json({ error: 'user_id, type, and title are required' }); return; }

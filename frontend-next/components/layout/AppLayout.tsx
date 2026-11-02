@@ -5,7 +5,7 @@ import client from "@/api/client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Home, Search, MessageCircle, ShoppingBag, Bell, User, UserRound, Plus, TrendingUp, Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, Tag, Package, ShieldAlert, BarChart3, Store, Flame, Users, ChevronDown, PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield, ArrowLeft, Settings } from "lucide-react";
+import { Home, Search, MessageCircle, ShoppingBag, Bell, User, UserRound, Plus, TrendingUp, Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, Tag, Package, ShieldAlert, BarChart3, Store, Flame, Users, ChevronDown, PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield, ArrowLeft, Settings, Loader2 } from "lucide-react";
 import BrandLogo from '@/components/brand/BrandLogo';
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -211,6 +211,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const pathname = usePathname();
   const pathnameRef = useRef(pathname);
   pathnameRef.current = pathname;
+  // Warm backend cache in background — only once per session
+  const hasWarmed = useRef(false);
   const router = useRouter();
   const { user, isAuthenticated, authChecked, isLoadingAuth, logout } = useAuth();
   const hasSignedInUser = authChecked && isAuthenticated && Boolean(user);
@@ -227,14 +229,25 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [accountOpen, setAccountOpen] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [drawerSettingsOpen, setDrawerSettingsOpen] = useState(false);
   const [, setHomeTabsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userProfile, setUserProfile] = useState<{ avatar_url?: string; cover_url?: string } | null>(null);
+  // Prefer the most recent profile fetch; fall back to the /me response so the
+  // avatar is available immediately on login without waiting for a second API call.
+  const avatarUrl = userProfile?.avatar_url || user?.avatar_url || '';
+  const coverUrl  = userProfile?.cover_url  || user?.cover_url  || '';
   const { cart } = useCart();
   const isShowroomBuilder = pathname === "/showroom/create";
   const isImmersiveRoute = isShowroomBuilder || pathname.startsWith("/messages/");
+
+  const handleLogout = () => {
+    setLoggingOut(true);
+    resetSocket();
+    logout();
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -293,23 +306,26 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           : undefined,
       });
     };
-    // Hydrate bookmark state so bookmark buttons show correct saved state immediately
+    // Fire these in parallel — don't wait for the profile fetch to update the bell badge
     hydrateBookmarks();
+    loadUnreadCount(user);
     entities.UserProfile.filter({ user_id: user.id }).then(profiles => {
       if (!active) return;
       if (profiles.length === 0 && pathnameRef.current !== "/onboarding") {
         router.push("/onboarding");
         return;
       }
-      loadUnreadCount(user);
       connectSocket();
       getSocket().on("new_notification", onNotification);
     });
 
-    // Warm backend cache in background — don't await, don't block
-    client.get('/api/trending/warm').catch(() => {});
-    client.get('/api/trending').catch(() => {});
-    client.get('/api/posts?limit=10').catch(() => {});
+    // Warm backend cache in background — only once per session
+    if (!hasWarmed.current) {
+      hasWarmed.current = true;
+      client.get('/api/trending/warm').catch(() => {});
+      client.get('/api/trending').catch(() => {});
+      client.get('/api/posts?limit=10').catch(() => {});
+    }
     // Load user profile for avatar/cover in drawer
     client.get(`/api/profiles?user_id=${user.id}&limit=1`).then(r => {
       const profiles = Array.isArray(r.data) ? r.data : [];
@@ -336,11 +352,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   const loadUnreadCount = async (_u?: any) => {
     try {
-      // Use direct client call — backend uses req.user.id from JWT, not a query param
-      const { data } = await client.get('/api/notifications?limit=60');
-      // The endpoint answers { notifications, next_cursor }; reading it as a list kept the badge at 0.
-      const notifications = Array.isArray(data) ? data : Array.isArray(data?.notifications) ? data.notifications : [];
-      setUnreadCount(notifications.filter((notif: any) => !notif.is_read && notif.type !== 'message' && notif.type !== 'inquiry').length);
+      // Use the lightweight unread-count endpoint instead of loading 60 full
+      // notification objects just to count them.
+      const { data } = await client.get('/api/notifications/unread-count');
+      setUnreadCount(typeof data?.count === 'number' ? data.count : 0);
     } catch {}
   };
 
@@ -405,7 +420,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-[100dvh] bg-background flex flex-col">
       {/* ── Header ── */}
       <header data-page-guide="app-header" className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="w-full px-4 h-14 flex items-center gap-3">
@@ -526,8 +541,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   <Bookmark className="w-5 h-5 text-muted-foreground" />
                 </Link>
                 <Link href="/profile" aria-label={`Profile: ${displayName}`} className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
-                  {userProfile?.avatar_url
-                    ? <Image src={userProfile.avatar_url} alt={displayName} width={32} height={32} className="w-full h-full object-cover" unoptimized />
+                  {avatarUrl
+                    ? <Image src={avatarUrl} alt={displayName} width={32} height={32} className="w-full h-full object-cover" unoptimized />
                     : userInitial}
                 </Link>
               </>
@@ -565,15 +580,15 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <div className="shrink-0">
               {/* Cover + avatar */}
               <div className="relative h-20 bg-empire-gradient">
-                {userProfile?.cover_url && (
-                  <Image src={userProfile.cover_url} alt="" fill className="object-cover" unoptimized />
+                {coverUrl && (
+                  <Image src={coverUrl} alt="" fill className="object-cover" unoptimized />
                 )}
                 <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent" />
                 {/* Avatar overlapping cover */}
                 {hasSignedInUser ? (
                   <Link href="/profile" aria-label={`Profile: ${displayName}`} className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shrink-0">
-                    {userProfile?.avatar_url
-                      ? <Image src={userProfile.avatar_url} alt={displayName} width={40} height={40} className="w-full h-full object-cover" unoptimized />
+                    {avatarUrl
+                      ? <Image src={avatarUrl} alt={displayName} width={40} height={40} className="w-full h-full object-cover" unoptimized />
                       : userInitial}
                   </Link>
                 ) : (
@@ -598,8 +613,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <div className="shrink-0 flex justify-center pt-3 pb-2 border-b border-border/40">
               {hasSignedInUser ? <Link href="/profile" aria-label={`Profile: ${displayName}`} className="relative group">
                 <div className="w-9 h-9 rounded-xl ring-2 ring-border overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm">
-                  {userProfile?.avatar_url
-                    ? <Image src={userProfile.avatar_url} alt={displayName} width={36} height={36} className="w-full h-full object-cover" unoptimized />
+                  {avatarUrl
+                    ? <Image src={avatarUrl} alt={displayName} width={36} height={36} className="w-full h-full object-cover" unoptimized />
                     : userInitial}
                 </div>
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
@@ -836,13 +851,16 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
               {hasSignedInUser ? (
                 <button
-                  onClick={() => { resetSocket(); logout(); }}
+                  onClick={handleLogout}
+                  disabled={loggingOut}
                   title={sidebarCollapsed ? "Log out" : undefined}
                   aria-label="Log out"
-                  className={`flex items-center gap-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'}`}
+                  className={`flex items-center gap-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'} ${loggingOut ? 'opacity-60 cursor-not-allowed' : ''}`}
                 >
-                  <LogOut className="w-4 h-4 shrink-0" />
-                  {!sidebarCollapsed && <span>Log out</span>}
+                  {loggingOut
+                    ? <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
+                    : <LogOut className="w-4 h-4 shrink-0" />}
+                  {!sidebarCollapsed && <span>{loggingOut ? 'Signing out…' : 'Log out'}</span>}
                 </button>
               ) : (
                 <>
@@ -895,8 +913,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
                 {/* ── Cover photo + avatar inside it — full width, no side padding ── */}
                 <div className="relative h-40 shrink-0 bg-empire-gradient">
-                  {userProfile?.cover_url && (
-                    <Image src={userProfile.cover_url} alt="" fill className="object-cover" unoptimized />
+                  {coverUrl && (
+                    <Image src={coverUrl} alt="" fill className="object-cover" unoptimized />
                   )}
                   {/* Dark gradient at bottom so avatar stands out */}
                   <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
@@ -914,8 +932,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   {hasSignedInUser ? (
                     <Link href="/profile" onClick={() => setDrawerOpen(false)}
                       className="absolute bottom-3 left-4 w-16 h-16 rounded-2xl ring-3 ring-white/70 overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-bold shadow-xl">
-                      {userProfile?.avatar_url
-                        ? <Image src={userProfile.avatar_url} alt={displayName} width={64} height={64} className="w-full h-full object-cover" unoptimized />
+                      {avatarUrl
+                        ? <Image src={avatarUrl} alt={displayName} width={64} height={64} className="w-full h-full object-cover" unoptimized />
                         : userInitial}
                     </Link>
                   ) : (
@@ -1109,9 +1127,13 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl transition-colors text-sm font-medium ${drawerSettingsOpen ? 'bg-secondary text-foreground' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
                     <Settings className="w-4 h-4 shrink-0" /><span>Settings</span>
                   </button>
-                  {hasSignedInUser ? <button onClick={() => { setDrawerOpen(false); resetSocket(); logout(); }}
-                    className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium">
-                    <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
+                  {hasSignedInUser ? <button onClick={() => { setDrawerOpen(false); handleLogout(); }}
+                    disabled={loggingOut}
+                    className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium ${loggingOut ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                    {loggingOut
+                      ? <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
+                      : <LogOut className="w-4 h-4 shrink-0" />}
+                    <span>{loggingOut ? 'Signing out…' : 'Log out'}</span>
                   </button> : <Link href={`/login?return=${encodeURIComponent(pathname)}`} onClick={() => setDrawerOpen(false)} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground"><User className="h-4 w-4" /><span>Sign in</span></Link>}
                 </div>
               </div>

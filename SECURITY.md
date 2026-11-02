@@ -14,7 +14,7 @@ they pass review.
 
 **Do not open a public GitHub issue for security problems.**
 
-1. Email **security@nodbusiness.app** (or use GitHub's *Report a vulnerability* on this repo).
+1. Email **nodbusinesses@gmail.com** (or use GitHub's *Report a vulnerability* on this repo).
 2. Include: affected endpoint/component, reproduction steps, impact hypothesis, and any PoC.
 3. You will receive an acknowledgment within **48 hours** and a status update at least every
    5 business days until resolution.

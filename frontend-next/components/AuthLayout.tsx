@@ -11,7 +11,7 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ title, subtitle, footer, children, icon: Icon }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-md">
         {/* Header: brand video circle or custom icon */}
         <div className="text-center mb-6">
