@@ -114,34 +114,44 @@ export function resolveSpotlight(
 
   const allSections = Array.isArray(sections) ? sections : [];
 
-  // ── Chosen mode: use EXACTLY the sections the owner picked, in their order ──
+  // ── Chosen mode: show the owner's selected sections, sorted by priority ──
+  // Only SPOTLIGHT_PRIORITY types qualify. Non-selling types (contact, hero,
+  // etc.) are silently dropped and the mode falls back to automatic.
+  // Catalogue sections are excluded until products have loaded (productCount>0)
+  // so an empty products tab never replaces a working services tab.
   const chosenTypes = spotlightSectionIds(chosen);
   if ((mode === 'single' || mode === 'carousel') && chosenTypes.length > 0) {
     const seen = new Set<string>();
     const picked: Array<{ section: SpotlightSection; index: number }> = [];
-    for (const chosenType of chosenTypes) {
+    // Filter to selling types only, then sort by priority rank.
+    const validChosen = chosenTypes
+      .filter((t) => isSpotlightType(t))
+      .sort((a, b) => rank(a) - rank(b));
+    for (const chosenType of validChosen) {
       if (seen.has(chosenType)) continue;
       seen.add(chosenType);
       const idx = allSections.findIndex((s) => String(s?.type) === chosenType);
       if (idx === -1) continue; // section was removed from the page
       const section = allSections[idx];
-      // In chosen mode: always include the section the owner explicitly picked.
-      // Catalogue sections (products) are included even before products load
-      // so the tab appears immediately; the tile strip handles the empty state.
+      // Exclude catalogue sections when no products have loaded yet so the
+      // strip falls back gracefully to the next selling section.
+      if (isCatalogueSection(String(section?.type)) && productCount === 0) continue;
       picked.push({ section, index: idx });
     }
     if (picked.length > 0) {
       const slides = mode === 'single' ? picked.slice(0, 1) : picked;
       return { slides, carousel: slides.length > 1 };
     }
-    // All chosen sections are empty or gone → fall through to automatic
+    // All chosen sections are invalid or empty → fall through to automatic
   }
 
   // ── Automatic mode: single best section, no tabs (correct behaviour) ──
   // Priority-sorted; only SPOTLIGHT_PRIORITY types qualify for automatic.
+  // Catalogue sections are excluded when productCount === 0 (products not yet
+  // loaded or the business genuinely has none) so we fall to the next best.
   const candidates = allSections
     .map((section, index) => ({ section, index }))
-    .filter(({ section }) => isSpotlightType(section?.type) && (sectionHasContent(section, productCount, now) || isCatalogueSection(String(section?.type))))
+    .filter(({ section }) => isSpotlightType(section?.type) && sectionHasContent(section, productCount, now))
     // One slide per type: the first section of that type on the site.
     .filter(({ section }, i, all) => all.findIndex((c) => c.section.type === section.type) === i)
     .sort((a, b) => rank(a.section.type) - rank(b.section.type));
