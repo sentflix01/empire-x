@@ -44,6 +44,7 @@ interface FriendsSectionProps {
   emptyMessage: string;
   followsSet: Set<string>;
   onToggleFollow: (userId: string, currentlyFollowing: boolean) => void;
+  'data-page-guide'?: string;
 }
 
 function FriendsSection({
@@ -55,12 +56,13 @@ function FriendsSection({
   emptyMessage,
   followsSet,
   onToggleFollow,
+  'data-page-guide': dataPageGuide,
 }: FriendsSectionProps) {
   const { visibleCount, isExpanded, showMoreButton, expand, collapse } =
     useCollapse(items.length);
 
   return (
-    <section className="mb-6">
+    <section className="mb-6" data-page-guide={dataPageGuide}>
       {/* Section header */}
       <div className="flex items-center gap-2 mb-3 px-1">
         <Icon className="w-4 h-4 text-amber-500" />
@@ -318,8 +320,9 @@ function Friends() {
         onToggleFollow={toggleFollow}
       />
 
-      {/* Friend Suggestions */} // data-page-guide="friends-suggestions" on FriendsSection
+      {/* Friend Suggestions */}
       <FriendsSection
+        data-page-guide="friends-suggestions"
         title="Friend Suggestions"
         icon={Sparkles}
         items={suggestions}
