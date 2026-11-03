@@ -67,18 +67,17 @@ export default function SeeThroughPanel({
   if (!open) return null;
 
   const changeOpacity = (v: number) => { setOpacity(v); saveOpacity(v); };
-  const fullyPositioned = topPx !== undefined && tabBarH !== undefined;
 
   return (
     <div
       role="dialog"
       aria-modal="false"
       aria-label={title}
-      className={`z-30 flex flex-col border-t border-border bg-card shadow-2xl transition-[opacity] duration-150
-        ${fullyPositioned ? 'fixed inset-x-0' : 'absolute inset-x-0 bottom-0 h-[78%]'}
+      className={`fixed inset-x-0 z-30 flex flex-col border-t border-border bg-card shadow-2xl transition-[opacity] duration-150
         ${isMax ? '' : 'rounded-t-2xl'}`}
       style={{
-        ...(fullyPositioned ? { top: topPx, bottom: tabBarH } : {}),
+        top:     topPx  ?? 0,
+        bottom:  tabBarH ?? 44,
         opacity: peeking ? 0.08 : opacity / 100,
       }}
     >
