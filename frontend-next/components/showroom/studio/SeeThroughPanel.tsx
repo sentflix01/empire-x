@@ -49,15 +49,25 @@ export default function SeeThroughPanel({ open, title, onClose, children }: {
       style={{ opacity: peeking ? 0.08 : opacity / 100 }}>
       <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2">
         <p className="text-sm font-bold">{title}</p>
-        <label className="ml-auto flex w-32 items-center gap-2 text-[11px] text-muted-foreground">
+        {/* Opacity slider — hidden on very narrow screens to preserve space */}
+        <label className="ml-auto hidden min-[360px]:flex w-32 items-center gap-2 text-[11px] text-muted-foreground">
           <span className="shrink-0">See-through</span>
           <Slider min={MIN_OPACITY} max={100} step={10} value={[opacity]} onValueChange={(v: number[]) => changeOpacity(v[0])}
             aria-label="Panel see-through level" />
         </label>
+        {/* On very narrow screens: just a compact icon button that cycles opacity */}
+        <button
+          type="button"
+          aria-label={`See-through: ${opacity}%`}
+          onClick={() => changeOpacity(opacity > MIN_OPACITY ? MIN_OPACITY : 100)}
+          className="ml-auto flex min-[360px]:hidden h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary"
+        >
+          <Eye className="h-4 w-4" aria-hidden="true" />
+        </button>
         <button type="button" aria-label="Hold to peek at your page"
           onPointerDown={() => setPeeking(true)} onPointerUp={() => setPeeking(false)} onPointerLeave={() => setPeeking(false)}
           onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') setPeeking(true); }} onKeyUp={() => setPeeking(false)}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary">
+          className="hidden min-[360px]:flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary">
           <Eye className="h-4 w-4" aria-hidden="true" />
         </button>
         <button ref={closeRef} type="button" onClick={onClose} aria-label={`Close ${title}`}

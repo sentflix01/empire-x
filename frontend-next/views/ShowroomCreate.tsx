@@ -645,12 +645,18 @@ function ShowroomCreate({
     />
   );
 
+  // On phone the bottom tab bar already names the active pane, so the panel
+  // header rows inside editor/preview are redundant and waste vertical space.
+  const isPhone = layout === "phone";
+
   const editor = (
     <div className={`flex h-full min-h-0 flex-col ${darkBuilder ? "bg-slate-800" : "bg-card"}`}>
-      <div className={`flex shrink-0 items-center gap-1.5 border-b px-3 py-2 ${darkBuilder ? "border-slate-700" : "border-border/60"}`}>
-        <PenLine className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />
-        <p className="text-sm font-bold">Your words and photos</p>
-      </div>
+      {!isPhone && (
+        <div className={`flex shrink-0 items-center gap-1.5 border-b px-3 py-2 ${darkBuilder ? "border-slate-700" : "border-border/60"}`}>
+          <PenLine className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />
+          <p className="text-sm font-bold">Your words and photos</p>
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2">
         <BuilderForm activeSections={activeSections} formData={formData} onChange={updateField} />
       </div>
@@ -659,13 +665,24 @@ function ShowroomCreate({
 
   const preview = (
     <div className={`flex h-full min-h-0 flex-col ${darkBuilder ? "bg-slate-900" : "bg-secondary"}`}>
-      <div className={`flex shrink-0 items-center gap-1.5 border-b px-3 py-2 ${darkBuilder ? "border-slate-700 bg-slate-800" : "border-border/60 bg-card"}`}>
-        <Eye className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-        <p className="flex-1 text-sm font-bold">Live preview</p>
-        <span className="text-xs text-muted-foreground">{previewMode === "mobile" ? "Phone" : previewMode === "tablet" ? "Tablet" : "Computer"}</span>
-      </div>
-      <div className="min-h-0 flex-1 overflow-auto p-2">
-        <BuilderPreview formData={formData} activeSections={activeSections} mode={previewMode} showWhatsapp={showWhatsapp} fontFamily={fontFamily} businessId={selectedBusinessId || null} />
+      {!isPhone && (
+        <div className={`flex shrink-0 items-center gap-1.5 border-b px-3 py-2 ${darkBuilder ? "border-slate-700 bg-slate-800" : "border-border/60 bg-card"}`}>
+          <Eye className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+          <p className="flex-1 text-sm font-bold">Live preview</p>
+          <span className="text-xs text-muted-foreground">{previewMode === "mobile" ? "Phone" : previewMode === "tablet" ? "Tablet" : "Computer"}</span>
+        </div>
+      )}
+      {/* On phone: no padding wrapper — let BuilderPreview fill edge-to-edge */}
+      <div className={`min-h-0 flex-1 overflow-auto ${isPhone ? "" : "p-2"}`}>
+        <BuilderPreview
+          formData={formData}
+          activeSections={activeSections}
+          mode={previewMode}
+          showWhatsapp={showWhatsapp}
+          fontFamily={fontFamily}
+          businessId={selectedBusinessId || null}
+          compact={isPhone}
+        />
       </div>
     </div>
   );
