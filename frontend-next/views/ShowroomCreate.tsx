@@ -27,6 +27,24 @@ import FeedSpotlightPanel from '@/components/showroom/studio/FeedSpotlightPanel'
 import FeedSpotlightPreview from '@/components/showroom/studio/FeedSpotlightPreview';
 import { spotlightSectionIds as spotlightSectionIdsFrom } from '@/lib/spotlightSections';
 
+// ── Phone sheet constants (module-level — shared, never recreated) ────────────
+/** Distance from viewport top the sheet cannot go above — equals app header h-14. */
+const PHONE_SHEET_MIN_TOP = 56;
+const PHONE_EDITOR_TOP_KEY  = 'nb_studio_phone_editor_top';
+const PHONE_SECTION_TOP_KEY = 'nb_studio_phone_section_top';
+
+function readSheetTop(key: string): number | null {
+  // Null means "not yet measured" — initialised on first mount.
+  try {
+    const v = Number(localStorage.getItem(key));
+    return Number.isFinite(v) && v > 0 ? v : null;
+  } catch { return null; }
+}
+
+function saveSheetTop(key: string, v: number) {
+  try { localStorage.setItem(key, String(Math.round(v))); } catch { /* ok */ }
+}
+
 // Smart category-aware default form data — ported from use 1.html
 function getSmartDefaults(templateName: string, category: string): Record<string, any> {
   const base = {
@@ -179,15 +197,26 @@ function ShowroomCreate({
   const editorDrag   = useDragResize({ initial: 420, min: 200, max: 900, storageKey: 'nb_studio_editor_w' });
   // Tablet resizable left pane
   const tabletDrag   = useDragResize({ initial: 360, min: 200, max: 600, storageKey: 'nb_studio_tablet_w' });
-  // Phone: editor bottom-sheet height as % of the body area.
-  // Stored as a number 15–85 (percent). Dragging the handle up increases it.
-  const [phoneEditorPct, setPhoneEditorPct] = useState<number>(() => {
-    try { const v = Number(localStorage.getItem('nb_studio_phone_editor_pct')); return v >= 15 && v <= 85 ? v : 50; } catch { return 50; }
-  });
-  const [phoneDragging, setPhoneDragging] = useState(false);
-  const phoneBodyRef  = useRef<HTMLDivElement>(null);
+
+  // ── Phone: draggable bottom-sheets (editor + sections) ────────────────────
+  // topPx: distance from viewport top to the sheet's top edge (px).
+  // Persisted to localStorage; falls back to 50%/35% of window on first visit.
+  const phoneTabBarRef  = useRef<HTMLDivElement>(null);
+  const [editorTopPx, setEditorTopPx]   = useState<number | null>(() => readSheetTop(PHONE_EDITOR_TOP_KEY));
+  const [sectTopPx,   setSectTopPx]     = useState<number | null>(() => readSheetTop(PHONE_SECTION_TOP_KEY));
+  const [phoneDraggingEditor, setPhoneDraggingEditor] = useState(false);
+  const [phoneDraggingSectn,  setPhoneDraggingSectn]  = useState(false);
   const phoneStartY   = useRef(0);
-  const phoneStartPct = useRef(50);
+  const phoneStartTop = useRef(0);
+
+  // First render: if no persisted value, compute from window height.
+  useEffect(() => {
+    if (editorTopPx !== null && sectTopPx !== null) return;
+    const viewH = window.innerHeight;
+    if (editorTopPx === null) setEditorTopPx(Math.round(viewH * 0.5));
+    if (sectTopPx   === null) setSectTopPx(Math.round(viewH * 0.35));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [activeSections, setActiveSections] = useState<string[]>(
     getDefaultSections(templateName, categoryParam, sampleParam)
   );
@@ -699,46 +728,64 @@ function ShowroomCreate({
   const paneTab = (active: boolean) => `flex min-h-11 flex-1 items-center justify-center gap-1.5 text-sm font-semibold
     ${active ? (darkBuilder ? "text-amber-300 bg-slate-700/60" : "text-amber-700 bg-amber-50") : (darkBuilder ? "text-slate-400" : "text-muted-foreground hover:text-foreground")}`;
 
-  // ── Phone editor-sheet drag handlers ──────────────────────────────────────
-  const onPhoneDragMove = useCallback((e: PointerEvent) => {
-    const container = phoneBodyRef.current;
-    if (!container) return;
-    const containerH = container.getBoundingClientRect().height;
-    if (containerH === 0) return;
-    // Dragging UP (negative deltaY) increases editor height.
-    const deltaY   = phoneStartY.current - e.clientY;
-    const deltaPct = (deltaY / containerH) * 100;
-    setPhoneEditorPct(Math.max(15, Math.min(85, phoneStartPct.current + deltaPct)));
+  // ── Phone sheet drag — stable callbacks (useCallback so refs never change) ─
+  // Each drag creates a closure over refs only (not over state), so there is
+  // no risk of stale listeners or duplicate registrations across re-renders.
+  const makeSheetMove = useCallback((
+    setTop: React.Dispatch<React.SetStateAction<number | null>>,
+    storageKey: string,
+  ) => (e: PointerEvent) => {
+    const tabH   = phoneTabBarRef.current?.offsetHeight ?? 44;
+    const viewH  = window.innerHeight;
+    const maxTop = viewH - tabH - 60;
+    const next   = Math.max(PHONE_SHEET_MIN_TOP, Math.min(maxTop, phoneStartTop.current + (e.clientY - phoneStartY.current)));
+    setTop(next);
+    saveSheetTop(storageKey, next);
   }, []);
 
-  const onPhoneDragEnd = useCallback((e: PointerEvent) => {
-    setPhoneDragging(false);
-    document.body.style.cursor     = '';
-    document.body.style.userSelect = '';
-    (e.target as Element)?.releasePointerCapture?.(e.pointerId);
-    window.removeEventListener('pointermove', onPhoneDragMove);
-    window.removeEventListener('pointerup',   onPhoneDragEnd);
-    setPhoneEditorPct(p => { try { localStorage.setItem('nb_studio_phone_editor_pct', String(Math.round(p))); } catch { /* ok */ } return p; });
-  }, [onPhoneDragMove]);
-
-  const onPhoneDragStart = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+  const onEditorDragDown = useCallback((e: React.PointerEvent<HTMLDivElement>, currentTop: number) => {
     if (e.button !== 0) return;
     e.preventDefault();
     phoneStartY.current   = e.clientY;
-    phoneStartPct.current = phoneEditorPct;
-    setPhoneDragging(true);
+    phoneStartTop.current = currentTop;
+    setPhoneDraggingEditor(true);
     document.body.style.cursor     = 'row-resize';
     document.body.style.userSelect = 'none';
     (e.target as Element).setPointerCapture(e.pointerId);
-    window.addEventListener('pointermove', onPhoneDragMove);
-    window.addEventListener('pointerup',   onPhoneDragEnd);
-  }, [phoneEditorPct, onPhoneDragMove, onPhoneDragEnd]);
+    const onMove = makeSheetMove(setEditorTopPx, PHONE_EDITOR_TOP_KEY);
+    const onUp   = (ev: PointerEvent) => {
+      setPhoneDraggingEditor(false);
+      document.body.style.cursor     = '';
+      document.body.style.userSelect = '';
+      (ev.target as Element)?.releasePointerCapture?.(ev.pointerId);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup',   onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup',   onUp);
+  }, [makeSheetMove]);
 
-  const onPhoneDragDoubleTap = useCallback(() => {
-    setPhoneEditorPct(50);
-    try { localStorage.setItem('nb_studio_phone_editor_pct', '50'); } catch { /* ok */ }
-  }, []);
-
+  const onSectDragDown = useCallback((e: React.PointerEvent<HTMLDivElement>, currentTop: number) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    phoneStartY.current   = e.clientY;
+    phoneStartTop.current = currentTop;
+    setPhoneDraggingSectn(true);
+    document.body.style.cursor     = 'row-resize';
+    document.body.style.userSelect = 'none';
+    (e.target as Element).setPointerCapture(e.pointerId);
+    const onMove = makeSheetMove(setSectTopPx, PHONE_SECTION_TOP_KEY);
+    const onUp   = (ev: PointerEvent) => {
+      setPhoneDraggingSectn(false);
+      document.body.style.cursor     = '';
+      document.body.style.userSelect = '';
+      (ev.target as Element)?.releasePointerCapture?.(ev.pointerId);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup',   onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup',   onUp);
+  }, [makeSheetMove]);
   return (
     <div ref={studioRef} className={`flex flex-col h-full min-h-0 overflow-hidden ${darkBuilder ? "bg-slate-900 text-slate-100" : "bg-amber-50/30"}`}>
 
@@ -922,56 +969,18 @@ function ShowroomCreate({
 
         {layout === "phone" && (
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-
-            {/* ── Body area: preview always behind, editor sheet on top ── */}
-            <div ref={phoneBodyRef} className="relative min-h-0 flex-1 overflow-hidden">
-
-              {/* Preview always rendered — fills full body area */}
-              <div className="absolute inset-0 overflow-hidden">
-                {preview}
-              </div>
-
-              {/* Editor bottom-sheet — shown when Edit tab is active */}
-              {mobileTab === "content" && !sectionsOpen && (
-                <div
-                  className={`absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-2xl border-t shadow-2xl
-                    ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}
-                  style={{ height: `${phoneEditorPct}%` }}
-                >
-                  {/* ── Drag handle pill ── */}
-                  <div
-                    role="separator"
-                    aria-label="Drag to resize editor"
-                    aria-orientation="horizontal"
-                    onPointerDown={onPhoneDragStart}
-                    onDoubleClick={onPhoneDragDoubleTap}
-                    className={`flex h-6 w-full shrink-0 cursor-row-resize select-none items-center justify-center rounded-t-2xl
-                      ${phoneDragging ? "bg-amber-400/20" : "hover:bg-secondary/60"} transition-colors`}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`h-1 w-10 rounded-full transition-colors ${phoneDragging ? "bg-amber-500" : "bg-border"}`}
-                    />
-                  </div>
-
-                  {/* Editor content — scrollable */}
-                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                    {editor}
-                  </div>
-                </div>
-              )}
-
-              {/* Sections overlay (SeeThroughPanel — draggable height) */}
-              <SeeThroughPanel open={sectionsOpen} title="Sections" onClose={() => setSectionsOpen(false)}>
-                {sectionsPanel}
-              </SeeThroughPanel>
+            {/* Preview fills the body area */}
+            <div className="relative min-h-0 flex-1 overflow-hidden">
+              {preview}
             </div>
 
             {/* ── Bottom tab bar ── */}
             <div
+              ref={phoneTabBarRef}
               role="tablist"
               aria-label="Studio panels"
-              className={`flex shrink-0 border-t safe-bottom ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}
+              className={`relative z-40 flex shrink-0 border-t safe-bottom
+                ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}
             >
               <button type="button" role="tab" aria-selected={sectionsOpen} onClick={() => setSectionsOpen(v => !v)} className={paneTab(sectionsOpen)}>
                 <Layers className="h-4 w-4" aria-hidden="true" />Sections
@@ -984,6 +993,70 @@ function ShowroomCreate({
                 <Eye className="h-4 w-4" aria-hidden="true" />Preview
               </button>
             </div>
+
+            {/* ── Editor sheet — fixed, draggable up to app header ── */}
+            {mobileTab === "content" && !sectionsOpen && editorTopPx !== null && (() => {
+              const tabH  = phoneTabBarRef.current?.offsetHeight ?? 44;
+              const topPx = editorTopPx;
+              const isMax = topPx <= PHONE_SHEET_MIN_TOP + 4;
+              return (
+                <div
+                  className={`fixed inset-x-0 z-30 flex flex-col shadow-2xl border-t
+                    ${isMax ? '' : 'rounded-t-2xl'}
+                    ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}
+                  style={{ top: topPx, bottom: tabH }}
+                >
+                  {/* Drag handle */}
+                  <div
+                    role="separator"
+                    aria-label="Drag to resize editor"
+                    aria-orientation="horizontal"
+                    onPointerDown={(e) => onEditorDragDown(e, topPx)}
+                    onDoubleClick={() => {
+                      const v = Math.round(window.innerHeight * 0.5);
+                      setEditorTopPx(v);
+                      saveSheetTop(PHONE_EDITOR_TOP_KEY, v);
+                    }}
+                    className={`flex h-10 w-full shrink-0 cursor-row-resize select-none flex-col items-center justify-center gap-1
+                      ${isMax ? '' : 'rounded-t-2xl'}
+                      ${phoneDraggingEditor ? "bg-amber-400/20" : "hover:bg-secondary/60 active:bg-amber-400/20"}
+                      transition-colors touch-none`}
+                  >
+                    <span aria-hidden="true" className={`block h-1.5 w-12 rounded-full transition-colors ${phoneDraggingEditor ? "bg-amber-500" : "bg-muted-foreground/40"}`} />
+                    <span aria-hidden="true" className="flex gap-1">
+                      {[0,1,2].map(i => <span key={i} className={`h-1 w-1 rounded-full ${phoneDraggingEditor ? "bg-amber-400" : "bg-muted-foreground/25"}`} />)}
+                    </span>
+                  </div>
+                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{editor}</div>
+                </div>
+              );
+            })()}
+
+            {/* ── Sections sheet — fixed, draggable up to app header ── */}
+            {sectionsOpen && sectTopPx !== null && (() => {
+              const tabH  = phoneTabBarRef.current?.offsetHeight ?? 44;
+              const topPx = sectTopPx;
+              const isMax = topPx <= PHONE_SHEET_MIN_TOP + 4;
+              return (
+                <SeeThroughPanel
+                  open={sectionsOpen}
+                  title="Sections"
+                  onClose={() => setSectionsOpen(false)}
+                  topPx={topPx}
+                  tabBarH={tabH}
+                  isMax={isMax}
+                  isDragging={phoneDraggingSectn}
+                  onDragHandleDown={(e) => onSectDragDown(e, topPx)}
+                  onDragHandleDoubleTap={() => {
+                    const v = Math.round(window.innerHeight * 0.35);
+                    setSectTopPx(v);
+                    saveSheetTop(PHONE_SECTION_TOP_KEY, v);
+                  }}
+                >
+                  {sectionsPanel}
+                </SeeThroughPanel>
+              );
+            })()}
           </div>
         )}
       </div>
