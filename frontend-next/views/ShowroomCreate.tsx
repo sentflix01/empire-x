@@ -179,6 +179,26 @@ function ShowroomCreate({
   const editorDrag   = useDragResize({ initial: 420, min: 200, max: 900, storageKey: 'nb_studio_editor_w' });
   // Tablet resizable left pane
   const tabletDrag   = useDragResize({ initial: 360, min: 200, max: 600, storageKey: 'nb_studio_tablet_w' });
+
+  // ── Phone: draggable bottom-sheets (editor + sections) ────────────────────
+  // topPx: distance from viewport top to the sheet's top edge (px).
+  // Min = app header height (56px). Max = near bottom = viewport - tab bar - handle.
+  const PHONE_SHEET_MIN_TOP = 56; // just below app header
+  const phoneTabBarRef  = useRef<HTMLDivElement>(null);
+  const [editorTopPx, setEditorTopPx]   = useState<number | null>(null);
+  const [sectTopPx,   setSectTopPx]     = useState<number | null>(null);
+  const [phoneDraggingEditor, setPhoneDraggingEditor] = useState(false);
+  const [phoneDraggingSectn,  setPhoneDraggingSectn]  = useState(false);
+  const phoneStartY   = useRef(0);
+  const phoneStartTop = useRef(0);
+
+  // Compute default top on first render (50 % of body area)
+  useEffect(() => {
+    if (editorTopPx !== null) return;
+    const viewH = window.innerHeight;
+    setEditorTopPx(Math.round(viewH * 0.5));
+    setSectTopPx(Math.round(viewH * 0.35));
+  }, [editorTopPx]);
   const [activeSections, setActiveSections] = useState<string[]>(
     getDefaultSections(templateName, categoryParam, sampleParam)
   );
@@ -690,6 +710,41 @@ function ShowroomCreate({
   const paneTab = (active: boolean) => `flex min-h-11 flex-1 items-center justify-center gap-1.5 text-sm font-semibold
     ${active ? (darkBuilder ? "text-amber-300 bg-slate-700/60" : "text-amber-700 bg-amber-50") : (darkBuilder ? "text-slate-400" : "text-muted-foreground hover:text-foreground")}`;
 
+  // ── Phone sheet drag helpers ─────────────────────────────────────────────
+  function makeSheetDragHandlers(
+    setTop: (v: number | ((p: number | null) => number)) => void,
+    setActive: (v: boolean) => void,
+  ) {
+    const onMove = (e: PointerEvent) => {
+      const tabH  = phoneTabBarRef.current?.offsetHeight ?? 44;
+      const viewH = window.innerHeight;
+      const maxTop = viewH - tabH - 60;
+      const next = Math.max(PHONE_SHEET_MIN_TOP, Math.min(maxTop, phoneStartTop.current + (e.clientY - phoneStartY.current)));
+      setTop(next);
+    };
+    const onUp = (e: PointerEvent) => {
+      setActive(false);
+      document.body.style.cursor     = '';
+      document.body.style.userSelect = '';
+      (e.target as Element)?.releasePointerCapture?.(e.pointerId);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup',   onUp);
+    };
+
+    const onDown = (e: React.PointerEvent<HTMLDivElement>, currentTop: number) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      phoneStartY.current   = e.clientY;
+      phoneStartTop.current = currentTop;
+      setActive(true);
+      document.body.style.cursor     = 'row-resize';
+      document.body.style.userSelect = 'none';
+      (e.target as Element).setPointerCapture(e.pointerId);
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup',   onUp);
+    };
+    return onDown;
+  }
   return (
     <div ref={studioRef} className={`flex flex-col h-full min-h-0 overflow-hidden ${darkBuilder ? "bg-slate-900 text-slate-100" : "bg-amber-50/30"}`}>
 
@@ -873,13 +928,19 @@ function ShowroomCreate({
 
         {layout === "phone" && (
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            {/* Preview fills the body area */}
             <div className="relative min-h-0 flex-1 overflow-hidden">
-              {mobileTab === "content" && !sectionsOpen ? editor : preview}
-              <SeeThroughPanel open={sectionsOpen} title="Sections" onClose={() => setSectionsOpen(false)}>
-                {sectionsPanel}
-              </SeeThroughPanel>
+              {preview}
             </div>
-            <div role="tablist" aria-label="Studio panels" className={`flex shrink-0 border-t safe-bottom ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}>
+
+            {/* ── Bottom tab bar ── */}
+            <div
+              ref={phoneTabBarRef}
+              role="tablist"
+              aria-label="Studio panels"
+              className={`relative z-40 flex shrink-0 border-t safe-bottom
+                ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}
+            >
               <button type="button" role="tab" aria-selected={sectionsOpen} onClick={() => setSectionsOpen(v => !v)} className={paneTab(sectionsOpen)}>
                 <Layers className="h-4 w-4" aria-hidden="true" />Sections
                 <span className="rounded-full bg-amber-500 px-1.5 text-[10px] font-bold leading-4 text-white">{activeSections.length}</span>
@@ -891,6 +952,76 @@ function ShowroomCreate({
                 <Eye className="h-4 w-4" aria-hidden="true" />Preview
               </button>
             </div>
+
+            {/* ── Editor sheet — fixed, draggable up to app header ── */}
+            {mobileTab === "content" && !sectionsOpen && editorTopPx !== null && (() => {
+              const tabH    = phoneTabBarRef.current?.offsetHeight ?? 44;
+              const topPx   = editorTopPx;
+              const isMax   = topPx <= PHONE_SHEET_MIN_TOP + 4;
+              const onDown  = makeSheetDragHandlers(
+                v => setEditorTopPx(typeof v === 'function' ? (v(editorTopPx)) : v),
+                setPhoneDraggingEditor,
+              );
+              return (
+                <div
+                  className={`fixed inset-x-0 z-30 flex flex-col shadow-2xl border-t
+                    ${isMax ? '' : 'rounded-t-2xl'}
+                    ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}
+                  style={{ top: topPx, bottom: tabH }}
+                >
+                  {/* Drag handle */}
+                  <div
+                    role="separator"
+                    aria-label="Drag to resize editor"
+                    aria-orientation="horizontal"
+                    onPointerDown={(e) => onDown(e, topPx)}
+                    onDoubleClick={() => {
+                      const viewH = window.innerHeight;
+                      setEditorTopPx(Math.round(viewH * 0.5));
+                    }}
+                    className={`flex h-10 w-full shrink-0 cursor-row-resize select-none flex-col items-center justify-center gap-1
+                      ${isMax ? '' : 'rounded-t-2xl'}
+                      ${phoneDraggingEditor ? "bg-amber-400/20" : "hover:bg-secondary/60 active:bg-amber-400/20"}
+                      transition-colors touch-none`}
+                  >
+                    <span aria-hidden="true" className={`block h-1.5 w-12 rounded-full transition-colors ${phoneDraggingEditor ? "bg-amber-500" : "bg-muted-foreground/40"}`} />
+                    <span aria-hidden="true" className="flex gap-1">
+                      {[0,1,2].map(i => <span key={i} className={`h-1 w-1 rounded-full ${phoneDraggingEditor ? "bg-amber-400" : "bg-muted-foreground/25"}`} />)}
+                    </span>
+                  </div>
+                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{editor}</div>
+                </div>
+              );
+            })()}
+
+            {/* ── Sections sheet — fixed, draggable up to app header ── */}
+            {sectionsOpen && sectTopPx !== null && (() => {
+              const tabH   = phoneTabBarRef.current?.offsetHeight ?? 44;
+              const topPx  = sectTopPx;
+              const isMax  = topPx <= PHONE_SHEET_MIN_TOP + 4;
+              const onDown = makeSheetDragHandlers(
+                v => setSectTopPx(typeof v === 'function' ? (v(sectTopPx)) : v),
+                setPhoneDraggingSectn,
+              );
+              return (
+                <SeeThroughPanel
+                  open={sectionsOpen}
+                  title="Sections"
+                  onClose={() => setSectionsOpen(false)}
+                  topPx={topPx}
+                  tabBarH={tabH}
+                  isMax={isMax}
+                  isDragging={phoneDraggingSectn}
+                  onDragHandleDown={(e) => onDown(e, topPx)}
+                  onDragHandleDoubleTap={() => {
+                    const viewH = window.innerHeight;
+                    setSectTopPx(Math.round(viewH * 0.35));
+                  }}
+                >
+                  {sectionsPanel}
+                </SeeThroughPanel>
+              );
+            })()}
           </div>
         )}
       </div>
