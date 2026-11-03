@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useEffectEvent, useRef } from "react";
+import React, { useState, useEffect, useEffectEvent, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/lib/AuthContext";
 import { entities } from "@/api/entities";
@@ -13,6 +13,7 @@ import SectionsPanel from "@/components/showroom/studio/SectionsPanel";
 import SeeThroughPanel from "@/components/showroom/studio/SeeThroughPanel";
 import { MoreMenu, StyleMenu, type PreviewMode } from "@/components/showroom/studio/StudioMenus";
 import { useStudioLayout } from "@/hooks/useStudioLayout";
+import { useDragResize } from "@/hooks/useDragResize";
 import { parseShowroomSections, serializeShowroomSections } from "@/lib/showroomSectionsCodec";
 import { getShowroomTemplateSample } from "@/lib/showroomTemplateSamples";
 import BuilderForm from "@/components/showroom/BuilderForm";
@@ -173,8 +174,20 @@ function ShowroomCreate({
   // Every change bumps version; the auto-save marks the version it wrote.
   const [version, setVersion] = useState(0);
   const [savedVersion, setSavedVersion] = useState(0);
-  // Layout modes for right column on desktop: row-normal, row-reverse, col-normal, col-reverse
-  const [rightLayout, setRightLayout] = useState<"row"|"row-rev"|"col"|"col-rev">("col");
+  // Desktop resizable panels — sections sidebar, editor pane widths (pixels)
+  const sectionsDrag = useDragResize({ initial: 288, min: 160, max: 480, storageKey: 'nb_studio_sections_w' });
+  const editorDrag   = useDragResize({ initial: 420, min: 200, max: 900, storageKey: 'nb_studio_editor_w' });
+  // Tablet resizable left pane
+  const tabletDrag   = useDragResize({ initial: 360, min: 200, max: 600, storageKey: 'nb_studio_tablet_w' });
+  // Phone: editor bottom-sheet height as % of the body area.
+  // Stored as a number 15–85 (percent). Dragging the handle up increases it.
+  const [phoneEditorPct, setPhoneEditorPct] = useState<number>(() => {
+    try { const v = Number(localStorage.getItem('nb_studio_phone_editor_pct')); return v >= 15 && v <= 85 ? v : 50; } catch { return 50; }
+  });
+  const [phoneDragging, setPhoneDragging] = useState(false);
+  const phoneBodyRef  = useRef<HTMLDivElement>(null);
+  const phoneStartY   = useRef(0);
+  const phoneStartPct = useRef(50);
   const [activeSections, setActiveSections] = useState<string[]>(
     getDefaultSections(templateName, categoryParam, sampleParam)
   );
@@ -641,12 +654,18 @@ function ShowroomCreate({
     />
   );
 
+  // On phone the bottom tab bar already names the active pane, so the panel
+  // header rows inside editor/preview are redundant and waste vertical space.
+  const isPhone = layout === "phone";
+
   const editor = (
     <div className={`flex h-full min-h-0 flex-col ${darkBuilder ? "bg-slate-800" : "bg-card"}`}>
-      <div className={`flex shrink-0 items-center gap-1.5 border-b px-3 py-2 ${darkBuilder ? "border-slate-700" : "border-border/60"}`}>
-        <PenLine className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />
-        <p className="text-sm font-bold">Your words and photos</p>
-      </div>
+      {!isPhone && (
+        <div className={`flex shrink-0 items-center gap-1.5 border-b px-3 py-2 ${darkBuilder ? "border-slate-700" : "border-border/60"}`}>
+          <PenLine className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />
+          <p className="text-sm font-bold">Your words and photos</p>
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2">
         <BuilderForm activeSections={activeSections} formData={formData} onChange={updateField} />
       </div>
@@ -655,19 +674,70 @@ function ShowroomCreate({
 
   const preview = (
     <div className={`flex h-full min-h-0 flex-col ${darkBuilder ? "bg-slate-900" : "bg-secondary"}`}>
-      <div className={`flex shrink-0 items-center gap-1.5 border-b px-3 py-2 ${darkBuilder ? "border-slate-700 bg-slate-800" : "border-border/60 bg-card"}`}>
-        <Eye className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-        <p className="flex-1 text-sm font-bold">Live preview</p>
-        <span className="text-xs text-muted-foreground">{previewMode === "mobile" ? "Phone" : previewMode === "tablet" ? "Tablet" : "Computer"}</span>
-      </div>
-      <div className="min-h-0 flex-1 overflow-auto p-2">
-        <BuilderPreview formData={formData} activeSections={activeSections} mode={previewMode} showWhatsapp={showWhatsapp} fontFamily={fontFamily} businessId={selectedBusinessId || null} />
+      {!isPhone && (
+        <div className={`flex shrink-0 items-center gap-1.5 border-b px-3 py-2 ${darkBuilder ? "border-slate-700 bg-slate-800" : "border-border/60 bg-card"}`}>
+          <Eye className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+          <p className="flex-1 text-sm font-bold">Live preview</p>
+          <span className="text-xs text-muted-foreground">{previewMode === "mobile" ? "Phone" : previewMode === "tablet" ? "Tablet" : "Computer"}</span>
+        </div>
+      )}
+      {/* On phone: no padding wrapper — let BuilderPreview fill edge-to-edge */}
+      <div className={`min-h-0 flex-1 overflow-auto ${isPhone ? "" : "p-2"}`}>
+        <BuilderPreview
+          formData={formData}
+          activeSections={activeSections}
+          mode={previewMode}
+          showWhatsapp={showWhatsapp}
+          fontFamily={fontFamily}
+          businessId={selectedBusinessId || null}
+          compact={isPhone}
+        />
       </div>
     </div>
   );
 
   const paneTab = (active: boolean) => `flex min-h-11 flex-1 items-center justify-center gap-1.5 text-sm font-semibold
     ${active ? (darkBuilder ? "text-amber-300 bg-slate-700/60" : "text-amber-700 bg-amber-50") : (darkBuilder ? "text-slate-400" : "text-muted-foreground hover:text-foreground")}`;
+
+  // ── Phone editor-sheet drag handlers ──────────────────────────────────────
+  const onPhoneDragMove = useCallback((e: PointerEvent) => {
+    const container = phoneBodyRef.current;
+    if (!container) return;
+    const containerH = container.getBoundingClientRect().height;
+    if (containerH === 0) return;
+    // Dragging UP (negative deltaY) increases editor height.
+    const deltaY   = phoneStartY.current - e.clientY;
+    const deltaPct = (deltaY / containerH) * 100;
+    setPhoneEditorPct(Math.max(15, Math.min(85, phoneStartPct.current + deltaPct)));
+  }, []);
+
+  const onPhoneDragEnd = useCallback((e: PointerEvent) => {
+    setPhoneDragging(false);
+    document.body.style.cursor     = '';
+    document.body.style.userSelect = '';
+    (e.target as Element)?.releasePointerCapture?.(e.pointerId);
+    window.removeEventListener('pointermove', onPhoneDragMove);
+    window.removeEventListener('pointerup',   onPhoneDragEnd);
+    setPhoneEditorPct(p => { try { localStorage.setItem('nb_studio_phone_editor_pct', String(Math.round(p))); } catch { /* ok */ } return p; });
+  }, [onPhoneDragMove]);
+
+  const onPhoneDragStart = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    phoneStartY.current   = e.clientY;
+    phoneStartPct.current = phoneEditorPct;
+    setPhoneDragging(true);
+    document.body.style.cursor     = 'row-resize';
+    document.body.style.userSelect = 'none';
+    (e.target as Element).setPointerCapture(e.pointerId);
+    window.addEventListener('pointermove', onPhoneDragMove);
+    window.addEventListener('pointerup',   onPhoneDragEnd);
+  }, [phoneEditorPct, onPhoneDragMove, onPhoneDragEnd]);
+
+  const onPhoneDragDoubleTap = useCallback(() => {
+    setPhoneEditorPct(50);
+    try { localStorage.setItem('nb_studio_phone_editor_pct', '50'); } catch { /* ok */ }
+  }, []);
 
   return (
     <div ref={studioRef} className={`flex flex-col h-full min-h-0 overflow-hidden ${darkBuilder ? "bg-slate-900 text-slate-100" : "bg-amber-50/30"}`}>
@@ -748,37 +818,74 @@ function ShowroomCreate({
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
         {layout === "desktop" && (
           <>
-            <aside aria-label="Sections" className={`flex w-72 shrink-0 flex-col border-r ${darkBuilder ? "border-slate-700" : "border-border/60"}`}>
+            {/* ── Sections sidebar (resizable) ── */}
+            <aside
+              aria-label="Sections"
+              style={{ width: sectionsDrag.size }}
+              className={`flex shrink-0 flex-col border-r ${darkBuilder ? "border-slate-700" : "border-border/60"}`}
+            >
               {sectionsPanel}
             </aside>
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className={`flex shrink-0 items-center gap-1 border-b px-2 py-1.5 ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}>
-                <span className="mr-1 text-xs font-medium text-muted-foreground">Layout:</span>
-                {([["col", "Words on top, preview below"], ["col-rev", "Preview on top, words below"], ["row", "Words left, preview right"], ["row-rev", "Preview left, words right"]] as const).map(([mode, label]) => (
-                  <button key={mode} type="button" onClick={() => setRightLayout(mode)} aria-label={label} title={label} aria-pressed={rightLayout === mode}
-                    className={`rounded p-1.5 transition-colors ${rightLayout === mode ? "bg-amber-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                      {mode.startsWith("col")
-                        ? <><rect x="1" y="1" width="14" height="6" rx="1.5" fill="currentColor" opacity={mode === "col" ? 0.9 : 0.4}/><rect x="1" y="9" width="14" height="6" rx="1.5" fill="currentColor" opacity={mode === "col" ? 0.4 : 0.9}/></>
-                        : <><rect x="1" y="1" width="6" height="14" rx="1.5" fill="currentColor" opacity={mode === "row" ? 0.9 : 0.4}/><rect x="9" y="1" width="6" height="14" rx="1.5" fill="currentColor" opacity={mode === "row" ? 0.4 : 0.9}/></>}
-                    </svg>
-                  </button>
+
+            {/* ── Drag handle: sections ↔ editor ── */}
+            <div
+              role="separator"
+              aria-label="Resize sections panel"
+              aria-orientation="vertical"
+              onPointerDown={sectionsDrag.onPointerDown}
+              onDoubleClick={sectionsDrag.onDoubleClick}
+              className={`group relative z-10 flex w-1.5 shrink-0 cursor-col-resize select-none items-center justify-center
+                ${sectionsDrag.isDragging ? "bg-amber-400" : "bg-transparent hover:bg-amber-300/60"}
+                transition-colors duration-150`}
+            >
+              {/* Visual grip dots */}
+              <span aria-hidden="true" className="flex flex-col gap-[3px] opacity-0 group-hover:opacity-60 transition-opacity">
+                {[0,1,2,3,4].map((i) => (
+                  <span key={i} className="h-1 w-1 rounded-full bg-current" />
                 ))}
-              </div>
-              <div className={`flex min-h-0 flex-1 overflow-hidden ${
-                rightLayout === "col" ? "flex-col" : rightLayout === "col-rev" ? "flex-col-reverse" : rightLayout === "row" ? "flex-row" : "flex-row-reverse"}`}>
-                <div className={`min-h-0 overflow-hidden ${rightLayout.startsWith("col") ? "h-1/2 border-b" : "w-1/2 border-r"} ${darkBuilder ? "border-slate-700" : "border-border/60"}`}>
-                  {editor}
-                </div>
-                <div className="min-h-0 min-w-0 flex-1 overflow-hidden">{preview}</div>
-              </div>
+              </span>
+            </div>
+
+            {/* ── Editor pane (resizable) ── */}
+            <div
+              style={{ width: editorDrag.size }}
+              className="flex shrink-0 min-h-0 flex-col overflow-hidden"
+            >
+              {editor}
+            </div>
+
+            {/* ── Drag handle: editor ↔ preview ── */}
+            <div
+              role="separator"
+              aria-label="Resize editor panel"
+              aria-orientation="vertical"
+              onPointerDown={editorDrag.onPointerDown}
+              onDoubleClick={editorDrag.onDoubleClick}
+              className={`group relative z-10 flex w-1.5 shrink-0 cursor-col-resize select-none items-center justify-center
+                ${editorDrag.isDragging ? "bg-amber-400" : "bg-transparent hover:bg-amber-300/60"}
+                transition-colors duration-150`}
+            >
+              <span aria-hidden="true" className="flex flex-col gap-[3px] opacity-0 group-hover:opacity-60 transition-opacity">
+                {[0,1,2,3,4].map((i) => (
+                  <span key={i} className="h-1 w-1 rounded-full bg-current" />
+                ))}
+              </span>
+            </div>
+
+            {/* ── Live preview (fills remaining space) ── */}
+            <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
+              {preview}
             </div>
           </>
         )}
 
         {layout === "tablet" && (
           <>
-            <div className={`flex w-[min(26rem,50%)] shrink-0 flex-col border-r ${darkBuilder ? "border-slate-700" : "border-border/60"}`}>
+            {/* ── Left pane: Sections or Edit (resizable) ── */}
+            <div
+              style={{ width: tabletDrag.size }}
+              className={`flex shrink-0 flex-col border-r ${darkBuilder ? "border-slate-700" : "border-border/60"}`}
+            >
               <div role="tablist" aria-label="Studio panels" className={`flex shrink-0 border-b ${darkBuilder ? "border-slate-700 bg-slate-800" : "border-border/60 bg-card"}`}>
                 <button type="button" role="tab" aria-selected={tabletPane === "sections"} onClick={() => setTabletPane("sections")} className={paneTab(tabletPane === "sections")}>
                   <Layers className="h-4 w-4" aria-hidden="true" />Sections · {activeSections.length}
@@ -789,19 +896,83 @@ function ShowroomCreate({
               </div>
               <div className="min-h-0 flex-1 overflow-hidden">{tabletPane === "sections" ? sectionsPanel : editor}</div>
             </div>
+
+            {/* ── Drag handle: left pane ↔ preview ── */}
+            <div
+              role="separator"
+              aria-label="Resize panel"
+              aria-orientation="vertical"
+              onPointerDown={tabletDrag.onPointerDown}
+              onDoubleClick={tabletDrag.onDoubleClick}
+              className={`group relative z-10 flex w-1.5 shrink-0 cursor-col-resize select-none items-center justify-center
+                ${tabletDrag.isDragging ? "bg-amber-400" : "bg-transparent hover:bg-amber-300/60"}
+                transition-colors duration-150`}
+            >
+              <span aria-hidden="true" className="flex flex-col gap-[3px] opacity-0 group-hover:opacity-60 transition-opacity">
+                {[0,1,2,3,4].map((i) => (
+                  <span key={i} className="h-1 w-1 rounded-full bg-current" />
+                ))}
+              </span>
+            </div>
+
+            {/* ── Preview (fills remaining space) ── */}
             <div className="min-h-0 min-w-0 flex-1 overflow-hidden">{preview}</div>
           </>
         )}
 
         {layout === "phone" && (
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="relative min-h-0 flex-1 overflow-hidden">
-              {mobileTab === "content" && !sectionsOpen ? editor : preview}
+
+            {/* ── Body area: preview always behind, editor sheet on top ── */}
+            <div ref={phoneBodyRef} className="relative min-h-0 flex-1 overflow-hidden">
+
+              {/* Preview always rendered — fills full body area */}
+              <div className="absolute inset-0 overflow-hidden">
+                {preview}
+              </div>
+
+              {/* Editor bottom-sheet — shown when Edit tab is active */}
+              {mobileTab === "content" && !sectionsOpen && (
+                <div
+                  className={`absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-2xl border-t shadow-2xl
+                    ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}
+                  style={{ height: `${phoneEditorPct}%` }}
+                >
+                  {/* ── Drag handle pill ── */}
+                  <div
+                    role="separator"
+                    aria-label="Drag to resize editor"
+                    aria-orientation="horizontal"
+                    onPointerDown={onPhoneDragStart}
+                    onDoubleClick={onPhoneDragDoubleTap}
+                    className={`flex h-6 w-full shrink-0 cursor-row-resize select-none items-center justify-center rounded-t-2xl
+                      ${phoneDragging ? "bg-amber-400/20" : "hover:bg-secondary/60"} transition-colors`}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`h-1 w-10 rounded-full transition-colors ${phoneDragging ? "bg-amber-500" : "bg-border"}`}
+                    />
+                  </div>
+
+                  {/* Editor content — scrollable */}
+                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                    {editor}
+                  </div>
+                </div>
+              )}
+
+              {/* Sections overlay (SeeThroughPanel — draggable height) */}
               <SeeThroughPanel open={sectionsOpen} title="Sections" onClose={() => setSectionsOpen(false)}>
                 {sectionsPanel}
               </SeeThroughPanel>
             </div>
-            <div role="tablist" aria-label="Studio panels" className={`flex shrink-0 border-t safe-bottom ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}>
+
+            {/* ── Bottom tab bar ── */}
+            <div
+              role="tablist"
+              aria-label="Studio panels"
+              className={`flex shrink-0 border-t safe-bottom ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}
+            >
               <button type="button" role="tab" aria-selected={sectionsOpen} onClick={() => setSectionsOpen(v => !v)} className={paneTab(sectionsOpen)}>
                 <Layers className="h-4 w-4" aria-hidden="true" />Sections
                 <span className="rounded-full bg-amber-500 px-1.5 text-[10px] font-bold leading-4 text-white">{activeSections.length}</span>
