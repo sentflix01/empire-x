@@ -16,6 +16,10 @@ export interface RepeaterItemField {
   /** "product": pick one of the owner's catalogue products; Buy Now then sells it. "image": Add photo. */
   type: "text" | "textarea" | "product" | "image";
   placeholder?: string;
+  /** When true this sub-field must be non-empty inside every repeater item. */
+  required?: boolean;
+  /** Custom validation message. Falls back to `"${label} is required"`. */
+  requiredMessage?: string;
 }
 
 export interface BuilderField {
@@ -30,6 +34,16 @@ export interface BuilderField {
   /** One line under the field explaining it in plain words. */
   hint?: string;
   itemFields?: RepeaterItemField[];
+  /**
+   * When true this field must be non-empty before the site can be published.
+   * Validation runs only on the Publish action — drafts and auto-saves are
+   * never blocked. For repeater fields "required" means at least one item
+   * must exist.
+   */
+  required?: boolean;
+  /** Custom message shown when the field is empty at publish time.
+   *  Falls back to `"${label} is required"` when omitted. */
+  requiredMessage?: string;
 }
 
 export interface SectionType {
@@ -51,9 +65,9 @@ export const SECTION_TYPES: SectionType[] = [
     key: "hero", label: "Top of your page", icon: "Sparkles", tier: "freemium",
     purpose: "The first thing visitors see: your name, one line about you, and a button.",
     fields: [
-      { key: "title",    label: "Business name",          type: "text", placeholder: "Your Business Name" },
-      { key: "subtitle", label: "One line about you",     type: "text", placeholder: "Fresh bread every morning" },
-      { key: "cta",      label: "Button words",           type: "text", placeholder: "Contact Us", hint: "The button takes visitors to what you sell." },
+      { key: "title",    label: "Business name",          type: "text", placeholder: "Your Business Name", required: true, requiredMessage: "Add your business name — visitors need to know who you are." },
+      { key: "subtitle", label: "One line about you",     type: "text", placeholder: "Fresh bread every morning", required: true, requiredMessage: "Add a short description — one sentence about what you do." },
+      { key: "cta",      label: "Button words",           type: "text", placeholder: "Contact Us", required: true, requiredMessage: "Add button words so visitors know what to do (e.g. Contact Us).", hint: "The button takes visitors to what you sell." },
       { key: "heroBg",   label: "Colour 1", type: "hidden" },
       { key: "heroBg2",  label: "Colour 2", type: "hidden" },
       { key: "siteFont", label: "Lettering", type: "hidden" },
@@ -75,11 +89,11 @@ export const SECTION_TYPES: SectionType[] = [
     fields: [
       { ...TITLE("Our Products"), key: "itemsTitle" },
       {
-        key: "items", label: "Items", type: "repeater",
+        key: "items", label: "Items", type: "repeater", required: true, requiredMessage: "Add at least one item — visitors need to see what you sell.",
         itemFields: [
-          { key: "name",  label: "Name",        type: "text", placeholder: "Product name" },
+          { key: "name",  label: "Name",        type: "text", placeholder: "Product name", required: true },
           { key: "desc",  label: "Short description", type: "text", placeholder: "Brief description" },
-          { key: "price", label: "Price",       type: "text", placeholder: "250 ETB" },
+          { key: "price", label: "Price",       type: "text", placeholder: "250 ETB", required: true },
           { key: "product_id", label: "Sell as product (optional)", type: "product" },
         ],
       },
@@ -91,9 +105,9 @@ export const SECTION_TYPES: SectionType[] = [
     fields: [
       { ...TITLE("Gallery"), key: "galleryTitle" },
       {
-        key: "galleryImages", label: "Photos", type: "repeater",
+        key: "galleryImages", label: "Photos", type: "repeater", required: true, requiredMessage: "Add at least one photo to your gallery.",
         itemFields: [
-          { key: "url",     label: "Photo",   type: "image" },
+          { key: "url",     label: "Photo",   type: "image", required: true },
           { key: "caption", label: "Caption (optional)", type: "text", placeholder: "Our shop on a busy morning" },
         ],
       },
@@ -105,9 +119,9 @@ export const SECTION_TYPES: SectionType[] = [
     fields: [
       { ...TITLE("Our Services"), key: "servTitle" },
       {
-        key: "services", label: "Services", type: "repeater",
+        key: "services", label: "Services", type: "repeater", required: true, requiredMessage: "Add at least one service.",
         itemFields: [
-          { key: "name", label: "Service name", type: "text",     placeholder: "Haircut" },
+          { key: "name", label: "Service name", type: "text",     placeholder: "Haircut", required: true },
           { key: "desc", label: "What's included", type: "textarea", placeholder: "Wash, cut and style" },
           { key: "price", label: "Price (optional)", type: "text", placeholder: "From 500 ETB" },
           { key: "product_id", label: "Sell as product (optional)", type: "product" },
@@ -121,10 +135,10 @@ export const SECTION_TYPES: SectionType[] = [
     fields: [
       { ...TITLE("What People Say"), key: "testTitle" },
       {
-        key: "testimonials", label: "Quotes", type: "repeater",
+        key: "testimonials", label: "Quotes", type: "repeater", required: true, requiredMessage: "Add at least one customer quote.",
         itemFields: [
-          { key: "quote",  label: "What they said", type: "textarea", placeholder: "Amazing experience!" },
-          { key: "author", label: "Their name",     type: "text",     placeholder: "Selam T." },
+          { key: "quote",  label: "What they said", type: "textarea", placeholder: "Amazing experience!", required: true },
+          { key: "author", label: "Their name",     type: "text",     placeholder: "Selam T.", required: true },
           { key: "role",   label: "Who they are (optional)", type: "text", placeholder: "Regular customer" },
         ],
       },
@@ -135,10 +149,10 @@ export const SECTION_TYPES: SectionType[] = [
     purpose: "How to reach you. Visitors tap to call, message or email.",
     fields: [
       { key: "location", label: "Address or landmark", type: "text", placeholder: "Bole, near Medhanialem church" },
-      { key: "phone",    label: "Phone",          type: "text", placeholder: "+251 91 234 5678" },
-      { key: "email",    label: "Email",          type: "text", placeholder: "hello@example.com" },
-      { key: "hours",    label: "Opening hours",  type: "text", placeholder: "Mon–Sat 8:00–18:00" },
-      { key: "whatsapp", label: "WhatsApp number", type: "text", placeholder: "+251 91 234 5678" },
+      { key: "phone",    label: "Phone",           type: "text", placeholder: "+251 91 234 5678",   required: true, requiredMessage: "Add at least one way to reach you — phone, email, or WhatsApp." },
+      { key: "email",    label: "Email",           type: "text", placeholder: "hello@example.com",  required: true, requiredMessage: "Add at least one way to reach you — phone, email, or WhatsApp." },
+      { key: "hours",    label: "Opening hours",   type: "text", placeholder: "Mon–Sat 8:00–18:00" },
+      { key: "whatsapp", label: "WhatsApp number", type: "text", placeholder: "+251 91 234 5678",   required: true, requiredMessage: "Add at least one way to reach you — phone, email, or WhatsApp." },
     ],
   },
   {
@@ -160,10 +174,10 @@ export const SECTION_TYPES: SectionType[] = [
     fields: [
       { ...TITLE("Pricing"), key: "pricingTitle" },
       {
-        key: "plans", label: "Packages", type: "repeater",
+        key: "plans", label: "Packages", type: "repeater", required: true, requiredMessage: "Add at least one pricing package.",
         itemFields: [
-          { key: "name",     label: "Package name", type: "text", placeholder: "Basic" },
-          { key: "price",    label: "Price",        type: "text", placeholder: "500 ETB" },
+          { key: "name",     label: "Package name", type: "text", placeholder: "Basic", required: true },
+          { key: "price",    label: "Price",        type: "text", placeholder: "500 ETB", required: true },
           { key: "period",   label: "Per (optional)", type: "text", placeholder: "/month" },
           { key: "features", label: "What's included (separate with commas)", type: "text", placeholder: "Delivery, Gift wrap" },
           { key: "product_id", label: "Sell as product (optional)", type: "product" },
@@ -177,10 +191,10 @@ export const SECTION_TYPES: SectionType[] = [
     fields: [
       { ...TITLE("Our Team"), key: "teamTitle" },
       {
-        key: "members", label: "People", type: "repeater",
+        key: "members", label: "People", type: "repeater", required: true, requiredMessage: "Add at least one team member.",
         itemFields: [
-          { key: "name",  label: "Name",  type: "text", placeholder: "Abebe K." },
-          { key: "role",  label: "Job",   type: "text", placeholder: "Head chef" },
+          { key: "name",  label: "Name",  type: "text", placeholder: "Abebe K.", required: true },
+          { key: "role",  label: "Job",   type: "text", placeholder: "Head chef", required: true },
           { key: "image", label: "Photo", type: "image" },
           { key: "bio",   label: "A few words (optional)", type: "textarea", placeholder: "10 years of experience" },
         ],
@@ -193,10 +207,10 @@ export const SECTION_TYPES: SectionType[] = [
     fields: [
       { ...TITLE("Frequently Asked Questions"), key: "faqTitle" },
       {
-        key: "faqs", label: "Questions", type: "repeater",
+        key: "faqs", label: "Questions", type: "repeater", required: true, requiredMessage: "Add at least one question and answer.",
         itemFields: [
-          { key: "question", label: "Question", type: "text",     placeholder: "Do you deliver?" },
-          { key: "answer",   label: "Answer",   type: "textarea", placeholder: "Yes, across Addis Ababa." },
+          { key: "question", label: "Question", type: "text",     placeholder: "Do you deliver?", required: true },
+          { key: "answer",   label: "Answer",   type: "textarea", placeholder: "Yes, across Addis Ababa.", required: true },
         ],
       },
     ],
@@ -207,9 +221,9 @@ export const SECTION_TYPES: SectionType[] = [
     fields: [
       { ...TITLE("Why Choose Us"), key: "featTitle" },
       {
-        key: "features", label: "Reasons", type: "repeater",
+        key: "features", label: "Reasons", type: "repeater", required: true, requiredMessage: "Add at least one reason why customers should choose you.",
         itemFields: [
-          { key: "name", label: "Reason",       type: "text", placeholder: "Fast delivery" },
+          { key: "name", label: "Reason",       type: "text", placeholder: "Fast delivery", required: true },
           { key: "desc", label: "A few words",  type: "text", placeholder: "Same day in Addis" },
         ],
       },
@@ -221,10 +235,10 @@ export const SECTION_TYPES: SectionType[] = [
     fields: [
       { ...TITLE("By the Numbers"), key: "statsTitle" },
       {
-        key: "stats", label: "Numbers", type: "repeater",
+        key: "stats", label: "Numbers", type: "repeater", required: true, requiredMessage: "Add at least one number.",
         itemFields: [
-          { key: "number", label: "Number",       type: "text", placeholder: "5,000+" },
-          { key: "label",  label: "What it counts", type: "text", placeholder: "Happy customers" },
+          { key: "number", label: "Number",       type: "text", placeholder: "5,000+", required: true },
+          { key: "label",  label: "What it counts", type: "text", placeholder: "Happy customers", required: true },
         ],
       },
     ],
@@ -301,7 +315,7 @@ export const SECTION_TYPES: SectionType[] = [
     tierFeatures: ["Video embedding", "Custom thumbnails", "Playback analytics"],
     fields: [
       { ...TITLE("Watch Our Story"), key: "vidTitle" },
-      { key: "vidUrl",   label: "YouTube link", type: "text", placeholder: "https://youtu.be/…", hint: "On YouTube tap Share, then Copy link, and paste it here." },
+      { key: "vidUrl",   label: "YouTube link", type: "text", placeholder: "https://youtu.be/…", required: true, requiredMessage: "Paste a YouTube link so visitors can watch your video.", hint: "On YouTube tap Share, then Copy link, and paste it here." },
       { key: "vidDesc",  label: "Caption (optional)", type: "text", placeholder: "How we make our coffee" },
     ],
   },
@@ -490,12 +504,12 @@ export const SECTION_TYPES: SectionType[] = [
     fields: [
       { key: "menuTitle", label: "Section heading", type: "text", placeholder: "Our Menu" },
       {
-        key: "dishes", label: "Dishes", type: "repeater",
+        key: "dishes", label: "Dishes", type: "repeater", required: true, requiredMessage: "Add at least one dish or drink to your menu.",
         itemFields: [
           { key: "category", label: "Group (optional)", type: "text", placeholder: "Breakfast" },
-          { key: "name",  label: "Dish or drink", type: "text", placeholder: "Special Firfir" },
+          { key: "name",  label: "Dish or drink", type: "text", placeholder: "Special Firfir", required: true },
           { key: "desc",  label: "A few words (optional)", type: "text", placeholder: "With fresh injera" },
-          { key: "price", label: "Price", type: "text", placeholder: "180 ETB" },
+          { key: "price", label: "Price", type: "text", placeholder: "180 ETB", required: true },
           { key: "photo", label: "Photo (optional)", type: "image" },
           { key: "product_id", label: "Sell as product (optional)", type: "product" },
         ],
@@ -506,10 +520,10 @@ export const SECTION_TYPES: SectionType[] = [
     key: "offer", label: "Today's offer", icon: "Megaphone", tier: "freemium",
     purpose: "A short special offer with an end date. It disappears by itself when it ends.",
     fields: [
-      { key: "offerTitle", label: "The offer", type: "text", placeholder: "20% off all cakes this weekend" },
+      { key: "offerTitle", label: "The offer", type: "text", placeholder: "20% off all cakes this weekend", required: true, requiredMessage: "Describe your offer so visitors know what the deal is." },
       { key: "offerDesc",  label: "A few words (optional)", type: "textarea", placeholder: "Order before Sunday 6 pm" },
       { key: "offerPhoto", label: "Photo (optional)", type: "image" },
-      { key: "offerEnds",  label: "Last day", type: "date", hint: "After this day visitors no longer see the offer." },
+      { key: "offerEnds",  label: "Last day", type: "date", required: true, requiredMessage: "Set an end date so the offer disappears automatically.", hint: "After this day visitors no longer see the offer." },
       { key: "offerBtn",   label: "Button words", type: "text", placeholder: "Order now", hint: "The button takes visitors to what you sell." },
     ],
   },
@@ -584,6 +598,8 @@ export const SECTION_TYPES: SectionType[] = [
         label: "Your message",
         type: "textarea",
         placeholder: "20% OFF all orders this weekend only! Order now before it ends.",
+        required: true,
+        requiredMessage: "Add a message for the announcement bar.",
         hint: "Scrolls continuously on your business card in the feed.",
       },
       {

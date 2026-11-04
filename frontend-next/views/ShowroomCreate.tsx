@@ -17,6 +17,8 @@ import { useDragResize } from "@/hooks/useDragResize";
 import { parseShowroomSections, serializeShowroomSections } from "@/lib/showroomSectionsCodec";
 import { getShowroomTemplateSample } from "@/lib/showroomTemplateSamples";
 import BuilderForm from "@/components/showroom/BuilderForm";
+import { validateBuilderForm } from "@/lib/builderValidation";
+import type { ValidationError } from "@/lib/builderValidation";
 import BuilderPreview from "@/components/showroom/BuilderPreview";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { VisibilitySelect, asVisibility, type BusinessVisibility } from '@/components/business/VisibilityChoice';
@@ -169,6 +171,8 @@ function ShowroomCreate({
   const [businessesState, setBusinessesState] = useState<'loading' | 'loaded' | 'failed'>('loading');
   const [businessDialog, setBusinessDialog] = useState<'create' | 'choose' | null>(null);
   const [saving, setSaving] = useState(false);
+  /** Validation errors from the most recent publish attempt. Cleared on any field change. */
+  const [publishErrors, setPublishErrors] = useState<ValidationError[]>([]);
   const [darkBuilder, setDarkBuilder] = useState(false);
   const [previewMode, setPreviewMode] = useState<PreviewMode>("desktop");
   const studioRef = useRef<HTMLDivElement>(null);
@@ -384,6 +388,8 @@ function ShowroomCreate({
   const updateField = (key: string, value: any) => {
     pushUndo(key);
     setFormData(prev => ({ ...prev, [key]: value }));
+    // Clear publish errors when the user edits any field — the banner disappears immediately.
+    if (publishErrors.length > 0) setPublishErrors([]);
   };
 
   // Style choices are saved with the top section, so the published site uses them too.
@@ -402,6 +408,7 @@ function ShowroomCreate({
     setActiveSections(prev =>
       prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
     );
+    if (publishErrors.length > 0) setPublishErrors([]);
   };
 
   const moveSection = (key: string, dir: number) => {
@@ -549,8 +556,24 @@ function ShowroomCreate({
   const handlePublish = async (businessIdOverride?: string) => {
     if (!user) { toast.error("Please log in"); return; }
     if (editId && loadedDraftKey !== draftKey) { toast.error("Your site is still loading. Try again in a moment."); return; }
+
+    // ── Full client-side validation before hitting the API ──────────────────
+    const errors = validateBuilderForm(activeSections, formData);
+    if (errors.length > 0) {
+      setPublishErrors(errors);
+      // Scroll to the first invalid field in the editor
+      const firstId = errors[0].fieldId;
+      setTimeout(() => {
+        const el = document.getElementById(firstId);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el?.focus({ preventScroll: true });
+      }, 50);
+      toast.error(`Fix ${errors.length} ${errors.length === 1 ? 'issue' : 'issues'} before publishing.`);
+      return;
+    }
+    setPublishErrors([]);
+
     const title = String(formData.title ?? "").trim();
-    if (!title) { toast.error("Add your business name in the Hero section"); return; }
     const businessId = businessIdOverride ?? selectedBusinessId;
     // Every live site belongs to a Business profile: create or choose it here
     // rather than failing and sending the owner out of Studio.
@@ -696,7 +719,7 @@ function ShowroomCreate({
         </div>
       )}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2">
-        <BuilderForm activeSections={activeSections} formData={formData} onChange={updateField} />
+        <BuilderForm activeSections={activeSections} formData={formData} onChange={updateField} validationErrors={publishErrors} />
       </div>
     </div>
   );
