@@ -1,0 +1,33 @@
+{
+  "id": "F-034",
+  "kind": "hardening",
+  "phase": "P10-architecture",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Malformed input returns 500 errors instead of 400/404",
+  "standards": [
+    "OWASP A10:2025 (mishandling of exceptional conditions)",
+    "ASVS 5.0 V16.5 (error handling)",
+    "RFC 9110 §15"
+  ],
+  "location": [
+    "backend/routes/products.ts:288",
+    "backend/routes/auth.ts (login body handling)",
+    "backend/lib/errorCollector.ts"
+  ],
+  "steps": [
+    "GET each authenticated route ending in an ID with 'not-a-uuid' (22 routes).",
+    "POST /api/auth/login with Content-Type: text/plain."
+  ],
+  "expected": "Invalid IDs → 404 (or 400); unsupported content type → 400/415. 500 is reserved for real server faults.",
+  "actual": "14 of 22 ID routes answer 500 for a malformed ID (Postgres rejects the cast). Login with a text/plain body answers 500. Malformed JSON correctly gives 400 and oversized bodies 413. No stack traces or SQL leak.",
+  "evidence": [
+    "evidence/wave3/non-uuid-ids.txt",
+    "evidence/wave3/error-handling.txt"
+  ],
+  "impact": "Server-error counts, Sentry and the Telegram error alert can be inflated by anyone with junk URLs (alert fatigue, possible paging noise); clients get misleading statuses.",
+  "fix": "Add one router-level param validator (the existing onlyUuid helper in routes/messages.ts) for every :id/…Id param, and guard req.body being undefined before destructuring. Add the malformed-ID probe as a Jest test over the endpoint inventory.",
+  "effort": "S",
+  "found_on": "2026-11-05",
+  "environment": "local"
+}

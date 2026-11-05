@@ -1,0 +1,30 @@
+{
+  "id": "F-033",
+  "kind": "defect",
+  "phase": "P2-functional",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "A product with no business is accepted but invisible to everyone else",
+  "standards": [
+    "ISO/IEC 25010:2023 functional suitability",
+    "project-brain/DECISIONS.md 2026-10-24 (every product belongs to a business)"
+  ],
+  "location": [
+    "backend/routes/products.ts:310-345",
+    "backend/lib/productBusiness.ts:30"
+  ],
+  "steps": [
+    "As a user with no business, POST /api/products {title, price, stock, status:'active'} → 201.",
+    "GET it as another user or guest → 404."
+  ],
+  "expected": "Creation is refused with a clear message when no business can be resolved, as the 2026-10-24 decision implies.",
+  "actual": "The API creates the product (201); it is then hidden from every viewer except the creator. The legacy checkout E2E spec relies on this path.",
+  "evidence": [
+    "evidence/wave3/order-journey.json"
+  ],
+  "impact": "A seller can list products that nobody can ever see, with no explanation.",
+  "fix": "Reject creation with 422 'Create a business first' when resolveProductBusiness returns null (admins included), and show that guidance on /products/create.",
+  "effort": "S",
+  "found_on": "2026-11-05",
+  "environment": "local"
+}

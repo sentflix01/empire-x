@@ -1,7 +1,9 @@
 {
-  "steps": [],
+  "steps": [
+    "source ~/.nodbusiness-local/env.sh && node note/2026-11-05-international-audit/scripts/account-lifecycle.mjs"
+  ],
   "found_on": "2026-11-05",
-  "environment": "repository",
+  "environment": "local",
   "id": "F-014",
   "kind": "defect",
   "phase": "P6-privacy",
@@ -18,9 +20,10 @@
     "backend/middleware/upload.ts"
   ],
   "expected": "Account deletion (and deletion of posts, stories, verification requests) removes or schedules removal of the uploaded objects they reference.",
-  "actual": "anonymizeAccount() deletes and anonymises database rows, but no code path deletes storage objects (no DeleteObject / storage delete / unlink calls in backend source). Avatars, post media, verification selfies and ID documents remain at their public URLs after the account is gone.",
+  "actual": "anonymizeAccount() deletes and anonymises database rows, but no code path deletes storage objects (no DeleteObject / storage delete / unlink calls in backend source). Avatars, post media, verification selfies and ID documents remain at their public URLs after the account is gone. Runtime (2026-11-05): after a successful self-service deletion the user's avatar URL still returns 200.",
   "evidence": [
-    "backend/lib/accountData.ts:146-149"
+    "backend/lib/accountData.ts:146-149",
+    "evidence/wave3/account-lifecycle.json"
   ],
   "impact": "Erasure requests are incomplete; together with F-013, deleted users' ID documents stay publicly reachable indefinitely.",
   "fix": "Collect object keys before deleting rows (profiles, posts, stories, messages attachments, verification_requests), delete them in the same job (or enqueue a durable deletion job with retries), and add a periodic orphan sweep. Document the retention of files in docs/compliance/DATA_GOVERNANCE.md.",

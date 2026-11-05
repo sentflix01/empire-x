@@ -1,0 +1,71 @@
+{
+  "ran_at": "2026-11-05T23:35:38.393Z",
+  "results": [
+    {
+      "check": "setup: avatar uploaded and set",
+      "pass": true,
+      "upload": 200,
+      "profile": 200
+    },
+    {
+      "check": "export: self-service, machine-readable JSON",
+      "pass": true,
+      "status": 200,
+      "top_level_keys": [
+        "exported_at",
+        "account",
+        "user_profiles",
+        "posts",
+        "comments",
+        "likes",
+        "stories",
+        "follows",
+        "saves",
+        "wishlists",
+        "price_alerts",
+        "cart_items"
+      ]
+    },
+    {
+      "check": "export: does not contain password hash, OTP or reset token",
+      "pass": true
+    },
+    {
+      "check": "delete: requires the current password",
+      "pass": true,
+      "status": 422
+    },
+    {
+      "check": "delete: succeeds with password",
+      "pass": true,
+      "status": 200
+    },
+    {
+      "check": "after deletion: sign-in fails",
+      "pass": true,
+      "status": 401
+    },
+    {
+      "check": "after deletion: existing access token rejected",
+      "pass": true,
+      "status": 403
+    },
+    {
+      "check": "after deletion: users row anonymised (email and name removed)",
+      "pass": true,
+      "email_changed": true,
+      "name_changed": true,
+      "password_cleared": true
+    },
+    {
+      "check": "after deletion: profile row removed",
+      "pass": true,
+      "remaining": 0
+    },
+    {
+      "check": "after deletion: uploaded avatar file is no longer served (GDPR Art. 17)",
+      "pass": false,
+      "avatar_status_after_delete": 200
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "F-036",
+  "kind": "defect",
+  "phase": "P9-i18n-seo",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Unknown URLs send guests to sign-in instead of a 404 page",
+  "standards": [
+    "RFC 9110 §15.5.5",
+    "Google Search Central (soft 404s)",
+    "Nielsen heuristic 9"
+  ],
+  "location": [
+    "frontend-next/proxy.ts:60-64",
+    "frontend-next/lib/publicPaths.ts:50-68",
+    "frontend-next/app/not-found.tsx"
+  ],
+  "steps": [
+    "Without cookies, GET http://127.0.0.1:3002/this-page-does-not-exist → 307 to /login."
+  ],
+  "expected": "A mistyped or retired link shows the branded not-found page with status 404.",
+  "actual": "The edge proxy treats every non-public path, including non-existent ones, as protected and redirects to /login?return=….",
+  "evidence": [
+    "evidence/wave3/error-handling.txt"
+  ],
+  "impact": "Broken shared links look like a login wall; search engines see redirects instead of 404s.",
+  "fix": "Redirect only known protected route prefixes (an allow-list of app routes) and let everything else fall through to not-found.",
+  "effort": "S",
+  "found_on": "2026-11-05",
+  "environment": "local"
+}

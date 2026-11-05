@@ -1,0 +1,11 @@
+
+Running 5 tests using 1 worker
+
+Messaging E2E ready: e2e-msg-buyer@nodbusiness.test, e2e-msg-owner@nodbusiness.test, e2e-msg-third@nodbusiness.test; business "E2E Coffee House", product 151e05d7-a287-4161-9f74-bfa4f7055f76.
+  ✓  1 [messaging-phone] › e2e/messaging.spec.ts:141:5 › a buyer messages a business from a product; both sides see it live (12.8s)
+  ✓  2 [messaging-phone] › e2e/messaging.spec.ts:168:5 › reply, react, edit, pin, delete and forward (15.4s)
+  ✓  3 [messaging-phone] › e2e/messaging.spec.ts:215:5 › requests, blocking with retry, and "nobody can message me" (16.5s)
+  ✓  4 [messaging-phone] › e2e/messaging.spec.ts:262:5 › groups: create, talk live, remove someone; channels: only admins post (15.2s)
+  ✓  5 [messaging-phone] › e2e/messaging.spec.ts:301:5 › offline: missed messages arrive on reconnect, and offline messages are sent (6.7s)
+
+  5 passed (1.2m)

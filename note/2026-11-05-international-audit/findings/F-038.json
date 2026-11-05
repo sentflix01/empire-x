@@ -1,0 +1,28 @@
+{
+  "id": "F-038",
+  "kind": "positive",
+  "phase": "P2-functional",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "title": "Positive: two-person messaging works live on desktop and phone (10/10)",
+  "standards": [
+    "ISO/IEC 25010:2023 functional suitability"
+  ],
+  "location": [
+    "frontend-next/e2e/messaging.spec.ts"
+  ],
+  "steps": [
+    "ALLOW_E2E_SEED=1 E2E_MESSAGING_PASSWORD=<random> npx playwright test --project=messaging-desktop (and messaging-phone)"
+  ],
+  "expected": "Live delivery, replies, reactions, edit, pin, delete, forward, requests, blocking, groups, channels, offline resend.",
+  "actual": "All 5 scenarios pass on Desktop Chrome and Pixel 7 emulation. iPhone and iPad projects need WebKit, which is not available in this sandbox (UNVERIFIED).",
+  "evidence": [
+    "evidence/wave3/messaging-desktop.txt",
+    "evidence/wave3/messaging-phone.txt"
+  ],
+  "impact": "Keep.",
+  "fix": "None.",
+  "effort": "S",
+  "found_on": "2026-11-05",
+  "environment": "local"
+}

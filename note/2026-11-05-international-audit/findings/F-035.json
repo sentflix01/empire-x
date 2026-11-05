@@ -1,0 +1,30 @@
+{
+  "id": "F-035",
+  "kind": "defect",
+  "phase": "P4-a11y",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Email verification code field has no accessible name",
+  "standards": [
+    "WCAG 2.2 SC 4.1.2 (Name, Role, Value)",
+    "WCAG 2.2 SC 1.3.1",
+    "EN 301 549 V4.1.1 9.4.1.2"
+  ],
+  "location": [
+    "frontend-next/views/Register.tsx (OTP step)"
+  ],
+  "steps": [
+    "Register a new account locally; inspect the accessibility tree on 'Check your email'."
+  ],
+  "expected": "The code input is announced as e.g. 'Verification code, 6 digits'.",
+  "actual": "Accessibility snapshot shows an unnamed textbox next to 'Verify email'.",
+  "evidence": [
+    "frontend-next/test-results (signup snapshot, local run)",
+    "evidence/wave3/existing-e2e-chromium-tours-off.txt"
+  ],
+  "impact": "Screen-reader users hear 'edit text' with no purpose on the step that gates every new account.",
+  "fix": "Add aria-label='Verification code' (or a visible <Label htmlFor>) plus autocomplete='one-time-code' and inputmode='numeric'. Full a11y sweep follows in Wave 4.",
+  "effort": "S",
+  "environment": "local",
+  "found_on": "2026-11-05"
+}

@@ -2,10 +2,11 @@
   "steps": [
     "Start the local stack (local-stack skill).",
     "Run bash note/2026-11-05-international-audit/scripts/probe-missing-routes.sh.",
-    "Observe POST /api/upload/multiple → 404 NOT_FOUND while POST /api/upload → 401 (route exists)."
+    "Observe POST /api/upload/multiple → 404 NOT_FOUND while POST /api/upload → 401 (route exists).",
+    "Browser: sign in as the seeded user, open /products/create, attach two images → POST /api/upload/multiple 404 and the form shows 'Upload failed. Try again.' (scripts in evidence notes)."
   ],
   "found_on": "2026-11-05",
-  "environment": "repository",
+  "environment": "local",
   "id": "F-001",
   "title": "Product photos cannot be uploaded: frontend calls a missing /api/upload/multiple route",
   "phase": "P2-functional",
@@ -26,9 +27,10 @@
   "evidence": [
     "evidence/wave1/missing-routes.txt",
     "frontend-next/views/ProductCreate.tsx:253",
-    "backend/routes/upload.ts:10"
+    "backend/routes/upload.ts:10",
+    "evidence/wave3/F-001-product-photo-upload.png"
   ],
-  "impact": "Sellers cannot attach photos when creating or editing a product — a core seller journey. Products go live without images or sellers abandon the flow. Browser reproduction pending in Wave 3.",
+  "impact": "Sellers cannot attach photos when creating or editing a product — a core seller journey. Products go live without images or sellers abandon the flow. Confirmed in the browser on 2026-11-05.",
   "fix": "Either add POST /api/upload/multiple (upload.array('files', 10), same signature validation as the single route, returns { files: [{ url }] }), or change uploadFiles() to call POST /api/upload once per file with bounded concurrency. Add a Vitest test for uploadFiles and a Playwright step that uploads two photos on /products/create.",
   "effort": "S",
   "regression_test": "Contract test: every literal /api path in frontend source resolves to a registered backend route (scripts/inventory-frontend.mjs in CI).",

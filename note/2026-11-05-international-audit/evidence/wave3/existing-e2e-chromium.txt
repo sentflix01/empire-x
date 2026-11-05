@@ -1,0 +1,1219 @@
+
+Running 51 tests using 1 worker
+
+  ✓   1 [chromium] › e2e/account-mode-live.spec.ts:8:5 › a Real identity cannot enter Demo until it has logged out (224ms)
+  ✘   2 [chromium] › e2e/auth.spec.ts:39:7 › Authenticated flows › login with valid credentials reaches the authenticated app shell (33.5s)
+  ✘   3 [chromium] › e2e/auth.spec.ts:74:7 › Authenticated flows › login rejects bad credentials without navigation (46.9s)
+  ✓   4 [chromium] › e2e/business-showroom-flow.spec.ts:86:5 › a showroom back button returns to the previous page (9.0s)
+  ✓   5 [chromium] › e2e/business-showroom-flow.spec.ts:99:5 › a scratch showroom publishes without sample content and appears to other visitors (20.1s)
+  ✓   6 [chromium] › e2e/business-showroom-flow.spec.ts:149:5 › editing a published showroom restores its sections and keeps them on republish (5.6s)
+  -   7 [chromium] › e2e/buy-normal-product.spec.ts:125:7 › A product listed from the normal form can be bought › the seller lists it and it belongs to their business
+  -   8 [chromium] › e2e/buy-normal-product.spec.ts:143:7 › A product listed from the normal form can be bought › a buyer opens the Buy sheet and places the order
+[chat-e2e] tokenA: true · tokenB: true
+[chat-e2e] find-or-create: 201
+[chat-e2e] convId: 50e3e1eb-0012-40fb-874e-8c0795a3eb56
+  ✘   9 [chromium] › e2e/chat.spec.ts:83:7 › Realtime chat › message sent by A appears live for B without a reload (45.1s)
+[chat-e2e] tokenA: true · tokenB: true
+[chat-e2e] find-or-create: 200
+[chat-e2e] convId: 50e3e1eb-0012-40fb-874e-8c0795a3eb56
+  ✘  10 [chromium] › e2e/chat.spec.ts:111:7 › Realtime chat › recipient sees the message after a reload too (persistence) (45.1s)
+  ✘  11 [chromium] › e2e/checkout.spec.ts:93:7 › Checkout flow › product page renders Buy Now and opens the purchase modal (32.9s)
+  ✘  12 [chromium] › e2e/checkout.spec.ts:106:7 › Checkout flow › buyer can complete a COD order from the purchase modal (33.0s)
+  ✓  13 [chromium] › e2e/checkout.spec.ts:135:7 › Checkout flow › COD order via API creates an order (22ms)
+  ✓  14 [chromium] › e2e/demo-mode.mocked.spec.ts:4:7 › single identity authentication and workspace choice › legacy account chooser bookmarks redirect to ordinary sign-in or sign-up (1.6s)
+  ✘  15 [chromium] › e2e/demo-mode.mocked.spec.ts:12:7 › single identity authentication and workspace choice › a fresh sign-in requests the canonical identity without a workspace body selector (45.1s)
+  ✘  16 [chromium] › e2e/google-auth.spec.ts:65:7 › Section A — Google Sign-In UI › A1: login page renders the accessible Google OAuth button (16.9s)
+  ✘  17 [chromium] › e2e/google-auth.spec.ts:76:7 › Section A — Google Sign-In UI › A2: register page renders the accessible Google OAuth button (16.7s)
+  ✘  18 [chromium] › e2e/google-auth.spec.ts:83:7 › Section A — Google Sign-In UI › A3: Google login does not call the legacy sign-in global (45.5s)
+  ✓  19 [chromium] › e2e/google-auth.spec.ts:95:7 › Section A — Google Sign-In UI › A4: login page renders a visible Google sign-in area (986ms)
+  ✓  20 [chromium] › e2e/google-auth.spec.ts:103:7 › Section A — Google Sign-In UI › A5: login page Google OAuth region has an accessible label (893ms)
+  ✘  21 [chromium] › e2e/google-auth.spec.ts:109:7 › Section A — Google Sign-In UI › A6: register Google button does not depend on a GIS script (16.8s)
+  ✘  22 [chromium] › e2e/google-auth.spec.ts:120:7 › Section A — Google Sign-In UI › A7: login Google button does not depend on a GIS script (15.9s)
+  ✘  23 [chromium] › e2e/google-auth.spec.ts:129:7 › Section A — Google Sign-In UI › A8: OAuth popup uses the configured client ID and same-origin callback (15.8s)
+  ✓  24 [chromium] › e2e/google-auth.spec.ts:159:7 › Section B — Middleware redirects › B1: anonymous visitor can browse the public guest feed (1.3s)
+  ✓  25 [chromium] › e2e/google-auth.spec.ts:173:7 › Section B — Middleware redirects › B2: anonymous visitor to protected wallet returns to login with destination (927ms)
+  ✓  26 [chromium] › e2e/google-auth.spec.ts:177:7 › Section B — Middleware redirects › B3: anonymous visitor to protected settings returns to login (885ms)
+  ✓  27 [chromium] › e2e/google-auth.spec.ts:180:7 › Section B — Middleware redirects › B4: login and register remain accessible without auth (1.1s)
+  ✓  28 [chromium] › e2e/google-auth.spec.ts:185:9 › Section B — Middleware redirects › authenticated visitor to /login is routed to feed (975ms)
+  ✓  29 [chromium] › e2e/google-auth.spec.ts:185:9 › Section B — Middleware redirects › authenticated visitor to /register is routed to feed (986ms)
+  ✓  30 [chromium] › e2e/google-auth.spec.ts:189:7 › Section B — Middleware redirects › B7: protected destination is retained across sign-in (2.8s)
+  ✓  31 [chromium] › e2e/google-auth.spec.ts:214:7 › Section C — Email auth lifecycle › C1: login stores routing hint but never exposes JWT (2.4s)
+  ✓  32 [chromium] › e2e/google-auth.spec.ts:219:7 › Section C — Email auth lifecycle › C2: refresh token is HttpOnly (2.3s)
+  ✓  33 [chromium] › e2e/google-auth.spec.ts:223:7 › Section C — Email auth lifecycle › C3: reload rehydrates mocked session (3.1s)
+  ✓  34 [chromium] › e2e/google-auth.spec.ts:224:7 › Section C — Email auth lifecycle › C4: logout clears hint and protected routes return to login (2.9s)
+  ✓  35 [chromium] › e2e/google-auth.spec.ts:228:7 › Section C — Email auth lifecycle › C5: rejected credentials show an error without leaving login (1.6s)
+  ✓  36 [chromium] › e2e/google-auth.spec.ts:233:7 › Section C — Email auth lifecycle › C6: email input enforces maxLength=254 (977ms)
+  ✓  37 [chromium] › e2e/google-auth.spec.ts:234:7 › Section C — Email auth lifecycle › C7: password input enforces maxLength=128 (928ms)
+  ✓  38 [chromium] › e2e/google-auth.spec.ts:235:7 › Section C — Email auth lifecycle › C8: unverified email response routes to verification registration (1.7s)
+  ✘  39 [chromium] › e2e/google-auth.spec.ts:263:7 › Section D — Google OAuth popup handoff › D1: normal popup handoff (21.7s)
+  ✓  40 [chromium] › e2e/google-auth.spec.ts:356:7 › Section D — Google OAuth popup handoff › D2: popup closed without handoff — parent stays on /login (887ms)
+  ✓  41 [chromium] › e2e/public.spec.ts:9:7 › Public pages › landing page renders its primary call-to-action (1.3s)
+  ✓  42 [chromium] › e2e/public.spec.ts:15:7 › Public pages › root path serves the app shell or redirects somewhere valid (1.2s)
+  ✓  43 [chromium] › e2e/public.spec.ts:20:7 › Public pages › login and register entry points are directly accessible (1.1s)
+  ✓  44 [chromium] › e2e/public.spec.ts:27:7 › Public pages › protected routes redirect anonymous visitors to login with a return path (889ms)
+  ✘  45 [chromium] › e2e/signup.spec.ts:58:7 › Signup flow › register with valid credentials shows OTP verification screen (1.7s)
+  ✘  46 [chromium] › e2e/signup.spec.ts:82:7 › Signup flow › register rejects duplicate email (1.9s)
+  ✘  47 [chromium] › e2e/signup.spec.ts:97:7 › Signup flow › register rejects mismatched passwords (1.8s)
+  ✘  48 [chromium] › e2e/signup.spec.ts:112:7 › Signup flow › register rejects password too short (1.8s)
+  ✓  49 [chromium] › e2e/signup.spec.ts:128:7 › Signup flow › register requires terms acceptance (1.3s)
+  ✘  50 [chromium] › e2e/signup.spec.ts:148:7 › Signup flow › can navigate back from OTP screen to edit email (1.7s)
+  ✘  51 [chromium] › e2e/signup.spec.ts:170:7 › Signup flow › resend OTP button works and shows cooldown (1.9s)
+
+
+  1) [chromium] › e2e/auth.spec.ts:39:7 › Authenticated flows › login with valid credentials reaches the authenticated app shell 
+
+    TimeoutError: page.waitForURL: Timeout 30000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+      46 |     await page.locator('input[type="password"]').first().fill(SEEDED_PASSWORD);
+      47 |     await Promise.all([
+    > 48 |       page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 }),
+         |            ^
+      49 |       page.locator('button[type="submit"]').first().click(),
+      50 |     ]);
+      51 |
+        at /home/user/empire-x/frontend-next/e2e/auth.spec.ts:48:12
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authenticated-flows-l-90834-the-authenticated-app-shell-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authenticated-flows-l-90834-the-authenticated-app-shell-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/auth-Authenticated-flows-l-90834-the-authenticated-app-shell-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/auth-Authenticated-flows-l-90834-the-authenticated-app-shell-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › e2e/auth.spec.ts:74:7 › Authenticated flows › login rejects bad credentials without navigation 
+
+    Test timeout of 45000ms exceeded.
+
+    Error: locator.click: Test timeout of 45000ms exceeded.
+    Browser logs:
+
+    <launching> /opt/pw-browsers/chromium-1243/chrome-linux64/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=/tmp/playwright_chromiumdev_profile-J964IH --remote-debugging-pipe --no-startup-window
+    <launched> pid=984
+    [pid=984][err] [984:998:1105/231109.978712:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=984][err] [984:998:1105/231109.978907:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=984][err] [984:998:1105/231109.983035:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=984][err] [984:998:1105/231109.983450:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=984][err] [984:998:1105/231109.983468:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=984][err] [984:998:1105/231110.016694:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=984][err] [984:984:1105/231110.026843:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=984][err] [984:998:1105/231110.026985:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=984][err] [984:984:1105/231110.027053:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=984][err] [984:998:1105/231110.027075:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=984][err] [984:984:1105/231110.032320:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=984][err] [984:998:1105/231110.032706:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=984][err] [984:984:1105/231110.033613:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=984][err] [984:998:1105/231110.034039:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=984][err] [984:984:1105/231110.034151:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=984][err] [984:998:1105/231110.034697:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=984][err] [984:998:1105/231110.034713:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=984][err] [984:984:1105/231110.036424:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=984][err] [984:984:1105/231110.036875:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: unknown error type: 
+    [pid=984][err] [984:984:1105/231110.037021:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=984][err] [984:998:1105/231110.037570:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=984][err] [984:984:1105/231110.039186:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=984][err] [984:998:1105/231110.040331:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=984][err] [984:984:1105/231110.040914:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=984][err] [1015:1047:1105/231110.179869:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=984][err] [1015:1047:1105/231110.351291:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=984][err] [1015:1047:1105/231110.360264:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=984][err] [1015:1047:1105/231110.360922:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=984][err] [1015:1047:1105/231110.361348:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=984][err] [1015:1047:1105/231110.361591:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=984][err] [1015:1047:1105/231110.707766:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=984] <gracefully close start>
+    Call log:
+      - waiting for locator('button[type="submit"], button:has-text("Log in"), button:has-text("Login"), button:has-text("Sign in")').first()
+        - locator resolved to <button type="submit" data-page-guide="login-submit" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 px-4 py-2 w-full h-10 font-medium">Sign in</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div class="mt-5 flex items-center justify-between gap-3">…</div> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      2 × retrying click action
+          - waiting 100ms
+          - waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      21 × retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="mt-5 flex items-center justify-between gap-3">…</div> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      - retrying click action
+        - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      - retrying click action
+        - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+      76 |     await page.locator('input[type="email"], input[name="email"]').first().fill(SEEDED_EMAIL);
+      77 |     await page.locator('input[type="password"]').first().fill('definitely-wrong-password');
+    > 78 |     await page.locator('button[type="submit"], button:has-text("Log in"), button:has-text("Login"), button:has-text("Sign in")').first().click();
+         |                                                                                                                                          ^
+      79 |     await page.waitForTimeout(2_000); // allow the error toast/state to settle
+      80 |     await expect(page).toHaveURL(/\/login/);
+      81 |   });
+        at /home/user/empire-x/frontend-next/e2e/auth.spec.ts:78:138
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authenticated-flows-l-204e0-dentials-without-navigation-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authenticated-flows-l-204e0-dentials-without-navigation-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/auth-Authenticated-flows-l-204e0-dentials-without-navigation-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/auth-Authenticated-flows-l-204e0-dentials-without-navigation-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › e2e/chat.spec.ts:83:7 › Realtime chat › message sent by A appears live for B without a reload 
+
+    Test timeout of 45000ms exceeded.
+
+    Error: locator.click: Test ended.
+    Browser logs:
+
+    <launching> /opt/pw-browsers/chromium-1243/chrome-linux64/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=/tmp/playwright_chromiumdev_profile-cOfELc --remote-debugging-pipe --no-startup-window
+    <launched> pid=1135
+    [pid=1135][err] [1135:1149:1105/231159.866483:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=1135][err] [1135:1149:1105/231159.866540:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1135][err] [1135:1149:1105/231159.870520:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=1135][err] [1135:1149:1105/231159.870555:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=1135][err] [1135:1149:1105/231159.870565:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1135][err] [1135:1149:1105/231159.909528:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1135][err] [1135:1135:1105/231159.919563:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1135][err] [1135:1135:1105/231159.919653:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1135][err] [1135:1149:1105/231159.920034:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1135][err] [1135:1149:1105/231159.920054:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1135][err] [1135:1135:1105/231159.932262:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1135][err] [1135:1149:1105/231159.933864:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1135][err] [1135:1135:1105/231159.934624:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1135][err] [1135:1135:1105/231159.934720:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1135][err] [1135:1149:1105/231159.936579:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=1135][err] [1135:1149:1105/231159.936647:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=1135][err] [1135:1149:1105/231159.936654:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1135][err] [1135:1135:1105/231159.936941:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1135][err] [1135:1135:1105/231159.939316:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: unknown error type: 
+    [pid=1135][err] [1135:1135:1105/231159.939327:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1135][err] [1135:1149:1105/231159.941795:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1135][err] [1135:1135:1105/231159.943990:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1135][err] [1135:1149:1105/231159.944053:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1135][err] [1135:1135:1105/231159.944911:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1135][err] [1166:1182:1105/231200.083718:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231201.207903:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231201.208121:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231201.208218:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231201.208307:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231201.208392:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231201.516492:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231208.190106:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231209.069406:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231210.768590:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231210.770230:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231210.770360:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231210.770432:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231210.770585:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231211.144328:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231211.724046:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231219.560584:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231219.560765:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231219.560837:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231219.646785:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231221.087312:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231221.517385:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231221.813028:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231222.116190:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231222.116400:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231222.116468:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231222.116532:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231222.116699:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231222.436350:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231229.155157:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231229.280741:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231229.281246:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231229.281606:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231229.281966:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231229.282182:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231229.618650:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231230.242541:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231230.440077:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231235.404610:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231235.493931:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231235.501268:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231235.520687:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231235.520911:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231235.521092:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135][err] [1166:1182:1105/231235.812632:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1135] <gracefully close start>
+    Call log:
+      - waiting for locator('button[type="submit"]').first()
+        - locator resolved to <button type="submit" data-page-guide="login-submit" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 px-4 py-2 w-full h-10 font-medium">Sign in</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div class="mt-5 flex items-center justify-between gap-3">…</div> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      2 × retrying click action
+          - waiting 100ms
+          - waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      21 × retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="mt-5 flex items-center justify-between gap-3">…</div> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      - retrying click action
+        - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+      32 |   await page.locator('input[type="password"]').first().fill(password);
+      33 |   const loginResponse = page.waitForResponse((r) => r.url().includes('/api/auth/login'), { timeout: 20_000 }).catch(() => null);
+    > 34 |   await page.locator('button[type="submit"]').first().click();
+         |                                                       ^
+      35 |   try {
+      36 |     await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 });
+      37 |   } catch (e) {
+        at loginViaUi (/home/user/empire-x/frontend-next/e2e/chat.spec.ts:34:55)
+        at /home/user/empire-x/frontend-next/e2e/chat.spec.ts:89:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/chat-Realtime-chat-message-31b21-live-for-B-without-a-reload-chromium/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/chat-Realtime-chat-message-31b21-live-for-B-without-a-reload-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/chat-Realtime-chat-message-31b21-live-for-B-without-a-reload-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/chat-Realtime-chat-message-31b21-live-for-B-without-a-reload-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/chat-Realtime-chat-message-31b21-live-for-B-without-a-reload-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [chromium] › e2e/chat.spec.ts:111:7 › Realtime chat › recipient sees the message after a reload too (persistence) 
+
+    Test timeout of 45000ms exceeded.
+
+    Error: locator.click: Test ended.
+    Browser logs:
+
+    <launching> /opt/pw-browsers/chromium-1243/chrome-linux64/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=/tmp/playwright_chromiumdev_profile-jN5hOY --remote-debugging-pipe --no-startup-window
+    <launched> pid=1567
+    [pid=1567][err] [1567:1581:1105/231325.175288:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=1567][err] [1567:1581:1105/231325.178537:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1567][err] [1567:1581:1105/231325.178689:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=1567][err] [1567:1581:1105/231325.178743:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=1567][err] [1567:1581:1105/231325.178750:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1567][err] [1567:1581:1105/231325.215085:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1567][err] [1567:1567:1105/231325.224697:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1567][err] [1567:1581:1105/231325.224765:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1567][err] [1567:1567:1105/231325.224796:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1567][err] [1567:1581:1105/231325.224814:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1567][err] [1567:1567:1105/231325.250468:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1567][err] [1567:1567:1105/231325.250973:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1567][err] [1567:1567:1105/231325.251035:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1567][err] [1567:1581:1105/231325.252012:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1567][err] [1567:1581:1105/231325.253166:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=1567][err] [1567:1581:1105/231325.253469:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=1567][err] [1567:1581:1105/231325.253484:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1567][err] [1567:1567:1105/231325.254575:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1567][err] [1567:1567:1105/231325.255323:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: unknown error type: 
+    [pid=1567][err] [1567:1567:1105/231325.255352:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1567][err] [1567:1581:1105/231325.255509:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1567][err] [1567:1567:1105/231325.257466:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1567][err] [1567:1581:1105/231325.257689:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=1567][err] [1567:1567:1105/231325.257997:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=1567][err] [1598:1614:1105/231325.550930:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1567][err] [1598:1614:1105/231325.661410:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1567][err] [1598:1614:1105/231325.667622:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1567][err] [1598:1614:1105/231325.677610:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1567][err] [1598:1614:1105/231325.683059:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1567][err] [1598:1614:1105/231325.683391:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1567][err] [1598:1614:1105/231326.002109:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=1567] <gracefully close start>
+    Call log:
+      - waiting for locator('button[type="submit"]').first()
+        - locator resolved to <button type="submit" data-page-guide="login-submit" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 px-4 py-2 w-full h-10 font-medium">Sign in</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div class="mt-5 flex items-center justify-between gap-3">…</div> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      2 × retrying click action
+          - waiting 100ms
+          - waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      21 × retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="mt-5 flex items-center justify-between gap-3">…</div> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      - retrying click action
+        - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+      32 |   await page.locator('input[type="password"]').first().fill(password);
+      33 |   const loginResponse = page.waitForResponse((r) => r.url().includes('/api/auth/login'), { timeout: 20_000 }).catch(() => null);
+    > 34 |   await page.locator('button[type="submit"]').first().click();
+         |                                                       ^
+      35 |   try {
+      36 |     await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 });
+      37 |   } catch (e) {
+        at loginViaUi (/home/user/empire-x/frontend-next/e2e/chat.spec.ts:34:55)
+        at /home/user/empire-x/frontend-next/e2e/chat.spec.ts:117:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/chat-Realtime-chat-recipie-e33bb-r-a-reload-too-persistence--chromium/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/chat-Realtime-chat-recipie-e33bb-r-a-reload-too-persistence--chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/chat-Realtime-chat-recipie-e33bb-r-a-reload-too-persistence--chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/chat-Realtime-chat-recipie-e33bb-r-a-reload-too-persistence--chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/chat-Realtime-chat-recipie-e33bb-r-a-reload-too-persistence--chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [chromium] › e2e/checkout.spec.ts:93:7 › Checkout flow › product page renders Buy Now and opens the purchase modal 
+
+    TimeoutError: page.waitForURL: Timeout 30000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+      32 |   await page.locator('input[type="password"]').first().fill(password);
+      33 |   await Promise.all([
+    > 34 |     page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 }),
+         |          ^
+      35 |     page.locator('button[type="submit"]').first().click(),
+      36 |   ]);
+      37 |   await expect(page).toHaveURL(/\/feed(?:\?|$)/);
+        at loginViaUi (/home/user/empire-x/frontend-next/e2e/checkout.spec.ts:34:10)
+        at /home/user/empire-x/frontend-next/e2e/checkout.spec.ts:94:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/checkout-Checkout-flow-pro-d55d1-nd-opens-the-purchase-modal-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/checkout-Checkout-flow-pro-d55d1-nd-opens-the-purchase-modal-chromium/error-context.md
+
+    Error Context: test-results/checkout-Checkout-flow-pro-d55d1-nd-opens-the-purchase-modal-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/checkout-Checkout-flow-pro-d55d1-nd-opens-the-purchase-modal-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/checkout-Checkout-flow-pro-d55d1-nd-opens-the-purchase-modal-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [chromium] › e2e/checkout.spec.ts:106:7 › Checkout flow › buyer can complete a COD order from the purchase modal 
+
+    TimeoutError: page.waitForURL: Timeout 30000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+      32 |   await page.locator('input[type="password"]').first().fill(password);
+      33 |   await Promise.all([
+    > 34 |     page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 }),
+         |          ^
+      35 |     page.locator('button[type="submit"]').first().click(),
+      36 |   ]);
+      37 |   await expect(page).toHaveURL(/\/feed(?:\?|$)/);
+        at loginViaUi (/home/user/empire-x/frontend-next/e2e/checkout.spec.ts:34:10)
+        at /home/user/empire-x/frontend-next/e2e/checkout.spec.ts:107:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/checkout-Checkout-flow-buy-ca9f1-der-from-the-purchase-modal-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/checkout-Checkout-flow-buy-ca9f1-der-from-the-purchase-modal-chromium/error-context.md
+
+    Error Context: test-results/checkout-Checkout-flow-buy-ca9f1-der-from-the-purchase-modal-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/checkout-Checkout-flow-buy-ca9f1-der-from-the-purchase-modal-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/checkout-Checkout-flow-buy-ca9f1-der-from-the-purchase-modal-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [chromium] › e2e/demo-mode.mocked.spec.ts:12:7 › single identity authentication and workspace choice › a fresh sign-in requests the canonical identity without a workspace body selector 
+
+    Test timeout of 45000ms exceeded.
+
+    Error: locator.click: Test ended.
+    Browser logs:
+
+    <launching> /opt/pw-browsers/chromium-1243/chrome-linux64/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=/tmp/playwright_chromiumdev_profile-KpqBAl --remote-debugging-pipe --no-startup-window
+    <launched> pid=2066
+    [pid=2066][err] [2066:2080:1105/231526.382010:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=2066][err] [2066:2080:1105/231526.382148:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=2066][err] [2066:2080:1105/231526.385533:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=2066][err] [2066:2080:1105/231526.386238:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=2066][err] [2066:2080:1105/231526.386425:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=2066][err] [2066:2080:1105/231526.420378:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=2066][err] [2066:2066:1105/231526.430682:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=2066][err] [2066:2080:1105/231526.430760:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=2066][err] [2066:2066:1105/231526.430852:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=2066][err] [2066:2080:1105/231526.430909:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=2066][err] [2066:2066:1105/231526.454144:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=2066][err] [2066:2080:1105/231526.454278:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=2066][err] [2066:2066:1105/231526.455244:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=2066][err] [2066:2066:1105/231526.455480:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=2066][err] [2066:2080:1105/231526.457114:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=2066][err] [2066:2080:1105/231526.457150:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+    [pid=2066][err] [2066:2080:1105/231526.457178:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=2066][err] [2066:2066:1105/231526.459041:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=2066][err] [2066:2066:1105/231526.460400:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: unknown error type: 
+    [pid=2066][err] [2066:2066:1105/231526.460419:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=2066][err] [2066:2080:1105/231526.461829:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=2066][err] [2066:2066:1105/231526.464517:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=2066][err] [2066:2080:1105/231526.464917:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+    [pid=2066][err] [2066:2066:1105/231526.466364:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+    [pid=2066][err] [2096:2131:1105/231526.596151:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231526.688222:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231526.700362:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231526.700630:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231526.700802:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231526.701032:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231527.114839:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231527.653899:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231527.714245:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231528.258548:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231528.400054:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231528.401222:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231528.401681:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231528.403778:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231528.404006:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066][err] [2096:2131:1105/231528.765218:ERROR:net/socket/socket_posix.cc:121] CreatePlatformSocket() failed: Address family not supported by protocol (97)
+    [pid=2066] <gracefully close start>
+    Call log:
+      - waiting for getByRole('button', { name: 'Sign in', exact: true })
+        - locator resolved to <button type="submit" data-page-guide="login-submit" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 px-4 py-2 w-full h-10 font-medium">Sign in</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div class="mt-5 flex items-center justify-between gap-3">…</div> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      2 × retrying click action
+          - waiting 100ms
+          - waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      21 × retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="mt-5 flex items-center justify-between gap-3">…</div> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <rect width="100%" height="100%" fill="rgba(3, 7, 18, 0.72)" mask="url(#page-guide-mask)"></rect> from <div aria-label="Page guide" class="fixed inset-0 z-[1000]">…</div> subtree intercepts pointer events
+      - retrying click action
+        - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+      34 |     await page.getByRole('textbox', { name: /email/i }).fill('member@example.test');
+      35 |     await page.locator('input[type="password"]').fill('practice-only-password');
+    > 36 |     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+         |                                                                      ^
+      37 |     await expect(page).toHaveURL(/\/feed(?:\?|$)/);
+      38 |     await expect(page.getByRole('button', { name: /Switch to Demo/i })).toHaveCount(0);
+      39 |     expect(submitted?.body).toMatchObject({ email: 'member@example.test' });
+        at /home/user/empire-x/frontend-next/e2e/demo-mode.mocked.spec.ts:36:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/demo-mode.mocked-single-id-6f800-t-a-workspace-body-selector-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/demo-mode.mocked-single-id-6f800-t-a-workspace-body-selector-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/demo-mode.mocked-single-id-6f800-t-a-workspace-body-selector-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/demo-mode.mocked-single-id-6f800-t-a-workspace-body-selector-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [chromium] › e2e/google-auth.spec.ts:65:7 › Section A — Google Sign-In UI › A1: login page renders the accessible Google OAuth button 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: /sign in with google/i })
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: /sign in with google/i }) with timeout 15000ms
+      - waiting for getByRole('button', { name: /sign in with google/i })
+
+
+      71 |     await expect(legacyButton).toHaveCount(0);
+      72 |
+    > 73 |     await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
+         |                                                                              ^
+      74 |   });
+      75 |
+      76 |   test('A2: register page renders the accessible Google OAuth button', async ({ page }) => {
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:73:78
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-0ceb6-essible-Google-OAuth-button-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-A-—-Go-0ceb6-essible-Google-OAuth-button-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-0ceb6-essible-Google-OAuth-button-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-A-—-Go-0ceb6-essible-Google-OAuth-button-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [chromium] › e2e/google-auth.spec.ts:76:7 › Section A — Google Sign-In UI › A2: register page renders the accessible Google OAuth button 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: /sign up with google/i })
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: /sign up with google/i }) with timeout 15000ms
+      - waiting for getByRole('button', { name: /sign up with google/i })
+
+
+      78 |     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+      79 |
+    > 80 |     await expect(page.getByRole('button', { name: /sign up with google/i })).toBeVisible();
+         |                                                                              ^
+      81 |   });
+      82 |
+      83 |   test('A3: Google login does not call the legacy sign-in global', async ({ page }) => {
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:80:78
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-257fc-essible-Google-OAuth-button-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-A-—-Go-257fc-essible-Google-OAuth-button-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-257fc-essible-Google-OAuth-button-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-A-—-Go-257fc-essible-Google-OAuth-button-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [chromium] › e2e/google-auth.spec.ts:83:7 › Section A — Google Sign-In UI › A3: Google login does not call the legacy sign-in global 
+
+    Test timeout of 45000ms exceeded.
+
+    Error: locator.click: Test timeout of 45000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /sign in with google/i })
+
+
+      89 |     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+      90 |
+    > 91 |     await page.getByRole('button', { name: /sign in with google/i }).click();
+         |                                                                      ^
+      92 |     expect(await page.evaluate(() => sessionStorage.getItem('legacy-google-called'))).toBeNull();
+      93 |   });
+      94 |
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:91:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-733f3-l-the-legacy-sign-in-global-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-A-—-Go-733f3-l-the-legacy-sign-in-global-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-733f3-l-the-legacy-sign-in-global-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-A-—-Go-733f3-l-the-legacy-sign-in-global-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) [chromium] › e2e/google-auth.spec.ts:109:7 › Section A — Google Sign-In UI › A6: register Google button does not depend on a GIS script 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: /sign up with google/i })
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: /sign up with google/i }) with timeout 15000ms
+      - waiting for getByRole('button', { name: /sign up with google/i })
+
+
+      114 |     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+      115 |
+    > 116 |     await expect(page.getByRole('button', { name: /sign up with google/i })).toBeVisible();
+          |                                                                              ^
+      117 |     await expect(page.locator('script[src*="accounts.google.com/gsi/client"]')).toHaveCount(0);
+      118 |   });
+      119 |
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:116:78
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-3b08d--not-depend-on-a-GIS-script-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-A-—-Go-3b08d--not-depend-on-a-GIS-script-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-3b08d--not-depend-on-a-GIS-script-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-A-—-Go-3b08d--not-depend-on-a-GIS-script-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) [chromium] › e2e/google-auth.spec.ts:120:7 › Section A — Google Sign-In UI › A7: login Google button does not depend on a GIS script 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: /sign in with google/i })
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: /sign in with google/i }) with timeout 15000ms
+      - waiting for getByRole('button', { name: /sign in with google/i })
+
+
+      123 |     await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
+      124 |
+    > 125 |     await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
+          |                                                                              ^
+      126 |     await expect(page.locator('script[src*="accounts.google.com/gsi/client"]')).toHaveCount(0);
+      127 |   });
+      128 |
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:125:78
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-6d650--not-depend-on-a-GIS-script-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-A-—-Go-6d650--not-depend-on-a-GIS-script-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-6d650--not-depend-on-a-GIS-script-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-A-—-Go-6d650--not-depend-on-a-GIS-script-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  13) [chromium] › e2e/google-auth.spec.ts:129:7 › Section A — Google Sign-In UI › A8: OAuth popup uses the configured client ID and same-origin callback 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: /sign in with google/i })
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: /sign in with google/i }) with timeout 15000ms
+      - waiting for getByRole('button', { name: /sign in with google/i })
+
+
+      137 |     await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
+      138 |     const googleButton = page.getByRole('button', { name: /sign in with google/i });
+    > 139 |     await expect(googleButton).toBeVisible();
+          |                                ^
+      140 |     await googleButton.click();
+      141 |
+      142 |     const requestUrl = await page.evaluate(() => sessionStorage.getItem('e2e-google-oauth-url'));
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:139:32
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-7f1ef-ID-and-same-origin-callback-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-A-—-Go-7f1ef-ID-and-same-origin-callback-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-7f1ef-ID-and-same-origin-callback-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-A-—-Go-7f1ef-ID-and-same-origin-callback-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  14) [chromium] › e2e/google-auth.spec.ts:263:7 › Section D — Google OAuth popup handoff › D1: normal popup handoff 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('div[aria-label*="Google"] button').first()
+    Expected: visible
+    Timeout: 20000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('div[aria-label*="Google"] button').first() with timeout 20000ms
+      - waiting for locator('div[aria-label*="Google"] button').first()
+
+
+      330 |
+      331 |     const gisButton = page.locator('div[aria-label*="Google"] button').first();
+    > 332 |     await expect(gisButton).toBeVisible({ timeout: 20_000 });
+          |                             ^
+      333 |     const popupPromise = context.waitForEvent('page', { timeout: 20_000 });
+      334 |     await gisButton.click();
+      335 |     const popup = await popupPromise;
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:332:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-D-—-Go-c6365-off-D1-normal-popup-handoff-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-D-—-Go-c6365-off-D1-normal-popup-handoff-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-D-—-Go-c6365-off-D1-normal-popup-handoff-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-D-—-Go-c6365-off-D1-normal-popup-handoff-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  15) [chromium] › e2e/signup.spec.ts:58:7 › Signup flow › register with valid credentials shows OTP verification screen 
+
+    Error: locator.check: Clicking the checkbox did not change its state
+    Call log:
+      - waiting for getByRole('checkbox', { name: /agree to the/i })
+        - locator resolved to <input type="checkbox" class="sr-only peer"/>
+      - attempting click action
+        - scrolling into view if needed
+        - done scrolling
+        - forcing action
+        - performing click action
+        - click action done
+        - waiting for scheduled navigations to finish
+        - navigations have finished
+
+
+      28 |     // hit-target check while still dispatching a real click → React onChange.
+      29 |     const checkbox = page.getByRole('checkbox', { name: /agree to the/i });
+    > 30 |     await checkbox.check({ force: true });
+         |                    ^
+      31 |     await expect(checkbox).toBeChecked();
+      32 |     // Prove React state actually updated (button enables only when agreed=true)
+      33 |     await page.locator('button[type="submit"]:not([disabled])').first().waitFor({ state: 'visible', timeout: 10_000 });
+        at fillRegisterForm (/home/user/empire-x/frontend-next/e2e/signup.spec.ts:30:20)
+        at /home/user/empire-x/frontend-next/e2e/signup.spec.ts:62:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-registe-8a4d9-ows-OTP-verification-screen-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/signup-Signup-flow-registe-8a4d9-ows-OTP-verification-screen-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-registe-8a4d9-ows-OTP-verification-screen-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/signup-Signup-flow-registe-8a4d9-ows-OTP-verification-screen-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  16) [chromium] › e2e/signup.spec.ts:82:7 › Signup flow › register rejects duplicate email ────────
+
+    Error: locator.check: Clicking the checkbox did not change its state
+    Call log:
+      - waiting for getByRole('checkbox', { name: /agree to the/i })
+        - locator resolved to <input type="checkbox" class="sr-only peer"/>
+      - attempting click action
+        - scrolling into view if needed
+        - done scrolling
+        - forcing action
+        - performing click action
+        - click action done
+        - waiting for scheduled navigations to finish
+        - navigations have finished
+
+
+      28 |     // hit-target check while still dispatching a real click → React onChange.
+      29 |     const checkbox = page.getByRole('checkbox', { name: /agree to the/i });
+    > 30 |     await checkbox.check({ force: true });
+         |                    ^
+      31 |     await expect(checkbox).toBeChecked();
+      32 |     // Prove React state actually updated (button enables only when agreed=true)
+      33 |     await page.locator('button[type="submit"]:not([disabled])').first().waitFor({ state: 'visible', timeout: 10_000 });
+        at fillRegisterForm (/home/user/empire-x/frontend-next/e2e/signup.spec.ts:30:20)
+        at /home/user/empire-x/frontend-next/e2e/signup.spec.ts:89:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-register-rejects-duplicate-email-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/signup-Signup-flow-register-rejects-duplicate-email-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-register-rejects-duplicate-email-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/signup-Signup-flow-register-rejects-duplicate-email-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  17) [chromium] › e2e/signup.spec.ts:97:7 › Signup flow › register rejects mismatched passwords ───
+
+    Error: locator.check: Clicking the checkbox did not change its state
+    Call log:
+      - waiting for getByRole('checkbox', { name: /agree to the/i })
+        - locator resolved to <input type="checkbox" class="sr-only peer"/>
+      - attempting click action
+        - scrolling into view if needed
+        - done scrolling
+        - forcing action
+        - performing click action
+        - click action done
+        - waiting for scheduled navigations to finish
+        - navigations have finished
+
+
+      28 |     // hit-target check while still dispatching a real click → React onChange.
+      29 |     const checkbox = page.getByRole('checkbox', { name: /agree to the/i });
+    > 30 |     await checkbox.check({ force: true });
+         |                    ^
+      31 |     await expect(checkbox).toBeChecked();
+      32 |     // Prove React state actually updated (button enables only when agreed=true)
+      33 |     await page.locator('button[type="submit"]:not([disabled])').first().waitFor({ state: 'visible', timeout: 10_000 });
+        at fillRegisterForm (/home/user/empire-x/frontend-next/e2e/signup.spec.ts:30:20)
+        at /home/user/empire-x/frontend-next/e2e/signup.spec.ts:101:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-register-rejects-mismatched-passwords-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/signup-Signup-flow-register-rejects-mismatched-passwords-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-register-rejects-mismatched-passwords-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/signup-Signup-flow-register-rejects-mismatched-passwords-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  18) [chromium] › e2e/signup.spec.ts:112:7 › Signup flow › register rejects password too short ────
+
+    Error: locator.check: Clicking the checkbox did not change its state
+    Call log:
+      - waiting for getByRole('checkbox', { name: /agree to the/i })
+        - locator resolved to <input type="checkbox" class="sr-only peer"/>
+      - attempting click action
+        - scrolling into view if needed
+        - done scrolling
+        - forcing action
+        - performing click action
+        - click action done
+        - waiting for scheduled navigations to finish
+        - navigations have finished
+
+
+      28 |     // hit-target check while still dispatching a real click → React onChange.
+      29 |     const checkbox = page.getByRole('checkbox', { name: /agree to the/i });
+    > 30 |     await checkbox.check({ force: true });
+         |                    ^
+      31 |     await expect(checkbox).toBeChecked();
+      32 |     // Prove React state actually updated (button enables only when agreed=true)
+      33 |     await page.locator('button[type="submit"]:not([disabled])').first().waitFor({ state: 'visible', timeout: 10_000 });
+        at fillRegisterForm (/home/user/empire-x/frontend-next/e2e/signup.spec.ts:30:20)
+        at /home/user/empire-x/frontend-next/e2e/signup.spec.ts:116:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-register-rejects-password-too-short-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/signup-Signup-flow-register-rejects-password-too-short-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-register-rejects-password-too-short-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/signup-Signup-flow-register-rejects-password-too-short-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  19) [chromium] › e2e/signup.spec.ts:148:7 › Signup flow › can navigate back from OTP screen to edit email 
+
+    Error: locator.check: Clicking the checkbox did not change its state
+    Call log:
+      - waiting for getByRole('checkbox', { name: /agree to the/i })
+        - locator resolved to <input type="checkbox" class="sr-only peer"/>
+      - attempting click action
+        - scrolling into view if needed
+        - done scrolling
+        - forcing action
+        - performing click action
+        - click action done
+        - waiting for scheduled navigations to finish
+        - navigations have finished
+
+
+      28 |     // hit-target check while still dispatching a real click → React onChange.
+      29 |     const checkbox = page.getByRole('checkbox', { name: /agree to the/i });
+    > 30 |     await checkbox.check({ force: true });
+         |                    ^
+      31 |     await expect(checkbox).toBeChecked();
+      32 |     // Prove React state actually updated (button enables only when agreed=true)
+      33 |     await page.locator('button[type="submit"]:not([disabled])').first().waitFor({ state: 'visible', timeout: 10_000 });
+        at fillRegisterForm (/home/user/empire-x/frontend-next/e2e/signup.spec.ts:30:20)
+        at /home/user/empire-x/frontend-next/e2e/signup.spec.ts:152:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-can-nav-aa5b4-om-OTP-screen-to-edit-email-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/signup-Signup-flow-can-nav-aa5b4-om-OTP-screen-to-edit-email-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-can-nav-aa5b4-om-OTP-screen-to-edit-email-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/signup-Signup-flow-can-nav-aa5b4-om-OTP-screen-to-edit-email-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  20) [chromium] › e2e/signup.spec.ts:170:7 › Signup flow › resend OTP button works and shows cooldown 
+
+    Error: locator.check: Clicking the checkbox did not change its state
+    Call log:
+      - waiting for getByRole('checkbox', { name: /agree to the/i })
+        - locator resolved to <input type="checkbox" class="sr-only peer"/>
+      - attempting click action
+        - scrolling into view if needed
+        - done scrolling
+        - forcing action
+        - performing click action
+        - click action done
+        - waiting for scheduled navigations to finish
+        - navigations have finished
+
+
+      28 |     // hit-target check while still dispatching a real click → React onChange.
+      29 |     const checkbox = page.getByRole('checkbox', { name: /agree to the/i });
+    > 30 |     await checkbox.check({ force: true });
+         |                    ^
+      31 |     await expect(checkbox).toBeChecked();
+      32 |     // Prove React state actually updated (button enables only when agreed=true)
+      33 |     await page.locator('button[type="submit"]:not([disabled])').first().waitFor({ state: 'visible', timeout: 10_000 });
+        at fillRegisterForm (/home/user/empire-x/frontend-next/e2e/signup.spec.ts:30:20)
+        at /home/user/empire-x/frontend-next/e2e/signup.spec.ts:174:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-resend--695f3-on-works-and-shows-cooldown-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/signup-Signup-flow-resend--695f3-on-works-and-shows-cooldown-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-resend--695f3-on-works-and-shows-cooldown-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/signup-Signup-flow-resend--695f3-on-works-and-shows-cooldown-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  20 failed
+    [chromium] › e2e/auth.spec.ts:39:7 › Authenticated flows › login with valid credentials reaches the authenticated app shell 
+    [chromium] › e2e/auth.spec.ts:74:7 › Authenticated flows › login rejects bad credentials without navigation 
+    [chromium] › e2e/chat.spec.ts:83:7 › Realtime chat › message sent by A appears live for B without a reload 
+    [chromium] › e2e/chat.spec.ts:111:7 › Realtime chat › recipient sees the message after a reload too (persistence) 
+    [chromium] › e2e/checkout.spec.ts:93:7 › Checkout flow › product page renders Buy Now and opens the purchase modal 
+    [chromium] › e2e/checkout.spec.ts:106:7 › Checkout flow › buyer can complete a COD order from the purchase modal 
+    [chromium] › e2e/demo-mode.mocked.spec.ts:12:7 › single identity authentication and workspace choice › a fresh sign-in requests the canonical identity without a workspace body selector 
+    [chromium] › e2e/google-auth.spec.ts:65:7 › Section A — Google Sign-In UI › A1: login page renders the accessible Google OAuth button 
+    [chromium] › e2e/google-auth.spec.ts:76:7 › Section A — Google Sign-In UI › A2: register page renders the accessible Google OAuth button 
+    [chromium] › e2e/google-auth.spec.ts:83:7 › Section A — Google Sign-In UI › A3: Google login does not call the legacy sign-in global 
+    [chromium] › e2e/google-auth.spec.ts:109:7 › Section A — Google Sign-In UI › A6: register Google button does not depend on a GIS script 
+    [chromium] › e2e/google-auth.spec.ts:120:7 › Section A — Google Sign-In UI › A7: login Google button does not depend on a GIS script 
+    [chromium] › e2e/google-auth.spec.ts:129:7 › Section A — Google Sign-In UI › A8: OAuth popup uses the configured client ID and same-origin callback 
+    [chromium] › e2e/google-auth.spec.ts:263:7 › Section D — Google OAuth popup handoff › D1: normal popup handoff 
+    [chromium] › e2e/signup.spec.ts:58:7 › Signup flow › register with valid credentials shows OTP verification screen 
+    [chromium] › e2e/signup.spec.ts:82:7 › Signup flow › register rejects duplicate email ──────────
+    [chromium] › e2e/signup.spec.ts:97:7 › Signup flow › register rejects mismatched passwords ─────
+    [chromium] › e2e/signup.spec.ts:112:7 › Signup flow › register rejects password too short ──────
+    [chromium] › e2e/signup.spec.ts:148:7 › Signup flow › can navigate back from OTP screen to edit email 
+    [chromium] › e2e/signup.spec.ts:170:7 › Signup flow › resend OTP button works and shows cooldown 
+  2 skipped
+  29 passed (9.2m)
