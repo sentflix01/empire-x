@@ -775,3 +775,16 @@ items in the open list until confirmed.
   - Code: `backend/routes/notifications.ts`, `frontend-next/views/Notifications.tsx`, `frontend-next/components/layout/AppLayout.tsx`
   - Tests: `backend/test/db/notificationHistory.db.test.js`, `frontend-next/test/notifications.history.test.tsx`
 
+
+### 2026-11-05 — Shared Claude Code setup: permission rules, skills, no MCP servers yet
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (5 Nov 2026: approved "commit it to the repo" and "no MCP servers for now, scripts instead")
+- **Context:** Agent work had no shared, versioned guardrails or procedures; work notes are spread across `.kiro/specs/`, `.agents/tasks/`, `implementation plan/` and `note/`.
+- **Decision:**
+  1. **Permissions:** `.claude/settings.json` denies reading or editing local `.env` files, force-push, `--no-verify` commits and staging `.env`; it pre-approves only read-only and check commands. Personal overrides go in the gitignored `.claude/settings.local.json`.
+  2. **Skills:** `.claude/skills/` holds `local-stack`, `audit-finding`, `security-audit` and `a11y-audit`. Skills link to existing docs instead of repeating them; `AGENTS.md` stays the single source of working rules.
+  3. **MCP servers:** none added. Reproducible scripts and Playwright are used instead. A server may be added later only if it is official or well maintained, pinned to an exact version, least-privilege, pointed at the local stack, and documented in `.mcp.json` and `docs/`.
+- **Consequences:** Every Claude Code session in this repo gets the same rules. Custom guard hooks (production, local-database and secret checks) are not part of this change; secret scanning in CI is tracked as an audit finding.
+- **Open:** whether to consolidate `.kiro/specs/`, `.agents/tasks/` and `implementation plan/` into one location (owner decision).
+- **Related documentation:** `CONTRIBUTING.md` (Agent tooling), `note/2026-11-05-international-audit/README.md`

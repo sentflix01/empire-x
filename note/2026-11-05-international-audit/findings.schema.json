@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nodbusiness/audit/finding.schema.json",
+  "title": "Audit finding",
+  "description": "One finding per file in findings/F-NNN.json. Enforced by scripts/validate-findings.mjs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "title", "phase", "severity", "status", "standards", "location",
+    "steps", "expected", "actual", "evidence", "impact", "fix", "effort",
+    "found_on", "environment"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^F-[0-9]{3}$" },
+    "title": { "type": "string", "minLength": 8, "maxLength": 120 },
+    "phase": {
+      "enum": ["P1-inventory", "P2-functional", "P3-ux", "P4-a11y", "P5-security", "P6-privacy",
+               "P7-performance", "P8-legal", "P9-i18n-seo", "P10-architecture", "P11-integrations",
+               "P12-docs", "P13-polish"]
+    },
+    "severity": { "enum": ["Critical", "High", "Medium", "Low", "Info"] },
+    "status": {
+      "description": "CONFIRMED needs reproducible evidence. UNVERIFIED states why it could not be verified.",
+      "enum": ["CONFIRMED", "UNVERIFIED", "POSITIVE"]
+    },
+    "unverified_reason": { "type": "string" },
+    "standards": {
+      "description": "e.g. 'OWASP A01:2025', 'ASVS 5.0 V8.2.1', 'WCAG 2.2 SC 2.4.11', 'GDPR Art. 17'",
+      "type": "array", "minItems": 1, "items": { "type": "string" }
+    },
+    "cvss_v4": {
+      "description": "Required for P5-security findings with status CONFIRMED.",
+      "type": "object",
+      "required": ["vector", "score"],
+      "properties": {
+        "vector": { "type": "string", "pattern": "^CVSS:4\\.0/" },
+        "score": { "type": "number", "minimum": 0, "maximum": 10 }
+      }
+    },
+    "location": {
+      "description": "file:line, URL path, or 'METHOD /api/path'",
+      "type": "array", "minItems": 1, "items": { "type": "string" }
+    },
+    "steps": { "type": "array", "items": { "type": "string" } },
+    "expected": { "type": "string" },
+    "actual": { "type": "string" },
+    "evidence": {
+      "description": "Paths under evidence/F-NNN/ or file:line references. Never secrets or real personal data.",
+      "type": "array", "minItems": 1, "items": { "type": "string" }
+    },
+    "impact": { "type": "string" },
+    "fix": { "type": "string" },
+    "effort": { "enum": ["S", "M", "L"] },
+    "found_on": { "type": "string", "format": "date" },
+    "environment": { "enum": ["local", "production-passive", "repository"] },
+    "regression_test": { "description": "Suggested permanent automated check.", "type": "string" }
+  }
+}

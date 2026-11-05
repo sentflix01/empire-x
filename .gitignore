@@ -94,3 +94,6 @@ overview.json
 overview_architecture.puml
 
 backend/db/dev-credentials.json
+
+# Claude Code personal overrides (project settings in .claude/settings.json are shared)
+.claude/settings.local.json

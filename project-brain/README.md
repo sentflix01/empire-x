@@ -77,6 +77,8 @@ maintains them.
 | Performance and reliability | `docs/best-practice/performance.md` | `docs/best-practice/observability.md`, `docs/PRODUCTION_READINESS_SCORECARD.md` |
 | Current known work | `docs/operations/TECHNICAL_DEBT.md` | `docs/PRODUCTION_READINESS_SCORECARD.md`; verify each item is still current |
 | Exploratory notes | `note/README.md` | Contents of `note/` are non-authoritative until adopted into a maintained spec |
+| Agent tooling | `.claude/settings.json`, `.claude/skills/` | `CONTRIBUTING.md` (Agent tooling), decision 2026-11-05 in `DECISIONS.md` |
+| Current audit (2026-11) | `note/2026-11-05-international-audit/README.md` | Findings in `findings/`, validated by `scripts/validate-findings.mjs`; non-authoritative until adopted |
 
 ## Keep this brain trustworthy
 
