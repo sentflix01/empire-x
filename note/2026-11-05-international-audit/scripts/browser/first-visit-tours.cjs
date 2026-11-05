@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
     const overlay = await p.locator('div[aria-label="Page guide"]').count();
     const text = overlay ? (await p.locator('div[aria-label="Page guide"]').innerText()).replace(/\s+/g, ' ').slice(0, 220) : '';
     const buttons = overlay ? await p.locator('div[aria-label="Page guide"] button').allInnerTexts() : [];
-    await p.screenshot({ path: `' + (process.env.OUT_DIR || ".") + '/first-visit${path.replace(/\//g, '-')}.png` });
+    await p.screenshot({ path: `${process.env.OUT_DIR || '.'}/first-visit${path.replace(/\//g, '-')}.png` });
     console.log(JSON.stringify({ path, overlay, text, buttons }));
     await p.close();
   }
