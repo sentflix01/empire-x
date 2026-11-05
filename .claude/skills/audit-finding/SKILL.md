@@ -18,11 +18,12 @@ and rules of engagement before recording anything.
 3. **Redact.** Never copy secrets, tokens, passwords, real personal data or
    production records into a finding or evidence file. Record the location only.
 4. **Cite a standard** for every finding (see table below).
-5. **Positive findings** (things done well that must not regress) use
+5. **Kind.** Set `kind`: `vulnerability` (exploitable; CVSS v4.0 required for security), `hardening` (missing defence-in-depth control; no CVSS), `defect`, `documentation` or `positive`.
+6. **Positive findings** (things done well that must not regress) use
    `status: "POSITIVE"` and `severity: "Info"`.
-6. **Validate** after every change:
+7. **Validate** after every change:
    `node note/2026-11-05-international-audit/scripts/validate-findings.mjs`.
-7. When a finding exposes a conflict between authoritative sources, record it and
+8. When a finding exposes a conflict between authoritative sources, record it and
    ask the owner — do not decide product, security or data questions yourself
    (`AGENTS.md`, `project-brain/README.md`).
 
@@ -50,7 +51,7 @@ Rate by realistic impact in this product, not by the category name.
 
 ## CVSS v4.0
 
-Required for confirmed `P5-security` findings above Info. Record the full
+Required for confirmed `P5-security` findings of kind `vulnerability` above Info. Record the full
 vector (`CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N`) and the
 base score from the FIRST calculator. State assumptions in `impact`.
 

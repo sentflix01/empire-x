@@ -16,7 +16,7 @@
     "Start the local stack.",
     "Without cookies, GET http://127.0.0.1:3002/products/create, /products/edit, /products/scan, and /orders as a control."
   ],
-  "expected": "Builder pages redirect guests to /login?return=\u2026 like /orders, /profile/edit and /business/create do.",
+  "expected": "Builder pages redirect guests to /login?return=… like /orders, /profile/edit and /business/create do.",
   "actual": "The '/products/' public prefix (for product detail pages) also matches /products/create, /products/edit and /products/scan, which are not in AUTH_ONLY_PREFIXES; they answer 200 to guests. The API still requires sign-in, so no data is exposed.",
   "evidence": [
     "evidence/wave1/edge-guard.txt"
@@ -25,5 +25,6 @@
   "fix": "Add '/products/create', '/products/edit' and '/products/scan' to AUTH_ONLY_PREFIXES (or match /products/[id] only), and add cases to the existing publicPaths tests.",
   "effort": "S",
   "found_on": "2026-11-05",
-  "environment": "local"
+  "environment": "local",
+  "kind": "hardening"
 }

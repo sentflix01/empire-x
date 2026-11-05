@@ -1,0 +1,5 @@
+local probe 2026-11-05T18:09:55Z
+POST /api/upload (signed-in test user, 1x1 generated PNG) -> url http://localhost:3001/uploads/1793902164508-599277622.png
+GET that url with no cookies/headers -> 200 image/png
+key generator: backend/middleware/upload.ts:205,373 (Date.now() + Math.random()*1e9)
+production URL form: backend/middleware/upload.ts:268 (/storage/v1/object/public/...), bucket created public: backend/index.ts (public: true)

@@ -29,5 +29,6 @@
   ],
   "impact": "Clients cannot branch on a stable code (e.g. TOKEN_EXPIRED vs REVOKED) and support cannot trace 401s by request_id.",
   "fix": "Use apiError helpers in middleware/auth.ts with distinct codes (UNAUTHORIZED, TOKEN_EXPIRED, TOKEN_REVOKED); keep the error text. Update frontend checks that compare message strings.",
-  "effort": "S"
+  "effort": "S",
+  "kind": "defect"
 }

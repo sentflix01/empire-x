@@ -24,5 +24,6 @@
   ],
   "impact": "Two different names can exist for one person; where users.full_name is used (e.g. emails, admin views) the old name appears. Exact downstream effect to verify in Wave 3.",
   "fix": "Decide which field is the source of truth. Either add an authenticated, validated endpoint that updates users.full_name, or remove the dead call and derive the name from user_profiles everywhere.",
-  "effort": "S"
+  "effort": "S",
+  "kind": "defect"
 }

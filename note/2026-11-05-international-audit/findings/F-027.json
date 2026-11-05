@@ -1,0 +1,31 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-027",
+  "kind": "positive",
+  "phase": "P5-security",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "title": "Positive: webhooks, internal jobs, sandbox gates and guest order tokens are well protected",
+  "standards": [
+    "OWASP A08:2025",
+    "ASVS 5.0 V2.3, V11"
+  ],
+  "location": [
+    "backend/routes/orders.ts:643-676",
+    "backend/lib/chapaClient.ts:145-153",
+    "backend/routes/internalJobs.ts",
+    "backend/lib/chapaClient.ts:55-57",
+    "backend/routes/directOrders.ts:282",
+    "backend/routes/directOrders.ts:408"
+  ],
+  "expected": "Signed, idempotent webhooks; secret-protected jobs; no fake payment surface in production; unguessable guest links.",
+  "actual": "Stripe events are signature-checked and claimed atomically (duplicates ignored, failed processing released for redelivery). Chapa webhooks: HMAC with length check and timingSafeEqual. Internal jobs: 404 unless a ≥32-char secret is set, hashed constant-time compare. All sandbox payment routes return 404 in production. Guest order links: 256-bit random tokens stored as SHA-256, rate-limited.",
+  "evidence": [
+    "backend/routes/internalJobs.ts:33-38"
+  ],
+  "impact": "Keep.",
+  "fix": "None.",
+  "effort": "S"
+}

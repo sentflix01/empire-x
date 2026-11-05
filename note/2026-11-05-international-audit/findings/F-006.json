@@ -25,5 +25,6 @@
   ],
   "impact": "Admin-only. Operators lose the error-triage and docs tools the console advertises.",
   "fix": "Implement the routes behind requireAuth + requireAdmin, or remove the panels. Record which in the DevOps console spec.",
-  "effort": "M"
+  "effort": "M",
+  "kind": "defect"
 }

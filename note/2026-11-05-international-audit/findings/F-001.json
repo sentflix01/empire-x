@@ -31,5 +31,6 @@
   "impact": "Sellers cannot attach photos when creating or editing a product — a core seller journey. Products go live without images or sellers abandon the flow. Browser reproduction pending in Wave 3.",
   "fix": "Either add POST /api/upload/multiple (upload.array('files', 10), same signature validation as the single route, returns { files: [{ url }] }), or change uploadFiles() to call POST /api/upload once per file with bounded concurrency. Add a Vitest test for uploadFiles and a Playwright step that uploads two photos on /products/create.",
   "effort": "S",
-  "regression_test": "Contract test: every literal /api path in frontend source resolves to a registered backend route (scripts/inventory-frontend.mjs in CI)."
+  "regression_test": "Contract test: every literal /api path in frontend source resolves to a registered backend route (scripts/inventory-frontend.mjs in CI).",
+  "kind": "defect"
 }

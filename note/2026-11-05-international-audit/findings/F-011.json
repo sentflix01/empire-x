@@ -21,5 +21,6 @@
   ],
   "impact": "Reliable API docs. Small generator gap.",
   "fix": "Teach generate-api-docs.js to expand array paths; add a CI check that regenerating produces no diff.",
-  "effort": "S"
+  "effort": "S",
+  "kind": "positive"
 }

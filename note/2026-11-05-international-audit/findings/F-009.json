@@ -25,5 +25,6 @@
   ],
   "impact": "One non-idempotent migration would fail or corrupt data on the next deploy; there is no way to tell which migrations a database has. Deploy time grows with every migration.",
   "fix": "Add a schema_migrations(name, checksum, applied_at) table; have migrate-all skip recorded files and record each success in the same transaction; backfill for existing databases; stop running data patches from index.ts at boot. Update CONTRIBUTING.md.",
-  "effort": "M"
+  "effort": "M",
+  "kind": "hardening"
 }

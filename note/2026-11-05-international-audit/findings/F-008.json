@@ -29,5 +29,6 @@
   ],
   "impact": "New contributors and reviewers act on wrong assumptions (e.g. re-doing completed work or misjudging XSS exposure).",
   "fix": "Mark TD-003/TD-004 done or re-scope; amend ADR-004 status to Superseded by TD-001/TD-014; fix the auth.ts comment; add a dated 'superseded' note to MESSAGING_AUDIT; regenerate scorecard figures from scripts.",
-  "effort": "S"
+  "effort": "S",
+  "kind": "documentation"
 }

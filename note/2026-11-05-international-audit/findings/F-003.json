@@ -27,5 +27,6 @@
   ],
   "impact": "delivery_tracking is enabled for 100% of users but cannot work; buyers see no updates and sellers cannot post any.",
   "fix": "Use GET /api/delivery/order/${orderId} and POST /api/delivery with order_id in the body (match backend validation). Show an error state instead of an empty list when loading fails.",
-  "effort": "S"
+  "effort": "S",
+  "kind": "defect"
 }

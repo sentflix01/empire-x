@@ -1,0 +1,32 @@
+=== backend /health
+HTTP/1.1 200 OK
+Vary: Accept-Encoding, Origin, X-Real-Only
+API-Version: 1
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: cross-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: strict-origin-when-cross-origin
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: DENY
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Access-Control-Allow-Credentials: true
+Content-Type: application/json; charset=utf-8
+
+=== CORS untrusted origin
+HTTP/1.1 200 OK
+=== CORS trusted origin
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: http://localhost:3002
+Access-Control-Allow-Credentials: true
+=== frontend /landing
+HTTP/1.1 200 OK
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: camera=(self), microphone=(), geolocation=(self)
+Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://accounts.google.com https://unpkg.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com; img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3002; font-src 'self'; connect-src 'self' http://localhost:3001 ws://localhost:3001 ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in; frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://maps.google.com https://www.openstreetmap.org; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; worker-src 'self' blob:
+Cross-Origin-Opener-Policy: same-origin-allow-popups
+X-Powered-By: Next.js

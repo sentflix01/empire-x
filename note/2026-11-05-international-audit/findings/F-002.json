@@ -28,5 +28,6 @@
   ],
   "impact": "A promoted feature never works, and end users see an internal configuration instruction, which looks unprofessional and hints at server internals.",
   "fix": "Call the existing POST /api/ai/generate with the product context (or add the route on the backend), check GET /api/ai/status to hide the button when AI is not configured, and replace the toast with user-facing copy from the locale files.",
-  "effort": "S"
+  "effort": "S",
+  "kind": "defect"
 }

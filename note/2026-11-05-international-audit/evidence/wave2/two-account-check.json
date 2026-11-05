@@ -1,0 +1,71 @@
+{
+  "ran_at": "2026-11-05T18:12:40.470Z",
+  "api": "http://127.0.0.1:3001",
+  "results": [
+    {
+      "setup": "A creates business",
+      "status": 201,
+      "id": "5daccf33-505b-47f9-b928-4013636b6098",
+      "error": null
+    },
+    {
+      "setup": "A creates product",
+      "status": 201,
+      "id": "e15d9876-3e05-4e96-8c46-84911927fe7b",
+      "error": null
+    },
+    {
+      "check": "B updates A business",
+      "status": 403,
+      "pass": true,
+      "error": "Forbidden"
+    },
+    {
+      "check": "B lists A payment accounts",
+      "status": 403,
+      "pass": true,
+      "error": "Forbidden"
+    },
+    {
+      "check": "B adds payment account to A business",
+      "status": 403,
+      "pass": true,
+      "error": "Forbidden"
+    },
+    {
+      "check": "Guest lists A payment accounts",
+      "status": 401,
+      "pass": true,
+      "error": "Authentication required"
+    },
+    {
+      "check": "B updates A product",
+      "status": 403,
+      "pass": true,
+      "error": "Forbidden"
+    },
+    {
+      "check": "B deletes A product",
+      "status": 403,
+      "pass": true,
+      "error": "Forbidden"
+    },
+    {
+      "check": "A product unchanged after B attempts",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "check": "B reads admin users",
+      "status": 403,
+      "pass": true,
+      "error": "Admin access required"
+    },
+    {
+      "check": "B reads devops errors",
+      "status": 403,
+      "pass": true,
+      "error": "Admin access required"
+    }
+  ]
+}

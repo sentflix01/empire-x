@@ -1,0 +1,6 @@
+== backend
+info=0 low=4 moderate=17 high=1 critical=0 total=22
+high follow-redirects fixAvailable=true
+== frontend-next
+info=0 low=0 moderate=10 high=1 critical=0 total=11
+high follow-redirects fixAvailable=true

@@ -48,8 +48,9 @@ function check(file, f) {
   if (f.status === 'UNVERIFIED' && !f.unverified_reason) e('UNVERIFIED needs "unverified_reason"');
   if (f.status === 'CONFIRMED' && (!f.steps || f.steps.length === 0) && f.environment !== 'repository')
     e('CONFIRMED runtime findings need reproduction "steps"');
-  if (f.phase === 'P5-security' && f.status === 'CONFIRMED' && f.severity !== 'Info' && !f.cvss_v4)
-    e('confirmed security findings need "cvss_v4"');
+  if (f.phase === 'P5-security' && f.status === 'CONFIRMED' && f.severity !== 'Info' && f.kind !== 'hardening' && !f.cvss_v4)
+    e('confirmed security vulnerabilities need "cvss_v4" (set kind: "hardening" for missing defence-in-depth controls)');
+  if (f.kind === 'positive' && f.status !== 'POSITIVE') e('kind "positive" requires status POSITIVE');
   if (f.cvss_v4) {
     const c = f.cvss_v4;
     if (typeof c.vector !== 'string' || !c.vector.startsWith('CVSS:4.0/')) e('cvss_v4.vector must start with CVSS:4.0/');

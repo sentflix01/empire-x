@@ -21,5 +21,6 @@
   ],
   "impact": "Strong protection against seeding or wiping production by mistake. Keep it.",
   "fix": "None. Add a test that every script under backend/db/ that writes calls this guard.",
-  "effort": "S"
+  "effort": "S",
+  "kind": "positive"
 }

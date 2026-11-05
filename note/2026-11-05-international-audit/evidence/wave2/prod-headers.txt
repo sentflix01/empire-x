@@ -1,0 +1,8 @@
+=== GET https://nodbusiness.vercel.app/
+curl: (56) CONNECT tunnel failed, response 403
+HTTP/1.1 403 Forbidden
+X-Content-Type-Options: nosniff
+=== GET https://nodbusiness-backend-9psf.onrender.com/health
+curl: (56) CONNECT tunnel failed, response 403
+HTTP/1.1 403 Forbidden
+X-Content-Type-Options: nosniff

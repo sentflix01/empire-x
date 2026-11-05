@@ -1,0 +1,28 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "production-passive",
+  "id": "F-029",
+  "kind": "hardening",
+  "phase": "P5-security",
+  "severity": "Info",
+  "status": "UNVERIFIED",
+  "title": "Production passive checks not run: sandbox network policy blocks the hosts",
+  "unverified_reason": "The cloud environment's network policy rejects CONNECT to nodbusiness.vercel.app and nodbusiness-backend-9psf.onrender.com (proxy 403). Owner can allow these hosts in the environment's Network access settings.",
+  "standards": [
+    "OWASP A02:2025",
+    "ASVS 5.0 V3.4, V12.1"
+  ],
+  "location": [
+    "https://nodbusiness.vercel.app",
+    "https://nodbusiness-backend-9psf.onrender.com"
+  ],
+  "expected": "Production headers, TLS configuration, robots/sitemap/security.txt, email DNS (SPF/DKIM/DMARC) and one Lighthouse run checked read-only.",
+  "actual": "Not checked. Repository config suggests: backend HSTS + deny-all CSP in production; frontend CSP as in F-016; HSTS on the frontend depends on Vercel.",
+  "evidence": [
+    "evidence/wave2/prod-headers.txt"
+  ],
+  "impact": "Hosting-layer settings (Vercel/Render headers, TLS, DNS) are unknown.",
+  "fix": "Allow the two hosts, then re-run the passive checks.",
+  "effort": "S"
+}

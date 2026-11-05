@@ -24,5 +24,6 @@
   ],
   "impact": "A visible setting does nothing for users who connected Telegram.",
   "fix": "Add PUT /api/telegram/notifications (auth, boolean validation, ownership by req.user) or remove the toggle until it exists.",
-  "effort": "S"
+  "effort": "S",
+  "kind": "defect"
 }
