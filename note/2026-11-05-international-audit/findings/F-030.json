@@ -1,0 +1,31 @@
+{
+  "id": "F-030",
+  "kind": "defect",
+  "phase": "P7-performance",
+  "severity": "High",
+  "status": "CONFIRMED",
+  "title": "Production API did not respond for at least seven minutes",
+  "standards": [
+    "ISO/IEC 25010:2023 reliability (availability)",
+    "docs/infrastructure/SLO.md (availability objective)"
+  ],
+  "location": [
+    "https://nodbusiness-backend-9psf.onrender.com/health",
+    "render.yaml (plan: free)",
+    "backend/index.ts:412-416 (startup refuses to listen if isolation check fails)"
+  ],
+  "steps": [
+    "From the audit sandbox, GET https://nodbusiness-backend-9psf.onrender.com/health at 22:37, 22:39 and 22:42 UTC on 2026-11-05 (timeouts 90 s, 180 s, 120 s)."
+  ],
+  "expected": "/health answers 200 within a few seconds (or within ~60 s on a free-tier cold start).",
+  "actual": "All three requests connected and then received 0 bytes until the client timeout. The frontend on Vercel answered normally at the same time, so the API — which every signed-in feature depends on — was unavailable from this vantage point for at least 7 minutes.",
+  "evidence": [
+    "evidence/wave2/prod-headers.txt"
+  ],
+  "impact": "If this persisted, sign-in, feed, products, orders and messages fail for every user. Cause not determinable from outside: possible free-tier spin-up failure, a crash loop (index.ts exits when the database isolation check fails), a deploy in progress, or a regional network issue on the audit side.",
+  "fix": "Owner: check Render events and logs for this window now. Then: move off the free plan (no sleep), add external uptime monitoring with alerting on /health, publish a status page, and make /health independent of slow dependencies. Re-test from a second network to rule out a vantage-point issue.",
+  "effort": "M",
+  "found_on": "2026-11-05",
+  "environment": "production-passive",
+  "regression_test": "External uptime check (1-minute interval) on /health with paging."
+}

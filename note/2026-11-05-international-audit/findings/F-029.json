@@ -7,8 +7,8 @@
   "phase": "P5-security",
   "severity": "Info",
   "status": "UNVERIFIED",
-  "title": "Production passive checks not run: sandbox network policy blocks the hosts",
-  "unverified_reason": "The cloud environment's network policy rejects CONNECT to nodbusiness.vercel.app and nodbusiness-backend-9psf.onrender.com (proxy 403). Owner can allow these hosts in the environment's Network access settings.",
+  "title": "Production passive checks: frontend verified; API, TLS and email DNS not verifiable",
+  "unverified_reason": "Allowed the two production hosts via a personal 'empire-x' environment on 2026-11-05. TLS results reflect the sandbox's TLS-intercepting proxy, not Vercel/Render. The API did not respond (F-030). DNS tooling for SPF/DKIM/DMARC is not available here.",
   "standards": [
     "OWASP A02:2025",
     "ASVS 5.0 V3.4, V12.1"
@@ -18,9 +18,10 @@
     "https://nodbusiness-backend-9psf.onrender.com"
   ],
   "expected": "Production headers, TLS configuration, robots/sitemap/security.txt, email DNS (SPF/DKIM/DMARC) and one Lighthouse run checked read-only.",
-  "actual": "Not checked. Repository config suggests: backend HSTS + deny-all CSP in production; frontend CSP as in F-016; HSTS on the frontend depends on Vercel.",
+  "actual": "Frontend (verified 22:37 UTC): HSTS max-age=63072000; includeSubDomains; preload (Vercel); X-Frame-Options DENY; nosniff; Referrer-Policy strict-origin-when-cross-origin; Permissions-Policy set; CSP as F-016; X-Powered-By: Next.js present; robots.txt, sitemap.xml (4 static URLs only), manifest.json and RFC 9116 security.txt (Contact + Expires 2027-11-02) all served. Not verified: backend headers (API unreachable), TLS protocol/cipher policy, email DNS, Lighthouse.",
   "evidence": [
-    "evidence/wave2/prod-headers.txt"
+    "evidence/wave2/prod-headers.txt",
+    "evidence/wave2/prod-public-files.txt"
   ],
   "impact": "Hosting-layer settings (Vercel/Render headers, TLS, DNS) are unknown.",
   "fix": "Allow the two hosts, then re-run the passive checks.",

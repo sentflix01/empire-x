@@ -1,6 +1,6 @@
 # International-grade audit — 2026-11-05
 
-> **Status:** Wave 1 (inventory) complete — see `inventory/README.md`. Wave 2 (security & privacy) next. Non-authoritative work note per
+> **Status:** Waves 1 (inventory) and 2 (security & privacy) complete — see `SUMMARY.md` and `inventory/README.md`. Wave 3 (functional journeys) next. Non-authoritative work note per
 > [`note/README.md`](../README.md). Findings become requirements only when
 > adopted into `docs/` or `project-brain/DECISIONS.md`.
 
@@ -61,3 +61,4 @@ Recorded in `scripts/tool-versions.txt` when each wave starts.
 | `evidence/` | Screenshots, request/response captures, tool output (redacted) |
 | `scripts/` | Re-runnable commands and helpers |
 | `inventory/` | Wave 1 outputs: routes, endpoints, third parties, data map, permission matrix |
+| `SUMMARY.md` | Generated findings table (`scripts/summarize-findings.mjs`) |

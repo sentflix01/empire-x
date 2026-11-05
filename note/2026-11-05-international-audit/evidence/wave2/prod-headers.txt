@@ -1,8 +1,44 @@
-=== GET https://nodbusiness.vercel.app/
-curl: (56) CONNECT tunnel failed, response 403
-HTTP/1.1 403 Forbidden
-X-Content-Type-Options: nosniff
-=== GET https://nodbusiness-backend-9psf.onrender.com/health
-curl: (56) CONNECT tunnel failed, response 403
-HTTP/1.1 403 Forbidden
-X-Content-Type-Options: nosniff
+=== GET https://nodbusiness.vercel.app/  (2026-11-05T22:37:30Z)
+HTTP/1.1 200 Connection Established
+HTTP/2 307 
+cache-control: private, no-cache, no-store, max-age=0, must-revalidate
+content-security-policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://accounts.google.com https://unpkg.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com; img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3002; font-src 'self'; connect-src 'self' https://nodbusiness-backend-9psf.onrender.com wss://nodbusiness-backend-9psf.onrender.com ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in; frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://maps.google.com https://www.openstreetmap.org; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests
+cross-origin-opener-policy: same-origin-allow-popups
+location: /landing
+permissions-policy: camera=(self), microphone=(), geolocation=(self)
+referrer-policy: strict-origin-when-cross-origin
+server: Vercel
+strict-transport-security: max-age=63072000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-powered-by: Next.js
+x-vercel-cache: MISS
+=== GET https://nodbusiness.vercel.app/landing  (2026-11-05T22:37:32Z)
+HTTP/1.1 200 Connection Established
+HTTP/2 200 
+cache-control: private, no-cache, no-store, max-age=0, must-revalidate
+content-security-policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://accounts.google.com https://unpkg.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com; img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3002; font-src 'self'; connect-src 'self' https://nodbusiness-backend-9psf.onrender.com wss://nodbusiness-backend-9psf.onrender.com ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in; frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://maps.google.com https://www.openstreetmap.org; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests
+cross-origin-opener-policy: same-origin-allow-popups
+permissions-policy: camera=(self), microphone=(), geolocation=(self)
+referrer-policy: strict-origin-when-cross-origin
+server: Vercel
+strict-transport-security: max-age=63072000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-powered-by: Next.js
+x-vercel-cache: MISS
+=== GET https://nodbusiness-backend-9psf.onrender.com/health  (2026-11-05T22:37:33Z)
+curl: (28) Operation timed out after 90002 milliseconds with 0 bytes received
+HTTP/1.1 200 Connection Established
+=== GET https://nodbusiness-backend-9psf.onrender.com/health retry (2026-11-05T22:39:16Z)
+curl: (28) Operation timed out after 180001 milliseconds with 0 bytes received
+HTTP/1.1 200 Connection Established
+
+
+time_total=180.001495s
+=== GET https://nodbusiness-backend-9psf.onrender.com/health retry 2 (2026-11-05T22:42:40Z)
+curl: (28) Operation timed out after 120001 milliseconds with 0 bytes received
+HTTP/1.1 200 Connection Established
+time_total=120.001767s http=000
+head: cannot open '/tmp/claude-0/-home-user-empire-x/57b751c5-981a-50e6-ba09-651a7074b945/scratchpad/prodhealth.json' for reading: No such file or directory
+
