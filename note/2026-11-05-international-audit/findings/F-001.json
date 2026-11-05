@@ -3,7 +3,7 @@
     "Start the local stack (local-stack skill).",
     "Run bash note/2026-11-05-international-audit/scripts/probe-missing-routes.sh.",
     "Observe POST /api/upload/multiple → 404 NOT_FOUND while POST /api/upload → 401 (route exists).",
-    "Browser: sign in as the seeded user, open /products/create, attach two images → POST /api/upload/multiple 404 and the form shows 'Upload failed. Try again.' (scripts in evidence notes)."
+    "Browser: sign in as the seeded user, open /products/create, attach two images → POST /api/upload/multiple 404 and the form shows 'Upload failed. Try again.' (node scripts/browser/product-photo-upload.cjs <dir with two PNGs> <screenshot path>)."
   ],
   "found_on": "2026-11-05",
   "environment": "local",
