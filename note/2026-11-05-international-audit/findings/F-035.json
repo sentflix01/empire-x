@@ -14,16 +14,15 @@
     "frontend-next/views/Register.tsx (OTP step)"
   ],
   "steps": [
-    "Register a new account locally; inspect the accessibility tree on 'Check your email'."
+    "Start the local stack; register a new test account in Chromium; capture the accessibility tree on 'Check your email' (Playwright ariaSnapshot)."
   ],
   "expected": "The code input is announced as e.g. 'Verification code, 6 digits'.",
-  "actual": "Accessibility snapshot shows an unnamed textbox next to 'Verify email'.",
+  "actual": "The code input has no <label>, aria-label or aria-labelledby; the accessibility tree shows an unnamed textbox. It already has autocomplete='one-time-code' and inputmode='numeric'.",
   "evidence": [
-    "frontend-next/test-results (signup snapshot, local run)",
-    "evidence/wave3/existing-e2e-chromium-tours-off.txt"
+    "evidence/wave3/otp-step-accessibility-snapshot.md"
   ],
   "impact": "Screen-reader users hear 'edit text' with no purpose on the step that gates every new account.",
-  "fix": "Add aria-label='Verification code' (or a visible <Label htmlFor>) plus autocomplete='one-time-code' and inputmode='numeric'. Full a11y sweep follows in Wave 4.",
+  "fix": "Add aria-label='Verification code' (or a visible <Label htmlFor>), keeping the existing autocomplete and inputmode. Full a11y sweep follows in Wave 4.",
   "effort": "S",
   "environment": "local",
   "found_on": "2026-11-05"
