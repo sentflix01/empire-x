@@ -1,0 +1,28 @@
+{
+  "steps": [
+    "Run bash note/2026-11-05-international-audit/scripts/probe-missing-routes.sh.",
+    "PUT /api/auth/update-name → 404."
+  ],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-004",
+  "title": "Name change calls a missing route and silently ignores the failure",
+  "phase": "P2-functional",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "standards": [
+    "ISO/IEC 25010:2023 functional suitability (data consistency)"
+  ],
+  "location": [
+    "frontend-next/components/profile/AccountSettings.tsx:249"
+  ],
+  "expected": "Changing the display name updates every stored copy of the person's name, or the second call is removed.",
+  "actual": "display_name is updated via /api/profiles/me/upsert; the follow-up PUT /api/auth/update-name always 404s and is swallowed by .catch(() => {}), so users.full_name keeps the old value.",
+  "evidence": [
+    "evidence/wave1/missing-routes.txt",
+    "frontend-next/components/profile/AccountSettings.tsx:246-250"
+  ],
+  "impact": "Two different names can exist for one person; where users.full_name is used (e.g. emails, admin views) the old name appears. Exact downstream effect to verify in Wave 3.",
+  "fix": "Decide which field is the source of truth. Either add an authenticated, validated endpoint that updates users.full_name, or remove the dead call and derive the name from user_profiles everywhere.",
+  "effort": "S"
+}

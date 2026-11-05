@@ -1,0 +1,24 @@
+audit_logs|actor_email:text, ip_address:text, user_agent:text
+barcode_lookups|gtin:text
+business_payment_accounts|account_number:text
+business_webhooks|secret:text
+businesses|business_contact_email:text, business_contact_phone:text, business_address:text, latitude:numeric, longitude:numeric, pickup_address:text
+comments|author_avatar:text
+conversations|avatar_url:text
+delivery_updates|location:text
+error_events|ip:text, user_agent:text
+events|location:text
+jobs|location:text
+live_locations|lat:numeric, lng:numeric
+mewacho_withdrawals|destination_type:text, destination_ref:text
+orders|buyer_phone:text, buyer_email:text, delivery_address:text, access_token_hash:text, receipt_key:text
+posts|author_avatar:text
+products|average_rating:numeric, latitude:numeric, longitude:numeric
+reviews|rating:integer
+showroom_newsletter_signups|email:text
+story_comments|author_avatar:text
+subscription_payments|receipt_number:text
+tasks|location:text, latitude:numeric, longitude:numeric
+user_profiles|display_name:text, avatar_url:text, location:text, phone:text, business_contact_email:text, business_contact_phone:text, business_address:text, latitude:numeric, longitude:numeric, read_receipts:boolean
+users|email:text, password_hash:text, full_name:text, otp_code:text, otp_expires:timestamp with time zone, reset_token:text
+verification_requests|id_document_url:text, full_name:text, supporting_docs:text

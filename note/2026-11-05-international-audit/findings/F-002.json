@@ -1,0 +1,32 @@
+{
+  "steps": [
+    "Run bash note/2026-11-05-international-audit/scripts/probe-missing-routes.sh.",
+    "POST /api/ai/generate-description → 404; POST /api/ai/generate → 401 (exists)."
+  ],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-002",
+  "title": "AI product description button calls a missing route and shows a developer message to users",
+  "phase": "P2-functional",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "standards": [
+    "ISO/IEC 25010:2023 functional suitability",
+    "Nielsen heuristic 9 (help users recover from errors)"
+  ],
+  "location": [
+    "frontend-next/views/ProductCreate.tsx:146",
+    "frontend-next/views/ProductCreate.tsx:148",
+    "backend/routes/ai.ts"
+  ],
+  "expected": "With the ai_description_gen flag on (default 100%), the button fills the description, or explains in user terms that AI is unavailable.",
+  "actual": "The call always 404s. The catch shows the toast 'AI unavailable — add OPENAI_API_KEY to backend/.env' to every user, including in production.",
+  "evidence": [
+    "evidence/wave1/missing-routes.txt",
+    "frontend-next/views/ProductCreate.tsx:148",
+    "backend/lib/featureFlags.ts:42"
+  ],
+  "impact": "A promoted feature never works, and end users see an internal configuration instruction, which looks unprofessional and hints at server internals.",
+  "fix": "Call the existing POST /api/ai/generate with the product context (or add the route on the backend), check GET /api/ai/status to hide the button when AI is not configured, and replace the toast with user-facing copy from the locale files.",
+  "effort": "S"
+}

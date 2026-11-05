@@ -1,0 +1,31 @@
+{
+  "steps": [
+    "Run bash note/2026-11-05-international-audit/scripts/probe-missing-routes.sh.",
+    "GET and POST /api/delivery/:id → 404; GET /api/delivery/order/:id → 401 (exists)."
+  ],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-003",
+  "title": "Delivery timeline uses wrong API paths, so tracking never loads or saves",
+  "phase": "P2-functional",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "standards": [
+    "ISO/IEC 25010:2023 functional suitability",
+    "OWASP A10:2025 (error swallowed)"
+  ],
+  "location": [
+    "frontend-next/views/Orders.tsx:69",
+    "frontend-next/views/Orders.tsx:78",
+    "backend/routes/delivery.ts"
+  ],
+  "expected": "Buyer sees delivery updates; seller can add one. Backend contract: GET /api/delivery/order/:orderId and POST /api/delivery.",
+  "actual": "Frontend calls GET /api/delivery/:orderId (404, error swallowed by .catch(() => {}) so the list looks empty) and POST /api/delivery/:orderId (404, 'Failed to add delivery update').",
+  "evidence": [
+    "evidence/wave1/missing-routes.txt",
+    "frontend-next/views/Orders.tsx:69-82"
+  ],
+  "impact": "delivery_tracking is enabled for 100% of users but cannot work; buyers see no updates and sellers cannot post any.",
+  "fix": "Use GET /api/delivery/order/${orderId} and POST /api/delivery with order_id in the body (match backend validation). Show an error state instead of an empty list when loading fails.",
+  "effort": "S"
+}

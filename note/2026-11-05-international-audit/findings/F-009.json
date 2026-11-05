@@ -1,0 +1,29 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-009",
+  "title": "No migration ledger: CONTRIBUTING describes schema_migrations, which does not exist",
+  "phase": "P10-architecture",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "standards": [
+    "ISO/IEC 25010:2023 reliability (recoverability)",
+    "12-Factor XII (admin processes)"
+  ],
+  "location": [
+    "CONTRIBUTING.md:25",
+    "backend/db/migrate-all.js",
+    "backend/index.ts:425",
+    ".github/workflows/deploy.yml (concurrency comment)"
+  ],
+  "expected": "Applied migrations are recorded so each runs once, partial failures are detectable, and status can be queried.",
+  "actual": "migrate-all.js re-runs every migration on every deploy and relies on each being idempotent; migrations 83–85 also run again at every server start. No table records what ran. deploy.yml forbids cancelling deploys for this reason.",
+  "evidence": [
+    "backend/db/migrate-all.js:1-80",
+    "note/2026-11-05-international-audit/scripts/local-stack.sh (second full run succeeded)"
+  ],
+  "impact": "One non-idempotent migration would fail or corrupt data on the next deploy; there is no way to tell which migrations a database has. Deploy time grows with every migration.",
+  "fix": "Add a schema_migrations(name, checksum, applied_at) table; have migrate-all skip recorded files and record each success in the same transaction; backfill for existing databases; stop running data patches from index.ts at boot. Update CONTRIBUTING.md.",
+  "effort": "M"
+}

@@ -1,6 +1,6 @@
 # International-grade audit — 2026-11-05
 
-> **Status:** In progress (Wave 1: inventory). Non-authoritative work note per
+> **Status:** Wave 1 (inventory) complete — see `inventory/README.md`. Wave 2 (security & privacy) next. Non-authoritative work note per
 > [`note/README.md`](../README.md). Findings become requirements only when
 > adopted into `docs/` or `project-brain/DECISIONS.md`.
 

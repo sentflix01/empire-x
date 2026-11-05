@@ -1,0 +1,445 @@
+{
+  "count": 73,
+  "routes": [
+    {
+      "kind": "error",
+      "url": "/",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/error.tsx"
+    },
+    {
+      "kind": "error",
+      "url": "/",
+      "group": "(auth)",
+      "file": "frontend-next/app/(auth)/error.tsx"
+    },
+    {
+      "kind": "error",
+      "url": "/",
+      "group": null,
+      "file": "frontend-next/app/error.tsx"
+    },
+    {
+      "kind": "global-error",
+      "url": "/",
+      "group": null,
+      "file": "frontend-next/app/global-error.tsx"
+    },
+    {
+      "kind": "layout",
+      "url": "/",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/layout.tsx"
+    },
+    {
+      "kind": "layout",
+      "url": "/",
+      "group": "(auth)",
+      "file": "frontend-next/app/(auth)/layout.tsx"
+    },
+    {
+      "kind": "layout",
+      "url": "/",
+      "group": null,
+      "file": "frontend-next/app/layout.tsx"
+    },
+    {
+      "kind": "loading",
+      "url": "/",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/loading.tsx"
+    },
+    {
+      "kind": "not-found",
+      "url": "/",
+      "group": null,
+      "file": "frontend-next/app/not-found.tsx"
+    },
+    {
+      "kind": "opengraph-image",
+      "url": "/",
+      "group": null,
+      "file": "frontend-next/app/opengraph-image.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/",
+      "group": null,
+      "file": "frontend-next/app/page.tsx"
+    },
+    {
+      "kind": "robots",
+      "url": "/",
+      "group": null,
+      "file": "frontend-next/app/robots.ts"
+    },
+    {
+      "kind": "sitemap",
+      "url": "/",
+      "group": null,
+      "file": "frontend-next/app/sitemap.ts"
+    },
+    {
+      "kind": "page",
+      "url": "/account",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/account/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/admin",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/admin/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/admin/devops",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/admin/devops/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/analytics",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/analytics/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/auth/google/callback",
+      "group": "(auth)",
+      "file": "frontend-next/app/(auth)/auth/google/callback/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/bookmarks",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/bookmarks/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/business/create",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/business/create/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/business/edit",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/business/edit/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/business/inventory",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/business/inventory/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/business/subscription",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/business/subscription/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/business/subscription/receipt/[id]",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/business/subscription/receipt/[id]/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/business/subscription/return",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/business/subscription/return/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/businesses",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/businesses/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/cart",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/cart/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/choose-account",
+      "group": null,
+      "file": "frontend-next/app/choose-account/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/choose-mode",
+      "group": null,
+      "file": "frontend-next/app/choose-mode/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/coupons",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/coupons/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/explore",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/explore/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/feed",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/feed/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/forgot-password",
+      "group": "(auth)",
+      "file": "frontend-next/app/(auth)/forgot-password/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/friends",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/friends/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/hashtag/[name]",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/hashtag/[name]/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/landing",
+      "group": null,
+      "file": "frontend-next/app/landing/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/login",
+      "group": "(auth)",
+      "file": "frontend-next/app/(auth)/login/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/marketplace",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/marketplace/page.tsx"
+    },
+    {
+      "kind": "layout",
+      "url": "/messages",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/messages/layout.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/messages",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/messages/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/messages/[id]",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/messages/[id]/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/messages/[id]/members",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/messages/[id]/members/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/nearby",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/nearby/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/notifications",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/notifications/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/offline",
+      "group": null,
+      "file": "frontend-next/app/offline/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/onboarding",
+      "group": "(auth)",
+      "file": "frontend-next/app/(auth)/onboarding/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/order/[token]",
+      "group": null,
+      "file": "frontend-next/app/order/[token]/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/orders",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/orders/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/orders/cancel",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/orders/cancel/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/orders/success",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/orders/success/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/p/[username]",
+      "group": null,
+      "file": "frontend-next/app/p/[username]/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/privacy",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/privacy/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/products/[id]",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/products/[id]/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/products/create",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/products/create/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/products/edit",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/products/edit/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/products/scan",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/products/scan/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/profile",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/profile/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/profile/[id]",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/profile/[id]/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/profile/edit",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/profile/edit/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/referral",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/referral/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/register",
+      "group": "(auth)",
+      "file": "frontend-next/app/(auth)/register/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/reset-password",
+      "group": "(auth)",
+      "file": "frontend-next/app/(auth)/reset-password/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/scorecard",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/scorecard/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/search",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/search/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/service-agreement",
+      "group": null,
+      "file": "frontend-next/app/service-agreement/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/settings",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/settings/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/showroom/[slug]",
+      "group": null,
+      "file": "frontend-next/app/showroom/[slug]/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/showroom/create",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/showroom/create/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/showroom/samples",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/showroom/samples/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/showroom/templates",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/showroom/templates/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/showrooms",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/showrooms/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/showrooms/[id]",
+      "group": null,
+      "file": "frontend-next/app/showrooms/[id]/page.tsx"
+    },
+    {
+      "kind": "page",
+      "url": "/wallet",
+      "group": "(app)",
+      "file": "frontend-next/app/(app)/wallet/page.tsx"
+    }
+  ],
+  "public_paths_source": "frontend-next/lib/publicPaths.ts",
+  "public_paths_excerpt": "/**\n * lib/publicPaths.ts — Route visibility policy\n *\n * GUEST ACCESS POLICY:\n *   Guests can browse read-only discovery pages.\n *   Write actions (post, like, comment, follow) prompt sign-up.\n *   Builder pages remain auth-gated at all times.\n */\n\nconst PUBLIC_PATHS = new Set([\n  '/',\n  '/landing',\n  '/login',\n  '/auth/google/callback',\n  '/register',\n  '/forgot-password',\n  '/reset-password',\n  '/choose-account',\n  '/choose-mode',   // always accessible — handles own auth check via AuthContext\n  '/service-agreement',\n  '/not-found',\n  '/sitemap',\n  '/robots',\n  '/onboarding',\n  // Guest-browsable discovery pages (read-only)\n  '/feed',\n  '/marketplace',\n  '/businesses',\n  '/showrooms',\n  '/explore',\n  '/nearby',\n]);\n\n// Builder pages — auth-gated at all times\nconst SHOWROOM_BUILDER_PAGES = new Set([\n  '/showroom/create',\n  '/showroom/templates',\n  '/showroom/samples',\n  '/showroom/studio',\n]);\n\n// Pages that require login even if prefixes would otherwise match\nconst AUTH_ONLY_PREFIXES = [\n  '/messages', '/notifications', '/settings', '/profile/edit',\n  '/account', '/wallet', '/orders', '/cart', '/bookmarks',\n  '/analytics', '/referral', '/coupons', '/friends',\n  '/scorecard',\n];\n\nexport function isPublicPath(pathname: string): boolean {\n  // Auth-only overrides everything\n  if (AUTH_ONLY_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'))) return false;\n  // Builder pages always gated\n  if (SHOWROOM_BUILDER_PAGES.has(pathname)) return false;\n  // Exact match\n  if (PUBLIC_PATHS.has(pathname)) return true;\n  // Public prefixes\n  if (pathname.startsWith('/p/')) return true;\n  if (pathname.startsWith('/products/')) return true;\n  if (pathname.startsWith('/profile/')) return true;\n  if (pathname.startsWith('/showroom/')) return true;\n  if (pathname.startsWith('/showrooms/')) return true;\n  if (pathname.startsWith('/businesses/')) return true;\n  if (pathname.startsWith('/hashtag/')) return true;\n  // Private order links for guest checkout; access is the token itself.\n  if (pathname.startsWith('/order/')) return true;\n  return false;\n}\n\n/** True when path is guest-browsable but write actions require sign-up */\nexport function isGuestBrowsablePath(pathname: string): boolean {\n  return [\n    '/feed', '/marketplace', '/businesses', '/showrooms',\n    '/explore', '/nearby',\n  ].some(p => pathname === p) ||\n    pathname.startsWith('/products/') ||\n    pathname.startsWith('/showroom/') ||\n    pathname.startsWith('/showrooms/') ||\n    pathname.startsWith('/profile/') ||\n    pathname.startsWith('/businesses/');\n}\n"
+}
