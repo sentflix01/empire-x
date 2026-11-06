@@ -1,0 +1,23 @@
+# F-016 after fix — local production build (2026-11-06)
+
+## Response header (one request; the nonce changes every request)
+content-security-policy: default-src 'self'; script-src 'self' 'nonce-<per-request>' 'strict-dynamic' https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://accounts.google.com https://unpkg.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3002; font-src 'self'; connect-src 'self' http://localhost:3001 ws://localhost:3001 ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in; frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://maps.google.com https://www.openstreetmap.org; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; worker-src 'self' blob:
+X-Powered-By present: 0
+
+## Experimental SRI (tested, not used): strict script-src without nonce
+4 inline-script violations on each of 9 guest pages (3 shared framework/theme scripts + 1 per-page data script).
+
+## With the nonce policy
+Guest pages /landing /login /register /feed /marketplace /businesses /nearby /offline /service-agreement: 0 violations, 0 page errors.
+Signed-in pages (18: feed, explore, messages, notifications, orders, cart, settings, account, profile, profile/edit, products/create, business/create, business/subscription, showroom/create, search, friends, bookmarks, wallet): 0 violations, 0 page errors.
+Existing specs on this build: public, landmarks, service-worker, auth — 18/18 pass. e2e/csp.spec.ts — 8/8 pass.
+
+## Time to first byte, 20 requests each after warm-up (median / p90)
+before (prerendered): static /landing: 12.163 ms median, p90 17.113 ms
+before (prerendered): static /feed: 2.385 ms median, p90 2.638 ms
+before (prerendered): static /marketplace: 2.478 ms median, p90 2.806 ms
+before (prerendered): static /login: 2.308 ms median, p90 2.495 ms
+after (per request):  nonce /landing: 9.636 ms median, p90 11.96 ms
+after (per request):  nonce /feed: 7.285 ms median, p90 9.353 ms
+after (per request):  nonce /marketplace: 7.175 ms median, p90 7.781 ms
+after (per request):  nonce /login: 7.177 ms median, p90 10.145 ms

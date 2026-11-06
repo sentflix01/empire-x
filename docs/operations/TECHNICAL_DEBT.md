@@ -159,7 +159,7 @@ Removed the old Vite frontend folder entirely. `frontend-next/` is the only fron
 **Files changed:** `backend/index.js`, `frontend-next/next.config.ts`
 **What was done:**
 - Backend (API-only): strict CSP in production — `default-src 'none'`, allows only `connect-src 'self'`
-- Frontend (Next.js): full CSP with `script-src`, `img-src`, `connect-src`, `frame-src` for Stripe; `unsafe-inline`/`unsafe-eval` only in dev for HMR
+- Frontend (Next.js): full CSP with `script-src`, `img-src`, `connect-src`, `frame-src` for Stripe. Since 6 Nov 2026 (audit F-016) `script-src` uses a per-request nonce with `'strict-dynamic'` and no `'unsafe-inline'` (it was allowed in production before); `unsafe-eval` only in dev for HMR. Set in `frontend-next/proxy.ts` via `lib/csp.ts`.
 
 ---
 

@@ -25,7 +25,7 @@ import { initSentry } from '@/lib/sentry';
 // Initialize i18n — must be imported here so it runs before any component renders
 import i18n from '@/lib/i18n';
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+export default function Providers({ children, nonce }: { children: React.ReactNode; nonce?: string }) {
   // useState ensures the QueryClient is created once per component instance
   // and not recreated on every render
   const [queryClient] = useState(() => makeQueryClient());
@@ -35,7 +35,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <I18nextProvider i18n={i18n}>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem nonce={nonce}>
         <AuthProvider>
           {/* SplashScreen reads isLoadingAuth from AuthProvider and dismisses
               itself once auth resolves and the video finishes playing. */}

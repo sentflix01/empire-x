@@ -815,3 +815,13 @@ items in the open list until confirmed.
 - **Consequences:** Amber buttons and accents look deeper (orange-brown rather than bright amber). axe reports 0 contrast failures on 44 page states in both themes. The brand book still lists `#F59E0B` for primary CTAs; a note there points here.
 - **Open:** owner to confirm the on-screen amber and whether the brand book should adopt it.
 - **Related documentation:** `docs/product/ACCESSIBILITY.md` (Color Contrast), `docs/product/DESIGN_SYSTEM.md`, `docs/brand/BRAND_GUIDELINES.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Nonce-based script policy; pages render per request
+
+- **Status:** Accepted (owner asked to fix F-016, 6 Nov 2026)
+- **Decision owner:** Project owner
+- **Context:** The production Content-Security-Policy allowed `'unsafe-inline'` scripts, so injected markup such as F-057's map labels could run code. Next.js App Router pages carry inline scripts; the only supported ways to drop `'unsafe-inline'` are a per-request nonce (pages must render per request) or experimental SRI, which was tested and does not cover the per-page inline scripts (4 violations on every page).
+- **Decision:** `frontend-next/proxy.ts` creates a nonce for every page request and sends `script-src 'self' 'nonce-…' 'strict-dynamic'` (`lib/csp.ts`); the root layout passes the nonce to the theme script. `X-Powered-By` is turned off. Inline styles stay allowed (React style attributes cannot carry a nonce).
+- **Consequences:** The 52 pages that were prerendered as static files now render per request. Measured locally on a production build: about +5 ms server time per page (2.4 → 7.2 ms median). On Vercel these pages are no longer served from the CDN cache, so cold starts can add latency and function usage rises. No CSP violations on 9 guest and 18 signed-in pages; existing browser specs pass.
+- **Open:** revisit if Next.js gains hash-based CSP for prerendered pages.
+- **Related documentation:** `docs/infrastructure/SECURITY_HARDENING.md`, `docs/operations/TECHNICAL_DEBT.md` (TD-013), `note/2026-11-05-international-audit/FIXES.md`
