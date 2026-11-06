@@ -60,6 +60,9 @@ function ProductCreate() {
   // The business that sells the product: checkout shows its payment details (audit FUNC-03).
   const [businesses, setBusinesses] = useState<Array<{ id: string; business_name?: string }>>([]);
   const [businessId, setBusinessId] = useState(searchParams.get("business") || "");
+  const [businessesLoaded, setBusinessesLoaded] = useState(false);
+  // A product needs a business, or buyers never see it (audit F-033).
+  const needsBusiness = !isEdit && businessesLoaded && businesses.length === 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -80,6 +83,7 @@ function ProductCreate() {
         if (cancelled) return;
         const list = (rows as Array<{ id: string; business_name?: string }>) ?? [];
         setBusinesses(list);
+        setBusinessesLoaded(true);
         setBusinessId((current) => (current && list.some((b) => b.id === current)) ? current : list.length === 1 ? list[0].id : "");
       })
       .catch(() => { if (!cancelled) setBusinesses([]); });
@@ -170,7 +174,7 @@ function ProductCreate() {
   };
 
   const handleSubmit = async () => {
-    if (!form.title || !form.price) return;
+    if (!form.title || !form.price || needsBusiness) return;
     if (!isEdit && businesses.length > 1 && !businessId) {
       toast.error("Choose which business sells this product.");
       return;
@@ -213,7 +217,10 @@ function ProductCreate() {
       router.push("/marketplace");
     } catch (err) {
       const body = err as { error?: string; existing_product_id?: string };
-      if (body?.error === "barcode_exists" && body.existing_product_id) {
+      const apiBody = apiErrorBody(err);
+      if (apiBody?.code === "BUSINESS_REQUIRED" && apiBody.reason === "no_business") {
+        toast.error("Create a business first, then add products to it.", { action: { label: "Create business", onClick: () => router.push("/business/create") } });
+      } else if (body?.error === "barcode_exists" && body.existing_product_id) {
         toast.error("You already sell a product with this barcode.", { action: { label: "Open it", onClick: () => router.push(`/products/${body.existing_product_id}`) } });
       } else {
         toast.error(apiErrorMessage(err, "Failed to save product"));
@@ -320,6 +327,13 @@ function ProductCreate() {
               <SelectContent>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
+          {needsBusiness && (
+            <div role="status" className="rounded-xl border border-border bg-secondary/50 p-3 text-sm">
+              <p className="font-medium">Create a business first</p>
+              <p className="mt-1 text-muted-foreground">Products are sold by a business. Buyers can&apos;t see a product without one.</p>
+              <Link href="/business/create" className="mt-2 inline-block font-semibold text-primary hover:underline">Create business</Link>
+            </div>
+          )}
           {!isEdit && businesses.length > 1 && (
             <div>
               <Label htmlFor="product-business">Sold by</Label>
@@ -343,7 +357,7 @@ function ProductCreate() {
               </Select>
             </div>
           )}
-          <Button onClick={handleSubmit} disabled={saving} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
+          <Button onClick={handleSubmit} disabled={saving || needsBusiness} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
             {saving ? "Saving..." : isEdit ? "Update Product" : "Publish Product"}
           </Button>
         </div>

@@ -30,6 +30,8 @@ const OFF_ONLY = '0036000291452';
 beforeAll(async () => {
   app = buildApp();
   [me, other, privateSeller] = [await createUser(), await createUser(), await createUser()];
+  // Products need a business (audit F-033).
+  await pool.query(`INSERT INTO businesses (owner_id, business_name, business_category, visibility) VALUES ($1, 'DB Test Scan Shop', 'shop', 'public')`, [me.id]);
   const biz = await createPublicBusiness(other.id);
   await pool.query(`UPDATE products SET barcode=$1, title='Coca-Cola 330ml', description='Classic', manufacturer='Coca-Cola', price=40, stock=99 WHERE id=$2`, [COLA, biz.productId]);
   const priv = await createPublicBusiness(privateSeller.id, { visibility: 'private' });

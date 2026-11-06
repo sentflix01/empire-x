@@ -878,3 +878,11 @@ items in the open list until confirmed.
 - **Context:** The first deploy after #178 stopped at "Run DB Migrations" with `column "name" does not exist`. Production already had a `schema_migrations` table from another tool, with other columns; `CREATE TABLE IF NOT EXISTS` kept it and the ledger query failed. Nothing ran and the backend and frontend deploys were skipped.
 - **Decision:** The ledger table is `migration_ledger`. The existing `schema_migrations` table is left untouched. `migrate-all.js` checks the ledger's columns and stops with a clear message, before running anything, if a `migration_ledger` table has another shape. Supersedes the table name in the 2026-11-06 "Migrations run once each" entry.
 - **Consequences:** The next deploy runs every migration once more (all idempotent, as every deploy did before) and records them. The owner may later inspect `schema_migrations` in Supabase and decide whether it is still needed.
+
+### 2026-11-06 — Every product must belong to a business
+
+- **Status:** Accepted (owner: "continue", 6 Nov 2026; fix as recommended in audit F-033)
+- **Decision owner:** Project owner
+- **Context:** A product with no business was accepted (201) but hidden from everyone except its seller.
+- **Decision:** `POST /api/products` and new items in `POST /api/products/scan-batch` answer `422 BUSINESS_REQUIRED` when no business can be resolved (own `business_id`, the showroom's business, or the seller's only business). Admins follow the same rule. The product form says "Create a business first" and links to it.
+- **Consequences:** Sellers create a business before listing. Existing products without a business are unchanged (migration 77 already linked those whose seller has exactly one business).
