@@ -109,9 +109,9 @@ NEXT_PUBLIC_SENTRY_DSN: ""
 - Guided tours count as seen in every test browser (`e2e/tours-seen.ts`), so the specs do not depend on the tour default (F-031)
 - Make it a required check for `main` in the repository's branch protection settings
 
-### 6. secrets — gitleaks (report-only for now, audit F-024)
+### 6. secrets — gitleaks (blocking, audit F-024)
 - gitleaks 8.29.1, downloaded and checked against its published sha256, scans only the commits a pull request or push adds (`--log-opts`), so old placeholders in history do not fail it
-- `continue-on-error: true` until its first runs are reviewed; remove that line to make it blocking
+- Blocking since its first runs on PR #178 came back clean; a verified false positive goes in `.gitleaks.toml` with a reason (one so far: the SQL text `password_hash=EXCLUDED.password_hash`)
 - Also turn on **GitHub secret scanning and push protection** (repository Settings → Code security)
 
 ### Workflow hardening (audit F-022)
