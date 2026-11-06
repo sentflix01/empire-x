@@ -1,5 +1,6 @@
 'use client';
 import SafeImage from '@/components/ui/SafeImage';
+import { markerLabelHtml } from "@/lib/mapLabel";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { entities } from "@/api/entities";
@@ -75,7 +76,8 @@ function makeLabeledIcon(label: string, color: "gold" | "red" | "blue" | "green"
     gold: "#2563EB", red: "#e53e3e", blue: "#3b82f6", green: "#22c55e",
   };
   const accent = accentColors[color];
-  const truncated = label && label.length > 20 ? label.slice(0, 18) + "…" : (label || "");
+  // Escaped: names come from the database and this HTML is set with innerHTML (audit F-057).
+  const truncated = markerLabelHtml(label);
 
   const bubbleHtml = `
     <div style="
@@ -95,7 +97,7 @@ function makeLabeledIcon(label: string, color: "gold" | "red" | "blue" | "green"
     </div>`;
 
   const pinHtml = `
-    <img loading="lazy" src="${pinUrls[color]}" width="25" height="41"
+    <img loading="lazy" src="${pinUrls[color]}" alt="" width="25" height="41"
       style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:1;" />`;
 
   if (!L) return undefined;

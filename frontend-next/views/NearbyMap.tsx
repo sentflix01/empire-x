@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { markerLabelHtml } from "@/lib/mapLabel";
 import Image from 'next/image';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -80,11 +81,12 @@ function makeLabeledIcon(label, color = "blue") {
   };
   const accentColors = { gold:"#D4AF37", red:"#e53e3e", blue:"#3b82f6", green:"#22c55e" };
   const accent = accentColors[color] || "#3b82f6";
-  const truncated = label && label.length > 20 ? label.slice(0, 18) + "…" : (label || "");
+  // Escaped: names come from the database and this HTML is set with innerHTML (audit F-057).
+  const truncated = markerLabelHtml(label);
 
   const bubbleHtml = `<div style="position:absolute;bottom:49px;left:50%;transform:translateX(-50%);background:#fff;color:#111;font-size:11px;font-weight:700;font-family:system-ui,sans-serif;white-space:nowrap;padding:5px 10px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.25);pointer-events:none;line-height:1.4;border:1.5px solid ${accent};z-index:2;">${truncated}<div style="position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:9px solid ${accent};"></div><div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:8px solid #fff;"></div></div>`;
 
-  const pinHtml = `<img loading="lazy" src="${pinUrls[color]}" width="25" height="41" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:1;" />`;
+  const pinHtml = `<img loading="lazy" src="${pinUrls[color]}" alt="" width="25" height="41" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:1;" />`;
 
   if (!L) return undefined;
   return new L.DivIcon({

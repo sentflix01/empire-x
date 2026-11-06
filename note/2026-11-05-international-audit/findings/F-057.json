@@ -1,0 +1,36 @@
+{
+  "id": "F-057",
+  "kind": "vulnerability",
+  "phase": "P5-security",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Map labels insert product, business and user names as HTML (stored XSS)",
+  "standards": [
+    "OWASP A05:2025 (Injection)",
+    "ASVS 5.0 V1.2 (injection prevention: output encoding)",
+    "CWE-79"
+  ],
+  "cvss_v4": {
+    "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:P/VC:N/VI:N/VA:N/SC:H/SI:H/SA:N",
+    "score": 6.3
+  },
+  "location": [
+    "frontend-next/views/NearbyMap.tsx:74-95 (makeLabeledIcon)",
+    "frontend-next/components/map/HomeMapTab.tsx:67-105 (makeLabeledIcon)"
+  ],
+  "steps": [
+    "Local stack only, temporary test data: create a public product with coordinates and the title <b id=p1>P</b> (harmless markup, no script).",
+    "Open /nearby as a guest with geolocation at the product's position.",
+    "document.querySelector('#p1') exists: the title was parsed as HTML. The test data was deleted afterwards."
+  ],
+  "expected": "Names from the database are shown as text on map markers.",
+  "actual": "makeLabeledIcon builds a Leaflet DivIcon from a template string with the label (product title, business name, display name) inserted unescaped; Leaflet assigns it with innerHTML. Labels longer than 20 characters are cut at 18, which breaks long payloads, but short ones (an element with an event handler) fit. No input sanitization exists on the backend, and the production content policy allows inline scripts (F-016).",
+  "evidence": [
+    "evidence/wave4/F-057-map-label-probe.json"
+  ],
+  "impact": "Anyone who can name a product, business or profile can run script in the browser of every visitor to the nearby map and home map, signed in or not. Access tokens are kept in memory, so the script cannot copy them, but it can call the API as the visitor (orders, messages, profile changes) while the page is open.",
+  "fix": "Escape the label (& < > \" ') before building the marker HTML, truncating before escaping; give the pin image alt=\"\"; add a unit test with markup in the label.",
+  "effort": "S",
+  "found_on": "2026-11-06",
+  "environment": "local"
+}
