@@ -15,16 +15,16 @@ Business entity pages: create/manage business profiles linked to owners, busines
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/businesses/` | optional | 32 |
-| `GET` | `/api/businesses/:id` | optional | 50 |
-| `POST` | `/api/businesses/` | auth | 62 |
-| `PUT` | `/api/businesses/:id` | auth | 83 |
-| `DELETE` | `/api/businesses/:id` | auth | 96 |
-| `GET` | `/api/businesses/:id/payment-accounts` | auth | 153 |
-| `POST` | `/api/businesses/:id/payment-accounts` | auth | 161 |
-| `PUT` | `/api/businesses/:id/payment-accounts/:accountId` | auth | 178 |
-| `DELETE` | `/api/businesses/:id/payment-accounts/:accountId` | auth | 196 |
-| `GET` | `/api/businesses/:id/checkout-info` | optional | 209 |
+| `GET` | `/api/businesses/` | optional | 35 |
+| `GET` | `/api/businesses/:id` | optional | 53 |
+| `POST` | `/api/businesses/` | auth | 65 |
+| `PUT` | `/api/businesses/:id` | auth | 86 |
+| `DELETE` | `/api/businesses/:id` | auth | 99 |
+| `GET` | `/api/businesses/:id/payment-accounts` | auth | 156 |
+| `POST` | `/api/businesses/:id/payment-accounts` | auth | 164 |
+| `PUT` | `/api/businesses/:id/payment-accounts/:accountId` | auth | 181 |
+| `DELETE` | `/api/businesses/:id/payment-accounts/:accountId` | auth | 199 |
+| `GET` | `/api/businesses/:id/checkout-info` | optional | 212 |
 
 ## 4. What does it touch?
 

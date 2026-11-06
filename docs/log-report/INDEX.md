@@ -5,6 +5,73 @@
 
 | Date | Type | Task | Report |
 |---|---|---|---|
+| 2026-11-07 | Maintenance | Merge #179: unblock the production deploy; audit fixes F-004, F-005, F-006, F-036 | [fd9eb8ed9](2026-11-07-fd9eb8ed9-merge-179-unblock-the-production-deploy-audit-fi.md) |
+| 2026-11-06 | Bugfix | fix(db): rename the migration ledger so deploys do not fail (F-009) | [7a9c0a5ca](2026-11-06-7a9c0a5ca-rename-the-migration-ledger-so-deploys-do-not-fa.md) |
+| 2026-11-06 | Documentation | docs(routing): describe the route visibility policy (F-036) | [9e98b822a](2026-11-06-9e98b822a-describe-the-route-visibility-policy-f-036.md) |
+| 2026-11-06 | Bugfix | fix(routing): show 404 for unknown URLs instead of sign-in (F-036) | [ac55109af](2026-11-06-ac55109af-show-404-for-unknown-urls-instead-of-sign-in-f-0.md) |
+| 2026-11-06 | Bugfix | fix(devops): add the console's missing error routes, drop the dead docs tab (F-006) | [136d7519d](2026-11-06-136d7519d-add-the-console-s-missing-error-routes-drop-the-.md) |
+| 2026-11-06 | Bugfix | fix(telegram): read the right table and add the settings routes (F-005) | [713d46086](2026-11-06-713d46086-read-the-right-table-and-add-the-settings-routes.md) |
+| 2026-11-06 | Bugfix | fix(auth): add the missing update-name route (F-004) | [b15a1beb2](2026-11-06-b15a1beb2-add-the-missing-update-name-route-f-004.md) |
+| 2026-11-06 | CI/CD | ci: make the secret scan blocking (F-024) | [23ab1859f](2026-11-06-23ab1859f-make-the-secret-scan-blocking-f-024.md) |
+| 2026-11-07 | Maintenance | Merge #178: international audit (Nov 2026) and fixes | [fa30c2e1b](2026-11-07-fa30c2e1b-merge-178-international-audit-nov-2026-and-fixes.md) |
+| 2026-11-06 | CI/CD | ci: allow the SQL upsert false positive in the secret scan (F-024) | [4ca967ac1](2026-11-06-4ca967ac1-allow-the-sql-upsert-false-positive-in-the-secre.md) |
+| 2026-11-06 | CI/CD | ci: allow the font-src CSP directive in the CSS check; list secret-scan findings | [071605f72](2026-11-06-071605f72-allow-the-font-src-csp-directive-in-the-css-chec.md) |
+| 2026-11-06 | Bugfix | fix(api): admin-only version board; minimal coupon validation answer with its own limit (F-023) | [4ecb392e8](2026-11-06-4ecb392e8-admin-only-version-board-minimal-coupon-validati.md) |
+| 2026-11-06 | CI/CD | ci: least-privilege tokens, SHA-pinned actions, secret scanning (F-022, F-024) | [fcb67a948](2026-11-06-fcb67a948-least-privilege-tokens-sha-pinned-actions-secret.md) |
+| 2026-11-06 | Bugfix | fix(security): revocation without Redis, legacy Chapa routes, sandbox return URLs (F-018, F-019, F-020) | [5619cb5fb](2026-11-06-5619cb5fb-revocation-without-redis-legacy-chapa-routes-san.md) |
+| 2026-11-06 | Bugfix | fix: page guide opens only on request by default; compliance docs no longer claim "Compliant" (F-031, F-054) | [5035ac993](2026-11-06-5035ac993-page-guide-opens-only-on-request-by-default-comp.md) |
+| 2026-11-06 | Testing | test(money): real-database tests for money paths; fix three bugs they found (F-051) | [ca26841d4](2026-11-06-ca26841d4-real-database-tests-for-money-paths-fix-three-bu.md) |
+| 2026-11-06 | CI/CD | ci(e2e): run all Chromium journeys as a blocking CI job (F-032) | [8af9a46ca](2026-11-06-8af9a46ca-run-all-chromium-journeys-as-a-blocking-ci-job-f.md) |
+| 2026-11-06 | Bugfix | fix(db): record applied migrations in schema_migrations (F-009) | [7ea00519a](2026-11-06-7ea00519a-record-applied-migrations-in-schema-migrations-f.md) |
+| 2026-11-06 | Feature | feat(auth): two-factor sign-in with authenticator apps, required for admins (F-017, part 2) | [8ea64b2d4](2026-11-06-8ea64b2d4-two-factor-sign-in-with-authenticator-apps-requi.md) |
+| 2026-11-06 | Bugfix | fix(auth): reject common passwords; require OTP_SALT in production (F-017, part 1) | [4edcb7eca](2026-11-06-4edcb7eca-reject-common-passwords-require-otp-salt-in-prod.md) |
+| 2026-11-06 | Performance | perf(frontend): drop the 1 MB intro video and the long splash (F-045) | [69620f861](2026-11-06-69620f861-drop-the-1-mb-intro-video-and-the-long-splash-f-.md) |
+| 2026-11-06 | Bugfix | fix(security): nonce-based script policy without unsafe-inline (F-016) | [d4cdf44c6](2026-11-06-d4cdf44c6-nonce-based-script-policy-without-unsafe-inline-.md) |
+| 2026-11-06 | Bugfix | fix(a11y): meet WCAG AA colour contrast in light and dark themes (F-041) | [ec0be9a46](2026-11-06-ec0be9a46-meet-wcag-aa-colour-contrast-in-light-and-dark-t.md) |
+| 2026-11-06 | Bugfix | fix(a11y): name every control and stop nesting interactive elements (F-043) | [8a0791a3e](2026-11-06-8a0791a3e-name-every-control-and-stop-nesting-interactive-.md) |
+| 2026-11-06 | Bugfix | fix(security): escape names in map marker labels (F-057) | [b50316aa0](2026-11-06-b50316aa0-escape-names-in-map-marker-labels-f-057.md) |
+| 2026-11-06 | Bugfix | fix(a11y): give every page a skip-link target, one main landmark and an h1 (F-042) | [a2c67d1cd](2026-11-06-a2c67d1cd-give-every-page-a-skip-link-target-one-main-land.md) |
+| 2026-11-06 | Bugfix | fix(api): answer 404/422 instead of 500 for malformed IDs and bodies (F-034) | [13bd1eb9e](2026-11-06-13bd1eb9e-answer-404-422-instead-of-500-for-malformed-ids-.md) |
+| 2026-11-06 | Documentation | docs: list /api/ai/status in the ProductCreate page notes (F-002) | [d20275b5d](2026-11-06-d20275b5d-list-api-ai-status-in-the-productcreate-page-not.md) |
+| 2026-11-06 | Bugfix | fix(orders): make delivery tracking load and save (F-003) | [b23d76684](2026-11-06-b23d76684-make-delivery-tracking-load-and-save-f-003.md) |
+| 2026-11-06 | Bugfix | fix(ai): add the product description route the AI button calls (F-002) | [9dd34ecc8](2026-11-06-9dd34ecc8-add-the-product-description-route-the-ai-button-.md) |
+| 2026-11-06 | Bugfix | fix(pwa): make the service worker install and cache only public static files (F-048) | [768fad41a](2026-11-06-768fad41a-make-the-service-worker-install-and-cache-only-p.md) |
+| 2026-11-06 | Bugfix | fix(privacy): redact guest order tokens and signed-link secrets from logs and Sentry (F-015) | [38ae1c657](2026-11-06-38ae1c657-redact-guest-order-tokens-and-signed-link-secret.md) |
+| 2026-11-06 | Bugfix | fix(privacy): keep identity documents private; delete files on account deletion (F-013, F-014) | [d30d50cf7](2026-11-06-d30d50cf7-keep-identity-documents-private-delete-files-on-.md) |
+| 2026-11-06 | Bugfix | fix(upload): add POST /api/upload/multiple for product photos (F-001) | [a1b9ec3a8](2026-11-06-a1b9ec3a8-add-post-api-upload-multiple-for-product-photos-.md) |
+| 2026-11-06 | Bugfix | fix(bookmarks): load saved items once instead of looping (F-040) | [96e486778](2026-11-06-96e486778-load-saved-items-once-instead-of-looping-f-040.md) |
+| 2026-11-06 | Documentation | docs(audit): Wave 5 and final report (F-051..F-056) | [2c8dc6fd7](2026-11-06-2c8dc6fd7-wave-5-and-final-report-f-051-f-056.md) |
+| 2026-11-06 | Documentation | docs(audit): Wave 4 accessibility, UX, performance (F-040..F-050) | [a9c23df2d](2026-11-06-a9c23df2d-wave-4-accessibility-ux-performance-f-040-f-050.md) |
+| 2026-11-05 | Documentation | docs(audit): fix output path in first-visit tour check | [d497dc1af](2026-11-05-d497dc1af-fix-output-path-in-first-visit-tour-check.md) |
+| 2026-11-05 | Documentation | docs(audit): keep Wave 3 browser checks with the audit | [504b8813f](2026-11-05-504b8813f-keep-wave-3-browser-checks-with-the-audit.md) |
+| 2026-11-05 | Documentation | docs(audit): fix F-035 evidence and Wave 3 status line | [4822234e2](2026-11-05-4822234e2-fix-f-035-evidence-and-wave-3-status-line.md) |
+| 2026-11-05 | Documentation | docs(audit): Wave 3 functional journeys (F-031..F-039) | [33f20bb80](2026-11-05-33f20bb80-wave-3-functional-journeys-f-031-f-039.md) |
+| 2026-11-05 | Documentation | docs(audit): production passive checks and Wave 2 summary | [648cd36c5](2026-11-05-648cd36c5-production-passive-checks-and-wave-2-summary.md) |
+| 2026-11-05 | Documentation | docs(audit): Wave 2 security and privacy findings (F-013..F-029) | [4e0b8e4b4](2026-11-05-4e0b8e4b4-wave-2-security-and-privacy-findings-f-013-f-029.md) |
+| 2026-11-05 | Documentation | docs(audit): Wave 1 inventory and first 12 findings | [f8766df18](2026-11-05-f8766df18-wave-1-inventory-and-first-12-findings.md) |
+| 2026-11-05 | Maintenance | chore(agents): add shared Claude Code setup and audit standards | [5ab9f974b](2026-11-05-5ab9f974b-add-shared-claude-code-setup-and-audit-standards.md) |
+| 2026-11-03 | Maintenance | Fix/international audit ux performance (#177) | [b9877bd22](2026-11-03-b9877bd22-fix-international-audit-ux-performance-177.md) |
+| 2026-11-03 | Maintenance | Fix/international audit ux performance (#176) | [97907cf29](2026-11-03-97907cf29-fix-international-audit-ux-performance-176.md) |
+| 2026-11-02 | Maintenance | Fix/international audit ux performance (#175) | [045309092](2026-11-02-045309092-fix-international-audit-ux-performance-175.md) |
+| 2026-11-02 | Maintenance | Fix/international audit ux performance (#174) | [93769087b](2026-11-02-93769087b-fix-international-audit-ux-performance-174.md) |
+| 2026-11-02 | Maintenance | Feat/spotlight preview tabs (#171) | [5ea6d1a41](2026-11-02-5ea6d1a41-feat-spotlight-preview-tabs-171.md) |
+| 2026-11-01 | Maintenance | build(deps): bump actions/upload-artifact from 4 to 7 (#170) | [0218498a9](2026-11-01-0218498a9-bump-actions-upload-artifact-from-4-to-7-170.md) |
+| 2026-11-01 | Maintenance | Feat/brand video logo (#169) | [bad23ca6e](2026-11-01-bad23ca6e-feat-brand-video-logo-169.md) |
+| 2026-10-26 | Feature | feat(notifications): 7-day history, and the page finally shows notifications (#165) | [56a743681](2026-10-26-56a743681-7-day-history-and-the-page-finally-shows-notific.md) |
+| 2026-10-26 | Bugfix | fix(upload): photos refused — check real content by file signature (#164) | [35be28716](2026-10-26-35be28716-photos-refused-check-real-content-by-file-signat.md) |
+| 2026-10-25 | Maintenance | Messages M7: two-person E2E on phone, iPhone, tablet and desktop (+3 bug fixes) (#161) | [b8a5b1f40](2026-10-25-b8a5b1f40-messages-m7-two-person-e2e-on-phone-iphone-table.md) |
+| 2026-10-25 | Bugfix | fix: show each person and chat once — one profile per person in every query (#162) | [71cde8877](2026-10-25-71cde8877-show-each-person-and-chat-once-one-profile-per-p.md) |
+| 2026-10-25 | Feature | feat(messages): M6 — groups and channels work end to end (#160) | [7e6421742](2026-10-25-7e6421742-m6-groups-and-channels-work-end-to-end-160.md) |
+| 2026-10-25 | Feature | feat(messages): M5 — rebuilt chat and inbox screens, split view, cleaner actions (#159) | [94d9ca2ae](2026-10-25-94d9ca2ae-m5-rebuilt-chat-and-inbox-screens-split-view-cle.md) |
+| 2026-10-25 | Bugfix | fix(chat): full-screen chat on phones sized to the visible screen; smooth Back (#158) | [4db6ba0b1](2026-10-25-4db6ba0b1-full-screen-chat-on-phones-sized-to-the-visible-.md) |
+| 2026-10-25 | Feature | feat(feed): same-size business cards with a sliding Spotlight strip (#157) | [d2dbb3d2e](2026-10-25-d2dbb3d2e-same-size-business-cards-with-a-sliding-spotligh.md) |
+| 2026-10-25 | Feature | feat(messages): M4 — every emoji for reactions, emoji in chat and comments, pinned bar (#156) | [2d2d0c310](2026-10-25-2d2d0c310-m4-every-emoji-for-reactions-emoji-in-chat-and-c.md) |
+| 2026-10-25 | Maintenance | Merge pull request #155 from sentflix01/feat/messages-business-inbox | [c3806da50](2026-10-25-c3806da50-merge-pull-request-155-from-sentflix01-feat-mess.md) |
+| 2026-10-25 | Feature | feat(messages): business inbox, context cards and quick replies (messaging M3) | [57b950e0d](2026-10-25-57b950e0d-business-inbox-context-cards-and-quick-replies-m.md) |
+| 2026-10-25 | Maintenance | Merge pull request #154 from sentflix01/feat/spotlight-redesign | [f60ed0cc0](2026-10-25-f60ed0cc0-merge-pull-request-154-from-sentflix01-feat-spot.md) |
+| 2026-10-24 | Feature | feat(spotlight): one selling section at its real size on every business card | [b8b9bfcfa](2026-10-24-b8b9bfcfa-one-selling-section-at-its-real-size-on-every-bu.md) |
+| 2026-10-24 | Maintenance | Merge pull request #153 from sentflix01/chore/protect-main | [328a3f2c3](2026-10-24-328a3f2c3-merge-pull-request-153-from-sentflix01-chore-pro.md) |
+| 2026-10-24 | CI/CD | ci: prepare main for branch protection | [f4be29ff2](2026-10-24-f4be29ff2-prepare-main-for-branch-protection.md) |
 | 2026-10-24 | Maintenance | Merge pull request #152 from sentflix01/fix/legal-identity-and-test-listings | [e77d15743](2026-10-24-e77d15743-merge-pull-request-152-from-sentflix01-fix-legal.md) |
 | 2026-10-24 | Bugfix | fix(legal): name sellers as recipients; state transfers without unverified safeguards | [4bba3bab5](2026-10-24-4bba3bab5-name-sellers-as-recipients-state-transfers-witho.md) |
 | 2026-10-24 | Bugfix | fix(legal): real operator details and a working contact; archive test listings | [e24012a41](2026-10-24-e24012a41-real-operator-details-and-a-working-contact-arch.md) |

@@ -15,16 +15,16 @@ Marketplace catalog: product listing/detail/create/edit/archive by sellers, imag
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/products/` | optional | 72 |
-| `GET` | `/api/products/mine` | auth | 176 |
-| `GET` | `/api/products/lookup/:code` | auth | 196 |
-| `POST` | `/api/products/import-image` | auth | 210 |
-| `POST` | `/api/products/scan-batch` | auth | 226 |
-| `GET` | `/api/products/:id` | optional | 288 |
-| `POST` | `/api/products/` | auth | 311 |
-| `PUT` | `/api/products/:id` | auth | 364 |
-| `DELETE` | `/api/products/:id` | auth | 447 |
-| `POST` | `/api/products/bulk-import` | auth | 459 |
+| `GET` | `/api/products/` | optional | 75 |
+| `GET` | `/api/products/mine` | auth | 179 |
+| `GET` | `/api/products/lookup/:code` | auth | 199 |
+| `POST` | `/api/products/import-image` | auth | 213 |
+| `POST` | `/api/products/scan-batch` | auth | 229 |
+| `GET` | `/api/products/:id` | optional | 291 |
+| `POST` | `/api/products/` | auth | 314 |
+| `PUT` | `/api/products/:id` | auth | 367 |
+| `DELETE` | `/api/products/:id` | auth | 450 |
+| `POST` | `/api/products/bulk-import` | auth | 462 |
 
 ## 4. What does it touch?
 

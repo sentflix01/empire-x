@@ -15,17 +15,17 @@ Money core: COD order creation (field allowlisted), order status transitions rol
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/orders/` | auth | 89 |
-| `GET` | `/api/orders/session/:sessionId` | auth | 118 |
-| `GET` | `/api/orders/:id` | auth | 126 |
-| `POST` | `/api/orders/` | auth | 181 |
-| `PUT` | `/api/orders/:id` | auth | 259 |
-| `POST` | `/api/orders/checkout/session` | auth | 329 |
-| `POST` | `/api/orders/webhook` | public | 643 |
-| `POST` | `/api/orders/checkout/chapa` | auth | 677 |
-| `GET` | `/api/orders/chapa/sandbox` | public | 745 |
-| `GET` | `/api/orders/chapa/status/:tx_ref` | public | 757 |
-| `GET` | `/api/orders/chapa/verify/:tx_ref` | public | 768 |
+| `GET` | `/api/orders/` | auth | 94 |
+| `GET` | `/api/orders/session/:sessionId` | auth | 123 |
+| `GET` | `/api/orders/:id` | auth | 131 |
+| `POST` | `/api/orders/` | auth | 186 |
+| `PUT` | `/api/orders/:id` | auth | 264 |
+| `POST` | `/api/orders/checkout/session` | auth | 334 |
+| `POST` | `/api/orders/webhook` | public | 648 |
+| `POST` | `/api/orders/checkout/chapa` | auth | 682 |
+| `GET` | `/api/orders/chapa/sandbox` | public | 750 |
+| `GET` | `/api/orders/chapa/status/:tx_ref` | auth | 764 |
+| `GET` | `/api/orders/chapa/verify/:tx_ref` | public | 777 |
 
 ## 4. What does it touch?
 

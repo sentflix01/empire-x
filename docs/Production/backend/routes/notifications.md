@@ -11,16 +11,17 @@ In-app notification inbox: list newest-first, unread count badge, mark-read sing
 ## 3. What does it do?
 
 
-### Endpoints (6)
+### Endpoints (7)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
 | `GET` | `/api/notifications/` | auth | 12 |
-| `POST` | `/api/notifications/` | auth | 77 |
-| `PUT` | `/api/notifications/read-all` | auth | 96 |
-| `POST` | `/api/notifications/mark-read` | auth | 103 |
-| `PUT` | `/api/notifications/:id/read` | auth | 118 |
-| `DELETE` | `/api/notifications/:id` | auth | 129 |
+| `GET` | `/api/notifications/unread-count` | auth | 87 |
+| `POST` | `/api/notifications/` | auth | 99 |
+| `PUT` | `/api/notifications/read-all` | auth | 118 |
+| `POST` | `/api/notifications/mark-read` | auth | 125 |
+| `PUT` | `/api/notifications/:id/read` | auth | 140 |
+| `DELETE` | `/api/notifications/:id` | auth | 151 |
 
 ## 4. What does it touch?
 

@@ -15,16 +15,16 @@ It lets a merchant offer products or services through another person's profile w
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/profile-partnerships/mine` | auth | 60 |
-| `GET` | `/api/profile-partnerships/business/:businessId/products` | auth | 73 |
-| `GET` | `/api/profile-partnerships/profile/:userId` | optional | 90 |
-| `POST` | `/api/profile-partnerships/` | auth | 118 |
-| `PUT` | `/api/profile-partnerships/:id/accept` | auth | 164 |
-| `PUT` | `/api/profile-partnerships/:id/decline` | auth | 174 |
-| `PUT` | `/api/profile-partnerships/:id/terminate` | auth | 184 |
-| `GET` | `/api/profile-partnerships/my-commissions` | auth | 194 |
-| `GET` | `/api/profile-partnerships/payouts` | auth | 224 |
-| `POST` | `/api/profile-partnerships/:id/payouts` | auth | 246 |
+| `GET` | `/api/profile-partnerships/mine` | auth | 64 |
+| `GET` | `/api/profile-partnerships/business/:businessId/products` | auth | 77 |
+| `GET` | `/api/profile-partnerships/profile/:userId` | optional | 94 |
+| `POST` | `/api/profile-partnerships/` | auth | 122 |
+| `PUT` | `/api/profile-partnerships/:id/accept` | auth | 168 |
+| `PUT` | `/api/profile-partnerships/:id/decline` | auth | 178 |
+| `PUT` | `/api/profile-partnerships/:id/terminate` | auth | 188 |
+| `GET` | `/api/profile-partnerships/my-commissions` | auth | 198 |
+| `GET` | `/api/profile-partnerships/payouts` | auth | 228 |
+| `POST` | `/api/profile-partnerships/:id/payouts` | auth | 250 |
 
 ## 4. What does it touch?
 

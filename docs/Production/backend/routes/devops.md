@@ -36,10 +36,6 @@ Developer Operations hub: devops_items board CRUD (column-allowlisted), error_ev
 | `GET` | `/api/devops/log-report` | admin | 462 |
 | `GET` | `/api/devops/log-report/:file` | admin | 481 |
 
-- Error triage (audit F-006): `GET /errors` takes `resolved`, `level`, `since` (ISO time), `limit` (max 200) and `offset`, and returns the resolver's name and any linked ticket; `GET /errors/stats` returns the header counts; `PATCH /errors/resolve-all` takes an optional `{ level }` and returns `{ resolved }`; `POST /errors/:id/to-ticket` creates one bug ticket per error (a second call returns the same ticket).
-- `PUT /versions/:version` saves one version status (`not_started`, `in_progress`, `completed`, `paused`) and keeps the others.
-- Non-UUID `:id` values fall through to 404 (`uuidParams`).
-
 ## 4. What does it touch?
 
 **Notes:**
