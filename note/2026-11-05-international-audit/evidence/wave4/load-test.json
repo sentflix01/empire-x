@@ -1,0 +1,232 @@
+{
+  "ran_at": "2026-11-06T07:40:12.646Z",
+  "base": "http://127.0.0.1:3001",
+  "seconds_per_step": 10,
+  "cpus": 4,
+  "results": [
+    {
+      "endpoint": "GET /health",
+      "concurrency": 10,
+      "requests": 23641,
+      "rps": 2364,
+      "p50_ms": 3,
+      "p95_ms": 9,
+      "p99_ms": 15,
+      "max_ms": 70,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 23641
+      }
+    },
+    {
+      "endpoint": "GET /health",
+      "concurrency": 50,
+      "requests": 32203,
+      "rps": 3220,
+      "p50_ms": 15,
+      "p95_ms": 22,
+      "p99_ms": 29,
+      "max_ms": 53,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 32203
+      }
+    },
+    {
+      "endpoint": "GET /health",
+      "concurrency": 100,
+      "requests": 31477,
+      "rps": 3148,
+      "p50_ms": 30,
+      "p95_ms": 47,
+      "p99_ms": 57,
+      "max_ms": 80,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 31477
+      }
+    },
+    {
+      "endpoint": "GET /health",
+      "concurrency": 200,
+      "requests": 30787,
+      "rps": 3079,
+      "p50_ms": 63,
+      "p95_ms": 86,
+      "p99_ms": 99,
+      "max_ms": 123,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 30787
+      }
+    },
+    {
+      "endpoint": "GET /api/products (public list)",
+      "concurrency": 10,
+      "requests": 10259,
+      "rps": 1026,
+      "p50_ms": 9,
+      "p95_ms": 15,
+      "p99_ms": 21,
+      "max_ms": 32,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 10259
+      }
+    },
+    {
+      "endpoint": "GET /api/products (public list)",
+      "concurrency": 50,
+      "requests": 10785,
+      "rps": 1079,
+      "p50_ms": 45,
+      "p95_ms": 61,
+      "p99_ms": 84,
+      "max_ms": 139,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 10785
+      }
+    },
+    {
+      "endpoint": "GET /api/products (public list)",
+      "concurrency": 100,
+      "requests": 11507,
+      "rps": 1151,
+      "p50_ms": 86,
+      "p95_ms": 104,
+      "p99_ms": 115,
+      "max_ms": 124,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 11507
+      }
+    },
+    {
+      "endpoint": "GET /api/products (public list)",
+      "concurrency": 200,
+      "requests": 11261,
+      "rps": 1126,
+      "p50_ms": 177,
+      "p95_ms": 205,
+      "p99_ms": 216,
+      "max_ms": 284,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 11261
+      }
+    },
+    {
+      "endpoint": "GET /api/businesses (public list)",
+      "concurrency": 10,
+      "requests": 13434,
+      "rps": 1343,
+      "p50_ms": 7,
+      "p95_ms": 12,
+      "p99_ms": 16,
+      "max_ms": 22,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 13434
+      }
+    },
+    {
+      "endpoint": "GET /api/businesses (public list)",
+      "concurrency": 50,
+      "requests": 14003,
+      "rps": 1400,
+      "p50_ms": 35,
+      "p95_ms": 45,
+      "p99_ms": 56,
+      "max_ms": 83,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 14003
+      }
+    },
+    {
+      "endpoint": "GET /api/businesses (public list)",
+      "concurrency": 100,
+      "requests": 13604,
+      "rps": 1360,
+      "p50_ms": 72,
+      "p95_ms": 89,
+      "p99_ms": 95,
+      "max_ms": 143,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 13604
+      }
+    },
+    {
+      "endpoint": "GET /api/businesses (public list)",
+      "concurrency": 200,
+      "requests": 13357,
+      "rps": 1336,
+      "p50_ms": 149,
+      "p95_ms": 175,
+      "p99_ms": 182,
+      "max_ms": 191,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 13357
+      }
+    },
+    {
+      "endpoint": "GET /api/trending",
+      "concurrency": 10,
+      "requests": 8353,
+      "rps": 835,
+      "p50_ms": 12,
+      "p95_ms": 18,
+      "p99_ms": 23,
+      "max_ms": 34,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 8353
+      }
+    },
+    {
+      "endpoint": "GET /api/trending",
+      "concurrency": 50,
+      "requests": 8682,
+      "rps": 868,
+      "p50_ms": 58,
+      "p95_ms": 71,
+      "p99_ms": 80,
+      "max_ms": 90,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 8682
+      }
+    },
+    {
+      "endpoint": "GET /api/trending",
+      "concurrency": 100,
+      "requests": 8456,
+      "rps": 846,
+      "p50_ms": 117,
+      "p95_ms": 149,
+      "p99_ms": 164,
+      "max_ms": 198,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 8456
+      }
+    },
+    {
+      "endpoint": "GET /api/trending",
+      "concurrency": 200,
+      "requests": 8488,
+      "rps": 849,
+      "p50_ms": 239,
+      "p95_ms": 270,
+      "p99_ms": 279,
+      "max_ms": 320,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 8488
+      }
+    }
+  ]
+}

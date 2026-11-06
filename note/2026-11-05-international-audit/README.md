@@ -1,6 +1,6 @@
 # International-grade audit — 2026-11-05
 
-> **Status:** Waves 1–3 (inventory, security & privacy, functional journeys) complete — see `SUMMARY.md`. Wave 4 (accessibility, UX, polish, performance) next. Non-authoritative work note per
+> **Status:** Waves 1–4 (inventory, security & privacy, journeys, accessibility/UX/performance) complete — see `SUMMARY.md`. Wave 5 (architecture, docs, legal, final report) next. Non-authoritative work note per
 > [`note/README.md`](../README.md). Findings become requirements only when
 > adopted into `docs/` or `project-brain/DECISIONS.md`.
 

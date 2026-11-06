@@ -1,0 +1,32 @@
+{
+  "id": "F-040",
+  "kind": "defect",
+  "phase": "P7-performance",
+  "severity": "High",
+  "status": "CONFIRMED",
+  "title": "Bookmarks page requests /api/saves in an endless loop for users with no bookmarks",
+  "standards": [
+    "OWASP API4:2023 (unrestricted resource consumption)",
+    "ISO/IEC 25010:2023 performance efficiency",
+    "OWASP A10:2025"
+  ],
+  "location": [
+    "frontend-next/views/Bookmarks.tsx:38-42",
+    "frontend-next/store/bookmarksSlice.ts:56-75"
+  ],
+  "steps": [
+    "Sign in locally as a user with no saved items and open /bookmarks.",
+    "Count requests for 10 s (scratch probe; same logic as scripts/browser/a11y-scan.cjs timing out on /bookmarks)."
+  ],
+  "expected": "One GET /api/saves when the page opens.",
+  "actual": "1,777 GET /api/saves in 10 s (≈178/s) and never stops. The effect re-runs whenever savedIds changes; hydrate() stores a new empty object when the user has no saves, which changes savedIds and re-triggers the effect.",
+  "evidence": [
+    "evidence/wave4/bookmarks-loop.json"
+  ],
+  "impact": "In production the global limit (500 requests / 15 min per IP) is reached in about 3 s, after which every API call from that person — and anyone sharing their IP (mobile carrier NAT, office) — fails with 429 for 15 minutes. It also burns server CPU and the Upstash Redis daily quota (TD-023). Most new users have no bookmarks.",
+  "fix": "Add an `hydrated` flag to the bookmarks store and run the effect once (`useEffect(() => { if (!hydrated) hydrate(); }, [hydrated, hydrate])`), or move the list to TanStack Query. Add a Vitest test that renders Bookmarks with an empty response and asserts one request.",
+  "effort": "S",
+  "regression_test": "Vitest: Bookmarks with empty /api/saves issues exactly one request; Playwright: request count on /bookmarks stays < 5 over 5 s.",
+  "found_on": "2026-11-06",
+  "environment": "local"
+}

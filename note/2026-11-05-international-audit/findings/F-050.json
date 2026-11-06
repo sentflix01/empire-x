@@ -1,0 +1,27 @@
+{
+  "id": "F-050",
+  "kind": "positive",
+  "phase": "P7-performance",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "title": "Positive: API stays error-free under local load up to 200 concurrent clients",
+  "standards": [
+    "ISO/IEC 25010:2023 performance efficiency (capacity)"
+  ],
+  "location": [
+    "note/2026-11-05-international-audit/scripts/load-test.mjs"
+  ],
+  "steps": [
+    "node note/2026-11-05-international-audit/scripts/load-test.mjs 10"
+  ],
+  "expected": "No errors under load; latency degrades gracefully.",
+  "actual": "0 errors at 10/50/100/200 concurrent clients. Throughput plateaus at ≈ 3,100 rps (/health), 1,100–1,400 rps (products, businesses lists) and ≈ 850 rps (trending); p99 at 200 clients 99–279 ms, rising linearly — a single CPU-bound Node process. Caveats: 4-vCPU sandbox vs a fraction of one CPU on Render free; small dataset (13 products, 7 businesses); dev runtime. Treat as an upper bound; soak and spike tests not run.",
+  "evidence": [
+    "evidence/wave4/load-test.json"
+  ],
+  "impact": "No code bottleneck at this scale; hosting plan is the limit (see F-030).",
+  "fix": "Re-run against staging with production-size data and the real plan; add Node clustering or a second instance with Redis-backed rate limits before growth.",
+  "effort": "S",
+  "found_on": "2026-11-06",
+  "environment": "local"
+}

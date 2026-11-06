@@ -1,0 +1,32 @@
+{
+  "id": "F-042",
+  "kind": "defect",
+  "phase": "P4-a11y",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Skip link goes nowhere and several pages lack a main landmark or heading",
+  "standards": [
+    "WCAG 2.2 SC 2.4.1 (Bypass Blocks)",
+    "WCAG 2.2 SC 1.3.1",
+    "WCAG 2.2 SC 2.4.6"
+  ],
+  "location": [
+    "frontend-next/app/layout.tsx:75",
+    "frontend-next/components/layout/AppLayout.tsx:878",
+    "frontend-next/components/AuthLayout.tsx"
+  ],
+  "steps": [
+    "node scratch skiplink check over 9 pages; keyboard: Tab, Enter on /landing."
+  ],
+  "expected": "'Skip to main content' moves focus to the page's main region; each page has one <main> and one <h1>.",
+  "actual": "Every page renders the skip link to #main-content, but no element has that id (AppLayout's <main> only has data-page-guide=\"main-content\"). Login, register, forgot-password, service agreement and public showroom pages have no <main>; the public showroom page has no <h1>.",
+  "evidence": [
+    "evidence/wave4/skip-link-landmarks.json",
+    "evidence/wave4/keyboard.json"
+  ],
+  "impact": "Keyboard and screen-reader users must tab through the full header and sidebar on every page.",
+  "fix": "Add id=\"main-content\" tabIndex={-1} to the <main> in AppLayout; wrap AuthLayout, the legal page and the public showroom in <main id=\"main-content\">; give the showroom an <h1> (business name).",
+  "effort": "S",
+  "found_on": "2026-11-06",
+  "environment": "local"
+}

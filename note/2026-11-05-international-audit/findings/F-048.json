@@ -1,0 +1,32 @@
+{
+  "id": "F-048",
+  "kind": "defect",
+  "phase": "P7-performance",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Service worker never installs, so push notifications and offline support cannot work",
+  "standards": [
+    "ISO/IEC 25010:2023 functional suitability",
+    "W3C Service Workers (install failure on rejected cache.addAll)",
+    "PWA installability"
+  ],
+  "location": [
+    "frontend-next/public/sw.js:4-10",
+    "frontend-next/lib/push.ts:24",
+    "frontend-next/lib/publicPaths.ts (no /offline)"
+  ],
+  "steps": [
+    "GET /index.html on the production build → 404.",
+    "In Chromium, navigator.serviceWorker.register('/sw.js') → worker state 'redundant', no active registration."
+  ],
+  "expected": "The worker installs, push subscriptions succeed, and an offline page is served when the network is down.",
+  "actual": "sw.js precaches ['/', '/index.html']; /index.html does not exist in the Next.js app (Vite leftover), so cache.addAll rejects and the install fails. The worker is only registered when a user enables push, and that registration ends 'redundant'. /offline also redirects guests to /login. If fixed as-is, the fetch handler would cache every GET response, including signed-in API data, with no clearing on logout.",
+  "evidence": [
+    "evidence/wave4/service-worker.json"
+  ],
+  "impact": "'Enable notifications' (prompted on many pages) cannot deliver web push, so message and order alerts rely on the open tab; no offline fallback despite the readiness scorecard listing it.",
+  "fix": "Precache only existing URLs (e.g. '/offline', icons, manifest), make /offline public, never cache /api/* or authenticated responses (or clear caches on logout), register the worker on load, and add a Playwright check that the worker reaches 'activated'.",
+  "effort": "S",
+  "found_on": "2026-11-06",
+  "environment": "local"
+}

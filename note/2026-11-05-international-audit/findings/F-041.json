@@ -1,0 +1,32 @@
+{
+  "id": "F-041",
+  "kind": "defect",
+  "phase": "P4-a11y",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Brand amber and gold text fail colour contrast across most pages",
+  "standards": [
+    "WCAG 2.2 SC 1.4.3 (Contrast, Minimum)",
+    "EN 301 549 V4.1.1 9.1.4.3"
+  ],
+  "location": [
+    "frontend-next/app/globals.css (theme tokens)",
+    "raw Tailwind classes text-amber-600 / #d4af37 across components"
+  ],
+  "steps": [
+    "node scripts/browser/a11y-scan.cjs (axe-core 4.10.3, WCAG 2.0–2.2 A/AA) — light theme",
+    "node scratch themes check — dark theme"
+  ],
+  "expected": "Text ≥ 4.5:1 (≥ 3:1 for large text) in light and dark themes.",
+  "actual": "123 failing elements on 27 of 36 page states (light). Main pairs: #e17100 on white 3.2:1, #e17100 on #f7f7f7 2.99:1, gold #d4af37 on white 2.1:1, white on #d4af37 2.1:1, white on amber #fe9a00 2.14:1, muted #6a7181 on #f0f2f4 4.35:1. Dark theme: 1–9 failures per page checked (landing 7, feed 9).",
+  "evidence": [
+    "evidence/wave4/a11y-scan.json",
+    "evidence/wave4/a11y-detail.json",
+    "evidence/wave4/themes-motion.json"
+  ],
+  "impact": "Prices, badges and secondary labels are hard to read for low-vision users and in sunlight on phones — common for the target market.",
+  "fix": "Define accessible brand tokens in globals.css (e.g. amber text ≥ #b45309 on white, gold only for decoration or with dark text), replace raw amber/gold text classes with the tokens, and add axe color-contrast to CI.",
+  "effort": "M",
+  "found_on": "2026-11-06",
+  "environment": "local"
+}

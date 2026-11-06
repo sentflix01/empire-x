@@ -48,7 +48,12 @@ Human contributors on their own machine can use `docker compose up` instead
 3. Payments, email and AI run in local/console modes here (`/health` shows
    `email: console`, `ai: not configured`, `storage: local`). Do not add real
    provider keys.
-4. Demo mode needs a separate `DEMO_DATABASE_URL`; it is off by default. Enable it
+4. `env.sh` exports `NODE_ENV=development` for the dev servers. For a production
+   frontend build (performance or CI-gate checks) override it:
+   `NODE_ENV=production npm run build && NODE_ENV=production npx next start -p 3002`
+   from `frontend-next/` — building with `development` fails at prerender with
+   "Cannot read properties of null (reading 'useState')".
+5. Demo mode needs a separate `DEMO_DATABASE_URL`; it is off by default. Enable it
    only with a second local database or schema, never a shared one.
 
 ## Troubleshooting
