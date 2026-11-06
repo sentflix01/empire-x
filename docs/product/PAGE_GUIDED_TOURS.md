@@ -6,7 +6,8 @@ Page Guided Tours are short, in-page walkthroughs that explain the controls a pe
 
 ## Experience
 
-- When enabled, the guide opens on a person's first visit in that browser and shows a small card beside a highlighted page area.
+- The **Page guide** button (in the floating assistant) starts the current page's guide at any time and shows a small card beside a highlighted page area.
+- When `page_guided_tours` is on, the guide also opens by itself on a person's first visit to a page in that browser, except on the sign-in, register and password pages, where it would cover the form.
 - **Next** advances to the next highlighted area; **Back**, **Skip guide**, **Finish**, and Escape let the person control or close the tour.
 - A persistent **Page guide** button lets people replay the current page's guide.
 - Guides are available on the landing page, feed, marketplace, search, and other app pages. Page-specific descriptions are attached only to controls present in the current UI.
@@ -15,7 +16,7 @@ Page Guided Tours are short, in-page walkthroughs that explain the controls a pe
 
 ## Availability and rollout
 
-The feature is controlled by `page_guided_tours` in `backend/lib/featureFlags.ts` and is off by default. Enable it using `FF_PAGE_GUIDED_TOURS=true` or the existing feature flag Redis mechanism. The frontend checks only `GET /api/flags/page-guided-tours`; this public response exposes the effective boolean for this one flag and does not return the registry.
+The **Page guide** button always works. `page_guided_tours` in `backend/lib/featureFlags.ts` only controls whether the guide opens by itself, and is off by default (owner decision, 6 Nov 2026, audit F-031). Enable it using `FF_PAGE_GUIDED_TOURS=true` or the existing feature flag Redis mechanism. The frontend checks only `GET /api/flags/page-guided-tours`; this public response exposes the effective boolean for this one flag and does not return the registry.
 
 ## Scope
 

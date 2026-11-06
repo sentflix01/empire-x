@@ -2,8 +2,8 @@
 
 > **Classification:** Confidential — Internal Use Only
 > **Version:** 1.0
-> **Status:** Compliant (Continuous Monitoring)
-> **Last Updated:** August 2026
+> **Status:** Aligned, with known gaps — not a legal opinion. The November 2026 audit found gaps (public identity documents, files kept after account deletion, guest order links in logs: findings F-013, F-014, F-015). Fixes are in the code on branch `claude/charming-lamport-n3ppii` but not yet deployed; legal review pending.
+> **Last Updated:** 6 November 2026 (status only; content from August 2026)
 
 ---
 
@@ -16,7 +16,7 @@
 | DPO | Data Protection Officer |
 | DSR | Data Subject Request |
 | ECA | Ethiopian Communications Authority |
-| EDP | Ethiopia Data Protection Proclamation (Proclamation No. 1309/2024) |
+| EDP | Ethiopia's personal data protection proclamation (number to be confirmed by counsel — see §1.1) |
 | NCA | National Cybersecurity Agency |
 | PII | Personally Identifiable Information |
 | SAD | Sensitive Authentication Data |
@@ -27,9 +27,11 @@
 
 ### 1.1 Primary Legislation
 
+> **Needs legal review (audit F-054):** confirm the proclamation numbers and the obligations below against the official Negarit Gazeta before relying on this document.
+
 | Law | Status | Relevance |
 |-----|--------|-----------|
-| **Proclamation No. 1309/2024** (Ethiopia Data Protection Proclamation) | Enacted 2024 | Primary data protection law |
+| **Personal data protection proclamation — number to be confirmed by counsel** (this document cited No. 1309/2024; the November 2026 audit brief cites No. 1321/2024) | Enacted 2024 | Primary data protection law |
 | **Proclamation No. 1156/2019** (Labor) | Enacted | Employee data |
 | **Proclamation No. 1247/2021** (Cybercrime) | Enacted | Security incidents, cybercrime |
 | **Proclamation No. 1234/2021** (Electronic Transactions) | Enacted | E-contracts, e-signatures |

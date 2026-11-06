@@ -849,3 +849,13 @@ items in the open list until confirmed.
 - **Decision:** `backend/db/migrate-all.js` keeps `schema_migrations` with a sha256 checksum per file, runs only unrecorded migrations, refuses to continue when an applied file changed (`--rerun <file>` for deliberate re-runs), and uses a Postgres advisory lock. No manual backfill: the first run on an existing database executes everything once more (as every deploy did) and records it. Migrations must stay idempotent.
 - **Consequences:** Deploys run only new migrations. Editing an applied migration now fails the deploy until it is moved to a new file or re-run on purpose. `npm run migrate:status` shows what is pending.
 - **Related documentation:** `docs/infrastructure/MIGRATION_GUIDE.md`, `docs/backend/DATABASE.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Page guide opens only on request by default; compliance docs no longer claim "Compliant"
+
+- **Status:** Accepted (owner: "continue as you recommended", 6 Nov 2026, on the suggested defaults for F-031 and F-054)
+- **Decision owner:** Project owner
+- **Decision:**
+  1. **F-031:** `page_guided_tours` now only decides whether the guide opens by itself on a first visit, and is **off** by default. The **Page guide** button always works. The guide never opens by itself on the sign-in, register and password pages.
+  2. **F-054:** the Ethiopia data protection and GDPR documents say "Aligned, with known gaps — not a legal opinion" instead of "Compliant". The data protection proclamation number is marked "to be confirmed by counsel" (the document cited 1309/2024; the audit brief cites 1321/2024); the number was not chosen here.
+- **Open:** counsel to confirm the proclamation number and obligations; update the status after the fixes are deployed and reviewed.
+- **Related documentation:** `docs/product/PAGE_GUIDED_TOURS.md`, `docs/product/FEATURE_FLAGS.md`, `docs/compliance/ETHIOPIA_DATA_PROTECTION.md`, `docs/compliance/GDPR_AUDIT.md`
