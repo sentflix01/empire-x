@@ -284,6 +284,7 @@ function NearbyMap() {
         </div>
         <div className="flex items-center gap-2">
           <select
+            aria-label="Search radius"
             value={radiusKm}
             onChange={e => {
               const r = Number(e.target.value);

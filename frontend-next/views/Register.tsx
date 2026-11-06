@@ -207,7 +207,7 @@ function Register() {
             Google Sign-Up unavailable
           </div>
         )}
-        <div ref={googleRef} data-page-guide="register-google" className="flex min-h-10 w-full justify-center" aria-label="Sign up with Google" />
+        <div ref={googleRef} data-page-guide="register-google" className="flex min-h-10 w-full justify-center" role="group" aria-label="Sign up with Google" />
       </div>
 
       {/* Divider */}

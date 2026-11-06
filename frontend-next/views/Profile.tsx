@@ -287,11 +287,11 @@ function Profile() {
                 )}
                 {isOwner && (
                   <div className="flex gap-2 items-center">
-                    <Link data-page-guide="profile-edit-btn" href="/profile/edit">
-                      <Button variant="outline" size="sm" className="rounded-full h-8"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button>
-                    </Link>
-                    <Button variant="ghost" size="sm" className="rounded-full h-8 text-muted-foreground" onClick={() => auth.logout("/")}>
-                      <LogOut className="w-3 h-3" />
+                    <Button asChild variant="outline" size="sm" className="rounded-full h-8">
+                      <Link data-page-guide="profile-edit-btn" href="/profile/edit"><Edit2 className="w-3 h-3 mr-1" aria-hidden="true" /> Edit</Link>
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" className="rounded-full h-8 text-muted-foreground" onClick={() => auth.logout("/")} aria-label="Sign out" title="Sign out">
+                      <LogOut className="w-3 h-3" aria-hidden="true" />
                     </Button>
                   </div>
                 )}

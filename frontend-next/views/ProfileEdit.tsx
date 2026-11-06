@@ -352,8 +352,8 @@ function ProfileEdit() {
     <div className="max-w-2xl mx-auto pb-20">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6 pt-2">
-        <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-secondary transition-colors">
-          <ArrowLeft className="w-5 h-5" />
+        <button type="button" onClick={() => router.back()} aria-label="Go back" className="p-2 rounded-xl hover:bg-secondary transition-colors">
+          <ArrowLeft className="w-5 h-5" aria-hidden="true" />
         </button>
         <div>
           <h1 className="text-xl font-bold">{isBusinessSetup ? 'Business Profile Setup' : 'Edit Profile'}</h1>

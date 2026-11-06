@@ -558,7 +558,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </Link>
                 <Link href={`/login?return=${encodeURIComponent(pathname)}`} className="inline-flex h-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3 sm:text-sm">Sign in</Link>
                 <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 sm:px-3 sm:text-sm">Join</Link>
-                {authChecked && <span title="Browsing as guest" aria-label="Guest session" className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground">
+                {authChecked && <span role="img" title="Browsing as guest" aria-label="Guest session" className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground">
                   <UserRound className="h-4 w-4" />
                 </span>}
               </>
@@ -592,7 +592,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                       : userInitial}
                   </Link>
                 ) : (
-                  <div aria-label="Guest session" title="Browsing as guest" className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-slate-500 flex items-center justify-center text-white shadow-lg shrink-0">
+                  <div role="img" aria-label="Guest session" title="Browsing as guest" className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-slate-500 flex items-center justify-center text-white shadow-lg shrink-0">
                     <UserRound className="h-5 w-5" />
                   </div>
                 )}
@@ -621,7 +621,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   {displayName}
                 </span>
               </Link> : (
-                <div title="Browsing as guest" aria-label="Guest session" className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-border bg-secondary text-muted-foreground">
+                <div role="img" title="Browsing as guest" aria-label="Guest session" className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-border bg-secondary text-muted-foreground">
                   <UserRound className="h-4 w-4" />
                 </div>
               )}
@@ -937,7 +937,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                         : userInitial}
                     </Link>
                   ) : (
-                    <div aria-label="Guest session" className="absolute bottom-3 left-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-500 text-white shadow-xl">
+                    <div role="img" aria-label="Guest session" className="absolute bottom-3 left-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-500 text-white shadow-xl">
                       <UserRound className="h-8 w-8" />
                     </div>
                   )}

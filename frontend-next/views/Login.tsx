@@ -147,7 +147,7 @@ function Login() {
             Google sign-in is not configured for this environment. Use email and password.
           </div>
         )}
-        <div ref={googleRef} data-page-guide="login-google" className="flex min-h-10 w-full justify-center" aria-label="Sign in with Google" />
+        <div ref={googleRef} data-page-guide="login-google" className="flex min-h-10 w-full justify-center" role="group" aria-label="Sign in with Google" />
       </div>
 
       {/* Divider */}

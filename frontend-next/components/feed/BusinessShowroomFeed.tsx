@@ -210,6 +210,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                   level="L"
                   includeMargin={false}
                   style={{ display: 'block' }}
+                  aria-hidden="true"
                 />
               </button>
               {qrOpen && (

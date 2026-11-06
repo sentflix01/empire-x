@@ -145,9 +145,9 @@ function AccountSettingsView() {
                   ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
                   : initial}
               </div>
-              <Link href="/profile/edit"
+              <Link href="/profile/edit" aria-label="Change profile photo"
                 className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-amber-500 hover:bg-amber-600 flex items-center justify-center shadow transition-colors">
-                <Camera className="w-3 h-3 text-white" />
+                <Camera className="w-3 h-3 text-white" aria-hidden="true" />
               </Link>
             </div>
             <Link href="/profile/edit"

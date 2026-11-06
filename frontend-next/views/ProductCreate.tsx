@@ -273,50 +273,50 @@ function ProductCreate() {
             <ImageUpload multiple max={6} value={images} onChange={setImages as any} />
           </div>
           <div>
-            <Label>Title</Label>
-            <Input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Product name" className="mt-1" />
+            <Label htmlFor="product-title">Title</Label>
+            <Input id="product-title" value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Product name" className="mt-1" />
           </div>
           <div>
             <div className="flex items-center justify-between">
-              <Label>Description</Label>
+              <Label htmlFor="product-description">Description</Label>
               {aiAvailable && (
                 <button type="button" onClick={handleGenerateDesc} disabled={generating || !form.title} className="flex items-center gap-1 text-xs text-amber-600 hover:underline disabled:opacity-50">
                   <Sparkles className="w-3 h-3" aria-hidden="true" /> {generating ? "Generating..." : "AI Generate"}
                 </button>
               )}
             </div>
-            <Textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Describe your product..." className="mt-1 min-h-[100px]" />
+            <Textarea id="product-description" value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Describe your product..." className="mt-1 min-h-[100px]" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Price</Label>
-              <Input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="mt-1" />
+              <Label htmlFor="product-price">Price</Label>
+              <Input id="product-price" type="number" min="0" step="0.01" inputMode="decimal" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="mt-1" />
             </div>
             <div>
-              <Label>Stock</Label>
-              <Input type="number" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} className="mt-1" />
+              <Label htmlFor="product-stock">Stock</Label>
+              <Input id="product-stock" type="number" min="0" step="1" inputMode="numeric" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} className="mt-1" />
             </div>
           </div>
           {(barcode || brand || unit) && (
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label>Barcode</Label>
-                <Input value={barcode} onChange={e => setBarcode(e.target.value.replace(/[^\d]/g, ""))} inputMode="numeric" className="mt-1 font-mono" />
+                <Label htmlFor="product-barcode">Barcode</Label>
+                <Input id="product-barcode" value={barcode} onChange={e => setBarcode(e.target.value.replace(/[^\d]/g, ""))} inputMode="numeric" className="mt-1 font-mono" />
               </div>
               <div>
-                <Label>Brand</Label>
-                <Input value={brand} onChange={e => setBrand(e.target.value)} className="mt-1" />
+                <Label htmlFor="product-brand">Brand</Label>
+                <Input id="product-brand" value={brand} onChange={e => setBrand(e.target.value)} className="mt-1" />
               </div>
               <div>
-                <Label>Size</Label>
-                <Input value={unit} onChange={e => setUnit(e.target.value)} placeholder="500 ml" className="mt-1" />
+                <Label htmlFor="product-unit">Size</Label>
+                <Input id="product-unit" value={unit} onChange={e => setUnit(e.target.value)} placeholder="500 ml" className="mt-1" />
               </div>
             </div>
           )}
           <div>
-            <Label>Category</Label>
+            <Label htmlFor="product-category">Category</Label>
             <Select value={form.category} onValueChange={v => setForm({...form, category: v})}>
-              <SelectTrigger className="mt-1"><SelectValue placeholder="Select category" /></SelectTrigger>
+              <SelectTrigger id="product-category" className="mt-1"><SelectValue placeholder="Select category" /></SelectTrigger>
               <SelectContent>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
@@ -332,9 +332,9 @@ function ProductCreate() {
           )}
           {isEdit && (
             <div>
-              <Label>Status</Label>
+              <Label htmlFor="product-status">Status</Label>
               <Select value={form.status} onValueChange={v => setForm({...form, status: v})}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectTrigger id="product-status" className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="sold_out">Sold Out</SelectItem>

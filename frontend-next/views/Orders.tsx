@@ -518,7 +518,7 @@ function Orders() {
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       {/* Product thumbnail */}
                       {order.product_id && (
-                        <Link href={`/products/${order.product_id}`} className="shrink-0">
+                        <Link href={`/products/${order.product_id}`} className="shrink-0" aria-label={`View ${order.product_title || "product"}`}>
                           <div className="w-14 h-14 rounded-xl bg-secondary/30 overflow-hidden relative">
                             {order.product_images ? (
                               <Image
@@ -638,11 +638,14 @@ function Orders() {
 
                       {/* Expand tracking / details */}
                       <button
+                        type="button"
                         onClick={() => toggleExpand(order.id)}
                         data-page-guide="orders-detail-expand"
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? "Hide order details" : "Show order details"}
                         className="p-1 rounded-full hover:bg-secondary transition-colors text-muted-foreground"
                       >
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        {isExpanded ? <ChevronUp className="w-4 h-4" aria-hidden="true" /> : <ChevronDown className="w-4 h-4" aria-hidden="true" />}
                       </button>
                     </div>
                   </div>
