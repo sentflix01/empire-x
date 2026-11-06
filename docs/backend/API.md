@@ -15,8 +15,9 @@ Register a new account. Sends OTP to email.
 
 **Request:**
 ```json
-{ "email": "user@example.com", "password": "secret123", "full_name": "Abebe Kebede" }
+{ "email": "user@example.com", "password": "violet-harbour-tram-91", "full_name": "Abebe Kebede" }
 ```
+**Password rules** (also for `reset-password` and `change-password`; `backend/lib/passwordPolicy.ts`, audit F-017): 8–128 characters, not one of 17,950 common passwords (`backend/data/common-passwords.txt`, case-insensitive), not the email address or its local part. A failing password answers `422 VALIDATION_ERROR` with a message to show.
 **Response 201:**
 ```json
 { "message": "Registration successful. Check your email for the verification code.", "userId": "uuid" }

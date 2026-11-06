@@ -28,6 +28,7 @@ initSentryCore();
 
 import express, { type Request, type Response, type NextFunction } from 'express';
 import defaultBody from './middleware/defaultBody';
+import { assertPasswordPolicyReady } from './lib/passwordPolicy';
 import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -138,8 +139,18 @@ function checkEnv(): void {
     }
     warnings.push('Google OAuth (GOOGLE_CLIENT_ID) — Google sign-in disabled');
   }
-  // OTP_SALT is recommended in production but not fatal — omit from prod warnings
-  // to keep startup logs clean.
+  // OTP_SALT is the secret in every stored sign-in code hash; without it a
+  // leaked database lets anyone brute-force the 900,000 codes (audit F-017).
+  if (!process.env.OTP_SALT || process.env.OTP_SALT.length < 32) {
+    if (process.env.NODE_ENV === 'production') {
+      logger.error('\n❌  OTP_SALT is missing or shorter than 32 characters in production.');
+      logger.error('   Set a random value in the Render environment (render.yaml generates one).\n');
+      process.exit(1);
+    }
+    warnings.push('OTP_SALT not set (or under 32 characters) — required in production');
+  }
+  // A missing password blocklist must fail the deploy, not a sign-up.
+  assertPasswordPolicyReady();
   const r2  = ['R2_ACCOUNT_ID','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','R2_BUCKET_NAME','R2_PUBLIC_URL'];
   const sup = ['SUPABASE_URL','SUPABASE_STORAGE_KEY','SUPABASE_BUCKET'];
   if (r2.some((k) => !process.env[k]) && sup.some((k) => !process.env[k])) {

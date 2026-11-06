@@ -35,7 +35,7 @@ Set at: Render → nodbusiness-backend → Environment
 | Variable | Value format | Required | Notes |
 |---|---|---|---|
 | `JWT_SECRET` | 128-char hex string | ✅ Yes | Generate: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`. App exits if missing. |
-| `OTP_SALT` | 64-char hex string | No (recommended) | Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Prevents rainbow-table attacks on OTP hashes. |
+| `OTP_SALT` | 64-char hex string | **Yes in production** (32+ characters; the server refuses to start without it, audit F-017) | Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Prevents rainbow-table attacks on OTP hashes. |
 | `JWT_EXPIRES_IN` | `7d` | No | Refresh token lifetime. Access token is always 15 min (hardcoded). |
 
 ### Google OAuth

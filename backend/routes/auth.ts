@@ -37,6 +37,7 @@ import { deleteStoredFiles } from '../lib/storedFiles';
 import { clearValue, getValue, incrementCounter, isTokenRevoked, revokeAllSessions, revokeTokenId, setValue } from '../lib/authSecurityStore';
 import * as apiError from '../lib/apiError';
 import logger from '../lib/logger';
+import { newPasswordProblem } from '../lib/passwordPolicy';
 
 const router = Router();
 
@@ -99,8 +100,8 @@ const DUMMY_BCRYPT_HASH = '$2a$12$R/qSj/pe5cMtU.tBG99JTucrKpq7PEFJ2Bt17Y6N5PIp.2
  * preimage space is only 900,000 values. The OTP_SALT adds
  * an application-level secret to prevent DB-only rainbow tables.
  *
- * NOTE: if OTP_SALT is not set, falls back to a zero-byte salt
- * (still hashed, just without the app secret). Set OTP_SALT in .env.
+ * Production refuses to start without OTP_SALT (index.ts, audit F-017);
+ * development falls back to an empty salt.
  */
 function hashOtp(otp: string): string {
   const salt = process.env.OTP_SALT ?? '';
@@ -230,13 +231,9 @@ router.post('/register', async (req: Request, res: Response) => {
     apiError.validationError(res, 'Email and password are required');
     return;
   }
-  if (password.length < 8) {
-    apiError.validationError(res, 'Password must be at least 8 characters');
-    return;
-  }
-  if (password.length > 128) {
-    apiError.validationError(res, 'Password must be at most 128 characters');
-    return;
+  {
+    const problem = newPasswordProblem(password, { email });
+    if (problem) { apiError.validationError(res, problem); return; }
   }
   if (full_name && full_name.length > 100) {
     apiError.validationError(res, 'Name must be at most 100 characters');
@@ -988,13 +985,9 @@ router.post('/reset-password', async (req: Request, res: Response) => {
     apiError.validationError(res, 'Token and new password are required');
     return;
   }
-  if (password.length < 8) {
-    apiError.validationError(res, 'Password must be at least 8 characters');
-    return;
-  }
-  if (password.length > 128) {
-    apiError.validationError(res, 'Password must be at most 128 characters');
-    return;
+  {
+    const problem = newPasswordProblem(password);
+    if (problem) { apiError.validationError(res, problem); return; }
   }
 
   try {
@@ -1044,13 +1037,9 @@ router.put('/change-password', requireAuth, async (req: Request, res: Response) 
     apiError.validationError(res, 'Both current and new password are required');
     return;
   }
-  if (new_password.length < 8) {
-    apiError.validationError(res, 'Password must be at least 8 characters');
-    return;
-  }
-  if (new_password.length > 128) {
-    apiError.validationError(res, 'Password must be at most 128 characters');
-    return;
+  {
+    const problem = newPasswordProblem(new_password, { email: req.user?.email });
+    if (problem) { apiError.validationError(res, problem); return; }
   }
 
   try {
