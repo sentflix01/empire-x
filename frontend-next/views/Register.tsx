@@ -44,6 +44,11 @@ function Register() {
           setError('This legacy Demo login needs to be linked to a Real account before it can be used here.');
           return;
         }
+        if (result.mfa_required) {
+          // An existing account with two-factor sign-in on finishes on the sign-in page (F-017).
+          router.replace('/login?mfa=1');
+          return;
+        }
         if (result?.access_token) storeToken(result.access_token);
         // Registration always creates the user's canonical Real identity.
         void completeLogin().then(() => router.replace('/feed')).catch(() => {
@@ -207,7 +212,7 @@ function Register() {
             Google Sign-Up unavailable
           </div>
         )}
-        <div ref={googleRef} data-page-guide="register-google" className="flex min-h-10 w-full justify-center" aria-label="Sign up with Google" />
+        <div ref={googleRef} data-page-guide="register-google" className="flex min-h-10 w-full justify-center" role="group" aria-label="Sign up with Google" />
       </div>
 
       {/* Divider */}

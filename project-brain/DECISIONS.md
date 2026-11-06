@@ -775,3 +775,87 @@ items in the open list until confirmed.
   - Code: `backend/routes/notifications.ts`, `frontend-next/views/Notifications.tsx`, `frontend-next/components/layout/AppLayout.tsx`
   - Tests: `backend/test/db/notificationHistory.db.test.js`, `frontend-next/test/notifications.history.test.tsx`
 
+
+### 2026-11-05 — Shared Claude Code setup: permission rules, skills, no MCP servers yet
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (5 Nov 2026: approved "commit it to the repo" and "no MCP servers for now, scripts instead")
+- **Context:** Agent work had no shared, versioned guardrails or procedures; work notes are spread across `.kiro/specs/`, `.agents/tasks/`, `implementation plan/` and `note/`.
+- **Decision:**
+  1. **Permissions:** `.claude/settings.json` denies reading or editing local `.env` files, force-push, `--no-verify` commits and staging `.env`; it pre-approves only read-only and check commands. Personal overrides go in the gitignored `.claude/settings.local.json`.
+  2. **Skills:** `.claude/skills/` holds `local-stack`, `audit-finding`, `security-audit` and `a11y-audit`. Skills link to existing docs instead of repeating them; `AGENTS.md` stays the single source of working rules.
+  3. **MCP servers:** none added. Reproducible scripts and Playwright are used instead. A server may be added later only if it is official or well maintained, pinned to an exact version, least-privilege, pointed at the local stack, and documented in `.mcp.json` and `docs/`.
+- **Consequences:** Every Claude Code session in this repo gets the same rules. Custom guard hooks (production, local-database and secret checks) are not part of this change; secret scanning in CI is tracked as an audit finding.
+- **Open:** whether to consolidate `.kiro/specs/`, `.agents/tasks/` and `implementation plan/` into one location (owner decision).
+- **Related documentation:** `CONTRIBUTING.md` (Agent tooling), `note/2026-11-05-international-audit/README.md`
+
+### 2026-11-06 — Identity documents are private; viewable by admins only; kept until account deletion
+
+- **Status:** Accepted (defaults chosen by the owner: "use the defaults and go ahead", 6 Nov 2026). Revisit the retention period with counsel.
+- **Decision owner:** Project owner
+- **Context:** Audit finding F-013: verification selfies and government IDs were stored as public uploads with guessable, non-expiring URLs; F-014: files were never deleted when an account was deleted.
+- **Decision:**
+  1. **Storage:** identity documents live in private storage (`PRIVATE_SUPABASE_BUCKET`, falling back to `RECEIPTS_SUPABASE_BUCKET`); rows hold a `private:` reference, never a URL. Production refuses uploads without a private bucket.
+  2. **Who may view:** the person who uploaded them and admins only, through links that expire after 5 minutes (`GET /api/verification/:id/documents`).
+  3. **Retention:** kept until the account is deleted; replaced documents are deleted when a new request is submitted.
+  4. **Erasure:** deleting an account deletes the person's stored files (identity documents, profile images, post and story media, chat files) after the database change commits.
+- **Consequences:** Production must set `PRIVATE_SUPABASE_BUCKET` (a bucket with public access disabled) and run `npm run migrate:verification-docs -- --apply` once to move existing documents. No admin screen shows the documents yet; admins use the API endpoint.
+- **Open:** retention after review (delete on decision, or after N days) — owner and counsel.
+- **Related documentation:** `docs/backend/API.md` (Verification), `docs/operations/ENVIRONMENT_VARIABLES.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Accessible colour shades for text and white-on-colour fills
+
+- **Status:** Accepted for the app (default applied while fixing audit F-041); **owner to confirm** the brand shades for print and marketing.
+- **Decision owner:** Project owner
+- **Context:** axe found 123 colour-contrast failures on 27 of 36 page states in light mode and more in dark mode. The brand amber `#F59E0B` with white text is 2.1:1; amber text on white 3.2:1; business theme colours such as the default gold `#D4AF37` 2.1:1. WCAG 2.2 AA needs 4.5:1 for normal text.
+- **Decision:**
+  1. `frontend-next/app/globals.css` redefines amber-500 `#b45309`, amber-600 `#92400e`, red-500 `#c81e1e`, green-600 `#157a3a`, yellow-600 `#a16207`, blue-500 `#2563eb`, and darkens `--muted-foreground` and `--destructive` in light mode. Lighter shades stay for decoration.
+  2. Dark mode lightens the same text classes, turns pale `bg-*-50` tints into dark tints, and uses `#2563eb` as primary so white text on it passes; `text-primary` is lightened.
+  3. Business-chosen colours keep their hue but are darkened or lightened only as far as needed (`frontend-next/lib/contrast.ts`).
+- **Consequences:** Amber buttons and accents look deeper (orange-brown rather than bright amber). axe reports 0 contrast failures on 44 page states in both themes. The brand book still lists `#F59E0B` for primary CTAs; a note there points here.
+- **Open:** owner to confirm the on-screen amber and whether the brand book should adopt it.
+- **Related documentation:** `docs/product/ACCESSIBILITY.md` (Color Contrast), `docs/product/DESIGN_SYSTEM.md`, `docs/brand/BRAND_GUIDELINES.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Nonce-based script policy; pages render per request
+
+- **Status:** Accepted (owner asked to fix F-016, 6 Nov 2026)
+- **Decision owner:** Project owner
+- **Context:** The production Content-Security-Policy allowed `'unsafe-inline'` scripts, so injected markup such as F-057's map labels could run code. Next.js App Router pages carry inline scripts; the only supported ways to drop `'unsafe-inline'` are a per-request nonce (pages must render per request) or experimental SRI, which was tested and does not cover the per-page inline scripts (4 violations on every page).
+- **Decision:** `frontend-next/proxy.ts` creates a nonce for every page request and sends `script-src 'self' 'nonce-…' 'strict-dynamic'` (`lib/csp.ts`); the root layout passes the nonce to the theme script. `X-Powered-By` is turned off. Inline styles stay allowed (React style attributes cannot carry a nonce).
+- **Consequences:** The 52 pages that were prerendered as static files now render per request. Measured locally on a production build: about +5 ms server time per page (2.4 → 7.2 ms median). On Vercel these pages are no longer served from the CDN cache, so cold starts can add latency and function usage rises. No CSP violations on 9 guest and 18 signed-in pages; existing browser specs pass.
+- **Open:** revisit if Next.js gains hash-based CSP for prerendered pages.
+- **Related documentation:** `docs/infrastructure/SECURITY_HARDENING.md`, `docs/operations/TECHNICAL_DEBT.md` (TD-013), `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Two-factor sign-in with authenticator apps; required for admins
+
+- **Status:** Accepted (owner asked to fix F-017, 6 Nov 2026)
+- **Decision owner:** Project owner
+- **Context:** Audit finding F-017: no MFA, only a length rule for passwords, and an optional OTP secret.
+- **Decision:**
+  1. TOTP (RFC 6238) with 10 one-time recovery codes, built on Node crypto (no new dependency). Anyone can turn it on in Settings (`two_factor_auth` flag, default on).
+  2. Sign-in (password, Google, email-code verification) answers with a 5-minute, single-use challenge instead of a session when it is on; codes cannot be replayed; 5 wrong codes lock for 15 minutes.
+  3. Admins must use it: admin-only routes refuse until it is on (`ADMIN_MFA_REQUIRED`, default on in production). Admins cannot turn it off.
+  4. Secrets are encrypted with a key derived from `MFA_ENCRYPTION_KEY`, falling back to `JWT_SECRET`.
+  5. Passkeys (WebAuthn) are a later step.
+- **Consequences:** After deploying, each admin signs in, opens Account settings and turns on two-factor sign-in before using admin tools. Migration 86 adds `user_mfa`. Rotating `JWT_SECRET` without `MFA_ENCRYPTION_KEY` set breaks existing setups (recovery codes still work); set `MFA_ENCRYPTION_KEY` in production to decouple them.
+- **Open:** passkeys; whether business owners should also be required to use it.
+- **Related documentation:** `docs/backend/API.md` (Two-factor sign-in), `docs/operations/ENVIRONMENT_VARIABLES.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Migrations run once each, recorded in schema_migrations
+
+- **Status:** Accepted (owner asked to fix F-009, 6 Nov 2026)
+- **Decision owner:** Project owner
+- **Context:** Audit finding F-009: every deploy re-ran all migrations, the server re-ran migrations 83–85 at every start, and nothing recorded what had run. CONTRIBUTING.md already described a `schema_migrations` table that did not exist.
+- **Decision:** `backend/db/migrate-all.js` keeps `schema_migrations` with a sha256 checksum per file, runs only unrecorded migrations, refuses to continue when an applied file changed (`--rerun <file>` for deliberate re-runs), and uses a Postgres advisory lock. No manual backfill: the first run on an existing database executes everything once more (as every deploy did) and records it. Migrations must stay idempotent.
+- **Consequences:** Deploys run only new migrations. Editing an applied migration now fails the deploy until it is moved to a new file or re-run on purpose. `npm run migrate:status` shows what is pending.
+- **Related documentation:** `docs/infrastructure/MIGRATION_GUIDE.md`, `docs/backend/DATABASE.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Page guide opens only on request by default; compliance docs no longer claim "Compliant"
+
+- **Status:** Accepted (owner: "continue as you recommended", 6 Nov 2026, on the suggested defaults for F-031 and F-054)
+- **Decision owner:** Project owner
+- **Decision:**
+  1. **F-031:** `page_guided_tours` now only decides whether the guide opens by itself on a first visit, and is **off** by default. The **Page guide** button always works. The guide never opens by itself on the sign-in, register and password pages.
+  2. **F-054:** the Ethiopia data protection and GDPR documents say "Aligned, with known gaps — not a legal opinion" instead of "Compliant". The data protection proclamation number is marked "to be confirmed by counsel" (the document cited 1309/2024; the audit brief cites 1321/2024); the number was not chosen here.
+- **Open:** counsel to confirm the proclamation number and obligations; update the status after the fixes are deployed and reviewed.
+- **Related documentation:** `docs/product/PAGE_GUIDED_TOURS.md`, `docs/product/FEATURE_FLAGS.md`, `docs/compliance/ETHIOPIA_DATA_PROTECTION.md`, `docs/compliance/GDPR_AUDIT.md`

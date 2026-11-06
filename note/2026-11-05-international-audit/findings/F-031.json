@@ -1,0 +1,36 @@
+{
+  "id": "F-031",
+  "kind": "defect",
+  "phase": "P3-ux",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Guided tour opens over every page for new visitors; its default contradicts the flag docs",
+  "standards": [
+    "Nielsen heuristic 3 (user control and freedom)",
+    "ISO 9241-110 (suitability for the task)",
+    "CONTRIBUTING.md (flags documented in FEATURE_FLAGS.md)"
+  ],
+  "location": [
+    "backend/lib/featureFlags.ts (page_guided_tours: enabled, rollout 100)",
+    "docs/product/FEATURE_FLAGS.md:56 (page_guided_tours: off)",
+    "docs/product/PAGE_GUIDED_TOURS.md:9",
+    "frontend-next/components/PageGuide.tsx:955-965"
+  ],
+  "steps": [
+    "Start the local stack (flag at its code default).",
+    "As a first-time visitor open /landing, /login, /register, /marketplace."
+  ],
+  "expected": "Per FEATURE_FLAGS.md the tour is off by default; if enabled, it should not stand between a returning user and signing in.",
+  "actual": "The flag is on for 100% in code. A modal tour opens on each page separately on first visit — 10 steps on /landing, 6 on /login, 9 on /register, 5 on /marketplace — covering the form until skipped. It is accessible (dialog role, focus trap, Escape, 'Skip guide'). It also caused 10 of the 20 local E2E failures.",
+  "evidence": [
+    "evidence/wave3/first-visit-landing.png",
+    "evidence/wave3/first-visit-login.png",
+    "evidence/wave3/first-visit-register.png",
+    "evidence/wave3/existing-e2e-chromium.txt"
+  ],
+  "impact": "Every new visitor must dismiss up to four tours before signing up or buying; extra friction on the key conversion pages. The code/doc conflict needs an owner decision.",
+  "fix": "OWNER DECISION: is the default on or off? Then either set the code default to match FEATURE_FLAGS.md, or update the doc. Independently: do not auto-open on /login, /register, /forgot-password, /reset-password; offer the tour from the launcher there, or show one 'Take a quick tour?' prompt once per browser.",
+  "effort": "S",
+  "found_on": "2026-11-05",
+  "environment": "local"
+}

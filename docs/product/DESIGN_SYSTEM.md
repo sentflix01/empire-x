@@ -79,7 +79,7 @@
 
 | Color | Use | Never use for |
 |---|---|---|
-| Gold (`--ex-gold`, amber-500) | CTAs, highlights, premium features, icons | Body text (low contrast) |
+| Gold (`--ex-gold`, amber-500) | CTAs, highlights, premium features, icons. amber-500/600 are darkened in `app/globals.css` so text and white-on-amber pass 4.5:1 (F-041) | Light shades (amber-400 and below) for text |
 | Blue (`--ex-blue`, primary) | Links, interactive elements, info states | Errors |
 | Purple (`--ex-purple`) | Channels, groups, creative features | Warning states |
 | Green (`green-500/600`) | Success states, online presence, money in | Error states |

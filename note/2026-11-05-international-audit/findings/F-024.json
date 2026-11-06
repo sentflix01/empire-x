@@ -1,0 +1,30 @@
+{
+  "steps": [
+    "python3 -I note/2026-11-05-international-audit/scripts/history-secret-scan.py"
+  ],
+  "found_on": "2026-11-05",
+  "environment": "local",
+  "id": "F-024",
+  "kind": "hardening",
+  "phase": "P5-security",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "No secret scanning in CI; stop-gap history scan found no live secrets",
+  "standards": [
+    "OWASP A04:2025",
+    "ASVS 5.0 V13.3 (secret management)",
+    "OWASP A03:2025"
+  ],
+  "location": [
+    ".github/workflows/ci.yml",
+    "docs/ (Supabase project hostname in examples)"
+  ],
+  "expected": "A secret scanner (gitleaks/trufflehog or GitHub secret scanning with push protection) runs on every push and PR over full history.",
+  "actual": "No scanner in CI. This audit's 15-rule scan of all 76 available commits found 12 database-URL hits: all placeholders except the documented local Docker Compose dev password. Docs also show what appears to be the real Supabase project hostname (not a secret, but it names the production database host). The clone is shallow, so older history is not covered.",
+  "evidence": [
+    "evidence/wave2/history-secret-scan.txt"
+  ],
+  "impact": "A future committed key would not be caught before reaching main.",
+  "fix": "Enable GitHub secret scanning + push protection and add a gitleaks job (pinned by SHA) with fetch-depth: 0; replace the real project hostname in docs with a placeholder.",
+  "effort": "S"
+}

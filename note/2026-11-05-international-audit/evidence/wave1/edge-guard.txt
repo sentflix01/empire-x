@@ -1,0 +1,6 @@
+/products/create   200 -> 
+/products/edit     200 -> 
+/products/scan     200 -> 
+/orders            307 -> http://127.0.0.1:3002/login?return=%2Forders
+/profile/edit      307 -> http://127.0.0.1:3002/login?return=%2Fprofile%2Fedit
+/business/create   307 -> http://127.0.0.1:3002/login?return=%2Fbusiness%2Fcreate

@@ -3,9 +3,12 @@ import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { productNotPrivateSql } from '../lib/siteVisibility';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
 
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['productId', 'id']);
 // Resolves to 'ok', or the HTTP status to send when the variant is missing or
 // its product belongs to someone else.
 async function checkVariantOwner(req: Request): Promise<'ok' | 404 | 403> {

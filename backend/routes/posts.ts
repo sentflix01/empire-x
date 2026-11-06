@@ -20,8 +20,11 @@ import { cacheMiddleware, invalidateCache } from '../middleware/cache';
 import { attachPostViewerState, commentRefusal, feedFilterSql, isBlockedEitherWay, isReaction, notBlockedSql, authorVisibleSql } from '../lib/socialGraph';
 import { classify, decide } from '../lib/clef';
 import { personProfileJoin } from '../lib/personProfile';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['id', 'postId', 'commentId']);
 // ── GET / — smart feed with scoring + keyset cursor ──────────────────────────
 // varyByUser is REQUIRED here: feed=true responses embed per-user social
 // boosts and following=true filters on the caller's follow graph. Caching

@@ -26,6 +26,7 @@ function Bookmarks() {
 
   const savedIds = useAppStore(s => s.savedIds);
   const hydrate  = useAppStore(s => s.hydrate);
+  const hasHydrated = useAppStore(s => s.hasHydrated);
   const storeError = useAppStore(s => s.error);
   const isHydrating = useAppStore(s => s.isHydrating);
   const { user, authChecked } = useAuth();
@@ -34,12 +35,13 @@ function Bookmarks() {
   const [alerts, setAlerts] = useState([]);
   const [alertsLoading, setAlertsLoading] = useState(false);
 
-  // Hydrate only when the store has no bookmarks yet
+  // Load bookmarks once. Keying this on savedIds re-ran it after every empty
+  // result (a new `{}` each time) and requested /api/saves in a loop (F-040).
+  // A failed load leaves hasHydrated false, so the next visit retries; the
+  // error state's Retry button calls hydrate() directly.
   useEffect(() => {
-    if (Object.keys(savedIds).length === 0) {
-      hydrate();
-    }
-  }, [hydrate, savedIds]);
+    if (!hasHydrated) hydrate();
+  }, [hasHydrated, hydrate]);
 
   useEffect(() => {
     if (tab === "alerts") loadAlerts();

@@ -1,0 +1,438 @@
+
+Running 51 tests using 1 worker
+
+  ✓   1 [chromium] › e2e/account-mode-live.spec.ts:8:5 › a Real identity cannot enter Demo until it has logged out (231ms)
+  ✓   2 [chromium] › e2e/auth.spec.ts:39:7 › Authenticated flows › login with valid credentials reaches the authenticated app shell (3.3s)
+  ✓   3 [chromium] › e2e/auth.spec.ts:74:7 › Authenticated flows › login rejects bad credentials without navigation (3.0s)
+  ✓   4 [chromium] › e2e/business-showroom-flow.spec.ts:86:5 › a showroom back button returns to the previous page (6.5s)
+  ✓   5 [chromium] › e2e/business-showroom-flow.spec.ts:99:5 › a scratch showroom publishes without sample content and appears to other visitors (15.8s)
+  ✓   6 [chromium] › e2e/business-showroom-flow.spec.ts:149:5 › editing a published showroom restores its sections and keeps them on republish (5.6s)
+  -   7 [chromium] › e2e/buy-normal-product.spec.ts:125:7 › A product listed from the normal form can be bought › the seller lists it and it belongs to their business
+  -   8 [chromium] › e2e/buy-normal-product.spec.ts:143:7 › A product listed from the normal form can be bought › a buyer opens the Buy sheet and places the order
+[chat-e2e] tokenA: true · tokenB: true
+[chat-e2e] find-or-create: 200
+[chat-e2e] convId: 50e3e1eb-0012-40fb-874e-8c0795a3eb56
+  ✓   9 [chromium] › e2e/chat.spec.ts:83:7 › Realtime chat › message sent by A appears live for B without a reload (12.0s)
+  ✓  10 [chromium] › e2e/chat.spec.ts:111:7 › Realtime chat › recipient sees the message after a reload too (persistence) (10.1s)
+  ✘  11 [chromium] › e2e/checkout.spec.ts:93:7 › Checkout flow › product page renders Buy Now and opens the purchase modal (20.3s)
+  ✘  12 [chromium] › e2e/checkout.spec.ts:106:7 › Checkout flow › buyer can complete a COD order from the purchase modal (45.7s)
+  ✓  13 [chromium] › e2e/checkout.spec.ts:135:7 › Checkout flow › COD order via API creates an order (24ms)
+  ✓  14 [chromium] › e2e/demo-mode.mocked.spec.ts:4:7 › single identity authentication and workspace choice › legacy account chooser bookmarks redirect to ordinary sign-in or sign-up (1.7s)
+  ✓  15 [chromium] › e2e/demo-mode.mocked.spec.ts:12:7 › single identity authentication and workspace choice › a fresh sign-in requests the canonical identity without a workspace body selector (2.4s)
+  ✘  16 [chromium] › e2e/google-auth.spec.ts:65:7 › Section A — Google Sign-In UI › A1: login page renders the accessible Google OAuth button (16.9s)
+  ✘  17 [chromium] › e2e/google-auth.spec.ts:76:7 › Section A — Google Sign-In UI › A2: register page renders the accessible Google OAuth button (16.8s)
+  ✘  18 [chromium] › e2e/google-auth.spec.ts:83:7 › Section A — Google Sign-In UI › A3: Google login does not call the legacy sign-in global (45.4s)
+  ✓  19 [chromium] › e2e/google-auth.spec.ts:95:7 › Section A — Google Sign-In UI › A4: login page renders a visible Google sign-in area (1.1s)
+  ✓  20 [chromium] › e2e/google-auth.spec.ts:103:7 › Section A — Google Sign-In UI › A5: login page Google OAuth region has an accessible label (978ms)
+  ✘  21 [chromium] › e2e/google-auth.spec.ts:109:7 › Section A — Google Sign-In UI › A6: register Google button does not depend on a GIS script (16.7s)
+  ✘  22 [chromium] › e2e/google-auth.spec.ts:120:7 › Section A — Google Sign-In UI › A7: login Google button does not depend on a GIS script (15.9s)
+  ✘  23 [chromium] › e2e/google-auth.spec.ts:129:7 › Section A — Google Sign-In UI › A8: OAuth popup uses the configured client ID and same-origin callback (15.9s)
+  ✓  24 [chromium] › e2e/google-auth.spec.ts:159:7 › Section B — Middleware redirects › B1: anonymous visitor can browse the public guest feed (1.3s)
+  ✓  25 [chromium] › e2e/google-auth.spec.ts:173:7 › Section B — Middleware redirects › B2: anonymous visitor to protected wallet returns to login with destination (908ms)
+  ✓  26 [chromium] › e2e/google-auth.spec.ts:177:7 › Section B — Middleware redirects › B3: anonymous visitor to protected settings returns to login (853ms)
+  ✓  27 [chromium] › e2e/google-auth.spec.ts:180:7 › Section B — Middleware redirects › B4: login and register remain accessible without auth (1.2s)
+  ✓  28 [chromium] › e2e/google-auth.spec.ts:185:9 › Section B — Middleware redirects › authenticated visitor to /login is routed to feed (1.0s)
+  ✓  29 [chromium] › e2e/google-auth.spec.ts:185:9 › Section B — Middleware redirects › authenticated visitor to /register is routed to feed (957ms)
+  ✓  30 [chromium] › e2e/google-auth.spec.ts:189:7 › Section B — Middleware redirects › B7: protected destination is retained across sign-in (2.1s)
+  ✓  31 [chromium] › e2e/google-auth.spec.ts:214:7 › Section C — Email auth lifecycle › C1: login stores routing hint but never exposes JWT (2.4s)
+  ✓  32 [chromium] › e2e/google-auth.spec.ts:219:7 › Section C — Email auth lifecycle › C2: refresh token is HttpOnly (2.3s)
+  ✓  33 [chromium] › e2e/google-auth.spec.ts:223:7 › Section C — Email auth lifecycle › C3: reload rehydrates mocked session (3.2s)
+  ✓  34 [chromium] › e2e/google-auth.spec.ts:224:7 › Section C — Email auth lifecycle › C4: logout clears hint and protected routes return to login (2.9s)
+  ✓  35 [chromium] › e2e/google-auth.spec.ts:228:7 › Section C — Email auth lifecycle › C5: rejected credentials show an error without leaving login (1.6s)
+  ✓  36 [chromium] › e2e/google-auth.spec.ts:233:7 › Section C — Email auth lifecycle › C6: email input enforces maxLength=254 (921ms)
+  ✓  37 [chromium] › e2e/google-auth.spec.ts:234:7 › Section C — Email auth lifecycle › C7: password input enforces maxLength=128 (929ms)
+  ✓  38 [chromium] › e2e/google-auth.spec.ts:235:7 › Section C — Email auth lifecycle › C8: unverified email response routes to verification registration (1.7s)
+  ✘  39 [chromium] › e2e/google-auth.spec.ts:263:7 › Section D — Google OAuth popup handoff › D1: normal popup handoff (21.7s)
+  ✓  40 [chromium] › e2e/google-auth.spec.ts:356:7 › Section D — Google OAuth popup handoff › D2: popup closed without handoff — parent stays on /login (835ms)
+  ✓  41 [chromium] › e2e/public.spec.ts:9:7 › Public pages › landing page renders its primary call-to-action (1.2s)
+  ✓  42 [chromium] › e2e/public.spec.ts:15:7 › Public pages › root path serves the app shell or redirects somewhere valid (1.2s)
+  ✓  43 [chromium] › e2e/public.spec.ts:20:7 › Public pages › login and register entry points are directly accessible (1.1s)
+  ✓  44 [chromium] › e2e/public.spec.ts:27:7 › Public pages › protected routes redirect anonymous visitors to login with a return path (860ms)
+OTP screen appeared
+  ✘  45 [chromium] › e2e/signup.spec.ts:58:7 › Signup flow › register with valid credentials shows OTP verification screen (1.9s)
+  ✓  46 [chromium] › e2e/signup.spec.ts:82:7 › Signup flow › register rejects duplicate email (1.8s)
+  ✓  47 [chromium] › e2e/signup.spec.ts:97:7 › Signup flow › register rejects mismatched passwords (1.7s)
+  ✓  48 [chromium] › e2e/signup.spec.ts:112:7 › Signup flow › register rejects password too short (1.7s)
+  ✓  49 [chromium] › e2e/signup.spec.ts:128:7 › Signup flow › register requires terms acceptance (1.0s)
+  ✓  50 [chromium] › e2e/signup.spec.ts:148:7 › Signup flow › can navigate back from OTP screen to edit email (1.8s)
+  ✓  51 [chromium] › e2e/signup.spec.ts:170:7 › Signup flow › resend OTP button works and shows cooldown (1.7s)
+
+
+  1) [chromium] › e2e/checkout.spec.ts:93:7 › Checkout flow › product page renders Buy Now and opens the purchase modal 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('button:has-text("Buy Now")').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('button:has-text("Buy Now")').first() with timeout 15000ms
+      - waiting for locator('button:has-text("Buy Now")').first()
+
+
+       97 |
+       98 |     const buyBtn = page.locator('button:has-text("Buy Now")').first();
+    >  99 |     await expect(buyBtn).toBeVisible({ timeout: 15_000 });
+          |                          ^
+      100 |     await buyBtn.click();
+      101 |
+      102 |     // Purchase modal should appear with the delivery-details form
+        at /home/user/empire-x/frontend-next/e2e/checkout.spec.ts:99:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/checkout-Checkout-flow-pro-d55d1-nd-opens-the-purchase-modal-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/checkout-Checkout-flow-pro-d55d1-nd-opens-the-purchase-modal-chromium/error-context.md
+
+    Error Context: test-results/checkout-Checkout-flow-pro-d55d1-nd-opens-the-purchase-modal-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/checkout-Checkout-flow-pro-d55d1-nd-opens-the-purchase-modal-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/checkout-Checkout-flow-pro-d55d1-nd-opens-the-purchase-modal-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › e2e/checkout.spec.ts:106:7 › Checkout flow › buyer can complete a COD order from the purchase modal 
+
+    Test timeout of 45000ms exceeded.
+
+    Error: locator.click: Test timeout of 45000ms exceeded.
+    Call log:
+      - waiting for locator('button:has-text("Buy Now")').first()
+
+
+      109 |     await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+      110 |
+    > 111 |     await page.locator('button:has-text("Buy Now")').first().click();
+          |                                                              ^
+      112 |     await expect(page.locator('text=Checkout').or(page.locator('text=Order')).first()).toBeVisible({ timeout: 10_000 });
+      113 |
+      114 |     // Advance to checkout
+        at /home/user/empire-x/frontend-next/e2e/checkout.spec.ts:111:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/checkout-Checkout-flow-buy-ca9f1-der-from-the-purchase-modal-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/checkout-Checkout-flow-buy-ca9f1-der-from-the-purchase-modal-chromium/error-context.md
+
+    Error Context: test-results/checkout-Checkout-flow-buy-ca9f1-der-from-the-purchase-modal-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/checkout-Checkout-flow-buy-ca9f1-der-from-the-purchase-modal-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/checkout-Checkout-flow-buy-ca9f1-der-from-the-purchase-modal-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › e2e/google-auth.spec.ts:65:7 › Section A — Google Sign-In UI › A1: login page renders the accessible Google OAuth button 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: /sign in with google/i })
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: /sign in with google/i }) with timeout 15000ms
+      - waiting for getByRole('button', { name: /sign in with google/i })
+
+
+      71 |     await expect(legacyButton).toHaveCount(0);
+      72 |
+    > 73 |     await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
+         |                                                                              ^
+      74 |   });
+      75 |
+      76 |   test('A2: register page renders the accessible Google OAuth button', async ({ page }) => {
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:73:78
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-0ceb6-essible-Google-OAuth-button-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-A-—-Go-0ceb6-essible-Google-OAuth-button-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-0ceb6-essible-Google-OAuth-button-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-A-—-Go-0ceb6-essible-Google-OAuth-button-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [chromium] › e2e/google-auth.spec.ts:76:7 › Section A — Google Sign-In UI › A2: register page renders the accessible Google OAuth button 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: /sign up with google/i })
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: /sign up with google/i }) with timeout 15000ms
+      - waiting for getByRole('button', { name: /sign up with google/i })
+
+
+      78 |     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+      79 |
+    > 80 |     await expect(page.getByRole('button', { name: /sign up with google/i })).toBeVisible();
+         |                                                                              ^
+      81 |   });
+      82 |
+      83 |   test('A3: Google login does not call the legacy sign-in global', async ({ page }) => {
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:80:78
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-257fc-essible-Google-OAuth-button-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-A-—-Go-257fc-essible-Google-OAuth-button-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-257fc-essible-Google-OAuth-button-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-A-—-Go-257fc-essible-Google-OAuth-button-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [chromium] › e2e/google-auth.spec.ts:83:7 › Section A — Google Sign-In UI › A3: Google login does not call the legacy sign-in global 
+
+    Test timeout of 45000ms exceeded.
+
+    Error: locator.click: Test timeout of 45000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /sign in with google/i })
+
+
+      89 |     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+      90 |
+    > 91 |     await page.getByRole('button', { name: /sign in with google/i }).click();
+         |                                                                      ^
+      92 |     expect(await page.evaluate(() => sessionStorage.getItem('legacy-google-called'))).toBeNull();
+      93 |   });
+      94 |
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:91:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-733f3-l-the-legacy-sign-in-global-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-A-—-Go-733f3-l-the-legacy-sign-in-global-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-733f3-l-the-legacy-sign-in-global-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-A-—-Go-733f3-l-the-legacy-sign-in-global-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [chromium] › e2e/google-auth.spec.ts:109:7 › Section A — Google Sign-In UI › A6: register Google button does not depend on a GIS script 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: /sign up with google/i })
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: /sign up with google/i }) with timeout 15000ms
+      - waiting for getByRole('button', { name: /sign up with google/i })
+
+
+      114 |     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+      115 |
+    > 116 |     await expect(page.getByRole('button', { name: /sign up with google/i })).toBeVisible();
+          |                                                                              ^
+      117 |     await expect(page.locator('script[src*="accounts.google.com/gsi/client"]')).toHaveCount(0);
+      118 |   });
+      119 |
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:116:78
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-3b08d--not-depend-on-a-GIS-script-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-A-—-Go-3b08d--not-depend-on-a-GIS-script-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-3b08d--not-depend-on-a-GIS-script-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-A-—-Go-3b08d--not-depend-on-a-GIS-script-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [chromium] › e2e/google-auth.spec.ts:120:7 › Section A — Google Sign-In UI › A7: login Google button does not depend on a GIS script 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: /sign in with google/i })
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: /sign in with google/i }) with timeout 15000ms
+      - waiting for getByRole('button', { name: /sign in with google/i })
+
+
+      123 |     await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
+      124 |
+    > 125 |     await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
+          |                                                                              ^
+      126 |     await expect(page.locator('script[src*="accounts.google.com/gsi/client"]')).toHaveCount(0);
+      127 |   });
+      128 |
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:125:78
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-6d650--not-depend-on-a-GIS-script-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-A-—-Go-6d650--not-depend-on-a-GIS-script-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-6d650--not-depend-on-a-GIS-script-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-A-—-Go-6d650--not-depend-on-a-GIS-script-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [chromium] › e2e/google-auth.spec.ts:129:7 › Section A — Google Sign-In UI › A8: OAuth popup uses the configured client ID and same-origin callback 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: /sign in with google/i })
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: /sign in with google/i }) with timeout 15000ms
+      - waiting for getByRole('button', { name: /sign in with google/i })
+
+
+      137 |     await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
+      138 |     const googleButton = page.getByRole('button', { name: /sign in with google/i });
+    > 139 |     await expect(googleButton).toBeVisible();
+          |                                ^
+      140 |     await googleButton.click();
+      141 |
+      142 |     const requestUrl = await page.evaluate(() => sessionStorage.getItem('e2e-google-oauth-url'));
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:139:32
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-7f1ef-ID-and-same-origin-callback-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-A-—-Go-7f1ef-ID-and-same-origin-callback-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-A-—-Go-7f1ef-ID-and-same-origin-callback-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-A-—-Go-7f1ef-ID-and-same-origin-callback-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [chromium] › e2e/google-auth.spec.ts:263:7 › Section D — Google OAuth popup handoff › D1: normal popup handoff 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('div[aria-label*="Google"] button').first()
+    Expected: visible
+    Timeout: 20000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('div[aria-label*="Google"] button').first() with timeout 20000ms
+      - waiting for locator('div[aria-label*="Google"] button').first()
+
+
+      330 |
+      331 |     const gisButton = page.locator('div[aria-label*="Google"] button').first();
+    > 332 |     await expect(gisButton).toBeVisible({ timeout: 20_000 });
+          |                             ^
+      333 |     const popupPromise = context.waitForEvent('page', { timeout: 20_000 });
+      334 |     await gisButton.click();
+      335 |     const popup = await popupPromise;
+        at /home/user/empire-x/frontend-next/e2e/google-auth.spec.ts:332:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/google-auth-Section-D-—-Go-c6365-off-D1-normal-popup-handoff-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/google-auth-Section-D-—-Go-c6365-off-D1-normal-popup-handoff-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/google-auth-Section-D-—-Go-c6365-off-D1-normal-popup-handoff-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/google-auth-Section-D-—-Go-c6365-off-D1-normal-popup-handoff-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [chromium] › e2e/signup.spec.ts:58:7 › Signup flow › register with valid credentials shows OTP verification screen 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.flex.items-center.gap-2')
+    Expected: visible
+    Error: strict mode violation: locator('.flex.items-center.gap-2') resolved to 2 elements:
+        1) <div class="flex flex-col items-center gap-2 mb-5">…</div> aka locator('div').nth(4)
+        2) <div translate="no" data-input-otp-container="true" class="flex items-center gap-2 has-[:disabled]:opacity-50">…</div> aka locator('.flex.items-center.gap-2.has-\\[\\:disabled\\]\\:opacity-50')
+
+    Call log:
+      - Expect "toBeVisible" locator('.flex.items-center.gap-2') with timeout 15000ms
+      - waiting for locator('.flex.items-center.gap-2')
+
+
+      77 |
+      78 |     // Verify OTP input area is present (InputOTP component)
+    > 79 |     await expect(page.locator('.flex.items-center.gap-2')).toBeVisible();
+         |                                                            ^
+      80 |   });
+      81 |
+      82 |   test('register rejects duplicate email', async ({ page }) => {
+        at /home/user/empire-x/frontend-next/e2e/signup.spec.ts:79:60
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-registe-8a4d9-ows-OTP-verification-screen-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/signup-Signup-flow-registe-8a4d9-ows-OTP-verification-screen-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/signup-Signup-flow-registe-8a4d9-ows-OTP-verification-screen-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/signup-Signup-flow-registe-8a4d9-ows-OTP-verification-screen-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10 failed
+    [chromium] › e2e/checkout.spec.ts:93:7 › Checkout flow › product page renders Buy Now and opens the purchase modal 
+    [chromium] › e2e/checkout.spec.ts:106:7 › Checkout flow › buyer can complete a COD order from the purchase modal 
+    [chromium] › e2e/google-auth.spec.ts:65:7 › Section A — Google Sign-In UI › A1: login page renders the accessible Google OAuth button 
+    [chromium] › e2e/google-auth.spec.ts:76:7 › Section A — Google Sign-In UI › A2: register page renders the accessible Google OAuth button 
+    [chromium] › e2e/google-auth.spec.ts:83:7 › Section A — Google Sign-In UI › A3: Google login does not call the legacy sign-in global 
+    [chromium] › e2e/google-auth.spec.ts:109:7 › Section A — Google Sign-In UI › A6: register Google button does not depend on a GIS script 
+    [chromium] › e2e/google-auth.spec.ts:120:7 › Section A — Google Sign-In UI › A7: login Google button does not depend on a GIS script 
+    [chromium] › e2e/google-auth.spec.ts:129:7 › Section A — Google Sign-In UI › A8: OAuth popup uses the configured client ID and same-origin callback 
+    [chromium] › e2e/google-auth.spec.ts:263:7 › Section D — Google OAuth popup handoff › D1: normal popup handoff 
+    [chromium] › e2e/signup.spec.ts:58:7 › Signup flow › register with valid credentials shows OTP verification screen 
+  2 skipped
+  39 passed (5.5m)

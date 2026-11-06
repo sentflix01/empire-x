@@ -1,0 +1,30 @@
+{
+  "id": "F-056",
+  "kind": "positive",
+  "phase": "P10-architecture",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "title": "Positive: all required quality gates pass and the schema enforces integrity",
+  "standards": [
+    "CONTRIBUTING.md gates",
+    "ISO/IEC 25010:2023 reliability"
+  ],
+  "location": [
+    ".github/workflows/ci.yml",
+    "backend/db/"
+  ],
+  "steps": [
+    "backend: tsc --noEmit; jest --runInBand; npm run test:db. frontend: npm run lint; tsc --noEmit; vitest --run; NODE_ENV=production npm run build; npm run check:css."
+  ],
+  "expected": "All gates green.",
+  "actual": "Backend typecheck clean; 661/661 unit tests (84 suites); 212/212 DB-backed tests (24 suites). Frontend lint 0 errors (3 warnings); typecheck clean; Vitest 478/478 on re-run (see F-053); production build and check:css pass. Database: all 92 tables have primary keys, 155 foreign keys, 92 check constraints, no money stored as floating point; the 8 ID columns without foreign keys are mostly polymorphic by design.",
+  "evidence": [
+    "evidence/wave5/quality-gates.txt",
+    "evidence/wave5/code-health.txt"
+  ],
+  "impact": "Strong base for the fixes in this report.",
+  "fix": "None.",
+  "effort": "S",
+  "environment": "local",
+  "found_on": "2026-11-06"
+}

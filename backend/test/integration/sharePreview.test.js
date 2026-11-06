@@ -38,13 +38,13 @@ describe('share previews', () => {
 
   it('returns product price and first image', async () => {
     pool.query.mockResolvedValueOnce({ rows: [{ title: 'Beans 1kg', description: null, images: '["https://cdn.example/1.jpg","https://cdn.example/2.jpg"]', price: '450.00', currency: 'ETB', business_id: null }] });
-    const res = await request(buildApp()).get('/api/share-preview/product/p1');
+    const res = await request(buildApp()).get('/api/share-preview/product/b78f5766-11ec-46f9-8af3-ca654c22172a');
     expect(res.body).toEqual({ title: 'Beans 1kg', description: null, image: 'https://cdn.example/1.jpg', price: 450, currency: 'ETB' });
     expect(pool.query.mock.calls[0][0]).toMatch(/p.status IN \('active','sold_out'\)/);
   });
 
   it('404s an unknown product', async () => {
     pool.query.mockResolvedValueOnce({ rows: [] });
-    expect((await request(buildApp()).get('/api/share-preview/product/nope')).status).toBe(404);
+    expect((await request(buildApp()).get('/api/share-preview/product/76272dc4-faf6-4073-8711-f58c736830d2')).status).toBe(404);
   });
 });

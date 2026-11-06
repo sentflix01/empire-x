@@ -23,8 +23,11 @@ import rateLimit from 'express-rate-limit';
 import { parseProductCode } from '../lib/barcode';
 import { gtinVariants, importProductImage, lookupBarcode } from '../lib/productLookup';
 import { checkoutReadiness, resolveProductBusiness, soleBusinessOf } from '../lib/productBusiness';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['id']);
 const LOW_STOCK_THRESHOLD = 5;
 
 function normalizeProduct(p: Record<string,unknown>): Record<string,unknown> {

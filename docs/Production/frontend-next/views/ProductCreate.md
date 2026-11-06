@@ -21,6 +21,7 @@ sonner toasts, and auth failures are handled globally by interceptors.
 **API endpoints:**
 - `/api/entities`
 - `/api/client`
+- `/api/ai/status`
 - `/api/ai/generate-description`
 
 **Integrations:** AuthContext (useAuth), zustand stores

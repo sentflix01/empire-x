@@ -1,0 +1,27 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-018",
+  "kind": "hardening",
+  "phase": "P5-security",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Revoked access tokens stay valid while Redis is unavailable",
+  "standards": [
+    "ASVS 5.0 V7.4 (session termination)",
+    "OWASP A07:2025"
+  ],
+  "location": [
+    "backend/middleware/auth.ts:140-155",
+    "backend/lib/authSecurityStore.ts:77-91"
+  ],
+  "expected": "Logout and 'log out everywhere' take effect immediately for all tokens.",
+  "actual": "Refresh-token revocation is stored in Postgres (durable). The per-request access-token revocation check reads Redis only and fails open when Redis is missing or erroring ('never block a request because Redis is down').",
+  "evidence": [
+    "backend/middleware/auth.ts:153"
+  ],
+  "impact": "During a Redis outage (or Upstash quota exhaustion, TD-023) a revoked or stolen access token works for up to its 15-minute lifetime.",
+  "fix": "On Redis failure, fall back to authSecurityStore.isTokenRevoked (Postgres) with a short in-process cache, or reject privileged (admin, payment) requests when revocation cannot be checked.",
+  "effort": "S"
+}

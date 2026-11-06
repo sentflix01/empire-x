@@ -10,6 +10,9 @@ import client from '@/api/client';
 type GuideStep = { target: string; title: string; description: string };
 
 // ── Tour ID mapping ────────────────────────────────────────────────────────────
+/** Pages where the guide never opens by itself: it would cover the form (F-031). */
+const NO_AUTO_OPEN = new Set(['LOGIN', 'REGISTER', 'FORGOT', 'RESET']);
+
 function getTourId(pathname: string): string {
   if (pathname === '/landing' || pathname === '/') return 'LANDING';
   if (pathname === '/login') return 'LOGIN';
@@ -954,8 +957,11 @@ export default function PageGuide() {
     setMounted(true);
     let active = true;
     client.get('/api/flags/page-guided-tours').then(({ data }) => {
+      // The flag only decides whether the guide opens by itself; the launcher
+      // always works (F-031, default off). Never open over a sign-in form.
       if (!active || data?.enabled_for_user !== true) return;
       setEnabled(true);
+      if (NO_AUTO_OPEN.has(tourId)) return;
       try {
         // Backwards compat: treat legacy key as done for LANDING and FEED
         const legacyDone = (tourId === 'LANDING' || tourId === 'FEED') &&
@@ -1086,9 +1092,10 @@ export default function PageGuide() {
 
   // Broadcast enabled state so the floating launcher button knows whether to render
   useEffect(() => {
-    try { localStorage.setItem('nodbusiness_page_guide_enabled', String(mounted && enabled)); } catch {}
-    window.dispatchEvent(new CustomEvent('nodbusiness:page-guide-enabled', { detail: { enabled: mounted && enabled } }));
-  }, [mounted, enabled]);
+    // The launcher shows whenever the guide is mounted, whatever the auto-open flag says.
+    try { localStorage.setItem('nodbusiness_page_guide_enabled', String(mounted)); } catch {}
+    window.dispatchEvent(new CustomEvent('nodbusiness:page-guide-enabled', { detail: { enabled: mounted } }));
+  }, [mounted]);
 
   if (!mounted) return (
     /* Render the accessible launcher even before mount so tests and

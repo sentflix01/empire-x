@@ -1,0 +1,29 @@
+{
+  "steps": [
+    "node note/2026-11-05-international-audit/scripts/third-party-capture.cjs"
+  ],
+  "found_on": "2026-11-05",
+  "environment": "local",
+  "id": "F-028",
+  "kind": "positive",
+  "phase": "P6-privacy",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "title": "Positive: no third-party requests or cookies before sign-in on public pages (local)",
+  "standards": [
+    "ePrivacy Directive Art. 5(3)",
+    "GDPR Art. 25"
+  ],
+  "location": [
+    "note/2026-11-05-international-audit/scripts/third-party-capture.cjs"
+  ],
+  "expected": "No trackers or non-essential storage before consent.",
+  "actual": "On /landing, /login, /register, /marketplace, /businesses, /feed and /nearby a first-time visitor triggers zero requests to other hosts and no cookies; only a language preference (empire_lang) is stored. No analytics or ad tags exist in source. Backend production config sets a deny-all CSP and one-year HSTS; CORS rejects untrusted origins. Caveat: Google sign-in, Sentry and map tiles are not configured locally — production behaviour is UNVERIFIED (F-029).",
+  "evidence": [
+    "evidence/wave2/third-party-capture.json",
+    "evidence/wave2/local-headers.txt"
+  ],
+  "impact": "No cookie banner is legally required today; re-check when analytics are added.",
+  "fix": "None.",
+  "effort": "S"
+}

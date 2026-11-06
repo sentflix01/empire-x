@@ -128,10 +128,52 @@ export async function deletionBlocker(userId: string, db: Queryable = pool): Pro
 }
 
 /**
+ * Columns that hold files the person uploaded: [table, owner column, file column, extra filter].
+ * Their files are deleted from storage after the account is anonymized (audit F-014).
+ */
+const FILE_COLUMNS: Array<[string, string, string, string?]> = [
+  ['verification_requests', 'user_id', 'selfie_url'],
+  ['verification_requests', 'user_id', 'id_document_url'],
+  ['user_profiles', 'user_id', 'avatar_url'],
+  ['user_profiles', 'user_id', 'cover_url'],
+  ['user_profiles', 'user_id', 'business_logo_url'],
+  ['user_profiles', 'user_id', 'business_cover_url'],
+  ['posts', 'author_id', 'image_url'],
+  ['stories', 'user_id', 'media_url'],
+  ['messages', 'sender_id', 'content', "type IN ('image','file')"],
+];
+
+async function columnExists(db: Queryable, table: string, column: string): Promise<boolean> {
+  const { rows } = await db.query(
+    `SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = $1 AND column_name = $2`,
+    [table, column],
+  );
+  return rows.length > 0;
+}
+
+/** References (private refs or public URLs) to every file the person uploaded. */
+export async function collectUserFileRefs(db: Queryable, userId: string): Promise<string[]> {
+  const refs: string[] = [];
+  for (const [table, owner, column, filter] of FILE_COLUMNS) {
+    assertIdentifier(table); assertIdentifier(owner); assertIdentifier(column);
+    if (!(await columnExists(db, table, column))) continue;
+    const { rows } = await db.query(
+      `SELECT ${column} AS ref FROM ${table} WHERE ${owner} = $1 AND ${column} IS NOT NULL${filter ? ` AND ${filter}` : ''}`,
+      [userId],
+    );
+    for (const { ref } of rows as Array<{ ref: unknown }>) if (typeof ref === 'string' && ref) refs.push(ref);
+  }
+  return [...new Set(refs)];
+}
+
+/**
  * Anonymizes the account inside the caller's transaction. Keeps the users row
  * (orders, wallets and commissions reference it) but removes every identifier.
+ * Returns the person's file references; the caller deletes those files from
+ * storage only after the transaction commits (see lib/storedFiles.ts).
  */
-export async function anonymizeAccount(db: Queryable, userId: string): Promise<void> {
+export async function anonymizeAccount(db: Queryable, userId: string): Promise<string[]> {
+  const fileRefs = await collectUserFileRefs(db, userId);
   // Product ratings are recomputed for anything this user reviewed.
   const { rows: reviewed } = await db.query('SELECT DISTINCT product_id FROM reviews WHERE reviewer_id = $1', [userId]);
   await db.query('DELETE FROM reviews WHERE reviewer_id = $1', [userId]);
@@ -182,4 +224,5 @@ export async function anonymizeAccount(db: Queryable, userId: string): Promise<v
       WHERE id = $1`,
     [userId],
   );
+  return fileRefs;
 }

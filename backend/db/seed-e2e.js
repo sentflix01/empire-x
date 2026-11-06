@@ -86,8 +86,38 @@ async function seed(env = process.env) {
         [userId],
       );
     }
+    // The seller needs a public business on an active plan with a payment
+    // method: products of sellers without one are hidden from buyers, so the
+    // checkout specs list their product under this business (audit F-032).
+    const { rows: [seller] } = await client.query('SELECT id FROM users WHERE email = $1', [fixtures[1].email]);
+    let { rows: [shop] } = await client.query(
+      "SELECT id FROM businesses WHERE owner_id = $1 AND business_name = 'E2E Seller Shop' LIMIT 1", [seller.id],
+    );
+    if (!shop) {
+      ({ rows: [shop] } = await client.query(
+        `INSERT INTO businesses (owner_id, business_name, business_category, visibility)
+         VALUES ($1, 'E2E Seller Shop', 'shop', 'public') RETURNING id`, [seller.id],
+      ));
+    } else {
+      await client.query("UPDATE businesses SET visibility = 'public' WHERE id = $1", [shop.id]);
+    }
+    await client.query(
+      `INSERT INTO business_subscriptions (business_id, tier, status, current_period_start, current_period_end)
+       VALUES ($1, 'premium', 'active', NOW(), NOW() + INTERVAL '365 days')
+       ON CONFLICT (business_id) DO UPDATE SET tier = 'premium', status = 'active',
+         current_period_start = NOW(), current_period_end = NOW() + INTERVAL '365 days'`,
+      [shop.id],
+    );
+    const { rows: accounts } = await client.query('SELECT 1 FROM business_payment_accounts WHERE business_id = $1 LIMIT 1', [shop.id]);
+    if (!accounts.length) {
+      await client.query(
+        `INSERT INTO business_payment_accounts (business_id, method, provider_name, account_name, account_number)
+         VALUES ($1, 'mobile_money', 'telebirr', 'E2E Seller Shop', '0911000000')`,
+        [shop.id],
+      );
+    }
     await client.query('COMMIT');
-    console.log(`Local Real E2E accounts ready (${fixtures.map(({ email }) => email).join(', ')}).`);
+    console.log(`Local Real E2E accounts ready (${fixtures.map(({ email }) => email).join(', ')}); seller business ${shop.id}.`);
   } catch (error) {
     await client.query('ROLLBACK').catch(() => {});
     throw error;

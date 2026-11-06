@@ -1,0 +1,33 @@
+{
+  "id": "F-032",
+  "kind": "hardening",
+  "phase": "P10-architecture",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Most journey tests never run in CI and 20 of 51 fail on a clean local stack",
+  "standards": [
+    "ISO/IEC 25010:2023 maintainability (testability)",
+    "CONTRIBUTING.md (tests for behaviour changes)"
+  ],
+  "location": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/e2e-messaging.yml",
+    "frontend-next/e2e/"
+  ],
+  "steps": [
+    "Start the local stack; cd frontend-next; E2E_CHROME_PATH=<chromium> npx playwright test --project=chromium"
+  ],
+  "expected": "Critical journeys (sign-up, sign-in, checkout) run on every PR and pass on a clean environment.",
+  "actual": "CI runs only the messaging E2E workflow, and only when messaging files change. Locally: 29 passed, 20 failed, 2 skipped. With the tour disabled: 39 passed, 10 failed — 7 need a real Google client ID (not a product bug), 2 checkout tests create a product with no paid business (hidden by the current plan rule), 1 sign-up test uses a brittle CSS selector although the OTP screen appears. Messaging suite: 5/5 desktop, 5/5 phone.",
+  "evidence": [
+    "evidence/wave3/existing-e2e-chromium.txt",
+    "evidence/wave3/existing-e2e-chromium-tours-off.txt",
+    "evidence/wave3/messaging-desktop.txt",
+    "evidence/wave3/messaging-phone.txt"
+  ],
+  "impact": "Journey regressions like F-001 (photo upload) and F-003 (delivery) reach production unnoticed.",
+  "fix": "Fix the stale specs (dismiss or disable tours via storage state, give checkout a business with a plan fixture, replace the CSS selector with a role/text locator, mock or skip Google when no client ID). Add a blocking CI job that runs the chromium project against a Postgres service, as the backend job already does. Add this audit's order-journey and account-lifecycle scripts as specs.",
+  "effort": "M",
+  "found_on": "2026-11-05",
+  "environment": "local"
+}

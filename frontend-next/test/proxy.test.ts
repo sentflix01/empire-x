@@ -13,6 +13,7 @@ describe('public route policy', () => {
     '/choose-account',
     '/service-agreement',
     '/feed',
+    '/offline',
     '/p/public-profile',
     '/products/public-product',
     '/showroom/public-showroom',

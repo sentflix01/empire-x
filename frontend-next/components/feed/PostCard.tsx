@@ -68,6 +68,7 @@ import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import { editComment, postLink, react, reactToComment, REACTIONS, setMuted, unhidePost, unreact, type CommentPolicy, type Reaction } from '@/lib/socialApi';
 import { loadOwnerFeedBusinesses } from '@/lib/feedBusiness';
 import EmojiInsertButton from '@/components/ui/EmojiInsertButton';
+import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 
 interface Profile extends UserProfile {
 }
@@ -228,7 +229,7 @@ function PromoPost({ post, themeColor, primaryBiz, onOpen }: { post: Post; theme
       )}
       <div className="px-4 py-3" style={{ borderLeft: `4px solid ${themeColor}` }}>
         {primaryBiz?.business_name && (
-          <p className="text-xs font-bold mb-1" style={{ color: themeColor }}>{primaryBiz.business_name}</p>
+          <p className="biz-text text-xs font-bold mb-1" style={{ ...themeTextStyle(themeColor) }}>{primaryBiz.business_name}</p>
         )}
         <p className="text-sm leading-relaxed font-medium"><RenderText text={post.content} /></p>
       </div>
@@ -302,8 +303,8 @@ function TextPost({ post, isPromo, themeColor, primaryBiz }: { post: Post; isPro
           className="flex items-center gap-2 mb-2 px-3 py-1.5 rounded-lg"
           style={{ backgroundColor: themeColor + '15', borderLeft: `3px solid ${themeColor}` }}
         >
-          <Sparkles className="w-3.5 h-3.5 shrink-0" style={{ color: themeColor }} />
-          <span className="text-xs font-semibold" style={{ color: themeColor }}>
+          <Sparkles className="biz-text w-3.5 h-3.5 shrink-0" style={{ ...themeTextStyle(themeColor) }} />
+          <span className="biz-text text-xs font-semibold" style={{ ...themeTextStyle(themeColor) }}>
             {primaryBiz.business_name} · Special Offer
           </span>
         </div>
@@ -365,7 +366,7 @@ function PollPost({ post }: { post: Post }) {
                   {opt.text}
                 </span>
                 {(voted || isEnded) && (
-                  <span className="text-xs font-bold ml-2" style={{ color }}>{pct}%</span>
+                  <span className="biz-text text-xs font-bold ml-2" style={{ ...themeTextStyle(color) }}>{pct}%</span>
                 )}
               </span>
             </button>
@@ -877,7 +878,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
             {variant === 'text'     && <TextPost     post={post} isPromo={isPromo} themeColor={themeColor} primaryBiz={primaryBiz} />}
             {post.link_url?.startsWith('/') && !post.link_url.startsWith('//') && (
               <div className="px-4 pb-3">
-                <Link href={post.link_url} className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-white" style={{ backgroundColor: themeColor }}>
+                <Link href={post.link_url} className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
                   <Store className="w-4 h-4" /> Visit site
                 </Link>
               </div>

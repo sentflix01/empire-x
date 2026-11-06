@@ -1,0 +1,25 @@
+# F-034 after fix — local stack, signed-in GET with id 'not-a-uuid' (2026-11-06)
+404 GET /api/businesses/not-a-uuid
+404 GET /api/delivery/order/not-a-uuid
+404 GET /api/locations/not-a-uuid
+200 GET /api/messages/block/not-a-uuid
+404 GET /api/messages/conversations/not-a-uuid
+200 GET /api/messages/presence/not-a-uuid
+404 GET /api/orders/not-a-uuid
+200 GET /api/orders/session/not-a-uuid
+404 GET /api/posts/not-a-uuid
+200 GET /api/price-alerts/check/not-a-uuid
+404 GET /api/products/not-a-uuid
+404 GET /api/profile-partnerships/profile/not-a-uuid
+404 GET /api/profiles/not-a-uuid
+404 GET /api/profiles/by-user/not-a-uuid
+404 GET /api/reviews/product/not-a-uuid
+200 GET /api/saves/check/not-a-uuid
+404 GET /api/share-preview/product/not-a-uuid
+404 GET /api/showrooms/not-a-uuid
+422 GET /api/social/relationship/not-a-uuid
+404 GET /api/stories/user/not-a-uuid
+404 GET /api/variants/product/not-a-uuid
+200 GET /api/wishlists/check/not-a-uuid
+
+422 POST /api/auth/login (Content-Type: text/plain)

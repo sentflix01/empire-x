@@ -1,0 +1,11 @@
+{
+  "checked_on": "2026-11-06",
+  "target": "local production build (next start)",
+  "worker": {
+    "registeredByApp": true,
+    "state": "activated",
+    "scope": "/"
+  },
+  "guest_GET_offline_status": 200,
+  "offline_navigation_heading": "You're offline"
+}

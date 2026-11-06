@@ -27,6 +27,8 @@ import { initSentryCore } from './lib/sentry';
 initSentryCore();
 
 import express, { type Request, type Response, type NextFunction } from 'express';
+import defaultBody from './middleware/defaultBody';
+import { assertPasswordPolicyReady } from './lib/passwordPolicy';
 import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -137,8 +139,18 @@ function checkEnv(): void {
     }
     warnings.push('Google OAuth (GOOGLE_CLIENT_ID) — Google sign-in disabled');
   }
-  // OTP_SALT is recommended in production but not fatal — omit from prod warnings
-  // to keep startup logs clean.
+  // OTP_SALT is the secret in every stored sign-in code hash; without it a
+  // leaked database lets anyone brute-force the 900,000 codes (audit F-017).
+  if (!process.env.OTP_SALT || process.env.OTP_SALT.length < 32) {
+    if (process.env.NODE_ENV === 'production') {
+      logger.error('\n❌  OTP_SALT is missing or shorter than 32 characters in production.');
+      logger.error('   Set a random value in the Render environment (render.yaml generates one).\n');
+      process.exit(1);
+    }
+    warnings.push('OTP_SALT not set (or under 32 characters) — required in production');
+  }
+  // A missing password blocklist must fail the deploy, not a sign-up.
+  assertPasswordPolicyReady();
   const r2  = ['R2_ACCOUNT_ID','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','R2_BUCKET_NAME','R2_PUBLIC_URL'];
   const sup = ['SUPABASE_URL','SUPABASE_STORAGE_KEY','SUPABASE_BUCKET'];
   if (r2.some((k) => !process.env[k]) && sup.some((k) => !process.env[k])) {
@@ -247,12 +259,15 @@ app.use('/api/auth/forgot-password',  rateLimit(rlOpts(5,   'rl:forgot-pw:')));
 app.use('/api/auth/reset-password',   rateLimit(rlOpts(10,  'rl:reset-pw:')));
 app.use('/api/auth/change-password',  rateLimit(rlOpts(10,  'rl:change-pw:')));
 app.use('/api/auth/refresh',          rateLimit(rlOpts(60,  'rl:refresh:')));
+app.use('/api/auth/mfa',              rateLimit(rlOpts(20,  'rl:mfa:')));   // per IP; per-person lock in auth.ts
+app.use('/api/coupons/validate',      rateLimit(rlOpts(30,  'rl:coupon-validate:')));  // slows code guessing (F-023)
 
 // ── Body parsing ──────────────────────────────────────────────────────────────
 app.use('/api/orders/webhook',        express.raw({ type: 'application/json' }));
 app.use('/api/subscriptions/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(defaultBody); // req.body is {} when no parser matched (audit F-034)
 app.use(cookieParser());
 // Resolve demo-session cookies before auth, data, or payment routes execute so
 // AsyncLocalStorage selects the isolated demo database for the whole request.
@@ -322,6 +337,7 @@ app.get('/health', async (_req: Request, res: Response) => {
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/auth',         require('./routes/auth'));
+app.use('/api/auth/mfa',     require('./routes/mfa'));
 app.use('/api/profiles',     require('./routes/profiles'));
 app.use('/api/posts',        require('./routes/posts'));
 app.use('/api/products',     require('./routes/products'));
@@ -346,6 +362,7 @@ app.use('/api/trending',     require('./routes/trending'));
 app.use('/api/suggestions',  require('./routes/suggestions'));
 app.use('/api/friends',      require('./routes/friends'));
 app.use('/api/verification', require('./routes/verification'));
+app.use('/api/private-files', require('./routes/privateFiles')); // signed local links for private files (dev only)
 app.use('/api/ai',           require('./routes/ai'));
 app.use('/api/referral',     require('./routes/referral'));
 app.use('/api/hashtags',     require('./routes/hashtags'));
@@ -420,23 +437,8 @@ void verifySharedDatabaseIsolation().then(verifyDemoStorageIsolation).then(() =>
   startBusinessSubscriptionLifecycle();
   startDirectOrderExpiry();
 
-  // ── One-time data patches: run asynchronously after startup (all idempotent) ──
-  setTimeout(() => {
-    const migrate83 = require('./db/migrate83') as (p: typeof pool) => Promise<void>;
-    const migrate84 = require('./db/migrate84') as (p: typeof pool) => Promise<void>;
-    const migrate85 = require('./db/migrate85') as (p: typeof pool) => Promise<void>;
-    Promise.all([
-      migrate83(pool).catch((err: Error) =>
-        logger.warn({ err: err.message }, 'feed-ticker-backfill: non-critical startup patch failed'),
-      ),
-      migrate84(pool).catch((err: Error) =>
-        logger.warn({ err: err.message }, 'demo-spotlight-carousel: non-critical startup patch failed'),
-      ),
-      migrate85(pool).catch((err: Error) =>
-        logger.warn({ err: err.message }, 'demo-spotlight-refresh: non-critical startup patch failed'),
-      ),
-    ]);
-  }, 5_000);
+  // Data patches (migrate83–85) used to re-run here on every start; they now
+  // run once through db/migrate-all.js and its schema_migrations ledger (F-009).
 
   // ── Auto-create Supabase Storage bucket ──────────────────────────────────
   setTimeout(async () => {

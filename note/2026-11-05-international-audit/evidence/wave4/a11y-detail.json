@@ -1,0 +1,71 @@
+{
+  "contrast_pairs": [
+    [
+      "#e17100 on #ffffff = 3.2:1 (need 4.5:1) 10.5pt (14px)",
+      5
+    ],
+    [
+      "#e17100 on #f7f7f7 = 2.99:1 (need 4.5:1) 9.0pt (12px)",
+      5
+    ],
+    [
+      "#6a7181 on #f0f2f4 = 4.35:1 (need 4.5:1) 10.5pt (14px)",
+      4
+    ],
+    [
+      "#ffffff on #d4af37 = 2.1:1 (need 4.5:1) 9.0pt (12px)",
+      4
+    ],
+    [
+      "#d4af37 on #ffffff = 2.1:1 (need 4.5:1) 12.0pt (16px)",
+      3
+    ],
+    [
+      "#e17100 on #fffbeb = 3.09:1 (need 4.5:1) 8.3pt (11px)",
+      3
+    ],
+    [
+      "#d4af37 on #ffffff = 2.1:1 (need 4.5:1) 9.0pt (12px)",
+      2
+    ],
+    [
+      "#ffffff on #fe9a00 = 2.14:1 (need 4.5:1) 10.5pt (14px)",
+      1
+    ],
+    [
+      "#ffffff on #fe9a00 = 2.14:1 (need 4.5:1) 9.0pt (12px)",
+      1
+    ]
+  ],
+  "aria_prohibited_html": [
+    "<div data-page-guide=\"login-google\" class=\"flex min-h-10 w-full justify-center\" aria-label=\"Sign in with Google\"></div>",
+    "<span title=\"Browsing as guest\" aria-label=\"Guest session\" class=\"ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground",
+    "<div aria-label=\"Guest session\" title=\"Browsing as guest\" class=\"absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-slate-500 flex items-center just"
+  ],
+  "overflow_320": [
+    {
+      "tag": "div",
+      "cls": "flex w-max animate-marquee whitespace-nowrap py-2 text-blue-950 dark:text-blue-100",
+      "right": 4204,
+      "width": 4150
+    },
+    {
+      "tag": "span",
+      "cls": "px-3 text-xs font-semibold",
+      "right": 4204,
+      "width": 4150
+    },
+    {
+      "tag": "div",
+      "cls": "flex items-center gap-1 ml-auto",
+      "right": 323,
+      "width": 263
+    },
+    {
+      "tag": "span",
+      "cls": "ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-seconda",
+      "right": 323,
+      "width": 26
+    }
+  ]
+}

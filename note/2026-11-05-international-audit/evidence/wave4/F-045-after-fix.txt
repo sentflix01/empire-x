@@ -1,0 +1,23 @@
+# F-045 after fix — local production build, same code before and after except this change (2026-11-06)
+
+Before = commit d4cdf44 (after F-016); after = this commit. Lighthouse 12.8.2 mobile.
+
+## Time until the app page is usable (splash gone), Pixel 7 profile, 150 ms latency, 1.6 Mbps, 4x CPU (scripts/browser/splash-usable-time.cjs), 2 runs
+before: first visit /marketplace 7.06 s / 7.03 s; later page loads in the session 4.70 s / 4.69 s
+after:  first visit /marketplace 2.93 s / 3.01 s; later page loads in the session 0.70 s / 0.69 s
+
+## Lighthouse, simulated throttling (as in the audit), median of 3 runs
+before  landing      score 0.89 LCP 3.5s TBT 156ms JS 317KB total 1441KB
+after   landing      score 0.88 LCP 3.6s TBT 162ms JS 347KB total 553KB
+before  login        score 0.86 LCP 3.9s TBT 190ms JS 290KB total 1409KB
+after   login        score 0.88 LCP 3.6s TBT 154ms JS 304KB total 429KB
+before  marketplace  score 0.91 LCP 3.2s TBT 169ms JS 316KB total 1464KB
+after   marketplace  score 0.84 LCP 3.2s TBT 374ms JS 339KB total 496KB
+before  feed         score 0.84 LCP 2.9s TBT 456ms JS 476KB total 1621KB
+after   feed         score 0.83 LCP 3.0s TBT 497ms JS 497KB total 645KB
+
+## Lighthouse, real (devtools) throttling, 2 runs (range)
+before landing FCP 1.8s LCP 1.8s TBT 204–205ms | marketplace LCP 1.8s TBT 426–474ms | feed LCP 1.7–1.8s TBT 542–627ms
+after  landing FCP 1.8s LCP 1.8s TBT 157–203ms | marketplace LCP 1.7s TBT 295–312ms | feed LCP 1.7s TBT 377–383ms
+
+Notes: on app pages Lighthouse's LCP element was the splash itself, so LCP did not show the 4–7 s the page stayed covered; the usable-time measurement above does. Simulated LCP stays at 3.0–3.6 s because the simulation counts all script that ran before the first paint on a fast local server; under real throttling LCP is 1.7–1.8 s.

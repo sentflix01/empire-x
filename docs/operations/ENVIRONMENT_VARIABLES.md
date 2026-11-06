@@ -35,7 +35,7 @@ Set at: Render → nodbusiness-backend → Environment
 | Variable | Value format | Required | Notes |
 |---|---|---|---|
 | `JWT_SECRET` | 128-char hex string | ✅ Yes | Generate: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`. App exits if missing. |
-| `OTP_SALT` | 64-char hex string | No (recommended) | Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Prevents rainbow-table attacks on OTP hashes. |
+| `OTP_SALT` | 64-char hex string | **Yes in production** (32+ characters; the server refuses to start without it, audit F-017) | Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Prevents rainbow-table attacks on OTP hashes. |
 | `JWT_EXPIRES_IN` | `7d` | No | Refresh token lifetime. Access token is always 15 min (hardcoded). |
 
 ### Google OAuth
@@ -83,7 +83,7 @@ Set at: Render → nodbusiness-backend → Environment
 
 | Variable | Value format | Required | Notes |
 |---|---|---|---|
-| `SUPABASE_URL` | `https://tpgzlokgnjxcerexxoda.supabase.co` | ✅ Yes* | *Required for cloud storage. App **exits with process.exit(1)** in production if neither Supabase nor R2 is configured. |
+| `SUPABASE_URL` | `https://your-project-ref.supabase.co` | ✅ Yes* | *Required for cloud storage. App **exits with process.exit(1)** in production if neither Supabase nor R2 is configured. |
 | `SUPABASE_API_URL` | Same as `SUPABASE_URL` | No | Alias. |
 | `STORAGE_SUPABASE_URL` | Same as `SUPABASE_URL` | No | Another alias used internally. |
 | `SUPABASE_STORAGE_KEY` | `sb_secret_...` (recommended) or legacy `eyJ...` service_role JWT | ✅ Yes* | Use a server-only Secret API key from Supabase → Settings → API Keys. The backend supports the new `sb_secret_...` format and legacy service_role JWT during migration. Never use the publishable/anon key here. |
@@ -91,6 +91,8 @@ Set at: Render → nodbusiness-backend → Environment
 | `DEMO_SUPABASE_URL` | `https://<demo-project-ref>.supabase.co` | Required when Demo is enabled | Supabase project URL for the separate Demo Storage project. Must differ from the Real project's URL. |
 | `DEMO_SUPABASE_STORAGE_KEY` | `sb_secret_...` | Required when Demo is enabled | Server-only Secret API key from the Demo Supabase project. Never use a publishable/anon key or the Real project's key. |
 | `DEMO_SUPABASE_BUCKET` | `demo-uploads` | Required when Demo is enabled | Bucket in the Demo Storage project with **public access disabled**. The backend checks project separation and verifies that the bucket is private. Demo assets use temporary signed URLs. |
+| `PRIVATE_SUPABASE_BUCKET` | `private-documents` | ✅ Yes, for identity verification in production | Bucket with **public access disabled**, different from `SUPABASE_BUCKET`, for identity-verification selfies and IDs. Falls back to `RECEIPTS_SUPABASE_BUCKET`. Files are only viewable through 5-minute signed links issued to the owner or an admin. Without it, production refuses verification uploads (503). After setting it, run `npm run migrate:verification-docs -- --apply` once in `backend/` (audit F-013). |
+| `PRIVATE_UPLOAD_DIR` | `private-uploads` | No | Local development only: folder for private documents when no private bucket is set. Kept outside the public `UPLOAD_DIR`. |
 | `UPLOAD_DIR` | `uploads` | No | Local disk fallback directory. Default `uploads`. |
 | `MAX_FILE_SIZE_MB` | `10` | No | Max upload size in MB. Default 10. |
 
@@ -168,6 +170,8 @@ and monthly interval before checkout.
 
 | Variable | Value format | Required | Notes |
 |---|---|---|---|
+| `MFA_ENCRYPTION_KEY` | 32+ random characters | No | Key source for encrypting two-factor (TOTP) secrets and hashing recovery codes (audit F-017). Falls back to `JWT_SECRET`. Changing it (or `JWT_SECRET` when unset) makes existing authenticator setups unreadable; people then sign in with a recovery code and set up again. |
+| `ADMIN_MFA_REQUIRED` | `true` / `false` | No | Admins must use two-factor sign-in before admin routes work. Default: on in production, off elsewhere. |
 | `EXTERNAL_API_ENCRYPTION_KEY` | 64 hex chars (32 bytes) | No | AES-256-GCM key for encrypting external API credentials at rest. Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 
 ### Backup
@@ -225,7 +229,7 @@ Copy `backend/.env.example` to `backend/.env` and fill in:
 # Minimum required for local dev
 NODE_ENV=development
 PORT=3001
-DATABASE_URL=postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require
+DATABASE_URL=postgresql://postgres.your-project-ref:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require
 JWT_SECRET=any-long-random-string-for-local-dev-only
 FRONTEND_URL=http://localhost:3002
 

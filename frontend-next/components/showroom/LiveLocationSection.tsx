@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { getIO } from '@/lib/socket';
 import client from '@/api/client';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 
 interface Spot { lat: number; lng: number; label?: string | null; updated_at: string }
 
@@ -84,7 +85,7 @@ export function LiveLocationSection({ businessId, title = 'Find us live', isOwne
   return (
     <div className="px-5 py-10 bg-secondary/20">
       <h2 className="font-display text-lg font-bold mb-4 flex items-center gap-2">
-        <Navigation className="w-5 h-5" style={{ color: themeColor }} aria-hidden="true" />{title}
+        <Navigation className="biz-text w-5 h-5" style={{ ...themeTextStyle(themeColor) }} aria-hidden="true" />{title}
       </h2>
       {loading ? (
         <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />Looking for the latest location…</p>
@@ -96,7 +97,7 @@ export function LiveLocationSection({ businessId, title = 'Find us live', isOwne
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
             <span>Updated {minutesAgo(spot.updated_at)}{spot.label ? ` · ${spot.label}` : ''}</span>
             <a href={`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}`} target="_blank" rel="noopener noreferrer"
-              className="inline-flex min-h-10 items-center gap-1 rounded-full px-4 text-sm font-semibold text-white" style={{ backgroundColor: themeColor }}>
+              className="inline-flex min-h-10 items-center gap-1 rounded-full px-4 text-sm font-semibold text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
               <MapPin className="h-4 w-4" aria-hidden="true" />Directions
             </a>
           </div>

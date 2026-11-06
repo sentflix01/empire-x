@@ -13,6 +13,7 @@ import SectionRenderer, { resolveCtaTarget, firstProductsIndex, isCatalogueSecti
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import SafeImage from "@/components/ui/SafeImage";
 import WebsiteStatusBanner from "@/components/profile/WebsiteStatusBanner";
+import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 
 
 /**
@@ -104,13 +105,13 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
           <div className="flex items-center gap-2 min-w-0">
             {biz.business_logo_url ? (
               <SafeImage src={biz.business_logo_url} alt={biz.business_name || 'Business logo'} className="w-7 h-7 rounded-lg object-cover shrink-0"
-                fallback={<div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ backgroundColor: themeColor }}>{biz.business_name?.charAt(0) || "B"}</div>} />
+                fallback={<div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ backgroundColor: fillForWhiteText(themeColor) }}>{biz.business_name?.charAt(0) || "B"}</div>} />
             ) : (
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ backgroundColor: themeColor }}>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
                 {biz.business_name?.charAt(0) || "B"}
               </div>
             )}
-            <span className="font-display font-bold text-sm truncate" style={{ color: themeColor }}>{biz.business_name}</span>
+            <span className="biz-text font-display font-bold text-sm truncate" style={{ ...themeTextStyle(themeColor) }}>{biz.business_name}</span>
             {profile.is_verified && <VerifiedBadge type={profile.verification_type} size="sm" />}
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -127,7 +128,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
                 <Button size="sm" variant="outline" className="rounded-full h-7 text-xs" onClick={handleMessage} disabled={messaging}>
                   <MessageSquare className="w-3 h-3 mr-1" /> {messaging ? "..." : "Message"}
                 </Button>
-                <Button size="sm" className="rounded-full h-7 text-xs text-white" style={{ backgroundColor: themeColor }}>
+                <Button size="sm" className="rounded-full h-7 text-xs text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
                   <a href={contactHref}>Contact</a>
                 </Button>
               </div>

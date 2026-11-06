@@ -1,0 +1,45 @@
+{
+  "steps": [
+    "Start the local stack; sign in as the seeded test user.",
+    "POST /api/upload with a generated 1×1 PNG (stand-in for an ID photo).",
+    "GET the returned URL with no cookies or Authorization header → 200 image/png."
+  ],
+  "found_on": "2026-11-05",
+  "environment": "local",
+  "id": "F-013",
+  "kind": "vulnerability",
+  "phase": "P5-security",
+  "severity": "High",
+  "status": "CONFIRMED",
+  "title": "Identity documents and selfies are stored at public, non-expiring URLs",
+  "standards": [
+    "OWASP A01:2025",
+    "ASVS 5.0 V5.3 (file storage)",
+    "ASVS 5.0 V14.2 (sensitive data protection)",
+    "GDPR Art. 5(1)(f), Art. 32",
+    "Ethiopia Proclamation 1321/2024 (security of processing) — confirm article with counsel"
+  ],
+  "cvss_v4": {
+    "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
+    "score": 8.2
+  },
+  "location": [
+    "frontend-next/components/profile/VerificationRequest.tsx:16",
+    "backend/routes/upload.ts:10",
+    "backend/middleware/upload.ts:205",
+    "backend/middleware/upload.ts:268",
+    "backend/middleware/upload.ts:373",
+    "backend/index.ts:457",
+    "backend/index.ts:264"
+  ],
+  "expected": "Verification selfies and ID documents are stored privately and readable only by the owner and authorised reviewers, through short-lived signed URLs — as payment receipts already are (backend/lib/privateReceipts.ts).",
+  "actual": "Verification uses the general uploadFile() → POST /api/upload path. Files are served without authentication: locally via express.static at /uploads, in production via a Supabase bucket the server creates with public: true and /storage/v1/object/public/ URLs. Object names are Date.now() plus Math.random()*1e9 (about 30 bits, not cryptographic) and never expire. The URLs are stored in verification_requests and shown to admins.",
+  "evidence": [
+    "evidence/F-013/probe.txt",
+    "evidence/F-013/upload-response.json"
+  ],
+  "impact": "Anyone who obtains a URL (admin screen sharing, logs, browser history, a leaked export, a CDN or proxy cache) gets permanent unauthenticated access to a person's government ID and face. Assumption for CVSS: the attacker must first learn or derive the URL (AT:P).",
+  "fix": "Add a private upload kind for verification (and any other sensitive documents): store in a private bucket under a key with 128+ bits from crypto.randomBytes, return an object key not a URL, and serve via an authenticated endpoint that checks owner/admin and issues a signed URL valid for minutes (reuse lib/privateReceipts.ts). Migrate existing verification files to the private bucket and rewrite their rows. Switch all upload keys to crypto.randomUUID().",
+  "effort": "M",
+  "regression_test": "Jest: verification upload returns no public URL; unauthenticated GET of its object returns 401/404."
+}

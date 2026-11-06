@@ -12,6 +12,23 @@
  */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Accessible palette shades (audit F-041, WCAG 1.4.3). These Tailwind shades
+ * are used hundreds of times for text and behind white text; the defaults
+ * reach only 2.1–3.8:1. Each value below is at least 4.5:1 on white, the page
+ * background and the matching 50-tint, and white text on it is at least 4.5:1.
+ * Lighter shades (400 and below) stay as they are for decoration.
+ * Dark mode lightens the same text classes further down this file.
+ */
+@theme {
+  --color-amber-500:  #b45309;   /* was #fe9a00: 2.1:1 */
+  --color-amber-600:  #92400e;   /* was #e17100: 3.2:1 */
+  --color-red-500:    #c81e1e;   /* was #ef4343: 3.8:1 */
+  --color-green-600:  #157a3a;   /* was #00a63e: 3.2:1 */
+  --color-yellow-600: #a16207;   /* was #d08700: 2.8:1 on yellow-50 */
+  --color-blue-500:   #2563eb;   /* was #2b7fff: 3.7:1 under white text; same as --primary */
+}
+
 @theme inline {
   --color-background:           hsl(var(--background));
   --color-foreground:           hsl(var(--foreground));
@@ -83,7 +100,7 @@
     --secondary:           220 14% 95%;
     --secondary-foreground:220 20% 20%;
     --muted:               220 14% 95%;
-    --muted-foreground:    220 10% 46%;
+    --muted-foreground:    220 10% 42%;      /* 5.1:1 on --secondary (46% was 4.35:1, F-041) */
 
     /* ── Brand purple — accent / gradient end ── */
     --accent:              262 83% 58%;      /* #7c3aed */
@@ -94,7 +111,7 @@
     --input:               220 13% 89%;
     --ring:                221 83% 53%;
 
-    --destructive:         0 84% 60%;
+    --destructive:         0 74% 45%;      /* #c81e1e: 5.7:1 as text and under white text (60% was 3.8:1, F-041) */
     --destructive-foreground: 0 0% 98%;
     --radius:              0.875rem;
 
@@ -119,15 +136,15 @@
     --popover:             222 39% 13%;
     --popover-foreground:  210 20% 95%;
 
-    /* ── Brand blue (slightly lighter for dark bg readability) ── */
-    --primary:             217 91% 60%;      /* #3b82f6 */
+    /* ── Brand blue (same as light, so white text on it passes; text-primary is lightened below) ── */
+    --primary:             221 83% 53%;      /* #2563eb: white text 5.2:1 (#3b82f6 was 3.6:1, F-041); text-primary is lightened below */
     --primary-foreground:  0 0% 100%;
 
     /* ── Neutral surfaces ── */
     --secondary:           224 20% 16%;
     --secondary-foreground:210 20% 88%;
     --muted:               224 20% 16%;
-    --muted-foreground:    220 10% 58%;
+    --muted-foreground:    220 12% 66%;      /* 4.5:1+ on the dark tints too (58% was 4.17:1, F-041) */
 
     /* ── Brand purple ── */
     --accent:              263 90% 66%;      /* #8b5cf6 */
@@ -166,6 +183,29 @@
 .dark .border-gray-200, .dark .border-slate-200 { border-color: hsl(var(--border)) !important; }
 .dark .text-slate-600, .dark .text-slate-500 { color: hsl(var(--muted-foreground)) !important; }
 .dark .text-slate-900, .dark .text-slate-800 { color: hsl(var(--foreground)) !important; }
+/* The darker palette shades above are for light backgrounds; on dark ones the
+   same text classes use lighter shades (audit F-041). */
+.dark .text-amber-500, .dark .text-amber-600, .dark .text-amber-700 { color: #fbbf24; }
+.dark .text-red-500    { color: #f87171; }
+.dark .text-green-600  { color: #4ade80; }
+.dark .text-yellow-600 { color: #facc15; }
+.dark .text-blue-500   { color: #60a5fa; }
+/* Text in a business's own colour, adjusted per theme by lib/contrast.ts themeTextStyle(). */
+.dark .text-primary { color: #93b4fb; }
+.dark .text-destructive { color: #f87171; }
+.dark .text-blue-600, .dark .text-blue-700 { color: #60a5fa; }
+.dark .text-purple-600 { color: #c084fc; }
+.dark .text-slate-700 { color: hsl(var(--foreground)) !important; }
+/* Light sections whose background is already darkened above keep readable text. */
+.dark .bg-slate-50.text-slate-950, .dark .bg-slate-100.text-slate-950, .dark .bg-white.text-slate-950 { color: hsl(var(--foreground)); }
+/* Pale status tints stay pale in dark mode otherwise, under the lightened text above. */
+.dark .bg-amber-50  { background-color: rgb(245 158 11 / 0.14); }
+.dark .bg-yellow-50 { background-color: rgb(234 179 8 / 0.14); }
+.dark .bg-green-50  { background-color: rgb(34 197 94 / 0.14); }
+.dark .bg-red-50    { background-color: rgb(239 68 68 / 0.14); }
+.dark .bg-blue-50   { background-color: rgb(59 130 246 / 0.14); }
+.biz-text { color: var(--biz-text); }
+.dark .biz-text { color: var(--biz-text-dark); }
 
 @layer utilities {
   /* Nodbusiness brand gradient — blue → purple */

@@ -1,0 +1,36 @@
+# Design token counts (frontend-next, 2026-11-06)
+raw palette classes: 2298
+semantic token classes: 3585
+hex colours in TS/TSX: 339 occurrences, 100 distinct
+inline style colour props: 74
+arbitrary z-index values:
+      5 z-[200]
+      4 z-[100]
+      3 z-[65]
+      3 z-[2147483647]
+      3 z-[1000]
+      2 z-[70]
+      2 z-[55]
+      2 z-[400]
+      1 z-[9999]
+      1 z-[80]
+      1 z-[61]
+      1 z-[60]
+      1 z-[300]
+      1 z-[2147483646]
+      1 z-[1]
+      1 z-[120]
+      1 z-[1002]
+palette families (bg/text/border):
+    692 amber
+    312 red
+    265 blue
+    173 emerald
+    142 slate
+    100 green
+     77 violet
+     40 gray
+     35 orange
+     23 purple
+      6 rose
+      2 indigo

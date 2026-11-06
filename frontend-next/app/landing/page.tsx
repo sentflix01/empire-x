@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
+import BrandIntroVideo from '@/components/brand/BrandIntroVideo';
 import {
   Bot,
   CheckCircle2,
@@ -58,7 +59,7 @@ const previewRows = [
 
 export default function LandingPage() {
   return (
-    <main className="min-h-[100dvh] overflow-x-hidden bg-slate-950 text-white">
+    <main id="main-content" tabIndex={-1} className="outline-none min-h-[100dvh] overflow-x-hidden bg-slate-950 text-white">
       {/* ── Top navigation bar ── */}
       <nav data-page-guide="landing-nav" aria-label="Account and display options" className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-3 bg-slate-950/80 backdrop-blur-xl border-b border-white/8 sm:px-6 sm:py-4">
         <div className="flex items-center gap-2">
@@ -127,15 +128,7 @@ export default function LandingPage() {
               boxShadow: '0 0 0 3px rgba(255,255,255,0.18), 0 8px 40px rgba(0,0,0,0.5)',
             }}
           >
-            <video
-              src="/brand/nodbusiness-intro.mp4"
-              autoPlay
-              muted
-              playsInline
-              loop
-              className="absolute inset-0 w-full h-full object-cover block"
-              aria-hidden="true"
-            />
+            <BrandIntroVideo />
           </div>
           {/* Brand name */}
           <p className="mb-2 text-sm font-black tracking-tight text-white/90 sm:text-xl lg:text-2xl">

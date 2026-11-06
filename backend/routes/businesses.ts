@@ -8,6 +8,7 @@ import { getBusinessSubscriptionAccess, isBusinessOwnerBlocked } from '../lib/bu
 import pool from '../db/pool';
 import { redactContactFields, parsePublicContactFields } from '../lib/contactPrivacy';
 import { businessViewGate, isBusinessVisibility, rejectViewGate } from '../lib/siteVisibility';
+import { uuidParams } from '../lib/uuidParams';
 
 const canSeeAll = (req: Request, ownerId: unknown) => !!req.user && (req.user.id === ownerId || req.user.role === 'admin');
 
@@ -29,6 +30,8 @@ function privacyFieldError(updates: Record<string, unknown>): string | null {
 
 const router = Router();
 
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['id', 'accountId']);
 router.get('/', optionalAuth, cacheMiddleware('businesses:list', 30, { varyByAuth: true }), async (req: Request, res: Response) => {
   try {
     const { owner_id, sort = '-created_at', limit = '50' } = req.query as Record<string, string>;

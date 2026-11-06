@@ -20,6 +20,7 @@ import SharedBookmarkButton from '@/components/ui/BookmarkButton';
 import BusinessSpotlight from './BusinessSpotlight';
 import TickerBar from './TickerBar';
 import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
+import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface SectionItem {
@@ -210,6 +211,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                   level="L"
                   includeMargin={false}
                   style={{ display: 'block' }}
+                  aria-hidden="true"
                 />
               </button>
               {qrOpen && (
@@ -263,7 +265,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                       <Link
                         href={visitPath}
                         className="mt-3 flex items-center justify-center gap-2 w-full h-9 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90"
-                        style={{ backgroundColor: color }}
+                        style={{ backgroundColor: fillForWhiteText(color) }}
                         onClick={() => setQrOpen(false)}
                       >
                         Visit Business Profile
@@ -290,14 +292,14 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
             )}
             <Link href={visitPath}>
               <Button size="sm" className="rounded-full h-7 text-xs text-white"
-                style={{ backgroundColor: color }}>
+                style={{ backgroundColor: fillForWhiteText(color) }}>
                 Visit <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
             </Link>
           </div>
         </div>
         {/* Fixed rows (name, owner, tagline, address) so every card is the same height. */}
-        <h3 className="mt-2 h-6 truncate font-display text-base font-bold leading-6" style={{ color }} title={bizName}>{bizName}</h3>
+        <h3 className="biz-text mt-2 h-6 truncate font-display text-base font-bold leading-6" style={{ ...themeTextStyle(color) }} title={bizName}>{bizName}</h3>
         {/* Owner identity */}
         <div className="h-5">
         {ownerName && (
@@ -317,7 +319,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
               />
             ) : (
               <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
-                style={{ backgroundColor: color }}>
+                style={{ backgroundColor: fillForWhiteText(color) }}>
                 {ownerName.charAt(0).toUpperCase()}
               </span>
             )}
@@ -674,7 +676,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
         <div className="flex items-end justify-between">
           <div className="flex items-end gap-2">
             <div className="w-16 h-16 rounded-2xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
-              style={{ backgroundColor: themeColor }}>
+              style={{ backgroundColor: fillForWhiteText(themeColor) }}>
               {logoUrl
                 ? <NextImage src={logoUrl} alt={`${bizName}'s logo`} width={48} height={48} className="w-full h-full object-cover" unoptimized />
                 : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">
@@ -698,7 +700,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
             </Button>
             <Link href={`/profile/${profile!.user_id}?view=business`}>
               <Button size="sm" className="rounded-full h-8 text-xs text-white"
-                style={{ backgroundColor: themeColor }}>
+                style={{ backgroundColor: fillForWhiteText(themeColor) }}>
                 Visit <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
             </Link>
@@ -707,7 +709,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
 
         <div className="mt-2 space-y-0.5">
           <div className="flex items-center gap-1.5">
-            <h3 className="font-display text-base font-bold" style={{ color: themeColor }}>{bizName}</h3>
+            <h3 className="biz-text font-display text-base font-bold" style={{ ...themeTextStyle(themeColor) }}>{bizName}</h3>
             {profile!.is_verified && (
               <VerifiedBadge type={profile!.verification_type} size="sm" />
             )}

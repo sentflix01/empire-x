@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AuthLayout from "@/components/AuthLayout";
 import { describeGoogleOAuthError, renderGoogleSignInButton } from "@/lib/googleAuth";
+import MfaChallenge from "@/components/auth/MfaChallenge";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useAuth } from '@/lib/AuthContext';
 import { safeReturnPath } from '@/lib/safeReturnPath';
@@ -25,15 +26,25 @@ function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(searchParams.get("mfa") === "1" ? "This account uses two-factor sign-in. Sign in here to finish." : "");
   const [googleReady, setGoogleReady] = useState(false);
   const [googleUnavailable, setGoogleUnavailable] = useState(false);
   const googleRef = useRef<HTMLDivElement | null>(null);
+  // Set when two-factor sign-in is on: the second step replaces the form (F-017).
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
 
   const continueAfterLogin = useCallback(async (result: {
     onboarding_mode?: 'demo' | 'real' | null;
     is_demo?: boolean;
+    mfa_required?: boolean;
+    mfa_token?: string;
   }) => {
+    if (result.mfa_required && result.mfa_token) {
+      setPassword('');
+      setError('');
+      setMfaToken(result.mfa_token);
+      return;
+    }
     if (result.is_demo) {
       setError('This legacy Demo login needs to be linked to a Real account before it can be used here.');
       return;
@@ -101,10 +112,7 @@ function Login() {
       const result = await auth.loginViaEmailPassword(email.trim().toLowerCase(), password);
       clearTimeout(slowTimer);
       setError('');
-      await continueAfterLogin(result as {
-        onboarding_mode?: 'demo' | 'real' | null;
-        is_demo?: boolean;
-      });
+      await continueAfterLogin(result as Parameters<typeof continueAfterLogin>[0]);
     } catch (err: unknown) {
       clearTimeout(slowTimer);
       const e = err as { code?: string; status?: number; response?: { status?: number }; error?: string; message?: string; isTimeout?: boolean };
@@ -122,6 +130,18 @@ function Login() {
       setLoading(false);
     }
   };
+
+  if (mfaToken) {
+    return (
+      <AuthLayout title="Two-factor sign-in" subtitle="One more step to confirm it's you">
+        <MfaChallenge
+          mfaToken={mfaToken}
+          onSignedIn={(result) => continueAfterLogin(result as Parameters<typeof continueAfterLogin>[0])}
+          onRestart={(message) => { setMfaToken(null); setError(message); }}
+        />
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout
@@ -147,7 +167,7 @@ function Login() {
             Google sign-in is not configured for this environment. Use email and password.
           </div>
         )}
-        <div ref={googleRef} data-page-guide="login-google" className="flex min-h-10 w-full justify-center" aria-label="Sign in with Google" />
+        <div ref={googleRef} data-page-guide="login-google" className="flex min-h-10 w-full justify-center" role="group" aria-label="Sign in with Google" />
       </div>
 
       {/* Divider */}

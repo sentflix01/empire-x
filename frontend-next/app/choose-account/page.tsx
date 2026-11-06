@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Users, Store, ArrowLeft } from 'lucide-react';
+import MainContent from '@/components/layout/MainContent';
 
 export const metadata = { title: 'Choose Account Type — Nodbusiness' };
 
 export default function ChooseAccountPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex flex-col items-center justify-center px-6 py-12">
+    <MainContent className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex flex-col items-center justify-center px-6 py-12">
       {/* Back to landing */}
       <Link href="/landing" className="flex items-center gap-2 text-white/60 hover:text-white text-sm mb-10 self-start max-w-md w-full">
         <ArrowLeft className="w-4 h-4" /> Back
@@ -77,6 +78,6 @@ export default function ChooseAccountPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </MainContent>
   );
 }

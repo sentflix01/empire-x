@@ -9,9 +9,12 @@ import { SIGN_IN_REQUIRED } from '../lib/siteVisibility';
 import { listRecords, getRecord, createRecord, updateRecord } from '../utils/crud';
 import { getRedis } from '../lib/redis';
 import { redactContactFields, parsePublicContactFields } from '../lib/contactPrivacy';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
 
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['userId', 'id', 'targetUserId']);
 const COVER_POS_RE = /^\d{1,3}(\.\d+)?% \d{1,3}(\.\d+)?%$/;
 const COVER_POSITION_FIELDS = ['cover_position', 'business_cover_position'] as const;
 const EDITABLE_PROFILE_FIELDS = [

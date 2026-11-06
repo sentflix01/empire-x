@@ -1,0 +1,31 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-023",
+  "kind": "hardening",
+  "phase": "P5-security",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Some public endpoints return internal data or lack specific rate limits",
+  "standards": [
+    "OWASP API3:2023",
+    "OWASP API4:2023",
+    "ASVS 5.0 V8.3"
+  ],
+  "location": [
+    "backend/routes/devops.ts:108-113",
+    "backend/routes/ai.ts:50-52",
+    "backend/routes/coupons.ts:41-58",
+    "backend/index.ts:228-249"
+  ],
+  "expected": "Guests see only what the product needs; guessable or expensive endpoints have their own limits; limits hold across instances.",
+  "actual": "GET /api/devops/versions returns the admin release-status record to anyone. POST /api/coupons/validate returns the full coupon row (SELECT *) and is limited only by the global 500/15 min per-IP limit, so seller codes can be guessed. All rate limits are in-memory per instance (TD-026). /api/ai/status reveals the provider (negligible).",
+  "evidence": [
+    "backend/routes/coupons.ts:45-57",
+    "backend/routes/devops.ts:108-113"
+  ],
+  "impact": "Minor information disclosure; coupon codes for a seller can be enumerated; limits weaken under horizontal scaling.",
+  "fix": "Require admin for devops/versions; return only {valid, discount, code} from coupon validation and add a per-IP+seller limiter; move rate limits to the Redis store when a second instance is added.",
+  "effort": "S"
+}

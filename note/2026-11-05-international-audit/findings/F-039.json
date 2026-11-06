@@ -1,0 +1,29 @@
+{
+  "id": "F-039",
+  "kind": "positive",
+  "phase": "P6-privacy",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "title": "Positive: self-service data export and account deletion work (9/10; files: F-014)",
+  "standards": [
+    "GDPR Art. 15, 17, 20",
+    "Ethiopia Proclamation 1321/2024 (data subject rights) — confirm with counsel"
+  ],
+  "location": [
+    "backend/lib/accountData.ts",
+    "backend/routes/auth.ts:880-930"
+  ],
+  "steps": [
+    "source ~/.nodbusiness-local/env.sh && node note/2026-11-05-international-audit/scripts/account-lifecycle.mjs"
+  ],
+  "expected": "Machine-readable export without secrets; deletion confirmed by password and intent; identity removed.",
+  "actual": "Export is JSON covering profile, content and activity tables and excludes password hash, OTP and reset token. Deletion requires the password and typing DELETE; afterwards sign-in fails, the old token is refused, the users row is anonymised and the profile removed. Only failure: stored files remain (F-014).",
+  "evidence": [
+    "evidence/wave3/account-lifecycle.json"
+  ],
+  "impact": "Keep.",
+  "fix": "None (see F-014).",
+  "effort": "S",
+  "found_on": "2026-11-05",
+  "environment": "local"
+}

@@ -24,6 +24,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import SignInRequired, { isSignInRequired } from '@/components/auth/SignInRequired';
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import { fillForWhiteText } from '@/lib/contrast';
 
 /* ── Lightweight inquiry / "Get Quote" modal ─────────────────────────────── */
 function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, businessId, isAuthenticated, onClose }: {
@@ -312,6 +313,8 @@ function ShowroomView() {
           themeColor={themeColor}
         />
       )}
+        {/* Hero and banner sections render the page's <h1>; without one, name the page for screen readers (audit F-042). */}
+        {!sections.some(sec => sec?.type === "hero" || sec?.type === "banner") && <h1 className="sr-only">{showroom.title}</h1>}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <button type="button" onClick={handleGoBack} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4" /> Go back
@@ -429,7 +432,7 @@ function ShowroomView() {
                 <Link
                   href="/register"
                   className="h-8 px-3 rounded-xl text-white text-xs font-semibold flex items-center transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: themeColor }}
+                  style={{ backgroundColor: fillForWhiteText(themeColor) }}
                 >
                   Join Free
                 </Link>
@@ -446,7 +449,7 @@ function UnavailableNotice({ title, message }: { title: string; message: string 
   return (
     <div className="max-w-2xl mx-auto text-center py-20">
       <BrandLogo className="w-12 h-12 text-amber-400/40 mx-auto mb-3" />
-      <h2 className="font-display text-xl font-bold">{title}</h2>
+      <h1 className="font-display text-xl font-bold">{title}</h1>
       <p className="text-sm text-muted-foreground mt-1">{message}</p>
       <Link href="/" className="inline-block mt-4">
         <Button variant="outline" className="rounded-full">Go Home</Button>

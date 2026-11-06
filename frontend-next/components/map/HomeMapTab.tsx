@@ -1,5 +1,6 @@
 'use client';
 import SafeImage from '@/components/ui/SafeImage';
+import { markerLabelHtml } from "@/lib/mapLabel";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { entities } from "@/api/entities";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 import type { MapSearchResult, MapSearchState } from "@/types/map-search";
 import { getMapSearchDisplayState } from "@/types/map-search";
 import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
+import { themeTextStyle } from '@/lib/contrast';
 
 // Leaflet modules — assigned after dynamic import inside useEffect
 // We CANNOT use require() or static import because Turbopack processes CSS imports at build time
@@ -75,7 +77,8 @@ function makeLabeledIcon(label: string, color: "gold" | "red" | "blue" | "green"
     gold: "#2563EB", red: "#e53e3e", blue: "#3b82f6", green: "#22c55e",
   };
   const accent = accentColors[color];
-  const truncated = label && label.length > 20 ? label.slice(0, 18) + "…" : (label || "");
+  // Escaped: names come from the database and this HTML is set with innerHTML (audit F-057).
+  const truncated = markerLabelHtml(label);
 
   const bubbleHtml = `
     <div style="
@@ -95,7 +98,7 @@ function makeLabeledIcon(label: string, color: "gold" | "red" | "blue" | "green"
     </div>`;
 
   const pinHtml = `
-    <img loading="lazy" src="${pinUrls[color]}" width="25" height="41"
+    <img loading="lazy" src="${pinUrls[color]}" alt="" width="25" height="41"
       style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:1;" />`;
 
   if (!L) return undefined;
@@ -170,7 +173,7 @@ function MarkerHoverCard({ data }: { data: HoverData }) {
             <p className="text-xs font-bold truncate leading-tight">{data.name}</p>
             {data.category && <p className="text-[10px] text-muted-foreground truncate">{data.category}</p>}
             {data.distanceKm != null && (
-              <p className="text-[10px] font-semibold" style={{ color: accentColor }}>
+              <p className="biz-text text-[10px] font-semibold" style={{ ...themeTextStyle(accentColor) }}>
                 📍 {data.distanceKm < 1 ? `${Math.round(data.distanceKm * 1000)}m` : `${data.distanceKm.toFixed(1)} km`} away
               </p>
             )}
@@ -184,7 +187,7 @@ function MarkerHoverCard({ data }: { data: HoverData }) {
                 <div key={p.id} className="flex-1 bg-secondary/40 rounded-lg p-1.5 min-w-0">
                   {imgs[0] && <SafeImage fill={false} width={800} height={600} loading="lazy" src={imgs[0]} alt={p.title || 'Product image'} className="w-full h-8 object-cover rounded mb-1" />}
                   <p className="text-[9px] font-medium truncate">{p.title}</p>
-                  <p className="text-[9px] font-bold" style={{ color: accentColor }}>{p.price?.toLocaleString()} ETB</p>
+                  <p className="biz-text text-[9px] font-bold" style={{ ...themeTextStyle(accentColor) }}>{p.price?.toLocaleString()} ETB</p>
                 </div>
               );
             })}
@@ -313,7 +316,7 @@ function NearbyPersonCard({ person, onOpenProfile }) {
           <p className="font-semibold text-sm truncate">{person.display_name}</p>
           {person.headline && <p className="text-xs text-muted-foreground truncate">{person.headline}</p>}
           {person.distance_km != null && (
-            <p className="text-xs font-semibold" style={{ color: accentColor }}>
+            <p className="biz-text text-xs font-semibold" style={{ ...themeTextStyle(accentColor) }}>
               📍 {person.distance_km < 1 ? `${Math.round(person.distance_km * 1000)}m` : `${person.distance_km.toFixed(1)} km`} away
             </p>
           )}

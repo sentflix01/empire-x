@@ -11,6 +11,7 @@ import SafeImage from '@/components/ui/SafeImage';
 import client from '@/api/client';
 import { sectionItemBuyPayload, type BuyPayload } from '@/lib/sectionItemPurchase';
 import { formatTime, isOpenNow, readOpeningHours, todayIndex } from '@/lib/openingHours';
+import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 
 interface Account { id: string; method: 'bank' | 'mobile_money' | 'other'; provider_name: string; account_name: string; account_number: string; instructions?: string | null }
 
@@ -44,7 +45,7 @@ export function PaymentInfoSection({ s, sectionIndex, businessId, isOwner, previ
   if (accounts && accounts.length === 0 && !ownerView) return null;
   return (
     <div id={`section-${sectionIndex}`} className="px-5 py-10">
-      <h2 className="font-display text-lg font-bold mb-1 flex items-center gap-2"><Wallet className="h-5 w-5" style={{ color: themeColor }} aria-hidden="true" />{s.payTitle || s.title || 'How to pay'}</h2>
+      <h2 className="font-display text-lg font-bold mb-1 flex items-center gap-2"><Wallet className="biz-text h-5 w-5" style={{ ...themeTextStyle(themeColor) }} aria-hidden="true" />{s.payTitle || s.title || 'How to pay'}</h2>
       <p className="mb-4 text-sm text-muted-foreground">{ownerView ? 'Buyers pay you directly' : 'Pay us directly'}. NodBusiness never holds the money.</p>
       {accounts === null ? (
         <p role="status" className="text-sm text-muted-foreground">Loading…</p>
@@ -94,7 +95,7 @@ export function OpeningHoursSection({ s, sectionIndex, legacyHours, isOwner, pre
   return (
     <div id={`section-${sectionIndex}`} className="px-5 py-10">
       <h2 className="font-display text-lg font-bold mb-4 flex flex-wrap items-center gap-2">
-        <Clock className="w-5 h-5" style={{ color: themeColor }} aria-hidden="true" />{title}
+        <Clock className="biz-text w-5 h-5" style={{ ...themeTextStyle(themeColor) }} aria-hidden="true" />{title}
         {week && (isOpenNow(week)
           ? <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">Open now</span>
           : <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">Closed now</span>)}
@@ -128,11 +129,11 @@ export function MenuSection({ s, sectionIndex, onBuy, themeColor }: {
   }, []);
   return (
     <div id={`section-${sectionIndex}`} className="px-5 py-10">
-      <h2 className="font-display text-lg font-bold mb-4 flex items-center gap-2"><UtensilsCrossed className="h-5 w-5" style={{ color: themeColor }} aria-hidden="true" />{s.menuTitle || s.title || 'Our Menu'}</h2>
+      <h2 className="font-display text-lg font-bold mb-4 flex items-center gap-2"><UtensilsCrossed className="biz-text h-5 w-5" style={{ ...themeTextStyle(themeColor) }} aria-hidden="true" />{s.menuTitle || s.title || 'Our Menu'}</h2>
       <div className="space-y-6">
         {groups.map((g) => (
           <section key={g.name || '_'} aria-label={g.name || 'Menu'}>
-            {g.name && <h3 className="mb-2 text-sm font-bold uppercase tracking-wide" style={{ color: themeColor }}>{g.name}</h3>}
+            {g.name && <h3 className="biz-text mb-2 text-sm font-bold uppercase tracking-wide" style={{ ...themeTextStyle(themeColor) }}>{g.name}</h3>}
             <ul className="divide-y divide-border/40">
               {g.items.map((d, i) => {
                 const buy = sectionItemBuyPayload(d, 'Dish');
@@ -144,9 +145,9 @@ export function MenuSection({ s, sectionIndex, onBuy, themeColor }: {
                       {d.desc && <p className="text-xs text-muted-foreground">{d.desc}</p>}
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1">
-                      {d.price && <span className="text-sm font-bold" style={{ color: themeColor }}>{d.price}</span>}
+                      {d.price && <span className="biz-text text-sm font-bold" style={{ ...themeTextStyle(themeColor) }}>{d.price}</span>}
                       {buy && onBuy && (
-                        <button type="button" onClick={() => onBuy(buy)} className="min-h-9 rounded-full px-3 text-xs font-semibold text-white" style={{ backgroundColor: themeColor }}>
+                        <button type="button" onClick={() => onBuy(buy)} className="min-h-9 rounded-full px-3 text-xs font-semibold text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
                           Order
                         </button>
                       )}
@@ -187,7 +188,7 @@ export function OfferSection({ s, sectionIndex, ctaTarget, isOwner, preview, the
       <div className="overflow-hidden rounded-2xl border-2" style={{ borderColor: themeColor }}>
         {s.offerPhoto && <SafeImage fill={false} width={800} height={400} loading="lazy" src={s.offerPhoto} alt="" className="h-40 w-full object-cover" />}
         <div className="p-4">
-          <p className="mb-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white" style={{ backgroundColor: themeColor }}>
+          <p className="mb-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
             <Tag className="h-3 w-3" aria-hidden="true" /> Offer
           </p>
           <h2 className="font-display text-lg font-bold">{s.offerTitle || 'Your offer'}</h2>
@@ -199,7 +200,7 @@ export function OfferSection({ s, sectionIndex, ctaTarget, isOwner, preview, the
               </span>
             )}
             {s.offerBtn && ctaTarget && (
-              <a href={ctaTarget} className="inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold text-white" style={{ backgroundColor: themeColor }}>{s.offerBtn}</a>
+              <a href={ctaTarget} className="inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>{s.offerBtn}</a>
             )}
           </div>
         </div>

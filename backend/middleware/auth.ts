@@ -22,6 +22,8 @@ import { DEMO_SESSION_AUDIENCE } from './demoEnvironment';
 import { getRedis, withoutRedis } from '../lib/redis';
 import logger from '../lib/logger';
 import type { AuthUser } from '../lib/types';
+import { adminMfaRequired } from '../lib/adminMfa';
+import { isTokenRevoked as storeIsTokenRevoked } from '../lib/authSecurityStore';
 import type { Redis as RedisClient } from 'ioredis';
 
 const USER_CACHE_TTL = 60;         // Redis TTL in seconds
@@ -80,7 +82,9 @@ async function getCachedUser(userId: string, demoAccount = false): Promise<AuthU
 
   // 3. Database
   const { rows } = await pool.query<AuthUser>(
-    'SELECT id, email, role, is_banned, (is_demo OR is_seed) AS is_demo FROM users WHERE id = $1',
+    `SELECT id, email, role, is_banned, (is_demo OR is_seed) AS is_demo,
+            EXISTS (SELECT 1 FROM user_mfa m WHERE m.user_id = users.id AND m.enabled_at IS NOT NULL) AS mfa_enabled
+       FROM users WHERE id = $1`,
     [userId],
   );
   const user = rows[0] ?? null;
@@ -130,7 +134,7 @@ async function isTokenRevoked(
   }
 
   const redis = getRedis();
-  if (redis.isNoOp) return false;
+  if (redis.isNoOp) return revokedInPostgres(jti, userId, iat);
   try {
     if (jti) {
       const revoked = await (redis as RedisClient).get(`revoked:${jti}`);
@@ -150,7 +154,26 @@ async function isTokenRevoked(
     if (jti) localSet(localRevocationCache, jti, false, REVOKE_LOCAL_TTL);
     return false;
   } catch {
-    return false; // fail open — never block a request because Redis is down
+    // Redis failed: Postgres holds every revocation, so ask it instead of
+    // letting a revoked token through (audit F-018).
+    return revokedInPostgres(jti, userId, iat);
+  }
+}
+
+/**
+ * Revocation check against Postgres (lib/authSecurityStore), used when Redis is
+ * absent or failing. Answers are cached in-process like the Redis path. If
+ * Postgres also fails, the request is let through and logged: the database
+ * being down fails the request anyway.
+ */
+async function revokedInPostgres(jti: string | undefined, userId: string | undefined, iat: number | undefined): Promise<boolean> {
+  try {
+    const revoked = await storeIsTokenRevoked(jti, userId, iat);
+    if (jti) localSet(localRevocationCache, jti, revoked, REVOKE_LOCAL_TTL);
+    return revoked;
+  } catch (err) {
+    logger.warn({ err: (err as Error).message }, 'auth: revocation check failed in Redis and Postgres; allowing request');
+    return false;
   }
 }
 
@@ -259,6 +282,11 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   if (!req.user || req.user.role !== 'admin') {
     res.status(403).json({ error: 'Admin access required' });
+    return;
+  }
+  // Admins must use two-factor sign-in (audit F-017); they set it up in Settings.
+  if (adminMfaRequired() && !req.user.mfa_enabled) {
+    res.status(403).json({ error: 'Turn on two-factor sign-in in Settings to use admin tools.', code: 'MFA_SETUP_REQUIRED' });
     return;
   }
   next();

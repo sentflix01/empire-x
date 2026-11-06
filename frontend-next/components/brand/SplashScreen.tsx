@@ -1,21 +1,16 @@
 'use client';
 
 /**
- * SplashScreen — full-screen brand intro that plays once on app load.
+ * SplashScreen — brief brand screen on the first app page of a browser session.
  *
- * Renders a white overlay with the brand video centered in a black circle.
- * The static SVG icon is shown instantly as a placeholder until the video's
- * first frame is ready — this prevents a plain black circle flash on slow
- * connections or mobile devices where video buffering takes time.
- *
- * Dismisses when BOTH:
- *   - the auth check completes (isLoadingAuth becomes false), AND
- *   - the video has finished playing
- * …or after 4 seconds maximum so it never blocks the app indefinitely.
+ * Audit F-045: it used to play the 1 MB intro video on every app page load and
+ * hold the page for up to 4 s, which made the largest contentful paint 3–4 s
+ * on mobile. Now it shows the static logo, only once per session, and goes
+ * away as soon as the sign-in check finishes or after 800 ms at most.
  *
  * Skipped entirely on auth/landing pages where a splash would be confusing.
  */
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -25,41 +20,44 @@ const AUTH_PREFIXES = [
   '/reset-password', '/verify', '/auth/google/callback', '/landing',
 ];
 
-const MAX_SPLASH_MS = 4000; // hard cap — never block longer than 4 seconds
+export const MAX_SPLASH_MS = 800;
+export const SPLASH_SEEN_KEY = 'nb_splash_seen';
+
+function seenThisSession(): boolean {
+  try { return sessionStorage.getItem(SPLASH_SEEN_KEY) === '1'; } catch { return false; }
+}
+
+function markSeen() {
+  try { sessionStorage.setItem(SPLASH_SEEN_KEY, '1'); } catch { /* private mode: show again next time */ }
+}
 
 export default function SplashScreen() {
   const pathname = usePathname();
   const { isLoadingAuth } = useAuth();
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const [videoEnded, setVideoEnded]     = useState(false);
-  // true once the video has its first frame ready to paint
-  const [videoReady, setVideoReady]     = useState(false);
-  const [fading, setFading]             = useState(false);
-  const [gone, setGone]                 = useState(false);
-
   const isAuthPage = AUTH_PREFIXES.some(p => pathname.startsWith(p));
 
-  const dismiss = useCallback(() => {
-    if (fading || gone) return;
-    setFading(true);
-    setTimeout(() => setGone(true), 320);
-  }, [fading, gone]);
+  // Rendered on the first paint (server HTML included) so there is no flash of
+  // the page underneath; hidden right after mount when already seen.
+  const [visible, setVisible] = useState(!isAuthPage);
+  const [fading, setFading] = useState(false);
 
-  // Hard-cap timer — always dismiss after MAX_SPLASH_MS
+  const dismiss = useCallback(() => {
+    setFading(true);
+    window.setTimeout(() => setVisible(false), 200);
+  }, []);
+
   useEffect(() => {
-    if (isAuthPage) return;
+    if (isAuthPage || seenThisSession()) { setVisible(false); return; }
+    markSeen();
     const t = window.setTimeout(dismiss, MAX_SPLASH_MS);
     return () => window.clearTimeout(t);
   }, [isAuthPage, dismiss]);
 
-  // Dismiss when auth check finishes AND video has ended
   useEffect(() => {
-    if (isAuthPage) return;
-    if (!isLoadingAuth && videoEnded) dismiss();
-  }, [isAuthPage, isLoadingAuth, videoEnded, dismiss]);
+    if (visible && !isLoadingAuth) dismiss();
+  }, [visible, isLoadingAuth, dismiss]);
 
-  if (isAuthPage || gone) return null;
+  if (!visible) return null;
 
   return (
     <div
@@ -76,65 +74,19 @@ export default function SplashScreen() {
         justifyContent: 'center',
         backgroundColor: '#ffffff',
         opacity: fading ? 0 : 1,
-        transition: 'opacity 0.3s ease-out',
+        transition: 'opacity 0.2s ease-out',
         pointerEvents: fading ? 'none' : 'auto',
       }}
     >
-      {/* ── Brand circle ── */}
-      <div
-        style={{
-          position: 'relative',
-          width: 200,
-          height: 200,
-          borderRadius: '50%',
-          backgroundColor: '#0a0a0a',
-          overflow: 'hidden',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
-        }}
-      >
-        {/* Static SVG placeholder — visible instantly, fades out once video is ready */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/brand/nodbusiness-icon.svg"
-          alt=""
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            // Fade out once video first frame is ready; instant hide otherwise
-            opacity: videoReady ? 0 : 1,
-            transition: videoReady ? 'opacity 0.25s ease-out' : 'none',
-          }}
-        />
-
-        {/* Video — starts invisible, fades in when first frame is ready */}
-        <video
-          ref={videoRef}
-          src="/brand/nodbusiness-intro.mp4"
-          autoPlay
-          muted
-          playsInline
-          loop={false}
-          onCanPlay={() => setVideoReady(true)}
-          onEnded={() => setVideoEnded(true)}
-          onError={() => { setVideoReady(true); setVideoEnded(true); }}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            opacity: videoReady ? 1 : 0,
-            transition: videoReady ? 'opacity 0.25s ease-in' : 'none',
-          }}
-          aria-hidden="true"
-        />
-      </div>
-
-      {/* ── Business name below the circle ── */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/brand/nodbusiness-icon.svg"
+        alt=""
+        aria-hidden="true"
+        width={160}
+        height={160}
+        style={{ borderRadius: '50%', backgroundColor: '#0a0a0a', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}
+      />
       <p
         style={{
           marginTop: 20,

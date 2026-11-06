@@ -13,7 +13,7 @@
 | **Frontend** | https://nodbusiness.vercel.app |
 | **Backend API** | https://nodbusiness-backend-9psf.onrender.com |
 | **Backend Health** | https://nodbusiness-backend-9psf.onrender.com/health |
-| **Database** | Supabase — project `tpgzlokgnjxcerexxoda` |
+| **Database** | Supabase — project `your-project-ref` |
 
 ---
 
@@ -81,8 +81,8 @@
 | Field | Value |
 |---|---|
 | Provider | Supabase |
-| Project ref | `tpgzlokgnjxcerexxoda` |
-| Project URL | https://tpgzlokgnjxcerexxoda.supabase.co |
+| Project ref | `your-project-ref` |
+| Project URL | https://your-project-ref.supabase.co |
 | Region | AWS eu-west-1 (Ireland) |
 | PostgreSQL version | 15 |
 | Migrations applied | 38 (migrate.js through migrate38.js) |

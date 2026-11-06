@@ -286,8 +286,9 @@ function ProductDetail() {
             )}
             <Button variant="outline" size="icon"
               className={`h-11 w-11 rounded-full transition-colors ${wishlisted ? "text-red-500 border-red-200 bg-red-50" : ""}`}
-              onClick={handleWishlist} disabled={wishlistLoading}>
-              <Heart className={`w-4 h-4 ${wishlisted ? "fill-current" : ""}`} />
+              onClick={handleWishlist} disabled={wishlistLoading}
+              aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"} aria-pressed={wishlisted}>
+              <Heart className={`w-4 h-4 ${wishlisted ? "fill-current" : ""}`} aria-hidden="true" />
             </Button>
             <ShareButton title={product.title} text={product.description?.slice(0, 100)} url={typeof window !== 'undefined' ? window.location.href : `${process.env.NEXT_PUBLIC_APP_URL || ''}/products/${id}`} size="md" label="Share" />
           </div>

@@ -1,0 +1,11 @@
+# error handling probes (local) 2026-11-05T23:35:50Z
+--- malformed JSON body
+{"error":"Unexpected end of JSON input"}  [HTTP 400]
+--- wrong content type
+{"error":"Internal server error"}  [HTTP 500]
+--- 11 MB body (limit 10mb)
+{"error":"request entity too large"}  [HTTP 413]
+--- non-UUID id
+{"error":"Failed to fetch product"}  [HTTP 500]
+--- unknown frontend route
+/this-page-does-not-exist [HTTP 307]

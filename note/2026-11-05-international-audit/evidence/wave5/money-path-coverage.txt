@@ -1,0 +1,26 @@
+== unit tests (line coverage %)
+0%  lib/directOrderExpiry.ts
+0%  routes/commission.ts
+0%  routes/coupons.ts
+0%  routes/subscriptionsEtb.ts
+15.38%  lib/subscriptionPayments.ts
+36.02%  routes/wallet.ts
+43.87%  routes/subscriptions.ts
+45.72%  routes/directOrders.ts
+50%  lib/chapaClient.ts
+52.61%  routes/orders.ts
+78.08%  services/orderInventory.ts
+100%  lib/subscriptionBilling.ts
+== db tests (line coverage %)
+0%  lib/directOrderExpiry.ts
+0%  routes/commission.ts
+0%  routes/coupons.ts
+0%  routes/orders.ts
+0%  routes/wallet.ts
+38.35%  services/orderInventory.ts
+54.59%  routes/subscriptions.ts
+61.11%  lib/chapaClient.ts
+79.64%  routes/subscriptionsEtb.ts
+81.41%  routes/directOrders.ts
+88.03%  lib/subscriptionPayments.ts
+91.07%  lib/subscriptionBilling.ts

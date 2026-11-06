@@ -1,0 +1,72 @@
+Route (app)                              Revalidate  Expire
+┌ ƒ /
+├ ○ /_not-found
+├ ○ /account
+├ ○ /admin
+├ ○ /admin/devops
+├ ○ /analytics
+├ ○ /auth/google/callback
+├ ○ /bookmarks
+├ ○ /business/create
+├ ○ /business/edit
+├ ○ /business/inventory
+├ ○ /business/subscription
+├ ƒ /business/subscription/receipt/[id]
+├ ○ /business/subscription/return
+├ ○ /businesses
+├ ○ /cart
+├ ○ /choose-account
+├ ○ /choose-mode
+├ ○ /coupons
+├ ○ /explore
+├ ○ /feed
+├ ○ /forgot-password
+├ ○ /friends
+├ ƒ /hashtag/[name]
+├ ƒ /landing
+├ ○ /login
+├ ○ /marketplace
+├ ○ /messages
+├ ƒ /messages/[id]
+├ ƒ /messages/[id]/members
+├ ○ /nearby
+├ ○ /notifications
+├ ○ /offline
+├ ○ /onboarding
+├ ○ /opengraph-image
+├ ƒ /order/[token]
+├ ○ /orders
+├ ○ /orders/cancel
+├ ○ /orders/success
+├ ƒ /p/[username]
+├ ○ /privacy
+├ ƒ /products/[id]
+├ ○ /products/create
+├ ○ /products/edit
+├ ○ /products/scan
+├ ○ /profile
+├ ƒ /profile/[id]
+├ ○ /profile/edit
+├ ○ /referral
+├ ○ /register
+├ ○ /reset-password
+├ ○ /robots.txt
+├ ○ /scorecard
+├ ○ /search
+├ ○ /service-agreement
+├ ○ /settings
+├ ƒ /showroom/[slug]
+├ ○ /showroom/create
+├ ○ /showroom/samples
+├ ○ /showroom/templates
+├ ○ /showrooms
+├ ƒ /showrooms/[id]
+├ ○ /sitemap.xml                                 1h      1y
+└ ○ /wallet
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

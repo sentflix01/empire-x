@@ -1,0 +1,32 @@
+{
+  "id": "F-046",
+  "kind": "hardening",
+  "phase": "P13-polish",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Design tokens are bypassed widely and the brand colour is inconsistent",
+  "standards": [
+    "ISO/IEC 25010:2023 maintainability",
+    "docs/product/DESIGN_SYSTEM.md",
+    "DECISIONS.md 2026-10-16 (globals.css is the single source of theme tokens)"
+  ],
+  "location": [
+    "frontend-next/app",
+    "frontend-next/components",
+    "frontend-next/views",
+    "frontend-next/lib"
+  ],
+  "steps": [
+    "grep counts over 350 frontend source files (commands recorded in evidence)."
+  ],
+  "expected": "Colours, layers and spacing come from the tokens in globals.css; one brand colour family.",
+  "actual": "2,298 raw Tailwind palette classes vs 3,585 semantic token classes (≈ 39% bypass), led by amber (692), red (312), blue (265), emerald (173). 100 distinct hard-coded hex colours in TS/TSX, 74 inline style colour props, 8 arbitrary colour values. Ad-hoc z-index values from z-[65] to z-[2147483647]. The manifest theme and landing use blue/violet while in-app accents are amber/gold.",
+  "evidence": [
+    "evidence/wave4/design-token-counts.txt"
+  ],
+  "impact": "Dark mode and contrast fixes must be made in hundreds of places; inconsistent look between landing and app; layering bugs between overlays (tour, splash, dialogs).",
+  "fix": "Add semantic tokens for brand, success, warning, info and a z-index scale to globals.css; codemod raw palette classes to tokens page by page; add an ESLint rule (e.g. no raw palette classes outside ui/) to stop new ones.",
+  "effort": "L",
+  "found_on": "2026-11-06",
+  "environment": "local"
+}

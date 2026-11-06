@@ -41,6 +41,8 @@ export const ALLOWED = new Set([
   'bg-light',
   // Prose in a code comment ("text-only stories").
   'text-only',
+  // Content-Security-Policy directive in lib/csp.ts, not a class.
+  'font-src',
 ]);
 
 /** Returns the utility part (no variants or modifiers) of every candidate in the source text. */

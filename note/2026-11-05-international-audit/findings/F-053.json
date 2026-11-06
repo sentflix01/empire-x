@@ -1,0 +1,29 @@
+{
+  "id": "F-053",
+  "kind": "defect",
+  "phase": "P10-architecture",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "A frontend unit test file fails intermittently in the full parallel run",
+  "standards": [
+    "ISO/IEC 25010:2023 maintainability (testability)",
+    "docs/operations/TECHNICAL_DEBT.md TD-025"
+  ],
+  "location": [
+    "frontend-next/test/feed/PhotoViewer.test.tsx",
+    "frontend-next/vitest.config.mts"
+  ],
+  "steps": [
+    "npx vitest --run (run twice)."
+  ],
+  "expected": "Deterministic results.",
+  "actual": "First run: 2 of 478 failed (both in PhotoViewer.test.tsx); the file alone passes 5/5; second full run 478/478. Matches TD-025 (parallel transform race).",
+  "evidence": [
+    "evidence/wave5/quality-gates.txt"
+  ],
+  "impact": "Occasional false-red CI and lost trust in the gate.",
+  "fix": "Apply TD-025's fix (isolate: false or a single retry for transform errors) and check the test for timer/animation waits.",
+  "effort": "S",
+  "environment": "local",
+  "found_on": "2026-11-06"
+}

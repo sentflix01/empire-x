@@ -1,0 +1,30 @@
+{
+  "steps": [
+    "Run bash note/2026-11-05-international-audit/scripts/probe-missing-routes.sh.",
+    "errors/stats, errors/resolve-all, errors/:id/to-ticket, versions/:id and seven /api/docs/* paths → 404."
+  ],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-006",
+  "title": "Admin DevOps console calls 11 routes the backend does not have",
+  "phase": "P2-functional",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "standards": [
+    "ISO/IEC 25010:2023 functional suitability"
+  ],
+  "location": [
+    "frontend-next/views/DevOps.tsx",
+    "backend/routes/devops.ts",
+    "backend/routes/docs.ts"
+  ],
+  "expected": "Every DevOps console panel loads data from a registered admin route.",
+  "actual": "Error statistics, bulk resolve, ticket conversion, version detail and the documentation library/search panels fail with 404. /api/docs exposes only GET /.",
+  "evidence": [
+    "evidence/wave1/missing-routes.txt"
+  ],
+  "impact": "Admin-only. Operators lose the error-triage and docs tools the console advertises.",
+  "fix": "Implement the routes behind requireAuth + requireAdmin, or remove the panels. Record which in the DevOps console spec.",
+  "effort": "M",
+  "kind": "defect"
+}

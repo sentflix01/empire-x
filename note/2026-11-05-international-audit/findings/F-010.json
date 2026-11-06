@@ -1,0 +1,26 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-010",
+  "title": "Positive: local seed and admin tools refuse non-local databases",
+  "phase": "P5-security",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "standards": [
+    "OWASP A06:2025 (secure design)"
+  ],
+  "location": [
+    "backend/db/operationSafety.js:1-40",
+    "backend/db/seed-e2e.js:9"
+  ],
+  "expected": "Destructive dev tooling cannot reach hosted data.",
+  "actual": "assertSafeLocalDatabase rejects any host outside localhost/127.0.0.1/::1/postgres, refuses NODE_ENV=production, and needs an explicit ALLOW_*=1 acknowledgement.",
+  "evidence": [
+    "backend/db/operationSafety.js:14-25"
+  ],
+  "impact": "Strong protection against seeding or wiping production by mistake. Keep it.",
+  "fix": "None. Add a test that every script under backend/db/ that writes calls this guard.",
+  "effort": "S",
+  "kind": "positive"
+}

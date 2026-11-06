@@ -1,0 +1,28 @@
+{
+  "steps": [
+    "npm audit --json in backend/ and frontend-next/."
+  ],
+  "found_on": "2026-11-05",
+  "environment": "local",
+  "id": "F-021",
+  "kind": "hardening",
+  "phase": "P5-security",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Dependency-audit ignore list is stale and one justification is inaccurate",
+  "standards": [
+    "OWASP A03:2025",
+    "ASVS 5.0 V15.2 (dependencies)"
+  ],
+  "location": [
+    ".github/workflows/ci.yml:206-219"
+  ],
+  "expected": "Ignored advisories are reviewed, still relevant, and removed once a fix exists.",
+  "actual": "GHSA-mrwp-f3q8-3g9p (follow-redirects, high) is ignored in both packages, yet npm reports a fix available; the frontend note calls it a dev/build dependency, but axios is a frontend runtime dependency (the browser adapter does not load follow-redirects, so real exposure is low). The two DOMPurify 'critical' ignores no longer match any advisory (frontend audit: 0 critical). Current totals — backend: 1 high, 17 moderate, 4 low; frontend: 1 high, 10 moderate. GitHub also reports 8 Dependabot alerts on main.",
+  "evidence": [
+    "evidence/wave2/npm-audit-summary.txt"
+  ],
+  "impact": "Stale ignores hide new advisories with the same ID and make the gate less trustworthy.",
+  "fix": "Update axios/follow-redirects (npm audit fix), drop resolved ignore entries, add an expiry date to each remaining entry, and review the 8 Dependabot alerts.",
+  "effort": "S"
+}

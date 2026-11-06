@@ -50,4 +50,13 @@ describe('Notifications page', () => {
     expect(await screen.findByText('Old order')).toBeTruthy();
     await waitFor(() => expect(screen.getByText('No older notifications')).toBeTruthy());
   });
+
+  it('makes each row one button with delete beside it, not inside it (audit F-043)', async () => {
+    http.get.mockResolvedValue({ data: { notifications: [n('1', 'New order', 0)], next_cursor: null } });
+    render(<Notifications />);
+    const row = await screen.findByRole('button', { name: /New order/ });
+    const del = screen.getByRole('button', { name: 'notifications.delete' });
+    expect(row.contains(del)).toBe(false);
+    expect(row.querySelector('button, a, [role="button"], [tabindex]')).toBeNull();
+  });
 });

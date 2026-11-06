@@ -1,0 +1,34 @@
+{
+  "steps": [
+    "Start the local stack.",
+    "GET http://127.0.0.1:3002/landing and read Content-Security-Policy (dev variant).",
+    "Read next.config.ts production branch."
+  ],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-016",
+  "kind": "hardening",
+  "phase": "P5-security",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Frontend content policy allows inline scripts in production",
+  "standards": [
+    "OWASP A02:2025",
+    "ASVS 5.0 V3.4 (browser security headers)",
+    "OWASP A05:2025 (XSS defence in depth)"
+  ],
+  "location": [
+    "frontend-next/next.config.ts:84-86",
+    "frontend-next/next.config.ts:81"
+  ],
+  "expected": "Production CSP uses per-request nonces or hashes for scripts (no 'unsafe-inline'), restricts img-src to known hosts, and the framework banner is off.",
+  "actual": "Production script-src is 'self' 'unsafe-inline' plus Google, Stripe and Sentry CDN; img-src allows any https: origin; X-Powered-By: Next.js is sent. (Dev adds 'unsafe-eval', which is expected.) The backend API, by contrast, has a deny-all CSP and HSTS in production. Confirmed in production on 2026-11-05: same script-src with 'unsafe-inline' (no 'unsafe-eval') and X-Powered-By: Next.js.",
+  "evidence": [
+    "evidence/wave2/local-headers.txt",
+    "frontend-next/next.config.ts:84-86",
+    "evidence/wave2/prod-headers.txt"
+  ],
+  "impact": "An injected script (stored XSS in user content) would run; CSP provides little protection. ADR-004 lists CSP as an XSS mitigation.",
+  "fix": "Generate a nonce in proxy.ts and pass it to Next.js (supported in Next 16 — read node_modules/next/dist/docs first), switch script-src to 'self' 'nonce-…' 'strict-dynamic'; list image hosts explicitly; set poweredByHeader: false. Roll out with Content-Security-Policy-Report-Only first.",
+  "effort": "M"
+}

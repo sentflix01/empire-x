@@ -1,0 +1,34 @@
+{
+  "steps": [
+    "GET http://127.0.0.1:3001/api/orders without a token.",
+    "Compare with GET /api/does-not-exist."
+  ],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-007",
+  "title": "Authentication errors do not follow the documented error shape",
+  "phase": "P10-architecture",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "standards": [
+    "RFC 9457 (Problem Details) — consistency principle",
+    "ISO/IEC 25010:2023 maintainability"
+  ],
+  "location": [
+    "backend/middleware/auth.ts:193",
+    "backend/middleware/auth.ts:201",
+    "backend/middleware/auth.ts:207",
+    "backend/middleware/auth.ts:220",
+    "backend/middleware/auth.ts:223",
+    "docs/backend/API_REFERENCE.md:16"
+  ],
+  "expected": "Per API_REFERENCE.md: { error, code: 'UNAUTHORIZED', request_id }.",
+  "actual": "401 responses are { error: 'Authentication required' } with no code or request_id, while 404s include both.",
+  "evidence": [
+    "evidence/wave1/401-shape.txt"
+  ],
+  "impact": "Clients cannot branch on a stable code (e.g. TOKEN_EXPIRED vs REVOKED) and support cannot trace 401s by request_id.",
+  "fix": "Use apiError helpers in middleware/auth.ts with distinct codes (UNAUTHORIZED, TOKEN_EXPIRED, TOKEN_REVOKED); keep the error text. Update frontend checks that compare message strings.",
+  "effort": "S",
+  "kind": "defect"
+}

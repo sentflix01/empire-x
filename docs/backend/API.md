@@ -4,6 +4,7 @@
 > Frontend: `https://nodbusiness.app`
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.
 > Errors follow `{ "error": "message" }` format.
+> An ID in the path that is not a UUID answers `404` (the route is skipped; see `backend/lib/uuidParams.ts`). A request body in a format the API does not read (for example `text/plain`) is treated as empty, so validation answers `400`/`422`, not `500`.
 
 ---
 
@@ -14,8 +15,9 @@ Register a new account. Sends OTP to email.
 
 **Request:**
 ```json
-{ "email": "user@example.com", "password": "secret123", "full_name": "Abebe Kebede" }
+{ "email": "user@example.com", "password": "violet-harbour-tram-91", "full_name": "Abebe Kebede" }
 ```
+**Password rules** (also for `reset-password` and `change-password`; `backend/lib/passwordPolicy.ts`, audit F-017): 8–128 characters, not one of 17,950 common passwords (`backend/data/common-passwords.txt`, case-insensitive), not the email address or its local part. A failing password answers `422 VALIDATION_ERROR` with a message to show.
 **Response 201:**
 ```json
 { "message": "Registration successful. Check your email for the verification code.", "userId": "uuid" }
@@ -57,7 +59,28 @@ Login with email + password.
 ```json
 { "access_token": "eyJhbG..." }
 ```
+**Response 200 with two-factor sign-in on** (also from `/google` and `/verify-otp`): no session yet.
+```json
+{ "mfa_required": true, "mfa_token": "eyJhbG...", "methods": ["totp", "recovery_code"] }
+```
 **Errors:** 401 (wrong credentials), 403 (email not verified, code: `email_not_verified`)
+
+---
+
+### Two-factor sign-in (audit F-017)
+
+Authenticator-app codes (TOTP, RFC 6238: 6 digits, 30 s) with 10 one-time recovery codes. Secrets are stored encrypted (AES-256-GCM, key from `MFA_ENCRYPTION_KEY` or `JWT_SECRET`); recovery codes as HMAC hashes.
+
+| Endpoint | Auth | Body | Answer |
+|---|---|---|---|
+| `POST /api/auth/mfa/verify` | none (the challenge) | `{ mfa_token, code }` | Same as a successful login, plus `used_recovery_code`. The challenge lasts 5 minutes and works once; a code works once; 5 wrong codes lock the person for 15 minutes (429 `MFA_LOCKED`). 401 `MFA_CODE_INVALID` / `MFA_CHALLENGE_EXPIRED`. |
+| `GET /api/auth/mfa/status` | yes | — | `{ enabled, pending, recovery_codes_left, setup_allowed, required, has_password }` |
+| `POST /api/auth/mfa/setup` | yes | `{ password }` (when the account has one) | `{ secret, otpauth_url }`; not on until confirmed. 409 `MFA_ALREADY_ON`. |
+| `POST /api/auth/mfa/enable` | yes | `{ code }` | `{ enabled: true, recovery_codes }` (shown once) |
+| `POST /api/auth/mfa/disable` | yes | `{ code, password }` (code or recovery code) | `{ enabled: false }`; 403 `MFA_REQUIRED_FOR_ADMINS` while admins must use it |
+| `POST /api/auth/mfa/recovery-codes` | yes | `{ code }` | `{ recovery_codes }` (old ones stop working) |
+
+**Admins:** while `ADMIN_MFA_REQUIRED` is on (default in production), admin-only routes answer `403 { code: "MFA_SETUP_REQUIRED" }` until the admin turns it on in Settings. Not available in Demo.
 
 ---
 
@@ -678,11 +701,35 @@ Returns `{ is_verified, verification_type, verified_at, request }`, where
 `request` is the caller's latest request (`id, status, verification_type,
 admin_note, created_at, reviewed_at`) or `null`.
 
+Identity documents are private (audit F-013): they are stored outside public
+media and are never returned as URLs in lists. Only the owner and admins can
+view them, through links that expire after 5 minutes.
+
+### POST /api/verification/documents
+Stores one document privately. Requires auth. `multipart/form-data` with
+`kind` (`selfie` or `id`) and `file` (JPEG, PNG, WebP, HEIC/HEIF or PDF, up to
+10 MB; content-signature checked). Answers `201 { ref, kind }` where `ref` is
+`private:verification/<your user id>/<file>`. `503` when private storage is not configured.
+
 ### POST /api/verification/request
-Body `{ verification_type, selfie_url, id_document_url, supporting_docs?, reason? }`.
-Both URLs are required (http/https). 409 while a request is pending. After a
-request is approved or rejected, a new request re-opens the same row
-(`verification_requests` has `UNIQUE(user_id)`), resetting it to `pending`.
+Body `{ verification_type, selfie_ref, id_document_ref, supporting_docs?, reason? }`.
+Both references are required and must be the caller's own, from
+`POST /api/verification/documents`; public URLs are refused (400). 409 while a
+request is pending. After a request is approved or rejected, a new request
+re-opens the same row (`verification_requests` has `UNIQUE(user_id)`), resetting
+it to `pending`, and the replaced documents are deleted. Responses include
+`has_selfie` / `has_id_document` instead of the references.
+
+### GET /api/verification/:id/documents
+For the request's owner or an admin (everyone else gets 404). Answers
+`{ selfie, id_document }`, each `{ url, expires_in: 300 }` (or
+`{ url, legacy: true }` for a public URL not yet moved by
+`npm run migrate:verification-docs`), with `Cache-Control: private, no-store`.
+
+### GET /api/private-files/*
+Local development only: serves a private file for a signed, unexpired link
+issued by the endpoint above. With a private Supabase bucket configured the
+links point at Supabase and this route answers 404.
 
 ---
 
@@ -729,6 +776,15 @@ Upload a file (image). Requires auth.
 **Request:** `multipart/form-data` with `file` field
 **Response:** `{ "url": "https://pub-xxx.r2.dev/filename.jpg" }`
 **Limits:** `MAX_FILE_SIZE_MB` (default 10MB); images, videos, PDFs only
+
+### POST /api/upload/multiple
+Upload several photos in one request (product galleries). Requires auth.
+
+**Request:** `multipart/form-data` with up to 10 files in the `files` field
+**Response:** `{ "files": [{ "url", "filename", "mimetype", "size" }] }` in the order sent
+**Checks:** each file gets the same content-signature check as `POST /api/upload`; if any file fails,
+nothing is stored and the answer is `415 { code: "MAGIC_BYTE_MISMATCH", index }`.
+**Errors:** `400` no files or more than 10 · `413` a file over `MAX_FILE_SIZE_MB`
 
 ---
 

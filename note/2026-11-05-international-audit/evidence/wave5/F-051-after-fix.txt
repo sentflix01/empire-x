@@ -1,0 +1,22 @@
+# F-051 after fix — money-path tests on real Postgres (2026-11-06)
+
+## New database tests (backend/test/db)
+directOrderExpiry.db.test.js (5): overdue unpaid orders expire, stock returns once, re-run changes nothing, sold-out product goes back on sale, expired orders refuse payment reports
+wallet.db.test.js (19): withdrawal and transaction row, insufficient balance, 11 malformed amounts, 10 concurrent withdrawals against a balance for 5, money-in routes 410
+coupons.db.test.js (23): creation rules, discount preview (percentage, capped at order total, minimum order, expired, used up, other seller, switched off), malformed input 400, owner-only edits, /use 410
+commission.db.test.js (3): own history only, admin-only summary, no way to create commission
+codOrders.db.test.js (5): server price, stock reserve/release/commit, concurrent cancels release once, buyer/seller steps, strangers refused
+
+## Bugs found and fixed
+1. Wallet withdrawal accepted non-numeric amounts: amount "abc" or "NaN" set the balance to NaN (Postgres numeric stores NaN); 0.001, true, objects and arrays were also accepted. Now: positive, at most 2 decimals, within numeric(12,2); also enforced inside atomicWalletOp.
+2. Switching a coupon on/off always failed with 500: the query set coupons.updated_at, which never existed. Migration 87 adds it.
+3. Coupon validation answered 500 for a numeric code or a non-UUID seller_id, and a NaN or negative discount for a bad order_total; creation answered 500 for an unparseable expires_at. Now 400.
+
+## Line coverage from the database suite (before -> after)
+lib/directOrderExpiry.ts 0% -> 70.6%
+routes/commission.ts 0% -> 87.5%
+routes/coupons.ts 0% -> 90.5%
+routes/wallet.ts 0% -> 31.4% (the rest is retired money-in code that answers 410)
+routes/orders.ts 0% -> 29.0% (the rest is mostly retired Stripe/Chapa checkout)
+
+Full database suite: 284 passed. Unit suite: 753 passed.

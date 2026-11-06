@@ -25,7 +25,7 @@ jest.mock('../../lib/businessSubscriptionPolicy', () => ({
 const policy = require('../../lib/businessSubscriptionPolicy');
 const { businessViewGate, guestPostSql, announcementLiveSql } = require('../../lib/siteVisibility');
 
-const PUBLIC = { businessId: 'b1', ownerId: 'owner-1', hiddenFromPublic: false, visibility: 'public' };
+const PUBLIC = { businessId: '7e83ca2a-65d6-490a-809c-8570c6c905a9', ownerId: 'owner-1', hiddenFromPublic: false, visibility: 'public' };
 const PRIVATE = { ...PUBLIC, visibility: 'private' };
 const MEMBER = { id: 'member-1', role: 'user' };
 
@@ -74,7 +74,7 @@ describe('businessViewGate', () => {
 
 describe('business site by link or QR code', () => {
   const showrooms = require('../../routes/showrooms');
-  const site = { id: 's1', owner_id: 'owner-1', business_id: 'b1', status: 'published', view_count: 3 };
+  const site = { id: 's1', owner_id: 'owner-1', business_id: '7e83ca2a-65d6-490a-809c-8570c6c905a9', status: 'published', view_count: 3 };
 
   it('asks a guest to sign in for a private site and does not count a view', async () => {
     pool.query.mockResolvedValueOnce({ rows: [site] });
@@ -105,7 +105,7 @@ describe('business site by link or QR code', () => {
 
   it('gives private sites no link preview', async () => {
     const sharePreview = require('../../routes/sharePreview');
-    pool.query.mockResolvedValueOnce({ rows: [{ title: 'Private shop', business_id: 'b1' }] });
+    pool.query.mockResolvedValueOnce({ rows: [{ title: 'Private shop', business_id: '7e83ca2a-65d6-490a-809c-8570c6c905a9' }] });
     policy.getBusinessSubscriptionAccess.mockResolvedValueOnce(PRIVATE);
     expect((await request(app('/api/share-preview', sharePreview)).get('/api/share-preview/showroom/private-shop')).status).toBe(404);
   });
@@ -116,9 +116,9 @@ describe('owner setting', () => {
 
   it('rejects an unknown visibility value', async () => {
     user = { id: 'owner-1', role: 'user' };
-    pool.query.mockResolvedValueOnce({ rows: [{ id: 'b1', owner_id: 'owner-1' }] });
+    pool.query.mockResolvedValueOnce({ rows: [{ id: '7e83ca2a-65d6-490a-809c-8570c6c905a9', owner_id: 'owner-1' }] });
     policy.getBusinessSubscriptionAccess.mockResolvedValueOnce(PUBLIC);
-    const res = await request(app('/api/businesses', businesses)).put('/api/businesses/b1').send({ visibility: 'friends' });
+    const res = await request(app('/api/businesses', businesses)).put('/api/businesses/7e83ca2a-65d6-490a-809c-8570c6c905a9').send({ visibility: 'friends' });
     expect(res.status).toBe(422);
   });
 
@@ -150,7 +150,7 @@ describe('guest checkout from a private business', () => {
   const ORDER = { product_id: 'p1', quantity: 1, buyer_name: 'Guest', buyer_phone: '+251922222222', buyer_email: 'g@example.test' };
 
   it('asks a guest to sign in', async () => {
-    pool.query.mockResolvedValueOnce({ rows: [{ id: 'p1', seller_id: 'owner-1', business_id: 'b1', title: 'Coffee', price: '500', stock: 5, status: 'active', currency: 'ETB' }] });
+    pool.query.mockResolvedValueOnce({ rows: [{ id: 'p1', seller_id: 'owner-1', business_id: '7e83ca2a-65d6-490a-809c-8570c6c905a9', title: 'Coffee', price: '500', stock: 5, status: 'active', currency: 'ETB' }] });
     policy.getBusinessSubscriptionAccess.mockResolvedValueOnce(PRIVATE);
     const res = await request(app('/api/direct-orders', directOrders)).post('/api/direct-orders').send(ORDER);
     expect(res.status).toBe(401);
@@ -177,9 +177,9 @@ describe('personal content needs sign-in', () => {
   it('asks a guest to sign in for a personal post', async () => {
     const posts = require('../../routes/posts');
     pool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'post-1', author_id: 'u1' }] })
+      .mockResolvedValueOnce({ rows: [{ id: '114b54f4-c76e-4f72-80e1-88e76ce10e56', author_id: 'u1' }] })
       .mockResolvedValueOnce({ rows: [] });
-    const res = await request(app('/api/posts', posts)).get('/api/posts/post-1');
+    const res = await request(app('/api/posts', posts)).get('/api/posts/114b54f4-c76e-4f72-80e1-88e76ce10e56');
     expect(res.status).toBe(401);
     expect(res.body.code).toBe('SIGN_IN_REQUIRED');
   });

@@ -1,0 +1,40 @@
+{
+  "id": "F-045",
+  "kind": "defect",
+  "phase": "P7-performance",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Mobile load is slow: 1 MB intro video on every page, up to 4 s splash, heavy JavaScript",
+  "standards": [
+    "Core Web Vitals LCP (good ≤ 2.5 s)",
+    "Core Web Vitals INP (TBT as lab proxy)",
+    "docs/product/NORTH_STAR.md principle 4 (fast on slow connections)"
+  ],
+  "location": [
+    "frontend-next/public/brand/nodbusiness-intro.mp4 (1,017,434 bytes)",
+    "frontend-next/components/brand/SplashScreen.tsx:11,52",
+    "frontend-next/components/AuthLayout.tsx:38",
+    "frontend-next/components/brand/BrandLogoVideo.tsx:97",
+    "frontend-next/app/landing/page.tsx:131"
+  ],
+  "steps": [
+    "Production build (NODE_ENV=production npm run build; next start).",
+    "Lighthouse 12.8.2, mobile, simulated throttling, 5 pages."
+  ],
+  "expected": "LCP ≤ 2.5 s and TBT ≤ 200 ms on a mid-range phone over 4G; brand media should not cost more than the page itself.",
+  "actual": "LCP 3.2–4.0 s on all 5 pages (render delay 3.1–3.6 s); TBT 160–430 ms (feed 430 ms); performance scores 82–88; CLS good (≤ 0.051). Each page downloads the 995 KB intro video (≈ 65% of 1.5–1.7 MB total), including /login where it loops inside a 64 px logo. JS transferred 340–542 KB per page. On app pages the splash waits for the video to end or 4 s.",
+  "evidence": [
+    "evidence/wave4/lighthouse/landing.json",
+    "evidence/wave4/lighthouse/login.json",
+    "evidence/wave4/lighthouse/marketplace.json",
+    "evidence/wave4/lighthouse/feed.json",
+    "evidence/wave4/lighthouse/showroom-e2e-coffee-house.json",
+    "evidence/wave4/build-routes.txt"
+  ],
+  "impact": "On Ethiopian mobile networks and metered data, every first visit costs ~1.6 MB and several seconds before content; bounce risk on landing and login.",
+  "fix": "Replace the video in logos with the existing SVG/poster image (keep the video only on the landing hero, preload=\"none\", a ≤ 200 KB WebM/AV1 version, honour Save-Data and reduced motion); show the splash once per session and cap it at ~800 ms; split heavy client components on /feed; set a Lighthouse CI budget (LCP 2.5 s, JS 250 KB).",
+  "effort": "M",
+  "regression_test": "Lighthouse CI with budgets on /landing, /login, /feed.",
+  "found_on": "2026-11-06",
+  "environment": "local"
+}

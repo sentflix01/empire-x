@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { headers } from 'next/headers';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Providers from './providers';
@@ -58,11 +59,13 @@ export const viewport: Viewport = {
   viewportFit: 'cover', // enables safe-area-inset on iPhone notch/home bar
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Set per request by proxy.ts for the Content-Security-Policy (audit F-016).
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
   return (
     <html
       lang="en"
@@ -78,7 +81,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <GoogleSignInInit />
-        <Providers>{children}</Providers>
+        <Providers nonce={nonce}>{children}</Providers>
       </body>
     </html>
   );

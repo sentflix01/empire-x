@@ -33,9 +33,12 @@ import { sendOtpEmail, sendPasswordResetEmail } from '../utils/mailer';
 import { requireAuth, invalidateUserCache } from '../middleware/auth';
 import { forceDisconnectUser } from '../socket';
 import { anonymizeAccount, deletionBlocker, exportAccountData } from '../lib/accountData';
+import { deleteStoredFiles } from '../lib/storedFiles';
 import { clearValue, getValue, incrementCounter, isTokenRevoked, revokeAllSessions, revokeTokenId, setValue } from '../lib/authSecurityStore';
 import * as apiError from '../lib/apiError';
 import logger from '../lib/logger';
+import { newPasswordProblem } from '../lib/passwordPolicy';
+import { checkSecondFactor, isMfaEnabled } from '../lib/mfa';
 
 const router = Router();
 
@@ -98,8 +101,8 @@ const DUMMY_BCRYPT_HASH = '$2a$12$R/qSj/pe5cMtU.tBG99JTucrKpq7PEFJ2Bt17Y6N5PIp.2
  * preimage space is only 900,000 values. The OTP_SALT adds
  * an application-level secret to prevent DB-only rainbow tables.
  *
- * NOTE: if OTP_SALT is not set, falls back to a zero-byte salt
- * (still hashed, just without the app secret). Set OTP_SALT in .env.
+ * Production refuses to start without OTP_SALT (index.ts, audit F-017);
+ * development falls back to an empty salt.
  */
 function hashOtp(otp: string): string {
   const salt = process.env.OTP_SALT ?? '';
@@ -166,6 +169,24 @@ function signToken(userId: string, res: Response, isDemo = false): string {
   return accessToken;
 }
 
+// ── Two-factor sign-in (audit F-017) ─────────────────────────────────────────
+const MFA_TOKEN_TTL = '5m';
+const MFA_MAX_FAILURES = 5;
+const MFA_LOCK_SECONDS = 15 * 60;
+
+/**
+ * When the person has two-factor sign-in on, answer with a short-lived,
+ * single-use challenge instead of a session and return true. The session is
+ * issued by POST /api/auth/mfa/verify once a code is checked.
+ */
+async function respondWithMfaChallenge(userId: string, res: Response): Promise<boolean> {
+  if (getCurrentDatabaseEnvironment() !== 'real') return false;
+  if (!(await isMfaEnabled(userId))) return false;
+  const mfaToken = jwt.sign({ sub: userId, type: 'mfa' }, process.env.JWT_SECRET as string, { expiresIn: MFA_TOKEN_TTL, jwtid: uuidv4() });
+  res.json({ mfa_required: true, mfa_token: mfaToken, methods: ['totp', 'recovery_code'] });
+  return true;
+}
+
 /** Return true only when the refresh cookie belongs to a current real account.
  * Track 1's shared demo login must not be mistaken for a user's own session. */
 async function hasRealRefreshSession(req: Request): Promise<boolean> {
@@ -229,13 +250,9 @@ router.post('/register', async (req: Request, res: Response) => {
     apiError.validationError(res, 'Email and password are required');
     return;
   }
-  if (password.length < 8) {
-    apiError.validationError(res, 'Password must be at least 8 characters');
-    return;
-  }
-  if (password.length > 128) {
-    apiError.validationError(res, 'Password must be at most 128 characters');
-    return;
+  {
+    const problem = newPasswordProblem(password, { email });
+    if (problem) { apiError.validationError(res, problem); return; }
   }
   if (full_name && full_name.length > 100) {
     apiError.validationError(res, 'Name must be at most 100 characters');
@@ -397,6 +414,7 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       res.status(403).json({ error: 'This legacy Demo identity is not linked to a Real account. Sign in to Real and switch to Demo.', code: 'LEGACY_DEMO_ACCOUNT' });
       return;
     }
+    if (await respondWithMfaChallenge(user.id, res)) return;
     res.json({ access_token: signToken(user.id, res), is_demo: false });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Verify OTP error');
@@ -670,11 +688,76 @@ router.post('/login', async (req: Request, res: Response) => {
       res.status(403).json({ error: 'This legacy Demo identity is not linked to a Real account. Sign in to Real and switch to Demo.', code: 'LEGACY_DEMO_ACCOUNT' });
       return;
     }
+    if (await respondWithMfaChallenge(user.id, res)) return;
     const token = signToken(user.id, res);
     res.json({ access_token: token, onboarding_mode: user.onboarding_mode ?? null, is_demo: false });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Login error');
     apiError.serverError(res, 'Login failed');
+  }
+});
+
+// ── POST /api/auth/mfa/verify — second step of sign-in (audit F-017) ─────────
+// Body: { mfa_token, code } where code is a 6-digit authenticator code or a
+// recovery code. The challenge works once; 5 wrong codes lock it for 15 minutes.
+router.post('/mfa/verify', async (req: Request, res: Response) => {
+  const { mfa_token, code } = req.body as { mfa_token?: unknown; code?: unknown };
+  if (typeof mfa_token !== 'string' || typeof code !== 'string' || !code.trim() || code.length > 64) {
+    apiError.validationError(res, 'mfa_token and code are required');
+    return;
+  }
+  let payload: jwt.JwtPayload;
+  try {
+    payload = jwt.verify(mfa_token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+  } catch {
+    res.status(401).json({ error: 'This sign-in step has expired. Sign in again.', code: 'MFA_CHALLENGE_EXPIRED' });
+    return;
+  }
+  if (payload.type !== 'mfa' || typeof payload.sub !== 'string' || typeof payload.jti !== 'string') {
+    res.status(401).json({ error: 'This sign-in step has expired. Sign in again.', code: 'MFA_CHALLENGE_EXPIRED' });
+    return;
+  }
+  const userId = payload.sub;
+  const usedKey = `mfa_used:${payload.jti}`;
+  const failedKey = `mfa_failed:${userId}`;
+  const lockKey = `mfa_lock:${userId}`;
+  try {
+    if ((await getValue(usedKey)) !== null) {
+      res.status(401).json({ error: 'This sign-in step has expired. Sign in again.', code: 'MFA_CHALLENGE_EXPIRED' });
+      return;
+    }
+    if ((await getValue(lockKey)) !== null) {
+      res.status(429).json({ error: 'Too many wrong codes. Try again in 15 minutes.', code: 'MFA_LOCKED' });
+      return;
+    }
+    const matched = await checkSecondFactor(userId, code, { allowRecovery: true, requireEnabled: true });
+    if (!matched) {
+      const failures = await incrementCounter(failedKey, MFA_LOCK_SECONDS);
+      if (failures >= MFA_MAX_FAILURES) {
+        await setValue(lockKey, 1, MFA_LOCK_SECONDS);
+        await clearValue(failedKey);
+        logger.warn({ userId }, 'Two-factor sign-in locked after repeated wrong codes');
+      }
+      res.status(401).json({ error: 'That code is not correct.', code: 'MFA_CODE_INVALID' });
+      return;
+    }
+    await setValue(usedKey, 1, 10 * 60);
+    await clearValue(failedKey).catch(() => undefined);
+
+    const { rows } = await pool.query<{ is_banned: boolean; is_demo: boolean; is_seed: boolean; onboarding_mode: 'demo' | 'real' | null }>(
+      'SELECT is_banned, is_demo, is_seed, onboarding_mode FROM users WHERE id = $1', [userId],
+    );
+    const user = rows[0];
+    if (!user || user.is_banned || user.is_demo || user.is_seed) {
+      res.status(403).json({ error: 'Account unavailable. Contact support.' });
+      return;
+    }
+    if (matched === 'recovery') logger.info({ userId }, 'Signed in with a recovery code');
+    const token = signToken(userId, res);
+    res.json({ access_token: token, onboarding_mode: user.onboarding_mode ?? null, is_demo: false, used_recovery_code: matched === 'recovery' });
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'MFA verify error');
+    apiError.serverError(res, 'Sign-in failed');
   }
 });
 
@@ -821,6 +904,7 @@ router.post('/google', async (req: Request, res: Response) => {
       return;
     }
 
+    if (await respondWithMfaChallenge(user.id, res)) return;
     const token = signToken(user.id, res);
     const mode = (await pool.query<{ onboarding_mode: 'demo' | 'real' | null }>(
       'SELECT onboarding_mode FROM users WHERE id = $1', [user.id],
@@ -895,6 +979,7 @@ router.delete('/me', requireAuth, async (req: Request, res: Response) => {
   if (confirm !== 'DELETE') { apiError.validationError(res, 'Type DELETE to confirm account deletion'); return; }
   if (req.demoSession || req.user!.is_demo) { res.status(403).json({ error: 'Demo accounts are removed automatically when the session ends.' }); return; }
   const userId = req.user!.id;
+  let fileRefs: string[] = [];
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -913,7 +998,7 @@ router.delete('/me', requireAuth, async (req: Request, res: Response) => {
     }
     const block = await deletionBlocker(userId, client);
     if (block) { await client.query('ROLLBACK'); res.status(409).json({ error: block.message, code: block.code }); return; }
-    await anonymizeAccount(client, userId);
+    fileRefs = (await anonymizeAccount(client, userId)) ?? [];
     await client.query('COMMIT');
   } catch (err) {
     await client.query('ROLLBACK').catch(() => undefined);
@@ -929,6 +1014,10 @@ router.delete('/me', requireAuth, async (req: Request, res: Response) => {
   await invalidateUserCache(userId);
   await revokeAllSessions(userId).catch((err) => logger.error({ err: (err as Error).message }, 'auth: revoke-all failed'));
   forceDisconnectUser(userId);
+  // Files go only after the database change committed, so a refused or failed
+  // deletion never loses them. Failures are logged; the account stays deleted.
+  const files = await deleteStoredFiles(fileRefs);
+  if (files.failed) logger.warn({ userId, ...files }, 'account deletion: some stored files could not be deleted');
   res.clearCookie('refresh_token', {
     httpOnly: true,
     path: '/api/auth',
@@ -982,13 +1071,9 @@ router.post('/reset-password', async (req: Request, res: Response) => {
     apiError.validationError(res, 'Token and new password are required');
     return;
   }
-  if (password.length < 8) {
-    apiError.validationError(res, 'Password must be at least 8 characters');
-    return;
-  }
-  if (password.length > 128) {
-    apiError.validationError(res, 'Password must be at most 128 characters');
-    return;
+  {
+    const problem = newPasswordProblem(password);
+    if (problem) { apiError.validationError(res, problem); return; }
   }
 
   try {
@@ -1038,13 +1123,9 @@ router.put('/change-password', requireAuth, async (req: Request, res: Response) 
     apiError.validationError(res, 'Both current and new password are required');
     return;
   }
-  if (new_password.length < 8) {
-    apiError.validationError(res, 'Password must be at least 8 characters');
-    return;
-  }
-  if (new_password.length > 128) {
-    apiError.validationError(res, 'Password must be at most 128 characters');
-    return;
+  {
+    const problem = newPasswordProblem(new_password, { email: req.user?.email });
+    if (problem) { apiError.validationError(res, problem); return; }
   }
 
   try {

@@ -1,0 +1,31 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-022",
+  "kind": "hardening",
+  "phase": "P5-security",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Workflows lack least-privilege token permissions and SHA-pinned actions",
+  "standards": [
+    "OWASP A03:2025",
+    "OpenSSF Scorecard (Token-Permissions, Pinned-Dependencies)",
+    "SLSA v1.0 build L2"
+  ],
+  "location": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/deploy.yml",
+    ".github/workflows/db-migrate-to-supabase.yml",
+    ".github/workflows/scheduled-jobs.yml",
+    ".github/workflows/supabase-keepalive.yml"
+  ],
+  "expected": "Every workflow declares permissions (default contents: read); third-party and first-party actions are pinned to commit SHAs with Dependabot updates.",
+  "actual": "Five workflows, including deploy.yml (production secrets), have no permissions block, so the token gets the repository default. All actions use major tags (actions/checkout@v7 etc.).",
+  "evidence": [
+    ".github/workflows/deploy.yml"
+  ],
+  "impact": "A compromised step or action tag would run with broader token rights than needed during deploys.",
+  "fix": "Add top-level permissions: contents: read (grant more per job only where needed); pin actions to SHAs with a version comment; enable Dependabot for github-actions.",
+  "effort": "S"
+}

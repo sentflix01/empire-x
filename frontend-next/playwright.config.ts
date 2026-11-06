@@ -1,13 +1,21 @@
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 import { e2eTargetProblem } from './e2e/target-guard';
+import { toursSeenStorageState } from './e2e/tours-seen';
 
 /**
  * Playwright E2E — TD-003 (critical user flows)
  *
+ * CI runs the chromium project on every pull request (ci.yml, job "e2e";
+ * audit F-032) and fails when a test skips (e2e/check-no-skips.mjs).
+ *
  * Full-stack local run:
  *   backend/.env must exist with a LOCAL DATABASE_URL, and the DB seeded:
  *     cd ../backend && npm run migrate && ALLOW_E2E_SEED=1 npm run seed:e2e
+ *   Start the backend with CHAPA_SECRET_KEY=SANDBOX for the plan-payment spec, and
+ *   build the frontend with a well-formed NEXT_PUBLIC_GOOGLE_CLIENT_ID for the
+ *   Google button specs (they skip without one). Serve the frontend on the port in
+ *   the backend's FRONTEND_URL (3002): other origins are refused by CORS.
  *   Then: npm run test:e2e   (from frontend-next/)
  *
  * The specs write data. e2e/target-guard.ts refuses to start when the backend
@@ -42,6 +50,9 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: FRONTEND_URL,
+    // Every guided tour counts as seen, so specs do not depend on whether tours
+    // open for new visitors (F-031). A spec testing tours clears this itself.
+    storageState: toursSeenStorageState(FRONTEND_URL),
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },

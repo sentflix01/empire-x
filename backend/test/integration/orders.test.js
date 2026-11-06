@@ -54,7 +54,7 @@ function buildApp(role = 'user') {
 
 describe('GET /api/orders/', () => {
   it('returns orders with keyset cursor pagination', async () => {
-    const order = { id: 'order-1', buyer_id: 'user-1' };
+    const order = { id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', buyer_id: 'user-1' };
     mockPool.query.mockResolvedValueOnce({ rows: [order] });
     const res = await request(buildApp()).get('/api/orders/');
     expect(res.status).toBe(200);
@@ -124,24 +124,24 @@ describe('POST /api/orders/ (cash on delivery)', () => {
 describe('PUT /api/orders/:id', () => {
   it('returns 404 NOT_FOUND when order does not exist', async () => {
     getRecord.mockResolvedValueOnce(null);
-    const res = await request(buildApp()).put('/api/orders/nonexistent').send({ status: 'cancelled' });
+    const res = await request(buildApp()).put('/api/orders/b7d00764-f43b-4358-869a-3d0107692faf').send({ status: 'cancelled' });
     expect(res.status).toBe(404);
     expect(res.body).toHaveProperty('code', 'NOT_FOUND');
   });
 
   it('buyer can cancel their own order', async () => {
-    getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'user-1', seller_id: 'seller-1', status: 'pending', payment_provider: 'cod', product_title: 'T', total_price: 100, currency: 'ETB' });
+    getRecord.mockResolvedValueOnce({ id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', buyer_id: 'user-1', seller_id: 'seller-1', status: 'pending', payment_provider: 'cod', product_title: 'T', total_price: 100, currency: 'ETB' });
     const queries = [];
     mockPool.connect.mockResolvedValueOnce({
       query: jest.fn(async (sql) => {
         queries.push(sql);
-        if (sql.startsWith('SELECT id FROM orders')) return { rows: [{ id: 'order-1' }] };
-        if (sql.startsWith('UPDATE orders')) return { rows: [{ id: 'order-1', status: 'cancelled' }] };
+        if (sql.startsWith('SELECT id FROM orders')) return { rows: [{ id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5' }] };
+        if (sql.startsWith('UPDATE orders')) return { rows: [{ id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', status: 'cancelled' }] };
         return { rows: [] };
       }),
       release: jest.fn(),
     });
-    const res = await request(buildApp()).put('/api/orders/order-1').send({ status: 'cancelled' });
+    const res = await request(buildApp()).put('/api/orders/ea37b42b-1c3b-4095-8f13-dc801405f2f5').send({ status: 'cancelled' });
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('cancelled');
     expect(queries).toContain('COMMIT');
@@ -149,33 +149,33 @@ describe('PUT /api/orders/:id', () => {
   });
 
   it('buyer cannot set seller-only fulfilment statuses', async () => {
-    getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'user-1', seller_id: 'seller-9', status: 'pending' });
-    const res = await request(buildApp()).put('/api/orders/order-1').send({ status: 'shipped' });
+    getRecord.mockResolvedValueOnce({ id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', buyer_id: 'user-1', seller_id: 'seller-9', status: 'pending' });
+    const res = await request(buildApp()).put('/api/orders/ea37b42b-1c3b-4095-8f13-dc801405f2f5').send({ status: 'shipped' });
     expect(res.status).toBe(403);
     expect(updateRecord).not.toHaveBeenCalled();
   });
 
   it('buyer cannot complete an order before seller delivery', async () => {
-    getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'user-1', seller_id: 'seller-9', status: 'pending' });
-    const res = await request(buildApp()).put('/api/orders/order-1').send({ status: 'completed' });
+    getRecord.mockResolvedValueOnce({ id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', buyer_id: 'user-1', seller_id: 'seller-9', status: 'pending' });
+    const res = await request(buildApp()).put('/api/orders/ea37b42b-1c3b-4095-8f13-dc801405f2f5').send({ status: 'completed' });
     expect(res.status).toBe(403);
     expect(updateRecord).not.toHaveBeenCalled();
   });
 
   it('allows an idempotent completed update so an interrupted commission write can be retried', async () => {
-    getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'user-1', seller_id: 'seller-9', status: 'completed' });
-    updateRecord.mockResolvedValueOnce({ id: 'order-1', status: 'completed' });
-    const res = await request(buildApp()).put('/api/orders/order-1').send({ status: 'completed' });
+    getRecord.mockResolvedValueOnce({ id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', buyer_id: 'user-1', seller_id: 'seller-9', status: 'completed' });
+    updateRecord.mockResolvedValueOnce({ id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', status: 'completed' });
+    const res = await request(buildApp()).put('/api/orders/ea37b42b-1c3b-4095-8f13-dc801405f2f5').send({ status: 'completed' });
     expect(res.status).toBe(200);
-    expect(updateRecord).toHaveBeenCalledWith('orders', 'order-1', { status: 'completed' });
+    expect(updateRecord).toHaveBeenCalledWith('orders', 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', { status: 'completed' });
   });
 
   it('strips money and identity columns from party updates', async () => {
-    getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'user-1', seller_id: 'seller-9', status: 'delivered' });
-    updateRecord.mockResolvedValueOnce({ id: 'order-1', status: 'completed' });
+    getRecord.mockResolvedValueOnce({ id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', buyer_id: 'user-1', seller_id: 'seller-9', status: 'delivered' });
+    updateRecord.mockResolvedValueOnce({ id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', status: 'completed' });
     // "completed" transition fires buyer/seller notification inserts
     mockPool.query.mockResolvedValue({ rows: [{ id: 'notif-1' }] });
-    const res = await request(buildApp()).put('/api/orders/order-1').send({
+    const res = await request(buildApp()).put('/api/orders/ea37b42b-1c3b-4095-8f13-dc801405f2f5').send({
       status: 'completed',
       total_price: 0,
       buyer_id: 'someone-else',
@@ -191,16 +191,16 @@ describe('PUT /api/orders/:id', () => {
   });
 
   it('non-party non-admin gets 403', async () => {
-    getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'other-buyer', seller_id: 'other-seller', status: 'pending' });
-    const res = await request(buildApp()).put('/api/orders/order-1').send({ status: 'cancelled' });
+    getRecord.mockResolvedValueOnce({ id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', buyer_id: 'other-buyer', seller_id: 'other-seller', status: 'pending' });
+    const res = await request(buildApp()).put('/api/orders/ea37b42b-1c3b-4095-8f13-dc801405f2f5').send({ status: 'cancelled' });
     expect(res.status).toBe(403);
     expect(updateRecord).not.toHaveBeenCalled();
   });
 
   it('admin may update operational fields but not ownership', async () => {
-    getRecord.mockResolvedValueOnce({ id: 'order-1', buyer_id: 'other-buyer', seller_id: 'other-seller', status: 'pending' });
-    updateRecord.mockResolvedValueOnce({ id: 'order-1', status: 'refunded' });
-    const res = await request(buildApp('admin')).put('/api/orders/order-1').send({
+    getRecord.mockResolvedValueOnce({ id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', buyer_id: 'other-buyer', seller_id: 'other-seller', status: 'pending' });
+    updateRecord.mockResolvedValueOnce({ id: 'ea37b42b-1c3b-4095-8f13-dc801405f2f5', status: 'refunded' });
+    const res = await request(buildApp('admin')).put('/api/orders/ea37b42b-1c3b-4095-8f13-dc801405f2f5').send({
       status: 'refunded',
       buyer_id: 'hacker',
     });

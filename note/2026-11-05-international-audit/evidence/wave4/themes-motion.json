@@ -1,0 +1,73 @@
+{
+  "dark": [
+    {
+      "path": "/landing",
+      "dark_applied": true,
+      "contrast_failures": 7
+    },
+    {
+      "path": "/login",
+      "dark_applied": true,
+      "contrast_failures": 1
+    },
+    {
+      "path": "/marketplace",
+      "dark_applied": true,
+      "contrast_failures": 5
+    },
+    {
+      "path": "/feed",
+      "dark_applied": true,
+      "contrast_failures": 9
+    },
+    {
+      "path": "/businesses",
+      "dark_applied": true,
+      "contrast_failures": 7
+    }
+  ],
+  "reduced_motion": [
+    {
+      "path": "/landing",
+      "running_infinite_animations": []
+    },
+    {
+      "path": "/login",
+      "running_infinite_animations": []
+    },
+    {
+      "path": "/marketplace",
+      "running_infinite_animations": []
+    },
+    {
+      "path": "/feed",
+      "running_infinite_animations": []
+    },
+    {
+      "path": "/businesses",
+      "running_infinite_animations": []
+    }
+  ],
+  "forced_colors": [
+    {
+      "path": "/landing",
+      "screenshot": "forced-colors-landing.png"
+    },
+    {
+      "path": "/login",
+      "screenshot": "forced-colors-login.png"
+    },
+    {
+      "path": "/marketplace",
+      "screenshot": "forced-colors-marketplace.png"
+    },
+    {
+      "path": "/feed",
+      "screenshot": "forced-colors-feed.png"
+    },
+    {
+      "path": "/businesses",
+      "screenshot": "forced-colors-businesses.png"
+    }
+  ]
+}

@@ -64,22 +64,33 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
   const [note, setNote]           = useState("");
   const [location, setLocation]   = useState("");
   const [saving, setSaving]       = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
-  useEffect(() => {
-    client.get(`/api/delivery/${orderId}`)
-      .then(r => setUpdates(r.data || []))
-      .catch(() => {})
+  // Backend contract (audit F-003): GET /api/delivery/order/:orderId, POST /api/delivery.
+  const load = React.useCallback(() => {
+    setLoading(true);
+    setLoadFailed(false);
+    client.get(`/api/delivery/order/${orderId}`)
+      .then(r => setUpdates(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setLoadFailed(true))
       .finally(() => setLoading(false));
   }, [orderId]);
+
+  useEffect(() => { load(); }, [load]);
 
   const addUpdate = async () => {
     setSaving(true);
     try {
-      const { data } = await client.post(`/api/delivery/${orderId}`, { status, note, location });
+      const { data } = await client.post("/api/delivery", {
+        order_id: orderId,
+        status,
+        ...(note.trim() ? { note: note.trim() } : {}),
+        ...(location.trim() ? { location: location.trim() } : {}),
+      });
       setUpdates(prev => [...prev, data]);
       setNote(""); setLocation(""); setAdding(false);
-    } catch {
-      toast.error("Failed to add delivery update");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Failed to add delivery update"));
     }
     setSaving(false);
   };
@@ -142,12 +153,19 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
         </div>
       )}
 
-      {updates.length === 0 && (
+      {loadFailed && (
+        <p role="alert" className="text-xs text-destructive mb-3">
+          Delivery updates could not be loaded.{" "}
+          <button type="button" onClick={load} className="underline font-medium">Try again</button>
+        </p>
+      )}
+
+      {!loadFailed && updates.length === 0 && (
         <p className="text-xs text-muted-foreground mb-3">No delivery updates yet.</p>
       )}
 
       {/* Seller: add update */}
-      {isSeller && latestStatus !== "Delivered" && (
+      {isSeller && !loadFailed && latestStatus !== "Delivered" && (
         <>
           {!adding ? (
             <button
@@ -500,7 +518,7 @@ function Orders() {
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       {/* Product thumbnail */}
                       {order.product_id && (
-                        <Link href={`/products/${order.product_id}`} className="shrink-0">
+                        <Link href={`/products/${order.product_id}`} className="shrink-0" aria-label={`View ${order.product_title || "product"}`}>
                           <div className="w-14 h-14 rounded-xl bg-secondary/30 overflow-hidden relative">
                             {order.product_images ? (
                               <Image
@@ -620,11 +638,14 @@ function Orders() {
 
                       {/* Expand tracking / details */}
                       <button
+                        type="button"
                         onClick={() => toggleExpand(order.id)}
                         data-page-guide="orders-detail-expand"
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? "Hide order details" : "Show order details"}
                         className="p-1 rounded-full hover:bg-secondary transition-colors text-muted-foreground"
                       >
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        {isExpanded ? <ChevronUp className="w-4 h-4" aria-hidden="true" /> : <ChevronDown className="w-4 h-4" aria-hidden="true" />}
                       </button>
                     </div>
                   </div>

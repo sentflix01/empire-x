@@ -1,0 +1,30 @@
+{
+  "id": "F-047",
+  "kind": "documentation",
+  "phase": "P8-legal",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Landing page and menu still promote wallet and payments the platform no longer offers",
+  "standards": [
+    "DECISIONS.md 2026-10-16 (platform never holds funds)",
+    "EU UCPD Art. 6 / consumer-protection principle of accurate claims — flag for counsel"
+  ],
+  "location": [
+    "frontend-next/app/landing/page.tsx",
+    "frontend-next/components/layout/AppLayout.tsx (Wallet links)"
+  ],
+  "steps": [
+    "Open /landing (light/dark screenshots); sign in and view the sidebar."
+  ],
+  "expected": "Marketing and navigation match the subscription-only model: no wallet balances, no 'paid with wallet', no platform payments claim.",
+  "actual": "The hero badge says 'Social, commerce, payments, services, and AI'; mock cards show 'Wallet 12,480 ETB' and 'Coffee pack paid with wallet'; the sidebar and Quick Links still offer 'Wallet', whose money routes now answer 410.",
+  "evidence": [
+    "evidence/wave4/dark-landing.png",
+    "evidence/wave3/F-001-product-photo-upload.png"
+  ],
+  "impact": "Sets expectations the product cannot meet and may read as a claim to hold funds — relevant to payment regulation in Ethiopia. Counsel to confirm.",
+  "fix": "Replace wallet visuals with subscription/showroom examples, remove 'payments' from the hero, hide Wallet navigation for users without a balance, and route remaining balances to the withdrawal screen only.",
+  "effort": "S",
+  "environment": "local",
+  "found_on": "2026-11-06"
+}

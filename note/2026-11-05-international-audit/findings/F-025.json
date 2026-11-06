@@ -1,0 +1,29 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-025",
+  "kind": "positive",
+  "phase": "P5-security",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "title": "Positive: one-time codes, reset tokens and passwords are handled to a high standard",
+  "standards": [
+    "ASVS 5.0 V6",
+    "OWASP A07:2025"
+  ],
+  "location": [
+    "backend/routes/auth.ts:104-125",
+    "backend/routes/auth.ts:348-370",
+    "backend/routes/auth.ts:961-1022",
+    "backend/routes/auth.ts:583-609"
+  ],
+  "expected": "Secrets hashed, compared in constant time, attempt-limited and single-use.",
+  "actual": "OTPs: 6 digits from crypto.randomBytes, stored as SHA-256 with an app salt, timingSafeEqual, attempt limit counted in Postgres (holds without Redis), invalidated after too many tries. Reset tokens: stored as SHA-256, expiring, single-use, and a reset revokes all sessions. Passwords: bcrypt cost 12; login runs a dummy bcrypt compare for unknown emails to avoid timing-based enumeration.",
+  "evidence": [
+    "backend/routes/auth.ts:104-125"
+  ],
+  "impact": "Keep these when adding MFA (F-017).",
+  "fix": "None.",
+  "effort": "S"
+}
