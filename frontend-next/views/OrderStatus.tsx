@@ -78,8 +78,8 @@ export default function OrderStatus() {
     }
   };
 
-  if (error) return <main className="mx-auto max-w-md p-6 text-center"><p>{error}</p><Link href="/landing" className="text-primary underline">Go to NodBusiness</Link></main>;
-  if (!view) return <main className="flex min-h-[50vh] items-center justify-center"><Loader2 className="w-6 h-6 animate-spin" /></main>;
+  if (error) return <main id="main-content" className="mx-auto max-w-md p-6 text-center"><p>{error}</p><Link href="/landing" className="text-primary underline">Go to NodBusiness</Link></main>;
+  if (!view) return <main id="main-content" className="flex min-h-[50vh] items-center justify-center"><Loader2 className="w-6 h-6 animate-spin" /></main>;
 
   const { order, business } = view;
   const status = STATUS_TEXT[order.status] ?? { label: order.status, tone: 'wait' as const };
@@ -88,7 +88,7 @@ export default function OrderStatus() {
   const Icon = status.tone === 'ok' ? CheckCircle2 : status.tone === 'bad' ? XCircle : Clock;
 
   return (
-    <main className="mx-auto max-w-md space-y-4 p-4">
+    <main id="main-content" tabIndex={-1} className="mx-auto max-w-md space-y-4 p-4 outline-none">
       <h1 className="text-xl font-bold">{isRequest ? 'Your request' : 'Your order'}</h1>
       <section className="rounded-2xl border border-border/50 bg-card p-4 space-y-1">
         <p className="font-medium">{order.quantity}× {order.product_title}</p>

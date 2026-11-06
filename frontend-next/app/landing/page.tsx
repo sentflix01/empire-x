@@ -58,7 +58,7 @@ const previewRows = [
 
 export default function LandingPage() {
   return (
-    <main className="min-h-[100dvh] overflow-x-hidden bg-slate-950 text-white">
+    <main id="main-content" tabIndex={-1} className="outline-none min-h-[100dvh] overflow-x-hidden bg-slate-950 text-white">
       {/* ── Top navigation bar ── */}
       <nav data-page-guide="landing-nav" aria-label="Account and display options" className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-3 bg-slate-950/80 backdrop-blur-xl border-b border-white/8 sm:px-6 sm:py-4">
         <div className="flex items-center gap-2">

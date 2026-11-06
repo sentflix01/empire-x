@@ -6,11 +6,12 @@
  * Keeps the legacy /showrooms/[id] share links/bookmarks working.
  */
 import ShowroomView from '@/views/ShowroomView';
+import MainContent from '@/components/layout/MainContent';
 
 export default function PublicShowroomByIdPage() {
   return (
-    <div className="min-h-screen bg-background px-4 py-6">
+    <MainContent className="min-h-screen bg-background px-4 py-6">
       <ShowroomView />
-    </div>
+    </MainContent>
   );
 }

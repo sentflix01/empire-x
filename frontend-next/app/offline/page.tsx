@@ -8,10 +8,11 @@
  */
 import Link from 'next/link';
 import BrandLogo from '@/components/brand/BrandLogo';
+import MainContent from '@/components/layout/MainContent';
 
 export default function OfflinePage() {
   return (
-    <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-6 text-center">
+    <MainContent className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-6 text-center">
       <BrandLogo className="w-16 h-16 mb-6 text-primary" size={64} label="Nodbusiness" />
 
       <h1 className="text-2xl font-bold mb-2">You&apos;re offline</h1>
@@ -32,6 +33,6 @@ export default function OfflinePage() {
       >
         Go to home
       </Link>
-    </div>
+    </MainContent>
   );
 }

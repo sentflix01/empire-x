@@ -312,6 +312,8 @@ function ShowroomView() {
           themeColor={themeColor}
         />
       )}
+        {/* Hero and banner sections render the page's <h1>; without one, name the page for screen readers (audit F-042). */}
+        {!sections.some(sec => sec?.type === "hero" || sec?.type === "banner") && <h1 className="sr-only">{showroom.title}</h1>}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <button type="button" onClick={handleGoBack} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4" /> Go back
@@ -446,7 +448,7 @@ function UnavailableNotice({ title, message }: { title: string; message: string 
   return (
     <div className="max-w-2xl mx-auto text-center py-20">
       <BrandLogo className="w-12 h-12 text-amber-400/40 mx-auto mb-3" />
-      <h2 className="font-display text-xl font-bold">{title}</h2>
+      <h1 className="font-display text-xl font-bold">{title}</h1>
       <p className="text-sm text-muted-foreground mt-1">{message}</p>
       <Link href="/" className="inline-block mt-4">
         <Button variant="outline" className="rounded-full">Go Home</Button>

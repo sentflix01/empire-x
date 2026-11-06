@@ -875,7 +875,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         </nav>
 
         {/* ── Main content ── */}
-        <main data-page-guide="main-content" className={`flex-1 min-w-0 transition-all duration-200
+        <main id="main-content" tabIndex={-1} data-page-guide="main-content" className={`outline-none flex-1 min-w-0 transition-all duration-200
           ${sidebarCollapsed ? "md:ml-14" : "md:ml-56"}
           xl:mr-72
           ${isImmersiveRoute
