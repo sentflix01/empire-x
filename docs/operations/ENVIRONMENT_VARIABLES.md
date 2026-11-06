@@ -170,6 +170,8 @@ and monthly interval before checkout.
 
 | Variable | Value format | Required | Notes |
 |---|---|---|---|
+| `MFA_ENCRYPTION_KEY` | 32+ random characters | No | Key source for encrypting two-factor (TOTP) secrets and hashing recovery codes (audit F-017). Falls back to `JWT_SECRET`. Changing it (or `JWT_SECRET` when unset) makes existing authenticator setups unreadable; people then sign in with a recovery code and set up again. |
+| `ADMIN_MFA_REQUIRED` | `true` / `false` | No | Admins must use two-factor sign-in before admin routes work. Default: on in production, off elsewhere. |
 | `EXTERNAL_API_ENCRYPTION_KEY` | 64 hex chars (32 bytes) | No | AES-256-GCM key for encrypting external API credentials at rest. Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 
 ### Backup

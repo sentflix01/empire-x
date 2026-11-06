@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **357** across **51** mounted modules · Generated: 2026-11-06
+> Endpoints: **363** across **52** mounted modules · Generated: 2026-11-06
 
 | Legend | Meaning |
 |---|---|
@@ -18,7 +18,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 ## Contents
 - [`admin`](#admin) (19)
 - [`ai`](#ai) (4)
-- [`auth`](#auth) (19)
+- [`auth`](#auth) (20)
 - [`businessApiKeys`](#businessapikeys) (3)
 - [`businesses`](#businesses) (10)
 - [`businessWebhooks`](#businesswebhooks) (4)
@@ -37,6 +37,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`locations`](#locations) (2)
 - [`maps`](#maps) (2)
 - [`messages`](#messages) (49)
+- [`mfa`](#mfa) (5)
 - [`moderation`](#moderation) (3)
 - [`notifications`](#notifications) (7)
 - [`orders`](#orders) (11)
@@ -106,25 +107,26 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:220 |
-| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:319 |
-| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:410 |
-| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:447 |
-| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:516 |
-| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:536 |
-| `POST` | `/api/auth/workspace` | 🔒 auth | routes/auth.ts:554 |
-| `POST` | `/api/auth/onboarding-mode` | 🌐 public | routes/auth.ts:560 |
-| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:567 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:684 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:838 |
-| `GET` | `/api/auth/me/export` | 🔒 auth | routes/auth.ts:881 |
-| `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:894 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:949 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:985 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1039 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1082 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1165 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1205 |
+| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:240 |
+| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:335 |
+| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:427 |
+| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:464 |
+| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:533 |
+| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:553 |
+| `POST` | `/api/auth/workspace` | 🔒 auth | routes/auth.ts:571 |
+| `POST` | `/api/auth/onboarding-mode` | 🌐 public | routes/auth.ts:577 |
+| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:584 |
+| `POST` | `/api/auth/mfa/verify` | 🌐 public | routes/auth.ts:703 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:766 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:921 |
+| `GET` | `/api/auth/me/export` | 🔒 auth | routes/auth.ts:964 |
+| `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:977 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:1032 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:1068 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1118 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1157 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1240 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1280 |
 
 ## businessApiKeys — Business API key management
 
@@ -346,6 +348,16 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `DELETE` | `/api/messages/:id` | 🔒 auth | routes/messages.ts:1403 |
 | `DELETE` | `/api/messages/:id/for-me` | 🔒 auth | routes/messages.ts:1404 |
 | `POST` | `/api/messages/:id/forward` | 🔒 auth | routes/messages.ts:1405 |
+
+## mfa — managing two-factor sign-in (audit F-017). Mounted at
+
+| Method | Path | Auth | Source |
+|---|---|---|---|
+| `GET` | `/api/auth/mfa/status` | 🔒 auth | routes/mfa.ts:47 |
+| `POST` | `/api/auth/mfa/setup` | 🔒 auth | routes/mfa.ts:65 |
+| `POST` | `/api/auth/mfa/enable` | 🔒 auth | routes/mfa.ts:86 |
+| `POST` | `/api/auth/mfa/disable` | 🔒 auth | routes/mfa.ts:106 |
+| `POST` | `/api/auth/mfa/recovery-codes` | 🔒 auth | routes/mfa.ts:132 |
 
 ## moderation — moderation
 

@@ -825,3 +825,18 @@ items in the open list until confirmed.
 - **Consequences:** The 52 pages that were prerendered as static files now render per request. Measured locally on a production build: about +5 ms server time per page (2.4 → 7.2 ms median). On Vercel these pages are no longer served from the CDN cache, so cold starts can add latency and function usage rises. No CSP violations on 9 guest and 18 signed-in pages; existing browser specs pass.
 - **Open:** revisit if Next.js gains hash-based CSP for prerendered pages.
 - **Related documentation:** `docs/infrastructure/SECURITY_HARDENING.md`, `docs/operations/TECHNICAL_DEBT.md` (TD-013), `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Two-factor sign-in with authenticator apps; required for admins
+
+- **Status:** Accepted (owner asked to fix F-017, 6 Nov 2026)
+- **Decision owner:** Project owner
+- **Context:** Audit finding F-017: no MFA, only a length rule for passwords, and an optional OTP secret.
+- **Decision:**
+  1. TOTP (RFC 6238) with 10 one-time recovery codes, built on Node crypto (no new dependency). Anyone can turn it on in Settings (`two_factor_auth` flag, default on).
+  2. Sign-in (password, Google, email-code verification) answers with a 5-minute, single-use challenge instead of a session when it is on; codes cannot be replayed; 5 wrong codes lock for 15 minutes.
+  3. Admins must use it: admin-only routes refuse until it is on (`ADMIN_MFA_REQUIRED`, default on in production). Admins cannot turn it off.
+  4. Secrets are encrypted with a key derived from `MFA_ENCRYPTION_KEY`, falling back to `JWT_SECRET`.
+  5. Passkeys (WebAuthn) are a later step.
+- **Consequences:** After deploying, each admin signs in, opens Account settings and turns on two-factor sign-in before using admin tools. Migration 86 adds `user_mfa`. Rotating `JWT_SECRET` without `MFA_ENCRYPTION_KEY` set breaks existing setups (recovery codes still work); set `MFA_ENCRYPTION_KEY` in production to decouple them.
+- **Open:** passkeys; whether business owners should also be required to use it.
+- **Related documentation:** `docs/backend/API.md` (Two-factor sign-in), `docs/operations/ENVIRONMENT_VARIABLES.md`, `note/2026-11-05-international-audit/FIXES.md`

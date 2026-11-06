@@ -50,7 +50,7 @@ const DEFAULT_FLAGS = {
   nearby_product_search: { enabled: true,  rollout: 100, description: 'Product/shop search on Nearby map' },
   profile_peek:          { enabled: true,  rollout: 100, description: 'Profile peek modal on map markers' },
   business_hours:        { enabled: false, rollout: 0,   description: 'Business hours and appointment booking' },
-  two_factor_auth:       { enabled: false, rollout: 0,   description: 'TOTP two-factor authentication' },
+  two_factor_auth:       { enabled: true,  rollout: 100, description: 'TOTP two-factor sign-in: people can turn it on in Settings (F-017)' },
   swipe_feed:            { enabled: false, rollout: 0,   description: 'TikTok-style swipe feed' },
   virtual_gifts:         { enabled: false, rollout: 0,   description: 'Virtual gifting on posts' },
   live_streaming:        { enabled: false, rollout: 0,   description: 'Live streaming via Agora/LiveKit' },

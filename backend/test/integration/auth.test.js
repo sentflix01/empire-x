@@ -187,7 +187,7 @@ describe('POST /api/auth/login', () => {
   it('returns 200 with access_token on success', async () => {
     mockPool.query.mockResolvedValueOnce({
       rows: [{ id: 'user-id', email: 'u@b.com', password_hash: '$2b$hashed', is_verified: true, role: 'user' }],
-    });
+    }).mockResolvedValueOnce({ rows: [] }); // no two-factor sign-in (user_mfa)
     const app = buildApp();
     const res = await request(app).post('/api/auth/login').send({ email: 'u@b.com', password: 'password123' });
     expect(res.status).toBe(200);
@@ -350,7 +350,8 @@ describe('POST /api/auth/login', () => {
     mockPool.query
       .mockResolvedValueOnce({
         rows: [{ id: 'clear-id', email: 'clear@test.com', password_hash: '$2b$hashed', is_verified: true, role: 'user', is_banned: false }],
-      });
+      })
+      .mockResolvedValueOnce({ rows: [] }); // no two-factor sign-in (user_mfa)
 
     const app = buildApp();
     const res = await request(app).post('/api/auth/login').send({ email: 'clear@test.com', password: 'correct' });

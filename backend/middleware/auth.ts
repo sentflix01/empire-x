@@ -22,6 +22,7 @@ import { DEMO_SESSION_AUDIENCE } from './demoEnvironment';
 import { getRedis, withoutRedis } from '../lib/redis';
 import logger from '../lib/logger';
 import type { AuthUser } from '../lib/types';
+import { adminMfaRequired } from '../lib/adminMfa';
 import type { Redis as RedisClient } from 'ioredis';
 
 const USER_CACHE_TTL = 60;         // Redis TTL in seconds
@@ -80,7 +81,9 @@ async function getCachedUser(userId: string, demoAccount = false): Promise<AuthU
 
   // 3. Database
   const { rows } = await pool.query<AuthUser>(
-    'SELECT id, email, role, is_banned, (is_demo OR is_seed) AS is_demo FROM users WHERE id = $1',
+    `SELECT id, email, role, is_banned, (is_demo OR is_seed) AS is_demo,
+            EXISTS (SELECT 1 FROM user_mfa m WHERE m.user_id = users.id AND m.enabled_at IS NOT NULL) AS mfa_enabled
+       FROM users WHERE id = $1`,
     [userId],
   );
   const user = rows[0] ?? null;
@@ -259,6 +262,11 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   if (!req.user || req.user.role !== 'admin') {
     res.status(403).json({ error: 'Admin access required' });
+    return;
+  }
+  // Admins must use two-factor sign-in (audit F-017); they set it up in Settings.
+  if (adminMfaRequired() && !req.user.mfa_enabled) {
+    res.status(403).json({ error: 'Turn on two-factor sign-in in Settings to use admin tools.', code: 'MFA_SETUP_REQUIRED' });
     return;
   }
   next();

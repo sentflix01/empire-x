@@ -259,6 +259,7 @@ app.use('/api/auth/forgot-password',  rateLimit(rlOpts(5,   'rl:forgot-pw:')));
 app.use('/api/auth/reset-password',   rateLimit(rlOpts(10,  'rl:reset-pw:')));
 app.use('/api/auth/change-password',  rateLimit(rlOpts(10,  'rl:change-pw:')));
 app.use('/api/auth/refresh',          rateLimit(rlOpts(60,  'rl:refresh:')));
+app.use('/api/auth/mfa',              rateLimit(rlOpts(20,  'rl:mfa:')));   // per IP; per-person lock in auth.ts
 
 // ── Body parsing ──────────────────────────────────────────────────────────────
 app.use('/api/orders/webhook',        express.raw({ type: 'application/json' }));
@@ -335,6 +336,7 @@ app.get('/health', async (_req: Request, res: Response) => {
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/auth',         require('./routes/auth'));
+app.use('/api/auth/mfa',     require('./routes/mfa'));
 app.use('/api/profiles',     require('./routes/profiles'));
 app.use('/api/posts',        require('./routes/posts'));
 app.use('/api/products',     require('./routes/products'));

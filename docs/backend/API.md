@@ -59,7 +59,28 @@ Login with email + password.
 ```json
 { "access_token": "eyJhbG..." }
 ```
+**Response 200 with two-factor sign-in on** (also from `/google` and `/verify-otp`): no session yet.
+```json
+{ "mfa_required": true, "mfa_token": "eyJhbG...", "methods": ["totp", "recovery_code"] }
+```
 **Errors:** 401 (wrong credentials), 403 (email not verified, code: `email_not_verified`)
+
+---
+
+### Two-factor sign-in (audit F-017)
+
+Authenticator-app codes (TOTP, RFC 6238: 6 digits, 30 s) with 10 one-time recovery codes. Secrets are stored encrypted (AES-256-GCM, key from `MFA_ENCRYPTION_KEY` or `JWT_SECRET`); recovery codes as HMAC hashes.
+
+| Endpoint | Auth | Body | Answer |
+|---|---|---|---|
+| `POST /api/auth/mfa/verify` | none (the challenge) | `{ mfa_token, code }` | Same as a successful login, plus `used_recovery_code`. The challenge lasts 5 minutes and works once; a code works once; 5 wrong codes lock the person for 15 minutes (429 `MFA_LOCKED`). 401 `MFA_CODE_INVALID` / `MFA_CHALLENGE_EXPIRED`. |
+| `GET /api/auth/mfa/status` | yes | — | `{ enabled, pending, recovery_codes_left, setup_allowed, required, has_password }` |
+| `POST /api/auth/mfa/setup` | yes | `{ password }` (when the account has one) | `{ secret, otpauth_url }`; not on until confirmed. 409 `MFA_ALREADY_ON`. |
+| `POST /api/auth/mfa/enable` | yes | `{ code }` | `{ enabled: true, recovery_codes }` (shown once) |
+| `POST /api/auth/mfa/disable` | yes | `{ code, password }` (code or recovery code) | `{ enabled: false }`; 403 `MFA_REQUIRED_FOR_ADMINS` while admins must use it |
+| `POST /api/auth/mfa/recovery-codes` | yes | `{ code }` | `{ recovery_codes }` (old ones stop working) |
+
+**Admins:** while `ADMIN_MFA_REQUIRED` is on (default in production), admin-only routes answer `403 { code: "MFA_SETUP_REQUIRED" }` until the admin turns it on in Settings. Not available in Demo.
 
 ---
 

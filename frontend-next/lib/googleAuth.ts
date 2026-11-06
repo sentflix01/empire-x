@@ -34,7 +34,10 @@ function randomHex(bytes = 16): string {
 }
 
 interface GoogleAuthResult {
-  access_token: string;
+  access_token?: string;
+  /** Two-factor sign-in is on: finish with POST /api/auth/mfa/verify (F-017). */
+  mfa_required?: boolean;
+  mfa_token?: string;
   onboarding_mode?: 'demo' | 'real' | null;
   is_demo?: boolean;
 }
@@ -45,7 +48,7 @@ async function sendToBackend(idToken: string): Promise<GoogleAuthResult> {
     { id_token: idToken },
     { headers: { 'X-Account-Mode': 'real' } },
   );
-  storeToken(res.data.access_token);
+  if (res.data.access_token) storeToken(res.data.access_token);
   return res.data;
 }
 
@@ -165,7 +168,9 @@ export function isGoogleReady(): boolean { return Boolean(getClientId()); }
 
 export interface RenderGoogleButtonOptions {
   onSuccess: (result: {
-    access_token: string;
+    access_token?: string;
+    mfa_required?: boolean;
+    mfa_token?: string;
     onboarding_mode?: 'demo' | 'real' | null;
     is_demo?: boolean;
   }) => void;

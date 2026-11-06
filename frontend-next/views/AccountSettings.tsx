@@ -17,6 +17,7 @@ import { BellOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import TwoFactorSettings from '@/components/settings/TwoFactorSettings';
 
 function ChangePasswordForm() {
   const [current, setCurrent] = useState('');
@@ -29,7 +30,7 @@ function ChangePasswordForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (next.length < 6) { toast.error('New password must be at least 6 characters'); return; }
+    if (next.length < 8) { toast.error('New password must be at least 8 characters'); return; }
     if (next !== confirm) { toast.error('Passwords do not match'); return; }
     setSaving(true);
     try {
@@ -74,7 +75,7 @@ function ChangePasswordForm() {
             <label className="text-xs font-medium text-muted-foreground">New password</label>
             <div className="relative mt-1">
               <input type={showNext ? 'text' : 'password'} value={next} onChange={e => setNext(e.target.value)}
-                placeholder="At least 6 characters"
+                placeholder="At least 8 characters"
                 className="w-full h-11 px-3 pr-10 text-sm bg-secondary/50 border border-border/50 rounded-xl outline-none focus:ring-1 focus:ring-amber-500/30" />
               <button type="button" onClick={() => setShowNext(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 {showNext ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -186,6 +187,7 @@ function AccountSettingsView() {
       <div>
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1 mb-2">Security</p>
         <ChangePasswordForm />
+        <TwoFactorSettings />
       </div>
 
       {/* ── Notifications ── */}

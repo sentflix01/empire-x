@@ -34,7 +34,7 @@ async function submitPasswordChange() {
   render(<AccountSettings />);
   fireEvent.click(screen.getByRole('button', { name: /Change Password/i }));
   fireEvent.change(screen.getByPlaceholderText('Enter current password'), { target: { value: 'wrong-pass' } });
-  fireEvent.change(screen.getByPlaceholderText('At least 6 characters'), { target: { value: 'new-password-1' } });
+  fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), { target: { value: 'new-password-1' } });
   fireEvent.change(screen.getByPlaceholderText('Repeat new password'), { target: { value: 'new-password-1' } });
   const submit = screen.getAllByRole('button', { name: /Change Password/i }).find(b => b.getAttribute('type') === 'submit')!;
   fireEvent.click(submit);

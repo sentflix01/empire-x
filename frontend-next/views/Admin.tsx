@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
 import client from '@/api/client';
+import { apiErrorBody } from '@/lib/apiErrorMessage';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import {
@@ -395,9 +396,16 @@ function Admin() {
   const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null);
   const [banTarget,     setBanTarget]     = useState<string | null>(null);
   const [banReason,     setBanReason]     = useState('');
+  const [needsMfa,      setNeedsMfa]      = useState(false);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
+    // Admin tools need two-factor sign-in (F-017); the other calls would all fail the same way.
+    try {
+      await client.get('/api/admin/stats');
+    } catch (err) {
+      if (apiErrorBody(err)?.code === 'MFA_SETUP_REQUIRED') { setNeedsMfa(true); setLoading(false); return; }
+    }
     try {
       const [s, u, v, po, pr, o, r, rc] = await Promise.all([
         client.get('/api/admin/stats').then(r => r.data).catch(() => ({})),
@@ -518,6 +526,14 @@ function Admin() {
   const orderDonut = Object.entries(
     orders.reduce((acc: any, o) => { acc[o.status] = (acc[o.status] || 0) + 1; return acc; }, {})
   ).map(([name, value]) => ({ name, value }));
+
+  if (needsMfa) return (
+    <div className="mx-auto max-w-md py-24 text-center">
+      <h1 className="text-xl font-bold">Turn on two-factor sign-in</h1>
+      <p className="mt-2 text-sm text-muted-foreground">Admin tools need two-factor sign-in with an authenticator app. Turn it on in your account settings, then come back.</p>
+      <Link href="/account" className="mt-5 inline-flex h-10 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Open account settings</Link>
+    </div>
+  );
 
   if (loading) return (
     <div className="flex justify-center items-center py-32">
