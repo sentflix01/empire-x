@@ -12,9 +12,12 @@ import { announceShowroomPublished, type PublishedShowroom } from '../lib/showro
 import { businessViewGate, notPrivateBusinessSql, rejectViewGate } from '../lib/siteVisibility';
 import rateLimit from 'express-rate-limit';
 import { addSignup, hasNewsletterSection, listSignups, normaliseSignupEmail } from '../lib/newsletterSignups';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
 
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['id']);
 router.get('/', optionalAuth, cacheMiddleware('showrooms:list', 30, { varyByAuth: true }), async (req: Request, res: Response) => {
   try {
     const { owner_id, category, sort = '-created_at', limit = '50' } = req.query as Record<string, string>;

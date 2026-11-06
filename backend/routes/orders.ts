@@ -31,9 +31,12 @@ import {
   InventoryUnavailableError, reserveOrderInventory, commitOrderInventory,
   releaseOrderInventory, transitionPaymentOrders, cancelOrderAndReleaseInventory,
 } from '../services/orderInventory';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
 
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['id']);
 // Card and Chapa checkout charged buyers into NodBusiness's own accounts.
 // Retired until a provider settles directly to the seller (decision §1).
 const platformCheckoutRetired = platformCollectionRetired('Paying through NodBusiness is not available. Pay the seller directly using the payment details on the order.');

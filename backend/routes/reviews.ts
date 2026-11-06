@@ -5,9 +5,12 @@ import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { productNotPrivateSql } from '../lib/siteVisibility';
 import { personProfileJoin } from '../lib/personProfile';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
 
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['productId', 'id']);
 router.get('/', optionalAuth, async (req: Request, res: Response) => {
   try {
     const { product_id, reviewer_id, sort = '-created_at', limit = '50' } = req.query as Record<string, string>;

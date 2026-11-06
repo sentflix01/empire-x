@@ -3,9 +3,12 @@ import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { requireAuth } from '../middleware/auth';
 import { emitNotification } from '../socket';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
 
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['orderId']);
 router.get('/order/:orderId', requireAuth, async (req: Request, res: Response) => {
   try {
     const { rows: orders } = await pool.query<{ buyer_id: string; seller_id: string }>(

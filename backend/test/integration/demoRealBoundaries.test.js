@@ -48,9 +48,9 @@ describe('public showroom visibility and expiry', () => {
   });
 
   it('hides draft showrooms from anonymous direct-ID requests', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'draft-id', owner_id: 'owner', status: 'draft', expires_at: null }] });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ id: '33bfbdc3-ed9b-492d-8210-ae680cccfef5', owner_id: 'owner', status: 'draft', expires_at: null }] });
 
-    const response = await request(showroomApp()).get('/api/showrooms/draft-id');
+    const response = await request(showroomApp()).get('/api/showrooms/33bfbdc3-ed9b-492d-8210-ae680cccfef5');
 
     expect(response.status).toBe(404);
     expect(mockPool.query.mock.calls[0][0]).toContain('(showrooms.expires_at IS NULL OR showrooms.expires_at > NOW())');
@@ -63,10 +63,10 @@ describe('public showroom visibility and expiry', () => {
       .mockResolvedValueOnce({ rows: [{ owner_id: 'demo-user', status: 'published', expires_at: new Date(startedAt + 60_000) }] })
       .mockImplementationOnce(async (_sql, values) => {
         updateValues = values;
-        return { rows: [{ id: 'showroom-id', status: 'published' }] };
+        return { rows: [{ id: '2e14fd75-75a6-483a-8e2f-f53b05f27bfb', status: 'published' }] };
       });
 
-    const response = await request(showroomApp()).put('/api/showrooms/showroom-id').send({ status: 'published' });
+    const response = await request(showroomApp()).put('/api/showrooms/2e14fd75-75a6-483a-8e2f-f53b05f27bfb').send({ status: 'published' });
 
     expect(response.status).toBe(200);
     const expiry = updateValues.find((value) => value instanceof Date);

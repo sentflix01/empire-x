@@ -4,9 +4,12 @@ import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { requireSignInForPersonal } from '../lib/siteVisibility';
 import { personProfileJoin } from '../lib/personProfile';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
 
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['userId', 'id']);
 // Inline engagement avoids N+1 correlated subqueries by being in same query
 // (Task 9 fix: these are still correlated but on a LIMIT 200 result — acceptable
 //  until story_reactions/story_comments tables grow; add denormalized counters then)
