@@ -83,7 +83,7 @@ Set at: Render → nodbusiness-backend → Environment
 
 | Variable | Value format | Required | Notes |
 |---|---|---|---|
-| `SUPABASE_URL` | `https://tpgzlokgnjxcerexxoda.supabase.co` | ✅ Yes* | *Required for cloud storage. App **exits with process.exit(1)** in production if neither Supabase nor R2 is configured. |
+| `SUPABASE_URL` | `https://your-project-ref.supabase.co` | ✅ Yes* | *Required for cloud storage. App **exits with process.exit(1)** in production if neither Supabase nor R2 is configured. |
 | `SUPABASE_API_URL` | Same as `SUPABASE_URL` | No | Alias. |
 | `STORAGE_SUPABASE_URL` | Same as `SUPABASE_URL` | No | Another alias used internally. |
 | `SUPABASE_STORAGE_KEY` | `sb_secret_...` (recommended) or legacy `eyJ...` service_role JWT | ✅ Yes* | Use a server-only Secret API key from Supabase → Settings → API Keys. The backend supports the new `sb_secret_...` format and legacy service_role JWT during migration. Never use the publishable/anon key here. |
@@ -229,7 +229,7 @@ Copy `backend/.env.example` to `backend/.env` and fill in:
 # Minimum required for local dev
 NODE_ENV=development
 PORT=3001
-DATABASE_URL=postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require
+DATABASE_URL=postgresql://postgres.your-project-ref:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require
 JWT_SECRET=any-long-random-string-for-local-dev-only
 FRONTEND_URL=http://localhost:3002
 

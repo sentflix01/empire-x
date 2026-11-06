@@ -49,7 +49,7 @@ cd empire-x
 # 2. Backend setup
 cp backend/.env.example backend/.env
 # Edit backend/.env — minimum required:
-#   DATABASE_URL=postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require
+#   DATABASE_URL=postgresql://postgres.your-project-ref:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require
 #   JWT_SECRET=any-long-random-string-for-local-dev
 #   NODE_ENV=development
 

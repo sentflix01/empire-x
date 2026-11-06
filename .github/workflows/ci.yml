@@ -18,6 +18,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege for the workflow token (audit F-022); jobs ask for more only where needed.
+permissions:
+  contents: read
+
 jobs:
   # ── Skip guard — exit early for bot commits or [skip ci] messages ────────────
   check-skip:
@@ -67,9 +71,9 @@ jobs:
         working-directory: backend
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '20'
           cache: 'npm'
@@ -115,9 +119,9 @@ jobs:
         working-directory: frontend-next
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '20'
           cache: 'npm'
@@ -160,9 +164,9 @@ jobs:
         working-directory: frontend-next
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
           cache: 'npm'
@@ -179,6 +183,46 @@ jobs:
   # "high" catches CVSS ≥7.0. Critical and high severity vulnerabilities
   # must be resolved before a merge to main can land.
   # Uses --package-lock-only so no npm ci needed — saves ~2 min per run.
+  secrets:
+    name: Secret scan — new commits (report-only for now)
+    # gitleaks over the commits this pull request or push adds (audit F-024).
+    # Report-only until its first runs are reviewed; then delete
+    # continue-on-error to make it blocking. Also turn on GitHub secret scanning
+    # and push protection in the repository settings.
+    needs: check-skip
+    if: needs.check-skip.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks 8.29.1 (checksum-verified)
+        run: |
+          curl -sSfL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.29.1/gitleaks_8.29.1_linux_x64.tar.gz
+          echo "e4eb209d04e20339d77122a3bdf9cd41351255cfb27ebcb75e85325e04f88924  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks version
+
+      - name: Scan the new commits
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            RANGE="origin/${BASE_REF}..HEAD"
+          elif [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+            RANGE="${BEFORE}..${AFTER}"
+          else
+            RANGE="HEAD~1..HEAD"
+          fi
+          echo "Scanning ${RANGE}"
+          ./gitleaks git --log-opts="${RANGE}" --redact --no-banner --exit-code 1 .
+
   e2e:
     name: E2E — Chromium journeys (blocking)
     # The browser journeys (sign-in, sign-up, checkout, chat, accessibility,
@@ -201,9 +245,9 @@ jobs:
       E2E_SKIP_BACKEND: 'true'
       E2E_SKIP_FRONTEND: 'true'
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '20'
           cache: 'npm'
@@ -270,7 +314,7 @@ jobs:
 
       - name: Keep the evidence when it fails
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: e2e-chromium-results
           path: |
@@ -286,9 +330,9 @@ jobs:
     if: needs.check-skip.outputs.skip != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '20'
           cache: 'npm'

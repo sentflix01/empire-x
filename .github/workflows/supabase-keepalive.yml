@@ -17,6 +17,10 @@ on:
   # Allow manual trigger from the Actions tab
   workflow_dispatch: {}
 
+# Least privilege for the workflow token (audit F-022); jobs ask for more only where needed.
+permissions:
+  contents: read
+
 jobs:
   ping:
     name: Ping Supabase database

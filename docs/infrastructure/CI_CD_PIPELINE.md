@@ -109,6 +109,15 @@ NEXT_PUBLIC_SENTRY_DSN: ""
 - Guided tours count as seen in every test browser (`e2e/tours-seen.ts`), so the specs do not depend on the tour default (F-031)
 - Make it a required check for `main` in the repository's branch protection settings
 
+### 6. secrets — gitleaks (report-only for now, audit F-024)
+- gitleaks 8.29.1, downloaded and checked against its published sha256, scans only the commits a pull request or push adds (`--log-opts`), so old placeholders in history do not fail it
+- `continue-on-error: true` until its first runs are reviewed; remove that line to make it blocking
+- Also turn on **GitHub secret scanning and push protection** (repository Settings → Code security)
+
+### Workflow hardening (audit F-022)
+- Every workflow sets `permissions: contents: read` at the top; only `docs-sync.yml` has `contents: write` (it pushes the docs branch)
+- Actions are pinned to full commit SHAs with the release in a comment (`actions/checkout@<sha> # v7.0.1`); Dependabot's `github-actions` entry keeps the pins current
+
 ---
 
 ## Deploy Workflow (`deploy.yml`)

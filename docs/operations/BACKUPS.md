@@ -1,7 +1,7 @@
 # Nodbusiness — Backup Strategy
 
 > **Last updated:** September 22, 2026
-> **Database:** Supabase PostgreSQL (project `tpgzlokgnjxcerexxoda`)
+> **Database:** Supabase PostgreSQL (project `your-project-ref`)
 > **Backup tool:** pg_dump (built into backend Docker image via `postgresql-client`)
 
 ---
@@ -44,9 +44,9 @@ startBackupSchedule();  // Checks hourly, runs once per day
 
 **Automatic conversion (in `stripPgbouncerParam`):**
 ```
-postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres
+postgresql://postgres.your-project-ref:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres
               ↓ automatically converted to ↓
-postgresql://postgres:PASS@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres
+postgresql://postgres:PASS@db.your-project-ref.supabase.co:5432/postgres
 ```
 
 **Render env var `BACKUP_DATABASE_URL`:** Set to the same pooler URL as `DATABASE_URL`. The script handles conversion automatically.
@@ -87,7 +87,7 @@ npm run backup
 
 # Or run pg_dump directly
 PGPASSWORD=your_password pg_dump \
-  "postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres?sslmode=require" \
+  "postgresql://postgres.your-project-ref:PASS@db.your-project-ref.supabase.co:5432/postgres?sslmode=require" \
   --no-owner \
   --format=custom \
   | gzip > backup-$(date +%Y%m%d-%H%M%S).sql.gz
@@ -105,7 +105,7 @@ Backup files are saved to `backend/backups/`.
 # Decompress and restore
 gunzip -c backup-file.sql.gz | pg_restore \
   --no-owner \
-  --dbname="postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres?sslmode=require"
+  --dbname="postgresql://postgres.your-project-ref:PASS@db.your-project-ref.supabase.co:5432/postgres?sslmode=require"
 ```
 
 **Or use the export/restore script:**
