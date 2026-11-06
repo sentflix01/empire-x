@@ -24,6 +24,7 @@
     "test:keploy:test": "keploy test -c 'node index.js'",
     "typecheck": "tsc --noEmit",
     "migrate": "node db/migrate-all.js",
+    "migrate:status": "node db/migrate-all.js --status",
     "migrate:demo": "node db/migrate-demo.js",
     "migrate:verification-docs": "tsx scripts/migrate-verification-documents.ts",
     "seed": "node db/seed.js",

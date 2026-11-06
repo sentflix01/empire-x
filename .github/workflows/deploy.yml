@@ -9,9 +9,10 @@ on:
     types: [completed]
     branches: [main]
 
-# Only run one deploy at a time. Never cancel a running deploy: the migrate
-# job has no ledger or wrapping transaction, so cancelling it mid-run can leave
-# the production schema half-applied. A newer push waits in the queue instead.
+# Only run one deploy at a time. Never cancel a running deploy: migrations are
+# recorded in schema_migrations only after each succeeds (db/migrate-all.js),
+# but a migration cancelled mid-run is not wrapped in one transaction and can
+# leave its own changes half-applied. A newer push waits in the queue instead.
 concurrency:
   group: deploy-production
   cancel-in-progress: false

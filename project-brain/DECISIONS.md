@@ -840,3 +840,12 @@ items in the open list until confirmed.
 - **Consequences:** After deploying, each admin signs in, opens Account settings and turns on two-factor sign-in before using admin tools. Migration 86 adds `user_mfa`. Rotating `JWT_SECRET` without `MFA_ENCRYPTION_KEY` set breaks existing setups (recovery codes still work); set `MFA_ENCRYPTION_KEY` in production to decouple them.
 - **Open:** passkeys; whether business owners should also be required to use it.
 - **Related documentation:** `docs/backend/API.md` (Two-factor sign-in), `docs/operations/ENVIRONMENT_VARIABLES.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Migrations run once each, recorded in schema_migrations
+
+- **Status:** Accepted (owner asked to fix F-009, 6 Nov 2026)
+- **Decision owner:** Project owner
+- **Context:** Audit finding F-009: every deploy re-ran all migrations, the server re-ran migrations 83–85 at every start, and nothing recorded what had run. CONTRIBUTING.md already described a `schema_migrations` table that did not exist.
+- **Decision:** `backend/db/migrate-all.js` keeps `schema_migrations` with a sha256 checksum per file, runs only unrecorded migrations, refuses to continue when an applied file changed (`--rerun <file>` for deliberate re-runs), and uses a Postgres advisory lock. No manual backfill: the first run on an existing database executes everything once more (as every deploy did) and records it. Migrations must stay idempotent.
+- **Consequences:** Deploys run only new migrations. Editing an applied migration now fails the deploy until it is moved to a new file or re-run on purpose. `npm run migrate:status` shows what is pending.
+- **Related documentation:** `docs/infrastructure/MIGRATION_GUIDE.md`, `docs/backend/DATABASE.md`, `note/2026-11-05-international-audit/FIXES.md`
