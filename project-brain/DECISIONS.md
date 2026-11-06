@@ -859,3 +859,14 @@ items in the open list until confirmed.
   2. **F-054:** the Ethiopia data protection and GDPR documents say "Aligned, with known gaps — not a legal opinion" instead of "Compliant". The data protection proclamation number is marked "to be confirmed by counsel" (the document cited 1309/2024; the audit brief cites 1321/2024); the number was not chosen here.
 - **Open:** counsel to confirm the proclamation number and obligations; update the status after the fixes are deployed and reviewed.
 - **Related documentation:** `docs/product/PAGE_GUIDED_TOURS.md`, `docs/product/FEATURE_FLAGS.md`, `docs/compliance/ETHIOPIA_DATA_PROTECTION.md`, `docs/compliance/GDPR_AUDIT.md`
+
+### 2026-11-06 — DevOps console: error triage routes added, Knowledge Base tab removed
+
+- **Status:** Accepted (owner: "ok merge it and continue", 6 Nov 2026; the finding allowed either option)
+- **Decision owner:** Project owner
+- **Context:** Audit finding F-006: the admin console called 11 routes the backend did not have, and sent PATCH where the backend accepted only PUT.
+- **Decision:**
+  1. Implemented, admin only: error stats, `since` filtering, PATCH resolve, bulk resolve by level, convert an error to one bug ticket, and saving one version status at a time.
+  2. Removed the Knowledge Base tab and its seven `/api/docs/*` calls. The backend image is built from `backend/` only, so `docs/` is not on the server; serving repository files from production would also add a file-reading endpoint for little value. The docs stay readable in the repository.
+- **Open:** the Task Log tab reads `docs/log-report` the same way and shows "not available" in production; decide later whether to ship that folder or drop the tab.
+- **Related documentation:** `docs/Production/backend/routes/devops.md`, `docs/Production/frontend-next/views/DevOps.md`, `note/2026-11-05-international-audit/FIXES.md`

@@ -4,9 +4,11 @@ import pool from '../db/pool';
 import { requireAuth, requireAdmin, optionalAuth } from '../middleware/auth';
 import { captureError } from '../lib/errorCollector';
 import logger from '../lib/logger';
+import { uuidParams } from '../lib/uuidParams';
 const fsSync = require('fs') as typeof import('fs');
 
 const router = Router();
+uuidParams(router, ['id']);
 
 // ── DevOps Items ──────────────────────────────────────────────────────────────
 
@@ -62,23 +64,65 @@ router.delete('/:id', requireAuth, requireAdmin, async (req: Request, res: Respo
 
 // ── Error Events ──────────────────────────────────────────────────────────────
 
+const ERROR_LEVELS = new Set(['critical', 'error', 'warn', 'info']);
+const levelOf = (raw: unknown): string | null | undefined =>
+  raw === undefined || raw === '' ? null : typeof raw === 'string' && ERROR_LEVELS.has(raw) ? raw : undefined;
+const boundedInt = (raw: unknown, fallback: number, max: number): number => {
+  const n = Number.parseInt(String(raw ?? ''), 10);
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, max) : fallback;
+};
+
 router.get('/errors', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  const q = req.query as Record<string, string | undefined>;
+  const level = levelOf(q.level);
+  if (level === undefined) { res.status(400).json({ error: 'Unknown level' }); return; }
+  const since = q.since ? new Date(q.since) : null;
+  if (since && Number.isNaN(since.getTime())) { res.status(400).json({ error: 'Invalid since' }); return; }
   try {
-    const { resolved = 'false', level, limit = '50', offset = '0' } = req.query as Record<string, string>;
-    const conditions: string[] = [`resolved=$1`];
-    const values: unknown[] = [resolved === 'true'];
-    if (level) { values.push(level); conditions.push(`level=$${values.length}`); }
-    values.push(parseInt(limit)); values.push(parseInt(offset));
+    const values: unknown[] = [q.resolved === 'true'];
+    const conditions = ['e.resolved=$1'];
+    if (level) { values.push(level); conditions.push(`e.level=$${values.length}`); }
+    if (since) { values.push(since.toISOString()); conditions.push(`e.last_seen_at>$${values.length}`); }
+    values.push(boundedInt(q.limit, 50, 200), boundedInt(q.offset, 0, 100000));
     const { rows } = await pool.query(
-      `SELECT * FROM error_events WHERE ${conditions.join(' AND ')} ORDER BY last_seen_at DESC LIMIT $${values.length - 1} OFFSET $${values.length}`,
+      `SELECT e.*, u.full_name AS resolved_by_name,
+              d.title AS devops_item_title, d.status AS devops_item_status
+         FROM error_events e
+         LEFT JOIN users u ON u.id = e.resolved_by
+         LEFT JOIN devops_items d ON d.id = e.devops_item_id
+        WHERE ${conditions.join(' AND ')}
+        ORDER BY e.last_seen_at DESC
+        LIMIT $${values.length - 1} OFFSET $${values.length}`,
       values,
     );
     res.json(rows);
   } catch { res.status(500).json({ error: 'Failed to fetch error events' }); }
 });
 
-router.put('/errors/:id/resolve', requireAuth, requireAdmin, async (req: Request, res: Response) => {
-  const { note } = req.body as { note?: string };
+// Counts for the console header (audit F-006: the console called this and it did not exist).
+router.get('/errors/stats', requireAuth, requireAdmin, async (_req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT COUNT(*)::int                                                           AS total,
+             COUNT(*) FILTER (WHERE NOT resolved)::int                               AS unresolved,
+             COUNT(*) FILTER (WHERE NOT resolved AND level='critical')::int          AS critical,
+             COUNT(*) FILTER (WHERE NOT resolved AND level='error')::int             AS errors,
+             COUNT(*) FILTER (WHERE NOT resolved AND level='warn')::int              AS warnings,
+             COUNT(*) FILTER (WHERE last_seen_at > NOW() - INTERVAL '1 hour')::int   AS last_hour,
+             COUNT(*) FILTER (WHERE last_seen_at > NOW() - INTERVAL '24 hours')::int AS last_24h,
+             COUNT(*) FILTER (WHERE NOT resolved AND source='server')::int           AS server,
+             COUNT(*) FILTER (WHERE NOT resolved AND source='route')::int            AS route,
+             COUNT(*) FILTER (WHERE NOT resolved AND source='client')::int           AS client
+        FROM error_events`);
+    res.json(rows[0]);
+  } catch { res.status(500).json({ error: 'Failed to fetch error stats' }); }
+});
+
+const resolveOne = async (req: Request, res: Response) => {
+  const note = ((req.body ?? {}) as { note?: unknown }).note;
+  if (note !== undefined && note !== null && (typeof note !== 'string' || note.length > 2000)) {
+    res.status(400).json({ error: 'note must be text up to 2000 characters' }); return;
+  }
   try {
     const { rows } = await pool.query(
       `UPDATE error_events SET resolved=TRUE,resolved_at=NOW(),resolved_by=$1,resolution_note=$2 WHERE id=$3 RETURNING id`,
@@ -87,6 +131,63 @@ router.put('/errors/:id/resolve', requireAuth, requireAdmin, async (req: Request
     if (!rows.length) { res.status(404).json({ error: 'Error event not found' }); return; }
     res.json({ success: true });
   } catch { res.status(500).json({ error: 'Failed to resolve error' }); }
+};
+// The console sends PATCH; PUT stays for existing callers.
+router.patch('/errors/:id/resolve', requireAuth, requireAdmin, resolveOne);
+router.put('/errors/:id/resolve', requireAuth, requireAdmin, resolveOne);
+
+router.patch('/errors/resolve-all', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  const level = levelOf(((req.body ?? {}) as { level?: unknown }).level);
+  if (level === undefined) { res.status(400).json({ error: 'Unknown level' }); return; }
+  try {
+    const values: unknown[] = [req.user!.id];
+    let where = 'NOT resolved';
+    if (level) { values.push(level); where += ' AND level=$2'; }
+    const { rowCount } = await pool.query(
+      `UPDATE error_events SET resolved=TRUE,resolved_at=NOW(),resolved_by=$1,resolution_note='Bulk resolved' WHERE ${where}`,
+      values,
+    );
+    res.json({ resolved: rowCount ?? 0 });
+  } catch { res.status(500).json({ error: 'Failed to resolve errors' }); }
+});
+
+// Turn an error into a bug ticket once; a second call returns the same ticket.
+router.post('/errors/:id/to-ticket', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  const db = await pool.connect();
+  try {
+    await db.query('BEGIN');
+    const { rows: [event] } = await db.query(
+      `SELECT id, level, message, name, path, method, status_code, occurrence, devops_item_id
+         FROM error_events WHERE id=$1 FOR UPDATE`,
+      [req.params.id],
+    );
+    if (!event) { await db.query('ROLLBACK'); res.status(404).json({ error: 'Error event not found' }); return; }
+    if (event.devops_item_id) {
+      const { rows: [existing] } = await db.query('SELECT * FROM devops_items WHERE id=$1', [event.devops_item_id]);
+      if (existing) { await db.query('COMMIT'); res.json({ ticket: existing, created: false }); return; }
+    }
+    const label = event.name ? `${event.name}: ${event.message}` : event.message;
+    const title = `[Error] ${String(label).slice(0, 180)}`;
+    const where = event.path ? `${event.method ?? ''} ${event.path}`.trim() : 'no request';
+    const description = [
+      `Level: ${event.level}`, `Where: ${where}`,
+      event.status_code ? `Status: ${event.status_code}` : null,
+      `Seen ${event.occurrence} time${event.occurrence === 1 ? '' : 's'}`,
+      `Error event: ${event.id}`,
+    ].filter(Boolean).join('\n');
+    const severity = event.level === 'critical' ? 'urgent' : event.level === 'error' ? 'warning' : 'attention';
+    const { rows: [ticket] } = await db.query(
+      `INSERT INTO devops_items (kind,title,description,severity,status,tags,created_by)
+       VALUES ('bug',$1,$2,$3,'open',ARRAY['error-event'],$4) RETURNING *`,
+      [title, description, severity, req.user!.id],
+    );
+    await db.query('UPDATE error_events SET devops_item_id=$1 WHERE id=$2', [ticket.id, event.id]);
+    await db.query('COMMIT');
+    res.status(201).json({ ticket, created: true });
+  } catch {
+    await db.query('ROLLBACK').catch(() => undefined);
+    res.status(500).json({ error: 'Failed to create ticket' });
+  } finally { db.release(); }
 });
 
 // Frontend error reporting (rate-limited in index.js, no auth required)
@@ -121,6 +222,27 @@ router.put('/versions', requireAuth, requireAdmin, async (req: Request, res: Res
     );
     res.json({ success: true });
   } catch { res.status(500).json({ error: 'Failed to update versions' }); }
+});
+
+// The console saves one version at a time (audit F-006).
+const VERSION_KEY = /^v\d{1,2}(\.\d{1,2}){1,2}$/;
+const VERSION_STATUSES = new Set(['not_started', 'in_progress', 'completed', 'paused']);
+router.put('/versions/:version', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  const version = String(req.params.version);
+  const status = ((req.body ?? {}) as { status?: unknown }).status;
+  if (!VERSION_KEY.test(version) || typeof status !== 'string' || !VERSION_STATUSES.has(status)) {
+    res.status(400).json({ error: 'Invalid version or status' }); return;
+  }
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO app_settings (key,value) VALUES ('devops_version_statuses', jsonb_build_object($1::text, $2::text))
+       ON CONFLICT (key) DO UPDATE
+         SET value = COALESCE(app_settings.value, '{}'::jsonb) || jsonb_build_object($1::text, $2::text), updated_at = NOW()
+       RETURNING value`,
+      [version, status],
+    );
+    res.json(rows[0].value);
+  } catch { res.status(500).json({ error: 'Failed to update version' }); }
 });
 
 // ── Observability: health summary + telemetry (DevOps catches-everything) ────
