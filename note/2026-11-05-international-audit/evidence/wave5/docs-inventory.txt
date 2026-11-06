@@ -1,0 +1,32 @@
+# Documentation inventory (2026-11-06) — first matching files
+Records of processing (ROPA, GDPR Art.30)    docs/infrastructure/NETWORKING.md docs/compliance/GDPR_AUDIT.md docs/compliance/ETHIOPIA_DATA_PROTECTION.md 
+DPIA                                         docs/compliance/GDPR_AUDIT.md docs/compliance/ETHIOPIA_DATA_PROTECTION.md docs/compliance/DATA_GOVERNANCE.md 
+Sub-processor list                           docs/compliance/GDPR_AUDIT.md docs/compliance/ETHIOPIA_DATA_PROTECTION.md docs/legal/DPA_TEMPLATE.md 
+Retention schedule                           docs/compliance/AML_KYC_POLICY.md docs/legal/PRE_LAUNCH_PROTECTION.md docs/legal/PRIVACY_POLICY.md 
+Accessibility statement                      MISSING
+VPAT / ACR                                   MISSING
+Incident response plan                       docs/infrastructure/README.md docs/infrastructure/SECURITY_HARDENING.md docs/compliance/SOC2_ROADMAP.md 
+Breach notification (72h)                    docs/infrastructure/SECURITY_HARDENING.md docs/compliance/ETHIOPIA_DATA_PROTECTION.md docs/compliance/DATA_GOVERNANCE.md 
+Threat model                                 docs/best-practice/security.md docs/backend/SECURITY.md docs/legal/DPA_TEMPLATE.md 
+Pen-test history                             docs/investor/legal/DUE_DILIGENCE_CHECKLIST.md docs/infrastructure/TIMELINE.md docs/infrastructure/SECURITY_HARDENING.md 
+SBOM                                         docs/strategy/TECHNICAL_ARCHITECTURE.md docs/strategy/SECURITY_ARCHITECTURE.md 
+OpenAPI spec                                 docs/DOCUMENTATION_AUDIT.md docs/strategy/DEVELOPER_PLATFORM_STRATEGY.md docs/strategy/TECHNICAL_ARCHITECTURE.md 
+Backup restore test record                   docs/legal/DPA_TEMPLATE.md docs/strategy/OPERATIONAL_EXCELLENCE.md docs/architecture/THREAT_MODEL.md 
+SLO/SLA                                      docs/investor/communications/INVESTOR_UPDATE_TEMPLATE.md docs/investor/legal/DUE_DILIGENCE_CHECKLIST.md docs/investor/pitch/FINANCIAL_PROJECTIONS.md 
+On-call guide                                docs/infrastructure/MONITORING_STACK.md docs/backend/PAYMENT_INTEGRATION.md docs/log-report/2026-08-24-8a1f4318b-migration-runner-under-tsx-transaction-safe-dm-f.md 
+Status page                                  docs/infrastructure/TIMELINE.md docs/infrastructure/NETWORKING.md docs/infrastructure/DISASTER_RECOVERY.md 
+Cookie policy                                docs/legal/PRE_LAUNCH_PROTECTION.md docs/legal/COOKIE_POLICY.md docs/DOCUMENTATION_AUDIT.md 
+Refund policy                                docs/legal/TERMS_OF_SERVICE.md docs/legal/REFUND_POLICY.md docs/support/CUSTOMER_SUPPORT_FRAMEWORK.md 
+Imprint / legal entity                       docs/investor/legal/DUE_DILIGENCE_CHECKLIST.md docs/growth/GROWTH_STRATEGY.md docs/growth/INTERNATIONALISATION.md 
+AI transparency (EU AI Act)                  docs/compliance/REGULATORY_MAP.md docs/patent/COMPETITIVE_PATENT_ANALYSIS.md docs/patent/PATENT_STRATEGY.md 
+Ethiopia Proclamation 1321/2024              MISSING
+
+openapi files: 
+LICENSE file: MISSING
+docs files: 1429; with a 'Last updated' line: 70
+oldest 'Last updated' values:
+     34 August 2026
+     15 September 2026
+      6 2026-08-23
+      1 October 2026
+      1 2026-08-24

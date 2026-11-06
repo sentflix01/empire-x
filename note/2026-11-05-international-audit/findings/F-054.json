@@ -1,0 +1,28 @@
+{
+  "id": "F-054",
+  "kind": "documentation",
+  "phase": "P8-legal",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Compliance docs claim 'Compliant' and may cite the wrong Ethiopian law number",
+  "standards": [
+    "Ethiopia Personal Data Protection Proclamation (number to confirm: 1309/2024 vs 1321/2024)",
+    "GDPR Art. 5(2) (accountability)"
+  ],
+  "location": [
+    "docs/compliance/ETHIOPIA_DATA_PROTECTION.md:5",
+    "docs/compliance/ETHIOPIA_DATA_PROTECTION.md:19",
+    "docs/compliance/ETHIOPIA_DATA_PROTECTION.md:32"
+  ],
+  "expected": "Compliance status reflects verified controls; the governing law is cited by its correct number.",
+  "actual": "The document states 'Status: Compliant (Continuous Monitoring)' while this audit confirms public identity documents (F-013) and files kept after erasure (F-014). It cites 'Proclamation No. 1309/2024' as the data-protection law; the audit brief cites 'Proclamation No. 1321/2024'. This audit does not decide which is correct.",
+  "evidence": [
+    "docs/compliance/ETHIOPIA_DATA_PROTECTION.md:5-34"
+  ],
+  "impact": "Misstated compliance can mislead investors, partners and regulators; a wrong law number undermines every derived obligation.",
+  "fix": "COUNSEL: confirm the proclamation number and obligations. Change the status to 'Gaps identified — see audit 2026-11' until F-013, F-014, F-015 are fixed.",
+  "effort": "S",
+  "found_on": "2026-11-06",
+  "steps": [],
+  "environment": "repository"
+}

@@ -1,0 +1,20 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "npx next start -p 3002",
+      "url": ["http://localhost:3002/landing", "http://localhost:3002/login", "http://localhost:3002/marketplace"],
+      "numberOfRuns": 3,
+      "settings": { "formFactor": "mobile", "throttlingMethod": "simulate" }
+    },
+    "assert": {
+      "assertions": {
+        "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
+        "total-blocking-time": ["error", { "maxNumericValue": 200 }],
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
+        "resource-summary:script:size": ["error", { "maxNumericValue": 256000 }],
+        "resource-summary:media:size": ["error", { "maxNumericValue": 200000 }],
+        "categories:accessibility": ["error", { "minScore": 0.95 }]
+      }
+    }
+  }
+}

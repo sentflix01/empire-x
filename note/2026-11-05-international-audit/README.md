@@ -1,6 +1,6 @@
 # International-grade audit — 2026-11-05
 
-> **Status:** Waves 1–4 (inventory, security & privacy, journeys, accessibility/UX/performance) complete — see `SUMMARY.md`. Wave 5 (architecture, docs, legal, final report) next. Non-authoritative work note per
+> **Status:** Complete (2026-11-06). Final report: `REPORT.md`; findings table: `SUMMARY.md`; regression starters: `regression-starters/`. Non-authoritative work note per
 > [`note/README.md`](../README.md). Findings become requirements only when
 > adopted into `docs/` or `project-brain/DECISIONS.md`.
 
@@ -62,3 +62,5 @@ Recorded in `scripts/tool-versions.txt` when each wave starts.
 | `scripts/` | Re-runnable commands and helpers |
 | `inventory/` | Wave 1 outputs: routes, endpoints, third parties, data map, permission matrix |
 | `SUMMARY.md` | Generated findings table (`scripts/summarize-findings.mjs`) |
+| `REPORT.md` | Final report: verdict, scores, checklists, roadmap, open questions |
+| `regression-starters/` | Starter tests and CI config for the findings most likely to regress |
