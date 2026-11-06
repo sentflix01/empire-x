@@ -17,6 +17,7 @@ import client from '@/api/client';
 import SafeImage from '@/components/ui/SafeImage';
 import { SPOTLIGHT_LABELS, isCatalogueSection, resolveSpotlight, type SpotlightSection } from '@/lib/spotlight';
 import { spotlightTiles, type SpotlightTile } from '@/lib/spotlightTiles';
+import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 
 const PRODUCT_LIMIT = 12;
 
@@ -126,13 +127,13 @@ export default function BusinessSpotlight({
               <button key={`${s.index}-${s.section.type}`} type="button" role="tab" aria-selected={i === active}
                 onClick={() => setActive(i)}
                 className={`h-7 shrink-0 rounded-full px-3 text-xs font-semibold transition-colors ${i === active ? 'text-white' : 'bg-secondary/60 text-muted-foreground hover:bg-secondary'}`}
-                style={i === active ? { backgroundColor: themeColor } : undefined}>
+                style={i === active ? { backgroundColor: fillForWhiteText(themeColor) } : undefined}>
                 {label(s.section)}
               </button>
             ))}
           </div>
         ) : (
-          <h4 className="truncate text-xs font-bold uppercase tracking-wide" style={{ color: themeColor }}>{label(current.section)}</h4>
+          <h4 className="biz-text truncate text-xs font-bold uppercase tracking-wide" style={{ ...themeTextStyle(themeColor) }}>{label(current.section)}</h4>
         )}
         {visitHref && (
           <Link href={visitHref} className="flex shrink-0 items-center gap-0.5 text-xs font-semibold text-muted-foreground hover:text-foreground">
@@ -161,7 +162,7 @@ function EmptySpotlight({ rootRef, profile, visitHref, themeColor }: {
         {about || 'This business hasn’t added products or services to show here yet.'}
       </p>
       {visitHref && (
-        <Link href={visitHref} className="inline-flex h-9 w-fit items-center gap-1 rounded-full px-4 text-xs font-semibold text-white" style={{ backgroundColor: themeColor }}>
+        <Link href={visitHref} className="inline-flex h-9 w-fit items-center gap-1 rounded-full px-4 text-xs font-semibold text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
           Visit the business <ArrowRight className="h-3 w-3" aria-hidden="true" />
         </Link>
       )}
@@ -272,14 +273,14 @@ function Tile({ tile, themeColor, onBuy }: { tile: SpotlightTile; themeColor: st
       {tile.image
         ? <SafeImage fill={false} width={264} height={184} loading="lazy" src={tile.image} alt="" className="h-full w-full object-cover" />
         : <div className="flex h-full w-full items-center justify-center" style={{ backgroundColor: `${themeColor}14` }}>
-            <ShoppingBag className="h-7 w-7" style={{ color: themeColor }} aria-hidden="true" />
+            <ShoppingBag className="biz-text h-7 w-7" style={{ ...themeTextStyle(themeColor) }} aria-hidden="true" />
           </div>}
     </div>
   );
   const words = (
     <div className="px-2 pt-1.5">
       <p className="truncate text-xs font-semibold" title={tile.title}>{tile.title}</p>
-      <p className="truncate text-xs font-bold" style={{ color: themeColor }}>
+      <p className="biz-text truncate text-xs font-bold" style={{ ...themeTextStyle(themeColor) }}>
         {tile.price ?? <span className="font-normal text-muted-foreground">{tile.subtitle ?? ' '}</span>}
       </p>
     </div>
@@ -291,7 +292,7 @@ function Tile({ tile, themeColor, onBuy }: { tile: SpotlightTile; themeColor: st
       <div className="mt-auto px-2 pb-2">
         {canBuy ? (
           <button type="button" onClick={() => onBuy!(tile.buy as Record<string, any>)} aria-label={`${tile.action} ${tile.title}`}
-            className="h-8 w-full rounded-full text-xs font-semibold text-white active:scale-95" style={{ backgroundColor: themeColor }}>
+            className="h-8 w-full rounded-full text-xs font-semibold text-white active:scale-95" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
             {tile.action}
           </button>
         ) : tile.href ? (

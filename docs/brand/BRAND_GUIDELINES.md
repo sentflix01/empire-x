@@ -69,6 +69,8 @@
 
 #### Primary (Brand)
 
+> **On screen (6 Nov 2026, audit F-041):** `#F59E0B` with white text is 2.1:1 and fails WCAG 2.2 AA. The app uses `#B45309` for amber fills behind white text and for amber text, and keeps `#F59E0B` and lighter shades for decoration. See `project-brain/DECISIONS.md` (2026-11-06, accessible colour shades); the owner to confirm before print and marketing material changes.
+
 | Name | HEX | RGB | CMYK | Usage |
 |------|-----|-----|------|-------|
 | **Nodbusiness Amber** | `#F59E0B` | 245, 158, 11 | 0, 35, 95, 4 | Primary CTAs, brand accent, key metrics |

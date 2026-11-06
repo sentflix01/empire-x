@@ -24,6 +24,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import SignInRequired, { isSignInRequired } from '@/components/auth/SignInRequired';
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import { fillForWhiteText } from '@/lib/contrast';
 
 /* ── Lightweight inquiry / "Get Quote" modal ─────────────────────────────── */
 function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, businessId, isAuthenticated, onClose }: {
@@ -431,7 +432,7 @@ function ShowroomView() {
                 <Link
                   href="/register"
                   className="h-8 px-3 rounded-xl text-white text-xs font-semibold flex items-center transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: themeColor }}
+                  style={{ backgroundColor: fillForWhiteText(themeColor) }}
                 >
                   Join Free
                 </Link>

@@ -24,6 +24,7 @@ import {
   Minimize2, UserIcon, Store, MapPin,
 } from "lucide-react";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import { fillForWhiteText } from '@/lib/contrast';
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
 interface Profile {
@@ -212,7 +213,7 @@ function BusinessProfileEmbed({ profile, business, businesses, themeColor }: any
                 : (
                   <div
                     className="w-full h-full rounded-xl flex items-center justify-center text-white text-3xl font-bold"
-                    style={{ backgroundColor: themeColor }}
+                    style={{ backgroundColor: fillForWhiteText(themeColor) }}
                   >
                     {(biz.business_name ?? "B").charAt(0)}
                   </div>
@@ -436,7 +437,7 @@ export default function ProfilePeek({
                         ? "text-white shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
-                    style={peekView === "business" ? { backgroundColor: themeColor } : {}}
+                    style={peekView === "business" ? { backgroundColor: fillForWhiteText(themeColor) } : {}}
                   >
                     <Store className="w-3 h-3" /> Business
                   </button>

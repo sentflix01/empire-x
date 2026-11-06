@@ -802,3 +802,16 @@ items in the open list until confirmed.
 - **Consequences:** Production must set `PRIVATE_SUPABASE_BUCKET` (a bucket with public access disabled) and run `npm run migrate:verification-docs -- --apply` once to move existing documents. No admin screen shows the documents yet; admins use the API endpoint.
 - **Open:** retention after review (delete on decision, or after N days) — owner and counsel.
 - **Related documentation:** `docs/backend/API.md` (Verification), `docs/operations/ENVIRONMENT_VARIABLES.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Accessible colour shades for text and white-on-colour fills
+
+- **Status:** Accepted for the app (default applied while fixing audit F-041); **owner to confirm** the brand shades for print and marketing.
+- **Decision owner:** Project owner
+- **Context:** axe found 123 colour-contrast failures on 27 of 36 page states in light mode and more in dark mode. The brand amber `#F59E0B` with white text is 2.1:1; amber text on white 3.2:1; business theme colours such as the default gold `#D4AF37` 2.1:1. WCAG 2.2 AA needs 4.5:1 for normal text.
+- **Decision:**
+  1. `frontend-next/app/globals.css` redefines amber-500 `#b45309`, amber-600 `#92400e`, red-500 `#c81e1e`, green-600 `#157a3a`, yellow-600 `#a16207`, blue-500 `#2563eb`, and darkens `--muted-foreground` and `--destructive` in light mode. Lighter shades stay for decoration.
+  2. Dark mode lightens the same text classes, turns pale `bg-*-50` tints into dark tints, and uses `#2563eb` as primary so white text on it passes; `text-primary` is lightened.
+  3. Business-chosen colours keep their hue but are darkened or lightened only as far as needed (`frontend-next/lib/contrast.ts`).
+- **Consequences:** Amber buttons and accents look deeper (orange-brown rather than bright amber). axe reports 0 contrast failures on 44 page states in both themes. The brand book still lists `#F59E0B` for primary CTAs; a note there points here.
+- **Open:** owner to confirm the on-screen amber and whether the brand book should adopt it.
+- **Related documentation:** `docs/product/ACCESSIBILITY.md` (Color Contrast), `docs/product/DESIGN_SYSTEM.md`, `docs/brand/BRAND_GUIDELINES.md`, `note/2026-11-05-international-audit/FIXES.md`

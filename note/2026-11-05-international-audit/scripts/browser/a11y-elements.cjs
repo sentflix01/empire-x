@@ -28,18 +28,23 @@ async function scan(page, path) {
       return { rule: v.id, target: n.target.join(' '), html: n.html.slice(0, 220), ...(v.id === 'color-contrast' ? { fg: d.fgColor, bg: d.bgColor, ratio: d.contrastRatio, need: d.expectedContrastRatio } : {}) };
     }));
   }, RULES);
-  return { path, url: page.url().replace(BASE, ''), violations };
+  const dark = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+  return { path, url: page.url().replace(BASE, ''), dark, violations };
 }
 
 (async () => {
   const browser = await chromium.launch();
   const colorScheme = process.env.THEME === 'dark' ? 'dark' : 'light';
   const results = [];
+  // The app defaults to light and ignores the system setting; next-themes reads localStorage.theme.
+  const useTheme = (ctx) => ctx.addInitScript((t) => { try { localStorage.setItem('theme', t); } catch { /* ignore */ } }, colorScheme);
   const g = await browser.newContext({ viewport: { width: 1280, height: 900 }, colorScheme });
+  await useTheme(g);
   const gp = await g.newPage();
   for (const path of [...GUEST, ...DYNAMIC]) results.push({ role: 'guest', ...(await scan(gp, path)) });
   await g.close();
   const m = await browser.newContext({ viewport: { width: 1280, height: 900 }, colorScheme });
+  await useTheme(m);
   const mp = await m.newPage();
   await mp.goto(BASE + '/login', { waitUntil: 'networkidle' });
   await mp.getByLabel('Email').fill(process.env.E2E_TEST_EMAIL);

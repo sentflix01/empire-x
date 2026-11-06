@@ -40,7 +40,7 @@
 
 | Area | Status | Priority |
 |---|---|---|
-| Color contrast (4.5:1 text, 3:1 UI) | ⚠️ Not audited | High |
+| Color contrast (4.5:1 text, 3:1 UI) | ✅ axe: 0 failures on 44 page states, light and dark (6 Nov 2026, audit F-041) | Keep checking new UI |
 | Keyboard navigation | ⚠️ Partial | High |
 | Screen reader (ARIA labels) | ⚠️ Partial | High |
 | Focus management | ⚠️ Not audited | Medium |
@@ -62,18 +62,12 @@ All text must meet minimum contrast ratios:
 - Large text (≥ 18pt or 14pt bold): **3:1**
 - UI components and focus indicators: **3:1**
 
-**How to check:** axe DevTools browser extension, or use this in code:
-```typescript
-// Tailwind classes to audit:
-// text-muted-foreground on bg-card — check contrast
-// text-amber-600 on white — currently ~3.1:1 (borderline for body text)
-// white text on amber-500 — currently ~2.8:1 (FAILS for normal text)
-```
+**How it is met (audit F-041, 6 Nov 2026):**
+- `app/globals.css` redefines the Tailwind shades used for text and behind white text so they pass 4.5:1: amber-500 `#b45309`, amber-600 `#92400e`, red-500 `#c81e1e`, green-600 `#157a3a`, yellow-600 `#a16207`, blue-500 `#2563eb`; `--muted-foreground` and `--destructive` are darker in light mode and lighter in dark mode. Shades 400 and below are for decoration only.
+- In dark mode the same text classes switch to lighter shades, and pale tints (`bg-*-50`) become dark tints.
+- Colours chosen by businesses (showroom theme colour) go through `lib/contrast.ts`: `themeTextStyle()` with the `biz-text` class for text, `fillForWhiteText()` for fills behind white text. Never put a business colour straight into `color` or behind `text-white`.
 
-**Action items:**
-- Audit all `text-muted-foreground` instances — darken if failing
-- White text on amber buttons — increase button darkness or add text shadow
-- Amber text on white background — switch to amber-700 for body text
+**How to check:** `note/2026-11-05-international-audit/scripts/browser/a11y-elements.cjs` (axe-core, every failing element; `THEME=dark` for dark mode), or the axe DevTools browser extension.
 
 #### Images
 All `<img>` and `<Image>` components must have meaningful `alt` text:

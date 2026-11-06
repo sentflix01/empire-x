@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { Store, UserCheck, UserPlus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import TryDemoButton from '@/components/landing/TryDemoButton';
+import { fillForWhiteText } from '@/lib/contrast';
 
 interface QRLandingModalProps {
   businessName: string;
@@ -63,7 +64,7 @@ export default function QRLandingModal({
           {/* Business logo or icon */}
           <div
             className="w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-md overflow-hidden"
-            style={{ backgroundColor: themeColor }}
+            style={{ backgroundColor: fillForWhiteText(themeColor) }}
           >
             {logoUrl
               ? <SafeImage fill={false} width={800} height={600} src={logoUrl} alt={businessName} className="w-full h-full object-cover" />
@@ -106,7 +107,7 @@ export default function QRLandingModal({
           <Link
             href={`/register?return=${returnParam}`}
             className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-white transition-all hover:opacity-90"
-            style={{ backgroundColor: themeColor }}
+            style={{ backgroundColor: fillForWhiteText(themeColor) }}
             onClick={dismiss}
           >
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">

@@ -1,0 +1,27 @@
+{
+  "checked_on": "2026-11-06",
+  "tool": "scripts/browser/a11y-elements.cjs (axe-core 4.10.3, all WCAG 2.0-2.2 A/AA rules), local stack, 44 page states per theme; dark mode set through the app theme setting",
+  "before": {
+    "light": {
+      "aria-prohibited-attr": 18,
+      "target-size": 7,
+      "color-contrast": 123,
+      "svg-img-alt": 3,
+      "image-alt": 1,
+      "select-name": 1,
+      "nested-interactive": 13,
+      "button-name": 14,
+      "link-name": 12,
+      "label": 2
+    }
+  },
+  "after": {
+    "light": {
+      "target-size": 7
+    },
+    "dark": {
+      "target-size": 7
+    }
+  },
+  "note": "Dark mode before the fix: 99 colour-contrast failures (measured mid-fix with the corrected dark-mode scan, after the light-mode token change). target-size remains and belongs to F-044."
+}
