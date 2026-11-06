@@ -184,16 +184,14 @@ jobs:
   # must be resolved before a merge to main can land.
   # Uses --package-lock-only so no npm ci needed — saves ~2 min per run.
   secrets:
-    name: Secret scan — new commits (report-only for now)
+    name: Secret scan — new commits (blocking)
     # gitleaks over the commits this pull request or push adds (audit F-024).
-    # Report-only until its first runs are reviewed; then delete
-    # continue-on-error to make it blocking. Also turn on GitHub secret scanning
-    # and push protection in the repository settings.
+    # Verified false positives go in .gitleaks.toml with a reason. Also turn on
+    # GitHub secret scanning and push protection in the repository settings.
     needs: check-skip
     if: needs.check-skip.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    continue-on-error: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **363** across **52** mounted modules · Generated: 2026-11-06
+> Endpoints: **371** across **52** mounted modules · Generated: 2026-11-06
 
 | Legend | Meaning |
 |---|---|
@@ -18,7 +18,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 ## Contents
 - [`admin`](#admin) (19)
 - [`ai`](#ai) (4)
-- [`auth`](#auth) (20)
+- [`auth`](#auth) (21)
 - [`businessApiKeys`](#businessapikeys) (3)
 - [`businesses`](#businesses) (10)
 - [`businessWebhooks`](#businesswebhooks) (4)
@@ -26,7 +26,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`commission`](#commission) (2)
 - [`coupons`](#coupons) (6)
 - [`delivery`](#delivery) (2)
-- [`devops`](#devops) (15)
+- [`devops`](#devops) (20)
 - [`directOrders`](#directorders) (12)
 - [`docs`](#docs) (1)
 - [`externalSources`](#externalsources) (9)
@@ -61,7 +61,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`subscriptions`](#subscriptions) (5)
 - [`subscriptionsEtb`](#subscriptionsetb) (9)
 - [`suggestions`](#suggestions) (2)
-- [`telegram`](#telegram) (4)
+- [`telegram`](#telegram) (6)
 - [`trending`](#trending) (2)
 - [`upload`](#upload) (2)
 - [`variants`](#variants) (4)
@@ -123,10 +123,11 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:977 |
 | `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:1032 |
 | `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:1068 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1118 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1157 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1240 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1280 |
+| `PUT` | `/api/auth/update-name` | 🔒 auth | routes/auth.ts:1119 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1141 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1180 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1263 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1303 |
 
 ## businessApiKeys — Business API key management
 
@@ -181,12 +182,12 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/coupons/` | 🔒 auth | routes/coupons.ts:8 |
-| `GET` | `/api/coupons/mine` | 🔒 auth | routes/coupons.ts:34 |
-| `POST` | `/api/coupons/validate` | 🌐 public | routes/coupons.ts:41 |
-| `POST` | `/api/coupons/use` | 🔒 auth | routes/coupons.ts:61 |
-| `PATCH` | `/api/coupons/:id/toggle` | 🔒 auth | routes/coupons.ts:67 |
-| `DELETE` | `/api/coupons/:id` | 🔒 auth | routes/coupons.ts:77 |
+| `POST` | `/api/coupons/` | 🔒 auth | routes/coupons.ts:9 |
+| `GET` | `/api/coupons/mine` | 🔒 auth | routes/coupons.ts:38 |
+| `POST` | `/api/coupons/validate` | 🌐 public | routes/coupons.ts:45 |
+| `POST` | `/api/coupons/use` | 🔒 auth | routes/coupons.ts:75 |
+| `PATCH` | `/api/coupons/:id/toggle` | 🔒 auth | routes/coupons.ts:81 |
+| `DELETE` | `/api/coupons/:id` | 🔒 auth | routes/coupons.ts:91 |
 
 ## delivery — delivery
 
@@ -199,21 +200,26 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/devops/` | 👑 admin | routes/devops.ts:13 |
-| `POST` | `/api/devops/` | 👑 admin | routes/devops.ts:20 |
-| `PUT` | `/api/devops/:id` | 👑 admin | routes/devops.ts:37 |
-| `DELETE` | `/api/devops/:id` | 👑 admin | routes/devops.ts:56 |
-| `GET` | `/api/devops/errors` | 👑 admin | routes/devops.ts:65 |
-| `PUT` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:80 |
-| `POST` | `/api/devops/errors/report` | ⚪ optional | routes/devops.ts:93 |
-| `GET` | `/api/devops/versions` | 🌐 public | routes/devops.ts:108 |
-| `PUT` | `/api/devops/versions` | 👑 admin | routes/devops.ts:115 |
-| `GET` | `/api/devops/health-summary` | 👑 admin | routes/devops.ts:130 |
-| `GET` | `/api/devops/telemetry` | 👑 admin | routes/devops.ts:165 |
-| `POST` | `/api/devops/copilot` | 👑 admin | routes/devops.ts:304 |
-| `GET` | `/api/devops/scorecard` | 👑 admin | routes/devops.ts:327 |
-| `GET` | `/api/devops/log-report` | 👑 admin | routes/devops.ts:339 |
-| `GET` | `/api/devops/log-report/:file` | 👑 admin | routes/devops.ts:358 |
+| `GET` | `/api/devops/` | 👑 admin | routes/devops.ts:15 |
+| `POST` | `/api/devops/` | 👑 admin | routes/devops.ts:22 |
+| `PUT` | `/api/devops/:id` | 👑 admin | routes/devops.ts:39 |
+| `DELETE` | `/api/devops/:id` | 👑 admin | routes/devops.ts:58 |
+| `GET` | `/api/devops/errors` | 👑 admin | routes/devops.ts:75 |
+| `GET` | `/api/devops/errors/stats` | 👑 admin | routes/devops.ts:103 |
+| `PATCH` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:136 |
+| `PUT` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:137 |
+| `PATCH` | `/api/devops/errors/resolve-all` | 👑 admin | routes/devops.ts:139 |
+| `POST` | `/api/devops/errors/:id/to-ticket` | 👑 admin | routes/devops.ts:155 |
+| `POST` | `/api/devops/errors/report` | ⚪ optional | routes/devops.ts:194 |
+| `GET` | `/api/devops/versions` | 👑 admin | routes/devops.ts:210 |
+| `PUT` | `/api/devops/versions` | 👑 admin | routes/devops.ts:217 |
+| `PUT` | `/api/devops/versions/:version` | 👑 admin | routes/devops.ts:230 |
+| `GET` | `/api/devops/health-summary` | 👑 admin | routes/devops.ts:253 |
+| `GET` | `/api/devops/telemetry` | 👑 admin | routes/devops.ts:288 |
+| `POST` | `/api/devops/copilot` | 👑 admin | routes/devops.ts:427 |
+| `GET` | `/api/devops/scorecard` | 👑 admin | routes/devops.ts:450 |
+| `GET` | `/api/devops/log-report` | 👑 admin | routes/devops.ts:462 |
+| `GET` | `/api/devops/log-report/:file` | 👑 admin | routes/devops.ts:481 |
 
 ## directOrders — Buy by paying the seller directly (guest or signed in).
 
@@ -383,17 +389,17 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/orders/` | 🔒 auth | routes/orders.ts:92 |
-| `GET` | `/api/orders/session/:sessionId` | 🔒 auth | routes/orders.ts:121 |
-| `GET` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:129 |
-| `POST` | `/api/orders/` | 🔒 auth | routes/orders.ts:184 |
-| `PUT` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:262 |
-| `POST` | `/api/orders/checkout/session` | 🔒 auth | routes/orders.ts:332 |
-| `POST` | `/api/orders/webhook` | 🌐 public | routes/orders.ts:646 |
-| `POST` | `/api/orders/checkout/chapa` | 🔒 auth | routes/orders.ts:680 |
-| `GET` | `/api/orders/chapa/sandbox` | 🌐 public | routes/orders.ts:748 |
-| `GET` | `/api/orders/chapa/status/:tx_ref` | 🌐 public | routes/orders.ts:760 |
-| `GET` | `/api/orders/chapa/verify/:tx_ref` | 🌐 public | routes/orders.ts:771 |
+| `GET` | `/api/orders/` | 🔒 auth | routes/orders.ts:94 |
+| `GET` | `/api/orders/session/:sessionId` | 🔒 auth | routes/orders.ts:123 |
+| `GET` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:131 |
+| `POST` | `/api/orders/` | 🔒 auth | routes/orders.ts:186 |
+| `PUT` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:264 |
+| `POST` | `/api/orders/checkout/session` | 🔒 auth | routes/orders.ts:334 |
+| `POST` | `/api/orders/webhook` | 🌐 public | routes/orders.ts:648 |
+| `POST` | `/api/orders/checkout/chapa` | 🔒 auth | routes/orders.ts:682 |
+| `GET` | `/api/orders/chapa/sandbox` | 🌐 public | routes/orders.ts:750 |
+| `GET` | `/api/orders/chapa/status/:tx_ref` | 🔒 auth | routes/orders.ts:764 |
+| `GET` | `/api/orders/chapa/verify/:tx_ref` | 🌐 public | routes/orders.ts:777 |
 
 ## polls — polls
 
@@ -619,10 +625,12 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/telegram/connect` | 🔒 auth | routes/telegram.ts:29 |
-| `POST` | `/api/telegram/disconnect` | 🔒 auth | routes/telegram.ts:38 |
-| `GET` | `/api/telegram/status` | 🔒 auth | routes/telegram.ts:45 |
-| `POST` | `/api/telegram/test` | 🔒 auth | routes/telegram.ts:52 |
+| `POST` | `/api/telegram/connect` | 🔒 auth | routes/telegram.ts:39 |
+| `POST` | `/api/telegram/disconnect` | 🔒 auth | routes/telegram.ts:62 |
+| `DELETE` | `/api/telegram/disconnect` | 🔒 auth | routes/telegram.ts:63 |
+| `GET` | `/api/telegram/status` | 🔒 auth | routes/telegram.ts:65 |
+| `PUT` | `/api/telegram/notifications` | 🔒 auth | routes/telegram.ts:79 |
+| `POST` | `/api/telegram/test` | 🔒 auth | routes/telegram.ts:95 |
 
 ## trending — trending
 
@@ -664,15 +672,15 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/wallet/me` | 🔒 auth | routes/wallet.ts:87 |
-| `POST` | `/api/wallet/topup` | 🔒 auth | routes/wallet.ts:98 |
-| `POST` | `/api/wallet/withdraw` | 🔒 auth | routes/wallet.ts:111 |
-| `POST` | `/api/wallet/debit` | 🔒 auth | routes/wallet.ts:124 |
-| `POST` | `/api/wallet/refund` | 🔒 auth | routes/wallet.ts:137 |
-| `POST` | `/api/wallet/topup/chapa` | 🔒 auth | routes/wallet.ts:152 |
-| `GET` | `/api/wallet/topup/chapa/sandbox` | 🌐 public | routes/wallet.ts:189 |
-| `GET` | `/api/wallet/topup/chapa/verify/:tx_ref` | 🌐 public | routes/wallet.ts:203 |
-| `POST` | `/api/wallet/topup/stripe` | 🔒 auth | routes/wallet.ts:271 |
+| `GET` | `/api/wallet/me` | 🔒 auth | routes/wallet.ts:106 |
+| `POST` | `/api/wallet/topup` | 🔒 auth | routes/wallet.ts:117 |
+| `POST` | `/api/wallet/withdraw` | 🔒 auth | routes/wallet.ts:130 |
+| `POST` | `/api/wallet/debit` | 🔒 auth | routes/wallet.ts:144 |
+| `POST` | `/api/wallet/refund` | 🔒 auth | routes/wallet.ts:157 |
+| `POST` | `/api/wallet/topup/chapa` | 🔒 auth | routes/wallet.ts:172 |
+| `GET` | `/api/wallet/topup/chapa/sandbox` | 🌐 public | routes/wallet.ts:209 |
+| `GET` | `/api/wallet/topup/chapa/verify/:tx_ref` | 🌐 public | routes/wallet.ts:224 |
+| `POST` | `/api/wallet/topup/stripe` | 🔒 auth | routes/wallet.ts:293 |
 
 ## wishlists — wishlists
 

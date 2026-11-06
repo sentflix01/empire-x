@@ -438,7 +438,7 @@ void verifySharedDatabaseIsolation().then(verifyDemoStorageIsolation).then(() =>
   startDirectOrderExpiry();
 
   // Data patches (migrate83–85) used to re-run here on every start; they now
-  // run once through db/migrate-all.js and its schema_migrations ledger (F-009).
+  // run once through db/migrate-all.js and its migration_ledger ledger (F-009).
 
   // ── Auto-create Supabase Storage bucket ──────────────────────────────────
   setTimeout(async () => {

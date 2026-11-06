@@ -238,15 +238,17 @@ function ChangePasswordForm({ onBack, onDone }: { onBack: () => void; onDone: ()
 function ChangeNameForm({ currentName, onBack, onDone }: { currentName: string; onBack: () => void; onDone: () => void }) {
   const [name, setName] = useState(currentName);
   const [saving, setSaving] = useState(false);
+  const { refreshUser } = useAuth();
 
   async function handleSubmit() {
     if (!name.trim()) { toast.error('Name cannot be empty'); return; }
     setSaving(true);
     try {
-      // Update full_name on users table + display_name on user_profiles
+      // The profile display name and the account name (users.full_name, which
+      // /api/auth/me returns) change together; a failure is shown (audit F-004).
       await client.put('/api/profiles/me/upsert', { display_name: name.trim() });
-      // Also update users.full_name via a dedicated endpoint if available
-      await client.put('/api/auth/update-name', { full_name: name.trim() }).catch(() => {});
+      await client.put('/api/auth/update-name', { full_name: name.trim() });
+      await refreshUser().catch(() => undefined); // show the new name right away
       toast.success('Display name updated');
       onDone();
     } catch (err: any) {

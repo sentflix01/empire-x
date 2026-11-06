@@ -10,7 +10,7 @@ on:
     branches: [main]
 
 # Only run one deploy at a time. Never cancel a running deploy: migrations are
-# recorded in schema_migrations only after each succeeds (db/migrate-all.js),
+# recorded in migration_ledger only after each succeeds (db/migrate-all.js),
 # but a migration cancelled mid-run is not wrapped in one transaction and can
 # leave its own changes half-applied. A newer push waits in the queue instead.
 concurrency:
