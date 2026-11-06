@@ -22,8 +22,8 @@ export default function AuthLayout({ title, subtitle, footer, children, icon: Ic
               </div>
             ) : (
               <>
-                {/* Brand video circle — SVG background renders instantly,
-                    video covers it once first frame is decoded. */}
+                {/* Brand logo circle: the static SVG only. The intro video (1 MB)
+                    was downloaded on every sign-in page for a 64 px logo (F-045). */}
                 <div
                   className="relative w-16 h-16 rounded-full overflow-hidden"
                   style={{
@@ -33,17 +33,8 @@ export default function AuthLayout({ title, subtitle, footer, children, icon: Ic
                     backgroundPosition: 'center',
                     boxShadow: '0 0 0 2px rgba(0,0,0,0.08), 0 4px 20px rgba(0,0,0,0.15)',
                   }}
-                >
-                  <video
-                    src="/brand/nodbusiness-intro.mp4"
-                    autoPlay
-                    muted
-                    playsInline
-                    loop
-                    className="absolute inset-0 w-full h-full object-cover block"
-                    aria-hidden="true"
-                  />
-                </div>
+                  aria-hidden="true"
+                />
                 <span className="text-base font-black tracking-tight text-foreground">
                   Nodbusiness
                 </span>

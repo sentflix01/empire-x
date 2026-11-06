@@ -17,6 +17,7 @@
 import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { BRAND_INTRO_VIDEO, useBrandMotion } from '@/lib/brandMotion';
 
 interface BrandLogoVideoProps {
   /** Size and spacing classes e.g. "w-14 h-14". Defaults to 56px. */
@@ -34,13 +35,14 @@ export default function BrandLogoVideo({
   label,
   style,
 }: BrandLogoVideoProps) {
+  const motion = useBrandMotion();
   const [errored, setErrored]   = useState(false);
   const [videoReady, setVideoReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const px = size;
 
-  // Hard error fallback — video completely failed to load
-  if (errored) {
+  // Static logo when the video failed, or motion / data saving says no (F-045)
+  if (errored || !motion) {
     return (
       <Image
         src="/brand/nodbusiness-icon.svg"
@@ -94,7 +96,7 @@ export default function BrandLogoVideo({
       {/* Video — fades in when first frame is ready */}
       <video
         ref={videoRef}
-        src="/brand/nodbusiness-intro.mp4"
+        src={BRAND_INTRO_VIDEO}
         autoPlay
         muted
         playsInline

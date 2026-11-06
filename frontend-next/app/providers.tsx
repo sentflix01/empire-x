@@ -15,11 +15,15 @@ import { AuthProvider } from '@/lib/AuthContext';
 import { CartProvider } from '@/lib/CartContext';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
-import AiAssistant from '@/components/AiAssistant';
-import PageGuide from '@/components/PageGuide';
+import dynamic from 'next/dynamic';
+// Loaded after the page is interactive: neither is needed for the first paint,
+// and together they were about 60 KB of compressed script on every page (F-045).
+const AiAssistant = dynamic(() => import('@/components/AiAssistant'), { ssr: false });
+const PageGuide = dynamic(() => import('@/components/PageGuide'), { ssr: false });
 import GlobalErrorReporter from '@/components/GlobalErrorReporter';
 import SplashScreen from '@/components/brand/SplashScreen';
 import NavigationProgress from '@/components/NavigationProgress';
+import DeferredMount from '@/components/DeferredMount';
 import ServiceWorkerRegistrar from '@/components/pwa/ServiceWorkerRegistrar';
 import { initSentry } from '@/lib/sentry';
 // Initialize i18n — must be imported here so it runs before any component renders
@@ -51,8 +55,10 @@ export default function Providers({ children, nonce }: { children: React.ReactNo
               <GlobalErrorReporter />
               <ServiceWorkerRegistrar />
               {children}
-              <AiAssistant />
-              <PageGuide />
+              <DeferredMount>
+                <AiAssistant />
+                <PageGuide />
+              </DeferredMount>
               <Toaster />
               {/* Views call toast() from 'sonner'; without this container none of those messages appear. */}
               <SonnerToaster richColors closeButton />
