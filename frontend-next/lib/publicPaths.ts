@@ -68,6 +68,24 @@ export function isPublicPath(pathname: string): boolean {
   return false;
 }
 
+/**
+ * Top-level segments of real app pages that need sign-in. The edge proxy
+ * sends guests to sign-in only under these; any other unknown path reaches
+ * the not-found page with a 404 instead (audit F-036). A test checks that
+ * every page in app/ is either public or listed here.
+ */
+export const SIGN_IN_ROOTS: ReadonlySet<string> = new Set([
+  'account', 'admin', 'analytics', 'bookmarks', 'business', 'cart', 'coupons',
+  'friends', 'messages', 'notifications', 'orders', 'privacy', 'products',
+  'profile', 'referral', 'scorecard', 'search', 'settings', 'showroom', 'wallet',
+]);
+
+/** True when a guest asking for this path should be sent to sign-in. */
+export function requiresSignIn(pathname: string): boolean {
+  if (isPublicPath(pathname)) return false;
+  return SIGN_IN_ROOTS.has(pathname.split('/')[1] ?? '');
+}
+
 /** True when path is guest-browsable but write actions require sign-up */
 export function isGuestBrowsablePath(pathname: string): boolean {
   return [

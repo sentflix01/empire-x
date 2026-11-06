@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { isPublicPath } from '@/lib/publicPaths';
+import { requiresSignIn } from '@/lib/publicPaths';
 import { safeReturnPath } from '@/lib/safeReturnPath';
 import { buildCsp, createNonce } from '@/lib/csp';
 
@@ -56,8 +56,9 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/feed', request.url));
   }
 
-  // Unauthenticated users on protected routes → login with return URL
-  if (!isLoggedIn && !isPublicPath(pathname)) {
+  // Guests on known protected pages → sign-in with a return URL. Unknown
+  // paths fall through to the not-found page (audit F-036).
+  if (!isLoggedIn && requiresSignIn(pathname)) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('return', pathname);
     return NextResponse.redirect(loginUrl);
