@@ -60,7 +60,7 @@ describe('validating a coupon for a buyer', () => {
   it('computes a percentage discount', async () => {
     const res = await validate({ code: 'save10', seller_id: seller.id, order_total: 250 });
     expect(res.status).toBe(200);
-    expect(res.body.discount).toBe(25);
+    expect(res.body).toEqual({ valid: true, code: 'SAVE10', discount: 25 }); // not the coupon row (F-023)
   });
 
   it('never discounts more than the order', async () => {

@@ -105,7 +105,8 @@ router.post('/errors/report', optionalAuth, async (req: Request, res: Response) 
 
 // ── Version board ─────────────────────────────────────────────────────────────
 
-router.get('/versions', async (_req: Request, res: Response) => {
+// Admin-only: the release-status board is internal (audit F-023).
+router.get('/versions', requireAuth, requireAdmin, async (_req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(`SELECT value FROM app_settings WHERE key='devops_version_statuses'`);
     res.json(rows[0]?.value ?? {});

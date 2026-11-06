@@ -67,7 +67,8 @@ router.post('/validate', async (req: Request, res: Response) => {
       : Number(coupon.discount_value);
     // Never more than the order, rounded to cents.
     const discount = Math.round(Math.min(raw, total ?? raw) * 100) / 100;
-    res.json({ valid: true, coupon, discount });
+    // Only what the buyer needs: not the seller's whole coupon row (audit F-023).
+    res.json({ valid: true, code: coupon.code, discount });
   } catch { res.status(500).json({ error: 'Failed to validate coupon' }); }
 });
 

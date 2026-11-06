@@ -260,6 +260,7 @@ app.use('/api/auth/reset-password',   rateLimit(rlOpts(10,  'rl:reset-pw:')));
 app.use('/api/auth/change-password',  rateLimit(rlOpts(10,  'rl:change-pw:')));
 app.use('/api/auth/refresh',          rateLimit(rlOpts(60,  'rl:refresh:')));
 app.use('/api/auth/mfa',              rateLimit(rlOpts(20,  'rl:mfa:')));   // per IP; per-person lock in auth.ts
+app.use('/api/coupons/validate',      rateLimit(rlOpts(30,  'rl:coupon-validate:')));  // slows code guessing (F-023)
 
 // ── Body parsing ──────────────────────────────────────────────────────────────
 app.use('/api/orders/webhook',        express.raw({ type: 'application/json' }));
