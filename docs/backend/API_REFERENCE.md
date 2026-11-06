@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **352** across **50** mounted modules · Generated: 2026-11-02
+> Endpoints: **353** across **50** mounted modules · Generated: 2026-11-06
 
 | Legend | Meaning |
 |---|---|
@@ -61,7 +61,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`suggestions`](#suggestions) (2)
 - [`telegram`](#telegram) (4)
 - [`trending`](#trending) (2)
-- [`upload`](#upload) (1)
+- [`upload`](#upload) (2)
 - [`variants`](#variants) (4)
 - [`verification`](#verification) (6)
 - [`wallet`](#wallet) (9)
@@ -615,7 +615,8 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/upload/` | 🔒 auth | routes/upload.ts:10 |
+| `POST` | `/api/upload/` | 🔒 auth | routes/upload.ts:74 |
+| `POST` | `/api/upload/multiple` | 🔒 auth | routes/upload.ts:121 |
 
 ## variants — variants
 

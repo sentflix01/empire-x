@@ -730,6 +730,15 @@ Upload a file (image). Requires auth.
 **Response:** `{ "url": "https://pub-xxx.r2.dev/filename.jpg" }`
 **Limits:** `MAX_FILE_SIZE_MB` (default 10MB); images, videos, PDFs only
 
+### POST /api/upload/multiple
+Upload several photos in one request (product galleries). Requires auth.
+
+**Request:** `multipart/form-data` with up to 10 files in the `files` field
+**Response:** `{ "files": [{ "url", "filename", "mimetype", "size" }] }` in the order sent
+**Checks:** each file gets the same content-signature check as `POST /api/upload`; if any file fails,
+nothing is stored and the answer is `415 { code: "MAGIC_BYTE_MISMATCH", index }`.
+**Errors:** `400` no files or more than 10 · `413` a file over `MAX_FILE_SIZE_MB`
+
 ---
 
 ## Health
