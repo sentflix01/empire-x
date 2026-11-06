@@ -72,10 +72,11 @@
 ---
 
 ### TD-025: Frontend test suite full-run parallelism flakes
-**Status:** Known — workaround available  
-**Problem:** Running all 54 Vitest test files in parallel spawns ~54 workers simultaneously. Under constrained resources the transform step races and one or two files report a transform error that does not reproduce in isolation. Every test file passes when run alone.  
-**Fix:** Add `isolate: false` to `vitest.config.ts` to reuse workers across files (~178s faster per the Vitest output). Alternatively run CI with `--reporter=dot` and retry once on any transform failure.  
-**Impact:** Occasional false-red CI runs; no real test regressions.
+**Status:** Open — cause not found (re-checked 2026-11-06, audit F-053)  
+**Problem:** Now and then one test file fails in a full `vitest run` (two tests at once: `test/feed/PhotoViewer.test.tsx` PostCard tests in the audit, `test/showroom/sectionsLive.test.tsx` once on 2026-11-06) and passes when re-run. Only the test names were kept, not the error.  
+**Checked:** `vitest.config.mts` already limits workers (`maxWorkers: 2`). Eight full runs on 2026-11-06 (four alone, four with two suites at once) all passed. With Testing Library's wait limit cut to 60 ms every test still passed, so slow async waits are not the cause. Neither file uses lazy imports.  
+**Next time it fails:** keep the full error and stack from the CI log (Frontend unit tests job) and add it here before re-running. Do not add automatic retries: they would hide real failures.  
+**Impact:** Occasional false-red CI runs; no real test regressions found.
 
 ### TD-004: TypeScript migration (backend)
 **Status:** Not started  
