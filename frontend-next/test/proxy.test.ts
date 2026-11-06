@@ -40,6 +40,10 @@ describe('public route policy', () => {
 
   it.each([
     '/wallet',
+    '/products/create',
+    '/products/edit',
+    '/products/edit/abc',
+    '/products/scan',
     '/service-agreement/manage',
     '/auth/google',
     '/auth/google/callback/manage',
@@ -63,7 +67,7 @@ describe('guests and unknown paths (audit F-036)', () => {
   });
 
   it.each([
-    '/wallet', '/orders', '/orders/success', '/messages/abc',
+    '/wallet', '/orders', '/orders/success', '/messages/abc', '/products/create', '/products/scan',
     '/profile/edit', '/showroom/create', '/business/edit', '/admin/devops', '/settings',
   ])('still sends guests from %s to sign-in', (pathname) => {
     expect(requiresSignIn(pathname)).toBe(true);

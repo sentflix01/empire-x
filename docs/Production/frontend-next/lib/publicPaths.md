@@ -12,7 +12,7 @@ Guests can browse discovery pages (feed, marketplace, showrooms, public profiles
 
 ## 3. What does it do?
 
-- `isPublicPath(pathname)`: true for pages a guest may open (exact public paths plus public prefixes such as `/products/`, `/showroom/`, `/p/`, `/order/`). Auth-only prefixes and showroom builder pages always return false.
+- `isPublicPath(pathname)`: true for pages a guest may open (exact public paths plus public prefixes such as `/products/`, `/showroom/`, `/p/`, `/order/`). Auth-only prefixes (including the product builder pages `/products/create`, `/products/edit`, `/products/scan`, audit F-012) and showroom builder pages always return false.
 - `SIGN_IN_ROOTS` and `requiresSignIn(pathname)`: true only for non-public paths under the top-level segments of real app pages that need sign-in (`orders`, `wallet`, `settings`, `admin`, …). The proxy redirects guests to `/login?return=…` only when this is true. Every other unknown path reaches the not-found page with status 404 (audit F-036); before, every unknown path sent guests to sign-in.
 - `isGuestBrowsablePath(pathname)`: pages a guest can read where write actions prompt sign-up.
 
