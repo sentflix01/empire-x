@@ -20,6 +20,7 @@ import PageGuide from '@/components/PageGuide';
 import GlobalErrorReporter from '@/components/GlobalErrorReporter';
 import SplashScreen from '@/components/brand/SplashScreen';
 import NavigationProgress from '@/components/NavigationProgress';
+import ServiceWorkerRegistrar from '@/components/pwa/ServiceWorkerRegistrar';
 import { initSentry } from '@/lib/sentry';
 // Initialize i18n — must be imported here so it runs before any component renders
 import i18n from '@/lib/i18n';
@@ -48,6 +49,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               {/* Global error reporter — captures window.onerror + unhandledrejection */}
               {/* Reports to DevOps Live Error Feed in real time */}
               <GlobalErrorReporter />
+              <ServiceWorkerRegistrar />
               {children}
               <AiAssistant />
               <PageGuide />

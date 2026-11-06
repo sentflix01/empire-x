@@ -1,40 +1,78 @@
-// Nodbusiness Service Worker — PWA offline support + push notifications
+// Nodbusiness service worker — offline page + push notifications.
+//
+// Privacy rule (audit F-048): only public, versioned static files are cached.
+// Pages, API responses and anything from another origin always go to the
+// network, so no signed-in data is stored on the device and nothing needs
+// clearing on logout.
 
-const CACHE_NAME = 'nodbusiness-v2';
-const STATIC_ASSETS = ['/', '/index.html'];
+const VERSION = 'v3';
+const SHELL_CACHE = `nodbusiness-shell-${VERSION}`;
+const STATIC_CACHE = `nodbusiness-static-${VERSION}`;
+const OFFLINE_URL = '/offline';
+const SHELL_ASSETS = [OFFLINE_URL, '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
+const MAX_STATIC_ENTRIES = 300;
 
-// Install — cache static assets
+// Next.js build output is content-hashed, so a cached copy never goes stale.
+function isStaticAsset(url) {
+  return url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/icons/') || url.pathname.startsWith('/brand/');
+}
+
+// Install — cache the offline page and the scripts and styles it needs.
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
-  );
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const shell = await caches.open(SHELL_CACHE);
+    await shell.addAll(SHELL_ASSETS);
+    const page = await shell.match(OFFLINE_URL);
+    const html = page ? await page.text() : '';
+    const assets = [...new Set(html.match(/\/_next\/static\/[^"'\s)]+/g) || [])];
+    if (assets.length) await (await caches.open(STATIC_CACHE)).addAll(assets);
+    await self.skipWaiting();
+  })());
 });
 
-// Activate — clean old caches
+// Activate — remove caches from earlier versions (including v2, which cached pages).
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keep = new Set([SHELL_CACHE, STATIC_CACHE]);
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => !keep.has(k)).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 
-// Fetch — network first, fallback to cache
-self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
-  if (event.request.url.includes('/api/')) return; // never cache API calls
+async function trimStaticCache(cache) {
+  const keys = await cache.keys();
+  for (let i = 0; i < keys.length - MAX_STATIC_ENTRIES; i += 1) await cache.delete(keys[i]);
+}
 
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        return response;
-      })
-      .catch(() => caches.match(event.request))
-  );
+self.addEventListener('fetch', event => {
+  const { request } = event;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/api/')) return;
+
+  // Pages: always from the network; the offline page only when it fails.
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).catch(async () => (await caches.match(OFFLINE_URL)) || Response.error()));
+    return;
+  }
+
+  // Versioned static files: cache first.
+  if (isStaticAsset(url)) {
+    event.respondWith((async () => {
+      const cached = await caches.match(request);
+      if (cached) return cached;
+      const response = await fetch(request);
+      if (response.ok && response.type === 'basic') {
+        const cache = await caches.open(STATIC_CACHE);
+        await cache.put(request, response.clone());
+        trimStaticCache(cache);
+      }
+      return response;
+    })());
+  }
+  // Everything else: default browser handling (network).
 });
 
 // Push notifications

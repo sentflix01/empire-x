@@ -63,6 +63,8 @@ export default [
         caches: "readonly",
         fetch: "readonly",
         clients: "readonly",
+        Response: "readonly",
+        URL: "readonly",
       },
     },
   },

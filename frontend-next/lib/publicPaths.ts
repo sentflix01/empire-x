@@ -19,6 +19,7 @@ const PUBLIC_PATHS = new Set([
   '/choose-mode',   // always accessible — handles own auth check via AuthContext
   '/service-agreement',
   '/not-found',
+  '/offline',       // served by the service worker when the network is down
   '/sitemap',
   '/robots',
   '/onboarding',
