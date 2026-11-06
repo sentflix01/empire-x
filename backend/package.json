@@ -25,6 +25,7 @@
     "typecheck": "tsc --noEmit",
     "migrate": "node db/migrate-all.js",
     "migrate:demo": "node db/migrate-demo.js",
+    "migrate:verification-docs": "tsx scripts/migrate-verification-documents.ts",
     "seed": "node db/seed.js",
     "seed:e2e": "node db/seed-e2e.js",
     "seed:e2e:messaging": "node db/seed-e2e-messaging.js",

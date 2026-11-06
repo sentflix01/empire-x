@@ -66,7 +66,13 @@ describe('referral', () => {
 });
 
 describe('verification', () => {
-  const urls = { selfie_url: 'https://cdn.example.test/s.jpg', id_document_url: 'https://cdn.example.test/id.jpg' };
+  // Documents are stored privately first (POST /documents); requests carry the
+  // caller's own private references, never public URLs (audit F-013).
+  const owner = '11111111-2222-3333-4444-555555555555';
+  const refs = {
+    selfie_ref: `private:verification/${owner}/aaaaaaaa-0000-4000-8000-000000000001.jpg`,
+    id_document_ref: `private:verification/${owner}/aaaaaaaa-0000-4000-8000-000000000002.jpg`,
+  };
 
   it('rejects a request without the selfie and ID document the table requires', async () => {
     const res = await request(buildApp(verification, '/api/verification')).post('/api/verification/request').send({ verification_type: 'personal' });
@@ -74,22 +80,29 @@ describe('verification', () => {
     expect(pool.query).not.toHaveBeenCalled();
   });
 
-  it('inserts the uploaded document URLs on a first request', async () => {
+  it('refuses public document URLs', async () => {
+    const res = await request(buildApp(verification, '/api/verification')).post('/api/verification/request')
+      .send({ verification_type: 'personal', selfie_url: 'https://cdn.example.test/s.jpg', id_document_url: 'https://cdn.example.test/id.jpg' });
+    expect(res.status).toBe(400);
+    expect(pool.query).not.toHaveBeenCalled();
+  });
+
+  it('inserts the private document references on a first request', async () => {
     pool.query
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ id: 'vr-1', status: 'pending' }] });
-    const res = await request(buildApp(verification, '/api/verification')).post('/api/verification/request').send({ verification_type: 'personal', ...urls });
+    const res = await request(buildApp(verification, '/api/verification')).post('/api/verification/request').send({ verification_type: 'personal', ...refs });
     expect(res.status).toBe(201);
     const [sql, params] = pool.query.mock.calls[1];
     expect(sql).toMatch(/INSERT INTO verification_requests \(user_id,verification_type,selfie_url,id_document_url/);
-    expect(params.slice(2, 4)).toEqual([urls.selfie_url, urls.id_document_url]);
+    expect(params.slice(2, 4)).toEqual([refs.selfie_ref, refs.id_document_ref]);
   });
 
   it('re-opens the existing row after a rejection instead of hitting UNIQUE(user_id)', async () => {
     pool.query
       .mockResolvedValueOnce({ rows: [{ id: 'vr-1', status: 'rejected' }] })
       .mockResolvedValueOnce({ rows: [{ id: 'vr-1', status: 'pending' }] });
-    const res = await request(buildApp(verification, '/api/verification')).post('/api/verification/request').send({ verification_type: 'business', ...urls });
+    const res = await request(buildApp(verification, '/api/verification')).post('/api/verification/request').send({ verification_type: 'business', ...refs });
     expect(res.status).toBe(201);
     expect(pool.query.mock.calls[1][0]).toMatch(/UPDATE verification_requests/);
     expect(pool.query.mock.calls[1][1][6]).toBe('vr-1');
@@ -97,7 +110,7 @@ describe('verification', () => {
 
   it('still blocks a second request while one is pending', async () => {
     pool.query.mockResolvedValueOnce({ rows: [{ id: 'vr-1', status: 'pending' }] });
-    const res = await request(buildApp(verification, '/api/verification')).post('/api/verification/request').send({ verification_type: 'personal', ...urls });
+    const res = await request(buildApp(verification, '/api/verification')).post('/api/verification/request').send({ verification_type: 'personal', ...refs });
     expect(res.status).toBe(409);
   });
 

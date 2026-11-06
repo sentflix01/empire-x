@@ -23,6 +23,9 @@ frontend-next/build/
 frontend-next/*.tsbuildinfo
 
 # Uploaded files (store on cloud storage in production)
+# Private files (identity documents) in local development — never commit
+backend/private-uploads/
+backend/uploads-test-*/
 backend/uploads/*
 !backend/uploads/.gitkeep
 

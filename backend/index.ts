@@ -346,6 +346,7 @@ app.use('/api/trending',     require('./routes/trending'));
 app.use('/api/suggestions',  require('./routes/suggestions'));
 app.use('/api/friends',      require('./routes/friends'));
 app.use('/api/verification', require('./routes/verification'));
+app.use('/api/private-files', require('./routes/privateFiles')); // signed local links for private files (dev only)
 app.use('/api/ai',           require('./routes/ai'));
 app.use('/api/referral',     require('./routes/referral'));
 app.use('/api/hashtags',     require('./routes/hashtags'));

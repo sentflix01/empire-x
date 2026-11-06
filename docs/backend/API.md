@@ -678,11 +678,35 @@ Returns `{ is_verified, verification_type, verified_at, request }`, where
 `request` is the caller's latest request (`id, status, verification_type,
 admin_note, created_at, reviewed_at`) or `null`.
 
+Identity documents are private (audit F-013): they are stored outside public
+media and are never returned as URLs in lists. Only the owner and admins can
+view them, through links that expire after 5 minutes.
+
+### POST /api/verification/documents
+Stores one document privately. Requires auth. `multipart/form-data` with
+`kind` (`selfie` or `id`) and `file` (JPEG, PNG, WebP, HEIC/HEIF or PDF, up to
+10 MB; content-signature checked). Answers `201 { ref, kind }` where `ref` is
+`private:verification/<your user id>/<file>`. `503` when private storage is not configured.
+
 ### POST /api/verification/request
-Body `{ verification_type, selfie_url, id_document_url, supporting_docs?, reason? }`.
-Both URLs are required (http/https). 409 while a request is pending. After a
-request is approved or rejected, a new request re-opens the same row
-(`verification_requests` has `UNIQUE(user_id)`), resetting it to `pending`.
+Body `{ verification_type, selfie_ref, id_document_ref, supporting_docs?, reason? }`.
+Both references are required and must be the caller's own, from
+`POST /api/verification/documents`; public URLs are refused (400). 409 while a
+request is pending. After a request is approved or rejected, a new request
+re-opens the same row (`verification_requests` has `UNIQUE(user_id)`), resetting
+it to `pending`, and the replaced documents are deleted. Responses include
+`has_selfie` / `has_id_document` instead of the references.
+
+### GET /api/verification/:id/documents
+For the request's owner or an admin (everyone else gets 404). Answers
+`{ selfie, id_document }`, each `{ url, expires_in: 300 }` (or
+`{ url, legacy: true }` for a public URL not yet moved by
+`npm run migrate:verification-docs`), with `Cache-Control: private, no-store`.
+
+### GET /api/private-files/*
+Local development only: serves a private file for a signed, unexpired link
+issued by the endpoint above. With a private Supabase bucket configured the
+links point at Supabase and this route answers 404.
 
 ---
 

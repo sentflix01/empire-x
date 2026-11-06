@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **353** across **50** mounted modules · Generated: 2026-11-06
+> Endpoints: **356** across **51** mounted modules · Generated: 2026-11-06
 
 | Legend | Meaning |
 |---|---|
@@ -42,6 +42,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`orders`](#orders) (11)
 - [`polls`](#polls) (2)
 - [`posts`](#posts) (19)
+- [`privateFiles`](#privatefiles) (1)
 - [`products`](#products) (10)
 - [`profilePartnerships`](#profilepartnerships) (10)
 - [`profiles`](#profiles) (11)
@@ -63,7 +64,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 - [`trending`](#trending) (2)
 - [`upload`](#upload) (2)
 - [`variants`](#variants) (4)
-- [`verification`](#verification) (6)
+- [`verification`](#verification) (8)
 - [`wallet`](#wallet) (9)
 - [`wishlists`](#wishlists) (14)
 
@@ -104,25 +105,25 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:219 |
-| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:318 |
-| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:409 |
-| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:446 |
-| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:515 |
-| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:535 |
-| `POST` | `/api/auth/workspace` | 🔒 auth | routes/auth.ts:553 |
-| `POST` | `/api/auth/onboarding-mode` | 🌐 public | routes/auth.ts:559 |
-| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:566 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:683 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:837 |
-| `GET` | `/api/auth/me/export` | 🔒 auth | routes/auth.ts:880 |
-| `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:893 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:943 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:979 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1033 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1076 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1159 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1199 |
+| `POST` | `/api/auth/register` | 🌐 public | routes/auth.ts:220 |
+| `POST` | `/api/auth/verify-otp` | 🌐 public | routes/auth.ts:319 |
+| `POST` | `/api/auth/resend-otp` | 🌐 public | routes/auth.ts:410 |
+| `POST` | `/api/auth/demo` | 🌐 public | routes/auth.ts:447 |
+| `POST` | `/api/auth/demo/exit` | 🌐 public | routes/auth.ts:516 |
+| `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:536 |
+| `POST` | `/api/auth/workspace` | 🔒 auth | routes/auth.ts:554 |
+| `POST` | `/api/auth/onboarding-mode` | 🌐 public | routes/auth.ts:560 |
+| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:567 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:684 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:838 |
+| `GET` | `/api/auth/me/export` | 🔒 auth | routes/auth.ts:881 |
+| `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:894 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:949 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:985 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1039 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1082 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1165 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1205 |
 
 ## businessApiKeys — Business API key management
 
@@ -412,6 +413,12 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | `PUT` | `/api/posts/:postId/comments/:commentId/reaction` | 🔒 auth | routes/posts.ts:556 |
 | `DELETE` | `/api/posts/:postId/comments/:commentId/reaction` | 🔒 auth | routes/posts.ts:574 |
 
+## privateFiles — GET /api/private-files/<key>?expires=…&signature=… — local development only.
+
+| Method | Path | Auth | Source |
+|---|---|---|---|
+| `GET` | `/api/private-files/*key` | 🌐 public | routes/privateFiles.ts:20 |
+
 ## products — Marketplace products
 
 | Method | Path | Auth | Source |
@@ -631,12 +638,14 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `POST` | `/api/verification/request` | 🔒 auth | routes/verification.ts:14 |
-| `GET` | `/api/verification/status` | 🔒 auth | routes/verification.ts:52 |
-| `GET` | `/api/verification/my-request` | 🔒 auth | routes/verification.ts:72 |
-| `GET` | `/api/verification/` | 👑 admin | routes/verification.ts:82 |
-| `PUT` | `/api/verification/:id/approve` | 👑 admin | routes/verification.ts:95 |
-| `PUT` | `/api/verification/:id/reject` | 👑 admin | routes/verification.ts:110 |
+| `POST` | `/api/verification/documents` | 🔒 auth | routes/verification.ts:62 |
+| `POST` | `/api/verification/request` | 🔒 auth | routes/verification.ts:79 |
+| `GET` | `/api/verification/status` | 🔒 auth | routes/verification.ts:127 |
+| `GET` | `/api/verification/my-request` | 🔒 auth | routes/verification.ts:147 |
+| `GET` | `/api/verification/` | 👑 admin | routes/verification.ts:157 |
+| `GET` | `/api/verification/:id/documents` | 🔒 auth | routes/verification.ts:174 |
+| `PUT` | `/api/verification/:id/approve` | 👑 admin | routes/verification.ts:197 |
+| `PUT` | `/api/verification/:id/reject` | 👑 admin | routes/verification.ts:212 |
 
 ## wallet — Wallet management
 

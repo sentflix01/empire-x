@@ -33,6 +33,7 @@ import { sendOtpEmail, sendPasswordResetEmail } from '../utils/mailer';
 import { requireAuth, invalidateUserCache } from '../middleware/auth';
 import { forceDisconnectUser } from '../socket';
 import { anonymizeAccount, deletionBlocker, exportAccountData } from '../lib/accountData';
+import { deleteStoredFiles } from '../lib/storedFiles';
 import { clearValue, getValue, incrementCounter, isTokenRevoked, revokeAllSessions, revokeTokenId, setValue } from '../lib/authSecurityStore';
 import * as apiError from '../lib/apiError';
 import logger from '../lib/logger';
@@ -895,6 +896,7 @@ router.delete('/me', requireAuth, async (req: Request, res: Response) => {
   if (confirm !== 'DELETE') { apiError.validationError(res, 'Type DELETE to confirm account deletion'); return; }
   if (req.demoSession || req.user!.is_demo) { res.status(403).json({ error: 'Demo accounts are removed automatically when the session ends.' }); return; }
   const userId = req.user!.id;
+  let fileRefs: string[] = [];
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -913,7 +915,7 @@ router.delete('/me', requireAuth, async (req: Request, res: Response) => {
     }
     const block = await deletionBlocker(userId, client);
     if (block) { await client.query('ROLLBACK'); res.status(409).json({ error: block.message, code: block.code }); return; }
-    await anonymizeAccount(client, userId);
+    fileRefs = (await anonymizeAccount(client, userId)) ?? [];
     await client.query('COMMIT');
   } catch (err) {
     await client.query('ROLLBACK').catch(() => undefined);
@@ -929,6 +931,10 @@ router.delete('/me', requireAuth, async (req: Request, res: Response) => {
   await invalidateUserCache(userId);
   await revokeAllSessions(userId).catch((err) => logger.error({ err: (err as Error).message }, 'auth: revoke-all failed'));
   forceDisconnectUser(userId);
+  // Files go only after the database change committed, so a refused or failed
+  // deletion never loses them. Failures are logged; the account stays deleted.
+  const files = await deleteStoredFiles(fileRefs);
+  if (files.failed) logger.warn({ userId, ...files }, 'account deletion: some stored files could not be deleted');
   res.clearCookie('refresh_token', {
     httpOnly: true,
     path: '/api/auth',

@@ -788,3 +788,17 @@ items in the open list until confirmed.
 - **Consequences:** Every Claude Code session in this repo gets the same rules. Custom guard hooks (production, local-database and secret checks) are not part of this change; secret scanning in CI is tracked as an audit finding.
 - **Open:** whether to consolidate `.kiro/specs/`, `.agents/tasks/` and `implementation plan/` into one location (owner decision).
 - **Related documentation:** `CONTRIBUTING.md` (Agent tooling), `note/2026-11-05-international-audit/README.md`
+
+### 2026-11-06 — Identity documents are private; viewable by admins only; kept until account deletion
+
+- **Status:** Accepted (defaults chosen by the owner: "use the defaults and go ahead", 6 Nov 2026). Revisit the retention period with counsel.
+- **Decision owner:** Project owner
+- **Context:** Audit finding F-013: verification selfies and government IDs were stored as public uploads with guessable, non-expiring URLs; F-014: files were never deleted when an account was deleted.
+- **Decision:**
+  1. **Storage:** identity documents live in private storage (`PRIVATE_SUPABASE_BUCKET`, falling back to `RECEIPTS_SUPABASE_BUCKET`); rows hold a `private:` reference, never a URL. Production refuses uploads without a private bucket.
+  2. **Who may view:** the person who uploaded them and admins only, through links that expire after 5 minutes (`GET /api/verification/:id/documents`).
+  3. **Retention:** kept until the account is deleted; replaced documents are deleted when a new request is submitted.
+  4. **Erasure:** deleting an account deletes the person's stored files (identity documents, profile images, post and story media, chat files) after the database change commits.
+- **Consequences:** Production must set `PRIVATE_SUPABASE_BUCKET` (a bucket with public access disabled) and run `npm run migrate:verification-docs -- --apply` once to move existing documents. No admin screen shows the documents yet; admins use the API endpoint.
+- **Open:** retention after review (delete on decision, or after N days) — owner and counsel.
+- **Related documentation:** `docs/backend/API.md` (Verification), `docs/operations/ENVIRONMENT_VARIABLES.md`, `note/2026-11-05-international-audit/FIXES.md`
