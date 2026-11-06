@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Migrations run once each (schema_migrations ledger, F-009), but every file
+ * Migrations run once each (migration_ledger ledger, F-009), but every file
  * must still be safe to run again (first ledger deploy, --rerun, restores).
  * --all ignores the ledger. Run the whole chain again on a
  * database that already holds rows shaped like today's data (new order

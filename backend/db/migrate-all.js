@@ -1,5 +1,5 @@
 /**
- * Run database migrations in order, once each (ledger: schema_migrations).
+ * Run database migrations in order, once each (ledger: migration_ledger).
  * Usage: node db/migrate-all.js [--status | --all | --rerun <file>]
  *
  * The runner auto-discovers migration files in this directory. The base
@@ -80,14 +80,14 @@ function isExportedFunction(filepath) {
 }
 
 // ── Ledger (audit F-009) ──────────────────────────────────────────────────────
-// schema_migrations records each migration that succeeded, with a checksum of
+// migration_ledger records each migration that succeeded, with a checksum of
 // the file. A recorded migration is skipped; a recorded file whose checksum
 // changed stops the run (put changes in a new migration, or pass --rerun).
 // On a database without the ledger every migration runs once more (they are
 // all idempotent, as before) and is then recorded.
 
 const LEDGER_SQL = `
-  CREATE TABLE IF NOT EXISTS schema_migrations (
+  CREATE TABLE IF NOT EXISTS migration_ledger (
     name         TEXT PRIMARY KEY,
     checksum     TEXT NOT NULL,
     runner       TEXT NOT NULL,
@@ -95,6 +95,26 @@ const LEDGER_SQL = `
     runs         INTEGER NOT NULL DEFAULT 1,
     applied_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`;
+
+// The ledger is not called schema_migrations: production already had a table
+// by that name from another tool, with other columns, and the first deploy
+// failed on it. If a table named migration_ledger exists with other columns,
+// stop with a clear message rather than touch it.
+const LEDGER_COLUMNS = ['name', 'checksum', 'runner', 'duration_ms', 'runs', 'applied_at'];
+async function assertLedgerShape(client) {
+  const { rows } = await client.query(
+    `SELECT column_name FROM information_schema.columns
+      WHERE table_schema = current_schema() AND table_name = 'migration_ledger'`,
+  );
+  const have = new Set(rows.map((r) => r.column_name));
+  const missing = LEDGER_COLUMNS.filter((c) => !have.has(c));
+  if (missing.length) {
+    throw new Error(
+      `Table migration_ledger exists but is not this runner's ledger (missing: ${missing.join(', ')}). ` +
+      'Nothing was run. Rename or inspect that table before deploying.',
+    );
+  }
+}
 
 // One migration run at a time per database (pg_advisory_lock, session level).
 const LOCK_KEY = 724311009;
@@ -169,7 +189,8 @@ async function main(argv) {
   await client.connect();
   try {
     await client.query(LEDGER_SQL);
-    const { rows } = await client.query('SELECT name, checksum, applied_at FROM schema_migrations');
+    await assertLedgerShape(client);
+    const { rows } = await client.query('SELECT name, checksum, applied_at FROM migration_ledger');
     const applied = new Map(rows.map((r) => [r.name, r.checksum]));
 
     if (opts.status) {
@@ -186,7 +207,7 @@ async function main(argv) {
     console.log('\n🗄️   Running Nodbusiness migrations...\n');
     await client.query('SELECT pg_advisory_lock($1)', [LOCK_KEY]);
     // Re-read after waiting for any other run to finish.
-    const fresh = new Map((await client.query('SELECT name, checksum FROM schema_migrations')).rows.map((r) => [r.name, r.checksum]));
+    const fresh = new Map((await client.query('SELECT name, checksum FROM migration_ledger')).rows.map((r) => [r.name, r.checksum]));
     const plan = planMigrations(files, checksums, fresh, opts);
 
     if (plan.changed.length) {
@@ -203,9 +224,9 @@ async function main(argv) {
       try {
         const runner = await runOne(file);
         await client.query(
-          `INSERT INTO schema_migrations (name, checksum, runner, duration_ms) VALUES ($1, $2, $3, $4)
+          `INSERT INTO migration_ledger (name, checksum, runner, duration_ms) VALUES ($1, $2, $3, $4)
            ON CONFLICT (name) DO UPDATE SET checksum = EXCLUDED.checksum, runner = EXCLUDED.runner,
-             duration_ms = EXCLUDED.duration_ms, runs = schema_migrations.runs + 1, applied_at = NOW()`,
+             duration_ms = EXCLUDED.duration_ms, runs = migration_ledger.runs + 1, applied_at = NOW()`,
           [file, checksums.get(file), runner, Date.now() - started],
         );
         console.log('✓');

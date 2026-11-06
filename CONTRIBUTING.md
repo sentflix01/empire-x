@@ -22,7 +22,7 @@ Full engineering standards (naming, API patterns, security rules, testing bar):
 | `backend/` | Express + TypeScript API (run: `npm run dev`) |
 | `frontend-next/` | Next.js 16 App Router client (run: `npm run dev`) |
 | `docs/` | The knowledge base — **if you change behavior, change its doc in the same PR** |
-| `backend/db/migrate*.js` | Numbered, idempotent SQL migrations (tracked in `schema_migrations`) |
+| `backend/db/migrate*.js` | Numbered, idempotent SQL migrations (tracked in `migration_ledger`) |
 
 ## Rules that get PRs returned
 
