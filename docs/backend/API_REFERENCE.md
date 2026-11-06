@@ -191,7 +191,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 | Method | Path | Auth | Source |
 |---|---|---|---|
 | `GET` | `/api/delivery/order/:orderId` | 🔒 auth | routes/delivery.ts:9 |
-| `POST` | `/api/delivery/` | 🔒 auth | routes/delivery.ts:26 |
+| `POST` | `/api/delivery/` | 🔒 auth | routes/delivery.ts:40 |
 
 ## devops — devops
 
