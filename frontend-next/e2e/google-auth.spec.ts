@@ -29,6 +29,17 @@ import { test, expect, type Page, type BrowserContext } from '@playwright/test';
 const E2E_EMAIL = 'e2e@example.test';
 const E2E_PASSWORD = 'e2e-only-password';
 
+/**
+ * The Google button only renders when the build has a well-formed client ID
+ * (NEXT_PUBLIC_GOOGLE_CLIENT_ID, e.g. 000000000000-e2e.apps.googleusercontent.com;
+ * CI sets a fake one). Without it the page says sign-in is not configured.
+ */
+async function skipWithoutGoogleClient(page: Page) {
+  await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
+  const unconfigured = await page.getByText('Google sign-in is not configured for this environment', { exact: false }).isVisible().catch(() => false);
+  test.skip(unconfigured, 'This build has no Google client ID; set NEXT_PUBLIC_GOOGLE_CLIENT_ID to a well-formed ID to run this test.');
+}
+
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
 async function installAuthMocks(page: Page, options: { mode?: 'demo' | 'real' | null; loginStatus?: number; loginBody?: Record<string, unknown>; authenticated?: boolean } = {}) {
@@ -63,6 +74,7 @@ async function setAuthHint(context: BrowserContext) {
 test.describe('Section A — Google Sign-In UI', () => {
 
   test('A1: login page renders the accessible Google OAuth button', async ({ page }) => {
+    await skipWithoutGoogleClient(page);
     await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
 
@@ -74,6 +86,7 @@ test.describe('Section A — Google Sign-In UI', () => {
   });
 
   test('A2: register page renders the accessible Google OAuth button', async ({ page }) => {
+    await skipWithoutGoogleClient(page);
     await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
 
@@ -81,6 +94,7 @@ test.describe('Section A — Google Sign-In UI', () => {
   });
 
   test('A3: Google login does not call the legacy sign-in global', async ({ page }) => {
+    await skipWithoutGoogleClient(page);
     await page.addInitScript(() => {
       (window as any).__googleSignIn = () => sessionStorage.setItem('legacy-google-called', '1');
       window.open = (() => ({} as Window)) as typeof window.open;
@@ -107,6 +121,7 @@ test.describe('Section A — Google Sign-In UI', () => {
   });
 
   test('A6: register Google button does not depend on a GIS script', async ({ page }) => {
+    await skipWithoutGoogleClient(page);
     // This implementation opens OAuth directly; no GIS JavaScript is loaded.
     await page.route('**/accounts.google.com/gsi/client', route => route.abort());
 
@@ -118,6 +133,7 @@ test.describe('Section A — Google Sign-In UI', () => {
   });
 
   test('A7: login Google button does not depend on a GIS script', async ({ page }) => {
+    await skipWithoutGoogleClient(page);
     await page.route('**/accounts.google.com/gsi/client', route => route.abort());
 
     await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
@@ -127,6 +143,7 @@ test.describe('Section A — Google Sign-In UI', () => {
   });
 
   test('A8: OAuth popup uses the configured client ID and same-origin callback', async ({ page }) => {
+    await skipWithoutGoogleClient(page);
     await page.addInitScript(() => {
       // Capture the constructed URL without sending a test browser to Google.
       window.open = ((url?: string | URL) => {
@@ -261,6 +278,7 @@ test.describe('Section D — Google OAuth popup handoff', () => {
   }
 
   test('D1: normal popup handoff', async ({ page, context }) => {
+    await skipWithoutGoogleClient(page);
     const counters = baseMocks(context);
     await context.route(`${GoogleAuthHost}/o/oauth2/v2/auth*`, async route => {
       counters.google++;

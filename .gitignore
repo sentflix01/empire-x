@@ -55,6 +55,7 @@ backend/api-catalog.json
 
 # Playwright artifacts
 test-results/
+frontend-next/e2e-report.json
 playwright-report/
 
 # QA screenshots — local test evidence, not source code

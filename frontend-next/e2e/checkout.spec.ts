@@ -3,9 +3,9 @@ import { test, expect, Page } from '@playwright/test';
 /**
  * Checkout E2E — money-path smoke tests.
  *
- * Tests the purchase modal flow (product → Buy Now → delivery details →
- * checkout options) plus a COD order placed via the API (the most reliable
- * path for automated testing — no external payment provider dependency).
+ * Tests the Buy flow (product → Buy Now → the seller's payment method →
+ * contact details → order placed; the buyer pays the seller directly) plus a
+ * COD order placed via the API.
  *
  * Requires the isolated real-mode accounts from backend/db/seed-e2e.js.
  * The admin fixture creates a fresh product during the suite setup.
@@ -53,6 +53,12 @@ test.beforeAll(async () => {
   const adminBody = await adminMe.json() as { id?: string };
   if (!adminBody.id) return;
 
+  // Products are shown only for sellers with a business on an active plan;
+  // backend/db/seed-e2e.js creates "E2E Seller Shop" for this (F-032).
+  const shops = await fetch(`${API}/api/businesses?owner_id=${adminBody.id}`, { headers: { Authorization: `Bearer ${adminToken}` } });
+  const shop = ((await shops.json()) as Array<{ id: string; business_name?: string }>).find((b) => b.business_name === 'E2E Seller Shop');
+  if (!shop) return;
+
   // Use a fresh admin-owned product for every run. The buyer must not be the
   // seller, otherwise ProductDetail correctly hides Buy Now and the UI flow is
   // never exercised.
@@ -67,6 +73,7 @@ test.beforeAll(async () => {
       status: 'active',
       stock: 10,
       currency: 'ETB',
+      business_id: shop.id,
     }),
   });
   if (createRes.ok) {
@@ -88,48 +95,41 @@ test.afterAll(async () => {
 });
 
 test.describe('Checkout flow', () => {
-  test.beforeEach(() => { test.skip(!seeded, 'No seeded products available — run backend seed first'); });
+  test.beforeEach(() => { test.skip(!seeded, 'No seeded seller business or product — run ALLOW_E2E_SEED=1 npm run seed:e2e in backend/ first'); });
 
-  test('product page renders Buy Now and opens the purchase modal', async ({ page }) => {
+  // The Buy flow pays the seller directly (components/checkout/PurchaseModal.tsx,
+  // docs/decisions/platform-model-decisions.md): see the seller's payment
+  // method, give contact details, place the order, get a private order link.
+  test('Buy Now opens the purchase dialog with the seller\'s payment method', async ({ page }) => {
     await loginViaUi(page, A.email, A.password);
     await page.goto(`/products/${productId}`, { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
 
-    const buyBtn = page.locator('button:has-text("Buy Now")').first();
-    await expect(buyBtn).toBeVisible({ timeout: 15_000 });
-    await buyBtn.click();
-
-    // Purchase modal should appear with the delivery-details form
-    await expect(page.locator('text=Checkout').or(page.locator('text=Order')).first()).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('button', { name: 'Buy Now' }).click();
+    const dialog = page.getByRole('dialog', { name: /buy/i });
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
+    await expect(dialog.getByRole('region', { name: 'How to pay' })).toContainText(/telebirr/i, { timeout: 15_000 });
+    await expect(dialog.getByRole('button', { name: 'Continue' })).toBeEnabled();
   });
 
-  test('buyer can complete a COD order from the purchase modal', async ({ page }) => {
+  test('buyer places a direct order from the purchase dialog', async ({ page }) => {
     await loginViaUi(page, A.email, A.password);
     await page.goto(`/products/${productId}`, { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
 
-    await page.locator('button:has-text("Buy Now")').first().click();
-    await expect(page.locator('text=Checkout').or(page.locator('text=Order')).first()).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('button', { name: 'Buy Now' }).click();
+    const dialog = page.getByRole('dialog', { name: /buy/i });
+    await expect(dialog.getByRole('region', { name: 'How to pay' })).toContainText(/telebirr/i, { timeout: 15_000 });
+    await dialog.getByRole('button', { name: 'Continue' }).click();
 
-    // Advance to checkout
-    const continueBtn = page.getByRole('button', { name: /continue to checkout/i });
-    await expect(continueBtn).toBeVisible();
-    await continueBtn.click();
+    await dialog.getByLabel('Name').fill('E2E Test Buyer');
+    await dialog.getByLabel('Phone').fill('+251911000000');
+    await dialog.getByLabel('Email').fill('e2e-direct-order@example.test');
+    await dialog.getByLabel('Delivery address (optional)').fill('Bole Road, Addis Ababa');
+    await dialog.getByRole('button', { name: /^Place order/ }).click();
 
-    // Fill delivery details (these fields appear in the "checkout" step)
-    const nameInput = page.locator('input[placeholder="Your name"]').first();
-    if (await nameInput.isVisible()) await nameInput.fill('E2E Test Buyer');
-    const phoneInput = page.locator('input[placeholder*="234"], input[type="tel"]').first();
-    if (await phoneInput.isVisible()) await phoneInput.fill('+251911000000');
-    const emailInput = page.locator('input[type="email"][placeholder*="email" i]').first();
-    if (await emailInput.isVisible()) await emailInput.fill('e2e@test.dev');
-    const addressInput = page.locator('input[placeholder*="Street" i], textarea[placeholder*="address" i]').first();
-    if (await addressInput.isVisible()) await addressInput.fill('Bole Road, Addis Ababa');
-
-    const codButton = page.getByRole('button', { name: /place order \(cod\)/i });
-    await expect(codButton).toBeVisible({ timeout: 15_000 });
-    await codButton.click();
-    await expect(page.getByText(/order placed successfully/i)).toBeVisible({ timeout: 15_000 });
+    const placed = page.getByRole('dialog', { name: 'Order placed' });
+    await expect(placed).toBeVisible({ timeout: 15_000 });
+    // The buyer's private order page (where they report the payment).
+    await expect(placed.locator('a[href^="/order/"]')).toBeVisible();
   });
 
   test('COD order via API creates an order', async () => {

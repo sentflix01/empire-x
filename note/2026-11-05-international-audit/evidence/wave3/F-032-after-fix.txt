@@ -1,0 +1,20 @@
+# F-032 after fix — full Chromium suite (2026-11-06)
+
+## CI replay on a brand-new local database (same steps and settings as the new ci.yml e2e job)
+npm run migrate: 85 migrations applied, 0 already recorded (fresh database)
+npm run seed:e2e: buyer and seller accounts, E2E Seller Shop on an active plan
+playwright test --project=chromium: 75 passed, 0 failed, 0 skipped (1.8 min), guided tours ON (code default)
+e2e/check-no-skips.mjs: pass
+
+## Before (audit, evidence/wave3/existing-e2e-chromium*.txt)
+29 passed, 20 failed, 2 skipped; with tours off: 39 passed, 10 failed
+
+## Causes fixed
+- Google sign-in specs (7): need a well-formed NEXT_PUBLIC_GOOGLE_CLIENT_ID at build; CI sets a fake one; specs skip with a reason otherwise
+- Checkout (2): the product had no paid business, so Buy was hidden; the seed now creates one, and the specs test the current direct-payment Buy flow
+- Sign-up (1): layout-class locator matched two elements; now the one-time-code input
+- Guided tours: every test browser marks all 55 tours as seen (e2e/tours-seen.ts)
+- Plan payment spec (2): needs the backend's fake Chapa (CHAPA_SECRET_KEY=SANDBOX); CI sets it
+
+## Guard check
+A report with 2 skipped tests makes e2e/check-no-skips.mjs exit 1 and list them.

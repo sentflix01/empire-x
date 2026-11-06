@@ -100,6 +100,15 @@ NEXT_PUBLIC_SENTRY_DSN: ""
 - `npm audit --audit-level=high --package-lock-only` for both backend and frontend
 - Blocks on high (CVSS ≥7.0) or critical vulnerabilities
 
+### 5. e2e — Chromium journeys (blocking, since 6 Nov 2026, audit F-032)
+- Throwaway Postgres on the runner → `npm run migrate` → `npm run seed:e2e` (buyer and seller accounts with one-off passwords, plus "E2E Seller Shop" on an active plan with a payment method)
+- Backend in development mode with `CHAPA_SECRET_KEY=SANDBOX` (the built-in fake Chapa, refused in production) so plan payments complete
+- Production frontend build with a well-formed fake `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (the Google button renders; no real Google call is made)
+- `npx playwright test --project=chromium` (every spec except the two-person messaging suite, which runs in `e2e-messaging.yml`)
+- `node e2e/check-no-skips.mjs e2e-report.json` fails the job if any test skipped: specs skip themselves when seed data or settings are missing, which would otherwise look green
+- Guided tours count as seen in every test browser (`e2e/tours-seen.ts`), so the specs do not depend on the tour default (F-031)
+- Make it a required check for `main` in the repository's branch protection settings
+
 ---
 
 ## Deploy Workflow (`deploy.yml`)
