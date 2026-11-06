@@ -11,14 +11,22 @@ Telegram integration: bot webhook receiver and notifyUser helper used for seller
 ## 3. What does it do?
 
 
-### Endpoints (4)
+### Endpoints (6)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `POST` | `/api/telegram/connect` | auth | 29 |
-| `POST` | `/api/telegram/disconnect` | auth | 38 |
-| `GET` | `/api/telegram/status` | auth | 45 |
-| `POST` | `/api/telegram/test` | auth | 52 |
+| `POST` | `/api/telegram/connect` | auth | 39 |
+| `POST` | `/api/telegram/disconnect` | auth | 62 |
+| `DELETE` | `/api/telegram/disconnect` | auth | 63 |
+| `GET` | `/api/telegram/status` | auth | 65 |
+| `PUT` | `/api/telegram/notifications` | auth | 79 |
+| `POST` | `/api/telegram/test` | auth | 95 |
+
+- The chat id and the on/off switch live on `users` (`telegram_chat_id`, `telegram_notifications`, default off). Before audit F-005 the routes read `user_profiles`, so every call failed and no alert was sent.
+- `connect` accepts a numeric chat id only (`^-?\d{1,20}$`) and turns notifications on.
+- `PUT /notifications` takes `{ "enabled": boolean }` and returns `{ "enabled" }`; 409 `TELEGRAM_NOT_CONNECTED` when turning on without a chat.
+- `status` returns `{ connected, notifications_enabled, bot_configured }`.
+- `notifyUser(userId, text)` sends only when a chat is connected and notifications are on.
 
 ## 4. What does it touch?
 
