@@ -23,6 +23,7 @@ import { getRedis, withoutRedis } from '../lib/redis';
 import logger from '../lib/logger';
 import type { AuthUser } from '../lib/types';
 import { adminMfaRequired } from '../lib/adminMfa';
+import { isTokenRevoked as storeIsTokenRevoked } from '../lib/authSecurityStore';
 import type { Redis as RedisClient } from 'ioredis';
 
 const USER_CACHE_TTL = 60;         // Redis TTL in seconds
@@ -133,7 +134,7 @@ async function isTokenRevoked(
   }
 
   const redis = getRedis();
-  if (redis.isNoOp) return false;
+  if (redis.isNoOp) return revokedInPostgres(jti, userId, iat);
   try {
     if (jti) {
       const revoked = await (redis as RedisClient).get(`revoked:${jti}`);
@@ -153,7 +154,26 @@ async function isTokenRevoked(
     if (jti) localSet(localRevocationCache, jti, false, REVOKE_LOCAL_TTL);
     return false;
   } catch {
-    return false; // fail open — never block a request because Redis is down
+    // Redis failed: Postgres holds every revocation, so ask it instead of
+    // letting a revoked token through (audit F-018).
+    return revokedInPostgres(jti, userId, iat);
+  }
+}
+
+/**
+ * Revocation check against Postgres (lib/authSecurityStore), used when Redis is
+ * absent or failing. Answers are cached in-process like the Redis path. If
+ * Postgres also fails, the request is let through and logged: the database
+ * being down fails the request anyway.
+ */
+async function revokedInPostgres(jti: string | undefined, userId: string | undefined, iat: number | undefined): Promise<boolean> {
+  try {
+    const revoked = await storeIsTokenRevoked(jti, userId, iat);
+    if (jti) localSet(localRevocationCache, jti, revoked, REVOKE_LOCAL_TTL);
+    return revoked;
+  } catch (err) {
+    logger.warn({ err: (err as Error).message }, 'auth: revocation check failed in Redis and Postgres; allowing request');
+    return false;
   }
 }
 

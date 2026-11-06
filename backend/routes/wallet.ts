@@ -17,6 +17,8 @@ import { auditLog } from '../lib/auditLogger';
 import { requireIsolatedPaymentEnvironment } from '../middleware/demoEnvironment';
 import { requireFeatureFlag } from '../middleware/featureFlag';
 import { platformCollectionRetired } from '../middleware/platformCollectionRetired';
+import { safeFrontendReturn, scriptString, urlUnder } from '../lib/sandboxPage';
+import crypto from 'crypto';
 
 const walletRetired = platformCollectionRetired('The wallet no longer accepts money. NodBusiness never holds funds; you can still withdraw an existing balance.');
 
@@ -174,7 +176,7 @@ router.post('/topup/chapa', walletRetired, requireAuth, requireIsolatedPaymentEn
   if (SANDBOX && process.env.NODE_ENV === 'production') { res.status(503).json({ error: 'Chapa sandbox is disabled in production' }); return; }
   const { amount, email, first_name, last_name, phone_number } = req.body as Record<string,unknown>;
   if (!amount || Number(amount) <= 0) { apiError.validationError(res, 'Valid amount is required'); return; }
-  const tx_ref = `empx-wallet-${req.user!.id.slice(0,8)}-${Date.now()}`;
+  const tx_ref = `empx-wallet-${crypto.randomUUID()}`; // not guessable (audit F-019)
   const frontendUrl = getPrimaryFrontendUrl();
   const apiUrl = process.env.API_URL ?? 'http://localhost:3001';
   try {
@@ -210,9 +212,10 @@ router.get('/topup/chapa/sandbox', (req: Request, res: Response) => {
   if (!SANDBOX || process.env.NODE_ENV === 'production') { res.status(404).json({ error: 'Not found' }); return; }
   const { tx_ref, amount, return_url, verify_url } = req.query as Record<string,string>;
   const safe = (s: string) => String(s||'').replace(/[<>"'&]/g, c=>`&#${c.charCodeAt(0)};`);
-  const safeReturn = return_url ? decodeURIComponent(return_url) : getPrimaryFrontendUrl();
-  const safeVerify = verify_url ? decodeURIComponent(verify_url) : '';
-  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Chapa Sandbox</title></head><body style="font-family:sans-serif;text-align:center;padding:2rem"><h1>🇪🇹 Chapa Sandbox</h1><p>Amount: <strong>${safe(amount)} ETB</strong></p><p>ref: ${safe(tx_ref)}</p><button onclick="pay()" style="background:#16a34a;color:#fff;padding:1rem 2rem;border:none;border-radius:8px;cursor:pointer;font-size:1rem">✅ Confirm Payment</button><p style="color:#999;font-size:.8rem">Sandbox — no real money</p><script>async function pay(){try{if('${safeVerify}')await fetch('${safeVerify}');}catch(e){}window.location.href='${safeReturn}';}</script></body></html>`);
+  // Only our frontend and our own verify route, passed as JSON string literals (audit F-020).
+  const safeReturn = safeFrontendReturn(return_url);
+  const safeVerify = urlUnder(verify_url, `${process.env.API_URL ?? 'http://localhost:3001'}/api/wallet/topup/chapa/verify/`);
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Chapa Sandbox</title></head><body style="font-family:sans-serif;text-align:center;padding:2rem"><h1>🇪🇹 Chapa Sandbox</h1><p>Amount: <strong>${safe(amount)} ETB</strong></p><p>ref: ${safe(tx_ref)}</p><button onclick="pay()" style="background:#16a34a;color:#fff;padding:1rem 2rem;border:none;border-radius:8px;cursor:pointer;font-size:1rem">✅ Confirm Payment</button><p style="color:#999;font-size:.8rem">Sandbox — no real money</p><script>async function pay(){var v=${scriptString(safeVerify)};try{if(v)await fetch(v);}catch(e){}window.location.href=${scriptString(safeReturn)};}</script></body></html>`);
 });
 
 // Chapa verify (callback + polling endpoint)
@@ -233,10 +236,11 @@ router.get('/topup/chapa/verify/:tx_ref', async (req: Request, res: Response) =>
       const ok = chapaRes.status==='success' && (chapaRes.data as Record<string,string>)?.status==='success';
       recordEvent('chapa_verify',{outcome:ok?'ok':'rejected',tx_ref},{level:ok?'info':'warn'});
       paidAmount = parseFloat((chapaRes.data as Record<string,string>)?.amount ?? '0');
+      // A public callback must not mark the top-up failed: it stays pending
+      // until Chapa confirms it (audit F-019).
       if (!ok) {
-        await pool.query(`UPDATE wallet_transactions SET description='Chapa FAILED',type='failed_topup' WHERE reference=$1 AND type='pending_topup'`, [tx_ref]);
         if (req.headers.accept?.includes('text/html')) { res.redirect(`${frontendUrl}/wallet?topup=failed&tx_ref=${tx_ref}`); return; }
-        apiError.validationError(res, 'Payment not successful'); return;
+        apiError.validationError(res, 'Payment not confirmed yet'); return;
       }
     }
 
