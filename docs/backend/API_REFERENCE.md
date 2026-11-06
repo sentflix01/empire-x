@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **356** across **51** mounted modules · Generated: 2026-11-06
+> Endpoints: **357** across **51** mounted modules · Generated: 2026-11-06
 
 | Legend | Meaning |
 |---|---|
@@ -17,7 +17,7 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 
 ## Contents
 - [`admin`](#admin) (19)
-- [`ai`](#ai) (3)
+- [`ai`](#ai) (4)
 - [`auth`](#auth) (19)
 - [`businessApiKeys`](#businessapikeys) (3)
 - [`businesses`](#businesses) (10)
@@ -99,7 +99,8 @@ with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND
 |---|---|---|---|
 | `GET` | `/api/ai/status` | 🌐 public | routes/ai.ts:50 |
 | `POST` | `/api/ai/generate` | 🔒 auth | routes/ai.ts:54 |
-| `POST` | `/api/ai/chat` | 🔒 auth | routes/ai.ts:71 |
+| `POST` | `/api/ai/generate-description` | 🔒 auth | routes/ai.ts:90 |
+| `POST` | `/api/ai/chat` | 🔒 auth | routes/ai.ts:111 |
 
 ## auth — Authentication endpoints
 

@@ -9,7 +9,7 @@ import Link from "next/link";
 import { ArrowLeft, ScanBarcode, Sparkles, X } from "lucide-react";
 import BarcodeScanner from "@/components/products/BarcodeScanner";
 import { importPhoto, lookupCode, productCategory, PRODUCT_CATEGORIES, SOURCE_LABEL, type ExistingProduct } from "@/lib/productScan";
-import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import { apiErrorBody, apiErrorMessage } from "@/lib/apiErrorMessage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +45,8 @@ function ProductCreate() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
   const [generating, setGenerating] = useState(false);
+  // The AI button shows only when the server has an AI provider (audit F-002).
+  const [aiAvailable, setAiAvailable] = useState(false);
   const [images, setImages] = useState([]);
   const [form, setForm] = useState({ title: "", description: "", price: "", stock: "1", category: "", tags: "", status: "active" });
   // Filled by a scan; saved with the product so the next seller's scan finds it.
@@ -58,6 +60,17 @@ function ProductCreate() {
   // The business that sells the product: checkout shows its payment details (audit FUNC-03).
   const [businesses, setBusinesses] = useState<Array<{ id: string; business_name?: string }>>([]);
   const [businessId, setBusinessId] = useState(searchParams.get("business") || "");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await client.get("/api/ai/status");
+        if (!cancelled) setAiAvailable(res?.data?.configured === true);
+      } catch { /* leave the button hidden */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (isEdit || !user?.id) return;
@@ -144,8 +157,15 @@ function ProductCreate() {
     setGenerating(true);
     try {
       const { data } = await client.post("/api/ai/generate-description", { title: form.title, category: form.category, type: "product" });
-      setForm(p => ({ ...p, description: data.description }));
-    } catch { toast.info("AI unavailable — add OPENAI_API_KEY to backend/.env"); }
+      if (data?.description) setForm(p => ({ ...p, description: data.description }));
+    } catch (err) {
+      if (apiErrorBody(err)?.status === 503) {
+        setAiAvailable(false);
+        toast.info("AI descriptions aren't available right now. Please write your own.");
+      } else {
+        toast.error(apiErrorMessage(err, "AI couldn't write a description. Please try again."));
+      }
+    }
     setGenerating(false);
   };
 
@@ -259,9 +279,11 @@ function ProductCreate() {
           <div>
             <div className="flex items-center justify-between">
               <Label>Description</Label>
-              <button onClick={handleGenerateDesc} disabled={generating || !form.title} className="flex items-center gap-1 text-xs text-amber-600 hover:underline disabled:opacity-50">
-                <Sparkles className="w-3 h-3" /> {generating ? "Generating..." : "AI Generate"}
-              </button>
+              {aiAvailable && (
+                <button type="button" onClick={handleGenerateDesc} disabled={generating || !form.title} className="flex items-center gap-1 text-xs text-amber-600 hover:underline disabled:opacity-50">
+                  <Sparkles className="w-3 h-3" aria-hidden="true" /> {generating ? "Generating..." : "AI Generate"}
+                </button>
+              )}
             </div>
             <Textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Describe your product..." className="mt-1 min-h-[100px]" />
           </div>
