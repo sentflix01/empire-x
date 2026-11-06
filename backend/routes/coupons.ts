@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { requireAuth } from '../middleware/auth';
+import { isUuid } from '../lib/uuidParams';
 
 const router = Router();
 
@@ -14,6 +15,9 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   const value = Number(discount_value);
   const minimum = min_order == null ? 0 : Number(min_order);
   const limit = usage_limit == null ? null : Number(usage_limit);
+  // An unparseable date used to reach Postgres and answer 500 (audit F-051).
+  const expiry = expires_at == null || expires_at === '' ? null : new Date(String(expires_at));
+  if (expiry && Number.isNaN(expiry.getTime())) { res.status(400).json({ error: 'expires_at must be a valid date' }); return; }
   if (!/^[A-Z0-9_-]{2,40}$/.test(normalizedCode) || !['percentage', 'fixed'].includes(String(discount_type)) ||
       !Number.isFinite(value) || value <= 0 || (discount_type === 'percentage' && value > 100) ||
       !Number.isFinite(minimum) || minimum < 0 || (limit !== null && (!Number.isInteger(limit) || limit < 1))) {
@@ -22,7 +26,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(
       `INSERT INTO coupons (seller_id,code,discount_type,discount_value,min_order,usage_limit,expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [req.user!.id, normalizedCode, discount_type, value, minimum, limit, expires_at ?? null],
+      [req.user!.id, normalizedCode, discount_type, value, minimum, limit, expiry ? expiry.toISOString() : null],
     );
     res.status(201).json(rows[0]);
   } catch (err: unknown) {
@@ -40,21 +44,30 @@ router.get('/mine', requireAuth, async (req: Request, res: Response) => {
 
 router.post('/validate', async (req: Request, res: Response) => {
   const { code, seller_id, order_total } = req.body as Record<string, unknown>;
-  if (!code || !seller_id) { res.status(400).json({ error: 'code and seller_id are required' }); return; }
+  // Malformed input answered 500 or a NaN/negative discount (audit F-051).
+  if (typeof code !== 'string' || !/^[A-Za-z0-9_-]{2,40}$/.test(code.trim()) || !isUuid(seller_id)) {
+    res.status(400).json({ error: 'code and seller_id are required' }); return;
+  }
+  const total = order_total == null || order_total === '' ? null : (typeof order_total === 'number' || typeof order_total === 'string') ? Number(order_total) : NaN;
+  if (total !== null && (!Number.isFinite(total) || total < 0)) {
+    res.status(400).json({ error: 'order_total must be a number of 0 or more' }); return;
+  }
   try {
     const { rows } = await pool.query(
       `SELECT * FROM coupons WHERE code=$1 AND seller_id=$2 AND is_active=TRUE AND (expires_at IS NULL OR expires_at > NOW()) AND (usage_limit IS NULL OR usage_count < usage_limit)`,
-      [(code as string).toUpperCase(), seller_id],
+      [code.trim().toUpperCase(), seller_id],
     );
     if (!rows.length) { res.status(404).json({ error: 'Invalid or expired coupon code' }); return; }
     const coupon = rows[0] as Record<string, unknown>;
-    if (order_total && coupon.min_order && Number(order_total) < Number(coupon.min_order)) {
+    if (total !== null && coupon.min_order && total < Number(coupon.min_order)) {
       res.status(400).json({ error: `Minimum order of ${coupon.min_order} ETB required for this coupon` }); return;
     }
-    const discount = coupon.discount_type === 'percentage'
-      ? Number(order_total ?? 0) * (Number(coupon.discount_value) / 100)
+    const raw = coupon.discount_type === 'percentage'
+      ? (total ?? 0) * (Number(coupon.discount_value) / 100)
       : Number(coupon.discount_value);
-    res.json({ valid: true, coupon, discount: Math.min(discount, Number(order_total ?? discount)) });
+    // Never more than the order, rounded to cents.
+    const discount = Math.round(Math.min(raw, total ?? raw) * 100) / 100;
+    res.json({ valid: true, coupon, discount });
   } catch { res.status(500).json({ error: 'Failed to validate coupon' }); }
 });
 

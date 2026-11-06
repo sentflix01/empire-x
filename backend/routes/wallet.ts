@@ -25,6 +25,22 @@ const router = Router();
 // ── atomicWalletOp ────────────────────────────────────────────────────────────
 const CREDIT_TYPES = new Set(['credit', 'refund', 'pending_topup']);
 
+/** Largest amount numeric(12,2) holds. */
+const MAX_AMOUNT = 9_999_999_999.99;
+
+/**
+ * A money amount as a number with at most 2 decimals, or null (audit F-051).
+ * Accepts a JSON number or a plain decimal string; rejects NaN, Infinity,
+ * exponents, booleans, objects, zero and negatives. Postgres numeric stores
+ * 'NaN', so a bad amount used to turn the balance into NaN.
+ */
+export function parseAmount(value: unknown): number | null {
+  const text = typeof value === 'number' ? (Number.isFinite(value) ? String(value) : '') : typeof value === 'string' ? value.trim() : '';
+  if (!/^\d{1,10}(\.\d{1,2})?$/.test(text)) return null;
+  const amount = Number(text);
+  return amount > 0 && amount <= MAX_AMOUNT ? amount : null;
+}
+
 export async function atomicWalletOp(
   userId: string,
   type: string,
@@ -33,6 +49,7 @@ export async function atomicWalletOp(
   reference: string | null = null,
   auditContext: { actor_id?: string; actor_email?: string; ip?: string; ua?: string } = {},
 ): Promise<{ wallet: Record<string,unknown>; transaction: Record<string,unknown> }> {
+  if (parseAmount(amount) === null) throw Object.assign(new Error(`Invalid wallet amount: ${String(amount)}`), { code: 'INVALID_AMOUNT' });
   const delta = CREDIT_TYPES.has(type) ? amount : -amount;
   const client = await pool.connect();
   try {
@@ -109,10 +126,11 @@ router.post('/topup', walletRetired, requireAuth, async (req: Request, res: Resp
 });
 
 router.post('/withdraw', requireAuth, requireIsolatedPaymentEnvironment, async (req: Request, res: Response) => {
-  const { amount, bank_name, account_number } = req.body as Record<string,unknown>;
-  if (!amount || Number(amount) <= 0) { apiError.validationError(res, 'Valid amount is required'); return; }
+  const { bank_name, account_number } = req.body as Record<string,unknown>;
+  const amount = parseAmount((req.body as Record<string, unknown>).amount);
+  if (amount === null) { apiError.validationError(res, 'Enter an amount greater than 0 with at most 2 decimals'); return; }
   try {
-    const { wallet } = await atomicWalletOp(req.user!.id, 'withdrawal', parseFloat(String(amount)), `Withdrawal to ${bank_name ?? 'bank'} ${account_number ?? ''}`.trim(), null, { actor_id: req.user!.id, actor_email: req.user!.email, ip: req.ip, ua: req.get('user-agent') });
+    const { wallet } = await atomicWalletOp(req.user!.id, 'withdrawal', amount, `Withdrawal to ${bank_name ?? 'bank'} ${account_number ?? ''}`.trim(), null, { actor_id: req.user!.id, actor_email: req.user!.email, ip: req.ip, ua: req.get('user-agent') });
     pool.query(`INSERT INTO notifications (user_id,type,title,body) SELECT id,'order','Withdrawal Request',$1 FROM users WHERE role='admin' LIMIT 1`, [`User ${req.user!.id} requested withdrawal of ${amount} ETB`]).catch(()=>undefined);
     res.json({ success: true, message: 'Withdrawal request submitted. Processing within 1-3 business days.', wallet });
   } catch (err) {
