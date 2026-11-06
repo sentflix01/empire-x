@@ -1113,6 +1113,29 @@ router.post('/reset-password', async (req: Request, res: Response) => {
   }
 });
 
+// ── PUT /api/auth/update-name (audit F-004) ─────────────────────────────────
+// users.full_name is what /api/auth/me returns first, so the account name must
+// change with the profile display name. 1–100 characters, no control characters.
+router.put('/update-name', requireAuth, async (req: Request, res: Response) => {
+  const raw = (req.body as { full_name?: unknown }).full_name;
+  const name = typeof raw === 'string' ? raw.normalize('NFC').trim().replace(/\s+/g, ' ') : '';
+  if (!name || name.length > 100 || /[\u0000-\u001f\u007f]/.test(name)) {
+    apiError.validationError(res, 'Name must be 1 to 100 characters');
+    return;
+  }
+  try {
+    const { rows } = await pool.query<{ full_name: string }>(
+      'UPDATE users SET full_name = $2 WHERE id = $1 RETURNING full_name', [req.user!.id, name],
+    );
+    if (!rows.length) { apiError.notFound(res, 'User not found'); return; }
+    await invalidateUserCache(req.user!.id);
+    res.json({ full_name: rows[0].full_name });
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'Update name error');
+    apiError.serverError(res, 'Could not update your name');
+  }
+});
+
 // ── PUT /api/auth/change-password ────────────────────────────────────────────
 
 router.put('/change-password', requireAuth, async (req: Request, res: Response) => {
