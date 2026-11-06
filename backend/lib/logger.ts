@@ -25,12 +25,25 @@ const logger: Logger = pino({
       },
     },
   }),
+  // Defence in depth: these keys are removed wherever a log call passes them.
+  // URLs are redacted before logging with lib/redact.ts (audit F-015).
   redact: {
     paths: [
       'req.headers.authorization',
+      'req.headers.cookie',
+      'headers.authorization',
+      'headers.cookie',
+      'res.headers["set-cookie"]',
       'body.password',
       'body.password_hash',
       'body.card_number',
+      '*.password',
+      '*.token',
+      '*.access_token',
+      '*.refresh_token',
+      '*.otp',
+      '*.otpCode',
+      '*.secret',
     ],
     censor: '[REDACTED]',
   },

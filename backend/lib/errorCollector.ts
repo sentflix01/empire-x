@@ -12,6 +12,7 @@
 import crypto from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
 import logger from './logger';
+import { redactPath } from './redact';
 
 // Lazy-load pool to avoid circular require during startup
 let _pool: import('pg').Pool | null = null;
@@ -62,7 +63,9 @@ export async function captureError(err: Error | string, opts: CaptureOptions = {
     const context = opts.context ?? {};
 
     const method     = req?.method    ?? null;
-    const path       = req?.path      ?? req?.url ?? null;
+    // Redacted so guest order tokens never reach error_events (F-015); this
+    // also groups errors from different tokens under one fingerprint.
+    const path       = redactPath(req?.originalUrl ?? req?.path ?? req?.url ?? null);
     const statusCode = opts.statusCode ?? null;
     const requestId  = (req?.headers?.['x-request-id'] as string | undefined) ?? null;
     const userId     = (req as Request & { user?: { id?: string } })?.user?.id ?? null;
@@ -129,7 +132,7 @@ export function errorMiddleware(
   const level: ErrorLevel = statusCode >= 500 ? 'error' : 'warn';
 
   captureError(err, { req, level, source: 'route', statusCode });
-  logger.error({ err: err.message, stack: err.stack, path: req.path }, 'Unhandled route error');
+  logger.error({ err: err.message, stack: err.stack, path: redactPath(req.originalUrl ?? req.path) }, 'Unhandled route error');
 
   if ((err as NodeJS.ErrnoException).code === 'LIMIT_FILE_SIZE') {
     res.status(413).json({ error: 'File too large' });

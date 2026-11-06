@@ -6,6 +6,7 @@
  */
 import type { Request, Response, NextFunction } from 'express';
 import logger from '../lib/logger';
+import { redactUrl } from '../lib/redact';
 
 export default function httpLogger(req: Request, res: Response, next: NextFunction): void {
   const start = Date.now();
@@ -13,7 +14,8 @@ export default function httpLogger(req: Request, res: Response, next: NextFuncti
   res.on('finish', () => {
     logger.info({
       method: req.method,
-      url: req.url,
+      // Guest order tokens and signed-link signatures are credentials (F-015).
+      url: redactUrl(req.originalUrl ?? req.url),
       statusCode: res.statusCode,
       responseTimeMs: Date.now() - start,
       requestId: req.requestId,
