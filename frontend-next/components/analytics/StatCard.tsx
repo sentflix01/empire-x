@@ -18,7 +18,7 @@ export default function StatCard({ icon: Icon, label, value, color, trend }: Sta
           <Icon className="w-4 h-4" />
         </div>
         {trend !== undefined && (
-          <span className={`text-xs font-semibold ${trend >= 0 ? "text-green-600" : "text-red-500"}`}>
+          <span className={`text-xs font-semibold ${trend >= 0 ? "text-success" : "text-destructive"}`}>
             {trend >= 0 ? "↑" : "↓"} {Math.abs(trend)}%
           </span>
         )}

@@ -207,7 +207,7 @@ export default function SectionRenderer({
             <p className="text-sm text-muted-foreground">
               {productSearch || productCategory ? 'No matching products. Try a different search or category.' : 'No products available yet'}
             </p>
-            {(isOwner || preview) && <Link href="/products/create" className="text-xs text-amber-600 hover:underline mt-2 inline-block">Add your first product →</Link>}
+            {(isOwner || preview) && <Link href="/products/create" className="text-xs text-primary hover:underline mt-2 inline-block">Add your first product →</Link>}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3" aria-live="polite">
@@ -373,7 +373,7 @@ export default function SectionRenderer({
         <div className="space-y-3">
           {reviews.map((item, i) => (
             <div key={i} className="p-4 rounded-xl border border-border/40" style={{ backgroundColor: themeColor + "08" }}>
-              <div className="flex gap-1 mb-2">{[1,2,3,4,5].map(star => <Star key={star} className="w-3 h-3 fill-amber-400 text-amber-400" />)}</div>
+              <div className="flex gap-1 mb-2">{[1,2,3,4,5].map(star => <Star key={star} className="w-3 h-3 fill-rating text-rating" />)}</div>
               <p className="text-sm italic">"{item.quote || item.text || item.review}"</p>
               <p className="text-xs font-semibold mt-2">— {item.author || item.name}{item.role ? `, ${item.role}` : ""}</p>
             </div>
@@ -690,7 +690,7 @@ export default function SectionRenderer({
             <div key={i} className="p-4 rounded-xl border border-border/40 bg-card" style={{ borderLeft: `4px solid ${themeColor}` }}>
               <h3 className="text-sm font-semibold">{c.title}</h3>
               {c.summary && <p className="text-xs text-muted-foreground mt-1">{c.summary}</p>}
-              {c.result && <p className="text-xs font-semibold text-green-600 mt-2">✅ {c.result}</p>}
+              {c.result && <p className="text-xs font-semibold text-success mt-2">✅ {c.result}</p>}
             </div>
           ))}
         </div>
@@ -1019,7 +1019,7 @@ export default function SectionRenderer({
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm font-semibold">📢 Feed announcement bar</span>
             {preview && (
-              <span className="ml-auto rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+              <span className="ml-auto rounded-full bg-primary-subtle px-2 py-0.5 text-[10px] font-semibold text-primary">
                 Preview only
               </span>
             )}
@@ -1031,11 +1031,11 @@ export default function SectionRenderer({
               {/* Inline mini ticker — same colours as the real TickerBar */}
               <div className="flex items-center overflow-hidden bg-card">
                 <div className={`shrink-0 flex items-center gap-1 px-3 py-2 text-white text-[10px] font-bold tracking-widest uppercase ${
-                  type === 'promo' ? 'bg-orange-500' :
-                  type === 'news'  ? 'bg-red-600' :
-                  type === 'contact' ? 'bg-blue-500' :
-                  type === 'location' ? 'bg-cyan-500' :
-                  'bg-purple-500'
+                  type === 'promo' ? 'bg-primary' :
+                  type === 'news'  ? 'bg-destructive' :
+                  type === 'contact' ? 'bg-primary' :
+                  type === 'location' ? 'bg-primary' :
+                  'bg-brand-secondary'
                 }`}>
                   {type === 'promo' ? '🏷 PROMO' : type === 'news' ? '🔴 LIVE' : type === 'contact' ? '📞 CONTACT' : type === 'location' ? '📍 LOCATION' : '📢 INFO'}
                 </div>
@@ -1083,12 +1083,12 @@ function NewsletterForm({ showroomId, preview, buttonLabel, themeColor }: { show
       setState("idle");
     }
   };
-  if (state === "done") return <p role="status" className="text-sm font-medium text-emerald-700">Thanks! You're on the list.</p>;
+  if (state === "done") return <p role="status" className="text-sm font-medium text-success">Thanks! You're on the list.</p>;
   return (
     <form onSubmit={submit} className="mx-auto max-w-md">
       <div className="flex items-center justify-center gap-2 flex-wrap">
         <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter your email" aria-label="Email address"
-          className="min-h-11 px-4 py-2 rounded-full border border-border/60 bg-card text-sm w-56 outline-none focus:border-amber-400" />
+          className="min-h-11 px-4 py-2 rounded-full border border-border/60 bg-card text-sm w-56 outline-none focus:border-primary" />
         <Button type="submit" disabled={!live || state === "sending"} className="min-h-11 rounded-full text-white px-5" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
           <Send className="w-3.5 h-3.5 mr-1" /> {buttonLabel}
         </Button>

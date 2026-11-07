@@ -61,7 +61,7 @@ export function SuggestionCard({ suggestion, onFollow, onDismiss }: SuggestionCa
             onError={() => setAvatarFailed(true)}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-sm font-bold">
+          <div className="w-full h-full bg-primary flex items-center justify-center text-white text-sm font-bold">
             {initials}
           </div>
         )}
@@ -107,7 +107,7 @@ export function SuggestionCard({ suggestion, onFollow, onDismiss }: SuggestionCa
           className={`mt-2 text-xs font-semibold px-3 py-1 rounded-full transition-colors ${
             following
               ? 'bg-secondary text-muted-foreground cursor-default'
-              : 'bg-amber-500 hover:bg-amber-600 text-white'
+              : 'bg-primary hover:bg-primary/90 text-white'
           }`}
         >
           {following ? 'Following' : 'Follow'}

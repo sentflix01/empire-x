@@ -1,4 +1,5 @@
 'use client';
+import { token } from '@/lib/colorTokens';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import client from "@/api/client";
@@ -51,7 +52,7 @@ function CompanyAnnouncementTicker() {
     return (
       <div className="flex justify-end">
         <button type="button" onClick={showTicker}
-          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3 text-xs font-bold text-blue-700 shadow-sm shadow-blue-950/5 transition-colors hover:bg-blue-50 dark:border-blue-500/25 dark:bg-slate-900 dark:text-blue-200 dark:hover:bg-slate-800"
+          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-primary/30 bg-white px-3 text-xs font-bold text-primary shadow-sm shadow-primary/5 transition-colors hover:bg-primary-subtle"
           title="Show announcements" aria-label="Show announcements">
           <Eye className="h-3.5 w-3.5" />
           {t('feed.showNews')}
@@ -61,22 +62,22 @@ function CompanyAnnouncementTicker() {
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-blue-200/70 bg-white shadow-sm shadow-blue-950/5 dark:border-blue-500/25 dark:bg-slate-900">
-      <div className="h-[2px] bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600" />
+    <div className="overflow-hidden rounded-2xl border border-primary/30 bg-white shadow-sm shadow-primary/5">
+      <div className="h-[2px] bg-primary" />
       <div className="flex min-h-10 items-center overflow-hidden">
-        <div className="flex h-10 shrink-0 items-center gap-1.5 bg-slate-950 px-3 text-white dark:bg-blue-600">
+        <div className="flex h-10 shrink-0 items-center gap-1.5 bg-inverse px-3 text-white">
           <Megaphone className="h-3.5 w-3.5" />
           <span className="text-[10px] font-black uppercase tracking-widest">Nodbusiness</span>
         </div>
         <div className="min-w-0 flex-1 overflow-hidden">
-          <div className="flex w-max animate-marquee whitespace-nowrap py-2 text-blue-950 dark:text-blue-100">
+          <div className="flex w-max animate-marquee whitespace-nowrap py-2 text-primary-subtle-foreground">
             <span className="px-3 text-xs font-semibold">{repeated}</span>
           </div>
         </div>
         <button
           type="button"
           onClick={hideTicker}
-          className="mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-blue-700 transition-colors hover:bg-blue-100 dark:text-blue-200 dark:hover:bg-blue-950/60"
+          className="mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary-subtle"
           title="Hide Nodbusiness announcements"
           aria-label="Hide Nodbusiness announcements"
         >
@@ -241,39 +242,38 @@ function Home() {
     <div className="max-w-xl mx-auto space-y-4">
       {/* Guest read-only banner — only shown after auth fully resolves to unauthenticated */}
       {authChecked && !isAuthenticated && (
-        <div data-page-guide="feed-guest-banner" className="flex items-center justify-between gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/80 px-4 py-3 dark:border-amber-500/25 dark:bg-amber-950/30">
-          <p className="text-xs font-medium text-amber-900 dark:text-amber-200">👋 Browsing as a guest: you see public businesses. Sign in to see personal posts, like and follow.</p>
-          <Link href="/register" className="shrink-0 rounded-xl bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600 transition-colors">Join Free</Link>
+        <div data-page-guide="feed-guest-banner" className="flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary-subtle/80 px-4 py-3">
+          <p className="text-xs font-medium text-primary-subtle-foreground">👋 Browsing as a guest: you see public businesses. Sign in to see personal posts, like and follow.</p>
+          <Link href="/register" className="shrink-0 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-primary/90 transition-colors">Join Free</Link>
         </div>
       )}
-      {/* Mini Website Banner — brand blue-to-purple gradient */}
-      <section data-page-guide="feed-banner" className="relative overflow-hidden rounded-2xl text-white shadow-lg shadow-blue-600/25 min-h-[132px]" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }}>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.18),transparent_28%),radial-gradient(circle_at_15%_90%,rgba(124,58,237,0.22),transparent_26%)]" />
+      {/* Mini Website Banner — brand blue (solid, F-046) */}
+      <section data-page-guide="feed-banner" className="relative overflow-hidden rounded-2xl text-white shadow-lg shadow-primary/25 min-h-[132px]" style={{ background: token.primary }}>
         <div className="relative z-10 flex min-h-[132px] items-center justify-between gap-4 px-5 py-5 sm:px-6">
           <div className="max-w-[250px]">
-            <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/85 ring-1 ring-white/20">
+            <div className="mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white ring-1 ring-white/40">
               <Sparkles className="h-3 w-3" />
               {t('common.showroomStudio')}
             </div>
-            <p className="text-sm font-semibold leading-none text-white/88">{t('feed.createBusiness')}</p>
+            <p className="text-sm font-semibold leading-none text-white">{t('feed.createBusiness')}</p>
             <h1 className="mt-1 text-2xl font-extrabold leading-tight tracking-normal sm:text-3xl">
               {t('feed.buildMiniWebsite')}
             </h1>
-            <p className="mt-2 text-sm font-medium leading-snug text-white/82">{t('feed.shareEmpire')}</p>
+            <p className="mt-2 text-sm font-medium leading-snug text-white">{t('feed.shareEmpire')}</p>
             <Link href={isAuthenticated ? "/showroom/create" : "/register"}
-              className="mt-4 inline-flex h-10 items-center rounded-xl bg-white px-5 text-sm font-bold text-blue-700 shadow-md shadow-black/10 transition-all duration-200 hover:bg-blue-50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+              className="mt-4 inline-flex h-10 items-center rounded-xl bg-white px-5 text-sm font-bold text-primary shadow-md shadow-black/10 transition-all duration-200 hover:bg-primary-subtle hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
               {isAuthenticated ? t('feed.getStarted') : 'Join Free'}
             </Link>
           </div>
 
           <div className="relative hidden h-32 w-44 shrink-0 sm:block" aria-hidden="true">
-            <div className="absolute left-2 top-8 h-2 w-3 rotate-[24deg] rounded-sm bg-cyan-300/85 shadow-[0_0_12px_rgba(103,232,249,0.8)]" />
-            <div className="absolute left-9 top-0 h-2 w-4 rotate-[18deg] rounded-sm bg-pink-400/85 shadow-[0_0_12px_rgba(244,114,182,0.75)]" />
-            <div className="absolute right-4 bottom-3 h-2 w-3 rotate-[-18deg] rounded-sm bg-blue-300/80 shadow-[0_0_12px_rgba(147,197,253,0.75)]" />
+            <div className="absolute left-2 top-8 h-2 w-3 rotate-[24deg] rounded-sm bg-primary/85 shadow-[0_0_12px_rgba(103,232,249,0.8)]" />
+            <div className="absolute left-9 top-0 h-2 w-4 rotate-[18deg] rounded-sm bg-brand-secondary/85 shadow-[0_0_12px_rgba(244,114,182,0.75)]" />
+            <div className="absolute right-4 bottom-3 h-2 w-3 rotate-[-18deg] rounded-sm bg-primary/80 shadow-[0_0_12px_rgba(147,197,253,0.75)]" />
 
-            <div className="absolute right-6 top-0 h-[7.5rem] w-20 rotate-[12deg] rounded-[1.55rem] bg-slate-950/78 p-1.5 shadow-2xl shadow-slate-950/45 ring-1 ring-white/20">
-              <div className="h-full rounded-[1.18rem] p-2" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }}>
-                <div className="mx-auto mb-3 h-1.5 w-7 rounded-full bg-slate-900/55" />
+            <div className="absolute right-6 top-0 h-[7.5rem] w-20 rotate-[12deg] rounded-[1.55rem] bg-inverse/78 p-1.5 shadow-2xl shadow-foreground/10 ring-1 ring-white/20">
+              <div className="h-full rounded-[1.18rem] p-2" style={{ background: token.primary }}>
+                <div className="mx-auto mb-3 h-1.5 w-7 rounded-full bg-inverse/55" />
                 <div className="space-y-2">
                   <div className="h-4 rounded-md bg-white/28" />
                   <div className="h-4 rounded-md bg-white/18" />
@@ -282,13 +282,13 @@ function Home() {
               </div>
             </div>
 
-            <div className="absolute left-0 top-14 flex h-12 w-24 rotate-[-9deg] items-center gap-2 rounded-xl bg-white/92 p-2 shadow-xl shadow-slate-950/20">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
-                <span className="h-5 w-5 rounded-full border-[3px] border-emerald-400 border-t-transparent rotate-[-35deg]" />
+            <div className="absolute left-0 top-14 flex h-12 w-24 rotate-[-9deg] items-center gap-2 rounded-xl bg-white/92 p-2 shadow-xl shadow-foreground/10">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-success-subtle text-success">
+                <span className="h-5 w-5 rounded-full border-[3px] border-success border-t-transparent rotate-[-35deg]" />
               </div>
               <div className="flex-1 space-y-1.5">
-                <div className="h-2 rounded-full bg-slate-300" />
-                <div className="h-2 w-9 rounded-full bg-slate-200" />
+                <div className="h-2 rounded-full bg-muted-foreground/30" />
+                <div className="h-2 w-9 rounded-full bg-muted" />
               </div>
             </div>
 
@@ -300,7 +300,7 @@ function Home() {
               </div>
             </div>
 
-            <div className="absolute right-0 top-[4.25rem] h-12 w-[5.75rem] rotate-[3deg] rounded-xl bg-violet-400/82 p-2 shadow-xl shadow-slate-950/20 ring-1 ring-white/20">
+            <div className="absolute right-0 top-[4.25rem] h-12 w-[5.75rem] rotate-[3deg] rounded-xl bg-brand-secondary/82 p-2 shadow-xl shadow-foreground/10 ring-1 ring-white/20">
               <div className="mb-2 flex items-center gap-1.5">
                 <div className="h-3 w-3 rounded-full bg-white/55" />
                 <div className="h-1.5 w-8 rounded-full bg-white/70" />
@@ -396,7 +396,7 @@ function Home() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: Math.min(i, 4) * 0.04, duration: 0.2 }}
                       className={post.id === highlightPostId
-                        ? 'ring-2 ring-amber-500 rounded-2xl transition-all duration-500'
+                        ? 'ring-2 ring-primary rounded-2xl transition-all duration-500'
                         : ''}
                     >
                       <ErrorBoundary>
@@ -414,7 +414,7 @@ function Home() {
                   <div key="feed-infinite-scroll-sentinel" ref={sentinelRef} className="h-4" />
                   {loadingMore && (
                     <div key="feed-loading-more" className="flex justify-center py-4">
-                      <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
                     </div>
                   )}
                   {!hasMore && posts.length > 0 && (

@@ -174,8 +174,8 @@ function Section({ icon: Icon, title, children, defaultOpen = true }: {
       <button onClick={() => setOpen(v => !v)}
         className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-secondary/30 transition-colors">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-            <Icon className="w-4 h-4 text-blue-600" />
+          <div className="w-8 h-8 rounded-xl bg-primary-subtle flex items-center justify-center shrink-0">
+            <Icon className="w-4 h-4 text-primary" />
           </div>
           <span className="text-sm font-semibold">{title}</span>
         </div>

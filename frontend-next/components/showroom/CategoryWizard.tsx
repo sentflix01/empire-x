@@ -99,11 +99,11 @@ export default function CategoryWizard({ onComplete, onCancel, isSubmitting }: C
     const current = step === n;
     return (
       <div className={`flex items-center gap-1.5 text-xs font-medium transition-all
-        ${current ? 'text-foreground' : done ? 'text-emerald-500' : 'text-muted-foreground'}`}
+        ${current ? 'text-foreground' : done ? 'text-success' : 'text-muted-foreground'}`}
       >
         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-bold transition-all
           ${current ? 'border-primary bg-primary text-primary-foreground'
-                    : done ? 'border-emerald-500 bg-emerald-500 text-white'
+                    : done ? 'border-success bg-success text-white'
                             : 'border-border text-muted-foreground'}`}
         >
           {done ? <Check className="w-3 h-3" /> : n}
@@ -138,9 +138,9 @@ export default function CategoryWizard({ onComplete, onCancel, isSubmitting }: C
       {/* Progress steps */}
       <div className="flex items-center gap-2 px-5 py-3 border-b border-border/30 shrink-0">
         <StepDot n={1} />
-        <div className={`flex-1 h-px transition-colors ${step > 1 ? 'bg-emerald-500' : 'bg-border'}`} />
+        <div className={`flex-1 h-px transition-colors ${step > 1 ? 'bg-success' : 'bg-border'}`} />
         <StepDot n={2} />
-        <div className={`flex-1 h-px transition-colors ${step > 2 ? 'bg-emerald-500' : 'bg-border'}`} />
+        <div className={`flex-1 h-px transition-colors ${step > 2 ? 'bg-success' : 'bg-border'}`} />
         <StepDot n={3} />
       </div>
 
@@ -351,7 +351,7 @@ export default function CategoryWizard({ onComplete, onCancel, isSubmitting }: C
           <>
             <div className="flex-1 min-w-0">
               {!name.trim() && (
-                <p className="text-xs text-red-500">Please enter your business name to continue.</p>
+                <p className="text-xs text-destructive">Please enter your business name to continue.</p>
               )}
             </div>
             <Button

@@ -12,6 +12,7 @@ import client from '@/api/client';
 import { useAuth } from '@/lib/AuthContext';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import PeoplePicker, { type Person } from '@/components/messaging/PeoplePicker';
+import { token } from '@/lib/colorTokens';
 
 export const MAX_GROUP_MEMBERS = 256;
 
@@ -70,7 +71,7 @@ export default function CreateGroupDialog({ type, onClose, onCreated }: {
         <div className="space-y-2 px-4 py-3">
           <div className="flex items-center gap-3">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white"
-              style={{ background: isChannel ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : 'linear-gradient(135deg,#7c3aed,#6d28d9)' }} aria-hidden="true">
+              style={{ background: isChannel ? token.primary : token.brandSecondary }} aria-hidden="true">
               {isChannel ? <Radio className="h-6 w-6" /> : <Users className="h-6 w-6" />}
             </span>
             <label className="flex-1">

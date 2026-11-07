@@ -1,4 +1,5 @@
 'use client';
+import { HEX } from '@/lib/colorTokens';
 import Link from 'next/link';
 import { markerLabelHtml } from "@/lib/mapLabel";
 import Image from 'next/image';
@@ -74,17 +75,18 @@ const DEFAULT_RADIUS = 20;
 /** DivIcon with a colored pin + name label chip floating above */
 function makeLabeledIcon(label, color = "blue") {
   const pinUrls = {
-    gold:  "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png",
+    // "gold" marks businesses: violet, the business identity colour (F-046).
+    gold:  "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png",
     red:   "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
     blue:  "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
     green: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
   };
-  const accentColors = { gold:"#D4AF37", red:"#e53e3e", blue:"#3b82f6", green:"#22c55e" };
-  const accent = accentColors[color] || "#3b82f6";
+  const accentColors = { gold: HEX.brandSecondary, red: HEX.destructive, blue: HEX.primary, green: HEX.success };
+  const accent = accentColors[color] || HEX.primary;
   // Escaped: names come from the database and this HTML is set with innerHTML (audit F-057).
   const truncated = markerLabelHtml(label);
 
-  const bubbleHtml = `<div style="position:absolute;bottom:49px;left:50%;transform:translateX(-50%);background:#fff;color:#111;font-size:11px;font-weight:700;font-family:system-ui,sans-serif;white-space:nowrap;padding:5px 10px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.25);pointer-events:none;line-height:1.4;border:1.5px solid ${accent};z-index:2;">${truncated}<div style="position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:9px solid ${accent};"></div><div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:8px solid #fff;"></div></div>`;
+  const bubbleHtml = `<div style="position:absolute;bottom:49px;left:50%;transform:translateX(-50%);background:#fff;color:${HEX.inverse};font-size:11px;font-weight:700;font-family:system-ui,sans-serif;white-space:nowrap;padding:5px 10px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.25);pointer-events:none;line-height:1.4;border:1.5px solid ${accent};z-index:2;">${truncated}<div style="position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:9px solid ${accent};"></div><div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:8px solid #fff;"></div></div>`;
 
   const pinHtml = `<img loading="lazy" src="${pinUrls[color]}" alt="" width="25" height="41" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:1;" />`;
 
@@ -122,7 +124,7 @@ function MarkerHoverCard({ data, onClose: _onClose }) {
   // icon container is 41px tall; pin tip is at the bottom = data.y + 41
   const pinTipY = data.y + 41;
   const top = Math.max(pinTipY - 12 - 200, 8);
-  const accentColor = data.view === "business" ? "#D4AF37" : "#3b82f6";
+  const accentColor = data.view === "business" ? HEX.brandSecondary : HEX.primary;
 
   return createPortal(
     <div style={{ position:"fixed", left, top, width: cardW, zIndex:999, pointerEvents:"none" }}>
@@ -266,7 +268,7 @@ function NearbyMap() {
   // Loading fallback while Leaflet is being loaded
   const MapLoadingFallback = () => (
     <div className="w-full h-full flex items-center justify-center bg-secondary/30">
-      <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
     </div>
   );
 
@@ -276,7 +278,7 @@ function NearbyMap() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <MapPin className="w-6 h-6 text-amber-500" />
+          <MapPin className="w-6 h-6 text-primary" />
           <div>
             <h1 className="font-display text-2xl font-bold">Nearby</h1>
             <p className="text-xs text-muted-foreground">Local products near you</p>
@@ -299,7 +301,7 @@ function NearbyMap() {
             size="sm"
             onClick={handleLocate}
             disabled={locating}
-            className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+            className="rounded-full bg-primary hover:bg-primary/90"
           >
             {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
             <span className="ml-1.5 hidden sm:inline">Locate Me</span>
@@ -318,7 +320,7 @@ function NearbyMap() {
             className="flex items-center gap-1.5 px-3 py-1 bg-card text-card-foreground border border-border text-[11px] font-medium rounded-full shadow-lg whitespace-nowrap"
             style={{ backgroundColor:"hsl(var(--card))", opacity:1 }}
           >
-            <span className="text-amber-400">👆</span> Hover pin to preview · Double-click to open profile
+            <span className="text-primary">👆</span> Hover pin to preview · Double-click to open profile
           </span>
         </div>
 
@@ -367,8 +369,8 @@ function NearbyMap() {
                   center={[location.lat, location.lon]}
                   radius={radiusKm * 1000}
                   pathOptions={{
-                    color: "#D4AF37",
-                    fillColor: "#D4AF37",
+                    color: HEX.primary,
+                    fillColor: HEX.primary,
                     fillOpacity: 0.07,
                     weight: 1.5,
                     dashArray: "6",
@@ -441,7 +443,7 @@ function NearbyMap() {
       {/* List */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       ) : (
         products.length === 0 ? (
@@ -465,7 +467,7 @@ function NearbyMap() {
                     </div>
                     <div className="p-3">
                       <p className="text-xs font-medium truncate">{p.title}</p>
-                      <p className="text-xs text-amber-600 font-bold mt-0.5">{p.price?.toLocaleString()} {p.currency}</p>
+                      <p className="text-xs text-primary font-bold mt-0.5">{p.price?.toLocaleString()} {p.currency}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-0.5">
                         <MapPin className="w-2.5 h-2.5" />{p.distance_km?.toFixed(1)} km
                       </p>

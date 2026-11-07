@@ -1143,7 +1143,7 @@ export default function PageGuide() {
         {rect && (
           <div
             aria-hidden="true"
-            className="pointer-events-none fixed rounded-2xl border-2 border-blue-400 shadow-[0_0_0_2px_rgba(255,255,255,0.85)]"
+            className="pointer-events-none fixed rounded-2xl border-2 border-primary shadow-[0_0_0_2px_rgba(255,255,255,0.85)]"
             style={{ left: rect.left - 8, top: rect.top - 8, width: rect.width + 16, height: rect.height + 16 }}
           />
         )}

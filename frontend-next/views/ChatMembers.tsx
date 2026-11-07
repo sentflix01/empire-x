@@ -18,6 +18,7 @@ import ChoiceDialog, { type Choice } from '@/components/messaging/ChoiceDialog';
 import PeoplePicker, { PersonAvatar, type Person } from '@/components/messaging/PeoplePicker';
 import { MAX_GROUP_MEMBERS } from '@/components/messaging/CreateGroupDialog';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { token } from '@/lib/colorTokens';
 
 interface Member { user_id: string; role?: string | null; display_name?: string | null; avatar_url?: string | string[] | null }
 interface Group { id: string; type: string; name?: string | null; description?: string | null; my_role?: string | null; members?: Member[] }
@@ -151,7 +152,7 @@ function ChatMembers() {
         <div className="min-h-0 flex-1 overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">
           <section className="flex flex-col items-center gap-2 border-b border-border px-4 py-6 text-center">
             <span className="flex h-20 w-20 items-center justify-center rounded-full text-white"
-              style={{ background: isChannel ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : 'linear-gradient(135deg,#7c3aed,#6d28d9)' }} aria-hidden="true">
+              style={{ background: isChannel ? token.primary : token.brandSecondary }} aria-hidden="true">
               {isChannel ? <Radio className="h-9 w-9" /> : <Users className="h-9 w-9" />}
             </span>
             {editing ? (
@@ -197,7 +198,7 @@ function ChatMembers() {
                     <PersonAvatar person={m} />
                     <span className="min-w-0 flex-1 truncate text-sm font-medium">{m.display_name || 'User'}{m.user_id === me && <span className="text-muted-foreground"> (you)</span>}</span>
                     {m.role === 'admin' && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-success-subtle px-2 py-0.5 text-[11px] font-semibold text-success-subtle-foreground">
                         <ShieldCheck className="h-3 w-3" aria-hidden="true" />Admin
                       </span>
                     )}

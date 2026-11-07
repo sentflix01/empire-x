@@ -77,7 +77,7 @@ function Onboarding() {
           <BrandLogoVideo size={72} className="w-[72px] h-[72px] mx-auto shadow-lg" label="Nodbusiness" />
           <p className="font-display text-xl font-bold mt-3 text-foreground">Nodbusiness</p>
           {(user?.is_demo || user?.demo_session_active) && (
-            <div role="status" className="mt-4 rounded-xl border border-amber-300/50 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
+            <div role="status" className="mt-4 rounded-xl border border-primary/30 bg-primary-subtle p-3 text-sm text-primary-subtle-foreground">
               <p>You are practicing in the Demo workspace. Your Real account and its data stay separate.</p>
             </div>
           )}

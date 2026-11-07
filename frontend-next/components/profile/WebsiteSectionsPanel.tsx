@@ -137,7 +137,7 @@ export default function WebsiteSectionsPanel({ businessCategory }: Props) {
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-foreground">{site.title || 'Your website'}</p>
           <p className="text-xs text-muted-foreground">
-            <span className="mr-1.5 inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">Published</span>
+            <span className="mr-1.5 inline-block rounded-full bg-success-subtle px-2 py-0.5 text-[10px] font-semibold text-success">Published</span>
             {keys.length} section{keys.length === 1 ? '' : 's'}
           </p>
         </div>

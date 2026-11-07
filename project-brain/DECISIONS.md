@@ -896,3 +896,14 @@ items in the open list until confirmed.
   2. An accessibility statement is published as the Accessibility tab of the legal page: target WCAG 2.2 AA, status partially conformant, known limitations, and the shared contact inbox (`CONTACT_EMAIL`), not a new address.
 - **Open (F-055):** a Refund Policy tab needs the owner's or counsel's wording; an OpenAPI file and a docs freshness check are not done yet.
 - **Related documentation:** `LICENSE`, `docs/compliance/ACCESSIBILITY_STATEMENT.md`
+
+### 2026-11-07 — One colour system: blue primary, violet secondary, no decorative accent
+
+- **Status:** Accepted (owner, 7 Nov 2026: "agree with major and secondary… don't need decoration for accent… follow like Facebook, LinkedIn"; audit F-046)
+- **Decision owner:** Project owner
+- **Context:** The two brand documents disagreed (blue vs amber as primary); the app used both, amber meant buttons, warnings and premium at once, and 2,259 raw palette classes plus ~100 hex colours bypassed the theme.
+- **Decision:**
+  1. Primary blue `#2563eb` for the main action and selection; its tint `#eff6ff` for highlighted areas. Secondary violet `#7c3aed` for the business identity and the AI assistant. Status colours (success, warning, error) only for states; red for unread counts. Neutrals for most of the screen. No gold, no decorative accent, no gradients in the app.
+  2. Tokens in `app/globals.css`, mirrored for maps/charts in `lib/colorTokens.ts` (kept in sync by a test). `npm run check:colors` (in `npm run lint`) blocks raw palette classes, arbitrary colour classes and stray hex values.
+  3. Exempt: colours each business chooses for its own showroom, other companies' brand colours (Google, Telegram, WhatsApp), the black-and-white logo, and the landing-page hero (the one marketing gradient).
+- **Consequences:** New UI must use tokens. `docs/brand/COLOR_SYSTEM.md` is the source of truth; `BRAND_BOOK.md` and `BRAND_GUIDELINES.md` now point to it.

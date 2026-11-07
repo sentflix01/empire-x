@@ -98,7 +98,7 @@ export default function OrderStatus() {
           <p className="text-sm">Total: <strong>{Number(order.total_price).toLocaleString()} {order.currency}</strong></p>
         )}
         <p className="text-sm text-muted-foreground">From {business?.business_name ?? 'the seller'}</p>
-        <p className={`mt-2 flex items-center gap-2 text-sm font-medium ${status.tone === 'ok' ? 'text-green-600' : status.tone === 'bad' ? 'text-destructive' : 'text-amber-600'}`}>
+        <p className={`mt-2 flex items-center gap-2 text-sm font-medium ${status.tone === 'ok' ? 'text-success' : status.tone === 'bad' ? 'text-destructive' : 'text-primary'}`}>
           <Icon className="w-4 h-4" /> {status.label}
         </p>
         {isRequest && (

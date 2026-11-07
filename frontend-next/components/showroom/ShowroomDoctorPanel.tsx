@@ -15,10 +15,10 @@ interface Report { score: number; grades: { completeness: number; health: number
   sector: string; findings: Finding[]; history?: Array<{ score: string; created_at: string }> }
 
 const SEV: Record<string, string> = {
-  critical: 'bg-red-500/10 text-red-500 border-red-500/30',
-  high: 'bg-orange-500/10 text-orange-500 border-orange-500/30',
-  medium: 'bg-amber-500/10 text-amber-500 border-amber-500/30',
-  low: 'bg-sky-500/10 text-sky-500 border-sky-500/30',
+  critical: 'bg-destructive/10 text-destructive border-destructive/30',
+  high: 'bg-primary/10 text-primary border-primary/30',
+  medium: 'bg-primary/10 text-primary border-primary/30',
+  low: 'bg-primary/10 text-primary border-primary/30',
 };
 
 export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string }) {
@@ -70,7 +70,7 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
   return (
     <div className="w-full">
       <button onClick={run}
-        className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 inline-flex items-center gap-1.5">
+        className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-success/10 text-success hover:bg-success/20 inline-flex items-center gap-1.5">
         <Stethoscope className="w-3.5 h-3.5" /> {open ? 'Hide' : 'Health'}
       </button>
 
@@ -78,13 +78,13 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
         <div className="relative mt-2 rounded-xl border border-border/50 bg-card p-3 space-y-3">
           {loading && <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
             <Loader2 className="w-4 h-4 animate-spin" /> Analyzing showroom…</div>}
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error && <p className="text-xs text-destructive">{error}</p>}
 
           {report && (
             <>
               <div className="flex items-center gap-4">
                 <div className="text-center shrink-0">
-                  <p className={`text-2xl font-bold font-mono ${report.score >= 80 ? 'text-emerald-500' : report.score >= 55 ? 'text-amber-500' : 'text-red-500'}`}>
+                  <p className={`text-2xl font-bold font-mono ${report.score >= 80 ? 'text-success' : report.score >= 55 ? 'text-primary' : 'text-destructive'}`}>
                     {report.score}
                   </p>
                   <p className="text-[9px] uppercase text-muted-foreground">score</p>
@@ -94,7 +94,7 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
                     <div key={k} className="flex items-center gap-2">
                       <span className="text-[10px] w-20 capitalize text-muted-foreground">{k}</span>
                       <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
-                        <div className={`h-full rounded-full ${report.grades[k] >= 80 ? 'bg-emerald-500' : report.grades[k] >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                        <div className={`h-full rounded-full ${report.grades[k] >= 80 ? 'bg-success' : report.grades[k] >= 50 ? 'bg-primary' : 'bg-destructive'}`}
                           style={{ width: `${report.grades[k]}%` }} />
                       </div>
                       <span className="text-[10px] font-mono w-8 text-right">{report.grades[k]}</span>
@@ -104,7 +104,7 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
                 {report.history && report.history.length > 1 && (
                   <div className="absolute right-4 top-14 flex items-end gap-0.5 h-8" title="Score history">
                     {report.history.slice(0, 10).reverse().map((h, i) => (
-                      <div key={i} className="w-1.5 rounded-sm bg-violet-500/60"
+                      <div key={i} className="w-1.5 rounded-sm bg-brand-secondary/60"
                         style={{ height: `${Math.max(8, Number(h.score))}%` }} title={`${h.score} · ${new Date(h.created_at).toLocaleDateString()}`} />
                     ))}
                   </div>
@@ -112,7 +112,7 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
                 <div className="shrink-0 flex flex-col items-end gap-1">
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg bg-secondary/60">{report.sector}</span>
                   <button onClick={narrate} disabled={narrating}
-                    className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg bg-violet-500/10 text-violet-500 hover:bg-violet-500/20 disabled:opacity-50">
+                    className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg bg-brand-secondary/10 text-brand-secondary hover:bg-brand-secondary/20 disabled:opacity-50">
                     {narrating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                     AI Advisor
                   </button>
@@ -120,8 +120,8 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
               </div>
 
               {report.narrative && (
-                <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-3">
-                  <p className="text-[10px] font-semibold uppercase text-violet-500 mb-1 flex items-center gap-1">
+                <div className="rounded-xl border border-brand-secondary/20 bg-brand-secondary/5 p-3">
+                  <p className="text-[10px] font-semibold uppercase text-brand-secondary mb-1 flex items-center gap-1">
                     <Sparkles className="w-3 h-3" /> AI Advisor
                   </p>
                   <p className="text-[11px] whitespace-pre-wrap leading-relaxed">{report.narrative}</p>
@@ -130,7 +130,7 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
 
               <div className="space-y-1.5 max-h-64 overflow-y-auto">
                 {report.findings.length === 0 && (
-                  <p className="text-xs text-emerald-500 flex items-center gap-1.5">
+                  <p className="text-xs text-success flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5" /> No issues found — excellent showroom!</p>
                 )}
                 {report.findings.map((f) => (
@@ -155,7 +155,7 @@ export default function ShowroomDoctorPanel({ showroomId }: { showroomId: string
 
               {hasSectionFix && (
                 <a href={`/showroom/create?edit=${showroomId}`}
-                  className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:opacity-90">
+                  className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-xl bg-primary text-white hover:opacity-90">
                   <ExternalLink className="w-3.5 h-3.5" /> Open in builder to apply fixes
                 </a>
               )}

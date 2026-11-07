@@ -644,7 +644,7 @@ function ShowroomCreate({
 
   const siteName = String(formData.title ?? "").trim() || templateName || "Your website";
   const saved = version === savedVersion;
-  const toolBtn = `flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-30 ${darkBuilder ? "text-slate-300 hover:bg-slate-700" : "text-muted-foreground hover:bg-secondary"}`;
+  const toolBtn = `flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-30 ${darkBuilder ? "text-inverse-foreground/70 hover:bg-muted-foreground" : "text-muted-foreground hover:bg-secondary"}`;
 
   const businessControls = !user?.is_demo && (businesses.length > 1 || selectedBusinessId) ? (
     <>
@@ -688,10 +688,10 @@ function ShowroomCreate({
   const isPhone = layout === "phone";
 
   const editor = (
-    <div className={`flex h-full min-h-0 flex-col ${darkBuilder ? "bg-slate-800" : "bg-card"}`}>
+    <div className={`flex h-full min-h-0 flex-col ${darkBuilder ? "bg-inverse" : "bg-card"}`}>
       {!isPhone && (
-        <div className={`flex shrink-0 items-center gap-1.5 border-b px-3 py-2 ${darkBuilder ? "border-slate-700" : "border-border/60"}`}>
-          <PenLine className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />
+        <div className={`flex shrink-0 items-center gap-1.5 border-b px-3 py-2 ${darkBuilder ? "border-foreground/20" : "border-border/60"}`}>
+          <PenLine className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
           <p className="text-sm font-bold">Your words and photos</p>
         </div>
       )}
@@ -702,9 +702,9 @@ function ShowroomCreate({
   );
 
   const preview = (
-    <div className={`flex h-full min-h-0 flex-col ${darkBuilder ? "bg-slate-900" : "bg-secondary"}`}>
+    <div className={`flex h-full min-h-0 flex-col ${darkBuilder ? "bg-inverse" : "bg-secondary"}`}>
       {!isPhone && (
-        <div className={`flex shrink-0 items-center gap-1.5 border-b px-3 py-2 ${darkBuilder ? "border-slate-700 bg-slate-800" : "border-border/60 bg-card"}`}>
+        <div className={`flex shrink-0 items-center gap-1.5 border-b px-3 py-2 ${darkBuilder ? "border-foreground/20 bg-inverse" : "border-border/60 bg-card"}`}>
           <Eye className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
           <p className="flex-1 text-sm font-bold">Live preview</p>
           <span className="text-xs text-muted-foreground">{previewMode === "mobile" ? "Phone" : previewMode === "tablet" ? "Tablet" : "Computer"}</span>
@@ -726,7 +726,7 @@ function ShowroomCreate({
   );
 
   const paneTab = (active: boolean) => `flex min-h-11 flex-1 items-center justify-center gap-1.5 text-sm font-semibold
-    ${active ? (darkBuilder ? "text-amber-300 bg-slate-700/60" : "text-amber-700 bg-amber-50") : (darkBuilder ? "text-slate-400" : "text-muted-foreground hover:text-foreground")}`;
+    ${active ? (darkBuilder ? "text-white/80 bg-muted-foreground/60" : "text-primary bg-primary-subtle") : (darkBuilder ? "text-muted-foreground" : "text-muted-foreground hover:text-foreground")}`;
 
   // ── Phone sheet drag — stable callbacks (useCallback so refs never change) ─
   // Each drag creates a closure over refs only (not over state), so there is
@@ -787,10 +787,10 @@ function ShowroomCreate({
     window.addEventListener('pointerup',   onUp);
   }, [makeSheetMove]);
   return (
-    <div ref={studioRef} className={`flex flex-col h-full min-h-0 overflow-hidden ${darkBuilder ? "bg-slate-900 text-slate-100" : "bg-amber-50/30"}`}>
+    <div ref={studioRef} className={`flex flex-col h-full min-h-0 overflow-hidden ${darkBuilder ? "bg-inverse text-inverse-foreground/70" : "bg-primary-subtle/30"}`}>
 
       {/* ── Top bar: always fits, Publish always visible ── */}
-      <div className={`flex h-14 shrink-0 items-center gap-1 border-b px-2 sm:gap-1.5 sm:px-3 ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}>
+      <div className={`flex h-14 shrink-0 items-center gap-1 border-b px-2 sm:gap-1.5 sm:px-3 ${darkBuilder ? "bg-inverse border-foreground/20" : "bg-card border-border/60"}`}>
         <button type="button" onClick={() => (onBack ? onBack() : router.push("/showroom/templates"))}
           aria-label={onBack ? t("showroomWizard.back") : "Back to templates"} className={toolBtn}>
           <ArrowLeft className="h-5 w-5" />
@@ -798,7 +798,7 @@ function ShowroomCreate({
         <div className="min-w-0 flex-1 leading-tight">
           <p className="truncate text-sm font-semibold">{siteName}</p>
           <p className="flex items-center gap-1 truncate text-[11px] text-muted-foreground" aria-live="polite">
-            {saved ? <><Check className="h-3 w-3 text-emerald-600" aria-hidden="true" />Saved on this device</> : "Saving…"}
+            {saved ? <><Check className="h-3 w-3 text-success" aria-hidden="true" />Saved on this device</> : "Saving…"}
           </p>
         </div>
         <button type="button" onClick={undo} disabled={!undoStack.length} aria-label="Undo" className={toolBtn}>
@@ -827,7 +827,7 @@ function ShowroomCreate({
           onClick={() => { void handlePublish(); }}
           disabled={saving}
           aria-label="Publish site"
-          className="flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-3 text-sm font-bold text-white shadow-sm hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 sm:px-4"
+          className="flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary hover:bg-primary/90 px-3 text-sm font-bold text-white shadow-sm disabled:opacity-50 sm:px-4"
         >
           <CheckCircle className="h-4 w-4 max-[379px]:hidden" aria-hidden="true" />
           {saving ? "Publishing…" : "Publish"}
@@ -869,7 +869,7 @@ function ShowroomCreate({
             <aside
               aria-label="Sections"
               style={{ width: sectionsDrag.size }}
-              className={`flex shrink-0 flex-col border-r ${darkBuilder ? "border-slate-700" : "border-border/60"}`}
+              className={`flex shrink-0 flex-col border-r ${darkBuilder ? "border-foreground/20" : "border-border/60"}`}
             >
               {sectionsPanel}
             </aside>
@@ -882,7 +882,7 @@ function ShowroomCreate({
               onPointerDown={sectionsDrag.onPointerDown}
               onDoubleClick={sectionsDrag.onDoubleClick}
               className={`group relative z-10 flex w-1.5 shrink-0 cursor-col-resize select-none items-center justify-center
-                ${sectionsDrag.isDragging ? "bg-amber-400" : "bg-transparent hover:bg-amber-300/60"}
+                ${sectionsDrag.isDragging ? "bg-primary" : "bg-transparent hover:bg-primary/60"}
                 transition-colors duration-150`}
             >
               {/* Visual grip dots */}
@@ -909,7 +909,7 @@ function ShowroomCreate({
               onPointerDown={editorDrag.onPointerDown}
               onDoubleClick={editorDrag.onDoubleClick}
               className={`group relative z-10 flex w-1.5 shrink-0 cursor-col-resize select-none items-center justify-center
-                ${editorDrag.isDragging ? "bg-amber-400" : "bg-transparent hover:bg-amber-300/60"}
+                ${editorDrag.isDragging ? "bg-primary" : "bg-transparent hover:bg-primary/60"}
                 transition-colors duration-150`}
             >
               <span aria-hidden="true" className="flex flex-col gap-[3px] opacity-0 group-hover:opacity-60 transition-opacity">
@@ -931,9 +931,9 @@ function ShowroomCreate({
             {/* ── Left pane: Sections or Edit (resizable) ── */}
             <div
               style={{ width: tabletDrag.size }}
-              className={`flex shrink-0 flex-col border-r ${darkBuilder ? "border-slate-700" : "border-border/60"}`}
+              className={`flex shrink-0 flex-col border-r ${darkBuilder ? "border-foreground/20" : "border-border/60"}`}
             >
-              <div role="tablist" aria-label="Studio panels" className={`flex shrink-0 border-b ${darkBuilder ? "border-slate-700 bg-slate-800" : "border-border/60 bg-card"}`}>
+              <div role="tablist" aria-label="Studio panels" className={`flex shrink-0 border-b ${darkBuilder ? "border-foreground/20 bg-inverse" : "border-border/60 bg-card"}`}>
                 <button type="button" role="tab" aria-selected={tabletPane === "sections"} onClick={() => setTabletPane("sections")} className={paneTab(tabletPane === "sections")}>
                   <Layers className="h-4 w-4" aria-hidden="true" />Sections · {activeSections.length}
                 </button>
@@ -952,7 +952,7 @@ function ShowroomCreate({
               onPointerDown={tabletDrag.onPointerDown}
               onDoubleClick={tabletDrag.onDoubleClick}
               className={`group relative z-10 flex w-1.5 shrink-0 cursor-col-resize select-none items-center justify-center
-                ${tabletDrag.isDragging ? "bg-amber-400" : "bg-transparent hover:bg-amber-300/60"}
+                ${tabletDrag.isDragging ? "bg-primary" : "bg-transparent hover:bg-primary/60"}
                 transition-colors duration-150`}
             >
               <span aria-hidden="true" className="flex flex-col gap-[3px] opacity-0 group-hover:opacity-60 transition-opacity">
@@ -980,11 +980,11 @@ function ShowroomCreate({
               role="tablist"
               aria-label="Studio panels"
               className={`relative z-40 flex shrink-0 border-t safe-bottom
-                ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}
+                ${darkBuilder ? "bg-inverse border-foreground/20" : "bg-card border-border/60"}`}
             >
               <button type="button" role="tab" aria-selected={sectionsOpen} onClick={() => setSectionsOpen(v => !v)} className={paneTab(sectionsOpen)}>
                 <Layers className="h-4 w-4" aria-hidden="true" />Sections
-                <span className="rounded-full bg-amber-500 px-1.5 text-[10px] font-bold leading-4 text-white">{activeSections.length}</span>
+                <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold leading-4 text-white">{activeSections.length}</span>
               </button>
               <button type="button" role="tab" aria-selected={!sectionsOpen && mobileTab === "content"} onClick={() => { setSectionsOpen(false); setMobileTab("content"); }} className={paneTab(!sectionsOpen && mobileTab === "content")}>
                 <PenLine className="h-4 w-4" aria-hidden="true" />Edit
@@ -1003,7 +1003,7 @@ function ShowroomCreate({
                 <div
                   className={`fixed inset-x-0 z-30 flex flex-col shadow-2xl border-t
                     ${isMax ? '' : 'rounded-t-2xl'}
-                    ${darkBuilder ? "bg-slate-800 border-slate-700" : "bg-card border-border/60"}`}
+                    ${darkBuilder ? "bg-inverse border-foreground/20" : "bg-card border-border/60"}`}
                   style={{ top: topPx, bottom: tabH }}
                 >
                   {/* Drag handle */}
@@ -1019,12 +1019,12 @@ function ShowroomCreate({
                     }}
                     className={`flex h-10 w-full shrink-0 cursor-row-resize select-none flex-col items-center justify-center gap-1
                       ${isMax ? '' : 'rounded-t-2xl'}
-                      ${phoneDraggingEditor ? "bg-amber-400/20" : "hover:bg-secondary/60 active:bg-amber-400/20"}
+                      ${phoneDraggingEditor ? "bg-primary/20" : "hover:bg-secondary/60 active:bg-primary/20"}
                       transition-colors touch-none`}
                   >
-                    <span aria-hidden="true" className={`block h-1.5 w-12 rounded-full transition-colors ${phoneDraggingEditor ? "bg-amber-500" : "bg-muted-foreground/40"}`} />
+                    <span aria-hidden="true" className={`block h-1.5 w-12 rounded-full transition-colors ${phoneDraggingEditor ? "bg-primary" : "bg-muted-foreground/40"}`} />
                     <span aria-hidden="true" className="flex gap-1">
-                      {[0,1,2].map(i => <span key={i} className={`h-1 w-1 rounded-full ${phoneDraggingEditor ? "bg-amber-400" : "bg-muted-foreground/25"}`} />)}
+                      {[0,1,2].map(i => <span key={i} className={`h-1 w-1 rounded-full ${phoneDraggingEditor ? "bg-primary" : "bg-muted-foreground/25"}`} />)}
                     </span>
                   </div>
                   <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{editor}</div>

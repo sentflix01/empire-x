@@ -21,11 +21,11 @@ interface ScorecardData {
 }
 
 const gradeColor = (g: string) =>
-  g.startsWith('A') ? 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30'
-  : g.startsWith('B') ? 'text-amber-500 bg-amber-500/10 border-amber-500/30'
-  : 'text-red-500 bg-red-500/10 border-red-500/30';
+  g.startsWith('A') ? 'text-success bg-success/10 border-success/30'
+  : g.startsWith('B') ? 'text-rating bg-rating/10 border-rating/30'
+  : 'text-destructive bg-destructive/10 border-destructive/30';
 const checkIcon = (s: string) => s === 'pass' ? '✓' : s === 'warn' ? '⚠' : '✗';
-const checkColor = (s: string) => s === 'pass' ? 'text-emerald-500' : s === 'warn' ? 'text-amber-500' : 'text-red-500';
+const checkColor = (s: string) => s === 'pass' ? 'text-success' : s === 'warn' ? 'text-warning' : 'text-destructive';
 
 export default function Scorecard() {
   const [data, setData] = useState<ScorecardData | null>(null);
@@ -66,7 +66,7 @@ export default function Scorecard() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-display text-2xl font-bold flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-emerald-500" /> Production Readiness Scorecard
+            <ShieldCheck className="w-6 h-6 text-success" /> Production Readiness Scorecard
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
             Eleven dimensions graded from live signals + code audits · auto-refreshes every 60s
@@ -82,7 +82,7 @@ export default function Scorecard() {
       {loading && !data ? (
         <div className="flex justify-center py-16"><RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" /></div>
       ) : error ? (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-6 text-sm text-red-500">{error}</div>
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">{error}</div>
       ) : data && (
         <>
           {/* Overall */}
@@ -111,7 +111,7 @@ export default function Scorecard() {
                 ))}
               </div>
             </div>
-            <a href="/admin/devops" className="text-[11px] font-semibold text-violet-500 hover:underline inline-flex items-center gap-1">
+            <a href="/admin/devops" className="text-[11px] font-semibold text-brand-secondary hover:underline inline-flex items-center gap-1">
               Open Dev Ops console <ExternalLink className="w-3 h-3" />
             </a>
           </div>
@@ -132,7 +132,7 @@ export default function Scorecard() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold">{d.label}</p>
                       <div className="h-1.5 rounded-full bg-secondary mt-1.5 overflow-hidden">
-                        <div className={`h-full rounded-full ${d.score >= 87 ? 'bg-emerald-500' : d.score >= 73 ? 'bg-amber-500' : 'bg-red-500'}`}
+                        <div className={`h-full rounded-full ${d.score >= 87 ? 'bg-success' : d.score >= 73 ? 'bg-primary' : 'bg-destructive'}`}
                           style={{ width: `${d.score}%` }} />
                       </div>
                     </div>

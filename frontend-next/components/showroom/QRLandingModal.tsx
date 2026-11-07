@@ -32,7 +32,7 @@ export default function QRLandingModal({
   businessCategory,
   logoUrl,
   currentPath,
-  themeColor = '#D4AF37',
+  themeColor = '#2563EB',
 }: QRLandingModalProps) {
   const [visible, setVisible] = useState(false);
   const returnParam = encodeURIComponent(currentPath);
@@ -92,11 +92,11 @@ export default function QRLandingModal({
           <TryDemoButton />
           <Link
             href={`/login?return=${returnParam}`}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl border-2 border-border hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all"
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl border-2 border-border hover:border-primary hover:bg-primary-subtle/50 transition-all"
             onClick={dismiss}
           >
-            <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
-              <UserCheck className="w-5 h-5 text-amber-600" />
+            <div className="w-9 h-9 rounded-xl bg-primary-subtle flex items-center justify-center shrink-0">
+              <UserCheck className="w-5 h-5 text-primary" />
             </div>
             <div className="text-left">
               <p className="text-sm font-semibold">I have an account</p>

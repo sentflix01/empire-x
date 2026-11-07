@@ -1,4 +1,5 @@
 'use client';
+import { CHART_SERIES, HEX } from '@/lib/colorTokens';
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -23,7 +24,7 @@ import { downloadCSV, buildAnalyticsReport } from "@/lib/exportReport";
 import { toast } from "@/components/ui/use-toast";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-const CHART_COLORS = ["#D4AF37", "#3B82F6", "#8B5CF6", "#06B6D4", "#F97316", "#EC4899", "#10B981", "#EF4444"];
+const CHART_COLORS = CHART_SERIES;
 
 function BusinessAnalytics() {
   const { t } = useTranslation();
@@ -96,12 +97,12 @@ function BusinessAnalytics() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+      <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
     </div>
   );
 
   const selectedBusiness = businesses.find(b => b.id === selectedBizId);
-  const themeColor = selectedBusiness?.business_theme_color || profile?.business_theme_color || "#D4AF37";
+  const themeColor = selectedBusiness?.business_theme_color || profile?.business_theme_color || HEX.primary;
   const bizName = selectedBusiness?.business_name || "All Businesses";
 
   // Compute stats
@@ -161,10 +162,10 @@ function BusinessAnalytics() {
   })).filter(s => s.value > 0);
 
   const stats = [
-    { label: t('business.revenue'), value: `${totalSales.toLocaleString()} ETB`, icon: DollarSign, color: "text-green-600 bg-green-50" },
-    { label: t('nav.orders'), value: filteredOrders.length, icon: ShoppingBag, color: "text-amber-600 bg-amber-50" },
-    { label: t('business.overview'), value: totalViews, icon: Eye, color: "text-blue-600 bg-blue-50" },
-    { label: t('business.overview'), value: totalEngagement, icon: Activity, color: "text-purple-600 bg-purple-50" },
+    { label: t('business.revenue'), value: `${totalSales.toLocaleString()} ETB`, icon: DollarSign, color: "text-success bg-success-subtle" },
+    { label: t('nav.orders'), value: filteredOrders.length, icon: ShoppingBag, color: "text-primary bg-primary-subtle" },
+    { label: t('business.overview'), value: totalViews, icon: Eye, color: "text-primary bg-primary-subtle" },
+    { label: t('business.overview'), value: totalEngagement, icon: Activity, color: "text-brand-secondary bg-brand-secondary-subtle" },
   ];
 
   return (
@@ -195,7 +196,7 @@ function BusinessAnalytics() {
             </Button>
             <Button
               size="sm"
-              className="rounded-full bg-green-600 hover:bg-green-700"
+              className="rounded-full bg-success hover:bg-success/90"
               onClick={() => {
                 toast({
                   title: "Google Sheets Export",
@@ -227,17 +228,17 @@ function BusinessAnalytics() {
         {/* Secondary stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="bg-card rounded-2xl border border-border/50 p-3 text-center">
-            <Heart className="w-4 h-4 text-rose-500 mx-auto mb-1" />
+            <Heart className="w-4 h-4 text-destructive mx-auto mb-1" />
             <p className="text-lg font-bold">{totalLikes}</p>
             <p className="text-[10px] text-muted-foreground">Product Likes</p>
           </div>
           <div className="bg-card rounded-2xl border border-border/50 p-3 text-center">
-            <Package className="w-4 h-4 text-indigo-500 mx-auto mb-1" />
+            <Package className="w-4 h-4 text-primary mx-auto mb-1" />
             <p className="text-lg font-bold">{products.length}</p>
             <p className="text-[10px] text-muted-foreground">Products</p>
           </div>
           <div className="bg-card rounded-2xl border border-border/50 p-3 text-center">
-            <TrendingUp className="w-4 h-4 text-green-500 mx-auto mb-1" />
+            <TrendingUp className="w-4 h-4 text-success mx-auto mb-1" />
             <p className="text-lg font-bold">{conversionRate}%</p>
             <p className="text-[10px] text-muted-foreground">Conversion</p>
           </div>
@@ -257,11 +258,11 @@ function BusinessAnalytics() {
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={salesData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
+                <CartesianGrid strokeDasharray="3 3" stroke={HEX.border} />
                 <XAxis dataKey="day" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} width={50} />
                 <Tooltip
-                  contentStyle={{ borderRadius: "12px", border: "1px solid #e5e5e5", fontSize: "12px" }}
+                  contentStyle={{ borderRadius: "12px", border: `1px solid ${HEX.border}`, fontSize: "12px" }}
                   formatter={(value, name) => name === "sales" ? [`${value.toLocaleString()} ETB`, "Revenue"] : [value, t('nav.orders')]}
                   cursor={{ fill: themeColor + "10" }}
                 />
@@ -288,10 +289,10 @@ function BusinessAnalytics() {
                     <stop offset="100%" stopColor={themeColor} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
+                <CartesianGrid strokeDasharray="3 3" stroke={HEX.border} />
                 <XAxis dataKey="day" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} width={30} />
-                <Tooltip contentStyle={{ borderRadius: "12px", border: "1px solid #e5e5e5", fontSize: "12px" }} />
+                <Tooltip contentStyle={{ borderRadius: "12px", border: `1px solid ${HEX.border}`, fontSize: "12px" }} />
                 <Area type="monotone" dataKey="engagement" stroke={themeColor} strokeWidth={2} fill="url(#engGrad)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -307,16 +308,16 @@ function BusinessAnalytics() {
             <div className="text-center py-8">
               <Eye className="w-10 h-10 text-muted-foreground/20 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">No products yet</p>
-              <Link href="/products/create" className="text-xs text-amber-600 hover:underline mt-2 inline-block">Add your first product →</Link>
+              <Link href="/products/create" className="text-xs text-primary hover:underline mt-2 inline-block">Add your first product →</Link>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={productViewsData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" horizontal={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={HEX.border} horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} width={70} />
                 <Tooltip
-                  contentStyle={{ borderRadius: "12px", border: "1px solid #e5e5e5", fontSize: "12px" }}
+                  contentStyle={{ borderRadius: "12px", border: `1px solid ${HEX.border}`, fontSize: "12px" }}
                   formatter={(value, name) => name === "views" ? [value, "Views"] : [value, "Likes"]}
                   cursor={{ fill: themeColor + "10" }}
                 />
@@ -337,7 +338,7 @@ function BusinessAnalytics() {
                     <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ borderRadius: "12px", border: "1px solid #e5e5e5", fontSize: "12px" }} />
+                <Tooltip contentStyle={{ borderRadius: "12px", border: `1px solid ${HEX.border}`, fontSize: "12px" }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
               </PieChart>
             </ResponsiveContainer>
@@ -372,7 +373,7 @@ function BusinessAnalytics() {
                       </div>
                     </div>
                     <div className="text-right ml-2 shrink-0">
-                      <p className="text-sm font-bold text-amber-600">{(p.price || 0).toLocaleString()}</p>
+                      <p className="text-sm font-bold text-primary">{(p.price || 0).toLocaleString()}</p>
                       <p className="text-xs text-muted-foreground">{p.stock || 0} stock</p>
                     </div>
                   </div>
@@ -394,7 +395,7 @@ function BusinessAnalytics() {
                     <p className="text-xs text-muted-foreground">{o.buyer_name} • {fromNow(o.created_at)}</p>
                   </div>
                   <div className="text-right ml-2 shrink-0">
-                    <p className="text-sm font-bold text-amber-600">{(o.total_price || 0).toLocaleString()}</p>
+                    <p className="text-sm font-bold text-primary">{(o.total_price || 0).toLocaleString()}</p>
                     <Badge variant="outline" className="text-[10px]">{o.status}</Badge>
                   </div>
                 </div>
@@ -410,7 +411,7 @@ function BusinessAnalytics() {
               <Store className="w-4 h-4" /> Manage Businesses
             </h3>
             <Link href="/business/create">
-              <Button size="sm" className="rounded-full h-7 text-xs bg-gradient-to-r from-amber-500 to-amber-600">
+              <Button size="sm" className="rounded-full h-7 text-xs bg-primary">
                 <Plus className="w-3 h-3 mr-1" /> Add Business
               </Button>
             </Link>
@@ -420,7 +421,7 @@ function BusinessAnalytics() {
               <Store className="w-10 h-10 text-muted-foreground/20 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground mb-3">You haven't created any businesses yet</p>
               <Link href="/business/create">
-                <Button size="sm" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
+                <Button size="sm" className="rounded-full bg-primary">
                   <Plus className="w-3 h-3 mr-1" /> Create Your First Business
                 </Button>
               </Link>
@@ -431,8 +432,8 @@ function BusinessAnalytics() {
                 const bizProds = products.filter(p => p.business_id === b.id);
                 const bizViews = bizProds.reduce((sum, p) => sum + (p.view_count || 0), 0);
                 return (
-                  <div key={b.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/40 hover:border-amber-300 transition-colors">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shrink-0" style={{ backgroundColor: b.business_theme_color || "#D4AF37" }}>
+                  <div key={b.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/40 hover:border-primary/30 transition-colors">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shrink-0" style={{ backgroundColor: b.business_theme_color || "#2563EB" }}>
                       {b.business_name?.charAt(0) || "B"}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -450,7 +451,7 @@ function BusinessAnalytics() {
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => handleSelectBusiness(b.id)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${b.id === selectedBizId ? "bg-amber-100 text-amber-700" : "bg-secondary text-muted-foreground hover:bg-secondary/70"}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${b.id === selectedBizId ? "bg-primary-subtle text-primary" : "bg-secondary text-muted-foreground hover:bg-secondary/70"}`}
                       >
                         {b.id === selectedBizId ? t('common.view') : t('common.view')}
                       </button>

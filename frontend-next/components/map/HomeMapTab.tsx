@@ -1,4 +1,5 @@
 'use client';
+import { HEX } from '@/lib/colorTokens';
 import SafeImage from '@/components/ui/SafeImage';
 import { markerLabelHtml } from "@/lib/mapLabel";
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -68,13 +69,14 @@ async function loadLeaflet() {
 
 function makeLabeledIcon(label: string, color: "gold" | "red" | "blue" | "green" = "blue") {
   const pinUrls: Record<string, string> = {
-    gold:  "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png",
+    // "gold" marks businesses: violet, the business identity colour (F-046).
+    gold:  "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png",
     red:   "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
     blue:  "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
     green: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
   };
   const accentColors: Record<string, string> = {
-    gold: "#2563EB", red: "#e53e3e", blue: "#3b82f6", green: "#22c55e",
+    gold: HEX.brandSecondary, red: HEX.destructive, blue: HEX.primary, green: HEX.success,
   };
   const accent = accentColors[color];
   // Escaped: names come from the database and this HTML is set with innerHTML (audit F-057).
@@ -83,7 +85,7 @@ function makeLabeledIcon(label: string, color: "gold" | "red" | "blue" | "green"
   const bubbleHtml = `
     <div style="
       position:absolute;bottom:49px;left:50%;transform:translateX(-50%);
-      background:#fff;color:#111;font-size:11px;font-weight:700;
+      background:#fff;color:${HEX.inverse};font-size:11px;font-weight:700;
       font-family:system-ui,sans-serif;white-space:nowrap;padding:5px 10px;
       border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.25);
       pointer-events:none;line-height:1.4;border:1.5px solid ${accent};z-index:2;
@@ -148,8 +150,8 @@ function MarkerHoverCard({ data }: { data: HoverData }) {
   const top = Math.max(pinTipY - 12 - 200, 8);
 
   const accentColor =
-    data.view === "business" ? "#2563EB" :
-    data.view === "personal" ? "#3b82f6" : "#22c55e";
+    data.view === "business" ? HEX.brandSecondary :
+    data.view === "personal" ? HEX.primary : HEX.success;
 
   return createPortal(
     <div style={{ position: "fixed", left, top, width: cardW, zIndex: 999, pointerEvents: "none" }}>
@@ -195,7 +197,7 @@ function MarkerHoverCard({ data }: { data: HoverData }) {
         )}
         {loading ? (
           <div className="px-3 pb-3 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-            <div className="w-3 h-3 border border-t-amber-500 rounded-full animate-spin"
+            <div className="w-3 h-3 border border-t-primary rounded-full animate-spin"
               style={{ borderColor: `${accentColor}44`, borderTopColor: accentColor }} />
             Loading feed…
           </div>
@@ -246,7 +248,7 @@ function SearchResultBusinessCard({ business, query, onOpenProfile }) {
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
       <div className="flex items-center gap-3 px-4 pt-4 pb-2">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
           {business.business_name?.charAt(0) || business.display_name?.charAt(0) || "B"}
         </div>
         <div className="flex-1 min-w-0">
@@ -255,8 +257,8 @@ function SearchResultBusinessCard({ business, query, onOpenProfile }) {
         </div>
         {business.distance_km != null && (
           <div className="flex items-center gap-1 shrink-0">
-            <MapPin className="w-3 h-3 text-amber-500" />
-            <span className="text-xs font-semibold text-amber-600">
+            <MapPin className="w-3 h-3 text-primary" />
+            <span className="text-xs font-semibold text-primary">
               {business.distance_km < 1 ? `${Math.round(business.distance_km * 1000)}m` : `${business.distance_km.toFixed(1)} km`}
             </span>
           </div>
@@ -279,7 +281,7 @@ function SearchResultBusinessCard({ business, query, onOpenProfile }) {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] font-medium truncate">{p.title}</p>
-                    <p className="text-[11px] text-amber-600 font-bold">{p.price?.toLocaleString()} {p.currency || "USD"}</p>
+                    <p className="text-[11px] text-primary font-bold">{p.price?.toLocaleString()} {p.currency || "USD"}</p>
                   </div>
                 </div>
               );
@@ -303,11 +305,11 @@ function SearchResultBusinessCard({ business, query, onOpenProfile }) {
 
 // Nearby person card for people search results
 function NearbyPersonCard({ person, onOpenProfile }) {
-  const accentColor = "#22c55e";
+  const accentColor = HEX.success;
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
       <div className="flex items-center gap-3 px-4 py-3">
-        <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-sm">
+        <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-success flex items-center justify-center text-white font-bold text-sm">
           {person.avatar_url
             ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={person.avatar_url} alt="" className="w-full h-full object-cover" />
             : (person.display_name?.charAt(0) ?? "U")}
@@ -323,7 +325,7 @@ function NearbyPersonCard({ person, onOpenProfile }) {
         </div>
         <button
           onClick={onOpenProfile}
-          className="px-3 py-1.5 rounded-full bg-green-500 text-white text-xs font-semibold hover:bg-green-600 transition-colors shrink-0"
+          className="px-3 py-1.5 rounded-full bg-success text-white text-xs font-semibold hover:bg-success/90 transition-colors shrink-0"
         >
           View
         </button>
@@ -482,7 +484,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
             value={searchQuery}
             onChange={e => setSearchState(prev => ({ ...prev, query: e.target.value }))}
             onKeyDown={e => { if (e.key === "Enter") handleProductSearch(searchQuery); }}
-            className="w-full pl-9 pr-20 py-2.5 rounded-full border border-border/60 bg-card text-sm outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-all"
+            className="w-full pl-9 pr-20 py-2.5 rounded-full border border-border/60 bg-card text-sm outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
           />
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
             {searchQuery && (
@@ -493,7 +495,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
             <button
               onClick={() => handleProductSearch(searchQuery)}
               disabled={searchLoading}
-              className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-full transition-colors disabled:opacity-60"
+              className="px-3 py-1 bg-primary hover:bg-primary/90 text-white text-xs font-semibold rounded-full transition-colors disabled:opacity-60"
             >
               {searchLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Go"}
             </button>
@@ -511,7 +513,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                   if (searchResults && searchQuery) handleProductSearch(searchQuery);
                 }}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                  nearbyRadius === r ? "bg-amber-500 text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
+                  nearbyRadius === r ? "bg-primary text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
                 }`}
               >
                 {r} km
@@ -538,7 +540,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                   key={cat.value}
                   onClick={() => setNearbyCategory(cat.value)}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                    nearbyCategory === cat.value ? "bg-amber-500 text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
+                    nearbyCategory === cat.value ? "bg-primary text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
                   }`}
                 >
                   {Icon && <Icon className="w-3 h-3" />}
@@ -562,7 +564,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
               className="flex items-center gap-1.5 px-3 py-1 bg-card text-card-foreground border border-border text-[11px] font-medium rounded-full shadow-lg whitespace-nowrap"
               style={{ backgroundColor: "hsl(var(--card))", opacity: 1 }}
             >
-              <span className="text-amber-400">👆</span> Hover pin to preview · Double-click to open profile
+              <span className="text-primary">👆</span> Hover pin to preview · Double-click to open profile
             </span>
           </div>
 
@@ -607,7 +609,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                 <Circle
                   center={[userLocation.lat, userLocation.lon]}
                   radius={nearbyRadius * 1000}
-                  pathOptions={{ color: "#2563EB", fillColor: "#2563EB", fillOpacity: 0.06, weight: 1.5, dashArray: "6" }}
+                  pathOptions={{ color: HEX.primary, fillColor: HEX.primary, fillOpacity: 0.06, weight: 1.5, dashArray: "6" }}
                 />
               </>
             )}
@@ -705,13 +707,13 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
 
         {/* ── Search Results Summary ── */}
         {display.shouldShowResults && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 rounded-xl px-4 py-3">
+          <div className="bg-primary-subtle border border-primary/30 rounded-xl px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                <p className="text-sm font-semibold text-primary-subtle-foreground">
                   "{searchQuery.replace(/^@/, "")}" within {nearbyRadius} km
                 </p>
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                <p className="text-xs text-primary mt-0.5">
                   {searchResults.searchType === "people"
                     ? searchResults.total_matches > 0
                       ? `${searchResults.total_matches} person${searchResults.total_matches !== 1 ? "s" : ""} found nearby`
@@ -721,7 +723,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                       : `No nearby businesses found within ${nearbyRadius} km`}
                 </p>
               </div>
-              <button onClick={clearSearch} className="text-amber-500 hover:text-amber-700 transition-colors">
+              <button onClick={clearSearch} className="text-primary hover:text-primary transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -731,7 +733,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
         {/* ── Search Loading ── */}
         {searchLoading && (
           <div className="flex flex-col items-center py-8 gap-3">
-            <div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+            <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
             <p className="text-sm text-muted-foreground">Finding "{searchQuery}" within {nearbyRadius} km…</p>
           </div>
         )}

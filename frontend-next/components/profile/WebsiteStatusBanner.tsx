@@ -66,7 +66,7 @@ export default function WebsiteStatusBanner({ businessId, ownerId, businessCateg
     `/business/subscription?${new URLSearchParams({ businessId, ...extra }).toString()}`;
   const category = businessCategory ? getBuilderCategoryQuery(businessCategory) : '';
 
-  let tone = 'border-amber-300/60 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100';
+  let tone = 'border-primary/30 bg-primary-subtle text-primary-subtle-foreground';
   let Icon = AlertTriangle;
   let title: string;
   let body: string;
@@ -82,7 +82,7 @@ export default function WebsiteStatusBanner({ businessId, ownerId, businessCateg
       ? { href: `/showroom/create?edit=${encodeURIComponent(status.site.id)}`, label: 'Publish' }
       : { href: planHref({ draftId: status.site.id, requiredTier: status.requiredTier }), label: 'Publish' };
   } else if (status.kind === 'hidden') {
-    tone = 'border-red-300/60 bg-red-50 text-red-950 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-100';
+    tone = 'border-destructive/30 bg-destructive-subtle text-destructive-subtle-foreground';
     Icon = EyeOff;
     title = 'Your website is hidden from customers';
     body = `${status.endedOn ? `Your plan ended on ${formatDay(status.endedOn)}. ` : 'There is no active plan. '}Renew to make it visible again and show it in feeds.`;

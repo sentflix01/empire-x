@@ -11,9 +11,9 @@ export default function HoursField({ id, value, onChange }: { id: string; value:
     <fieldset id={id} className="space-y-1.5">
       <legend className="sr-only">Opening hours</legend>
       {!readOpeningHours(value) && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-primary-subtle px-3 py-2 text-xs text-primary-subtle-foreground">
           <span>Not set yet. These are usual hours.</span>
-          <button type="button" onClick={() => onChange(DEFAULT_WEEK)} className="min-h-9 rounded-full bg-amber-500 px-3 font-semibold text-white">Use these hours</button>
+          <button type="button" onClick={() => onChange(DEFAULT_WEEK)} className="min-h-9 rounded-full bg-primary px-3 font-semibold text-white">Use these hours</button>
         </div>
       )}
       {week.map((d, i) => (

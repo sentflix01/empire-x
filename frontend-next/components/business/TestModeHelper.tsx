@@ -18,7 +18,7 @@ function CopyValue({ value, label }: { value: string; label: string }) {
       className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 font-mono text-sm text-foreground hover:bg-secondary"
     >
       {value}
-      {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />}
+      {copied ? <Check className="h-3.5 w-3.5 text-success" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />}
     </button>
   );
 }
@@ -44,7 +44,7 @@ function Cards({ cards }: { cards: TestCard[] }) {
 export default function TestModeHelper({ provider }: { provider: 'chapa' | 'stripe' }) {
   const [tab, setTab] = useState<'phone' | 'card'>(provider === 'chapa' ? 'phone' : 'card');
   return (
-    <section aria-label="Test mode payment details" className="space-y-3 rounded-xl border border-sky-300/60 bg-sky-50 p-3 text-sky-950 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-100">
+    <section aria-label="Test mode payment details" className="space-y-3 rounded-xl border border-primary/30 bg-primary-subtle p-3 text-primary-subtle-foreground">
       <p className="flex items-center gap-2 text-sm font-semibold">
         <FlaskConical className="h-4 w-4" aria-hidden="true" /> Test mode: no real money moves
       </p>
@@ -57,7 +57,7 @@ export default function TestModeHelper({ provider }: { provider: 'chapa' | 'stri
         <div role="tablist" aria-label="Test payment method" className="flex gap-2">
           {(['phone', 'card'] as const).map((t) => (
             <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
-              className={`min-h-9 rounded-full px-3 text-xs font-semibold ${tab === t ? 'bg-sky-600 text-white' : 'border border-sky-300 text-sky-900 dark:text-sky-100'}`}>
+              className={`min-h-9 rounded-full px-3 text-xs font-semibold ${tab === t ? 'bg-primary text-white' : 'border border-primary/30 text-primary-subtle-foreground'}`}>
               {t === 'phone' ? 'Phone (telebirr, banks)' : 'Card'}
             </button>
           ))}

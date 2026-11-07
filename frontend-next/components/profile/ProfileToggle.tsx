@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { User, Store, Sun, Moon } from "lucide-react";
+import { IDENTITY } from '@/lib/colorTokens';
 
 /**
  * Unified control bar — Personal | Business | Theme (Dark/Light)
@@ -48,7 +49,7 @@ export default function ProfileToggle({
         <button
           onClick={() => !isPersonal && onFlip()}
           aria-pressed={isPersonal}
-          className="relative px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60"
+          className="relative px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
           style={{ minWidth: 72, justifyContent: "center" }}
         >
           {/* Sliding background */}
@@ -57,8 +58,7 @@ export default function ProfileToggle({
               layoutId={`${layoutId}-personal`}
               className="absolute inset-0 rounded-full"
               style={{
-                background: "linear-gradient(135deg,#3B82F6,#2563EB)",
-                boxShadow: "0 2px 12px rgba(59,130,246,0.4)",
+                background: IDENTITY.personal.css,
               }}
               transition={{ type: "spring", stiffness: 400, damping: 32 }}
             />
@@ -77,7 +77,7 @@ export default function ProfileToggle({
         <button
           onClick={() => isPersonal && onFlip()}
           aria-pressed={!isPersonal}
-          className="relative px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
+          className="relative px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
           style={{ minWidth: 72, justifyContent: "center" }}
         >
           {!isPersonal && (
@@ -85,8 +85,7 @@ export default function ProfileToggle({
               layoutId={`${layoutId}-business`}
               className="absolute inset-0 rounded-full"
               style={{
-                background: "linear-gradient(135deg,#F59E0B,#D97706)",
-                boxShadow: "0 2px 12px rgba(245,158,11,0.4)",
+                background: IDENTITY.business.css,
               }}
               transition={{ type: "spring", stiffness: 400, damping: 32 }}
             />
@@ -110,11 +109,11 @@ export default function ProfileToggle({
           <button
             onClick={() => onTheme(isDark ? "light" : "dark")}
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-            className="relative px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
+            className="relative px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
             style={{ minWidth: 56, justifyContent: "center" }}
           >
             {isDark
-              ? <Sun className="w-3.5 h-3.5 text-amber-400" />
+              ? <Sun className="w-3.5 h-3.5 text-primary" />
               : <Moon className="w-3.5 h-3.5" />
             }
             <span>{isDark ? "Light" : "Dark"}</span>

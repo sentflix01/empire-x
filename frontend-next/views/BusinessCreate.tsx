@@ -66,7 +66,7 @@ function BusinessCreate() {
   const [business, setBusiness] = useState<BizState>({
     business_name: "", business_category: "", business_template: "",
     business_description: "", business_contact_email: "", business_contact_phone: "",
-    business_address: "", business_theme_color: "#D4AF37",
+    business_address: "", business_theme_color: "#2563EB",
       business_logo_url: "", business_cover_url: "",
     pickup_address: "",
     // Phone and email public by default; the address only if the owner chooses (decision §2.3).
@@ -91,7 +91,7 @@ function BusinessCreate() {
         business_contact_email: b.business_contact_email || "",
         business_contact_phone: b.business_contact_phone || "",
         business_address: b.business_address || "",
-        business_theme_color: b.business_theme_color || "#D4AF37",
+        business_theme_color: b.business_theme_color || "#2563EB",
         business_logo_url: b.business_logo_url || "",
         business_cover_url: b.business_cover_url || "",
         pickup_address: typeof b.pickup_address === "string" ? b.pickup_address : "",
@@ -135,7 +135,7 @@ function BusinessCreate() {
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <div className="flex items-center gap-2 mb-6">
-          <Store className="w-6 h-6 text-amber-500" />
+          <Store className="w-6 h-6 text-primary" />
           <h1 className="font-display text-2xl font-bold">{isEdit ? "Edit Business" : "New Business"}</h1>
         </div>
 
@@ -178,7 +178,7 @@ function BusinessCreate() {
               {BUSINESS_CATEGORIES.map(cat => {
                 const Icon = cat.icon;
                 return (
-                  <button key={cat.value} type="button" aria-pressed={business.business_category === cat.value} onClick={() => setBusiness({...business, business_category: cat.value, business_template: String(cat.templates[0].id)})} className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${business.business_category === cat.value ? "border-amber-400 bg-amber-50" : "border-border hover:border-amber-300"}`}>
+                  <button key={cat.value} type="button" aria-pressed={business.business_category === cat.value} onClick={() => setBusiness({...business, business_category: cat.value, business_template: String(cat.templates[0].id)})} className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${business.business_category === cat.value ? "border-primary bg-primary-subtle" : "border-border hover:border-primary/30"}`}>
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: cat.color + "20" }}>
                       <Icon className="w-3.5 h-3.5" style={{ color: cat.color }} />
                     </div>
@@ -240,7 +240,7 @@ function BusinessCreate() {
               ))}
             </div>
           </div>
-          <Button onClick={handleSave} disabled={saving || !business.business_name || !business.business_category} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
+          <Button onClick={handleSave} disabled={saving || !business.business_name || !business.business_category} className="w-full h-11 rounded-full bg-primary hover:bg-primary/90">
             {saving ? "Saving..." : isEdit ? "Update Business" : "Create Business"}
           </Button>
           {isEdit && <PaymentAccountsManager businessId={id} />}

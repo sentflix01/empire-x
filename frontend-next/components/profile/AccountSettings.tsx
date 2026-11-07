@@ -58,7 +58,7 @@ export default function AccountSettings({ collapsed = false }: Props) {
         className={`relative flex items-center gap-2 rounded-xl hover:bg-secondary p-2 transition-colors w-full group
           ${collapsed ? 'justify-center' : ''}`}
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-sm shrink-0">
           {initial}
         </div>
         {!collapsed && (
@@ -90,7 +90,7 @@ export default function AccountSettings({ collapsed = false }: Props) {
 
           {/* User info */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-border/30">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold shrink-0">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold shrink-0">
               {initial}
             </div>
             <div className="min-w-0">
@@ -107,7 +107,7 @@ export default function AccountSettings({ collapsed = false }: Props) {
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-secondary transition-colors"
               >
-                <User className="w-4 h-4 text-amber-500" />
+                <User className="w-4 h-4 text-primary" />
                 <span className="text-sm">Edit Profile</span>
                 <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
               </Link>
@@ -116,7 +116,7 @@ export default function AccountSettings({ collapsed = false }: Props) {
                 onClick={() => setActiveSection('password')}
                 className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-secondary transition-colors"
               >
-                <Lock className="w-4 h-4 text-blue-500" />
+                <Lock className="w-4 h-4 text-primary" />
                 <span className="text-sm">Change Password</span>
                 <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
               </button>
@@ -125,7 +125,7 @@ export default function AccountSettings({ collapsed = false }: Props) {
                 onClick={() => setActiveSection('username')}
                 className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-secondary transition-colors"
               >
-                <User className="w-4 h-4 text-green-500" />
+                <User className="w-4 h-4 text-success" />
                 <span className="text-sm">Change Display Name</span>
                 <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
               </button>
@@ -135,7 +135,7 @@ export default function AccountSettings({ collapsed = false }: Props) {
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-secondary transition-colors"
               >
-                <Bell className="w-4 h-4 text-purple-500" />
+                <Bell className="w-4 h-4 text-brand-secondary" />
                 <span className="text-sm">Notifications</span>
                 <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
               </Link>
@@ -145,7 +145,7 @@ export default function AccountSettings({ collapsed = false }: Props) {
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-secondary transition-colors"
               >
-                <Shield className="w-4 h-4 text-cyan-500" />
+                <Shield className="w-4 h-4 text-primary" />
                 <span className="text-sm">Privacy & Verification</span>
                 <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
               </Link>
@@ -212,22 +212,22 @@ function ChangePasswordForm({ onBack, onDone }: { onBack: () => void; onDone: ()
       </div>
       <div className="relative">
         <input type={showCurrent ? 'text' : 'password'} placeholder="Current password" value={current} onChange={e => setCurrent(e.target.value)}
-          className="w-full h-9 px-3 pr-9 text-sm bg-secondary rounded-xl border-0 outline-none focus:ring-1 focus:ring-amber-500/30" />
+          className="w-full h-9 px-3 pr-9 text-sm bg-secondary rounded-xl border-0 outline-none focus:ring-1 focus:ring-primary/30" />
         <button onClick={() => setShowCurrent(v => !v)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
           {showCurrent ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
         </button>
       </div>
       <div className="relative">
         <input type={showNext ? 'text' : 'password'} placeholder="New password" value={next} onChange={e => setNext(e.target.value)}
-          className="w-full h-9 px-3 pr-9 text-sm bg-secondary rounded-xl border-0 outline-none focus:ring-1 focus:ring-amber-500/30" />
+          className="w-full h-9 px-3 pr-9 text-sm bg-secondary rounded-xl border-0 outline-none focus:ring-1 focus:ring-primary/30" />
         <button onClick={() => setShowNext(v => !v)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
           {showNext ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
         </button>
       </div>
       <input type="password" placeholder="Confirm new password" value={confirm} onChange={e => setConfirm(e.target.value)}
-        className="w-full h-9 px-3 text-sm bg-secondary rounded-xl border-0 outline-none focus:ring-1 focus:ring-amber-500/30" />
+        className="w-full h-9 px-3 text-sm bg-secondary rounded-xl border-0 outline-none focus:ring-1 focus:ring-primary/30" />
       <button onClick={handleSubmit} disabled={saving || !current || !next || !confirm}
-        className="w-full h-9 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
+        className="w-full h-9 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
         {saving ? 'Saving...' : 'Change Password'}
       </button>
     </div>
@@ -264,9 +264,9 @@ function ChangeNameForm({ currentName, onBack, onDone }: { currentName: string; 
         <span className="text-sm font-semibold">Change Display Name</span>
       </div>
       <input type="text" placeholder="Display name" value={name} onChange={e => setName(e.target.value)}
-        className="w-full h-9 px-3 text-sm bg-secondary rounded-xl border-0 outline-none focus:ring-1 focus:ring-amber-500/30" />
+        className="w-full h-9 px-3 text-sm bg-secondary rounded-xl border-0 outline-none focus:ring-1 focus:ring-primary/30" />
       <button onClick={handleSubmit} disabled={saving || !name.trim() || name.trim() === currentName}
-        className="w-full h-9 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
+        className="w-full h-9 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
         {saving ? 'Saving...' : 'Save Name'}
       </button>
     </div>

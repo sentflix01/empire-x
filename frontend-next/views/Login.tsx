@@ -184,7 +184,7 @@ function Login() {
       {error && (
         <div className={`mb-4 rounded-lg px-3 py-2.5 text-sm ${
           error.includes('waking') || error.includes('taking too long')
-            ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200'
+            ? 'bg-primary-subtle text-primary-subtle-foreground'
             : 'bg-destructive/10 text-destructive'
         }`}>
           {error.includes('waking') && '⏳ '}{error}

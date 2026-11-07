@@ -97,13 +97,13 @@ export default function TierGatedSection({
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="relative w-full rounded-xl border-2 border-dashed border-amber-300 bg-amber-50 dark:bg-amber-500/5 p-4 text-center hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors group"
+          className="relative w-full rounded-xl border-2 border-dashed border-primary/30 bg-primary-subtle p-4 text-center hover:bg-primary-subtle transition-colors group"
         >
-          <Lock className="w-5 h-5 text-amber-500 mx-auto mb-1.5 group-hover:scale-110 transition-transform" />
-          <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+          <Lock className="w-5 h-5 text-primary mx-auto mb-1.5 group-hover:scale-110 transition-transform" />
+          <p className="text-sm font-medium text-primary">
             {feature.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
           </p>
-          <p className="text-xs text-amber-600/70 mt-0.5">
+          <p className="text-xs text-primary/70 mt-0.5">
             Requires {requiredTier === 'pro' ? 'Enterprise' : 'Pro'} plan — click to upgrade
           </p>
         </button>

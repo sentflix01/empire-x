@@ -40,13 +40,13 @@ const TYPE_ICONS = {
 };
 
 const TYPE_COLORS = {
-  like:        "text-red-500 bg-red-50 dark:bg-red-900/20",
-  comment:     "text-blue-500 bg-blue-50 dark:bg-blue-900/20",
-  follow:      "text-amber-500 bg-amber-50 dark:bg-amber-900/20",
-  message:     "text-green-500 bg-green-50 dark:bg-green-900/20",
-  order:       "text-purple-500 bg-purple-50 dark:bg-purple-900/20",
-  task_update: "text-orange-500 bg-orange-50 dark:bg-orange-900/20",
-  referral:    "text-amber-500 bg-amber-50 dark:bg-amber-900/20",
+  like:        "text-destructive bg-destructive-subtle",
+  comment:     "text-primary bg-primary-subtle",
+  follow:      "text-primary bg-primary-subtle",
+  message:     "text-success bg-success-subtle",
+  order:       "text-brand-secondary bg-brand-secondary-subtle",
+  task_update: "text-primary bg-primary-subtle",
+  referral:    "text-primary bg-primary-subtle",
 };
 
 /**
@@ -194,7 +194,7 @@ function NotificationsView() {
         <div className="flex items-center gap-2">
           <h1 className="font-display text-2xl font-bold">{t('notifications.title')}</h1>
           {unreadCount > 0 && (
-            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-xs font-bold">{unreadCount}</span>
+            <span className="px-2 py-0.5 rounded-full bg-primary text-white text-xs font-bold">{unreadCount}</span>
           )}
         </div>
         {unreadCount > 0 && (
@@ -205,17 +205,17 @@ function NotificationsView() {
         )}
       </div>
       {loading ? (
-        <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>
       ) : !user ? (
         <div className="flex flex-col items-center justify-center py-16 gap-4 text-center px-6">
-          <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
-            <Bell className="w-6 h-6 text-amber-600" />
+          <div className="w-14 h-14 rounded-full bg-primary-subtle flex items-center justify-center">
+            <Bell className="w-6 h-6 text-primary" />
           </div>
           <div>
             <p className="font-bold text-base">Sign in to see notifications</p>
             <p className="text-sm text-muted-foreground mt-1">Your notifications will appear here.</p>
           </div>
-          <a href="/login" className="h-10 px-6 rounded-xl bg-amber-500 text-white font-semibold text-sm flex items-center hover:bg-amber-600 transition-colors">Sign In</a>
+          <a href="/login" className="h-10 px-6 rounded-xl bg-primary text-white font-semibold text-sm flex items-center hover:bg-primary/90 transition-colors">Sign In</a>
         </div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-16">
@@ -272,7 +272,7 @@ function NotificationsView() {
                     <span className="block text-sm font-medium leading-snug">{n.title}</span>
                     {/* Group count badge — e.g. "5 people liked your post" */}
                     {(n.group_count ?? 0) > 1 && (
-                      <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                      <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary-subtle text-primary">
                         ×{n.group_count}
                       </span>
                     )}
@@ -284,7 +284,7 @@ function NotificationsView() {
                 </span>
                 {/* Unread dot */}
                 {!n.is_read && (
-                  <span data-page-guide="notif-unread" className="w-2 h-2 rounded-full bg-amber-500 mt-2 shrink-0" aria-label="Unread" role="img" />
+                  <span data-page-guide="notif-unread" className="w-2 h-2 rounded-full bg-primary mt-2 shrink-0" aria-label="Unread" role="img" />
                 )}
               </button>
                 {/* Delete button — shows on hover or keyboard focus */}

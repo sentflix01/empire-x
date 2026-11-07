@@ -48,7 +48,7 @@ export default function ShareButton({ title, text, url, size = "sm", label }) {
   const iconSize = size === "sm" ? "w-4 h-4" : "w-5 h-5";
   const btnClass = `flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all ${
     copied
-      ? "text-green-600 bg-green-50"
+      ? "text-success bg-success-subtle"
       : "text-muted-foreground hover:bg-secondary"
   }`;
 

@@ -12,7 +12,7 @@ export default function MessageTicks({ tick, className = 'h-3.5 w-3.5' }: { tick
       {tick === 'failed' && <AlertCircle {...common} className={`${common.className} text-destructive`} />}
       {tick === 'sent' && <Check {...common} className={`${common.className} text-muted-foreground`} />}
       {tick === 'delivered' && <CheckCheck {...common} className={`${common.className} text-muted-foreground`} />}
-      {tick === 'seen' && <CheckCheck {...common} className={`${common.className} text-sky-500`} />}
+      {tick === 'seen' && <CheckCheck {...common} className={`${common.className} text-primary`} />}
     </span>
   );
 }

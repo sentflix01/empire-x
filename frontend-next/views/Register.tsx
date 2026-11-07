@@ -194,7 +194,7 @@ function Register() {
       }
     >
       {refCode && (
-        <div className="mb-5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 px-3 py-2.5 text-sm text-amber-700 dark:text-amber-400">
+        <div className="mb-5 rounded-lg bg-primary-subtle border border-primary/30 px-3 py-2.5 text-sm text-primary">
           🎁 Referral code <strong>{refCode}</strong> will be applied automatically.
         </div>
       )}

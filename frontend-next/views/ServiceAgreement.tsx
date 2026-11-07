@@ -8,11 +8,11 @@ import { CONTACT_EMAIL, LEGAL_ADDRESS, LEGAL_NAME, LEGAL_REGISTRATION, POLICIES_
 type TabId = 'terms' | 'privacy' | 'cookies' | 'seller' | 'accessibility';
 
 const TABS: { id: TabId; label: string; icon: any; color: string }[] = [
-  { id: 'terms',   label: 'Terms of Service',  icon: Scale,    color: 'text-blue-600' },
-  { id: 'privacy', label: 'Privacy Policy',     icon: Shield,   color: 'text-violet-600' },
-  { id: 'cookies', label: 'Cookie Policy',      icon: Cookie,   color: 'text-amber-600' },
-  { id: 'seller',  label: 'Seller Agreement',   icon: FileText, color: 'text-emerald-600' },
-  { id: 'accessibility', label: 'Accessibility', icon: Accessibility, color: 'text-blue-600' },
+  { id: 'terms',   label: 'Terms of Service',  icon: Scale,    color: 'text-primary' },
+  { id: 'privacy', label: 'Privacy Policy',     icon: Shield,   color: 'text-brand-secondary' },
+  { id: 'cookies', label: 'Cookie Policy',      icon: Cookie,   color: 'text-primary' },
+  { id: 'seller',  label: 'Seller Agreement',   icon: FileText, color: 'text-success' },
+  { id: 'accessibility', label: 'Accessibility', icon: Accessibility, color: 'text-primary' },
 ];
 
 function Accordion({ title, children }: { title: string; children: React.ReactNode }) {
@@ -62,7 +62,7 @@ function TermsContent() {
         <p>Sellers are responsible for the accuracy of product listings, pricing, and delivery. Nodbusiness is a platform — we are not a party to buyer-seller transactions. Payment processing is handled by Stripe (international) and Chapa (Ethiopia).</p>
       </Accordion>
       <Accordion title="6. Intellectual Property">
-        <p>The Nodbusiness name, logo, brand identity, and codebase are proprietary. Users may not reproduce or redistribute without written permission. DMCA/copyright takedown: <a href={mailto("Legal question")} className="text-blue-600 hover:underline">{CONTACT_EMAIL}</a></p>
+        <p>The Nodbusiness name, logo, brand identity, and codebase are proprietary. Users may not reproduce or redistribute without written permission. DMCA/copyright takedown: <a href={mailto("Legal question")} className="text-primary hover:underline">{CONTACT_EMAIL}</a></p>
       </Accordion>
       <Accordion title="7. Limitation of Liability">
         <p>Nodbusiness is not liable for user-generated content or losses from platform outages. Our maximum liability to any user shall not exceed fees paid to us in the 12 months preceding the claim.</p>
@@ -124,7 +124,7 @@ function PrivacyContent() {
         </ul>
       </Accordion>
       <Accordion title="5. Your Rights">
-        <p>You have the right to: access your data, correct inaccurate data, delete your account, export your data, object to marketing, and withdraw consent. Contact: <a href={mailto("Privacy request")} className="text-blue-600 hover:underline">{CONTACT_EMAIL}</a>. We respond within 30 days.</p>
+        <p>You have the right to: access your data, correct inaccurate data, delete your account, export your data, object to marketing, and withdraw consent. Contact: <a href={mailto("Privacy request")} className="text-primary hover:underline">{CONTACT_EMAIL}</a>. We respond within 30 days.</p>
       </Accordion>
       <Accordion title="6. Security Measures">
         <ul className="list-disc list-inside space-y-1">
@@ -139,7 +139,7 @@ function PrivacyContent() {
         <p>Nodbusiness is not intended for users under 18. We do not knowingly collect data from minors. Contact us immediately if you believe a minor has registered.</p>
       </Accordion>
       <Accordion title="8. Contact & DPO">
-        <p>Email: <a href={mailto("Privacy request")} className="text-blue-600 hover:underline">{CONTACT_EMAIL}</a><br />Operator: {LEGAL_NAME} · {LEGAL_ADDRESS}<br />{LEGAL_REGISTRATION}</p>
+        <p>Email: <a href={mailto("Privacy request")} className="text-primary hover:underline">{CONTACT_EMAIL}</a><br />Operator: {LEGAL_NAME} · {LEGAL_ADDRESS}<br />{LEGAL_REGISTRATION}</p>
       </Accordion>
     </div>
   );
@@ -162,7 +162,7 @@ function CookieContent() {
                 <p className="text-xs font-semibold font-mono">{c.name}</p>
                 <p className="text-xs text-muted-foreground">{c.purpose}</p>
               </div>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.required ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30' : 'bg-secondary text-muted-foreground'}`}>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.required ? 'bg-primary-subtle text-primary' : 'bg-secondary text-muted-foreground'}`}>
                 {c.required ? 'Required' : 'Optional'}
               </span>
             </div>
@@ -202,7 +202,7 @@ function SellerContent() {
         <p>We may suspend or terminate seller accounts for: fraudulent activity, repeated policy violations, sustained negative reviews, or legal violations. Pending payouts will be held during investigation.</p>
       </Accordion>
       <Accordion title="8. Contact">
-        <p>Seller support: <a href={mailto("Seller support")} className="text-blue-600 hover:underline">{CONTACT_EMAIL}</a></p>
+        <p>Seller support: <a href={mailto("Seller support")} className="text-primary hover:underline">{CONTACT_EMAIL}</a></p>
       </Accordion>
     </div>
   );
@@ -231,7 +231,7 @@ function AccessibilityContent() {
         </ul>
       </Accordion>
       <Accordion title="4. Tell us about a problem">
-        <p>If something is hard or impossible to use, email <a href={mailto('Accessibility problem')} className="text-blue-600 hover:underline">{CONTACT_EMAIL}</a>. Tell us the page, what you were trying to do, and the device or assistive technology you use. We read every message.</p>
+        <p>If something is hard or impossible to use, email <a href={mailto('Accessibility problem')} className="text-primary hover:underline">{CONTACT_EMAIL}</a>. Tell us the page, what you were trying to do, and the device or assistive technology you use. We read every message.</p>
       </Accordion>
       <Accordion title="5. About this statement">
         <p>Prepared on 7 November 2026 from our own audit. We will update it when we test more pages or fix the limitations above.</p>
@@ -258,7 +258,7 @@ function ServiceAgreementView() {
     <div className="max-w-lg mx-auto space-y-4 pb-10">
 
       {/* ── Header ── */}
-      <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 p-5 text-white">
+      <div className="rounded-2xl overflow-hidden bg-inverse p-5 text-white">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-white/15 flex items-center justify-center">
             <Scale className="w-5 h-5 text-white" />
@@ -299,7 +299,7 @@ function ServiceAgreementView() {
       {CONTENT[activeTab]}
 
       <p className="text-center text-[10px] text-muted-foreground">
-        Questions? <a href={mailto("Legal question")} className="text-blue-600 hover:underline">{CONTACT_EMAIL}</a>
+        Questions? <a href={mailto("Legal question")} className="text-primary hover:underline">{CONTACT_EMAIL}</a>
       </p>
     </div>
   );

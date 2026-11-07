@@ -147,7 +147,7 @@ function ProductDetail() {
     } catch { toast.error("Failed to remove alert"); }
   };
 
-  if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
   if (!product && signInRequired) return <SignInRequired />;
   if (!product) return <div className="text-center py-20"><p>Product not found</p></div>;
 
@@ -193,7 +193,7 @@ function ProductDetail() {
         {images.length > 1 && (
           <div className="flex gap-2 p-3 overflow-x-auto">
             {images.map((img, i) => (
-              <button key={i} onClick={() => setSelectedImage(i)} className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all relative ${i === selectedImage ? "border-amber-500" : "border-transparent opacity-60 hover:opacity-100"}`}>
+              <button key={i} onClick={() => setSelectedImage(i)} className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all relative ${i === selectedImage ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"}`}>
                 <Image src={img} alt={`${product.title} thumbnail`} fill className="object-cover" unoptimized />
               </button>
             ))}
@@ -211,19 +211,19 @@ function ProductDetail() {
               </div>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-2xl font-bold text-amber-600">{product.price?.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-primary">{product.price?.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground">{product.currency || "ETB"}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span className={`font-medium ${inStock ? "text-green-600" : "text-red-500"}`}>
+            <span className={`font-medium ${inStock ? "text-success" : "text-destructive"}`}>
               {inStock ? (product.stock ? `${product.stock} in stock` : "In stock") : "Out of stock"}
             </span>
             {product.view_count > 0 && <span>{product.view_count} views</span>}
             {Number(product.average_rating) > 0 && (
               <span className="flex items-center gap-0.5">
-                <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                <Star className="w-3 h-3 text-rating fill-rating" />
                 {Number(product.average_rating).toFixed(1)}
                 {product.review_count > 0 && (
                   <span className="text-muted-foreground ml-0.5">({product.review_count})</span>
@@ -245,7 +245,7 @@ function ProductDetail() {
           {seller && (
             <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary/30">
               <Link href={`/profile/${product.seller_id}`} className="flex flex-1 min-w-0 items-center gap-3 rounded-lg hover:opacity-80 transition-opacity">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-sm shrink-0">
                   {seller.display_name?.charAt(0) || "?"}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -268,24 +268,24 @@ function ProductDetail() {
           )}
 
           <div className="flex gap-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1"><Shield className="w-3.5 h-3.5 text-green-500" /> Pay the seller directly</div>
+            <div className="flex items-center gap-1"><Shield className="w-3.5 h-3.5 text-success" /> Pay the seller directly</div>
           </div>
 
           <div className="flex gap-2 pt-1">
             {user?.id !== product.seller_id && (
               <Button onClick={() => setPurchaseItem(product)} disabled={!inStock}
-                className="flex-1 h-11 rounded-full bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 font-semibold">
+                className="flex-1 h-11 rounded-full bg-brand-secondary hover:bg-brand-secondary/90 font-semibold">
                 <Zap className="w-4 h-4 mr-2" /> Buy Now
               </Button>
             )}
             {user && (
               <Button onClick={() => addItem(product.id)} disabled={!inStock} variant="outline"
-                className="flex-1 h-11 rounded-full border-blue-300 text-blue-700 hover:bg-blue-50 font-semibold">
+                className="flex-1 h-11 rounded-full border-primary/30 text-primary hover:bg-primary-subtle font-semibold">
                 <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
               </Button>
             )}
             <Button variant="outline" size="icon"
-              className={`h-11 w-11 rounded-full transition-colors ${wishlisted ? "text-red-500 border-red-200 bg-red-50" : ""}`}
+              className={`h-11 w-11 rounded-full transition-colors ${wishlisted ? "text-destructive border-destructive/30 bg-destructive-subtle" : ""}`}
               onClick={handleWishlist} disabled={wishlistLoading}
               aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"} aria-pressed={wishlisted}>
               <Heart className={`w-4 h-4 ${wishlisted ? "fill-current" : ""}`} aria-hidden="true" />
@@ -297,12 +297,12 @@ function ProductDetail() {
           {user && user.id !== product.seller_id && (
             <div className="pt-1">
               {alertActive ? (
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
-                  <Bell className="w-4 h-4 text-amber-600 shrink-0" />
-                  <p className="text-xs text-amber-700 dark:text-amber-400 flex-1">
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-primary-subtle border border-primary/30">
+                  <Bell className="w-4 h-4 text-primary shrink-0" />
+                  <p className="text-xs text-primary flex-1">
                     Alert active — notifying you when price drops to <strong>{parseFloat(alertTarget).toLocaleString()} {product.currency || "ETB"}</strong>
                   </p>
-                  <button onClick={handleRemoveAlert} className="text-xs text-amber-600 hover:text-red-500 font-medium transition-colors">Remove</button>
+                  <button onClick={handleRemoveAlert} className="text-xs text-warning hover:text-destructive font-medium transition-colors">Remove</button>
                 </div>
               ) : showAlertForm ? (
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary/40 border border-border/50">
@@ -317,7 +317,7 @@ function ProductDetail() {
                     autoFocus
                   />
                   <button onClick={handleSetAlert} disabled={alertSaving}
-                    className="text-xs font-semibold text-amber-600 hover:text-amber-700 disabled:opacity-50 transition-colors">
+                    className="text-xs font-semibold text-primary hover:text-primary disabled:opacity-50 transition-colors">
                     {alertSaving ? "Saving…" : "Set"}
                   </button>
                   <button onClick={() => { setShowAlertForm(false); setAlertInput(""); }}
@@ -325,7 +325,7 @@ function ProductDetail() {
                 </div>
               ) : (
                 <button onClick={() => setShowAlertForm(true)}
-                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-amber-600 transition-colors">
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
                   <Bell className="w-3.5 h-3.5" /> Set price drop alert
                 </button>
               )}

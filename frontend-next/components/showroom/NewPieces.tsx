@@ -22,7 +22,7 @@ function CopyNumber({ value, label }: { value: string; label: string }) {
       onClick={() => navigator.clipboard?.writeText(value).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => undefined)}
       className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-background px-3 font-mono text-sm hover:bg-secondary">
       {value}
-      {copied ? <Check className="h-4 w-4 text-emerald-600" aria-hidden="true" /> : <Copy className="h-4 w-4 text-muted-foreground" aria-hidden="true" />}
+      {copied ? <Check className="h-4 w-4 text-success" aria-hidden="true" /> : <Copy className="h-4 w-4 text-muted-foreground" aria-hidden="true" />}
     </button>
   );
 }
@@ -50,7 +50,7 @@ export function PaymentInfoSection({ s, sectionIndex, businessId, isOwner, previ
       {accounts === null ? (
         <p role="status" className="text-sm text-muted-foreground">Loading…</p>
       ) : accounts.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
+        <div className="rounded-xl border border-dashed border-primary/30 bg-primary-subtle p-4 text-sm text-primary-subtle-foreground">
           <p>Add your telebirr, CBE or bank account once in Business settings. It shows here and on every order, always up to date.</p>
           {businessId
             ? <Link href={`/business/edit?id=${businessId}#payment-accounts`} className="mt-2 inline-flex min-h-10 items-center font-semibold underline">Add payment accounts →</Link>
@@ -97,7 +97,7 @@ export function OpeningHoursSection({ s, sectionIndex, legacyHours, isOwner, pre
       <h2 className="font-display text-lg font-bold mb-4 flex flex-wrap items-center gap-2">
         <Clock className="biz-text w-5 h-5" style={{ ...themeTextStyle(themeColor) }} aria-hidden="true" />{title}
         {week && (isOpenNow(week)
-          ? <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">Open now</span>
+          ? <span className="rounded-full bg-success-subtle px-2.5 py-0.5 text-xs font-semibold text-success-subtle-foreground">Open now</span>
           : <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">Closed now</span>)}
       </h2>
       <dl className="max-w-xs space-y-1">
@@ -181,7 +181,7 @@ export function OfferSection({ s, sectionIndex, ctaTarget, isOwner, preview, the
   return (
     <div id={`section-${sectionIndex}`} className="px-5 py-6">
       {ended && (
-        <p role="status" className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        <p role="status" className="mb-2 rounded-lg bg-primary-subtle px-3 py-2 text-xs text-primary-subtle-foreground">
           This offer ended on {ends!.toLocaleDateString()}. Visitors no longer see it: change the last day or remove it.
         </p>
       )}

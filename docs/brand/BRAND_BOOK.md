@@ -103,39 +103,17 @@ nodbusiness-icon-512.png      ← PWA icon large
 
 ## 3. Color System
 
-### Primary Palette
+> **Colour is defined in [`COLOR_SYSTEM.md`](COLOR_SYSTEM.md)** (decided 2026-11-07, audit F-046).
+> This section used to disagree with the other brand document (blue vs amber as primary).
 
-| Color | Name | HEX | RGB | Usage |
-|-------|------|-----|-----|-------|
-| ![#2563eb](https://via.placeholder.com/15/2563eb/000000?text=+) | Nodbusiness Blue | `#2563eb` | 37, 99, 235 | Primary actions, links, buttons, active states |
-| ![#7c3aed](https://via.placeholder.com/15/7c3aed/000000?text=+) | Nodbusiness Purple | `#7c3aed` | 124, 58, 237 | Accent, gradients, secondary brand |
-| ![#D4AF37](https://via.placeholder.com/15/D4AF37/000000?text=+) | Nodbusiness Gold | `#D4AF37` | 212, 175, 55 | Premium, verified badges, highlights |
-| ![#111111](https://via.placeholder.com/15/111111/000000?text=+) | Black | `#111111` | 17, 17, 17 | Primary text, headings |
-| ![#ffffff](https://via.placeholder.com/15/ffffff/000000?text=+) | White | `#ffffff` | 255, 255, 255 | Backgrounds, reversed text |
+| Role | Colour | Use |
+|---|---|---|
+| Primary | Blue `#2563eb` | Main action, links, selected state, personal identity |
+| Secondary | Violet `#7c3aed` | Business identity, AI assistant |
+| Status | Success `#157a3a` · Warning `#b45309` · Error `#c81e1e` | States only, never decoration |
+| Neutrals | Slate greys | Most of every screen |
 
-### Brand Gradient
-```css
-background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-```
-Use for: CTAs, hero sections, feature highlights, app store badges.
-
-### Secondary Palette (UI)
-
-| Color | Name | HEX | Usage |
-|-------|------|-----|-------|
-| `#10b981` | Success Green | — | Positive states, verified, approved |
-| `#f59e0b` | Warning Amber | — | Alerts, pending, attention |
-| `#ef4444` | Error Red | — | Errors, banned, rejected, danger |
-| `#6b7280` | Neutral Gray | — | Secondary text, borders, placeholders |
-
-### Dark Mode Palette
-```css
---background:  hsl(222, 47%, 9%);     /* #0f172a equivalent */
---card:        hsl(222, 39%, 13%);
---foreground:  hsl(210, 20%, 95%);
---primary:     hsl(217, 91%, 60%);    /* Slightly lighter blue for dark bg */
---accent:      hsl(263, 90%, 66%);    /* Slightly lighter purple */
-```
+No decorative accent colour and no gradients in the app; gold is no longer a brand colour.
 
 ---
 
@@ -307,30 +285,27 @@ Alt text:                  Required on all brand images
 
 ### Color Contrast Check
 ```
-Blue (#2563eb) on White (#fff):   5.9:1 ✅ AA
-Gold (#D4AF37) on White (#fff):   2.8:1 ❌ (use only for decorative, not text)
-Gold (#D4AF37) on Black (#111):   7.4:1 ✅ AAA
-White (#fff) on Blue (#2563eb):   5.9:1 ✅ AA
+White (#fff) on Blue (#2563eb):    5.17:1 ✅ AA   (measured 2026-11-07; was listed as 5.9:1)
+Blue (#2563eb) on page (#f7f7f7):  4.82:1 ✅ AA
+White (#fff) on Violet (#7c3aed):  5.70:1 ✅ AA
+Every token pair: see COLOR_SYSTEM.md
 ```
 
 ---
 
 ## 10. Brand in Code
 
-### CSS Custom Properties (from globals.css)
-```css
---ex-blue:   #2563eb;   /* Primary blue */
---ex-purple: #7c3aed;   /* Accent purple */
---ex-gold:   #D4AF37;   /* Gold highlight */
-```
-
-### Tailwind Usage
+### Colour tokens
+See [`COLOR_SYSTEM.md`](COLOR_SYSTEM.md#in-code). In short:
 ```tsx
-// ✅ Use brand tokens
+// ✅ Tokens
 className="bg-primary text-primary-foreground"
-className="text-amber-500"  /* gold context */
+className="bg-warning-subtle text-warning-subtle-foreground"
+style={{ background: token.primary }}        // lib/colorTokens.ts
 
-// ❌ Never hardcode brand colors
+// ❌ Rejected by `npm run check:colors`
+className="text-amber-500"
+className="bg-[#f59e0b]"
 style={{ color: '#2563eb' }}
 ```
 

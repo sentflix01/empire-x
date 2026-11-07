@@ -13,7 +13,7 @@ import HoursField from "./HoursField";
 import { Switch } from "@/components/ui/switch";
 import type { BuilderField, SectionType } from "@/lib/builderSections";
 
-const inputClass = "w-full text-sm px-3 py-2 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400";
+const inputClass = "w-full text-sm px-3 py-2 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-primary";
 
 /** One section field: write, add a photo, switch on/off. Hidden fields are set elsewhere (e.g. Style). */
 function FieldControl({ id, field, value, onChange }: { id: string; field: BuilderField; value: any; onChange: (v: any) => void }) {
@@ -51,11 +51,11 @@ function FieldControl({ id, field, value, onChange }: { id: string; field: Build
 /** Section card header: plain name, plan badge, and what the section does. */
 function SectionHeader({ sec }: { sec: SectionType }) {
   return (
-    <div className="border-b border-border/30 bg-amber-50/50 px-3 py-2.5 dark:bg-amber-500/5">
+    <div className="border-b border-border/30 bg-primary-subtle/50 px-3 py-2.5">
       <div className="flex items-center gap-2">
-        <span className="text-sm font-bold text-amber-800 dark:text-amber-200">{sec.label}</span>
+        <span className="text-sm font-bold text-primary-subtle-foreground">{sec.label}</span>
         {sec.tier !== "freemium" && (
-          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white ${sec.tier === "pro" ? "bg-violet-500" : "bg-amber-500"}`}>
+          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white ${sec.tier === "pro" ? "bg-brand-secondary" : "bg-primary"}`}>
             {sec.tier === "pro" ? "Pro" : "Premium"}
           </span>
         )}
@@ -122,7 +122,7 @@ function RepeaterField({ field, value, onChange }: any) {
           <button
             type="button"
             onClick={() => remove(idx)}
-            className="absolute top-1.5 right-1.5 w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200 transition-colors"
+            className="absolute top-1.5 right-1.5 w-8 h-8 rounded-full bg-destructive-subtle text-destructive flex items-center justify-center hover:bg-destructive-subtle transition-colors"
             aria-label={`Remove ${field.label} ${idx + 1}`}
           >
             <X className="w-3 h-3" />
@@ -171,7 +171,7 @@ function RepeaterField({ field, value, onChange }: any) {
       <button
         type="button"
         onClick={add}
-        className="w-full min-h-11 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border-2 border-dashed border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-50 transition-colors"
+        className="w-full min-h-11 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border-2 border-dashed border-primary/30 text-primary text-sm font-medium hover:bg-primary-subtle transition-colors"
       >
         <Plus className="w-4 h-4" /> Add {field.label.replace(/s$/, "").toLowerCase()}
       </button>
@@ -326,7 +326,7 @@ export default function BuilderForm({ activeSections, formData, onChange, showro
             onClick={() => setActiveTab("content")}
             className={`flex-1 px-3 py-2 text-xs font-semibold transition-colors ${
               activeTab === "content"
-                ? "text-amber-700 border-b-2 border-amber-500"
+                ? "text-primary border-b-2 border-primary"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -337,7 +337,7 @@ export default function BuilderForm({ activeSections, formData, onChange, showro
             onClick={() => setActiveTab("data-sources")}
             className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors ${
               activeTab === "data-sources"
-                ? "text-amber-700 border-b-2 border-amber-500"
+                ? "text-primary border-b-2 border-primary"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >

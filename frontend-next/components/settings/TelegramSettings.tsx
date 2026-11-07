@@ -65,7 +65,7 @@ export default function TelegramSettings() {
           <h3 className="font-semibold">Telegram Notifications</h3>
           <p className="text-xs text-muted-foreground">Get order & message alerts on Telegram</p>
         </div>
-        <div className={`ml-auto px-2.5 py-1 rounded-full text-xs font-medium ${status?.connected ? "bg-green-50 text-green-600" : "bg-secondary text-muted-foreground"}`}>
+        <div className={`ml-auto px-2.5 py-1 rounded-full text-xs font-medium ${status?.connected ? "bg-success-subtle text-success" : "bg-secondary text-muted-foreground"}`}>
           {status?.connected ? "Connected" : "Not connected"}
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function TelegramSettings() {
           <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/30">
             <div className="flex items-center gap-2">
               {status.notifications_enabled ? (
-                <Bell className="w-4 h-4 text-amber-500" />
+                <Bell className="w-4 h-4 text-primary" />
               ) : (
                 <BellOff className="w-4 h-4 text-muted-foreground" />
               )}
@@ -115,13 +115,13 @@ export default function TelegramSettings() {
             <button
               onClick={handleToggle}
               disabled={toggling}
-              className={`w-12 h-6 rounded-full transition-colors relative ${status.notifications_enabled ? "bg-amber-500" : "bg-secondary"}`}
+              className={`w-12 h-6 rounded-full transition-colors relative ${status.notifications_enabled ? "bg-primary" : "bg-secondary"}`}
             >
               <div className={`w-5 h-5 rounded-full bg-card shadow absolute top-0.5 transition-transform ${status.notifications_enabled ? "translate-x-6" : "translate-x-0.5"}`} />
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-green-600 bg-green-50 rounded-xl px-3 py-2">
+          <div className="flex items-center gap-1.5 text-xs text-success bg-success-subtle rounded-xl px-3 py-2">
             <Check className="w-3.5 h-3.5" />
             Connected to @{status.bot_username}. Type /stop in Telegram to disable anytime.
           </div>
