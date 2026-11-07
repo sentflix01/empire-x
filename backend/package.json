@@ -1,6 +1,7 @@
 {
   "name": "nodbusiness-server",
   "version": "1.0.0",
+  "license": "UNLICENSED",
   "description": "Nodbusiness backend API server",
   "type": "commonjs",
   "main": "index.js",

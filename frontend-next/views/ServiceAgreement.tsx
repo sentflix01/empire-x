@@ -1,24 +1,25 @@
 'use client';
 import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { FileText, Shield, Cookie, Scale, ChevronDown, ChevronUp } from 'lucide-react';
+import { FileText, Shield, Cookie, Scale, ChevronDown, ChevronUp, Accessibility } from 'lucide-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { CONTACT_EMAIL, LEGAL_ADDRESS, LEGAL_NAME, LEGAL_REGISTRATION, POLICIES_UPDATED, mailto } from '@/lib/legalIdentity';
 
-type TabId = 'terms' | 'privacy' | 'cookies' | 'seller';
+type TabId = 'terms' | 'privacy' | 'cookies' | 'seller' | 'accessibility';
 
 const TABS: { id: TabId; label: string; icon: any; color: string }[] = [
   { id: 'terms',   label: 'Terms of Service',  icon: Scale,    color: 'text-blue-600' },
   { id: 'privacy', label: 'Privacy Policy',     icon: Shield,   color: 'text-violet-600' },
   { id: 'cookies', label: 'Cookie Policy',      icon: Cookie,   color: 'text-amber-600' },
   { id: 'seller',  label: 'Seller Agreement',   icon: FileText, color: 'text-emerald-600' },
+  { id: 'accessibility', label: 'Accessibility', icon: Accessibility, color: 'text-blue-600' },
 ];
 
 function Accordion({ title, children }: { title: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b border-border/40 last:border-0">
-      <button onClick={() => setOpen(v => !v)}
+      <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open}
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-secondary/30 transition-colors">
         <span className="text-sm font-semibold">{title}</span>
         {open ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />}
@@ -207,11 +208,44 @@ function SellerContent() {
   );
 }
 
+/**
+ * Accessibility statement (audit F-055). Based on the November 2026 audit;
+ * update the date and known issues whenever they change.
+ */
+function AccessibilityContent() {
+  return (
+    <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+      <Accordion title="1. Our goal">
+        <p>We want everyone to be able to use Nodbusiness, including people who use a screen reader, a keyboard, zoom, high-contrast mode or a small phone. We aim to meet the <strong>Web Content Accessibility Guidelines (WCAG) 2.2, level AA</strong>, the standard also used by the European norm EN 301 549.</p>
+      </Accordion>
+      <Accordion title="2. How well we meet it">
+        <p>Nodbusiness is <strong>partially conformant</strong> with WCAG 2.2 AA: most of it meets the standard, but not every screen has been checked yet.</p>
+        <p>In November 2026 we tested 30 page states (guest and signed-in) with the axe-core 4.10.3 checker and by hand: keyboard use, screen width down to 320 pixels, high-contrast (forced colours) mode, dark mode and reduced motion. The problems found on those pages were fixed, and the tested pages now pass.</p>
+      </Accordion>
+      <Accordion title="3. Known limitations">
+        <ul className="list-disc list-inside space-y-1">
+          <li>Pages outside that test set have not all been checked yet.</li>
+          <li>Business showroom pages show text and photos chosen by each business, which may not always have enough contrast or image descriptions.</li>
+          <li>Maps, YouTube videos and Google sign-in come from other companies and follow their own accessibility.</li>
+          <li>The Amharic version has not yet been tested with screen readers.</li>
+        </ul>
+      </Accordion>
+      <Accordion title="4. Tell us about a problem">
+        <p>If something is hard or impossible to use, email <a href={mailto('Accessibility problem')} className="text-blue-600 hover:underline">{CONTACT_EMAIL}</a>. Tell us the page, what you were trying to do, and the device or assistive technology you use. We read every message.</p>
+      </Accordion>
+      <Accordion title="5. About this statement">
+        <p>Prepared on 7 November 2026 from our own audit. We will update it when we test more pages or fix the limitations above.</p>
+      </Accordion>
+    </div>
+  );
+}
+
 const CONTENT: Record<TabId, React.ReactNode> = {
   terms:   <TermsContent />,
   privacy: <PrivacyContent />,
   cookies: <CookieContent />,
   seller:  <SellerContent />,
+  accessibility: <AccessibilityContent />,
 };
 
 function ServiceAgreementView() {

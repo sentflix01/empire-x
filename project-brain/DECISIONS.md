@@ -886,3 +886,13 @@ items in the open list until confirmed.
 - **Context:** A product with no business was accepted (201) but hidden from everyone except its seller.
 - **Decision:** `POST /api/products` and new items in `POST /api/products/scan-batch` answer `422 BUSINESS_REQUIRED` when no business can be resolved (own `business_id`, the showroom's business, or the seller's only business). Admins follow the same rule. The product form says "Create a business first" and links to it.
 - **Consequences:** Sellers create a business before listing. Existing products without a business are unchanged (migration 77 already linked those whose seller has exactly one business).
+
+### 2026-11-07 — Proprietary licence; public accessibility statement
+
+- **Status:** Accepted (owner chose "Proprietary" and the shared inbox as contact, 7 Nov 2026; audit F-055)
+- **Decision owner:** Project owner
+- **Decision:**
+  1. The code is proprietary: `LICENSE` says all rights reserved, and every `package.json` has `"license": "UNLICENSED"` (npm's marker for code that may not be reused).
+  2. An accessibility statement is published as the Accessibility tab of the legal page: target WCAG 2.2 AA, status partially conformant, known limitations, and the shared contact inbox (`CONTACT_EMAIL`), not a new address.
+- **Open (F-055):** a Refund Policy tab needs the owner's or counsel's wording; an OpenAPI file and a docs freshness check are not done yet.
+- **Related documentation:** `LICENSE`, `docs/compliance/ACCESSIBILITY_STATEMENT.md`
