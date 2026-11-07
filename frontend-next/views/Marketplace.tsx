@@ -106,7 +106,6 @@ function Marketplace() {
     );
     obs.observe(el);
     obsRef.current = obs;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // stable — observer recreated only when element mounts/unmounts
 
   const filtered = products.filter(p => {

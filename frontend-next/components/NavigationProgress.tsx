@@ -62,7 +62,6 @@ export default function NavigationProgress() {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   if (!bar.active) return null;
