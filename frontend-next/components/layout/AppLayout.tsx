@@ -554,7 +554,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   aria-label="Back to landing page"
                 >
                   <Home className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  <span className="whitespace-nowrap">Landing</span>
+                  <span className="hidden whitespace-nowrap min-[360px]:inline">Landing</span>
                 </Link>
                 <Link href={`/login?return=${encodeURIComponent(pathname)}`} className="inline-flex h-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3 sm:text-sm">Sign in</Link>
                 <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 sm:px-3 sm:text-sm">Join</Link>
