@@ -35,7 +35,7 @@
 | **Accessibility** | **B** | 44px touch targets enforced on mobile, 8 icon-buttons labeled this pass, semantic landmarks in AppLayout, reduced-motion respected in tokens. Gap: full WCAG 2.1 AA audit (axe sweep) still recommended pre-marketing push. |
 | **i18n / Global-readiness** | **B** | i18next en+am shipped, flat-namespace pipeline, ETB ledger with documented FX policy, sector templates for local businesses. Gap: translation coverage audit for new features. |
 | **User Satisfaction proxies** | **B+** | Error boundaries at every segment + global, toast feedback patterns, empty/loading states systematized (v1.0-foundation audits), offline-tolerant socket reconnect, weekly owner health digests, one-click Doctor fixes. Gap: analytics SDK to measure satisfaction for real. |
-| **Documentation** | **A** | 234-doc self-syncing encyclopedia, canonical sources (severity/money/flags/roadmap), generated API reference (255 endpoints), postmortem + SLO + backup runbooks, patent portfolio with filed-ready flagship draft. |
+| **Documentation** | **A** | 234-doc self-syncing encyclopedia, canonical sources (severity/money/flags/roadmap), generated API reference (371 endpoints as of 2026-11-07; regenerate with `npm run docs:api` in `backend/`), postmortem + SLO + backup runbooks, patent portfolio with filed-ready flagship draft. |
 | **Legal / Compliance** | **B−** | ToS/Privacy/cookies/seller agreement drafts, AML/KYC + data governance frameworks, age policy unified. Gaps: founder decisions (entity, domain, pricing) + counsel review before public enforcement. |
 
 ---

@@ -102,9 +102,9 @@ Traffic flows through Cloudflare's proxy for DDoS protection and WAF.
 
 ### JWT Security
 ```javascript
-// Current: JWT in localStorage + cookie + memory (fixed in deployment-readiness-fix)
-// Planned fix: HttpOnly cookie (not accessible to JS) — Month 2–3
-// Migration plan in ADR-004
+// Current (TD-001, TD-014): access token in memory only; refresh token in an
+// HttpOnly cookie; a non-secret "nb_auth=1" hint cookie for edge routing.
+// ADR-004 (JWT in localStorage) is superseded.
 
 // JWT revocation already built:
 // Per-token (logout): redis SET revoked:{jti} 1 EX 604800

@@ -31,8 +31,8 @@
 ---
 
 ### TD-003: End-to-end test suite
-**Status:** Not started  
-**Problem:** Backend API E2E coverage exists (`backend/test/e2e.test.js`), but there are no browser E2E tests for critical frontend flows.  
+**Status:** Done (corrected 2026-11-07, audit F-008) — Playwright specs in `frontend-next/e2e/` run in the blocking "E2E — Chromium journeys" CI job against a real backend and Postgres (audit F-032).  
+**Problem:** Backend API E2E coverage exists (`backend/test/e2e.test.js`), but there were no browser E2E tests for critical frontend flows.  
 **Fix:** Add Playwright tests for: registration → OTP → onboarding → create post → add product → checkout → view order.  
 **Impact:** Prevents regressions on every deploy.
 
@@ -79,9 +79,9 @@
 **Impact:** Occasional false-red CI runs; no real test regressions found.
 
 ### TD-004: TypeScript migration (backend)
-**Status:** Not started  
+**Status:** Done (corrected 2026-11-07, audit F-008) — the backend is TypeScript and `tsc --noEmit` runs in CI. Remaining: `strict` is off (audit F-052); some migrations and tests are still JavaScript.  
 **File:** All `backend/` files  
-**Problem:** Backend is JavaScript — no type checking, autocomplete is limited, refactoring is risky.  
+**Problem:** Backend was JavaScript — no type checking, autocomplete is limited, refactoring is risky.  
 **Fix:** Rename `.js` to `.ts`, add `tsconfig.json`, fix type errors incrementally. Add Prisma for type-safe DB queries.  
 **Impact:** Developer experience, bug prevention at scale.
 

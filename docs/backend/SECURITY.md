@@ -41,9 +41,9 @@ requireAuth middleware
     └── attach req.user = { id, email, role, is_banned } → next()
 ```
 
-Token architecture (ADR-004):
-- **Access token:** 15 min, returned in the response body; client keeps it in memory plus a
-  localStorage/JS-cookie mirror for middleware route-gating (residual XSS risk — see threat model).
+Token architecture (TD-001, TD-014; ADR-004 is superseded):
+- **Access token:** 15 min, returned in the response body; the client keeps it in memory only.
+  The edge proxy routes on a non-secret `nb_auth=1` hint cookie, not the token.
 - **Refresh token:** 7 days, `HttpOnly; Secure; SameSite=None` cookie scoped to `path=/api/auth`;
   rotated on every refresh with the old jti revoked.
 - **logout-all:** sets `revoke_before:{userId}` — any token issued before that instant is rejected.
