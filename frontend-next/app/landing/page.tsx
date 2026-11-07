@@ -40,7 +40,7 @@ const modules = [
   { title: 'Social Feed', desc: 'Posts, stories, trends, and community discovery.', Icon: Users },
   { title: 'Marketplace', desc: 'Products, orders, reviews, and local sellers.', Icon: ShoppingBag },
   { title: 'Showrooms', desc: 'Mini websites for every business profile.', Icon: Store },
-  { title: 'Wallet', desc: 'Payments, balances, invoices, and transaction history.', Icon: CreditCard },
+  { title: 'Direct Orders', desc: 'Buyers pay the seller directly. Nodbusiness never holds the money.', Icon: CreditCard },
   { title: 'Messaging', desc: 'Direct chat, groups, channels, and notifications.', Icon: MessageCircle },
   { title: 'AI Assistant', desc: 'Help users write, search, sell, and grow faster.', Icon: Bot },
 ];
@@ -54,7 +54,7 @@ const stats = [
 
 const previewRows = [
   ['Feed', 'Aster shared a showroom launch', 'Live'],
-  ['Order', 'Coffee pack paid with wallet', 'Paid'],
+  ['Order', 'Coffee pack paid to the seller', 'Paid'],
 ];
 
 export default function LandingPage() {
@@ -86,8 +86,8 @@ export default function LandingPage() {
               <CreditCard className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs text-white/60">Wallet</p>
-              <p className="text-sm font-bold">12,480 ETB</p>
+              <p className="text-xs text-white/60">New order</p>
+              <p className="text-sm font-bold">Paid to the seller</p>
             </div>
           </div>
           <div className="space-y-2">
@@ -137,7 +137,7 @@ export default function LandingPage() {
           {/* Badge pill — hidden on smallest screens to save vertical space */}
           <p className="hidden xs:mb-3 xs:inline-flex sm:mb-3 sm:inline-flex max-w-[22rem] flex-wrap items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-1.5 text-center text-xs font-semibold text-white/85 backdrop-blur-xl sm:max-w-full sm:text-sm sm:py-2">
             <Sparkles className="h-4 w-4 text-emerald-300" />
-            <span>Social, commerce, payments, services, and AI</span>
+            <span>Social, commerce, services, and AI</span>
           </p>
           <h1 className="max-w-5xl text-2xl font-black leading-tight tracking-normal sm:text-7xl lg:text-8xl">
             Nodbusiness
@@ -225,10 +225,10 @@ export default function LandingPage() {
             <p className="mb-3 text-sm font-bold uppercase tracking-wide text-purple-600">Built For Trust</p>
             <h2 className="text-4xl font-black tracking-normal sm:text-5xl">From profile to payment, every action feels connected.</h2>
             <p className="mt-5 text-lg leading-8 text-slate-600">
-              Users can discover a business, view its showroom, message the seller, pay, track the order, and come back through the social feed.
+              Users can discover a business, view its showroom, message the seller, pay the seller directly, track the order, and come back through the social feed.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              {['Verified profiles', 'Secure wallet', 'Business websites', 'Local discovery'].map(item => (
+              {['Verified profiles', 'Direct payment to sellers', 'Business websites', 'Local discovery'].map(item => (
                 <span key={item} className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700">
                   <ShieldCheck className="h-4 w-4 text-emerald-500" />
                   {item}

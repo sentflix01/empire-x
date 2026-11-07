@@ -924,7 +924,9 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
       `SELECT u.id, u.email,
               COALESCE(NULLIF(TRIM(u.full_name), ''), up.display_name) AS full_name,
               u.role, u.is_verified, u.is_demo, u.onboarding_mode, u.created_at,
-              up.avatar_url, up.cover_url
+              up.avatar_url, up.cover_url,
+              -- The wallet only pays out old balances now (audit F-047); menus show it only then.
+              EXISTS (SELECT 1 FROM wallets w WHERE w.user_id = u.id AND w.balance > 0) AS has_wallet_balance
        FROM users u
        LEFT JOIN LATERAL (
          SELECT display_name, avatar_url, cover_url FROM user_profiles

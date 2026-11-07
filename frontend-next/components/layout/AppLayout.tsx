@@ -23,7 +23,7 @@ import { isGuestBrowsablePath } from "@/lib/publicPaths";
 // AccountSettings popup replaced by /settings navigation
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
-function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string } | null }) {
+function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string; has_wallet_balance?: boolean } | null }) {
   // Real hashtag counts only (audit LEGAL-04: the panel used to show invented numbers).
   const [trending, setTrending] = useState<Array<{ name: string; post_count: number }>>([]);
   useEffect(() => {
@@ -42,9 +42,9 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
     { path: "/bookmarks",  icon: Bookmark,     label: "Bookmarks",   color: "#6B7280" },
     { path: "/wallet",     icon: Wallet,       label: "Wallet",      color: "#f59e0b" },
   ];
-  const visibleQuickLinks = user
-    ? quickLinks
-    : quickLinks.filter(item => item.path !== '/bookmarks' && item.path !== '/wallet');
+  // The wallet only pays out old balances (audit F-047): link it only when there is one.
+  const visibleQuickLinks = quickLinks.filter(item =>
+    item.path === '/wallet' ? Boolean(user?.has_wallet_balance) : item.path !== '/bookmarks' || Boolean(user));
 
   return (
     <>
@@ -379,7 +379,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const accountItems = [
     { path: "/orders",   icon: Package,     label: tr('nav.orders') },
     { path: "/cart",     icon: ShoppingCart, label: "Cart", badge: cart.count > 0 ? cart.count : null },
-    { path: "/wallet",   icon: Wallet,       label: tr('nav.wallet') },
+    ...(user?.has_wallet_balance ? [{ path: "/wallet", icon: Wallet, label: tr('nav.wallet') }] : []),
     { path: "/referral", icon: Gift,         label: "Referral" },
     { path: "/coupons",  icon: Tag,          label: "My Coupons" },
     { path: "/privacy",  icon: Shield,       label: "Privacy" },

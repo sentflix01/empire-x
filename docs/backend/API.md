@@ -114,9 +114,14 @@ Get current user. Requires auth.
   "full_name": "Abebe Kebede",
   "role": "user",
   "is_verified": true,
-  "created_at": "2026-01-01T00:00:00Z"
+  "created_at": "2026-01-01T00:00:00Z",
+  "has_wallet_balance": false
 }
 ```
+
+`has_wallet_balance` is `true` while the person still has an old wallet balance to
+withdraw; the app shows Wallet in its menus only then (audit F-047). The wallet no
+longer accepts money.
 
 ---
 

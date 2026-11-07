@@ -72,3 +72,18 @@ describe('money in is retired', () => {
     expect(res.body.code).toBe('PLATFORM_COLLECTION_RETIRED');
   });
 });
+
+describe('the menus show Wallet only while there is a balance (F-047)', () => {
+  it('/api/auth/me reports has_wallet_balance', async () => {
+    const authApp = express();
+    authApp.use(express.json());
+    authApp.use('/api/auth', require('../../routes/auth'));
+    const me = async () => (await request(authApp).get('/api/auth/me').set(auth()).expect(200)).body.has_wallet_balance;
+    await setBalance('12.50');
+    expect(await me()).toBe(true);
+    await setBalance('0.00');
+    expect(await me()).toBe(false);
+    await pool.query('DELETE FROM wallets WHERE user_id = $1', [person.id]);
+    expect(await me()).toBe(false);
+  });
+});
