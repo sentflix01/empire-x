@@ -1,6 +1,6 @@
 # Colour system
 
-**Owner:** Project owner · **Decided:** 2026-11-07 (audit F-046) · **Source of truth for colour**
+**Owner:** Project owner · **Decided:** 2026-11-07 (audit F-046) · **Last reviewed:** 2026-11-08 · **Source of truth for colour**
 
 This page replaces the colour sections of `BRAND_BOOK.md` and `BRAND_GUIDELINES.md`,
 which contradicted each other (blue vs amber as the primary colour).

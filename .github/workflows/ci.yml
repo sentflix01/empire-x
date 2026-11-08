@@ -188,6 +188,23 @@ jobs:
   # "high" catches CVSS ≥7.0. Critical and high severity vulnerabilities
   # must be resolved before a merge to main can land.
   # Uses --package-lock-only so no npm ci needed — saves ~2 min per run.
+  docs-freshness:
+    name: Docs freshness — changed docs dated (blocking)
+    # Every doc a pull request changes must carry a "Last reviewed:" (or
+    # "Last updated:") date from the last 31 days (audit F-055). Generated
+    # docs are skipped. Full report: node scripts/docs-freshness.mjs.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Check changed docs
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: node scripts/docs-freshness.mjs --changed "origin/$BASE_REF"
+
   secrets:
     name: Secret scan — new commits (blocking)
     # gitleaks over the commits this pull request or push adds (audit F-024).

@@ -3,7 +3,7 @@
 > A living document. Track what needs to improve and why.
 > Add items when you notice them. Resolve them intentionally, not reactively.
 > Priority: High (fix before Phase 2) · Medium (fix in Phase 2) · Low (nice to have)
-> **Last updated:** September 22, 2026
+> **Last updated:** November 8, 2026
 
 ---
 
