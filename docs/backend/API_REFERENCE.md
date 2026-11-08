@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **371** across **52** mounted modules · Generated: 2026-11-06
+> Endpoints: **371** across **52** mounted modules · Generated: 2026-11-08
 
 | Legend | Meaning |
 |---|---|
@@ -121,15 +121,15 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 | `POST` | `/api/auth/mfa/verify` | 🌐 public | routes/auth.ts:703 |
 | `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:766 |
 | `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:921 |
-| `GET` | `/api/auth/me/export` | 🔒 auth | routes/auth.ts:964 |
-| `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:977 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:1032 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:1068 |
-| `PUT` | `/api/auth/update-name` | 🔒 auth | routes/auth.ts:1119 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1141 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1180 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1263 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1303 |
+| `GET` | `/api/auth/me/export` | 🔒 auth | routes/auth.ts:966 |
+| `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:979 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:1034 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:1070 |
+| `PUT` | `/api/auth/update-name` | 🔒 auth | routes/auth.ts:1121 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1143 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1182 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1265 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1305 |
 
 ## businessApiKeys — Business API key management
 
@@ -448,12 +448,12 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 | `GET` | `/api/products/mine` | 🔒 auth | routes/products.ts:179 |
 | `GET` | `/api/products/lookup/:code` | 🔒 auth | routes/products.ts:199 |
 | `POST` | `/api/products/import-image` | 🔒 auth | routes/products.ts:213 |
-| `POST` | `/api/products/scan-batch` | 🔒 auth | routes/products.ts:229 |
-| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:291 |
-| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:314 |
-| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:367 |
-| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:450 |
-| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:462 |
+| `POST` | `/api/products/scan-batch` | 🔒 auth | routes/products.ts:251 |
+| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:319 |
+| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:342 |
+| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:397 |
+| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:480 |
+| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:492 |
 
 ## profilePartnerships — profilePartnerships
 
@@ -706,4 +706,5 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 ---
 
 *Endpoint-level request/response schemas live in the module source under
-`backend/routes/` — the JSON twin of this page is `backend/api-catalog.json`.*
+`backend/routes/`. Machine-readable versions: [`openapi.json`](openapi.json) (OpenAPI 3.1,
+committed) and `backend/api-catalog.json` (generated locally).*
