@@ -3,6 +3,7 @@
  * jspdf is already installed in the project.
  */
 import { jsPDF } from "jspdf";
+import { BRAND } from '@/lib/brandAssets';
 
 interface Order {
   id: string;
@@ -22,7 +23,7 @@ interface Order {
 /** Loads the brand emblem as a data URL for the PDF header; null if it can't be fetched. */
 export async function loadLogo(): Promise<string | null> {
   try {
-    const res = await fetch("/icons/icon-192.png");
+    const res = await fetch(BRAND.appIcon192);
     if (!res.ok) return null;
     const blob = await res.blob();
     return await new Promise((resolve) => {

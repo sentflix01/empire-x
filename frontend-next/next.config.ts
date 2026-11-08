@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { BRAND_RENAMES } from "./lib/brandAssets";
 
 const nextConfig: NextConfig = {
   // No X-Powered-By: Next.js header (audit F-016).
@@ -65,6 +66,11 @@ const nextConfig: NextConfig = {
   },
 
   // Security headers
+  // Logo files that were renamed (lib/brandAssets.ts) keep working at their old address.
+  async redirects() {
+    return BRAND_RENAMES.map(([source, destination]) => ({ source, destination, permanent: true }));
+  },
+
   async headers() {
     // The Content-Security-Policy for pages is set per request with a nonce in
     // proxy.ts (lib/csp.ts, audit F-016); these headers apply to every response.

@@ -21,6 +21,7 @@ import { useProfileView } from "@/lib/ProfileViewContext";
 import { useAppStore } from "@/store";
 import { isGuestBrowsablePath } from "@/lib/publicPaths";
 import { HEX, IDENTITY } from '@/lib/colorTokens';
+import { BRAND } from '@/lib/brandAssets';
 // AccountSettings popup replaced by /settings navigation
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
@@ -441,7 +442,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           {/* Logo */}
           <Link href="/feed" aria-label="Go to home" className={`flex items-center gap-2 shrink-0 transition-all w-8 ${sidebarCollapsed ? "md:w-8" : "md:w-44"}`}>
             <Image
-              src="/brand/nodbusiness-icon.svg"
+              src={BRAND.icon}
               alt="Nodbusiness"
               width={32}
               height={32}

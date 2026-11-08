@@ -21,6 +21,7 @@ import BusinessSpotlight from './BusinessSpotlight';
 import TickerBar from './TickerBar';
 import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
+import { BRAND } from '@/lib/brandAssets';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface SectionItem {
@@ -251,7 +252,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                             level="H"
                             includeMargin
                             imageSettings={{
-                              src: '/brand/nodbusiness-icon.svg',
+                              src: BRAND.icon,
                               height: 36,
                               width: 36,
                               excavate: true,

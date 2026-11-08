@@ -67,7 +67,9 @@ async function get(url, opts = {}) {
   const og = await get(`${FE}/opengraph-image`);
   check('F-036', 'Share image is served to guests/crawlers', og.status === 200 && (og.headers.get('content-type') || '').startsWith('image/'), `${og.status} ${og.headers.get('content-type')}`);
   const sw = await get(`${FE}/sw.js`, { text: true });
-  check('F-048', 'Service worker v3 is published', sw.status === 200 && /v3/.test(sw.body || ''), `${sw.status}`);
+  // v3 or later: pages and API responses are never cached (later versions only change logo handling).
+  const swVersion = Number(/const VERSION = 'v(\d+)'/.exec(sw.body || '')?.[1] ?? 0);
+  check('F-048', 'Service worker v3 or later is published', sw.status === 200 && swVersion >= 3, `${sw.status}, v${swVersion}`);
   const offline = await get(`${FE}/offline`);
   check('F-048', 'Offline page is public', offline.status === 200, `${offline.status}`);
 

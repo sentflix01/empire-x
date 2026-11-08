@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { BRAND } from '@/lib/brandAssets';
 
 interface BrandLogoProps {
   /** Size and spacing classes, e.g. "w-4 h-4". Defaults to 24px. */
@@ -19,7 +20,7 @@ interface BrandLogoProps {
 export default function BrandLogo({ className, size = 24, label, style }: BrandLogoProps) {
   return (
     <Image
-      src="/brand/nodbusiness-icon.svg"
+      src={BRAND.icon}
       alt={label ?? ''}
       aria-hidden={label ? undefined : true}
       width={size}

@@ -1,6 +1,7 @@
 'use client'
 import { HEX } from '@/lib/colorTokens';
 import React from "react";
+import { BRAND } from '@/lib/brandAssets';
 
 interface AuthLayoutProps {
   title: string
@@ -29,7 +30,7 @@ export default function AuthLayout({ title, subtitle, footer, children, icon: Ic
                   className="relative w-16 h-16 rounded-full overflow-hidden"
                   style={{
                     backgroundColor: HEX.primary,
-                    backgroundImage: 'url(/brand/nodbusiness-icon.svg)',
+                    backgroundImage: `url(${BRAND.icon})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     boxShadow: '0 0 0 2px rgba(0,0,0,0.08), 0 4px 20px rgba(0,0,0,0.15)',

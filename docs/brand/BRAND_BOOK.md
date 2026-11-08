@@ -3,6 +3,8 @@
 > **The definitive guide to how Nodbusiness looks, sounds, and feels.**
 > Every designer, developer, marketer, and partner follows this guide.
 > Consistency builds trust. Trust builds brands.
+>
+> Last reviewed: 2026-11-08
 
 ---
 
@@ -90,14 +92,16 @@ Never place text, icons, or images inside the clear space.
 
 ### Logo files (all in `frontend-next/public/`)
 ```
-brand/nodbusiness-icon.svg            ← Icon (source for every raster below)
-brand/nodbusiness-logo.svg            ← Wordmark for light backgrounds (also _logo, _allcaps, _lowercase-o)
-brand/nodbusiness-logo-white.svg      ← Wordmark for dark backgrounds
-brand/nodbusiness-intro-288.mp4       ← Animated mark used by the app (nodbusiness-intro.mp4 is the 544 px master)
-icons/icon-192.png, icons/icon-512.png ← PWA icons (maskable)
+brand/nodbusiness-intro.mp4             ← Animated mark, 544 px master (source for every still below)
+brand/nodbusiness-intro-288-v2.mp4      ← Animated mark used by the app
+brand/nodbusiness-icon-v2.webp          ← Icon: the master's last frame, round (network over the globe)
+brand/nodbusiness-logo-v2.svg           ← Wordmark for light backgrounds (also _logo, _allcaps, _lowercase-o)
+brand/nodbusiness-logo-white-v2.svg     ← Wordmark for dark backgrounds
+icons/nodbusiness-icon-v2.png           ← Browser tab icon
+icons/icon-192-v2.png, icons/icon-512-v2.png ← PWA icons (maskable)
 apple-touch-icon.png, ../app/favicon.ico
 ```
-Rebuild the PNG and ICO files with `node scripts/brand/render-icons.mjs` (in `frontend-next/`) after any change to the icon SVG.
+Rebuild the stills with `node scripts/brand/render-icons.mjs` (in `frontend-next/`; needs ffmpeg and ImageMagick) after any change to the animated mark. Code refers to logo files only through `lib/brandAssets.ts`: a changed file gets a new name (bump `-vN`) and the old name is added to `BRAND_RENAMES`, which redirects it.
 
 ---
 

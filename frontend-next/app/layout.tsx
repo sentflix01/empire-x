@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Providers from './providers';
 import GoogleSignInInit from '@/components/GoogleSignInInit';
+import { BRAND } from '@/lib/brandAssets';
 
 // Load Inter via next/font so the --font-body CSS variable is backed by a
 // real font file. Without this import the browser silently falls back to
@@ -41,8 +42,8 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   icons: {
-    icon: '/icons/nodbusiness-icon.svg',
-    shortcut: '/icons/nodbusiness-icon.svg',
+    icon: BRAND.favicon,
+    shortcut: BRAND.favicon,
     apple: '/apple-touch-icon.png',
   },
 };

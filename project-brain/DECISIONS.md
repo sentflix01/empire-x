@@ -914,3 +914,11 @@ items in the open list until confirmed.
 - **Decision owner:** Project owner
 - **Decision:** The logo keeps its shape; only its colours change. The icon is a blue `#2563eb` disc or tile with a white globe ring, network lines (85% white) and boxes, and blue slots. The wordmark's globe is drawn in blue on light backgrounds; its letters stay ink. The white wordmark (dark backgrounds) gets blue slots. The intro videos map black → blue, white → white, greys → blue tints.
 - **Consequences:** PWA icons, the Apple touch icon and the favicon are rebuilt from the SVG by `frontend-next/scripts/brand/render-icons.mjs`. Logo backgrounds in the splash, sign-in, landing and share image use `HEX.primary`; the colour guard no longer allows the old black. Docs: `docs/brand/COLOR_SYSTEM.md`, `BRAND_BOOK.md`, `BRAND_GUIDELINES.md`.
+
+### 2026-11-08 — Small logo is a still of the animated logo; logo files are versioned by name
+
+- **Status:** Accepted (owner, 8 Nov 2026: "let the small logo add globe inside the circle like the big one")
+- **Decision owner:** Project owner
+- **Decision:** The still icon is the last frame of the intro video (network of businesses over the globe, white on blue), cut to a circle, so the small and animated logos are the same picture. Logo files carry a version in their name (`-v2`) and are referenced only through `frontend-next/lib/brandAssets.ts`; when one changes, it gets a new name and the old name redirects (`next.config.ts`).
+- **Why:** After the recolour, browsers that had cached the old files under the same name kept showing the black logo. A new name is never in any cache, so every visitor sees a changed logo on the next page load.
+- **Consequences:** `scripts/brand/render-icons.mjs` builds the WebP icon, favicon, Apple touch icon and PWA icons from `nodbusiness-intro.mp4`. The icon SVG is retired. A unit test (`test/brand/brandAssets.test.ts`) keeps the names, files, manifest and service worker in step. Docs: `docs/brand/BRAND_BOOK.md`, `BRAND_GUIDELINES.md`.

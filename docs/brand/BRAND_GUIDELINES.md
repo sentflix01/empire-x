@@ -2,7 +2,7 @@
 
 > **Classification:** Confidential — Internal Use Only
 > **Version:** 1.0
-> **Last Updated:** August 2026
+> **Last Updated:** 2026-11-08
 
 ---
 
@@ -56,10 +56,12 @@
 
 | Variant | Usage | File (`frontend-next/public/brand/`) |
 |---------|-------|------|
-| **Icon** | App icon, favicon, avatar | `nodbusiness-icon.svg` (white mark on blue `#2563eb`) |
-| **Wordmark** | Website header, marketing | `nodbusiness-logo.svg` (blue globe, ink letters) |
-| **White wordmark** | Dark backgrounds | `nodbusiness-logo-white.svg` |
-| **Animated** | Landing hero, splash | `nodbusiness-intro-288.mp4` |
+| **Icon** | App icon, favicon, avatar | `nodbusiness-icon-v2.webp` (still of the animated logo: network over the globe, white on blue) |
+| **Wordmark** | Website header, marketing | `nodbusiness-logo-v2.svg` (blue globe, ink letters) |
+| **White wordmark** | Dark backgrounds | `nodbusiness-logo-white-v2.svg` |
+| **Animated** | Landing hero, splash | `nodbusiness-intro-288-v2.mp4` |
+
+Code uses these through `frontend-next/lib/brandAssets.ts`. A changed logo file gets a new name (bump `-vN`), so no browser keeps the old copy; old names redirect.
 
 **Clear Space:** Minimum `1x` icon height on all sides  
 **Minimum Size:** 24px height (digital), 15mm (print)  

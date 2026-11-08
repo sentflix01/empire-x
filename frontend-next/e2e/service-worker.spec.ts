@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { BRAND } from '../lib/brandAssets';
 
 /**
  * Service worker (audit F-048): installs and activates, shows the offline
@@ -60,12 +61,12 @@ test.describe('Service worker', () => {
     await page.reload({ waitUntil: 'load' });
     expect(await page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
 
-    const logo = '/brand/nodbusiness-icon.svg';
-    const first = await page.evaluate(async (u) => (await fetch(u)).text(), logo);
-    expect(first).toContain('<svg');
+    const logo = BRAND.icon;
+    const first = await page.evaluate(async (u) => (await fetch(u)).headers.get('content-type'), logo);
+    expect(first).toBe('image/webp');
 
     // The logo changes on the server: the page must get the new file, not the cached one.
-    await context.route(`**${logo}`, (route) => route.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg id="new-logo"/>' }));
+    await context.route(`**${logo}`, (route) => route.fulfill({ status: 200, contentType: 'image/webp', body: 'new-logo' }));
     const second = await page.evaluate(async (u) => (await fetch(u)).text(), logo);
     expect(second).toContain('new-logo');
 
