@@ -37,7 +37,7 @@ export default function GuestSignUpPrompt({ action = 'do this', onClose }: Guest
             <div className="flex flex-col gap-3">
               <Link
                 href="/register"
-                className="w-full h-12 flex items-center justify-center rounded-2xl bg-amber-500 text-white font-bold text-sm hover:bg-amber-600 transition-colors"
+                className="w-full h-12 flex items-center justify-center rounded-2xl bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-colors"
               >
                 Create Free Account
               </Link>

@@ -73,16 +73,16 @@ export default function CommentMenu({ comment, postId, viewerId, isPostAuthor, i
                 <button role="menuitem" type="button" className={item} onClick={run(async () => { await setMuted(comment.author_id!, true); toast.success(`Muted ${name}`); close(); onAuthorHidden(comment.author_id!); })}>
                   <VolumeX className="h-4 w-4" aria-hidden="true" />Mute {name}
                 </button>
-                <button role="menuitem" type="button" className={`${item} text-red-600`} onClick={run(async () => { await setBlocked(comment.author_id!, true); toast.success(`Blocked ${name}`); close(); onAuthorHidden(comment.author_id!); })}>
+                <button role="menuitem" type="button" className={`${item} text-destructive`} onClick={run(async () => { await setBlocked(comment.author_id!, true); toast.success(`Blocked ${name}`); close(); onAuthorHidden(comment.author_id!); })}>
                   <Ban className="h-4 w-4" aria-hidden="true" />Block {name}
                 </button>
-                <button role="menuitem" type="button" className={`${item} text-red-600`} onClick={() => { close(); setReportOpen(true); }}>
+                <button role="menuitem" type="button" className={`${item} text-destructive`} onClick={() => { close(); setReportOpen(true); }}>
                   <Flag className="h-4 w-4" aria-hidden="true" />Report comment
                 </button>
               </>
             )}
             {(mine || isPostAuthor || isAdmin) && (
-              <button role="menuitem" type="button" className={`${item} text-red-600`} onClick={() => { close(); onDelete(); }}>
+              <button role="menuitem" type="button" className={`${item} text-destructive`} onClick={() => { close(); onDelete(); }}>
                 <Trash2 className="h-4 w-4" aria-hidden="true" />Delete
               </button>
             )}

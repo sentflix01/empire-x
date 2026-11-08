@@ -65,7 +65,7 @@ function FriendsSection({
     <section className="mb-6" data-page-guide={dataPageGuide}>
       {/* Section header */}
       <div className="flex items-center gap-2 mb-3 px-1">
-        <Icon className="w-4 h-4 text-amber-500" />
+        <Icon className="w-4 h-4 text-primary" />
         <h2 className="text-sm font-semibold">{title}</h2>
         {!loading && !error && items.length > 0 && (
           <span className="text-xs text-muted-foreground">({items.length})</span>
@@ -116,7 +116,7 @@ function FriendsSection({
           {showMoreButton && (
             <button
               onClick={expand}
-              className="mt-2 w-full text-xs font-medium text-amber-600 hover:text-amber-700 py-2 rounded-xl hover:bg-amber-50 transition-colors"
+              className="mt-2 w-full text-xs font-medium text-primary hover:text-primary py-2 rounded-xl hover:bg-primary-subtle transition-colors"
             >
               Show {items.length - 5} more
             </button>

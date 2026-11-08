@@ -90,7 +90,7 @@ export default function PaymentAccountsManager({ businessId }: { businessId: str
   return (
     <section id="payment-accounts" className="scroll-mt-20 rounded-2xl border border-border/50 bg-card p-4 space-y-4" aria-labelledby="payment-accounts-heading">
       <div className="flex items-center gap-2">
-        <CreditCard className="w-5 h-5 text-amber-500" />
+        <CreditCard className="w-5 h-5 text-primary" />
         <h2 id="payment-accounts-heading" className="font-semibold">Payment accounts</h2>
       </div>
       <p className="text-xs text-muted-foreground">

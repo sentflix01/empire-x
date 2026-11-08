@@ -201,7 +201,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
               <button
                 type="button"
                 onClick={() => setQrOpen(v => !v)}
-                className="w-14 h-14 rounded-xl border-4 border-white bg-white flex items-center justify-center hover:border-amber-400/60 transition-all shadow-sm overflow-hidden"
+                className="w-14 h-14 rounded-xl border-4 border-white bg-white flex items-center justify-center hover:border-primary/60 transition-all shadow-sm overflow-hidden"
                 aria-label={`Show QR code for ${bizName}`}
                 title="Scan to open this business profile"
               >
@@ -226,7 +226,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                     >
                       <button
                         onClick={() => setQrOpen(false)}
-                        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
+                        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
                         type="button"
                         aria-label="Close QR code"
                       >
@@ -238,13 +238,13 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                             ? <NextImage src={logoUrl} alt={bizName} width={56} height={56} className="w-full h-full object-cover" unoptimized />
                             : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">{bizName.charAt(0)}</div>}
                         </div>
-                        <h3 className="font-bold text-sm text-center text-slate-800 leading-tight px-2">{bizName}</h3>
+                        <h3 className="font-bold text-sm text-center text-foreground leading-tight px-2">{bizName}</h3>
                         {biz.business_address && (
-                          <p className="text-xs text-slate-400 text-center mt-0.5">{biz.business_address as string}</p>
+                          <p className="text-xs text-muted-foreground text-center mt-0.5">{biz.business_address as string}</p>
                         )}
                       </div>
                       <div className="flex justify-center">
-                        <div className="p-3 bg-white rounded-2xl border border-slate-100 shadow-inner">
+                        <div className="p-3 bg-white rounded-2xl border border-border shadow-inner">
                           <QRCodeSVG
                             value={qrUrl}
                             size={220}
@@ -259,7 +259,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                           />
                         </div>
                       </div>
-                      <p className="text-xs text-center text-slate-400 mt-3 px-4">
+                      <p className="text-xs text-center text-muted-foreground mt-3 px-4">
                         Scan with your phone camera to open this business showroom — no account needed
                       </p>
                       <Link
@@ -573,7 +573,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }

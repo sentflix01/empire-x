@@ -15,6 +15,8 @@
 Standard error shape: `{ "error": string, "code": string, "request_id"?: string }`
 with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND`, `500 INTERNAL_ERROR`. Every response also carries `API-Version: 1`.
 
+Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these codes: `401 UNAUTHORIZED` (no token), `401 INVALID_TOKEN`, `401 TOKEN_EXPIRED` (refresh and retry), `401 TOKEN_REVOKED`, `401 USER_NOT_FOUND`, `403 ACCOUNT_SUSPENDED`, `403 ADMIN_REQUIRED`, `403 MFA_SETUP_REQUIRED`.
+
 ## Contents
 - [`admin`](#admin) (19)
 - [`ai`](#ai) (4)

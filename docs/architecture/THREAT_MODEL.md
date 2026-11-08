@@ -133,9 +133,9 @@
 ## Remaining Security Work (Prioritized — verified 2026-08-23)
 
 ### High
-1. **Access token still mirrored to localStorage + JS-readable cookie** (`api/client.ts`) —
-   closes the XSS theft window only when route-gating moves off cookie sniffing. ADR-004's
-   "memory only" goal is not yet fully met.
+1. ~~**Access token still mirrored to localStorage + JS-readable cookie**~~ — **resolved by
+   TD-014** (noted 2026-11-07, audit F-008): the access token lives in memory only and the edge
+   proxy routes on a non-secret `nb_auth=1` hint cookie (`frontend-next/api/client.ts`).
 2. **TLS verification disabled** — `rejectUnauthorized: false` on Neon and Upstash connections
    (`db/pool.ts`, `lib/redis.ts`, socket Redis adapter). Encrypts but does not authenticate;
    switch to certificate validation / CA pinning.

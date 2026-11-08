@@ -134,7 +134,7 @@ function BusinessInventory() {
           <p className="text-sm text-muted-foreground mt-0.5">Manage your product catalog</p>
         </div>
         <div className="flex gap-2">
-          <Link href="/products/scan" className="inline-flex h-9 items-center rounded-full bg-amber-500 px-4 text-sm font-semibold text-white hover:bg-amber-600">Scan products</Link>
+          <Link href="/products/scan" className="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90">Scan products</Link>
           <Button variant="outline" size="sm" onClick={loadProducts}>
             <RefreshCw className="w-4 h-4" />
           </Button>
@@ -150,10 +150,10 @@ function BusinessInventory() {
       {/* Summary bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Total Products', value: products.length, icon: Package, color: 'text-blue-500' },
-          { label: 'Active',         value: products.filter(p => p.status === 'active').length, icon: CheckCircle2, color: 'text-emerald-500' },
-          { label: 'Low Stock',      value: lowStock,    icon: TrendingDown, color: 'text-amber-500' },
-          { label: 'Out of Stock',   value: outOfStock,  icon: AlertTriangle, color: 'text-red-500' },
+          { label: 'Total Products', value: products.length, icon: Package, color: 'text-primary' },
+          { label: 'Active',         value: products.filter(p => p.status === 'active').length, icon: CheckCircle2, color: 'text-success' },
+          { label: 'Low Stock',      value: lowStock,    icon: TrendingDown, color: 'text-warning' },
+          { label: 'Out of Stock',   value: outOfStock,  icon: AlertTriangle, color: 'text-destructive' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-card border border-border/50 rounded-xl p-3.5">
             <div className="flex items-center gap-2 mb-1">
@@ -170,7 +170,7 @@ function BusinessInventory() {
         <div className="bg-card border border-border/50 rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold flex items-center gap-2">
-              <Upload className="w-4 h-4 text-amber-500" /> Bulk Import Products
+              <Upload className="w-4 h-4 text-primary" /> Bulk Import Products
             </h2>
             <button onClick={() => { setShowImport(false); setImportResult(null); }}>
               <X className="w-4 h-4 text-muted-foreground" />
@@ -196,22 +196,22 @@ function BusinessInventory() {
             onChange={e => setImportText(e.target.value)}
             placeholder={'[\n  { "title": "Product A", "price": 99, "category": "Electronics", "stock": 50 },\n  { "title": "Product B", "price": 149 }\n]'}
             rows={8}
-            className="w-full text-xs font-mono px-3 py-2 rounded-xl border border-border bg-secondary/30 focus:outline-none focus:ring-1 focus:ring-amber-400 resize-y"
+            className="w-full text-xs font-mono px-3 py-2 rounded-xl border border-border bg-secondary/30 focus:outline-none focus:ring-1 focus:ring-primary resize-y"
           />
 
-          <Button onClick={handleBulkImport} disabled={importing || !importText.trim()} className="w-full bg-amber-500 hover:bg-amber-600 text-white">
+          <Button onClick={handleBulkImport} disabled={importing || !importText.trim()} className="w-full bg-primary hover:bg-primary/90 text-white">
             {importing ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Importing...</> : 'Import Products'}
           </Button>
 
           {/* Results */}
           {importResult && (
             <div className="space-y-2 text-sm">
-              <div className={`flex items-center gap-2 p-3 rounded-xl ${importResult.created > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-secondary text-muted-foreground'}`}>
+              <div className={`flex items-center gap-2 p-3 rounded-xl ${importResult.created > 0 ? 'bg-success-subtle text-success' : 'bg-secondary text-muted-foreground'}`}>
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>{importResult.created} product{importResult.created !== 1 ? 's' : ''} created successfully</span>
               </div>
               {importResult.errors.map(err => (
-                <div key={err.index} className="flex items-start gap-2 p-3 rounded-xl bg-red-50 text-red-700">
+                <div key={err.index} className="flex items-start gap-2 p-3 rounded-xl bg-destructive-subtle text-destructive">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>Row {err.index + 1}: {err.reason}</span>
                 </div>
@@ -235,7 +235,7 @@ function BusinessInventory() {
       {/* Product table */}
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="w-7 h-7 animate-spin text-amber-500" />
+          <Loader2 className="w-7 h-7 animate-spin text-primary" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
@@ -260,14 +260,14 @@ function BusinessInventory() {
               </div>
               <span className="text-xs text-muted-foreground">{product.category ?? '—'}</span>
               <span className="text-sm font-medium">{product.price.toLocaleString()} {product.currency}</span>
-              <span className={`text-sm font-medium ${product.stock === 0 ? 'text-red-500' : (product.stock ?? 0) <= 5 ? 'text-amber-500' : 'text-foreground'}`}>
+              <span className={`text-sm font-medium ${product.stock === 0 ? 'text-destructive' : (product.stock ?? 0) <= 5 ? 'text-primary' : 'text-foreground'}`}>
                 {product.stock ?? '—'}
               </span>
               <Badge
                 variant="outline"
                 className={`text-[10px] ${
-                  product.status === 'active' ? 'text-emerald-600 border-emerald-300' :
-                  product.status === 'sold_out' ? 'text-red-600 border-red-300' :
+                  product.status === 'active' ? 'text-success border-success/30' :
+                  product.status === 'sold_out' ? 'text-destructive border-destructive/30' :
                   'text-muted-foreground'
                 }`}
               >

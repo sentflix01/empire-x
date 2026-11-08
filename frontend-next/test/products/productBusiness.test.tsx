@@ -106,4 +106,29 @@ describe('listing a product for a business', () => {
     options.action.onClick();
     expect(nav.push).toHaveBeenCalledWith('/business/subscription');
   });
+
+  it('tells a seller with no business to create one, and does not publish (F-033)', async () => {
+    businesses.filter.mockResolvedValue([]);
+    render(<ProductCreate />);
+    expect(await screen.findByText('Create a business first')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Create business' }).getAttribute('href')).toBe('/business/create');
+    fillRequired();
+    const publish = screen.getByRole('button', { name: 'Publish Product' });
+    expect((publish as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(publish);
+    expect(products.create).not.toHaveBeenCalled();
+  });
+
+  it('shows the way to create a business when the API refuses', async () => {
+    businesses.filter.mockRejectedValue(new Error('offline'));
+    products.create.mockRejectedValue({ response: { status: 422, data: { error: 'Create a business first, then add products to it.', code: 'BUSINESS_REQUIRED', reason: 'no_business' } } });
+    render(<ProductCreate />);
+    await waitFor(() => expect(businesses.filter).toHaveBeenCalled());
+    fillRequired();
+    fireEvent.click(screen.getByRole('button', { name: 'Publish Product' }));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Create a business first, then add products to it.', expect.anything()));
+    const action = (toast.error.mock.calls[0][1] as { action: { onClick: () => void } }).action;
+    action.onClick();
+    expect(nav.push).toHaveBeenCalledWith('/business/create');
+  });
 });

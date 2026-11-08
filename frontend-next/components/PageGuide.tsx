@@ -929,7 +929,6 @@ export default function PageGuide() {
   const words = copy[language];
   const [isMobile, setIsMobile] = useState(false);
   const steps = useMemo(() => buildSteps(pathname, language, isMobile), [pathname, language, isMobile]);
-  const [enabled, setEnabled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
@@ -960,7 +959,6 @@ export default function PageGuide() {
       // The flag only decides whether the guide opens by itself; the launcher
       // always works (F-031, default off). Never open over a sign-in form.
       if (!active || data?.enabled_for_user !== true) return;
-      setEnabled(true);
       if (NO_AUTO_OPEN.has(tourId)) return;
       try {
         // Backwards compat: treat legacy key as done for LANDING and FEED
@@ -970,7 +968,7 @@ export default function PageGuide() {
       } catch { setOpen(true); }
     }).catch(() => {});
     return () => { active = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [tourKey, tourId]);
 
   // Listen for open requests dispatched by the floating Page guide launcher button
@@ -1145,7 +1143,7 @@ export default function PageGuide() {
         {rect && (
           <div
             aria-hidden="true"
-            className="pointer-events-none fixed rounded-2xl border-2 border-blue-400 shadow-[0_0_0_2px_rgba(255,255,255,0.85)]"
+            className="pointer-events-none fixed rounded-2xl border-2 border-primary shadow-[0_0_0_2px_rgba(255,255,255,0.85)]"
             style={{ left: rect.left - 8, top: rect.top - 8, width: rect.width + 16, height: rect.height + 16 }}
           />
         )}

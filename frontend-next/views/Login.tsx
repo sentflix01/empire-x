@@ -184,7 +184,7 @@ function Login() {
       {error && (
         <div className={`mb-4 rounded-lg px-3 py-2.5 text-sm ${
           error.includes('waking') || error.includes('taking too long')
-            ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200'
+            ? 'bg-primary-subtle text-primary-subtle-foreground'
             : 'bg-destructive/10 text-destructive'
         }`}>
           {error.includes('waking') && '⏳ '}{error}
@@ -230,7 +230,7 @@ function Login() {
             <button
               type="button"
               onClick={() => setShowPassword(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-0 top-0 flex h-10 w-10 items-center justify-center rounded-r-md text-muted-foreground hover:text-foreground"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

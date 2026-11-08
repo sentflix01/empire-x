@@ -266,7 +266,7 @@ export default function FeedSpotlightPanel({
 
         {/* Status */}
         <p
-          className={`text-xs px-1 ${error ? 'text-red-500' : 'text-muted-foreground'}`}
+          className={`text-xs px-1 ${error ? 'text-destructive' : 'text-muted-foreground'}`}
           aria-live="polite"
         >
           {statusText}

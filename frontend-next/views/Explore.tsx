@@ -72,7 +72,7 @@ function Explore() {
   return (
     <div data-page-guide="explore-header" className="max-w-2xl mx-auto space-y-6">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-6 h-6 text-amber-500" />
+          <TrendingUp className="w-6 h-6 text-primary" />
           <h1 data-page-guide="explore-trending" className="font-display text-2xl font-bold">{t('explore.title')}</h1>
         </div>
         {hashtags.length > 0 && (
@@ -82,10 +82,10 @@ function Explore() {
                 <Link
                   key={h.name}
                   href={`/hashtag/${h.name}`}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-sm font-medium hover:bg-amber-100 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary-subtle border border-primary/30 text-primary text-sm font-medium hover:bg-primary-subtle transition-colors"
                 >
                   <Hash className="w-3 h-3" />{h.name}
-                  <span className="text-xs text-amber-500 ml-1">{h.post_count}</span>
+                  <span className="text-xs text-primary ml-1">{h.post_count}</span>
                 </Link>
               ))}
             </div>
@@ -112,7 +112,7 @@ function Explore() {
                     <ProductThumbnail src={imgs[0]} title={p.title} />
                     <div className="p-2">
                       <p className="text-xs font-medium truncate">{p.title}</p>
-                      <p className="text-xs text-amber-600 font-bold">{p.price?.toLocaleString()} {p.currency}</p>
+                      <p className="text-xs text-primary font-bold">{p.price?.toLocaleString()} {p.currency}</p>
                     </div>
                   </Link>
                 );
@@ -126,7 +126,7 @@ function Explore() {
             <div className="grid grid-cols-2 gap-3">
               {data.featured_showrooms.map(s => (
                 <Link key={s.id} href={`/showrooms/${s.id}`} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow">
-                  <div className="h-24 relative bg-gradient-to-br from-amber-100 to-amber-50 overflow-hidden">
+                  <div className="h-24 relative bg-primary-subtle overflow-hidden">
                     {(s.cover_image || s.logo_url) ? (
                       <SafeImage fill={false} width={800} height={600} loading="lazy"
                         src={s.cover_image || s.logo_url}
@@ -136,7 +136,7 @@ function Explore() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <BrandLogo className="w-8 h-8 text-amber-400" />
+                        <BrandLogo className="w-8 h-8 text-primary" />
                       </div>
                     )}
                   </div>
@@ -154,14 +154,14 @@ function Explore() {
             <div className="space-y-1">
               {data.suggested_users.map(u => (
                 <Link key={u.user_id} href={`/profile/${u.user_id}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold shrink-0">
                     {u.display_name?.charAt(0) || "U"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{u.display_name}</p>
                     {u.headline && <p className="text-xs text-muted-foreground truncate">{u.headline}</p>}
                   </div>
-                  {u.is_verified && <span className="text-blue-500 text-xs">✓</span>}
+                  {u.is_verified && <span className="text-primary text-xs">✓</span>}
                 </Link>
               ))}
             </div>
@@ -175,7 +175,7 @@ function Section({ title, icon: Icon, children }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <Icon className="w-4 h-4 text-amber-500" />
+        <Icon className="w-4 h-4 text-primary" />
         <h2 className="font-semibold text-sm">{title}</h2>
       </div>
       {children}

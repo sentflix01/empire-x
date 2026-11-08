@@ -71,7 +71,7 @@ export default function CreatePostForm({ user, onPostCreated }) {
       {/* Single row: avatar + input with icons inside */}
       <div className="flex items-center gap-2">
         {/* User avatar */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs shrink-0 overflow-hidden">
+        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-xs shrink-0 overflow-hidden">
           {user?.avatar_url
             ? <NextImage src={user.avatar_url} alt={`${user.full_name || 'User'}'s avatar`} width={32} height={32} className="w-full h-full object-cover" unoptimized />
             : (user?.full_name?.charAt(0) || "E")}
@@ -87,7 +87,7 @@ export default function CreatePostForm({ user, onPostCreated }) {
             className="flex-1 min-w-0 text-sm bg-transparent outline-none placeholder:text-muted-foreground/60"
           />
           {/* Photo icon */}
-          <label className="shrink-0 cursor-pointer text-muted-foreground hover:text-amber-500 transition-colors">
+          <label className="shrink-0 cursor-pointer text-muted-foreground hover:text-primary transition-colors">
             <Image className="w-4 h-4" />
             <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
           </label>
@@ -96,10 +96,10 @@ export default function CreatePostForm({ user, onPostCreated }) {
             onClick={handleSubmit}
             disabled={!content.trim() || posting}
             aria-label="Post"
-            className="shrink-0 text-amber-500 disabled:opacity-30 hover:text-amber-600 transition-colors"
+            className="shrink-0 text-primary disabled:opacity-30 hover:text-primary transition-colors"
           >
             {posting
-              ? <div className="w-4 h-4 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+              ? <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
               : <Send className="w-4 h-4" />}
           </button>
         </div>

@@ -241,8 +241,8 @@ export default function FieldMapperPanel({
   return (
     <div className="rounded-2xl border border-border/50 bg-card dark:bg-card overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/30 bg-amber-50/50">
-        <span className="text-xs font-bold text-amber-700">Field Mappings</span>
+      <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/30 bg-primary-subtle/50">
+        <span className="text-xs font-bold text-primary">Field Mappings</span>
       </div>
 
       <div className="p-3 space-y-3">
@@ -252,7 +252,7 @@ export default function FieldMapperPanel({
             type="button"
             onClick={handleTest}
             disabled={testing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary-subtle text-primary-subtle-foreground hover:bg-primary-subtle disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {testing ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -263,7 +263,7 @@ export default function FieldMapperPanel({
           </button>
 
           {testError && (
-            <p className="text-[11px] text-red-500 font-medium">{testError}</p>
+            <p className="text-[11px] text-destructive font-medium">{testError}</p>
           )}
 
           {sampleKeys.length > 0 && (
@@ -317,10 +317,10 @@ export default function FieldMapperPanel({
                 rows={5}
                 spellCheck={false}
                 placeholder={'Paste one sample response here, e.g.\n[{"name": "Widget", "price": 10}]\nor\n{"items": [{"title": "Hat"}]}'}
-                className="w-full text-[11px] font-mono px-2.5 py-2 rounded-lg border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400 resize-y"
+                className="w-full text-[11px] font-mono px-2.5 py-2 rounded-lg border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-primary resize-y"
               />
               {preview.parseError && (
-                <p className="text-[11px] text-red-500 font-medium">{preview.parseError}</p>
+                <p className="text-[11px] text-destructive font-medium">{preview.parseError}</p>
               )}
               {!preview.parseError && rawSample.trim() && preview.mappedSample && (
                 <div>
@@ -376,7 +376,7 @@ export default function FieldMapperPanel({
                 value={row.sourcePath}
                 onChange={(e) => updateSourcePath(row.targetField, e.target.value)}
                 placeholder="dot.notation.path"
-                className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400 font-mono"
+                className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-primary font-mono"
               />
 
               {/* Live resolved value from the pasted sample (if any) */}
@@ -385,9 +385,9 @@ export default function FieldMapperPanel({
                   title={preview.values[row.targetField] || 'No match in sample'}
                   className={`text-[10px] font-mono max-w-[7rem] truncate px-2 py-0.5 rounded-lg border shrink-0 ${
                     row.sourcePath.trim() && preview.values[row.targetField]
-                      ? 'bg-green-50 text-green-700 border-green-200'
+                      ? 'bg-success-subtle text-success border-success/30'
                       : row.sourcePath.trim()
-                        ? 'bg-red-50 text-red-500 border-red-200'
+                        ? 'bg-destructive-subtle text-destructive border-destructive/30'
                         : 'bg-secondary/60 text-muted-foreground border-border/40'
                   }`}
                 >
@@ -404,7 +404,7 @@ export default function FieldMapperPanel({
                   onClick={() => handleDelete(row.targetField, row.mappingId!)}
                   disabled={deletingId === row.mappingId}
                   aria-label={`Delete mapping for ${row.label}`}
-                  className="w-6 h-6 flex items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
+                  className="w-6 h-6 flex items-center justify-center rounded-full bg-destructive-subtle text-destructive hover:bg-destructive-subtle disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
                 >
                   {deletingId === row.mappingId ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
@@ -423,7 +423,7 @@ export default function FieldMapperPanel({
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {saving ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -434,13 +434,13 @@ export default function FieldMapperPanel({
           </button>
 
           {saveError && (
-            <p className="text-[11px] text-red-500 font-medium">{saveError}</p>
+            <p className="text-[11px] text-destructive font-medium">{saveError}</p>
           )}
           {saveSuccess && (
-            <p className="text-[11px] text-green-600 font-medium">Mappings saved.</p>
+            <p className="text-[11px] text-success font-medium">Mappings saved.</p>
           )}
           {deleteError && (
-            <p className="text-[11px] text-red-500 font-medium">{deleteError}</p>
+            <p className="text-[11px] text-destructive font-medium">{deleteError}</p>
           )}
         </div>
       </div>

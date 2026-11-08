@@ -119,8 +119,8 @@ export default function BookmarkButton({
       title={saved ? 'Double-click to remove' : 'Double-click to save'}
       className={cn(
         'inline-flex items-center justify-center rounded-md transition-colors',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
-        saved ? 'text-amber-500' : 'text-muted-foreground hover:text-amber-400',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
+        saved ? 'text-primary' : 'text-muted-foreground hover:text-primary',
         isPending && 'opacity-50 cursor-not-allowed pointer-events-none',
         className,
       )}
@@ -129,7 +129,7 @@ export default function BookmarkButton({
         className={cn(
           'w-5 h-5 transition-all duration-150',
           saved
-            ? 'fill-amber-500 text-amber-500 scale-110'
+            ? 'fill-primary text-primary scale-110'
             : 'fill-none text-muted-foreground',
           isPending && 'animate-pulse',
         )}

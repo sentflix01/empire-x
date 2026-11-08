@@ -14,6 +14,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { token } from '@/lib/colorTokens';
 
 interface BarState {
   active: boolean;   // bar is visible and advancing
@@ -62,7 +63,6 @@ export default function NavigationProgress() {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   if (!bar.active) return null;
@@ -88,7 +88,7 @@ export default function NavigationProgress() {
         style={{
           height: '100%',
           width: `${bar.width}%`,
-          background: 'linear-gradient(90deg, #2563eb, #7c3aed)',
+          background: token.primary,
           transition: bar.completing
             ? 'width 0.2s ease-out, opacity 0.3s ease-out'
             : 'width 0.4s ease-out',

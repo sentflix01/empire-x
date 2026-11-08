@@ -46,6 +46,8 @@ const AUTH_ONLY_PREFIXES = [
   '/account', '/wallet', '/orders', '/cart', '/bookmarks',
   '/analytics', '/referral', '/coupons', '/friends',
   '/scorecard',
+  // Product builder pages share the public /products/ prefix (audit F-012).
+  '/products/create', '/products/edit', '/products/scan',
 ];
 
 export function isPublicPath(pathname: string): boolean {

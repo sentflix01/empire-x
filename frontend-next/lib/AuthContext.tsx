@@ -17,6 +17,8 @@ export interface AuthUser {
   demo_workspace_available?: boolean;
   /** Set after first-login mode selection. null = user has not yet chosen. */
   onboarding_mode?: 'demo' | 'real' | null;
+  /** True while an old wallet balance can still be withdrawn (audit F-047). */
+  has_wallet_balance?: boolean;
   /** Profile photo — included in /api/auth/me to avoid a separate API round-trip. */
   avatar_url?: string | null;
   /** Cover photo — included in /api/auth/me to avoid a separate API round-trip. */

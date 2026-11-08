@@ -20,10 +20,11 @@ import WorkspaceSwitcher from "@/components/layout/WorkspaceSwitcher";
 import { useProfileView } from "@/lib/ProfileViewContext";
 import { useAppStore } from "@/store";
 import { isGuestBrowsablePath } from "@/lib/publicPaths";
+import { HEX, IDENTITY } from '@/lib/colorTokens';
 // AccountSettings popup replaced by /settings navigation
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
-function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string } | null }) {
+function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string; has_wallet_balance?: boolean } | null }) {
   // Real hashtag counts only (audit LEGAL-04: the panel used to show invented numbers).
   const [trending, setTrending] = useState<Array<{ name: string; post_count: number }>>([]);
   useEffect(() => {
@@ -37,21 +38,21 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
     return () => { cancelled = true; };
   }, []);
   const quickLinks = [
-    { path: "/showrooms",  icon: Store,        label: "Showrooms",   color: "#2563EB" },
-    { path: "/marketplace",icon: ShoppingBag,  label: "Marketplace", color: "#7c3aed" },
-    { path: "/bookmarks",  icon: Bookmark,     label: "Bookmarks",   color: "#6B7280" },
-    { path: "/wallet",     icon: Wallet,       label: "Wallet",      color: "#f59e0b" },
+    { path: "/showrooms",  icon: Store,        label: "Showrooms",   color: HEX.primary },
+    { path: "/marketplace",icon: ShoppingBag,  label: "Marketplace", color: HEX.primary },
+    { path: "/bookmarks",  icon: Bookmark,     label: "Bookmarks",   color: HEX.primary },
+    { path: "/wallet",     icon: Wallet,       label: "Wallet",      color: HEX.primary },
   ];
-  const visibleQuickLinks = user
-    ? quickLinks
-    : quickLinks.filter(item => item.path !== '/bookmarks' && item.path !== '/wallet');
+  // The wallet only pays out old balances (audit F-047): link it only when there is one.
+  const visibleQuickLinks = quickLinks.filter(item =>
+    item.path === '/wallet' ? Boolean(user?.has_wallet_balance) : item.path !== '/bookmarks' || Boolean(user));
 
   return (
     <>
       {/* Quick links */}
       <div className="bg-card dark:bg-card rounded-2xl border border-border/50 p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Flame className="w-4 h-4 text-amber-500" />
+          <Flame className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold">Quick Links</span>
         </div>
         <div className="grid grid-cols-2 gap-1.5">
@@ -79,9 +80,9 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
           <span className="text-xs font-bold text-primary uppercase tracking-wide">Sponsored</span>
           <span className="text-[10px] text-muted-foreground">Ad</span>
         </div>
-        <div className="rounded-xl bg-empire-gradient p-3 mb-3 shadow-md shadow-primary/20">
+        <div className="rounded-xl bg-primary p-3 mb-3 shadow-md shadow-primary/20">
           <p className="text-white font-bold text-sm">Nodbusiness Pro</p>
-          <p className="text-white/85 text-xs mt-1 leading-relaxed">Get your business in front of more customers on Nodbusiness.</p>
+          <p className="text-white text-xs mt-1 leading-relaxed">Get your business in front of more customers on Nodbusiness.</p>
         </div>
         <Link href={user ? "/analytics" : "/register"} className="block text-center py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold shadow-sm shadow-primary/20 transition-colors">
           {user ? 'Promote Now' : 'Join Free'}
@@ -91,23 +92,23 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
       {/* Showroom Studio */}
       <div className="bg-card dark:bg-card rounded-2xl border border-border/50 overflow-hidden">
         {/* Header gradient */}
-        <div className="bg-gradient-to-br from-amber-500 to-orange-500 px-4 py-3">
+        <div className="bg-primary px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
               <BrandLogo className="w-4 h-4 text-white" />
             </div>
             <div>
               <p className="text-white font-bold text-sm leading-tight">Showroom Studio</p>
-              <p className="text-white/75 text-[10px]">Ready-made website templates</p>
+              <p className="text-white text-[10px]">Ready-made website templates</p>
             </div>
           </div>
         </div>
         {/* Template previews — 3 mini skeleton cards */}
         <div className="grid grid-cols-3 gap-1.5 p-3">
           {[
-            { label: "Shop",    color: "from-orange-100 to-amber-100" },
-            { label: "Blog",    color: "from-blue-100 to-cyan-100" },
-            { label: "Agency",  color: "from-purple-100 to-violet-100" },
+            { label: "Shop",    color: "from-primary-subtle to-primary-subtle" },
+            { label: "Blog",    color: "from-primary-subtle to-primary-subtle" },
+            { label: "Agency",  color: "from-brand-secondary-subtle to-brand-secondary-subtle" },
           ].map(t => (
             <div key={t.label} className={`rounded-lg overflow-hidden bg-gradient-to-br ${t.color} aspect-[3/2] flex flex-col gap-0.5 p-1.5`}>
               <div className="h-2 bg-white/60 rounded-sm w-full" />
@@ -116,14 +117,14 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
                 <div className="bg-white/50 rounded-sm" />
                 <div className="bg-white/50 rounded-sm" />
               </div>
-              <p className="text-[8px] font-semibold text-center text-gray-500 mt-0.5">{t.label}</p>
+              <p className="text-[8px] font-semibold text-center text-muted-foreground mt-0.5">{t.label}</p>
             </div>
           ))}
         </div>
         <div className="px-3 pb-3">
           <Link
             href={user ? "/showroom/templates" : "/register"}
-            className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-semibold transition-all"
+            className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-semibold transition-all"
           >
             <BrandLogo className="w-3.5 h-3.5" />
             {user ? 'Browse Templates' : 'Create an account to build'}
@@ -135,7 +136,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
       {trending.length > 0 && (
       <div className="bg-card dark:bg-card rounded-2xl border border-border/50 p-4">
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-4 h-4 text-blue-500" />
+          <TrendingUp className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold">Trending</span>
         </div>
         <div className="space-y-2">
@@ -144,15 +145,15 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
             return (
             <Link key={tag} href={`/hashtag/${tag.slice(1)}`} className="flex items-center justify-between hover:bg-secondary px-2 py-1.5 rounded-lg transition-all group">
               <div>
-                <p className="text-xs font-semibold group-hover:text-amber-600 transition-colors">{tag}</p>
+                <p className="text-xs font-semibold group-hover:text-primary transition-colors">{tag}</p>
                 <p className="text-[10px] text-muted-foreground">{post_count} {post_count === 1 ? 'post' : 'posts'}</p>
               </div>
-              <Flame className="w-3.5 h-3.5 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Flame className="w-3.5 h-3.5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
           );
           })}
         </div>
-        <Link href="/explore" className="block text-center mt-2 text-xs text-amber-600 hover:underline font-medium">
+        <Link href="/explore" className="block text-center mt-2 text-xs text-primary hover:underline font-medium">
           See all trending →
         </Link>
       </div>
@@ -184,7 +185,7 @@ function ViewTogglePill({
         aria-pressed={value === 'personal'}
         className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all"
         style={value === 'personal'
-          ? { background: 'linear-gradient(135deg,#3B82F6,#2563EB)', color: 'white', boxShadow: '0 1px 8px rgba(59,130,246,0.35)' }
+          ? { background: IDENTITY.personal.css, color: 'white' }
           : {}}
       >
         <User className="w-2.5 h-2.5 shrink-0" />
@@ -195,7 +196,7 @@ function ViewTogglePill({
         aria-pressed={value === 'business'}
         className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all"
         style={value === 'business'
-          ? { background: 'linear-gradient(135deg,#F59E0B,#D97706)', color: 'white', boxShadow: '0 1px 8px rgba(245,158,11,0.35)' }
+          ? { background: IDENTITY.business.css, color: 'white' }
           : {}}
       >
         <Store className="w-2.5 h-2.5 shrink-0" />
@@ -379,7 +380,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const accountItems = [
     { path: "/orders",   icon: Package,     label: tr('nav.orders') },
     { path: "/cart",     icon: ShoppingCart, label: "Cart", badge: cart.count > 0 ? cart.count : null },
-    { path: "/wallet",   icon: Wallet,       label: tr('nav.wallet') },
+    ...(user?.has_wallet_balance ? [{ path: "/wallet", icon: Wallet, label: tr('nav.wallet') }] : []),
     { path: "/referral", icon: Gift,         label: "Referral" },
     { path: "/coupons",  icon: Tag,          label: "My Coupons" },
     { path: "/privacy",  icon: Shield,       label: "Privacy" },
@@ -397,19 +398,19 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       className={`flex items-center gap-3 rounded-xl transition-all text-sm font-medium group relative
         ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}
         ${isActive(path)
-          ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
+          ? "bg-primary-subtle text-primary"
           : "text-muted-foreground hover:bg-secondary hover:text-foreground"
         }`}
     >
       <Icon className="w-4 h-4 shrink-0" />
       {!sidebarCollapsed && <span className="truncate">{label}</span>}
       {!sidebarCollapsed && badge ? (
-        <span className="ml-auto w-5 h-5 bg-[#f59e0b] text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
+        <span className="ml-auto w-5 h-5 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
           {badge > 9 ? "9+" : badge}
         </span>
       ) : null}
       {sidebarCollapsed && badge ? (
-        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#f59e0b] rounded-full" />
+        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full" />
       ) : null}
       {sidebarCollapsed && (
         <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
@@ -448,7 +449,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               className="w-8 h-8 rounded-xl object-cover shadow-sm"
             />
             {!sidebarCollapsed && (
-              <span className="hidden md:inline font-display text-lg font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
+              <span className="hidden md:inline font-display text-lg font-bold tracking-tight text-primary whitespace-nowrap">
                 Nodbusiness
               </span>
             )}
@@ -526,21 +527,21 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <>
                 <Link href="/cart" className="relative p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Cart">
                   <ShoppingCart className="w-5 h-5 text-muted-foreground" />
-                  {cart.count > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{cart.count > 9 ? "9+" : cart.count}</span>}
+                  {cart.count > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center">{cart.count > 9 ? "9+" : cart.count}</span>}
                 </Link>
                 <Link href="/messages" className="relative p-2 rounded-full hover:bg-secondary transition-colors md:hidden"
                   aria-label={messagesBadge.chats ? `Messages, ${messagesBadge.chats} unread` : "Messages"}>
                   <MessageCircle className="w-5 h-5 text-muted-foreground" />
-                  {messagesBadge.chats > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{messagesBadge.chats > 9 ? "9+" : messagesBadge.chats}</span>}
+                  {messagesBadge.chats > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center">{messagesBadge.chats > 9 ? "9+" : messagesBadge.chats}</span>}
                 </Link>
                 <Link href="/notifications" className="relative p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Notifications">
                   <Bell className="w-5 h-5 text-muted-foreground" />
-                  {unreadCount > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{unreadCount > 9 ? "9+" : unreadCount}</span>}
+                  {unreadCount > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center">{unreadCount > 9 ? "9+" : unreadCount}</span>}
                 </Link>
                 <Link href="/bookmarks" className="p-2 rounded-full hover:bg-secondary transition-colors flex items-center justify-center" aria-label="Bookmarks">
                   <Bookmark className="w-5 h-5 text-muted-foreground" />
                 </Link>
-                <Link href="/profile" aria-label={`Profile: ${displayName}`} className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
+                <Link href="/profile" aria-label={`Profile: ${displayName}`} className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
                   {avatarUrl
                     ? <Image src={avatarUrl} alt={displayName} width={32} height={32} className="w-full h-full object-cover" unoptimized />
                     : userInitial}
@@ -554,7 +555,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   aria-label="Back to landing page"
                 >
                   <Home className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  <span className="whitespace-nowrap">Landing</span>
+                  <span className="hidden whitespace-nowrap min-[360px]:inline">Landing</span>
                 </Link>
                 <Link href={`/login?return=${encodeURIComponent(pathname)}`} className="inline-flex h-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3 sm:text-sm">Sign in</Link>
                 <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 sm:px-3 sm:text-sm">Join</Link>
@@ -579,20 +580,20 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           {!sidebarCollapsed && (
             <div className="shrink-0">
               {/* Cover + avatar */}
-              <div className="relative h-20 bg-empire-gradient">
+              <div className="relative h-20 bg-primary">
                 {coverUrl && (
                   <Image src={coverUrl} alt="" fill className="object-cover" unoptimized />
                 )}
                 <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent" />
                 {/* Avatar overlapping cover */}
                 {hasSignedInUser ? (
-                  <Link href="/profile" aria-label={`Profile: ${displayName}`} className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shrink-0">
+                  <Link href="/profile" aria-label={`Profile: ${displayName}`} className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-sm shadow-lg shrink-0">
                     {avatarUrl
                       ? <Image src={avatarUrl} alt={displayName} width={40} height={40} className="w-full h-full object-cover" unoptimized />
                       : userInitial}
                   </Link>
                 ) : (
-                  <div role="img" aria-label="Guest session" title="Browsing as guest" className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-slate-500 flex items-center justify-center text-white shadow-lg shrink-0">
+                  <div role="img" aria-label="Guest session" title="Browsing as guest" className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-muted-foreground flex items-center justify-center text-white shadow-lg shrink-0">
                     <UserRound className="h-5 w-5" />
                   </div>
                 )}
@@ -601,7 +602,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <div className="pt-7 pb-2 px-4 border-b border-border/40">
                 <div className="flex min-w-0 items-center gap-1.5">
                   <p className="text-xs font-bold truncate text-foreground leading-tight">{displayName}</p>
-                  {isDemoSession && <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-800 dark:bg-amber-400/15 dark:text-amber-200">Demo</span>}
+                  {isDemoSession && <span className="shrink-0 rounded-full bg-primary-subtle px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary-subtle-foreground">Demo</span>}
                 </div>
                 <p className="text-[10px] text-muted-foreground truncate">{hasSignedInUser ? (isDemoSession ? 'Temporary practice session' : userEmail) : 'Read-only guest access'}</p>
               </div>
@@ -612,7 +613,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           {sidebarCollapsed && (
             <div className="shrink-0 flex justify-center pt-3 pb-2 border-b border-border/40">
               {hasSignedInUser ? <Link href="/profile" aria-label={`Profile: ${displayName}`} className="relative group">
-                <div className="w-9 h-9 rounded-xl ring-2 ring-border overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-9 h-9 rounded-xl ring-2 ring-border overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-sm">
                   {avatarUrl
                     ? <Image src={avatarUrl} alt={displayName} width={36} height={36} className="w-full h-full object-cover" unoptimized />
                     : userInitial}
@@ -664,7 +665,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <Link
               href="/showroom/create?step=3"
               title={sidebarCollapsed ? t('common.createShowroom') : undefined}
-              className={`relative flex items-center gap-3 rounded-xl bg-empire-gradient text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm group
+              className={`relative flex items-center gap-3 rounded-xl bg-primary text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm group
                 ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}`}
             >
               <Plus className="w-4 h-4 shrink-0" />
@@ -682,9 +683,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               title={sidebarCollapsed ? t('common.showroomStudio') : undefined}
               className={`relative flex items-center gap-3 rounded-xl transition-all text-sm font-medium group
                 ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}
-                ${isActive('/showroom/templates') ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
+                ${isActive('/showroom/templates') ? 'bg-primary-subtle text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
             >
-              <BrandLogo className="w-4 h-4 shrink-0 text-amber-500" />
+              <BrandLogo className="w-4 h-4 shrink-0 text-primary" />
               {!sidebarCollapsed && <span>{t('common.showroomStudio')}</span>}
               {sidebarCollapsed && (
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
@@ -712,7 +713,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <div className="my-2 border-t border-border/40" />
 
             {!hasSignedInUser && !sidebarCollapsed && (
-              <div className="mx-1 my-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/20 dark:bg-amber-950/20">
+              <div className="mx-1 my-3 rounded-2xl border border-primary/30 bg-primary-subtle p-3">
                 <p className="text-xs font-bold text-foreground">Browsing as a guest</p>
                 <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Sign in or join to save your activity.</p>
                 <div className="mt-3 flex gap-2">
@@ -780,7 +781,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   >
                     <div className="flex items-center gap-2.5 text-muted-foreground">
                       {mounted && theme === 'dark'
-                        ? <Sun className="w-4 h-4 shrink-0 text-amber-400" />
+                        ? <Sun className="w-4 h-4 shrink-0 text-primary" />
                         : <Moon className="w-4 h-4 shrink-0" />}
                       <span>Theme</span>
                     </div>
@@ -884,7 +885,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <WorkspaceSwitcher />
           {isLoadingAuth ? (
             <div className="flex justify-center py-20">
-              <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
             </div>
           ) : (
             children
@@ -912,7 +913,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <div className="fixed inset-y-0 left-0 z-[80] md:hidden bg-white dark:bg-card w-[84vw] max-w-sm flex flex-col shadow-2xl">
 
                 {/* ── Cover photo + avatar inside it — full width, no side padding ── */}
-                <div className="relative h-40 shrink-0 bg-empire-gradient">
+                <div className="relative h-40 shrink-0 bg-primary">
                   {coverUrl && (
                     <Image src={coverUrl} alt="" fill className="object-cover" unoptimized />
                   )}
@@ -931,13 +932,13 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   {/* Avatar — bottom-left, INSIDE the cover area */}
                   {hasSignedInUser ? (
                     <Link href="/profile" onClick={() => setDrawerOpen(false)}
-                      className="absolute bottom-3 left-4 w-16 h-16 rounded-2xl ring-3 ring-white/70 overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-bold shadow-xl">
+                      className="absolute bottom-3 left-4 w-16 h-16 rounded-2xl ring-3 ring-white/70 overflow-hidden bg-primary flex items-center justify-center text-white text-2xl font-bold shadow-xl">
                       {avatarUrl
                         ? <Image src={avatarUrl} alt={displayName} width={64} height={64} className="w-full h-full object-cover" unoptimized />
                         : userInitial}
                     </Link>
                   ) : (
-                    <div role="img" aria-label="Guest session" className="absolute bottom-3 left-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-500 text-white shadow-xl">
+                    <div role="img" aria-label="Guest session" className="absolute bottom-3 left-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted-foreground text-white shadow-xl">
                       <UserRound className="h-8 w-8" />
                     </div>
                   )}
@@ -946,9 +947,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   <div className="absolute bottom-3 left-24 right-3 min-w-0">
                     <div className="flex min-w-0 items-center gap-1.5">
                       <p className="text-sm font-bold text-white truncate leading-tight drop-shadow-sm">{displayName}</p>
-                      {isDemoSession && <span className="shrink-0 rounded-full bg-amber-400/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">Demo</span>}
+                      {isDemoSession && <span className="shrink-0 rounded-full bg-primary/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">Demo</span>}
                     </div>
-                    <p className="text-[11px] text-white/80 truncate drop-shadow-sm">{isDemoSession ? 'Temporary practice session' : userEmail}</p>
+                    <p className="text-[11px] text-white truncate drop-shadow-sm">{isDemoSession ? 'Temporary practice session' : userEmail}</p>
                   </div>
                 </div>
 
@@ -959,9 +960,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   {visibleMainNavItems.map(({ path, icon: Icon, label, badge }) => (
                     <React.Fragment key={path}>
                       <Link href={path} onClick={() => setDrawerOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-muted-foreground dark:text-muted-foreground hover:bg-secondary dark:hover:bg-secondary hover:text-foreground dark:hover:text-foreground'}`}>
                         <Icon className="w-4 h-4 shrink-0" /><span className="flex-1">{label}</span>
-                        {badge ? <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span> : null}
+                        {badge ? <span className="w-5 h-5 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span> : null}
                       </Link>
                       {/* Personal | Business pill — under Home in drawer */}
                       {path === '/feed' && isAuthenticated && isActive('/feed') && (
@@ -989,53 +990,53 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
                   {/* Create Showroom + Studio */}
                   {hasSignedInUser && <>
-                  <div className="my-2 border-t border-gray-100 dark:border-border" />
+                  <div className="my-2 border-t border-border dark:border-border" />
                   <Link href="/showroom/create?step=3" onClick={() => setDrawerOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold shadow-sm">
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold shadow-sm">
                     <Plus className="w-4 h-4 shrink-0" /><span>{tr('common.createShowroom')}</span>
                   </Link>
                   <Link href="/showroom/templates" onClick={() => setDrawerOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/showroom/templates') ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
-                    <BrandLogo className="w-4 h-4 shrink-0 text-amber-500" /><span>{tr('common.showroomStudio')}</span>
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/showroom/templates') ? 'bg-primary/10 text-primary' : 'text-muted-foreground dark:text-muted-foreground hover:bg-secondary dark:hover:bg-secondary hover:text-foreground dark:hover:text-foreground'}`}>
+                    <BrandLogo className="w-4 h-4 shrink-0 text-primary" /><span>{tr('common.showroomStudio')}</span>
                   </Link>
                   </>}
 
                   {/* DISCOVER — collapsible, matches desktop */}
                   {hasSignedInUser ? <>
-                  <div className="my-2 border-t border-gray-100 dark:border-border" />
+                  <div className="my-2 border-t border-border dark:border-border" />
                   <button
                     onClick={() => setDiscoverOpen(v => !v)}
                     className="w-full flex items-center justify-between px-3 py-1 group"
                   >
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.discover')}</p>
+                    <p className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.discover')}</p>
                     <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${discoverOpen ? 'rotate-0' : '-rotate-90'}`} />
                   </button>
                   {discoverOpen && extraNavItems.map(({ path, icon: Icon, label }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-muted-foreground dark:text-muted-foreground hover:bg-secondary dark:hover:bg-secondary hover:text-foreground dark:hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
                     </Link>
                   ))}
 
                   {/* MY ACCOUNT — collapsible, matches desktop */}
-                  <div className="my-2 border-t border-gray-100 dark:border-border" />
+                  <div className="my-2 border-t border-border dark:border-border" />
                   <button
                     onClick={() => setAccountOpen(v => !v)}
                     className="w-full flex items-center justify-between px-3 py-1 group"
                   >
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.myAccount')}</p>
+                    <p className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.myAccount')}</p>
                     <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${accountOpen ? 'rotate-0' : '-rotate-90'}`} />
                   </button>
                   {accountOpen && accountItems.map(({ path, icon: Icon, label, badge }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-muted-foreground dark:text-muted-foreground hover:bg-secondary dark:hover:bg-secondary hover:text-foreground dark:hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" />
                       <span className="flex-1">{label}</span>
-                      {badge && <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span>}
+                      {badge && <span className="w-5 h-5 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span>}
                     </Link>
                   ))}
                   </> : (
-                    <div className="my-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/20 dark:bg-amber-950/20">
+                    <div className="my-3 rounded-2xl border border-primary/30 bg-primary-subtle p-3">
                       <p className="text-xs font-bold text-foreground">Browsing as a guest</p>
                       <p className="mt-1 text-[11px] text-muted-foreground">Sign in or join to save your activity.</p>
                       <div className="mt-3 flex gap-2">
@@ -1052,7 +1053,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </div>
 
                 {/* ── Footer: Settings popup + Log out side by side ── */}
-                <div className="border-t border-gray-100 dark:border-border px-3 py-3 shrink-0 flex items-center gap-1 bg-white dark:bg-card relative"
+                <div className="border-t border-border dark:border-border px-3 py-3 shrink-0 flex items-center gap-1 bg-white dark:bg-card relative"
                   style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
 
                   {/* Settings popup — appears above footer, same style as desktop */}
@@ -1084,7 +1085,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                           className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm">
                           <div className="flex items-center gap-2.5 text-muted-foreground">
                             {mounted && theme === 'dark'
-                              ? <Sun className="w-4 h-4 shrink-0 text-amber-400" />
+                              ? <Sun className="w-4 h-4 shrink-0 text-primary" />
                               : <Moon className="w-4 h-4 shrink-0" />}
                             <span>Theme</span>
                           </div>
@@ -1124,12 +1125,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
                   <button
                     onClick={() => setDrawerSettingsOpen(v => !v)}
-                    className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl transition-colors text-sm font-medium ${drawerSettingsOpen ? 'bg-secondary text-foreground' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                    className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl transition-colors text-sm font-medium ${drawerSettingsOpen ? 'bg-secondary text-foreground' : 'text-muted-foreground dark:text-muted-foreground hover:bg-secondary dark:hover:bg-secondary hover:text-foreground dark:hover:text-foreground'}`}>
                     <Settings className="w-4 h-4 shrink-0" /><span>Settings</span>
                   </button>
                   {hasSignedInUser ? <button onClick={() => { setDrawerOpen(false); handleLogout(); }}
                     disabled={loggingOut}
-                    className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium ${loggingOut ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                    className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-destructive-subtle dark:hover:bg-destructive/10 hover:text-destructive dark:hover:text-destructive transition-colors text-muted-foreground dark:text-muted-foreground text-sm font-medium ${loggingOut ? 'opacity-60 cursor-not-allowed' : ''}`}>
                     {loggingOut
                       ? <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
                       : <LogOut className="w-4 h-4 shrink-0" />}
@@ -1150,7 +1151,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <button
                 onClick={() => { setDrawerOpen(v => !v); }}
                 aria-label="Open menu"
-                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${drawerOpen ? 'text-amber-600' : 'text-muted-foreground'}`}
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${drawerOpen ? 'text-primary' : 'text-muted-foreground'}`}
               >
                 <Menu className="w-5 h-5" />
                 <span className="text-[10px] font-medium">More</span>
@@ -1160,7 +1161,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <Link
                 href="/businesses"
                 aria-label="Businesses"
-                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/businesses') ? 'text-amber-600' : 'text-muted-foreground'}`}
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/businesses') ? 'text-primary' : 'text-muted-foreground'}`}
               >
                 <Store className={`w-5 h-5 ${isActive('/businesses') ? 'stroke-[2.5]' : ''}`} />
                 <span className="text-[10px] font-medium">Businesses</span>
@@ -1170,7 +1171,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <Link
                 href={hasSignedInUser ? '/friends' : '/login?return=/friends'}
                 aria-label="Friends"
-                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/friends') ? 'text-amber-600' : 'text-muted-foreground'}`}
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/friends') ? 'text-primary' : 'text-muted-foreground'}`}
               >
                 <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} />
                 <span className="text-[10px] font-medium">Friends</span>
@@ -1185,7 +1186,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 aria-label="Social Feed"
                 className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${
                   isActive('/feed') && homeFeedMode === 'personal'
-                    ? 'text-amber-600'
+                    ? 'text-primary'
                     : 'text-muted-foreground'
                 }`}
               >
@@ -1202,7 +1203,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 aria-label="Business Feed"
                 className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${
                   isActive('/feed') && homeFeedMode === 'business'
-                    ? 'text-amber-600'
+                    ? 'text-primary'
                     : 'text-muted-foreground'
                 }`}
               >

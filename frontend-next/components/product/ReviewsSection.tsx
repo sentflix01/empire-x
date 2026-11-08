@@ -51,7 +51,7 @@ function StarRating({ value, onChange, size = "md" }: StarRatingProps) {
               <Star
                 className={`${iconSize} transition-colors ${
                   filled
-                    ? "fill-amber-400 text-amber-400"
+                    ? "fill-primary text-primary"
                     : "text-muted-foreground"
                 }`}
               />
@@ -70,7 +70,7 @@ function StarRating({ value, onChange, size = "md" }: StarRatingProps) {
           key={n}
           className={`${iconSize} ${
             n <= value
-              ? "fill-amber-400 text-amber-400"
+              ? "fill-primary text-primary"
               : "text-muted-foreground"
           }`}
         />
@@ -164,7 +164,7 @@ export default function ReviewsSection({ productId, currentUser }: ReviewsSectio
       {/* Review list */}
       {loading ? (
         <div className="flex justify-center py-6">
-          <div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
         </div>
       ) : reviews.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-4">
@@ -179,7 +179,7 @@ export default function ReviewsSection({ productId, currentUser }: ReviewsSectio
             >
               <div className="flex items-center gap-2.5">
                 {/* Avatar */}
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-sm shrink-0">
                   {r.display_name?.charAt(0)?.toUpperCase() ?? "?"}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -223,14 +223,14 @@ export default function ReviewsSection({ productId, currentUser }: ReviewsSectio
             onChange={(e) => setCommentInput(e.target.value)}
             rows={3}
             placeholder="Share your thoughts (optional)"
-            className="w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/40 resize-none"
+            className="w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
           />
 
           <div className="flex gap-2">
             <Button
               type="submit"
               disabled={submitting}
-              className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 font-semibold"
+              className="flex-1 bg-primary hover:bg-primary/90 font-semibold"
             >
               {submitting ? "Submitting…" : myReview ? "Update review" : "Submit review"}
             </Button>

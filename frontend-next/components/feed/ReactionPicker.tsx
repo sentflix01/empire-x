@@ -26,7 +26,7 @@ export default function ReactionPicker({ current, onPick, size = 'md' }: {
       <div role="group" aria-label="Reactions" className="flex items-center justify-between gap-0.5">
         {row.map((r) => (
           <button key={r} type="button" onClick={() => onPick(r)} aria-label={reactionLabel(r)} aria-pressed={current === r} title={reactionLabel(r)}
-            className={`flex items-center justify-center rounded-full transition-transform hover:scale-125 ${btn} ${current === r ? 'bg-amber-100 dark:bg-amber-500/20' : ''}`}>
+            className={`flex items-center justify-center rounded-full transition-transform hover:scale-125 ${btn} ${current === r ? 'bg-primary-subtle' : ''}`}>
             <span aria-hidden="true">{r}</span>
           </button>
         ))}

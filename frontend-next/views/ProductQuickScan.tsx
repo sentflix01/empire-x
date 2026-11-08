@@ -118,7 +118,7 @@ function ProductQuickScan() {
         {rows.length === 0 && <p className="rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Nothing scanned yet.</p>}
         <ul className="space-y-2">
           {rows.map((r) => (
-            <li key={r.key} className={`rounded-2xl border bg-card p-3 ${r.error ? 'border-red-400' : 'border-border/60'}`}>
+            <li key={r.key} className={`rounded-2xl border bg-card p-3 ${r.error ? 'border-destructive' : 'border-border/60'}`}>
               <div className="flex gap-3">
                 <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-secondary">
                   {r.image ? <SafeImage fill={false} width={56} height={56} src={r.image} alt="" className="h-full w-full object-cover" /> : null}
@@ -140,7 +140,7 @@ function ProductQuickScan() {
                       <div className="flex items-center gap-2">
                         <input value={r.price} onChange={(e) => patch(r.key, { price: e.target.value.replace(/[^\d.]/g, '') })} inputMode="decimal" placeholder="Add price"
                           aria-label={`Price for ${r.title || r.gtin}`}
-                          className={`min-h-9 w-28 rounded-lg border bg-background px-2 text-sm ${Number(r.price) > 0 ? 'border-border' : 'border-amber-400'}`} />
+                          className={`min-h-9 w-28 rounded-lg border bg-background px-2 text-sm ${Number(r.price) > 0 ? 'border-border' : 'border-primary'}`} />
                         <span className="text-xs text-muted-foreground">ETB</span>
                       </div>
                       <p className="text-[11px] text-muted-foreground">{r.source && r.source !== 'not_found' ? `From ${SOURCE_LABEL[r.source]}` : 'New to NodBusiness: type its name once'}</p>
@@ -150,7 +150,7 @@ function ProductQuickScan() {
                 </div>
                 {r.state !== 'looking' && <div className="flex shrink-0 flex-col items-end justify-between">
                   <button type="button" onClick={() => setRows((list) => list.filter((x) => x.key !== r.key))} aria-label={`Remove ${r.title || r.gtin}`}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" aria-hidden="true" /></button>
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive-subtle hover:text-destructive"><Trash2 className="h-4 w-4" aria-hidden="true" /></button>
                   <div className="flex items-center gap-1">
                     <button type="button" onClick={() => patch(r.key, { qty: Math.max(1, r.qty - 1) })} aria-label={`One fewer ${r.title || r.gtin}`}
                       className="flex h-8 w-8 items-center justify-center rounded-full border border-border"><Minus className="h-3.5 w-3.5" aria-hidden="true" /></button>
@@ -172,7 +172,7 @@ function ProductQuickScan() {
               {lookingUp ? 'Looking up…' : missingPrice.length || missingName.length ? `Add ${missingName.length ? 'names and ' : ''}prices to ${missingPrice.length || missingName.length} item(s) first` : 'Ready to save'}
             </p>
             <button type="button" onClick={() => void saveAll()} disabled={saving || lookingUp > 0 || missingPrice.length > 0 || missingName.length > 0}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-5 text-sm font-bold text-white disabled:opacity-50">
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-white disabled:opacity-50">
               {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}Save all
             </button>
           </div>

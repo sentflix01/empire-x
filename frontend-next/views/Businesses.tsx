@@ -52,9 +52,9 @@ function BusinessCard({
   const initial = biz.business_name.charAt(0).toUpperCase();
 
   return (
-    <Link href={`/profile/${biz.owner_id}?view=business`} className="bg-card rounded-2xl border border-border/50 p-3 flex items-start gap-3 hover:border-amber-200 transition-colors block">
+    <Link href={`/profile/${biz.owner_id}?view=business`} className="bg-card rounded-2xl border border-border/50 p-3 flex items-start gap-3 hover:border-rating transition-colors block">
       {/* Logo / initial */}
-      <div className="w-11 h-11 rounded-xl shrink-0 overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
+      <div className="w-11 h-11 rounded-xl shrink-0 overflow-hidden bg-primary-subtle flex items-center justify-center">
         {biz.business_logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img loading="lazy"
@@ -63,7 +63,7 @@ function BusinessCard({
             className="w-full h-full object-cover"
           />
         ) : (
-          <span className="text-amber-700 font-bold text-base">{initial}</span>
+          <span className="text-primary font-bold text-base">{initial}</span>
         )}
       </div>
 
@@ -71,7 +71,7 @@ function BusinessCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-semibold truncate">{biz.business_name}</p>
-          <span className="text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2 py-0.5 shrink-0 capitalize">
+          <span className="text-[10px] font-medium bg-primary-subtle text-primary border border-primary/30 rounded-full px-2 py-0.5 shrink-0 capitalize">
             {biz.business_category}
           </span>
         </div>
@@ -98,7 +98,7 @@ function BusinessCard({
         <div className="flex items-center justify-between mt-2 gap-2">
           {ownerProfile && (
             <div className="flex items-center gap-1.5 min-w-0">
-              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-[9px] font-bold shrink-0">
+              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-white text-[9px] font-bold shrink-0">
                 {ownerProfile.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img loading="lazy"
@@ -116,7 +116,7 @@ function BusinessCard({
             </div>
           )}
           <span
-            className="text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1 shrink-0 ml-auto"
+            className="text-[11px] font-semibold text-primary bg-primary-subtle border border-primary/30 rounded-full px-2.5 py-1 shrink-0 ml-auto"
           >
             View Business
           </span>
@@ -153,7 +153,7 @@ function BusinessSection({
     <section className="mb-6">
       {/* Header */}
       <div className="flex items-center gap-2 mb-3 px-1">
-        <Icon className="w-4 h-4 text-amber-500" />
+        <Icon className="w-4 h-4 text-primary" />
         <h2 className="text-sm font-semibold">{title}</h2>
         {!loading && !error && items.length > 0 && (
           <span className="text-xs text-muted-foreground">({items.length})</span>
@@ -197,7 +197,7 @@ function BusinessSection({
           {showMoreButton && (
             <button
               onClick={expand}
-              className="mt-2 w-full text-xs font-medium text-amber-600 hover:text-amber-700 py-2 rounded-xl hover:bg-amber-50 transition-colors"
+              className="mt-2 w-full text-xs font-medium text-primary hover:text-primary py-2 rounded-xl hover:bg-primary-subtle transition-colors"
             >
               Show {items.length - 5} more
             </button>

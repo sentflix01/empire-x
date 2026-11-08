@@ -60,6 +60,9 @@ function ProductCreate() {
   // The business that sells the product: checkout shows its payment details (audit FUNC-03).
   const [businesses, setBusinesses] = useState<Array<{ id: string; business_name?: string }>>([]);
   const [businessId, setBusinessId] = useState(searchParams.get("business") || "");
+  const [businessesLoaded, setBusinessesLoaded] = useState(false);
+  // A product needs a business, or buyers never see it (audit F-033).
+  const needsBusiness = !isEdit && businessesLoaded && businesses.length === 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -80,6 +83,7 @@ function ProductCreate() {
         if (cancelled) return;
         const list = (rows as Array<{ id: string; business_name?: string }>) ?? [];
         setBusinesses(list);
+        setBusinessesLoaded(true);
         setBusinessId((current) => (current && list.some((b) => b.id === current)) ? current : list.length === 1 ? list[0].id : "");
       })
       .catch(() => { if (!cancelled) setBusinesses([]); });
@@ -170,7 +174,7 @@ function ProductCreate() {
   };
 
   const handleSubmit = async () => {
-    if (!form.title || !form.price) return;
+    if (!form.title || !form.price || needsBusiness) return;
     if (!isEdit && businesses.length > 1 && !businessId) {
       toast.error("Choose which business sells this product.");
       return;
@@ -213,7 +217,10 @@ function ProductCreate() {
       router.push("/marketplace");
     } catch (err) {
       const body = err as { error?: string; existing_product_id?: string };
-      if (body?.error === "barcode_exists" && body.existing_product_id) {
+      const apiBody = apiErrorBody(err);
+      if (apiBody?.code === "BUSINESS_REQUIRED" && apiBody.reason === "no_business") {
+        toast.error("Create a business first, then add products to it.", { action: { label: "Create business", onClick: () => router.push("/business/create") } });
+      } else if (body?.error === "barcode_exists" && body.existing_product_id) {
         toast.error("You already sell a product with this barcode.", { action: { label: "Open it", onClick: () => router.push(`/products/${body.existing_product_id}`) } });
       } else {
         toast.error(apiErrorMessage(err, "Failed to save product"));
@@ -223,7 +230,7 @@ function ProductCreate() {
   };
 
   if (loading) {
-    return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
+    return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
   }
 
   return (
@@ -245,7 +252,7 @@ function ProductCreate() {
             ) : (
               <div className="flex flex-wrap items-center gap-2">
                 <button type="button" onClick={() => setScanning(true)} disabled={looking}
-                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-5 text-sm font-bold text-white disabled:opacity-60">
+                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-white disabled:opacity-60">
                   <ScanBarcode className="h-5 w-5" aria-hidden="true" />{looking ? "Looking it up…" : "Scan barcode"}
                 </button>
                 <Link href="/products/scan" className="inline-flex min-h-12 items-center rounded-full border border-border px-4 text-sm font-medium hover:bg-secondary">Scan many</Link>
@@ -253,17 +260,17 @@ function ProductCreate() {
             )}
             <p className="text-xs text-muted-foreground">Point your camera at the barcode and we fill in the name, photo and details for you.</p>
             {alreadyMine && (
-              <div role="status" className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
+              <div role="status" className="rounded-xl border border-primary/30 bg-primary-subtle p-3 text-sm text-primary-subtle-foreground">
                 <p className="font-semibold">You already sell this: {alreadyMine.title}</p>
                 <p className="text-xs">In stock: {alreadyMine.stock}</p>
                 <div className="mt-2 flex gap-2">
-                  <Link href={`/products/edit?id=${alreadyMine.id}`} className="inline-flex min-h-10 items-center rounded-full bg-amber-500 px-4 text-sm font-semibold text-white">Add stock</Link>
-                  <Link href={`/products/${alreadyMine.id}`} className="inline-flex min-h-10 items-center rounded-full border border-amber-400 px-4 text-sm">Open it</Link>
+                  <Link href={`/products/edit?id=${alreadyMine.id}`} className="inline-flex min-h-10 items-center rounded-full bg-primary px-4 text-sm font-semibold text-white">Add stock</Link>
+                  <Link href={`/products/${alreadyMine.id}`} className="inline-flex min-h-10 items-center rounded-full border border-primary px-4 text-sm">Open it</Link>
                 </div>
               </div>
             )}
             {scanNote && (
-              <p role="status" className={`rounded-xl px-3 py-2 text-xs ${scanNote.tone === "warn" ? "bg-red-50 text-red-900 dark:bg-red-500/10 dark:text-red-100" : "bg-sky-50 text-sky-950 dark:bg-sky-500/10 dark:text-sky-100"}`}>{scanNote.text}</p>
+              <p role="status" className={`rounded-xl px-3 py-2 text-xs ${scanNote.tone === "warn" ? "bg-destructive-subtle text-destructive-subtle-foreground" : "bg-primary-subtle text-primary-subtle-foreground"}`}>{scanNote.text}</p>
             )}
           </div>
         )}
@@ -280,7 +287,7 @@ function ProductCreate() {
             <div className="flex items-center justify-between">
               <Label htmlFor="product-description">Description</Label>
               {aiAvailable && (
-                <button type="button" onClick={handleGenerateDesc} disabled={generating || !form.title} className="flex items-center gap-1 text-xs text-amber-600 hover:underline disabled:opacity-50">
+                <button type="button" onClick={handleGenerateDesc} disabled={generating || !form.title} className="flex items-center gap-1 text-xs text-rating hover:underline disabled:opacity-50">
                   <Sparkles className="w-3 h-3" aria-hidden="true" /> {generating ? "Generating..." : "AI Generate"}
                 </button>
               )}
@@ -320,6 +327,13 @@ function ProductCreate() {
               <SelectContent>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
+          {needsBusiness && (
+            <div role="status" className="rounded-xl border border-border bg-secondary/50 p-3 text-sm">
+              <p className="font-medium">Create a business first</p>
+              <p className="mt-1 text-muted-foreground">Products are sold by a business. Buyers can&apos;t see a product without one.</p>
+              <Link href="/business/create" className="mt-2 inline-block font-semibold text-primary hover:underline">Create business</Link>
+            </div>
+          )}
           {!isEdit && businesses.length > 1 && (
             <div>
               <Label htmlFor="product-business">Sold by</Label>
@@ -343,7 +357,7 @@ function ProductCreate() {
               </Select>
             </div>
           )}
-          <Button onClick={handleSubmit} disabled={saving} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
+          <Button onClick={handleSubmit} disabled={saving || needsBusiness} className="w-full h-11 rounded-full bg-primary">
             {saving ? "Saving..." : isEdit ? "Update Product" : "Publish Product"}
           </Button>
         </div>

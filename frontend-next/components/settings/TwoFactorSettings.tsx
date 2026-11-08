@@ -102,8 +102,8 @@ export default function TwoFactorSettings() {
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden mt-2">
       <button type="button" onClick={() => setExpanded((v) => !v)} aria-expanded={expanded}
         className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/40 transition-colors">
-        <div className="w-9 h-9 rounded-xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-          <ShieldCheck className="w-4 h-4 text-green-600" aria-hidden="true" />
+        <div className="w-9 h-9 rounded-xl bg-success-subtle flex items-center justify-center shrink-0">
+          <ShieldCheck className="w-4 h-4 text-success" aria-hidden="true" />
         </div>
         <div className="flex-1 text-left">
           <p className="text-sm font-semibold">Two-factor sign-in</p>

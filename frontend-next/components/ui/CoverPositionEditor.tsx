@@ -22,18 +22,18 @@ const THEMES: Record<CoverEditorTheme, {
   confirm: string; cancel: string; hint: string; trigger: string; frame: string;
 }> = {
   primary: {
-    confirm: 'bg-blue-600 hover:bg-blue-700 text-white',
-    cancel: 'bg-slate-900/50 hover:bg-slate-900/70 text-white',
-    hint: 'bg-blue-600/85 text-white',
-    trigger: 'bg-blue-600/75 hover:bg-blue-600 text-white',
-    frame: 'ring-2 ring-blue-400/90',
+    confirm: 'bg-primary hover:bg-primary/90 text-white',
+    cancel: 'bg-inverse/50 hover:bg-inverse/70 text-white',
+    hint: 'bg-primary/85 text-white',
+    trigger: 'bg-primary/75 hover:bg-primary/90 text-white',
+    frame: 'ring-2 ring-primary/90',
   },
   gold: {
-    confirm: 'bg-amber-500 hover:bg-amber-600 text-white',
-    cancel: 'bg-slate-900/50 hover:bg-slate-900/70 text-white',
-    hint: 'bg-amber-500/90 text-white',
-    trigger: 'bg-amber-500/80 hover:bg-amber-500 text-white',
-    frame: 'ring-2 ring-amber-400/90',
+    confirm: 'bg-primary hover:bg-primary/90 text-white',
+    cancel: 'bg-inverse/50 hover:bg-inverse/70 text-white',
+    hint: 'bg-primary/90 text-white',
+    trigger: 'bg-primary/80 hover:bg-primary/90 text-white',
+    frame: 'ring-2 ring-primary/90',
   },
 };
 

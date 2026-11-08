@@ -101,11 +101,11 @@ const Composer = forwardRef<ComposerHandle, ComposerProps>(function Composer({
         </div>
       )}
       {editing && (
-        <div className="flex items-center gap-2 border-b border-border/20 bg-amber-50 px-4 py-2 dark:bg-amber-900/20">
-          <Pencil className="h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
-          <p className="flex-1 text-xs font-semibold text-amber-800 dark:text-amber-200">Editing message</p>
-          <button type="button" onClick={onCancelEdit} aria-label="Cancel edit" className="inline-flex size-9 items-center justify-center rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/30">
-            <X className="h-4 w-4 text-amber-700 dark:text-amber-200" aria-hidden="true" />
+        <div className="flex items-center gap-2 border-b border-border/20 bg-primary-subtle px-4 py-2">
+          <Pencil className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+          <p className="flex-1 text-xs font-semibold text-primary-subtle-foreground">Editing message</p>
+          <button type="button" onClick={onCancelEdit} aria-label="Cancel edit" className="inline-flex size-9 items-center justify-center rounded-full hover:bg-primary-subtle">
+            <X className="h-4 w-4 text-primary" aria-hidden="true" />
           </button>
         </div>
       )}

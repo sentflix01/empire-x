@@ -1,4 +1,5 @@
 'use client'
+import { HEX } from '@/lib/colorTokens';
 import React from 'react';
 import {
   Megaphone, Phone, Mail, Tag, Zap, Newspaper, MapPin,
@@ -30,7 +31,7 @@ export const TICKER_TYPES: TickerTypeOption[] = [
     value: 'auto',
     label: 'Auto-detect',
     description: 'Type is detected from your message',
-    color: '#2563EB',
+    color: HEX.primary,
     badgeLabel: 'AUTO',
     Icon: Zap,
     placeholder: 'Type anything — type is detected automatically',
@@ -39,7 +40,7 @@ export const TICKER_TYPES: TickerTypeOption[] = [
     value: 'promo',
     label: 'Promotion',
     description: 'Sales, discounts, special offers',
-    color: '#F97316',
+    color: HEX.brandSecondary,
     badgeLabel: 'PROMO',
     Icon: Tag,
     placeholder: '30% OFF this weekend only! Limited time offer — shop now',
@@ -48,7 +49,7 @@ export const TICKER_TYPES: TickerTypeOption[] = [
     value: 'news',
     label: 'Breaking News',
     description: 'Announcements, launches, urgent updates',
-    color: '#EF4444',
+    color: HEX.destructive,
     badgeLabel: 'LIVE',
     Icon: Newspaper,
     placeholder: 'We just opened our new branch! Grand opening this Saturday — come visit us',
@@ -57,7 +58,7 @@ export const TICKER_TYPES: TickerTypeOption[] = [
     value: 'contact',
     label: 'Contact Info',
     description: 'Phone number, email, working hours',
-    color: '#3B82F6',
+    color: HEX.primary,
     badgeLabel: 'CONTACT',
     Icon: Phone,
     placeholder: '+1 234 567 8900  ·  Available Mon–Sat 9AM–6PM',
@@ -66,7 +67,7 @@ export const TICKER_TYPES: TickerTypeOption[] = [
     value: 'location',
     label: 'Location',
     description: 'Address, directions, map pin',
-    color: '#06B6D4',
+    color: HEX.primary,
     badgeLabel: 'LOCATION',
     Icon: MapPin,
     placeholder: 'Find us at your nearest location',
@@ -75,7 +76,7 @@ export const TICKER_TYPES: TickerTypeOption[] = [
     value: 'custom',
     label: 'Custom Message',
     description: 'Any message you want to scroll',
-    color: '#8B5CF6',
+    color: HEX.muted,
     badgeLabel: 'INFO',
     Icon: Megaphone,
     placeholder: 'Your custom scrolling message goes here...',
@@ -94,15 +95,15 @@ interface TypeConfig {
 }
 
 const TYPE_CONFIG: Record<string, TypeConfig> = {
-  contact:  { bar: 'from-blue-500 to-cyan-500',    badge: 'bg-blue-500',   text: 'text-blue-900',   bg: 'bg-blue-50/80',   border: 'border-blue-200/60',   label: 'CONTACT',  Icon: Phone },
-  promo:    { bar: 'from-orange-500 to-amber-500', badge: 'bg-orange-500', text: 'text-orange-900', bg: 'bg-orange-50/80', border: 'border-orange-200/60', label: 'PROMO',    Icon: Tag },
-  news:     { bar: 'from-red-600 to-rose-500',     badge: 'bg-red-600',    text: 'text-red-900',    bg: 'bg-red-50/80',    border: 'border-red-200/60',    label: 'LIVE',     Icon: Newspaper },
-  location: { bar: 'from-cyan-500 to-sky-500',     badge: 'bg-cyan-500',   text: 'text-cyan-900',   bg: 'bg-cyan-50/80',   border: 'border-cyan-200/60',   label: 'LOCATION', Icon: MapPin },
-  custom:   { bar: 'from-purple-500 to-violet-500',badge: 'bg-purple-500', text: 'text-purple-900', bg: 'bg-purple-50/80', border: 'border-purple-200/60', label: 'INFO',     Icon: Megaphone },
-  email:    { bar: 'from-purple-500 to-pink-500',  badge: 'bg-purple-500', text: 'text-purple-900', bg: 'bg-purple-50/80', border: 'border-purple-200/60', label: 'EMAIL',    Icon: Mail },
-  update:   { bar: 'from-green-500 to-emerald-500',badge: 'bg-green-500',  text: 'text-green-900',  bg: 'bg-green-50/80',  border: 'border-green-200/60',  label: 'NEW',      Icon: Zap },
-  auto:     { bar: 'from-amber-500 to-yellow-500', badge: 'bg-amber-500',  text: 'text-amber-900',  bg: 'bg-amber-50/80',  border: 'border-amber-200/60',  label: 'INFO',     Icon: Megaphone },
-  default:  { bar: 'from-amber-500 to-amber-600',  badge: 'bg-amber-500',  text: 'text-amber-900',  bg: 'bg-amber-50/80',  border: 'border-amber-200/60',  label: 'INFO',     Icon: Megaphone },
+  contact:  { bar: 'from-primary to-primary',    badge: 'bg-primary',   text: 'text-primary-subtle-foreground',   bg: 'bg-primary-subtle/80',   border: 'border-primary/30',   label: 'CONTACT',  Icon: Phone },
+  promo:    { bar: 'from-primary to-primary', badge: 'bg-primary', text: 'text-primary-subtle-foreground', bg: 'bg-primary-subtle/80', border: 'border-primary/30', label: 'PROMO',    Icon: Tag },
+  news:     { bar: 'from-destructive to-destructive',     badge: 'bg-destructive',    text: 'text-destructive-subtle-foreground',    bg: 'bg-destructive-subtle/80',    border: 'border-destructive/30',    label: 'LIVE',     Icon: Newspaper },
+  location: { bar: 'from-primary to-primary',     badge: 'bg-primary',   text: 'text-primary-subtle-foreground',   bg: 'bg-primary-subtle/80',   border: 'border-primary/30',   label: 'LOCATION', Icon: MapPin },
+  custom:   { bar: 'from-brand-secondary to-brand-secondary',badge: 'bg-brand-secondary', text: 'text-brand-secondary-subtle-foreground', bg: 'bg-brand-secondary-subtle/80', border: 'border-brand-secondary/30', label: 'INFO',     Icon: Megaphone },
+  email:    { bar: 'from-brand-secondary to-brand-secondary',  badge: 'bg-brand-secondary', text: 'text-brand-secondary-subtle-foreground', bg: 'bg-brand-secondary-subtle/80', border: 'border-brand-secondary/30', label: 'EMAIL',    Icon: Mail },
+  update:   { bar: 'from-success to-success',badge: 'bg-success',  text: 'text-success-subtle-foreground',  bg: 'bg-success-subtle/80',  border: 'border-success/30',  label: 'NEW',      Icon: Zap },
+  auto:     { bar: 'from-primary to-primary', badge: 'bg-primary',  text: 'text-primary-subtle-foreground',  bg: 'bg-primary-subtle/80',  border: 'border-primary/30',  label: 'INFO',     Icon: Megaphone },
+  default:  { bar: 'from-primary to-primary',  badge: 'bg-primary',  text: 'text-primary-subtle-foreground',  bg: 'bg-primary-subtle/80',  border: 'border-primary/30',  label: 'INFO',     Icon: Megaphone },
 };
 
 function autoDetectType(text: string): string {

@@ -1,4 +1,5 @@
 ﻿'use client';
+import { HEX, IDENTITY, token } from '@/lib/colorTokens';
 import React, { useState, useEffect } from "react";
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -168,8 +169,8 @@ function Profile() {
     <div className="max-w-xl mx-auto text-center py-20">
       {!user ? (
         <>
-          <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
-            <BrandLogo className="w-7 h-7 text-amber-600" />
+          <div className="w-16 h-16 rounded-full bg-primary-subtle flex items-center justify-center mx-auto mb-4">
+            <BrandLogo className="w-7 h-7 text-primary" />
           </div>
           <h2 className="font-display text-xl font-bold">Sign in to view profiles</h2>
           <p className="text-sm text-muted-foreground mt-1 mb-6">Create an account to see profiles, posts, and businesses.</p>
@@ -180,7 +181,7 @@ function Profile() {
         </>
       ) : (
         <>
-          <BrandLogo className="w-12 h-12 text-amber-400 mx-auto mb-3" />
+          <BrandLogo className="w-12 h-12 text-primary mx-auto mb-3" />
           <h2 className="font-display text-xl font-bold">Profile not found</h2>
           <p className="text-sm text-muted-foreground mt-1">This user hasn't set up their profile yet.</p>
           <Link href="/"><Button variant="outline" className="mt-4 rounded-full">Go Home</Button></Link>
@@ -193,7 +194,7 @@ function Profile() {
     <div className="max-w-2xl mx-auto">
         {/* Demo account notice banner — non-dismissible, shown for seed/AI-generated profiles */}
         {profile.is_seed && (
-          <div className="mb-3 flex items-center gap-2 px-4 py-3 bg-yellow-50 border border-yellow-300/70 rounded-2xl text-yellow-800 text-sm font-medium">
+          <div className="mb-3 flex items-center gap-2 px-4 py-3 bg-primary-subtle border border-primary/30 rounded-2xl text-primary-subtle-foreground text-sm font-medium">
             <DemoBadge />
             <span>This is an AI-generated demo account</span>
           </div>
@@ -212,7 +213,7 @@ function Profile() {
         {/* Profile Header Card */}
         <div data-page-guide="profile-header" className="bg-card rounded-2xl border border-border/50 overflow-hidden mb-4">
           {/* Cover — personal: primary/accent (blue→purple) · business: gold scheme */}
-          <div className={`h-28 relative transition-all duration-300 ${view === "business" ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" : "bg-nodbusiness-gradient"}`}>
+          <div className={`h-28 relative transition-all duration-300 ${view === "business" ? "bg-primary" : "bg-primary"}`}>
             {view === "business" && (
               <SafeImage src={profile.business_cover_url} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: profile.business_cover_position || 'center' }} />
@@ -240,15 +241,15 @@ function Profile() {
                   )}
                   {view === "personal" ? (
                     <div className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center text-white text-3xl font-bold"
-                      style={{ background: 'linear-gradient(135deg,#60a5fa,#2563eb)' }}>
+                      style={{ background: token.primary }}>
                       <SafeImage src={profile.avatar_url} alt={profile.display_name || 'User'} className="w-full h-full object-cover rounded-xl"
                         fallback={profile.display_name?.charAt(0) || "U"} />
                     </div>
                   ) : profile.business_logo_url ? (
                     <SafeImage src={profile.business_logo_url} alt={profile.business_name || 'Business'} className="w-full h-full rounded-xl object-cover"
-                      fallback={<div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl font-bold">{profile.business_name?.charAt(0) || "B"}</div>} />
+                      fallback={<div className="w-full h-full rounded-xl bg-primary flex items-center justify-center text-white text-3xl font-bold">{profile.business_name?.charAt(0) || "B"}</div>} />
                   ) : (
-                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
+                    <div className="w-full h-full rounded-xl bg-primary flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
                       {profile.business_name?.charAt(0) || "B"}
                     </div>
                   )}
@@ -263,7 +264,7 @@ function Profile() {
                       onClick={() => view !== 'personal' && handleFlip()}
                       aria-pressed={view === 'personal'}
                       className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
-                      style={view === 'personal' ? { background: 'linear-gradient(135deg,#3B82F6,#2563EB)', color: 'white', boxShadow: '0 1px 6px rgba(59,130,246,0.4)' } : { color: 'var(--muted-foreground)' }}
+                      style={view === 'personal' ? { background: IDENTITY.personal.css, color: 'white' } : { color: token.muted }}
                     >
                       <User className="w-3 h-3" /> Personal
                     </button>
@@ -271,7 +272,7 @@ function Profile() {
                       onClick={() => view !== 'business' && handleFlip()}
                       aria-pressed={view === 'business'}
                       className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
-                      style={view === 'business' ? { background: 'linear-gradient(135deg,#F59E0B,#D97706)', color: 'white', boxShadow: '0 1px 6px rgba(245,158,11,0.4)' } : { color: 'var(--muted-foreground)' }}
+                      style={view === 'business' ? { background: IDENTITY.business.css, color: 'white' } : { color: token.muted }}
                     >
                       <Store className="w-3 h-3" /> Business
                     </button>
@@ -335,7 +336,7 @@ function Profile() {
                         {profile.is_verified && (
                           <VerifiedBadge type={profile.verification_type} size="lg" />
                         )}
-                        <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">{selectedBusiness?.business_category || profile.business_category}</Badge>
+                        <Badge variant="outline" className="text-primary border-primary/30 text-[10px]">{selectedBusiness?.business_category || profile.business_category}</Badge>
                       </div>
                       {(selectedBusiness?.business_description || profile.business_description) && (
                         <p className="text-sm text-muted-foreground mt-1">{selectedBusiness?.business_description || profile.business_description}</p>
@@ -349,7 +350,7 @@ function Profile() {
                           <div className="flex items-center gap-2 mb-1.5">
                             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">My Businesses</span>
                             {isOwner && (
-                              <Link href="/business/create" className="text-[10px] text-amber-600 hover:underline flex items-center gap-0.5">
+                              <Link href="/business/create" className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
                                 <Plus className="w-2.5 h-2.5" /> Add
                               </Link>
                             )}
@@ -364,7 +365,7 @@ function Profile() {
                                     ? "text-white shadow-sm"
                                     : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
                                 }`}
-                                style={b.id === selectedBizId ? { backgroundColor: b.business_theme_color || "#D4AF37" } : {}}
+                                style={b.id === selectedBizId ? { backgroundColor: b.business_theme_color || HEX.primary } : {}}
                               >
                                 <span>{b.business_name?.charAt(0) || "B"}</span>
                                 <span>{b.business_name}</span>
@@ -374,7 +375,7 @@ function Profile() {
                         </div>
                       )}
                       {isOwner && businesses.length === 0 && (
-                        <Link data-page-guide="profile-create-showroom" href="/business/create" className="inline-flex items-center gap-1 text-xs text-amber-600 hover:underline mt-3">
+                        <Link data-page-guide="profile-create-showroom" href="/business/create" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-3">
                           <Plus className="w-3 h-3" /> Create a business
                         </Link>
                       )}

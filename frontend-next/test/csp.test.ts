@@ -27,6 +27,11 @@ describe('buildCsp', () => {
     const csp = buildCsp({ nonce: 'n', isDev: false, apiHost: 'https://api.example' });
     for (const d of ["object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'"]) expect(csp).toContain(d);
   });
+
+  it('does not allow Stripe\'s in-page script, API or frames (hosted checkout only, F-052)', () => {
+    const csp = buildCsp({ nonce: 'n', isDev: false, apiHost: 'https://api.example' });
+    expect(csp).not.toContain('stripe.com');
+  });
 });
 
 describe('createNonce', () => {

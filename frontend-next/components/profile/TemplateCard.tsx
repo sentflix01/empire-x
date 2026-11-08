@@ -32,7 +32,7 @@ export default function TemplateCard({ template, selected, onSelect }) {
       aria-pressed={selected}
       onClick={onSelect}
       className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${
-        selected ? "border-amber-400 bg-amber-50 ring-1 ring-amber-300" : "border-border hover:border-amber-300 hover:bg-secondary/30"
+        selected ? "border-primary bg-primary-subtle ring-1 ring-primary/30" : "border-border hover:border-primary/30 hover:bg-secondary/30"
       }`}
     >
       {/* Mini wireframe preview */}
@@ -41,11 +41,11 @@ export default function TemplateCard({ template, selected, onSelect }) {
           <div key={i} className="flex gap-0.5 items-center" style={{ height: dot.h.includes("10") ? "40%" : "auto" }}>
             {dot.grid ? (
               <>
-                <div className={`flex-1 ${dot.h} rounded-sm ${dot.dark ? "bg-amber-400/60" : "bg-amber-300/50"}`} />
-                <div className={`flex-1 ${dot.h} rounded-sm ${dot.dark ? "bg-amber-400/60" : "bg-amber-300/50"}`} />
+                <div className={`flex-1 ${dot.h} rounded-sm ${dot.dark ? "bg-primary/60" : "bg-primary/50"}`} />
+                <div className={`flex-1 ${dot.h} rounded-sm ${dot.dark ? "bg-primary/60" : "bg-primary/50"}`} />
               </>
             ) : dot.circle ? (
-              <div className="w-4 h-4 rounded-full bg-amber-400/50 mx-auto" />
+              <div className="w-4 h-4 rounded-full bg-primary/50 mx-auto" />
             ) : dot.row ? (
               <>
                 <div className={`flex-1 ${dot.h} rounded-sm bg-muted-foreground/20`} />
@@ -53,7 +53,7 @@ export default function TemplateCard({ template, selected, onSelect }) {
                 <div className={`flex-1 ${dot.h} rounded-sm bg-muted-foreground/20`} />
               </>
             ) : (
-              <div className={`${dot.h} ${dot.w} rounded-sm ${dot.dark ? "bg-gray-700/60" : "bg-muted-foreground/20"}`} />
+              <div className={`${dot.h} ${dot.w} rounded-sm ${dot.dark ? "bg-muted-foreground/60" : "bg-muted-foreground/20"}`} />
             )}
           </div>
         ))}
@@ -63,7 +63,7 @@ export default function TemplateCard({ template, selected, onSelect }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1">
           <p className="text-sm font-semibold truncate">{template.name}</p>
-          {selected && <Check className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
+          {selected && <Check className="w-3.5 h-3.5 text-primary shrink-0" />}
         </div>
         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{template.desc}</p>
         <p className="text-[10px] text-muted-foreground/70 mt-1">{template.sections.length} sections</p>

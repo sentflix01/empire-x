@@ -5,9 +5,9 @@ import { FileText, Loader2 } from 'lucide-react';
 import { describePayment, formatBirr, formatDate, getPayments, type PaymentStatus, type SubscriptionPayment } from '@/lib/etbBilling';
 
 const STATUS: Record<PaymentStatus, { label: string; cls: string }> = {
-  paid: { label: 'Paid', cls: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300' },
-  pending: { label: 'Waiting', cls: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300' },
-  failed: { label: 'Failed', cls: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300' },
+  paid: { label: 'Paid', cls: 'bg-success-subtle text-success-subtle-foreground' },
+  pending: { label: 'Waiting', cls: 'bg-warning-subtle text-warning-subtle-foreground' },
+  failed: { label: 'Failed', cls: 'bg-destructive-subtle text-destructive' },
   expired: { label: 'Not completed', cls: 'bg-secondary text-muted-foreground' },
 };
 

@@ -10,9 +10,9 @@ import { cn } from '@/lib/utils';
 const GRADIENTS = [
   'from-primary to-accent',        // blue → purple
   'from-accent to-primary',        // purple → blue
-  'from-amber-500 to-orange-500',  // gold → orange
-  'from-green-500 to-teal-500',    // green → teal
-  'from-rose-500 to-pink-500',     // rose → pink
+  'from-primary to-primary',  // gold → orange
+  'from-success to-success',    // green → teal
+  'from-destructive to-brand-secondary',     // rose → pink
 ] as const;
 
 export function nameToGradient(name: string): string {
@@ -182,7 +182,7 @@ export function UserIdentity({
         {onlineIndicator && (
           <span
             className={cn(
-              'absolute bg-green-400 border-primary rounded-full',
+              'absolute bg-success border-primary rounded-full',
               s.onlineDot,
               s.onlineOffset,
             )}

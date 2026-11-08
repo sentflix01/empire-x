@@ -105,7 +105,7 @@ function AssistantFlipCoin() {
         </span>
         <span className="ai-flip-coin-face ai-flip-coin-back">
           <span className="text-[10px] font-black leading-none text-white">AI</span>
-          <span className="mt-0.5 text-[7px] font-bold uppercase leading-none tracking-wide text-blue-100">Assistant</span>
+          <span className="mt-0.5 text-[7px] font-bold uppercase leading-none tracking-wide text-white/80">Assistant</span>
         </span>
       </span>
     </span>
@@ -119,11 +119,11 @@ function PageGuideFlipCoin() {
       <span className="pg-flip-coin-inner">
         <span className="pg-flip-coin-face pg-flip-coin-front">
           {/* Question mark face — white background, same as AI coin front */}
-          <span className="text-2xl font-black leading-none text-indigo-600">?</span>
+          <span className="text-2xl font-black leading-none text-primary">?</span>
         </span>
         <span className="pg-flip-coin-face pg-flip-coin-back">
           <span className="text-[10px] font-black leading-none text-white">Page</span>
-          <span className="mt-0.5 text-[7px] font-bold uppercase leading-none tracking-wide text-blue-100">Guide</span>
+          <span className="mt-0.5 text-[7px] font-bold uppercase leading-none tracking-wide text-white/80">Guide</span>
         </span>
       </span>
     </span>
@@ -521,7 +521,7 @@ function AiAssistantWidget() {
             window.dispatchEvent(new Event('nodbusiness:open-page-guide'));
           }}
           onPointerDown={handlePointerDown}
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+10.5rem)] right-5 md:bottom-[calc(4rem)] md:right-6 z-[2147483646] touch-none rounded-full shadow-2xl shadow-blue-950/25 flex items-center justify-center transition-transform duration-200 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 hover:scale-110 hover:shadow-blue-600/30 hover:shadow-xl"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+10.5rem)] right-5 md:bottom-[calc(4rem)] md:right-6 z-[2147483646] touch-none rounded-full shadow-2xl shadow-primary/25 flex items-center justify-center transition-transform duration-200 cursor-grab active:cursor-grabbing bg-primary hover:scale-110 hover:shadow-primary/30 hover:shadow-xl"
           style={posReady && pos.x >= 0 && pos.y >= 0
             ? { position: 'fixed', left: pos.x, top: pos.y - 64, bottom: 'auto', right: 'auto', width: 56, height: 56, paddingInline: 0 }
             : { width: 56, height: 56, paddingInline: 0 }}
@@ -540,16 +540,16 @@ function AiAssistantWidget() {
           setOpen(value => !value);
         }}
         onPointerDown={handlePointerDown}
-        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+6rem)] right-5 md:bottom-6 md:right-6 z-[2147483647] touch-none rounded-full shadow-2xl shadow-blue-950/25 flex items-center justify-center gap-1.5 transition-transform duration-200 cursor-grab active:cursor-grabbing
-          ${open ? "bg-slate-800 dark:bg-slate-700 rotate-6 scale-95"
-            : "bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 hover:scale-110 hover:shadow-blue-600/30 hover:shadow-xl"
+        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+6rem)] right-5 md:bottom-6 md:right-6 z-[2147483647] touch-none rounded-full shadow-2xl shadow-primary/25 flex items-center justify-center gap-1.5 transition-transform duration-200 cursor-grab active:cursor-grabbing
+          ${open ? "bg-inverse rotate-6 scale-95"
+            : "bg-primary hover:scale-110 hover:shadow-primary/30 hover:shadow-xl"
           }`}
         style={btnStyle}
         title={t('ai.title') + ' (drag to move)'}
         aria-label={t('ai.title')}>
         {open ? <X className="w-5 h-5 text-white" /> : <AssistantFlipCoin />}
         {!open && visibleMessages.length > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-background" />
+          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-success border-2 border-background" />
         )}
       </button>
 
@@ -558,11 +558,11 @@ function AiAssistantWidget() {
         <div
           data-testid="ai-assistant-panel"
           className="fixed bottom-40 right-4 md:bottom-20 md:right-6 z-[2147483647]
-            w-[calc(100vw-2rem)] max-w-sm bg-blue-50 dark:bg-slate-900 border border-blue-300/80 dark:border-blue-500/35 rounded-2xl shadow-2xl shadow-slate-950/30
+            w-[calc(100vw-2rem)] max-w-sm bg-primary-subtle border border-primary/30 rounded-2xl shadow-2xl shadow-foreground/10
             flex flex-col overflow-hidden"
           style={{ ...(panelStyle.left !== undefined ? panelStyle : {}), height: "min(500px, calc(100dvh - 10.5rem))" }}
         >
-          <div className="flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-slate-900 via-blue-700 to-violet-700 shrink-0">
+          <div className="flex items-center gap-2.5 px-4 py-3 bg-inverse shrink-0">
             <AssistantLogo size="sm" animated />
             <div className="flex-1 min-w-0">
               <p className="text-white font-semibold text-sm leading-none">{t('ai.title')}</p>
@@ -592,14 +592,14 @@ function AiAssistantWidget() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-blue-100/70 dark:bg-slate-900">
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-primary-subtle/70">
             {visibleMessages.length === 0 ? (
               /* Welcome screen */
               <div className="space-y-3 pt-1">
                 <div className="flex items-start gap-2">
                   <span className="mt-0.5 shrink-0"><AssistantLogo size="sm" animated /></span>
-                  <div className="bg-white border border-blue-200/80 rounded-2xl rounded-tl-sm px-3 py-2.5 max-w-[88%] shadow-sm dark:bg-slate-800 dark:border-blue-500/25">
-                    <p className="text-sm text-slate-900 leading-relaxed dark:text-slate-100">
+                  <div className="bg-white border border-primary/30 rounded-2xl rounded-tl-sm px-3 py-2.5 max-w-[88%] shadow-sm">
+                    <p className="text-sm text-foreground leading-relaxed">
                       {t(user ? 'ai.welcomeMessage' : 'ai.welcomeGuest')}
                     </p>
                   </div>
@@ -609,7 +609,7 @@ function AiAssistantWidget() {
                     <button
                       key={s}
                       onClick={() => sendMessage(s)}
-                      className="px-2.5 py-1 rounded-full border border-blue-200 text-blue-700 dark:text-blue-300 dark:border-blue-500/40 text-[11px] font-medium hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                      className="px-2.5 py-1 rounded-full border border-primary/30 text-primary text-[11px] font-medium hover:bg-primary-subtle transition-colors"
                     >
                       {s}
                     </button>
@@ -621,7 +621,7 @@ function AiAssistantWidget() {
                       type="button"
                       onClick={startTour}
                       disabled={loading}
-                      className="min-h-11 w-full rounded-xl border border-blue-300 bg-white px-3 py-2 text-left text-sm font-semibold text-blue-800 shadow-sm transition-colors hover:bg-blue-50 disabled:opacity-50 dark:border-blue-500/40 dark:bg-slate-800 dark:text-blue-200 dark:hover:bg-slate-700"
+                      className="min-h-11 w-full rounded-xl border border-primary/30 bg-white px-3 py-2 text-left text-sm font-semibold text-primary-subtle-foreground shadow-sm transition-colors hover:bg-primary-subtle disabled:opacity-50"
                     >
                       <span className="flex items-center gap-2"><Compass className="h-4 w-4 shrink-0" />{t("ai.startTour")}</span>
                     </button>
@@ -637,8 +637,8 @@ function AiAssistantWidget() {
                   <div className="flex flex-col gap-0.5" style={{ maxWidth: "80%", alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
                     <div className={`px-3 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap
                       ${m.role === "user"
-                        ? "bg-gradient-to-br from-blue-600 to-violet-600 text-white rounded-br-sm"
-                        : "bg-white text-slate-900 border border-blue-200/80 rounded-bl-sm shadow-sm dark:bg-slate-800 dark:text-slate-100 dark:border-blue-500/25"
+                        ? "bg-primary text-white rounded-br-sm"
+                        : "bg-white text-foreground border border-primary/30 rounded-bl-sm shadow-sm"
                       }`}>
                       {m.content}
                     </div>
@@ -660,7 +660,7 @@ function AiAssistantWidget() {
             {loading && (
               <div className="flex items-end gap-2">
                 <span className="shrink-0"><AssistantLogo size="xs" animated /></span>
-                <div className="bg-white border border-blue-200/80 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm dark:bg-slate-800 dark:border-blue-500/25">
+                <div className="bg-white border border-primary/30 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
                   <div className="flex gap-1">
                     {[0, 1, 2].map(i => (
                       <div key={i} className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce"
@@ -674,18 +674,18 @@ function AiAssistantWidget() {
           </div>
 
           {/* Input */}
-          <div className="shrink-0 px-3 py-3 border-t border-blue-200/80 bg-white/95 dark:border-blue-500/25 dark:bg-slate-950 flex items-center gap-2">
+          <div className="shrink-0 px-3 py-3 border-t border-primary/30 bg-white/95 flex items-center gap-2">
             <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
               placeholder={online ? t('ai.placeholder') : t('ai.placeholderOffline')}
               aria-label={online ? t('ai.placeholder') : t('ai.placeholderOffline')}
               disabled={loading}
-              className="flex-1 bg-blue-50 border border-blue-200 rounded-full px-4 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:ring-1 focus:ring-blue-500/45 disabled:opacity-50 dark:bg-slate-900 dark:border-blue-500/30 dark:text-slate-100 dark:placeholder:text-slate-400"
+              className="flex-1 bg-primary-subtle border border-primary/30 rounded-full px-4 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-primary/45 disabled:opacity-50"
             />
             <button
               onClick={() => sendMessage()}
               disabled={loading || !input.trim()}
-              className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-white disabled:opacity-40 hover:from-blue-700 hover:to-violet-700 transition-all shrink-0"
+              className="w-9 h-9 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center text-white disabled:opacity-40 transition-all shrink-0"
             >
               <Send className="w-4 h-4" />
             </button>

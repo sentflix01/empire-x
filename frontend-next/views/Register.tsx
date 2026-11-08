@@ -154,7 +154,7 @@ function Register() {
           <div className="mb-4 rounded-lg bg-destructive/10 px-3 py-2.5 text-sm text-destructive">{error}</div>
         )}
         <div data-page-guide="register-otp" className="flex flex-col items-center gap-4 mb-6">
-          <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoComplete="one-time-code">
+          <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoComplete="one-time-code" inputMode="numeric" aria-label="Verification code">
             <InputOTPGroup>
               {[0,1,2,3,4,5].map(i => <InputOTPSlot key={i} index={i} />)}
             </InputOTPGroup>
@@ -194,7 +194,7 @@ function Register() {
       }
     >
       {refCode && (
-        <div className="mb-5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 px-3 py-2.5 text-sm text-amber-700 dark:text-amber-400">
+        <div className="mb-5 rounded-lg bg-primary-subtle border border-primary/30 px-3 py-2.5 text-sm text-primary">
           🎁 Referral code <strong>{refCode}</strong> will be applied automatically.
         </div>
       )}
@@ -265,7 +265,7 @@ function Register() {
             <button
               type="button"
               onClick={() => setShowPassword(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-0 top-0 flex h-10 w-10 items-center justify-center rounded-r-md text-muted-foreground hover:text-foreground"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

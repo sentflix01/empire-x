@@ -123,7 +123,7 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, busine
           <Button
             onClick={handleSend}
             disabled={sending || !name.trim() || !phone.trim()}
-            className="w-full h-11 rounded-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-semibold"
+            className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 text-white font-semibold"
           >
             {sending
               ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</>
@@ -249,7 +249,7 @@ function ShowroomView() {
     }
   }, [showroom?.owner_id, nextProductCursor, productsLoadingMore, productSearch, productCategory]);
 
-  if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
   if (!showroom && signInRequired) return <SignInRequired />;
   if (!showroom) return <UnavailableNotice title="Showroom not found" message="This mini-website doesn't exist or has been removed." />;
 
@@ -264,7 +264,7 @@ function ShowroomView() {
   const showWhatsappFloat = hero.whatsappButton !== false && Boolean(whatsappNumber);
 
   if (showroom.status !== "published" && !(authResolved && isOwner)) {
-    if (!authResolved) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
+    if (!authResolved) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
     return <UnavailableNotice title="Showroom unavailable" message="This mini-website is not publicly available." />;
   }
 
@@ -273,7 +273,7 @@ function ShowroomView() {
       ? `${window.location.origin}/showroom/${showroom.slug}`
       : `${window.location.origin}/showrooms/${showroom.id}`
     : '';
-  const themeColor = showroom.theme_color || "#D4AF37";
+  const themeColor = showroom.theme_color || "#2563EB";
   const profile = {
     ...showroom,
     business_name: showroom.title,
@@ -322,7 +322,7 @@ function ShowroomView() {
           <div className="flex items-center gap-2">
             {!user && <TryDemoButton />}
             {showroom.status !== "published" && isOwner && (
-              <Badge variant="outline" className="text-amber-600 border-amber-400/50">Draft preview</Badge>
+              <Badge variant="outline" className="text-primary border-primary/50">Draft preview</Badge>
             )}
             {isOwner && (
               <>
@@ -332,7 +332,7 @@ function ShowroomView() {
                 </Button>
                 {showroom.status === "published" && (
                   <Link href={`/profile/${showroom.owner_id}?view=business`}>
-                    <Button size="sm" className="rounded-full h-8 bg-amber-500 text-white hover:bg-amber-600">
+                    <Button size="sm" className="rounded-full h-8 bg-primary text-white hover:bg-primary/90">
                       <Check className="w-3 h-3 mr-1" /> Finish
                     </Button>
                   </Link>
@@ -448,7 +448,7 @@ function ShowroomView() {
 function UnavailableNotice({ title, message }: { title: string; message: string }) {
   return (
     <div className="max-w-2xl mx-auto text-center py-20">
-      <BrandLogo className="w-12 h-12 text-amber-400/40 mx-auto mb-3" />
+      <BrandLogo className="w-12 h-12 text-primary/40 mx-auto mb-3" />
       <h1 className="font-display text-xl font-bold">{title}</h1>
       <p className="text-sm text-muted-foreground mt-1">{message}</p>
       <Link href="/" className="inline-block mt-4">

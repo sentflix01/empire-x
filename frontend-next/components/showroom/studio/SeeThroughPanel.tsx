@@ -91,18 +91,18 @@ export default function SeeThroughPanel({
           onDoubleClick={onDragHandleDoubleTap}
           className={`flex h-10 w-full shrink-0 cursor-row-resize select-none flex-col items-center justify-center gap-1
             ${isMax ? '' : 'rounded-t-2xl'}
-            ${isDragging ? 'bg-amber-400/20' : 'hover:bg-secondary/60 active:bg-amber-400/20'}
+            ${isDragging ? 'bg-primary/20' : 'hover:bg-secondary/60 active:bg-primary/20'}
             transition-colors touch-none`}
         >
           <span
             aria-hidden="true"
             className={`block h-1.5 w-12 rounded-full transition-colors
-              ${isDragging ? 'bg-amber-500' : 'bg-muted-foreground/40'}`}
+              ${isDragging ? 'bg-primary' : 'bg-muted-foreground/40'}`}
           />
           <span aria-hidden="true" className="flex gap-1">
             {[0, 1, 2].map(i => (
               <span key={i} className={`h-1 w-1 rounded-full transition-colors
-                ${isDragging ? 'bg-amber-400' : 'bg-muted-foreground/25'}`} />
+                ${isDragging ? 'bg-primary' : 'bg-muted-foreground/25'}`} />
             ))}
           </span>
         </div>

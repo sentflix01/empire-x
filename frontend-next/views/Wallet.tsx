@@ -13,8 +13,8 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
 
 const TX_ICONS = {
-  credit: { icon: ArrowDownLeft, color: "text-green-600 bg-green-50" },
-  debit: { icon: ArrowUpRight, color: "text-red-600 bg-red-50" },
+  credit: { icon: ArrowDownLeft, color: "text-success bg-success-subtle" },
+  debit: { icon: ArrowUpRight, color: "text-destructive bg-destructive-subtle" },
   withdrawal: { icon: ArrowUpRight, color: "text-primary bg-primary/10" },
   refund: { icon: ArrowDownLeft, color: "text-accent bg-accent/10" },
 };
@@ -79,13 +79,13 @@ function Wallet() {
     setProcessing(false);
   };
 
-  if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"/></div>;
+  if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin"/></div>;
 
   if (loadError) return (
     <div className="max-w-lg mx-auto text-center py-20">
       <WalletIcon className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
       <p className="text-sm text-destructive font-medium">{loadError}</p>
-      <button onClick={() => { setLoading(true); loadWallet(); }} className="mt-3 text-xs text-amber-600 hover:underline font-medium">Retry</button>
+      <button onClick={() => { setLoading(true); loadWallet(); }} className="mt-3 text-xs text-primary hover:underline font-medium">Retry</button>
     </div>
   );
 
@@ -93,40 +93,40 @@ function Wallet() {
     <div data-page-guide="wallet-balance" className="max-w-lg mx-auto">
         {/* Payment return banner */}
         {returnBanner === 'success' && (
-          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800">
-            <svg className="w-5 h-5 shrink-0 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-success-subtle border border-success/30 text-success-subtle-foreground">
+            <svg className="w-5 h-5 shrink-0 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
             <div>
               <p className="font-semibold text-sm">Top-up Successful!</p>
-              <p className="text-xs text-green-700">Your wallet balance has been updated.</p>
+              <p className="text-xs text-success">Your wallet balance has been updated.</p>
             </div>
-            <button onClick={() => setReturnBanner(null)} className="ml-auto text-green-500 hover:text-green-700">✕</button>
+            <button onClick={() => setReturnBanner(null)} className="ml-auto text-success hover:text-success">✕</button>
           </div>
         )}
         {returnBanner === 'cancelled' && (
-          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800">
-            <svg className="w-5 h-5 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-primary-subtle border border-primary/30 text-primary-subtle-foreground">
+            <svg className="w-5 h-5 shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             <div>
               <p className="font-semibold text-sm">Top-up Cancelled</p>
-              <p className="text-xs text-amber-700">You were not charged. Try again whenever you're ready.</p>
+              <p className="text-xs text-primary">You were not charged. Try again whenever you're ready.</p>
             </div>
-            <button onClick={() => setReturnBanner(null)} className="ml-auto text-amber-500 hover:text-amber-700">✕</button>
+            <button onClick={() => setReturnBanner(null)} className="ml-auto text-primary hover:text-primary">✕</button>
           </div>
         )}
         {returnBanner === 'failed' && (
-          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800">
-            <svg className="w-5 h-5 shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-destructive-subtle border border-destructive/30 text-destructive-subtle-foreground">
+            <svg className="w-5 h-5 shrink-0 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             <div>
               <p className="font-semibold text-sm">Top-up Failed</p>
-              <p className="text-xs text-red-700">Payment was not completed. Please try again.</p>
+              <p className="text-xs text-destructive">Payment was not completed. Please try again.</p>
             </div>
-            <button onClick={() => setReturnBanner(null)} className="ml-auto text-red-400 hover:text-red-600">✕</button>
+            <button onClick={() => setReturnBanner(null)} className="ml-auto text-destructive hover:text-destructive">✕</button>
           </div>
         )}
         <div className="flex items-center gap-2 mb-6">
-          <WalletIcon className="w-6 h-6 text-amber-500"/>
+          <WalletIcon className="w-6 h-6 text-primary"/>
           <h1 className="font-display text-2xl font-bold">{t('wallet.title')}</h1>
         </div>
-        <div data-page-guide="wallet-balance" className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 text-white mb-6">
+        <div data-page-guide="wallet-balance" className="bg-primary rounded-2xl p-6 text-white mb-6">
           <p className="text-sm text-white/70 mb-1">{t('wallet.availableBalance')}</p>
           <p className="text-4xl font-bold">{wallet?.balance?.toLocaleString() || "0"}</p>
           <p data-page-guide="wallet-currency" className="text-sm text-white/70 mt-1">{wallet?.currency || "USD"}</p>
@@ -134,7 +134,7 @@ function Wallet() {
         <div data-page-guide="wallet-filter" className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-5">
           {["overview","withdraw"].map(t2=>(
             <button key={t2} onClick={()=>setTab(t2)}
-              className={`flex-1 py-2 rounded-lg text-xs font-medium capitalize transition-all ${tab===t2?"bg-amber-500 text-white":"text-muted-foreground hover:bg-secondary"}`}>
+              className={`flex-1 py-2 rounded-lg text-xs font-medium capitalize transition-all ${tab===t2?"bg-primary text-white":"text-muted-foreground hover:bg-secondary"}`}>
               {t2 === "topup" ? t('wallet.topUp') : t2 === "withdraw" ? t('wallet.withdraw') : t('wallet.history')}
             </button>
           ))}
@@ -155,7 +155,7 @@ function Wallet() {
                     <p className="text-sm font-medium truncate">{tx.description || tx.type}</p>
                     <p className="text-xs text-muted-foreground">{fromNow(tx.created_at)}</p>
                   </div>
-                  <p className={`text-sm font-bold shrink-0 ${tx.type==="credit"||tx.type==="refund" ? "text-green-600" : "text-red-600"}`}>
+                  <p className={`text-sm font-bold shrink-0 ${tx.type==="credit"||tx.type==="refund" ? "text-success" : "text-destructive"}`}>
                     {tx.type==="credit"||tx.type==="refund" ? "+" : "-"}{tx.amount?.toLocaleString()} ETB
                   </p>
                 </div>
@@ -173,7 +173,7 @@ function Wallet() {
             <div><Label>{t('wallet.amount')}</Label><Input type="number" value={withdrawAmount} onChange={e=>setWithdrawAmount(e.target.value)} placeholder={t('wallet.amountPlaceholder')} className="mt-1"/></div>
             <div><Label>{t('wallet.bankName')}</Label><Input value={bankName} onChange={e=>setBankName(e.target.value)} placeholder={t('wallet.bankPlaceholder')} className="mt-1"/></div>
             <div><Label>{t('wallet.accountNumber')}</Label><Input value={accountNum} onChange={e=>setAccountNum(e.target.value)} placeholder={t('wallet.accountPlaceholder')} className="mt-1"/></div>
-            <Button data-page-guide="wallet-payout" onClick={handleWithdraw} disabled={processing||!withdrawAmount||!bankName||!accountNum} className="w-full rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
+            <Button data-page-guide="wallet-payout" onClick={handleWithdraw} disabled={processing||!withdrawAmount||!bankName||!accountNum} className="w-full rounded-full bg-primary">
               {processing ? t('wallet.submitting') : t('wallet.withdrawBtn')}
             </Button>
           </div>

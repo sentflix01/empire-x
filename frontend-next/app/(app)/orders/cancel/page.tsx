@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 export default function OrderCancelPage() {
   return (
     <div className="max-w-lg mx-auto px-4 py-12 text-center">
-      <div className="w-20 h-20 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-6">
-        <XCircle className="w-10 h-10 text-amber-600" />
+      <div className="w-20 h-20 rounded-full bg-primary-subtle flex items-center justify-center mx-auto mb-6">
+        <XCircle className="w-10 h-10 text-primary" />
       </div>
 
       <h1 className="font-display text-3xl font-bold mb-2">Payment Cancelled</h1>
@@ -24,7 +24,7 @@ export default function OrderCancelPage() {
 
       <div className="flex flex-col sm:flex-row gap-3">
         <Link href="/cart" className="flex-1">
-          <Button className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 font-semibold">
+          <Button className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 font-semibold">
             <ShoppingBag className="w-4 h-4 mr-2" />
             Return to Cart
           </Button>

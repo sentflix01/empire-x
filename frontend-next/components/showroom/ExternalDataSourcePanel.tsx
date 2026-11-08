@@ -258,9 +258,9 @@ export default function ExternalDataSourcePanel({
   return (
     <div className="mt-3 rounded-xl border border-border/60 bg-card dark:bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/30 bg-amber-50/50 dark:bg-amber-950/20">
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/30 bg-primary-subtle/50">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wide">
+          <span className="text-[10px] font-bold text-primary uppercase tracking-wide">
             External Data Source
           </span>
           <span className="text-[10px] text-muted-foreground">{sectionLabel}</span>
@@ -272,8 +272,8 @@ export default function ExternalDataSourcePanel({
             type="button"
             onClick={handleToggleEnabled}
             disabled={isTogglingEnabled}
-            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1 disabled:opacity-50 ${
-              isEnabled ? 'bg-amber-500' : 'bg-muted'
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 disabled:opacity-50 ${
+              isEnabled ? 'bg-primary' : 'bg-muted'
             }`}
             aria-label={isEnabled ? 'Disable external source' : 'Enable external source'}
           >
@@ -292,8 +292,8 @@ export default function ExternalDataSourcePanel({
             <button
               type="button"
               onClick={() => setIsEnabled(v => !v)}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1 ${
-                isEnabled ? 'bg-amber-500' : 'bg-muted'
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${
+                isEnabled ? 'bg-primary' : 'bg-muted'
               }`}
               aria-label={isEnabled ? 'Will be enabled' : 'Will be disabled'}
             >
@@ -313,19 +313,19 @@ export default function ExternalDataSourcePanel({
         {/* URL input */}
         <div>
           <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-            API URL <span className="text-red-500">*</span>
+            API URL <span className="text-destructive">*</span>
           </label>
           <input
             type="url"
             value={url}
             onChange={e => handleUrlChange(e.target.value)}
             placeholder="https://api.example.com/data"
-            className={`w-full text-xs px-2.5 py-2 rounded-xl border bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400 ${
-              urlError ? 'border-red-400' : 'border-border/60'
+            className={`w-full text-xs px-2.5 py-2 rounded-xl border bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-primary ${
+              urlError ? 'border-destructive' : 'border-border/60'
             }`}
           />
           {urlError && (
-            <p className="text-[10px] text-red-500 mt-0.5">{urlError}</p>
+            <p className="text-[10px] text-destructive mt-0.5">{urlError}</p>
           )}
         </div>
 
@@ -337,7 +337,7 @@ export default function ExternalDataSourcePanel({
           <select
             value={authMethod}
             onChange={e => setAuthMethod(e.target.value as AuthMethod)}
-            className="w-full text-xs px-2.5 py-2 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400"
+            className="w-full text-xs px-2.5 py-2 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-primary"
           >
             {(Object.keys(AUTH_METHOD_LABELS) as AuthMethod[]).map(method => (
               <option key={method} value={method}>
@@ -355,7 +355,7 @@ export default function ExternalDataSourcePanel({
               {isEditMode && (
                 <span className="font-normal text-muted-foreground/70">(leave blank to keep existing)</span>
               )}
-              {!isEditMode && <span className="text-red-500">*</span>}
+              {!isEditMode && <span className="text-destructive">*</span>}
             </label>
             <input
               ref={credentialRef}
@@ -367,12 +367,12 @@ export default function ExternalDataSourcePanel({
               }}
               placeholder={isEditMode ? '••••••••' : 'Enter credential'}
               autoComplete="new-password"
-              className={`w-full text-xs px-2.5 py-2 rounded-xl border bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400 ${
-                credentialError ? 'border-red-400' : 'border-border/60'
+              className={`w-full text-xs px-2.5 py-2 rounded-xl border bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-primary ${
+                credentialError ? 'border-destructive' : 'border-border/60'
               }`}
             />
             {credentialError && (
-              <p className="text-[10px] text-red-500 mt-0.5">{credentialError}</p>
+              <p className="text-[10px] text-destructive mt-0.5">{credentialError}</p>
             )}
           </div>
         )}
@@ -388,7 +388,7 @@ export default function ExternalDataSourcePanel({
               value={headerName}
               onChange={e => setHeaderName(e.target.value)}
               placeholder="X-API-Key"
-              className="w-full text-xs px-2.5 py-2 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400"
+              className="w-full text-xs px-2.5 py-2 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
         )}
@@ -404,7 +404,7 @@ export default function ExternalDataSourcePanel({
               value={queryParam}
               onChange={e => setQueryParam(e.target.value)}
               placeholder="api_key"
-              className="w-full text-xs px-2.5 py-2 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400"
+              className="w-full text-xs px-2.5 py-2 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
         )}
@@ -420,12 +420,12 @@ export default function ExternalDataSourcePanel({
             min={1}
             max={1440}
             onChange={e => handleTtlChange(e.target.value)}
-            className={`w-full text-xs px-2.5 py-2 rounded-xl border bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400 ${
-              ttlError ? 'border-red-400' : 'border-border/60'
+            className={`w-full text-xs px-2.5 py-2 rounded-xl border bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-primary ${
+              ttlError ? 'border-destructive' : 'border-border/60'
             }`}
           />
           {ttlError ? (
-            <p className="text-[10px] text-red-500 mt-0.5">{ttlError}</p>
+            <p className="text-[10px] text-destructive mt-0.5">{ttlError}</p>
           ) : (
             <p className="text-[10px] text-muted-foreground/60 mt-0.5">
               1–1440 minutes · currently {ttlMinutes * 60} seconds
@@ -435,7 +435,7 @@ export default function ExternalDataSourcePanel({
 
         {/* Server-side error */}
         {serverError && (
-          <div className="px-2.5 py-2 rounded-lg bg-red-50 border border-red-200 text-[11px] text-red-600">
+          <div className="px-2.5 py-2 rounded-lg bg-destructive-subtle border border-destructive/30 text-[11px] text-destructive">
             {serverError}
           </div>
         )}
@@ -446,7 +446,7 @@ export default function ExternalDataSourcePanel({
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="flex-1 text-xs font-semibold px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 text-xs font-semibold px-3 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? 'Saving…' : isEditMode ? 'Update Source' : 'Save Source'}
           </button>
@@ -456,7 +456,7 @@ export default function ExternalDataSourcePanel({
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={isDeleting}
-              className="text-xs font-semibold px-3 py-2 rounded-xl border border-red-300 text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+              className="text-xs font-semibold px-3 py-2 rounded-xl border border-destructive/30 text-destructive hover:bg-destructive-subtle transition-colors disabled:opacity-50"
             >
               Delete
             </button>
@@ -465,8 +465,8 @@ export default function ExternalDataSourcePanel({
 
         {/* Delete confirmation */}
         {showDeleteConfirm && (
-          <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 space-y-2">
-            <p className="text-[11px] text-red-700 font-medium">
+          <div className="p-2.5 rounded-xl bg-destructive-subtle border border-destructive/30 space-y-2">
+            <p className="text-[11px] text-destructive font-medium">
               Delete this external source? This also removes all field mappings and health records for this section.
             </p>
             <div className="flex gap-2">
@@ -474,7 +474,7 @@ export default function ExternalDataSourcePanel({
                 type="button"
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="flex-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-50"
+                className="flex-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-destructive hover:bg-destructive/90 text-white transition-colors disabled:opacity-50"
               >
                 {isDeleting ? 'Deleting…' : 'Yes, delete'}
               </button>

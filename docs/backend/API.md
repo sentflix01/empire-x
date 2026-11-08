@@ -114,9 +114,14 @@ Get current user. Requires auth.
   "full_name": "Abebe Kebede",
   "role": "user",
   "is_verified": true,
-  "created_at": "2026-01-01T00:00:00Z"
+  "created_at": "2026-01-01T00:00:00Z",
+  "has_wallet_balance": false
 }
 ```
+
+`has_wallet_balance` is `true` while the person still has an old wallet balance to
+withdraw; the app shows Wallet in its menus only then (audit F-047). The wallet no
+longer accepts money.
 
 ---
 
@@ -288,17 +293,20 @@ products: `409 { error: "barcode_exists", existing_product_id }`.
 
 **Selling business.** `business_id` and `showroom_id` are optional and must belong
 to the caller (`403` otherwise). With neither, the product is attached to the
-seller's business when they own exactly one. A seller with several businesses
-should send `business_id`; without it the product has no business and can't be
-ordered.
+seller's business when they own exactly one. A product must end up with a
+business, or no one but its seller could see it (audit F-033): otherwise the API
+answers `422 { code: "BUSINESS_REQUIRED", reason }` and creates nothing, with
+`reason` `no_business` (create a business first) or `choose_business` (several
+businesses: send `business_id`). Admins follow the same rule. `POST
+/api/products/scan-batch` applies it to new items too.
 
 **201** returns the product plus:
 
 | Field | Meaning |
 |---|---|
-| `selling_business_id` | The business buyers pay (own business, then the showroom's, then the seller's only business), or `null`. |
+| `selling_business_id` | The business buyers pay (own business, then the showroom's, then the seller's only business). |
 | `payment_ready` | `true` when buyers can order it now. |
-| `checkout_blocker` | Why not, when `payment_ready` is `false`: `no_business`, `no_plan` (the business has no active paid plan, so its products are hidden from buyers) or `no_payment_method` (no active payment account). |
+| `checkout_blocker` | Why not, when `payment_ready` is `false`: `no_plan` (the business has no active paid plan, so its products are hidden from buyers) or `no_payment_method` (no active payment account). |
 
 ### PUT /api/products/:id
 Update product. Requires auth (must be seller or admin). Same barcode rules as create.

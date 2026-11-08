@@ -10,10 +10,10 @@ type OrderStatus = 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
 
 /** Dark-mode–safe status classes using Tailwind tokens only (no hex). */
 const STATUS_CLASSES: Record<OrderStatus, string> = {
-  confirmed: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
-  delivered: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
-  shipped:   'bg-blue-100  text-blue-700  dark:bg-blue-900/40  dark:text-blue-300',
-  cancelled: 'bg-red-100   text-red-700   dark:bg-red-900/40   dark:text-red-300',
+  confirmed: 'bg-success-subtle text-success',
+  delivered: 'bg-success-subtle text-success',
+  shipped:   'bg-primary-subtle  text-primary  ',
+  cancelled: 'bg-destructive-subtle   text-destructive    ',
 };
 const DEFAULT_STATUS_CLASS = 'bg-secondary text-muted-foreground';
 

@@ -89,7 +89,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
     setPurchaseItem(site ? product : { ...product, product_type: "product" });
   };
 
-  if (loading) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
 
   return (
     <div data-page-guide="profile-business-tab" className="space-y-0">
@@ -193,7 +193,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
 
       {/* Owner: Analytics Dashboard */}
       {isOwner && (
-        <div className="mt-4 bg-gradient-to-r from-amber-500 to-amber-600 rounded-2xl p-5 text-white flex items-center justify-between">
+        <div className="mt-4 bg-primary rounded-2xl p-5 text-white flex items-center justify-between">
           <div>
             <h3 className="font-display text-lg font-bold">Business Analytics</h3>
             <p className="text-sm text-white/80 mt-0.5">Track sales, views & engagement</p>
@@ -204,11 +204,11 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
 
       {/* Owner: Add Product CTA */}
       {isOwner && products.length === 0 && (
-        <div className="mt-4 bg-amber-50 rounded-2xl border border-amber-200 p-5 text-center">
-          <ShoppingBag className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+        <div className="mt-4 bg-primary-subtle rounded-2xl border border-primary/30 p-5 text-center">
+          <ShoppingBag className="w-8 h-8 text-primary mx-auto mb-2" />
           <h3 className="font-semibold text-sm">Add products to your business</h3>
           <p className="text-xs text-muted-foreground mt-1 mb-3">Start selling directly from your mini-website</p>
-          <Link href="/products/create"><Button size="sm" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600"><Plus className="w-3 h-3 mr-1" /> Add Product</Button></Link>
+          <Link href="/products/create"><Button size="sm" className="rounded-full bg-primary"><Plus className="w-3 h-3 mr-1" /> Add Product</Button></Link>
         </div>
       )}
 
@@ -224,7 +224,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
                   <p className="text-xs text-muted-foreground">{o.buyer_name} • {o.quantity}x</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-amber-600">{o.total_price?.toLocaleString()} {o.currency}</p>
+                  <p className="text-sm font-bold text-primary">{o.total_price?.toLocaleString()} {o.currency}</p>
                   <Badge variant="outline" className="text-[10px] mt-0.5">{o.status}</Badge>
                 </div>
               </div>

@@ -203,7 +203,7 @@ export default function VerificationRequest() {
     return (
       <div className="bg-card rounded-2xl border border-border/50 p-4">
         <div className="flex items-center gap-2 mb-1">
-          <ShieldCheck className="w-4 h-4 text-blue-500" />
+          <ShieldCheck className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold">Verified Account</span>
           <VerifiedBadge type={status.verification_type as any} size="sm" />
         </div>
@@ -217,9 +217,9 @@ export default function VerificationRequest() {
   // ── Pending request ───────────────────────────────────────────────────────
   if (status?.request?.status === 'pending') {
     return (
-      <div className="bg-card rounded-2xl border border-amber-200/60 p-4">
+      <div className="bg-card rounded-2xl border border-primary/30 p-4">
         <div className="flex items-center gap-2 mb-1">
-          <Clock className="w-4 h-4 text-amber-500" />
+          <Clock className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold">Verification Pending</span>
         </div>
         <p className="text-xs text-muted-foreground">
@@ -236,7 +236,7 @@ export default function VerificationRequest() {
     <div className="bg-card rounded-2xl border border-border/50 p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-amber-500" />
+          <ShieldCheck className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold">
             {isRejected ? 'Reapply for Verification' : 'Get Verified'}
           </span>
@@ -244,7 +244,7 @@ export default function VerificationRequest() {
         {!showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="text-xs font-semibold text-amber-600 hover:underline"
+            className="text-xs font-semibold text-primary hover:underline"
           >
             {isRejected ? 'Resubmit' : 'Apply'}
           </button>
@@ -252,11 +252,11 @@ export default function VerificationRequest() {
       </div>
 
       {isRejected && status?.request?.admin_note && !showForm && (
-        <div className="mb-3 flex items-start gap-2 bg-red-50 border border-red-200/60 rounded-xl px-3 py-2">
-          <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+        <div className="mb-3 flex items-start gap-2 bg-destructive-subtle border border-destructive/30 rounded-xl px-3 py-2">
+          <XCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs font-medium text-red-700">Previous request was rejected</p>
-            <p className="text-xs text-red-600 mt-0.5">{status.request.admin_note}</p>
+            <p className="text-xs font-medium text-destructive">Previous request was rejected</p>
+            <p className="text-xs text-destructive mt-0.5">{status.request.admin_note}</p>
           </div>
         </div>
       )}
@@ -282,7 +282,7 @@ export default function VerificationRequest() {
                   onClick={() => setVerType(t)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all capitalize ${
                     verType === t
-                      ? 'bg-amber-500 text-white border-amber-500'
+                      ? 'bg-primary text-white border-primary'
                       : 'border-border/50 text-muted-foreground hover:bg-secondary'
                   }`}
                 >
@@ -329,7 +329,7 @@ export default function VerificationRequest() {
                       <button
                         onClick={capturePhoto}
                         disabled={uploadingType === 'selfie'}
-                        className="flex-1 bg-white text-slate-900 font-semibold text-xs py-2 rounded-full hover:bg-slate-100 transition-colors"
+                        className="flex-1 bg-white text-foreground font-semibold text-xs py-2 rounded-full hover:bg-secondary transition-colors"
                       >
                         {uploadingType === 'selfie' ? 'Uploading...' : '📸 Capture'}
                       </button>
@@ -344,9 +344,9 @@ export default function VerificationRequest() {
                 )}
 
                 {cameraError && (
-                  <div className="flex items-start gap-2 bg-amber-50 border border-amber-200/60 rounded-xl px-3 py-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-700">{cameraError}</p>
+                  <div className="flex items-start gap-2 bg-warning-subtle border border-rating/60 rounded-xl px-3 py-2">
+                    <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+                    <p className="text-xs text-primary">{cameraError}</p>
                   </div>
                 )}
 
@@ -404,7 +404,7 @@ export default function VerificationRequest() {
             <button
               onClick={handleSubmit}
               disabled={submitting || !selfieRef || !idDocRef}
-              className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
+              className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
             >
               {submitting ? 'Submitting...' : 'Submit for Review'}
             </button>

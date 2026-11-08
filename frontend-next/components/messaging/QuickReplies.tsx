@@ -65,7 +65,7 @@ export default function QuickReplies({ businessId, onPick }: { businessId: strin
 
   return (
     <div className="flex items-center gap-2 overflow-x-auto border-b border-border/20 px-3 py-2 scrollbar-thin" role="group" aria-label="Quick replies">
-      <Zap className="h-4 w-4 shrink-0 text-amber-500" aria-hidden="true" />
+      <Zap className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
       {replies.map((text) => (
         <button key={text} type="button" onClick={() => onPick(text)}
           className="min-h-8 max-w-[14rem] shrink-0 truncate rounded-full border border-border bg-background px-3 text-xs hover:bg-secondary">{text}</button>

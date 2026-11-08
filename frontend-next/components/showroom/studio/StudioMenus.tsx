@@ -126,15 +126,15 @@ export function MoreMenu({ businessControls, onLoad, onClear, onFullPreview, onF
         <button type="button" className={item} onClick={run(onLoad)}><FolderOpen className="h-4 w-4" aria-hidden="true" />Load saved draft</button>
         <button type="button" className={item} onClick={run(onFullPreview)}><Expand className="h-4 w-4" aria-hidden="true" />Full-screen preview</button>
         {confirmClear ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm dark:border-red-500/30 dark:bg-red-500/10">
-            <p className="font-medium text-red-900 dark:text-red-100">Start over? Your words and photos here will be cleared.</p>
+          <div className="rounded-xl border border-destructive/30 bg-destructive-subtle p-3 text-sm">
+            <p className="font-medium text-destructive-subtle-foreground">Start over? Your words and photos here will be cleared.</p>
             <div className="mt-2 flex gap-2">
-              <button type="button" onClick={run(onClear)} className="min-h-10 flex-1 rounded-full bg-red-600 px-3 text-sm font-semibold text-white hover:bg-red-700">Clear</button>
+              <button type="button" onClick={run(onClear)} className="min-h-10 flex-1 rounded-full bg-destructive px-3 text-sm font-semibold text-white hover:bg-destructive/90">Clear</button>
               <button type="button" onClick={() => setConfirmClear(false)} className="min-h-10 flex-1 rounded-full border border-border bg-background px-3 text-sm">Keep</button>
             </div>
           </div>
         ) : (
-          <button type="button" className={`${item} text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10`} onClick={() => setConfirmClear(true)}>
+          <button type="button" className={`${item} text-destructive hover:bg-destructive-subtle`} onClick={() => setConfirmClear(true)}>
             <Trash2 className="h-4 w-4" aria-hidden="true" />Clear draft
           </button>
         )}

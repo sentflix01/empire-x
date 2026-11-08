@@ -72,7 +72,7 @@ function Showrooms() {
             <p className="text-sm text-muted-foreground">Explore mini-websites</p>
           </div>
           <Link href="/showroom/create">
-            <Button size="sm" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
+            <Button size="sm" className="rounded-full bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-1" /> Create
             </Button>
           </Link>
@@ -91,9 +91,9 @@ function Showrooms() {
               {mine.map((s: { id: string; title?: string }) => (
                 <div key={s.id} className="flex items-center justify-between gap-2 rounded-xl bg-secondary/40 px-3 py-2">
                   <span className="text-xs truncate flex-1">{s.title || s.id}</span>
-                  <Link href={`/showroom/create?edit=${s.id}`} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-600 hover:bg-amber-500/25">Edit</Link>
-                  <button onClick={() => deleteShowroom(s.id)} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20">Delete</button>
-                  <button onClick={() => setDoctorOpen(doctorOpen === s.id ? null : s.id)} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20">Health</button>
+                  <Link href={`/showroom/create?edit=${s.id}`} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-primary/15 text-primary hover:bg-primary/25">Edit</Link>
+                  <button onClick={() => deleteShowroom(s.id)} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20">Delete</button>
+                  <button onClick={() => setDoctorOpen(doctorOpen === s.id ? null : s.id)} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-success/10 text-success hover:bg-success/20">Health</button>
                 </div>
               ))}
               {mine.map((s: { id: string }) => doctorOpen === s.id ? (
@@ -104,7 +104,7 @@ function Showrooms() {
         )}
         <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
           {["All", ...Array.from(new Set(showrooms.map((s: { category?: string }) => s.category).filter(Boolean)))].map((c: string) => (
-            <button key={c} onClick={() => setCategory(c)} className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${category === c ? "bg-amber-500 text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"}`}>
+            <button key={c} onClick={() => setCategory(c)} className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${category === c ? "bg-primary text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"}`}>
               {c === t('common.all') ? t('common.all') : (CAT_LABELS[c] || c)}
             </button>
           ))}
@@ -125,7 +125,7 @@ function Showrooms() {
             {filtered.map(s => (
               <div key={s.id} className="relative group">
                 <Link href={`/showrooms/${s.id}`} className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-md transition-all block group">
-                  <div className="h-28 relative overflow-hidden bg-gradient-to-r from-amber-100 to-amber-50">
+                  <div className="h-28 relative overflow-hidden bg-primary-subtle">
                     {s.cover_image ? (
                       <SafeImage fill={false} width={800} height={600} loading="lazy"
                         src={s.cover_image}
@@ -135,7 +135,7 @@ function Showrooms() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <BrandLogo className="w-8 h-8 text-amber-400 group-hover:scale-110 transition-transform" />
+                        <BrandLogo className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" />
                       </div>
                     )}
                     {/* Category badge overlay */}

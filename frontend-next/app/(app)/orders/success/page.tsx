@@ -43,8 +43,8 @@ export default function OrderSuccessPage() {
   return (
     <div className="max-w-lg mx-auto px-4 py-12 text-center">
       {/* Success icon */}
-      <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-6">
-        <CheckCircle className="w-10 h-10 text-green-600" />
+      <div className="w-20 h-20 rounded-full bg-success-subtle flex items-center justify-center mx-auto mb-6">
+        <CheckCircle className="w-10 h-10 text-success" />
       </div>
 
       <h1 className="font-display text-3xl font-bold mb-2">Payment Confirmed!</h1>
@@ -54,11 +54,11 @@ export default function OrderSuccessPage() {
 
       {loading ? (
         <div className="flex justify-center py-6">
-          <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
       ) : error ? (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl p-4 mb-6">
-          <p className="text-sm text-amber-700 dark:text-amber-400">{error}</p>
+        <div className="bg-primary-subtle border border-primary/30 rounded-2xl p-4 mb-6">
+          <p className="text-sm text-primary">{error}</p>
         </div>
       ) : orders.length > 0 ? (
         <div className="bg-card rounded-2xl border border-border/50 p-5 mb-8 text-left space-y-3">
@@ -66,15 +66,15 @@ export default function OrderSuccessPage() {
           {orders.map(order => (
             <div key={order.id} className="flex items-start justify-between gap-3 py-2 border-b border-border/30 last:border-0">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center shrink-0">
-                  <Package className="w-4 h-4 text-amber-600" />
+                <div className="w-9 h-9 rounded-xl bg-primary-subtle flex items-center justify-center shrink-0">
+                  <Package className="w-4 h-4 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">{order.product_title}</p>
                   <p className="text-xs text-muted-foreground">Qty: {order.quantity}</p>
                 </div>
               </div>
-              <p className="text-sm font-bold text-amber-600 shrink-0">
+              <p className="text-sm font-bold text-primary shrink-0">
                 {Number(order.total_price).toLocaleString()} {order.currency || 'USD'}
               </p>
             </div>
@@ -82,7 +82,7 @@ export default function OrderSuccessPage() {
           {orders.length > 1 && (
             <div className="flex justify-between pt-1 font-bold text-base">
               <span>Total</span>
-              <span className="text-amber-600">
+              <span className="text-primary">
                 {orders.reduce((s, o) => s + Number(o.total_price), 0).toLocaleString()} {orders[0]?.currency || 'USD'}
               </span>
             </div>
@@ -95,15 +95,15 @@ export default function OrderSuccessPage() {
         <h3 className="font-semibold text-sm mb-3">What happens next?</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li className="flex items-start gap-2">
-            <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+            <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
             The seller has been notified of your order and payment.
           </li>
           <li className="flex items-start gap-2">
-            <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+            <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
             They will contact you to arrange delivery.
           </li>
           <li className="flex items-start gap-2">
-            <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+            <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
             Track your order status on the <strong>Orders</strong> page.
           </li>
         </ul>
@@ -112,7 +112,7 @@ export default function OrderSuccessPage() {
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3">
         <Link href="/orders" className="flex-1">
-          <Button className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 font-semibold">
+          <Button className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 font-semibold">
             <Package className="w-4 h-4 mr-2" />
             View My Orders <ArrowRight className="w-4 h-4 ml-2" />
           </Button>

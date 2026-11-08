@@ -209,11 +209,22 @@ function verifyAccessToken(
   return payload;
 }
 
+/**
+ * Auth failures use the documented error shape (audit F-007):
+ * { error, code, request_id }. The message text is unchanged.
+ */
+function authError(res: Response, status: 401 | 403, code: string, message: string): void {
+  const body: Record<string, unknown> = { error: message, code };
+  const requestId = (res.req as Request & { requestId?: string } | undefined)?.requestId;
+  if (requestId) body.request_id = requestId;
+  res.status(status).json(body);
+}
+
 export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const header = req.headers.authorization;
     if (!header?.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'Authentication required' });
+      authError(res, 401, 'UNAUTHORIZED', 'Authentication required');
       return;
     }
 
@@ -221,17 +232,17 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     const isDemo = payload.demo === true || Boolean(req.demoSession);
 
     if (!isDemo && await isTokenRevoked(payload.jti, payload.sub, payload.iat)) {
-      res.status(401).json({ error: 'Token has been revoked' });
+      authError(res, 401, 'TOKEN_REVOKED', 'Token has been revoked');
       return;
     }
 
     const user = await getCachedUser(payload.sub as string, isDemo);
     if (!user) {
-      res.status(401).json({ error: 'User not found' });
+      authError(res, 401, 'USER_NOT_FOUND', 'User not found');
       return;
     }
     if (user.is_banned) {
-      res.status(403).json({ error: 'Your account has been suspended. Contact support.' });
+      authError(res, 403, 'ACCOUNT_SUSPENDED', 'Your account has been suspended. Contact support.');
       return;
     }
 
@@ -240,10 +251,10 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     else next();
   } catch (err) {
     if ((err as Error).name === 'TokenExpiredError') {
-      res.status(401).json({ error: 'Token expired' });
+      authError(res, 401, 'TOKEN_EXPIRED', 'Token expired');
       return;
     }
-    res.status(401).json({ error: 'Invalid token' });
+    authError(res, 401, 'INVALID_TOKEN', 'Invalid token');
   }
 }
 
@@ -281,12 +292,12 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   if (!req.user || req.user.role !== 'admin') {
-    res.status(403).json({ error: 'Admin access required' });
+    authError(res, 403, 'ADMIN_REQUIRED', 'Admin access required');
     return;
   }
   // Admins must use two-factor sign-in (audit F-017); they set it up in Settings.
   if (adminMfaRequired() && !req.user.mfa_enabled) {
-    res.status(403).json({ error: 'Turn on two-factor sign-in in Settings to use admin tools.', code: 'MFA_SETUP_REQUIRED' });
+    authError(res, 403, 'MFA_SETUP_REQUIRED', 'Turn on two-factor sign-in in Settings to use admin tools.');
     return;
   }
   next();

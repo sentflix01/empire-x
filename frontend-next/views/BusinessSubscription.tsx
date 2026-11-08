@@ -107,13 +107,13 @@ function UsageBar({ label, used, max, icon: Icon }: { label: string; used: numbe
       {max !== Infinity && (
         <div className="h-2 rounded-full bg-secondary overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${isHigh ? 'bg-red-500' : pct >= 60 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+            className={`h-full rounded-full transition-all ${isHigh ? 'bg-destructive' : pct >= 60 ? 'bg-primary' : 'bg-success'}`}
             style={{ width: `${pct}%` }}
           />
         </div>
       )}
       {isHigh && max !== Infinity && (
-        <p className="text-xs text-red-500 flex items-center gap-1">
+        <p className="text-xs text-destructive flex items-center gap-1">
           <AlertTriangle className="w-3 h-3" /> {Math.round(pct)}% used — consider upgrading
         </p>
       )}
@@ -223,7 +223,7 @@ function BusinessSubscription() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <Loader2 className="w-7 h-7 animate-spin text-amber-500" />
+      <Loader2 className="w-7 h-7 animate-spin text-primary" />
     </div>
   );
 
@@ -239,7 +239,7 @@ function BusinessSubscription() {
       </div>
 
       {requiredTier && (
-        <div role="status" className="rounded-xl border border-amber-400/50 bg-amber-400/10 p-4 text-sm">
+        <div role="status" className="rounded-xl border border-primary/50 bg-primary/10 p-4 text-sm">
           <p className="font-semibold">Your selected website sections require the {requiredTierLabel} plan.</p>
           <p className="mt-1 text-muted-foreground">
             {requiredPlan ? `${formatMonthlyPrice(requiredPlan.prices[selectedCurrency], selectedCurrency)} per month. ` : ''}
@@ -271,7 +271,7 @@ function BusinessSubscription() {
       )}
 
       {searchParams.get('upgraded') === '1' && searchParams.get('draftId') && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-success/30 bg-success/5 p-4">
           <p className="text-sm">Your subscription is confirmed. Continue to your saved website draft and publish it.</p>
           <Button onClick={() => router.push(`/showroom/create?edit=${encodeURIComponent(searchParams.get('draftId')!)}`)}>Continue to website</Button>
         </div>
@@ -296,7 +296,7 @@ function BusinessSubscription() {
             )}
           </div>
           {sub?.cancel_at_period_end && (
-            <Badge variant="outline" className="text-orange-600 border-orange-300">
+            <Badge variant="outline" className="text-primary border-primary/30">
               Cancels {sub.current_period_end ? new Date(sub.current_period_end).toLocaleDateString() : 'soon'}
             </Badge>
           )}
@@ -307,7 +307,7 @@ function BusinessSubscription() {
 
         {/* Storage warning */}
         {storageGB / limits.maxStorageGB >= 0.9 && limits.maxStorageGB !== Infinity && (
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive-subtle border border-destructive/30 text-destructive text-sm">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>Storage at {Math.round((storageGB / limits.maxStorageGB) * 100)}% — upgrade to avoid interruption</span>
           </div>
@@ -367,7 +367,7 @@ function BusinessSubscription() {
       <div className="space-y-3">
         <h2 className="text-sm font-semibold">Choose a plan</h2>
         {PAID_PLAN_KEYS.some(k => plans?.[k]?.testMode?.ETB || plans?.[k]?.testMode?.USD) && (
-          <p role="note" className="rounded-xl border border-sky-300/60 bg-sky-50 px-3 py-2 text-sm text-sky-950 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-100">
+          <p role="note" className="rounded-xl border border-primary/30 bg-primary-subtle px-3 py-2 text-sm text-primary-subtle-foreground">
             <strong>Test mode:</strong> payments use test cards and test phone numbers. No real money moves.
           </p>
         )}
@@ -395,9 +395,9 @@ function BusinessSubscription() {
           const prepaid = selectedCurrency === 'ETB' && plan.providers?.ETB === 'chapa';
           // A prepaid plan is renewed by paying for it again; a free period is turned into a paid one the same way.
           const canPay = !selected || (prepaid && (sub?.billing_provider === 'chapa' || sub?.status === 'trialing'));
-          const accent = index === 0 ? 'border-slate-300/50' : index === 1 ? 'border-amber-400/50' : 'border-violet-400/50';
+          const accent = index === 0 ? 'border-border/50' : index === 1 ? 'border-primary/50' : 'border-brand-secondary/50';
           return (
-            <div key={planKey} className={`bg-card border rounded-2xl p-5 ${selected ? `ring-1 ring-primary/20 ${accent}` : requiredTier === plan.tier ? `ring-1 ring-amber-400/40 ${accent}` : 'border-border/50'}`}>
+            <div key={planKey} className={`bg-card border rounded-2xl p-5 ${selected ? `ring-1 ring-primary/20 ${accent}` : requiredTier === plan.tier ? `ring-1 ring-primary/40 ${accent}` : 'border-border/50'}`}>
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                   <p className="font-semibold">{plan.label}</p>
@@ -406,7 +406,7 @@ function BusinessSubscription() {
                 {selected ? <Badge>Current plan</Badge> : requiredTier === plan.tier ? <Badge variant="outline">Required by your sections</Badge> : null}
                 {canPay && (
                   <Button size="sm" onClick={() => handleUpgrade(planKey)} disabled={!!upgrading || !selectedBusinessId || !currencyAvailable}
-                    className={index === 2 ? 'bg-violet-600 hover:bg-violet-700 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white'}>
+                    className={index === 2 ? 'bg-brand-secondary hover:bg-brand-secondary/90 text-white' : 'bg-primary hover:bg-primary/90 text-white'}>
                     {upgrading === planKey ? <Loader2 className="w-4 h-4 animate-spin" /> : selected ? 'Renew' : 'Choose plan'}
                   </Button>
                 )}
@@ -426,13 +426,13 @@ function BusinessSubscription() {
                 </p>
               )}
               <ul className="space-y-1.5 text-sm text-muted-foreground">
-                {plan.features.map(feature => <li key={feature} className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />{feature}</li>)}
+                {plan.features.map(feature => <li key={feature} className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />{feature}</li>)}
               </ul>
             </div>
           );
         })}
-        <div className="bg-card border border-violet-400/40 rounded-2xl p-5">
-          <div className="flex items-center gap-2"><BrandLogo className="w-4 h-4 text-violet-500" /><p className="font-semibold">Enterprise</p></div>
+        <div className="bg-card border border-brand-secondary/40 rounded-2xl p-5">
+          <div className="flex items-center gap-2"><BrandLogo className="w-4 h-4 text-brand-secondary" /><p className="font-semibold">Enterprise</p></div>
           <p className="text-sm text-muted-foreground mt-1">Custom pricing in ETB or USD, with tailored plan and service terms.</p>
           <a href={mailto("Nodbusiness Enterprise plan")}
             className="inline-flex mt-3 items-center justify-center rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-secondary">

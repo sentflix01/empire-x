@@ -1,4 +1,5 @@
 'use client'
+import { token } from '@/lib/colorTokens';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { entities } from '@/api/entities';
 import client from '@/api/client';
@@ -70,8 +71,8 @@ function HexStory({ group, onClick, isAdd = false, uploading = false }: HexStory
           style={{
             width: 70, height: 76,
             background: isAdd
-              ? 'linear-gradient(135deg,#f59e0b,#f97316)'
-              : 'linear-gradient(135deg, #2563eb, #7c3aed)',
+              ? token.muted
+              : token.primary,
           }}
         >
           <div
@@ -80,10 +81,10 @@ function HexStory({ group, onClick, isAdd = false, uploading = false }: HexStory
           >
             <div className="relative clip-hexagon overflow-hidden" style={{ width: 60, height: 66 }}>
               {isAdd ? (
-                <div className="w-full h-full bg-amber-50 flex items-center justify-center">
+                <div className="w-full h-full bg-primary-subtle flex items-center justify-center">
                   {uploading
-                    ? <div className="w-5 h-5 border-2 border-amber-400/40 border-t-amber-500 rounded-full animate-spin" />
-                    : <Plus className="w-6 h-6 text-amber-500" />}
+                    ? <div className="w-5 h-5 border-2 border-primary/40 border-t-primary rounded-full animate-spin" />
+                    : <Plus className="w-6 h-6 text-primary" />}
                 </div>
               ) : thumbUrl && !thumbnailFailed ? (
                 <SafeImage src={thumbUrl} alt={name} sizes="64px" className="absolute inset-0 h-full w-full object-cover" onError={() => setThumbnailFailed(true)}
@@ -113,7 +114,7 @@ function HexStory({ group, onClick, isAdd = false, uploading = false }: HexStory
 }
 
 function StoryInitial({ name }: { name: string }) {
-  return <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg" style={{ background: 'linear-gradient(135deg,#f97316,#ec4899)' }}>{name.charAt(0).toUpperCase()}</div>;
+  return <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg" style={{ background: token.primary }}>{name.charAt(0).toUpperCase()}</div>;
 }
 
 function Stories() {
@@ -324,7 +325,7 @@ function Stories() {
 
             {/* User info + expiry */}
             <div className="absolute top-8 left-4 right-4 flex items-center gap-2 z-10 pt-3">
-              <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center text-white text-sm font-bold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold shrink-0">
                 {viewing.group.display_name?.charAt(0) ?? '?'}
               </div>
               <span className="text-white text-sm font-medium flex-1">{viewing.group.display_name}</span>
@@ -362,7 +363,7 @@ function Stories() {
                 onError={() => setMediaFailed(true)}
               />
             ) : (
-              <div className="w-full h-full rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-indigo-700 flex flex-col items-center justify-center gap-4">
+              <div className="w-full h-full rounded-2xl bg-primary flex flex-col items-center justify-center gap-4">
                 {/* Large branded avatar for text-only stories */}
                 <div className="w-24 h-24 rounded-full bg-white/20 border-4 border-white/40 flex items-center justify-center shadow-2xl">
                   <span className="text-white text-4xl font-bold">
@@ -392,7 +393,7 @@ function Stories() {
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <button type="button" onClick={toggleReaction} className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors ${active.reacted ? 'bg-rose-500 text-white' : 'bg-black/45 text-white hover:bg-black/65'}`}>
+                <button type="button" onClick={toggleReaction} className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors ${active.reacted ? 'bg-destructive text-white' : 'bg-black/45 text-white hover:bg-black/65'}`}>
                   <Heart className={`h-4 w-4 ${active.reacted ? 'fill-current' : ''}`} />{active.reaction_count ?? 0}
                 </button>
                 <button type="button" onClick={openStoryComments} className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors ${storyCommentsOpen ? 'bg-primary text-white' : 'bg-black/45 text-white hover:bg-black/65'}`}>

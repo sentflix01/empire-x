@@ -5,7 +5,9 @@
  * <script> or event handler (as in F-057) cannot run. proxy.ts creates the
  * nonce, sends this policy, and Next.js adds the nonce to its own scripts.
  * 'strict-dynamic' lets those scripts load further scripts (route chunks,
- * Google sign-in, Stripe); the host list is a fallback for older browsers.
+ * Google sign-in); the host list is a fallback for older browsers. Stripe is
+ * used only through redirects to its hosted checkout page, so its in-page
+ * script, API and frames are not allowed (audit F-052).
  */
 export interface CspOptions {
   nonce: string;
@@ -13,7 +15,7 @@ export interface CspOptions {
   apiHost: string;
 }
 
-const SCRIPT_HOSTS = 'https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com';
+const SCRIPT_HOSTS = 'https://accounts.google.com https://browser.sentry-cdn.com';
 
 export function buildCsp({ nonce, isDev, apiHost }: CspOptions): string {
   // https → wss (production), http → ws (local backends on any port).
@@ -27,9 +29,9 @@ export function buildCsp({ nonce, isDev, apiHost }: CspOptions): string {
     // sources that cannot be listed in advance. Images cannot run code.
     `img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3002`,
     `font-src 'self'`,
-    `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in`,
-    // Stripe Checkout/Elements + Google Sign-In; website Video (YouTube) and Map / Live location sections
-    `frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://maps.google.com https://www.openstreetmap.org`,
+    `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in`,
+    // Google Sign-In; website Video (YouTube) and Map / Live location sections
+    `frame-src https://accounts.google.com https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://maps.google.com https://www.openstreetmap.org`,
     `object-src 'none'`,
     `base-uri 'self'`,
     `form-action 'self'`,

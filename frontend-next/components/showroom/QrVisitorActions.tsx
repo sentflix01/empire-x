@@ -18,7 +18,7 @@ export default function QrVisitorActions() {
     <nav aria-label="Visitor" className="mx-auto mb-4 flex max-w-2xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <Link
         href="/landing"
-        className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+        className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-border bg-white px-6 text-sm font-semibold text-foreground transition hover:bg-secondary"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to Landing
       </Link>

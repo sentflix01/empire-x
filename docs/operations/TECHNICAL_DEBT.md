@@ -31,8 +31,8 @@
 ---
 
 ### TD-003: End-to-end test suite
-**Status:** Not started  
-**Problem:** Backend API E2E coverage exists (`backend/test/e2e.test.js`), but there are no browser E2E tests for critical frontend flows.  
+**Status:** Done (corrected 2026-11-07, audit F-008) — Playwright specs in `frontend-next/e2e/` run in the blocking "E2E — Chromium journeys" CI job against a real backend and Postgres (audit F-032).  
+**Problem:** Backend API E2E coverage exists (`backend/test/e2e.test.js`), but there were no browser E2E tests for critical frontend flows.  
 **Fix:** Add Playwright tests for: registration → OTP → onboarding → create post → add product → checkout → view order.  
 **Impact:** Prevents regressions on every deploy.
 
@@ -72,15 +72,16 @@
 ---
 
 ### TD-025: Frontend test suite full-run parallelism flakes
-**Status:** Known — workaround available  
-**Problem:** Running all 54 Vitest test files in parallel spawns ~54 workers simultaneously. Under constrained resources the transform step races and one or two files report a transform error that does not reproduce in isolation. Every test file passes when run alone.  
-**Fix:** Add `isolate: false` to `vitest.config.ts` to reuse workers across files (~178s faster per the Vitest output). Alternatively run CI with `--reporter=dot` and retry once on any transform failure.  
-**Impact:** Occasional false-red CI runs; no real test regressions.
+**Status:** Open — cause not found (re-checked 2026-11-06, audit F-053)  
+**Problem:** Now and then one test file fails in a full `vitest run` (two tests at once: `test/feed/PhotoViewer.test.tsx` PostCard tests in the audit, `test/showroom/sectionsLive.test.tsx` once on 2026-11-06) and passes when re-run. Only the test names were kept, not the error.  
+**Checked:** `vitest.config.mts` already limits workers (`maxWorkers: 2`). Eight full runs on 2026-11-06 (four alone, four with two suites at once) all passed. With Testing Library's wait limit cut to 60 ms every test still passed, so slow async waits are not the cause. Neither file uses lazy imports.  
+**Next time it fails:** keep the full error and stack from the CI log (Frontend unit tests job) and add it here before re-running. Do not add automatic retries: they would hide real failures.  
+**Impact:** Occasional false-red CI runs; no real test regressions found.
 
 ### TD-004: TypeScript migration (backend)
-**Status:** Not started  
+**Status:** Done (corrected 2026-11-07, audit F-008) — the backend is TypeScript and `tsc --noEmit` runs in CI. Remaining: `strict` is off (audit F-052); some migrations and tests are still JavaScript.  
 **File:** All `backend/` files  
-**Problem:** Backend is JavaScript — no type checking, autocomplete is limited, refactoring is risky.  
+**Problem:** Backend was JavaScript — no type checking, autocomplete is limited, refactoring is risky.  
 **Fix:** Rename `.js` to `.ts`, add `tsconfig.json`, fix type errors incrementally. Add Prisma for type-safe DB queries.  
 **Impact:** Developer experience, bug prevention at scale.
 

@@ -59,14 +59,14 @@ export default function OpsCopilot() {
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen((v) => !v); } }}
         className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors cursor-pointer"
       >
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-gradient-to-br from-violet-600 to-fuchsia-600 shrink-0">
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-brand-secondary shrink-0">
           <Bot className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold">Ops Copilot</p>
-            <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-mono bg-violet-500/10 text-violet-500 border-violet-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" /> live
+            <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-mono bg-brand-secondary/10 text-brand-secondary border-brand-secondary/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-secondary animate-pulse" /> live
             </span>
           </div>
           <p className="text-[10px] text-muted-foreground">Command the platform from chat — flags, errors, backups, board</p>
@@ -82,7 +82,7 @@ export default function OpsCopilot() {
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs whitespace-pre-wrap leading-relaxed ${
                   m.role === 'user'
-                    ? 'bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white rounded-br-md'
+                    ? 'bg-brand-secondary text-white rounded-br-md'
                     : 'bg-secondary/60 border border-border/40 rounded-bl-md'
                 }`}>
                   {m.action && m.role === 'assistant' && (
@@ -130,12 +130,12 @@ export default function OpsCopilot() {
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); } }}
               placeholder="Plan, Build, / for commands…"
               disabled={busy}
-              className="flex-1 text-xs px-3.5 py-2.5 rounded-xl border border-border/60 bg-background focus:outline-none focus:ring-1 focus:ring-violet-500/60 font-mono disabled:opacity-50"
+              className="flex-1 text-xs px-3.5 py-2.5 rounded-xl border border-border/60 bg-background focus:outline-none focus:ring-1 focus:ring-brand-secondary/60 font-mono disabled:opacity-50"
             />
             <button
               onClick={() => send(input)}
               disabled={busy || !input.trim()}
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white flex items-center justify-center hover:opacity-90 disabled:opacity-40 transition-opacity shrink-0"
+              className="w-9 h-9 rounded-xl bg-brand-secondary text-white flex items-center justify-center hover:opacity-90 disabled:opacity-40 transition-opacity shrink-0"
               title="Send"
             >
               <Send className="w-4 h-4" />

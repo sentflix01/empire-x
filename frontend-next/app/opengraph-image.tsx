@@ -7,6 +7,7 @@
  *
  * Output: 1200 × 630 px (standard OG card size)
  */
+import { HEX } from '@/lib/colorTokens';
 import { ImageResponse } from 'next/og';
 
 export const alt = "Nodbusiness — Africa's Superapp";
@@ -24,7 +25,7 @@ export default function Image() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 45%, #7c3aed 100%)',
+          background: HEX.primary,
           fontFamily: 'system-ui, -apple-system, sans-serif',
         }}
       >

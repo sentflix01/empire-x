@@ -74,14 +74,14 @@ function Bookmarks() {
   return (
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
-          <Bookmark className="w-6 h-6 text-amber-500"/>
+          <Bookmark className="w-6 h-6 text-primary"/>
           <h1 data-page-guide="bookmarks-header" className="font-display text-2xl font-bold">{t('bookmarks.title')}</h1>
         </div>
 
         <div data-page-guide="bookmarks-tabs" className="flex gap-1 overflow-x-auto pb-2 mb-4">
           {TABS.map(t=>(
             <button key={t.key} onClick={()=>setTab(t.key)}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${tab===t.key?"bg-amber-500 text-white":"bg-card border border-border/50 text-muted-foreground hover:bg-secondary"}`}>
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${tab===t.key?"bg-primary text-white":"bg-card border border-border/50 text-muted-foreground hover:bg-secondary"}`}>
               {t.icon && <t.icon className="w-3.5 h-3.5"/>}{t.label}
             </button>
           ))}
@@ -90,7 +90,7 @@ function Bookmarks() {
         {/* Price Alerts tab */}
         {tab === "alerts" && (
           alertsLoading ? (
-            <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"/></div>
+            <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin"/></div>
           ) : alerts.length === 0 ? (
             <div className="text-center py-16">
               <Bell className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3"/>
@@ -106,7 +106,7 @@ function Bookmarks() {
                   ? Math.round(((a.current_price - a.target_price) / a.current_price) * 100)
                   : 0;
                 return (
-                  <div key={a.product_id} className={`bg-card rounded-2xl border p-4 flex items-center gap-3 ${dropped ? "border-green-300 dark:border-green-700" : "border-border/50"}`}>
+                  <div key={a.product_id} className={`bg-card rounded-2xl border p-4 flex items-center gap-3 ${dropped ? "border-success/30" : "border-border/50"}`}>
                     {/* Thumbnail */}
                     <div className="w-14 h-14 rounded-xl bg-secondary/30 shrink-0 overflow-hidden relative">
                       {imgs[0]
@@ -117,16 +117,16 @@ function Bookmarks() {
                       <Link href={`/products/${a.product_id}`} className="text-sm font-semibold hover:underline line-clamp-1">{a.title}</Link>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         Current: <span className="font-medium text-foreground">{parseFloat(a.current_price).toLocaleString()} {a.currency}</span>
-                        {" · "}Target: <span className="font-medium text-amber-600">{parseFloat(a.target_price).toLocaleString()}</span>
+                        {" · "}Target: <span className="font-medium text-primary">{parseFloat(a.target_price).toLocaleString()}</span>
                       </p>
                       {dropped ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full mt-1">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-success bg-success-subtle px-2 py-0.5 rounded-full mt-1">
                           {t('bookmarks.priceDropped')}
                         </span>
                       ) : pct > 0 ? (
                         <span className="text-[10px] text-muted-foreground mt-0.5 block">{t('bookmarks.priceAboveTarget', { pct })}</span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full mt-1">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary bg-primary-subtle px-2 py-0.5 rounded-full mt-1">
                           {t('bookmarks.priceAtTarget')}
                         </span>
                       )}
@@ -145,7 +145,7 @@ function Bookmarks() {
         {/* Bookmarks tabs */}
         {tab !== "alerts" && (
           isHydrating ? (
-            <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"/></div>
+            <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin"/></div>
           ) : (storeError || (!user && authChecked)) && filtered.length === 0 ? (
             <ErrorState
               message={!user ? 'Sign in to see your bookmarks' : storeError}

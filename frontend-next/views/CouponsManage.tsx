@@ -98,7 +98,7 @@ function CouponsManage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Tag className="w-6 h-6 text-amber-500" />
+            <Tag className="w-6 h-6 text-primary" />
             <div>
               <h1 className="font-display text-2xl font-bold">Coupon Codes</h1>
               <p className="text-sm text-muted-foreground">Create discount codes for your customers</p>
@@ -107,7 +107,7 @@ function CouponsManage() {
           <Button
             onClick={() => setShowForm(!showForm)}
             size="sm"
-            className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+            className="rounded-full bg-primary hover:bg-primary/90"
           >
             <Plus className="w-4 h-4 mr-1" /> New Coupon
           </Button>
@@ -176,7 +176,7 @@ function CouponsManage() {
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={handleCreate} disabled={saving} className="flex-1 h-10 rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
+              <Button onClick={handleCreate} disabled={saving} className="flex-1 h-10 rounded-full bg-primary">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.create')}
               </Button>
               <Button variant="outline" onClick={() => setShowForm(false)} className="h-10 rounded-full">
@@ -189,7 +189,7 @@ function CouponsManage() {
         {/* Coupon List */}
         {loading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : coupons.length === 0 ? (
           <div className="text-center py-16 bg-card rounded-2xl border border-border/50">
@@ -209,11 +209,11 @@ function CouponsManage() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-mono font-bold text-lg tracking-widest text-amber-600">{c.code}</span>
+                        <span className="font-mono font-bold text-lg tracking-widest text-primary">{c.code}</span>
                         <button onClick={() => handleCopy(c.code)} className="p-1 rounded hover:bg-secondary transition-colors">
-                          {copied === c.code ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
+                          {copied === c.code ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
                         </button>
-                        {isInactive && <Badge variant="outline" className="text-xs text-red-500 border-red-200">{isExpired ? t('coupons.expired') : isExhausted ? "Used up" : t('common.inactive')}</Badge>}
+                        {isInactive && <Badge variant="outline" className="text-xs text-destructive border-destructive/30">{isExpired ? t('coupons.expired') : isExhausted ? "Used up" : t('common.inactive')}</Badge>}
                       </div>
                       <p className="text-sm font-semibold">
                         {c.discount_type === "percentage" ? `${c.discount_value}% off` : `${c.discount_value} ETB off`}
@@ -224,11 +224,11 @@ function CouponsManage() {
                         {c.expires_at && <span>Expires: {fromNow(c.expires_at)}</span>}
                       </div>
                     </div>
-                    <button onClick={() => handleDelete(c.id)} className="p-2 rounded-full hover:bg-red-50 hover:text-red-500 text-muted-foreground transition-colors ml-2">
+                    <button onClick={() => handleDelete(c.id)} className="p-2 rounded-full hover:bg-destructive-subtle hover:text-destructive text-muted-foreground transition-colors ml-2">
                       <Trash2 className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleToggle(c.id)}
-                      className={`p-2 rounded-full transition-colors ml-1 ${c.is_active ? 'text-green-600 hover:bg-green-50' : 'text-muted-foreground hover:bg-secondary'}`}
+                      className={`p-2 rounded-full transition-colors ml-1 ${c.is_active ? 'text-success hover:bg-success-subtle' : 'text-muted-foreground hover:bg-secondary'}`}
                       title={c.is_active ? 'Pause coupon' : 'Activate coupon'}>
                       {c.is_active
                         ? <ToggleRight className="w-5 h-5" />
