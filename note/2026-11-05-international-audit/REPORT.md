@@ -3,6 +3,8 @@
 **Audit period:** 2026-11-05 → 2026-11-06 · **Repository:** `sentflix01/empire-x` (branch `claude/charming-lamport-n3ppii`, base `b9877bd`)
 **Mode:** audit only; no product code was changed · **Findings:** 56 (machine-readable in `findings/`, table in `SUMMARY.md`)
 
+> **Update 2026-11-08:** the fixes are merged and deployed. Current status, the remaining launch conditions and production evidence are in [`CLOSEOUT.md`](CLOSEOUT.md). This report is kept as written on 2026-11-06.
+
 ---
 
 ## 1. Executive summary
