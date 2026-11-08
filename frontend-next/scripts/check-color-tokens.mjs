@@ -48,8 +48,8 @@ const HEX_EXEMPT = new Set([
   'app/global-error.tsx', 'app/opengraph-image.tsx', 'app/layout.tsx',
 ]);
 // Allowed anywhere: brand blue as the default business theme colour (stored
-// data), the logo's black ink, and white.
-const HEX_ALLOWED = new Set(['2563eb', '0a0a0a', 'ffffff', 'fff']);
+// data) and white. The logo is white on brand blue (HEX.primary).
+const HEX_ALLOWED = new Set(['2563eb', 'ffffff', 'fff']);
 const HEX = /(?<![\w&])#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g;
 
 const problems = [];

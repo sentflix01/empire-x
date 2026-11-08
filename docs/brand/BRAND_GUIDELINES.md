@@ -54,16 +54,16 @@
 
 ### 2.1 Logo
 
-| Variant | Usage | File |
+| Variant | Usage | File (`frontend-next/public/brand/`) |
 |---------|-------|------|
-| **Primary (Full)** | Website header, marketing, signage | `logo-full.svg` |
-| **Icon (Mark only)** | App icon, favicon, social avatar | `logo-icon.svg` |
-| **Wordmark** | Horizontal spaces, co-branding | `logo-wordmark.svg` |
-| **Monochrome** | Single-color printing, watermarks | `logo-mono.svg` |
+| **Icon** | App icon, favicon, avatar | `nodbusiness-icon.svg` (white mark on blue `#2563eb`) |
+| **Wordmark** | Website header, marketing | `nodbusiness-logo.svg` (blue globe, ink letters) |
+| **White wordmark** | Dark backgrounds | `nodbusiness-logo-white.svg` |
+| **Animated** | Landing hero, splash | `nodbusiness-intro-288.mp4` |
 
 **Clear Space:** Minimum `1x` icon height on all sides  
 **Minimum Size:** 24px height (digital), 15mm (print)  
-**Background:** Works on light, dark, and brand-color backgrounds
+**Background:** The icon carries its own blue background; use the wordmark on light backgrounds and the white wordmark on dark ones. Colours: `COLOR_SYSTEM.md`.
 
 ### 2.2 Color Palette
 

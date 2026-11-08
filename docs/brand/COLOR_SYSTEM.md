@@ -50,7 +50,7 @@ Every status colour has `-subtle` (tint background) and `-subtle-foreground`
 
 - **Business colours:** each business picks its own theme colour for its showroom and profile. Those stay the business's choice.
 - **Other brands:** Google sign-in, Telegram and WhatsApp buttons keep their required colours.
-- **The logo** is black and white.
+- **The logo** is white on brand blue (decided 2026-11-08): blue disc or tile, white globe ring, lines and boxes, blue slots. Raster icons are rebuilt from the SVG with `frontend-next/scripts/brand/render-icons.mjs`; the intro videos were recoloured with the ffmpeg mapping recorded in that script.
 
 ## How it was applied (2026-11-07)
 

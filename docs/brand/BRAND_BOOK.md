@@ -62,42 +62,42 @@ Enabling       — We give people tools, not limitations.
 ## 2. Logo System
 
 ### Primary Logo
-- Crown icon (👑) + wordmark "Nodbusiness"
-- Crown represents: excellence, achievement, ambition
+- Mark: a globe ringed by eight connected business "briefcase" nodes (businesses connected worldwide).
+- **Colours (2026-11-08, owner decision):** white mark on brand blue `#2563eb`: blue disc or tile, white ring, lines and boxes, blue slots in the boxes. On light backgrounds the wordmark's globe is drawn in blue and the letters stay ink `#0a0a0a`; on dark backgrounds use the white wordmark. See `COLOR_SYSTEM.md`.
 - File: `frontend-next/public/brand/nodbusiness-logo.svg`
 
 ### Logo Variations
 ```
-Primary:     Crown + wordmark (horizontal) — use for most contexts
-Stacked:     Crown above wordmark — use for square formats
-Icon only:   Crown alone — use for favicon, app icon, small spaces
-Wordmark:    Text only — use when crown would be too small to render
+Icon:        Mark on a blue tile/disc — favicon, app icon, avatar, small spaces
+Wordmark:    "N" + globe + "dbusiness" — headers, marketing
+White:       Wordmark for dark backgrounds
+Animated:    Intro video of the mark (landing hero, splash), same colours
 ```
 
 ### Logo Clear Space
-Minimum clear space around logo = height of the crown icon on all sides.
+Minimum clear space around logo = height of one briefcase node of the mark on all sides.
 Never place text, icons, or images inside the clear space.
 
 ### Logo Don'ts
 ```
 ❌ Rotate the logo
 ❌ Stretch or distort the logo
-❌ Change the logo colors
+❌ Change the logo colours (white on brand blue; see `COLOR_SYSTEM.md`)
 ❌ Add drop shadows or effects
 ❌ Place on busy photographic backgrounds without a solid overlay
 ❌ Use the logo smaller than 24px height (use icon only below this)
 ```
 
-### File Formats to Always Have Available
+### Logo files (all in `frontend-next/public/`)
 ```
-nodbusiness-logo.svg          ← Primary (scalable, use everywhere possible)
-nodbusiness-logo.png          ← For contexts that don't support SVG
-nodbusiness-logo-white.svg    ← For dark backgrounds
-nodbusiness-logo-black.svg    ← For light/neutral backgrounds
-nodbusiness-icon.svg          ← Crown only (favicon, app icon)
-nodbusiness-icon-192.png      ← PWA icon
-nodbusiness-icon-512.png      ← PWA icon large
+brand/nodbusiness-icon.svg            ← Icon (source for every raster below)
+brand/nodbusiness-logo.svg            ← Wordmark for light backgrounds (also _logo, _allcaps, _lowercase-o)
+brand/nodbusiness-logo-white.svg      ← Wordmark for dark backgrounds
+brand/nodbusiness-intro-288.mp4       ← Animated mark used by the app (nodbusiness-intro.mp4 is the 544 px master)
+icons/icon-192.png, icons/icon-512.png ← PWA icons (maskable)
+apple-touch-icon.png, ../app/favicon.ico
 ```
+Rebuild the PNG and ICO files with `node scripts/brand/render-icons.mjs` (in `frontend-next/`) after any change to the icon SVG.
 
 ---
 
@@ -174,7 +174,7 @@ Why Lucide:
 | Hero/empty state icons | 48px | `w-12 h-12` |
 
 ### Custom Icons
-For brand-specific icons (crown, nodbusiness logo mark), use the SVG files
+For brand-specific icons (the nodbusiness logo mark), use the SVG files
 in `frontend-next/public/brand/`.
 
 ---

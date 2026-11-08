@@ -1,4 +1,5 @@
 'use client'
+import { HEX } from '@/lib/colorTokens';
 import React from "react";
 
 interface AuthLayoutProps {
@@ -27,7 +28,7 @@ export default function AuthLayout({ title, subtitle, footer, children, icon: Ic
                 <div
                   className="relative w-16 h-16 rounded-full overflow-hidden"
                   style={{
-                    backgroundColor: '#0a0a0a',
+                    backgroundColor: HEX.primary,
                     backgroundImage: 'url(/brand/nodbusiness-icon.svg)',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',

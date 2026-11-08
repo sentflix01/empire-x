@@ -1,3 +1,4 @@
+import { HEX } from '@/lib/colorTokens';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -121,7 +122,7 @@ export default function LandingPage() {
           <div
             className="relative mb-3 mx-auto w-16 h-16 sm:w-24 sm:h-24 lg:w-36 lg:h-36 rounded-full overflow-hidden"
             style={{
-              backgroundColor: '#0a0a0a',
+              backgroundColor: HEX.primary,
               backgroundImage: 'url(/brand/nodbusiness-icon.svg)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
