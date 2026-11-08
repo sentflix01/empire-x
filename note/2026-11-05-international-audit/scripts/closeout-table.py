@@ -31,7 +31,7 @@ OWNER = {
 # Not fixed (or only partly).
 OPEN = {
     'F-030': 'Open — owner: hosting plan and external uptime alert (API answered today: see production checks)',
-    'F-052': 'Partly — unused packages removed; TypeScript strict mode not yet on',
+    'F-052': 'Partly — unused packages removed; strict TypeScript on for the backend and frontend lib/ and hooks/; components/ and views/ to follow',
     'F-053': 'Open — cause not found; capture the full error on the next CI failure (TD-025)',
     'F-055': 'Partly — statement and licence done; Refund Policy (owner/counsel), OpenAPI file and docs freshness check open',
     'F-029': 'Partly verified — API and frontend checked on production; TLS and email DNS not checked from here',

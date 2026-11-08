@@ -79,7 +79,7 @@
 **Impact:** Occasional false-red CI runs; no real test regressions found.
 
 ### TD-004: TypeScript migration (backend)
-**Status:** Done (corrected 2026-11-07, audit F-008) — the backend is TypeScript and `tsc --noEmit` runs in CI. Remaining: `strict` is off (audit F-052); some migrations and tests are still JavaScript.  
+**Status:** Done (corrected 2026-11-07, audit F-008) — the backend is TypeScript and `tsc --noEmit` runs in CI. Since 2026-11-08 the backend runs with `"strict": true`, and the frontend's `lib/` and `hooks/` are strict through `frontend-next/tsconfig.strict.json` (`npm run typecheck:strict`, in CI). Remaining: strict for frontend `components/` (~170 errors) and `views/` (~490), folder by folder by widening that file's `include`; some migrations and tests are still JavaScript.  
 **File:** All `backend/` files  
 **Problem:** Backend was JavaScript — no type checking, autocomplete is limited, refactoring is risky.  
 **Fix:** Rename `.js` to `.ts`, add `tsconfig.json`, fix type errors incrementally. Add Prisma for type-safe DB queries.  

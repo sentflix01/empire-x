@@ -12,7 +12,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BookmarkButton from "@/components/ui/BookmarkButton";
-import { isGetQuote, sectionItemBuyPayload } from "@/lib/sectionItemPurchase";
+import { isGetQuote, sectionItemBuyPayload, type SectionItem } from "@/lib/sectionItemPurchase";
+
+/** Free-form section entries stored as JSON; only the fields shown here are read. */
+interface StepItem { name?: string; title?: string; desc?: string }
+interface ReviewItem { name?: string; author?: string; role?: string; quote?: string; review?: string; text?: string }
+interface FaqItem { question?: string; title?: string; answer?: string; desc?: string }
 import client from "@/api/client";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import LiveLocationSection from "@/components/showroom/LiveLocationSection";
@@ -298,7 +303,7 @@ export default function SectionRenderer({
   if (s.type === "services" || s.type === "menu") {
     // Builder shape: servTitle + services[]{name,desc}; legacy: title + items[]{name|title,description,price}.
     const servTitle = s.servTitle || s.title;
-    const servList = s.services || s.items || [];
+    const servList: SectionItem[] = s.services || s.items || [];
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         {servTitle && <h2 className="font-display text-lg font-bold mb-4">{servTitle}</h2>}
@@ -346,7 +351,7 @@ export default function SectionRenderer({
     // Builder shapes: featTitle/features[]{name,desc} OR processTitle/processSteps[]{title,desc};
     // legacy business templates: title + items[]{title,desc}.
     const headTitle = s.featTitle || s.processTitle || s.title;
-    const steps = s.processSteps || s.features || s.items || [];
+    const steps: StepItem[] = s.processSteps || s.features || s.items || [];
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/20">
         {headTitle && <h2 className="font-display text-lg font-bold mb-4">{headTitle}</h2>}
@@ -366,7 +371,7 @@ export default function SectionRenderer({
   if (s.type === "testimonials") {
     // Builder shape: testTitle + testimonials[]{quote,author,role}; legacy: title + items[]{text|review,name|author}.
     const testTitle = s.testTitle || s.title;
-    const reviews = s.testimonials || s.items || [];
+    const reviews: ReviewItem[] = s.testimonials || s.items || [];
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         {testTitle && <h2 className="font-display text-lg font-bold mb-4">{testTitle}</h2>}
@@ -386,7 +391,7 @@ export default function SectionRenderer({
   if (s.type === "faq") {
     // Builder shape: faqTitle + faqs[]{question,answer}; legacy: title + items[].
     const faqTitle = s.faqTitle || s.title;
-    const faqs = s.faqs || s.items || [];
+    const faqs: FaqItem[] = s.faqs || s.items || [];
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/20">
         {faqTitle && <h2 className="font-display text-lg font-bold mb-4">{faqTitle}</h2>}
@@ -425,7 +430,7 @@ export default function SectionRenderer({
         </div>
       );
     }
-    const images = parseImages(biz.business_cover_url || biz.cover_url || biz.cover_image);
+    const images: string[] = parseImages(biz.business_cover_url || biz.cover_url || biz.cover_image);
     const galleryImages = images.length ? images : [
       `https://picsum.photos/seed/${biz.business_name || biz.title || 'gallery'}-1/400/400`,
       `https://picsum.photos/seed/${biz.business_name || biz.title || 'gallery'}-2/400/400`,

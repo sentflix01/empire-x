@@ -137,6 +137,11 @@ jobs:
       - name: Type-check (blocking)
         run: npx tsc --noEmit
 
+      # Strict mode for the folders migrated so far (tsconfig.strict.json,
+      # audit F-052); widen its "include" as components/ and views/ are typed.
+      - name: Type-check, strict folders (blocking)
+        run: npm run typecheck:strict
+
       - name: Build (blocking)
         run: npm run build
         env:
