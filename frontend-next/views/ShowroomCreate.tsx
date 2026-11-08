@@ -847,7 +847,7 @@ function ShowroomCreate({
       />
 
       {fullPreview && (
-        <div role="dialog" aria-modal="true" aria-label="Full-screen preview" className="fixed inset-0 z-[120] flex flex-col bg-secondary">
+        <div role="dialog" aria-modal="true" aria-label="Full-screen preview" className="fixed inset-0 z-preview flex flex-col bg-secondary">
           <div className="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-card px-3">
             <p className="flex-1 truncate text-sm font-bold">Preview: {siteName}</p>
             <button type="button" autoFocus onClick={() => setFullPreview(false)} aria-label="Close preview"

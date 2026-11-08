@@ -68,7 +68,7 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, busine
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60" onClick={onClose}>
+    <div className="fixed inset-0 z-modal flex items-end sm:items-center justify-center bg-black/60" onClick={onClose}>
       <div
         className="rounded-t-3xl sm:rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"
         style={{ backgroundColor: 'hsl(var(--card))' }}

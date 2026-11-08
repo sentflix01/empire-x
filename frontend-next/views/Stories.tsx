@@ -298,7 +298,7 @@ function Stories() {
 
       {viewing && active && (
         <div
-          className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center"
+          className="fixed inset-0 z-fullscreen bg-black/95 flex items-center justify-center"
           onClick={() => setViewing(null)}
         >
           <div

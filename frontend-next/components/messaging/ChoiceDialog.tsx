@@ -27,7 +27,7 @@ export default function ChoiceDialog({ title, description, choices, onChoose, on
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 sm:items-center sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-chat-choice flex items-end justify-center bg-black/50 sm:items-center sm:p-4" onClick={onClose}>
       <div ref={panel} role="dialog" aria-modal="true" aria-labelledby="choice-dialog-title"
         className="w-full max-w-sm overflow-hidden rounded-t-3xl bg-card text-foreground shadow-2xl sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}>

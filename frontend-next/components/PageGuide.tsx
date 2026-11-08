@@ -1120,7 +1120,7 @@ export default function PageGuide() {
     />
 
     {open && mounted && createPortal(
-      <div className="fixed inset-0 z-[1000]" aria-label="Page guide">
+      <div className="fixed inset-0 z-guide" aria-label="Page guide">
         <svg className="absolute inset-0 h-full w-full" aria-hidden="true" onClick={event => event.preventDefault()}>
           <defs>
             <mask id="page-guide-mask">
@@ -1154,7 +1154,7 @@ export default function PageGuide() {
           aria-modal="true"
           aria-labelledby="page-guide-title"
           aria-describedby="page-guide-description"
-          className="fixed z-[1002] max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-2rem)] max-w-[22.5rem] overflow-y-auto rounded-2xl border border-border bg-background p-4 text-foreground shadow-2xl sm:p-5"
+          className="fixed z-guide-card max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-2rem)] max-w-[22.5rem] overflow-y-auto rounded-2xl border border-border bg-background p-4 text-foreground shadow-2xl sm:p-5"
           style={{ top: card.top, left: card.left }}
         >
           <div className="mb-3 flex items-start justify-between gap-3">

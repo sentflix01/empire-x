@@ -131,7 +131,7 @@ function ChatMembers() {
   };
 
   return (
-    <div className="fixed inset-x-0 top-[var(--chat-top,0px)] z-[55] flex h-[var(--chat-vh,100dvh)] flex-col overflow-hidden bg-background md:static md:z-auto md:h-full">
+    <div className="fixed inset-x-0 top-[var(--chat-top,0px)] z-chat-panel flex h-[var(--chat-vh,100dvh)] flex-col overflow-hidden bg-background md:static md:z-auto md:h-full">
       <div className="flex shrink-0 items-center gap-2 bg-primary px-1.5 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] text-white md:pt-2">
         <button type="button" onClick={back} aria-label="Back to chat" className="inline-flex size-11 items-center justify-center rounded-full hover:bg-white/10">
           <ArrowLeft className="h-5 w-5" aria-hidden="true" />
@@ -222,7 +222,7 @@ function ChatMembers() {
       )}
 
       {adding && group && (
-        <div className="fixed inset-0 z-[65] flex items-stretch justify-center bg-black/50 sm:items-center sm:p-4" onClick={() => setAdding(false)}>
+        <div className="fixed inset-0 z-chat-dialog flex items-stretch justify-center bg-black/50 sm:items-center sm:p-4" onClick={() => setAdding(false)}>
           <div role="dialog" aria-modal="true" aria-labelledby="add-people-title" onClick={(e) => e.stopPropagation()}
             className="flex h-full w-full flex-col overflow-hidden bg-card shadow-xl sm:h-auto sm:max-h-[85dvh] sm:max-w-md sm:rounded-2xl">
             <div className="flex items-center justify-between border-b border-border px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:pt-3">

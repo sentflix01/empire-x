@@ -384,9 +384,9 @@ export default function ProfilePeek({
 
   return createPortal(
     <AnimatePresence>
-      {/* Backdrop — z-[1000] sits above Leaflet map layers (max z ~650) */}
+      {/* Backdrop — maps are isolated (isolate), so the modal layer is enough */}
       <motion.div
-        className="fixed inset-0 z-[1000] flex items-start justify-center pt-16 px-4 bg-transparent pointer-events-none"
+        className="fixed inset-0 z-modal flex items-start justify-center pt-16 px-4 bg-transparent pointer-events-none"
         initial={{ y: -8 }}
         animate={{ y: 0 }}
         exit={{ y: -8 }}

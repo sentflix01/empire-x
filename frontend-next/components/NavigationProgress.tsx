@@ -14,7 +14,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { token } from '@/lib/colorTokens';
+import { token, Z } from '@/lib/colorTokens';
 
 interface BarState {
   active: boolean;   // bar is visible and advancing
@@ -79,7 +79,7 @@ export default function NavigationProgress() {
         top: 0,
         left: 0,
         right: 0,
-        zIndex: 9999,
+        zIndex: Z.progress,
         height: '3px',
         pointerEvents: 'none',
       }}
