@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **371** across **52** mounted modules · Generated: 2026-11-08
+> Endpoints: **369** across **52** mounted modules · Generated: 2026-11-08
 
 | Legend | Meaning |
 |---|---|
@@ -28,7 +28,7 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 - [`commission`](#commission) (2)
 - [`coupons`](#coupons) (6)
 - [`delivery`](#delivery) (2)
-- [`devops`](#devops) (20)
+- [`devops`](#devops) (18)
 - [`directOrders`](#directorders) (12)
 - [`docs`](#docs) (1)
 - [`externalSources`](#externalsources) (9)
@@ -202,26 +202,24 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/devops/` | 👑 admin | routes/devops.ts:15 |
-| `POST` | `/api/devops/` | 👑 admin | routes/devops.ts:22 |
-| `PUT` | `/api/devops/:id` | 👑 admin | routes/devops.ts:39 |
-| `DELETE` | `/api/devops/:id` | 👑 admin | routes/devops.ts:58 |
-| `GET` | `/api/devops/errors` | 👑 admin | routes/devops.ts:75 |
-| `GET` | `/api/devops/errors/stats` | 👑 admin | routes/devops.ts:103 |
-| `PATCH` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:136 |
-| `PUT` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:137 |
-| `PATCH` | `/api/devops/errors/resolve-all` | 👑 admin | routes/devops.ts:139 |
-| `POST` | `/api/devops/errors/:id/to-ticket` | 👑 admin | routes/devops.ts:155 |
-| `POST` | `/api/devops/errors/report` | ⚪ optional | routes/devops.ts:194 |
-| `GET` | `/api/devops/versions` | 👑 admin | routes/devops.ts:210 |
-| `PUT` | `/api/devops/versions` | 👑 admin | routes/devops.ts:217 |
-| `PUT` | `/api/devops/versions/:version` | 👑 admin | routes/devops.ts:230 |
-| `GET` | `/api/devops/health-summary` | 👑 admin | routes/devops.ts:253 |
-| `GET` | `/api/devops/telemetry` | 👑 admin | routes/devops.ts:288 |
-| `POST` | `/api/devops/copilot` | 👑 admin | routes/devops.ts:427 |
-| `GET` | `/api/devops/scorecard` | 👑 admin | routes/devops.ts:450 |
-| `GET` | `/api/devops/log-report` | 👑 admin | routes/devops.ts:462 |
-| `GET` | `/api/devops/log-report/:file` | 👑 admin | routes/devops.ts:481 |
+| `GET` | `/api/devops/` | 👑 admin | routes/devops.ts:14 |
+| `POST` | `/api/devops/` | 👑 admin | routes/devops.ts:21 |
+| `PUT` | `/api/devops/:id` | 👑 admin | routes/devops.ts:38 |
+| `DELETE` | `/api/devops/:id` | 👑 admin | routes/devops.ts:57 |
+| `GET` | `/api/devops/errors` | 👑 admin | routes/devops.ts:74 |
+| `GET` | `/api/devops/errors/stats` | 👑 admin | routes/devops.ts:102 |
+| `PATCH` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:135 |
+| `PUT` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:136 |
+| `PATCH` | `/api/devops/errors/resolve-all` | 👑 admin | routes/devops.ts:138 |
+| `POST` | `/api/devops/errors/:id/to-ticket` | 👑 admin | routes/devops.ts:154 |
+| `POST` | `/api/devops/errors/report` | ⚪ optional | routes/devops.ts:193 |
+| `GET` | `/api/devops/versions` | 👑 admin | routes/devops.ts:209 |
+| `PUT` | `/api/devops/versions` | 👑 admin | routes/devops.ts:216 |
+| `PUT` | `/api/devops/versions/:version` | 👑 admin | routes/devops.ts:229 |
+| `GET` | `/api/devops/health-summary` | 👑 admin | routes/devops.ts:252 |
+| `GET` | `/api/devops/telemetry` | 👑 admin | routes/devops.ts:287 |
+| `POST` | `/api/devops/copilot` | 👑 admin | routes/devops.ts:426 |
+| `GET` | `/api/devops/scorecard` | 👑 admin | routes/devops.ts:449 |
 
 ## directOrders — Buy by paying the seller directly (guest or signed in).
 

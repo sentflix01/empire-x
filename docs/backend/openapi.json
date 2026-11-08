@@ -2700,7 +2700,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:15"
+        "x-source": "backend/routes/devops.ts:14"
       },
       "post": {
         "operationId": "post_devops",
@@ -2731,7 +2731,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:22"
+        "x-source": "backend/routes/devops.ts:21"
       }
     },
     "/api/devops/{id}": {
@@ -2777,7 +2777,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:39"
+        "x-source": "backend/routes/devops.ts:38"
       },
       "delete": {
         "operationId": "delete_devops_id",
@@ -2818,7 +2818,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:58"
+        "x-source": "backend/routes/devops.ts:57"
       }
     },
     "/api/devops/errors": {
@@ -2848,7 +2848,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:75"
+        "x-source": "backend/routes/devops.ts:74"
       }
     },
     "/api/devops/errors/stats": {
@@ -2878,7 +2878,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:103"
+        "x-source": "backend/routes/devops.ts:102"
       }
     },
     "/api/devops/errors/{id}/resolve": {
@@ -2924,7 +2924,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:136"
+        "x-source": "backend/routes/devops.ts:135"
       },
       "put": {
         "operationId": "put_devops_errors_id_resolve",
@@ -2968,7 +2968,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:137"
+        "x-source": "backend/routes/devops.ts:136"
       }
     },
     "/api/devops/errors/resolve-all": {
@@ -3001,7 +3001,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:139"
+        "x-source": "backend/routes/devops.ts:138"
       }
     },
     "/api/devops/errors/{id}/to-ticket": {
@@ -3047,7 +3047,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:155"
+        "x-source": "backend/routes/devops.ts:154"
       }
     },
     "/api/devops/errors/report": {
@@ -3075,7 +3075,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/devops.ts:194"
+        "x-source": "backend/routes/devops.ts:193"
       }
     },
     "/api/devops/versions": {
@@ -3105,7 +3105,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:210"
+        "x-source": "backend/routes/devops.ts:209"
       },
       "put": {
         "operationId": "put_devops_versions",
@@ -3136,7 +3136,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:217"
+        "x-source": "backend/routes/devops.ts:216"
       }
     },
     "/api/devops/versions/{version}": {
@@ -3182,7 +3182,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:230"
+        "x-source": "backend/routes/devops.ts:229"
       }
     },
     "/api/devops/health-summary": {
@@ -3212,7 +3212,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:253"
+        "x-source": "backend/routes/devops.ts:252"
       }
     },
     "/api/devops/telemetry": {
@@ -3242,7 +3242,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:288"
+        "x-source": "backend/routes/devops.ts:287"
       }
     },
     "/api/devops/copilot": {
@@ -3275,7 +3275,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:427"
+        "x-source": "backend/routes/devops.ts:426"
       }
     },
     "/api/devops/scorecard": {
@@ -3305,80 +3305,7 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:450"
-      }
-    },
-    "/api/devops/log-report": {
-      "get": {
-        "operationId": "get_devops_log_report",
-        "tags": [
-          "devops"
-        ],
-        "summary": "GET /api/devops/log-report",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        },
-        "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:462"
-      }
-    },
-    "/api/devops/log-report/{file}": {
-      "get": {
-        "operationId": "get_devops_log_report_file",
-        "tags": [
-          "devops"
-        ],
-        "summary": "GET /api/devops/log-report/{file}",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "file",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        },
-        "x-auth": "admin",
-        "x-source": "backend/routes/devops.ts:481"
+        "x-source": "backend/routes/devops.ts:449"
       }
     },
     "/api/direct-orders/checkout-info": {

@@ -868,7 +868,7 @@ items in the open list until confirmed.
 - **Decision:**
   1. Implemented, admin only: error stats, `since` filtering, PATCH resolve, bulk resolve by level, convert an error to one bug ticket, and saving one version status at a time.
   2. Removed the Knowledge Base tab and its seven `/api/docs/*` calls. The backend image is built from `backend/` only, so `docs/` is not on the server; serving repository files from production would also add a file-reading endpoint for little value. The docs stay readable in the repository.
-- **Open:** the Task Log tab reads `docs/log-report` the same way and shows "not available" in production; decide later whether to ship that folder or drop the tab.
+- **Update 2026-11-08:** the Task Log tab and its `GET /api/devops/log-report` routes are removed for the same reason (owner: "continue as you recommended"). The implementation log stays readable in the repository (`docs/log-report/`).
 - **Related documentation:** `docs/Production/backend/routes/devops.md`, `docs/Production/frontend-next/views/DevOps.md`, `note/2026-11-05-international-audit/FIXES.md`
 
 ### 2026-11-06 — Migration ledger renamed to migration_ledger
