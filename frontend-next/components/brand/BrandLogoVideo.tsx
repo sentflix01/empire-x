@@ -14,6 +14,7 @@
  * Usage:
  *   <BrandLogoVideo size={72} className="w-[72px] h-[72px] mx-auto" label="Nodbusiness" />
  */
+import { HEX } from '@/lib/colorTokens';
 import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -65,7 +66,7 @@ export default function BrandLogoVideo({
         width: px,
         height: px,
         borderRadius: '50%',
-        backgroundColor: '#0a0a0a',
+        backgroundColor: HEX.primary,
         overflow: 'hidden',
         display: 'inline-flex',
         alignItems: 'center',

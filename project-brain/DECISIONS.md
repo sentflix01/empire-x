@@ -907,3 +907,10 @@ items in the open list until confirmed.
   2. Tokens in `app/globals.css`, mirrored for maps/charts in `lib/colorTokens.ts` (kept in sync by a test). `npm run check:colors` (in `npm run lint`) blocks raw palette classes, arbitrary colour classes and stray hex values.
   3. Exempt: colours each business chooses for its own showroom, other companies' brand colours (Google, Telegram, WhatsApp), the black-and-white logo, and the landing-page hero (the one marketing gradient).
 - **Consequences:** New UI must use tokens. `docs/brand/COLOR_SYSTEM.md` is the source of truth; `BRAND_BOOK.md` and `BRAND_GUIDELINES.md` now point to it.
+
+### 2026-11-08 — Logo recoloured: white on brand blue
+
+- **Status:** Accepted (owner, 8 Nov 2026: "convert only the color of the logo to make similar with the app", chose "White on blue")
+- **Decision owner:** Project owner
+- **Decision:** The logo keeps its shape; only its colours change. The icon is a blue `#2563eb` disc or tile with a white globe ring, network lines (85% white) and boxes, and blue slots. The wordmark's globe is drawn in blue on light backgrounds; its letters stay ink. The white wordmark (dark backgrounds) gets blue slots. The intro videos map black → blue, white → white, greys → blue tints.
+- **Consequences:** PWA icons, the Apple touch icon and the favicon are rebuilt from the SVG by `frontend-next/scripts/brand/render-icons.mjs`. Logo backgrounds in the splash, sign-in, landing and share image use `HEX.primary`; the colour guard no longer allows the old black. Docs: `docs/brand/COLOR_SYSTEM.md`, `BRAND_BOOK.md`, `BRAND_GUIDELINES.md`.

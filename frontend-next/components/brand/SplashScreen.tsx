@@ -10,6 +10,7 @@
  *
  * Skipped entirely on auth/landing pages where a splash would be confusing.
  */
+import { HEX } from '@/lib/colorTokens';
 import React, { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
@@ -85,7 +86,7 @@ export default function SplashScreen() {
         aria-hidden="true"
         width={160}
         height={160}
-        style={{ borderRadius: '50%', backgroundColor: '#0a0a0a', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}
+        style={{ borderRadius: '50%', backgroundColor: HEX.primary, boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}
       />
       <p
         style={{
@@ -94,7 +95,7 @@ export default function SplashScreen() {
           fontSize: 22,
           fontWeight: 700,
           letterSpacing: '-0.02em',
-          color: '#0a0a0a',
+          color: HEX.inverse,
           userSelect: 'none',
         }}
       >
