@@ -921,7 +921,7 @@ function Admin() {
 
       {/* ══ Verify Modal ═════════════════════════════════════════════════ */}
       {verifyModal && (
-        <div className="fixed inset-0 z-[300] bg-black/60 flex items-center justify-center p-4" onClick={() => setVerifyModal(null)}>
+        <div className="fixed inset-0 z-modal bg-black/60 flex items-center justify-center p-4" onClick={() => setVerifyModal(null)}>
           <div className="bg-card rounded-2xl w-full max-w-md p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display text-lg font-bold">Grant Verification</h3>

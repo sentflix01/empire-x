@@ -497,7 +497,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <div className="flex items-center gap-1 ml-auto">
             {/* Mobile search — full-width overlay when open */}
             {searchOpen && (
-              <div className="fixed inset-x-0 top-0 z-[200] h-14 bg-background border-b border-border flex items-center px-3 gap-2 shadow-lg">
+              <div className="fixed inset-x-0 top-0 z-fullscreen h-14 bg-background border-b border-border flex items-center px-3 gap-2 shadow-lg">
                 <form className="flex-1"
                   onSubmit={e => {
                     e.preventDefault();
@@ -906,11 +906,11 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <>
               {/* Backdrop — click to close */}
               <div
-                className="fixed inset-0 z-[70] bg-black/50 md:hidden"
+                className="fixed inset-0 z-drawer-backdrop bg-black/50 md:hidden"
                 onClick={() => setDrawerOpen(false)}
               />
               {/* Panel — full height, same width as screen minus a handle strip */}
-              <div className="fixed inset-y-0 left-0 z-[80] md:hidden bg-white dark:bg-card w-[84vw] max-w-sm flex flex-col shadow-2xl">
+              <div className="fixed inset-y-0 left-0 z-drawer md:hidden bg-white dark:bg-card w-[84vw] max-w-sm flex flex-col shadow-2xl">
 
                 {/* ── Cover photo + avatar inside it — full width, no side padding ── */}
                 <div className="relative h-40 shrink-0 bg-primary">

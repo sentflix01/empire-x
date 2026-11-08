@@ -521,7 +521,7 @@ function AiAssistantWidget() {
             window.dispatchEvent(new Event('nodbusiness:open-page-guide'));
           }}
           onPointerDown={handlePointerDown}
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+10.5rem)] right-5 md:bottom-[calc(4rem)] md:right-6 z-[2147483646] touch-none rounded-full shadow-2xl shadow-primary/25 flex items-center justify-center transition-transform duration-200 cursor-grab active:cursor-grabbing bg-primary hover:scale-110 hover:shadow-primary/30 hover:shadow-xl"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+10.5rem)] right-5 md:bottom-[calc(4rem)] md:right-6 z-guide-launcher touch-none rounded-full shadow-2xl shadow-primary/25 flex items-center justify-center transition-transform duration-200 cursor-grab active:cursor-grabbing bg-primary hover:scale-110 hover:shadow-primary/30 hover:shadow-xl"
           style={posReady && pos.x >= 0 && pos.y >= 0
             ? { position: 'fixed', left: pos.x, top: pos.y - 64, bottom: 'auto', right: 'auto', width: 56, height: 56, paddingInline: 0 }
             : { width: 56, height: 56, paddingInline: 0 }}
@@ -540,7 +540,7 @@ function AiAssistantWidget() {
           setOpen(value => !value);
         }}
         onPointerDown={handlePointerDown}
-        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+6rem)] right-5 md:bottom-6 md:right-6 z-[2147483647] touch-none rounded-full shadow-2xl shadow-primary/25 flex items-center justify-center gap-1.5 transition-transform duration-200 cursor-grab active:cursor-grabbing
+        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+6rem)] right-5 md:bottom-6 md:right-6 z-assistant touch-none rounded-full shadow-2xl shadow-primary/25 flex items-center justify-center gap-1.5 transition-transform duration-200 cursor-grab active:cursor-grabbing
           ${open ? "bg-inverse rotate-6 scale-95"
             : "bg-primary hover:scale-110 hover:shadow-primary/30 hover:shadow-xl"
           }`}
@@ -557,7 +557,7 @@ function AiAssistantWidget() {
       {open && (
         <div
           data-testid="ai-assistant-panel"
-          className="fixed bottom-40 right-4 md:bottom-20 md:right-6 z-[2147483647]
+          className="fixed bottom-40 right-4 md:bottom-20 md:right-6 z-assistant
             w-[calc(100vw-2rem)] max-w-sm bg-primary-subtle border border-primary/30 rounded-2xl shadow-2xl shadow-foreground/10
             flex flex-col overflow-hidden"
           style={{ ...(panelStyle.left !== undefined ? panelStyle : {}), height: "min(500px, calc(100dvh - 10.5rem))" }}

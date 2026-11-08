@@ -51,7 +51,7 @@ function BusinessCreate() {
   type BizState = {
     business_name: string;
     business_category: string;
-    business_template: string | string[];
+    business_template: string;
     business_description: string;
     business_contact_email: string;
     business_contact_phone: string;
@@ -86,7 +86,8 @@ function BusinessCreate() {
       setBusiness({
         business_name: b.business_name || "",
         business_category: b.business_category || "",
-        business_template: b.business_template || "",
+        // Older records stored the template as a list; keep its first value.
+        business_template: Array.isArray(b.business_template) ? String(b.business_template[0] ?? "") : (b.business_template || ""),
         business_description: b.business_description || "",
         business_contact_email: b.business_contact_email || "",
         business_contact_phone: b.business_contact_phone || "",

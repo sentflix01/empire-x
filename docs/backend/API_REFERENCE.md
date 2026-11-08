@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **371** across **52** mounted modules · Generated: 2026-11-06
+> Endpoints: **369** across **52** mounted modules · Generated: 2026-11-08
 
 | Legend | Meaning |
 |---|---|
@@ -28,7 +28,7 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 - [`commission`](#commission) (2)
 - [`coupons`](#coupons) (6)
 - [`delivery`](#delivery) (2)
-- [`devops`](#devops) (20)
+- [`devops`](#devops) (18)
 - [`directOrders`](#directorders) (12)
 - [`docs`](#docs) (1)
 - [`externalSources`](#externalsources) (9)
@@ -121,15 +121,15 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 | `POST` | `/api/auth/mfa/verify` | 🌐 public | routes/auth.ts:703 |
 | `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:766 |
 | `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:921 |
-| `GET` | `/api/auth/me/export` | 🔒 auth | routes/auth.ts:964 |
-| `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:977 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:1032 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:1068 |
-| `PUT` | `/api/auth/update-name` | 🔒 auth | routes/auth.ts:1119 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1141 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1180 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1263 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1303 |
+| `GET` | `/api/auth/me/export` | 🔒 auth | routes/auth.ts:966 |
+| `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:979 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:1034 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:1070 |
+| `PUT` | `/api/auth/update-name` | 🔒 auth | routes/auth.ts:1121 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1143 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1182 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1265 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1305 |
 
 ## businessApiKeys — Business API key management
 
@@ -202,26 +202,24 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/devops/` | 👑 admin | routes/devops.ts:15 |
-| `POST` | `/api/devops/` | 👑 admin | routes/devops.ts:22 |
-| `PUT` | `/api/devops/:id` | 👑 admin | routes/devops.ts:39 |
-| `DELETE` | `/api/devops/:id` | 👑 admin | routes/devops.ts:58 |
-| `GET` | `/api/devops/errors` | 👑 admin | routes/devops.ts:75 |
-| `GET` | `/api/devops/errors/stats` | 👑 admin | routes/devops.ts:103 |
-| `PATCH` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:136 |
-| `PUT` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:137 |
-| `PATCH` | `/api/devops/errors/resolve-all` | 👑 admin | routes/devops.ts:139 |
-| `POST` | `/api/devops/errors/:id/to-ticket` | 👑 admin | routes/devops.ts:155 |
-| `POST` | `/api/devops/errors/report` | ⚪ optional | routes/devops.ts:194 |
-| `GET` | `/api/devops/versions` | 👑 admin | routes/devops.ts:210 |
-| `PUT` | `/api/devops/versions` | 👑 admin | routes/devops.ts:217 |
-| `PUT` | `/api/devops/versions/:version` | 👑 admin | routes/devops.ts:230 |
-| `GET` | `/api/devops/health-summary` | 👑 admin | routes/devops.ts:253 |
-| `GET` | `/api/devops/telemetry` | 👑 admin | routes/devops.ts:288 |
-| `POST` | `/api/devops/copilot` | 👑 admin | routes/devops.ts:427 |
-| `GET` | `/api/devops/scorecard` | 👑 admin | routes/devops.ts:450 |
-| `GET` | `/api/devops/log-report` | 👑 admin | routes/devops.ts:462 |
-| `GET` | `/api/devops/log-report/:file` | 👑 admin | routes/devops.ts:481 |
+| `GET` | `/api/devops/` | 👑 admin | routes/devops.ts:14 |
+| `POST` | `/api/devops/` | 👑 admin | routes/devops.ts:21 |
+| `PUT` | `/api/devops/:id` | 👑 admin | routes/devops.ts:38 |
+| `DELETE` | `/api/devops/:id` | 👑 admin | routes/devops.ts:57 |
+| `GET` | `/api/devops/errors` | 👑 admin | routes/devops.ts:74 |
+| `GET` | `/api/devops/errors/stats` | 👑 admin | routes/devops.ts:102 |
+| `PATCH` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:135 |
+| `PUT` | `/api/devops/errors/:id/resolve` | 👑 admin | routes/devops.ts:136 |
+| `PATCH` | `/api/devops/errors/resolve-all` | 👑 admin | routes/devops.ts:138 |
+| `POST` | `/api/devops/errors/:id/to-ticket` | 👑 admin | routes/devops.ts:154 |
+| `POST` | `/api/devops/errors/report` | ⚪ optional | routes/devops.ts:193 |
+| `GET` | `/api/devops/versions` | 👑 admin | routes/devops.ts:209 |
+| `PUT` | `/api/devops/versions` | 👑 admin | routes/devops.ts:216 |
+| `PUT` | `/api/devops/versions/:version` | 👑 admin | routes/devops.ts:229 |
+| `GET` | `/api/devops/health-summary` | 👑 admin | routes/devops.ts:252 |
+| `GET` | `/api/devops/telemetry` | 👑 admin | routes/devops.ts:287 |
+| `POST` | `/api/devops/copilot` | 👑 admin | routes/devops.ts:426 |
+| `GET` | `/api/devops/scorecard` | 👑 admin | routes/devops.ts:449 |
 
 ## directOrders — Buy by paying the seller directly (guest or signed in).
 
@@ -448,12 +446,12 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 | `GET` | `/api/products/mine` | 🔒 auth | routes/products.ts:179 |
 | `GET` | `/api/products/lookup/:code` | 🔒 auth | routes/products.ts:199 |
 | `POST` | `/api/products/import-image` | 🔒 auth | routes/products.ts:213 |
-| `POST` | `/api/products/scan-batch` | 🔒 auth | routes/products.ts:229 |
-| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:291 |
-| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:314 |
-| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:367 |
-| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:450 |
-| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:462 |
+| `POST` | `/api/products/scan-batch` | 🔒 auth | routes/products.ts:251 |
+| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:319 |
+| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:342 |
+| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:397 |
+| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:480 |
+| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:492 |
 
 ## profilePartnerships — profilePartnerships
 
@@ -706,4 +704,5 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 ---
 
 *Endpoint-level request/response schemas live in the module source under
-`backend/routes/` — the JSON twin of this page is `backend/api-catalog.json`.*
+`backend/routes/`. Machine-readable versions: [`openapi.json`](openapi.json) (OpenAPI 3.1,
+committed) and `backend/api-catalog.json` (generated locally).*

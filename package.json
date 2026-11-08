@@ -14,6 +14,7 @@
     "test": "cd backend && npm test",
     "production:sync": "node scripts/production-docs-sync.cjs",
     "production:sync:check": "node scripts/production-docs-sync.cjs --check",
-    "log:sync": "node scripts/generate-task-report.cjs"
+    "log:sync": "node scripts/generate-task-report.cjs",
+    "docs:freshness": "node scripts/docs-freshness.mjs"
   }
 }

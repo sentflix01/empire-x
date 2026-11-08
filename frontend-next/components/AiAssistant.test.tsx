@@ -74,7 +74,7 @@ describe("AiAssistant guided tour", () => {
 
     await waitFor(() => expect(launcher).toHaveStyle({ left: "240px", top: "320px" }));
     expect(launcher.querySelector(".ai-flip-coin")).not.toBeNull();
-    expect(launcher.className).toContain("z-[2147483647]");
+    expect(launcher.className).toContain("z-assistant");
     mocks.pathname = "/orders";
     rerender(<AiAssistant />);
 

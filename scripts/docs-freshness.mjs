@@ -1,0 +1,123 @@
+#!/usr/bin/env node
+/**
+ * Docs freshness (audit F-055).
+ *
+ *   node scripts/docs-freshness.mjs                      # write docs/DOCS_FRESHNESS.md (report)
+ *   node scripts/docs-freshness.mjs --changed origin/main # CI: docs changed since that ref must carry a date
+ *
+ * A doc is dated when a line says "Last updated:" or "Last reviewed:" followed by a
+ * date (2026-11-08, 8 November 2026, November 8, 2026 or November 2026; bold allowed).
+ * Report mode lists undated and stale (older than 12 months) docs. --changed mode
+ * fails when a changed doc has no date, or a date older than 31 days, so every edit
+ * re-dates the page and coverage grows without a big-bang edit.
+ * Generated docs are skipped: docs/Production/, docs/log-report/, API_REFERENCE.md.
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+
+const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const DOCS = path.join(ROOT, 'docs');
+const GENERATED = [/^docs\/Production\//, /^docs\/log-report\//, /^docs\/backend\/API_REFERENCE\.md$/, /^docs\/DOCS_FRESHNESS\.md$/];
+const KEY_PAGES = [
+  'docs/README.md', 'docs/ONBOARDING.md', 'docs/SOP.md', 'docs/ENGINEERING_STANDARDS.md',
+  'docs/backend/API.md', 'docs/backend/SECURITY.md', 'docs/backend/DATABASE.md',
+  'docs/architecture/THREAT_MODEL.md', 'docs/architecture/ADR.md',
+  'docs/infrastructure/CI_CD_PIPELINE.md', 'docs/infrastructure/MIGRATION_GUIDE.md',
+  'docs/operations/ENVIRONMENT_VARIABLES.md', 'docs/operations/TECHNICAL_DEBT.md',
+  'docs/compliance/GDPR_AUDIT.md', 'docs/compliance/ETHIOPIA_DATA_PROTECTION.md',
+  'docs/compliance/DATA_GOVERNANCE.md', 'docs/legal/TERMS_OF_SERVICE.md', 'docs/legal/PRIVACY_POLICY.md',
+  'docs/brand/COLOR_SYSTEM.md', 'docs/product/FEATURE_FLAGS.md',
+];
+const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+const DATE_LINE = /last (?:updated|reviewed)[*_\s]*:[*_\s]*([^\n·|]+)/i;
+const STALE_DAYS = 365;
+const CHANGED_MAX_DAYS = 31;
+
+/** The date a doc declares, or null. Month-only dates count as the 1st. */
+export function docDate(text) {
+  const m = DATE_LINE.exec(text);
+  if (!m) return null;
+  const s = m[1].trim();
+  let r = /^(\d{4})-(\d{2})(?:-(\d{2}))?/.exec(s);
+  if (r) return new Date(Date.UTC(+r[1], +r[2] - 1, +(r[3] ?? 1)));
+  r = /^(\d{1,2})\s+([a-z]+)\s+(\d{4})/i.exec(s);
+  if (r && MONTHS.includes(r[2].toLowerCase())) return new Date(Date.UTC(+r[3], MONTHS.indexOf(r[2].toLowerCase()), +r[1]));
+  r = /^([a-z]+)\s+(?:(\d{1,2}),?\s+)?(\d{4})/i.exec(s);
+  if (r && MONTHS.includes(r[1].toLowerCase())) return new Date(Date.UTC(+r[3], MONTHS.indexOf(r[1].toLowerCase()), +(r[2] ?? 1)));
+  return null;
+}
+
+function walk(dir, out = []) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) walk(p, out);
+    else if (e.name.endsWith('.md')) out.push(path.relative(ROOT, p).split(path.sep).join('/'));
+  }
+  return out;
+}
+const isGenerated = (rel) => GENERATED.some((re) => re.test(rel));
+const ageDays = (d) => Math.floor((Date.now() - d.getTime()) / 86400000);
+
+function changedMode(base) {
+  const out = execFileSync('git', ['diff', '--name-only', '--diff-filter=AM', `${base}...HEAD`], { cwd: ROOT, encoding: 'utf8' });
+  const changed = out.split('\n').filter((f) => f.startsWith('docs/') && f.endsWith('.md') && !isGenerated(f) && fs.existsSync(path.join(ROOT, f)));
+  const problems = [];
+  for (const f of changed) {
+    const d = docDate(fs.readFileSync(path.join(ROOT, f), 'utf8'));
+    if (!d) problems.push(`${f}: add a "Last reviewed: YYYY-MM-DD" line`);
+    else if (ageDays(d) > CHANGED_MAX_DAYS) problems.push(`${f}: dated ${d.toISOString().slice(0, 10)}; update its "Last reviewed" date`);
+  }
+  if (problems.length) {
+    console.error(`docs-freshness: ${problems.length} changed doc(s) need a current date:`);
+    for (const p of problems) console.error('  ' + p);
+    process.exit(1);
+  }
+  console.log(`docs-freshness: ${changed.length} changed doc(s), all dated.`);
+}
+
+function reportMode() {
+  const docs = walk(DOCS).filter((f) => !isGenerated(f)).sort();
+  const rows = docs.map((f) => ({ f, d: docDate(fs.readFileSync(path.join(ROOT, f), 'utf8')) }));
+  const dated = rows.filter((r) => r.d);
+  const stale = dated.filter((r) => ageDays(r.d) > STALE_DAYS);
+  const byFolder = new Map();
+  for (const r of rows) {
+    const folder = r.f.split('/').slice(0, 2).join('/').replace(/\.md$/, '') || 'docs';
+    const key = r.f.split('/').length > 2 ? folder : 'docs (top level)';
+    const c = byFolder.get(key) ?? { total: 0, dated: 0 };
+    c.total += 1; if (r.d) c.dated += 1;
+    byFolder.set(key, c);
+  }
+  const keyUndated = KEY_PAGES.filter((k) => rows.some((r) => r.f === k && !r.d));
+  const md = [
+    '# Docs freshness',
+    '',
+    `> Generated by \`scripts/docs-freshness.mjs\`. Last updated: ${new Date().toISOString().slice(0, 10)}`,
+    '',
+    `**${docs.length}** docs (generated pages excluded) · **${dated.length}** dated · **${docs.length - dated.length}** undated · **${stale.length}** older than 12 months.`,
+    '',
+    'A doc is dated when it has a `Last reviewed: YYYY-MM-DD` (or `Last updated:`) line. CI asks every changed doc for a date from the last 31 days.',
+    '',
+    '## Key pages without a date',
+    '',
+    ...(keyUndated.length ? keyUndated.map((k) => `- \`${k}\``) : ['None.']),
+    '',
+    '## By folder',
+    '',
+    '| Folder | Docs | Dated |',
+    '|---|---|---|',
+    ...[...byFolder.entries()].sort((a, b) => b[1].total - a[1].total).map(([k, c]) => `| \`${k}\` | ${c.total} | ${c.dated} |`),
+    '',
+    '## Older than 12 months',
+    '',
+    ...(stale.length ? stale.map((r) => `- \`${r.f}\` (${r.d.toISOString().slice(0, 10)})`) : ['None.']),
+    '',
+  ];
+  fs.writeFileSync(path.join(DOCS, 'DOCS_FRESHNESS.md'), md.join('\n'));
+  console.log(`docs-freshness: ${docs.length} docs, ${dated.length} dated, ${keyUndated.length} key pages undated → docs/DOCS_FRESHNESS.md`);
+}
+
+const i = process.argv.indexOf('--changed');
+if (i !== -1) changedMode(process.argv[i + 1] || 'origin/main');
+else if (process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1]))) reportMode();

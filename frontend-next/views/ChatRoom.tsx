@@ -606,7 +606,7 @@ function ChatRoom() {
   return (
     <>
       <motion.div
-        className="fixed inset-x-0 top-[var(--chat-top,0px)] z-[55] flex h-[var(--chat-vh,100dvh)] flex-col overflow-hidden bg-[hsl(var(--chat-bg))] md:static md:z-auto md:h-full"
+        className="fixed inset-x-0 top-[var(--chat-top,0px)] z-chat-panel flex h-[var(--chat-vh,100dvh)] flex-col overflow-hidden bg-[hsl(var(--chat-bg))] md:static md:z-auto md:h-full"
         initial={reducedMotion ? false : { opacity: 0, x: 24 }}
         animate={isExiting ? { opacity: 0, x: 24 } : { opacity: 1, x: 0 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}

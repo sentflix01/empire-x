@@ -5,16 +5,23 @@
 // network, so no signed-in data is stored on the device and nothing needs
 // clearing on logout.
 
-const VERSION = 'v3';
+const VERSION = 'v4'; // v4: logos and icons are network-first, so a new logo shows at once
 const SHELL_CACHE = `nodbusiness-shell-${VERSION}`;
 const STATIC_CACHE = `nodbusiness-static-${VERSION}`;
 const OFFLINE_URL = '/offline';
 const SHELL_ASSETS = [OFFLINE_URL, '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
 const MAX_STATIC_ENTRIES = 300;
 
-// Next.js build output is content-hashed, so a cached copy never goes stale.
-function isStaticAsset(url) {
-  return url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/icons/') || url.pathname.startsWith('/brand/');
+// Next.js build output is content-hashed (a change gets a new URL), so a
+// cached copy never goes stale and can be served first.
+function isHashedAsset(url) {
+  return url.pathname.startsWith('/_next/static/');
+}
+
+// Logos, icons and the manifest keep their URL when their content changes.
+// They come from the network first; the cached copy is only for offline use.
+function isBrandAsset(url) {
+  return url.pathname.startsWith('/icons/') || url.pathname.startsWith('/brand/') || url.pathname === '/manifest.json';
 }
 
 // Install — cache the offline page and the scripts and styles it needs.
@@ -58,8 +65,8 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Versioned static files: cache first.
-  if (isStaticAsset(url)) {
+  // Content-hashed build files: cache first.
+  if (isHashedAsset(url)) {
     event.respondWith((async () => {
       const cached = await caches.match(request);
       if (cached) return cached;
@@ -70,6 +77,26 @@ self.addEventListener('fetch', event => {
         trimStaticCache(cache);
       }
       return response;
+    })());
+    return;
+  }
+
+  // Logos and icons: network first, cached copy only when offline. Range
+  // requests (video seeking) go straight to the network and are not stored.
+  if (isBrandAsset(url)) {
+    if (request.headers.has('range')) return;
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request);
+        if (response.ok && response.status === 200 && response.type === 'basic') {
+          const cache = await caches.open(STATIC_CACHE);
+          await cache.put(request, response.clone());
+          trimStaticCache(cache);
+        }
+        return response;
+      } catch {
+        return (await caches.match(request)) || Response.error();
+      }
     })());
   }
   // Everything else: default browser handling (network).

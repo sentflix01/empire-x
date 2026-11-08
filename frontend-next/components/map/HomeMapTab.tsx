@@ -1,5 +1,5 @@
 'use client';
-import { HEX } from '@/lib/colorTokens';
+import { HEX, Z } from '@/lib/colorTokens';
 import SafeImage from '@/components/ui/SafeImage';
 import { markerLabelHtml } from "@/lib/mapLabel";
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -154,7 +154,7 @@ function MarkerHoverCard({ data }: { data: HoverData }) {
     data.view === "personal" ? HEX.primary : HEX.success;
 
   return createPortal(
-    <div style={{ position: "fixed", left, top, width: cardW, zIndex: 999, pointerEvents: "none" }}>
+    <div style={{ position: "fixed", left, top, width: cardW, zIndex: Z.overlay, pointerEvents: "none" }}>
       <motion.div
         initial={{ y: 8, scale: 0.95 }}
         animate={{ y: 0, scale: 1 }}
@@ -559,7 +559,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
 
         {/* ── Embedded Map ── */}
         <div className="rounded-2xl overflow-hidden border border-border/50 shadow-sm relative" style={{ height: "340px" }}>
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[400] pointer-events-none">
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-raised pointer-events-none">
             <span
               className="flex items-center gap-1.5 px-3 py-1 bg-card text-card-foreground border border-border text-[11px] font-medium rounded-full shadow-lg whitespace-nowrap"
               style={{ backgroundColor: "hsl(var(--card))", opacity: 1 }}
@@ -574,6 +574,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
             </div>
           ) : (
           <MapContainer
+            className="isolate"
             center={mapCenter}
             zoom={13}
             style={{ height: "100%", width: "100%" }}

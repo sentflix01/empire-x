@@ -52,3 +52,18 @@ export const IDENTITY = {
   personal: { css: token.primary, hex: HEX.primary },
   business: { css: token.brandSecondary, hex: HEX.brandSecondary },
 } as const;
+
+/**
+ * Layering scale for inline styles (audit F-046). Same values as the
+ * --z-index-* tokens in app/globals.css, which Tailwind classes use
+ * (z-modal, z-toast…); `test/colorTokens.test.ts` keeps them equal.
+ */
+export const Z = {
+  raised: 10,
+  overlay: 50,
+  modal: 100,
+  fullscreen: 200,
+  toast: 500,
+  splash: 1200,
+  progress: 1300,
+} as const;

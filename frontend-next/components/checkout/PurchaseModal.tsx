@@ -211,7 +211,7 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, busines
   if (!mounted) return null;
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
+      className="fixed inset-0 z-modal flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
       role="dialog" aria-modal="true" aria-labelledby="purchase-title"
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >

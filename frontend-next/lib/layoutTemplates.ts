@@ -104,5 +104,5 @@ export const LAYOUT_TEMPLATES = [
     },
   ];
   
-  export const getLayoutTemplateById = (id) =>
+  export const getLayoutTemplateById = (id: string) =>
     LAYOUT_TEMPLATES.find((t) => t.id === id) || LAYOUT_TEMPLATES[0];

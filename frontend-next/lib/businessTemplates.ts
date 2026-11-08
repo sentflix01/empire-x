@@ -420,8 +420,8 @@ import {
     }
   ];
   
-  export const getCategoryByValue = (value) => BUSINESS_CATEGORIES.find(c => c.value === value);
-  export const getTemplateById = (categoryValue, templateId) => {
+  export const getCategoryByValue = (value: string) => BUSINESS_CATEGORIES.find(c => c.value === value);
+  export const getTemplateById = (categoryValue: string, templateId: string) => {
     const cat = getCategoryByValue(categoryValue);
     if (!cat) return null;
     return cat.templates.find(t => t.id === templateId) || cat.templates[0];

@@ -196,7 +196,7 @@ function ProfileEdit() {
 
   // ── Business state ──────────────────────────────────────────────────────
   const [business, setBusiness] = useState({
-    business_name: '', business_category: '', business_template: '' as string | string[],
+    business_name: '', business_category: '', business_template: '',
     business_description: '', business_contact_email: '', business_contact_phone: '',
     business_address: '', business_theme_color: '#2563EB',
     business_logo_url: '' as string | string[],

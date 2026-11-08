@@ -1,6 +1,6 @@
 # Colour system
 
-**Owner:** Project owner · **Decided:** 2026-11-07 (audit F-046) · **Source of truth for colour**
+**Owner:** Project owner · **Decided:** 2026-11-07 (audit F-046) · **Last reviewed:** 2026-11-08 · **Source of truth for colour**
 
 This page replaces the colour sections of `BRAND_BOOK.md` and `BRAND_GUIDELINES.md`,
 which contradicted each other (blue vs amber as the primary colour).
@@ -45,6 +45,17 @@ Every status colour has `-subtle` (tint background) and `-subtle-foreground`
   (`bg-amber-500`), arbitrary colour classes (`bg-[#f59e0b]`) and hex literals outside
   the documented exemptions (business-chosen theme colours, Google/Telegram/WhatsApp brand
   colours, pages rendered without app CSS).
+
+## Layering (z-index)
+
+Page-level layers use named tokens (`app/globals.css`, `--z-index-*`): `z-overlay` (50: header,
+sheets, dialogs, menus) · `z-chat-panel` 55 · `z-chat-menu` 60/61 · `z-chat-dialog` 65 ·
+`z-chat-choice` / `z-drawer-backdrop` 70 · `z-drawer` 80 · `z-modal` 100 · `z-preview` 120 ·
+`z-fullscreen` 200 · `z-toast` 500 · `z-guide` 1000/1001 · `z-guide-launcher` 1100 ·
+`z-assistant` 1101 · `z-splash` 1200 · `z-progress` 1300 · `z-skip` 1400. Inline styles use
+`Z` from `lib/colorTokens.ts`. Plain `z-0`…`z-60` only order elements inside one component.
+Maps get `isolate`, so Leaflet's own layers stay inside the map. `npm run check:colors`
+rejects `z-[…]` and numeric inline `zIndex`.
 
 ## Not covered by the tokens
 

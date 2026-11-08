@@ -30,7 +30,7 @@ export default function NewChatMenu({ onCreated }: { user?: unknown; contacts?: 
         </button>
 
         {open && (
-          <div className="absolute top-full end-0 mt-2 bg-card dark:bg-card rounded-2xl shadow-xl border border-border/50 z-[200] w-60 overflow-hidden">
+          <div className="absolute top-full end-0 mt-2 bg-card dark:bg-card rounded-2xl shadow-xl border border-border/50 z-fullscreen w-60 overflow-hidden">
             <button
               onClick={() => { setOpen(false); setGroupOpen(true); }}
               className="flex items-center gap-3 px-4 py-3.5 hover:bg-secondary transition-colors text-sm font-medium w-full text-left text-foreground"

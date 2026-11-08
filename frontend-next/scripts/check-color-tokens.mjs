@@ -52,6 +52,12 @@ const HEX_EXEMPT = new Set([
 const HEX_ALLOWED = new Set(['2563eb', 'ffffff', 'fff']);
 const HEX = /(?<![\w&])#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g;
 
+// Layering (audit F-046): arbitrary z-index classes and numeric inline
+// zIndex bypass the scale in app/globals.css (z-modal, z-toast…; Z in
+// lib/colorTokens.ts).
+const Z_ARBITRARY = /(?<![\w-])(?:[\w-]+(?:\[[^\]]*\])?:)*-?z-\[[^\]]+\]/g;
+const Z_INLINE = /zIndex:\s*['"]?\d+/g;
+
 const problems = [];
 for (const file of DIRS.flatMap((d) => walk(path.join(ROOT, d)))) {
   fs.readFileSync(file, 'utf8').split('\n').forEach((line, i) => {
@@ -59,6 +65,10 @@ for (const file of DIRS.flatMap((d) => walk(path.join(ROOT, d)))) {
     for (const m of line.matchAll(RAW)) problems.push(`${rel}:${i + 1}  ${m[0]}`);
     for (const m of line.matchAll(ARBITRARY)) {
       if (!THIRD_PARTY_HEX.has(m[1].toLowerCase())) problems.push(`${rel}:${i + 1}  ${m[0]}`);
+    }
+    for (const m of line.matchAll(Z_ARBITRARY)) problems.push(`${rel}:${i + 1}  ${m[0]} (use a layer: z-modal, z-toast…)`);
+    if (rel !== 'lib/colorTokens.ts' && !/\.test\.|__tests__/.test(rel)) {
+      for (const m of line.matchAll(Z_INLINE)) problems.push(`${rel}:${i + 1}  ${m[0]} (use Z from lib/colorTokens.ts)`);
     }
     if (!HEX_EXEMPT.has(rel) && !/\.test\.|__tests__/.test(rel)) {
       for (const m of line.matchAll(HEX)) {
@@ -69,9 +79,9 @@ for (const file of DIRS.flatMap((d) => walk(path.join(ROOT, d)))) {
 }
 
 if (problems.length) {
-  console.error(`check:colors: ${problems.length} raw palette class(es). Use a colour token instead (docs/brand/COLOR_SYSTEM.md):`);
+  console.error(`check:colors: ${problems.length} problem(s). Use a design token instead (docs/brand/COLOR_SYSTEM.md):`);
   for (const p of problems.slice(0, 50)) console.error('  ' + p);
   if (problems.length > 50) console.error(`  … and ${problems.length - 50} more`);
   process.exit(1);
 }
-console.log('check:colors: no raw palette classes; every colour comes from a token.');
+console.log('check:colors: every colour and layer comes from a design token.');

@@ -24,7 +24,7 @@ Recommended within 30 days: set `MFA_ENCRYPTION_KEY` and have every admin turn o
 |---|---|
 | Findings | 57: 45 issues, 12 positive |
 | Fixed | **35** fixed, plus **5** fixed with an owner step pending |
-| Partly done | 3: F-052 (strict TypeScript), F-055 (Refund Policy, OpenAPI, docs freshness), F-029 (TLS and email DNS not checkable from here) |
+| Partly done | 3: F-052 (strict TypeScript: backend and frontend lib/hooks done; components and views to follow), F-055 (Refund Policy wording needed; statement, licence, OpenAPI and docs freshness done), F-029 (TLS and email DNS not checkable from here) |
 | Open | 2: F-030 (hosting plan, owner), F-053 (intermittent test, cause not found) |
 | Tests in CI (all blocking) | Backend 759 unit + 315 database · frontend 560 unit · E2E Chromium journeys · two-person messaging on phone, iPhone, iPad and desktop · secret scan · dependency audit (no ignores) · colour-token guard |
 | Production (read-only, guest) | 39 / 39: API health and error shapes, security headers and CSP, routing, service worker, accessibility statement, reflow at 320 px, colour tokens, axe WCAG 2.2 AA on 8 public pages in light and dark (0 violations) |
@@ -97,10 +97,10 @@ Recommended within 30 days: set `MFA_ENCRYPTION_KEY` and have every admin turn o
 | F-049 | Info | Positive: keyboard operation, motion preferences and page structure basics are sound | Positive — keep | No change needed |
 | F-050 | Info | Positive: API stays error-free under local load up to 200 concurrent clients | Positive — keep | No change needed |
 | F-051 | Medium | Money-path code lacks tests where CONTRIBUTING.md requires them | Fixed | Tests in CI |
-| F-052 | Low | Unused and undeclared packages; TypeScript strict mode off | Partly — unused packages removed; TypeScript strict mode not yet on | production check passed |
+| F-052 | Low | Unused and undeclared packages; TypeScript strict mode off | Partly — unused packages removed; strict TypeScript on for the backend and frontend lib/ and hooks/; components/ and views/ to follow | production check passed |
 | F-053 | Low | A frontend unit test file fails intermittently in the full parallel run | Open — cause not found; capture the full error on the next CI failure (TD-025) | — |
 | F-054 | Medium | Compliance docs claim 'Compliant' and may cite the wrong Ethiopian law number | Fixed — owner step pending: Counsel confirms the data-protection proclamation number and obligations | Docs updated |
-| F-055 | Low | No accessibility statement, licence file or OpenAPI spec; most docs undated | Partly — statement and licence done; Refund Policy (owner/counsel), OpenAPI file and docs freshness check open | production check passed |
+| F-055 | Low | No accessibility statement, licence file or OpenAPI spec; most docs undated | Partly — statement, licence, OpenAPI file and docs freshness check done; Refund Policy needs owner/counsel wording | production check passed |
 | F-056 | Info | Positive: all required quality gates pass and the schema enforces integrity | Positive — keep | No change needed |
 | F-057 | Medium | Map labels insert product, business and user names as HTML (stored XSS) | Fixed | Tests in CI |
 

@@ -10,7 +10,7 @@
  *
  * Skipped entirely on auth/landing pages where a splash would be confusing.
  */
-import { HEX } from '@/lib/colorTokens';
+import { HEX, Z } from '@/lib/colorTokens';
 import React, { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
@@ -68,7 +68,7 @@ export default function SplashScreen() {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9999,
+        zIndex: Z.splash,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

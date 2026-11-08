@@ -3,7 +3,7 @@ import client from '@/api/client';
 /**
  * Creates a notification for a specific user.
  */
-export async function createNotification(userId, type, title, body, link) {
+export async function createNotification(userId: string, type: string, title: string, body?: string, link?: string) {
   if (!userId || !title) return;
   try {
     const res = await client.post('/api/notifications', {

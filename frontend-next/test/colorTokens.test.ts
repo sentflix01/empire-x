@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { HEX } from '@/lib/colorTokens';
+import { HEX, Z } from '@/lib/colorTokens';
 
 const css = fs.readFileSync(path.join(__dirname, '..', 'app', 'globals.css'), 'utf8');
 const rootBlock = css.slice(css.indexOf(':root {'), css.indexOf('.dark {'));
@@ -29,5 +29,20 @@ describe('colour tokens', () => {
     const fromCss = hslToRgb(Number(m![1]), Number(m![2]), Number(m![3]));
     const fromTs = hexToRgb(HEX[key]);
     fromCss.forEach((c, i) => expect(Math.abs(c - fromTs[i])).toBeLessThanOrEqual(2));
+  });
+});
+
+describe('layering scale', () => {
+  it.each(Object.entries(Z))('Z.%s equals --z-index-%s', (key, value) => {
+    const name = key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+    const m = new RegExp(`--z-index-${name}:\\s*(\\d+);`).exec(css);
+    expect(m, `--z-index-${name} not found`).toBeTruthy();
+    expect(Number(m![1])).toBe(value);
+  });
+
+  it('keeps the page layers in order', () => {
+    const order = ['raised', 'overlay', 'chat-panel', 'chat-menu', 'chat-dialog', 'drawer', 'modal', 'preview', 'fullscreen', 'toast', 'guide', 'guide-launcher', 'assistant', 'splash', 'progress', 'skip'];
+    const values = order.map((n) => Number(new RegExp(`--z-index-${n}:\\s*(\\d+);`).exec(css)?.[1]));
+    expect(values.every((v, i) => i === 0 || v > values[i - 1])).toBe(true);
   });
 });
