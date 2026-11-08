@@ -8,6 +8,7 @@ import { offlineAnswer } from "@/lib/aiOffline";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/AuthContext";
 import { usePathname } from "next/navigation";
+import { BRAND } from '@/lib/brandAssets';
 
 interface Message {
   role: "user" | "assistant";
@@ -84,7 +85,7 @@ function AssistantLogo({ size = "sm", animated = false }: { size?: "xs" | "sm" |
       aria-hidden="true"
     >
       <Image
-        src="/brand/nodbusiness-icon.svg"
+        src={BRAND.icon}
         alt=""
         width={44}
         height={44}
@@ -101,7 +102,7 @@ function AssistantFlipCoin() {
     <span className="ai-flip-coin" aria-hidden="true">
       <span className="ai-flip-coin-inner">
         <span className="ai-flip-coin-face ai-flip-coin-front">
-          <Image src="/brand/nodbusiness-icon.svg" alt="" width={48} height={48} loading="eager" className="h-10 w-10 rounded-full object-cover" />
+          <Image src={BRAND.icon} alt="" width={48} height={48} loading="eager" className="h-10 w-10 rounded-full object-cover" />
         </span>
         <span className="ai-flip-coin-face ai-flip-coin-back">
           <span className="text-[10px] font-black leading-none text-white">AI</span>

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { LandingPreferences } from '@/components/landing/LandingControls';
 import TryDemoButton from '@/components/landing/TryDemoButton';
+import { BRAND } from '@/lib/brandAssets';
 
 // Force dynamic rendering so Next.js serves this page from the server on
 // every request. This ensures the Content-Security-Policy header set in
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Nodbusiness - Local merchant showrooms and orders",
     description: 'Simple online showrooms and order tools for local merchants.',
-    images: ['/brand/nodbusiness-logo.svg'],
+    images: [BRAND.logo],
   },
 };
 
@@ -64,7 +65,7 @@ export default function LandingPage() {
       {/* ── Top navigation bar ── */}
       <nav data-page-guide="landing-nav" aria-label="Account and display options" className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-3 bg-inverse/80 backdrop-blur-xl border-b border-white/8 sm:px-6 sm:py-4">
         <div className="flex items-center gap-2">
-          <Image src="/brand/nodbusiness-logo-white.svg" alt="Nodbusiness" width={180} height={27} className="h-6 w-auto sm:h-7" priority />
+          <Image src={BRAND.logoWhite} alt="Nodbusiness" width={180} height={27} className="h-6 w-auto sm:h-7" priority />
         </div>
         <div className="flex items-center gap-2">
           <LandingPreferences />
@@ -123,7 +124,7 @@ export default function LandingPage() {
             className="relative mb-3 mx-auto w-16 h-16 sm:w-24 sm:h-24 lg:w-36 lg:h-36 rounded-full overflow-hidden"
             style={{
               backgroundColor: HEX.primary,
-              backgroundImage: 'url(/brand/nodbusiness-icon.svg)',
+              backgroundImage: `url(${BRAND.icon})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               boxShadow: '0 0 0 3px rgba(255,255,255,0.18), 0 8px 40px rgba(0,0,0,0.5)',
@@ -244,7 +245,7 @@ export default function LandingPage() {
               <div className="rounded-[1.5rem] bg-secondary p-4 text-foreground">
                 <div className="mb-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Image src="/brand/nodbusiness-icon.svg" alt="" width={40} height={40} className="h-10 w-10 rounded-xl object-cover flex-shrink-0" />
+                    <Image src={BRAND.icon} alt="" width={40} height={40} className="h-10 w-10 rounded-xl object-cover flex-shrink-0" />
                     <div>
                       <p className="text-sm font-black">Nodbusiness</p>
                       <p className="text-xs text-muted-foreground">Merchant dashboard</p>

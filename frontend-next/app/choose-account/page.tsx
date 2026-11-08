@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Users, Store, ArrowLeft } from 'lucide-react';
 import MainContent from '@/components/layout/MainContent';
+import { BRAND } from '@/lib/brandAssets';
 
 export const metadata = { title: 'Choose Account Type — Nodbusiness' };
 
@@ -17,7 +18,7 @@ export default function ChooseAccountPage() {
         {/* Logo + heading */}
         <div className="flex flex-col items-center text-center mb-8">
           <Image
-            src="/brand/nodbusiness-logo-white.svg"
+            src={BRAND.logoWhite}
             alt="Nodbusiness"
             width={240}
             height={36}

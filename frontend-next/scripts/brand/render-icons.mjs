@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 /**
- * Rebuilds the raster logo files from public/brand/nodbusiness-icon.svg
- * (white mark on brand blue #2563eb; docs/brand/COLOR_SYSTEM.md).
+ * Rebuilds every still logo file from the last frame of the intro video, so
+ * the small logo is the same picture as the animated one: the network of
+ * businesses over the globe, white on brand blue (docs/brand/BRAND_BOOK.md).
  *
- *   node scripts/brand/render-icons.mjs
+ *   node scripts/brand/render-icons.mjs        (needs ffmpeg and ImageMagick)
  *
- * Writes:
- *   public/icons/icon-192.png, icon-512.png  PWA icons ("any maskable": full-bleed
- *                                             blue, mark inside the 80% safe zone)
+ * Writes (names from lib/brandAssets.ts; a changed logo gets new names):
+ *   public/brand/nodbusiness-icon-v2.webp    288 px round logo for pages (shown at 144 px at most)
+ *   public/icons/nodbusiness-icon-v2.png     96 px round logo for the browser tab
+ *   public/icons/icon-192-v2.png, icon-512-v2.png  PWA icons ("any maskable": full-bleed
+ *                                             blue, logo inside the 80% safe zone)
  *   public/apple-touch-icon.png              180 × 180, full-bleed blue, no transparency
  *   app/favicon.ico                          16, 32 and 48 px (packed with ImageMagick)
  *
@@ -20,37 +23,49 @@ import { execFileSync } from 'node:child_process';
 import sharp from 'sharp';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', '..');
-const SVG = fs.readFileSync(path.join(ROOT, 'public/brand/nodbusiness-icon.svg'));
-const BLUE = { r: 0x25, g: 0x63, b: 0xeb, alpha: 1 };
-// The outer boxes reach ~43% of the width from the centre; at 90% scale they
+const out = (f) => path.join(ROOT, f);
+// The frame's own blue at the circle's edge, so full-bleed icons show no seam.
+const BLUE = { r: 0x26, g: 0x62, b: 0xe9, alpha: 1 };
+// The outer boxes reach ~45% of the width from the centre; at 85% scale they
 // stay inside the maskable safe zone (a circle of 40% radius).
-const MASKABLE_SCALE = 0.9;
+const MASKABLE_SCALE = 0.85;
+
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'nb-icons-'));
+const frame = path.join(tmp, 'frame.png');
+execFileSync('ffmpeg', ['-v', 'error', '-y', '-sseof', '-0.1', '-i', out('public/brand/nodbusiness-intro.mp4'), '-frames:v', '1', frame]);
+const { width } = await sharp(frame).metadata();
+
+// Round logo with soft, transparent corners.
+const circle = Buffer.from(`<svg width="${width}" height="${width}"><circle cx="${width / 2}" cy="${width / 2}" r="${width / 2 - 1}" fill="#fff"/></svg>`);
+const round = await sharp(frame).ensureAlpha().composite([{ input: circle, blend: 'dest-in' }]).png().toBuffer();
+
+async function roundLogo(size, file) {
+  const img = sharp(round).resize(size, size, { kernel: 'lanczos3' });
+  await (file.endsWith('.webp') ? img.webp({ quality: 82, alphaQuality: 90 }) : img.png({ compressionLevel: 9, palette: true, quality: 90 })).toFile(file);
+}
 
 async function fullBleed(size, file) {
   const inner = Math.round(size * MASKABLE_SCALE);
-  const mark = await sharp(SVG, { density: 72 * (inner / 280) * 2 }).resize(inner, inner).png().toBuffer();
+  const logo = await sharp(round).resize(inner, inner, { kernel: 'lanczos3' }).toBuffer();
   await sharp({ create: { width: size, height: size, channels: 4, background: BLUE } })
-    .composite([{ input: mark, gravity: 'centre' }])
+    .composite([{ input: logo, gravity: 'centre' }])
     .flatten({ background: BLUE })
-    .png({ compressionLevel: 9 })
-    .toFile(path.join(ROOT, file));
+    .png({ compressionLevel: 9, palette: true, quality: 90 })
+    .toFile(out(file));
 }
 
-async function plain(size, file) {
-  await sharp(SVG, { density: 72 * (size / 280) * 2 }).resize(size, size).png().toFile(file);
-}
-
-await fullBleed(512, 'public/icons/icon-512.png');
-await fullBleed(192, 'public/icons/icon-192.png');
+await roundLogo(288, out('public/brand/nodbusiness-icon-v2.webp'));
+await roundLogo(96, out('public/icons/nodbusiness-icon-v2.png'));
+await fullBleed(512, 'public/icons/icon-512-v2.png');
+await fullBleed(192, 'public/icons/icon-192-v2.png');
 await fullBleed(180, 'public/apple-touch-icon.png');
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'nb-favicon-'));
 const sizes = [16, 32, 48];
-for (const s of sizes) await plain(s, path.join(tmp, `${s}.png`));
-execFileSync('convert', [...sizes.map((s) => path.join(tmp, `${s}.png`)), path.join(ROOT, 'app/favicon.ico')]);
+for (const s of sizes) await roundLogo(s, path.join(tmp, `${s}.png`));
+execFileSync('convert', [...sizes.map((s) => path.join(tmp, `${s}.png`)), out('app/favicon.ico')]);
 fs.rmSync(tmp, { recursive: true, force: true });
 
-console.log('icons written: icon-512, icon-192, apple-touch-icon, favicon.ico (16/32/48)');
+console.log('written: round logo 288/96, icon-512, icon-192, apple-touch-icon, favicon.ico (16/32/48)');
 
 /*
  * Intro videos (run once when the logo colours change; ffmpeg):

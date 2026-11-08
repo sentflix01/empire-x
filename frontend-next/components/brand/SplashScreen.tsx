@@ -14,6 +14,7 @@ import { HEX, Z } from '@/lib/colorTokens';
 import React, { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
+import { BRAND } from '@/lib/brandAssets';
 
 // Auth/public pages that should never show the splash
 const AUTH_PREFIXES = [
@@ -81,7 +82,7 @@ export default function SplashScreen() {
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/brand/nodbusiness-icon.svg"
+        src={BRAND.icon}
         alt=""
         aria-hidden="true"
         width={160}

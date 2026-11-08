@@ -19,6 +19,7 @@ import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { BRAND_INTRO_VIDEO, useBrandMotion } from '@/lib/brandMotion';
+import { BRAND } from '@/lib/brandAssets';
 
 interface BrandLogoVideoProps {
   /** Size and spacing classes e.g. "w-14 h-14". Defaults to 56px. */
@@ -46,7 +47,7 @@ export default function BrandLogoVideo({
   if (errored || !motion) {
     return (
       <Image
-        src="/brand/nodbusiness-icon.svg"
+        src={BRAND.icon}
         alt={label ?? ''}
         aria-hidden={label ? undefined : true}
         width={px}
@@ -78,7 +79,7 @@ export default function BrandLogoVideo({
     >
       {/* Static SVG placeholder — visible instantly, fades out once video is ready */}
       <Image
-        src="/brand/nodbusiness-icon.svg"
+        src={BRAND.icon}
         alt=""
         aria-hidden
         width={px}

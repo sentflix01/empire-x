@@ -23,8 +23,8 @@ test('the landing hero uses the small video, under 200 KB', async ({ page, reque
   const seen = media(page);
   await page.goto('/landing', { waitUntil: 'networkidle' });
   // Browsers fetch video in range requests, so the same file can appear more than once.
-  expect([...new Set(seen.map((m) => new URL(m.url).pathname))]).toEqual(['/brand/nodbusiness-intro-288.mp4']);
-  const size = Number((await request.head('/brand/nodbusiness-intro-288.mp4')).headers()['content-length']);
+  expect([...new Set(seen.map((m) => new URL(m.url).pathname))]).toEqual(['/brand/nodbusiness-intro-288-v2.mp4']);
+  const size = Number((await request.head('/brand/nodbusiness-intro-288-v2.mp4')).headers()['content-length']);
   expect(size).toBeGreaterThan(0);
   expect(size).toBeLessThan(200 * 1024);
 });
