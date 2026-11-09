@@ -4,6 +4,6 @@
     "strict": true,
     "incremental": false
   },
-  "include": ["next-env.d.ts", "lib/**/*.ts", "lib/**/*.tsx", "hooks/**/*.ts", "hooks/**/*.tsx"],
-  "exclude": ["node_modules", "**/*.test.ts", "**/*.test.tsx"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", ".next", "e2e", "scripts", "**/*.test.ts", "**/*.test.tsx", "**/__tests__/**", "test/**"]
 }

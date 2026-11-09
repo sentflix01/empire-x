@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { entities } from "@/api/entities";
+import { entities, type Order } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 import {
@@ -20,10 +20,10 @@ import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import RequestPricing from '@/components/orders/RequestPricing';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, type LucideIcon } from 'lucide-react';
 import { useStartChat } from '@/lib/messaging';
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string }> = {
   pending:    { label: "Pending",    icon: Clock,        color: "text-warning bg-warning-subtle border-warning/30" },
   paid:       { label: "Paid",       icon: CheckCircle,  color: "text-success bg-success-subtle border-success/30" },
   processing: { label: "Processing", icon: Package,      color: "text-primary bg-primary-subtle border-primary/30" },
@@ -368,10 +368,10 @@ function SellerReturnActions({ orderId, onActioned }: { orderId: string; onActio
 function Orders() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [orders, setOrders]   = useState([]);
+  const [orders, setOrders]   = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [tab, setTab]         = useState("selling");
+  const [tab, setTab]         = useState<OrderTab>("selling");
   const userId = user?.id;
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showReturn, setShowReturn] = useState<Record<string, boolean>>({});
@@ -388,11 +388,11 @@ function Orders() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusOrder, orders]);
   /** Buyer: the business (with this order's card). Seller: the customer about this order. */
-  const messageAbout = (order) => {
+  const messageAbout = (order: Order) => {
     const counterpart = isSelling ? order.buyer_id : order.seller_id;
     if (!counterpart) return;
     void chat.start(order.business_id
-      ? { businessId: order.business_id, context: { kind: 'order', id: order.id }, customerId: isSelling ? order.buyer_id : undefined }
+      ? { businessId: order.business_id, context: { kind: 'order', id: order.id }, customerId: isSelling ? order.buyer_id ?? undefined : undefined }
       : { userId: counterpart });
   };
 
@@ -400,16 +400,17 @@ function Orders() {
     if (userId) loadOrders({ id: userId }, "selling");
   }, [userId]);
 
-  const loadOrders = async (u, mode) => {
+  const loadOrders = async (u: { id?: string } | null, mode: OrderTab) => {
+    if (!u?.id) return;
     setLoading(true);
     setLoadError('');
     try {
       const filter = mode === "selling" ? { seller_id: u.id } : { buyer_id: u.id };
       const data = await entities.Order.filter(filter, "-created_at", 100);
-      setOrders(Array.isArray(data) ? data : (data as any)?.orders ?? []);
+      setOrders(data);
       // Resolve counterparty names (seller names for buying tab, buyer names already in order)
       if (data.length > 0) {
-        const ids = [...new Set(data.map(o => mode === "selling" ? o.buyer_id : o.seller_id).filter(Boolean))];
+        const ids = [...new Set(data.map(o => mode === "selling" ? o.buyer_id : o.seller_id).filter((id): id is string => Boolean(id)))];
         if (ids.length) {
           try {
             const res = await Promise.all(ids.map(uid =>
@@ -419,7 +420,7 @@ function Orders() {
               })).catch(() => ({ id: uid, name: '' }))
             ));
             const map: Record<string, string> = {};
-            res.forEach(r => { if (r.name) map[r.id as string] = r.name; });
+            res.forEach(r => { if (r.name) map[r.id] = r.name; });
             setNameMap(map);
           } catch { /* silenced */ }
         }
@@ -430,12 +431,12 @@ function Orders() {
     setLoading(false);
   };
 
-  const switchTab = (mode) => {
+  const switchTab = (mode: OrderTab) => {
     setTab(mode);
     if (user) loadOrders(user, mode);
   };
 
-  const updateStatus = async (orderId, status) => {
+  const updateStatus = async (orderId: string, status: string) => {
     try {
       await entities.Order.update(orderId, { status });
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
@@ -464,8 +465,8 @@ function Orders() {
     }
   };
 
-  const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
-  const toggleReturn = (id) => setShowReturn(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleExpand = (id: string) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleReturn = (id: string) => setShowReturn(prev => ({ ...prev, [id]: !prev[id] }));
 
   const isSelling = tab === "selling";
 
@@ -478,7 +479,7 @@ function Orders() {
 
       <div data-page-guide="orders-tabs" className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-5">
         {/* Loop var is `mode` — `t` would shadow the translation function */}
-        {["selling", "buying"].map(mode => (
+        {(["selling", "buying"] as const).map(mode => (
           <button key={mode} onClick={() => switchTab(mode)}
             className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${tab === mode ? "bg-primary text-white" : "text-muted-foreground hover:bg-secondary"}`}>
             {mode === "selling" ? t('orders.mySales') : t('orders.myPurchases')}
@@ -540,8 +541,8 @@ function Orders() {
                         <p className="font-semibold text-sm truncate">{order.product_title}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {isSelling
-                            ? `Buyer: ${order.buyer_name || nameMap[order.buyer_id] || "Unknown"}`
-                            : `Seller: ${nameMap[order.seller_id] || order.seller_name || order.seller_id?.slice(0, 8) + '…'}`}
+                            ? `Buyer: ${order.buyer_name || (order.buyer_id && nameMap[order.buyer_id]) || "Unknown"}`
+                            : `Seller: ${nameMap[order.seller_id] || order.seller_id.slice(0, 8) + '…'}`}
                         </p>
                         <p className="text-xs text-muted-foreground">{fromNow(order.created_at)}</p>
                       </div>
@@ -718,6 +719,8 @@ function Orders() {
 }
 
 export { DeliveryTimeline };
+
+type OrderTab = 'selling' | 'buying';
 
 export default function OrdersPage() {
   return <ErrorBoundary><Orders /></ErrorBoundary>;

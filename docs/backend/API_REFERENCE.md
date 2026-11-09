@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **369** across **52** mounted modules · Generated: 2026-11-08
+> Endpoints: **369** across **52** mounted modules · Generated: 2026-11-09
 
 | Legend | Meaning |
 |---|---|
@@ -390,16 +390,16 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 | Method | Path | Auth | Source |
 |---|---|---|---|
 | `GET` | `/api/orders/` | 🔒 auth | routes/orders.ts:94 |
-| `GET` | `/api/orders/session/:sessionId` | 🔒 auth | routes/orders.ts:123 |
-| `GET` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:131 |
-| `POST` | `/api/orders/` | 🔒 auth | routes/orders.ts:186 |
-| `PUT` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:264 |
-| `POST` | `/api/orders/checkout/session` | 🔒 auth | routes/orders.ts:334 |
-| `POST` | `/api/orders/webhook` | 🌐 public | routes/orders.ts:648 |
-| `POST` | `/api/orders/checkout/chapa` | 🔒 auth | routes/orders.ts:682 |
-| `GET` | `/api/orders/chapa/sandbox` | 🌐 public | routes/orders.ts:750 |
-| `GET` | `/api/orders/chapa/status/:tx_ref` | 🔒 auth | routes/orders.ts:764 |
-| `GET` | `/api/orders/chapa/verify/:tx_ref` | 🌐 public | routes/orders.ts:777 |
+| `GET` | `/api/orders/session/:sessionId` | 🔒 auth | routes/orders.ts:125 |
+| `GET` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:133 |
+| `POST` | `/api/orders/` | 🔒 auth | routes/orders.ts:188 |
+| `PUT` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:266 |
+| `POST` | `/api/orders/checkout/session` | 🔒 auth | routes/orders.ts:336 |
+| `POST` | `/api/orders/webhook` | 🌐 public | routes/orders.ts:650 |
+| `POST` | `/api/orders/checkout/chapa` | 🔒 auth | routes/orders.ts:684 |
+| `GET` | `/api/orders/chapa/sandbox` | 🌐 public | routes/orders.ts:752 |
+| `GET` | `/api/orders/chapa/status/:tx_ref` | 🔒 auth | routes/orders.ts:766 |
+| `GET` | `/api/orders/chapa/verify/:tx_ref` | 🌐 public | routes/orders.ts:779 |
 
 ## polls — polls
 

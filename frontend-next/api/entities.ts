@@ -47,10 +47,13 @@ export interface UserProfile extends BaseEntity {
 
 export interface Post extends BaseEntity {
   author_id: string;
-  author_name?: string;
-  author_avatar?: string;
-  content?: string;
-  image_url?: string;
+  author_name?: string | null;
+  author_avatar?: string | null;
+  content?: string | null;
+  image_url?: string | null;
+  post_type?: string;
+  /** Set when the author edited the text or photo. */
+  edited_at?: string | null;
   poll_options?: string;
   poll_ends_at?: string;
   like_count?: number;
@@ -95,13 +98,39 @@ export interface Showroom extends BaseEntity {
   image_url?: string;
 }
 
+/**
+ * An order as GET /api/orders returns it (backend routes/orders.ts, clientOrder).
+ * Money columns are PostgreSQL NUMERIC, which arrive as decimal strings.
+ */
 export interface Order extends BaseEntity {
-  buyer_id?: string;
-  seller_id?: string;
-  status?: string;
-  total?: number;
-  currency?: string;
-  product_id?: string;
+  buyer_id?: string | null;
+  seller_id: string;
+  business_id?: string | null;
+  product_id?: string | null;
+  product_title: string;
+  product_type?: string;
+  /** The product's photos (JSON text), joined in for the order card; null once the product is gone. */
+  product_images?: string | null;
+  quantity: number;
+  unit_price?: number | string | null;
+  total_price: number | string;
+  currency: string;
+  status: string;
+  notes?: string | null;
+  buyer_name?: string | null;
+  buyer_phone?: string | null;
+  buyer_email?: string | null;
+  delivery_address?: string | null;
+  payment_provider?: string | null;
+  payment_reference?: string | null;
+  payment_reported_at?: string | null;
+  payment_confirmed_at?: string | null;
+  payment_expires_at?: string | null;
+  /** Shown instead of a price when the product had no fixed price ("Price on request"). */
+  listed_price_text?: string | null;
+  has_receipt?: boolean;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface Conversation extends BaseEntity {
@@ -291,7 +320,7 @@ export const entities = {
     ...buildEntityApi<Order>('orders'),
     // GET /api/orders returns { orders: [...], next_cursor: ... } (keyset pagination)
     // — extract the array so consumers always get an array.
-    async filter(filterObj: FilterObj = {}, sort = '-created_at', limit = 100) {
+    async filter(filterObj: FilterObj = {}, sort = '-created_at', limit = 100): Promise<Order[]> {
       const res = await client.get(`/api/orders`, { params: { ...filterObj, sort, limit } });
       return Array.isArray(res.data) ? res.data : res.data?.orders ?? [];
     },

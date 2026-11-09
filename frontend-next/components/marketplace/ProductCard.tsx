@@ -7,13 +7,15 @@ import { ShoppingBag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import BookmarkButton from '@/components/ui/BookmarkButton';
 import { useTranslation } from 'react-i18next';
+import { formatAmount } from '@/lib/money';
 
 interface Product {
   id: string;
   title: string;
-  price?: number;
+  /** Number or decimal string ("100.00") as the API sends it. */
+  price?: number | string;
   currency?: string;
-  images?: string;
+  images?: string | null;
   status?: string;
 }
 
@@ -66,7 +68,7 @@ export default function ProductCard({ product, images }: ProductCardProps) {
           <div className="p-3">
             <h3 className="text-sm font-medium truncate">{product.title}</h3>
             <p className="text-primary font-bold text-sm mt-1">
-              {product.price?.toLocaleString()} {product.currency || 'USD'}
+              {formatAmount(product.price)} {product.currency || 'USD'}
             </p>
           </div>
         </div>

@@ -20,7 +20,7 @@
     "check:colors": "node scripts/check-color-tokens.mjs",
     "start": "next start",
     "lint": "eslint app api components hooks lib store views proxy.ts --no-error-on-unmatched-pattern --max-warnings=-1 && node scripts/check-color-tokens.mjs",
-    "typecheck:strict": "tsc -p tsconfig.strict.json --noEmit",
+    "typecheck:strict": "node scripts/typecheck-strict.mjs",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
