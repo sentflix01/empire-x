@@ -103,11 +103,23 @@ export interface Business extends BaseEntity {
   status?: string;
 }
 
+/** A business mini-website as /api/showrooms returns it (the showrooms table). */
 export interface Showroom extends BaseEntity {
-  owner_id?: string;
-  title?: string;
-  description?: string;
-  status?: string;
+  owner_id: string;
+  business_id?: string | null;
+  title: string;
+  description?: string | null;
+  slug?: string | null;
+  category?: string;
+  template?: string | null;
+  /** Section list as JSON text; read it with sectionList() (lib/showroomSectionsCodec.ts). */
+  sections?: string | null;
+  cover_image?: string | null;
+  logo_url?: string | null;
+  theme_color?: string | null;
+  status: string;
+  view_count?: number;
+  expires_at?: string | null;
   image_url?: string;
 }
 
