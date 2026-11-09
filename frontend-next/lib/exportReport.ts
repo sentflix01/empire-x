@@ -43,7 +43,7 @@ export interface AnalyticsReportInput {
   products: Array<{ id?: string; title?: string; view_count?: Amount; price?: Amount; stock?: Amount; status?: string }>;
   likes: Array<{ target_id?: string }>;
   orders: Array<{
-    product_id?: string; product_title?: string; buyer_name?: string; quantity?: Amount;
+    product_id?: string | null; product_title?: string; buyer_name?: string | null; quantity?: Amount;
     total_price?: Amount; currency?: string; status?: string; created_at?: string;
   }>;
   conversionRate: Amount;
