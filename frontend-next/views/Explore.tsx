@@ -43,8 +43,12 @@ function Explore() {
   const [hashtags, setHashtags] = useState([]);
 
   useEffect(() => {
-    client.get("/api/trending").then(r => setData(r.data)).finally(() => setLoading(false));
-    client.get("/api/hashtags/trending").then(r => setHashtags(r.data || [])).catch(() => {});
+    // Show the page once both answers are in: the hashtag section sits above
+    // the posts, so adding it later pushed everything down (layout shift).
+    Promise.allSettled([
+      client.get("/api/trending").then(r => setData(r.data)),
+      client.get("/api/hashtags/trending").then(r => setHashtags(r.data || [])),
+    ]).finally(() => setLoading(false));
   }, []);
 
   if (loading) return (
