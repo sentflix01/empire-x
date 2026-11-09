@@ -2,7 +2,7 @@
 import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
-import { entities } from "@/api/entities";
+import { entities, type Showroom } from "@/api/entities";
 import { apiFetch } from "@/api/client";
 import { Search, Plus, Eye } from "lucide-react";
 import BrandLogo from '@/components/brand/BrandLogo';
@@ -28,7 +28,10 @@ function ShowroomSkeleton() {
   );
 }
 
-const CAT_LABELS = {
+/** The "every category" chip; a fixed key, so the filter works in every language. */
+const ALL_CATEGORIES = "all";
+
+const CAT_LABELS: Record<string, string> = {
   business: "Business", creative: "Creative", education: "Education", events: "Events",
   nonprofit: "Nonprofit", personal: "Personal", media: "Media", startup: "Startup", community: "Community",
 };
@@ -36,31 +39,32 @@ const CAT_LABELS = {
 function Showrooms() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [showrooms, setShowrooms] = useState([]);
+  const [showrooms, setShowrooms] = useState<Showroom[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All");
+  const [category, setCategory] = useState<string>(ALL_CATEGORIES);
 
   useEffect(() => {
     entities.Showroom.filter({ status: "published" }, "-created_at", 50)
       .then(setShowrooms)
+      .catch(() => setShowrooms([]))
       .finally(() => setLoading(false));
   }, []);
 
   // BUG[2]: owner management - edit/delete published showrooms
-  const mine = showrooms.filter((s: { owner_id?: string }) => s.owner_id && s.owner_id === user?.id);
+  const mine = showrooms.filter((s) => s.owner_id && s.owner_id === user?.id);
   const [doctorOpen, setDoctorOpen] = useState<string | null>(null);
   const deleteShowroom = async (id: string) => {
     if (!window.confirm('Delete this showroom permanently?')) return;
     try {
       const res = await apiFetch(`/api/showrooms/${id}`, { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error();
-      setShowrooms((prev: unknown[]) => prev.filter((x: { id: string }) => x.id !== id));
+      setShowrooms((prev) => prev.filter((x) => x.id !== id));
     } catch { alert('Delete failed'); }
   };
   const filtered = showrooms.filter(s => {
     const matchSearch = !search || s.title?.toLowerCase().includes(search.toLowerCase());
-    const matchCat = category === t('common.all') || s.category === category;
+    const matchCat = category === ALL_CATEGORIES || s.category === category;
     return matchSearch && matchCat;
   });
 
@@ -88,7 +92,7 @@ function Showrooms() {
           <div className="mb-4 rounded-2xl border border-border/50 bg-card p-3">
             <p className="text-xs font-semibold mb-2">Your showrooms</p>
             <div className="space-y-2">
-              {mine.map((s: { id: string; title?: string }) => (
+              {mine.map((s) => (
                 <div key={s.id} className="flex items-center justify-between gap-2 rounded-xl bg-secondary/40 px-3 py-2">
                   <span className="text-xs truncate flex-1">{s.title || s.id}</span>
                   <Link href={`/showroom/create?edit=${s.id}`} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-primary/15 text-primary hover:bg-primary/25">Edit</Link>
@@ -96,16 +100,16 @@ function Showrooms() {
                   <button onClick={() => setDoctorOpen(doctorOpen === s.id ? null : s.id)} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-success/10 text-success hover:bg-success/20">Health</button>
                 </div>
               ))}
-              {mine.map((s: { id: string }) => doctorOpen === s.id ? (
+              {mine.map((s) => doctorOpen === s.id ? (
                 <ShowroomDoctorPanel key={'doc-' + s.id} showroomId={s.id} />
               ) : null)}
             </div>
           </div>
         )}
         <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
-          {["All", ...Array.from(new Set(showrooms.map((s: { category?: string }) => s.category).filter(Boolean)))].map((c: string) => (
+          {[ALL_CATEGORIES, ...Array.from(new Set(showrooms.map((s) => s.category).filter((c): c is string => Boolean(c))))].map((c) => (
             <button key={c} onClick={() => setCategory(c)} className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${category === c ? "bg-primary text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"}`}>
-              {c === t('common.all') ? t('common.all') : (CAT_LABELS[c] || c)}
+              {c === ALL_CATEGORIES ? t('common.all') : (CAT_LABELS[c] || c)}
             </button>
           ))}
         </div>
@@ -141,7 +145,7 @@ function Showrooms() {
                     {/* Category badge overlay */}
                     <div className="absolute top-2 left-2">
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white backdrop-blur-sm">
-                        {CAT_LABELS[s.category] || s.category || 'Showroom'}
+                        {(s.category && CAT_LABELS[s.category]) || s.category || 'Showroom'}
                       </span>
                     </div>
                     {/* Bookmark button — positioned top-right, stops link navigation */}
