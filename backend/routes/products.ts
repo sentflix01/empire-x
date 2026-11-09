@@ -334,7 +334,8 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
       const isOwner = record.seller_id === req.user?.id;
       if (!isOwner && rejectViewGate(res, businessViewGate(access, req), 'Product not found')) return;
     }
-    await pool.query('UPDATE products SET view_count=view_count+1 WHERE id=$1', [req.params.id]).catch(()=>undefined);
+    // Count the view without making the visitor wait for the write.
+    void pool.query('UPDATE products SET view_count=view_count+1 WHERE id=$1', [req.params.id]).catch(()=>undefined);
     res.json((!!req.user?.id && record.seller_id === req.user.id) || req.user?.role === 'admin' ? normalizeProduct(record) : publicProduct(record));
   } catch { res.status(500).json({ error: 'Failed to fetch product' }); }
 });
