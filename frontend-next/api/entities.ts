@@ -196,6 +196,18 @@ export interface Follow extends BaseEntity {
   followee_id?: string;
 }
 
+/** One save (bookmark) of the signed-in seller's product: when, never who (GET /api/saves/my-products). */
+export interface ProductSave {
+  target_id: string;
+  created_at: string;
+}
+
+/** Saves of the signed-in seller's own products, optionally for one business; newest first. */
+export async function fetchMyProductSaves(businessId?: string | null): Promise<ProductSave[]> {
+  const res = await client.get<ProductSave[]>('/api/saves/my-products', { params: businessId ? { business_id: businessId } : {} });
+  return Array.isArray(res.data) ? res.data : [];
+}
+
 export interface Like extends BaseEntity {
   target_id?: string;
   target_type?: string;

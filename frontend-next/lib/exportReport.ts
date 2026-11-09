@@ -37,11 +37,12 @@ type Amount = number | string | null | undefined;
 
 export interface AnalyticsReportInput {
   bizName: string;
-  stats: { totalSales: Amount; totalOrders: Amount; totalViews: Amount; totalLikes: Amount; totalEngagement: Amount };
+  stats: { totalSales: Amount; totalOrders: Amount; totalViews: Amount; totalSaves: Amount; totalEngagement: Amount };
   salesData: Array<{ day: string; sales: Amount; orders: Amount }>;
-  engagementData: Array<{ day: string; engagement: Amount; likes: Amount; orders: Amount }>;
+  engagementData: Array<{ day: string; engagement: Amount; saves: Amount; orders: Amount }>;
   products: Array<{ id?: string; title?: string; view_count?: Amount; price?: Amount; stock?: Amount; status?: string }>;
-  likes: Array<{ target_id?: string }>;
+  /** Saves (bookmarks) of the products. */
+  saves: Array<{ target_id?: string }>;
   orders: Array<{
     product_id?: string | null; product_title?: string; buyer_name?: string | null; quantity?: Amount;
     total_price?: Amount; currency?: string; status?: string; created_at?: string;
@@ -53,7 +54,7 @@ export interface AnalyticsReportInput {
  * Build analytics report rows from dashboard data.
  */
 export function buildAnalyticsReport({
-  bizName, stats, salesData, engagementData, products, likes, orders, conversionRate,
+  bizName, stats, salesData, engagementData, products, saves, orders, conversionRate,
 }: AnalyticsReportInput): ReportRow[] {
   const report: ReportRow[] = [];
 
@@ -63,7 +64,7 @@ export function buildAnalyticsReport({
   report.push({ Metric: "Total Revenue", Value: stats.totalSales });
   report.push({ Metric: "Total Orders", Value: stats.totalOrders });
   report.push({ Metric: "Product Views", Value: stats.totalViews });
-  report.push({ Metric: "Product Likes", Value: stats.totalLikes });
+  report.push({ Metric: "Product Saves", Value: stats.totalSaves });
   report.push({ Metric: "Total Engagement", Value: stats.totalEngagement });
   report.push({ Metric: "Conversion Rate (%)", Value: conversionRate });
   report.push({ Metric: "", Value: "" });
@@ -80,7 +81,7 @@ export function buildAnalyticsReport({
   report.push({ Metric: "--- Engagement (Last 7 Days) ---", Value: "" });
   engagementData.forEach((d) => {
     report.push({ Metric: `${d.day} - Engagement`, Value: d.engagement });
-    report.push({ Metric: `${d.day} - Likes`, Value: d.likes });
+    report.push({ Metric: `${d.day} - Saves`, Value: d.saves });
     report.push({ Metric: `${d.day} - Orders`, Value: d.orders });
   });
   report.push({ Metric: "", Value: "" });
@@ -88,11 +89,11 @@ export function buildAnalyticsReport({
   // Product performance
   report.push({ Metric: "--- Product Performance ---", Value: "" });
   products.forEach((p) => {
-    const productLikes = likes.filter((l) => l.target_id === p.id).length;
+    const productSaves = saves.filter((l) => l.target_id === p.id).length;
     const productOrders = orders.filter((o) => o.product_id === p.id).length;
     report.push({
       Metric: p.title,
-      Value: `Views: ${p.view_count || 0} | Likes: ${productLikes} | Orders: ${productOrders} | Price: ${p.price || 0} | Stock: ${p.stock || 0} | Status: ${p.status}`,
+      Value: `Views: ${p.view_count || 0} | Saves: ${productSaves} | Orders: ${productOrders} | Price: ${p.price || 0} | Stock: ${p.stock || 0} | Status: ${p.status}`,
     });
   });
   report.push({ Metric: "", Value: "" });
