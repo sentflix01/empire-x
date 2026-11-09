@@ -260,17 +260,17 @@ export default function LandingPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-2xl bg-primary p-4 text-white">
                     <Store className="mb-5 h-5 w-5" />
-                    <p className="text-xs text-white/70">Showroom</p>
+                    <p className="text-xs text-white/95">Showroom</p>
                     <p className="text-lg font-black">Live</p>
                   </div>
                   <div className="rounded-2xl bg-success p-4 text-white">
                     <Package className="mb-5 h-5 w-5" />
-                    <p className="text-xs text-white/75">Orders</p>
+                    <p className="text-xs text-white/95">Orders</p>
                     <p className="text-lg font-black">128</p>
                   </div>
                   <div className="rounded-2xl bg-brand-secondary p-4 text-white">
                     <MessageCircle className="mb-5 h-5 w-5" />
-                    <p className="text-xs text-white/75">Messages</p>
+                    <p className="text-xs text-white/95">Messages</p>
                     <p className="text-lg font-black">Fast</p>
                   </div>
                   <div className="rounded-2xl bg-inverse p-4 text-white">
