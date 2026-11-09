@@ -1,7 +1,5 @@
 {
   "components/map/HomeMapTab.tsx": 33,
-  "components/profile/BusinessProfile.tsx": 28,
-  "components/profile/PersonalProfile.tsx": 14,
   "components/profile/TemplateCard.tsx": 6,
   "components/settings/TelegramSettings.tsx": 12,
   "components/ui/alert-dialog.tsx": 2,
@@ -22,9 +20,7 @@
   "components/ui/toggle-group.tsx": 3,
   "components/ui/use-toast.tsx": 15,
   "views/Admin.tsx": 2,
-  "views/Bookmarks.tsx": 18,
   "views/BusinessCreate.tsx": 4,
-  "views/Explore.tsx": 17,
   "views/ForgotPassword.tsx": 1,
   "views/HashtagFeed.tsx": 2,
   "views/NearbyMap.tsx": 56,
@@ -33,6 +29,5 @@
   "views/Referral.tsx": 10,
   "views/ResetPassword.tsx": 3,
   "views/Search.tsx": 1,
-  "views/Showrooms.tsx": 21,
   "views/Wallet.tsx": 2
 }
