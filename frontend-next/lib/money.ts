@@ -23,3 +23,15 @@ export function sumAmounts(values: Iterable<number | string | null | undefined>)
   }
   return Math.round(total * 100) / 100;
 }
+
+/**
+ * Order statuses that count as revenue on Business Analytics: money received
+ * (owner decision 2026-11-09, project-brain/DECISIONS.md). Unpaid (pending,
+ * awaiting_payment, payment_reported, confirmed), cancelled, expired,
+ * refunded and disputed orders do not count.
+ */
+const REVENUE_STATUSES = new Set(['paid', 'processing', 'shipped', 'delivered', 'completed']);
+
+export function isRevenueOrder(order: { status?: string | null }): boolean {
+  return typeof order.status === 'string' && REVENUE_STATUSES.has(order.status);
+}

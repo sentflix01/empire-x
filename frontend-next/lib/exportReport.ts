@@ -61,7 +61,7 @@ export function buildAnalyticsReport({
   // Summary section
   report.push({ Metric: "Business", Value: bizName });
   report.push({ Metric: "Report Date", Value: new Date().toLocaleString() });
-  report.push({ Metric: "Total Revenue", Value: stats.totalSales });
+  report.push({ Metric: "Total Revenue (paid orders)", Value: stats.totalSales });
   report.push({ Metric: "Total Orders", Value: stats.totalOrders });
   report.push({ Metric: "Product Views", Value: stats.totalViews });
   report.push({ Metric: "Product Saves", Value: stats.totalSaves });

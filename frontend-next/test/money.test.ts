@@ -22,3 +22,14 @@ describe('sumAmounts', () => {
     expect(sumAmounts([])).toBe(0);
   });
 });
+
+describe('isRevenueOrder', () => {
+  it('counts only orders whose money was received', async () => {
+    const { isRevenueOrder } = await import('@/lib/money');
+    for (const status of ['paid', 'processing', 'shipped', 'delivered', 'completed']) expect(isRevenueOrder({ status })).toBe(true);
+    for (const status of ['pending', 'awaiting_payment', 'payment_reported', 'confirmed', 'cancelled', 'expired', 'refunded', 'disputed', '']) {
+      expect(isRevenueOrder({ status })).toBe(false);
+    }
+    expect(isRevenueOrder({})).toBe(false);
+  });
+});

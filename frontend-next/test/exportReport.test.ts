@@ -29,6 +29,6 @@ describe('buildAnalyticsReport', () => {
   });
 
   it('keeps revenue as the number it was given', () => {
-    expect(value('Total Revenue')).toBe(350);
+    expect(value('Total Revenue (paid orders)')).toBe(350);
   });
 });
