@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { entities, fetchMyProductSaves, type Business, type Order, type Product, type ProductSave, type UserProfile } from "@/api/entities";
-import { formatAmount, sumAmounts } from "@/lib/money";
+import { formatAmount, isRevenueOrder, sumAmounts } from "@/lib/money";
 import { useAuth } from "@/lib/AuthContext";
 
 import {
@@ -112,7 +112,9 @@ function BusinessAnalytics() {
   const bizProductIds = selectedBusiness ? products.map(p => p.id) : null;
   const filteredOrders = selectedBusiness ? orders.filter(o => !!o.product_id && !!bizProductIds?.includes(o.product_id)) : orders;
   // total_price is a decimal string ("100.00"): add numbers, not text.
-  const totalSales = sumAmounts(filteredOrders.map(o => o.total_price));
+  // Revenue is money received: paid orders only (owner decision 2026-11-09).
+  const revenueOrders = filteredOrders.filter(isRevenueOrder);
+  const totalSales = sumAmounts(revenueOrders.map(o => o.total_price));
   const totalViews = products.reduce((sum, p) => sum + (p.view_count || 0), 0);
   const totalSaves = products.reduce((sum, p) => sum + saves.filter(l => l.target_id === p.id).length, 0);
   const totalEngagement = totalViews + totalSaves + filteredOrders.length;
@@ -126,7 +128,7 @@ function BusinessAnalytics() {
     const dayOrders = filteredOrders.filter(o => isSameDay(new Date(o.created_at), day));
     salesData.push({
       day: dfFormat(day, 'EEE'),
-      sales: sumAmounts(dayOrders.map(o => o.total_price)),
+      sales: sumAmounts(dayOrders.filter(isRevenueOrder).map(o => o.total_price)),
       orders: dayOrders.length,
     });
   }
@@ -166,7 +168,7 @@ function BusinessAnalytics() {
   })).filter(s => s.value > 0);
 
   const stats = [
-    { label: t('business.revenue'), value: `${formatAmount(totalSales)} ETB`, icon: DollarSign, color: "text-success bg-success-subtle" },
+    { label: t('business.revenue'), value: `${formatAmount(totalSales)} ETB`, icon: DollarSign, color: "text-success bg-success-subtle", note: 'Paid orders only' },
     { label: t('nav.orders'), value: filteredOrders.length, icon: ShoppingBag, color: "text-primary bg-primary-subtle" },
     { label: t('business.overview'), value: totalViews, icon: Eye, color: "text-primary bg-primary-subtle" },
     { label: t('business.overview'), value: totalEngagement, icon: Activity, color: "text-brand-secondary bg-brand-secondary-subtle" },

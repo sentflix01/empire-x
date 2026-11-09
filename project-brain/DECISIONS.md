@@ -947,3 +947,11 @@ items in the open list until confirmed.
 - **Why:** The screen read product likes from a client stub that always returned nothing, so "Product Likes" was always 0.
 - **Consequences:** `backend/routes/saves.ts`, index `idx_saves_target` (migrate88), `frontend-next/api/entities.ts` (`fetchMyProductSaves`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`. Tests: `test/db/productSaves.db.test.js`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts`. Revenue still counts every order; whether it should count only paid and completed orders is open with the owner.
 
+### 2026-11-09 — Revenue on Business Analytics counts paid orders only
+
+- **Status:** Accepted (owner, 9 Nov 2026: "Paid + completed only")
+- **Decision owner:** Project owner
+- **Decision:** Revenue (the stat, the 7-day sales series and the CSV "Total Revenue (paid orders)") is money received: orders with status `paid`, `processing`, `shipped`, `delivered` or `completed`. Unpaid (`pending`, `awaiting_payment`, `payment_reported`, `confirmed`), `cancelled`, `expired`, `refunded` and `disputed` orders do not count. The Orders count, status breakdown and recent orders still show all orders.
+- **Why:** Revenue previously added every order, including cancelled and unpaid ones.
+- **Consequences:** `frontend-next/lib/money.ts` (`isRevenueOrder`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`, `components/analytics/StatCard.tsx` (`note`). Tests: `test/money.test.ts`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts` (fails without the rule).
+

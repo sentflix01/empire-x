@@ -3,7 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 /**
  * Business Analytics with the API answered in the browser:
  * - revenue adds order totals that arrive as decimal strings (it once showed
- *   "0100.00250.00 ETB");
+ *   "0100.00250.00 ETB") and counts paid orders only;
  * - products show Saves (bookmarks), counted from /api/saves/my-products;
  * - choosing a business stays on /analytics (it once went to a missing page).
  */
@@ -23,6 +23,9 @@ async function mockApi(page: Page) {
   await page.route('**/api/orders?*', (r) => r.fulfill(json({ orders: [
     { id: 'o1', seller_id: SELLER, product_id: PRODUCT, product_title: 'Coffee', quantity: 1, total_price: '100.00', currency: 'ETB', status: 'paid', created_at: today },
     { id: 'o2', seller_id: SELLER, product_id: PRODUCT, product_title: 'Coffee', quantity: 2, total_price: '250.00', currency: 'ETB', status: 'completed', created_at: today },
+    // Not revenue: cancelled and unpaid orders (owner decision 2026-11-09).
+    { id: 'o3', seller_id: SELLER, product_id: PRODUCT, product_title: 'Coffee', quantity: 5, total_price: '500.00', currency: 'ETB', status: 'cancelled', created_at: today },
+    { id: 'o4', seller_id: SELLER, product_id: PRODUCT, product_title: 'Coffee', quantity: 1, total_price: '70.00', currency: 'ETB', status: 'pending', created_at: today },
   ], next_cursor: null })));
   await page.route('**/api/saves/my-products*', (r) => r.fulfill(json([
     { target_id: PRODUCT, created_at: today }, { target_id: PRODUCT, created_at: today }, { target_id: PRODUCT, created_at: today },
@@ -35,7 +38,9 @@ test('Business Analytics adds revenue as numbers, shows saves, and switches busi
   await mockApi(page);
 
   await page.goto('/analytics');
+  // 100 + 250 paid; the cancelled 500 and pending 70 do not count.
   await expect(page.getByText('350 ETB').first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText('Paid orders only')).toBeVisible();
   await expect(page.getByText('0100.00')).toHaveCount(0);
   const savesStat = page.getByText('Product Saves').locator('..');
   await expect(savesStat).toContainText('3');
