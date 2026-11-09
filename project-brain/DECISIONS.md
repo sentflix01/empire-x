@@ -931,3 +931,11 @@ items in the open list until confirmed.
 - **Why:** The raster still (cut from a compressed video frame) was blurry at small sizes; the blue disc vanished on blue backgrounds; the wordmark "o" was still the old thin mark.
 - **Consequences:** PNG and ICO icons are rendered from the vector by `render-icons.mjs`. Files are `-v3`; v1 and v2 names redirect. The share image uses the ringed icon. Unit tests check that logos styled for blue use the ring version and that the icons are vectors.
 
+### 2026-11-09 — An ended Demo session leaves Demo with an explanation
+
+- **Status:** Accepted (owner asked to fix "We could not load business profiles" seen in a Demo session, 9 Nov 2026)
+- **Decision owner:** Project owner
+- **Decision:** When the API answers with `DEMO_SESSION_EXPIRED`, `DEMO_SESSION_INVALID` or `DEMO_DISABLED`, the web app stops trying to refresh, signs the browser out of Demo and opens `/landing?demo=ended` with a notice; Try Demo starts afresh. Load errors say "check your connection" only when no answer came back.
+- **Why:** An ended session made every request fail while the Demo banner stayed on screen, and the feed blamed the visitor's connection.
+- **Consequences:** `api/client.ts` (`isDemoEndedResponse`, `DEMO_ENDED_EVENT`), `lib/AuthContext.tsx`, `components/landing/DemoEndedNotice.tsx`, feed message. Tests: `test/demoEnded.test.tsx`, `e2e/demo-ended.spec.ts`. Docs: `docs/operations/DEMO_WORKSPACE_DEPLOYMENT.md`.
+

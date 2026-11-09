@@ -1,7 +1,10 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode } from 'react';
-import client, { clearToken, ensureFreshToken, getAccessToken } from '@/api/client';
+import client, { clearToken, ensureFreshToken, getAccessToken, DEMO_ENDED_EVENT } from '@/api/client';
+
+/** Where a visitor goes when their Demo practice session has ended. */
+export const DEMO_ENDED_REDIRECT = '/landing?demo=ended';
 
 export interface AuthUser {
   id?: string;
@@ -137,6 +140,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     void checkUserAuth().finally(() => window.clearTimeout(loadingTimer));
     return () => window.clearTimeout(loadingTimer);
   }, [checkUserAuth]);
+
+  // The API said this Demo practice session is over (api/client.ts). Leave Demo
+  // completely and explain on the landing page, where "Try Demo" starts afresh.
+  useEffect(() => {
+    const onDemoEnded = () => {
+      clearToken();
+      setUser(null);
+      setIsAuth(false);
+      setAuthChecked(true);
+      window.location.href = DEMO_ENDED_REDIRECT;
+    };
+    window.addEventListener(DEMO_ENDED_EVENT, onDemoEnded);
+    return () => window.removeEventListener(DEMO_ENDED_EVENT, onDemoEnded);
+  }, []);
 
   const logout = (redirectTo?: string) => {
     // Clear local state immediately so the old account cannot remain visible.

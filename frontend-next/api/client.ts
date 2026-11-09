@@ -64,6 +64,26 @@ export function getAccessToken() {
   return _accessToken;
 }
 
+// ── Demo session ended ───────────────────────────────────────────────────────
+// The API refuses every request once a Demo practice session has ended, become
+// invalid, or Demo is switched off. Refreshing cannot help, so the app is told
+// once (AuthContext leaves Demo and explains why) instead of showing
+// connection errors under a Demo banner that no longer works.
+export const DEMO_ENDED_EVENT = 'nb:demo-ended';
+const DEMO_ENDED_CODES = new Set(['DEMO_SESSION_INVALID', 'DEMO_SESSION_EXPIRED', 'DEMO_DISABLED']);
+let _demoEndedSent = false;
+
+export function isDemoEndedResponse(status: number | undefined, data: unknown): boolean {
+  const code = data && typeof data === 'object' ? (data as { code?: unknown }).code : undefined;
+  return (status === 401 || status === 503) && typeof code === 'string' && DEMO_ENDED_CODES.has(code);
+}
+
+function announceDemoEnded() {
+  if (_demoEndedSent || typeof window === 'undefined') return;
+  _demoEndedSent = true;
+  window.dispatchEvent(new Event(DEMO_ENDED_EVENT));
+}
+
 // ── ensureFreshToken — used by authSlice to hydrate token on page load ────────
 // Returns true if a valid token is available (from memory or refresh cookie).
 // Returns false if the user has no valid session at all.
@@ -146,9 +166,15 @@ client.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
 
+    if (isDemoEndedResponse(error.response?.status, error.response?.data)) {
+      clearToken();
+      announceDemoEnded();
+    }
+
     // Only attempt refresh on 401, and only once per request
     if (
       error.response?.status === 401 &&
+      !isDemoEndedResponse(error.response?.status, error.response?.data) &&
       !originalRequest._retried &&
       typeof window !== 'undefined'
     ) {
