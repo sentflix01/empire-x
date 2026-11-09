@@ -3,7 +3,7 @@
 > A living document. Track what needs to improve and why.
 > Add items when you notice them. Resolve them intentionally, not reactively.
 > Priority: High (fix before Phase 2) · Medium (fix in Phase 2) · Low (nice to have)
-> **Last updated:** November 8, 2026
+> **Last updated:** November 9, 2026
 
 ---
 
@@ -79,7 +79,7 @@
 **Impact:** Occasional false-red CI runs; no real test regressions found.
 
 ### TD-004: TypeScript migration (backend)
-**Status:** Done (corrected 2026-11-07, audit F-008) — the backend is TypeScript and `tsc --noEmit` runs in CI. Since 2026-11-08 the backend runs with `"strict": true`, and the frontend's `lib/` and `hooks/` are strict through `frontend-next/tsconfig.strict.json` (`npm run typecheck:strict`, in CI). Remaining: strict for frontend `components/` (~170 errors) and `views/` (~490), folder by folder by widening that file's `include`; some migrations and tests are still JavaScript.  
+**Status:** Done (corrected 2026-11-07, audit F-008) — the backend is TypeScript and `tsc --noEmit` runs in CI. Since 2026-11-08 the backend runs with `"strict": true`. Since 2026-11-09 the whole frontend is checked strictly (`frontend-next/tsconfig.strict.json`) with a ratchet: `npm run typecheck:strict` (in CI) fails when any file has more strict errors than `frontend-next/strict-baseline.json` records, and new files must have none; `-- --update` lowers the baseline after a fix and refuses to raise it. The feed, marketplace, messaging and Orders screens are clean. Remaining: 534 errors in 40 files (largest: `views/Profile.tsx`, `views/BusinessAnalytics.tsx`, `views/NearbyMap.tsx`, `views/ShowroomView.tsx`); some migrations and tests are still JavaScript.  
 **File:** All `backend/` files  
 **Problem:** Backend was JavaScript — no type checking, autocomplete is limited, refactoring is risky.  
 **Fix:** Rename `.js` to `.ts`, add `tsconfig.json`, fix type errors incrementally. Add Prisma for type-safe DB queries.  

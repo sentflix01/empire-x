@@ -14,6 +14,7 @@ import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import SafeImage from "@/components/ui/SafeImage";
 import WebsiteStatusBanner from "@/components/profile/WebsiteStatusBanner";
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
+import { formatAmount } from '@/lib/money';
 
 
 /**
@@ -224,7 +225,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
                   <p className="text-xs text-muted-foreground">{o.buyer_name} • {o.quantity}x</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-primary">{o.total_price?.toLocaleString()} {o.currency}</p>
+                  <p className="text-sm font-bold text-primary">{formatAmount(o.total_price)} {o.currency}</p>
                   <Badge variant="outline" className="text-[10px] mt-0.5">{o.status}</Badge>
                 </div>
               </div>

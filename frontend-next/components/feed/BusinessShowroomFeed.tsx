@@ -730,12 +730,12 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           {heroSection?.subtitle && (
             <p className="text-xs text-muted-foreground italic line-clamp-1">{heroSection.subtitle}</p>
           )}
-          {biz.business_description && (
-            <p className="text-xs text-muted-foreground line-clamp-2">{biz.business_description as string}</p>
+          {typeof biz.business_description === 'string' && biz.business_description && (
+            <p className="text-xs text-muted-foreground line-clamp-2">{biz.business_description}</p>
           )}
-          {biz.business_address && (
+          {typeof biz.business_address === 'string' && biz.business_address && (
             <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              <MapPin className="w-3 h-3 shrink-0" /> {biz.business_address as string}
+              <MapPin className="w-3 h-3 shrink-0" /> {biz.business_address}
             </p>
           )}
 

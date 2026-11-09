@@ -1,20 +1,26 @@
 'use client'
 import React, { useState } from "react";
 import NextImage from 'next/image';
-import { entities } from "@/api/entities";
+import { entities, type Post } from "@/api/entities";
+import type { AuthUser } from "@/lib/AuthContext";
 import { Image, Send, X } from "lucide-react";
 import { uploadFile } from "@/lib/uploadFile";
 import { useTranslation } from 'react-i18next';
 
-export default function CreatePostForm({ user, onPostCreated }) {
+interface CreatePostFormProps {
+  user: AuthUser | null;
+  onPostCreated: (post: Post) => void;
+}
+
+export default function CreatePostForm({ user, onPostCreated }: CreatePostFormProps) {
   const [content, setContent] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [posting, setPosting] = useState(false);
   const { t } = useTranslation();
 
-  const handleImageSelect = (e) => {
-    const file = e.target.files[0];
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));

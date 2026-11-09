@@ -35,7 +35,7 @@ function Marketplace() {
     t('marketplace.categories.beauty'), t('marketplace.categories.home'),
     t('marketplace.categories.other'),
   ];
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<MarketProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -52,7 +52,7 @@ function Marketplace() {
       const { data } = await client.get('/api/products', {
         params: { status: 'active', sort: '-created_at', limit: PAGE_SIZE, ...(reset || !cursorRef.current ? {} : { cursor: cursorRef.current }) }
       });
-      const rows = Array.isArray(data) ? data : Array.isArray(data?.products) ? data.products : [];
+      const rows: MarketProduct[] = Array.isArray(data) ? data : Array.isArray(data?.products) ? data.products : [];
       cursorRef.current = typeof data?.next_cursor === 'string' ? data.next_cursor : null;
       setProducts(reset ? rows : prev => {
         const seen = new Set(prev.map(p => p.id));
@@ -114,7 +114,7 @@ function Marketplace() {
     return matchSearch && matchCat;
   });
 
-  const parseImages = (img) => {
+  const parseImages = (img: string | null | undefined): string[] => {
     if (!img) return [];
     const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
     const normalise = (url: string) =>
@@ -238,6 +238,9 @@ function Marketplace() {
       </div>
   );
 }
+
+/** A product as the marketplace lists it (/api/products). */
+type MarketProduct = React.ComponentProps<typeof ProductCard>['product'] & { category?: string | null };
 
 export default function MarketplacePage() {
   return <ErrorBoundary><Marketplace /></ErrorBoundary>;

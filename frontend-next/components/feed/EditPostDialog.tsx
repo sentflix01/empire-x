@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { uploadFile } from '@/lib/uploadFile';
 
 export interface EditablePost {
-  content?: string;
+  content?: string | null;
   image_url?: string | null;
 }
 
