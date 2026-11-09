@@ -12,3 +12,13 @@ describe('formatAmount', () => {
     for (const v of [null, undefined, '', 'abc']) expect(formatAmount(v as never)).toBe('');
   });
 });
+
+describe('sumAmounts', () => {
+  it('adds decimal strings as numbers, not text', async () => {
+    const { sumAmounts } = await import('@/lib/money');
+    expect(sumAmounts(['100.00', '250.00'])).toBe(350);
+    expect(sumAmounts(['0.10', '0.20'])).toBe(0.3);
+    expect(sumAmounts([12, '3.5', null, undefined, 'abc'])).toBe(15.5);
+    expect(sumAmounts([])).toBe(0);
+  });
+});

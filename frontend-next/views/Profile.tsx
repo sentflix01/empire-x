@@ -5,7 +5,8 @@ import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigat
 import Link from 'next/link';
 import { useAuth } from "@/lib/AuthContext";
 import { auth } from "@/api/auth";
-import { entities } from "@/api/entities";
+import { entities, type Business, type UserProfile } from "@/api/entities";
+import { resolveMediaUrl } from "@/lib/media";
 import SafeImage from "@/components/ui/SafeImage";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,12 +32,12 @@ function Profile() {
   const pathname = usePathname();
   const viewParam = searchParams.get("view");
   const { user, authChecked } = useAuth();
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewerPhoto, setViewerPhoto] = useState<ViewerPhoto | null>(null);
   const { profileViewMode: view, setProfileViewMode } = useProfileView();
-  const [businesses, setBusinesses] = useState([]);
-  const [selectedBizId, setSelectedBizId] = useState(null);
+  const [businesses, setBusinesses] = useState<ProfileBusiness[]>([]);
+  const [selectedBizId, setSelectedBizId] = useState<string | null>(null);
   const [tickerOn, setTickerOn] = useState(false);
 
   useEffect(() => {
@@ -62,9 +63,10 @@ function Profile() {
   }, [viewParam, id]);
 
   const loadProfile = async () => {
+    const targetUserId = (id as string | undefined) || user?.id;
+    if (!targetUserId) return;
     setLoading(true);
     try {
-      const targetUserId = id || user.id;
 
       // ── Parallel fetches — 2 RTTs instead of 3 ──────────────────────────
       const [profiles, bizList, showroomList] = await Promise.all([
@@ -90,22 +92,23 @@ function Profile() {
         const businessFields = {
           owner_id: targetUserId,
           business_name: showroom.title || "Business",
-          business_category: showroom.category || "other",
+          business_category: String(showroom.category || "other"),
           business_description: showroom.description || "",
-          business_theme_color: showroom.theme_color || "#2563EB",
-          business_logo_url: showroom.logo_url || "",
-          business_cover_url: showroom.cover_image || "",
+          business_theme_color: String(showroom.theme_color || "#2563EB"),
+          business_logo_url: String(showroom.logo_url || ""),
+          business_cover_url: String(showroom.cover_image || ""),
           business_address: contact.location || "",
           business_sections: sections,
           showroom_id: showroom.id,
-          showroom_slug: showroom.slug || "",
+          showroom_slug: String(showroom.slug || ""),
         };
         // A site belongs to the business it is linked to; older sites without a link match by name.
         const existing = bizList.find(business => showroom.business_id && business.id === showroom.business_id)
           ?? bizList.find(business => business.business_name?.trim().toLowerCase() === String(showroom.title || "").trim().toLowerCase());
-        return existing ? { ...existing, ...businessFields, id: existing.id } : { ...businessFields, id: `showroom-${showroom.id}` };
+        const merged: ProfileBusiness = existing ? { ...existing, ...businessFields, id: existing.id } : { ...businessFields, id: `showroom-${showroom.id}` };
+        return merged;
       });
-      const mergedBusinesses = [...bizList];
+      const mergedBusinesses: ProfileBusiness[] = [...bizList];
       const mergedIds = new Set<string>();
       // Sites arrive most recently updated first, so the newest one wins for each business.
       for (const showroom of showroomBusinesses) {
@@ -126,7 +129,8 @@ function Profile() {
       setBusinesses(mergedBusinesses);
       if (mergedBusinesses.length > 0) setSelectedBizId(mergedBusinesses[0].id);
     } catch (err) {
-      if (err?.message?.includes("Authentication required") || err?.message?.includes("auth")) {
+      const message = err instanceof Error ? err.message : String((err as { error?: unknown })?.error ?? '');
+      if (message.includes("Authentication required") || message.includes("auth")) {
         router.push("/login");
         return;
       }
@@ -224,7 +228,7 @@ function Profile() {
             )}
             {(view === "business" ? profile.business_cover_url : profile.cover_url) && (
               <button type="button" aria-label="Open cover photo full screen" className="absolute inset-0 cursor-zoom-in"
-                onClick={() => setViewerPhoto({ src: view === "business" ? profile.business_cover_url : profile.cover_url, alt: 'Cover photo' })} />
+                onClick={() => setViewerPhoto({ src: resolveMediaUrl(view === "business" ? profile.business_cover_url : profile.cover_url) ?? '', alt: 'Cover photo' })} />
             )}
           </div>
           <div className="px-5 pb-4">
@@ -236,8 +240,8 @@ function Profile() {
                     <button type="button" aria-label={view === "personal" ? 'Open profile photo full screen' : 'Open logo full screen'}
                       className="absolute inset-0 z-10 cursor-zoom-in rounded-2xl"
                       onClick={() => setViewerPhoto(view === "personal"
-                        ? { src: profile.avatar_url, alt: profile.display_name || 'Profile photo' }
-                        : { src: profile.business_logo_url, alt: profile.business_name || 'Logo' })} />
+                        ? { src: resolveMediaUrl(profile.avatar_url) ?? '', alt: profile.display_name || 'Profile photo' }
+                        : { src: resolveMediaUrl(profile.business_logo_url) ?? '', alt: profile.business_name || 'Logo' })} />
                   )}
                   {view === "personal" ? (
                     <div className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center text-white text-3xl font-bold"
@@ -415,6 +419,9 @@ function Profile() {
       </div>
   );
 }
+
+/** A business on the profile: a business record, or one built from a published site. */
+type ProfileBusiness = Business & { showroom_id?: string; showroom_slug?: string };
 
 export default function ProfilePage() {
   return <ErrorBoundary><Profile /></ErrorBoundary>;

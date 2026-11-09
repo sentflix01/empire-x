@@ -31,7 +31,12 @@ export interface UserProfile extends BaseEntity {
   ticker_text?: string;
   ticker_type?: string;
   is_verified?: boolean;
-  verification_type?: string;
+  verification_type?: 'personal' | 'business' | 'creator' | 'official' | null;
+  /** Sample (seeded) profile, shown with a Demo badge. */
+  is_seed?: boolean;
+  has_business_profile?: boolean;
+  connection_count?: number;
+  follower_count?: number;
   business_name?: string;
   business_category?: string;
   business_template?: string | string[];
@@ -62,15 +67,23 @@ export interface Post extends BaseEntity {
   status?: string;
 }
 
+/** A product as /api/products returns it (the products table). */
 export interface Product extends BaseEntity {
   seller_id?: string;
+  business_id?: string | null;
+  title?: string;
+  /** Legacy alias some screens still read; the API sends `title`. */
   name?: string;
-  description?: string;
-  price?: number;
+  description?: string | null;
+  /** PostgreSQL NUMERIC: arrives as a decimal string ("100.00"). */
+  price?: number | string | null;
   currency?: string;
+  stock?: number | null;
   status?: string;
   view_count?: number;
-  category?: string;
+  category?: string | null;
+  /** Photos as JSON text. */
+  images?: string | null;
   image_url?: string;
 }
 

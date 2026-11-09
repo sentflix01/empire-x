@@ -10,3 +10,16 @@ export function formatAmount(value: number | string | null | undefined): string 
   if (!Number.isFinite(n)) return '';
   return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
+
+/**
+ * Adds amounts that may be decimal strings. `0 + "100.00"` is the text
+ * "0100.00", which is how revenue once showed as "0100.00250.00 ETB".
+ */
+export function sumAmounts(values: Iterable<number | string | null | undefined>): number {
+  let total = 0;
+  for (const v of values) {
+    const n = typeof v === 'number' ? v : Number(v ?? 0);
+    if (Number.isFinite(n)) total += n;
+  }
+  return Math.round(total * 100) / 100;
+}
