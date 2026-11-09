@@ -355,8 +355,11 @@ describe('Preservation: Existing ProductDetail Interactions Unchanged', () => {
    * Validates: Requirements 3.3
    */
   it('heart button click (wishlist on) calls client.delete with /api/wishlists/:id', async () => {
+    // Only signed-in people have a saved wishlist; their state loads once the product shows.
+    signInAsBuyer();
     setupMocks(BASE_PRODUCT, { wishlisted: true });
     await renderAndWait();
+    await waitFor(() => expect(client.get).toHaveBeenCalledWith(`/api/wishlists/check/${BASE_PRODUCT.id}`));
 
     const heartIcon = screen.getByTestId('icon-heart');
     const wishlistBtn = heartIcon.closest('button') as HTMLElement;
@@ -500,5 +503,26 @@ describe('Preservation: Existing ProductDetail Interactions Unchanged', () => {
 
     expect(screen.getByRole('button', { name: /Buy Now/i })).not.toBeDisabled();
     expect(screen.queryByRole('button', { name: /Add to Cart/i })).not.toBeInTheDocument();
+  });
+
+  // Performance audit 2026-11-09: the page used to wait for wishlist, alerts
+  // and the seller profile, one after another, before showing the product.
+  it('shows the product while the seller profile is still loading', async () => {
+    setupMocks();
+    (entities.UserProfile.filter as ReturnType<typeof vi.fn>).mockReturnValue(new Promise(() => {}));
+    await renderAndWait();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(BASE_PRODUCT.title);
+  });
+
+  it('asks for wishlist state once and leaves the view count to the server', async () => {
+    signInAsBuyer();
+    setupMocks();
+    await renderAndWait();
+    await waitFor(() => expect(client.get).toHaveBeenCalledWith('/api/wishlists/price-alerts'));
+    const calls = (client.get as ReturnType<typeof vi.fn>).mock.calls.map(([url]) => url);
+    expect(calls.filter((url) => url === `/api/wishlists/check/${BASE_PRODUCT.id}`)).toHaveLength(1);
+    expect(calls.filter((url) => url === '/api/wishlists/price-alerts')).toHaveLength(1);
+    expect(entities.Product.update).not.toHaveBeenCalled();
+    expect(client.put).not.toHaveBeenCalled();
   });
 });

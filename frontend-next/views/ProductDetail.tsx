@@ -57,28 +57,15 @@ function ProductDetail() {
         || await import("@/api/entities").then(m => m.entities.Product.get(id));
       if (requestId !== productRequestId.current) return;
       setProduct(p);
-      // Check wishlist for authenticated users
-      try {
-        const { data } = await client.get(`/api/wishlists/check/${id}`);
-        if (requestId !== productRequestId.current) return;
-        setWishlisted(data.wishlisted);
-        try {
-          const { data: alerts } = await client.get("/api/wishlists/price-alerts");
-          if (requestId !== productRequestId.current) return;
-          const existing = alerts.find((a: any) => a.product_id === id);
-          if (existing) { setAlertActive(true); setAlertTarget(String(existing.target_price)); }
-        } catch { /* reviews and alerts are non-critical */ }
-      } catch { /* guests have no private wishlist state */ }
+      // Show the product now; the seller card fills in when it arrives.
+      // Wishlist and price-alert state load in the signed-in effect below, and
+      // the server counts the view when it serves GET /api/products/:id.
+      setLoading(false);
       if (p?.seller_id) {
-        try {
-          const { entities: entitiesApi } = await import("@/api/entities");
-          const profiles = await entitiesApi.UserProfile.filter({ user_id: p.seller_id });
-          if (requestId !== productRequestId.current) return;
-          if (profiles.length) setSeller(profiles[0]);
-        } catch { /* seller details can be retried by reloading the product */ }
-      }
-      if (p?.id) {
-        import("@/api/entities").then(m => m.entities.Product.update(p.id, { view_count: (p.view_count || 0) + 1 })).catch(() => {});
+        import("@/api/entities")
+          .then(({ entities: entitiesApi }) => entitiesApi.UserProfile.filter({ user_id: p.seller_id }))
+          .then(profiles => { if (requestId === productRequestId.current && profiles.length) setSeller(profiles[0]); })
+          .catch(() => { /* seller details can be retried by reloading the product */ });
       }
     } catch (err) {
       // Otherwise surfaced by the empty product state.
