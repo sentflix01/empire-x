@@ -8,7 +8,6 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import { describePayment, formatBirr, formatDate, getReceipt, type SubscriptionReceipt as Receipt } from '@/lib/etbBilling';
-import { generateSubscriptionReceipt } from '@/lib/generateSubscriptionReceipt';
 
 function SubscriptionReceipt() {
   const { id } = useParams<{ id: string }>();
@@ -78,7 +77,7 @@ function SubscriptionReceipt() {
       </article>
       <button
         type="button"
-        onClick={async () => { setDownloading(true); try { await generateSubscriptionReceipt(receipt); } finally { setDownloading(false); } }}
+        onClick={async () => { setDownloading(true); try { const { generateSubscriptionReceipt } = await import('@/lib/generateSubscriptionReceipt'); await generateSubscriptionReceipt(receipt); } finally { setDownloading(false); } }}
         disabled={downloading}
         className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
       >

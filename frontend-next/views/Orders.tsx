@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { fromNow } from "@/lib/date";
 import { useTranslation } from 'react-i18next';
-import { generateInvoice } from "@/lib/generateInvoice";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -573,7 +572,8 @@ function Orders() {
                       {/* Invoice */}
                       {order.status === "completed" && (
                         <button
-                          onClick={() => { void generateInvoice(order); }}
+                          // jsPDF (~125 KB) loads only when an invoice is requested.
+                          onClick={() => { void import("@/lib/generateInvoice").then(({ generateInvoice }) => generateInvoice(order)); }}
                           className="flex items-center gap-1 text-xs text-primary hover:text-primary font-medium px-2 py-1 rounded-full hover:bg-primary-subtle transition-colors"
                           data-page-guide="orders-invoice-btn"                        >
                           <FileDown className="w-3 h-3" /> Invoice
