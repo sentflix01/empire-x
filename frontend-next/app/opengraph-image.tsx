@@ -9,12 +9,18 @@
  */
 import { HEX } from '@/lib/colorTokens';
 import { ImageResponse } from 'next/og';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { BRAND } from '@/lib/brandAssets';
 
 export const alt = "Nodbusiness — Africa's Superapp";
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-export default function Image() {
+export default async function Image() {
+  // The ringed logo (the card is brand blue), inlined as a data URI.
+  const logo = await readFile(join(process.cwd(), 'public', BRAND.iconOnBlue));
+  const logoSrc = `data:image/svg+xml;base64,${logo.toString('base64')}`;
   return new ImageResponse(
     (
       <div
@@ -40,34 +46,8 @@ export default function Image() {
           }}
         />
 
-        {/* Logo circle */}
-        <div
-          style={{
-            width: 120,
-            height: 120,
-            borderRadius: '50%',
-            background: HEX.primary,
-            border: '4px solid #ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 32,
-            boxShadow: '0 8px 40px rgba(0,0,0,0.4)',
-          }}
-        >
-          {/* Simple "N" lettermark — matches brand icon shape */}
-          <span
-            style={{
-              color: '#ffffff',
-              fontSize: 60,
-              fontWeight: 800,
-              letterSpacing: '-0.04em',
-              lineHeight: 1,
-            }}
-          >
-            N
-          </span>
-        </div>
+        {/* Logo */}
+        <img src={logoSrc} alt="" width={140} height={140} style={{ marginBottom: 28, borderRadius: '50%', boxShadow: '0 8px 40px rgba(0,0,0,0.35)' }} />
 
         {/* Wordmark */}
         <div

@@ -4,7 +4,7 @@
 > Every designer, developer, marketer, and partner follows this guide.
 > Consistency builds trust. Trust builds brands.
 >
-> Last reviewed: 2026-11-08
+> Last reviewed: 2026-11-09
 
 ---
 
@@ -92,16 +92,17 @@ Never place text, icons, or images inside the clear space.
 
 ### Logo files (all in `frontend-next/public/`)
 ```
-brand/nodbusiness-intro.mp4             ← Animated mark, 544 px master (source for every still below)
-brand/nodbusiness-intro-288-v2.mp4      ← Animated mark used by the app
-brand/nodbusiness-icon-v2.webp          ← Icon: the master's last frame, round (network over the globe)
-brand/nodbusiness-logo-v2.svg           ← Wordmark for light backgrounds (also _logo, _allcaps, _lowercase-o)
-brand/nodbusiness-logo-white-v2.svg     ← Wordmark for dark backgrounds
-icons/nodbusiness-icon-v2.png           ← Browser tab icon
-icons/icon-192-v2.png, icons/icon-512-v2.png ← PWA icons (maskable)
+brand/nodbusiness-icon-v3.svg                ← Icon (vector master, drawn by scripts/brand/build-logo.mjs)
+brand/nodbusiness-icon-on-blue-v3.svg        ← Icon with a white ring, for blue backgrounds
+brand/nodbusiness-icon-small-v3.svg          ← 24 px and below (also -on-blue-small)
+brand/nodbusiness-logo-v3.svg                ← Wordmark, icon as the "o" (light backgrounds)
+brand/nodbusiness-logo-white-v3.svg          ← Wordmark for dark backgrounds
+brand/nodbusiness-intro-288-v2.mp4           ← Animated mark used by the app (nodbusiness-intro.mp4 is the master)
+icons/nodbusiness-icon-v3.png                ← Browser tab icon
+icons/icon-192-v3.png, icons/icon-512-v3.png ← PWA icons (maskable)
 apple-touch-icon.png, ../app/favicon.ico
 ```
-Rebuild the stills with `node scripts/brand/render-icons.mjs` (in `frontend-next/`; needs ffmpeg and ImageMagick) after any change to the animated mark. Code refers to logo files only through `lib/brandAssets.ts`: a changed file gets a new name (bump `-vN`) and the old name is added to `BRAND_RENAMES`, which redirects it.
+Change the logo in `scripts/brand/build-logo.mjs` (continents: Natural Earth, public domain, `scripts/brand/data/`), then run it and `node scripts/brand/render-icons.mjs` (in `frontend-next/`; needs ImageMagick). Code refers to logo files only through `lib/brandAssets.ts`: a changed file gets a new name (bump `-vN`) and the old name is added to `BRAND_RENAMES`, which redirects it.
 
 ---
 

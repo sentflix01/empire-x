@@ -47,6 +47,28 @@ describe('brand assets', () => {
     expect(offenders).toEqual([]);
   });
 
+  it('a logo on a blue background uses the white-ring version', () => {
+    // A BrandLogo styled with white text sits on blue; it needs variant="onBlue",
+    // or the blue disc disappears into the background.
+    const offenders = SCAN.flatMap((d) => sources(join(root, d))).flatMap((f) => {
+      const lines = readFileSync(f, 'utf8').split('\n');
+      return lines
+        .map((line, i) => ({ line, i }))
+        .filter(({ line }) => /<BrandLogo\b/.test(line) && /text-white/.test(line) && !/variant="onBlue"/.test(line))
+        .map(({ i }) => `${relative(root, f)}:${i + 1}`);
+    });
+    expect(offenders).toEqual([]);
+  });
+
+  it('the icon SVGs are vector drawings with the globe', () => {
+    for (const p of [BRAND.icon, BRAND.iconOnBlue, BRAND.iconSmall, BRAND.iconOnBlueSmall]) {
+      const svg = readFileSync(pub(p), 'utf8');
+      expect(svg.startsWith('<svg')).toBe(true);
+      expect(svg).toContain('clip-path="url(#nb-globe)"'); // the continents
+      expect(svg).not.toContain('<image'); // no embedded raster
+    }
+  });
+
   it('the manifest and service worker use current icon files', () => {
     const manifest = JSON.parse(readFileSync(pub('manifest.json'), 'utf8')) as { icons: Array<{ src: string }> };
     const sw = readFileSync(pub('sw.js'), 'utf8');

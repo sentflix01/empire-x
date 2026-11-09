@@ -1,8 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 
 /**
- * Mobile load budget (audit F-045): the 1 MB intro video is never downloaded,
- * the landing hero uses the small version only when motion is allowed, and the
+ * Mobile load budget (audit F-045): the 1 MB intro video is never downloaded;
+ * the landing hero and the sign-in logo use the small version (once, then the
+ * vector logo) only when motion is allowed; app pages load no video; the
  * splash shows once per session and briefly.
  */
 const media = (page: Page) => {
@@ -13,10 +14,16 @@ const media = (page: Page) => {
   return urls;
 };
 
-test('sign-in and app pages download no video', async ({ page }) => {
+test('app pages download no video', async ({ page }) => {
   const seen = media(page);
-  for (const path of ['/login', '/register', '/feed', '/marketplace']) await page.goto(path, { waitUntil: 'networkidle' });
+  for (const path of ['/feed', '/marketplace']) await page.goto(path, { waitUntil: 'networkidle' });
   expect(seen).toEqual([]);
+});
+
+test('sign-in pages use only the small video', async ({ page }) => {
+  const seen = media(page);
+  for (const path of ['/login', '/register']) await page.goto(path, { waitUntil: 'networkidle' });
+  expect([...new Set(seen.map((m) => new URL(m.url).pathname))]).toEqual(['/brand/nodbusiness-intro-288-v2.mp4']);
 });
 
 test('the landing hero uses the small video, under 200 KB', async ({ page, request }) => {

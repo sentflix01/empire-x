@@ -3,10 +3,9 @@
 /**
  * BrandLogoVideo — drop-in replacement for BrandLogo for focal-point placements.
  *
- * Plays the brand intro video looped and muted inside a black circle.
- * The static SVG icon is shown instantly as a placeholder until the video's
- * first frame is ready — prevents a plain black circle flash on slow
- * connections or mobile devices.
+ * Plays the brand intro video once, muted, inside a blue circle, then fades
+ * back to the sharp vector logo. The vector logo also shows until the
+ * video's first frame is ready, so there is never an empty circle.
  *
  * Accepts the same props as BrandLogo so it can be used anywhere BrandLogo
  * is used as a visual centerpiece (not tiny inline icons).
@@ -16,7 +15,6 @@
  */
 import { HEX } from '@/lib/colorTokens';
 import React, { useRef, useState } from 'react';
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { BRAND_INTRO_VIDEO, useBrandMotion } from '@/lib/brandMotion';
 import { BRAND } from '@/lib/brandAssets';
@@ -40,13 +38,16 @@ export default function BrandLogoVideo({
   const motion = useBrandMotion();
   const [errored, setErrored]   = useState(false);
   const [videoReady, setVideoReady] = useState(false);
+  const [ended, setEnded] = useState(false);
+  const showVideo = videoReady && !ended;
   const videoRef = useRef<HTMLVideoElement>(null);
   const px = size;
 
   // Static logo when the video failed, or motion / data saving says no (F-045)
   if (errored || !motion) {
     return (
-      <Image
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
         src={BRAND.icon}
         alt={label ?? ''}
         aria-hidden={label ? undefined : true}
@@ -77,8 +78,9 @@ export default function BrandLogoVideo({
       }}
       className={cn('shrink-0', className)}
     >
-      {/* Static SVG placeholder — visible instantly, fades out once video is ready */}
-      <Image
+      {/* Vector logo: shown first, hidden while the video plays, back when it ends */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={BRAND.icon}
         alt=""
         aria-hidden
@@ -90,8 +92,8 @@ export default function BrandLogoVideo({
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          opacity: videoReady ? 0 : 1,
-          transition: videoReady ? 'opacity 0.25s ease-out' : 'none',
+          opacity: showVideo ? 0 : 1,
+          transition: videoReady ? 'opacity 0.3s ease' : 'none',
         }}
       />
 
@@ -102,8 +104,8 @@ export default function BrandLogoVideo({
         autoPlay
         muted
         playsInline
-        loop
         onCanPlay={() => setVideoReady(true)}
+        onEnded={() => setEnded(true)}
         onError={() => setErrored(true)}
         style={{
           position: 'absolute',
@@ -112,8 +114,8 @@ export default function BrandLogoVideo({
           height: '100%',
           objectFit: 'cover',
           display: 'block',
-          opacity: videoReady ? 1 : 0,
-          transition: videoReady ? 'opacity 0.25s ease-in' : 'none',
+          opacity: showVideo ? 1 : 0,
+          transition: videoReady ? 'opacity 0.3s ease' : 'none',
         }}
         aria-hidden="true"
       />

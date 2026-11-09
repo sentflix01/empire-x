@@ -170,7 +170,7 @@ function Profile() {
       {!user ? (
         <>
           <div className="w-16 h-16 rounded-full bg-primary-subtle flex items-center justify-center mx-auto mb-4">
-            <BrandLogo className="w-7 h-7 text-primary" />
+            <BrandLogo size={28} className="w-7 h-7 text-primary" />
           </div>
           <h2 className="font-display text-xl font-bold">Sign in to view profiles</h2>
           <p className="text-sm text-muted-foreground mt-1 mb-6">Create an account to see profiles, posts, and businesses.</p>
@@ -181,7 +181,7 @@ function Profile() {
         </>
       ) : (
         <>
-          <BrandLogo className="w-12 h-12 text-primary mx-auto mb-3" />
+          <BrandLogo size={48} className="w-12 h-12 text-primary mx-auto mb-3" />
           <h2 className="font-display text-xl font-bold">Profile not found</h2>
           <p className="text-sm text-muted-foreground mt-1">This user hasn't set up their profile yet.</p>
           <Link href="/"><Button variant="outline" className="mt-4 rounded-full">Go Home</Button></Link>
