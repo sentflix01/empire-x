@@ -12,14 +12,28 @@ import { fromNow } from "@/lib/date";
 import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import { formatAmount } from "@/lib/money";
+
+/** A coupon as /api/coupons/mine returns it. Money columns arrive as decimal strings. */
+interface Coupon {
+  id: string;
+  code: string;
+  discount_type: "percentage" | "fixed" | string;
+  discount_value: number | string;
+  min_order: number | string | null;
+  usage_limit: number | null;
+  usage_count: number;
+  expires_at: string | null;
+  is_active: boolean;
+}
 
 function CouponsManage() {
   const { t } = useTranslation();
-  const [coupons, setCoupons] = useState([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [copied, setCopied] = useState(null);
+  const [copied, setCopied] = useState<string | null>(null);
   const [form, setForm] = useState({
     code: "", discount_type: "percentage", discount_value: "",
     min_order: "", usage_limit: "", expires_at: ""
@@ -63,7 +77,7 @@ function CouponsManage() {
     setSaving(false);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     try {
       await client.delete(`/api/coupons/${id}`);
       setCoupons(prev => prev.filter(c => c.id !== id));
@@ -71,7 +85,7 @@ function CouponsManage() {
     } catch { toast.error("Failed to delete coupon"); }
   };
 
-  const handleToggle = async (id) => {
+  const handleToggle = async (id: string) => {
     try {
       const { data } = await client.patch(`/api/coupons/${id}/toggle`);
       setCoupons(prev => prev.map(c => c.id === id ? data : c));
@@ -79,7 +93,7 @@ function CouponsManage() {
     } catch { toast.error("Failed to update coupon"); }
   };
 
-  const handleCopy = (code) => {
+  const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code).then(() => {
       setCopied(code);
       toast.success("Code copied!");
@@ -201,7 +215,7 @@ function CouponsManage() {
           <div className="space-y-3">
             {coupons.map(c => {
               const isExpired = c.expires_at && new Date() > new Date(c.expires_at);
-              const isExhausted = c.usage_limit && c.usage_count >= c.usage_limit;
+              const isExhausted = !!c.usage_limit && c.usage_count >= c.usage_limit;
               const isInactive = !c.is_active || isExpired || isExhausted;
 
               return (
@@ -216,8 +230,8 @@ function CouponsManage() {
                         {isInactive && <Badge variant="outline" className="text-xs text-destructive border-destructive/30">{isExpired ? t('coupons.expired') : isExhausted ? "Used up" : t('common.inactive')}</Badge>}
                       </div>
                       <p className="text-sm font-semibold">
-                        {c.discount_type === "percentage" ? `${c.discount_value}% off` : `${c.discount_value} ETB off`}
-                        {c.min_order > 0 && <span className="text-muted-foreground font-normal"> on orders over {c.min_order} ETB</span>}
+                        {c.discount_type === "percentage" ? `${formatAmount(c.discount_value)}% off` : `${formatAmount(c.discount_value)} ETB off`}
+                        {Number(c.min_order) > 0 && <span className="text-muted-foreground font-normal"> on orders over {formatAmount(c.min_order)} ETB</span>}
                       </p>
                       <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
                         <span>Used: {c.usage_count}{c.usage_limit ? `/${c.usage_limit}` : ""}</span>

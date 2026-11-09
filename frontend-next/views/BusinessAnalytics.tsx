@@ -170,8 +170,8 @@ function BusinessAnalytics() {
   const stats = [
     { label: t('business.revenue'), value: `${formatAmount(totalSales)} ETB`, icon: DollarSign, color: "text-success bg-success-subtle", note: 'Paid orders only' },
     { label: t('nav.orders'), value: filteredOrders.length, icon: ShoppingBag, color: "text-primary bg-primary-subtle" },
-    { label: t('business.overview'), value: totalViews, icon: Eye, color: "text-primary bg-primary-subtle" },
-    { label: t('business.overview'), value: totalEngagement, icon: Activity, color: "text-brand-secondary bg-brand-secondary-subtle" },
+    { label: t('business.productViews'), value: totalViews, icon: Eye, color: "text-primary bg-primary-subtle" },
+    { label: t('business.engagement'), value: totalEngagement, icon: Activity, color: "text-brand-secondary bg-brand-secondary-subtle" },
   ];
 
   return (

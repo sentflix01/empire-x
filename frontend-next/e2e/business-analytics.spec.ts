@@ -41,6 +41,9 @@ test('Business Analytics adds revenue as numbers, shows saves, and switches busi
   // 100 + 250 paid; the cancelled 500 and pending 70 do not count.
   await expect(page.getByText('350 ETB').first()).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText('Paid orders only')).toBeVisible();
+  // Each stat card has its own label (two once both said "Overview").
+  await expect(page.getByText('Product views', { exact: true })).toBeVisible();
+  await expect(page.getByText('Engagement', { exact: true })).toBeVisible();
   await expect(page.getByText('0100.00')).toHaveCount(0);
   const savesStat = page.getByText('Product Saves').locator('..');
   await expect(savesStat).toContainText('3');

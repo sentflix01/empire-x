@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseShowroomSections, serializeShowroomSections } from '@/lib/showroomSectionsCodec';
+import { parseShowroomSections, sectionList, serializeShowroomSections } from '@/lib/showroomSectionsCodec';
 
 describe('showroomSectionsCodec', () => {
   it('parses stored JSON into keys and fields, skipping unknown sections', () => {
@@ -17,5 +17,17 @@ describe('showroomSectionsCodec', () => {
     const stored = [{ type: 'hero', title: 'Shop', subtitle: 'Best' }, { type: 'about', aboutTitle: 'About' }];
     const { keys, fields } = parseShowroomSections(stored);
     expect(serializeShowroomSections(keys, fields)).toEqual(stored);
+  });
+});
+
+describe('sectionList', () => {
+  it('always returns a list of section objects', () => {
+    expect(sectionList(null)).toEqual([]);
+    expect(sectionList(undefined)).toEqual([]);
+    expect(sectionList('null')).toEqual([]);
+    expect(sectionList('not json')).toEqual([]);
+    expect(sectionList('{"type":"hero"}')).toEqual([]);
+    expect(sectionList('[{"type":"hero"},null,"about",{"type":"contact","whatsapp":"+251"}]')).toEqual([{ type: 'hero' }, { type: 'contact', whatsapp: '+251' }]);
+    expect(sectionList([{ type: 'faq' }])).toEqual([{ type: 'faq' }]);
   });
 });
