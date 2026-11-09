@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { LandingPreferences } from '@/components/landing/LandingControls';
 import TryDemoButton from '@/components/landing/TryDemoButton';
+import DemoEndedNotice from '@/components/landing/DemoEndedNotice';
 import { BRAND } from '@/lib/brandAssets';
 import Wordmark from '@/components/brand/Wordmark';
 import BrandLogo from '@/components/brand/BrandLogo';
@@ -154,6 +155,7 @@ export default function LandingPage() {
           <p className="hidden sm:block mt-6 max-w-2xl text-sm font-medium leading-7 text-white/76 sm:text-xl">
             One simple platform where local businesses create showrooms, connect with customers, and manage orders.
           </p>
+          <DemoEndedNotice />
           {/* CTA buttons — always visible, stack on mobile */}
           <div className="mt-5 flex w-full flex-col items-center justify-center gap-2 sm:mt-8 sm:w-auto sm:flex-row sm:gap-3">
             <Link

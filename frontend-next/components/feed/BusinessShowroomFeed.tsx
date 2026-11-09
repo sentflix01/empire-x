@@ -439,6 +439,18 @@ interface BusinessShowroomFeedProps {
   businesses?: Business[];
 }
 
+/**
+ * The feed's load error. "Check your connection" only when no answer came back;
+ * a server error (for example a Demo database that is briefly unavailable) is
+ * not the visitor's connection.
+ */
+export function feedLoadErrorMessage(err: unknown): string {
+  const status = err && typeof err === 'object' ? (err as { status?: unknown }).status : undefined;
+  return typeof status === 'number'
+    ? 'Business profiles could not be loaded right now. Please try again in a moment.'
+    : 'We could not load business profiles. Check your connection and try again.';
+}
+
 export default function BusinessShowroomFeed({ profile, currentUser, businesses: propBusinesses }: BusinessShowroomFeedProps) {
   const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
   const [selectedBizId, setSelectedBizId] = useState<string | null>(null);
@@ -522,9 +534,9 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
         }
         setOwnerProfiles(map);
       }
-    } catch {
+    } catch (err) {
       setFeedBusinesses([]);
-      setFeedError('We could not load business profiles. Check your connection and try again.');
+      setFeedError(feedLoadErrorMessage(err));
     } finally {
       setLoading(false);
     }
