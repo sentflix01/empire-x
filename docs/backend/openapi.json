@@ -9748,6 +9748,33 @@
         "x-source": "backend/routes/saves.ts:64"
       }
     },
+    "/api/saves/my-products": {
+      "get": {
+        "operationId": "get_saves_my_products",
+        "tags": [
+          "saves"
+        ],
+        "summary": "GET /api/saves/my-products",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "auth",
+        "x-source": "backend/routes/saves.ts:84"
+      }
+    },
     "/api/saves/check/{targetId}": {
       "get": {
         "operationId": "get_saves_check_targetId",
@@ -9785,7 +9812,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/saves.ts:79"
+        "x-source": "backend/routes/saves.ts:104"
       }
     },
     "/api/search": {

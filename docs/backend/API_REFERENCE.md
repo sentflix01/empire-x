@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **369** across **52** mounted modules · Generated: 2026-11-09
+> Endpoints: **370** across **52** mounted modules · Generated: 2026-11-09
 
 | Legend | Meaning |
 |---|---|
@@ -54,7 +54,7 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 - [`referral`](#referral) (1)
 - [`returns`](#returns) (6)
 - [`reviews`](#reviews) (4)
-- [`saves`](#saves) (3)
+- [`saves`](#saves) (4)
 - [`search`](#search) (1)
 - [`sharePreview`](#sharepreview) (2)
 - [`showrooms`](#showrooms) (12)
@@ -530,7 +530,8 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 |---|---|---|---|
 | `GET` | `/api/saves/` | 🔒 auth | routes/saves.ts:8 |
 | `POST` | `/api/saves/toggle` | 🔒 auth | routes/saves.ts:64 |
-| `GET` | `/api/saves/check/:targetId` | 🔒 auth | routes/saves.ts:79 |
+| `GET` | `/api/saves/my-products` | 🔒 auth | routes/saves.ts:84 |
+| `GET` | `/api/saves/check/:targetId` | 🔒 auth | routes/saves.ts:104 |
 
 ## search — Cross-entity full-text search
 

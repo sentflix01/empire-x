@@ -939,3 +939,11 @@ items in the open list until confirmed.
 - **Why:** An ended session made every request fail while the Demo banner stayed on screen, and the feed blamed the visitor's connection.
 - **Consequences:** `api/client.ts` (`isDemoEndedResponse`, `DEMO_ENDED_EVENT`), `lib/AuthContext.tsx`, `components/landing/DemoEndedNotice.tsx`, feed message. Tests: `test/demoEnded.test.tsx`, `e2e/demo-ended.spec.ts`. Docs: `docs/operations/DEMO_WORKSPACE_DEPLOYMENT.md`.
 
+### 2026-11-09 — Business Analytics counts product saves, not likes
+
+- **Status:** Accepted (owner, 9 Nov 2026: "Count saves")
+- **Decision owner:** Project owner
+- **Decision:** Products cannot be liked in Nodbusiness; people can only save (bookmark) them. Business Analytics shows **Product Saves**, read from `GET /api/saves/my-products`, which returns when each of the signed-in seller's products was saved, never who saved it (optional `business_id`). The CSV export uses the same figures.
+- **Why:** The screen read product likes from a client stub that always returned nothing, so "Product Likes" was always 0.
+- **Consequences:** `backend/routes/saves.ts`, index `idx_saves_target` (migrate88), `frontend-next/api/entities.ts` (`fetchMyProductSaves`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`. Tests: `test/db/productSaves.db.test.js`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts`. Revenue still counts every order; whether it should count only paid and completed orders is open with the owner.
+
