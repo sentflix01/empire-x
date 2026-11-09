@@ -922,3 +922,12 @@ items in the open list until confirmed.
 - **Decision:** The still icon is the last frame of the intro video (network of businesses over the globe, white on blue), cut to a circle, so the small and animated logos are the same picture. Logo files carry a version in their name (`-v2`) and are referenced only through `frontend-next/lib/brandAssets.ts`; when one changes, it gets a new name and the old name redirects (`next.config.ts`).
 - **Why:** After the recolour, browsers that had cached the old files under the same name kept showing the black logo. A new name is never in any cache, so every visitor sees a changed logo on the next page load.
 - **Consequences:** `scripts/brand/render-icons.mjs` builds the WebP icon, favicon, Apple touch icon and PWA icons from `nodbusiness-intro.mp4`. The icon SVG is retired. A unit test (`test/brand/brandAssets.test.ts`) keeps the names, files, manifest and service worker in step. Docs: `docs/brand/BRAND_BOOK.md`, `BRAND_GUIDELINES.md`.
+
+### 2026-11-09 — Vector logo master; white-ring logo on blue; logo animation plays once
+
+- **Status:** Accepted (owner, 9 Nov 2026: fix logo quality, use the white-ring logo on blue backgrounds, update the wordmark "o"; chose "Animate, end sharp" for sign-in and landing). Supersedes the 2026-11-08 entry "Small logo is a still of the animated logo".
+- **Decision owner:** Project owner
+- **Decision:** The logo is a vector drawing (`scripts/brand/build-logo.mjs`): blue disc, globe with Natural Earth continents, network lines and eight boxes. It has a white-ring version for blue backgrounds and bolder small versions for 24 px and below. `BrandLogo` takes `variant="onBlue"`; `Wordmark` shows the name with the icon as the "o" in the heavy sans (also used for the app header name). The intro video plays once on the landing hero and the sign-in pages, then fades to the vector icon; reduced motion or data saving shows the icon only. Sign-in may now load the small 62 KB video (the F-045 budget test allows only that file).
+- **Why:** The raster still (cut from a compressed video frame) was blurry at small sizes; the blue disc vanished on blue backgrounds; the wordmark "o" was still the old thin mark.
+- **Consequences:** PNG and ICO icons are rendered from the vector by `render-icons.mjs`. Files are `-v3`; v1 and v2 names redirect. The share image uses the ringed icon. Unit tests check that logos styled for blue use the ring version and that the icons are vectors.
+

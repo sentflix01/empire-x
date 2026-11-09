@@ -136,7 +136,7 @@ function Explore() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <BrandLogo className="w-8 h-8 text-primary" />
+                        <BrandLogo size={32} className="w-8 h-8 text-primary" />
                       </div>
                     )}
                   </div>

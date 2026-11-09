@@ -2,7 +2,7 @@
 
 > **Classification:** Confidential — Internal Use Only
 > **Version:** 1.0
-> **Last Updated:** 2026-11-08
+> **Last Updated:** 2026-11-09
 
 ---
 
@@ -56,12 +56,13 @@
 
 | Variant | Usage | File (`frontend-next/public/brand/`) |
 |---------|-------|------|
-| **Icon** | App icon, favicon, avatar | `nodbusiness-icon-v2.webp` (still of the animated logo: network over the globe, white on blue) |
-| **Wordmark** | Website header, marketing | `nodbusiness-logo-v2.svg` (blue globe, ink letters) |
-| **White wordmark** | Dark backgrounds | `nodbusiness-logo-white-v2.svg` |
-| **Animated** | Landing hero, splash | `nodbusiness-intro-288-v2.mp4` |
+| **Icon** | App icon, avatar, light or dark backgrounds | `nodbusiness-icon-v3.svg` (vector: network over the globe, white on blue) |
+| **Icon on blue** | Any blue background (buttons, blue cards, share image) | `nodbusiness-icon-on-blue-v3.svg` (white ring around the disc) |
+| **Small icon** | 24 px and below, favicon | `nodbusiness-icon-small-v3.svg` (bolder lines; `-on-blue-small` on blue) |
+| **Wordmark** | Marketing files | `nodbusiness-logo-v3.svg` / `nodbusiness-logo-white-v3.svg` (the icon is the "o") |
+| **Animated** | Landing hero, sign-in | `nodbusiness-intro-288-v2.mp4`, plays once and ends on the vector icon |
 
-Code uses these through `frontend-next/lib/brandAssets.ts`. A changed logo file gets a new name (bump `-vN`), so no browser keeps the old copy; old names redirect.
+In the app, use `BrandLogo` (pass `size` for logos above 24 px, and `variant="onBlue"` on blue) and `Wordmark` (the name with the icon as the "o", in the heavy sans). Never put the plain icon on blue; a unit test checks this. Code uses files only through `frontend-next/lib/brandAssets.ts`. A changed logo file gets a new name (bump `-vN`), so no browser keeps the old copy; old names redirect.
 
 **Clear Space:** Minimum `1x` icon height on all sides  
 **Minimum Size:** 24px height (digital), 15mm (print)  

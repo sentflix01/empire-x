@@ -116,7 +116,7 @@ function Showrooms() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
-            <BrandLogo className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+            <BrandLogo size={48} className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
             <h3 className="font-display text-lg font-bold">No showrooms found</h3>
             <p className="text-sm text-muted-foreground mt-1">Be the first to create one!</p>
           </div>
@@ -135,7 +135,7 @@ function Showrooms() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <BrandLogo className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" />
+                        <BrandLogo size={32} className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" />
                       </div>
                     )}
                     {/* Category badge overlay */}

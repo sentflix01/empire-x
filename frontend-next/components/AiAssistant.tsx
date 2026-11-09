@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
-import Image from "next/image";
 import { X, Send, RotateCcw, Wifi, WifiOff, Compass, Square } from "lucide-react";
 import client from "@/api/client";
 import { offlineAnswer } from "@/lib/aiOffline";
@@ -84,14 +83,8 @@ function AssistantLogo({ size = "sm", animated = false }: { size?: "xs" | "sm" |
       className={`${sizeClass} ai-logo-orb ${animated ? "ai-logo-orb-active" : ""} relative inline-flex items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-white/35`}
       aria-hidden="true"
     >
-      <Image
-        src={BRAND.icon}
-        alt=""
-        width={44}
-        height={44}
-        loading="eager"
-        className={`${imageClass} rounded-full object-cover`}
-      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={BRAND.iconOnBlue} alt="" width={44} height={44} className={`${imageClass} rounded-full object-contain`} />
       {animated && <span className="ai-logo-blink" />}
     </span>
   );
@@ -102,7 +95,8 @@ function AssistantFlipCoin() {
     <span className="ai-flip-coin" aria-hidden="true">
       <span className="ai-flip-coin-inner">
         <span className="ai-flip-coin-face ai-flip-coin-front">
-          <Image src={BRAND.icon} alt="" width={48} height={48} loading="eager" className="h-10 w-10 rounded-full object-cover" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={BRAND.iconOnBlue} alt="" width={48} height={48} className="h-10 w-10 rounded-full object-contain" />
         </span>
         <span className="ai-flip-coin-face ai-flip-coin-back">
           <span className="text-[10px] font-black leading-none text-white">AI</span>

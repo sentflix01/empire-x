@@ -63,10 +63,10 @@ test.describe('Service worker', () => {
 
     const logo = BRAND.icon;
     const first = await page.evaluate(async (u) => (await fetch(u)).headers.get('content-type'), logo);
-    expect(first).toBe('image/webp');
+    expect(first).toBe('image/svg+xml');
 
     // The logo changes on the server: the page must get the new file, not the cached one.
-    await context.route(`**${logo}`, (route) => route.fulfill({ status: 200, contentType: 'image/webp', body: 'new-logo' }));
+    await context.route(`**${logo}`, (route) => route.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg id="new-logo"/>' }));
     const second = await page.evaluate(async (u) => (await fetch(u)).text(), logo);
     expect(second).toContain('new-logo');
 

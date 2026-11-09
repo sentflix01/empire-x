@@ -65,7 +65,7 @@ function TemplateMiniPane({ premium }: { premium: boolean }) {
         <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: token.brandSecondary }}>
           {premium ? "Premium" : "Starter"}
         </span>
-        {premium && <BrandLogo className="h-2.5 w-2.5 text-white/90" />}
+        {premium && <BrandLogo variant="onBlue" className="h-3 w-3" />}
       </div>
       <div className="relative mt-1.5 space-y-1">
         <div className="h-1.5 w-2/3 rounded-full bg-white/80" />
@@ -333,7 +333,7 @@ function ShowroomWizard() {
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:gap-5">
           <div className="hidden items-center gap-2 md:flex">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary shadow-sm shadow-primary/20">
-              <BrandLogo className="h-4 w-4 text-white" />
+              <BrandLogo variant="onBlue" className="h-5 w-5" />
             </div>
             <div>
               <p className="font-display text-sm font-bold leading-tight">{t("showroomWizard.title")}</p>
@@ -490,7 +490,7 @@ function ShowroomWizard() {
                 {/* Template grid */}
                 {templates.length === 0 ? (
                   <div className="py-14 text-center text-muted-foreground">
-                    <BrandLogo className="mx-auto mb-3 h-10 w-10 opacity-20" />
+                    <BrandLogo size={40} className="mx-auto mb-3 h-10 w-10 opacity-20" />
                     <p className="text-sm">{t("showroomWizard.noResults", { search })}</p>
                   </div>
                 ) : (

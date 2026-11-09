@@ -448,7 +448,7 @@ function ShowroomView() {
 function UnavailableNotice({ title, message }: { title: string; message: string }) {
   return (
     <div className="max-w-2xl mx-auto text-center py-20">
-      <BrandLogo className="w-12 h-12 text-primary/40 mx-auto mb-3" />
+      <BrandLogo size={48} className="w-12 h-12 text-primary/40 mx-auto mb-3" />
       <h1 className="font-display text-xl font-bold">{title}</h1>
       <p className="text-sm text-muted-foreground mt-1">{message}</p>
       <Link href="/" className="inline-block mt-4">

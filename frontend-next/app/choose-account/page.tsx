@@ -1,8 +1,7 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { Users, Store, ArrowLeft } from 'lucide-react';
 import MainContent from '@/components/layout/MainContent';
-import { BRAND } from '@/lib/brandAssets';
+import Wordmark from '@/components/brand/Wordmark';
 
 export const metadata = { title: 'Choose Account Type — Nodbusiness' };
 
@@ -17,13 +16,7 @@ export default function ChooseAccountPage() {
       <div className="w-full max-w-md">
         {/* Logo + heading */}
         <div className="flex flex-col items-center text-center mb-8">
-          <Image
-            src={BRAND.logoWhite}
-            alt="Nodbusiness"
-            width={240}
-            height={36}
-            className="h-9 w-auto mb-6"
-          />
+          <Wordmark tone="dark" className="mb-6 text-3xl" />
           <h1 className="text-3xl font-black text-white">Choose Your Account Type</h1>
           <p className="text-white/60 mt-2 text-sm leading-relaxed">
             You can always add a business profile later from your account settings.
