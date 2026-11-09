@@ -320,12 +320,12 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       getSocket().on("new_notification", onNotification);
     });
 
-    // Warm backend cache in background — only once per session
+    // Warm the trending cache Explore reads — only once per session. (The
+    // separate /api/trending/warm call filled the same cache key, and
+    // /api/posts?limit=10 filled a key no page reads.)
     if (!hasWarmed.current) {
       hasWarmed.current = true;
-      client.get('/api/trending/warm').catch(() => {});
       client.get('/api/trending').catch(() => {});
-      client.get('/api/posts?limit=10').catch(() => {});
     }
     // Load user profile for avatar/cover in drawer
     client.get(`/api/profiles?user_id=${user.id}&limit=1`).then(r => {

@@ -18,7 +18,9 @@ export function useMessagesBadge(userId: string | null | undefined): UnreadCount
   useEffect(() => {
     if (!userId) { setCounts({ chats: 0, messages: 0, requests: 0 }); return; }
     let active = true;
+    let lastLoad = 0;
     const load = () => {
+      lastLoad = Date.now();
       client.get('/api/messages/unread-count')
         .then(({ data }) => { if (active && data) setCounts({ chats: data.chats ?? 0, messages: data.messages ?? 0, requests: data.requests ?? 0 }); })
         .catch(() => undefined);
@@ -30,7 +32,9 @@ export function useMessagesBadge(userId: string | null | undefined): UnreadCount
       if (c?.conversation_id && String(c.last_message_sender_id) !== String(userId)) delivered([c.conversation_id]);
     };
     // Back online: anything that arrived meanwhile has now reached this app.
-    const onConnect = () => { delivered(); load(); };
+    // The first connect usually lands right after the opening load; skip a
+    // second identical count request then.
+    const onConnect = () => { delivered(); if (Date.now() - lastLoad > 2000) load(); };
 
     connectSocket();
     const s = getSocket();
