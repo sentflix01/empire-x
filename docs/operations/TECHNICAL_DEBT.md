@@ -130,9 +130,9 @@
 
 ### TD-027: Telegram notifications cannot be connected
 **Status:** Not started — needs an owner decision (found 2026-11-09, audit F-052 follow-up 6)
-**Problem:** Sending works (`notifyUser` in `backend/routes/telegram.ts`), but nothing links a person's Telegram chat to their account. `POST /api/telegram/connect` needs a chat id that people cannot see, there is no bot webhook for `/start`, and `GET /api/telegram/status` sends no bot link or bot name. The settings screen used to show an "Open Telegram Bot" button that opened `#` and "Connected to @undefined"; it now says connecting is not available yet.
+**Problem:** Sending works (`notifyUser` in `backend/routes/telegram.ts`), but nothing links a person's Telegram chat to their account. `POST /api/telegram/connect` needs a chat id that people cannot see, there is no bot webhook for `/start`, and `GET /api/telegram/status` sends no bot link or bot name. The settings component (`frontend-next/components/settings/TelegramSettings.tsx`) is not shown on any page (checked 2026-11-10). It had an "Open Telegram Bot" button that opened `#` and would say "Connected to @undefined"; it now says connecting is not available yet, so it is safe to show once linking exists.
 **Fix (to decide):** a one-time link code (`t.me/<bot>?start=<code>`, short expiry, single use) checked by a bot webhook with Telegram's secret-token header, then `status` returns `connect_url` and `bot_username`. Needs the bot name and webhook secret as environment settings.
-**Impact:** Telegram alerts for orders and messages are offered in Settings but nobody can turn them on.
+**Impact:** Telegram alerts for orders and messages exist on the server, but nobody can turn them on and Settings does not offer them.
 
 ---
 
