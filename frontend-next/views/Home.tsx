@@ -9,7 +9,6 @@ import PostCard from "@/components/feed/PostCard";
 import type { Post } from "@/api/entities";
 import CreatePostForm from "@/components/feed/CreatePostForm";
 import Stories from "@/views/Stories";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   TrendingUp, Users, MapPin, LayoutGrid, RefreshCw, Loader2, Sparkles,
   Megaphone, Eye, X,
@@ -388,17 +387,16 @@ function Home() {
                 </div>
               ) : (
                 <div data-page-guide="feed-posts">
-                <AnimatePresence>
+                <>
                   {posts.map((post, i) => (
-                    <motion.div
+                    <div
                       key={post.id}
                       id={`post-${post.id}`}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: Math.min(i, 4) * 0.04, duration: 0.2 }}
-                      className={post.id === highlightPostId
-                        ? 'ring-2 ring-primary rounded-2xl transition-all duration-500'
-                        : ''}
+                      // CSS entrance (was framer-motion, ~60 KB): fade and rise 12 px, staggered.
+                      style={{ animationDelay: `${Math.min(i, 4) * 40}ms`, animationDuration: '200ms' }}
+                      className={`animate-in fade-in slide-in-from-bottom-3 fill-mode-both${post.id === highlightPostId
+                        ? ' ring-2 ring-primary rounded-2xl transition-all duration-500'
+                        : ''}`}
                     >
                       <ErrorBoundary>
                         <PostCard
@@ -408,20 +406,20 @@ function Home() {
                           onDeleted={(id) => setPosts(prev => prev.filter(p => p.id !== id))}
                         />
                       </ErrorBoundary>
-                    </motion.div>
+                    </div>
                   ))}
 
                   {/* Infinite scroll sentinel */}
-                  <div key="feed-infinite-scroll-sentinel" ref={sentinelRef} className="h-4" />
+                  <div ref={sentinelRef} className="h-4" />
                   {loadingMore && (
-                    <div key="feed-loading-more" className="flex justify-center py-4">
+                    <div className="flex justify-center py-4">
                       <Loader2 className="w-6 h-6 animate-spin text-primary" />
                     </div>
                   )}
                   {!hasMore && posts.length > 0 && (
-                    <p key="feed-end-of-list" className="text-center text-xs text-muted-foreground py-4">You've seen all posts</p>
+                    <p className="text-center text-xs text-muted-foreground py-4">You've seen all posts</p>
                   )}
-                </AnimatePresence>
+                </>
                 </div>
               )}
             </>

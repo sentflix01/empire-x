@@ -12,7 +12,7 @@ import {
   Tag, Sparkles, MapPin, CalendarDays, BarChart2, Newspaper,
   Maximize2, Reply, ChevronDown, ChevronUp,
 } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import { fromNow } from '@/lib/date';
 import TickerBar from './TickerBar';
 import PostCardMenu from './PostCardMenu';
@@ -26,7 +26,8 @@ import { BusinessFeedCard } from './BusinessShowroomFeed';
 import ShareButton from '@/components/ui/ShareButton';
 import BookmarkButton from '@/components/ui/BookmarkButton';
 import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
-import ProfilePeek from '@/components/profile/ProfilePeek';
+// The peek (and framer-motion) loads the first time someone opens one.
+const ProfilePeekPresence = dynamic(() => import('@/components/profile/ProfilePeekPresence'), { ssr: false });
 import { useTranslation } from 'react-i18next';
 import SafeImage from '@/components/ui/SafeImage';
 
@@ -464,6 +465,8 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
   const [flipping, setFlipping] = useState(false);
   const [currentUserData, setCurrentUserData] = useState<{ full_name?: string } | null>(null);
   const [peekOpen, setPeekOpen] = useState(false);
+  // Stays mounted after the first open so the closing animation still plays.
+  const [peekUsed, setPeekUsed] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null); // comment id
   const [showAllComments, setShowAllComments] = useState(false);
   const [commentMenuId, setCommentMenuId] = useState<string | null>(null); // emoji+action popup
@@ -855,7 +858,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
         </div>
         {/* Profile Peek button */}
         <button
-          onClick={() => setPeekOpen(true)}
+          onClick={() => { setPeekUsed(true); setPeekOpen(true); }}
           className="p-1.5 rounded-full hover:bg-secondary transition-colors shrink-0"
           aria-label={`Quick profile peek for ${post.author_name ?? 'user'}`}
         >
@@ -1342,17 +1345,16 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
       )}
 
       {/* Profile Peek — inline overlay, covers only this card */}
-      <AnimatePresence>
-        {peekOpen && (
-          <ProfilePeek
-            authorId={post.author_id}
-            authorName={post.author_name}
-            authorAvatar={post.author_avatar}
-            initialView={viewMode as 'personal' | 'business'}
-            onClose={() => setPeekOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+      {peekUsed && (
+        <ProfilePeekPresence
+          open={peekOpen}
+          authorId={post.author_id}
+          authorName={post.author_name}
+          authorAvatar={post.author_avatar}
+          initialView={viewMode as 'personal' | 'business'}
+          onClose={() => setPeekOpen(false)}
+        />
+      )}
 
       {isAuthor && (
         <EditPostDialog open={editOpen} post={post} onOpenChange={setEditOpen} onSave={savePost} />
