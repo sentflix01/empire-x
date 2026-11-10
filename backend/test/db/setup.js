@@ -15,3 +15,11 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'db-test-secret-do-not-use-in
 process.env.NODE_ENV = 'test';
 delete process.env.DEMO_DATABASE_URL;
 delete process.env.REDIS_URL;
+
+// Jest gives every test file a fresh module registry, so each file opens its
+// own pools (the shim the helpers use, and db/pool.ts behind the routes) and
+// never closes them. With the default 60 s idle timeout their connections
+// stayed open and the run climbed to Postgres's default limit of 100; late
+// files then failed with "sorry, too many clients already" (seen locally).
+// A short idle timeout lets a finished file's connections close almost at once.
+process.env.DB_IDLE_TIMEOUT_MS = '200';

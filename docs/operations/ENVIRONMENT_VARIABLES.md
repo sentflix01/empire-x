@@ -25,6 +25,7 @@ Set at: Render → nodbusiness-backend → Environment
 | `DATABASE_URL` | `postgresql://postgres.REF:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require` | ✅ Yes | Supabase **pooler** URL (port 6543, transaction mode). App will not start without this. |
 | `BACKUP_DATABASE_URL` | Same pooler URL | No | Used by backup script for `pg_dump`. Script converts pooler → direct automatically. |
 | `DB_POOL_MAX` | `5` | No | Max DB connections in pool. Default 5. |
+| `DB_IDLE_TIMEOUT_MS` | `60000` | No | Milliseconds an idle pool connection stays open. The database tests set 200 so each test file releases its connections. |
 | `DB_POOL_MIN` | `0` | No | Min idle connections. Default 0. |
 | `DB_CONNECTION_TIMEOUT_MS` | `15000` | No | Connection timeout in ms. Default 15000. |
 | `DB_SSL_CA_FILE` | `certs/prod-ca-2021.crt` locally; `/app/certs/prod-ca-2021.crt` on Render | Yes for Supabase | Supabase root CA is included in the backend image and used to verify the database certificate and hostname. |
