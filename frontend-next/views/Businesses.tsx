@@ -5,6 +5,7 @@ import Link from 'next/link';
 import client from '@/api/client';
 import { useCollapse } from '@/hooks/useCollapse';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useAuth } from '@/lib/AuthContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Business {
@@ -133,6 +134,8 @@ interface BusinessSectionProps {
   items: Business[];
   ownerMap: Map<string, OwnerProfile>;
   loading: boolean;
+  /** Placeholder cards while loading; match what the section usually shows. */
+  skeletons?: number;
   error: string | null;
   emptyMessage: string;
 }
@@ -143,6 +146,7 @@ function BusinessSection({
   items,
   ownerMap,
   loading,
+  skeletons = 3,
   error,
   emptyMessage,
 }: BusinessSectionProps) {
@@ -163,9 +167,7 @@ function BusinessSection({
       {/* Skeletons */}
       {loading && (
         <div className="space-y-2">
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
+          {Array.from({ length: skeletons }, (_, i) => <SkeletonCard key={i} />)}
         </div>
       )}
 
@@ -218,6 +220,11 @@ function BusinessSection({
 
 // ── Main Businesses view ──────────────────────────────────────────────────────
 function Businesses() {
+  const { user, authChecked } = useAuth();
+  const myId = user?.id ?? null;
+  // Guests have no businesses of their own and follow nobody: those two
+  // sections are known to be empty, so they show no placeholders.
+  const isGuest = authChecked && !myId;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -230,21 +237,15 @@ function Businesses() {
   const [ownerMap, setOwnerMap] = useState<Map<string, OwnerProfile>>(new Map());
 
   useEffect(() => {
+    if (!authChecked) return;
     let cancelled = false;
 
     async function loadAll() {
       try {
-        // Fetch current user profile (for owner_id)
-        const mePromise = client
-          .get<{ id: string }>('/api/auth/me')
-          .then((r) => r.data)
-          .catch(() => null);
-
-        // Fetch follows list
-        const followsPromise = client
-          .get<string[]>('/api/profiles/me/follows')
-          .then((r) => r.data)
-          .catch(() => [] as string[]);
+        // Follows exist only for signed-in people (guests would get a 401).
+        const followsPromise = myId
+          ? client.get<string[]>('/api/profiles/me/follows').then((r) => r.data).catch(() => [] as string[])
+          : Promise.resolve([] as string[]);
 
         // Fetch businesses (top 50)
         const bizPromise = client
@@ -252,16 +253,11 @@ function Businesses() {
           .then((r) => r.data)
           .catch(() => [] as Business[]);
 
-        const [me, followedIds, allBiz] = await Promise.all([
-          mePromise,
-          followsPromise,
-          bizPromise,
-        ]);
+        const [followedIds, allBiz] = await Promise.all([followsPromise, bizPromise]);
 
         if (cancelled) return;
 
         const followedSet = new Set(followedIds);
-        const myId = me?.id ?? null;
 
         // Partition businesses
         const mine = myId ? allBiz.filter((b) => b.owner_id === myId) : [];
@@ -286,29 +282,21 @@ function Businesses() {
         setFriendsBusinesses(friends);
         setSuggestedBusinesses(suggested);
         setNearbyBusinesses(nearby);
+        // Show the cards now; owner names and photos fill in when they arrive.
+        setLoading(false);
 
-        // Collect unique owner_ids to fetch profiles
-        const ownerIds = new Set<string>();
-        [...mine, ...friends, ...suggested, ...nearby].forEach((b) =>
-          ownerIds.add(b.owner_id)
-        );
-
-        // Fetch owner profiles in parallel
-        const profileResults = await Promise.all(
-          Array.from(ownerIds).map((uid) =>
-            client
-              .get<OwnerProfile>(`/api/profiles/by-user/${uid}`)
-              .then((r) => r.data)
-              .catch(() => null)
-          )
-        );
+        // All owners' profiles in one request (it used to be one per owner).
+        const ownerIds = Array.from(new Set(
+          [...mine, ...friends, ...suggested, ...nearby].map((b) => b.owner_id),
+        ));
+        if (!ownerIds.length) return;
+        const profiles = await client
+          .get<OwnerProfile[]>('/api/profiles', { params: { user_ids: ownerIds.join(','), limit: ownerIds.length } })
+          .then((r) => (Array.isArray(r.data) ? r.data : []))
+          .catch(() => [] as OwnerProfile[]);
 
         if (!cancelled) {
-          const map = new Map<string, OwnerProfile>();
-          profileResults.forEach((p) => {
-            if (p) map.set(p.user_id, p);
-          });
-          setOwnerMap(map);
+          setOwnerMap(new Map(profiles.map((p) => [p.user_id, p])));
         }
       } catch {
         if (!cancelled) {
@@ -323,7 +311,7 @@ function Businesses() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [authChecked, myId]);
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -342,7 +330,7 @@ function Businesses() {
         icon={Building2}
         items={myBusinesses}
         ownerMap={ownerMap}
-        loading={loading}
+        loading={loading && !isGuest}
         error={null}
         emptyMessage="You haven't created a business yet."
       />
@@ -353,7 +341,7 @@ function Businesses() {
         icon={Users}
         items={friendsBusinesses}
         ownerMap={ownerMap}
-        loading={loading}
+        loading={loading && !isGuest}
         error={null}
         emptyMessage="No businesses from people you follow yet."
       />
@@ -365,6 +353,7 @@ function Businesses() {
         items={suggestedBusinesses}
         ownerMap={ownerMap}
         loading={loading}
+        skeletons={5}
         error={null}
         emptyMessage="No suggested businesses right now."
       />
