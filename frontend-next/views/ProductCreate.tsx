@@ -125,7 +125,8 @@ function ProductCreate() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user?.id]);
 
-  const loadProduct = async (currentUser) => {
+  const loadProduct = async (currentUser: { id?: string; role?: string } | null | undefined) => {
+    if (!id) return;
     setLoading(true);
     try {
       const p = await entities.Product.get(id);
@@ -195,7 +196,7 @@ function ProductCreate() {
       ...(unit ? { unit } : {}),
     };
     try {
-      if (isEdit) {
+      if (isEdit && id) {
         await entities.Product.update(id, payload);
         toast.success("Product updated");
       } else {

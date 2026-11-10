@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { getTemplateById } from '@/lib/businessTemplates';
+import { getTemplateById, type TemplateSection } from '@/lib/businessTemplates';
 import WebsiteSectionsPanel from '@/components/profile/WebsiteSectionsPanel';
 import ImageUpload from '@/components/ui/ImageUpload';
 import CoverPositionEditor, { CoverPositionTrigger } from '@/components/ui/CoverPositionEditor';
@@ -303,7 +303,7 @@ function ProfileEdit() {
         ? getTemplateById(business.business_category, business.business_template)?.sections || []
         : [];
       const sections = JSON.stringify(templateSections.map(section => {
-        const personalized = { ...section };
+        const personalized: TemplateSection = { ...section };
         if (personalized.type === 'hero') {
           personalized.title = business.business_name || personalized.title;
           personalized.subtitle = business.business_description || personalized.subtitle;

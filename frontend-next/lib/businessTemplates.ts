@@ -420,6 +420,19 @@ import {
     }
   ];
   
+  /** One section of a business template, as personalised and saved to business_sections. */
+  export interface TemplateSection {
+    type: string;
+    title?: string;
+    subtitle?: string;
+    cta?: string;
+    content?: string;
+    email?: string;
+    phone?: string;
+    location?: string;
+    items?: Array<Record<string, string>>;
+  }
+
   export const getCategoryByValue = (value: string) => BUSINESS_CATEGORIES.find(c => c.value === value);
   export const getTemplateById = (categoryValue: string, templateId: string) => {
     const cat = getCategoryByValue(categoryValue);

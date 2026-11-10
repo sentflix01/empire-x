@@ -9,9 +9,17 @@ import { Check } from "lucide-react";
  * @param {boolean} selected - whether this template is currently selected
  * @param {function} onSelect - called when the card is clicked
  */
-export default function TemplateCard({ template, selected, onSelect }) {
+interface TemplateCardProps {
+  template: { id: string; name: string; desc?: string; sections: Array<{ type: string }> };
+  selected: boolean;
+  onSelect: () => void;
+}
+
+interface SectionDot { h: string; w: string; label: string; grid?: boolean; row?: boolean; dark?: boolean; circle?: boolean }
+
+export default function TemplateCard({ template, selected, onSelect }: TemplateCardProps) {
   // Build a mini wireframe preview from section types
-  const sectionDots = template.sections.map((s) => {
+  const sectionDots = template.sections.map((s): SectionDot => {
     const t = s.type;
     if (t === "hero") return { h: "h-10", w: "w-full", label: "Hero" };
     if (t === "products" || t === "featured_products" || t === "courses" || t === "menu") return { h: "h-6", w: "w-full", label: "Grid", grid: true };
