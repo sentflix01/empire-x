@@ -6,7 +6,7 @@ import Image from 'next/image';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import client from "@/api/client";
-import { entities } from "@/api/entities";
+import { entities, type Post, type UserProfile } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
 
 import { MapPin, ShoppingBag, Navigation, Loader2 } from "lucide-react";
@@ -16,13 +16,23 @@ import { toast } from "sonner";
 import ProfilePeek from "@/components/profile/ProfilePeek";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import UserIdentity from '@/components/ui/UserIdentity';
+import type * as Leaflet from "leaflet";
+import type * as ReactLeaflet from "react-leaflet";
+import type { LeafletMouseEvent } from "leaflet";
+
+import { firstImage } from "@/lib/spotlightTiles";
+import { formatAmount } from "@/lib/money";
+import { resolveMediaUrl } from "@/lib/media";
 
 // Leaflet modules — assigned after dynamic import inside loadLeaflet()
 // We CANNOT use require() or static import because Turbopack processes CSS imports at build time
 // Instead we use dynamic import() which is truly deferred
-let MapContainer: any, TileLayer: any, Marker: any, Circle: any;
-let MarkerClusterGroup: any;
-let L: any;
+let MapContainer: typeof ReactLeaflet.MapContainer | undefined;
+let TileLayer: typeof ReactLeaflet.TileLayer | undefined;
+let Marker: typeof ReactLeaflet.Marker | undefined;
+let Circle: typeof ReactLeaflet.Circle | undefined;
+let MarkerClusterGroup: React.ComponentType<{ chunkedLoading?: boolean; maxClusterRadius?: number; showCoverageOnHover?: boolean; children?: React.ReactNode }> | undefined;
+let L: typeof Leaflet | undefined;
 let leafletLoaded = false;
 
 async function loadLeaflet() {
@@ -53,11 +63,12 @@ async function loadLeaflet() {
   Marker = rl.Marker;
   Circle = rl.Circle;
   // react-leaflet-cluster default export is the MarkerClusterGroup component
-  MarkerClusterGroup = (cluster as any).default ?? cluster;
-  L = leaflet.default;
+  MarkerClusterGroup = ((cluster as { default?: unknown }).default ?? cluster) as typeof MarkerClusterGroup;
+  const leafletLib = leaflet.default;
+  L = leafletLib;
 
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-  L.Icon.Default.mergeOptions({
+    delete (leafletLib.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
+  leafletLib.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
@@ -69,11 +80,13 @@ async function loadLeaflet() {
   }
 }
 
-const DEFAULT_CENTER = [9.005401, 38.763611];
+const DEFAULT_CENTER: [number, number] = [9.005401, 38.763611];
 const DEFAULT_RADIUS = 20;
 
 /** DivIcon with a colored pin + name label chip floating above */
-function makeLabeledIcon(label, color = "blue") {
+type PinColor = "gold" | "red" | "blue" | "green";
+
+function makeLabeledIcon(label: string, color: PinColor = "blue") {
   const pinUrls = {
     // "gold" marks businesses: violet, the business identity colour (F-046).
     gold:  "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png",
@@ -81,7 +94,7 @@ function makeLabeledIcon(label, color = "blue") {
     blue:  "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
     green: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
   };
-  const accentColors = { gold: HEX.brandSecondary, red: HEX.destructive, blue: HEX.primary, green: HEX.success };
+  const accentColors: Record<PinColor, string> = { gold: HEX.brandSecondary, red: HEX.destructive, blue: HEX.primary, green: HEX.success };
   const accent = accentColors[color] || HEX.primary;
   // Escaped: names come from the database and this HTML is set with innerHTML (audit F-057).
   const truncated = markerLabelHtml(label);
@@ -100,16 +113,49 @@ function makeLabeledIcon(label, color = "blue") {
 }
 
 /** Hover card — replaces name bubble on mouseover */
-function MarkerHoverCard({ data, onClose: _onClose }) {
-  const [posts, setPosts] = useState([]);
-  const [profile, setProfile] = useState(null);
+interface HoverCardData {
+  ownerId?: string;
+  view: "personal" | "business";
+  name?: string;
+  category?: string | null;
+  distanceKm?: number;
+  x: number;
+  y: number;
+}
+
+interface SelectedMarker { ownerId: string; view: "personal" | "business" }
+
+/** A product from GET /api/maps/nearby (backend routes/maps.ts). NUMERIC columns arrive as decimal strings. */
+interface NearbyProduct {
+  id: string;
+  seller_id: string;
+  title?: string | null;
+  price?: number | string | null;
+  currency?: string | null;
+  images?: unknown;
+  category?: string | null;
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+  distance_km: number;
+}
+
+/** Hover position: the pin's screen rectangle, or the pointer when it cannot be found. */
+function pinPosition(e: LeafletMouseEvent): { x: number; y: number } {
+  const target = e.originalEvent.target as Element | null;
+  const rect = target?.closest?.(".leaflet-marker-icon")?.getBoundingClientRect();
+  return { x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX, y: rect ? rect.top : e.originalEvent.clientY };
+}
+
+function MarkerHoverCard({ data, onClose: _onClose }: { data: HoverCardData & { ownerId: string }; onClose: () => void }) {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      entities.UserProfile.filter({ user_id: data.ownerId }).catch(() => []),
-      entities.Post.filter({ author_id: data.ownerId }, "-created_at", 3).catch(() => []),
+      entities.UserProfile.filter({ user_id: data.ownerId }).catch(() => [] as UserProfile[]),
+      entities.Post.filter({ author_id: data.ownerId }, "-created_at", 3).catch(() => [] as Post[]),
     ]).then(([profiles, userPosts]) => {
       if (cancelled) return;
       if (profiles.length) setProfile(profiles[0]);
@@ -142,7 +188,7 @@ function MarkerHoverCard({ data, onClose: _onClose }) {
           <UserIdentity
             size="sm"
             displayName={data.name ?? '?'}
-            avatarUrl={profile?.avatar_url ?? null}
+            avatarUrl={resolveMediaUrl(profile?.avatar_url)}
             businessName={data.category ?? null}
             subtitle={
               data.distanceKm != null
@@ -193,21 +239,21 @@ function MarkerHoverCard({ data, onClose: _onClose }) {
 function NearbyMap() {
   const { user: currentUser } = useAuth();
   const [leafletReady, setLeafletReady] = useState(false);
-  const [location, setLocation]     = useState(null);
-  const [products, setProducts]     = useState([]);
+  const [location, setLocation]     = useState<{ lat: number; lon: number } | null>(null);
+  const [products, setProducts]     = useState<NearbyProduct[]>([]);
   const [loading, setLoading]       = useState(false);
   const [locating, setLocating]     = useState(false);
   const [radiusKm, setRadiusKm]     = useState(DEFAULT_RADIUS);
 
   // selectedMarker drives the ProfilePeek modal
   // { ownerId: string; view: "personal" | "business" }
-  const [selectedMarker, setSelectedMarker] = useState(null);
+  const [selectedMarker, setSelectedMarker] = useState<SelectedMarker | null>(null);
 
   // hoverCard driven by mouseover
-  const [hoverCard, setHoverCard] = useState(null);
-  const hoverTimeout = useRef(null);
+  const [hoverCard, setHoverCard] = useState<HoverCardData | null>(null);
+  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const mapRef = useRef(null);
+  const mapRef = useRef<Leaflet.Map | null>(null);
 
   // Load Leaflet async — only runs client-side, sets leafletReady when done
   useEffect(() => {
@@ -218,7 +264,7 @@ function NearbyMap() {
     return () => { cancelled = true; };
   }, []);
 
-  const fetchNearby = useCallback(async (coords, radius = radiusKm) => {
+  const fetchNearby = useCallback(async (coords: { lat: number; lon: number }, radius = radiusKm) => {
     setLoading(true);
     try {
       const productRes = await client.get("/api/maps/nearby", { params: { lat: coords.lat, lon: coords.lon, radius: radius, type: 'products' } });
@@ -232,7 +278,10 @@ function NearbyMap() {
   const handleLocate = useCallback(() => {
     if (!navigator.geolocation) {
       toast.error("Geolocation not supported in this browser");
-      setLocation({ lat: DEFAULT_CENTER[0], lon: DEFAULT_CENTER[1] });
+      const coords = { lat: DEFAULT_CENTER[0], lon: DEFAULT_CENTER[1] };
+      setLocation(coords);
+      // Still list products around the default centre (this used to stop here, so the list stayed empty).
+      fetchNearby(coords);
       return;
     }
     setLocating(true);
@@ -259,11 +308,16 @@ function NearbyMap() {
     handleLocate();
   }, [handleLocate]);
 
-  const center = location ? [location.lat, location.lon] : DEFAULT_CENTER;
+  const center: [number, number] = location ? [location.lat, location.lon] : DEFAULT_CENTER;
 
-  const openMarker = (ownerId, view = "business") => {
+  const openMarker = (ownerId: string, view: SelectedMarker["view"] = "business") => {
     setSelectedMarker({ ownerId, view });
   };
+
+  // The map parts, once Leaflet has loaded (local names keep the narrowing inside callbacks).
+  const map = leafletReady && MapContainer && TileLayer && Marker && Circle && MarkerClusterGroup
+    ? { MapContainer, TileLayer, Marker, Circle, MarkerClusterGroup }
+    : null;
 
   // Loading fallback while Leaflet is being loaded
   const MapLoadingFallback = () => (
@@ -324,10 +378,10 @@ function NearbyMap() {
           </span>
         </div>
 
-        {!leafletReady ? (
+        {!map ? (
           <MapLoadingFallback />
         ) : (
-          <MapContainer
+          <map.MapContainer
             className="isolate"
             center={center}
             zoom={12}
@@ -335,7 +389,7 @@ function NearbyMap() {
             ref={mapRef}
             doubleClickZoom={false}
           >
-            <TileLayer
+            <map.TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
@@ -343,30 +397,28 @@ function NearbyMap() {
             {/* Gold pin — your location — labeled with your name */}
             {location && (
               <>
-                <Marker
+                <map.Marker
                   position={[location.lat, location.lon]}
                   icon={makeLabeledIcon(currentUser?.full_name ?? "You", "gold")}
                   eventHandlers={{
-                    mouseover: (e) => {
-                      const rect = e.originalEvent.target?.closest?.(".leaflet-marker-icon")?.getBoundingClientRect();
+                    mouseover: (e: LeafletMouseEvent) => {
                       if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
                       setHoverCard({
                         ownerId: currentUser?.id,
                         view: "personal",
                         name: currentUser?.full_name ?? "You",
-                        x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX,
-                        y: rect ? rect.top : e.originalEvent.clientY,
+                        ...pinPosition(e),
                       });
                     },
                     mouseout: () => { setHoverCard(null); },
-                    dblclick: (e) => {
+                    dblclick: (e: LeafletMouseEvent) => {
                       e.originalEvent?.stopPropagation?.();
                       setHoverCard(null);
                       if (currentUser?.id) openMarker(currentUser.id, "personal");
                     },
                   }}
                 />
-                <Circle
+                <map.Circle
                   center={[location.lat, location.lon]}
                   radius={radiusKm * 1000}
                   pathOptions={{
@@ -381,20 +433,19 @@ function NearbyMap() {
             )}
 
             {/* Product markers — clustered when many pins overlap */}
-            <MarkerClusterGroup
+            <map.MarkerClusterGroup
               chunkedLoading
               maxClusterRadius={50}
               showCoverageOnHover={false}
             >
             {/* Product markers — labeled with product title */}
-            {products.filter(p => p.latitude && p.longitude).map(p => (
-              <Marker
+            {products.filter(p => p.latitude != null && p.longitude != null).map(p => (
+              <map.Marker
                 key={p.id}
-                position={[p.latitude, p.longitude]}
+                position={[Number(p.latitude), Number(p.longitude)]}
                 icon={makeLabeledIcon(p.title ?? "Product", "blue")}
                 eventHandlers={{
-                  mouseover: (e) => {
-                    const rect = e.originalEvent.target?.closest?.(".leaflet-marker-icon")?.getBoundingClientRect();
+                  mouseover: (e: LeafletMouseEvent) => {
                     if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
                     setHoverCard({
                       ownerId: p.seller_id,
@@ -402,12 +453,11 @@ function NearbyMap() {
                       name: p.title ?? "Product",
                       category: p.category,
                       distanceKm: p.distance_km,
-                      x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX,
-                      y: rect ? rect.top : e.originalEvent.clientY,
+                      ...pinPosition(e),
                     });
                   },
                   mouseout: () => { setHoverCard(null); },
-                  dblclick: (e) => {
+                  dblclick: (e: LeafletMouseEvent) => {
                     e.originalEvent?.stopPropagation?.();
                     setHoverCard(null);
                     openMarker(p.seller_id, "business");
@@ -415,8 +465,8 @@ function NearbyMap() {
                 }}
               />
             ))}
-            </MarkerClusterGroup>
-          </MapContainer>
+            </map.MarkerClusterGroup>
+          </map.MapContainer>
         )}
       </div>
 
@@ -435,7 +485,7 @@ function NearbyMap() {
       {/* Hover card — mouseover */}
       <AnimatePresence>
         {hoverCard && hoverCard.ownerId && (
-          <MarkerHoverCard data={hoverCard} onClose={() => setHoverCard(null)} />
+          <MarkerHoverCard data={{ ...hoverCard, ownerId: hoverCard.ownerId }} onClose={() => setHoverCard(null)} />
         )}
       </AnimatePresence>
 
@@ -452,7 +502,7 @@ function NearbyMap() {
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {products.map(p => {
-              const imgs = (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })();
+              const image = firstImage(p.images);
               return (
                 <div
                   key={p.id}
@@ -461,14 +511,14 @@ function NearbyMap() {
                 >
                   <Link href={`/products/${p.id}`} onClick={e => e.stopPropagation()}>
                     <div className="aspect-square bg-secondary/20 overflow-hidden relative">
-                      {imgs[0]
-                        ? <Image src={imgs[0]} alt={p.title} fill className="object-cover" unoptimized />
+                      {image
+                        ? <Image src={image} alt={p.title ?? "Product"} fill className="object-cover" unoptimized />
                         : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-8 h-8 text-muted-foreground/20" /></div>
                       }
                     </div>
                     <div className="p-3">
                       <p className="text-xs font-medium truncate">{p.title}</p>
-                      <p className="text-xs text-primary font-bold mt-0.5">{p.price?.toLocaleString()} {p.currency}</p>
+                      <p className="text-xs text-primary font-bold mt-0.5">{formatAmount(p.price)} {p.currency}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-0.5">
                         <MapPin className="w-2.5 h-2.5" />{p.distance_km?.toFixed(1)} km
                       </p>
@@ -484,7 +534,7 @@ function NearbyMap() {
   );
 }
 
-function EmptyState({ icon: Icon, message }) {
+function EmptyState({ icon: Icon, message }: { icon: React.ComponentType<{ className?: string }>; message: string }) {
   return (
     <div className="text-center py-16 bg-card rounded-2xl border border-border/50">
       <Icon className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
