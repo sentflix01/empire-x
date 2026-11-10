@@ -8,6 +8,7 @@ import { X, Plus, Clock, Heart, MessageCircle, Send } from 'lucide-react';
 import SafeImage from '@/components/ui/SafeImage';
 import { resolveMediaUrl } from '@/lib/media';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useAuth } from '@/lib/AuthContext';
 
 const STORY_DURATION_MS = 5000; // 5 seconds per story
 
@@ -118,6 +119,8 @@ function StoryInitial({ name }: { name: string }) {
 }
 
 function Stories() {
+  const { user, authChecked } = useAuth();
+  const userId = user?.id;
   const [stories, setStories] = useState<StoryGroup[]>([]);
   const [viewing, setViewing] = useState<ViewingState | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -131,7 +134,9 @@ function Stories() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
 
-  useEffect(() => { loadStories(); }, []);
+  // Stories are for signed-in people (the API answers guests with 401), so a
+  // guest's strip stays empty without the request and the refresh attempt after it.
+  useEffect(() => { if (authChecked && userId) loadStories(); }, [authChecked, userId]);
 
   // Auto-advance timer
   const startTimer = useCallback(() => {
